@@ -3,11 +3,11 @@ import type { ModelRoute } from 'manifest-shared';
 import { ProxyFallbackService } from '../proxy-fallback.service';
 import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { CustomProvider } from '../../../entities/custom-provider.entity';
-import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
-import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
+import { MinimaxOauthService } from '../../oauth/minimax/minimax-oauth.service';
 import { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
-import { GeminiOauthService } from '../../oauth/gemini-oauth.service';
-import { KiroOauthService } from '../../oauth/kiro-oauth.service';
+import { GeminiOauthService } from '../../oauth/gemini/gemini-oauth.service';
+import { KiroOauthService } from '../../oauth/kiro/kiro-oauth.service';
 import { XaiOauthService } from '../../oauth/xai/xai-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
@@ -47,11 +47,48 @@ describe('ProxyFallbackService.tryFallbacks — route-aware path', () => {
   beforeEach(() => {
     providerKeyService = {
       getProviderApiKey: jest.fn().mockResolvedValue('sk-test'),
+      getProviderKeyId: jest.fn().mockResolvedValue('up-fallback'),
       getDefaultKeyLabel: jest.fn().mockResolvedValue(undefined),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
       getProviderRegion: jest.fn().mockResolvedValue(null),
       hasActiveProvider: jest.fn().mockResolvedValue(true),
+      // Single key selection per attempt — composed from the legacy mocks so
+      // existing setups driving getProviderApiKey/getProviderKeyId/getProviderRegion
+      // keep working; apiKey, id, and region all come from this one row.
+      selectProviderKey: jest.fn(
+        async (
+          userId: string,
+          provider: string,
+          authType?: string,
+          label?: string,
+          agentId?: string,
+        ) => {
+          const apiKey = await providerKeyService.getProviderApiKey(
+            userId,
+            provider,
+            authType as never,
+            label,
+            agentId,
+          );
+          if (apiKey === null || apiKey === undefined) return null;
+          const id = await providerKeyService.getProviderKeyId(
+            userId,
+            provider,
+            authType as never,
+            label,
+            agentId,
+          );
+          const region = await providerKeyService.getProviderRegion(
+            userId,
+            provider,
+            authType as never,
+            label,
+            agentId,
+          );
+          return { apiKey, id, region, label: label ?? 'Default', priority: 0 };
+        },
+      ),
     } as unknown as jest.Mocked<ProviderKeyService>;
 
     customProviderRepo = {

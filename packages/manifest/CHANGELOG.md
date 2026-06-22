@@ -1,5 +1,78 @@
 # manifest
 
+## 6.11.0
+
+### Minor Changes
+
+- e30e0e9: Add global provider pages (ConnectProvider, ProviderDetail, AgentProviders tab) and lift provider connections from per-agent to user-scoped. Remove agent H1 header block from AgentDetail shell.
+- 21f0981: Tenant-canonical scoping: every resource now belongs to a tenant instead of a user. The `user_providers` table is renamed to `tenant_providers` (junction column `user_provider_id` → `tenant_provider_id`), `api_keys`, `email_provider_configs`, and `custom_providers` are re-keyed by `tenant_id`, and the remaining `user_id` scope columns are dropped from routing/notification/playground tables (kept only as nullable `created_by_user_id` audit columns). Self-host operators querying the database directly should note the table/column renames; migrations run automatically on boot and abort with a clear message if orphaned rows are found (set `MANIFEST_MIGRATION_FORCE=1` to delete them instead).
+
+### Patch Changes
+
+- e30e0e9: "View more" on a harness's recent messages now opens the global Messages log pre-filtered to that harness.
+- e30e0e9: The per-agent Overview now breaks usage down by provider (chart + provider filter), matching the global Overview.
+- e30e0e9: Restructure agent detail view into a horizontal-tabbed shell (Overview / Routing / Guardrails / Settings) with back-link navigation. Unify sidebar to a single global nav (Overview / Messages / Agents) rendered identically on every authenticated route; remove the agent-scoped MONITORING/MANAGE/RESOURCES sub-nav.
+- 7aa49e5: A newly added provider key no longer shows another key's usage on its connection page — per-connection analytics now attribute every message to the exact connection that served it, instead of grouping by provider, auth type, and label.
+- 19b9b9e: Add AWS Bedrock as an API-key provider using Bedrock Mantle's OpenAI-compatible endpoints. Bedrock vendor-prefixed model IDs now resolve model parameters, pricing, and capabilities through the underlying provider metadata while keeping the original Bedrock ID for inference.
+- 548a836: Fix Claude Code subscription routing for Anthropic Messages requests by capping Manifest-added `cache_control` markers at Anthropic's four-block limit, enabling the `context_management` beta header expected by recent Claude Code clients, and downgrading `output_config.effort: "xhigh"` when routing resolves to Sonnet.
+- e30e0e9: Custom providers now display their name and models consistently across Messages, Overview, graphs and cost tables — the literal "custom:" prefix is gone and names resolve on global pages too (the backend resolves them, so deleted providers degrade gracefully).
+- 550d2a4: Restore the "Add custom provider" button on the Usage-based page and use a dedicated modal for creating and editing custom providers
+- 30539c2: Deleting a custom provider can no longer leave orphaned key or routing data behind: the link between custom providers and their stored keys is now enforced by the database (with automatic cleanup of any pre-existing orphans), and creating or deleting a custom provider is atomic.
+- 8df85b4: Speed up global overview and Messages by collapsing overview usage timeseries queries and letting Messages load rows before exact totals/filter metadata.
+- fd5bc63: Connecting a provider right after creating your first agent no longer fails with "Tenant not found" for several minutes — newly created workspaces are now visible to the dashboard immediately. When a database migration fails on startup, the logs now show the real migration error instead of a misleading "Unable to connect to the database" retry loop.
+- e30e0e9: Add global dashboard with Overview, Messages, and Agents navigation for tenant-wide usage analytics.
+- e30e0e9: Local providers (sidebar tab, page and overview card) are hidden on cloud — they only apply to self-hosted installs.
+- 0efdb6b: Add Kiro IAM Identity Center start URL and region options to the subscription login flow.
+- e30e0e9: Fix token/cost limits never blocking (or alerting) when the server's timezone isn't UTC. `computePeriodBoundaries`/`computePeriodResetDate` built their window in UTC, but `agent_messages.timestamp` rows are stored in the process's local time — so on a non-UTC host the window's upper bound sat behind the stored rows by the TZ offset and the consumption SUM read ~0, meaning hard limits silently never tripped and threshold alerts never fired. Boundaries are now computed in local time (matching `computeCutoff`), via a new `toLocalSqlTimestamp` helper.
+- 2f2c8e1: Harden provider connection attribution and analytics before release. A subscription a user removed is no longer silently brought back by an agent's background re-registration. Pre-upgrade message history now attributes to the right connection for users who had the same provider on multiple agents. The dashboard overview keeps Playground traffic out of every card and chart consistently, and the provider-key cache is no longer bypassed on the proxy path.
+- 28dbedb: Provider connections lifted from per-agent keys now get clearer names (e.g. "from Agent A") instead of the bare agent name.
+- 3bb50ae: Provider migrations can now be rolled back without dropping connected providers.
+- ed58472: Removed the leftover savings/baseline cost tracking (database columns and proxy-side computation) now that the dashboard no longer shows savings.
+- e30e0e9: Removed the Subscription Savings card, chart, explainer and its API endpoints.
+- 97b401a: Rename the agent_provider_access table to agent_enabled_providers so the database, API routes, and dashboard all use the same "enabled providers" naming. The migration is a pure rename — no data is modified — and rolls back cleanly.
+- e30e0e9: Fix the post-create "Set up harness" modal showing the full harness picker instead of the harness you just chose. AgentGuard now refetches the agent list when the viewed agent changes, so a newly created agent's platform reaches the setup modal (previously the stale, source-less list left the platform unset whenever the agent was created from the always-present sidebar while another agent was open).
+- 2492e76: Harden the tenant-scoping upgrade for large production databases. The provider-lift migration now skips rows whose agent was already deleted instead of aborting the whole upgrade with a foreign-key error, and the multi-million-row agent-message attribution backfill runs as a throttled, resumable post-deploy job (`npm run backfill:message-providers`) instead of inside the boot transaction — so upgrading no longer holds a long lock on `agent_messages`.
+- d6748ad: Close a cross-tenant read path in message-detail logs (the llm_calls/agent_logs/tool_executions child queries are now tenant-scoped), and harden dashboard reliability: reject API keys past their own expiry from the auth cache, stop reporting routing-override saves that didn't persist, keep a demo-seed failure from aborting boot, and add a retryable error state to the connection page.
+- 8d7f916: Add a one-time "What we just shipped" dialog for existing users that announces global providers: connect a provider once across all harnesses, scope access per harness, and track subscription vs usage-based spend per provider and harness. Dismissal is remembered locally.
+
+## 6.10.0
+
+### Minor Changes
+
+- a29a705: Add a per-auth-type breakdown to the public `provider-tokens` endpoint. Each provider now carries an `auth_types` array (`{ auth_type, total_tokens, model_count }`) alongside the existing `models` list, so a provider that is used both with an API key and a subscription (e.g. OpenAI API key vs ChatGPT subscription) can be listed once per auth method. Usage with no recorded auth type is counted as `api_key`. The existing `provider`/`total_tokens`/`models` fields are unchanged, so the addition is backwards compatible.
+- 43e06c6: Add Xiaomi MiMo as an API-key provider with MiMo Token Plan subscription routing.
+
+### Patch Changes
+
+- 17d7fd5: Fix the Anthropic subscription model catalog. Drop the `claude-*-fast` ids it pulled from the pricing cache — those 404 at `api.anthropic.com` because fast mode is an `anthropic-beta` header on the base Opus model, not a model id. Also add `claude-fable-5` (Claude Fable 5), a new subscription model that didn't match the existing `claude-*-4` prefixes.
+- 6eb902d: Forward OpenAI-compatible image inputs as Anthropic image content blocks when routing Chat Completions or Responses requests to Claude.
+- abbf574: Inject cache_control prompt-caching breakpoints for Anthropic subscription OAuth requests. The skip dated from a misdiagnosed 400 that was actually caused by the missing Claude Code identity block, so subscription users were re-paying their full prompt prefix in quota on every request.
+- 6dc6c07: Filter ChatGPT subscription model discovery to models the Codex backend accepts with a ChatGPT account.
+- 00870bf: Make Anthropic Claude Code subscription OAuth and routing match the Claude Code flow: exchange tokens through the Claude Code API host, avoid connect-time probes, and use Claude Code-compatible request headers. Also fix Anthropic OAuth pending-flow consumption so the saved provider keeps the correct agent and user IDs.
+- 392efe2: Allow adaptive-only Anthropic thinking mode parameters to be reset to unset from the model parameter dialog.
+- 04782c1: Restore prompt-cache hits on the ChatGPT subscription backend: send the session affinity headers the Codex CLI sends (`session-id`/`thread-id`, `x-codex-turn-state` replay, stable `prompt_cache_key`), and forward the caller's `prompt_cache_key` on OpenAI /responses conversions
+- 4ea4872: Allow self-hosted installs to tune streaming warmup timeout with STREAM_WARMUP_MS.
+- 3f59cc4: Route Copilot subscription models using their advertised supported endpoints so responses-only models use `/responses` directly instead of failing on `/chat/completions`.
+- 96eba2d: Resolve subscription provider aliases before checking subscription support so Gemini subscriptions stored or registered as "google" remain usable for routing.
+- 09a7379: Strip unsupported `exclusiveMinimum` and `exclusiveMaximum` JSON Schema fields from Google/Gemini tool declarations so function-calling requests do not fail validation.
+- 8cbc0da: Forward OpenAI-compatible image inputs as Gemini inline or file data parts when routing requests to Google.
+- d018cb4: Fix custom (header) routing tiers keeping stale account pins after disconnecting one of several accounts on the same provider. Provider-reference cleanup only updated complexity and specificity tiers, so disconnecting an account, renaming a key, or deactivating all providers left header-tier routes pointing at a removed account (the account chip then rendered blank). `relabelOverrides`, `cleanupProviderReferences`, and `deactivateAllProviders` now clean `header_tiers` routes the same way.
+- cb48cc0: Fix OAuth subscription tokens getting permanently invalidated (#2012). Providers like OpenAI now rotate refresh tokens on every refresh, so the previous "refresh then persist" path could brick an account when parallel proxy requests refreshed the same credential at once, or when the DB write failed after the provider had already rotated. Lazy refreshes are now coordinated per credential: concurrent refreshes coalesce into a single round-trip, the freshest token is re-read from the database before refreshing, and the rotated token is persisted with retries. Applies to all subscription OAuth providers (OpenAI, Gemini, Anthropic, MiniMax, xAI, Kiro).
+- 2ee31b3: Route already-resolved OpenAI `o3-deep-research` API-key requests through the Responses endpoint, matching the existing deep-research handling for `o4-mini-deep-research` without adding unavailable models to discovery. Preserve non-streaming mode when forwarding Chat Completions-shaped requests to OpenAI Responses, and surface collected Responses SSE error events as upstream failures instead of empty successful completions.
+- 6677b95: Fix the Playground sending MiniMax subscription requests to the default region endpoint. The OAuth `resource_url` (which encodes the chosen region) was only applied for Gemini and dropped for MiniMax; it is now turned into a `minimax-subscription` base-URL override the same way the proxy does, so Playground requests hit the correct region. Follow-up to #2110 (cubic-flagged).
+- 4a7e1fa: Normalize provider reasoning stream aliases such as Copilot's `reasoning_text` to OpenAI-compatible `reasoning_content` for chat-completions clients while preserving provider-specific replay safeguards.
+- 642b162: Prevent OpenAI Responses-backed subscription streams from ending as interrupted client streams: forward terminal upstream `error` / `response.failed` events as OpenAI-compatible SSE error payloads, convert `response.incomplete` (max_output_tokens / content filter) into a proper `length` / `content_filter` finish chunk, surface upstream stream errors to `/v1/messages` clients as native Anthropic `error` events instead of a fabricated empty `end_turn` message, and stop the provider request timeout from aborting healthy streaming response bodies after headers have arrived.
+- 34febf8: Fix the Playground using the wrong endpoint for region-based providers (qwen, zai) and forwarding vendor-prefixed model ids for copilot/zai. The proxy's endpoint + model resolution (region overrides for minimax/qwen/zai, prefix stripping for copilot/minimax/zai, custom-provider endpoints) is now a shared `resolveForwardEndpoint` helper used by both the proxy and the Playground, so the two paths can no longer drift.
+- 6154127: Try configured tier fallback routes before the auto-assigned route when a manual override model is unavailable.
+
+## 6.9.2
+
+### Patch Changes
+
+- 2d7541b: Resolve model parameter specs through the providerless modelparams.dev by-model endpoint so gateway routes such as GitHub Copilot can expose the underlying model's thinking and reasoning controls.
+- 5006434: Speed up the dashboard and lower proxy overhead: unbuffered SSE streaming, smaller render-blocking CSS, lazy-loaded modals, cached per-agent model lookups, and new indexes for hot queries.
+- aad3033: Fix native `/v1/responses` forwarding so typed non-message input items such as `reasoning` and `item_reference` are preserved without a `role`, preventing ChatGPT subscription Codex backend 400 errors on multi-turn Codex requests.
+
 ## 6.9.1
 
 ### Patch Changes

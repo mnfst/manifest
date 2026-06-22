@@ -88,8 +88,10 @@ export type { FallbackEntry } from './fallback-encoding';
 export {
   MODEL_PREFIX_MAP,
   inferProviderFromModel,
+  resolveProviderToken,
   underlyingGatewayModel,
   resolveUnderlyingModelIdentity,
+  resolveProviderMetadataIdentity,
 } from './provider-inference';
 export {
   SHARED_PROVIDERS,
@@ -108,6 +110,7 @@ export {
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
+  getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
 } from './subscription';
 export type { SubscriptionCapabilities, SubscriptionProviderConfig } from './subscription';

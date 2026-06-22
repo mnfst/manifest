@@ -13,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { DataSource } from 'typeorm';
+import { RequestWithTenantContext } from '../src/common/decorators/tenant-context.decorator';
 import { appConfig } from '../src/config/app.config';
 import { IS_PUBLIC_KEY } from '../src/common/decorators/public.decorator';
 import { hashKey, keyPrefix } from '../src/common/utils/hash.util';
@@ -23,7 +24,7 @@ import { Agent } from '../src/entities/agent.entity';
 import { AgentApiKey } from '../src/entities/agent-api-key.entity';
 import { NotificationRule } from '../src/entities/notification-rule.entity';
 import { NotificationLog } from '../src/entities/notification-log.entity';
-import { UserProvider } from '../src/entities/user-provider.entity';
+import { TenantProvider } from '../src/entities/tenant-provider.entity';
 import { TierAssignment } from '../src/entities/tier-assignment.entity';
 import { CustomProvider } from '../src/entities/custom-provider.entity';
 import { EmailProviderConfig } from '../src/entities/email-provider-config.entity';
@@ -33,6 +34,9 @@ import { InstallMetadata } from '../src/entities/install-metadata.entity';
 import { AgentModelParams } from '../src/entities/agent-model-params.entity';
 import { PlaygroundRun } from '../src/entities/playground-run.entity';
 import { PlaygroundColumn } from '../src/entities/playground-column.entity';
+import { ReasoningContentCacheEntry } from '../src/entities/reasoning-content-cache-entry.entity';
+import { AgentEnabledProvider } from '../src/entities/agent-enabled-provider.entity';
+import { BackfillState } from '../src/entities/backfill-state.entity';
 import { HealthModule } from '../src/health/health.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
 import { OtlpModule } from '../src/otlp/otlp.module';
@@ -59,7 +63,7 @@ const entities = [
   AgentApiKey,
   NotificationRule,
   NotificationLog,
-  UserProvider,
+  TenantProvider,
   TierAssignment,
   CustomProvider,
   EmailProviderConfig,
@@ -69,6 +73,9 @@ const entities = [
   AgentModelParams,
   PlaygroundRun,
   PlaygroundColumn,
+  ReasoningContentCacheEntry,
+  AgentEnabledProvider,
+  BackfillState,
 ];
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
 const OPENROUTER_MODELS_FIXTURE = {
@@ -139,11 +146,23 @@ function buildTypeOrmConfig(): TypeOrmModuleOptions {
   };
 }
 
+/**
+ * Mimics the production SessionGuard contract: authenticates the request and
+ * attaches both `request.user` and the tenant context that @TenantCtx()
+ * controllers read. The tenant is resolved through `tenants.owner_user_id` —
+ * the same (and only) user→tenant link production resolution uses.
+ *
+ * Tests exercising multiple users can impersonate another user by setting the
+ * `x-test-user-id` header alongside `x-api-key`.
+ */
 @Injectable()
 class MockSessionGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly dataSource: DataSource,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -156,8 +175,24 @@ class MockSessionGuard implements CanActivate {
       throw new UnauthorizedException('Authentication required');
     }
 
-    request.user = { id: TEST_USER_ID, email: 'test@test.com', name: 'Test' };
-    request.session = { id: 'test-session', userId: TEST_USER_ID };
+    const userId =
+      typeof request.headers['x-test-user-id'] === 'string'
+        ? (request.headers['x-test-user-id'] as string)
+        : TEST_USER_ID;
+
+    request.user = { id: userId, email: 'test@test.com', name: 'Test' };
+    request.session = { id: 'test-session', userId };
+
+    // Resolve the user's tenant via owner_user_id (no caching: tests create
+    // tenants on the fly and must see them on the next request).
+    const rows: Array<{ id: string }> = await this.dataSource.query(
+      `SELECT id FROM tenants WHERE owner_user_id = $1 LIMIT 1`,
+      [userId],
+    );
+    (request as RequestWithTenantContext).tenantContext = {
+      tenantId: rows[0]?.id ?? null,
+      userId,
+    };
     return true;
   }
 }
@@ -203,23 +238,23 @@ export async function createTestApp(): Promise<INestApplication> {
     const ds = app.get(DataSource);
     const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
-    // Seed test API key (hashed)
+    // Seed test tenant (owner_user_id is the ONLY user→tenant link), agent,
+    // API key and OTLP key (hashed)
     await ds.query(
-      `INSERT INTO api_keys (id, key, key_hash, key_prefix, user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6)`,
+      `INSERT INTO tenants (id, name, owner_user_id, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,$4,true,$5,$6)`,
+      [TEST_TENANT_ID, TEST_USER_ID, TEST_USER_ID, 'Test Org', now, now],
+    );
+    await ds.query(
+      `INSERT INTO api_keys (id, key, key_hash, key_prefix, tenant_id, created_by_user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, $7)`,
       [
         'test-key-id',
         hashKey(TEST_API_KEY),
         keyPrefix(TEST_API_KEY),
+        TEST_TENANT_ID,
         TEST_USER_ID,
         'Test Key',
         now,
       ],
-    );
-
-    // Seed test tenant, agent, and OTLP key (hashed)
-    await ds.query(
-      `INSERT INTO tenants (id, name, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,true,$4,$5)`,
-      [TEST_TENANT_ID, TEST_USER_ID, 'Test Org', now, now],
     );
     await ds.query(
       `INSERT INTO agents (id, name, display_name, description, is_active, complexity_routing_enabled, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,$4,true,true,$5,$6,$7)`,

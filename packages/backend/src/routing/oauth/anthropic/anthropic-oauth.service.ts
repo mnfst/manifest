@@ -3,7 +3,9 @@ import { ProviderService } from '../../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../../common/utils/secret-scrub';
 import {
+  coordinateOAuthRefresh,
   generatePkce,
+  oauthRefreshKey,
   OAuthPendingFlowStore,
   parseOAuthTokenBlob,
   serializeOAuthTokenBlob,
@@ -36,6 +38,7 @@ export class AnthropicOauthExchangeError extends Error {
 const PROVIDER = 'anthropic';
 const ANTHROPIC_OAUTH_TOKEN_HEADERS = {
   'Content-Type': 'application/json',
+  Accept: 'application/json',
   'User-Agent': 'anthropic',
 } as const;
 
@@ -68,13 +71,13 @@ export class AnthropicOauthService {
    * Build the authorize URL the user opens in a new tab. The state is also
    * returned so the SPA can pre-fill it on the paste-code step.
    */
-  async generateAuthorizationUrl(agentId: string, userId: string): Promise<AuthorizeResult> {
+  async generateAuthorizationUrl(agentId: string, tenantId: string): Promise<AuthorizeResult> {
     const { verifier, challenge } = generatePkce();
     // Claude Code's Anthropic OAuth flow uses the PKCE verifier as state.
     const state = verifier;
     await this.pendingFlows.create(
       PROVIDER,
-      { state, verifier, agentId, userId },
+      { state, verifier, agentId, tenantId },
       ANTHROPIC_OAUTH.STATE_TTL_MS,
     );
 
@@ -100,18 +103,19 @@ export class AnthropicOauthService {
     payload: string,
     fallbackState: string | undefined,
     agentId: string,
-    userId: string,
+    tenantId: string,
+    createdByUserId?: string | null,
   ): Promise<void> {
     const { code, state: extractedState } = splitAnthropicAuthPayload(payload);
     let state = extractedState ?? fallbackState?.trim();
     if (!code) throw new Error('Missing authorization code');
     if (!state) {
-      const latest = await this.pendingFlows.findLatestForAgent(PROVIDER, agentId, userId);
+      const latest = await this.pendingFlows.findLatestForAgent(PROVIDER, agentId, tenantId);
       state = latest?.state;
     }
     if (!state) throw new Error('Missing OAuth state');
 
-    const pending = await this.pendingFlows.consume(PROVIDER, state, agentId, userId);
+    const pending = await this.pendingFlows.consume(PROVIDER, state, agentId, tenantId);
     if (!pending) throw new Error('Invalid or expired OAuth state');
     if (pending.expiresAt < Date.now()) {
       throw new Error('OAuth state expired');
@@ -146,19 +150,19 @@ export class AnthropicOauthService {
       e: Date.now() + data.expires_in * 1000,
     };
 
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, PROVIDER);
+    const label = await this.providerService.nextOAuthLabel(pending.tenantId, PROVIDER);
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
-      pending.userId,
+      pending.tenantId,
       PROVIDER,
       serializeOAuthTokenBlob(blob),
       'subscription',
       undefined,
       label,
+      createdByUserId,
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
     } catch (err) {
       this.logger.warn(`Model discovery after Anthropic OAuth failed: ${err}`);
     }
@@ -199,7 +203,7 @@ export class AnthropicOauthService {
   async unwrapToken(
     rawValue: string,
     agentId: string,
-    userId: string,
+    tenantId: string,
     keyLabel?: string,
   ): Promise<string | null> {
     const blob = parseOAuthTokenBlob(rawValue);
@@ -214,18 +218,28 @@ export class AnthropicOauthService {
       return blob.t;
     }
     try {
-      const refreshed = await this.refreshAccessToken(blob.r);
-      await this.providerService.upsertProvider(
-        agentId,
-        userId,
-        'anthropic',
-        serializeOAuthTokenBlob(refreshed),
-        'subscription',
-        undefined,
-        keyLabel,
-      );
-      this.logger.log(`Anthropic OAuth token refreshed for agent=${agentId}`);
-      return refreshed.t;
+      const resolved = await coordinateOAuthRefresh<OAuthTokenBlob>({
+        key: oauthRefreshKey('anthropic', tenantId, keyLabel),
+        logger: this.logger,
+        callerBlob: blob,
+        readFreshRaw: () =>
+          this.providerService.getFreshSubscriptionCredential(tenantId, 'anthropic', keyLabel),
+        parse: parseOAuthTokenBlob,
+        refresh: (current) => this.refreshAccessToken(current.r),
+        persist: (refreshed) =>
+          this.providerService
+            .upsertProvider(
+              agentId,
+              tenantId,
+              'anthropic',
+              serializeOAuthTokenBlob(refreshed),
+              'subscription',
+              undefined,
+              keyLabel,
+            )
+            .then(() => undefined),
+      });
+      return resolved.t;
     } catch (err) {
       this.logger.error(`Failed to refresh Anthropic token for agent=${agentId}: ${err}`);
       return null;
@@ -246,8 +260,8 @@ export class AnthropicOauthService {
    * or the page reloaded mid-flow. Only the `state` is returned — the PKCE
    * verifier stays server-side.
    */
-  async findPendingForAgent(agentId: string, userId: string): Promise<{ state: string } | null> {
-    const pending = await this.pendingFlows.findLatestForAgent(PROVIDER, agentId, userId);
+  async findPendingForAgent(agentId: string, tenantId: string): Promise<{ state: string } | null> {
+    const pending = await this.pendingFlows.findLatestForAgent(PROVIDER, agentId, tenantId);
     return pending ? { state: pending.state } : null;
   }
 }

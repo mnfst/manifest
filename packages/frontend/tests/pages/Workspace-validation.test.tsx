@@ -6,9 +6,14 @@ import { render, screen, fireEvent } from "@solidjs/testing-library";
 // payload, which the happy-path tests don't strictly assert.
 
 const mockNavigate = vi.fn();
+let mockSearchParams: Record<string, string | undefined> = {};
+const mockSetSearchParams = vi.fn((next: Record<string, string | undefined>) => {
+  mockSearchParams = { ...mockSearchParams, ...next };
+});
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
   useNavigate: () => mockNavigate,
+  useSearchParams: () => [mockSearchParams, mockSetSearchParams] as const,
 }));
 
 vi.mock("@solidjs/meta", () => ({
@@ -19,10 +24,12 @@ vi.mock("@solidjs/meta", () => ({
 const mockGetAgents = vi.fn();
 const mockCreateAgent = vi.fn();
 const mockDeleteAgent = vi.fn();
+const mockGetGlobalProviders = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
   createAgent: (...args: unknown[]) => mockCreateAgent(...args),
   deleteAgent: (...args: unknown[]) => mockDeleteAgent(...args),
+  getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
 }));
 
 vi.mock("../../src/components/DuplicateAgentModal.jsx", () => ({ default: () => null }));
@@ -64,6 +71,7 @@ vi.mock("../../src/components/AgentTypeSelect.jsx", () => ({
 const mockMarkAgentCreated = vi.fn();
 vi.mock("../../src/services/recent-agents.js", () => ({
   markAgentCreated: (...args: unknown[]) => mockMarkAgentCreated(...args),
+  markSetupPending: vi.fn(),
 }));
 
 vi.mock("manifest-shared", () => ({
@@ -81,7 +89,7 @@ import Workspace from "../../src/pages/Workspace";
 
 const openModal = () => {
   const result = render(() => <Workspace />);
-  fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+  fireEvent.click(screen.getAllByText("Connect Harness")[0]);
   const input = result.container.querySelector(".modal-card__input") as HTMLInputElement;
   const createBtn = Array.from(
     result.container.querySelectorAll<HTMLButtonElement>(".modal-card button.btn--primary"),
@@ -92,8 +100,10 @@ const openModal = () => {
 describe("Workspace AddAgentModal - name validation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = {};
     mockGetAgents.mockResolvedValue({ agents: [] });
     mockCreateAgent.mockResolvedValue({ agent: { name: "stub" }, apiKey: "k" });
+    mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: "openai" }] });
   });
 
   it("keeps Create disabled while the name is the empty string", () => {
@@ -141,7 +151,7 @@ describe("Workspace AddAgentModal - name validation", () => {
     expect(createBtn.disabled).toBe(false);
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/weird%2Fname", expect.anything());
+      expect(mockNavigate).toHaveBeenCalledWith("/harnesses/weird%2Fname/routing", expect.anything());
     });
   });
 
@@ -151,7 +161,7 @@ describe("Workspace AddAgentModal - name validation", () => {
     fireEvent.input(input, { target: { value: "100%cool" } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/100%25cool", expect.anything());
+      expect(mockNavigate).toHaveBeenCalledWith("/harnesses/100%25cool/routing", expect.anything());
     });
   });
 
@@ -162,7 +172,7 @@ describe("Workspace AddAgentModal - name validation", () => {
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        `/agents/${encodeURIComponent("bot-🚀")}`,
+        `/harnesses/${encodeURIComponent("bot-🚀")}/routing`,
         expect.anything(),
       );
     });
@@ -201,8 +211,10 @@ describe("Workspace AddAgentModal - name validation", () => {
 describe("Workspace AddAgentModal - exact createAgent payload", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = {};
     mockGetAgents.mockResolvedValue({ agents: [] });
     mockCreateAgent.mockResolvedValue({ agent: { name: "demo" }, apiKey: "k" });
+    mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: "openai" }] });
   });
 
   it("submits the default category and platform when the user only types a name", async () => {
@@ -242,7 +254,7 @@ describe("Workspace AddAgentModal - exact createAgent payload", () => {
     fireEvent.input(input, { target: { value: "Demo Agent" } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/demo-agent-1", {
+      expect(mockNavigate).toHaveBeenCalledWith("/harnesses/demo-agent-1/routing", {
         state: { newApiKey: "key-xyz" },
       });
     });
@@ -256,7 +268,7 @@ describe("Workspace AddAgentModal - exact createAgent payload", () => {
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        `/agents/${encodeURIComponent("Fallback Agent")}`,
+        `/harnesses/${encodeURIComponent("Fallback Agent")}/routing`,
         { state: { newApiKey: "k" } },
       );
     });

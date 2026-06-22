@@ -32,12 +32,12 @@ import {
   extractThinkingBlocksFromMessagesResponse,
   type ExtractedThinkingBlocks,
 } from './anthropic-adapter';
-import { supportsReasoningContent } from './provider-client-converters';
+import { getOpenAiReasoningStreamFormat, supportsReasoningContent } from './reasoning-format';
 import type { CallerAttribution } from './caller-classifier';
 import {
   unwrapCodeAssistResponse,
   unwrapCodeAssistStreamPayload,
-} from '../oauth/codeassist-envelope';
+} from '../oauth/gemini/codeassist-envelope';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -111,6 +111,7 @@ export async function handleProviderError(
       reason: meta.reason,
       specificityCategory: meta.specificity_category,
       providerKeyLabel: meta.provider_key_label,
+      tenantProviderId: meta.tenantProviderId,
       callerAttribution,
       requestHeaders,
       requestParams: meta.request_params,
@@ -179,6 +180,8 @@ function handleFallbackExhausted(
       {
         provider: meta.provider,
         reason: meta.reason,
+        // Exhausted chain: primary connection (meta.tenantProviderId holds it here).
+        tenantProviderId: meta.tenantProviderId,
         callerAttribution,
         requestHeaders,
         requestParams: meta.request_params,
@@ -240,6 +243,15 @@ export function recordFallbackFailures(
         // succeeding fallback's provider in this flow, not the primary's.
         provider: meta.primaryProvider,
         reason: meta.reason,
+        // meta.tenantProviderId holds the winning fallback here; the primary's id
+        // is preserved separately (mirrors primaryProvider / primaryAuthType).
+        // Compare against undefined, not ??, so an explicit null primary
+        // connection (e.g. Ollama) stays null rather than being misattributed
+        // to the fallback's connection.
+        tenantProviderId:
+          meta.primaryTenantProviderId === undefined
+            ? meta.tenantProviderId
+            : meta.primaryTenantProviderId,
         callerAttribution,
         requestHeaders,
         requestParams: meta.request_params,
@@ -373,14 +385,18 @@ export async function handleStreamResponse(
       onClient,
     );
   }
-  if (supportsReasoningContent(meta.provider, meta.model)) {
+  const reasoningStreamFormat = getOpenAiReasoningStreamFormat(meta.provider, meta.model);
+  if (reasoningStreamFormat) {
     const onReasoningContent =
       reasoningCache && sessionKey
         ? (firstToolCallId: string, content: string) => {
             reasoningCache.store(sessionKey, firstToolCallId, content);
           }
         : undefined;
-    const transformer = providerClient.createReasoningContentStreamTransformer(onReasoningContent);
+    const transformer = providerClient.createReasoningContentStreamTransformer(
+      onReasoningContent,
+      reasoningStreamFormat,
+    );
     return pipeStream(
       forward.response.body!,
       res,
@@ -549,6 +565,7 @@ export function recordSuccess(
         authType: meta.auth_type,
         reason: meta.reason,
         providerKeyLabel: meta.provider_key_label,
+        tenantProviderId: meta.tenantProviderId,
         usage: streamUsage ?? undefined,
         callerAttribution,
         requestHeaders,
@@ -571,6 +588,7 @@ export function recordSuccess(
         durationMs,
         specificityCategory: meta.specificity_category,
         providerKeyLabel: meta.provider_key_label,
+        tenantProviderId: meta.tenantProviderId,
         callerAttribution,
         requestHeaders,
         requestParams: meta.request_params,

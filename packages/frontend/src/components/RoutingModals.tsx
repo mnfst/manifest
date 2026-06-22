@@ -1,8 +1,11 @@
-import { Show, createSignal, type Accessor, type Component } from 'solid-js';
-import ModelPickerModal from './ModelPickerModal.js';
-import ProviderSelectModal from './ProviderSelectModal.js';
+import { Show, Suspense, createSignal, lazy, type Accessor, type Component } from 'solid-js';
 import RoutingInstructionModal from './RoutingInstructionModal.js';
 import KeyPickerModal from './KeyPickerModal.js';
+
+// These modals only mount behind a `<Show>` (dropdown open / provider modal
+// open). Lazy-load them so the heavy model picker and the ~130 kB
+// provider-select chunk stay out of the Routing route's initial bundle.
+const ModelPickerModal = lazy(() => import('./ModelPickerModal.js'));
 import { PROVIDERS } from '../services/providers.js';
 import type {
   TierAssignment,
@@ -63,6 +66,7 @@ interface RoutingModalsProps {
     providerKeyLabel?: string,
   ) => void;
   onProviderUpdate: () => Promise<void>;
+  onProviderPoll?: () => Promise<void>;
   onOpenProviderModal: () => void;
 }
 
@@ -138,22 +142,24 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
     <>
       <Show when={props.dropdownTier()}>
         {(tierId) => (
-          <ModelPickerModal
-            tierId={tierId()}
-            agentName={props.agentName()}
-            models={props.models()}
-            tiers={props.tiers()}
-            customProviders={props.customProviders()}
-            connectedProviders={props.connectedProviders()}
-            requiredCapability={requiredCapabilityForTier(tierId())}
-            onSelect={handleSelect}
-            onClose={props.onDropdownClose}
-            onConnectProviders={() => {
-              props.onDropdownClose();
-              props.onOpenProviderModal();
-            }}
-            onProviderRefreshed={props.onProviderUpdate}
-          />
+          <Suspense fallback={null}>
+            <ModelPickerModal
+              tierId={tierId()}
+              agentName={props.agentName()}
+              models={props.models()}
+              tiers={props.tiers()}
+              customProviders={props.customProviders()}
+              connectedProviders={props.connectedProviders()}
+              requiredCapability={requiredCapabilityForTier(tierId())}
+              onSelect={handleSelect}
+              onClose={props.onDropdownClose}
+              onConnectProviders={() => {
+                props.onDropdownClose();
+                props.onOpenProviderModal();
+              }}
+              onProviderRefreshed={props.onProviderUpdate}
+            />
+          </Suspense>
         )}
       </Show>
 
@@ -164,24 +170,26 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               .filter((a) => a.is_active)
               .map((a) => ({ ...a, tier: a.category }));
           return (
-            <ModelPickerModal
-              tierId={category()}
-              agentName={props.agentName()}
-              models={props.models()}
-              tiers={specificityTiers()}
-              customProviders={props.customProviders()}
-              connectedProviders={props.connectedProviders()}
-              requiredCapability={requiredCapabilityForSpecificity(category())}
-              onSelect={(_, model, provider, authType) =>
-                props.onSpecificityOverride?.(category(), model, provider, authType)
-              }
-              onClose={() => props.onSpecificityDropdownClose?.()}
-              onConnectProviders={() => {
-                props.onSpecificityDropdownClose?.();
-                props.onOpenProviderModal();
-              }}
-              onProviderRefreshed={props.onProviderUpdate}
-            />
+            <Suspense fallback={null}>
+              <ModelPickerModal
+                tierId={category()}
+                agentName={props.agentName()}
+                models={props.models()}
+                tiers={specificityTiers()}
+                customProviders={props.customProviders()}
+                connectedProviders={props.connectedProviders()}
+                requiredCapability={requiredCapabilityForSpecificity(category())}
+                onSelect={(_, model, provider, authType) =>
+                  props.onSpecificityOverride?.(category(), model, provider, authType)
+                }
+                onClose={() => props.onSpecificityDropdownClose?.()}
+                onConnectProviders={() => {
+                  props.onSpecificityDropdownClose?.();
+                  props.onOpenProviderModal();
+                }}
+                onProviderRefreshed={props.onProviderUpdate}
+              />
+            </Suspense>
           );
         }}
       </Show>
@@ -199,7 +207,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
                 // (matched on the full route tuple — same model on a different
                 // (provider, auth) is intentionally NOT filtered).
                 const tier = props.getTier(tierId());
-                const primaryRoute = tier?.override_route ?? tier?.auto_assigned_route ?? null;
+                const primaryRoute = tier?.override_route ?? null;
                 if (
                   primaryRoute &&
                   primaryRoute.model === m.model_name &&
@@ -272,22 +280,24 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
             });
           };
           return (
-            <ModelPickerModal
-              tierId={tierId()}
-              agentName={props.agentName()}
-              models={filteredModels()}
-              tiers={props.tiers()}
-              customProviders={props.customProviders()}
-              connectedProviders={props.connectedProviders()}
-              requiredCapability={requiredCapabilityForTier(tierId())}
-              onSelect={handleFallbackSelect}
-              onClose={props.onFallbackPickerClose}
-              onConnectProviders={() => {
-                props.onFallbackPickerClose();
-                props.onOpenProviderModal();
-              }}
-              onProviderRefreshed={props.onProviderUpdate}
-            />
+            <Suspense fallback={null}>
+              <ModelPickerModal
+                tierId={tierId()}
+                agentName={props.agentName()}
+                models={filteredModels()}
+                tiers={props.tiers()}
+                customProviders={props.customProviders()}
+                connectedProviders={props.connectedProviders()}
+                requiredCapability={requiredCapabilityForTier(tierId())}
+                onSelect={handleFallbackSelect}
+                onClose={props.onFallbackPickerClose}
+                onConnectProviders={() => {
+                  props.onFallbackPickerClose();
+                  props.onOpenProviderModal();
+                }}
+                onProviderRefreshed={props.onProviderUpdate}
+              />
+            </Suspense>
           );
         }}
       </Show>
@@ -304,17 +314,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
         )}
       </Show>
 
-      <Show when={props.showProviderModal()}>
-        <ProviderSelectModal
-          agentName={props.agentName()}
-          providers={props.connectedProviders()}
-          customProviders={props.customProviders()}
-          customProviderPrefill={props.customProviderPrefill}
-          providerDeepLink={props.providerDeepLink}
-          onClose={props.onProviderModalClose}
-          onUpdate={props.onProviderUpdate}
-        />
-      </Show>
+      {/* ProviderSelectModal removed — provider connection now via sidebar pages */}
 
       <RoutingInstructionModal
         open={props.instructionModal() !== null}

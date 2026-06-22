@@ -1,5 +1,6 @@
 export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   anthropic: 'https://console.anthropic.com/settings/keys',
+  bedrock: 'https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys-generate.html',
   deepseek: 'https://platform.deepseek.com/api_keys',
   fireworks: 'https://app.fireworks.ai/api-keys',
   gemini: 'https://aistudio.google.com/apikey',
@@ -16,6 +17,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   'opencode-zen': 'https://opencode.ai/auth',
   openrouter: 'https://openrouter.ai/keys',
   qwen: 'https://www.alibabacloud.com/help/en/model-studio/developer-reference/get-api-key',
+  xiaomi: 'https://platform.xiaomimimo.com/console/api-keys',
   xai: 'https://docs.x.ai/docs/api-reference',
   zai: 'https://z.ai/manage-apikey/apikey-list',
 };
@@ -36,6 +38,7 @@ export const SUBSCRIPTION_PROVIDER_KEY_URLS: Record<string, string> = {
   moonshot: 'https://www.kimi.com/code/console',
   'ollama-cloud': 'https://ollama.com/settings/keys',
   kiro: 'https://app.kiro.dev',
+  xiaomi: 'https://platform.xiaomimimo.com/token-plan',
   zai: 'https://z.ai/manage-apikey/apikey-list',
 };
 

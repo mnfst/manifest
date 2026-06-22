@@ -72,6 +72,17 @@ describe('MessagesQueryDto', () => {
     expect(flat.join('\n')).toMatch(/status must be one of/);
   });
 
+  it('coerces include_total and include_filter_options flags', async () => {
+    const dto = plainToInstance(MessagesQueryDto, {
+      include_total: 'false',
+      include_filter_options: '1',
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(dto.include_total).toBe(false);
+    expect(dto.include_filter_options).toBe(true);
+  });
+
   it('accepts each known routing_tier value including playground', async () => {
     for (const tier of ['simple', 'standard', 'complex', 'reasoning', 'playground']) {
       const dto = plainToInstance(MessagesQueryDto, { routing_tier: tier });

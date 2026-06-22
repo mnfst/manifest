@@ -13,6 +13,7 @@ import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
 import VersionIndicator from './components/VersionIndicator.jsx';
+import WhatsNewModal from './components/WhatsNewModal.jsx';
 import { connectSse } from './services/sse.js';
 import { RightSidebarProvider, useRightSidebar } from './services/right-sidebar.jsx';
 
@@ -35,8 +36,11 @@ const SseConnector: ParentComponent = (props) => {
 const AppInner: ParentComponent = (props) => {
   const location = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = createSignal(false);
-  const isAgentMode = () => location.pathname.startsWith('/agents/');
-  const showSidebar = () => isAgentMode();
+  // The sidebar is global and rendered identically on every authenticated
+  // route. Guest/setup routes never reach this component, so we show the
+  // sidebar everywhere except the root redirect ("/") which navigates away
+  // immediately and needs no nav chrome.
+  const showSidebar = () => location.pathname !== '/';
   const { content: rightSidebar } = useRightSidebar();
 
   createEffect<string | undefined>((previousPath) => {
@@ -81,6 +85,7 @@ const AppInner: ParentComponent = (props) => {
         {rightSidebar()}
       </div>
       <VersionIndicator />
+      <WhatsNewModal />
       {__DEV_MODE__ && WingmanDevTools && (
         <Suspense fallback={null}>
           <WingmanDevTools />

@@ -12,6 +12,7 @@ import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { ApiKey } from './entities/api-key.entity';
 import { SessionGuard } from './auth/session.guard';
 import { DatabaseModule } from './database/database.module';
+import { BackfillModule } from './database/backfills/backfill.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { AnalyticsModule } from './analytics/analytics.module';
@@ -78,6 +79,7 @@ const serveStaticImports = frontendPath
     SetupModule,
     FreeModelsModule,
     TelemetryModule,
+    BackfillModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: SessionGuard },

@@ -40,6 +40,7 @@ export interface ProviderDetailViewProps {
   setValidationError: Setter<string | null>;
   onBack: () => void;
   onUpdate: () => void;
+  onPollProviders?: () => void | Promise<void>;
   onClose: () => void;
   initialAddKey?: boolean;
 }
@@ -207,7 +208,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       {/* Title */}
       <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 15px;">
         <div>
-          <div class="routing-modal__title">Connect providers</div>
+          <div class="routing-modal__title">Connect provider</div>
         </div>
       </div>
 
@@ -229,15 +230,10 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
               </span>
             )}
           </span>
-          <div class="provider-detail__title-group">
-            <div class="provider-detail__name">
-              {provDef.name}
-              <Show when={provDef.beta}>
-                <span class="provider-detail__beta-badge">beta</span>
-              </Show>
-            </div>
-            <Show when={isSubMode() && provDef.subscriptionRequirementNote}>
-              <div class="provider-detail__subtitle">{provDef.subscriptionRequirementNote}</div>
+          <div class="provider-detail__name">
+            {provDef.name}
+            <Show when={provDef.beta}>
+              <span class="provider-detail__beta-badge">beta</span>
             </Show>
           </div>
         </div>
@@ -264,6 +260,12 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           </Show>
         </div>
       </div>
+
+      <Show when={isSubMode() && provDef.subscriptionRequirementNote}>
+        <p style="font-size: 14px; color: hsl(var(--muted-foreground)); margin: 0 0 12px; line-height: 1.5;">
+          {provDef.subscriptionRequirementNote}
+        </p>
+      </Show>
 
       <Show when={connected()}>
         <div class="provider-detail__models-bar">
@@ -395,6 +397,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           setBusy={props.setBusy}
           onBack={props.onBack}
           onUpdate={props.onUpdate}
+          onPollProviders={props.onPollProviders}
           onClose={props.onClose}
           addKeyOpen={addKeyOpen}
           setAddKeyOpen={setAddKeyOpen}

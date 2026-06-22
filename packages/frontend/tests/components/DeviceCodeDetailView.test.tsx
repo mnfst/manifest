@@ -435,7 +435,7 @@ describe('DeviceCodeDetailView — addKeyOpen effect', () => {
     renderConnectedWithAddKeyOpen();
 
     await waitFor(() => {
-      expect(startMinimaxOAuth).toHaveBeenCalledWith('test-agent', 'global');
+      expect(startMinimaxOAuth).toHaveBeenCalledWith('test-agent', { region: 'global' });
     });
     expect(screen.getByText(/A new tab opened with the MiniMax authorization page/)).toBeDefined();
     openSpy.mockRestore();
@@ -468,7 +468,7 @@ describe('DeviceCodeDetailView — addKeyOpen effect', () => {
       renderConnectedWithAddKeyOpen();
 
       await waitFor(() => {
-        expect(startMinimaxOAuth).toHaveBeenCalledWith('test-agent', 'global');
+        expect(startMinimaxOAuth).toHaveBeenCalledWith('test-agent', { region: 'global' });
       });
       await vi.advanceTimersByTimeAsync(2000);
 
@@ -540,19 +540,33 @@ function renderKiro() {
   return { ...render(() => <DeviceCodeDetailView {...props} />), props };
 }
 
-describe('DeviceCodeDetailView — Kiro (no region, no token alternative)', () => {
+async function selectKiroRegion(value: string) {
+  await fireEvent.click(screen.getByLabelText('Region'));
+  await fireEvent.click(screen.getByRole('option', { name: value }));
+}
+
+describe('DeviceCodeDetailView — Kiro', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('hides the region selector and shows the generic hint', () => {
+  it('shows all supported regions without an Other region option', async () => {
     renderKiro();
-    expect(screen.queryByLabelText('Region')).toBeNull();
+    expect(screen.getByLabelText('Region').textContent).toContain('us-east-1');
+    await fireEvent.click(screen.getByLabelText('Region'));
+    expect(screen.getByRole('option', { name: 'eu-west-1' })).toBeDefined();
+    expect(screen.getByRole('option', { name: 'ap-east-2' })).toBeDefined();
+    expect(screen.getByRole('option', { name: 'eu-central-2' })).toBeDefined();
+    expect(screen.getByRole('option', { name: 'mx-central-1' })).toBeDefined();
+    expect(screen.getByRole('option', { name: 'us-gov-west-1' })).toBeDefined();
+    expect(screen.queryByRole('option', { name: 'Other region...' })).toBeNull();
+    expect((screen.getByLabelText(/Start URL/) as HTMLInputElement).value).toBe('');
     expect(
       screen.getByText(
-        'Open the authorization page in your browser to sign in and approve access.',
+        'Choose the AWS region for Kiro sign-in. Add a Start URL only if your organization uses IAM Identity Center.',
       ),
     ).toBeDefined();
+    expect(screen.queryByLabelText('Sign in with AWS IAM Identity Center')).toBeNull();
   });
 
   it('does not render the MiniMax token-paste alternative', () => {
@@ -560,7 +574,7 @@ describe('DeviceCodeDetailView — Kiro (no region, no token alternative)', () =
     expect(screen.queryByText('Connect with token')).toBeNull();
   });
 
-  it('starts the device flow without a region argument', async () => {
+  it('starts the device flow with the default Kiro region', async () => {
     const api = await import('../../src/services/api.js');
     const startKiroOAuth = api.startKiroOAuth as ReturnType<typeof vi.fn>;
     startKiroOAuth.mockResolvedValue({
@@ -570,20 +584,101 @@ describe('DeviceCodeDetailView — Kiro (no region, no token alternative)', () =
       expiresAt: Date.now() + 60000,
       pollIntervalMs: 5000,
     });
-    const openSpy = vi
-      .spyOn(window, 'open')
-      .mockReturnValue({
-        closed: false,
-        opener: null,
-        location: { replace: vi.fn() },
-      } as unknown as Window);
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue({
+      closed: false,
+      opener: null,
+      location: { replace: vi.fn() },
+    } as unknown as Window);
 
     renderKiro();
     fireEvent.click(screen.getByText('Connect with Kiro'));
 
     await waitFor(() => {
-      expect(startKiroOAuth).toHaveBeenCalledWith('test-agent', undefined);
+      expect(startKiroOAuth).toHaveBeenCalledWith('test-agent', { region: 'us-east-1' });
     });
+    openSpy.mockRestore();
+  });
+
+  it('passes optional IAM Identity Center start URL and selected region', async () => {
+    const api = await import('../../src/services/api.js');
+    const startKiroOAuth = api.startKiroOAuth as ReturnType<typeof vi.fn>;
+    startKiroOAuth.mockResolvedValue({
+      flowId: 'f1',
+      userCode: 'AAAA-BBBB',
+      verificationUri: 'https://device.sso.eu-west-1.amazonaws.com/?user_code=AAAA-BBBB',
+      expiresAt: Date.now() + 60000,
+      pollIntervalMs: 5000,
+    });
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue({
+      closed: false,
+      opener: null,
+      location: { replace: vi.fn() },
+    } as unknown as Window);
+
+    renderKiro();
+    fireEvent.input(screen.getByLabelText(/Start URL/), {
+      target: { value: 'https://org.awsapps.com/start' },
+    });
+    await selectKiroRegion('eu-west-1');
+    fireEvent.click(screen.getByText('Connect with Kiro'));
+
+    await waitFor(() => {
+      expect(startKiroOAuth).toHaveBeenCalledWith('test-agent', {
+        startUrl: 'https://org.awsapps.com/start',
+        region: 'eu-west-1',
+      });
+    });
+    openSpy.mockRestore();
+  });
+
+  it('passes a selected opt-in AWS region', async () => {
+    const api = await import('../../src/services/api.js');
+    const startKiroOAuth = api.startKiroOAuth as ReturnType<typeof vi.fn>;
+    startKiroOAuth.mockResolvedValue({
+      flowId: 'f1',
+      userCode: 'AAAA-BBBB',
+      verificationUri: 'https://device.sso.ap-east-2.amazonaws.com/?user_code=AAAA-BBBB',
+      expiresAt: Date.now() + 60000,
+      pollIntervalMs: 5000,
+    });
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue({
+      closed: false,
+      opener: null,
+      location: { replace: vi.fn() },
+    } as unknown as Window);
+
+    renderKiro();
+    await selectKiroRegion('ap-east-2');
+    fireEvent.click(screen.getByText('Connect with Kiro'));
+
+    await waitFor(() => {
+      expect(startKiroOAuth).toHaveBeenCalledWith('test-agent', { region: 'ap-east-2' });
+    });
+    openSpy.mockRestore();
+  });
+
+  it.each([
+    ['Start URL must use HTTPS.', 'http://org.awsapps.com/start', 'us-east-1'],
+    ['Enter a valid IAM Identity Center Start URL.', 'not-a-url', 'us-east-1'],
+  ])('validates %s before opening the Kiro popup', async (message, startUrl, region) => {
+    const api = await import('../../src/services/api.js');
+    const startKiroOAuth = api.startKiroOAuth as ReturnType<typeof vi.fn>;
+    const openSpy = vi.spyOn(window, 'open');
+
+    renderKiro();
+    fireEvent.input(screen.getByLabelText(/Start URL/), { target: { value: startUrl } });
+    await selectKiroRegion(region);
+    fireEvent.click(screen.getByText('Connect with Kiro'));
+
+    expect(screen.getByText(message)).toBeDefined();
+    expect(screen.getByLabelText('Region').getAttribute('aria-describedby')).toBe(
+      'kiro-identity-error',
+    );
+    expect(screen.getByLabelText(/Start URL/).getAttribute('aria-describedby')).toBe(
+      'kiro-identity-error',
+    );
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(startKiroOAuth).not.toHaveBeenCalled();
     openSpy.mockRestore();
   });
 });

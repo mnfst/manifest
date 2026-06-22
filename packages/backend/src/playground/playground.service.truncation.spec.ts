@@ -2,17 +2,24 @@ import type { Response as ExpressResponse } from 'express';
 import { PlaygroundService } from './playground.service';
 import type { ProviderClient } from '../routing/proxy/provider-client';
 import type { ProviderKeyService } from '../routing/routing-core/provider-key.service';
-import type { ResolveAgentService } from '../routing/routing-core/resolve-agent.service';
+import type { PlaygroundAgentService } from './playground-agent.service';
 import type { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import type { IngestEventBusService } from '../common/services/ingest-event-bus.service';
 import type { PlaygroundHistoryService } from './playground-history.service';
+import type { OpenaiOauthService } from '../routing/oauth/openai/openai-oauth.service';
+import type { MinimaxOauthService } from '../routing/oauth/minimax/minimax-oauth.service';
+import type { AnthropicOauthService } from '../routing/oauth/anthropic/anthropic-oauth.service';
+import type { GeminiOauthService } from '../routing/oauth/gemini/gemini-oauth.service';
+import type { KiroOauthService } from '../routing/oauth/kiro/kiro-oauth.service';
+import type { XaiOauthService } from '../routing/oauth/xai/xai-oauth.service';
 import type { Repository } from 'typeorm';
 import type { AgentMessage } from '../entities/agent-message.entity';
 import type { CustomProvider } from '../entities/custom-provider.entity';
 import type { RunPlaygroundDto } from './dto/run-playground.dto';
+import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 
-const USER_ID = 'user-1';
 const AGENT = { id: 'agent-1', tenant_id: 'tenant-1', name: 'demo' };
+const CTX: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
 
 function makeDto(overrides: Partial<RunPlaygroundDto> = {}): RunPlaygroundDto {
   return {
@@ -78,10 +85,11 @@ function mockRes(): MockRes {
 const asRes = (r: MockRes): ExpressResponse => r as unknown as ExpressResponse;
 
 interface Mocks {
-  resolveAgent: { resolve: jest.Mock };
+  playgroundAgent: { resolve: jest.Mock };
   providerKeyService: {
     hasActiveProvider: jest.Mock;
     getAuthType: jest.Mock;
+    getProviderKeys: jest.Mock;
     getProviderApiKey: jest.Mock;
   };
   providerClient: {
@@ -90,6 +98,12 @@ interface Mocks {
     createAnthropicStreamTransformer: jest.Mock;
     convertChatGptStreamChunk: jest.Mock;
   };
+  openaiOauth: { unwrapToken: jest.Mock };
+  minimaxOauth: { unwrapToken: jest.Mock };
+  anthropicOauth: { unwrapToken: jest.Mock };
+  geminiOauth: { unwrapToken: jest.Mock };
+  kiroOauth: { unwrapToken: jest.Mock };
+  xaiOauth: { unwrapToken: jest.Mock };
   pricingCache: { getByModel: jest.Mock };
   eventBus: { emit: jest.Mock };
   history: { saveColumn: jest.Mock };
@@ -99,12 +113,13 @@ interface Mocks {
 
 function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService; mocks: Mocks } {
   const full: Mocks = {
-    resolveAgent: {
+    playgroundAgent: {
       resolve: jest.fn().mockResolvedValue(AGENT),
     },
     providerKeyService: {
       hasActiveProvider: jest.fn().mockResolvedValue(true),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
+      getProviderKeys: jest.fn().mockResolvedValue([{ apiKey: 'sk-test', label: 'Default' }]),
       getProviderApiKey: jest.fn().mockResolvedValue('sk-test'),
     },
     providerClient: {
@@ -113,6 +128,12 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
       createAnthropicStreamTransformer: jest.fn(),
       convertChatGptStreamChunk: jest.fn(),
     },
+    openaiOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    minimaxOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    anthropicOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    geminiOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    kiroOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    xaiOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
     pricingCache: {
       getByModel: jest.fn().mockReturnValue({
         input_price_per_token: 0.000001,
@@ -126,9 +147,15 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
     ...mocks,
   };
   const service = new PlaygroundService(
-    full.resolveAgent as unknown as ResolveAgentService,
+    full.playgroundAgent as unknown as PlaygroundAgentService,
     full.providerKeyService as unknown as ProviderKeyService,
     full.providerClient as unknown as ProviderClient,
+    full.openaiOauth as unknown as OpenaiOauthService,
+    full.minimaxOauth as unknown as MinimaxOauthService,
+    full.anthropicOauth as unknown as AnthropicOauthService,
+    full.geminiOauth as unknown as GeminiOauthService,
+    full.kiroOauth as unknown as KiroOauthService,
+    full.xaiOauth as unknown as XaiOauthService,
     full.pricingCache as unknown as ModelPricingCacheService,
     full.eventBus as unknown as IngestEventBusService,
     full.history as unknown as PlaygroundHistoryService,
@@ -159,7 +186,7 @@ describe('PlaygroundService.runStream — error body truncation', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     // --- 1. The user-facing JSON response must NOT contain the full body. ---
     expect(res._status).toBe(502);
@@ -214,7 +241,7 @@ describe('PlaygroundService.runStream — error body truncation', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const message = (res._json as { message: string }).message;
     expect(message).toBe('Provider returned 500');
@@ -224,6 +251,43 @@ describe('PlaygroundService.runStream — error body truncation', () => {
     const column = mocks.history.saveColumn.mock.calls[0][0];
     expect(column.errorMessage).toBe('Provider returned 500');
     expect(column.errorMessage).not.toContain('real error text');
+  });
+
+  it('scrubs credentials echoed in the error body before they reach any sink', async () => {
+    const { service, mocks } = buildService();
+    // Some providers (e.g. Anthropic 401s) echo the submitted key back in the
+    // error body. It must be redacted in the SSE response, the history column,
+    // and the persisted agent_messages row.
+    const leakyBody = JSON.stringify({
+      error: { message: 'invalid x-api-key: sk-ant-abcdef0123456789ghij' },
+    });
+    mocks.providerClient.forward.mockResolvedValue({
+      response: {
+        ok: false,
+        status: 401,
+        headers: new Headers(),
+        text: jest.fn().mockResolvedValue(leakyBody),
+        body: null,
+      },
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    const res = mockRes();
+
+    await service.runStream(CTX, makeDto(), asRes(res));
+
+    const message = (res._json as { message: string }).message;
+    expect(message).not.toContain('sk-ant-abcdef0123456789ghij');
+    expect(message).toContain('[REDACTED]');
+
+    const column = mocks.history.saveColumn.mock.calls[0][0];
+    expect(column.errorMessage).not.toContain('sk-ant-abcdef0123456789ghij');
+    expect(column.errorMessage).toContain('[REDACTED]');
+
+    const row = mocks.messageRepo.insert.mock.calls[0][0];
+    expect(row.error_message).not.toContain('sk-ant-abcdef0123456789ghij');
+    expect(row.error_message).toContain('[REDACTED]');
   });
 
   it('preserves short error bodies verbatim (no over-truncation)', async () => {
@@ -243,7 +307,7 @@ describe('PlaygroundService.runStream — error body truncation', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const message = (res._json as { message: string }).message;
     expect(message).toBe('Provider returned 429: quota exceeded');

@@ -43,6 +43,8 @@ export interface ProviderDef {
   subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
   /** Optional endpoint selector for token-mode subscription providers. */
   subscriptionEndpointRegions?: SubscriptionEndpointRegion[];
+  /** Optional endpoint selector for API-key providers with regional hosts. */
+  apiKeyEndpointRegions?: SubscriptionEndpointRegion[];
   /**
    * Optional secondary subscription path. Lets a provider expose a pasted-token
    * shortcut alongside its primary OAuth/device-code flow — currently used so
@@ -90,6 +92,7 @@ interface ProviderUIOverlay {
   deviceLogin?: boolean;
   subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
   subscriptionEndpointRegions?: SubscriptionEndpointRegion[];
+  apiKeyEndpointRegions?: SubscriptionEndpointRegion[];
   subscriptionTokenAlternative?: {
     prefix: string;
     placeholder: string;
@@ -122,6 +125,26 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     supportsSubscription: true,
     subscriptionLabel: 'Claude Max / Pro subscription',
     subscriptionAuthMode: 'popup_paste',
+    models: [],
+  },
+  bedrock: {
+    initial: 'AWS',
+    subtitle: 'Claude, Llama, Mistral, Nova via Amazon Bedrock',
+    apiKeyEndpointRegions: [
+      { value: 'us-east-1', label: 'US East (N. Virginia)' },
+      { value: 'us-east-2', label: 'US East (Ohio)' },
+      { value: 'us-west-2', label: 'US West (Oregon)' },
+      { value: 'eu-west-1', label: 'Europe (Ireland)' },
+      { value: 'eu-west-2', label: 'Europe (London)' },
+      { value: 'eu-central-1', label: 'Europe (Frankfurt)' },
+      { value: 'eu-south-1', label: 'Europe (Milan)' },
+      { value: 'eu-north-1', label: 'Europe (Stockholm)' },
+      { value: 'ap-south-1', label: 'Asia Pacific (Mumbai)' },
+      { value: 'ap-southeast-2', label: 'Asia Pacific (Sydney)' },
+      { value: 'ap-southeast-3', label: 'Asia Pacific (Jakarta)' },
+      { value: 'ap-northeast-1', label: 'Asia Pacific (Tokyo)' },
+      { value: 'sa-east-1', label: 'South America (Sao Paulo)' },
+    ],
     models: [],
   },
   byteplus: {
@@ -200,7 +223,7 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   },
   groq: {
     initial: 'Gq',
-    subtitle: 'Llama, Gemma, Mixtral — fast inference',
+    subtitle: 'Llama, Gemma, Mixtral. Fast inference',
     models: [],
   },
   kilo: {
@@ -233,6 +256,22 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
       placeholder: 'sk-cp-...',
       dividerLabel: 'Or paste your Coding Plan token',
     },
+    models: [],
+  },
+  xiaomi: {
+    initial: 'Mi',
+    subtitle: 'MiMo V2.5 Pro, V2.5, Flash',
+    supportsSubscription: true,
+    subscriptionLabel: 'Xiaomi MiMo Token Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionCredentialName: 'MiMo Token Plan',
+    subscriptionKeyPlaceholder: 'Paste your MiMo Token Plan API key',
+    subscriptionEndpointRegions: [
+      { value: 'cn', label: 'China (token-plan-cn)' },
+      { value: 'sgp', label: 'Singapore (token-plan-sgp)' },
+      { value: 'ams', label: 'Europe (token-plan-ams)' },
+    ],
     models: [],
   },
   mistral: {
@@ -368,6 +407,7 @@ export function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
 const PROVIDER_ORDER = [
   'qwen',
   'anthropic',
+  'bedrock',
   'byteplus',
   'commandcode',
   'deepseek',
@@ -390,6 +430,7 @@ const PROVIDER_ORDER = [
   'opencode-zen',
   'openrouter',
   'xai',
+  'xiaomi',
   'zai',
 ];
 

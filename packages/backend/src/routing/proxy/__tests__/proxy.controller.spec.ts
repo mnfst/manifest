@@ -6,6 +6,7 @@ import { IngestEventBusService } from '../../../common/services/ingest-event-bus
 import { ThoughtSignatureCache } from '../thought-signature-cache';
 import { ThinkingBlockCache } from '../thinking-block-cache';
 import { ReasoningContentCache } from '../reasoning-content-cache';
+import { ResponsesSseError } from '../chatgpt-adapter';
 
 /**
  * Flush enough microtasks for the recorder's fire-and-forget chain to
@@ -58,11 +59,12 @@ function mockRequest(
   body: Record<string, unknown>,
   userId = 'user-1',
   headers: Record<string, string> = {},
+  tenantId = 'tenant-1',
 ) {
   return {
     ingestionContext: {
       userId,
-      tenantId: 'tenant-1',
+      tenantId,
       agentId: 'agent-1',
       agentName: 'test-agent',
     },
@@ -151,10 +153,6 @@ describe('ProxyController', () => {
       new ProxyMessageDedup(),
       { emit: jest.fn() } as unknown as IngestEventBusService,
       mockCustomProviders as never,
-      { getProviders: jest.fn().mockResolvedValue([]) } as never,
-      { getTiers: jest.fn().mockResolvedValue([]) } as never,
-      { getAssignments: jest.fn().mockResolvedValue([]) } as never,
-      { list: jest.fn().mockResolvedValue([]) } as never,
       {
         getCostPerRequest: jest.fn().mockReturnValue(null),
         resolveCostPerRequest: jest.fn().mockResolvedValue(null),
@@ -847,6 +845,36 @@ describe('ProxyController', () => {
     );
   });
 
+  it('should surface collected Responses SSE failures as upstream errors', async () => {
+    proxyService.proxyRequest.mockRejectedValue(
+      new ResponsesSseError(
+        'Model unavailable',
+        404,
+        JSON.stringify({
+          error: {
+            message: 'Model unavailable',
+            code: 'model_not_found',
+            type: 'invalid_request_error',
+          },
+        }),
+      ),
+    );
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({
+      error: {
+        message: 'Model unavailable',
+        type: 'upstream_error',
+        status: 404,
+      },
+    });
+  });
+
   it('should forward HttpException as friendly chat message', async () => {
     proxyService.proxyRequest.mockRejectedValue(
       new HttpException('Bad request: messages required', 400),
@@ -1061,8 +1089,8 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      expect(rateLimiter.checkLimit).toHaveBeenCalledWith('user-1');
-      expect(rateLimiter.acquireSlot).toHaveBeenCalledWith('user-1');
+      expect(rateLimiter.checkLimit).toHaveBeenCalledWith('tenant-1');
+      expect(rateLimiter.acquireSlot).toHaveBeenCalledWith('tenant-1');
     });
 
     it('should releaseSlot even when proxyService throws', async () => {
@@ -1073,7 +1101,7 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      expect(rateLimiter.releaseSlot).toHaveBeenCalledWith('user-1');
+      expect(rateLimiter.releaseSlot).toHaveBeenCalledWith('tenant-1');
     });
 
     it('should not call proxyService when checkLimit throws', async () => {
@@ -1603,7 +1631,7 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      expect(rateLimiter.releaseSlot).toHaveBeenCalledWith('user-1');
+      expect(rateLimiter.releaseSlot).toHaveBeenCalledWith('tenant-1');
     });
   });
 
@@ -1926,10 +1954,6 @@ describe('ProxyController', () => {
               }),
             ),
         } as never,
-        { getProviders: jest.fn().mockResolvedValue([]) } as never,
-        { getTiers: jest.fn().mockResolvedValue([]) } as never,
-        { getAssignments: jest.fn().mockResolvedValue([]) } as never,
-        { list: jest.fn().mockResolvedValue([]) } as never,
         {
           getCostPerRequest: jest.fn().mockReturnValue(null),
           resolveCostPerRequest: jest.fn().mockResolvedValue(null),
@@ -1965,10 +1989,6 @@ describe('ProxyController', () => {
               }),
             ),
         } as never,
-        { getProviders: jest.fn().mockResolvedValue([]) } as never,
-        { getTiers: jest.fn().mockResolvedValue([]) } as never,
-        { getAssignments: jest.fn().mockResolvedValue([]) } as never,
-        { list: jest.fn().mockResolvedValue([]) } as never,
         {
           getCostPerRequest: jest.fn().mockReturnValue(null),
           resolveCostPerRequest: jest.fn().mockResolvedValue(null),
@@ -1987,7 +2007,7 @@ describe('ProxyController', () => {
     });
   });
 
-  describe('seenUsers bounded Map with TTL', () => {
+  describe('seenTenants bounded Map with TTL', () => {
     const makeProxyResult = () => ({
       forward: {
         response: new Response('{}', { status: 200 }),
@@ -1998,50 +2018,65 @@ describe('ProxyController', () => {
       meta: { tier: 'simple' as const, model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
     });
 
-    it('should evict oldest user when MAX_SEEN_USERS is reached', async () => {
+    it('should evict oldest tenant when MAX_SEEN_TENANTS is reached', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const seenUsers = (controller as any).seenUsers as Map<string, number>;
+      const seenTenants = (controller as any).seenTenants as Map<string, number>;
 
       const now = Date.now();
       for (let i = 0; i < 9_999; i++) {
-        seenUsers.set(`prefill-user-${i}`, now);
+        seenTenants.set(`prefill-tenant-${i}`, now);
       }
 
       proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
-      const req1 = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'user-9999');
+      const req1 = mockRequest(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        'user-9999',
+        {},
+        'tenant-9999',
+      );
       const { res: res1 } = mockResponse();
       await controller.chatCompletions(req1 as never, res1 as never);
 
-      expect(seenUsers.size).toBe(10_000);
+      expect(seenTenants.size).toBe(10_000);
 
       proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
-      const req2 = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'user-10000');
+      const req2 = mockRequest(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        'user-10000',
+        {},
+        'tenant-10000',
+      );
       const { res: res2 } = mockResponse();
       await controller.chatCompletions(req2 as never, res2 as never);
 
-      expect(seenUsers.size).toBe(10_000);
-      expect(seenUsers.has('prefill-user-0')).toBe(false);
-      expect(seenUsers.has('user-10000')).toBe(true);
+      expect(seenTenants.size).toBe(10_000);
+      expect(seenTenants.has('prefill-tenant-0')).toBe(false);
+      expect(seenTenants.has('tenant-10000')).toBe(true);
     });
 
     it('should evict expired entries older than 24 hours', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const seenUsers = (controller as any).seenUsers as Map<string, number>;
+      const seenTenants = (controller as any).seenTenants as Map<string, number>;
 
       const twentyFiveHoursAgo = Date.now() - 25 * 60 * 60 * 1000;
-      seenUsers.set('old-user-1', twentyFiveHoursAgo);
-      seenUsers.set('old-user-2', twentyFiveHoursAgo);
-      seenUsers.set('recent-user', Date.now());
+      seenTenants.set('old-tenant-1', twentyFiveHoursAgo);
+      seenTenants.set('old-tenant-2', twentyFiveHoursAgo);
+      seenTenants.set('recent-tenant', Date.now());
 
       proxyService.proxyRequest.mockResolvedValue(makeProxyResult());
-      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] }, 'new-user');
+      const req = mockRequest(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        'new-user',
+        {},
+        'new-tenant',
+      );
       const { res } = mockResponse();
       await controller.chatCompletions(req as never, res as never);
 
-      expect(seenUsers.has('old-user-1')).toBe(false);
-      expect(seenUsers.has('old-user-2')).toBe(false);
-      expect(seenUsers.has('recent-user')).toBe(true);
-      expect(seenUsers.has('new-user')).toBe(true);
+      expect(seenTenants.has('old-tenant-1')).toBe(false);
+      expect(seenTenants.has('old-tenant-2')).toBe(false);
+      expect(seenTenants.has('recent-tenant')).toBe(true);
+      expect(seenTenants.has('new-tenant')).toBe(true);
     });
   });
 

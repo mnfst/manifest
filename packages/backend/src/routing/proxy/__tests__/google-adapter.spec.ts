@@ -161,6 +161,7 @@ describe('Google Adapter', () => {
                 type: 'object',
                 properties: {
                   name: { type: 'string', title: 'Name', default: 'foo' },
+                  count: { type: 'integer', minimum: 0, exclusiveMinimum: true },
                   config: {
                     type: 'object',
                     additionalProperties: true,
@@ -190,14 +191,61 @@ describe('Google Adapter', () => {
       const props = params.properties as Record<string, Record<string, unknown>>;
       expect(props.name).not.toHaveProperty('title');
       expect(props.name).not.toHaveProperty('default');
+      expect(props.count).not.toHaveProperty('exclusiveMinimum');
       expect(props.config).not.toHaveProperty('additionalProperties');
       expect(props.config).not.toHaveProperty('patternProperties');
 
       // Supported fields preserved
       expect(params.type).toBe('object');
       expect(props.name.type).toBe('string');
+      expect(props.count).toEqual({ type: 'integer', minimum: 0 });
       expect(props.config.type).toBe('object');
       expect(props.config.properties).toEqual({ key: { type: 'string' } });
+    });
+
+    it('strips exclusive numeric bounds without removing same-named properties', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Set limits' }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'set_limits',
+              parameters: {
+                type: 'object',
+                properties: {
+                  threshold: {
+                    type: 'number',
+                    minimum: 0,
+                    maximum: 1,
+                    exclusiveMinimum: true,
+                    exclusiveMaximum: false,
+                  },
+                  exclusiveMinimum: {
+                    type: 'string',
+                    description: 'A user-defined property name',
+                  },
+                },
+              },
+            },
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.5-flash');
+
+      const tools = result.tools as Array<{
+        functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
+      }>;
+      const props = tools[0].functionDeclarations[0].parameters.properties as Record<
+        string,
+        Record<string, unknown>
+      >;
+
+      expect(props.threshold).toEqual({ type: 'number', minimum: 0, maximum: 1 });
+      expect(props.exclusiveMinimum).toEqual({
+        type: 'string',
+        description: 'A user-defined property name',
+      });
     });
 
     it('strips both $ref and the non-standard dollar-less ref variant', () => {
@@ -711,6 +759,77 @@ describe('Google Adapter', () => {
       expect(contents[0].parts).toHaveLength(2);
       expect(contents[0].parts[0].text).toBe('First part');
       expect(contents[0].parts[1].text).toBe('Second part');
+    });
+
+    it('maps OpenAI image_url data URLs to Gemini inlineData without decoding', () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'What is this image?' },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: 'data:image/png;name=chart.png;charset=utf-8;base64,iVBORw0KGgo=',
+                },
+              },
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[0].parts).toEqual([
+        { text: 'What is this image?' },
+        { inlineData: { mimeType: 'image/png', data: 'iVBORw0KGgo=' } },
+      ]);
+    });
+
+    it('maps Responses input_image data URLs to Gemini inlineData', () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'input_text', text: 'Describe it.' },
+              { type: 'input_image', image_url: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==' },
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[0].parts).toEqual([
+        { text: 'Describe it.' },
+        { inlineData: { mimeType: 'image/jpeg', data: '/9j/4AAQSkZJRg==' } },
+      ]);
+    });
+
+    it('maps OpenAI image_url HTTP URLs to Gemini fileData', () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Describe it.' },
+              {
+                type: 'image_url',
+                image_url: { url: 'https://example.test/image.webp' },
+              },
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[0].parts).toEqual([
+        { text: 'Describe it.' },
+        { fileData: { fileUri: 'https://example.test/image.webp' } },
+      ]);
     });
 
     it('resolves functionResponse name from the assistant tool_calls history', () => {

@@ -1,12 +1,16 @@
 import type { ModelRoute } from 'manifest-shared';
 import { ProviderService } from '../provider.service';
-import { UserProvider } from '../../../entities/user-provider.entity';
+import { TenantProvider } from '../../../entities/tenant-provider.entity';
 import { TierAssignment } from '../../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../../entities/specificity-assignment.entity';
-import type { Repository } from 'typeorm';
-import type { TierAutoAssignService } from '../tier-auto-assign.service';
+import { Agent } from '../../../entities/agent.entity';
+import { HeaderTier } from '../../../entities/header-tier.entity';
+import { AgentEnabledProvider } from '../../../entities/agent-enabled-provider.entity';
+import { makeShortTermBedrockKey } from '../../__tests__/bedrock-fixtures';
+import { In, type Repository } from 'typeorm';
 import type { RoutingCacheService } from '../routing-cache.service';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
+import { encrypt, getEncryptionSecret } from '../../../common/utils/crypto.util';
 
 const route = (
   provider: string,
@@ -18,26 +22,50 @@ const route = (
   model,
 });
 
-const makeRepo = () => ({
+type AgentRow = string | { id: string; name?: string | null; display_name?: string | null };
+
+const makeQueryBuilder = (agents: AgentRow[] = ['agent-1']) => ({
+  leftJoin: jest.fn().mockReturnThis(),
+  where: jest.fn().mockReturnThis(),
+  andWhere: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  addSelect: jest.fn().mockReturnThis(),
+  getRawMany: jest.fn().mockResolvedValue(
+    agents.map((agent) =>
+      typeof agent === 'string'
+        ? { id: agent, name: agent, display_name: null }
+        : {
+            id: agent.id,
+            name: agent.name ?? agent.id,
+            display_name: agent.display_name ?? null,
+          },
+    ),
+  ),
+});
+
+const makeRepo = (agents: AgentRow[] = ['agent-1']) => ({
   find: jest.fn().mockResolvedValue([]),
   findOne: jest.fn().mockResolvedValue(null),
   insert: jest.fn().mockResolvedValue(undefined),
   save: jest.fn().mockImplementation(async (rows) => rows),
   delete: jest.fn().mockResolvedValue(undefined),
+  remove: jest.fn().mockResolvedValue(undefined),
   update: jest.fn().mockResolvedValue(undefined),
   manager: { transaction: jest.fn() },
+  createQueryBuilder: jest.fn().mockReturnValue(makeQueryBuilder(agents)),
 });
 
 describe('ProviderService — route-only cleanup paths', () => {
   let providerRepo: ReturnType<typeof makeRepo>;
   let tierRepo: ReturnType<typeof makeRepo>;
   let specRepo: ReturnType<typeof makeRepo>;
-  let autoAssign: jest.Mocked<Pick<TierAutoAssignService, 'recalculate'>>;
+  let headerTierRepo: ReturnType<typeof makeRepo>;
   let pricingCache: jest.Mocked<Pick<ModelPricingCacheService, 'getByModel'>>;
   let routingCache: {
     getProviders: jest.Mock;
     setProviders: jest.Mock;
     invalidateAgent: jest.Mock;
+    invalidateTenant: jest.Mock;
   };
   let svc: ProviderService;
 
@@ -45,289 +73,363 @@ describe('ProviderService — route-only cleanup paths', () => {
     providerRepo = makeRepo();
     tierRepo = makeRepo();
     specRepo = makeRepo();
-    autoAssign = { recalculate: jest.fn().mockResolvedValue(undefined) };
+    headerTierRepo = makeRepo();
     pricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
     routingCache = {
       getProviders: jest.fn().mockReturnValue(null),
       setProviders: jest.fn(),
       invalidateAgent: jest.fn(),
+      invalidateTenant: jest.fn(),
     };
 
     svc = new ProviderService(
-      providerRepo as unknown as Repository<UserProvider>,
+      providerRepo as unknown as Repository<TenantProvider>,
       tierRepo as unknown as Repository<TierAssignment>,
       specRepo as unknown as Repository<SpecificityAssignment>,
-      autoAssign as unknown as TierAutoAssignService,
+      makeRepo() as unknown as Repository<Agent>,
+      headerTierRepo as unknown as Repository<HeaderTier>,
       pricingCache as unknown as ModelPricingCacheService,
       routingCache as unknown as RoutingCacheService,
     );
   });
 
-  describe('removeProvider — cleanupProviderReferences', () => {
-    it('clears tier override_route when its provider matches removed provider (case-insensitive)', async () => {
-      providerRepo.findOne.mockResolvedValue({
-        id: 'p1',
-        agent_id: 'agent-1',
-        provider: 'openai',
-        auth_type: 'api_key',
-        is_active: true,
-      });
-      // After save, no other active records.
-      providerRepo.find.mockResolvedValue([]);
+  describe('removeProvider — route guards', () => {
+    it('blocks disconnect when a tier override uses the provider', async () => {
+      providerRepo.find.mockResolvedValueOnce([
+        {
+          id: 'p1',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+        } as unknown as TenantProvider,
+      ]);
       tierRepo.find.mockResolvedValueOnce([
         {
+          agent_id: 'agent-1',
           tier: 'standard',
           override_route: route('OpenAI', 'gpt-4o'),
           fallback_routes: null,
         } as unknown as TierAssignment,
       ]);
-      // Re-read tiers for notification map.
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'openai')).rejects.toThrow(
+        /Cannot disconnect provider/,
+      );
+      expect(providerRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('blocks disconnect using model-prefix matching for routes with no explicit provider', async () => {
+      providerRepo.find.mockResolvedValueOnce([
+        {
+          id: 'p1',
+          agent_id: 'agent-1',
+          provider: 'custom-x',
+          auth_type: 'api_key',
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+        } as unknown as TenantProvider,
+      ]);
       tierRepo.find.mockResolvedValueOnce([
         {
+          agent_id: 'agent-1',
           tier: 'standard',
-          override_route: null,
-          auto_assigned_route: route('anthropic', 'claude'),
+          override_route: { provider: '', authType: 'api_key', model: 'custom-x/some' },
           fallback_routes: null,
         } as unknown as TierAssignment,
       ]);
       specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([]);
 
-      const result = await svc.removeProvider('agent-1', 'openai');
-      expect(tierRepo.save).toHaveBeenCalledTimes(1);
-      const savedTiers = tierRepo.save.mock.calls[0][0];
-      expect(savedTiers[0].override_route).toBeNull();
-      expect(result.notifications[0]).toMatch(/gpt-4o is no longer available/);
-      expect(result.notifications[0]).toMatch(/automatic mode \(claude\)/);
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'custom-x')).rejects.toThrow(
+        /Cannot disconnect provider/,
+      );
+      expect(providerRepo.save).not.toHaveBeenCalled();
     });
 
-    it('uses model-prefix matching for routes whose provider does not equal the removed key', async () => {
-      providerRepo.findOne.mockResolvedValue({
-        id: 'p1',
-        agent_id: 'agent-1',
-        provider: 'custom-x',
-        auth_type: 'api_key',
-        is_active: true,
-      });
-      providerRepo.find.mockResolvedValue([]);
+    it('blocks disconnect using pricing cache attribution for opaque model names', async () => {
+      providerRepo.find.mockResolvedValueOnce([
+        {
+          id: 'p1',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+        } as unknown as TenantProvider,
+      ]);
+      pricingCache.getByModel.mockReturnValue({ provider: 'openai' } as never);
       tierRepo.find.mockResolvedValueOnce([
         {
+          agent_id: 'agent-1',
+          tier: 'standard',
+          override_route: { provider: '', authType: 'api_key', model: 'opaque-id' },
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'openai')).rejects.toThrow(
+        /Cannot disconnect provider/,
+      );
+      expect(providerRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('blocks disconnect when specificity or header-tier fallbacks use the provider', async () => {
+      providerRepo.find.mockResolvedValueOnce([
+        {
+          id: 'p1',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+        } as unknown as TenantProvider,
+      ]);
+      tierRepo.find.mockResolvedValueOnce([]);
+      specRepo.find.mockResolvedValueOnce([
+        {
+          agent_id: 'agent-1',
+          category: 'coding',
+          override_route: null,
+          fallback_routes: [route('anthropic', 'claude-sonnet'), route('openai', 'gpt-4o-mini')],
+        } as unknown as SpecificityAssignment,
+      ]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'openai')).rejects.toThrow(
+        /Cannot disconnect provider/,
+      );
+      expect(providerRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('deactivates the provider when no user-controlled routes reference it', async () => {
+      const row = {
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Default',
+        priority: 0,
+        is_active: true,
+      } as unknown as TenantProvider;
+      providerRepo.find.mockResolvedValueOnce([row]);
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          agent_id: 'agent-1',
           tier: 'standard',
           override_route: { provider: 'other', authType: 'api_key', model: 'custom-x/some' },
           fallback_routes: null,
         } as unknown as TierAssignment,
       ]);
-      tierRepo.find.mockResolvedValueOnce([
-        {
-          tier: 'standard',
-          override_route: null,
-          auto_assigned_route: null,
-          fallback_routes: null,
-        } as unknown as TierAssignment,
-      ]);
       specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([]);
 
-      const result = await svc.removeProvider('agent-1', 'custom-x');
-      const saved = tierRepo.save.mock.calls[0][0];
-      expect(saved[0].override_route).toBeNull();
-      // Notification for the removed model.
-      expect(result.notifications).toHaveLength(1);
-    });
+      const result = await svc.removeProvider('agent-1', 'tenant-1', 'openai');
 
-    it('uses pricing cache provider attribution for opaque model names', async () => {
-      providerRepo.findOne.mockResolvedValue({
-        id: 'p1',
-        agent_id: 'agent-1',
-        provider: 'openai',
-        auth_type: 'api_key',
-        is_active: true,
-      });
-      providerRepo.find.mockResolvedValue([]);
-      pricingCache.getByModel.mockReturnValue({ provider: 'openai' } as never);
-      tierRepo.find.mockResolvedValueOnce([
-        {
-          tier: 'standard',
-          // provider in route doesn't match — only pricing cache attribution does.
-          override_route: { provider: 'mystery', authType: 'api_key', model: 'opaque-id' },
-          fallback_routes: null,
-        } as unknown as TierAssignment,
-      ]);
-      tierRepo.find.mockResolvedValueOnce([
-        { tier: 'standard', override_route: null, auto_assigned_route: null } as TierAssignment,
-      ]);
-      specRepo.find.mockResolvedValue([]);
-
-      await svc.removeProvider('agent-1', 'openai');
-      expect(tierRepo.save).toHaveBeenCalled();
-    });
-
-    it('filters fallback_routes and nulls when emptied', async () => {
-      providerRepo.findOne.mockResolvedValue({
-        id: 'p1',
-        agent_id: 'agent-1',
-        provider: 'openai',
-        auth_type: 'api_key',
-        is_active: true,
-      });
-      providerRepo.find.mockResolvedValue([]);
-      tierRepo.find.mockResolvedValueOnce([
-        {
-          tier: 'standard',
-          override_route: null,
-          fallback_routes: [route('openai', 'gpt-4o')],
-        } as unknown as TierAssignment,
-      ]);
-      tierRepo.find.mockResolvedValueOnce([{ tier: 'standard' } as TierAssignment]);
-      specRepo.find.mockResolvedValue([]);
-
-      await svc.removeProvider('agent-1', 'openai');
-      const saved = tierRepo.save.mock.calls[0][0];
-      expect(saved[0].fallback_routes).toBeNull();
-    });
-
-    it('preserves remaining fallback_routes when only some entries match', async () => {
-      providerRepo.findOne.mockResolvedValue({
-        id: 'p1',
-        agent_id: 'agent-1',
-        provider: 'openai',
-        auth_type: 'api_key',
-        is_active: true,
-      });
-      providerRepo.find.mockResolvedValue([]);
-      tierRepo.find.mockResolvedValueOnce([
-        {
-          tier: 'standard',
-          override_route: null,
-          fallback_routes: [route('openai', 'gpt-4o'), route('anthropic', 'claude')],
-        } as unknown as TierAssignment,
-      ]);
-      tierRepo.find.mockResolvedValueOnce([{ tier: 'standard' } as TierAssignment]);
-      specRepo.find.mockResolvedValue([]);
-
-      await svc.removeProvider('agent-1', 'openai');
-      const saved = tierRepo.save.mock.calls[0][0];
-      expect(saved[0].fallback_routes).toEqual([route('anthropic', 'claude')]);
-    });
-
-    it('cleans specificity rows independently from tier rows', async () => {
-      providerRepo.findOne.mockResolvedValue({
-        id: 'p1',
-        agent_id: 'agent-1',
-        provider: 'openai',
-        auth_type: 'api_key',
-        is_active: true,
-      });
-      providerRepo.find.mockResolvedValue([]);
-      tierRepo.find.mockResolvedValueOnce([]);
-      tierRepo.find.mockResolvedValueOnce([]);
-      specRepo.find.mockResolvedValue([
-        {
-          category: 'coding',
-          override_route: route('openai', 'gpt-4o'),
-          fallback_routes: [route('openai', 'gpt-4o-mini')],
-        } as unknown as SpecificityAssignment,
-      ]);
-
-      await svc.removeProvider('agent-1', 'openai');
-      expect(specRepo.save).toHaveBeenCalled();
-      const savedSpec = specRepo.save.mock.calls[0][0];
-      expect(savedSpec[0].override_route).toBeNull();
-      expect(savedSpec[0].fallback_routes).toBeNull();
-    });
-
-    it('skips override clearing when another auth-type record is still active for the provider', async () => {
-      providerRepo.findOne.mockResolvedValue({
-        id: 'p1',
-        agent_id: 'agent-1',
-        provider: 'openai',
-        auth_type: 'api_key',
-        is_active: true,
-      });
-      // Sibling subscription record remains active.
-      providerRepo.find.mockResolvedValue([
-        {
-          id: 'p2',
-          agent_id: 'agent-1',
-          provider: 'openai',
-          auth_type: 'subscription',
-          is_active: true,
-        },
-      ]);
-
-      const result = await svc.removeProvider('agent-1', 'openai');
-      expect(tierRepo.find).not.toHaveBeenCalled();
+      expect(row.is_active).toBe(false);
+      expect(providerRepo.save).toHaveBeenCalledWith([row]);
+      expect(tierRepo.save).not.toHaveBeenCalled();
+      expect(specRepo.save).not.toHaveBeenCalled();
       expect(result.notifications).toEqual([]);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
     });
 
-    it('clears only disconnected auth-type routes when another auth type stays active', async () => {
-      const subscriptionRow = {
-        id: 'p-sub',
+    it('skips route checks when the tenant has no owned agents', async () => {
+      const row = {
+        id: 'p1',
         agent_id: 'agent-1',
-        provider: 'anthropic',
-        auth_type: 'subscription',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Default',
+        priority: 0,
         is_active: true,
-      };
-      providerRepo.find
-        // Active rows matching the disconnect target.
-        .mockResolvedValueOnce([subscriptionRow])
-        // Sibling API-key row remains active for the same provider.
-        .mockResolvedValueOnce([
-          {
-            id: 'p-api',
-            agent_id: 'agent-1',
-            provider: 'anthropic',
-            auth_type: 'api_key',
-            is_active: true,
-          },
-        ]);
-      tierRepo.find.mockResolvedValueOnce([
+      } as unknown as TenantProvider;
+      const localSvc = new ProviderService(
+        providerRepo as unknown as Repository<TenantProvider>,
+        tierRepo as unknown as Repository<TierAssignment>,
+        specRepo as unknown as Repository<SpecificityAssignment>,
+        makeRepo([]) as unknown as Repository<Agent>,
+        headerTierRepo as unknown as Repository<HeaderTier>,
+        pricingCache as unknown as ModelPricingCacheService,
+        routingCache as unknown as RoutingCacheService,
+      );
+      providerRepo.find.mockResolvedValueOnce([row]);
+
+      await expect(localSvc.removeProvider(null, 'tenant-1', 'openai')).resolves.toEqual({
+        notifications: [],
+      });
+
+      expect(tierRepo.find).not.toHaveBeenCalled();
+      expect(row.is_active).toBe(false);
+      expect(providerRepo.save).toHaveBeenCalledWith([row]);
+    });
+
+    it('ignores inactive specificity rows and disabled header tiers', async () => {
+      const row = {
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Default',
+        priority: 0,
+        is_active: true,
+      } as unknown as TenantProvider;
+      providerRepo.find.mockResolvedValueOnce([row]);
+      tierRepo.find.mockResolvedValueOnce([]);
+      specRepo.find.mockResolvedValueOnce([
         {
-          tier: 'standard',
-          override_route: route('anthropic', 'claude-sonnet-4-6', 'subscription'),
-          fallback_routes: [
-            route('anthropic', 'claude-opus-4-6', 'subscription'),
-            route('anthropic', 'claude-haiku-4-6', 'api_key'),
-          ],
-        } as unknown as TierAssignment,
-      ]);
-      tierRepo.find.mockResolvedValueOnce([
-        {
-          tier: 'standard',
-          override_route: null,
-          auto_assigned_route: route('anthropic', 'claude-haiku-4-6'),
-        } as unknown as TierAssignment,
-      ]);
-      specRepo.find.mockResolvedValue([
-        {
+          agent_id: 'agent-1',
           category: 'coding',
-          override_route: route('anthropic', 'claude-sonnet-4-6', 'subscription'),
-          fallback_routes: [
-            route('anthropic', 'claude-opus-4-6', 'subscription'),
-            route('anthropic', 'claude-haiku-4-6', 'api_key'),
-          ],
+          is_active: false,
+          override_route: route('openai', 'gpt-4o'),
+          fallback_routes: null,
         } as unknown as SpecificityAssignment,
       ]);
-
-      const result = await svc.removeProvider('agent-1', 'anthropic', 'subscription');
-
-      expect(subscriptionRow.is_active).toBe(false);
-      const savedTiers = tierRepo.save.mock.calls[0][0];
-      expect(savedTiers[0].override_route).toBeNull();
-      expect(savedTiers[0].fallback_routes).toEqual([
-        route('anthropic', 'claude-haiku-4-6', 'api_key'),
+      headerTierRepo.find.mockResolvedValueOnce([
+        {
+          agent_id: 'agent-1',
+          name: 'Debug',
+          enabled: false,
+          override_route: route('openai', 'gpt-4o'),
+          fallback_routes: null,
+        } as unknown as HeaderTier,
       ]);
-      const savedSpec = specRepo.save.mock.calls[0][0];
-      expect(savedSpec[0].override_route).toBeNull();
-      expect(savedSpec[0].fallback_routes).toEqual([
-        route('anthropic', 'claude-haiku-4-6', 'api_key'),
+
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'openai')).resolves.toEqual({
+        notifications: [],
+      });
+
+      expect(providerRepo.save).toHaveBeenCalledWith([row]);
+    });
+
+    it('ignores routes on agents where the target provider is not enabled', async () => {
+      const row = {
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Default',
+        priority: 0,
+        is_active: true,
+      } as unknown as TenantProvider;
+      const agentRepo = makeRepo([{ id: 'agent-1', name: 'support-bot' }]);
+      const enabledRepo = makeRepo();
+      enabledRepo.find.mockResolvedValueOnce([]);
+      const localSvc = new ProviderService(
+        providerRepo as unknown as Repository<TenantProvider>,
+        tierRepo as unknown as Repository<TierAssignment>,
+        specRepo as unknown as Repository<SpecificityAssignment>,
+        agentRepo as unknown as Repository<Agent>,
+        headerTierRepo as unknown as Repository<HeaderTier>,
+        pricingCache as unknown as ModelPricingCacheService,
+        routingCache as unknown as RoutingCacheService,
+        enabledRepo as unknown as Repository<AgentEnabledProvider>,
+      );
+      providerRepo.find.mockResolvedValueOnce([row]);
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          agent_id: 'agent-1',
+          tier: 'standard',
+          override_route: route('openai', 'gpt-4o'),
+          fallback_routes: null,
+        } as unknown as TierAssignment,
       ]);
-      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
-      expect(result.notifications[0]).toMatch(/claude-sonnet-4-6 is no longer available/);
+      specRepo.find.mockResolvedValueOnce([]);
+      headerTierRepo.find.mockResolvedValueOnce([]);
+
+      await expect(localSvc.removeProvider('agent-1', 'tenant-1', 'openai')).resolves.toEqual({
+        notifications: [],
+      });
+
+      expect(providerRepo.save).toHaveBeenCalledWith([row]);
+      expect(enabledRepo.delete).toHaveBeenCalledWith({ tenant_provider_id: In(['p1']) });
+    });
+
+    it('blocks routes on agents where the target provider is enabled', async () => {
+      const row = {
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Default',
+        priority: 0,
+        is_active: true,
+      } as unknown as TenantProvider;
+      const agentRepo = makeRepo([{ id: 'agent-1', name: 'support-bot' }]);
+      const enabledRepo = makeRepo();
+      enabledRepo.find.mockResolvedValueOnce([
+        { agent_id: 'agent-1', tenant_provider_id: 'p1' } as AgentEnabledProvider,
+      ]);
+      const localSvc = new ProviderService(
+        providerRepo as unknown as Repository<TenantProvider>,
+        tierRepo as unknown as Repository<TierAssignment>,
+        specRepo as unknown as Repository<SpecificityAssignment>,
+        agentRepo as unknown as Repository<Agent>,
+        headerTierRepo as unknown as Repository<HeaderTier>,
+        pricingCache as unknown as ModelPricingCacheService,
+        routingCache as unknown as RoutingCacheService,
+        enabledRepo as unknown as Repository<AgentEnabledProvider>,
+      );
+      providerRepo.find.mockResolvedValueOnce([row]);
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          agent_id: 'agent-1',
+          tier: 'standard',
+          override_route: route('openai', 'gpt-4o'),
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+
+      await expect(localSvc.removeProvider('agent-1', 'tenant-1', 'openai')).rejects.toThrow(
+        'Update routing first (agent "support-bot", tier standard, primary: gpt-4o).',
+      );
+
+      expect(providerRepo.save).not.toHaveBeenCalled();
+      expect(enabledRepo.delete).not.toHaveBeenCalled();
+    });
+
+    it('blocks only disconnected auth-type routes when another auth type stays active', async () => {
+      providerRepo.find.mockResolvedValueOnce([
+        {
+          id: 'p-sub',
+          agent_id: 'agent-1',
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+        } as unknown as TenantProvider,
+      ]);
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          agent_id: 'agent-1',
+          tier: 'standard',
+          override_route: route('anthropic', 'claude-sonnet-4-6', 'subscription'),
+          fallback_routes: [route('anthropic', 'claude-haiku-4-6', 'api_key')],
+        } as unknown as TierAssignment,
+      ]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await expect(
+        svc.removeProvider('agent-1', 'tenant-1', 'anthropic', 'subscription'),
+      ).rejects.toThrow(/Cannot disconnect provider/);
+      expect(providerRepo.save).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException when no provider record exists', async () => {
       providerRepo.findOne.mockResolvedValue(null);
-      await expect(svc.removeProvider('agent-1', 'missing')).rejects.toThrow();
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'missing')).rejects.toThrow();
     });
 
     it('returns no notifications when no tiers/specs reference the provider', async () => {
@@ -343,17 +445,88 @@ describe('ProviderService — route-only cleanup paths', () => {
       tierRepo.find.mockResolvedValueOnce([]);
       specRepo.find.mockResolvedValue([]);
 
-      const result = await svc.removeProvider('agent-1', 'openai');
+      const result = await svc.removeProvider('agent-1', 'tenant-1', 'openai');
       expect(result.notifications).toEqual([]);
+    });
+  });
+
+  describe('upsertProvider — Bedrock region', () => {
+    let originalSecret: string | undefined;
+
+    beforeEach(() => {
+      originalSecret = process.env.BETTER_AUTH_SECRET;
+      process.env.BETTER_AUTH_SECRET = 'a'.repeat(48);
+    });
+
+    afterEach(() => {
+      if (originalSecret === undefined) {
+        delete process.env.BETTER_AUTH_SECRET;
+      } else {
+        process.env.BETTER_AUTH_SECRET = originalSecret;
+      }
+    });
+
+    it('infers the region from a short-term Bedrock API key', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'bedrock',
+        makeShortTermBedrockKey('eu-west-1'),
+      );
+
+      const inserted = providerRepo.insert.mock.calls[0][0] as TenantProvider;
+      expect(inserted.region).toBe('eu-west-1');
+    });
+
+    it('falls back to the default region when a short-term Bedrock key uses an unsupported Mantle region', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'bedrock',
+        makeShortTermBedrockKey('eu-west-3'),
+      );
+
+      const inserted = providerRepo.insert.mock.calls[0][0] as TenantProvider;
+      expect(inserted.region).toBe('us-east-1');
+    });
+
+    it('uses an explicitly selected Bedrock region over key inference', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'bedrock',
+        makeShortTermBedrockKey('eu-west-3'),
+        'api_key',
+        'us-west-2',
+      );
+
+      const inserted = providerRepo.insert.mock.calls[0][0] as TenantProvider;
+      expect(inserted.region).toBe('us-west-2');
+    });
+
+    it('accepts raw AWS bearer token shaped Bedrock keys without region inference', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider('agent-1', 'user-1', 'bedrock', 'ABSKTWFudGxlQXBpS2V5LWV4YW1wbGU=');
+
+      const inserted = providerRepo.insert.mock.calls[0][0] as TenantProvider;
+      expect(inserted.region).toBe('us-east-1');
+      expect(inserted.key_prefix).toBe('ABSKTWFu');
     });
   });
 
   describe('removeProvider — removeKeyByLabel', () => {
     it('throws NotFoundException when no keys match the (provider, auth_type)', async () => {
       providerRepo.find.mockResolvedValue([]);
-      await expect(svc.removeProvider('agent-1', 'openai', 'api_key', 'default')).rejects.toThrow(
-        'Provider not found',
-      );
+      await expect(
+        svc.removeProvider('agent-1', 'tenant-1', 'openai', 'api_key', 'default'),
+      ).rejects.toThrow('Provider not found');
     });
 
     it('throws NotFoundException when no key carries the requested label', async () => {
@@ -365,32 +538,381 @@ describe('ProviderService — route-only cleanup paths', () => {
           auth_type: 'api_key',
           label: 'primary',
           is_active: true,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
-      await expect(svc.removeProvider('agent-1', 'openai', 'api_key', 'secondary')).rejects.toThrow(
-        'Provider key not found',
-      );
+      await expect(
+        svc.removeProvider('agent-1', 'tenant-1', 'openai', 'api_key', 'secondary'),
+      ).rejects.toThrow('Provider key not found');
+    });
+
+    it('does not block removing a non-primary Default-labeled key used only by an unlabeled route', async () => {
+      const target = {
+        id: 'target',
+        agent_id: 'agent-1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Default',
+        priority: 1,
+        is_active: true,
+      } as unknown as TenantProvider;
+      providerRepo.find.mockResolvedValue([
+        target,
+        {
+          id: 'primary',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Work',
+          priority: 0,
+          is_active: true,
+        } as unknown as TenantProvider,
+      ]);
+      tierRepo.find.mockResolvedValue([
+        {
+          agent_id: 'agent-1',
+          tier: 'standard',
+          override_route: route('openai', 'gpt-4o'),
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await expect(
+        svc.removeProvider('agent-1', 'tenant-1', 'openai', 'api_key', 'Default'),
+      ).resolves.toEqual({ notifications: [] });
+
+      expect(providerRepo.remove).toHaveBeenCalledWith(target);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
     });
   });
 
   describe('deactivateAllProviders', () => {
-    it('updates providers and tiers, then recalculates and invalidates cache', async () => {
-      await svc.deactivateAllProviders('agent-1');
+    it('updates providers and invalidates cache when no routes reference them', async () => {
+      providerRepo.find.mockResolvedValueOnce([
+        {
+          id: 'p1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+        } as unknown as TenantProvider,
+      ]);
+      tierRepo.find.mockResolvedValue([]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await svc.deactivateAllProviders('agent-1', 'tenant-1');
 
       expect(providerRepo.update).toHaveBeenCalledWith(
-        { agent_id: 'agent-1' },
+        { tenant_id: 'tenant-1' },
         expect.objectContaining({ is_active: false }),
       );
-      expect(tierRepo.update).toHaveBeenCalledWith(
-        { agent_id: 'agent-1' },
-        expect.objectContaining({
-          override_route: null,
-          auto_assigned_route: null,
-          fallback_routes: null,
-        }),
-      );
-      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      expect(tierRepo.update).not.toHaveBeenCalled();
+      expect(headerTierRepo.update).not.toHaveBeenCalled();
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
+    });
+
+    it('invalidates every owned agent, not just the triggering one', async () => {
+      // The deactivation is user-wide, so a sibling agent's cache must also be
+      // dropped even though the request came from agent-1.
+      const agentRepo = makeRepo(['agent-1', 'agent-2']);
+      const cache = {
+        getProviders: jest.fn().mockReturnValue(null),
+        setProviders: jest.fn(),
+        invalidateAgent: jest.fn(),
+        invalidateTenant: jest.fn(),
+      };
+      const localSvc = new ProviderService(
+        providerRepo as unknown as Repository<TenantProvider>,
+        tierRepo as unknown as Repository<TierAssignment>,
+        specRepo as unknown as Repository<SpecificityAssignment>,
+        agentRepo as unknown as Repository<Agent>,
+        headerTierRepo as unknown as Repository<HeaderTier>,
+        pricingCache as unknown as ModelPricingCacheService,
+        cache as unknown as RoutingCacheService,
+      );
+      providerRepo.find.mockResolvedValueOnce([
+        {
+          id: 'p1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+        } as unknown as TenantProvider,
+      ]);
+      tierRepo.find.mockResolvedValue([]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await localSvc.deactivateAllProviders('agent-1', 'user-1');
+
+      expect(cache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(cache.invalidateAgent).toHaveBeenCalledWith('agent-2');
+      expect(cache.invalidateTenant).toHaveBeenCalledWith('user-1');
+    });
+
+    it('blocks bulk disable when a route references an active provider', async () => {
+      const agentRepo = makeRepo([
+        { id: 'agent-1', name: 'support-bot', display_name: 'Support Bot' },
+      ]);
+      const localSvc = new ProviderService(
+        providerRepo as unknown as Repository<TenantProvider>,
+        tierRepo as unknown as Repository<TierAssignment>,
+        specRepo as unknown as Repository<SpecificityAssignment>,
+        agentRepo as unknown as Repository<Agent>,
+        headerTierRepo as unknown as Repository<HeaderTier>,
+        pricingCache as unknown as ModelPricingCacheService,
+        routingCache as unknown as RoutingCacheService,
+      );
+      providerRepo.find.mockResolvedValueOnce([
+        {
+          id: 'p1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+        } as unknown as TenantProvider,
+      ]);
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          agent_id: 'agent-1',
+          tier: 'standard',
+          override_route: route('openai', 'gpt-4o'),
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await expect(localSvc.deactivateAllProviders('agent-1', 'tenant-1')).rejects.toThrow(
+        'Update routing first (agent "Support Bot", tier standard, primary: gpt-4o).',
+      );
+      expect(providerRepo.update).not.toHaveBeenCalled();
+    });
+
+    it('checks owned-agent routes in batches and stops after the first match', async () => {
+      const agentRepo = makeRepo([
+        { id: 'agent-1', name: 'first-bot', display_name: 'First Bot' },
+        { id: 'agent-2', name: 'second-bot', display_name: 'Second Bot' },
+      ]);
+      const localSvc = new ProviderService(
+        providerRepo as unknown as Repository<TenantProvider>,
+        tierRepo as unknown as Repository<TierAssignment>,
+        specRepo as unknown as Repository<SpecificityAssignment>,
+        agentRepo as unknown as Repository<Agent>,
+        headerTierRepo as unknown as Repository<HeaderTier>,
+        pricingCache as unknown as ModelPricingCacheService,
+        routingCache as unknown as RoutingCacheService,
+      );
+      providerRepo.find.mockResolvedValueOnce([
+        {
+          id: 'p1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+        } as unknown as TenantProvider,
+      ]);
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          agent_id: 'agent-2',
+          tier: 'standard',
+          override_route: route('openai', 'gpt-4o'),
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+
+      await expect(localSvc.deactivateAllProviders('agent-1', 'tenant-1')).rejects.toThrow(
+        'Update routing first (agent "Second Bot", tier standard, primary: gpt-4o).',
+      );
+
+      expect(tierRepo.find).toHaveBeenCalledTimes(1);
+      expect(specRepo.find).not.toHaveBeenCalled();
+      expect(headerTierRepo.find).not.toHaveBeenCalled();
+      expect(providerRepo.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('header-tier cleanup on disconnect / rename', () => {
+    const headerPin = (keyLabel: string | null) => ({
+      provider: 'openai',
+      authType: 'subscription' as const,
+      model: 'openai/gpt-5',
+      keyLabel,
+    });
+
+    it('blocks removing a labeled key while header tiers pin that key', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'target',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'subscription',
+          label: 'Key 2',
+          is_active: true,
+        },
+        {
+          id: 'other',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'subscription',
+          label: 'Default',
+          is_active: true,
+        },
+      ]);
+      tierRepo.find.mockResolvedValue([]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([
+        {
+          id: 'h1',
+          agent_id: 'agent-1',
+          override_route: headerPin('Key 2'),
+          fallback_routes: [headerPin('Key 2'), headerPin('Default')],
+        } as unknown as HeaderTier,
+        // Non-matching tier (different pinned label) must be left untouched.
+        {
+          id: 'h2',
+          agent_id: 'agent-1',
+          override_route: headerPin('Default'),
+          fallback_routes: null,
+        } as unknown as HeaderTier,
+      ]);
+
+      await expect(
+        svc.removeProvider('agent-1', 'tenant-1', 'openai', 'subscription', 'Key 2'),
+      ).rejects.toThrow(/Cannot disconnect provider/);
+
+      expect(headerTierRepo.save).not.toHaveBeenCalled();
+      expect(providerRepo.remove).not.toHaveBeenCalled();
+    });
+
+    it('rewrites header-tier key pins to the new label on rename', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'target',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'subscription',
+          label: 'Key 2',
+          is_active: true,
+        },
+      ]);
+      tierRepo.find.mockResolvedValue([]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([
+        {
+          id: 'h1',
+          agent_id: 'agent-1',
+          override_route: headerPin('Key 2'),
+          fallback_routes: null,
+        } as unknown as HeaderTier,
+      ]);
+
+      await svc.renameKey('agent-1', 'tenant-1', 'openai', 'subscription', 'Key 2', 'Renamed');
+
+      const saved = headerTierRepo.save.mock.calls[0][0] as HeaderTier[];
+      expect(saved[0].override_route?.keyLabel).toBe('Renamed');
+    });
+
+    it('relabels pinned routes on every agent of the user, not just the renaming one', async () => {
+      const pin = (keyLabel: string) => ({
+        provider: 'openai',
+        authType: 'api_key' as const,
+        model: 'gpt-4o',
+        keyLabel,
+      });
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'target',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Key 2',
+          is_active: true,
+        },
+      ]);
+      tierRepo.find.mockResolvedValue([
+        {
+          id: 't1',
+          agent_id: 'agent-1',
+          override_route: pin('Key 2'),
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+        {
+          id: 't2',
+          agent_id: 'agent-2',
+          override_route: pin('Key 2'),
+          fallback_routes: [pin('Key 2')],
+        } as unknown as TierAssignment,
+      ]);
+      specRepo.find.mockResolvedValue([
+        {
+          id: 's1',
+          agent_id: 'agent-3',
+          override_route: pin('Key 2'),
+          fallback_routes: null,
+        } as unknown as SpecificityAssignment,
+      ]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await svc.renameKey('agent-1', 'tenant-1', 'openai', 'api_key', 'Key 2', 'Renamed');
+
+      // Keys are tenant-global: the rename fans out across every owned agent,
+      // so tiers are fetched by agent_id IN (...owned agent ids).
+      expect(tierRepo.find).toHaveBeenCalledWith({ where: { agent_id: In(['agent-1']) } });
+      const savedTiers = tierRepo.save.mock.calls[0][0] as TierAssignment[];
+      expect(savedTiers.map((t) => t.override_route?.keyLabel)).toEqual(['Renamed', 'Renamed']);
+      expect(savedTiers[1].fallback_routes?.[0]?.keyLabel).toBe('Renamed');
+      const savedSpecs = specRepo.save.mock.calls[0][0] as SpecificityAssignment[];
+      expect(savedSpecs[0].override_route?.keyLabel).toBe('Renamed');
+      // Per-agent tier caches must be flushed for every mutated agent.
+      for (const id of ['agent-1', 'agent-2', 'agent-3']) {
+        expect(routingCache.invalidateAgent).toHaveBeenCalledWith(id);
+      }
+    });
+
+    it('blocks full provider disconnect while header tiers route to it', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p1',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+        } as unknown as TenantProvider,
+      ]);
+      tierRepo.find.mockResolvedValue([]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([
+        {
+          id: 'h1',
+          agent_id: 'agent-1',
+          override_route: route('OpenAI', 'gpt-4o'),
+          fallback_routes: [route('openai', 'gpt-4o-mini'), route('anthropic', 'claude')],
+        } as unknown as HeaderTier,
+        // Belongs to another provider — must survive.
+        {
+          id: 'h2',
+          agent_id: 'agent-1',
+          override_route: route('anthropic', 'claude'),
+          fallback_routes: null,
+        } as unknown as HeaderTier,
+      ]);
+
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'openai')).rejects.toThrow(
+        /Cannot disconnect provider/,
+      );
+
+      expect(headerTierRepo.save).not.toHaveBeenCalled();
+      expect(providerRepo.save).not.toHaveBeenCalled();
     });
   });
 
@@ -405,10 +927,26 @@ describe('ProviderService — route-only cleanup paths', () => {
           is_active: true,
         },
       ]);
-      const result = await svc.getProviders('agent-1');
+      const result = await svc.getProviders('tenant-1');
       expect(result).toHaveLength(1);
       expect(providerRepo.save).not.toHaveBeenCalled();
-      expect(autoAssign.recalculate).not.toHaveBeenCalled();
+      expect(routingCache.invalidateTenant).not.toHaveBeenCalled();
+    });
+
+    it('keeps supported subscription rows that use provider aliases', async () => {
+      const googleSubscription = {
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'google',
+        auth_type: 'subscription',
+        is_active: true,
+      } as TenantProvider;
+      providerRepo.find.mockResolvedValue([googleSubscription]);
+
+      const result = await svc.getProviders('agent-1');
+
+      expect(result).toEqual([googleSubscription]);
+      expect(providerRepo.save).not.toHaveBeenCalled();
     });
 
     it('deactivates unsupported subscription rows and triggers cleanup when no usable sibling remains', async () => {
@@ -428,31 +966,60 @@ describe('ProviderService — route-only cleanup paths', () => {
         .mockResolvedValueOnce([]);
       tierRepo.find.mockResolvedValue([
         {
-          tier: 'standard',
-          override_route: route('foobar', 'fb-1'),
-          fallback_routes: null,
-        } as unknown as TierAssignment,
+          id: 'p1',
+          agent_id: 'agent-1',
+          provider: 'foobar',
+          auth_type: 'subscription',
+          is_active: true,
+        },
       ]);
-      specRepo.find.mockResolvedValue([]);
 
-      const result = await svc.getProviders('agent-1');
+      const result = await svc.getProviders('tenant-1');
       // The unsupported row was deactivated.
       expect(providerRepo.save).toHaveBeenCalled();
       // After filter only usable providers are returned (none in this case).
       expect(result).toEqual([]);
-      // Tier override referencing the removed provider gets cleared.
-      expect(tierRepo.save).toHaveBeenCalled();
-      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
     });
 
     it('reads from cache when present', async () => {
       const cached = [
-        { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true } as UserProvider,
+        { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true } as TenantProvider,
       ];
       routingCache.getProviders.mockReturnValue(cached);
-      const result = await svc.getProviders('agent-1');
+      const result = await svc.getProviders('tenant-1');
       expect(result).toBe(cached);
       expect(providerRepo.find).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('registerSubscriptionProvider', () => {
+    it('registers keyless subscription providers that use provider aliases', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      const result = await svc.registerSubscriptionProvider('agent-1', 'tenant-1', 'google');
+
+      expect(result).toEqual({ isNew: true });
+      expect(providerRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tenant_id: 'tenant-1',
+          agent_id: undefined,
+          provider: 'google',
+          auth_type: 'subscription',
+          label: 'Default',
+          priority: 0,
+          api_key_encrypted: null,
+          key_prefix: null,
+          is_active: true,
+        }),
+      );
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('still ignores unsupported keyless subscription providers', async () => {
+      const result = await svc.registerSubscriptionProvider('agent-1', 'tenant-1', 'deepseek');
+
+      expect(result).toEqual({ isNew: false });
+      expect(providerRepo.insert).not.toHaveBeenCalled();
     });
   });
 
@@ -478,7 +1045,7 @@ describe('ProviderService — route-only cleanup paths', () => {
 
       await svc.upsertProvider(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'minimax',
         'sk-cp-token-from-cn',
         'subscription',
@@ -507,7 +1074,7 @@ describe('ProviderService — route-only cleanup paths', () => {
 
       await svc.upsertProvider(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'minimax',
         'sk-cp-new-token',
         'subscription',
@@ -532,7 +1099,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
 
-      await svc.upsertProvider('agent-1', 'user-1', 'minimax', 'sk-cp-rotated', 'subscription');
+      await svc.upsertProvider('agent-1', 'tenant-1', 'minimax', 'sk-cp-rotated', 'subscription');
 
       expect(providerRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -545,7 +1112,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       providerRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        svc.upsertProvider('agent-1', 'user-1', 'minimax', 'sk-cp-token', 'subscription', 'eu'),
+        svc.upsertProvider('agent-1', 'tenant-1', 'minimax', 'sk-cp-token', 'subscription', 'eu'),
       ).rejects.toThrow('MiniMax subscription region must be one of: global, cn');
     });
   });
@@ -567,7 +1134,14 @@ describe('ProviderService — route-only cleanup paths', () => {
     it('persists region=global on a new Z.ai subscription row', async () => {
       providerRepo.findOne.mockResolvedValue(null);
 
-      await svc.upsertProvider('agent-1', 'user-1', 'zai', 'zai-sub-key', 'subscription', 'global');
+      await svc.upsertProvider(
+        'agent-1',
+        'tenant-1',
+        'zai',
+        'zai-sub-key',
+        'subscription',
+        'global',
+      );
 
       expect(providerRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -589,7 +1163,14 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
 
-      await svc.upsertProvider('agent-1', 'user-1', 'zai', 'zai-new-key', 'subscription', 'global');
+      await svc.upsertProvider(
+        'agent-1',
+        'tenant-1',
+        'zai',
+        'zai-new-key',
+        'subscription',
+        'global',
+      );
 
       expect(providerRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -609,7 +1190,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
 
-      await svc.upsertProvider('agent-1', 'user-1', 'zai', 'zai-rotated', 'subscription');
+      await svc.upsertProvider('agent-1', 'tenant-1', 'zai', 'zai-rotated', 'subscription');
 
       expect(providerRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -629,7 +1210,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
 
-      await svc.upsertProvider('agent-1', 'user-1', 'z.ai', 'zai-rotated', 'subscription');
+      await svc.upsertProvider('agent-1', 'tenant-1', 'z.ai', 'zai-rotated', 'subscription');
 
       expect(providerRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -643,21 +1224,133 @@ describe('ProviderService — route-only cleanup paths', () => {
       providerRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        svc.upsertProvider('agent-1', 'user-1', 'zai', 'zai-sub-key', 'subscription', 'eu'),
+        svc.upsertProvider('agent-1', 'tenant-1', 'zai', 'zai-sub-key', 'subscription', 'eu'),
       ).rejects.toThrow('Z.ai subscription region must be one of: global, cn');
+    });
+  });
+
+  describe('upsertProvider — Xiaomi MiMo Token Plan region', () => {
+    let originalSecret: string | undefined;
+    beforeAll(() => {
+      originalSecret = process.env.BETTER_AUTH_SECRET;
+      process.env.BETTER_AUTH_SECRET = 'a'.repeat(48);
+    });
+    afterAll(() => {
+      if (originalSecret === undefined) {
+        delete process.env.BETTER_AUTH_SECRET;
+      } else {
+        process.env.BETTER_AUTH_SECRET = originalSecret;
+      }
+    });
+
+    it('persists region=ams on a new Xiaomi subscription row', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider(
+        'agent-1',
+        'tenant-1',
+        'xiaomi',
+        'tp-mimo-token',
+        'subscription',
+        'ams',
+      );
+
+      expect(providerRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'xiaomi',
+          auth_type: 'subscription',
+          region: 'ams',
+        }),
+      );
+    });
+
+    it('updates region on an existing Xiaomi subscription row', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'xiaomi',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'cn',
+        is_active: true,
+      });
+
+      await svc.upsertProvider(
+        'agent-1',
+        'tenant-1',
+        'xiaomi',
+        'tp-mimo-new-token',
+        'subscription',
+        'sgp',
+      );
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          region: 'sgp',
+        }),
+      );
+    });
+
+    it('preserves existing Xiaomi subscription region when caller omits it', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'xiaomi',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'ams',
+        is_active: true,
+      });
+
+      await svc.upsertProvider('agent-1', 'tenant-1', 'xiaomi', 'tp-mimo-rotated', 'subscription');
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          region: 'ams',
+        }),
+      );
+    });
+
+    it('preserves existing Xiaomi alias subscription region when caller omits it', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'mimo',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'ams',
+        is_active: true,
+      });
+
+      await svc.upsertProvider('agent-1', 'tenant-1', 'mimo', 'tp-mimo-rotated', 'subscription');
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'mimo',
+          region: 'ams',
+        }),
+      );
+    });
+
+    it('rejects unsupported Xiaomi subscription region', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        svc.upsertProvider('agent-1', 'tenant-1', 'xiaomi', 'tp-mimo-token', 'subscription', 'eu'),
+      ).rejects.toThrow('Xiaomi MiMo Token Plan region must be one of: cn, sgp, ams');
     });
   });
 
   describe('nextOAuthLabel', () => {
     it('returns undefined when no subscription rows exist', async () => {
       providerRepo.find.mockResolvedValue([]);
-      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      const label = await svc.nextOAuthLabel('tenant-1', 'openai');
       expect(label).toBeUndefined();
     });
 
     it('returns "Key 2" when one subscription row exists', async () => {
       providerRepo.find.mockResolvedValue([{ label: 'Default', is_active: true }]);
-      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      const label = await svc.nextOAuthLabel('tenant-1', 'openai');
       expect(label).toBe('Key 2');
     });
 
@@ -666,7 +1359,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         { label: 'Default', is_active: true },
         { label: 'Key 2', is_active: true },
       ]);
-      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      const label = await svc.nextOAuthLabel('tenant-1', 'openai');
       expect(label).toBe('Key 3');
     });
 
@@ -675,8 +1368,449 @@ describe('ProviderService — route-only cleanup paths', () => {
         { label: 'Default', is_active: true },
         { label: 'key 2', is_active: true },
       ]);
-      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      const label = await svc.nextOAuthLabel('tenant-1', 'openai');
       expect(label).toBe('Key 3');
     });
+  });
+});
+
+describe('ProviderService — symmetric provider↔agent auto-connect', () => {
+  const PREV_SECRET = process.env.BETTER_AUTH_SECRET;
+
+  // A query-builder mock whose insert chain records the enabled (agent, provider)
+  // pairs so the symmetric auto-enable tests can assert exactly which pairs were enabled.
+  const makeEnabledProviderRepo = (enabled: Array<{ agent: string; provider: string }>) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const insertChain: any = {
+      insert: jest.fn().mockReturnThis(),
+      into: jest.fn().mockReturnThis(),
+      values: jest.fn((v: { agent_id: string; tenant_provider_id: string }) => {
+        enabled.push({ agent: v.agent_id, provider: v.tenant_provider_id });
+        return insertChain;
+      }),
+      orIgnore: jest.fn().mockReturnThis(),
+      execute: jest.fn().mockResolvedValue(undefined),
+    };
+    return {
+      createQueryBuilder: jest.fn().mockReturnValue(insertChain),
+      delete: jest.fn().mockResolvedValue(undefined),
+    };
+  };
+
+  const build = (agentIds: string[], enabled: Array<{ agent: string; provider: string }>) => {
+    const providerRepo = makeRepo();
+    const agentRepo = makeRepo(agentIds);
+    const routingCache = {
+      getProviders: jest.fn().mockReturnValue(null),
+      setProviders: jest.fn(),
+      invalidateAgent: jest.fn(),
+      invalidateTenant: jest.fn(),
+    };
+    const enabledProviderRepo = makeEnabledProviderRepo(enabled);
+    const svc = new ProviderService(
+      providerRepo as unknown as Repository<TenantProvider>,
+      makeRepo() as unknown as Repository<TierAssignment>,
+      makeRepo() as unknown as Repository<SpecificityAssignment>,
+      agentRepo as unknown as Repository<Agent>,
+      makeRepo() as unknown as Repository<HeaderTier>,
+      { getByModel: jest.fn() } as unknown as ModelPricingCacheService,
+      routingCache as unknown as RoutingCacheService,
+      enabledProviderRepo as unknown as Repository<AgentEnabledProvider>,
+    );
+    return { svc, providerRepo, routingCache };
+  };
+
+  beforeAll(() => {
+    process.env.BETTER_AUTH_SECRET = 'a'.repeat(48);
+  });
+  afterAll(() => {
+    if (PREV_SECRET === undefined) delete process.env.BETTER_AUTH_SECRET;
+    else process.env.BETTER_AUTH_SECRET = PREV_SECRET;
+  });
+
+  describe('enableAllProvidersForAgent', () => {
+    it('enables every usable provider for the agent and invalidates that agent', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo, routingCache } = build(['agent-x'], enabled);
+      providerRepo.find.mockResolvedValue([
+        { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true } as TenantProvider,
+        {
+          id: 'p2',
+          provider: 'anthropic',
+          auth_type: 'api_key',
+          is_active: true,
+        } as TenantProvider,
+      ]);
+
+      await svc.enableAllProvidersForAgent('new-agent', 'tenant-1');
+
+      expect(enabled).toEqual([
+        { agent: 'new-agent', provider: 'p1' },
+        { agent: 'new-agent', provider: 'p2' },
+      ]);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('new-agent');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
+    });
+
+    it('is a no-op when the user has no usable providers', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo, routingCache } = build(['agent-x'], enabled);
+      providerRepo.find.mockResolvedValue([]);
+
+      await expect(
+        svc.enableAllProvidersForAgent('new-agent', 'tenant-1'),
+      ).resolves.toBeUndefined();
+      expect(enabled).toEqual([]);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('new-agent');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
+    });
+  });
+
+  describe('enableProviderForAllAgents', () => {
+    it('enables the new provider for every owned agent and invalidates their caches', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, routingCache } = build(['agent-1', 'agent-2'], enabled);
+
+      await svc.enableProviderForAllAgents('tenant-1', 'new-provider');
+
+      expect(enabled).toEqual([
+        { agent: 'agent-1', provider: 'new-provider' },
+        { agent: 'agent-2', provider: 'new-provider' },
+      ]);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-2');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
+    });
+
+    it('is a no-op when the user owns no agents', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, routingCache } = build([], enabled);
+
+      await expect(
+        svc.enableProviderForAllAgents('tenant-1', 'new-provider'),
+      ).resolves.toBeUndefined();
+      expect(enabled).toEqual([]);
+      expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
+    });
+  });
+
+  describe('upsertProvider — new provider connect fans out to all agents', () => {
+    it('enables a brand-new api_key provider for every owned agent (Default label path)', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      // No existing row → new-row branch.
+      providerRepo.findOne.mockResolvedValue(null);
+
+      const { isNew, provider } = await svc.upsertProvider(
+        'agent-1',
+        'tenant-1',
+        'openai',
+        'sk-new-key',
+        'api_key',
+      );
+
+      expect(isNew).toBe(true);
+      // Every owned agent (not just the connecting one) gets the provider enabled.
+      expect(enabled).toEqual([
+        { agent: 'agent-1', provider: provider.id },
+        { agent: 'agent-2', provider: provider.id },
+      ]);
+    });
+
+    it('enables a brand-new labeled provider for every owned agent', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      // upsertProviderWithLabel: no existing rows → new-row branch.
+      providerRepo.find.mockResolvedValue([]);
+
+      const { isNew, provider } = await svc.upsertProvider(
+        'agent-1',
+        'tenant-1',
+        'openai',
+        'sk-labeled-key',
+        'api_key',
+        undefined,
+        'Work',
+      );
+
+      expect(isNew).toBe(true);
+      expect(enabled).toEqual([
+        { agent: 'agent-1', provider: provider.id },
+        { agent: 'agent-2', provider: provider.id },
+      ]);
+    });
+
+    it('enables a brand-new tokenless subscription provider for every owned agent', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      // registerSubscriptionProvider new-row branch: no existing sub/api_key row.
+      providerRepo.findOne.mockResolvedValue(null);
+
+      const { isNew } = await svc.registerSubscriptionProvider('agent-1', 'tenant-1', 'anthropic');
+
+      expect(isNew).toBe(true);
+      expect(enabled.map((g) => g.agent)).toEqual(['agent-1', 'agent-2']);
+    });
+  });
+
+  describe('reconnect of a DISCONNECTED provider fans back out to all agents', () => {
+    it('re-enables every owned agent when reconnecting an inactive Default-label row', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      const enableSpy = jest.spyOn(svc, 'enableProviderForAllAgents');
+      // removeProvider left this row is_active=false; reconnecting must restore
+      // the global ON-by-default invariant for EVERY agent.
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p-dead',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Default',
+        is_active: false,
+      });
+
+      const { isNew } = await svc.upsertProvider('agent-1', 'user-1', 'openai', 'sk-reconnect');
+
+      expect(isNew).toBe(false);
+      // Fan-out IS taken on reactivation of a disconnected row.
+      expect(enableSpy).toHaveBeenCalledWith('user-1', 'p-dead', undefined);
+      expect(enabled.some((g) => g.agent === 'agent-1' && g.provider === 'p-dead')).toBe(true);
+      expect(enabled.some((g) => g.agent === 'agent-2' && g.provider === 'p-dead')).toBe(true);
+    });
+
+    it('re-enables every owned agent when reconnecting an inactive same-key row', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      const enableSpy = jest.spyOn(svc, 'enableProviderForAllAgents');
+      const sameKeyEncrypted = encrypt('sk-same-key', getEncryptionSecret());
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p-same-dead',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          api_key_encrypted: sameKeyEncrypted,
+          is_active: false,
+          priority: 0,
+        } as unknown as TenantProvider,
+      ]);
+
+      const { isNew } = await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'openai',
+        'sk-same-key',
+        'api_key',
+        undefined,
+        'Key 2',
+      );
+
+      expect(isNew).toBe(false);
+      expect(enableSpy).toHaveBeenCalledWith('user-1', 'p-same-dead', undefined);
+      expect(enabled.some((g) => g.agent === 'agent-2' && g.provider === 'p-same-dead')).toBe(true);
+    });
+
+    it('does NOT resurrect a user-removed (inactive) subscription on background re-registration', async () => {
+      // Unlike the user-driven upsert reconnect, registerSubscriptionProvider is
+      // the agent's automatic capability report. A subscription the user
+      // explicitly removed must stay inactive — it must not be reactivated nor
+      // fanned out to other agents by a background re-registration.
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      const enableSpy = jest.spyOn(svc, 'enableProviderForAllAgents');
+      const dead = {
+        id: 'p-sub-dead',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        label: 'Default',
+        is_active: false,
+      };
+      providerRepo.findOne.mockResolvedValue(dead);
+
+      const { isNew } = await svc.registerSubscriptionProvider('agent-1', 'user-1', 'anthropic');
+
+      expect(isNew).toBe(false);
+      // Row left untouched (still inactive, never saved) and no user-wide fan-out.
+      expect(dead.is_active).toBe(false);
+      expect(providerRepo.save).not.toHaveBeenCalled();
+      expect(enableSpy).not.toHaveBeenCalled();
+      expect(enabled.some((g) => g.agent === 'agent-2' && g.provider === 'p-sub-dead')).toBe(false);
+    });
+
+    it('does not reactivate an already-active subscription row (no fan-out)', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      const enableSpy = jest.spyOn(svc, 'enableProviderForAllAgents');
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p-sub-live',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        label: 'Default',
+        is_active: true,
+      });
+
+      const { isNew } = await svc.registerSubscriptionProvider('agent-1', 'user-1', 'anthropic');
+
+      expect(isNew).toBe(false);
+      // Active row: only the connecting agent is touched via afterProviderChange.
+      expect(enableSpy).not.toHaveBeenCalled();
+      expect(enabled.some((g) => g.agent === 'agent-2')).toBe(false);
+    });
+  });
+
+  describe('reconnect of an EXISTING provider does NOT re-enable (per-agent disables preserved)', () => {
+    it('does not enable other agents when an existing Default-label row is updated', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      const enableSpy = jest.spyOn(svc, 'enableProviderForAllAgents');
+      // Existing row → update-in-place branch (afterProviderChange path).
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p-existing',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Default',
+        is_active: true,
+      });
+
+      const { isNew } = await svc.upsertProvider('agent-1', 'tenant-1', 'openai', 'sk-rotated');
+
+      expect(isNew).toBe(false);
+      // The fan-out-to-all-agents path is NOT taken on reconnect.
+      expect(enableSpy).not.toHaveBeenCalled();
+      // Only the connecting agent is (re)enabled via afterProviderChange —
+      // sibling agent-2 keeps whatever per-agent disable state it had.
+      expect(enabled).toEqual([{ agent: 'agent-1', provider: 'p-existing' }]);
+      expect(enabled.some((g) => g.agent === 'agent-2')).toBe(false);
+    });
+
+    it('does not re-enable when reconnecting the same key under a new label (sameKey path)', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      const enableSpy = jest.spyOn(svc, 'enableProviderForAllAgents');
+      const sameKeyEncrypted = encrypt('sk-same-key', getEncryptionSecret());
+      // upsertProviderWithLabel: a row with the SAME decrypted key already
+      // exists under a different label → sameKey reactivation branch.
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p-same',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          api_key_encrypted: sameKeyEncrypted,
+          is_active: true,
+          priority: 0,
+        } as unknown as TenantProvider,
+      ]);
+
+      const { isNew } = await svc.upsertProvider(
+        'agent-1',
+        'tenant-1',
+        'openai',
+        'sk-same-key',
+        'api_key',
+        undefined,
+        'Key 2',
+      );
+
+      expect(isNew).toBe(false);
+      // The fan-out-to-all-agents path is NOT taken on a same-key reconnect.
+      expect(enableSpy).not.toHaveBeenCalled();
+      // Only the connecting agent is (re)enabled via afterProviderChange —
+      // sibling agent-2 keeps whatever per-agent disable state it had.
+      expect(enabled).toEqual([{ agent: 'agent-1', provider: 'p-same' }]);
+      expect(enabled.some((g) => g.agent === 'agent-2')).toBe(false);
+    });
+  });
+});
+
+describe('ProviderService — getFreshSubscriptionCredential', () => {
+  const PREV_KEY = process.env.MANIFEST_ENCRYPTION_KEY;
+  let providerRepo: ReturnType<typeof makeRepo>;
+  let svc: ProviderService;
+
+  beforeAll(() => {
+    process.env.MANIFEST_ENCRYPTION_KEY = 'unit-test-encryption-key-1234567890';
+  });
+  afterAll(() => {
+    if (PREV_KEY === undefined) delete process.env.MANIFEST_ENCRYPTION_KEY;
+    else process.env.MANIFEST_ENCRYPTION_KEY = PREV_KEY;
+  });
+
+  beforeEach(() => {
+    providerRepo = makeRepo();
+    svc = new ProviderService(
+      providerRepo as unknown as Repository<TenantProvider>,
+      makeRepo() as unknown as Repository<TierAssignment>,
+      makeRepo() as unknown as Repository<SpecificityAssignment>,
+      makeRepo() as unknown as Repository<Agent>,
+      makeRepo() as unknown as Repository<HeaderTier>,
+      { getByModel: jest.fn() } as unknown as ModelPricingCacheService,
+      {
+        getProviders: jest.fn(),
+        setProviders: jest.fn(),
+        invalidateAgent: jest.fn(),
+        invalidateTenant: jest.fn(),
+      } as unknown as RoutingCacheService,
+    );
+  });
+
+  it('returns the decrypted raw credential, scanning subscription rows for the agent/provider', async () => {
+    const raw = JSON.stringify({ t: 'access', r: 'refresh', e: 123 });
+    providerRepo.find.mockResolvedValue([
+      { label: 'Work', api_key_encrypted: encrypt(raw, getEncryptionSecret()) },
+    ]);
+
+    const out = await svc.getFreshSubscriptionCredential('tenant-1', 'openai', 'Work');
+
+    expect(out).toBe(raw);
+    expect(providerRepo.find).toHaveBeenCalledWith({
+      where: { tenant_id: 'tenant-1', provider: 'openai', auth_type: 'subscription' },
+    });
+  });
+
+  it('matches the label case-insensitively', async () => {
+    const raw = JSON.stringify({ t: 'a', r: 'r', e: 1 });
+    providerRepo.find.mockResolvedValue([
+      { label: 'Other', api_key_encrypted: encrypt('nope', getEncryptionSecret()) },
+      { label: 'work', api_key_encrypted: encrypt(raw, getEncryptionSecret()) },
+    ]);
+
+    // Stored row is "work"; the pinned route asks for "WORK".
+    const out = await svc.getFreshSubscriptionCredential('tenant-1', 'openai', 'WORK');
+
+    expect(out).toBe(raw);
+  });
+
+  it('defaults the label to Default when none is provided', async () => {
+    const raw = JSON.stringify({ t: 'a', r: 'r', e: 1 });
+    providerRepo.find.mockResolvedValue([
+      { label: 'Default', api_key_encrypted: encrypt(raw, getEncryptionSecret()) },
+    ]);
+
+    expect(await svc.getFreshSubscriptionCredential('tenant-1', 'anthropic')).toBe(raw);
+  });
+
+  it('returns null when no row matches the label', async () => {
+    providerRepo.find.mockResolvedValue([
+      { label: 'Something else', api_key_encrypted: encrypt('x', getEncryptionSecret()) },
+    ]);
+    expect(await svc.getFreshSubscriptionCredential('tenant-1', 'openai')).toBeNull();
+  });
+
+  it('returns null when there are no subscription rows', async () => {
+    providerRepo.find.mockResolvedValue([]);
+    expect(await svc.getFreshSubscriptionCredential('tenant-1', 'openai')).toBeNull();
+  });
+
+  it('returns null when the matched row has no stored credential', async () => {
+    providerRepo.find.mockResolvedValue([{ label: 'Default', api_key_encrypted: null }]);
+    expect(await svc.getFreshSubscriptionCredential('tenant-1', 'openai')).toBeNull();
+  });
+
+  it('returns null when the stored credential cannot be decrypted', async () => {
+    providerRepo.find.mockResolvedValue([
+      { label: 'Default', api_key_encrypted: 'not-a-valid-ciphertext' },
+    ]);
+    expect(await svc.getFreshSubscriptionCredential('tenant-1', 'openai')).toBeNull();
   });
 });

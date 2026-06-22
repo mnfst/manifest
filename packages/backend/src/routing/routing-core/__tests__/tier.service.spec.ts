@@ -4,9 +4,7 @@ import type { ModelRoute } from 'manifest-shared';
 import { TIER_SLOTS } from 'manifest-shared';
 import { TierService } from '../tier.service';
 import { TierAssignment } from '../../../entities/tier-assignment.entity';
-import { UserProvider } from '../../../entities/user-provider.entity';
 import type { DiscoveredModel } from '../../../model-discovery/model-fetcher';
-import type { TierAutoAssignService } from '../tier-auto-assign.service';
 import type { RoutingCacheService } from '../routing-cache.service';
 import type { ProviderService } from '../provider.service';
 import type { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
@@ -52,9 +50,7 @@ const makeRepo = <T>(): RepoMock<T> => ({
 });
 
 describe('TierService', () => {
-  let providerRepo: RepoMock<UserProvider>;
   let tierRepo: RepoMock<TierAssignment>;
-  let autoAssign: jest.Mocked<Pick<TierAutoAssignService, 'recalculate'>>;
   let routingCache: {
     getTiers: jest.Mock;
     setTiers: jest.Mock;
@@ -65,9 +61,7 @@ describe('TierService', () => {
   let svc: TierService;
 
   beforeEach(() => {
-    providerRepo = makeRepo<UserProvider>();
     tierRepo = makeRepo<TierAssignment>();
-    autoAssign = { recalculate: jest.fn().mockResolvedValue(undefined) };
     routingCache = {
       getTiers: jest.fn().mockReturnValue(null),
       setTiers: jest.fn(),
@@ -77,13 +71,21 @@ describe('TierService', () => {
     discoveryService = { getModelsForAgent: jest.fn().mockResolvedValue([]) };
 
     svc = new TierService(
-      providerRepo as unknown as Repository<UserProvider>,
       tierRepo as unknown as Repository<TierAssignment>,
-      autoAssign as unknown as TierAutoAssignService,
       routingCache as unknown as RoutingCacheService,
       providerService as unknown as ProviderService,
       discoveryService as unknown as ModelDiscoveryService,
     );
+  });
+
+  describe('setResponseMode', () => {
+    it('creates a new tier row when none exists yet', async () => {
+      const out = await svc.setResponseMode('agent-1', 'standard', 'buffered');
+      expect(tierRepo.insert).toHaveBeenCalledTimes(1);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(out.tier).toBe('standard');
+      expect(out.response_mode).toBe('buffered');
+    });
   });
 
   describe('hasRoutableTier', () => {
@@ -94,7 +96,10 @@ describe('TierService', () => {
       expect(await svc.hasRoutableTier('agent-1')).toBe(true);
     });
 
-    it('returns true when any tier has an auto-assigned route', async () => {
+    it('returns true when a tier only has an auto-assigned route (legacy upgrade path)', async () => {
+      // ResolveService honors auto_assigned_route when override is empty, so
+      // the status endpoint must not claim "no_routable_models" while the
+      // proxy actively routes these installs.
       tierRepo.find.mockResolvedValue([
         {
           tier: 'standard',
@@ -103,6 +108,24 @@ describe('TierService', () => {
         },
       ]);
       expect(await svc.hasRoutableTier('agent-1')).toBe(true);
+    });
+
+    it('prefers override over auto-assigned when both are present', async () => {
+      tierRepo.find.mockResolvedValue([
+        {
+          tier: 'standard',
+          override_route: route('anthropic', 'api_key', 'claude'),
+          auto_assigned_route: route('openai', 'api_key', 'gpt-4o'),
+        },
+      ]);
+      expect(await svc.hasRoutableTier('agent-1')).toBe(true);
+    });
+
+    it('ignores a malformed auto-assigned blob', async () => {
+      tierRepo.find.mockResolvedValue([
+        { tier: 'standard', override_route: null, auto_assigned_route: { foo: 'bar' } },
+      ]);
+      expect(await svc.hasRoutableTier('agent-1')).toBe(false);
     });
 
     it('returns false when every tier is empty', async () => {
@@ -137,31 +160,31 @@ describe('TierService', () => {
       const result = await svc.getTiers('agent-1');
       expect(result).toEqual(existing);
       expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', existing);
-      expect(autoAssign.recalculate).not.toHaveBeenCalled();
     });
 
     it('inserts the missing slots when some are absent', async () => {
       tierRepo.find.mockResolvedValueOnce([
         { tier: 'simple', override_route: null, auto_assigned_route: null } as TierAssignment,
       ]);
-      const result = await svc.getTiers('agent-1', 'user-1');
+      const result = await svc.getTiers('agent-1', 'tenant-1');
       expect(tierRepo.insert).toHaveBeenCalledTimes(1);
       const inserted = tierRepo.insert.mock.calls[0][0] as TierAssignment[];
       const insertedSlots = inserted.map((r) => r.tier).sort();
       expect(insertedSlots).toEqual(['complex', 'default', 'reasoning', 'standard']);
-      // user_id should be passed through to inserted rows
-      expect(inserted.every((r) => r.user_id === 'user-1')).toBe(true);
-      // No active providers — recalculate is not invoked
-      expect(autoAssign.recalculate).not.toHaveBeenCalled();
+      // inserted rows are agent-scoped only
+      expect(inserted.every((r) => r.agent_id === 'agent-1')).toBe(true);
+      // passing a tenantId triggers the provider cleanup pass
+      expect(providerService.getProviders).toHaveBeenCalledWith('tenant-1');
       // result merges existing + created
       expect(result).toHaveLength(TIER_SLOTS.length);
     });
 
-    it('uses an empty userId when none is passed', async () => {
+    it('skips the provider cleanup pass when no tenantId is passed', async () => {
       tierRepo.find.mockResolvedValueOnce([]);
       await svc.getTiers('agent-1');
       const inserted = tierRepo.insert.mock.calls[0][0] as TierAssignment[];
-      expect(inserted.every((r) => r.user_id === '')).toBe(true);
+      expect(inserted.every((r) => r.agent_id === 'agent-1')).toBe(true);
+      expect(providerService.getProviders).not.toHaveBeenCalled();
     });
 
     it('falls back to existing rows on a unique-index race during insert', async () => {
@@ -183,18 +206,17 @@ describe('TierService', () => {
       await expect(svc.getTiers('agent-1')).rejects.toThrow(err);
     });
 
-    it('triggers auto-assign and re-reads when a usable provider exists', async () => {
+    it('fills missing slots without auto-assigning even when a usable provider exists', async () => {
       tierRepo.find.mockResolvedValueOnce([]);
-      providerRepo.find.mockResolvedValue([
-        { agent_id: 'agent-1', is_active: true, provider: 'openai', auth_type: 'api_key' },
-      ]);
-      const finalRows = TIER_SLOTS.map((slot) => ({ tier: slot }) as TierAssignment);
-      tierRepo.find.mockResolvedValueOnce(finalRows);
+      providerService.getProviders.mockResolvedValue([
+        { tenant_id: 'tenant-1', is_active: true, provider: 'openai', auth_type: 'api_key' },
+      ] as never);
 
-      const result = await svc.getTiers('agent-1');
-      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
-      expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', finalRows);
-      expect(result).toBe(finalRows);
+      const result = await svc.getTiers('agent-1', 'tenant-1');
+      expect(providerService.getProviders).toHaveBeenCalledWith('tenant-1');
+      expect(tierRepo.insert).toHaveBeenCalledTimes(1);
+      expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', result);
+      expect(result).toHaveLength(TIER_SLOTS.length);
     });
   });
 
@@ -204,7 +226,7 @@ describe('TierService', () => {
         discovered('gpt-4o', 'openai', 'api_key'),
       ]);
       await expect(
-        svc.setOverride('agent-1', 'user-1', 'standard', 'unknown-model'),
+        svc.setOverride('agent-1', 'tenant-1', 'standard', 'unknown-model'),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -227,7 +249,7 @@ describe('TierService', () => {
         discovered('gpt-4o', 'openai', 'api_key'),
       ]);
       await expect(
-        svc.setOverride('agent-1', 'user-1', 'standard', 'gpt-4o', 'anthropic'),
+        svc.setOverride('agent-1', 'tenant-1', 'standard', 'gpt-4o', 'anthropic'),
       ).rejects.toThrow('not offered by provider');
     });
 
@@ -236,7 +258,7 @@ describe('TierService', () => {
         discovered('gpt-4o', 'openai', 'api_key'),
         discovered('gpt-4o', 'openai', 'subscription'),
       ]);
-      await expect(svc.setOverride('agent-1', 'user-1', 'standard', 'gpt-4o')).rejects.toThrow(
+      await expect(svc.setOverride('agent-1', 'tenant-1', 'standard', 'gpt-4o')).rejects.toThrow(
         /multiple providers/,
       );
     });
@@ -258,7 +280,7 @@ describe('TierService', () => {
 
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'standard',
         'gpt-4o',
         'openai',
@@ -285,7 +307,7 @@ describe('TierService', () => {
 
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'standard',
         'gpt-4o',
         'openai',
@@ -302,7 +324,7 @@ describe('TierService', () => {
 
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'standard',
         'gpt-4o',
         'openai',
@@ -313,7 +335,10 @@ describe('TierService', () => {
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
-    it('retries when insert hits the unique index and another row exists', async () => {
+    it('retries on a unique-index conflict and returns the persisted row', async () => {
+      // Conflict path: the concurrent row already exists on re-read, so the
+      // service adopts it (recursing into the existing-row branch) and returns
+      // the persisted override rather than throwing.
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),
       ]);
@@ -333,32 +358,33 @@ describe('TierService', () => {
 
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'standard',
         'gpt-4o',
         'openai',
         'api_key',
       );
       expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      expect(tierRepo.save).toHaveBeenCalled();
+      // The existing-row branch invalidates the routing cache; assert that side effect.
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
-    it('returns the freshly built record when insert fails and no row exists on retry', async () => {
+    it('rethrows when insert fails and no row exists on retry (no phantom success)', async () => {
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),
       ]);
       tierRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
-      tierRepo.insert.mockRejectedValueOnce(new Error('unrelated'));
+      const err = new Error('FK violation');
+      tierRepo.insert.mockRejectedValueOnce(err);
 
-      // No throw — service returns the local record and invalidates cache.
-      const result = await svc.setOverride(
-        'agent-1',
-        'user-1',
-        'standard',
-        'gpt-4o',
-        'openai',
-        'api_key',
-      );
-      expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      // A non-conflict DB error with no conflicting row on re-read must
+      // propagate — the row was never persisted, so reporting success would
+      // strand the caller with a phantom record and a stale cache.
+      await expect(
+        svc.setOverride('agent-1', 'tenant-1', 'standard', 'gpt-4o', 'openai', 'api_key'),
+      ).rejects.toThrow(err);
+      expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
     });
   });
 
@@ -416,7 +442,7 @@ describe('TierService', () => {
   describe('setFallbacks', () => {
     it('returns [] when no tier row exists', async () => {
       tierRepo.findOne.mockResolvedValue(null);
-      expect(await svc.setFallbacks('agent-1', 'standard', ['gpt-4o'])).toEqual([]);
+      expect(await svc.setFallbacks('agent-1', 'tenant-1', 'standard', ['gpt-4o'])).toEqual([]);
       expect(tierRepo.save).not.toHaveBeenCalled();
     });
 
@@ -431,7 +457,13 @@ describe('TierService', () => {
       } as TierAssignment);
 
       const provided = [route('openai', 'api_key', 'gpt-4o')];
-      const result = await svc.setFallbacks('agent-1', 'standard', ['gpt-4o'], provided);
+      const result = await svc.setFallbacks(
+        'agent-1',
+        'tenant-1',
+        'standard',
+        ['gpt-4o'],
+        provided,
+      );
       expect(result).toEqual(provided);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
@@ -450,6 +482,7 @@ describe('TierService', () => {
       // ignore the explicit routes and resolve from discovery instead.
       const result = await svc.setFallbacks(
         'agent-1',
+        'tenant-1',
         'standard',
         ['gpt-4o'],
         [route('openai', 'api_key', 'different-model')],
@@ -469,6 +502,7 @@ describe('TierService', () => {
       // Aligned by name but provider doesn't match available list.
       const result = await svc.setFallbacks(
         'agent-1',
+        'tenant-1',
         'standard',
         ['gpt-4o'],
         [route('different-provider', 'api_key', 'gpt-4o')],
@@ -483,7 +517,7 @@ describe('TierService', () => {
         fallback_routes: null,
       } as TierAssignment);
 
-      const result = await svc.setFallbacks('agent-1', 'standard', []);
+      const result = await svc.setFallbacks('agent-1', 'tenant-1', 'standard', []);
       expect(result).toEqual([]);
     });
 
@@ -498,7 +532,7 @@ describe('TierService', () => {
         fallback_routes: null,
       } as TierAssignment);
 
-      await expect(svc.setFallbacks('agent-1', 'standard', ['gpt-4o'])).rejects.toThrow(
+      await expect(svc.setFallbacks('agent-1', 'tenant-1', 'standard', ['gpt-4o'])).rejects.toThrow(
         /Cannot resolve fallback model "gpt-4o"/,
       );
       expect(tierRepo.save).not.toHaveBeenCalled();
@@ -531,6 +565,7 @@ describe('TierService', () => {
       await expect(
         svc.setFallbacks(
           'agent-1',
+          'tenant-1',
           'standard',
           ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
           [...existing, route('minimax', 'api_key', 'minmax-27')],
@@ -584,7 +619,7 @@ describe('TierService', () => {
         fallback_routes: null,
       } as TierAssignment);
 
-      await expect(svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream')).rejects.toThrow(
+      await expect(svc.setResponseMode('agent-1', 'standard', 'stream')).rejects.toThrow(
         /add at least one stream-capable model/,
       );
       expect(tierRepo.save).not.toHaveBeenCalled();
@@ -599,7 +634,7 @@ describe('TierService', () => {
       } as TierAssignment;
       tierRepo.findOne.mockResolvedValue(existing);
 
-      const result = await svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream');
+      const result = await svc.setResponseMode('agent-1', 'standard', 'stream');
 
       expect(result.response_mode).toBe('stream');
       expect(tierRepo.save).toHaveBeenCalledWith(existing);
@@ -615,7 +650,7 @@ describe('TierService', () => {
       } as TierAssignment;
       tierRepo.findOne.mockResolvedValue(existing);
 
-      const result = await svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream');
+      const result = await svc.setResponseMode('agent-1', 'standard', 'stream');
 
       expect(result.response_mode).toBe('stream');
       expect(tierRepo.save).toHaveBeenCalledWith(existing);
@@ -635,6 +670,7 @@ describe('TierService', () => {
 
       const result = await svc.setFallbacks(
         'agent-1',
+        'tenant-1',
         'standard',
         ['local-model'],
         [route('custom:local', 'api_key', 'local-model')],

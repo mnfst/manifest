@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Agent } from '../../entities/agent.entity';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 const TTL_MS = 120_000; // 2 minutes
 const MAX_ENTRIES = 5_000;
@@ -12,6 +11,15 @@ interface CachedAgent {
   expiresAt: number;
 }
 
+export interface ResolveOptions {
+  /** When true, playground agents (is_playground = true) are returned to the caller.
+   * By default playground agents are rejected with a NotFoundException so that
+   * generic mutation/config endpoints cannot target the reserved "Playground"
+   * agent. Only pass true for read-only endpoints that legitimately need to
+   * serve the Playground agent (e.g. available-models, providers list). */
+  allowPlayground?: boolean;
+}
+
 @Injectable()
 export class ResolveAgentService {
   private readonly cache = new Map<string, CachedAgent>();
@@ -19,22 +27,37 @@ export class ResolveAgentService {
   constructor(
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
-    private readonly tenantCache: TenantCacheService,
   ) {}
 
-  async resolve(userId: string, agentName: string): Promise<Agent> {
-    const tenantId = await this.tenantCache.resolve(userId);
+  async resolve(
+    tenantId: string | null,
+    agentName: string,
+    options: ResolveOptions = {},
+  ): Promise<Agent> {
     if (!tenantId) throw new NotFoundException('Tenant not found');
 
     const cacheKey = `${tenantId}:${agentName}`;
     const cached = this.cache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) return cached.agent;
+
+    // If we have a live cache entry, validate is_playground before returning it.
+    // This ensures the check runs on cache hits as well as fresh DB loads.
+    if (cached && cached.expiresAt > Date.now()) {
+      if (cached.agent.is_playground && !options.allowPlayground) {
+        throw new NotFoundException(`Agent "${agentName}" not found`);
+      }
+      return cached.agent;
+    }
     if (cached) this.cache.delete(cacheKey);
 
     const agent = await this.agentRepo.findOne({
       where: { tenant_id: tenantId, name: agentName, deleted_at: IsNull() },
     });
     if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
+
+    // Reject playground agents unless the caller explicitly opted in.
+    if (agent.is_playground && !options.allowPlayground) {
+      throw new NotFoundException(`Agent "${agentName}" not found`);
+    }
 
     if (this.cache.size >= MAX_ENTRIES && !this.cache.has(cacheKey)) {
       const firstKey = this.cache.keys().next().value;

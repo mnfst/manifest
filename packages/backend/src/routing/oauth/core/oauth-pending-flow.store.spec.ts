@@ -17,13 +17,13 @@ describe('OAuthPendingFlowStore', () => {
     jest.useRealTimers();
   });
 
-  it('stores one active pending flow per provider, agent, and user', async () => {
+  it('stores one active pending flow per provider, agent, and tenant', async () => {
     const { store, query } = buildStore();
     query.mockResolvedValue([]);
 
     await store.create(
       'anthropic',
-      { state: 's1', verifier: 'v1', agentId: 'agent-1', userId: 'user-1' },
+      { state: 's1', verifier: 'v1', agentId: 'agent-1', tenantId: 'tenant-1' },
       600_000,
     );
 
@@ -31,19 +31,19 @@ describe('OAuthPendingFlowStore', () => {
     expect(query.mock.calls[0][0]).toContain('DELETE FROM "oauth_pending_flows"');
     expect(query.mock.calls[0][1]).toEqual(['anthropic']);
     expect(query.mock.calls[1][0]).toContain('AND "agent_id" = $2');
-    expect(query.mock.calls[1][1]).toEqual(['anthropic', 'agent-1', 'user-1']);
+    expect(query.mock.calls[1][1]).toEqual(['anthropic', 'agent-1', 'tenant-1']);
     expect(query.mock.calls[2][0]).toContain('INSERT INTO "oauth_pending_flows"');
     expect(query.mock.calls[2][1]).toEqual([
       'anthropic',
       's1',
       'v1',
       'agent-1',
-      'user-1',
+      'tenant-1',
       new Date('2026-05-01T12:10:00Z'),
     ]);
   });
 
-  it('consumes a pending flow scoped to the provider, state, agent, and user', async () => {
+  it('consumes a pending flow scoped to the provider, state, agent, and tenant', async () => {
     const { store, query } = buildStore();
     query.mockResolvedValue([
       {
@@ -51,36 +51,59 @@ describe('OAuthPendingFlowStore', () => {
         state: 's1',
         code_verifier: 'v1',
         agent_id: 'agent-1',
-        user_id: 'user-1',
+        tenant_id: 'tenant-1',
         expires_at: new Date('2026-05-01T12:10:00Z'),
       },
     ]);
 
-    await expect(store.consume('anthropic', 's1', 'agent-1', 'user-1')).resolves.toEqual({
+    await expect(store.consume('anthropic', 's1', 'agent-1', 'tenant-1')).resolves.toEqual({
       provider: 'anthropic',
       state: 's1',
       verifier: 'v1',
       agentId: 'agent-1',
-      userId: 'user-1',
+      tenantId: 'tenant-1',
       expiresAt: new Date('2026-05-01T12:10:00Z').getTime(),
     });
     expect(query).toHaveBeenCalledWith(expect.stringContaining('RETURNING'), [
       'anthropic',
       's1',
       'agent-1',
-      'user-1',
+      'tenant-1',
     ]);
     expect(query.mock.calls[0][0]).toContain('AND "expires_at" > NOW()');
+  });
+
+  it('unwraps Postgres DELETE RETURNING tuples when consuming a pending flow', async () => {
+    const { store, query } = buildStore();
+    query.mockResolvedValue([
+      [
+        {
+          provider: 'anthropic',
+          state: 's1',
+          code_verifier: 'v1',
+          agent_id: 'agent-1',
+          tenant_id: 'tenant-1',
+          expires_at: new Date('2026-05-01T12:10:00Z'),
+        },
+      ],
+      1,
+    ]);
+
+    await expect(store.consume('anthropic', 's1', 'agent-1', 'tenant-1')).resolves.toMatchObject({
+      agentId: 'agent-1',
+      tenantId: 'tenant-1',
+      verifier: 'v1',
+    });
   });
 
   it('returns null when no pending flow matches', async () => {
     const { store, query } = buildStore();
     query.mockResolvedValue([]);
 
-    await expect(store.consume('anthropic', 'missing', 'agent-1', 'user-1')).resolves.toBeNull();
+    await expect(store.consume('anthropic', 'missing', 'agent-1', 'tenant-1')).resolves.toBeNull();
   });
 
-  it('finds the latest unexpired flow for an agent and user', async () => {
+  it('finds the latest unexpired flow for an agent and tenant', async () => {
     const { store, query } = buildStore();
     query.mockResolvedValueOnce([]);
     query.mockResolvedValueOnce([
@@ -89,22 +112,22 @@ describe('OAuthPendingFlowStore', () => {
         state: 's1',
         code_verifier: 'v1',
         agent_id: 'agent-1',
-        user_id: 'user-1',
+        tenant_id: 'tenant-1',
         expires_at: '2026-05-01T12:10:00.000Z',
       },
     ]);
 
-    await expect(store.findLatestForAgent('anthropic', 'agent-1', 'user-1')).resolves.toMatchObject(
-      {
-        provider: 'anthropic',
-        state: 's1',
-        verifier: 'v1',
-        agentId: 'agent-1',
-        userId: 'user-1',
-      },
-    );
-    expect(query.mock.calls[1][0]).toContain('AND "user_id" = $3');
-    expect(query.mock.calls[1][1]).toEqual(['anthropic', 'agent-1', 'user-1']);
+    await expect(
+      store.findLatestForAgent('anthropic', 'agent-1', 'tenant-1'),
+    ).resolves.toMatchObject({
+      provider: 'anthropic',
+      state: 's1',
+      verifier: 'v1',
+      agentId: 'agent-1',
+      tenantId: 'tenant-1',
+    });
+    expect(query.mock.calls[1][0]).toContain('AND "tenant_id" = $3');
+    expect(query.mock.calls[1][1]).toEqual(['anthropic', 'agent-1', 'tenant-1']);
   });
 
   it('clears a flow by provider and state', async () => {

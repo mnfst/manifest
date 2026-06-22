@@ -7,6 +7,8 @@ import { auth } from './auth.instance';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
 import { isLoopbackPeer } from '../common/utils/local-ip';
 import { isSelfHosted } from '../common/utils/detect-self-hosted';
+import { TenantCacheService } from '../common/services/tenant-cache.service';
+import { RequestWithTenantContext } from '../common/decorators/tenant-context.decorator';
 
 interface CachedSession {
   user: unknown;
@@ -22,7 +24,10 @@ export class SessionGuard implements CanActivate, OnModuleDestroy {
   private readonly MAX_CACHE_SIZE = 5_000;
   private readonly cleanupTimer: ReturnType<typeof setInterval>;
 
-  constructor(private readonly reflector: Reflector) {
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly tenantCache: TenantCacheService,
+  ) {
     this.cleanupTimer = setInterval(() => this.evictExpired(), 60_000);
     if (typeof this.cleanupTimer === 'object' && 'unref' in this.cleanupTimer) {
       this.cleanupTimer.unref();
@@ -63,6 +68,7 @@ export class SessionGuard implements CanActivate, OnModuleDestroy {
         (request as Request & { user: unknown }).user = cached.user;
         (request as Request & { session: unknown }).session = cached.session;
         (request as Request & { authMethod: string }).authMethod = 'session';
+        await this.attachTenantContext(request, cached.user);
         return true;
       }
     }
@@ -77,6 +83,7 @@ export class SessionGuard implements CanActivate, OnModuleDestroy {
         (request as Request & { session: unknown }).session = session.session;
         (request as Request & { authMethod: string }).authMethod = 'session';
         if (cacheKey) this.storeInCache(cacheKey, session.user, session.session);
+        await this.attachTenantContext(request, session.user);
         return true;
       }
     } catch (err) {
@@ -97,11 +104,33 @@ export class SessionGuard implements CanActivate, OnModuleDestroy {
         email: 'local@localhost',
       };
       (request as Request & { authMethod: string }).authMethod = 'session';
+      await this.attachTenantContext(request, { id: 'local' });
       return true;
     }
 
     // Always pass — let ApiKeyGuard handle unauthenticated requests
     return true;
+  }
+
+  /**
+   * Resolve the user's tenant once at the auth boundary so controllers can
+   * scope by tenantId without ever touching the user id. Resolution is
+   * cached (TtlFifoCache) so this adds no per-request DB cost in steady state.
+   */
+  private async attachTenantContext(request: Request, user: unknown): Promise<void> {
+    const userId = (user as { id?: unknown } | null)?.id;
+    if (typeof userId !== 'string' || userId.length === 0) return;
+    try {
+      const tenantId = await this.tenantCache.resolve(userId);
+      (request as RequestWithTenantContext).tenantContext = { tenantId, userId };
+    } catch (err) {
+      // Fail soft: a transient resolution failure (e.g. DB hiccup) must not
+      // crash every authenticated request — especially the cached-session
+      // fast path, which never touched the DB before tenant scoping. A null
+      // tenant means read endpoints return empty and mutations 404.
+      this.logger.warn(`Tenant resolution failed for session user: ${(err as Error).message}`);
+      (request as RequestWithTenantContext).tenantContext = { tenantId: null, userId };
+    }
   }
 
   invalidateCache(cookieHeader?: string): void {

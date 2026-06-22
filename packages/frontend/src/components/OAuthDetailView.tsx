@@ -50,6 +50,7 @@ interface Props {
   setBusy: Setter<boolean>;
   onBack: () => void;
   onUpdate: () => void;
+  onPollProviders?: () => void | Promise<void>;
   onClose: () => void;
   addKeyOpen?: Accessor<boolean>;
   setAddKeyOpen?: Setter<boolean>;
@@ -114,8 +115,9 @@ const OAuthDetailView: Component<Props> = (props) => {
 
   createEffect(() => {
     if (!pasteFlowActive()) return;
+    const poll = props.onPollProviders ?? props.onUpdate;
     const interval = window.setInterval(() => {
-      props.onUpdate();
+      poll();
     }, 2000);
     onCleanup(() => window.clearInterval(interval));
   });
@@ -190,7 +192,7 @@ const OAuthDetailView: Component<Props> = (props) => {
       await oauthApi().submitCallback(code, state);
       finishOAuthSuccess();
     } catch {
-      setPasteError('Failed to exchange token. The URL may have expired — try logging in again.');
+      setPasteError('Failed to exchange token. The URL may have expired. Try logging in again.');
     } finally {
       props.setBusy(false);
     }
@@ -311,6 +313,8 @@ const OAuthDetailView: Component<Props> = (props) => {
                   </p>
                   <video
                     src="/images/oauth-callback-example.mp4"
+                    poster="/images/oauth-callback-example.png"
+                    preload="auto"
                     autoplay
                     loop
                     muted
@@ -327,13 +331,12 @@ const OAuthDetailView: Component<Props> = (props) => {
             </p>
           </Show>
           <div class="provider-detail__field" style="margin-top: 12px;">
-            <textarea
+            <input
+              type="text"
               class="provider-detail__input"
               classList={{ 'provider-detail__input--error': !!pasteError() }}
               autocomplete="off"
               placeholder={callbackPlaceholder()}
-              rows={3}
-              style="resize: vertical;"
               value={pasteUrl()}
               onInput={(e) => {
                 setPasteUrl(e.currentTarget.value);

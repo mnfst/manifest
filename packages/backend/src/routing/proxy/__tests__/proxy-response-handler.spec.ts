@@ -697,6 +697,29 @@ describe('proxy-response-handler', () => {
       );
     });
 
+    it('normalizes Copilot OpenAI-compatible reasoning streams through the reasoning transformer', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta({ provider: 'copilot', model: 'copilot/claude-sonnet-4.6' });
+      const transformer = jest.fn((chunk: string) => `data: ${chunk}\n\n`);
+      client.createReasoningContentStreamTransformer.mockReturnValue(transformer);
+
+      await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      expect(client.createReasoningContentStreamTransformer).toHaveBeenCalledWith(undefined, {
+        outputStreamDeltaPaths: ['reasoning_content', 'reasoning_text'],
+        clientStreamDeltaPath: 'reasoning_content',
+      });
+      expect(pipeStreamSpy).toHaveBeenCalledWith(
+        forward.response.body,
+        res,
+        expect.any(Function),
+        undefined,
+        undefined,
+      );
+    });
+
     it('passes a finalize callback to pipeStream when apiMode=messages (default OpenAI provider)', async () => {
       const { res } = mockResponse();
       const forward = mockForward();

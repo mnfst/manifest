@@ -19,7 +19,7 @@ import { CustomProviderService } from './custom-provider.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { ProviderService } from '../routing-core/provider.service';
 import { RoutingCacheService } from '../routing-core/routing-cache.service';
-import { TierAutoAssignService } from '../routing-core/tier-auto-assign.service';
+import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -41,7 +41,18 @@ function makeDeps(overrides: {
   const results = overrides.findOneResults ?? [];
   findOne.mockImplementation(() => Promise.resolve(results.shift() ?? null));
 
-  const repo = { findOne, find, insert, save, remove } as unknown as Repository<CustomProvider>;
+  // create()/remove() wrap their writes in repo.manager.transaction; resolve
+  // getRepository() back to the same mock repo so assertions observe writes.
+  const txManager = { getRepository: jest.fn(() => repo) };
+  const transaction = jest.fn(async (cb: (manager: unknown) => Promise<unknown>) => cb(txManager));
+  const repo = {
+    findOne,
+    find,
+    insert,
+    save,
+    remove,
+    manager: { transaction },
+  } as unknown as Repository<CustomProvider>;
   const providerService = {
     upsertProvider: jest.fn().mockResolvedValue({ provider: {} }),
     removeProvider: jest.fn().mockResolvedValue(undefined),
@@ -54,9 +65,6 @@ function makeDeps(overrides: {
     setCustomProviders,
     invalidateAgent: jest.fn(),
   } as unknown as RoutingCacheService;
-  const autoAssign = {
-    recalculate: jest.fn().mockResolvedValue(undefined),
-  } as unknown as TierAutoAssignService;
   const pricingCache = {
     reload: jest.fn().mockResolvedValue(undefined),
   } as unknown as ModelPricingCacheService;
@@ -65,8 +73,8 @@ function makeDeps(overrides: {
     repo,
     providerService,
     routingCache,
-    autoAssign,
     pricingCache,
+    { emit: jest.fn() } as unknown as IngestEventBusService,
     undefined as unknown as ModelsDevSyncService,
   );
 
@@ -106,7 +114,7 @@ describe('CustomProviderService edge cases', () => {
       });
       // The cache miss path must actually hit the DB and repopulate the
       // cache (with the empty result) so the next lookup is also cheap.
-      expect(find).toHaveBeenCalledWith({ where: { agent_id: 'agent-1' } });
+      expect(find).toHaveBeenCalledWith({ where: { tenant_id: 'agent-1' } });
       expect(setCustomProviders).toHaveBeenCalledWith('agent-1', []);
     });
 
@@ -116,9 +124,9 @@ describe('CustomProviderService edge cases', () => {
       // case after a delete + invalidateAgent.
       const otherRow = {
         id: 'cp-still-here',
-        agent_id: 'agent-1',
+        user_id: 'agent-1',
         name: 'llama.cpp',
-      } as CustomProvider;
+      } as unknown as CustomProvider;
       const { svc } = makeDeps({
         cached: null,
         findResult: [otherRow],
@@ -176,8 +184,8 @@ describe('CustomProviderService edge cases', () => {
       // The service must wrap whatever the validator throws in a
       // BadRequestException — leaking the raw Error type would surface as
       // a 500 to the client, hiding the underlying user-input problem.
-      await expect(svc.create('agent-1', 'user-1', baseDto)).rejects.toThrow(BadRequestException);
-      await expect(svc.create('agent-1', 'user-1', baseDto)).rejects.toThrow(/Invalid URL format/);
+      await expect(svc.create('user-1', baseDto)).rejects.toThrow(BadRequestException);
+      await expect(svc.create('user-1', baseDto)).rejects.toThrow(/Invalid URL format/);
     });
 
     it('rejects http URLs in cloud mode on create (cleartext credentials risk)', async () => {
@@ -186,7 +194,7 @@ describe('CustomProviderService edge cases', () => {
       );
       const { svc } = makeDeps({ findOneResults: [null] });
       await expect(
-        svc.create('agent-1', 'user-1', { ...baseDto, base_url: 'http://api.example.com' }),
+        svc.create('user-1', { ...baseDto, base_url: 'http://api.example.com' }),
       ).rejects.toThrow(/Only https URLs are allowed/);
       // allowPrivate must be false in non-self-hosted runs — the validator
       // can't make that decision on its own without this option.
@@ -201,7 +209,7 @@ describe('CustomProviderService edge cases', () => {
       );
       const { svc } = makeDeps({ findOneResults: [null] });
       await expect(
-        svc.create('agent-1', 'user-1', { ...baseDto, base_url: 'http://10.0.0.5:11434' }),
+        svc.create('user-1', { ...baseDto, base_url: 'http://10.0.0.5:11434' }),
       ).rejects.toThrow(/private or internal networks/);
     });
 
@@ -215,7 +223,7 @@ describe('CustomProviderService edge cases', () => {
       );
       const { svc } = makeDeps({ findOneResults: [null] });
       await expect(
-        svc.create('agent-1', 'user-1', {
+        svc.create('user-1', {
           ...baseDto,
           base_url: 'http://169.254.169.254/latest/meta-data',
         }),
@@ -228,21 +236,21 @@ describe('CustomProviderService edge cases', () => {
 
     it('rejects malformed URLs on update with BadRequestException', async () => {
       (validatePublicUrl as jest.Mock).mockRejectedValue(new Error('Invalid URL format'));
-      const existing = { id: 'cp1', agent_id: 'agent-1', name: 'n' } as CustomProvider;
+      const existing = { id: 'cp1', user_id: 'user-1', name: 'n' } as unknown as CustomProvider;
       const { svc } = makeDeps({ findOneResults: [existing] });
-      await expect(
-        svc.update('agent-1', 'cp1', 'user-1', { base_url: 'ht!tp://broken' }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(svc.update('cp1', 'user-1', { base_url: 'ht!tp://broken' })).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('rejects private-IP URLs on update in cloud mode', async () => {
       (validatePublicUrl as jest.Mock).mockRejectedValue(
         new Error('URLs pointing to private or internal networks are not allowed'),
       );
-      const existing = { id: 'cp1', agent_id: 'agent-1', name: 'n' } as CustomProvider;
+      const existing = { id: 'cp1', user_id: 'user-1', name: 'n' } as unknown as CustomProvider;
       const { svc } = makeDeps({ findOneResults: [existing] });
       await expect(
-        svc.update('agent-1', 'cp1', 'user-1', { base_url: 'http://192.168.1.10' }),
+        svc.update('cp1', 'user-1', { base_url: 'http://192.168.1.10' }),
       ).rejects.toThrow(/private or internal networks/);
     });
 

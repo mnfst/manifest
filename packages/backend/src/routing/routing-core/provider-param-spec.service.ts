@@ -10,6 +10,7 @@ import {
   isProviderParamPath,
   normalizeProviderParamProviderId,
   providerParamValueIsValid,
+  resolveProviderMetadataIdentity,
   underlyingGatewayModel,
   type AuthType,
   type JsonValue,
@@ -33,6 +34,7 @@ const BY_MODEL_MISS_CACHE_TTL_MS = 5 * 60 * 1000;
 const SUBSCRIPTION_MODEL_SUFFIX = '-subscription';
 const SHORT_CLAUDE_MODEL_RE = /^claude-(opus|sonnet|haiku)-/i;
 const DOTTED_CLAUDE_MINOR_RE = /-(\d+)\.(\d{1,2})(?=$|-\d{8}$)/g;
+const DATE_SUFFIX_RE = /-\d{4}-?\d{2}-?\d{2}$/;
 const MODEL_PARAM_TYPES: readonly ModelParamType[] = [
   'boolean',
   'enum',
@@ -141,7 +143,16 @@ export class ProviderParamSpecService implements OnModuleInit {
   ): Promise<readonly ProviderParamSpec[]> {
     const providerlessSpecs = await this.getProviderlessSpecs(providerId, authType, model);
     if (providerlessSpecs.length > 0) return providerlessSpecs;
-    return getProviderParamSpecs(this.specs, providerId, authType, model);
+
+    const directSpecs = getProviderParamSpecs(this.specs, providerId, authType, model);
+    if (directSpecs.length > 0) return directSpecs;
+
+    const metadata = providerMetadataIdentity(providerId, model);
+    if (!metadata || metadataMatchesRoute(metadata, providerId, model)) return directSpecs;
+
+    return getProviderParamSpecs(this.specs, metadata.provider, authType, metadata.model).map(
+      (spec) => withRouteIdentity(spec, providerId, authType, model),
+    );
   }
 
   async getCapabilities(
@@ -149,7 +160,12 @@ export class ProviderParamSpecService implements OnModuleInit {
     authType: AuthType | undefined,
     model: string | undefined,
   ): Promise<readonly ModelCapability[] | null> {
-    return getProviderModelCapabilities(this.specs, providerId, authType, model);
+    const direct = getProviderModelCapabilities(this.specs, providerId, authType, model);
+    if (direct) return direct;
+
+    const metadata = providerMetadataIdentity(providerId, model);
+    if (!metadata || metadataMatchesRoute(metadata, providerId, model)) return direct;
+    return getProviderModelCapabilities(this.specs, metadata.provider, authType, metadata.model);
   }
 
   getLastFetchedAt(): Date | null {
@@ -199,7 +215,11 @@ export class ProviderParamSpecService implements OnModuleInit {
     if (!providerId || !authType || !model || authType === 'local') return [];
 
     const provider = normalizeProviderParamProviderId(providerId);
-    const slugs = providerlessModelParamSlugs(provider, authType, model);
+    const metadata = resolveProviderMetadataIdentity(provider, model);
+    const lookupProvider = metadata.provider
+      ? normalizeProviderParamProviderId(metadata.provider)
+      : provider;
+    const slugs = providerlessModelParamSlugs(lookupProvider, authType, metadata.model);
     for (const slug of slugs) {
       const params = await this.fetchProviderlessModelParams(slug);
       if (!params || params.length === 0) continue;
@@ -262,6 +282,39 @@ export class ProviderParamSpecService implements OnModuleInit {
   }
 }
 
+function providerMetadataIdentity(
+  providerId: string | undefined,
+  model: string | undefined,
+): { provider: string | undefined; model: string } | null {
+  if (!model) return null;
+  const normalizedProvider = providerId ? normalizeProviderParamProviderId(providerId) : providerId;
+  return resolveProviderMetadataIdentity(normalizedProvider, model);
+}
+
+function metadataMatchesRoute(
+  metadata: { provider: string | undefined; model: string },
+  providerId: string | undefined,
+  model: string | undefined,
+): boolean {
+  const normalizedProvider = providerId ? normalizeProviderParamProviderId(providerId) : providerId;
+  return metadata.provider === normalizedProvider && metadata.model === model;
+}
+
+function withRouteIdentity(
+  spec: ProviderParamSpec,
+  providerId: string | undefined,
+  authType: AuthType | undefined,
+  model: string | undefined,
+): ProviderParamSpec {
+  if (!providerId || !authType || !model) return spec;
+  return {
+    ...spec,
+    provider: normalizeProviderParamProviderId(providerId),
+    authType,
+    model,
+  };
+}
+
 function providerlessModelParamSlugs(
   providerId: string,
   authType: AuthType,
@@ -302,15 +355,22 @@ function providerlessModelBaseCandidates(providerId: string, model: string): rea
 
 function providerlessModelSlugVariants(model: string): readonly string[] {
   const out: string[] = [];
-  const normalizedClaude = normalizeClaudeProviderlessSlug(model);
-  pushUnique(out, normalizedClaude);
-  pushUnique(out, model);
+  const stableModel = stripProviderlessDateSuffix(model);
+  for (const candidate of [model, stableModel]) {
+    const normalizedClaude = normalizeClaudeProviderlessSlug(candidate);
+    pushUnique(out, normalizedClaude);
+    pushUnique(out, candidate);
+  }
   return out;
 }
 
 function normalizeClaudeProviderlessSlug(model: string): string {
   if (!SHORT_CLAUDE_MODEL_RE.test(model)) return model;
   return model.replace(DOTTED_CLAUDE_MINOR_RE, '-$1-$2');
+}
+
+function stripProviderlessDateSuffix(model: string): string {
+  return model.replace(DATE_SUFFIX_RE, '');
 }
 
 function pushUnique(values: string[], value: string): void {

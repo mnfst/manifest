@@ -1,7 +1,9 @@
 import { fetchJson, fetchMutate } from './core.js';
 
-export function getAgents() {
-  return fetchJson('/agents');
+export function getAgents(includePlayground = false) {
+  // includePlayground surfaces the reserved Playground (is_playground) agent — the
+  // Messages filter opts in so the log can be filtered to Playground runs.
+  return fetchJson(includePlayground ? '/agents?includePlayground=true' : '/agents');
 }
 
 export interface AgentInfo {
@@ -64,7 +66,6 @@ export interface CreateAgentParams {
 export interface DuplicateAgentPreview {
   copied: {
     providers: number;
-    customProviders: number;
     tierAssignments: number;
     specificityAssignments: number;
     modelParams: number;

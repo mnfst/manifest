@@ -26,12 +26,22 @@ function mockResponse(status: number, body: unknown, text = ''): Response {
 function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
+  const recalculateTiersForTenant = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue(undefined);
+  const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
   return {
-    svc: { upsertProvider, recalculateTiers, nextOAuthLabel } as unknown as ProviderService,
+    svc: {
+      upsertProvider,
+      recalculateTiers,
+      recalculateTiersForTenant,
+      nextOAuthLabel,
+      getFreshSubscriptionCredential,
+    } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
+    recalculateTiersForTenant,
     nextOAuthLabel,
+    getFreshSubscriptionCredential,
   };
 }
 
@@ -55,7 +65,7 @@ function createPendingStore() {
         if (
           flow.provider === provider &&
           flow.agentId === input.agentId &&
-          flow.userId === input.userId
+          flow.tenantId === input.tenantId
         ) {
           flows.delete(flowKey);
         }
@@ -64,16 +74,16 @@ function createPendingStore() {
       flows.set(key(provider, input.state), record);
       return record;
     }),
-    consume: jest.fn(async (provider: string, state: string, agentId: string, userId: string) => {
+    consume: jest.fn(async (provider: string, state: string, agentId: string, tenantId: string) => {
       const flow = flows.get(key(provider, state));
-      if (!flow || flow.agentId !== agentId || flow.userId !== userId) return null;
+      if (!flow || flow.agentId !== agentId || flow.tenantId !== tenantId) return null;
       flows.delete(key(provider, state));
       return flow;
     }),
-    findLatestForAgent: jest.fn(async (provider: string, agentId: string, userId: string) => {
+    findLatestForAgent: jest.fn(async (provider: string, agentId: string, tenantId: string) => {
       cleanup();
       for (const flow of flows.values()) {
-        if (flow.provider === provider && flow.agentId === agentId && flow.userId === userId) {
+        if (flow.provider === provider && flow.agentId === agentId && flow.tenantId === tenantId) {
           return flow;
         }
       }
@@ -140,7 +150,7 @@ describe('AnthropicOauthService', () => {
 
   describe('generateAuthorizationUrl', () => {
     it('builds a Claude.ai authorize URL with PKCE S256 challenge and tracks pending state', async () => {
-      const { url, state } = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const { url, state } = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
       const parsed = new URL(url);
       expect(parsed.origin + parsed.pathname).toBe(ANTHROPIC_OAUTH.AUTHORIZE_URL);
       expect(parsed.searchParams.get('client_id')).toBe(ANTHROPIC_OAUTH.CLIENT_ID);
@@ -161,27 +171,27 @@ describe('AnthropicOauthService', () => {
 
   describe('exchangeCode', () => {
     it('rejects when no code is supplied', async () => {
-      await expect(svc.exchangeCode('', 'state', 'agent-1', 'user-1')).rejects.toThrow(
+      await expect(svc.exchangeCode('', 'state', 'agent-1', 'tenant-1')).rejects.toThrow(
         'Missing authorization code',
       );
     });
 
     it('rejects when no state is supplied', async () => {
-      await expect(svc.exchangeCode('code', undefined, 'agent-1', 'user-1')).rejects.toThrow(
+      await expect(svc.exchangeCode('code', undefined, 'agent-1', 'tenant-1')).rejects.toThrow(
         'Missing OAuth state',
       );
     });
 
     it('rejects unknown states', async () => {
-      await expect(svc.exchangeCode('code#bogus', undefined, 'agent-1', 'user-1')).rejects.toThrow(
-        'Invalid or expired OAuth state',
-      );
+      await expect(
+        svc.exchangeCode('code#bogus', undefined, 'agent-1', 'tenant-1'),
+      ).rejects.toThrow('Invalid or expired OAuth state');
     });
 
     it('rejects (and purges) expired states', async () => {
-      const { state } = await svc.generateAuthorizationUrl('a', 'u');
+      const { state } = await svc.generateAuthorizationUrl('a', 't');
       jest.advanceTimersByTime(ANTHROPIC_OAUTH.STATE_TTL_MS + 1);
-      await expect(svc.exchangeCode(`code#${state}`, undefined, 'a', 'u')).rejects.toThrow(
+      await expect(svc.exchangeCode(`code#${state}`, undefined, 'a', 't')).rejects.toThrow(
         'OAuth state expired',
       );
       await expect(svc.getPendingCount()).resolves.toBe(0);
@@ -195,15 +205,17 @@ describe('AnthropicOauthService', () => {
           expires_in: 3600,
         }),
       );
-      const { state } = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const { state } = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
 
-      await svc.exchangeCode(`auth-code#${state}`, undefined, 'agent-1', 'user-1');
+      await svc.exchangeCode(`auth-code#${state}`, undefined, 'agent-1', 'tenant-1');
 
       expect(fetchMock).toHaveBeenCalledTimes(1);
       const [tokenUrl, init] = fetchMock.mock.calls[0];
       expect(tokenUrl).toBe(ANTHROPIC_OAUTH.TOKEN_URL);
+      expect(new URL(tokenUrl).origin).toBe('https://api.anthropic.com');
       expect(init.headers).toEqual({
         'Content-Type': 'application/json',
+        Accept: 'application/json',
         'User-Agent': 'anthropic',
       });
       const body = JSON.parse(init.body);
@@ -214,24 +226,40 @@ describe('AnthropicOauthService', () => {
 
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'anthropic',
         expect.stringContaining('"t":"access-1"'),
         'subscription',
         undefined,
         undefined,
+        undefined,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
-      expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1');
+      expect(providerService.recalculateTiers).not.toHaveBeenCalled();
+      expect(providerService.recalculateTiersForTenant).not.toHaveBeenCalled();
       await expect(svc.getPendingCount()).resolves.toBe(0);
+    });
+
+    it('does not route agents after discovery when the provider row is new', async () => {
+      providerService.upsertProvider.mockResolvedValueOnce({ provider: { id: 'p1' }, isNew: true });
+      fetchMock.mockResolvedValue(
+        mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 3600 }),
+      );
+      const { state } = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
+
+      await svc.exchangeCode(`auth-code#${state}`, undefined, 'agent-1', 'tenant-1');
+
+      expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
+      expect(providerService.recalculateTiersForTenant).not.toHaveBeenCalled();
+      expect(providerService.recalculateTiers).not.toHaveBeenCalled();
     });
 
     it('accepts the code and state passed separately', async () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 60 }),
       );
-      const { state } = await svc.generateAuthorizationUrl('a', 'u');
-      await svc.exchangeCode('plain-code', state, 'a', 'u');
+      const { state } = await svc.generateAuthorizationUrl('a', 't');
+      await svc.exchangeCode('plain-code', state, 'a', 't');
       expect(providerService.upsertProvider).toHaveBeenCalled();
     });
 
@@ -240,19 +268,20 @@ describe('AnthropicOauthService', () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'a2', refresh_token: 'r2', expires_in: 60 }),
       );
-      const { state } = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const { state } = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
 
-      await svc.exchangeCode(`second-code#${state}`, undefined, 'agent-1', 'user-1');
+      await svc.exchangeCode(`second-code#${state}`, undefined, 'agent-1', 'tenant-1');
 
-      expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('agent-1', 'anthropic');
+      expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('tenant-1', 'anthropic');
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'anthropic',
         expect.stringContaining('"t":"a2"'),
         'subscription',
         undefined,
         'Key 2',
+        undefined,
       );
     });
 
@@ -260,9 +289,9 @@ describe('AnthropicOauthService', () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 60 }),
       );
-      const { state } = await svc.generateAuthorizationUrl('a', 'u');
+      const { state } = await svc.generateAuthorizationUrl('a', 't');
 
-      await svc.exchangeCode('plain-code', undefined, 'a', 'u');
+      await svc.exchangeCode('plain-code', undefined, 'a', 't');
 
       const [, init] = fetchMock.mock.calls[0];
       expect(JSON.parse(init.body).state).toBe(state);
@@ -271,11 +300,11 @@ describe('AnthropicOauthService', () => {
 
     it('throws when the token endpoint returns an error', async () => {
       fetchMock.mockResolvedValue(mockResponse(400, {}, 'invalid_grant'));
-      const { state } = await svc.generateAuthorizationUrl('a', 'u');
+      const { state } = await svc.generateAuthorizationUrl('a', 't');
       const logger = { error: jest.fn(), log: jest.fn(), warn: jest.fn() };
       (svc as unknown as { logger: typeof logger }).logger = logger;
 
-      await expect(svc.exchangeCode(`bad#${state}`, undefined, 'a', 'u')).rejects.toThrow(
+      await expect(svc.exchangeCode(`bad#${state}`, undefined, 'a', 't')).rejects.toThrow(
         'Token exchange failed',
       );
       expect(logger.error).toHaveBeenCalledWith(
@@ -292,9 +321,9 @@ describe('AnthropicOauthService', () => {
           },
         }),
       );
-      const { state } = await svc.generateAuthorizationUrl('a', 'u');
+      const { state } = await svc.generateAuthorizationUrl('a', 't');
 
-      await expect(svc.exchangeCode(`bad#${state}`, undefined, 'a', 'u')).rejects.toMatchObject({
+      await expect(svc.exchangeCode(`bad#${state}`, undefined, 'a', 't')).rejects.toMatchObject({
         message:
           'Anthropic rate-limited the OAuth token exchange. Please wait a minute, then sign in again.',
         status: 429,
@@ -310,13 +339,13 @@ describe('AnthropicOauthService', () => {
         state: 'state-1',
         verifier: undefined as unknown as string,
         agentId: 'agent-1',
-        userId: 'user-1',
+        tenantId: 'tenant-1',
         expiresAt: Date.now() + 60_000,
       });
 
-      await expect(svc.exchangeCode('bad#state-1', undefined, 'agent-1', 'user-1')).rejects.toThrow(
-        'Token exchange failed',
-      );
+      await expect(
+        svc.exchangeCode('bad#state-1', undefined, 'agent-1', 'tenant-1'),
+      ).rejects.toThrow('Token exchange failed');
 
       const [, init] = fetchMock.mock.calls[0];
       expect(JSON.parse(init.body).code_verifier).toBe('state-1');
@@ -328,8 +357,8 @@ describe('AnthropicOauthService', () => {
     it('stores an empty refresh token when Anthropic omits one in the response', async () => {
       // No refresh_token field — defensive fallback exercises the `?? ''`.
       fetchMock.mockResolvedValue(mockResponse(200, { access_token: 'a', expires_in: 60 }));
-      const { state } = await svc.generateAuthorizationUrl('a', 'u');
-      await svc.exchangeCode(`c#${state}`, undefined, 'a', 'u');
+      const { state } = await svc.generateAuthorizationUrl('a', 't');
+      await svc.exchangeCode(`c#${state}`, undefined, 'a', 't');
       const stored = providerService.upsertProvider.mock.calls[0][3] as string;
       expect(JSON.parse(stored).r).toBe('');
     });
@@ -339,8 +368,8 @@ describe('AnthropicOauthService', () => {
         mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 60 }),
       );
       discovery.discoverModels.mockRejectedValue(new Error('boom'));
-      const { state } = await svc.generateAuthorizationUrl('a', 'u');
-      await expect(svc.exchangeCode(`c#${state}`, undefined, 'a', 'u')).resolves.toBeUndefined();
+      const { state } = await svc.generateAuthorizationUrl('a', 't');
+      await expect(svc.exchangeCode(`c#${state}`, undefined, 'a', 't')).resolves.toBeUndefined();
       expect(providerService.upsertProvider).toHaveBeenCalled();
     });
   });
@@ -354,6 +383,7 @@ describe('AnthropicOauthService', () => {
       expect(blob).toEqual({ t: 'a2', r: 'r2', e: Date.now() + 1800 * 1000 });
       expect(fetchMock.mock.calls[0][1].headers).toEqual({
         'Content-Type': 'application/json',
+        Accept: 'application/json',
         'User-Agent': 'anthropic',
       });
     });
@@ -372,16 +402,16 @@ describe('AnthropicOauthService', () => {
 
   describe('unwrapToken', () => {
     it('returns the raw value when it is not an OAuth blob (legacy setup-token)', async () => {
-      expect(await svc.unwrapToken('sk-ant-oat01-legacy', 'a', 'u')).toBe('sk-ant-oat01-legacy');
+      expect(await svc.unwrapToken('sk-ant-oat01-legacy', 'a', 't')).toBe('sk-ant-oat01-legacy');
     });
 
     it('returns null when given an empty string', async () => {
-      expect(await svc.unwrapToken('', 'a', 'u')).toBeNull();
+      expect(await svc.unwrapToken('', 'a', 't')).toBeNull();
     });
 
     it('returns the cached access token when it is still valid', async () => {
       const blob = JSON.stringify({ t: 'access', r: 'refresh', e: Date.now() + 10 * 60_000 });
-      expect(await svc.unwrapToken(blob, 'a', 'u')).toBe('access');
+      expect(await svc.unwrapToken(blob, 'a', 't')).toBe('access');
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
@@ -390,11 +420,11 @@ describe('AnthropicOauthService', () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expires_in: 3600 }),
       );
-      const token = await svc.unwrapToken(blob, 'agent-1', 'user-1', 'Work');
+      const token = await svc.unwrapToken(blob, 'agent-1', 'tenant-1', 'Work');
       expect(token).toBe('new');
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'anthropic',
         expect.stringContaining('"t":"new"'),
         'subscription',
@@ -405,20 +435,20 @@ describe('AnthropicOauthService', () => {
 
     it('returns the access token unchanged when the blob has no refresh token', async () => {
       const blob = JSON.stringify({ t: 'access', r: '', e: Date.now() + 30_000 });
-      expect(await svc.unwrapToken(blob, 'a', 'u')).toBe('access');
+      expect(await svc.unwrapToken(blob, 'a', 't')).toBe('access');
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
     it('returns null when the refresh call fails', async () => {
       const blob = JSON.stringify({ t: 'old', r: 'rf', e: Date.now() + 1_000 });
       fetchMock.mockRejectedValue(new Error('network'));
-      expect(await svc.unwrapToken(blob, 'a', 'u')).toBeNull();
+      expect(await svc.unwrapToken(blob, 'a', 't')).toBeNull();
     });
   });
 
   describe('clearPendingState', () => {
     it('removes a known pending state', async () => {
-      const { state } = await svc.generateAuthorizationUrl('a', 'u');
+      const { state } = await svc.generateAuthorizationUrl('a', 't');
       await expect(svc.getPendingCount()).resolves.toBe(1);
       await svc.clearPendingState(state);
       await expect(svc.getPendingCount()).resolves.toBe(0);
@@ -427,22 +457,22 @@ describe('AnthropicOauthService', () => {
 
   describe('findPendingForAgent', () => {
     it('returns the active state when one exists for the agent and user', async () => {
-      const { state } = await svc.generateAuthorizationUrl('agent-1', 'user-1');
-      await expect(svc.findPendingForAgent('agent-1', 'user-1')).resolves.toEqual({ state });
+      const { state } = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
+      await expect(svc.findPendingForAgent('agent-1', 'tenant-1')).resolves.toEqual({ state });
     });
 
     it('returns null when no flow is pending for the agent', async () => {
-      await expect(svc.findPendingForAgent('agent-1', 'user-1')).resolves.toBeNull();
+      await expect(svc.findPendingForAgent('agent-1', 'tenant-1')).resolves.toBeNull();
     });
 
     it('skips entries belonging to other agents', async () => {
-      await svc.generateAuthorizationUrl('other-agent', 'user-1');
-      await expect(svc.findPendingForAgent('agent-1', 'user-1')).resolves.toBeNull();
+      await svc.generateAuthorizationUrl('other-agent', 'tenant-1');
+      await expect(svc.findPendingForAgent('agent-1', 'tenant-1')).resolves.toBeNull();
     });
 
     it('skips entries belonging to other users', async () => {
-      await svc.generateAuthorizationUrl('agent-1', 'other-user');
-      await expect(svc.findPendingForAgent('agent-1', 'user-1')).resolves.toBeNull();
+      await svc.generateAuthorizationUrl('agent-1', 'other-tenant');
+      await expect(svc.findPendingForAgent('agent-1', 'tenant-1')).resolves.toBeNull();
     });
   });
 });

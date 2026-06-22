@@ -1,5 +1,5 @@
-import { Type } from 'class-transformer';
-import { IsIn, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 import {
   ALL_TIERS,
   SPECIFICITY_CATEGORIES,
@@ -78,4 +78,14 @@ export class MessagesQueryDto {
   @IsOptional()
   @IsString()
   header_tier_id?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  include_total?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  include_filter_options?: boolean;
 }

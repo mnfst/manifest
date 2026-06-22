@@ -8,6 +8,14 @@ import {
 } from '../anthropic-adapter';
 import { injectOpenRouterCacheControl } from '../cache-injection';
 
+function countCacheControls(value: unknown): number {
+  if (!value || typeof value !== 'object') return 0;
+
+  const children = Array.isArray(value) ? value : Object.values(value as Record<string, unknown>);
+  const self = !Array.isArray(value) && 'cache_control' in value ? 1 : 0;
+  return self + children.reduce((sum, child) => sum + countCacheControls(child), 0);
+}
+
 describe('Anthropic Adapter', () => {
   describe('toAnthropicRequest', () => {
     it('converts basic user message', () => {
@@ -291,6 +299,65 @@ describe('Anthropic Adapter', () => {
       expect(content[1]).toEqual({ type: 'text', text: 'Second' });
     });
 
+    it('converts OpenAI image_url content blocks to Anthropic image blocks', () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Look at these.' },
+              {
+                type: 'image_url',
+                image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' },
+              },
+              {
+                type: 'image_url',
+                image_url: { url: 'https://example.com/image.webp' },
+              },
+            ],
+          },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+
+      const messages = result.messages as Array<{ content: Array<Record<string, unknown>> }>;
+      expect(messages[0].content).toEqual([
+        { type: 'text', text: 'Look at these.' },
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/png', data: 'iVBORw0KGgo=' },
+        },
+        {
+          type: 'image',
+          source: { type: 'url', url: 'https://example.com/image.webp' },
+        },
+      ]);
+    });
+
+    it('converts Responses input_image content blocks to Anthropic image blocks', () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'input_text', text: 'What is in this image?' },
+              { type: 'input_image', image_url: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==' },
+            ],
+          },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+
+      const messages = result.messages as Array<{ content: Array<Record<string, unknown>> }>;
+      expect(messages[0].content).toEqual([
+        { type: 'text', text: 'What is in this image?' },
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/jpeg', data: '/9j/4AAQSkZJRg==' },
+        },
+      ]);
+    });
+
     it('handles system message with array content', () => {
       const body = {
         messages: [
@@ -486,48 +553,6 @@ describe('Anthropic Adapter', () => {
       expect(result.tools).toBeUndefined();
     });
 
-    it('omits cache_control from system blocks when injectCacheControl is false', () => {
-      const body = {
-        messages: [
-          { role: 'system', content: 'You are helpful.' },
-          { role: 'user', content: 'Hi' },
-        ],
-      };
-      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
-        injectCacheControl: false,
-      });
-      const system = result.system as Array<{ cache_control?: unknown }>;
-      expect(system).toHaveLength(1);
-      expect(system[0].cache_control).toBeUndefined();
-    });
-
-    it('omits top-level cache_control when injectCacheControl is false', () => {
-      const body = {
-        messages: [{ role: 'user', content: 'Hi' }],
-      };
-      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
-        injectCacheControl: false,
-      });
-      expect(result.cache_control).toBeUndefined();
-    });
-
-    it('omits cache_control from tools when injectCacheControl is false', () => {
-      const body = {
-        messages: [{ role: 'user', content: 'Hi' }],
-        tools: [
-          { type: 'function', function: { name: 'a', description: 'tool a' } },
-          { type: 'function', function: { name: 'b', description: 'tool b' } },
-        ],
-      };
-      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
-        injectCacheControl: false,
-      });
-      const tools = result.tools as Array<{ cache_control?: unknown }>;
-      expect(tools).toHaveLength(2);
-      expect(tools[0].cache_control).toBeUndefined();
-      expect(tools[1].cache_control).toBeUndefined();
-    });
-
     it('prepends subscription identity block when injectSubscriptionIdentity is true', () => {
       const body = {
         messages: [
@@ -536,7 +561,6 @@ describe('Anthropic Adapter', () => {
         ],
       };
       const result = toAnthropicRequest(body, 'claude-sonnet-4-6', {
-        injectCacheControl: false,
         injectSubscriptionIdentity: true,
       });
       const system = result.system as Array<{
@@ -546,8 +570,9 @@ describe('Anthropic Adapter', () => {
       }>;
       expect(system).toHaveLength(2);
       expect(system[0].text).toContain('Claude agent');
-      expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
+      expect(system[0].cache_control).toBeUndefined();
       expect(system[1].text).toBe('You are helpful.');
+      expect(system[1].cache_control).toEqual({ type: 'ephemeral' });
     });
 
     it('adds subscription identity as sole system block when no user system prompt', () => {
@@ -2043,15 +2068,12 @@ describe('Anthropic Adapter', () => {
       ]);
     });
 
-    it('leaves string system intact when no mutations are needed', () => {
-      const result = applyAnthropicMessagesMutations(
-        {
-          messages: [{ role: 'user', content: 'hi' }],
-          system: 'Be concise.',
-        },
-        { injectCacheControl: false },
-      );
-      expect(result.system).toBe('Be concise.');
+    it('leaves an empty string system intact', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        system: '',
+      });
+      expect(result.system).toBe('');
     });
 
     it('prepends the subscription identity block ahead of an existing system', () => {
@@ -2060,22 +2082,25 @@ describe('Anthropic Adapter', () => {
           messages: [{ role: 'user', content: 'hi' }],
           system: 'You are Manifest.',
         },
-        { injectSubscriptionIdentity: true, injectCacheControl: false },
+        { injectSubscriptionIdentity: true },
       );
       const system = result.system as Array<Record<string, unknown>>;
       expect(system).toHaveLength(2);
       expect(system[0].text).toMatch(/Claude agent/);
+      expect(system[0].cache_control).toBeUndefined();
       expect(system[1].text).toBe('You are Manifest.');
+      expect(system[1].cache_control).toEqual({ type: 'ephemeral' });
     });
 
     it('creates a system from scratch when subscription identity is requested and no system exists', () => {
       const result = applyAnthropicMessagesMutations(
         { messages: [{ role: 'user', content: 'hi' }] },
-        { injectSubscriptionIdentity: true, injectCacheControl: false },
+        { injectSubscriptionIdentity: true },
       );
       const system = result.system as Array<Record<string, unknown>>;
       expect(system).toHaveLength(1);
       expect(system[0].text).toMatch(/Claude agent/);
+      expect(system[0].cache_control).toBeUndefined();
     });
 
     it('drops system when input has none and no mutations need it', () => {
@@ -2096,16 +2121,75 @@ describe('Anthropic Adapter', () => {
       expect(result).not.toHaveProperty('system');
     });
 
-    it('omits cache_control when injectCacheControl is false', () => {
+    it('injects cache_control on the last system block and last tool', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        system: [{ type: 'text', text: 'persona' }],
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      });
+      const system = result.system as Array<Record<string, unknown>>;
+      expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
+      const tools = result.tools as Array<Record<string, unknown>>;
+      expect(tools[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('caps Manifest cache_control injection when Claude Code already supplies three breakpoints', () => {
+      const cache = { type: 'ephemeral' };
+      const inbound = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'uncached' },
+              { type: 'text', text: 'cached', cache_control: cache },
+            ],
+          },
+        ],
+        system: [
+          { type: 'text', text: 'context', cache_control: cache },
+          { type: 'text', text: 'instructions', cache_control: cache },
+        ],
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      };
+
+      const result = applyAnthropicMessagesMutations(inbound, {
+        injectSubscriptionIdentity: true,
+      });
+
+      expect(countCacheControls(result)).toBe(4);
+      const system = result.system as Array<Record<string, unknown>>;
+      expect(system[0].text).toMatch(/Claude agent/);
+      expect(system[0].cache_control).toBeUndefined();
+      const tools = result.tools as Array<Record<string, unknown>>;
+      expect(tools[0].cache_control).toEqual(cache);
+      expect((inbound.tools[0] as Record<string, unknown>).cache_control).toBeUndefined();
+    });
+
+    it('does not add cache_control when the inbound Messages request is already at the Anthropic cap', () => {
+      const cache = { type: 'ephemeral' };
       const result = applyAnthropicMessagesMutations(
         {
-          messages: [{ role: 'user', content: 'hi' }],
-          system: [{ type: 'text', text: 'persona' }],
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: 'cached 1', cache_control: cache },
+                { type: 'text', text: 'cached 2', cache_control: cache },
+              ],
+            },
+          ],
+          system: [
+            { type: 'text', text: 'cached 3', cache_control: cache },
+            { type: 'text', text: 'cached 4', cache_control: cache },
+          ],
           tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         },
-        { injectCacheControl: false },
+        { injectSubscriptionIdentity: true },
       );
+
+      expect(countCacheControls(result)).toBe(4);
       const system = result.system as Array<Record<string, unknown>>;
+      expect(system[0].text).toMatch(/Claude agent/);
       expect(system[0].cache_control).toBeUndefined();
       const tools = result.tools as Array<Record<string, unknown>>;
       expect(tools[0].cache_control).toBeUndefined();
@@ -2244,6 +2328,30 @@ describe('Anthropic Adapter', () => {
         metadata: { user_id: 'u' },
         tool_choice: { type: 'auto' },
       });
+    });
+
+    it('downgrades Opus/Fable xhigh effort when Manifest resolves the request to Sonnet', () => {
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [{ role: 'user', content: 'hi' }],
+          output_config: { effort: 'xhigh', style: 'unchanged' },
+        },
+        { targetModel: 'claude-sonnet-4-6' },
+      );
+
+      expect(result.output_config).toEqual({ effort: 'high', style: 'unchanged' });
+    });
+
+    it('keeps xhigh effort when the resolved Anthropic model supports it', () => {
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [{ role: 'user', content: 'hi' }],
+          output_config: { effort: 'xhigh' },
+        },
+        { targetModel: 'claude-opus-4-8' },
+      );
+
+      expect(result.output_config).toEqual({ effort: 'xhigh' });
     });
   });
 

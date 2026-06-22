@@ -3,7 +3,13 @@ import type { Response as ExpressResponse } from 'express';
 import { PlaygroundService } from './playground.service';
 import type { ProviderClient } from '../routing/proxy/provider-client';
 import type { ProviderKeyService } from '../routing/routing-core/provider-key.service';
-import type { ResolveAgentService } from '../routing/routing-core/resolve-agent.service';
+import type { PlaygroundAgentService } from './playground-agent.service';
+import type { OpenaiOauthService } from '../routing/oauth/openai/openai-oauth.service';
+import type { MinimaxOauthService } from '../routing/oauth/minimax/minimax-oauth.service';
+import type { AnthropicOauthService } from '../routing/oauth/anthropic/anthropic-oauth.service';
+import type { GeminiOauthService } from '../routing/oauth/gemini/gemini-oauth.service';
+import type { KiroOauthService } from '../routing/oauth/kiro/kiro-oauth.service';
+import type { XaiOauthService } from '../routing/oauth/xai/xai-oauth.service';
 import type { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import type { IngestEventBusService } from '../common/services/ingest-event-bus.service';
 import type { PlaygroundHistoryService } from './playground-history.service';
@@ -11,9 +17,19 @@ import type { Repository } from 'typeorm';
 import type { AgentMessage } from '../entities/agent-message.entity';
 import type { CustomProvider } from '../entities/custom-provider.entity';
 import type { RunPlaygroundDto } from './dto/run-playground.dto';
+import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 
-const USER_ID = 'user-1';
 const AGENT = { id: 'agent-1', tenant_id: 'tenant-1', name: 'demo' };
+// The request context threaded into runStream. The Playground agent resolves to
+// AGENT (tenant_id 'tenant-1'); ctx.userId is audit-only attribution.
+const CTX: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
+const DEFAULT_PROVIDER_KEY = {
+  id: 'key-1',
+  label: 'Default',
+  priority: 0,
+  apiKey: 'sk-test',
+  region: null,
+};
 
 function makeDto(overrides: Partial<RunPlaygroundDto> = {}): RunPlaygroundDto {
   return {
@@ -128,11 +144,27 @@ function okStream(
   };
 }
 
+function errorForward(status: number, bodyText: string) {
+  return {
+    response: {
+      ok: false,
+      status,
+      headers: new Headers(),
+      text: jest.fn().mockResolvedValue(bodyText),
+      body: null,
+    },
+    isGoogle: false,
+    isAnthropic: false,
+    isChatGpt: false,
+  };
+}
+
 interface Mocks {
-  resolveAgent: { resolve: jest.Mock };
+  playgroundAgent: { resolve: jest.Mock };
   providerKeyService: {
     hasActiveProvider: jest.Mock;
     getAuthType: jest.Mock;
+    getProviderKeys: jest.Mock;
     getProviderApiKey: jest.Mock;
   };
   providerClient: {
@@ -141,6 +173,12 @@ interface Mocks {
     createAnthropicStreamTransformer: jest.Mock;
     convertChatGptStreamChunk: jest.Mock;
   };
+  openaiOauth: { unwrapToken: jest.Mock };
+  minimaxOauth: { unwrapToken: jest.Mock };
+  anthropicOauth: { unwrapToken: jest.Mock };
+  geminiOauth: { unwrapToken: jest.Mock };
+  kiroOauth: { unwrapToken: jest.Mock };
+  xaiOauth: { unwrapToken: jest.Mock };
   pricingCache: { getByModel: jest.Mock };
   eventBus: { emit: jest.Mock };
   history: { saveColumn: jest.Mock };
@@ -150,13 +188,14 @@ interface Mocks {
 
 function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService; mocks: Mocks } {
   const full: Mocks = {
-    resolveAgent: {
+    playgroundAgent: {
       resolve: jest.fn().mockResolvedValue(AGENT),
     },
     providerKeyService: {
       hasActiveProvider: jest.fn().mockResolvedValue(true),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
-      getProviderApiKey: jest.fn().mockResolvedValue('sk-test'),
+      getProviderKeys: jest.fn().mockResolvedValue([DEFAULT_PROVIDER_KEY]),
+      getProviderApiKey: jest.fn().mockResolvedValue(DEFAULT_PROVIDER_KEY.apiKey),
     },
     providerClient: {
       forward: jest.fn(),
@@ -164,6 +203,12 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
       createAnthropicStreamTransformer: jest.fn(),
       convertChatGptStreamChunk: jest.fn(),
     },
+    openaiOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    minimaxOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    anthropicOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    geminiOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    kiroOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    xaiOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
     pricingCache: {
       getByModel: jest.fn().mockReturnValue({
         input_price_per_token: 0.000001,
@@ -177,9 +222,15 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
     ...mocks,
   };
   const service = new PlaygroundService(
-    full.resolveAgent as unknown as ResolveAgentService,
+    full.playgroundAgent as unknown as PlaygroundAgentService,
     full.providerKeyService as unknown as ProviderKeyService,
     full.providerClient as unknown as ProviderClient,
+    full.openaiOauth as unknown as OpenaiOauthService,
+    full.minimaxOauth as unknown as MinimaxOauthService,
+    full.anthropicOauth as unknown as AnthropicOauthService,
+    full.geminiOauth as unknown as GeminiOauthService,
+    full.kiroOauth as unknown as KiroOauthService,
+    full.xaiOauth as unknown as XaiOauthService,
     full.pricingCache as unknown as ModelPricingCacheService,
     full.eventBus as unknown as IngestEventBusService,
     full.history as unknown as PlaygroundHistoryService,
@@ -202,7 +253,7 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const events = parseSse(res);
     const deltas = events.filter((e) => e.type === 'delta');
@@ -231,7 +282,7 @@ describe('PlaygroundService.runStream', () => {
       input_tokens: 10,
       output_tokens: 5,
     });
-    expect(mocks.eventBus.emit).toHaveBeenCalledWith(USER_ID);
+    expect(mocks.eventBus.emit).toHaveBeenCalledWith(AGENT.tenant_id);
     expect(mocks.history.saveColumn).toHaveBeenCalledTimes(1);
     expect(mocks.history.saveColumn.mock.calls[0][0]).toMatchObject({
       prompt: 'hi',
@@ -253,7 +304,7 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
 
     await service.runStream(
-      USER_ID,
+      CTX,
       makeDto({ provider: 'custom:abc', model: 'custom:abc/meta-llama/Llama-3.1-8B' }),
       asRes(res),
     );
@@ -263,6 +314,82 @@ describe('PlaygroundService.runStream', () => {
     expect(call.customEndpoint).toBeDefined();
     // Prefix stripped — the custom endpoint expects the bare upstream model id.
     expect(call.model).toBe('meta-llama/Llama-3.1-8B');
+    // The custom-provider row is fetched scoped to the caller's tenant, so
+    // another tenant's custom:<id> can never be resolved here.
+    expect(mocks.customProviderRepo.findOne).toHaveBeenCalledWith({
+      where: { id: 'abc', tenant_id: AGENT.tenant_id },
+    });
+  });
+
+  it('routes MiniMax subscription requests through the region base URL from the OAuth resource_url', async () => {
+    const { service, mocks } = buildService();
+    mocks.minimaxOauth.unwrapToken.mockResolvedValue({
+      t: 'mm-access',
+      r: 'mm-refresh',
+      e: Date.now() + 60_000,
+      u: 'https://api.minimaxi.com/anthropic',
+    });
+    mocks.providerClient.forward.mockResolvedValue(
+      okStream(['data: {"choices":[{"delta":{"content":"OK"}}]}\n\n', 'data: [DONE]\n\n']),
+    );
+    const res = mockRes();
+
+    await service.runStream(
+      CTX,
+      makeDto({ provider: 'minimax', authType: 'subscription', model: 'minimax/abab' }),
+      asRes(res),
+    );
+
+    const call = mocks.providerClient.forward.mock.calls[0][0] as Record<string, unknown>;
+    expect(call.apiKey).toBe('mm-access');
+    expect(call.customEndpoint).toBeDefined();
+    expect((call.customEndpoint as { baseUrl?: string }).baseUrl).toContain('api.minimaxi.com');
+    // Custom endpoint forwards the model verbatim, so the `minimax/` prefix
+    // must be stripped or the subscription endpoint 404s.
+    expect(call.model).toBe('abab');
+  });
+
+  it('ignores an invalid MiniMax subscription resource URL instead of building an endpoint', async () => {
+    const { service, mocks } = buildService();
+    mocks.minimaxOauth.unwrapToken.mockResolvedValue({
+      t: 'mm-access',
+      r: 'mm-refresh',
+      e: Date.now() + 60_000,
+      u: 'https://evil.example/anthropic',
+    });
+    mocks.providerClient.forward.mockResolvedValue(
+      okStream(['data: {"choices":[{"delta":{"content":"OK"}}]}\n\n', 'data: [DONE]\n\n']),
+    );
+    const res = mockRes();
+
+    await service.runStream(
+      CTX,
+      makeDto({ provider: 'minimax', authType: 'subscription', model: 'minimax/abab' }),
+      asRes(res),
+    );
+
+    const call = mocks.providerClient.forward.mock.calls[0][0] as Record<string, unknown>;
+    expect(call.customEndpoint).toBeUndefined();
+  });
+
+  it('returns 404 when a subscription OAuth blob can no longer be unwrapped', async () => {
+    const { service, mocks } = buildService();
+    // Stored value is a real OAuth blob, but unwrap fails (e.g. invalidated) —
+    // resolveApiKey returns a null apiKey, which must surface as a 404.
+    mocks.providerKeyService.getProviderKeys.mockResolvedValue([
+      { ...DEFAULT_PROVIDER_KEY, apiKey: JSON.stringify({ t: 'a', r: 'b', e: 123 }) },
+    ]);
+    mocks.openaiOauth.unwrapToken.mockResolvedValue(null);
+    const res = mockRes();
+
+    await service.runStream(
+      CTX,
+      makeDto({ provider: 'openai', authType: 'subscription' }),
+      asRes(res),
+    );
+
+    expect(res._status).toBe(404);
+    expect(mocks.providerClient.forward).not.toHaveBeenCalled();
   });
 
   it('defaults all token counts to 0 when the stream reports no usage block', async () => {
@@ -272,7 +399,7 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
     const metrics = done.metrics as Record<string, number | null>;
@@ -291,9 +418,9 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
     res.headersSent = true;
     // Provider connected but key missing → sendPreStreamError path.
-    mocks.providerKeyService.getProviderApiKey.mockResolvedValue(null);
+    mocks.providerKeyService.getProviderKeys.mockResolvedValue([]);
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res.status).not.toHaveBeenCalled();
     expect(res.json).not.toHaveBeenCalled();
@@ -316,7 +443,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     // recordError's catch swallowed the Error; the user still gets the 502.
     expect(res._status).toBe(502);
@@ -333,7 +460,7 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
     expect((done.metrics as Record<string, unknown>).tokensPerSec).toBeNull();
@@ -344,12 +471,13 @@ describe('PlaygroundService.runStream', () => {
       providerKeyService: {
         hasActiveProvider: jest.fn().mockResolvedValue(false),
         getAuthType: jest.fn(),
+        getProviderKeys: jest.fn(),
         getProviderApiKey: jest.fn(),
       },
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(404);
     expect(res._json).toMatchObject({ statusCode: 404 });
@@ -362,12 +490,13 @@ describe('PlaygroundService.runStream', () => {
       providerKeyService: {
         hasActiveProvider: jest.fn().mockResolvedValue(true),
         getAuthType: jest.fn().mockResolvedValue('api_key'),
-        getProviderApiKey: jest.fn().mockResolvedValue(null),
+        getProviderKeys: jest.fn().mockResolvedValue([]),
+        getProviderApiKey: jest.fn(),
       },
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(404);
     expect((res._json as { message: string }).message).toContain('No usable API key');
@@ -384,24 +513,145 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto({ authType: undefined }), asRes(res));
+    await service.runStream(CTX, makeDto({ authType: undefined }), asRes(res));
 
-    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(AGENT.id, 'openai');
+    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(
+      AGENT.tenant_id,
+      'openai',
+      undefined,
+      AGENT.id,
+    );
     // subscription auth → cost is 0, not null
     const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
     expect((done.metrics as Record<string, unknown>).cost).toBe(0);
     expect(mocks.messageRepo.insert.mock.calls[0][0].auth_type).toBe('subscription');
   });
 
+  it('unwraps OpenAI OAuth blobs before forwarding subscription Playground requests', async () => {
+    const oauthBlob = JSON.stringify({
+      t: 'stored-access-token',
+      r: 'refresh-token',
+      e: Date.now() + 10 * 60 * 1000,
+    });
+    const { service, mocks } = buildService();
+    mocks.providerKeyService.getProviderKeys.mockResolvedValue([
+      { ...DEFAULT_PROVIDER_KEY, label: 'Work', apiKey: oauthBlob },
+    ]);
+    mocks.providerKeyService.getProviderApiKey.mockResolvedValue(oauthBlob);
+    mocks.openaiOauth.unwrapToken.mockResolvedValue('fresh-access-token');
+    mocks.providerClient.forward.mockResolvedValue(
+      okStream([
+        'data: {"choices":[{"delta":{"content":"ok"}}]}\n\n',
+        'data: {"usage":{"prompt_tokens":4,"completion_tokens":1}}\n\n',
+      ]),
+    );
+    const res = mockRes();
+
+    await service.runStream(
+      CTX,
+      makeDto({ model: 'gpt-5.5', authType: 'subscription' }),
+      asRes(res),
+    );
+
+    expect(mocks.providerKeyService.getProviderKeys).toHaveBeenCalledWith(
+      AGENT.tenant_id,
+      'openai',
+      'subscription',
+      AGENT.id,
+    );
+    expect(mocks.openaiOauth.unwrapToken).toHaveBeenCalledWith(
+      oauthBlob,
+      AGENT.id,
+      AGENT.tenant_id,
+      'Work',
+    );
+    expect(mocks.providerClient.forward).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'openai',
+        model: 'gpt-5.5',
+        authType: 'subscription',
+        apiKey: 'fresh-access-token',
+      }),
+    );
+    expect(res._status).toBeNull();
+  });
+
+  it('forces an OpenAI OAuth refresh and retries when Playground receives a 401', async () => {
+    const oauthBlob = JSON.stringify({
+      t: 'stored-access-token',
+      r: 'refresh-token',
+      e: Date.now() - 10 * 60 * 1000,
+    });
+    const refreshedBlob = JSON.stringify({
+      t: 'fresh-access-token',
+      r: 'rotated-refresh-token',
+      e: Date.now() + 10 * 60 * 1000,
+    });
+    const { service, mocks } = buildService();
+    mocks.providerKeyService.getProviderKeys.mockResolvedValue([
+      { ...DEFAULT_PROVIDER_KEY, label: 'Work', apiKey: oauthBlob },
+    ]);
+    mocks.providerKeyService.getProviderApiKey.mockResolvedValue(refreshedBlob);
+    mocks.openaiOauth.unwrapToken
+      .mockResolvedValueOnce('fresh-access-token')
+      .mockResolvedValueOnce('refreshed-access-token');
+    mocks.providerClient.forward
+      .mockResolvedValueOnce(errorForward(401, 'expired token'))
+      .mockResolvedValueOnce(
+        okStream([
+          'data: {"choices":[{"delta":{"content":"ok"}}]}\n\n',
+          'data: {"usage":{"prompt_tokens":4,"completion_tokens":1}}\n\n',
+        ]),
+      );
+    const res = mockRes();
+
+    await service.runStream(
+      CTX,
+      makeDto({ model: 'gpt-5.5', authType: 'subscription' }),
+      asRes(res),
+    );
+
+    expect(mocks.providerClient.forward).toHaveBeenCalledTimes(2);
+    expect(mocks.providerClient.forward.mock.calls[0][0]).toMatchObject({
+      provider: 'openai',
+      model: 'gpt-5.5',
+      authType: 'subscription',
+      apiKey: 'fresh-access-token',
+    });
+    expect(mocks.providerClient.forward.mock.calls[1][0]).toMatchObject({
+      provider: 'openai',
+      model: 'gpt-5.5',
+      authType: 'subscription',
+      apiKey: 'refreshed-access-token',
+    });
+    const forcedRefreshBlob = JSON.parse(mocks.openaiOauth.unwrapToken.mock.calls[1][0]) as Record<
+      string,
+      unknown
+    >;
+    expect(forcedRefreshBlob).toMatchObject({
+      t: 'fresh-access-token',
+      r: 'rotated-refresh-token',
+      e: 0,
+    });
+    expect(mocks.openaiOauth.unwrapToken).toHaveBeenNthCalledWith(
+      2,
+      expect.any(String),
+      AGENT.id,
+      AGENT.tenant_id,
+      'Work',
+    );
+    expect(res._status).toBeNull();
+  });
+
   it('maps an HttpException thrown during preflight to its status', async () => {
     const { service } = buildService({
-      resolveAgent: {
+      playgroundAgent: {
         resolve: jest.fn().mockRejectedValue(new NotFoundException('agent gone')),
       },
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(404);
     expect((res._json as { message: string }).message).toBe('agent gone');
@@ -409,26 +659,26 @@ describe('PlaygroundService.runStream', () => {
 
   it('maps a non-404 HttpException during preflight to its status (e.g. 403)', async () => {
     const { service } = buildService({
-      resolveAgent: {
+      playgroundAgent: {
         resolve: jest.fn().mockRejectedValue(new ForbiddenException('nope')),
       },
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(403);
   });
 
   it('maps a non-HttpException preflight failure to 500', async () => {
     const { service } = buildService({
-      resolveAgent: {
+      playgroundAgent: {
         resolve: jest.fn().mockRejectedValue(new Error('boom')),
       },
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(500);
     expect((res._json as { message: string }).message).toBe('boom');
@@ -436,13 +686,13 @@ describe('PlaygroundService.runStream', () => {
 
   it('stringifies a non-Error preflight rejection', async () => {
     const { service } = buildService({
-      resolveAgent: {
+      playgroundAgent: {
         resolve: jest.fn().mockRejectedValue('weird-string'),
       },
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(500);
     expect((res._json as { message: string }).message).toBe('weird-string');
@@ -453,7 +703,7 @@ describe('PlaygroundService.runStream', () => {
     mocks.providerClient.forward.mockRejectedValue(new Error('connection refused'));
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(502);
     expect((res._json as { message: string }).message).toContain('connection refused');
@@ -464,7 +714,7 @@ describe('PlaygroundService.runStream', () => {
     mocks.providerClient.forward.mockRejectedValue('not-an-error');
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(502);
     expect((res._json as { message: string }).message).toContain('not-an-error');
@@ -486,7 +736,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(502);
     expect((res._json as { message: string }).message).toContain('Provider returned 429');
@@ -516,7 +766,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect((res._json as { message: string }).message).toBe('Provider returned 500');
   });
@@ -536,7 +786,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const events = parseSse(res);
     expect(events).toHaveLength(1);
@@ -567,7 +817,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const events = parseSse(res);
     expect(events.some((e) => e.type === 'error')).toBe(true);
@@ -615,7 +865,7 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
     mocks.providerClient.forward.mockResolvedValue(abortingForward(res));
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     // Aborted → no error event, no telemetry row, no history column, just end().
     expect(mocks.messageRepo.insert).not.toHaveBeenCalled();
@@ -629,7 +879,7 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
     mocks.providerClient.forward.mockResolvedValue(abortingForward(res, { endFirst: true }));
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res.end).not.toHaveBeenCalled();
   });
@@ -655,7 +905,7 @@ describe('PlaygroundService.runStream', () => {
       isChatGpt: false,
     });
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     // recordError + saveColumn still run, but res.end() must not be called twice.
     expect(mocks.messageRepo.insert).toHaveBeenCalledTimes(1);
@@ -682,7 +932,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const errEvent = parseSse(res).find((e) => e.type === 'error') as Record<string, unknown>;
     expect(errEvent.message).toBe('string-failure');
@@ -699,7 +949,7 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const events = parseSse(res);
     expect(events.some((e) => e.type === 'done')).toBe(true);
@@ -723,7 +973,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(502);
     expect((res._json as { message: string }).message).toContain('Provider returned 503');
@@ -740,7 +990,7 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(parseSse(res).some((e) => e.type === 'done')).toBe(true);
   });
@@ -762,7 +1012,7 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
     const headers = done.headers as Record<string, string>;
@@ -779,7 +1029,7 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
 
     await service.runStream(
-      USER_ID,
+      CTX,
       makeDto({ requestHeaders: { 'X-Custom': 'keep', authorization: 'drop-me' } }),
       asRes(res),
     );
@@ -813,7 +1063,7 @@ describe('PlaygroundService.runStream', () => {
       isChatGpt: false,
     });
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     // writableEnded was true before send({type:'done'}) — nothing extra written.
     expect(res._written).toEqual([]);

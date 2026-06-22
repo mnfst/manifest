@@ -10,3 +10,14 @@ export * from './api/oauth.js';
 export * from './api/free-models.js';
 export * from './api/model-params.js';
 export * from './api/playground.js';
+export {
+  getProviders as getGlobalProviders,
+  getProviderUsage as getGlobalProviderUsage,
+  mergeUsage,
+  type ProvidersResponse,
+  type ProviderUsageResponse,
+  type TenantProviderConnection,
+  type TenantProviderConfig,
+  type TenantProviderUsage,
+  type TenantProviderSummary,
+} from './api/providers.js';

@@ -125,6 +125,42 @@ describe('validateApiKey', () => {
     expect(validateApiKey(fireworks, 'fw_' + 'a'.repeat(20))).toEqual({ valid: true });
   });
 
+  it('validates AWS Bedrock raw bearer-token and legacy API-key lengths', () => {
+    const bedrock = getProvider('bedrock')!;
+    expect(validateApiKey(bedrock, '')).toEqual({
+      valid: false,
+      error: 'API key is required',
+    });
+    expect(validateApiKey(bedrock, 'bedrock-api-key-short')).toEqual({
+      valid: false,
+      error: 'Key is too short (minimum 100 characters)',
+    });
+    expect(validateApiKey(bedrock, 'ABSKTWFudGxlQXBpS2V5LWV4YW1wbGU='.padEnd(100, 'A'))).toEqual({
+      valid: true,
+    });
+    expect(validateApiKey(bedrock, 'bedrock-api-key-' + 'a'.repeat(100))).toEqual({
+      valid: true,
+    });
+  });
+
+  it('validates Xiaomi MiMo API key prefix and length', () => {
+    const xiaomi = getProvider('xiaomi')!;
+    expect(xiaomi.keyPlaceholder).toBe('sk-xxxxx');
+    expect(validateApiKey(xiaomi, '')).toEqual({
+      valid: false,
+      error: 'API key is required',
+    });
+    expect(validateApiKey(xiaomi, 'wrong-prefix-key')).toEqual({
+      valid: false,
+      error: 'Xiaomi MiMo keys start with "sk-"',
+    });
+    expect(validateApiKey(xiaomi, 'sk-short')).toEqual({
+      valid: false,
+      error: 'Key is too short (minimum 50 characters)',
+    });
+    expect(validateApiKey(xiaomi, `sk-${'a'.repeat(47)}`)).toEqual({ valid: true });
+  });
+
   it('validates NVIDIA NIM key length without enforcing an undocumented prefix', () => {
     const nvidia = getProvider('nvidia')!;
     expect(nvidia.keyPlaceholder).toBe('nvapi-...');
@@ -252,6 +288,21 @@ describe('validateSubscriptionKey', () => {
     });
   });
 
+  it('rejects a regular Xiaomi MiMo API key in Token Plan subscription mode', () => {
+    const xiaomi = getProvider('xiaomi')!;
+    expect(validateSubscriptionKey(xiaomi, 'sk-mimo-valid')).toEqual({
+      valid: false,
+      error: 'Xiaomi MiMo subscription tokens start with "tp-"',
+    });
+  });
+
+  it('accepts a valid Xiaomi MiMo Token Plan key', () => {
+    const xiaomi = getProvider('xiaomi')!;
+    expect(validateSubscriptionKey(xiaomi, 'tp-mimo-valid')).toEqual({
+      valid: true,
+    });
+  });
+
   it("rejects a MiniMax Coding Plan token shorter than the provider's minKeyLength", () => {
     const minimax = getProvider('minimax')!;
     // sk-cp- prefix (6) + 4 chars = 10 total: passes the generic 10-char floor
@@ -343,6 +394,12 @@ describe('getModelLabel', () => {
     // normalized "unknown-model-name" → still not found → returns bare
     expect(getModelLabel('openrouter', 'vendor/unknown.model.name')).toBe('Unknown.Model.Name');
   });
+
+  it('strips Bedrock-style dot provider namespaces', () => {
+    expect(getModelLabel('bedrock', 'us.anthropic.claude-opus-4.6')).toBe('Claude Opus 4.6');
+    expect(getModelLabel('bedrock', 'mistral.magistral-small-2509')).toBe('Magistral Small 2509');
+    expect(getModelLabel('bedrock', 'z.ai.glm-4.6')).toBe('Glm 4.6');
+  });
 });
 
 /* ── PROVIDERS constant ────────────────────────── */
@@ -390,6 +447,23 @@ describe('PROVIDERS', () => {
     expect(anthropic.subscriptionAuthMode).toBe('popup_paste');
     expect(anthropic.subscriptionCommand).toBeUndefined();
     expect(anthropic.subscriptionKeyPlaceholder).toBeUndefined();
+  });
+
+  it('AWS Bedrock exposes API-key region choices', () => {
+    const bedrock = PROVIDERS.find((p) => p.id === 'bedrock')!;
+    expect(bedrock.name).toBe('AWS Bedrock');
+    expect(bedrock.apiKeyEndpointRegions?.[0]).toEqual({
+      value: 'us-east-1',
+      label: 'US East (N. Virginia)',
+    });
+    expect(bedrock.apiKeyEndpointRegions).toContainEqual({
+      value: 'eu-west-1',
+      label: 'Europe (Ireland)',
+    });
+    expect(bedrock.apiKeyEndpointRegions).not.toContainEqual({
+      value: 'eu-west-3',
+      label: 'Europe (Paris)',
+    });
   });
 
   it('GitHub Copilot is subscription-only', () => {
@@ -447,6 +521,22 @@ describe('PROVIDERS', () => {
     expect(qwen.subscriptionCredentialKind).toBe('api-key');
     expect(qwen.subscriptionCredentialName).toBe('Qwen Token Plan');
     expect(qwen.subscriptionOnly).toBeUndefined();
+  });
+
+  it('Xiaomi MiMo supports Token Plan subscription with selectable token hosts', () => {
+    const xiaomi = PROVIDERS.find((p) => p.id === 'xiaomi')!;
+    expect(xiaomi.supportsSubscription).toBe(true);
+    expect(xiaomi.subscriptionLabel).toBe('Xiaomi MiMo Token Plan');
+    expect(xiaomi.subscriptionAuthMode).toBe('token');
+    expect(xiaomi.subscriptionKeyPlaceholder).toBe('Paste your MiMo Token Plan API key');
+    expect(xiaomi.subscriptionCredentialKind).toBe('api-key');
+    expect(xiaomi.subscriptionCredentialName).toBe('MiMo Token Plan');
+    expect(xiaomi.subscriptionEndpointRegions).toEqual([
+      { value: 'cn', label: 'China (token-plan-cn)' },
+      { value: 'sgp', label: 'Singapore (token-plan-sgp)' },
+      { value: 'ams', label: 'Europe (token-plan-ams)' },
+    ]);
+    expect(xiaomi.subscriptionOnly).toBeUndefined();
   });
 
   it('Moonshot supports Kimi Coding Plan subscription with token flow', () => {
@@ -508,6 +598,15 @@ describe('PROVIDERS', () => {
 
   it('provides a subscription-key URL for Qwen Token Plan', () => {
     expect(getSubscriptionProviderKeyUrl('qwen')).toBe('https://home.qwencloud.com/api-keys');
+  });
+
+  it('provides API-key and subscription-key URLs for Xiaomi MiMo', () => {
+    expect(getRoutingProviderApiKeyUrl('xiaomi')).toBe(
+      'https://platform.xiaomimimo.com/console/api-keys',
+    );
+    expect(getSubscriptionProviderKeyUrl('xiaomi')).toBe(
+      'https://platform.xiaomimimo.com/token-plan',
+    );
   });
 
   it('provides an API-key URL for Kilo', () => {
@@ -598,7 +697,7 @@ describe('PROVIDERS', () => {
     expect(getRoutingProviderApiKeyUrl('opencode-zen')).toBe('https://opencode.ai/auth');
   });
 
-  it('Kiro is subscription-only with CLI OAuth flow and dynamic models', () => {
+  it('Kiro is subscription-only with device-code OAuth flow and dynamic models', () => {
     const kiro = PROVIDERS.find((p) => p.id === 'kiro')!;
     expect(kiro).toBeDefined();
     expect(kiro.name).toBe('Kiro');

@@ -1,13 +1,13 @@
-import { useLocation } from "@solidjs/router";
+import { useLocation } from '@solidjs/router';
 
 export function useAgentName(): () => string | null {
   const location = useLocation();
   return () => {
-    const match = location.pathname.match(/^\/agents\/([^/]+)/);
+    const match = location.pathname.match(/^\/harnesses\/([^/]+)/);
     return match?.[1] ? decodeURIComponent(match[1]) : null;
   };
 }
 
 export function agentPath(agentName: string | null, sub: string): string {
-  return agentName ? `/agents/${encodeURIComponent(agentName)}${sub}` : "/";
+  return agentName ? `/harnesses/${encodeURIComponent(agentName)}${sub}` : '/';
 }

@@ -113,12 +113,12 @@ describe('ApiKeyGeneratorService — edge cases', () => {
   // ──────────────────────────────────────────────
 
   describe('onboardAgent duplicates and constraints', () => {
-    const defaultParams = { tenantName: 'user-42', agentName: 'my-agent' };
+    const defaultParams = { ownerUserId: 'user-42', agentName: 'my-agent' };
 
     it('should propagate unique constraint violation when same agent name re-onboarded', async () => {
       mockTenantFindOne.mockResolvedValue({
         id: 'existing-tenant-id',
-        name: 'user-42',
+        owner_user_id: 'user-42',
       });
       const constraintError = new Error('duplicate key value violates unique constraint');
       constraintError.name = 'QueryFailedError';
@@ -132,7 +132,7 @@ describe('ApiKeyGeneratorService — edge cases', () => {
     it('should not insert API key when agent insert fails with unique constraint', async () => {
       mockTenantFindOne.mockResolvedValue({
         id: 'existing-tenant-id',
-        name: 'user-42',
+        owner_user_id: 'user-42',
       });
       mockAgentInsert.mockRejectedValueOnce(new Error('duplicate key'));
 
@@ -146,7 +146,7 @@ describe('ApiKeyGeneratorService — edge cases', () => {
   // ──────────────────────────────────────────────
 
   describe('onboardAgent optional category and platform', () => {
-    const defaultParams = { tenantName: 'user-42', agentName: 'my-agent' };
+    const defaultParams = { ownerUserId: 'user-42', agentName: 'my-agent' };
 
     it('should store agentCategory and agentPlatform when provided', async () => {
       mockTenantFindOne.mockResolvedValue(null);
@@ -194,21 +194,21 @@ describe('ApiKeyGeneratorService — edge cases', () => {
     it('should apply deleted_at IS NULL filter (soft-delete)', async () => {
       mockKeyGetOne.mockResolvedValue({ key_prefix: 'mnfst_xxx' });
 
-      await service.getKeyForAgent('user-99', 'bot-x');
+      await service.getKeyForAgent('tenant-99', 'bot-x');
 
       expect(mockKeyQb.andWhere).toHaveBeenCalledWith('a.deleted_at IS NULL');
     });
 
-    it('should throw NotFoundException when wrong userId for valid agent (cross-tenant)', async () => {
-      // Wrong userId for an agent that exists under a different tenant — the
-      // join on t.name forces a null result, never a leak.
+    it('should throw NotFoundException when wrong tenantId for valid agent (cross-tenant)', async () => {
+      // Wrong tenantId for an agent that exists under a different tenant — the
+      // tenant_id filter forces a null result, never a leak.
       mockKeyGetOne.mockResolvedValue(null);
 
-      await expect(service.getKeyForAgent('attacker-user', 'agent-a')).rejects.toThrow(
+      await expect(service.getKeyForAgent('attacker-tenant', 'agent-a')).rejects.toThrow(
         NotFoundException,
       );
-      expect(mockKeyQb.where).toHaveBeenCalledWith('t.name = :userId', {
-        userId: 'attacker-user',
+      expect(mockKeyQb.where).toHaveBeenCalledWith('a.tenant_id = :tenantId', {
+        tenantId: 'attacker-tenant',
       });
     });
   });
@@ -225,16 +225,16 @@ describe('ApiKeyGeneratorService — edge cases', () => {
         tenant_id: 'tenant-id-1',
       });
 
-      await service.rotateKey('user-1', 'my-agent');
+      await service.rotateKey('tenant-1', 'my-agent');
 
       expect(mockAgentQb.andWhere).toHaveBeenCalledWith('a.deleted_at IS NULL');
     });
 
-    it('should throw NotFoundException when cross-tenant userId does not own the agent', async () => {
-      // Wrong user trying to rotate someone else's agent — query returns null.
+    it('should throw NotFoundException when cross-tenant tenantId does not own the agent', async () => {
+      // Wrong tenant trying to rotate someone else's agent — query returns null.
       mockAgentGetOne.mockResolvedValue(null);
 
-      await expect(service.rotateKey('attacker-user', 'someone-elses-agent')).rejects.toThrow(
+      await expect(service.rotateKey('attacker-tenant', 'someone-elses-agent')).rejects.toThrow(
         NotFoundException,
       );
       // Ensure we never deleted the key for an agent we couldn't look up.
@@ -248,21 +248,24 @@ describe('ApiKeyGeneratorService — edge cases', () => {
   // ──────────────────────────────────────────────
 
   describe('input edge cases (empty strings)', () => {
-    it('should still call tenant lookup when tenantName is an empty string', async () => {
-      // Service does not validate empty strings — DTO does. Pins current
-      // behaviour so a silent regression inside the service is caught.
+    it('should throw NotFoundException when ownerUserId is an empty string (treated as no owner)', async () => {
+      // An empty ownerUserId is falsy, so the service has no tenant to resolve
+      // and refuses to onboard rather than silently creating an ownerless
+      // tenant. Pins this so a regression that swallowed empty owners is caught.
       mockTenantFindOne.mockResolvedValue(null);
 
-      await service.onboardAgent({ tenantName: '', agentName: 'my-agent' });
+      await expect(
+        service.onboardAgent({ ownerUserId: '', agentName: 'my-agent' }),
+      ).rejects.toThrow(NotFoundException);
 
-      expect(mockTenantFindOne).toHaveBeenCalledWith({ where: { name: '' } });
-      expect(mockTenantInsert).toHaveBeenCalledWith(expect.objectContaining({ name: '' }));
+      expect(mockTenantFindOne).not.toHaveBeenCalled();
+      expect(mockTenantInsert).not.toHaveBeenCalled();
     });
 
     it('should pass empty agentName through to agent insert', async () => {
       mockTenantFindOne.mockResolvedValue(null);
 
-      await service.onboardAgent({ tenantName: 'user-42', agentName: '' });
+      await service.onboardAgent({ ownerUserId: 'user-42', agentName: '' });
 
       expect(mockAgentInsert).toHaveBeenCalledWith(expect.objectContaining({ name: '' }));
       // Label still concatenates even for empty agent name.
@@ -272,18 +275,18 @@ describe('ApiKeyGeneratorService — edge cases', () => {
     it('rotateKey should throw NotFoundException when called with empty agentName', async () => {
       mockAgentGetOne.mockResolvedValue(null);
 
-      await expect(service.rotateKey('user-1', '')).rejects.toThrow(NotFoundException);
+      await expect(service.rotateKey('tenant-1', '')).rejects.toThrow(NotFoundException);
       expect(mockAgentQb.where).toHaveBeenCalledWith('a.name = :agentName', {
         agentName: '',
       });
     });
 
-    it('rotateKey should throw NotFoundException when called with empty userId', async () => {
+    it('rotateKey should throw NotFoundException when called with empty tenantId', async () => {
       mockAgentGetOne.mockResolvedValue(null);
 
       await expect(service.rotateKey('', 'my-agent')).rejects.toThrow(NotFoundException);
-      expect(mockAgentQb.andWhere).toHaveBeenCalledWith('t.name = :userId', {
-        userId: '',
+      expect(mockAgentQb.andWhere).toHaveBeenCalledWith('a.tenant_id = :tenantId', {
+        tenantId: '',
       });
     });
   });

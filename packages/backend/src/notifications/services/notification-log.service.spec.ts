@@ -51,7 +51,7 @@ describe('NotificationLogService', () => {
   });
 
   describe('getLogsForAgent', () => {
-    it('queries logs joined with rules filtered by userId and agentName', async () => {
+    it('queries logs joined with rules filtered by tenantId and agentName', async () => {
       const mockLogs = [
         {
           id: 'log-1',
@@ -66,40 +66,55 @@ describe('NotificationLogService', () => {
       ];
       mockQuery.mockResolvedValue(mockLogs);
 
-      const result = await service.getLogsForAgent('user-1', 'my-agent');
+      const result = await service.getLogsForAgent('tenant-1', 'my-agent');
 
       expect(result).toEqual(mockLogs);
       expect(mockQuery).toHaveBeenCalledTimes(1);
       const [sql, params] = mockQuery.mock.calls[0];
       expect(sql).toContain('notification_logs');
       expect(sql).toContain('JOIN notification_rules');
+      expect(sql).toContain('nr.tenant_id = $1');
       expect(sql).toContain('ORDER BY');
       expect(sql).toContain('LIMIT 50');
-      expect(params).toEqual(['user-1', 'my-agent']);
+      expect(params).toEqual(['tenant-1', 'my-agent']);
+    });
+
+    it('returns empty array without querying when tenantId is null', async () => {
+      const result = await service.getLogsForAgent(null, 'my-agent');
+      expect(result).toEqual([]);
+      expect(mockQuery).not.toHaveBeenCalled();
     });
 
     it('returns empty array when no logs exist', async () => {
       mockQuery.mockResolvedValue([]);
-      const result = await service.getLogsForAgent('user-1', 'my-agent');
+      const result = await service.getLogsForAgent('tenant-1', 'my-agent');
       expect(result).toEqual([]);
     });
   });
 
-  describe('resolveUserEmail', () => {
+  describe('resolveRecipientEmail', () => {
     it('returns notificationEmail when provided', async () => {
-      expect(await service.resolveUserEmail('u1', 'custom@test.com')).toBe('custom@test.com');
+      expect(await service.resolveRecipientEmail('tenant-1', 'custom@test.com')).toBe(
+        'custom@test.com',
+      );
       expect(mockQuery).not.toHaveBeenCalled();
     });
 
-    it('queries user table when no notificationEmail', async () => {
-      mockQuery.mockResolvedValue([{ email: 'user@test.com' }]);
-      expect(await service.resolveUserEmail('u1')).toBe('user@test.com');
+    it('resolves the owner email via tenants LEFT JOIN user on owner_user_id', async () => {
+      mockQuery.mockResolvedValue([{ email: 'owner@test.com' }]);
+      expect(await service.resolveRecipientEmail('tenant-1')).toBe('owner@test.com');
       expect(mockQuery).toHaveBeenCalledTimes(1);
+      const [sql, params] = mockQuery.mock.calls[0];
+      expect(sql).toContain('COALESCE(u.email, t.email)');
+      expect(sql).toContain('FROM tenants t');
+      expect(sql).toContain('LEFT JOIN "user" u ON u.id = t.owner_user_id');
+      expect(sql).toContain('WHERE t.id = $1');
+      expect(params).toEqual(['tenant-1']);
     });
 
-    it('returns null when user not found', async () => {
+    it('returns null when the tenant has no resolvable email', async () => {
       mockQuery.mockResolvedValue([]);
-      expect(await service.resolveUserEmail('u1')).toBeNull();
+      expect(await service.resolveRecipientEmail('tenant-1')).toBeNull();
     });
   });
 });

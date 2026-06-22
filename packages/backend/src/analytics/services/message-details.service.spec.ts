@@ -3,7 +3,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { MessageDetailsService } from './message-details.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 function mockQb(result: unknown = null) {
   const qb: Record<string, jest.Mock> = {
@@ -19,7 +18,6 @@ function mockQb(result: unknown = null) {
 
 describe('MessageDetailsService', () => {
   let service: MessageDetailsService;
-  let mockTenantResolve: jest.Mock;
   let msgQb: ReturnType<typeof mockQb>;
 
   const baseMessage = {
@@ -49,7 +47,6 @@ describe('MessageDetailsService', () => {
     fallback_from_model: null,
     fallback_index: null,
     session_key: 'sess-001',
-    user_id: 'u1',
     feedback_rating: null,
     feedback_tags: null,
     feedback_details: null,
@@ -64,7 +61,6 @@ describe('MessageDetailsService', () => {
   };
 
   beforeEach(async () => {
-    mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
     msgQb = mockQb(baseMessage);
 
     const module: TestingModule = await Test.createTestingModule({
@@ -73,10 +69,6 @@ describe('MessageDetailsService', () => {
         {
           provide: getRepositoryToken(AgentMessage),
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(msgQb) },
-        },
-        {
-          provide: TenantCacheService,
-          useValue: { resolve: mockTenantResolve },
         },
       ],
     }).compile();
@@ -98,16 +90,15 @@ describe('MessageDetailsService', () => {
   });
 
   it('filters by tenantId when tenant exists', async () => {
-    await service.getDetails('msg-1', 'u1');
+    await service.getDetails('msg-1', 'tenant-123');
     expect(msgQb.andWhere).toHaveBeenCalledWith('m.tenant_id = :tenantId', {
       tenantId: 'tenant-123',
     });
   });
 
-  it('filters by userId when tenant does not exist', async () => {
-    mockTenantResolve.mockResolvedValue(null);
-    await service.getDetails('msg-1', 'u1');
-    expect(msgQb.andWhere).toHaveBeenCalledWith('m.user_id = :userId', { userId: 'u1' });
+  it('throws NotFoundException when tenant is null (no tenant scope)', async () => {
+    await expect(service.getDetails('msg-1', null)).rejects.toThrow(NotFoundException);
+    expect(msgQb.andWhere).not.toHaveBeenCalled();
   });
 
   it('maps all message fields correctly', async () => {

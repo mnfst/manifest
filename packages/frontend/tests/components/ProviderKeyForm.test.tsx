@@ -335,6 +335,43 @@ describe('ProviderKeyForm', () => {
         region: 'cn',
       });
     });
+
+    it('sends the selected API-key endpoint region on connect', async () => {
+      const def = makeProviderDef({
+        id: 'bedrock',
+        name: 'AWS Bedrock',
+        keyPlaceholder: 'ABSK...',
+        apiKeyEndpointRegions: [
+          { value: 'us-east-1', label: 'US East (N. Virginia)' },
+          { value: 'eu-west-1', label: 'Europe (Ireland)' },
+        ],
+      });
+      const { container } = mount({
+        provDef: def,
+        provId: 'bedrock',
+        isSubMode: false,
+        selectedAuthType: 'api_key',
+        keyInput: 'ABSKTWFudGxlQXBpS2V5LWV4YW1wbGU=',
+      });
+
+      const endpoint = container.querySelector(
+        '#bedrock-subscription-endpoint',
+      ) as HTMLSelectElement;
+      expect(endpoint.value).toBe('us-east-1');
+      fireEvent.change(endpoint, { target: { value: 'eu-west-1' } });
+
+      const connectBtn = container.querySelector('.provider-detail__action') as HTMLButtonElement;
+      fireEvent.click(connectBtn);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'bedrock',
+        apiKey: 'ABSKTWFudGxlQXBpS2V5LWV4YW1wbGU=',
+        authType: 'api_key',
+        region: 'eu-west-1',
+      });
+    });
   });
 
   describe('handleUpdateKey toast labels', () => {
@@ -451,6 +488,46 @@ describe('ProviderKeyForm', () => {
         apiKey: 'zai-new-key',
         authType: 'subscription',
         region: 'cn',
+        label: 'Default',
+      });
+    });
+
+    it('targets the visible key label on update so a non-Default key is not bypassed', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container } = mount({
+        provDef: def,
+        provId: 'openai',
+        connected: true,
+        editing: true,
+        keyInput: 'sk-new-value',
+        providers: [
+          {
+            id: 'p2',
+            provider: 'openai',
+            auth_type: 'api_key' as const,
+            is_active: true,
+            has_api_key: true,
+            key_prefix: 'sk-old-',
+            label: 'second',
+            priority: 1,
+            region: null,
+            connected_at: '2026-04-27',
+          },
+        ],
+      });
+
+      const saveBtn = Array.from(container.querySelectorAll('.provider-detail__action')).find((b) =>
+        b.textContent?.includes('Save'),
+      ) as HTMLButtonElement;
+      fireEvent.click(saveBtn);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'openai',
+        apiKey: 'sk-new-value',
+        authType: 'api_key',
+        label: 'second',
       });
     });
 
@@ -1094,6 +1171,93 @@ describe('ProviderKeyForm', () => {
       // Just verify the form is now visible (input rendered).
       await Promise.resolve();
       expect(queryByText('Add key')).not.toBeNull();
+    });
+  });
+
+  /* ── Endpoint-region seeding on externally-controlled open ──────────────
+   * Drives the `on(isOpen, …)` effect's region branch: when the form opens
+   * with endpoint regions available but no region picked yet, it seeds the
+   * region select. `endpointRegions`, `initialEndpointRegion`, and `open` are
+   * passed reactively so the region is genuinely unset at the moment `open`
+   * flips true (the signal starts empty), forcing the `!endpointRegion()`
+   * branch to run. */
+  describe('AddAnotherKeyAction endpoint-region seeding', () => {
+    function mountControlled(opts: {
+      regions: () => { value: string; label: string }[];
+      initialEndpointRegion: () => string | undefined;
+      open: () => boolean;
+    }) {
+      const [busy, setBusy] = createSignal(false);
+      const def = makeProviderDef({
+        id: 'zai',
+        name: 'Z.ai',
+        supportsSubscription: true,
+        subscriptionCredentialKind: 'api-key',
+      });
+      return render(() => (
+        <AddAnotherKeyAction
+          onAdd={vi.fn().mockResolvedValue(true)}
+          busy={busy}
+          setBusy={setBusy}
+          provDef={def}
+          placeholder="Paste token"
+          whereToGetUrl={() => undefined}
+          credentialNoun={() => 'API key'}
+          credentialOwnerName={() => 'Z.ai'}
+          existingLabels={() => ['Default']}
+          isSubscription
+          endpointRegions={opts.regions()}
+          initialEndpointRegion={opts.initialEndpointRegion()}
+          open={opts.open}
+        />
+      ));
+    }
+
+    it('falls back to the default region when no initial region is provided', () => {
+      // Regions start empty + no initial → the signal initializes undefined.
+      // After regions arrive and the form opens, the effect seeds the select
+      // with the first region (the `?? defaultEndpointRegion` branch).
+      const [regions, setRegions] = createSignal<{ value: string; label: string }[]>([]);
+      const [open, setOpen] = createSignal(false);
+      const { container } = mountControlled({
+        regions,
+        initialEndpointRegion: () => undefined,
+        open,
+      });
+
+      setRegions([
+        { value: 'us-east', label: 'US East' },
+        { value: 'eu-west', label: 'EU West' },
+      ]);
+      setOpen(true);
+
+      const select = container.querySelector('#add-key-endpoint') as HTMLSelectElement;
+      expect(select).not.toBeNull();
+      expect(select.value).toBe('us-east');
+    });
+
+    it('prefers the provided initial region over the default when seeding', () => {
+      // initialEndpointRegion is set (reactively) before the form opens, so the
+      // effect seeds with it (the `props.initialEndpointRegion ??` branch).
+      const [regions, setRegions] = createSignal<{ value: string; label: string }[]>([]);
+      const [initial, setInitial] = createSignal<string | undefined>(undefined);
+      const [open, setOpen] = createSignal(false);
+      const { container } = mountControlled({
+        regions,
+        initialEndpointRegion: initial,
+        open,
+      });
+
+      setRegions([
+        { value: 'us-east', label: 'US East' },
+        { value: 'eu-west', label: 'EU West' },
+      ]);
+      setInitial('eu-west');
+      setOpen(true);
+
+      const select = container.querySelector('#add-key-endpoint') as HTMLSelectElement;
+      expect(select).not.toBeNull();
+      expect(select.value).toBe('eu-west');
     });
   });
 });

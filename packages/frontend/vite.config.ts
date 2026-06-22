@@ -67,6 +67,18 @@ export default defineConfig(({ command }) => ({
           if (id.includes('node_modules/better-auth')) {
             return 'auth';
           }
+          // Syntax highlighting (highlight.js) is only pulled in by the
+          // recorded-message viewer. Pin it to a stable named chunk so it
+          // caches independently of the route chunks that lazy-load it.
+          if (id.includes('node_modules/highlight.js')) {
+            return 'syntax';
+          }
+          // Markdown rendering (marked + dompurify) is shared across the
+          // few surfaces that render model output. A dedicated chunk keeps
+          // its hash stable across route-chunk changes.
+          if (id.includes('node_modules/marked') || id.includes('node_modules/dompurify')) {
+            return 'markdown';
+          }
         },
       },
     },
@@ -74,6 +86,7 @@ export default defineConfig(({ command }) => ({
   test: {
     environment: 'jsdom',
     globals: true,
+    setupFiles: ['./tests/setup.ts'],
     transformMode: { web: [/\.[jt]sx?$/] },
     deps: {
       optimizer: { web: { include: ['solid-js'] } },
@@ -86,7 +99,6 @@ export default defineConfig(({ command }) => ({
         'src/components/CostChart.tsx',
         'src/components/TokenChart.tsx',
         'src/components/SingleTokenChart.tsx',
-        'src/components/SavingsChart.tsx',
         'src/components/Sparkline.tsx',
       ],
     },

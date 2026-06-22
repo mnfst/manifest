@@ -35,9 +35,12 @@ import { ProxyExceptionFilter, isChatRenderingClient } from './proxy-exception.f
 import { sendFriendlyResponse } from './proxy-friendly-response';
 import { formatManifestError } from '../../common/errors/error-codes';
 import type { ProxyApiMode } from './proxy-types';
+import { ResponsesSseError } from './chatgpt-adapter';
+import { sanitizeProviderError } from './proxy-error-sanitizer';
+import { redactInlineImageDataUrls } from './inline-image-redaction';
 
-const MAX_SEEN_USERS = 10_000;
-const SEEN_USER_TTL_MS = 24 * 60 * 60 * 1000;
+const MAX_SEEN_TENANTS = 10_000;
+const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
 
 @Controller('v1')
 @Public()
@@ -46,7 +49,7 @@ const SEEN_USER_TTL_MS = 24 * 60 * 60 * 1000;
 @SkipThrottle()
 export class ProxyController {
   private readonly logger = new Logger(ProxyController.name);
-  private readonly seenUsers = new Map<string, number>();
+  private readonly seenTenants = new Map<string, number>();
 
   constructor(
     private readonly proxyService: ProxyService,
@@ -105,13 +108,14 @@ export class ProxyController {
     res: ExpressResponse,
     apiMode: ProxyApiMode,
   ): Promise<void> {
-    const { userId } = req.ingestionContext;
+    const { tenantId } = req.ingestionContext;
     const body = req.body as Record<string, unknown>;
     const sessionKey = (req.headers['x-session-key'] as string) || 'default';
     const traceId = this.extractTraceId(req);
     const callerAttribution = classifyCaller(req.headers);
     const requestHeaders = sanitizeRequestHeaders(req.headers);
     const isStream = body.stream === true;
+    let routingBody = body;
     let headersSent = false;
     let slotAcquired = false;
 
@@ -120,17 +124,20 @@ export class ProxyController {
     const startTime = Date.now();
 
     try {
-      this.rateLimiter.checkLimit(userId);
+      this.rateLimiter.checkLimit(tenantId);
       this.rateLimiter.checkIpLimit(req.ip ?? '');
-      this.rateLimiter.acquireSlot(userId);
+      this.rateLimiter.acquireSlot(tenantId);
       slotAcquired = true;
+      routingBody = redactInlineImageDataUrls(body);
       const specificityOverride = req.headers['x-manifest-specificity'] as string | undefined;
       const { forward, meta, failedFallbacks } = await this.proxyService.proxyRequest({
         agentId: req.ingestionContext.agentId,
-        userId,
+        tenantId,
+        // Attribution only — the recorder writes it to agent_messages.user_id.
+        userId: req.ingestionContext.userId,
         body,
+        routingBody,
         sessionKey,
-        tenantId: req.ingestionContext.tenantId,
         agentName: req.ingestionContext.agentName,
         signal: clientAbort.signal,
         specificityOverride,
@@ -138,7 +145,7 @@ export class ProxyController {
         apiMode,
       });
 
-      this.trackFirstProxyRequest(userId);
+      this.trackFirstProxyRequest(tenantId);
 
       const metaHeaders = buildMetaHeaders(meta);
       const providerResponse = forward.response;
@@ -227,7 +234,7 @@ export class ProxyController {
         requestHeaders,
       );
     } finally {
-      if (slotAcquired) this.rateLimiter.releaseSlot(userId);
+      if (slotAcquired) this.rateLimiter.releaseSlot(tenantId);
     }
   }
 
@@ -247,11 +254,17 @@ export class ProxyController {
     }
 
     const message = err instanceof Error ? err.message : String(err);
-    const status = err instanceof HttpException ? err.getStatus() : 500;
+    const status =
+      err instanceof ResponsesSseError
+        ? err.status
+        : err instanceof HttpException
+          ? err.getStatus()
+          : 500;
+    const providerErrorBody = err instanceof ResponsesSseError ? err.body : message;
     this.logger.error(`Proxy error: ${message}`);
 
     this.recorder
-      .recordProviderError(req.ingestionContext, status, message, {
+      .recordProviderError(req.ingestionContext, status, providerErrorBody, {
         traceId,
         callerAttribution,
         requestHeaders,
@@ -260,6 +273,17 @@ export class ProxyController {
 
     if (headersSent) {
       if (!res.writableEnded) res.end();
+      return;
+    }
+
+    if (err instanceof ResponsesSseError) {
+      res.status(err.status).json({
+        error: {
+          message: sanitizeProviderError(err.status, err.body, process.env.NODE_ENV),
+          type: 'upstream_error',
+          status: err.status,
+        },
+      });
       return;
     }
 
@@ -303,21 +327,21 @@ export class ProxyController {
     return parts.length >= 2 ? parts[1] : undefined;
   }
 
-  private trackFirstProxyRequest(userId: string): void {
+  private trackFirstProxyRequest(tenantId: string): void {
     const now = Date.now();
-    if (this.seenUsers.has(userId)) return;
-    this.evictExpiredUsers(now);
-    if (this.seenUsers.size >= MAX_SEEN_USERS) {
-      const oldest = this.seenUsers.keys().next().value as string;
-      this.seenUsers.delete(oldest);
+    if (this.seenTenants.has(tenantId)) return;
+    this.evictExpiredTenants(now);
+    if (this.seenTenants.size >= MAX_SEEN_TENANTS) {
+      const oldest = this.seenTenants.keys().next().value as string;
+      this.seenTenants.delete(oldest);
     }
-    this.seenUsers.set(userId, now);
+    this.seenTenants.set(tenantId, now);
   }
 
-  private evictExpiredUsers(now: number): void {
-    for (const [key, timestamp] of this.seenUsers) {
-      if (now - timestamp > SEEN_USER_TTL_MS) {
-        this.seenUsers.delete(key);
+  private evictExpiredTenants(now: number): void {
+    for (const [key, timestamp] of this.seenTenants) {
+      if (now - timestamp > SEEN_TENANT_TTL_MS) {
+        this.seenTenants.delete(key);
       } else {
         break;
       }

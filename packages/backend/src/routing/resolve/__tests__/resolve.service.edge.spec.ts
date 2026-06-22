@@ -7,6 +7,7 @@ import type { SpecificityAssignment } from '../../../entities/specificity-assign
 import type { HeaderTier } from '../../../entities/header-tier.entity';
 import type { TierService } from '../../routing-core/tier.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
+import type { RoutingCacheService } from '../../routing-core/routing-cache.service';
 import type { SpecificityService } from '../../routing-core/specificity.service';
 import type { SpecificityPenaltyService } from '../../routing-core/specificity-penalty.service';
 import type { HeaderTierService } from '../../header-tiers/header-tier.service';
@@ -47,8 +48,8 @@ const route = (provider: string, authType: ModelRoute['authType'], model: string
 const fallbackTierAssignment = (): TierAssignment =>
   ({
     tier: 'standard',
-    override_route: null,
-    auto_assigned_route: route('openai', 'api_key', 'fallback'),
+    override_route: route('openai', 'api_key', 'fallback'),
+    auto_assigned_route: null,
     fallback_routes: null,
   }) as TierAssignment;
 
@@ -129,6 +130,7 @@ describe('ResolveService — edge cases', () => {
       penaltyService as unknown as SpecificityPenaltyService,
       headerTierService as unknown as HeaderTierService,
       agentRepo as unknown as Repository<Agent>,
+      { addInvalidationListener: jest.fn() } as unknown as RoutingCacheService,
     );
   });
 
@@ -140,8 +142,8 @@ describe('ResolveService — edge cases', () => {
       tierService.getTiers.mockResolvedValue([
         {
           tier: 'standard',
-          override_route: null,
-          auto_assigned_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          override_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          auto_assigned_route: null,
           fallback_routes: null,
         } as TierAssignment,
       ]);
@@ -150,6 +152,7 @@ describe('ResolveService — edge cases', () => {
       // should not match and we should fall through to scored routing.
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -174,7 +177,7 @@ describe('ResolveService — edge cases', () => {
 
     it('falls through when confidence is just below the gate (0.399 < 0.4)', async () => {
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.399 } as never);
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('scored');
     });
 
@@ -182,7 +185,7 @@ describe('ResolveService — edge cases', () => {
       // `< 0.4` is false when value equals 0.4 — boundary is inclusive on the
       // accepting side, so this must route as specificity, not fall through.
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.4 } as never);
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('specificity');
       expect(result.specificity_category).toBe('coding');
       expect(result.confidence).toBe(0.4);
@@ -190,7 +193,7 @@ describe('ResolveService — edge cases', () => {
 
     it('routes via specificity when confidence is just above the gate (0.401)', async () => {
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.401 } as never);
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('specificity');
       expect(result.confidence).toBe(0.401);
     });
@@ -227,7 +230,7 @@ describe('ResolveService — edge cases', () => {
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.3 } as never);
       tierService.getTiers.mockResolvedValue([fallbackTierAssignment()]);
 
-      await svc.resolve('agent-1', messages);
+      await svc.resolve('agent-1', 'user-1', messages);
 
       expectMessageLogged(debugSpy, 'below 0.4');
       expectMessageLogged(debugSpy, 'coding');
@@ -239,7 +242,7 @@ describe('ResolveService — edge cases', () => {
       providerKeyService.isModelAvailable.mockResolvedValue(false);
       tierService.getTiers.mockResolvedValue([fallbackTierAssignment()]);
 
-      await svc.resolve('agent-1', messages);
+      await svc.resolve('agent-1', 'user-1', messages);
 
       expectMessageLogged(warnSpy, 'Specificity override orphaned is unavailable');
     });
@@ -255,7 +258,7 @@ describe('ResolveService — edge cases', () => {
       ]);
       providerKeyService.isModelAvailable.mockResolvedValue(false);
 
-      await svc.resolve('agent-1', messages);
+      await svc.resolve('agent-1', 'user-1', messages);
 
       expectMessageLogged(warnSpy, 'Override orphaned unavailable for agent=agent-1');
     });
@@ -266,6 +269,7 @@ describe('ResolveService — edge cases', () => {
 
       await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,

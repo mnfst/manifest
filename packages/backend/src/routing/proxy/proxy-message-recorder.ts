@@ -14,11 +14,6 @@ import { computeTokenCost } from '../../common/utils/cost-calculator';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
-import { ProviderService } from '../routing-core/provider.service';
-import { computeBaselineCost, collectRoutedModelIds } from '../../common/utils/baseline-cost';
-import { TierService } from '../routing-core/tier.service';
-import { SpecificityService } from '../routing-core/specificity.service';
-import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 
@@ -44,6 +39,12 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   reason?: string;
   specificityCategory?: string;
   providerKeyLabel?: string;
+  /**
+   * The tenant_providers row (connection/key) that served this message.
+   * Persisted to agent_messages.tenant_provider_id so per-connection analytics
+   * scope by the exact key rather than the non-unique provider/auth/label tuple.
+   */
+  tenantProviderId?: string | null;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
   /**
@@ -67,6 +68,12 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
    */
   reason?: string;
   providerKeyLabel?: string;
+  /**
+   * The tenant_providers row (connection/key) that served this message.
+   * Persisted to agent_messages.tenant_provider_id so per-connection analytics
+   * scope by the exact key rather than the non-unique provider/auth/label tuple.
+   */
+  tenantProviderId?: string | null;
   usage?: StreamUsage;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
@@ -86,6 +93,12 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   durationMs?: number;
   specificityCategory?: string;
   providerKeyLabel?: string;
+  /**
+   * The tenant_providers row (connection/key) that served this message.
+   * Persisted to agent_messages.tenant_provider_id so per-connection analytics
+   * scope by the exact key rather than the non-unique provider/auth/label tuple.
+   */
+  tenantProviderId?: string | null;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
   requestParams?: RequestParamDefaults | null;
@@ -113,6 +126,7 @@ function buildMessageRow(
     tenant_id: ctx.tenantId,
     agent_id: ctx.agentId,
     agent_name: ctx.agentName,
+    // Informational attribution only — never filtered on (see IngestionContext).
     user_id: ctx.userId,
     trace_id: null,
     input_tokens: 0,
@@ -138,10 +152,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly dedup: ProxyMessageDedup,
     private readonly eventBus: IngestEventBusService,
     private readonly customProviders: CustomProviderService,
-    private readonly providerService: ProviderService,
-    private readonly tierService: TierService,
-    private readonly specificityService: SpecificityService,
-    private readonly headerTierService: HeaderTierService,
     private readonly opencodeGoCatalog: OpencodeGoCatalogService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
@@ -171,6 +181,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       reason,
       specificityCategory,
       providerKeyLabel,
+      tenantProviderId,
       callerAttribution,
       requestHeaders,
       requestParams,
@@ -196,7 +207,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const messageStatus = httpStatus === 429 ? 'rate_limited' : 'error';
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.tenantId,
       provider,
       model,
     );
@@ -217,6 +228,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         auth_type: authType ?? null,
         specificity_category: specificityCategory ?? null,
         provider_key_label: providerKeyLabel ?? null,
+        tenant_provider_id: tenantProviderId ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
         request_params: requestParams ?? null,
@@ -225,7 +237,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         header_tier_color: headerTierColor ?? null,
       }),
     );
-    this.eventBus.emit(ctx.userId);
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
   async recordFailedFallbacks(
@@ -265,13 +277,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     if (failures.length === 0) return;
     // primaryModel is loop-invariant — canonicalize once.
     const canonicalPrimary = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.tenantId,
       null,
       primaryModel,
     );
     const canonicalFailures = await Promise.all(
       failures.map((f) =>
-        this.customProviders.canonicalizeAgentMessageKeys(ctx.agentId, f.provider, f.model),
+        this.customProviders.canonicalizeAgentMessageKeys(ctx.tenantId, f.provider, f.model),
       ),
     );
     const rows: Partial<AgentMessage>[] = [];
@@ -308,6 +320,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           fallback_from_model: canonicalPrimary.model,
           fallback_index: f.fallbackIndex,
           auth_type: recordedAuth,
+          // Per-failure connection: each failed fallback carries its own key id.
+          tenant_provider_id: f.tenantProviderId ?? null,
           caller_attribution: callerAttribution ?? null,
           request_headers: requestHeaders ?? null,
           request_params: requestParams ?? null,
@@ -318,7 +332,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       );
     }
     await this.messageRepo.insert(rows);
-    this.eventBus.emit(ctx.userId);
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
   async recordPrimaryFailure(
@@ -331,6 +345,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     opts?: {
       provider?: string;
       reason?: string;
+      tenantProviderId?: string | null;
       callerAttribution?: CallerAttribution | null;
       requestHeaders?: Record<string, string> | null;
       requestParams?: RequestParamDefaults | null;
@@ -340,7 +355,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     },
   ): Promise<void> {
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.tenantId,
       opts?.provider,
       model,
     );
@@ -348,7 +363,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       buildMessageRow(ctx, {
         timestamp,
         status: 'fallback_error',
-        error_message: errorBody.slice(0, 2000),
+        error_message: scrubSecrets(errorBody).slice(0, 2000),
         model: canonical.model,
         provider: canonical.provider,
         routing_tier: tier,
@@ -356,6 +371,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         fallback_from_model: null,
         fallback_index: null,
         auth_type: authType ?? null,
+        tenant_provider_id: opts?.tenantProviderId ?? null,
         caller_attribution: opts?.callerAttribution ?? null,
         request_headers: opts?.requestHeaders ?? null,
         request_params: opts?.requestParams ?? null,
@@ -364,7 +380,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         header_tier_color: opts?.headerTierColor ?? null,
       }),
     );
-    this.eventBus.emit(ctx.userId);
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
   async recordFallbackSuccess(
@@ -382,6 +398,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       authType,
       reason,
       providerKeyLabel,
+      tenantProviderId,
       usage,
       callerAttribution,
       requestHeaders,
@@ -405,15 +422,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
     });
 
-    const baseline = await this.computeBaseline(ctx.agentId, inputTokens, outputTokens);
-
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.tenantId,
       provider,
       model,
     );
     const canonicalFallbackFrom = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.tenantId,
       null,
       fallbackFromModel,
     );
@@ -436,17 +451,16 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         fallback_from_model: canonicalFallbackFrom.model,
         fallback_index: fallbackIndex ?? null,
         provider_key_label: providerKeyLabel ?? null,
+        tenant_provider_id: tenantProviderId ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
         request_params: requestParams ?? null,
         header_tier_id: headerTierId ?? null,
         header_tier_name: headerTierName ?? null,
         header_tier_color: headerTierColor ?? null,
-        baseline_model_id: baseline?.modelId ?? null,
-        baseline_cost_usd: baseline?.cost ?? null,
       }),
     );
-    this.eventBus.emit(ctx.userId);
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
   async recordSuccessMessage(
@@ -465,6 +479,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       durationMs,
       specificityCategory,
       providerKeyLabel,
+      tenantProviderId,
       callerAttribution,
       requestHeaders,
       requestParams,
@@ -484,16 +499,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
     });
 
-    const baseline = await this.computeBaseline(
-      ctx.agentId,
-      usage.prompt_tokens,
-      usage.completion_tokens,
-    );
-
     // `model` is a required string, so the overload on
     // `canonicalizeAgentMessageKeys` keeps `canonical.model` non-null.
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.tenantId,
       provider,
       model,
     );
@@ -542,14 +551,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               duration_ms: durationMs ?? null,
               specificity_category: specificityCategory ?? null,
               provider_key_label: providerKeyLabel ?? null,
+              tenant_provider_id: tenantProviderId ?? null,
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
               request_params: requestParams ?? null,
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
-              baseline_model_id: baseline?.modelId ?? null,
-              baseline_cost_usd: baseline?.cost ?? null,
             };
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
 
@@ -582,14 +590,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               duration_ms: durationMs ?? null,
               specificity_category: specificityCategory ?? null,
               provider_key_label: providerKeyLabel ?? null,
+              tenant_provider_id: tenantProviderId ?? null,
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
               request_params: requestParams ?? null,
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
-              baseline_model_id: baseline?.modelId ?? null,
-              baseline_cost_usd: baseline?.cost ?? null,
             }),
           );
           wrote = true;
@@ -597,7 +604,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       },
     );
     if (wrote) {
-      this.eventBus.emit(ctx.userId);
+      this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
     }
   }
 
@@ -620,35 +627,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const canonical = PROVIDER_BY_ID_OR_ALIAS.get(provider.toLowerCase())?.id;
     if (canonical !== 'opencode-go') return null;
     return this.opencodeGoCatalog.resolveCostPerRequest(model);
-  }
-
-  private async computeBaseline(
-    agentId: string,
-    inputTokens: number,
-    outputTokens: number,
-  ): Promise<{ modelId: string; cost: number } | null> {
-    try {
-      const [providers, tiers, specificityAssignments, headerTiers] = await Promise.all([
-        this.providerService.getProviders(agentId),
-        this.tierService.getTiers(agentId),
-        this.specificityService.getAssignments(agentId),
-        this.headerTierService.list(agentId),
-      ]);
-      const routedModelIds = collectRoutedModelIds([
-        ...tiers,
-        ...specificityAssignments,
-        ...headerTiers,
-      ]);
-      return computeBaselineCost(
-        providers,
-        routedModelIds,
-        inputTokens,
-        outputTokens,
-        this.pricingCache,
-      );
-    } catch {
-      return null;
-    }
   }
 
   private evictExpiredCooldowns(): void {

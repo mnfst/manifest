@@ -1,3 +1,4 @@
+import { resolveProviderMetadataIdentity } from 'manifest-shared';
 import { PROVIDERS, type ProviderDef } from './providers.js';
 
 export function getProvider(id: string): ProviderDef | undefined {
@@ -34,10 +35,12 @@ const SUBSCRIPTION_PREFIXES: Record<string, string> = {
   anthropic: 'sk-ant-oat',
   minimax: 'sk-cp-',
   qwen: 'sk-sp-',
+  xiaomi: 'tp-',
 };
 
 const SUBSCRIPTION_MIN_LENGTHS: Record<string, number> = {
   qwen: 30,
+  xiaomi: 10,
 };
 
 /** Prefixes that identify API keys — reject these in subscription mode. */
@@ -90,6 +93,14 @@ function formatModelSlug(slug: string): string {
   return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function dotPrefixedModel(modelValue: string): { providerId: string; bare: string } | null {
+  const resolved = resolveProviderMetadataIdentity('bedrock', modelValue);
+  if (!resolved.provider || resolved.provider === 'bedrock' || resolved.model === modelValue) {
+    return null;
+  }
+  return { providerId: resolved.provider, bare: resolved.model };
+}
+
 export function getModelLabel(providerId: string, modelValue: string): string {
   if (!modelValue) return '';
   const prov = getProvider(providerId);
@@ -115,6 +126,17 @@ export function getModelLabel(providerId: string, modelValue: string): string {
       if (found) return found.label;
     }
     return formatModelSlug(bare);
+  }
+  if (prov.id === 'bedrock') {
+    // Bedrock/Mantle model IDs are routable AWS IDs like
+    // "us.anthropic.claude-sonnet-4.6"; display the underlying model label.
+    const dotPrefixed = dotPrefixedModel(modelValue);
+    if (dotPrefixed) {
+      const dotProvider = getProvider(dotPrefixed.providerId);
+      const found = dotProvider?.models.find((m) => m.value === dotPrefixed.bare);
+      if (found) return found.label;
+      return formatModelSlug(dotPrefixed.bare);
+    }
   }
   // Fallback: format the model slug as a readable label
   return formatModelSlug(modelValue);

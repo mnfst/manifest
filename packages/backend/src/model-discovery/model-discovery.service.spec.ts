@@ -1,7 +1,7 @@
 import { ModelDiscoveryService } from './model-discovery.service';
 import { ProviderModelFetcherService } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { DiscoveredModel } from './model-fetcher';
 import { buildSubscriptionFallbackModels, supplementWithKnownModels } from './model-fallback';
@@ -15,12 +15,7 @@ jest.mock('../database/quality-score.util', () => ({
   computeQualityScore: jest.fn().mockReturnValue(3),
 }));
 
-jest.mock('./anthropic-subscription-probe', () => ({
-  filterBySubscriptionAccess: jest.fn().mockImplementation((models: unknown[]) => models),
-}));
-
 import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
-import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
 import { computeQualityScore } from '../database/quality-score.util';
 
 const mockDecrypt = decrypt as jest.MockedFunction<typeof decrypt>;
@@ -42,10 +37,11 @@ function makeModel(overrides: Partial<DiscoveredModel> = {}): DiscoveredModel {
   };
 }
 
-function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
+function makeProvider(overrides: Partial<TenantProvider> = {}): TenantProvider {
   return {
     id: 'prov-1',
-    user_id: 'user-1',
+    tenant_id: 'tenant-1',
+    created_by_user_id: 'user-1',
     agent_id: 'agent-1',
     provider: 'openai',
     api_key_encrypted: 'encrypted-key',
@@ -57,14 +53,15 @@ function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
     cached_models: null,
     models_fetched_at: null,
     ...overrides,
-  } as UserProvider;
+  } as TenantProvider;
 }
 
 function makeCustomProvider(overrides: Partial<CustomProvider> = {}): CustomProvider {
   return {
     id: 'cp-1',
     agent_id: 'agent-1',
-    user_id: 'user-1',
+    tenant_id: 'tenant-1',
+    created_by_user_id: 'user-1',
     name: 'My Custom',
     base_url: 'http://localhost:8000',
     models: [
@@ -223,6 +220,72 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].displayName).toBe('GPT-4 via OR');
     });
 
+    it('does not use underlying provider pricing for Bedrock models', async () => {
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'anthropic/claude-opus-4.8') {
+          return {
+            input: 0.000015,
+            output: 0.000075,
+            contextWindow: 200000,
+            displayName: 'Claude Opus 4.8',
+          };
+        }
+        return null;
+      });
+
+      fetcher.fetch.mockResolvedValue([
+        makeModel({ id: 'us.anthropic.claude-opus-4.8', provider: 'bedrock' }),
+      ]);
+
+      const result = await service.discoverModels(
+        makeProvider({ provider: 'bedrock', region: 'us-east-1' } as Partial<TenantProvider>),
+      );
+
+      expect(result[0].id).toBe('us.anthropic.claude-opus-4.8');
+      expect(result[0].provider).toBe('bedrock');
+      expect(mockPricingSync.lookupPricing).not.toHaveBeenCalledWith('anthropic/claude-opus-4.8');
+      expect(result[0].inputPricePerToken).toBeNull();
+      expect(result[0].outputPricePerToken).toBeNull();
+    });
+
+    it('uses exact Bedrock models.dev pricing for AWS model ids', async () => {
+      mockModelsDevSync.lookupModel.mockImplementation((providerId: string, modelId: string) => {
+        if (providerId === 'anthropic' && modelId === 'claude-opus-4.8') {
+          return {
+            name: 'Claude Opus 4.8',
+            inputPricePerToken: 0.000015,
+            outputPricePerToken: 0.000075,
+            contextWindow: 200000,
+          };
+        }
+        if (providerId === 'bedrock' && modelId === 'us.anthropic.claude-opus-4.8') {
+          return {
+            name: 'AWS Claude Opus 4.8',
+            inputPricePerToken: 0.000016,
+            outputPricePerToken: 0.00008,
+            contextWindow: 200000,
+          };
+        }
+        return null;
+      });
+
+      fetcher.fetch.mockResolvedValue([
+        makeModel({ id: 'us.anthropic.claude-opus-4.8', provider: 'bedrock' }),
+      ]);
+
+      const result = await service.discoverModels(
+        makeProvider({ provider: 'bedrock', region: 'us-east-1' } as Partial<TenantProvider>),
+      );
+
+      expect(mockModelsDevSync.lookupModel).toHaveBeenCalledWith(
+        'bedrock',
+        'us.anthropic.claude-opus-4.8',
+      );
+      expect(result[0].inputPricePerToken).toBe(0.000016);
+      expect(result[0].outputPricePerToken).toBe(0.00008);
+      expect(result[0].displayName).toBe('Claude Opus 4.8');
+    });
+
     it('should use model contextWindow when openRouter has no contextWindow', async () => {
       mockPricingSync.lookupPricing.mockImplementation((key: string) => {
         if (key === 'openai/gpt-4') {
@@ -326,10 +389,7 @@ describe('ModelDiscoveryService', () => {
 
       await service.discoverModels(makeProvider());
 
-      expect(mockModelRegistry.registerModels).toHaveBeenCalledWith('openai', [
-        'gpt-4o',
-        'gpt-4-turbo',
-      ]);
+      expect(mockModelRegistry.registerModels).toHaveBeenCalledWith('openai', models);
     });
 
     it('should not register models when native fetch returns empty', async () => {
@@ -391,10 +451,10 @@ describe('ModelDiscoveryService', () => {
       providerRepo.find.mockResolvedValue(providers);
       fetcher.fetch.mockResolvedValue([]);
 
-      await service.discoverAllForAgent('agent-1');
+      await service.discoverAllForAgent('tenant-1');
 
       expect(providerRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-1', is_active: true },
+        where: { tenant_id: 'tenant-1', is_active: true },
       });
       expect(fetcher.fetch).toHaveBeenCalledTimes(2);
     });
@@ -466,9 +526,9 @@ describe('ModelDiscoveryService', () => {
         makeModel({ id: 'gpt-4o-mini' }),
       ]);
 
-      const result = await service.refreshProvider('agent-1', 'openai', 'api_key');
+      const result = await service.refreshProvider('tenant-1', 'openai', 'api_key');
       expect(providerRepo.findOne).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-1', provider: 'openai', is_active: true, auth_type: 'api_key' },
+        where: { tenant_id: 'tenant-1', provider: 'openai', is_active: true, auth_type: 'api_key' },
       });
       expect(result.ok).toBe(true);
       expect(result.model_count).toBe(2);
@@ -563,7 +623,28 @@ describe('ModelDiscoveryService', () => {
       expect(result[1].displayName).toBe('custom-llm');
     });
 
-    it('should inherit auth_type from user_providers row for custom provider models', async () => {
+    it('should filter stale unsupported OpenAI subscription cached models', async () => {
+      const providers = [
+        makeProvider({
+          provider: 'openai',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({ id: 'gpt-5.5', provider: 'openai', authType: 'subscription' }),
+            makeModel({ id: 'gpt-5.2-codex', provider: 'openai', authType: 'subscription' }),
+            makeModel({ id: 'gpt-5.1-codex-max', provider: 'openai', authType: 'subscription' }),
+            makeModel({ id: 'gpt-5.3-codex-spark', provider: 'openai', authType: 'subscription' }),
+          ],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result.map((m) => m.id)).toEqual(['gpt-5.5', 'gpt-5.3-codex-spark']);
+    });
+
+    it('should inherit auth_type from tenant_providers row for custom provider models', async () => {
       const providers = [
         makeProvider({
           provider: 'custom:cp-1',
@@ -728,6 +809,101 @@ describe('ModelDiscoveryService', () => {
 
       const result = await service.getModelsForAgent('agent-1');
       expect(result).toHaveLength(1);
+    });
+  });
+
+  /* ── getModelsForAgent caching ── */
+
+  describe('getModelsForAgent (cache)', () => {
+    beforeEach(() => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({ cached_models: [makeModel({ id: 'gpt-4', provider: 'openai' })] }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+    });
+
+    it('serves the second call within TTL from cache (no extra DB hit)', async () => {
+      const first = await service.getModelsForAgent('tenant-1', 'agent-1');
+      const second = await service.getModelsForAgent('tenant-1', 'agent-1');
+
+      expect(second).toEqual(first);
+      // providerRepo.find is hit once for tenant_providers on the first call only.
+      expect(providerRepo.find).toHaveBeenCalledTimes(1);
+      expect(customProviderRepo.find).toHaveBeenCalledTimes(1);
+    });
+
+    it('isolates cache entries per agent', async () => {
+      await service.getModelsForAgent('tenant-1', 'agent-1');
+      await service.getModelsForAgent('tenant-1', 'agent-2');
+
+      // Distinct keys → distinct DB reads.
+      expect(providerRepo.find).toHaveBeenCalledTimes(2);
+    });
+
+    it('refetches after invalidate(agentId)', async () => {
+      await service.getModelsForAgent('tenant-1', 'agent-1');
+      service.invalidate('agent-1');
+      await service.getModelsForAgent('tenant-1', 'agent-1');
+
+      expect(providerRepo.find).toHaveBeenCalledTimes(2);
+    });
+
+    it('only invalidates the targeted agent', async () => {
+      await service.getModelsForAgent('tenant-1', 'agent-1');
+      await service.getModelsForAgent('tenant-1', 'agent-2');
+      service.invalidate('agent-1');
+
+      await service.getModelsForAgent('tenant-1', 'agent-1'); // refetch
+      await service.getModelsForAgent('tenant-1', 'agent-2'); // still cached
+
+      expect(providerRepo.find).toHaveBeenCalledTimes(3);
+    });
+
+    it('refetches after the TTL expires', async () => {
+      jest.useFakeTimers();
+      try {
+        await service.getModelsForAgent('tenant-1', 'agent-1');
+        jest.advanceTimersByTime(120_001);
+        await service.getModelsForAgent('tenant-1', 'agent-1');
+        expect(providerRepo.find).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('invalidates the agent cache after discoverModels rewrites cached_models', async () => {
+      // Warm the cache for agent-1.
+      await service.getModelsForAgent('tenant-1', 'agent-1');
+      expect(providerRepo.find).toHaveBeenCalledTimes(1);
+
+      // Discover models for the same user → cached_models change on disk →
+      // the per-user model cache must be dropped.
+      fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o', provider: 'openai' })]);
+      await service.discoverModels(makeProvider({ tenant_id: 'tenant-1', agent_id: 'agent-1' }));
+
+      await service.getModelsForAgent('tenant-1', 'agent-1');
+      // Second getModelsForAgent must hit the DB again (find called twice for
+      // tenant_providers across the two getModelsForAgent calls).
+      expect(providerRepo.find).toHaveBeenCalledTimes(2);
+    });
+
+    it('sweeps expired entries on populate so the cache cannot grow unbounded', async () => {
+      jest.useFakeTimers();
+      try {
+        const cache = (service as unknown as { modelsCache: Map<string, unknown> }).modelsCache;
+        await service.getModelsForAgent('tenant-1', 'agent-1');
+        await service.getModelsForAgent('tenant-1', 'agent-2'); // sweep sees agent-1 still fresh (skip branch)
+        expect(cache.size).toBe(2);
+
+        jest.advanceTimersByTime(120_001); // agent-1 + agent-2 now expired
+        await service.getModelsForAgent('tenant-1', 'agent-3'); // sweep evicts the two stale entries
+
+        expect(cache.size).toBe(1);
+        expect(cache.has('agent-3')).toBe(true);
+        expect(providerRepo.find).toHaveBeenCalledTimes(3);
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 
@@ -946,6 +1122,36 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].displayName).toBe('New Model');
     });
 
+    it('should enrich Xiaomi MiMo API-key models from provider pricing', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue(null);
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'xiaomi/mimo-v2.5-pro') {
+          return {
+            input: 0.000003,
+            output: 0.000012,
+            displayName: 'MiMo V2.5 Pro',
+          };
+        }
+        return null;
+      });
+
+      fetcher.fetch.mockResolvedValue([
+        makeModel({
+          id: 'mimo-v2.5-pro',
+          provider: 'xiaomi',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ]);
+
+      const result = await service.discoverModels(makeProvider({ provider: 'xiaomi' }));
+
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('xiaomi/mimo-v2.5-pro');
+      expect(result[0].inputPricePerToken).toBe(0.000003);
+      expect(result[0].outputPricePerToken).toBe(0.000012);
+      expect(result[0].displayName).toBe('MiMo V2.5 Pro');
+    });
+
     it('should skip prefix lookup when provider has no OpenRouter prefix', async () => {
       // Use a provider that has no OpenRouter prefix mapping
       const models = [makeModel({ id: 'unknown-model' })];
@@ -1137,7 +1343,7 @@ describe('ModelDiscoveryService', () => {
       });
       mockDecrypt.mockReturnValue(blob);
 
-      const models = [makeModel({ id: 'gpt-5.3-codex' })];
+      const models = [makeModel({ id: 'gpt-5.5' })];
       fetcher.fetch.mockResolvedValue(models);
 
       await service.discoverModels(
@@ -1196,7 +1402,7 @@ describe('ModelDiscoveryService', () => {
       );
     });
 
-    it('should not unwrap blob for non-OpenAI subscription providers', async () => {
+    it('should not unwrap blob for non-OAuth subscription providers', async () => {
       const blob = JSON.stringify({ t: 'access-token', r: 'refresh', e: Date.now() + 60000 });
       mockDecrypt.mockReturnValue(blob);
 
@@ -1204,30 +1410,23 @@ describe('ModelDiscoveryService', () => {
 
       await service.discoverModels(
         makeProvider({
-          provider: 'anthropic',
+          provider: 'qwen',
           auth_type: 'subscription',
           api_key_encrypted: 'encrypted-blob',
         }),
       );
 
-      // Should pass the raw JSON string for Anthropic (no unwrapping)
-      expect(fetcher.fetch).toHaveBeenCalledWith('anthropic', blob, 'subscription', undefined);
+      expect(fetcher.fetch).toHaveBeenCalledWith('qwen', blob, 'subscription', undefined);
     });
 
-    it('should call filterBySubscriptionAccess for Anthropic subscription providers', async () => {
-      const token = 'sk-ant-oat01-test-token';
-      mockDecrypt.mockReturnValue(token);
-
-      const models = [
-        makeModel({ id: 'claude-haiku-4-5-20251001', provider: 'anthropic' }),
-        makeModel({ id: 'claude-sonnet-4-6', provider: 'anthropic' }),
-      ];
-      fetcher.fetch.mockResolvedValue(models);
-
-      const mockFilter = filterBySubscriptionAccess as jest.MockedFunction<
-        typeof filterBySubscriptionAccess
-      >;
-      mockFilter.mockResolvedValue([models[0]]);
+    it('should use curated models for Anthropic subscription providers without live discovery probes', async () => {
+      mockDecrypt.mockReturnValue(
+        JSON.stringify({
+          t: 'access-token',
+          r: 'refresh',
+          e: Date.now() + 60000,
+        }),
+      );
 
       const result = await service.discoverModels(
         makeProvider({
@@ -1237,54 +1436,13 @@ describe('ModelDiscoveryService', () => {
         }),
       );
 
-      expect(mockFilter).toHaveBeenCalledWith(models, token);
-      expect(result.map((m) => m.id)).toEqual(['claude-haiku-4-5-20251001']);
-    });
-
-    it('should NOT call filterBySubscriptionAccess for Anthropic API key providers', async () => {
-      mockDecrypt.mockReturnValue('sk-ant-api03-test-key');
-
-      fetcher.fetch.mockResolvedValue([
-        makeModel({ id: 'claude-sonnet-4-6', provider: 'anthropic' }),
+      expect(fetcher.fetch).not.toHaveBeenCalled();
+      expect(result.map((m) => m.id)).toEqual([
+        'claude-fable-5',
+        'claude-opus-4',
+        'claude-sonnet-4',
+        'claude-haiku-4',
       ]);
-
-      const mockFilter = filterBySubscriptionAccess as jest.MockedFunction<
-        typeof filterBySubscriptionAccess
-      >;
-      mockFilter.mockClear();
-
-      await service.discoverModels(
-        makeProvider({
-          provider: 'anthropic',
-          auth_type: 'api_key',
-          api_key_encrypted: 'encrypted',
-        }),
-      );
-
-      expect(mockFilter).not.toHaveBeenCalled();
-    });
-
-    it('should NOT call filterBySubscriptionAccess for non-Anthropic subscription providers', async () => {
-      mockDecrypt.mockReturnValue(
-        JSON.stringify({ t: 'token', r: 'refresh', e: Date.now() + 60000 }),
-      );
-
-      fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o', provider: 'openai' })]);
-
-      const mockFilter = filterBySubscriptionAccess as jest.MockedFunction<
-        typeof filterBySubscriptionAccess
-      >;
-      mockFilter.mockClear();
-
-      await service.discoverModels(
-        makeProvider({
-          provider: 'openai',
-          auth_type: 'subscription',
-          api_key_encrypted: 'encrypted',
-        }),
-      );
-
-      expect(mockFilter).not.toHaveBeenCalled();
     });
 
     it('should unwrap MiniMax OAuth blob and forward resource URL for subscription discovery', async () => {
@@ -1394,6 +1552,27 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).toHaveBeenCalledWith('zai', 'zai-sub-key', 'subscription', undefined);
     });
 
+    it('routes Xiaomi MiMo Token Plan subscription discovery to the selected region host', async () => {
+      mockDecrypt.mockReturnValue('tp-mimo-token');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'xiaomi',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+          region: 'ams',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'xiaomi',
+        'tp-mimo-token',
+        'subscription',
+        'https://token-plan-ams.xiaomimimo.com',
+      );
+    });
+
     it('should fall back to subscription fallback when OpenAI token fetch returns empty', async () => {
       const blob = JSON.stringify({ t: 'expired-token', r: 'refresh', e: Date.now() - 1000 });
       mockDecrypt.mockReturnValue(blob);
@@ -1403,12 +1582,12 @@ describe('ModelDiscoveryService', () => {
 
       const orMap = new Map([
         [
-          'openai/gpt-5.2-codex',
+          'openai/gpt-5.5',
           {
             input: 0.000001,
             output: 0.000004,
             contextWindow: 200000,
-            displayName: 'GPT-5.2 Codex',
+            displayName: 'GPT-5.5',
           },
         ],
       ]);
@@ -1557,9 +1736,11 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Should only include models matching knownModels prefixes (claude-opus-4, claude-sonnet-4, claude-haiku-4)
-      // and NOT claude-2.1 or openai models
-      expect(result).toHaveLength(3);
+      // and NOT claude-2.1 or openai models. claude-fable-5 has no OpenRouter
+      // pricing entry, so it is appended directly as a zero-cost known model.
+      expect(result).toHaveLength(4);
       expect(result.map((m) => m.id).sort()).toEqual([
+        'claude-fable-5',
         'claude-haiku-4-20260301',
         'claude-opus-4-20260301',
         'claude-sonnet-4-20260301',
@@ -1603,12 +1784,12 @@ describe('ModelDiscoveryService', () => {
     it('should use subscription fallback for openai when no token and pricing matches known models', async () => {
       const orMap = new Map([
         [
-          'openai/gpt-5.2-codex',
+          'openai/gpt-5.5',
           {
             input: 0.000001,
             output: 0.000004,
             contextWindow: 200000,
-            displayName: 'GPT-5.2 Codex',
+            displayName: 'GPT-5.5',
           },
         ],
         [
@@ -1627,10 +1808,12 @@ describe('ModelDiscoveryService', () => {
       );
 
       const ids = result.map((m) => m.id);
-      // gpt-5.2-codex from OpenRouter + remaining knownModels added directly
-      expect(ids).toContain('gpt-5.2-codex');
+      // gpt-5.5 from OpenRouter + remaining supported knownModels added directly
+      expect(ids).toContain('gpt-5.5');
       expect(ids).toContain('gpt-5.4');
-      expect(ids).toContain('gpt-5.3-codex');
+      expect(ids).toContain('gpt-5.3-codex-spark');
+      expect(ids).not.toContain('gpt-5.2-codex');
+      expect(ids).not.toContain('gpt-5.1-codex-max');
       // gpt-4o does NOT match any knownModel prefix
       expect(ids).not.toContain('gpt-4o');
       // All should be stamped as subscription
@@ -1755,8 +1938,9 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Even without pricingSync, knownModels are returned directly
-      expect(result).toHaveLength(3);
+      expect(result).toHaveLength(4);
       expect(result.map((m) => m.id).sort()).toEqual([
+        'claude-fable-5',
         'claude-haiku-4',
         'claude-opus-4',
         'claude-sonnet-4',
@@ -2020,12 +2204,12 @@ describe('ModelDiscoveryService', () => {
     it('should include OpenRouter matches plus uncovered knownModels for openai', () => {
       const orMap = new Map([
         [
-          'openai/gpt-5.2-codex',
+          'openai/gpt-5.5',
           {
             input: 0.000001,
             output: 0.000004,
             contextWindow: 200000,
-            displayName: 'GPT-5.2 Codex',
+            displayName: 'GPT-5.5',
           },
         ],
         [
@@ -2033,12 +2217,12 @@ describe('ModelDiscoveryService', () => {
           { input: 0.0000025, output: 0.00001, contextWindow: 128000, displayName: 'GPT-4o' },
         ],
         [
-          'openai/gpt-5.1-codex',
+          'openai/gpt-5.4-mini',
           {
             input: 0.000002,
             output: 0.000008,
             contextWindow: 128000,
-            displayName: 'GPT-5.1 Codex',
+            displayName: 'GPT-5.4 Mini',
           },
         ],
       ]);
@@ -2047,15 +2231,16 @@ describe('ModelDiscoveryService', () => {
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'openai');
       const ids = result.map((m) => m.id);
 
-      // gpt-5.2-codex and gpt-5.1-codex from OpenRouter, plus remaining knownModels added directly
-      expect(ids).toContain('gpt-5.2-codex');
-      expect(ids).toContain('gpt-5.1-codex');
+      // gpt-5.5 and gpt-5.4-mini from OpenRouter, plus remaining supported knownModels added directly
+      expect(ids).toContain('gpt-5.5');
+      expect(ids).toContain('gpt-5.4-mini');
       expect(ids).toContain('gpt-5.4');
-      expect(ids).toContain('gpt-5.3-codex');
-      // gpt-5.2 is covered by gpt-5.2-codex (prefix match), so NOT added separately
+      expect(ids).toContain('gpt-5.3-codex-spark');
+      expect(ids).not.toContain('gpt-5.3-codex');
+      expect(ids).not.toContain('gpt-5.2-codex');
       expect(ids).not.toContain('gpt-5.2');
-      // gpt-5.1-codex-max is added (not covered by gpt-5.1-codex)
-      expect(ids).toContain('gpt-5.1-codex-max');
+      expect(ids).not.toContain('gpt-5.1-codex-max');
+      expect(ids).not.toContain('gpt-5.1-codex');
       // gpt-4o is NOT included (not a known model prefix)
       expect(ids).not.toContain('gpt-4o');
     });
@@ -2133,8 +2318,9 @@ describe('ModelDiscoveryService', () => {
       const result = buildSubscriptionFallbackModels(null as never, 'anthropic');
 
       // No OpenRouter data, but knownModels are added directly
-      expect(result).toHaveLength(3);
+      expect(result).toHaveLength(4);
       expect(result.map((m) => m.id).sort()).toEqual([
+        'claude-fable-5',
         'claude-haiku-4',
         'claude-opus-4',
         'claude-sonnet-4',
@@ -2216,14 +2402,14 @@ describe('ModelDiscoveryService', () => {
 
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'openai');
 
-      // gpt-5.2 is covered by gpt-5.2-codex prefix, gpt-5.1-codex covered by gpt-5.1-codex-max prefix
-      expect(result.length).toBe(7);
+      expect(result.length).toBe(4);
+      expect(result.map((m) => m.id)).toContain('gpt-5.5');
       expect(result.map((m) => m.id)).toContain('gpt-5.4');
       expect(result.map((m) => m.id)).toContain('gpt-5.4-mini');
-      expect(result.map((m) => m.id)).toContain('gpt-5.3-codex');
       expect(result.map((m) => m.id)).toContain('gpt-5.3-codex-spark');
-      expect(result.map((m) => m.id)).toContain('gpt-5.2-codex');
-      expect(result.map((m) => m.id)).toContain('gpt-5.1-codex-max');
+      expect(result.map((m) => m.id)).not.toContain('gpt-5.3-codex');
+      expect(result.map((m) => m.id)).not.toContain('gpt-5.2-codex');
+      expect(result.map((m) => m.id)).not.toContain('gpt-5.1-codex-max');
       // All zero-cost subscription models
       for (const m of result) {
         expect(m.inputPricePerToken).toBe(0);
@@ -2235,6 +2421,7 @@ describe('ModelDiscoveryService', () => {
       const result = buildSubscriptionFallbackModels(null as never, 'minimax');
 
       expect(result.map((m) => m.id)).toEqual([
+        'MiniMax-M3',
         'MiniMax-M2.7',
         'MiniMax-M2.7-highspeed',
         'MiniMax-M2.5',
@@ -2418,23 +2605,24 @@ describe('ModelDiscoveryService', () => {
 
       const result = supplementWithKnownModels(raw, 'openai');
 
-      // 1 discovered + 7 knownModels (gpt-5.2 covered by gpt-5.2-codex, gpt-5.1-codex covered by gpt-5.1-codex-max)
-      expect(result.length).toBe(8);
+      // 1 discovered + 4 ChatGPT-account supported knownModels
+      expect(result.length).toBe(5);
       expect(result[0].id).toBe('gpt-oss-120b');
+      expect(result.map((m) => m.id)).toContain('gpt-5.5');
       expect(result.map((m) => m.id)).toContain('gpt-5.4');
       expect(result.map((m) => m.id)).toContain('gpt-5.4-mini');
       expect(result.map((m) => m.id)).toContain('gpt-5.3-codex-spark');
-      expect(result.map((m) => m.id)).toContain('gpt-5.2-codex');
+      expect(result.map((m) => m.id)).not.toContain('gpt-5.2-codex');
     });
 
     it('should not duplicate models already in raw', () => {
       const raw: DiscoveredModel[] = [
-        makeModel({ id: 'gpt-5.2', provider: 'openai', contextWindow: 200000 }),
+        makeModel({ id: 'gpt-5.5', provider: 'openai', contextWindow: 200000 }),
       ];
 
       const result = supplementWithKnownModels(raw, 'openai');
 
-      const matchingModels = result.filter((m) => m.id === 'gpt-5.2');
+      const matchingModels = result.filter((m) => m.id === 'gpt-5.5');
       expect(matchingModels).toHaveLength(1);
       // Original model preserved (not replaced)
       expect(matchingModels[0].contextWindow).toBe(200000);

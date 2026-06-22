@@ -34,7 +34,7 @@ interface ForwardProviderOptions {
   rawApiKey?: string;
   providerKeyLabel?: string;
   agentId?: string;
-  userId?: string;
+  tenantId?: string;
   resourceUrl?: string;
   providerRegion?: string | null;
   apiMode?: ProxyApiMode;
@@ -44,32 +44,27 @@ interface ForwardProviderOptions {
   paramMergeContext?: ParamMergeContext;
 }
 
-import { ProviderKeyService } from '../routing-core/provider-key.service';
+import {
+  ProviderKeyService,
+  SYNTHETIC_OLLAMA_PROVIDER_ID,
+} from '../routing-core/provider-key.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
-import { OpenaiOauthService } from '../oauth/openai-oauth.service';
-import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
+import { resolveForwardEndpoint } from './forward-endpoint-resolver';
+import { OpenaiOauthService } from '../oauth/openai/openai-oauth.service';
+import { MinimaxOauthService } from '../oauth/minimax/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
-import { GeminiOauthService } from '../oauth/gemini-oauth.service';
-import { KiroOauthService } from '../oauth/kiro-oauth.service';
+import { GeminiOauthService } from '../oauth/gemini/gemini-oauth.service';
+import { KiroOauthService } from '../oauth/kiro/kiro-oauth.service';
 import { XaiOauthService } from '../oauth/xai/xai-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
-import {
-  buildCustomEndpoint,
-  buildEndpointOverride,
-  ProviderEndpoint,
-  resolveEndpointKey,
-} from './provider-endpoints';
+import { resolveEndpointKey } from './provider-endpoints';
 import { CopilotTokenService } from './copilot-token.service';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { buildProviderExtraHeaders } from './provider-hooks';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
-import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
-import { MINIMAX_BASE_URLS } from '../oauth/minimax-oauth-helpers';
-import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
-import { getZaiCodingPlanBaseUrl } from '../zai-region';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 import {
   isTransportError,
@@ -84,6 +79,10 @@ import {
   resolveApiKey,
 } from './oauth-credentials';
 
+const RATE_LIMIT_COOLDOWN_DEFAULT_MS = 60_000;
+const RATE_LIMIT_COOLDOWN_MAX_MS = 5 * 60_000;
+const MAX_RATE_LIMIT_COOLDOWNS = 2_000;
+
 export interface FailedFallback {
   model: string;
   provider: string;
@@ -95,11 +94,15 @@ export interface FailedFallback {
   // legacy inference path. Either way the recorder can attribute the error
   // to the actual credential that failed instead of inheriting the primary's.
   authType?: AuthType;
+  // The tenant_providers row that served this failed attempt, so the recorded
+  // error row is scoped to the right connection. NULL for local/Ollama.
+  tenantProviderId?: string | null;
 }
 
 @Injectable()
 export class ProxyFallbackService {
   private readonly logger = new Logger(ProxyFallbackService.name);
+  private readonly rateLimitCooldowns = new Map<string, number>();
 
   constructor(
     private readonly providerKeyService: ProviderKeyService,
@@ -150,7 +153,7 @@ export class ProxyFallbackService {
 
   async tryFallbacks(
     agentId: string,
-    userId: string,
+    tenantId: string,
     fallbackModels: string[],
     body: Record<string, unknown>,
     stream: boolean,
@@ -173,6 +176,8 @@ export class ProxyFallbackService {
       provider: string;
       fallbackIndex: number;
       authType?: AuthType;
+      keyLabel?: string;
+      tenantProviderId: string | null;
     } | null;
     failures: FailedFallback[];
   }> {
@@ -213,11 +218,11 @@ export class ProxyFallbackService {
         } else {
           const prefix = inferProviderFromModelName(requestedModel);
           provider =
-            (prefix && (await this.providerKeyService.hasActiveProvider(agentId, prefix))
+            (prefix && (await this.providerKeyService.hasActiveProvider(tenantId, prefix, agentId))
               ? prefix
               : undefined) ??
             pricing?.provider ??
-            (await this.providerKeyService.findProviderForModel(agentId, requestedModel));
+            (await this.providerKeyService.findProviderForModel(tenantId, requestedModel, agentId));
         }
         if (!provider) {
           this.logger.debug(`Fallback ${i}: skipping model=${requestedModel} (no provider data)`);
@@ -225,31 +230,37 @@ export class ProxyFallbackService {
         }
         const excludeAuth = failedAuthByProvider.get(provider.toLowerCase());
         authType = (await this.providerKeyService.getAuthType(
-          agentId,
+          tenantId,
           provider,
           excludeAuth,
+          agentId,
         )) as AuthType;
       }
-      if (!providerKeyLabel && authType === 'subscription') {
-        providerKeyLabel = await this.providerKeyService.getDefaultKeyLabel(
-          agentId,
-          provider,
-          authType,
-        );
-      }
-
       const model = normalizeProviderModel(provider, requestedModel);
-      const apiKey = await this.providerKeyService.getProviderApiKey(
-        agentId,
+      // Single key selection per attempt: the forwarded apiKey, the stamped
+      // tenant_provider_id, the recorded key label, and the region are all
+      // projected from this one row, so they can never diverge. With no
+      // pinned label this returns the priority-0 (default) key.
+      const key = await this.providerKeyService.selectProviderKey(
+        tenantId,
         provider,
         authType,
         providerKeyLabel,
+        agentId,
       );
-      if (apiKey === null) {
+      if (!key || key.apiKey === null) {
         this.logger.debug(
           `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
         );
         continue;
+      }
+      const apiKey = key.apiKey;
+      // NULL for synthetic Ollama — no persisted row to stamp.
+      const tenantProviderId = key.id === SYNTHETIC_OLLAMA_PROVIDER_ID ? null : key.id;
+      // Resolve an unpinned subscription label to the selected row's label so
+      // OAuth refresh persistence updates the same key the selection used.
+      if (!providerKeyLabel && authType === 'subscription') {
+        providerKeyLabel = key.label;
       }
 
       const resolvedCredentials = await resolveApiKey(
@@ -257,7 +268,7 @@ export class ProxyFallbackService {
         apiKey,
         authType,
         agentId,
-        userId,
+        tenantId,
         this.openaiOauth,
         this.minimaxOauth,
         this.anthropicOauth,
@@ -274,20 +285,19 @@ export class ProxyFallbackService {
       }
       let rawApiKey = apiKey;
       if (authType === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
+        // Deliberate re-read: resolveApiKey may have refreshed + persisted a
+        // rotated OAuth blob (which also invalidates the key cache), so the
+        // freshest stored value is fetched for the 401-retry path.
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
-            agentId,
+            tenantId,
             provider,
             authType,
             providerKeyLabel,
+            agentId,
           )) ?? apiKey;
       }
-      const providerRegion = await this.providerKeyService.getProviderRegion(
-        agentId,
-        provider,
-        authType,
-        providerKeyLabel,
-      );
+      const providerRegion = key.region;
 
       this.logger.log(
         `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
@@ -303,7 +313,7 @@ export class ProxyFallbackService {
         sessionKey,
         signal,
         agentId,
-        userId,
+        tenantId,
         rawApiKey,
         providerKeyLabel,
         authType,
@@ -318,7 +328,18 @@ export class ProxyFallbackService {
 
       if (forward.response.ok) {
         return {
-          success: { forward, model, provider, fallbackIndex: i, authType },
+          success: {
+            forward,
+            model,
+            provider,
+            fallbackIndex: i,
+            authType,
+            // Label of the connection row that served the attempt — stamped
+            // alongside its tenant_provider_id so the pair always matches.
+            // Synthetic rows (Ollama) keep the pinned label, if any.
+            keyLabel: tenantProviderId ? key.label : providerKeyLabel,
+            tenantProviderId,
+          },
           failures,
         };
       }
@@ -331,6 +352,7 @@ export class ProxyFallbackService {
         status: forward.response.status,
         errorBody,
         authType,
+        tenantProviderId,
       });
 
       const existing = failedAuthByProvider.get(provider.toLowerCase());
@@ -344,9 +366,16 @@ export class ProxyFallbackService {
   }
 
   async tryForwardToProvider(opts: ForwardProviderOptions): Promise<ForwardResult> {
+    const cooldown = this.getActiveRateLimitCooldown(opts);
+    if (cooldown) {
+      return this.buildRateLimitCooldownForward(opts, cooldown);
+    }
+
     try {
       const forward = await this.forwardToProvider(opts);
-      return await this.retryOAuthSubscriptionAfterRejectedToken(opts, forward);
+      const result = await this.retryOAuthSubscriptionAfterRejectedToken(opts, forward);
+      this.recordRateLimitCooldown(opts, result.response);
+      return result;
     } catch (error) {
       if (opts.signal?.aborted) throw error;
       if (!isTransportError(error)) throw error;
@@ -366,6 +395,96 @@ export class ProxyFallbackService {
     }
   }
 
+  private getActiveRateLimitCooldown(opts: ForwardProviderOptions): number | null {
+    const key = this.rateLimitCooldownKey(opts);
+    if (!key) return null;
+    const expiresAt = this.rateLimitCooldowns.get(key);
+    if (!expiresAt) return null;
+    if (expiresAt <= Date.now()) {
+      this.rateLimitCooldowns.delete(key);
+      return null;
+    }
+    return expiresAt;
+  }
+
+  private buildRateLimitCooldownForward(
+    opts: ForwardProviderOptions,
+    expiresAt: number,
+  ): ForwardResult {
+    const retryAfterSeconds = Math.max(1, Math.ceil((expiresAt - Date.now()) / 1000));
+    const message =
+      `Provider route temporarily cooling down after an upstream 429: ` +
+      `${opts.provider}/${opts.model}`;
+    return {
+      response: new Response(JSON.stringify({ error: { message } }), {
+        status: 429,
+        headers: {
+          'content-type': 'application/json',
+          'retry-after': String(retryAfterSeconds),
+        },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    };
+  }
+
+  private recordRateLimitCooldown(opts: ForwardProviderOptions, response: Response): void {
+    if (response.status !== 429) return;
+    const key = this.rateLimitCooldownKey(opts);
+    if (!key) return;
+    if (this.rateLimitCooldowns.size >= MAX_RATE_LIMIT_COOLDOWNS) {
+      this.evictExpiredRateLimitCooldowns();
+      if (this.rateLimitCooldowns.size >= MAX_RATE_LIMIT_COOLDOWNS) {
+        this.evictOldestRateLimitCooldown();
+      }
+    }
+    const ttlMs = this.parseRetryAfterMs(response.headers.get('retry-after'));
+    this.rateLimitCooldowns.set(key, Date.now() + ttlMs);
+  }
+
+  private evictExpiredRateLimitCooldowns(now = Date.now()): void {
+    for (const [key, expiresAt] of this.rateLimitCooldowns) {
+      if (expiresAt <= now) this.rateLimitCooldowns.delete(key);
+    }
+  }
+
+  private evictOldestRateLimitCooldown(): void {
+    let oldestKey: string | null = null;
+    let oldestExpiresAt = Number.POSITIVE_INFINITY;
+    for (const [key, expiresAt] of this.rateLimitCooldowns) {
+      if (expiresAt >= oldestExpiresAt) continue;
+      oldestKey = key;
+      oldestExpiresAt = expiresAt;
+    }
+    if (oldestKey) this.rateLimitCooldowns.delete(oldestKey);
+  }
+
+  private parseRetryAfterMs(retryAfter: string | null): number {
+    if (!retryAfter) return RATE_LIMIT_COOLDOWN_DEFAULT_MS;
+    const seconds = Number(retryAfter);
+    if (Number.isFinite(seconds) && seconds > 0) {
+      return Math.min(seconds * 1000, RATE_LIMIT_COOLDOWN_MAX_MS);
+    }
+    const retryAt = Date.parse(retryAfter);
+    if (Number.isNaN(retryAt)) return RATE_LIMIT_COOLDOWN_DEFAULT_MS;
+    return Math.min(
+      Math.max(retryAt - Date.now(), RATE_LIMIT_COOLDOWN_DEFAULT_MS),
+      RATE_LIMIT_COOLDOWN_MAX_MS,
+    );
+  }
+
+  private rateLimitCooldownKey(opts: ForwardProviderOptions): string | null {
+    if (!opts.agentId || !opts.authType) return null;
+    return [
+      opts.agentId,
+      opts.provider.toLowerCase(),
+      opts.authType,
+      opts.providerKeyLabel ?? '',
+      opts.model.toLowerCase(),
+    ].join('\u0000');
+  }
+
   private async retryOAuthSubscriptionAfterRejectedToken(
     opts: ForwardProviderOptions,
     forward: ForwardResult,
@@ -375,7 +494,7 @@ export class ProxyFallbackService {
       forward.response.status !== 401 ||
       !opts.rawApiKey ||
       !opts.agentId ||
-      !opts.userId
+      !opts.tenantId
     ) {
       return forward;
     }
@@ -384,7 +503,7 @@ export class ProxyFallbackService {
       opts.provider,
       opts.rawApiKey,
       opts.agentId,
-      opts.userId,
+      opts.tenantId,
       opts.providerKeyLabel,
       {
         openaiOauth: this.openaiOauth,
@@ -449,73 +568,29 @@ export class ProxyFallbackService {
       effectiveKey = await this.copilotToken.getCopilotToken(opts.apiKey);
     }
 
-    let customEndpoint: ProviderEndpoint | undefined;
-    let forwardModel = opts.model;
-
-    // Strip the "copilot/" prefix -- the Copilot API expects bare model names
-    if (provider.toLowerCase() === 'copilot' && forwardModel.startsWith('copilot/')) {
-      forwardModel = forwardModel.substring('copilot/'.length);
-    }
-
-    // Strip the "minimax/" prefix for MiniMax subscription routes. Vendor-
-    // prefixed model IDs can come in from OpenRouter pricing fallbacks
-    // (e.g. `minimax/MiniMax-M2.7`), and when we set a custom endpoint below
-    // for the CN region the request would otherwise reach MiniMax with the
-    // prefix intact and 404. The provider-endpoint resolver normally strips
-    // it for `minimax-subscription`, but a `customEndpoint` short-circuits
-    // that and ProviderClient.stripModelPrefix leaves `custom` keys alone.
-    if (
-      provider.toLowerCase() === 'minimax' &&
-      authType === 'subscription' &&
-      forwardModel.toLowerCase().startsWith('minimax/')
-    ) {
-      forwardModel = forwardModel.substring('minimax/'.length);
-    }
-    if (provider.toLowerCase() === 'zai' && authType === 'subscription') {
-      const lowerModel = forwardModel.toLowerCase();
-      if (lowerModel.startsWith('z-ai/')) {
-        forwardModel = forwardModel.substring('z-ai/'.length);
-      } else if (lowerModel.startsWith('zai/')) {
-        forwardModel = forwardModel.substring('zai/'.length);
-      }
-    }
-
-    if (CustomProviderService.isCustom(provider)) {
-      const cpId = CustomProviderService.extractId(provider);
-      const cp = await this.customProviderRepo.findOne({ where: { id: cpId } });
-      if (cp) {
-        customEndpoint = buildCustomEndpoint(cp.base_url, cp.api_kind ?? 'openai');
-        forwardModel = CustomProviderService.rawModelName(opts.model);
-      }
-    } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {
-      customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
-    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax') {
-      // OAuth-issued tokens carry the chosen region inside the JSON blob's
-      // resource_url (resourceUrl). Pasted Coding Plan tokens (`sk-cp-`)
-      // don't — for those we read the persisted region column. We only
-      // build a custom endpoint when the region is CN; global already
-      // matches the built-in `minimax-subscription` endpoint base URL, and
-      // overriding it would shift the route through the `custom` endpoint
-      // key, which preserves vendor-prefixed model IDs that this provider
-      // would otherwise strip and reject.
-      if (resourceUrl) {
-        const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
-        if (minimaxBaseUrl) {
-          customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
-        } else {
-          this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
-        }
-      } else if (providerRegion === 'cn') {
-        const regionBaseUrl = `${MINIMAX_BASE_URLS.cn}/anthropic`;
-        customEndpoint = buildEndpointOverride(regionBaseUrl, 'minimax-subscription');
-      }
-    } else if (
-      authType === 'subscription' &&
-      provider.toLowerCase() === 'zai' &&
-      providerRegion === 'cn'
-    ) {
-      customEndpoint = buildEndpointOverride(getZaiCodingPlanBaseUrl('cn'), 'zai-subscription');
-    }
+    // Custom providers store their endpoint on a DB row; fetch it so the shared
+    // resolver can build the override. (Kept in the caller to keep the resolver
+    // synchronous + DB-free.)
+    // Fail closed: TypeORM strips an `undefined` where-value, so without the
+    // explicit tenantId guard a missing tenantId would silently degrade to an
+    // unscoped lookup by id alone. A real custom-provider forward always carries
+    // the caller's tenantId; if it's absent we skip the lookup rather than read a
+    // row that could belong to another tenant.
+    const customProvider =
+      CustomProviderService.isCustom(provider) && opts.tenantId
+        ? await this.customProviderRepo.findOne({
+            where: { id: CustomProviderService.extractId(provider), tenant_id: opts.tenantId },
+          })
+        : null;
+    const { customEndpoint, forwardModel } = resolveForwardEndpoint({
+      provider,
+      authType,
+      model: opts.model,
+      providerRegion,
+      resourceUrl,
+      customProvider,
+      logger: this.logger,
+    });
 
     const reasoningEndpointKey =
       customEndpoint && customEndpoint.format !== 'openai'

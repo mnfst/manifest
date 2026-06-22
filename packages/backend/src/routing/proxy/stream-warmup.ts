@@ -7,7 +7,19 @@
  * @see https://github.com/mnfst/manifest/issues/1656
  */
 
-const DEFAULT_WARMUP_MS = 15_000;
+export const DEFAULT_STREAM_WARMUP_MS = 15_000;
+
+export function parseStreamWarmupMs(rawValue = process.env.STREAM_WARMUP_MS): number {
+  const value = rawValue ?? '';
+  if (!/^\d+$/.test(value)) {
+    return DEFAULT_STREAM_WARMUP_MS;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_STREAM_WARMUP_MS;
+}
+
+export const STREAM_WARMUP_MS = parseStreamWarmupMs();
 
 export interface WarmupSuccess {
   ok: true;
@@ -31,7 +43,7 @@ export type WarmupResult = WarmupSuccess | WarmupFailure;
  */
 export async function peekStream(
   source: ReadableStream<Uint8Array>,
-  timeoutMs: number = DEFAULT_WARMUP_MS,
+  timeoutMs: number = STREAM_WARMUP_MS,
 ): Promise<WarmupResult> {
   const reader = source.getReader();
 

@@ -361,7 +361,7 @@ describe('OAuthDetailView', () => {
     fireEvent.input(input, {
       target: {
         value:
-          'https://accounts.x.ai/oauth2/consent?response_type=code&state=consent-state\nmanual-xai-code-from-page',
+          'https://accounts.x.ai/oauth2/consent?response_type=code&state=consent-state manual-xai-code-from-page',
       },
     });
     fireEvent.click(screen.getByText('Connect'));
@@ -421,6 +421,21 @@ describe('OAuthDetailView', () => {
       expect(screen.getByText(/Copy the full URL/)).toBeDefined();
     });
     expect(container.querySelector('video[src="/images/oauth-callback-example.mp4"]')).not.toBeNull();
+  });
+
+  it('sets preload="auto" on the OAuth tutorial video so it plays immediately', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    const { container } = renderView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Copy the full URL/)).toBeDefined();
+    });
+    const video = container.querySelector('video[src="/images/oauth-callback-example.mp4"]');
+    expect(video).not.toBeNull();
+    expect(video!.getAttribute('preload')).toBe('auto');
   });
 
   it('does not show the callback-URL video tutorial for non-OpenAI providers (e.g. Gemini)', async () => {
@@ -507,6 +522,43 @@ describe('OAuthDetailView', () => {
     vi.advanceTimersByTime(2000);
 
     expect(onUpdate).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it('uses onPollProviders instead of onUpdate for polling when provided', async () => {
+    vi.useFakeTimers();
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    const onPollProviders = vi.fn();
+    const [busy, setBusy] = createSignal(false);
+    const onBack = vi.fn();
+    const onUpdate = vi.fn();
+    const onClose = vi.fn();
+    render(() => (
+      <OAuthDetailView
+        provDef={provDef}
+        provId="openai"
+        agentName="test-agent"
+        connected={() => false}
+        selectedAuthType={() => 'subscription'}
+        busy={busy}
+        setBusy={setBusy}
+        onBack={onBack}
+        onUpdate={onUpdate}
+        onPollProviders={onPollProviders}
+        onClose={onClose}
+        activeKeys={() => []}
+      />
+    ));
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    vi.advanceTimersByTime(2000);
+
+    expect(onPollProviders).toHaveBeenCalledTimes(1);
+    expect(onUpdate).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
 

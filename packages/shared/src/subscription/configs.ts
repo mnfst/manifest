@@ -10,7 +10,16 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionKeyPlaceholder: 'Paste your setup-token',
     subscriptionCommand: 'claude setup-token',
     subscriptionTokenPrefix: 'sk-ant-oat',
-    knownModels: Object.freeze(['claude-opus-4', 'claude-sonnet-4', 'claude-haiku-4']),
+    knownModels: Object.freeze([
+      'claude-fable-5',
+      'claude-opus-4',
+      'claude-sonnet-4',
+      'claude-haiku-4',
+    ]),
+    // `claude-*-fast` ids exist in the OpenRouter pricing cache but 404 at
+    // api.anthropic.com — fast mode is an `anthropic-beta` header on the base
+    // Opus model, not a distinct model id. Keep them out of the catalog.
+    knownModelsExclude: Object.freeze(['-fast']),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
       supportsPromptCaching: false,
@@ -44,17 +53,8 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     supportsSubscription: true as const,
     subscriptionLabel: 'ChatGPT Plus/Pro/Team',
     subscriptionAuthMode: 'popup_oauth' as const,
-    knownModels: Object.freeze([
-      'gpt-5.5',
-      'gpt-5.4',
-      'gpt-5.4-mini',
-      'gpt-5.3-codex',
-      'gpt-5.3-codex-spark',
-      'gpt-5.2-codex',
-      'gpt-5.2',
-      'gpt-5.1-codex-max',
-      'gpt-5.1-codex',
-    ]),
+    knownModels: Object.freeze(['gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex-spark']),
+    knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
       supportsPromptCaching: false,
@@ -66,6 +66,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionLabel: 'MiniMax Coding Plan',
     subscriptionAuthMode: 'device_code' as const,
     knownModels: Object.freeze([
+      'MiniMax-M3',
       'MiniMax-M2.7',
       'MiniMax-M2.7-highspeed',
       'MiniMax-M2.5',
@@ -75,7 +76,29 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       'MiniMax-M2',
     ]),
     subscriptionCapabilities: Object.freeze({
-      maxContextWindow: 200000,
+      // MiniMax-M3's 1M window (MSA); M2.x models keep their own lower
+      // per-model contexts from the pricing cache — this is only the cap.
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
+  xiaomi: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Xiaomi MiMo Token Plan',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your MiMo Token Plan API key',
+    subscriptionTokenPrefix: 'tp-',
+    knownModels: Object.freeze([
+      'mimo-v2.5-pro',
+      'mimo-v2-pro',
+      'mimo-v2.5',
+      'mimo-v2-omni',
+      'mimo-v2-flash',
+    ]),
+    knownModelsMatch: 'exact' as const,
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 1048576,
       supportsPromptCaching: false,
       supportsBatching: false,
     }),

@@ -240,12 +240,14 @@ describe('RoutingHeaderTiersSection', () => {
     expect(container.querySelector('.header-tier-manage-modal')).not.toBeNull();
   });
 
-  it('opens the create modal directly when there are zero tiers', () => {
-    const { queryByTestId } = render(() => (
+  it('opens the create modal directly when there are zero tiers', async () => {
+    // HeaderTierModal is lazy-loaded behind <Suspense>, so the modal mounts on
+    // a microtask — await it instead of asserting synchronously.
+    const { findByTestId } = render(() => (
       <RoutingHeaderTiersSection {...makeProps({ externalTiers: () => [] })} />
     ));
     fireEvent.click(screen.getByText('Create custom tier'));
-    expect(queryByTestId('tier-modal')).not.toBeNull();
+    expect(await findByTestId('tier-modal')).not.toBeNull();
   });
 
   it('opens edit modal when card.onEdit is invoked', () => {

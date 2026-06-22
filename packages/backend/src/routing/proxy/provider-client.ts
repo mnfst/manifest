@@ -23,9 +23,11 @@ import {
   createReasoningContentStreamTransformer as reasoningContentStreamTransformer,
 } from './provider-client-converters';
 import { ForwardOptions } from './proxy-types';
+import { CodexSessionAffinity } from './codex-session-affinity';
 import { toNativeResponsesRequest } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
+import { ProviderModelRegistryService } from '../../model-discovery/provider-model-registry.service';
 
 export interface ForwardResult {
   response: Response;
@@ -51,6 +53,8 @@ const PROVIDER_TIMEOUT_MS =
     ? parsedProviderTimeout
     : 180_000;
 const QWEN_TOKEN_PLAN_RESPONSES_RE = /^qwen3\.7-max$/i;
+const COPILOT_CHAT_COMPLETIONS_ENDPOINT = '/chat/completions';
+const COPILOT_RESPONSES_ENDPOINTS = new Set(['/responses', 'ws:/responses']);
 
 /**
  * Strip vendor prefix from model name (e.g. "anthropic/claude-sonnet-4" → "claude-sonnet-4").
@@ -80,11 +84,18 @@ function stripModelPrefix(model: string, endpointKey: string): string {
 @Injectable()
 export class ProviderClient {
   private readonly logger = new Logger(ProviderClient.name);
+  private readonly codexAffinity: CodexSessionAffinity;
 
   constructor(
     @Optional()
     private readonly opencodeGoCatalog?: OpencodeGoCatalogService,
-  ) {}
+    @Optional()
+    private readonly modelRegistry?: ProviderModelRegistryService,
+    @Optional()
+    codexAffinity?: CodexSessionAffinity,
+  ) {
+    this.codexAffinity = codexAffinity ?? new CodexSessionAffinity();
+  }
 
   async forward(opts: ForwardOptions): Promise<ForwardResult> {
     const {
@@ -149,7 +160,16 @@ export class ProviderClient {
       providerResource: opts.providerResource,
     });
 
-    const finalHeaders = extraHeaders ? { ...headers, ...extraHeaders } : headers;
+    // The Codex backend only serves prompt-cache hits with session affinity
+    // headers the real Codex CLI sends — see CodexSessionAffinity.
+    const affinity =
+      endpointKey === 'openai-subscription'
+        ? this.codexAffinity.prepare(apiKey, requestBody)
+        : undefined;
+    // Affinity headers are routing-critical and must win over caller-supplied
+    // extraHeaders (provider-side observability hints), so they spread last.
+    const finalHeaders =
+      affinity || extraHeaders ? { ...headers, ...extraHeaders, ...affinity?.headers } : headers;
 
     this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 
@@ -166,13 +186,15 @@ export class ProviderClient {
       }
     }
 
-    return this.executeFetch(url, finalHeaders, requestBody, signal, {
+    const result = await this.executeFetch(url, finalHeaders, requestBody, signal, stream, {
       isGoogle,
       isAnthropic,
       isChatGpt,
       isResponses,
       isCodeAssist,
     });
+    if (affinity) this.codexAffinity.capture(affinity.storeKey, result.response);
+    return result;
   }
 
   private async resolveEndpoint(
@@ -214,10 +236,15 @@ export class ProviderClient {
     if (resolved === 'xai' && XAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
       resolved = 'xai-responses';
     }
-    // Copilot serves Codex variants only at /responses; /chat/completions returns
-    // "Unsupported API for model" (gh issue mnfst/manifest#1849).
-    if (resolved === 'copilot' && OPENAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
-      resolved = 'copilot-responses';
+    if (resolved === 'copilot') {
+      const metadataEndpoint = this.resolveCopilotEndpointFromMetadata(model, apiMode);
+      if (metadataEndpoint) {
+        resolved = metadataEndpoint;
+      } else if (OPENAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
+        // Copilot served the original Codex variants only at /responses before
+        // its /models endpoint exposed supported_endpoints.
+        resolved = 'copilot-responses';
+      }
     }
     if (resolved === 'opencode-go') {
       const bareOpenCodeModel = stripVendorPrefix(model).toLowerCase();
@@ -266,6 +293,44 @@ export class ProviderClient {
 
   private isKnownOpencodeGoAnthropicFamily(bareModel: string): boolean {
     return bareModel.startsWith('minimax-') || bareModel.startsWith('qwen3.7');
+  }
+
+  private resolveCopilotEndpointFromMetadata(
+    model: string,
+    apiMode: ForwardOptions['apiMode'],
+  ): 'copilot' | 'copilot-responses' | null {
+    const endpoints = this.getCopilotSupportedEndpoints(model);
+    if (!endpoints) return null;
+
+    const hasChat = endpoints.has(COPILOT_CHAT_COMPLETIONS_ENDPOINT);
+    const hasResponses = Array.from(COPILOT_RESPONSES_ENDPOINTS).some((endpoint) =>
+      endpoints.has(endpoint),
+    );
+
+    if (apiMode === 'responses') {
+      if (hasResponses) return 'copilot-responses';
+      if (hasChat) return 'copilot';
+      return null;
+    }
+
+    if (hasChat) return 'copilot';
+    if (hasResponses) return 'copilot-responses';
+    return null;
+  }
+
+  private getCopilotSupportedEndpoints(model: string): Set<string> | null {
+    const bareModel = stripVendorPrefix(model);
+    const candidates = Array.from(new Set([model, `copilot/${bareModel}`, bareModel]));
+
+    for (const candidate of candidates) {
+      const endpoints = this.modelRegistry?.getModelMetadata(
+        'copilot',
+        candidate,
+      )?.supportedEndpoints;
+      if (endpoints && endpoints.length > 0) return new Set(endpoints);
+    }
+
+    return null;
   }
 
   private buildRequest(ctx: {
@@ -318,8 +383,8 @@ export class ProviderClient {
     }
 
     if (endpoint.format === 'anthropic') {
-      const isSubscription = authType === 'subscription';
-      const injectSubscriptionIdentity = isSubscription && !endpoint.skipSubscriptionIdentity;
+      const injectSubscriptionIdentity =
+        authType === 'subscription' && !endpoint.skipSubscriptionIdentity;
       // When the inbound request is already Anthropic Messages
       // (`POST /v1/messages`) and the resolved upstream is also Anthropic,
       // skip the OpenAI translation round-trip and apply only the additive
@@ -332,12 +397,11 @@ export class ProviderClient {
       const requestBody =
         ctx.apiMode === 'messages'
           ? applyAnthropicMessagesMutations(body, {
-              injectCacheControl: !isSubscription,
               injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
+              targetModel: bareModel,
             })
           : toAnthropicRequest(requestSource, bareModel, {
-              injectCacheControl: !isSubscription,
               injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
             });
@@ -365,12 +429,20 @@ export class ProviderClient {
               stripCodexUnsupported: endpointKey === 'openai-subscription',
             })
           : toResponsesRequest(requestSource, bareModel, {
+              stream:
+                endpointKey === 'openai-responses' || endpointKey === 'xai-responses'
+                  ? ctx.stream
+                  : undefined,
               // The ChatGPT subscription backend rejects max_output_tokens with
               // unsupported_parameter; only opt in for the API-key paths.
               mapMaxOutputTokens:
                 endpointKey === 'openai-responses' ||
                 endpointKey === 'copilot-responses' ||
                 endpointKey === 'xai-responses',
+              // Only OpenAI's /responses endpoints are known to accept
+              // prompt_cache_key; other Responses-shaped backends may 400.
+              forwardPromptCacheKey:
+                endpointKey === 'openai-subscription' || endpointKey === 'openai-responses',
             });
       // Force upstream streaming for copilot-responses so the SSE collector in
       // handleNonStreamResponse stays the single source of truth. Without this,
@@ -416,6 +488,7 @@ export class ProviderClient {
     headers: Record<string, string>,
     requestBody: Record<string, unknown>,
     signal: AbortSignal | undefined,
+    stream: boolean,
     formatFlags: {
       isGoogle: boolean;
       isAnthropic: boolean;
@@ -424,8 +497,19 @@ export class ProviderClient {
       isCodeAssist?: boolean;
     },
   ): Promise<ForwardResult> {
-    const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
-    const fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
+    let fetchSignal: AbortSignal;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    let timeoutController: AbortController | undefined;
+    if (stream) {
+      timeoutController = new AbortController();
+      timeout = setTimeout(() => timeoutController?.abort(), PROVIDER_TIMEOUT_MS);
+      fetchSignal = signal
+        ? AbortSignal.any([timeoutController.signal, signal])
+        : timeoutController.signal;
+    } else {
+      const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
+      fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
+    }
 
     let response: Response;
     try {
@@ -441,6 +525,8 @@ export class ProviderClient {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       throw new Error(message.replace(/key=[^&\s]+/gi, 'key=***'));
+    } finally {
+      if (timeout) clearTimeout(timeout);
     }
 
     return { response, ...formatFlags };

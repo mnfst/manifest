@@ -19,6 +19,17 @@ import {
 } from './chatgpt-helpers';
 import { OpenAIMessage } from './proxy-types';
 
+export class ResponsesSseError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly body: string,
+  ) {
+    super(message);
+    this.name = 'ResponsesSseError';
+  }
+}
+
 /* ── Request conversion ── */
 
 export interface ToResponsesRequestOptions {
@@ -29,6 +40,18 @@ export interface ToResponsesRequestOptions {
    * leave this disabled. API-key /responses and Copilot /responses accept it.
    */
   mapMaxOutputTokens?: boolean;
+  /**
+   * Forward the caller's `prompt_cache_key` so same-prefix requests keep
+   * their prompt-cache affinity. Opt-in per endpoint: OpenAI's /responses
+   * endpoints accept the field, other Responses-shaped backends may reject
+   * unknown parameters.
+   */
+  forwardPromptCacheKey?: boolean;
+  /**
+   * Explicit upstream streaming mode. Omit to preserve the historical
+   * ChatGPT-subscription behavior, which expects SSE collection.
+   */
+  stream?: boolean;
 }
 
 export function toResponsesRequest(
@@ -70,7 +93,7 @@ export function toResponsesRequest(
   const request: Record<string, unknown> = {
     model,
     input,
-    stream: body.stream !== false,
+    stream: options.stream ?? body.stream !== false,
     store: false,
     instructions: extractInstructions(messages),
   };
@@ -83,6 +106,14 @@ export function toResponsesRequest(
     if (typeof maxOutputTokens === 'number') {
       request.max_output_tokens = maxOutputTokens;
     }
+  }
+
+  if (
+    options.forwardPromptCacheKey &&
+    typeof body.prompt_cache_key === 'string' &&
+    body.prompt_cache_key
+  ) {
+    request.prompt_cache_key = body.prompt_cache_key;
   }
 
   if (isObjectRecord(body.reasoning)) {
@@ -244,26 +275,20 @@ export function transformResponsesStreamChunk(chunk: string, model: string): str
     return handleCompletedEvent(dataStr, model);
   }
 
+  if (eventType === 'response.incomplete') {
+    return handleIncompleteEvent(dataStr, model);
+  }
+
+  if (eventType === 'error' || eventType === 'response.failed') {
+    return handleStreamErrorEvent(dataStr);
+  }
+
   return null;
 }
 
 function handleCompletedEvent(dataStr: string, model: string): string {
   const data = safeParse(dataStr);
   const response = isObjectRecord(data?.response) ? data.response : undefined;
-  const responseUsage = response?.usage as Record<string, unknown> | undefined;
-  const inputDetails = responseUsage?.input_tokens_details as Record<string, number> | undefined;
-  const cachedTokens = inputDetails?.cached_tokens ?? 0;
-
-  const usage = responseUsage
-    ? {
-        prompt_tokens: (responseUsage.input_tokens as number) ?? 0,
-        completion_tokens: (responseUsage.output_tokens as number) ?? 0,
-        total_tokens: (responseUsage.total_tokens as number) ?? 0,
-        cache_read_tokens: cachedTokens,
-        cache_creation_tokens: 0,
-      }
-    : undefined;
-
   const responseOutput = Array.isArray(response?.output)
     ? (response.output as Array<{ type?: string }>)
     : [];
@@ -271,9 +296,71 @@ function handleCompletedEvent(dataStr: string, model: string): string {
   const finish = formatSSE(
     { delta: {}, finish_reason: hasFunctionCalls ? 'tool_calls' : 'stop' },
     model,
-    usage,
+    extractResponseUsage(response),
   );
   return `${finish}\ndata: [DONE]\n\n`;
+}
+
+/**
+ * `response.incomplete` is the Responses API's third terminal event (after
+ * `response.completed` and `response.failed`) — emitted when generation stops
+ * early on `max_output_tokens` or a content filter. Without handling it the
+ * stream ends with no finish chunk and clients report an interrupted stream
+ * (issue #2212's symptom).
+ */
+function handleIncompleteEvent(dataStr: string, model: string): string {
+  const data = safeParse(dataStr);
+  const response = isObjectRecord(data?.response) ? data.response : undefined;
+  const finish = formatSSE(
+    { delta: {}, finish_reason: incompleteFinishReason(response) },
+    model,
+    extractResponseUsage(response),
+  );
+  return `${finish}\ndata: [DONE]\n\n`;
+}
+
+function incompleteFinishReason(response: Record<string, unknown> | undefined): string {
+  const details = isObjectRecord(response?.incomplete_details)
+    ? response.incomplete_details
+    : undefined;
+  return details?.reason === 'content_filter' ? 'content_filter' : 'length';
+}
+
+function extractResponseUsage(
+  response: Record<string, unknown> | undefined,
+): Record<string, number> | undefined {
+  const responseUsage = response?.usage as Record<string, unknown> | undefined;
+  if (!responseUsage) return undefined;
+  const inputDetails = responseUsage.input_tokens_details as Record<string, number> | undefined;
+  return {
+    prompt_tokens: (responseUsage.input_tokens as number) ?? 0,
+    completion_tokens: (responseUsage.output_tokens as number) ?? 0,
+    total_tokens: (responseUsage.total_tokens as number) ?? 0,
+    cache_read_tokens: inputDetails?.cached_tokens ?? 0,
+    cache_creation_tokens: 0,
+  };
+}
+
+function handleStreamErrorEvent(dataStr: string): string {
+  const data = safeParse(dataStr) ?? {};
+  const err = buildResponsesSseError(data);
+  const parsedBody = safeParse(err.body);
+  const parsedError = isObjectRecord(parsedBody?.error) ? parsedBody.error : {};
+  const message =
+    typeof parsedError.message === 'string' && parsedError.message
+      ? parsedError.message
+      : err.message;
+  const code = typeof parsedError.code === 'string' ? parsedError.code : undefined;
+  const type = typeof parsedError.type === 'string' ? parsedError.type : 'upstream_error';
+  const payload = {
+    error: {
+      message,
+      type,
+      status: err.status,
+      ...(code ? { code } : {}),
+    },
+  };
+  return `data: ${JSON.stringify(payload)}\n\ndata: [DONE]\n\n`;
 }
 
 /* ── Non-streaming SSE collection ── */
@@ -295,6 +382,7 @@ export function collectChatGptSseResponse(sseText: string, model: string): Recor
   >();
   let usage: Record<string, unknown> | undefined;
   let hasFunctionCalls = false;
+  let finishReasonOverride: string | undefined;
 
   const events = sseText.split('\n\n');
   for (const event of events) {
@@ -310,7 +398,9 @@ export function collectChatGptSseResponse(sseText: string, model: string): Recor
     const data = safeParse(dataStr);
     if (!data) continue;
 
-    if (eventType === 'response.output_text.delta') {
+    if (eventType === 'error' || eventType === 'response.failed') {
+      throw buildResponsesSseError(data);
+    } else if (eventType === 'response.output_text.delta') {
       text += typeof data.delta === 'string' ? data.delta : '';
     } else if (eventType === 'response.output_item.added') {
       const item = isObjectRecord(data.item) ? data.item : undefined;
@@ -330,21 +420,15 @@ export function collectChatGptSseResponse(sseText: string, model: string): Recor
       }
     } else if (eventType === 'response.completed') {
       const response = isObjectRecord(data.response) ? data.response : undefined;
-      const respUsage = response?.usage as Record<string, unknown> | undefined;
-      if (respUsage) {
-        const inputDetails = respUsage.input_tokens_details as Record<string, number> | undefined;
-        usage = {
-          prompt_tokens: (respUsage.input_tokens as number) ?? 0,
-          completion_tokens: (respUsage.output_tokens as number) ?? 0,
-          total_tokens: (respUsage.total_tokens as number) ?? 0,
-          cache_read_tokens: inputDetails?.cached_tokens ?? 0,
-          cache_creation_tokens: 0,
-        };
-      }
+      usage = extractResponseUsage(response) ?? usage;
       const output = Array.isArray(response?.output)
         ? (response.output as Array<{ type?: string }>)
         : [];
       hasFunctionCalls = output.some((item) => item.type === 'function_call');
+    } else if (eventType === 'response.incomplete') {
+      const response = isObjectRecord(data.response) ? data.response : undefined;
+      usage = extractResponseUsage(response) ?? usage;
+      finishReasonOverride = incompleteFinishReason(response);
     }
   }
 
@@ -361,9 +445,46 @@ export function collectChatGptSseResponse(sseText: string, model: string): Recor
       {
         index: 0,
         message,
-        finish_reason: hasFunctionCalls || toolCalls.length > 0 ? 'tool_calls' : 'stop',
+        finish_reason:
+          finishReasonOverride ??
+          (hasFunctionCalls || toolCalls.length > 0 ? 'tool_calls' : 'stop'),
       },
     ],
     usage: usage ?? { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
   };
+}
+
+function buildResponsesSseError(data: Record<string, unknown>): ResponsesSseError {
+  const response = isObjectRecord(data.response) ? data.response : undefined;
+  const error = isObjectRecord(data.error)
+    ? data.error
+    : isObjectRecord(response?.error)
+      ? response.error
+      : data;
+  const message =
+    typeof error.message === 'string' && error.message
+      ? error.message
+      : 'OpenAI Responses stream failed';
+  const code = typeof error.code === 'string' ? error.code : undefined;
+  const type = typeof error.type === 'string' ? error.type : undefined;
+  const status = statusFromResponsesError(code, type);
+  const body = JSON.stringify({
+    error: {
+      message,
+      ...(code ? { code } : {}),
+      ...(type ? { type } : {}),
+    },
+  });
+  return new ResponsesSseError(message, status, body);
+}
+
+function statusFromResponsesError(code: string | undefined, type: string | undefined): number {
+  const value = (code ?? type ?? '').toLowerCase();
+  if (value.includes('model_not_found') || value.includes('not_found')) return 404;
+  if (value.includes('rate_limit')) return 429;
+  if (value.includes('invalid') || value.includes('bad_request')) return 400;
+  if (value.includes('unauthorized') || value.includes('authentication')) return 401;
+  if (value.includes('forbidden') || value.includes('permission')) return 403;
+  if (value.includes('server')) return 500;
+  return 502;
 }

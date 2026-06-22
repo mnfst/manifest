@@ -16,8 +16,7 @@ import {
   type ProviderParamSpec,
   type RequestParamDefaults,
 } from 'manifest-shared';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { AuthUser } from '../auth/auth.instance';
+import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { AgentModelParamsService } from './routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from './routing-core/provider-param-spec.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
@@ -46,11 +45,11 @@ export class ModelParamsController {
    */
   @Get(':agentName/model-param-specs/by-model')
   async specsByModel(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param() params: AgentNameParamDto,
     @Query() query: ModelParamSpecsQueryDto,
   ): Promise<readonly ProviderParamSpec[]> {
-    await this.resolveAgentService.resolve(user.id, params.agentName);
+    await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     return this.providerParamSpecs.getSpecs(query.provider, query.authType, query.model);
   }
 
@@ -62,10 +61,10 @@ export class ModelParamsController {
    */
   @Get(':agentName/model-param-specs/index')
   async specsIndex(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param() params: AgentNameParamDto,
   ): Promise<Array<{ provider: string; authType: AuthType; model: string }>> {
-    await this.resolveAgentService.resolve(user.id, params.agentName);
+    await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     return this.providerParamSpecs.listModelIds();
   }
 
@@ -75,8 +74,8 @@ export class ModelParamsController {
    * this route?" from one signal without per-row fetches.
    */
   @Get(':agentName/model-params')
-  async list(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+  async list(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     const rows = await this.modelParamsService.list(agent.id);
     return rows.map((r) => ({
       provider: r.provider,
@@ -100,11 +99,11 @@ export class ModelParamsController {
    */
   @Put(':agentName/model-params')
   async set(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param() params: AgentNameParamDto,
     @Body() body: SetModelParamsBodyDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     const sanitized = await this.assertCompatibleParams(
       body.provider,
       body.authType,
@@ -113,7 +112,6 @@ export class ModelParamsController {
     );
     const saved = await this.modelParamsService.set(
       agent.id,
-      user.id,
       body.scope,
       body.provider,
       body.authType,
@@ -136,11 +134,11 @@ export class ModelParamsController {
    */
   @Delete(':agentName/model-params')
   async remove(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param() params: AgentNameParamDto,
     @Body() body: DeleteModelParamsBodyDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     await this.modelParamsService.delete(
       agent.id,
       body.scope,

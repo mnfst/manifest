@@ -121,6 +121,22 @@ describe('filterNonChatModels', () => {
       const result = filterNonChatModels(models, 'openai-subscription');
       expect(result.map((m) => m.id)).toEqual(['gpt-4o']);
     });
+
+    it('filters ChatGPT-account unsupported Codex models for openai-subscription', () => {
+      const models = [
+        makeModel('gpt-5.5'),
+        makeModel('gpt-5.3-codex'),
+        makeModel('gpt-5.2-codex'),
+        makeModel('gpt-5.2'),
+        makeModel('gpt-5.1-codex-max'),
+        makeModel('gpt-5.1-codex'),
+        makeModel('gpt-5.3-codex-spark'),
+      ];
+
+      const result = filterNonChatModels(models, 'openai-subscription');
+
+      expect(result.map((m) => m.id)).toEqual(['gpt-5.5', 'gpt-5.3-codex-spark']);
+    });
   });
 
   describe('Gemini-specific patterns', () => {
@@ -345,6 +361,18 @@ describe('filterNonChatModels', () => {
     });
   });
 
+  describe('Bedrock-specific patterns', () => {
+    it('filters Voxtral models returned through Bedrock while keeping other Mistral Bedrock models', () => {
+      const models = [
+        makeModel('mistral.voxtral-mini-3b-2507'),
+        makeModel('mistral.voxtral-small-24b-2507'),
+        makeModel('mistral.ministral-3-8b-instruct'),
+      ];
+      const result = filterNonChatModels(models, 'bedrock');
+      expect(result.map((m) => m.id)).toEqual(['mistral.ministral-3-8b-instruct']);
+    });
+  });
+
   describe('PROVIDER_NON_CHAT registry', () => {
     it('has entries for openai, openai-subscription, fireworks, gemini, mistral, and xai', () => {
       expect(PROVIDER_NON_CHAT).toHaveProperty('openai');
@@ -353,10 +381,20 @@ describe('filterNonChatModels', () => {
       expect(PROVIDER_NON_CHAT).toHaveProperty('gemini');
       expect(PROVIDER_NON_CHAT).toHaveProperty('mistral');
       expect(PROVIDER_NON_CHAT).toHaveProperty('xai');
+      expect(PROVIDER_NON_CHAT).toHaveProperty('bedrock');
     });
   });
 
   describe('PROVIDER_BLOCKLIST', () => {
+    it('has blocklist entry for ChatGPT-account unsupported OpenAI subscription models', () => {
+      expect(PROVIDER_BLOCKLIST).toHaveProperty('openai-subscription');
+      expect(PROVIDER_BLOCKLIST['openai-subscription'].has('gpt-5.3-codex')).toBe(true);
+      expect(PROVIDER_BLOCKLIST['openai-subscription'].has('gpt-5.2-codex')).toBe(true);
+      expect(PROVIDER_BLOCKLIST['openai-subscription'].has('gpt-5.2')).toBe(true);
+      expect(PROVIDER_BLOCKLIST['openai-subscription'].has('gpt-5.1-codex-max')).toBe(true);
+      expect(PROVIDER_BLOCKLIST['openai-subscription'].has('gpt-5.1-codex')).toBe(true);
+    });
+
     it('has blocklist entry for mistral voxtral-mini-2602', () => {
       expect(PROVIDER_BLOCKLIST).toHaveProperty('mistral');
       expect(PROVIDER_BLOCKLIST.mistral.has('voxtral-mini-2602')).toBe(true);

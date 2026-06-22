@@ -8,14 +8,22 @@ import { auth } from './auth/auth.instance';
 import { SpaFallbackFilter } from './common/filters/spa-fallback.filter';
 import { httpErrorLogger } from './common/middleware/http-error-logger.middleware';
 import {
+  API_BODY_LIMIT,
+  PROXY_BODY_LIMIT,
+  bodyParserErrorHandler,
+  createProxyBodyBudgetMiddleware,
+} from './common/middleware/body-parser-limits';
+import {
   applyPrivateNetworkAllow,
   buildDevAllowedOrigins,
   buildFrameSrc,
   createCorsOriginHandler,
 } from './cors-csp-config';
+import { shouldCompress } from './routing/proxy/compression-filter';
 
 export async function bootstrap() {
   const logger = new Logger('Bootstrap');
+
   const app = await NestFactory.create(AppModule, {
     bodyParser: false,
     logger: new ConsoleLogger({ prefix: 'Manifest' }),
@@ -66,7 +74,10 @@ export async function bootstrap() {
     }),
   );
 
-  app.use(compression());
+  // Exclude SSE (`text/event-stream`) from compression: gzip buffering holds
+  // tokens and wrecks streaming time-to-first-token. All other responses use
+  // the package's default content-type filter.
+  app.use(compression({ filter: shouldCompress }));
 
   // CORS is enabled only in dev so the Vite frontend on :3000, the local
   // Wingman build at `WINGMAN_PORT`, and the hosted Wingman SPA can hit
@@ -181,9 +192,15 @@ export async function bootstrap() {
   const { toNodeHandler } = await import('better-auth/node');
   expressApp.all('/api/auth/*splat', toNodeHandler(auth));
 
-  // Re-add body parsing for NestJS routes
-  expressApp.use(express.json({ limit: '1mb' }));
-  expressApp.use(express.urlencoded({ extended: true, limit: '1mb' }));
+  // Re-add body parsing for NestJS routes. The OpenAI-compatible proxy has a
+  // separate parser because clients may legitimately send large inline image
+  // payloads. Regular Manifest API/auth routes stay small.
+  expressApp.use('/v1', createProxyBodyBudgetMiddleware());
+  expressApp.use('/v1', express.json({ limit: PROXY_BODY_LIMIT }));
+  expressApp.use('/v1', express.urlencoded({ extended: true, limit: PROXY_BODY_LIMIT }));
+  expressApp.use(express.json({ limit: API_BODY_LIMIT }));
+  expressApp.use(express.urlencoded({ extended: true, limit: API_BODY_LIMIT }));
+  expressApp.use(bodyParserErrorHandler);
 
   const port = Number(process.env['PORT'] ?? 3001);
   const host = process.env['BIND_ADDRESS'] ?? '127.0.0.1';
@@ -220,5 +237,18 @@ export async function bootstrap() {
 
 // Only auto-start when run directly (not when embedded)
 if (!process.env['MANIFEST_EMBEDDED']) {
-  bootstrap();
+  bootstrap().catch((err) => {
+    // The server never came up. The most common cause is a failed database
+    // migration — TypeORM logs the specific "Migration X failed, error: ..."
+    // line just above this. Surface a clear, intentional fatal message and
+    // exit non-zero, rather than leaving an unhandled rejection (or, before
+    // the toRetry change, a misleading "Unable to connect to the database").
+    new Logger('Bootstrap').fatal(
+      'Manifest failed to start — see the error above. A failed database migration is the most ' +
+        'common cause; if it reports provider/config rows that "cannot be re-scoped", back up your ' +
+        'database and re-run with MANIFEST_MIGRATION_FORCE=1.',
+      err instanceof Error ? err.stack : String(err),
+    );
+    process.exit(1);
+  });
 }

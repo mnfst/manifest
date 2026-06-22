@@ -4,7 +4,8 @@ import { AgentMessage } from '../entities/agent-message.entity';
 import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
+import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
@@ -21,14 +22,15 @@ import { MessageDetailsService } from './services/message-details.service';
 import { MessageFeedbackService } from './services/message-feedback.service';
 import { SpecificityFeedbackService } from './services/specificity-feedback.service';
 import { AgentAnalyticsService } from './services/agent-analytics.service';
+import { ProviderUsageService } from './services/provider-usage.service';
 import { OverviewController } from './controllers/overview.controller';
+import { ProviderUsageController } from './controllers/provider-usage.controller';
 import { TokensController } from './controllers/tokens.controller';
 import { CostsController } from './controllers/costs.controller';
 import { MessagesController } from './controllers/messages.controller';
 import { AgentsController } from './controllers/agents.controller';
 import { AgentAnalyticsController } from './controllers/agent-analytics.controller';
-import { SavingsController } from './controllers/savings.controller';
-import { SavingsQueryService } from './services/savings-query.service';
+import { ProviderAnalyticsController } from './controllers/provider-analytics.controller';
 
 @Module({
   imports: [
@@ -37,7 +39,8 @@ import { SavingsQueryService } from './services/savings-query.service';
       Agent,
       Tenant,
       CustomProvider,
-      UserProvider,
+      TenantProvider,
+      AgentEnabledProvider,
       TierAssignment,
       SpecificityAssignment,
       HeaderTier,
@@ -54,7 +57,8 @@ import { SavingsQueryService } from './services/savings-query.service';
     MessagesController,
     AgentsController,
     AgentAnalyticsController,
-    SavingsController,
+    ProviderAnalyticsController,
+    ProviderUsageController,
   ],
   providers: [
     AggregationService,
@@ -66,8 +70,8 @@ import { SavingsQueryService } from './services/savings-query.service';
     MessageFeedbackService,
     SpecificityFeedbackService,
     AgentAnalyticsService,
-    SavingsQueryService,
+    ProviderUsageService,
   ],
-  exports: [SpecificityFeedbackService],
+  exports: [SpecificityFeedbackService, ProviderUsageService],
 })
 export class AnalyticsModule {}

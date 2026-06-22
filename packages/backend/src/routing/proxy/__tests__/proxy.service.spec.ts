@@ -10,11 +10,11 @@ import { ProxyService } from '../proxy.service';
 import type { ResolveService } from '../../resolve/resolve.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
 import type { TierService } from '../../routing-core/tier.service';
-import type { OpenaiOauthService } from '../../oauth/openai-oauth.service';
-import type { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import type { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
+import type { MinimaxOauthService } from '../../oauth/minimax/minimax-oauth.service';
 import type { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
-import type { GeminiOauthService } from '../../oauth/gemini-oauth.service';
-import type { KiroOauthService } from '../../oauth/kiro-oauth.service';
+import type { GeminiOauthService } from '../../oauth/gemini/gemini-oauth.service';
+import type { KiroOauthService } from '../../oauth/kiro/kiro-oauth.service';
 import type { XaiOauthService } from '../../oauth/xai/xai-oauth.service';
 import type { SessionMomentumService } from '../session-momentum.service';
 import type { LimitCheckService } from '../../../notifications/services/limit-check.service';
@@ -31,6 +31,7 @@ import type { ProviderParamSpecService } from '../../routing-core/provider-param
  */
 jest.mock('../stream-warmup', () => ({
   peekStream: jest.fn(),
+  STREAM_WARMUP_MS: 15_000,
 }));
 
 import { peekStream } from '../stream-warmup';
@@ -67,7 +68,10 @@ const specCatalog: ProviderParamSpecCatalog = [
 describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<Pick<ResolveService, 'resolve' | 'resolveForTier'>>;
   let providerKeyService: jest.Mocked<
-    Pick<ProviderKeyService, 'getProviderApiKey' | 'getProviderRegion'>
+    Pick<
+      ProviderKeyService,
+      'getProviderApiKey' | 'getProviderRegion' | 'getProviderKeyId' | 'selectProviderKey'
+    >
   >;
   let tierService: jest.Mocked<Pick<TierService, 'getTiers'>>;
   let openaiOauth: jest.Mocked<Pick<OpenaiOauthService, 'unwrapToken'>>;
@@ -104,6 +108,16 @@ describe('ProxyService — orchestration', () => {
     providerKeyService = {
       getProviderApiKey: jest.fn().mockResolvedValue('decrypted-key'),
       getProviderRegion: jest.fn().mockResolvedValue(null),
+      getProviderKeyId: jest.fn().mockResolvedValue('up-default'),
+      // Single key selection per request: apiKey, id, and region are all
+      // projected from this one row so they can never diverge.
+      selectProviderKey: jest.fn().mockResolvedValue({
+        apiKey: 'decrypted-key',
+        id: 'up-default',
+        region: null,
+        label: 'Default',
+        priority: 0,
+      }),
     };
     tierService = { getTiers: jest.fn().mockResolvedValue([]) };
     openaiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
@@ -212,6 +226,31 @@ describe('ProxyService — orchestration', () => {
       expect(resolveService.resolve).toHaveBeenCalled();
       expect(result.forward.response.status).toBeGreaterThanOrEqual(200);
     });
+
+    it('replaces null content on the forwarded body when routing uses a redacted copy', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const body = { messages: [{ role: 'user', content: null }] };
+      const routingBody = { messages: [{ role: 'user', content: null }] };
+
+      await svc.proxyRequest(baseOpts({ body, routingBody } as never));
+
+      expect(body.messages[0].content).toBe('');
+      expect(routingBody.messages[0].content).toBe('');
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toBe(body);
+    });
   });
 
   describe('limit enforcement', () => {
@@ -240,7 +279,7 @@ describe('ProxyService — orchestration', () => {
       expect(body).toContain('M200');
     });
 
-    it('skips limit checks when tenantId is missing', async () => {
+    it('skips limit checks when agentName is missing', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: null,
@@ -249,7 +288,7 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      await svc.proxyRequest({ ...baseOpts(), tenantId: undefined });
+      await svc.proxyRequest({ ...baseOpts(), agentName: undefined });
       expect(limitCheck.checkLimits).not.toHaveBeenCalled();
     });
   });
@@ -280,7 +319,7 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      providerKeyService.getProviderApiKey.mockResolvedValue(null);
+      providerKeyService.selectProviderKey.mockResolvedValue(null);
       const result = await svc.proxyRequest(baseOpts());
       const body = await result.forward.response.text();
       expect(body).toContain('M100');
@@ -288,6 +327,91 @@ describe('ProxyService — orchestration', () => {
   });
 
   describe('happy path forward', () => {
+    it('uses the redacted routing body for scoring while forwarding the original body', async () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Describe this image' },
+              {
+                type: 'image_url',
+                image_url: { url: 'data:image/png;base64,aGVsbG8=' },
+              },
+            ],
+          },
+        ],
+        stream: false,
+      };
+      const routingBody = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Describe this image' },
+              {
+                type: 'image_url',
+                image_url: { url: '[inline image: image/png, 5 bytes, 8 base64 chars]' },
+              },
+            ],
+          },
+        ],
+        stream: false,
+      };
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts({ body, routingBody }));
+
+      const [, , scoringMessages] = resolveService.resolve.mock.calls[0];
+      expect(scoringMessages).toEqual(routingBody.messages);
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toBe(body);
+    });
+
+    it('reuses converted Responses bodies for routing when no separate routing body is provided', async () => {
+      const body = {
+        input: 'Describe this image',
+        stream: false,
+      };
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const validateSpy = jest.spyOn(
+        svc as unknown as { validatePayload: (body: Record<string, unknown>) => void },
+        'validatePayload',
+      );
+
+      await svc.proxyRequest(baseOpts({ body, apiMode: 'responses' } as never));
+
+      const forwardedBody = fallbackService.tryForwardToProvider.mock.calls[0][0].chatBody;
+      expect(validateSpy).toHaveBeenCalledTimes(1);
+      expect(forwardedBody).toBeDefined();
+      expect(forwardedBody?.messages).toEqual([{ role: 'user', content: 'Describe this image' }]);
+    });
+
     it('returns the forward result and records tier momentum on a 200 non-stream response', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
@@ -325,6 +449,15 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
+      // The single key selection surfaces the stored OAuth blob; the subscription
+      // re-read path then re-fetches the freshest blob for the 401-retry rawApiKey.
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: rawBlob,
+        id: 'up-default',
+        region: null,
+        label: 'Work',
+        priority: 0,
+      });
       providerKeyService.getProviderApiKey.mockResolvedValue(rawBlob);
       openaiOauth.unwrapToken.mockResolvedValue('cached-access');
       fallbackService.tryForwardToProvider.mockResolvedValue({
@@ -344,7 +477,7 @@ describe('ProxyService — orchestration', () => {
           rawApiKey: rawBlob,
           providerKeyLabel: 'Work',
           agentId: 'agent-1',
-          userId: 'user-1',
+          tenantId: 'tenant-1',
         }),
       );
     });
@@ -368,9 +501,16 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      providerKeyService.getProviderApiKey
-        .mockResolvedValueOnce(staleBlob)
-        .mockResolvedValueOnce(refreshedBlob);
+      // selectProviderKey surfaces the stale blob (used for the preflight unwrap);
+      // the subscription re-read then returns the rotated blob for the retry path.
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: staleBlob,
+        id: 'up-default',
+        region: null,
+        label: 'Work',
+        priority: 0,
+      });
+      providerKeyService.getProviderApiKey.mockResolvedValue(refreshedBlob);
       openaiOauth.unwrapToken.mockResolvedValue('fresh-access');
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: okResponse(200),
@@ -381,7 +521,9 @@ describe('ProxyService — orchestration', () => {
 
       await svc.proxyRequest(baseOpts());
 
-      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledTimes(2);
+      // Single selection + a single subscription re-read for the freshest blob.
+      expect(providerKeyService.selectProviderKey).toHaveBeenCalledTimes(1);
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledTimes(1);
       expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: 'openai',
@@ -969,6 +1111,7 @@ describe('ProxyService — orchestration', () => {
         ...baseOpts({ body: { messages: [{ role: 'user', content: 'hi' }], stream: true } }),
       });
       expect(result.forward.response.status).toBe(200);
+      expect(mockedPeek).toHaveBeenCalledWith(streamRes.body, 15_000);
       expect(momentum.recordTier).toHaveBeenCalled();
     });
 
@@ -1139,7 +1282,7 @@ describe('ProxyService — orchestration', () => {
           body: { messages: [{ role: 'user', content: 'HEARTBEAT_OK' }] },
         }),
       );
-      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'tenant-1', 'simple');
       expect(resolveService.resolve).not.toHaveBeenCalled();
     });
 
@@ -1171,7 +1314,7 @@ describe('ProxyService — orchestration', () => {
           },
         }),
       );
-      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'tenant-1', 'simple');
     });
 
     it('does not detect heartbeat when no user message exists', async () => {
@@ -1283,8 +1426,10 @@ describe('ProxyService — orchestration', () => {
           },
         }),
       );
-      const [, scoringMessages] = resolveService.resolve.mock.calls[0];
-      expect(scoringMessages.every((m) => m.role === 'user')).toBe(true);
+      const [, , scoringMessages] = resolveService.resolve.mock.calls[0];
+      expect((scoringMessages as Array<{ role: string }>).every((m) => m.role === 'user')).toBe(
+        true,
+      );
     });
   });
 });

@@ -70,23 +70,61 @@ describe("App", () => {
     expect(container.querySelector(".main-content")).not.toBeNull();
   });
 
-  it("does not show sidebar on non-agent paths", () => {
+  it("does not show sidebar on root redirect path /", () => {
+    // The root "/" is a transient redirect — sidebar is intentionally hidden
+    routerState.pathname = "/";
     const { container } = render(() => <App />);
     expect(container.querySelector('[data-testid="sidebar"]')).toBeNull();
   });
 
-  it("does not show mobile navigation toggle on non-agent paths", () => {
+  it("does not show mobile navigation toggle on root redirect path", () => {
+    routerState.pathname = "/";
     const { container } = render(() => <App />);
     expect(container.querySelector('[data-testid="mobile-nav-toggle"]')).toBeNull();
   });
 });
 
-describe("App with agent path", () => {
+describe("App with authenticated paths", () => {
   it("shows sidebar on /agents/ paths", () => {
     routerState.pathname = "/agents/demo";
 
     const { container } = render(() => <App />);
 
+    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
+    expect(container.querySelector(".app-body--with-sidebar")).not.toBeNull();
+  });
+
+  it("shows sidebar on /overview path", () => {
+    routerState.pathname = "/overview";
+    const { container } = render(() => <App />);
+    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
+    expect(container.querySelector(".app-body--with-sidebar")).not.toBeNull();
+  });
+
+  it("shows sidebar on /messages path", () => {
+    routerState.pathname = "/messages";
+    const { container } = render(() => <App />);
+    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
+    expect(container.querySelector(".app-body--with-sidebar")).not.toBeNull();
+  });
+
+  it("shows sidebar on /agents path (workspace list)", () => {
+    routerState.pathname = "/agents";
+    const { container } = render(() => <App />);
+    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
+    expect(container.querySelector(".app-body--with-sidebar")).not.toBeNull();
+  });
+
+  it("shows sidebar on /account path", () => {
+    routerState.pathname = "/account";
+    const { container } = render(() => <App />);
+    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
+    expect(container.querySelector(".app-body--with-sidebar")).not.toBeNull();
+  });
+
+  it("shows sidebar on /agents/:name/routing (deep agent sub-path)", () => {
+    routerState.pathname = "/agents/demo/routing";
+    const { container } = render(() => <App />);
     expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
     expect(container.querySelector(".app-body--with-sidebar")).not.toBeNull();
   });

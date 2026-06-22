@@ -7,6 +7,7 @@ import type { SpecificityAssignment } from '../../../entities/specificity-assign
 import type { HeaderTier } from '../../../entities/header-tier.entity';
 import type { TierService } from '../../routing-core/tier.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
+import type { RoutingCacheService } from '../../routing-core/routing-cache.service';
 import type { SpecificityService } from '../../routing-core/specificity.service';
 import type { SpecificityPenaltyService } from '../../routing-core/specificity-penalty.service';
 import type { HeaderTierService } from '../../header-tiers/header-tier.service';
@@ -54,11 +55,12 @@ describe('ResolveService', () => {
   let specificityService: jest.Mocked<Pick<SpecificityService, 'getActiveAssignments'>>;
   let pricingCache: jest.Mocked<Pick<ModelPricingCacheService, 'getByModel'>>;
   let discoveryService: jest.Mocked<
-    Pick<ModelDiscoveryService, 'getModelForAgent' | 'getModelsForAgent'>
+    Pick<ModelDiscoveryService, 'getModelForAgent' | 'getModelsForAgent' | 'invalidate'>
   >;
   let penaltyService: jest.Mocked<Pick<SpecificityPenaltyService, 'getPenaltiesForAgent'>>;
   let headerTierService: jest.Mocked<Pick<HeaderTierService, 'list'>>;
   let agentRepo: { findOne: jest.Mock };
+  let routingCache: { addInvalidationListener: jest.Mock };
   let svc: ResolveService;
 
   beforeEach(() => {
@@ -78,12 +80,14 @@ describe('ResolveService', () => {
     discoveryService = {
       getModelForAgent: jest.fn().mockResolvedValue(null),
       getModelsForAgent: jest.fn().mockResolvedValue([]),
+      invalidate: jest.fn(),
     };
     penaltyService = { getPenaltiesForAgent: jest.fn().mockResolvedValue(new Map()) };
     headerTierService = { list: jest.fn().mockResolvedValue([]) };
     agentRepo = {
       findOne: jest.fn().mockResolvedValue({ id: 'agent-1', complexity_routing_enabled: true }),
     };
+    routingCache = { addInvalidationListener: jest.fn() };
 
     // Defaults — each test overrides as needed.
     mockedScore.mockReturnValue({
@@ -104,10 +108,24 @@ describe('ResolveService', () => {
       penaltyService as unknown as SpecificityPenaltyService,
       headerTierService as unknown as HeaderTierService,
       agentRepo as unknown as Repository<Agent>,
+      routingCache as unknown as RoutingCacheService,
     );
   });
 
   const messages = [{ role: 'user' as const, content: 'hello' }];
+
+  describe('discovery cache invalidation bridge', () => {
+    it('registers a routing-cache listener that invalidates the discovery cache', () => {
+      expect(routingCache.addInvalidationListener).toHaveBeenCalledTimes(1);
+      const listener = routingCache.addInvalidationListener.mock.calls[0][0] as (
+        agentId: string,
+      ) => void;
+
+      listener('agent-42');
+
+      expect(discoveryService.invalidate).toHaveBeenCalledWith('agent-42');
+    });
+  });
 
   describe('resolve — header tier match', () => {
     it('returns the header-tier route when the rule matches', async () => {
@@ -125,6 +143,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -148,6 +167,7 @@ describe('ResolveService', () => {
       headerTierService.list.mockResolvedValue([]);
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -176,6 +196,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -204,6 +225,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -231,6 +253,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -258,6 +281,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -298,6 +322,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -338,6 +363,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -362,6 +388,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -388,6 +415,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -413,6 +441,7 @@ describe('ResolveService', () => {
       } as never);
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -432,13 +461,13 @@ describe('ResolveService', () => {
       tierService.getTiers.mockResolvedValue([
         {
           tier: 'default',
-          override_route: null,
-          auto_assigned_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          override_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          auto_assigned_route: null,
           fallback_routes: null,
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.tier).toBe('default');
       expect(result.reason).toBe('default');
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o-mini'));
@@ -458,7 +487,7 @@ describe('ResolveService', () => {
       ]);
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.9 } as never);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('specificity');
       expect(result.specificity_category).toBe('coding');
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
@@ -486,11 +515,11 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('scored');
     });
 
-    it('uses auto_assigned_route when there is no override', async () => {
+    it('ignores auto_assigned_route when there is no override', async () => {
       specificityService.getActiveAssignments.mockResolvedValue([
         {
           category: 'coding',
@@ -502,9 +531,9 @@ describe('ResolveService', () => {
       ]);
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.9 } as never);
 
-      const result = await svc.resolve('agent-1', messages);
-      expect(result.reason).toBe('specificity');
-      expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.reason).not.toBe('specificity');
+      expect(result.route).toBeNull();
     });
 
     it('returns null when neither override nor auto are set', async () => {
@@ -527,7 +556,7 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       // Specificity returned null — falls through to scored.
       expect(result.reason).toBe('scored');
     });
@@ -542,7 +571,7 @@ describe('ResolveService', () => {
           fallback_routes: null,
         } as TierAssignment,
       ]);
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('scored');
       expect(mockedScan).not.toHaveBeenCalled();
     });
@@ -560,7 +589,7 @@ describe('ResolveService', () => {
           fallback_routes: null,
         } as TierAssignment,
       ]);
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('scored');
     });
 
@@ -584,7 +613,7 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('scored');
     });
 
@@ -602,6 +631,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -620,7 +650,7 @@ describe('ResolveService', () => {
       penaltyService.getPenaltiesForAgent.mockResolvedValue(penalties as never);
       mockedScan.mockReturnValue(null);
 
-      await svc.resolve('agent-1', messages);
+      await svc.resolve('agent-1', 'user-1', messages);
       expect(mockedScan).toHaveBeenCalled();
       const call = mockedScan.mock.calls[0];
       expect(call[4]).toBe(penalties);
@@ -639,7 +669,7 @@ describe('ResolveService', () => {
           fallback_routes: null,
         } as TierAssignment,
       ]);
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('scored');
     });
   });
@@ -661,7 +691,7 @@ describe('ResolveService', () => {
         } as unknown as TierAssignment,
       ]);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.tier).toBe('complex');
       expect(result.route).toEqual(route('anthropic', 'api_key', 'claude-opus'));
       expect(result.fallback_routes).toEqual([route('openai', 'api_key', 'gpt-4o')]);
@@ -683,12 +713,12 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.tier).toBe('default');
       expect(result.reason).toBe('default');
     });
 
-    it('returns null route when the override is orphaned and auto is null', async () => {
+    it('uses the first fallback when the override is orphaned and auto is null', async () => {
       mockedScore.mockReturnValue({
         tier: 'standard',
         confidence: 0.7,
@@ -705,13 +735,13 @@ describe('ResolveService', () => {
       ]);
       providerKeyService.isModelAvailable.mockResolvedValue(false);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.tier).toBe('standard');
-      expect(result.route).toBeNull();
-      expect(result.fallback_routes).toEqual([route('anthropic', 'api_key', 'fallback-1')]);
+      expect(result.route).toEqual(route('anthropic', 'api_key', 'fallback-1'));
+      expect(result.fallback_routes).toBeNull();
     });
 
-    it('falls through to auto when override is orphaned but auto is set', async () => {
+    it('tries fallbacks before auto when the override is orphaned but auto is set', async () => {
       mockedScore.mockReturnValue({
         tier: 'standard',
         confidence: 0.7,
@@ -723,13 +753,20 @@ describe('ResolveService', () => {
           tier: 'standard',
           override_route: route('openai', 'api_key', 'orphaned'),
           auto_assigned_route: route('openai', 'api_key', 'auto'),
-          fallback_routes: null,
+          fallback_routes: [
+            route('anthropic', 'api_key', 'fallback-1'),
+            route('google', 'api_key', 'fallback-2'),
+          ],
         } as unknown as TierAssignment,
       ]);
       providerKeyService.isModelAvailable.mockResolvedValue(false);
 
-      const result = await svc.resolve('agent-1', messages);
-      expect(result.route).toEqual(route('openai', 'api_key', 'auto'));
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toEqual(route('anthropic', 'api_key', 'fallback-1'));
+      expect(result.fallback_routes).toEqual([
+        route('google', 'api_key', 'fallback-2'),
+        route('openai', 'api_key', 'auto'),
+      ]);
     });
 
     it('passes momentum input when recentTiers is non-empty', async () => {
@@ -747,7 +784,7 @@ describe('ResolveService', () => {
           fallback_routes: null,
         } as TierAssignment,
       ]);
-      await svc.resolve('agent-1', messages, undefined, undefined, undefined, ['simple']);
+      await svc.resolve('agent-1', 'user-1', messages, undefined, undefined, undefined, ['simple']);
       const [, , momentum] = mockedScore.mock.calls[0];
       expect(momentum).toEqual({ recentTiers: ['simple'] });
     });
@@ -761,7 +798,7 @@ describe('ResolveService', () => {
           fallback_routes: null,
         } as TierAssignment,
       ]);
-      await svc.resolve('agent-1', messages, undefined, undefined, undefined, []);
+      await svc.resolve('agent-1', 'user-1', messages, undefined, undefined, undefined, []);
       const [, , momentum] = mockedScore.mock.calls[0];
       expect(momentum).toBeUndefined();
     });
@@ -770,7 +807,7 @@ describe('ResolveService', () => {
   describe('resolveForTier', () => {
     it('returns null route when tier assignment is missing', async () => {
       tierService.getTiers.mockResolvedValue([]);
-      const result = await svc.resolveForTier('agent-1', 'simple', 'heartbeat');
+      const result = await svc.resolveForTier('agent-1', 'user-1', 'simple', 'heartbeat');
       expect(result.tier).toBe('simple');
       expect(result.route).toBeNull();
       expect(result.fallback_routes).toBeNull();
@@ -778,16 +815,16 @@ describe('ResolveService', () => {
       expect(result.reason).toBe('heartbeat');
     });
 
-    it('returns the assigned route when present', async () => {
+    it('returns the override route when present', async () => {
       tierService.getTiers.mockResolvedValue([
         {
           tier: 'simple',
-          override_route: null,
-          auto_assigned_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          override_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          auto_assigned_route: null,
           fallback_routes: [route('anthropic', 'api_key', 'haiku')],
         } as unknown as TierAssignment,
       ]);
-      const result = await svc.resolveForTier('agent-1', 'simple');
+      const result = await svc.resolveForTier('agent-1', 'user-1', 'simple');
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o-mini'));
       expect(result.fallback_routes).toEqual([route('anthropic', 'api_key', 'haiku')]);
       expect(result.reason).toBe('heartbeat');
@@ -807,7 +844,7 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolveForTier('agent-1', 'simple');
+      const result = await svc.resolveForTier('agent-1', 'user-1', 'simple');
 
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
       expect(result.fallback_routes).toEqual([route('anthropic', 'api_key', 'claude-3-5-sonnet')]);
@@ -824,7 +861,7 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolveForTier('agent-1', 'simple');
+      const result = await svc.resolveForTier('agent-1', 'user-1', 'simple');
 
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
       expect(result.fallback_routes).toBeNull();
@@ -839,7 +876,7 @@ describe('ResolveService', () => {
           fallback_routes: null,
         } as TierAssignment,
       ]);
-      const result = await svc.resolveForTier('agent-1', 'default', 'default');
+      const result = await svc.resolveForTier('agent-1', 'user-1', 'default', 'default');
       expect(result.reason).toBe('default');
     });
   });

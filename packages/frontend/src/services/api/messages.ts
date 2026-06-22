@@ -66,9 +66,20 @@ export function getMessages(
     routing_tier?: string;
     specificity_category?: string;
     header_tier_id?: string;
+    include_total?: string;
+    include_filter_options?: string;
   } = {},
 ) {
   return fetchJson('/messages', params);
+}
+
+export function getMessageFilterOptions(
+  params: {
+    range?: string;
+    agent_name?: string;
+  } = {},
+) {
+  return fetchJson('/messages/filter-options', params);
 }
 
 export function getMessageDetails(id: string) {

@@ -53,13 +53,13 @@ beforeAll(async () => {
   const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
   // Seed a second tenant + agent that DO NOT belong to TEST_USER_ID. The
-  // tenants table's `name` column is the user id (per onboarding flow), so
-  // TenantCacheService.resolve(TEST_USER_ID) keeps resolving to
-  // TEST_TENANT_ID, never to ATTACKER_TENANT_ID.
+  // `owner_user_id` column is the ONLY user→tenant link, so tenant resolution
+  // for TEST_USER_ID keeps resolving to TEST_TENANT_ID, never to
+  // ATTACKER_TENANT_ID.
   await ds.query(
-    `INSERT INTO tenants (id, name, organization_name, is_active, created_at, updated_at)
-     VALUES ($1, $2, $3, true, $4, $4)`,
-    [ATTACKER_TENANT_ID, ATTACKER_USER_ID, 'Attacker Org', now],
+    `INSERT INTO tenants (id, name, owner_user_id, organization_name, is_active, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, true, $5, $5)`,
+    [ATTACKER_TENANT_ID, ATTACKER_USER_ID, ATTACKER_USER_ID, 'Attacker Org', now],
   );
   await ds.query(
     `INSERT INTO agents

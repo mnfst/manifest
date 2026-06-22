@@ -1,6 +1,7 @@
 import {
   MODEL_PREFIX_MAP,
   inferProviderFromModel,
+  resolveProviderMetadataIdentity,
   resolveUnderlyingModelIdentity,
   underlyingGatewayModel,
 } from '../src/provider-inference';
@@ -36,6 +37,8 @@ describe('inferProviderFromModel', () => {
     ['kimi-k2', 'moonshot'],
     ['moonshot-v1', 'moonshot'],
     ['MiniMax-M2.5', 'minimax'],
+    ['mimo-v2.5-pro', 'xiaomi'],
+    ['mimo-v2-flash', 'xiaomi'],
     ['glm-4', 'zai'],
     ['qwen2.5-coder', 'qwen'],
     ['qwq-32b', 'qwen'],
@@ -112,10 +115,17 @@ describe('resolveUnderlyingModelIdentity', () => {
     });
   });
 
+  it('resolves MiMo gateway models to Xiaomi', () => {
+    expect(resolveUnderlyingModelIdentity('opencode-go', 'opencode-go/mimo-v2.5')).toEqual({
+      provider: 'xiaomi',
+      model: 'mimo-v2.5',
+    });
+  });
+
   it('returns an undefined provider when the underlying id matches no known provider', () => {
-    expect(resolveUnderlyingModelIdentity('opencode-go', 'opencode-go/mimo-v25')).toEqual({
+    expect(resolveUnderlyingModelIdentity('opencode-go', 'opencode-go/big-pickle')).toEqual({
       provider: undefined,
-      model: 'mimo-v25',
+      model: 'big-pickle',
     });
     expect(resolveUnderlyingModelIdentity('opencode-zen', 'opencode-zen/big-pickle')).toEqual({
       provider: undefined,
@@ -131,6 +141,58 @@ describe('resolveUnderlyingModelIdentity', () => {
     expect(resolveUnderlyingModelIdentity(undefined, 'deepseek-v4-pro')).toEqual({
       provider: undefined,
       model: 'deepseek-v4-pro',
+    });
+  });
+});
+
+describe('resolveProviderMetadataIdentity', () => {
+  it('keeps non-Bedrock route identities unchanged', () => {
+    expect(resolveProviderMetadataIdentity('anthropic', 'claude-opus-4.8')).toEqual({
+      provider: 'anthropic',
+      model: 'claude-opus-4.8',
+    });
+  });
+
+  it('unwraps Bedrock provider-prefixed model ids for metadata lookups', () => {
+    expect(resolveProviderMetadataIdentity('bedrock', 'anthropic.claude-opus-4.8')).toEqual({
+      provider: 'anthropic',
+      model: 'claude-opus-4.8',
+    });
+    expect(resolveProviderMetadataIdentity('bedrock', 'openai.gpt-oss-120b')).toEqual({
+      provider: 'openai',
+      model: 'gpt-oss-120b',
+    });
+  });
+
+  it('unwraps Bedrock cross-region profile prefixes before the vendor segment', () => {
+    expect(resolveProviderMetadataIdentity('bedrock', 'us.anthropic.claude-opus-4.8')).toEqual({
+      provider: 'anthropic',
+      model: 'claude-opus-4.8',
+    });
+  });
+
+  it('unwraps Bedrock vendor aliases that contain dots', () => {
+    expect(resolveProviderMetadataIdentity('bedrock', 'z.ai.glm-4.6')).toEqual({
+      provider: 'zai',
+      model: 'glm-4.6',
+    });
+    expect(resolveProviderMetadataIdentity('bedrock', 'us.z.ai.glm-4.6')).toEqual({
+      provider: 'zai',
+      model: 'glm-4.6',
+    });
+  });
+
+  it('leaves unknown Bedrock vendors unchanged', () => {
+    expect(resolveProviderMetadataIdentity('bedrock', 'amazon.nova-pro-v1:0')).toEqual({
+      provider: 'bedrock',
+      model: 'amazon.nova-pro-v1:0',
+    });
+  });
+
+  it('still unwraps gateway models for metadata lookups', () => {
+    expect(resolveProviderMetadataIdentity('opencode-go', 'opencode-go/glm-5.1')).toEqual({
+      provider: 'zai',
+      model: 'glm-5.1',
     });
   });
 });

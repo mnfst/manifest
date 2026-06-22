@@ -43,10 +43,6 @@ describe('ProxyMessageRecorder.recordFailedFallbacks — per-failure auth_type',
           }),
         ),
     } as never;
-    const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
-    const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
-    const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
-    const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
     const opencodeGoCatalog = {
       getCostPerRequest: jest.fn().mockReturnValue(null),
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),
@@ -57,10 +53,6 @@ describe('ProxyMessageRecorder.recordFailedFallbacks — per-failure auth_type',
       dedup,
       eventBus,
       customProviders,
-      providerService,
-      tierService,
-      specificityService,
-      headerTierService,
       opencodeGoCatalog,
     );
   });

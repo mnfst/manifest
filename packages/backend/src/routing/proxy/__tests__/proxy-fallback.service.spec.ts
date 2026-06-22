@@ -3,11 +3,11 @@ import { ProxyFallbackService, normalizeProviderModel } from '../proxy-fallback.
 import { resolveApiKey } from '../oauth-credentials';
 import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { CustomProvider } from '../../../entities/custom-provider.entity';
-import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
-import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
+import { MinimaxOauthService } from '../../oauth/minimax/minimax-oauth.service';
 import { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
-import { GeminiOauthService } from '../../oauth/gemini-oauth.service';
-import { KiroOauthService } from '../../oauth/kiro-oauth.service';
+import { GeminiOauthService } from '../../oauth/gemini/gemini-oauth.service';
+import { KiroOauthService } from '../../oauth/kiro/kiro-oauth.service';
 import { XaiOauthService } from '../../oauth/xai/xai-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
@@ -56,11 +56,56 @@ describe('ProxyFallbackService', () => {
   beforeEach(() => {
     providerKeyService = {
       getProviderApiKey: jest.fn(),
+      getProviderKeyId: jest.fn().mockResolvedValue('up-fallback'),
       getDefaultKeyLabel: jest.fn().mockResolvedValue(undefined),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
       getProviderRegion: jest.fn().mockResolvedValue(null),
       hasActiveProvider: jest.fn().mockResolvedValue(true),
+      // Single key selection per attempt. By default the unified row composes
+      // its fields from the other (legacy) mocks so existing test setups that
+      // only drive getProviderApiKey/getProviderRegion/getProviderKeyId keep
+      // working: the apiKey forwarded, the id stamped, and the region all come
+      // from this one object. Tests that need divergent rows override it.
+      selectProviderKey: jest.fn(
+        async (
+          tenantId: string,
+          provider: string,
+          authType?: string,
+          label?: string,
+          agentId?: string,
+        ) => {
+          const apiKey = await providerKeyService.getProviderApiKey(
+            tenantId,
+            provider,
+            authType as never,
+            label,
+            agentId,
+          );
+          if (apiKey === null || apiKey === undefined) return null;
+          const id = await providerKeyService.getProviderKeyId(
+            tenantId,
+            provider,
+            authType as never,
+            label,
+            agentId,
+          );
+          const region = await providerKeyService.getProviderRegion(
+            tenantId,
+            provider,
+            authType as never,
+            label,
+            agentId,
+          );
+          return {
+            apiKey,
+            id,
+            region,
+            label: label ?? 'Default',
+            priority: 0,
+          };
+        },
+      ),
     } as unknown as jest.Mocked<ProviderKeyService>;
 
     customProviderRepo = {
@@ -271,7 +316,7 @@ describe('ProxyFallbackService', () => {
           rawApiKey: rawBlob,
           providerKeyLabel: 'Work',
           agentId: 'agent-1',
-          userId: 'user-1',
+          tenantId: 'tenant-1',
           model: `${provider}-model`,
           body,
           stream: false,
@@ -310,7 +355,7 @@ describe('ProxyFallbackService', () => {
         apiKey: 'sk-plain-subscription-token',
         rawApiKey: 'sk-plain-subscription-token',
         agentId: 'agent-1',
-        userId: 'user-1',
+        tenantId: 'tenant-1',
         model: 'gpt-5.3-codex',
         body,
         stream: false,
@@ -341,7 +386,7 @@ describe('ProxyFallbackService', () => {
           e: Date.now() + 10 * 60 * 1000,
         }),
         agentId: 'agent-1',
-        userId: 'user-1',
+        tenantId: 'tenant-1',
         model: 'gpt-5.3-codex',
         body,
         stream: false,
@@ -649,6 +694,13 @@ describe('ProxyFallbackService', () => {
         body,
         stream: false,
         sessionKey: 'sess-1',
+        tenantId: 'tenant-1',
+      });
+
+      // The custom-provider row is fetched scoped to the caller's tenant so a
+      // foreign custom:<id> can never have its base_url read here.
+      expect(customProviderRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'cp-1', tenant_id: 'tenant-1' },
       });
 
       expect(providerClient.forward).toHaveBeenCalledWith({
@@ -659,6 +711,28 @@ describe('ProxyFallbackService', () => {
         stream: false,
         customEndpoint: expect.objectContaining({ baseUrl: 'https://api.groq.com/openai' }),
       });
+    });
+
+    it('skips the custom-provider lookup entirely when no tenantId is supplied (fail closed)', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      // Without a tenantId, `tenant_id: undefined` would be stripped by TypeORM
+      // and degrade to an unscoped lookup. The guard must skip the query instead.
+      await service.tryForwardToProvider({
+        provider: 'custom:cp-1',
+        apiKey: 'key',
+        model: 'custom:cp-1/llama',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+      });
+
+      expect(customProviderRepo.findOne).not.toHaveBeenCalled();
     });
 
     it('routes Anthropic-kind custom providers to /v1/messages with anthropic format', async () => {
@@ -681,6 +755,7 @@ describe('ProxyFallbackService', () => {
         body,
         stream: false,
         sessionKey: 'sess-1',
+        tenantId: 'tenant-1',
       });
 
       const forwardArgs = providerClient.forward.mock.calls[0][0];
@@ -911,6 +986,61 @@ describe('ProxyFallbackService', () => {
         }),
       );
     });
+
+    it('routes Xiaomi MiMo Token Plan region=ams to the Europe endpoint', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'xiaomi',
+        apiKey: 'tp-mimo-token',
+        model: 'mimo-v2.5-pro',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'ams',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customEndpoint: expect.objectContaining({
+            baseUrl: 'https://token-plan-ams.xiaomimimo.com',
+            format: 'openai',
+          }),
+        }),
+      );
+    });
+
+    it('strips Xiaomi vendor prefixes on Token Plan subscription routes before endpoint overrides', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'xiaomi',
+        apiKey: 'tp-mimo-token',
+        model: 'xiaomi/mimo-v2.5-pro',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'ams',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'mimo-v2.5-pro',
+        }),
+      );
+    });
   });
 
   describe('tryFallbacks', () => {
@@ -926,7 +1056,7 @@ describe('ProxyFallbackService', () => {
 
       const result = await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['claude-sonnet-4'],
         body,
         false,
@@ -953,7 +1083,7 @@ describe('ProxyFallbackService', () => {
 
       const result = await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['model-a'],
         body,
         false,
@@ -971,7 +1101,7 @@ describe('ProxyFallbackService', () => {
 
       const result = await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['unknown-model'],
         body,
         false,
@@ -990,7 +1120,7 @@ describe('ProxyFallbackService', () => {
 
       const result = await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['claude-sonnet-4'],
         body,
         false,
@@ -1013,7 +1143,7 @@ describe('ProxyFallbackService', () => {
 
       const result = await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['custom:cp-1/my-model'],
         body,
         false,
@@ -1043,7 +1173,7 @@ describe('ProxyFallbackService', () => {
 
       const result = await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['claude-sonnet-4'],
         body,
         false,
@@ -1057,18 +1187,20 @@ describe('ProxyFallbackService', () => {
       expect(result.success).not.toBeNull();
       // getAuthType should have been called with the exclusion set
       expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
-        'agent-1',
+        'tenant-1',
         'Anthropic',
         new Set(['subscription']),
+        'agent-1',
       );
       // getProviderApiKey should use the alternate auth type. The 4th arg is
       // the optional providerKeyLabel — undefined when the fallback entry
       // has no `||<label>` suffix.
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
-        'agent-1',
+        'tenant-1',
         'Anthropic',
         'api_key',
         undefined,
+        'agent-1',
       );
     });
 
@@ -1085,7 +1217,7 @@ describe('ProxyFallbackService', () => {
       // keyLabel rides along with each route — no more `||<label>` parsing.
       const result = await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['gemini-2.5-flash'],
         body,
         false,
@@ -1103,10 +1235,11 @@ describe('ProxyFallbackService', () => {
 
       expect(result.success).not.toBeNull();
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
-        'agent-1',
+        'tenant-1',
         'Google',
         'api_key',
         'Work',
+        'agent-1',
       );
       expect(providerClient.forward).toHaveBeenCalledWith(
         expect.objectContaining({ model: 'gemini-2.5-flash' }),
@@ -1119,7 +1252,16 @@ describe('ProxyFallbackService', () => {
         r: 'refresh-token',
         e: Date.now() + 10 * 60 * 1000,
       });
-      providerKeyService.getDefaultKeyLabel.mockResolvedValue('Work');
+      // The single key selection resolves the unpinned subscription label to the
+      // selected row's own label ('Work'), which then flows into the OAuth unwrap
+      // and the subscription re-read path.
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: rawBlob,
+        id: 'up-fallback',
+        region: null,
+        label: 'Work',
+        priority: 0,
+      });
       providerKeyService.getProviderApiKey.mockResolvedValue(rawBlob);
       openaiOauth.unwrapToken.mockResolvedValue('fresh-access');
       providerClient.forward.mockResolvedValue({
@@ -1131,7 +1273,7 @@ describe('ProxyFallbackService', () => {
 
       const result = await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['gpt-5.3-codex'],
         body,
         false,
@@ -1149,24 +1291,23 @@ describe('ProxyFallbackService', () => {
 
       expect(result.success).not.toBeNull();
       expect(providerKeyService.getAuthType).not.toHaveBeenCalled();
-      expect(providerKeyService.getDefaultKeyLabel).toHaveBeenCalledWith(
-        'agent-1',
+      // Unpinned: selectProviderKey is called with no label and returns the row
+      // whose label resolves the subscription credential lookups.
+      expect(providerKeyService.selectProviderKey).toHaveBeenCalledWith(
+        'tenant-1',
         'openai',
         'subscription',
+        undefined,
+        'agent-1',
       );
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
-        'agent-1',
+        'tenant-1',
         'openai',
         'subscription',
         'Work',
-      );
-      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'user-1', 'Work');
-      expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
         'agent-1',
-        'openai',
-        'subscription',
-        'Work',
       );
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'tenant-1', 'Work');
     });
 
     it('uses the latest stored OAuth blob for fallback retries after preflight refresh', async () => {
@@ -1201,7 +1342,7 @@ describe('ProxyFallbackService', () => {
         });
       const result = await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['gpt-5.3-codex'],
         body,
         false,
@@ -1250,7 +1391,15 @@ describe('ProxyFallbackService', () => {
         e: Date.now() + 10 * 60 * 1000,
       });
       providerKeyService.getAuthType.mockResolvedValue('subscription');
-      providerKeyService.getDefaultKeyLabel.mockResolvedValue('Work');
+      // The selected row's own label ('Work') resolves the unpinned subscription
+      // credential lookups; getDefaultKeyLabel is no longer consulted.
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: rawBlob,
+        id: 'up-fallback',
+        region: null,
+        label: 'Work',
+        priority: 0,
+      });
       providerKeyService.getProviderApiKey.mockResolvedValue(rawBlob);
       pricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as never);
       openaiOauth.unwrapToken.mockResolvedValue('fresh-access');
@@ -1263,7 +1412,7 @@ describe('ProxyFallbackService', () => {
 
       const result = await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['gpt-5.3-codex'],
         body,
         false,
@@ -1272,24 +1421,23 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.success).not.toBeNull();
-      expect(providerKeyService.getDefaultKeyLabel).toHaveBeenCalledWith(
-        'agent-1',
+      // Legacy (string) fallback resolves the provider from pricing ('OpenAI'),
+      // then selectProviderKey returns the row whose label drives the lookups.
+      expect(providerKeyService.selectProviderKey).toHaveBeenCalledWith(
+        'tenant-1',
         'OpenAI',
         'subscription',
+        undefined,
+        'agent-1',
       );
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
-        'agent-1',
+        'tenant-1',
         'OpenAI',
         'subscription',
         'Work',
-      );
-      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'user-1', 'Work');
-      expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
         'agent-1',
-        'OpenAI',
-        'subscription',
-        'Work',
       );
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'tenant-1', 'Work');
     });
 
     it('does not exclude auth types for different provider', async () => {
@@ -1305,7 +1453,7 @@ describe('ProxyFallbackService', () => {
 
       await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['gpt-4o'],
         body,
         false,
@@ -1317,7 +1465,12 @@ describe('ProxyFallbackService', () => {
       );
 
       // OpenAI is a different provider, so no exclusion set should be passed
-      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'OpenAI', undefined);
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
+        'tenant-1',
+        'OpenAI',
+        undefined,
+        'agent-1',
+      );
     });
 
     it('accumulates failed auth types across same-provider fallbacks', async () => {
@@ -1342,7 +1495,7 @@ describe('ProxyFallbackService', () => {
 
       await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['claude-sonnet-4', 'claude-haiku-3.5'],
         body,
         false,
@@ -1356,16 +1509,18 @@ describe('ProxyFallbackService', () => {
       // First call: exclusion contains 'subscription' (from primary)
       expect(providerKeyService.getAuthType).toHaveBeenNthCalledWith(
         1,
-        'agent-1',
+        'tenant-1',
         'Anthropic',
         new Set(['subscription']),
+        'agent-1',
       );
       // Second call: exclusion now also contains 'api_key' (from first fallback failure)
       expect(providerKeyService.getAuthType).toHaveBeenNthCalledWith(
         2,
-        'agent-1',
+        'tenant-1',
         'Anthropic',
         new Set(['subscription', 'api_key']),
+        'agent-1',
       );
     });
 
@@ -1388,7 +1543,7 @@ describe('ProxyFallbackService', () => {
 
       const result = await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['model-a', 'model-b'],
         body,
         false,
@@ -1420,7 +1575,7 @@ describe('ProxyFallbackService', () => {
 
       const result = await service.tryFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         ['anthropic/claude-sonnet-4'],
         body,
         false,
@@ -1430,7 +1585,11 @@ describe('ProxyFallbackService', () => {
 
       expect(result.success).not.toBeNull();
       expect(result.success!.provider).toBe('openrouter');
-      expect(providerKeyService.hasActiveProvider).toHaveBeenCalledWith('agent-1', 'anthropic');
+      expect(providerKeyService.hasActiveProvider).toHaveBeenCalledWith(
+        'tenant-1',
+        'anthropic',
+        'agent-1',
+      );
     });
   });
 
@@ -1454,7 +1613,7 @@ describe('ProxyFallbackService', () => {
         'blob',
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1465,7 +1624,7 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.apiKey).toBe('access-token');
-      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1', 'Work');
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'tenant-1', 'Work');
     });
 
     it('unwraps MiniMax subscription token with resource URL', async () => {
@@ -1481,7 +1640,7 @@ describe('ProxyFallbackService', () => {
         'blob',
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1500,7 +1659,7 @@ describe('ProxyFallbackService', () => {
         'sk-key',
         'api_key',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1522,7 +1681,7 @@ describe('ProxyFallbackService', () => {
         blob,
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1542,7 +1701,7 @@ describe('ProxyFallbackService', () => {
         'blob',
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1555,7 +1714,7 @@ describe('ProxyFallbackService', () => {
       expect(anthropicOauth.unwrapToken).toHaveBeenCalledWith(
         'blob',
         'agent-1',
-        'user-1',
+        'tenant-1',
         undefined,
       );
     });
@@ -1568,7 +1727,7 @@ describe('ProxyFallbackService', () => {
         'sk-ant-legacy',
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1589,7 +1748,7 @@ describe('ProxyFallbackService', () => {
         'blob',
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1599,7 +1758,7 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.apiKey).toBe('kiro-access');
-      expect(kiroOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1', undefined);
+      expect(kiroOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'tenant-1', undefined);
     });
 
     it('does not unwrap for non-OAuth subscription providers (e.g. Qwen)', async () => {
@@ -1608,7 +1767,7 @@ describe('ProxyFallbackService', () => {
         'qwen-key',
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1633,7 +1792,7 @@ describe('ProxyFallbackService', () => {
         'blob',
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1643,7 +1802,7 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.apiKey).toBe('xai-access');
-      expect(xaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1', undefined);
+      expect(xaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'tenant-1', undefined);
     });
 
     it('returns original key when MiniMax unwrap returns null', async () => {
@@ -1654,7 +1813,7 @@ describe('ProxyFallbackService', () => {
         'blob',
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1672,7 +1831,7 @@ describe('ProxyFallbackService', () => {
         'zai-sub-key',
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1704,7 +1863,7 @@ describe('ProxyFallbackService', () => {
         blob,
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1715,7 +1874,7 @@ describe('ProxyFallbackService', () => {
 
       expect(result.apiKey).toBe('fresh-access-token');
       expect(result.resourceUrl).toBe('proj-789');
-      expect(geminiOauth.unwrapToken).toHaveBeenCalledWith(blob, 'agent-1', 'user-1', undefined);
+      expect(geminiOauth.unwrapToken).toHaveBeenCalledWith(blob, 'agent-1', 'tenant-1', undefined);
     });
 
     it('returns null when Gemini unwrapToken cannot recover a stored OAuth blob', async () => {
@@ -1727,7 +1886,7 @@ describe('ProxyFallbackService', () => {
         blob,
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
@@ -1747,7 +1906,7 @@ describe('ProxyFallbackService', () => {
         'not-valid-json',
         'subscription',
         'agent-1',
-        'user-1',
+        'tenant-1',
         openaiOauth,
         minimaxOauth,
         anthropicOauth,

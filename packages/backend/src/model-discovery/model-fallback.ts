@@ -6,6 +6,7 @@ import {
 import {
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
+  getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
 } from 'manifest-shared';
 import { normalizeAnthropicShortModelId } from '../common/utils/anthropic-model-id';
@@ -95,6 +96,12 @@ export function lookupWithVariants(
     if (dashResult) return dashResult;
   }
 
+  const prefixedModel = providerPrefixedModelId(prefix, modelId);
+  if (prefixedModel) {
+    const prefixedResult = pricingSync.lookupPricing(`${prefix}/${prefixedModel}`);
+    if (prefixedResult) return prefixedResult;
+  }
+
   const noDate = modelId.replace(/-\d{8}$/, '');
   if (noDate !== modelId) {
     const noDateResult = pricingSync.lookupPricing(`${prefix}/${noDate}`);
@@ -132,6 +139,12 @@ export function lookupWithVariants(
   }
 
   return null;
+}
+
+function providerPrefixedModelId(prefix: string, modelId: string): string | null {
+  const normalizedPrefix = prefix.toLowerCase();
+  if (modelId.toLowerCase().startsWith(`${normalizedPrefix}-`)) return null;
+  return `${prefix}-${modelId}`;
 }
 
 /**
@@ -232,6 +245,9 @@ export function buildSubscriptionFallbackModels(
   if (!knownPrefixes) return [];
   const normalizedKnownPrefixes = knownPrefixes.map((modelId) => modelId.toLowerCase());
   const matchMode = getSubscriptionKnownModelsMatch(providerId);
+  const excludedSubstrings = getSubscriptionExcludedModels(providerId).map((s) => s.toLowerCase());
+  const isExcluded = (lowerId: string): boolean =>
+    excludedSubstrings.some((sub) => lowerId.includes(sub));
 
   const capabilities = getSubscriptionCapabilities(providerId);
   const models: DiscoveredModel[] = [];
@@ -249,6 +265,9 @@ export function buildSubscriptionFallbackModels(
           ? normalizedKnownPrefixes.includes(lowerId)
           : normalizedKnownPrefixes.some((p: string) => lowerId.startsWith(p));
       if (!matches) continue;
+      // Drop pricing-cache pseudo-models (e.g. Anthropic `claude-*-fast`) that
+      // match a known prefix but 404 at the subscription endpoint.
+      if (isExcluded(lowerId)) continue;
       if (seen.has(modelId)) continue;
       seen.add(modelId);
 

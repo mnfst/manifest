@@ -80,6 +80,26 @@ describe('TtlFifoCache', () => {
     expect(await cache.resolve('k', loader)).toBe('v2');
   });
 
+  it('does not cache a value rejected by shouldCache (loader re-runs until cacheable)', async () => {
+    const loader = jest
+      .fn<Promise<number | null>, [string]>()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(99);
+    const cache = new TtlFifoCache<string, number | null>({ maxEntries: 10, ttlMs: 1_000_000 });
+    const keepRealOnly = (v: number | null) => v !== null;
+
+    // null is returned but never stored, so each call re-runs the loader.
+    expect(await cache.resolve('k', loader, keepRealOnly)).toBeNull();
+    expect(await cache.resolve('k', loader, keepRealOnly)).toBeNull();
+    expect(loader).toHaveBeenCalledTimes(2);
+
+    // The first cacheable value IS memoized — no further loader calls.
+    expect(await cache.resolve('k', loader, keepRealOnly)).toBe(99);
+    expect(await cache.resolve('k', loader, keepRealOnly)).toBe(99);
+    expect(loader).toHaveBeenCalledTimes(3);
+  });
+
   it('defaults to Date.now when no clock is injected', async () => {
     const cache = new TtlFifoCache<string, number>({ maxEntries: 10, ttlMs: 1000 });
     const loader = jest.fn<Promise<number>, [string]>().mockResolvedValue(7);

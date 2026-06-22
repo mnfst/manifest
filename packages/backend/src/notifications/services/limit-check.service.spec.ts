@@ -4,7 +4,7 @@ import { NotificationRulesService } from './notification-rules.service';
 import { NotificationEmailService } from './notification-email.service';
 import { EmailProviderConfigService } from './email-provider-config.service';
 import { NotificationLogService } from './notification-log.service';
-import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
+import { IngestEventBusService, IngestEvent } from '../../common/services/ingest-event-bus.service';
 import { ManifestRuntimeService } from '../../common/services/manifest-runtime.service';
 
 describe('LimitCheckService', () => {
@@ -15,8 +15,8 @@ describe('LimitCheckService', () => {
   let mockGetFullConfig: jest.Mock;
   let mockHasAlreadySent: jest.Mock;
   let mockInsertLog: jest.Mock;
-  let mockResolveUserEmail: jest.Mock;
-  let ingestSubject: Subject<string>;
+  let mockResolveRecipientEmail: jest.Mock;
+  let ingestSubject: Subject<IngestEvent>;
   let mockRuntime: { getAuthBaseUrl: jest.Mock };
 
   beforeEach(() => {
@@ -41,18 +41,18 @@ describe('LimitCheckService', () => {
       getAuthBaseUrl: jest.fn().mockReturnValue('http://localhost:3001'),
     };
 
-    ingestSubject = new Subject<string>();
+    ingestSubject = new Subject<IngestEvent>();
     const ingestBus = {
       all: () => ingestSubject.asObservable(),
     } as unknown as IngestEventBusService;
 
     mockHasAlreadySent = jest.fn().mockResolvedValue(false);
     mockInsertLog = jest.fn().mockResolvedValue(undefined);
-    mockResolveUserEmail = jest.fn().mockResolvedValue(null);
+    mockResolveRecipientEmail = jest.fn().mockResolvedValue(null);
     const notificationLog = {
       hasAlreadySent: mockHasAlreadySent,
       insertLog: mockInsertLog,
-      resolveUserEmail: mockResolveUserEmail,
+      resolveRecipientEmail: mockResolveRecipientEmail,
     } as unknown as NotificationLogService;
 
     service = new LimitCheckService(
@@ -82,7 +82,6 @@ describe('LimitCheckService', () => {
         id: 'r1',
         tenant_id: 'tenant-1',
         agent_name: 'my-agent',
-        user_id: 'u1',
         metric_type: 'tokens',
         threshold: 50000,
         period: 'day',
@@ -100,7 +99,6 @@ describe('LimitCheckService', () => {
         id: 'r1',
         tenant_id: 'tenant-1',
         agent_name: 'my-agent',
-        user_id: 'u1',
         metric_type: 'tokens',
         threshold: 50000,
         period: 'day',
@@ -122,7 +120,6 @@ describe('LimitCheckService', () => {
         id: 'r1',
         tenant_id: 'tenant-1',
         agent_name: 'my-agent',
-        user_id: 'u1',
         metric_type: 'cost',
         threshold: 10,
         period: 'month',
@@ -142,7 +139,6 @@ describe('LimitCheckService', () => {
         id: 'r1',
         tenant_id: 't',
         agent_name: 'a',
-        user_id: 'u1',
         metric_type: 'tokens',
         threshold: 100000,
         period: 'day',
@@ -151,7 +147,6 @@ describe('LimitCheckService', () => {
         id: 'r2',
         tenant_id: 't',
         agent_name: 'a',
-        user_id: 'u1',
         metric_type: 'cost',
         threshold: 5,
         period: 'day',
@@ -181,7 +176,6 @@ describe('LimitCheckService', () => {
         id: 'r1',
         tenant_id: 'tenant-1',
         agent_name: 'my-agent',
-        user_id: 'u1',
         metric_type: 'tokens',
         threshold: 100000,
         period: 'day',
@@ -201,7 +195,6 @@ describe('LimitCheckService', () => {
         id: 'r1',
         tenant_id: 'tenant-1',
         agent_name: 'my-agent',
-        user_id: 'u1',
         metric_type: 'tokens',
         threshold: 100000,
         period: 'day',
@@ -219,13 +212,12 @@ describe('LimitCheckService', () => {
     expect(mockGetConsumption).toHaveBeenCalledTimes(2);
   });
 
-  it('clears consumption cache when ingest event fires', async () => {
+  it('evicts the writing tenant consumption cache when ingest event fires', async () => {
     mockGetActiveBlockRules.mockResolvedValue([
       {
         id: 'r1',
         tenant_id: 'tenant-1',
         agent_name: 'my-agent',
-        user_id: 'u1',
         metric_type: 'tokens',
         threshold: 100000,
         period: 'day',
@@ -236,11 +228,65 @@ describe('LimitCheckService', () => {
     await service.checkLimits('tenant-1', 'my-agent');
     expect(mockGetConsumption).toHaveBeenCalledTimes(1);
 
-    // Simulate OTLP ingest event
-    ingestSubject.next('some-user');
+    // Simulate OTLP ingest event for the same tenant that owns the rule.
+    ingestSubject.next({ tenantId: 'tenant-1', kind: 'message' });
 
     await service.checkLimits('tenant-1', 'my-agent');
     expect(mockGetConsumption).toHaveBeenCalledTimes(2);
+  });
+
+  it('ingest event for one tenant does NOT evict another tenant consumption cache', async () => {
+    // Two distinct tenants, each with its own block rule.
+    mockGetActiveBlockRules.mockImplementation((tenantId: string) =>
+      Promise.resolve([
+        {
+          id: `r-${tenantId}`,
+          tenant_id: tenantId,
+          agent_name: 'my-agent',
+          metric_type: 'tokens',
+          threshold: 100000,
+          period: 'day',
+        },
+      ]),
+    );
+    mockGetConsumption.mockResolvedValue(5000);
+
+    await service.checkLimits('tenant-A', 'my-agent');
+    await service.checkLimits('tenant-B', 'my-agent');
+    expect(mockGetConsumption).toHaveBeenCalledTimes(2);
+
+    // Ingest event for tenant-A only.
+    ingestSubject.next({ tenantId: 'tenant-A', kind: 'message' });
+
+    await service.checkLimits('tenant-A', 'my-agent'); // re-fetched (evicted)
+    await service.checkLimits('tenant-B', 'my-agent'); // still cached
+    expect(mockGetConsumption).toHaveBeenCalledTimes(3);
+  });
+
+  it('consumption cache entries expire after the TTL even without an ingest event', async () => {
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 'tenant-1',
+        agent_name: 'my-agent',
+        metric_type: 'tokens',
+        threshold: 100000,
+        period: 'day',
+      },
+    ]);
+    mockGetConsumption.mockResolvedValue(5000);
+
+    const nowSpy = jest.spyOn(Date, 'now');
+    nowSpy.mockReturnValue(1_000_000);
+    await service.checkLimits('tenant-1', 'my-agent');
+    expect(mockGetConsumption).toHaveBeenCalledTimes(1);
+
+    // Advance past the 60s TTL — the cached entry is now stale.
+    nowSpy.mockReturnValue(1_000_000 + 61_000);
+    await service.checkLimits('tenant-1', 'my-agent');
+    expect(mockGetConsumption).toHaveBeenCalledTimes(2);
+
+    nowSpy.mockRestore();
   });
 
   it('invalidateCache does not affect other tenant+agent pairs', async () => {
@@ -256,6 +302,114 @@ describe('LimitCheckService', () => {
     await service.checkLimits('tenant-2', 'agent-b');
     // tenant-1/agent-a re-fetched, tenant-2/agent-b cached
     expect(mockGetActiveBlockRules).toHaveBeenCalledTimes(3);
+  });
+
+  it('reuses an existing tenant bucket for a second metric/period entry', async () => {
+    // One rule with a long period and one with a short period → two distinct
+    // inner keys under the same tenant bucket. The second insert must reuse the
+    // already-created bucket rather than overwrite it.
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 'tenant-1',
+        agent_name: 'my-agent',
+        metric_type: 'tokens',
+        threshold: 100000,
+        period: 'day',
+      },
+      {
+        id: 'r2',
+        tenant_id: 'tenant-1',
+        agent_name: 'my-agent',
+        metric_type: 'cost',
+        threshold: 100,
+        period: 'month',
+      },
+    ]);
+    mockGetConsumption.mockResolvedValue(0);
+
+    await service.checkLimits('tenant-1', 'my-agent');
+
+    const consumptionCache = (service as any).consumptionCache as Map<string, Map<string, unknown>>;
+    // Both rules' consumption entries live in the single 'tenant-1' bucket.
+    expect(consumptionCache.size).toBe(1);
+    expect(consumptionCache.get('tenant-1')!.size).toBe(2);
+  });
+
+  it('drops a tenant bucket whose entries have all expired on the next lookup', async () => {
+    const consumptionCache = (service as any).consumptionCache as Map<string, Map<string, unknown>>;
+    const nowSpy = jest.spyOn(Date, 'now');
+    nowSpy.mockReturnValue(1_000_000);
+
+    // Seed a stale bucket for an unrelated tenant that will be swept on lookup.
+    const staleBucket = new Map<string, unknown>();
+    staleBucket.set('agent-x:tokens:2026-01-01', {
+      data: 1,
+      expiresAt: 1_000_000 + 10,
+    });
+    consumptionCache.set('tenant-stale', staleBucket);
+
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 'tenant-1',
+        agent_name: 'my-agent',
+        metric_type: 'tokens',
+        threshold: 100000,
+        period: 'day',
+      },
+    ]);
+    mockGetConsumption.mockResolvedValue(0);
+
+    // Jump past the stale bucket's TTL so evictExpiredConsumption drops it.
+    nowSpy.mockReturnValue(1_000_000 + 999_999);
+    await service.checkLimits('tenant-1', 'my-agent');
+
+    expect(consumptionCache.has('tenant-stale')).toBe(false);
+    nowSpy.mockRestore();
+  });
+
+  it('invalidateCache deletes only matching inner entries and keeps the bucket', () => {
+    const consumptionCache = (service as any).consumptionCache as Map<
+      string,
+      Map<string, { data: number; expiresAt: number }>
+    >;
+    const now = Date.now();
+    const bucket = new Map<string, { data: number; expiresAt: number }>();
+    // One entry scoped to the agent we invalidate, one to a different agent.
+    bucket.set('agent-a:tokens:2026-01-01', { data: 1, expiresAt: now + 999_999 });
+    bucket.set('agent-b:tokens:2026-01-01', { data: 2, expiresAt: now + 999_999 });
+    consumptionCache.set('tenant-1', bucket);
+
+    service.invalidateCache('tenant-1', 'agent-a');
+
+    // The agent-a entry is gone, agent-b survives, and the bucket is retained.
+    expect(bucket.has('agent-a:tokens:2026-01-01')).toBe(false);
+    expect(bucket.has('agent-b:tokens:2026-01-01')).toBe(true);
+    expect(consumptionCache.has('tenant-1')).toBe(true);
+  });
+
+  it('invalidateCache drops an emptied tenant bucket', async () => {
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 'tenant-1',
+        agent_name: 'my-agent',
+        metric_type: 'tokens',
+        threshold: 100000,
+        period: 'day',
+      },
+    ]);
+    mockGetConsumption.mockResolvedValue(5000);
+
+    await service.checkLimits('tenant-1', 'my-agent');
+    const consumptionCache = (service as any).consumptionCache as Map<string, unknown>;
+    expect(consumptionCache.has('tenant-1')).toBe(true);
+
+    service.invalidateCache('tenant-1', 'my-agent');
+
+    // The single entry was removed, so the now-empty 'tenant-1' bucket is dropped.
+    expect(consumptionCache.has('tenant-1')).toBe(false);
   });
 
   it('evicts oldest rules cache entry when MAX_CACHE_SIZE is reached', async () => {
@@ -278,23 +432,26 @@ describe('LimitCheckService', () => {
   });
 
   it('evicts oldest consumption cache entry when MAX_CACHE_SIZE is reached', async () => {
-    const consumptionCache = (service as any).consumptionCache as Map<string, unknown>;
+    const consumptionCache = (service as any).consumptionCache as Map<string, Map<string, unknown>>;
     const now = Date.now();
 
+    // Fill the oldest tenant bucket to exactly MAX_CACHE_SIZE so the next insert
+    // (under a new tenant) trips the total-size guard and evicts from the oldest.
+    const oldestBucket = new Map<string, unknown>();
     for (let i = 0; i < 10_000; i++) {
-      consumptionCache.set(`t-${i}:a-${i}:tokens:2026-01-01`, {
+      oldestBucket.set(`a-${i}:tokens:2026-01-01`, {
         data: 0,
         expiresAt: now + 999_999,
       });
     }
-    expect(consumptionCache.size).toBe(10_000);
+    consumptionCache.set('tenant-old', oldestBucket);
+    expect(oldestBucket.size).toBe(10_000);
 
     mockGetActiveBlockRules.mockResolvedValue([
       {
         id: 'r1',
         tenant_id: 'tenant-new',
         agent_name: 'agent-new',
-        user_id: 'u1',
         metric_type: 'tokens',
         threshold: 100000,
         period: 'day',
@@ -304,8 +461,45 @@ describe('LimitCheckService', () => {
 
     await service.checkLimits('tenant-new', 'agent-new');
 
-    // The first filler entry should have been evicted
-    expect(consumptionCache.has('t-0:a-0:tokens:2026-01-01')).toBe(false);
+    // The first filler entry in the oldest bucket should have been evicted.
+    expect(oldestBucket.has('a-0:tokens:2026-01-01')).toBe(false);
+    // The new tenant's consumption was still cached under its own bucket.
+    expect(consumptionCache.has('tenant-new')).toBe(true);
+    expect(consumptionCache.get('tenant-new')!.size).toBe(1);
+  });
+
+  it('drops an emptied tenant bucket when its last entry is evicted by size', async () => {
+    const consumptionCache = (service as any).consumptionCache as Map<string, Map<string, unknown>>;
+    const now = Date.now();
+
+    // Oldest bucket holds a single entry; total still reaches MAX via a second
+    // bucket so the size guard fires and empties the oldest bucket entirely.
+    const oldestBucket = new Map<string, unknown>();
+    oldestBucket.set('a-old:tokens:2026-01-01', { data: 0, expiresAt: now + 999_999 });
+    consumptionCache.set('tenant-old', oldestBucket);
+
+    const fillerBucket = new Map<string, unknown>();
+    for (let i = 0; i < 9_999; i++) {
+      fillerBucket.set(`a-${i}:tokens:2026-01-01`, { data: 0, expiresAt: now + 999_999 });
+    }
+    consumptionCache.set('tenant-filler', fillerBucket);
+
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 'tenant-new',
+        agent_name: 'agent-new',
+        metric_type: 'tokens',
+        threshold: 100000,
+        period: 'day',
+      },
+    ]);
+    mockGetConsumption.mockResolvedValue(0);
+
+    await service.checkLimits('tenant-new', 'agent-new');
+
+    // The oldest bucket had its only entry evicted and was removed.
+    expect(consumptionCache.has('tenant-old')).toBe(false);
   });
 
   describe('email notification on block', () => {
@@ -313,7 +507,6 @@ describe('LimitCheckService', () => {
       id: 'r1',
       tenant_id: 'tenant-1',
       agent_name: 'my-agent',
-      user_id: 'u1',
       metric_type: 'tokens' as const,
       threshold: 50000,
       period: 'day' as const,
@@ -325,7 +518,7 @@ describe('LimitCheckService', () => {
     });
 
     it('sends email and logs when limit exceeded first time', async () => {
-      mockResolveUserEmail.mockResolvedValue('test@example.com');
+      mockResolveRecipientEmail.mockResolvedValue('test@example.com');
 
       await service.checkLimits('tenant-1', 'my-agent');
       await new Promise((r) => setTimeout(r, 50));
@@ -362,7 +555,7 @@ describe('LimitCheckService', () => {
     });
 
     it('logs notification even when no email is resolved', async () => {
-      mockResolveUserEmail.mockResolvedValue(null);
+      mockResolveRecipientEmail.mockResolvedValue(null);
       await service.checkLimits('tenant-1', 'my-agent');
       await new Promise((r) => setTimeout(r, 50));
       expect(mockSendThresholdAlert).not.toHaveBeenCalled();
@@ -371,7 +564,7 @@ describe('LimitCheckService', () => {
 
     it('logs notification even when email send fails', async () => {
       mockSendThresholdAlert.mockResolvedValue(false);
-      mockResolveUserEmail.mockResolvedValue('test@example.com');
+      mockResolveRecipientEmail.mockResolvedValue('test@example.com');
       await service.checkLimits('tenant-1', 'my-agent');
       await new Promise((r) => setTimeout(r, 50));
       expect(mockSendThresholdAlert).toHaveBeenCalled();
@@ -385,7 +578,7 @@ describe('LimitCheckService', () => {
         notificationEmail: 'custom@example.com',
       };
       mockGetFullConfig.mockResolvedValue(providerConfig);
-      mockResolveUserEmail.mockResolvedValue('custom@example.com');
+      mockResolveRecipientEmail.mockResolvedValue('custom@example.com');
       await service.checkLimits('tenant-1', 'my-agent');
       await new Promise((r) => setTimeout(r, 50));
       expect(mockSendThresholdAlert).toHaveBeenCalledWith(
@@ -395,8 +588,8 @@ describe('LimitCheckService', () => {
       );
     });
 
-    it('suppresses email when resolveUserEmail returns null', async () => {
-      mockResolveUserEmail.mockResolvedValue(null);
+    it('suppresses email when resolveRecipientEmail returns null', async () => {
+      mockResolveRecipientEmail.mockResolvedValue(null);
       await service.checkLimits('tenant-1', 'my-agent');
       await new Promise((r) => setTimeout(r, 50));
       expect(mockSendThresholdAlert).not.toHaveBeenCalled();
@@ -419,15 +612,15 @@ describe('LimitCheckService', () => {
       expect(result!.period).toBe('day');
     });
 
-    it('passes notificationEmail from provider config to resolveUserEmail', async () => {
+    it('passes notificationEmail from provider config to resolveRecipientEmail', async () => {
       const providerConfig = { notificationEmail: 'local-user@real.com' };
       mockGetFullConfig.mockResolvedValue(providerConfig);
-      mockResolveUserEmail.mockResolvedValue('local-user@real.com');
+      mockResolveRecipientEmail.mockResolvedValue('local-user@real.com');
 
       await service.checkLimits('tenant-1', 'my-agent');
       await new Promise((r) => setTimeout(r, 50));
 
-      expect(mockResolveUserEmail).toHaveBeenCalledWith('u1', 'local-user@real.com');
+      expect(mockResolveRecipientEmail).toHaveBeenCalledWith('tenant-1', 'local-user@real.com');
       expect(mockSendThresholdAlert).toHaveBeenCalledWith(
         'local-user@real.com',
         expect.objectContaining({ agentName: 'my-agent' }),

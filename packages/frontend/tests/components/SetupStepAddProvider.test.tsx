@@ -20,13 +20,13 @@ describe("SetupStepAddProvider", () => {
 
   it("renders heading", () => {
     render(() => <SetupStepAddProvider {...defaultProps} />);
-    expect(screen.getByText("Connect your agent to Manifest")).toBeDefined();
+    expect(screen.getByText("Connect your harness to Manifest")).toBeDefined();
   });
 
   it("shows description with auto model", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     expect(container.textContent).toContain("auto");
-    expect(container.textContent).toContain("Point your agent");
+    expect(container.textContent).toContain("Point your harness");
   });
 
   it("renders Agents and Toolkits segmented tabs", () => {
@@ -100,7 +100,7 @@ describe("SetupStepAddProvider", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const icon = container.querySelector(".panel__tab-icon");
     expect(icon).not.toBeNull();
-    expect(icon!.getAttribute("src")).toBe("/icons/openclaw.png");
+    expect(icon!.getAttribute("src")).toBe("/icons/openclaw.svg");
   });
 
   it("shows Agents card when OpenClaw selected", () => {
@@ -286,7 +286,7 @@ describe("SetupStepAddProvider", () => {
       render(() => (
         <SetupStepAddProvider {...defaultProps} platform="openclaw" />
       ));
-      expect(screen.getByText("Connect your OpenClaw agent to Manifest")).toBeDefined();
+      expect(screen.getByText("Connect your OpenClaw harness to Manifest")).toBeDefined();
     });
 
     it("shows HermesSetup directly when platform is hermes", () => {
@@ -301,7 +301,7 @@ describe("SetupStepAddProvider", () => {
       render(() => (
         <SetupStepAddProvider {...defaultProps} platform="hermes" />
       ));
-      expect(screen.getByText("Connect your Hermes agent to Manifest")).toBeDefined();
+      expect(screen.getByText("Connect your Hermes harness to Manifest")).toBeDefined();
     });
 
     it("shows NanobotSetup directly when platform is nanobot", () => {
@@ -318,7 +318,7 @@ describe("SetupStepAddProvider", () => {
       render(() => (
         <SetupStepAddProvider {...defaultProps} platform="nanobot" />
       ));
-      expect(screen.getByText("Connect your Nanobot agent to Manifest")).toBeDefined();
+      expect(screen.getByText("Connect your Nanobot harness to Manifest")).toBeDefined();
     });
 
     it("shows CraftAgentSetup directly when platform is craft", () => {
@@ -335,7 +335,7 @@ describe("SetupStepAddProvider", () => {
       render(() => (
         <SetupStepAddProvider {...defaultProps} platform="craft" />
       ));
-      expect(screen.getByText("Connect your Craft agent to Manifest")).toBeDefined();
+      expect(screen.getByText("Connect your Craft harness to Manifest")).toBeDefined();
     });
 
     it("shows ClaudeCodeSetup directly when platform is claude-code", () => {
@@ -439,14 +439,14 @@ describe("SetupStepAddProvider", () => {
       const { container } = render(() => (
         <SetupStepAddProvider {...defaultProps} platform="openclaw" />
       ));
-      expect(container.textContent).toContain("Connect your OpenClaw agent to Manifest");
+      expect(container.textContent).toContain("Connect your OpenClaw harness to Manifest");
     });
 
     it("does not show description text in filtered mode", () => {
       const { container } = render(() => (
         <SetupStepAddProvider {...defaultProps} platform="openclaw" />
       ));
-      expect(container.textContent).not.toContain("Point your agent at the Manifest endpoint");
+      expect(container.textContent).not.toContain("Point your harness at the Manifest endpoint");
     });
   });
 });

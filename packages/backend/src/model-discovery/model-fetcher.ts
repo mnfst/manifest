@@ -3,7 +3,7 @@
  *
  * Each provider's /models API is called using a FetcherConfig that describes
  * the endpoint, auth header, and response parser. The result is a list of
- * DiscoveredModel objects cached in user_providers.cached_models.
+ * DiscoveredModel objects cached in tenant_providers.cached_models.
  */
 
 import type { AuthType, ModelCapability, ModelModality } from 'manifest-shared';
@@ -26,6 +26,7 @@ export interface DiscoveredModel {
   capabilities?: readonly ModelCapability[];
   inputModalities?: readonly ModelModality[];
   outputModalities?: readonly ModelModality[];
+  supportedEndpoints?: readonly string[];
   qualityScore: number;
   authType?: AuthType;
 }

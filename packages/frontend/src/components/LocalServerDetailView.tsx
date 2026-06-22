@@ -168,7 +168,7 @@ const LocalServerDetailView: Component<Props> = (props) => {
       {/* Title */}
       <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 15px;">
         <div>
-          <div class="routing-modal__title">{isEdit() ? 'Edit provider' : 'Connect providers'}</div>
+          <div class="routing-modal__title">{isEdit() ? 'Edit provider' : 'Connect provider'}</div>
         </div>
       </div>
 
@@ -385,6 +385,7 @@ const EmptyModelsState: Component<{
 
       <video
         src="/icons/lmstudio-load-models.mp4"
+        preload="none"
         autoplay
         loop
         muted
@@ -428,7 +429,7 @@ const FailureState: Component<{
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Copy failed — select the command and copy it manually');
+      toast.error('Copy failed. Select the command and copy it manually');
     }
   };
 
@@ -530,6 +531,7 @@ const FailureState: Component<{
             </div>
             <video
               src="/icons/lmstudio-start-server.mp4"
+              preload="none"
               autoplay
               loop
               muted
@@ -601,7 +603,7 @@ const DockerCaveat: Component<{ hint: LocalServerHint; errorMsg: string }> = (p)
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Copy failed — select the command and copy it manually');
+      toast.error('Copy failed. Select the command and copy it manually');
     }
   };
 

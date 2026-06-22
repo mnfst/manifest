@@ -94,6 +94,34 @@ const anthropicSpecs: readonly ProviderParamSpec[] = [
   },
 ];
 
+const anthropicAdaptiveSpecs: readonly ProviderParamSpec[] = [
+  {
+    provider: 'anthropic',
+    authType: 'subscription',
+    model: 'claude-fable-5',
+    path: 'thinking.type',
+    type: 'enum',
+    label: 'Thinking mode',
+    description:
+      'Only adaptive thinking is supported; omit the parameter entirely to run without thinking.',
+    values: ['adaptive'],
+    group: 'reasoning',
+  },
+  {
+    provider: 'anthropic',
+    authType: 'subscription',
+    model: 'claude-fable-5',
+    path: 'thinking.display',
+    type: 'enum',
+    label: 'Thinking display',
+    description: 'Controls whether Anthropic returns summarized or omitted thinking content.',
+    default: 'omitted',
+    values: ['summarized', 'omitted'],
+    group: 'reasoning',
+    applicability: { only: { 'thinking.type': ['adaptive'] } },
+  },
+];
+
 const booleanSpecs: readonly ProviderParamSpec[] = [
   {
     provider: 'test',
@@ -182,7 +210,12 @@ describe('ModelParamsDialog', () => {
 
   it('shows fallback text when no specs and no requestParamsUrl', () => {
     render(() => (
-      <ModelParamsDialog {...baseProps} specs={[]} requestParamsUrl={undefined} slotLabel="gpt-4o" />
+      <ModelParamsDialog
+        {...baseProps}
+        specs={[]}
+        requestParamsUrl={undefined}
+        slotLabel="gpt-4o"
+      />
     ));
     expect(screen.getByText('This model has no configurable parameters.')).toBeTruthy();
     expect(screen.queryByRole('link')).toBeNull();
@@ -223,6 +256,50 @@ describe('ModelParamsDialog', () => {
     expect(screen.getByLabelText('Thinking mode')).toBeTruthy();
     expect(screen.getByRole('slider', { name: 'Temperature' })).toBeTruthy();
     expect(screen.getByLabelText('Max tokens')).toBeTruthy();
+  });
+
+  it('lets adaptive-only enum params return to unset', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicAdaptiveSpecs}
+        slotLabel="claude-fable-5"
+        current={{ thinking: { type: 'adaptive', display: 'summarized' } }}
+        onSave={onSave}
+      />
+    ));
+
+    fireEvent.click(screen.getByLabelText('Thinking mode'));
+    fireEvent.click(screen.getByRole('option', { name: 'None' }));
+    expect((screen.getByLabelText('Thinking display') as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(null));
+  });
+
+  it('saves adaptive-only enum params after selecting adaptive from unset', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicAdaptiveSpecs}
+        slotLabel="claude-fable-5"
+        onSave={onSave}
+      />
+    ));
+
+    fireEvent.click(screen.getByLabelText('Thinking mode'));
+    expect(screen.getByRole('option', { name: 'None' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('option', { name: 'adaptive' }));
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith({
+        thinking: { type: 'adaptive', display: 'omitted' },
+      }),
+    );
   });
 
   it('updates slider controls from keyboard input', () => {

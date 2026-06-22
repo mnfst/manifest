@@ -250,11 +250,13 @@ describe('RoutingModals', () => {
     vi.clearAllMocks();
   });
 
-  it('renders the dropdown picker when dropdownTier is set', () => {
-    const { queryByTestId } = render(() => (
+  it('renders the dropdown picker when dropdownTier is set', async () => {
+    // ModelPickerModal is lazy-loaded behind <Suspense>, so the picker mounts
+    // on a microtask — await it instead of asserting synchronously.
+    const { findByTestId } = render(() => (
       <RoutingModals {...makeProps({ dropdownTier: () => 'simple' })} />
     ));
-    expect(queryByTestId('picker-simple')).not.toBeNull();
+    expect(await findByTestId('picker-simple')).not.toBeNull();
   });
 
   it('requires stream-capable models for stream-mode tier pickers', () => {
@@ -391,6 +393,11 @@ describe('RoutingModals', () => {
     expect(onFallbackPickerClose).toHaveBeenCalled();
   });
 
+  // ProviderSelectModal was removed from RoutingModals on this branch —
+  // provider connection now happens via the dedicated sidebar provider pages,
+  // not from an in-routing modal. RoutingModals still accepts the (now inert)
+  // showProviderModal / customProviderPrefill / providerDeepLink props for
+  // backward compatibility, but never mounts the modal.
   it('does not render ProviderSelectModal when showProviderModal is false', () => {
     const { queryByTestId } = render(() => (
       <RoutingModals {...makeProps({ showProviderModal: () => false })} />
@@ -398,11 +405,16 @@ describe('RoutingModals', () => {
     expect(queryByTestId('provider-select-modal')).toBeNull();
   });
 
-  it('renders ProviderSelectModal when showProviderModal is true', () => {
+  it('still does not render ProviderSelectModal even when showProviderModal is true', async () => {
     const { queryByTestId } = render(() => (
       <RoutingModals {...makeProps({ showProviderModal: () => true })} />
     ));
-    expect(queryByTestId('provider-select-modal')).not.toBeNull();
+    // Give any lazy/Suspense boundary a chance to flush — the modal must stay
+    // absent because it was removed from this component.
+    await new Promise((r) => setTimeout(r, 10));
+    expect(queryByTestId('provider-select-modal')).toBeNull();
+    // The ProviderSelectModal mock is never invoked.
+    expect(psmProps.length).toBe(0);
   });
 
   it("renders the instruction modal in the open state when instructionModal returns 'enable'", () => {
@@ -477,34 +489,6 @@ describe('RoutingModals', () => {
     ));
     fireEvent.click(getByTestId('picker-simple'));
     expect(onAddFallback).toHaveBeenCalledWith('simple', 'gpt-4o', 'openai', 'api_key');
-  });
-
-  it('forwards agentName, providers, and customProviders into ProviderSelectModal', () => {
-    render(() => <RoutingModals {...makeProps({ showProviderModal: () => true })} />);
-    expect(psmProps.length).toBeGreaterThan(0);
-    const last = psmProps[psmProps.length - 1];
-    expect(last.agentName).toBe('demo');
-    // baseProps has empty arrays for both
-    expect(last.providersCount).toBe(0);
-    expect(last.customProvidersCount).toBe(0);
-  });
-
-  it('forwards onClose and onUpdate from ProviderSelectModal to handlers', () => {
-    const onProviderModalClose = vi.fn();
-    const onProviderUpdate = vi.fn().mockResolvedValue(undefined);
-    const { getByTestId } = render(() => (
-      <RoutingModals
-        {...makeProps({
-          showProviderModal: () => true,
-          onProviderModalClose,
-          onProviderUpdate,
-        })}
-      />
-    ));
-    fireEvent.click(getByTestId('psm-close'));
-    expect(onProviderModalClose).toHaveBeenCalled();
-    fireEvent.click(getByTestId('psm-update'));
-    expect(onProviderUpdate).toHaveBeenCalled();
   });
 
   it('renders RoutingInstructionModal with the provider name from the accessor', () => {
@@ -738,10 +722,10 @@ describe('RoutingModals', () => {
     });
   });
 
-  it('forwards customProviderPrefill and providerDeepLink to ProviderSelectModal', () => {
+  it('accepts customProviderPrefill and providerDeepLink props without rendering a provider modal', () => {
     const customProviderPrefill = () => ({ name: 'MyProv', baseUrl: 'https://x' });
     const providerDeepLink = () => ({ providerId: 'openai' });
-    render(() => (
+    const { queryByTestId } = render(() => (
       <RoutingModals
         {...makeProps({
           showProviderModal: () => true,
@@ -750,9 +734,9 @@ describe('RoutingModals', () => {
         })}
       />
     ));
-    const last = psmProps[psmProps.length - 1];
-    // The component re-passes the accessor itself, not its current value.
-    expect(typeof last.customProviderPrefill).toBe('function');
-    expect(typeof last.providerDeepLink).toBe('function');
+    // These props are now inert — RoutingModals no longer forwards them to a
+    // ProviderSelectModal because that modal was removed from this component.
+    expect(queryByTestId('provider-select-modal')).toBeNull();
+    expect(psmProps.length).toBe(0);
   });
 });

@@ -6,7 +6,7 @@ const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
   useNavigate: () => mockNavigate,
-  useLocation: () => ({ pathname: `/agents/${mockAgentName}/settings`, state: null }),
+  useLocation: () => ({ pathname: `/harnesses/${mockAgentName}/settings`, state: null }),
 }));
 
 vi.mock("@solidjs/meta", () => ({
@@ -138,20 +138,20 @@ describe("Settings", () => {
     mockUpdateAgent.mockResolvedValue({});
   });
 
-  it("renders Settings heading", () => {
-    render(() => <Settings />);
-    expect(screen.getByText("Settings")).toBeDefined();
+  it("does not render a duplicate page heading", () => {
+    const { container } = render(() => <Settings />);
+    expect(container.querySelector("h1")).toBeNull();
   });
 
   it("renders agent name input with value", () => {
     render(() => <Settings />);
-    const input = screen.getByLabelText("Agent name") as HTMLInputElement;
+    const input = screen.getByLabelText("Harness name") as HTMLInputElement;
     expect(input.value).toBe("test-agent");
   });
 
-  it("renders Agent type label", () => {
+  it("renders Harness type label", () => {
     render(() => <Settings />);
-    expect(screen.getByText("Agent type")).toBeDefined();
+    expect(screen.getByText("Harness type")).toBeDefined();
   });
 
   it("renders Change button for agent type", async () => {
@@ -166,7 +166,7 @@ describe("Settings", () => {
 
   it("renders API Key section", () => {
     render(() => <Settings />);
-    expect(screen.getByText("Agent API key")).toBeDefined();
+    expect(screen.getByText("Harness API key")).toBeDefined();
   });
 
   it("renders Setup section", () => {
@@ -179,9 +179,9 @@ describe("Settings", () => {
     expect(screen.getByText("Danger zone")).toBeDefined();
   });
 
-  it("renders Delete agent button", () => {
+  it("renders Delete harness button", () => {
     render(() => <Settings />);
-    expect(screen.getByText("Delete agent")).toBeDefined();
+    expect(screen.getByText("Delete harness")).toBeDefined();
   });
 
   it("shows key prefix after loading", async () => {
@@ -227,9 +227,9 @@ describe("Settings", () => {
     });
   });
 
-  it("opens delete modal on Delete agent click", () => {
+  it("opens delete modal on Delete harness click", () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Delete agent"));
+    fireEvent.click(screen.getByText("Delete harness"));
     expect(container.textContent).toContain("Delete test-agent");
   });
 
@@ -252,7 +252,7 @@ describe("Settings", () => {
 
   it("save button enables when agent name changes", () => {
     render(() => <Settings />);
-    const input = screen.getByLabelText("Agent name") as HTMLInputElement;
+    const input = screen.getByLabelText("Harness name") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "new-name" } });
     const saveBtn = screen.getByText("Save") as HTMLButtonElement;
     expect(saveBtn.disabled).toBe(false);
@@ -263,17 +263,17 @@ describe("Settings", () => {
     const originalLocation = window.location;
     Object.defineProperty(window, "location", { value: { ...originalLocation, replace: replaceFn }, writable: true, configurable: true });
     render(() => <Settings />);
-    fireEvent.input(screen.getByLabelText("Agent name"), { target: { value: "new-name" } });
+    fireEvent.input(screen.getByLabelText("Harness name"), { target: { value: "new-name" } });
     fireEvent.click(screen.getByText("Save"));
     await vi.waitFor(() => { expect(mockRenameAgent).toHaveBeenCalledWith("test-agent", "new-name"); });
-    await vi.waitFor(() => { expect(replaceFn).toHaveBeenCalledWith("/agents/new-name/settings"); });
+    await vi.waitFor(() => { expect(replaceFn).toHaveBeenCalledWith("/harnesses/new-name/settings"); });
     Object.defineProperty(window, "location", { value: originalLocation, writable: true, configurable: true });
   });
 
   it("resets name on rename error", async () => {
     mockRenameAgent.mockRejectedValueOnce(new Error("Conflict"));
     render(() => <Settings />);
-    const input = screen.getByLabelText("Agent name") as HTMLInputElement;
+    const input = screen.getByLabelText("Harness name") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "bad-name" } });
     fireEvent.click(screen.getByText("Save"));
     await vi.waitFor(() => { expect(input.value).toBe("test-agent"); });
@@ -300,23 +300,23 @@ describe("Settings", () => {
 
   it("closes delete modal on Escape key", () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Delete agent"));
+    fireEvent.click(screen.getByText("Delete harness"));
     fireEvent.keyDown(container.querySelector(".modal-overlay")!, { key: "Escape" });
     expect(container.querySelector(".modal-overlay")).toBeNull();
   });
 
   it("delete button is disabled until name matches", () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Delete agent"));
-    const deleteBtn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Delete this agent")) as HTMLButtonElement;
+    fireEvent.click(screen.getByText("Delete harness"));
+    const deleteBtn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Delete this harness")) as HTMLButtonElement;
     expect(deleteBtn.disabled).toBe(true);
   });
 
   it("calls deleteAgent when confirmed", async () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Delete agent"));
+    fireEvent.click(screen.getByText("Delete harness"));
     fireEvent.input(container.querySelector('.modal-overlay input[type="text"]')!, { target: { value: "test-agent" } });
-    const deleteBtn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Delete this agent"))!;
+    const deleteBtn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Delete this harness"))!;
     fireEvent.click(deleteBtn);
     await vi.waitFor(() => { expect(mockDeleteAgent).toHaveBeenCalledWith("test-agent"); });
   });
@@ -330,9 +330,8 @@ describe("Settings", () => {
     });
   });
 
-  it("shows breadcrumb with agent name", () => {
+  it("shows settings description without duplicating the agent heading", () => {
     const { container } = render(() => <Settings />);
-    expect(container.textContent).toContain("test-agent");
     expect(container.textContent).toContain("Rename your agent");
   });
 
@@ -347,9 +346,9 @@ describe("Settings", () => {
   it("handles delete agent error gracefully", async () => {
     mockDeleteAgent.mockRejectedValue(new Error("Delete failed"));
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Delete agent"));
+    fireEvent.click(screen.getByText("Delete harness"));
     fireEvent.input(container.querySelector('.modal-overlay input[type="text"]')!, { target: { value: "test-agent" } });
-    const deleteBtn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Delete this agent"))!;
+    const deleteBtn = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Delete this harness"))!;
     fireEvent.click(deleteBtn);
     await vi.waitFor(() => { expect(mockDeleteAgent).toHaveBeenCalled(); });
   });
@@ -418,7 +417,7 @@ describe("Settings", () => {
     )!;
     fireEvent.click(modalSaveBtn);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Set up agent");
+      expect(container.textContent).toContain("Set up harness");
     });
   });
 
@@ -432,7 +431,7 @@ describe("Settings", () => {
 
   it("closes delete modal when clicking overlay", () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Delete agent"));
+    fireEvent.click(screen.getByText("Delete harness"));
     const overlay = container.querySelector(".modal-overlay")!;
     // Click on the overlay itself (not the modal card inside)
     fireEvent.click(overlay);
@@ -441,7 +440,7 @@ describe("Settings", () => {
 
   it("closes delete modal when clicking close button", () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Delete agent"));
+    fireEvent.click(screen.getByText("Delete harness"));
     const closeBtn = container.querySelector('[aria-label="Close"]');
     expect(closeBtn).not.toBeNull();
     fireEvent.click(closeBtn!);
@@ -634,7 +633,7 @@ describe("Settings", () => {
 
   it("submits delete via Enter key on confirm input", async () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Delete agent"));
+    fireEvent.click(screen.getByText("Delete harness"));
     const input = container.querySelector('.modal-overlay input[type="text"]') as HTMLInputElement;
     fireEvent.input(input, { target: { value: "test-agent" } });
     fireEvent.keyDown(input, { key: "Enter" });
@@ -643,7 +642,7 @@ describe("Settings", () => {
 
   it("does not delete via Enter when name does not match", async () => {
     const { container } = render(() => <Settings />);
-    fireEvent.click(screen.getByText("Delete agent"));
+    fireEvent.click(screen.getByText("Delete harness"));
     const input = container.querySelector('.modal-overlay input[type="text"]') as HTMLInputElement;
     fireEvent.input(input, { target: { value: "wrong-name" } });
     fireEvent.keyDown(input, { key: "Enter" });

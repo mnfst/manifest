@@ -942,6 +942,67 @@ describe('provider-client-converters', () => {
   });
 
   describe('createReasoningContentStreamTransformer', () => {
+    it('normalizes Copilot reasoning_text to reasoning_content for clients', () => {
+      const transform = createReasoningContentStreamTransformer(undefined, {
+        outputStreamDeltaPaths: ['reasoning_content', 'reasoning_text'],
+        clientStreamDeltaPath: 'reasoning_content',
+      });
+
+      const out = transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                role: 'assistant',
+                content: '',
+                reasoning_text: 'Let me think.',
+              },
+              finish_reason: null,
+            },
+          ],
+          model: 'claude-sonnet-4.6',
+        }),
+      );
+      const data = JSON.parse(out!.replace('data: ', '').trim());
+
+      expect(data.choices[0].delta.reasoning_text).toBe('Let me think.');
+      expect(data.choices[0].delta.reasoning_content).toBe('Let me think.');
+    });
+
+    it('keeps existing reasoning_content when a provider sends multiple reasoning aliases', () => {
+      const transform = createReasoningContentStreamTransformer(undefined, {
+        outputStreamDeltaPaths: ['reasoning_content', 'reasoning_text'],
+        clientStreamDeltaPath: 'reasoning_content',
+      });
+
+      const input = JSON.stringify({
+        choices: [
+          {
+            delta: {
+              reasoning_content: 'standard',
+              reasoning_text: 'provider alias',
+            },
+            finish_reason: null,
+          },
+        ],
+      });
+
+      expect(transform(input)).toBe(`data: ${input}\n\n`);
+    });
+
+    it('does not assign unsafe reasoning client paths', () => {
+      const transform = createReasoningContentStreamTransformer(undefined, {
+        outputStreamDeltaPaths: ['reasoning_text'],
+        clientStreamDeltaPath: '__proto__.polluted' as 'reasoning_content',
+      });
+      const input = JSON.stringify({
+        choices: [{ delta: { reasoning_text: 'unsafe' }, finish_reason: null }],
+      });
+
+      expect(transform(input)).toBe(`data: ${input}\n\n`);
+      expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    });
+
     it('accumulates reasoning_content and fires callback on tool-call finish', () => {
       const callback = jest.fn();
       const transform = createReasoningContentStreamTransformer(callback);
@@ -1053,6 +1114,39 @@ describe('provider-client-converters', () => {
 
       expect(transform('not json')).toBe('data: not json\n\n');
       expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('accumulates normalized reasoning aliases for tool-call replay cache', () => {
+      const callback = jest.fn();
+      const transform = createReasoningContentStreamTransformer(callback, {
+        outputStreamDeltaPaths: ['reasoning_content', 'reasoning_text'],
+        clientStreamDeltaPath: 'reasoning_content',
+      });
+
+      transform(
+        JSON.stringify({
+          choices: [{ delta: { reasoning_text: 'use ' }, finish_reason: null }],
+        }),
+      );
+      transform(
+        JSON.stringify({
+          choices: [{ delta: { reasoning_text: 'a tool' }, finish_reason: null }],
+        }),
+      );
+      transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [{ id: 'call_1', type: 'function', function: { name: 'lookup' } }],
+              },
+              finish_reason: null,
+            },
+          ],
+        }),
+      );
+
+      expect(callback).toHaveBeenCalledWith('call_1', 'use a tool');
     });
   });
 });

@@ -3,8 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
-import { MetricWithTrend, computeTrend, addTenantFilter } from './query-helpers';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import {
+  MetricWithTrend,
+  computeTrend,
+  addTenantFilter,
+  excludePlaygroundAgents,
+  scopeToConnection,
+} from './query-helpers';
 import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 
 export { MetricWithTrend };
@@ -19,37 +24,58 @@ export class AggregationService {
   constructor(
     @InjectRepository(AgentMessage)
     private readonly turnRepo: Repository<AgentMessage>,
-    private readonly tenantCache: TenantCacheService,
   ) {}
 
-  async hasAnyData(userId: string, agentName?: string, tenantId?: string): Promise<boolean> {
-    const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
+  async hasAnyData(
+    tenantId: string | null,
+    agentName?: string,
+    excludePlayground = false,
+  ): Promise<boolean> {
     const qb = this.turnRepo.createQueryBuilder('at').select('1').limit(1);
-    addTenantFilter(qb, userId, agentName, resolved);
+    addTenantFilter(qb, tenantId, agentName);
+    // Mirror the overview's exclusion: a tenant whose only traffic is Playground
+    // must read as empty, or has_data=true paints a non-empty state over cards
+    // and charts that all dropped Playground and so render blank.
+    if (excludePlayground) excludePlaygroundAgents(qb);
     const row = await qb.getRawOne();
     return row != null;
   }
 
-  async getPreviousTokenTotal(range: string, userId: string, agentName?: string): Promise<number> {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+  async getPreviousTokenTotal(
+    range: string,
+    tenantId: string | null,
+    agentName?: string,
+  ): Promise<number> {
     const { cutoff, prevCutoff } = this.computeWindow(range);
-    const row = await this.buildPreviousWindowQuery(userId, agentName, tenantId, cutoff, prevCutoff)
+    const row = await this.buildPreviousWindowQuery(tenantId, agentName, cutoff, prevCutoff)
       .select('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total')
       .getRawOne();
     return Number(row?.total ?? 0);
   }
 
-  async getPreviousCostTotal(range: string, userId: string, agentName?: string): Promise<number> {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+  async getPreviousCostTotal(
+    range: string,
+    tenantId: string | null,
+    agentName?: string,
+  ): Promise<number> {
     const { cutoff, prevCutoff } = this.computeWindow(range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
-    const row = await this.buildPreviousWindowQuery(userId, agentName, tenantId, cutoff, prevCutoff)
+    const row = await this.buildPreviousWindowQuery(tenantId, agentName, cutoff, prevCutoff)
       .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
       .getRawOne();
     return Number(row?.total ?? 0);
   }
 
-  async getSummaryMetrics(range: string, userId: string, tenantId?: string, agentName?: string) {
+  async getSummaryMetrics(
+    range: string,
+    tenantId: string | null,
+    agentName?: string,
+    authType?: string,
+    provider?: string,
+    excludePlayground = false,
+    label?: string,
+    tenantProviderId?: string,
+  ) {
     const { cutoff, prevCutoff } = this.computeWindow(range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
 
@@ -60,9 +86,23 @@ export class AggregationService {
       .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'out')
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(currentQb, userId, agentName, tenantId);
+    addTenantFilter(currentQb, tenantId, agentName);
+    if (authType) currentQb.andWhere('at.auth_type = :authType', { authType });
+    if (provider) currentQb.andWhere('at.provider = :provider', { provider });
+    if (excludePlayground) excludePlaygroundAgents(currentQb);
+    scopeToConnection(currentQb, tenantProviderId, label);
 
-    const prevQb = this.buildPreviousWindowQuery(userId, agentName, tenantId, cutoff, prevCutoff)
+    const prevQb = this.buildPreviousWindowQuery(
+      tenantId,
+      agentName,
+      cutoff,
+      prevCutoff,
+      authType,
+      provider,
+      excludePlayground,
+      label,
+      tenantProviderId,
+    )
       .select('COUNT(*)', 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost');
@@ -93,6 +133,74 @@ export class AggregationService {
     };
   }
 
+  /**
+   * Raw totals for the window *before* the current one, used only to compute the
+   * trend arrows on the Overview summary cards. The Overview derives its
+   * current-window totals by summing the timeseries buckets it already fetches
+   * (see AggregationService.buildSummary), so it no longer needs the full
+   * current+previous double-scan that getSummaryMetrics runs for the per-agent /
+   * per-connection widgets.
+   */
+  async getPreviousWindowMetrics(
+    range: string,
+    tenantId: string | null,
+    agentName?: string,
+    excludePlayground = false,
+  ): Promise<{ tokens: number; cost: number; messages: number }> {
+    const { cutoff, prevCutoff } = this.computeWindow(range);
+    const safeCost = sqlSanitizeCost('at.cost_usd');
+    const prev = await this.buildPreviousWindowQuery(
+      tenantId,
+      agentName,
+      cutoff,
+      prevCutoff,
+      undefined,
+      undefined,
+      excludePlayground,
+    )
+      .select('COUNT(*)', 'msg_count')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+      .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
+      .getRawOne();
+    return {
+      tokens: Number(prev?.tokens ?? 0),
+      cost: Number(prev?.cost ?? 0),
+      messages: Number(prev?.msg_count ?? 0),
+    };
+  }
+
+  /**
+   * Assemble the Overview summary cards (value + trend vs the previous window)
+   * from already-computed current totals and previous-window totals. Pure (no
+   * DB) so the current totals can be sourced from the timeseries buckets.
+   */
+  static buildSummary(
+    current: { input: number; output: number; cost: number; messages: number },
+    previous: { tokens: number; cost: number; messages: number },
+  ): {
+    tokens: { tokens_today: MetricWithTrend; input_tokens: number; output_tokens: number };
+    cost: MetricWithTrend;
+    messages: MetricWithTrend;
+  } {
+    const curTokens = current.input + current.output;
+    return {
+      tokens: {
+        tokens_today: {
+          value: curTokens,
+          trend_pct: computeTrend(curTokens, previous.tokens),
+          sub_values: { input: current.input, output: current.output },
+        },
+        input_tokens: current.input,
+        output_tokens: current.output,
+      },
+      cost: { value: current.cost, trend_pct: computeTrend(current.cost, previous.cost) },
+      messages: {
+        value: current.messages,
+        trend_pct: computeTrend(current.messages, previous.messages),
+      },
+    };
+  }
+
   private computeWindow(range: string): RangeWindow {
     return {
       cutoff: computeCutoff(rangeToInterval(range)),
@@ -101,17 +209,25 @@ export class AggregationService {
   }
 
   private buildPreviousWindowQuery(
-    userId: string,
+    tenantId: string | null,
     agentName: string | undefined,
-    tenantId: string | undefined,
     cutoff: string,
     prevCutoff: string,
+    authType?: string,
+    provider?: string,
+    excludePlayground = false,
+    label?: string,
+    tenantProviderId?: string,
   ): SelectQueryBuilder<AgentMessage> {
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .where('at.timestamp >= :prevCutoff', { prevCutoff })
       .andWhere('at.timestamp < :cutoff', { cutoff });
-    addTenantFilter(qb, userId, agentName, tenantId);
+    addTenantFilter(qb, tenantId, agentName);
+    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
+    if (provider) qb.andWhere('at.provider = :provider', { provider });
+    if (excludePlayground) excludePlaygroundAgents(qb);
+    scopeToConnection(qb, tenantProviderId, label);
     return qb;
   }
 }

@@ -25,7 +25,6 @@ const BLOCK_RULE = {
   id: 'r1',
   tenant_id: TENANT,
   agent_name: AGENT,
-  user_id: 'u1',
   metric_type: 'tokens' as const,
   threshold: 50000,
   period: 'day' as const,
@@ -39,7 +38,7 @@ describe('LimitCheckService — edge cases', () => {
   let mockGetFullConfig: jest.Mock;
   let mockHasAlreadySent: jest.Mock;
   let mockInsertLog: jest.Mock;
-  let mockResolveUserEmail: jest.Mock;
+  let mockResolveRecipientEmail: jest.Mock;
   let ingestSubject: Subject<string>;
 
   beforeEach(() => {
@@ -72,11 +71,11 @@ describe('LimitCheckService — edge cases', () => {
 
     mockHasAlreadySent = jest.fn().mockResolvedValue(false);
     mockInsertLog = jest.fn().mockResolvedValue(undefined);
-    mockResolveUserEmail = jest.fn().mockResolvedValue(null);
+    mockResolveRecipientEmail = jest.fn().mockResolvedValue(null);
     const notificationLog = {
       hasAlreadySent: mockHasAlreadySent,
       insertLog: mockInsertLog,
-      resolveUserEmail: mockResolveUserEmail,
+      resolveRecipientEmail: mockResolveRecipientEmail,
     } as unknown as NotificationLogService;
 
     service = new LimitCheckService(
@@ -100,7 +99,7 @@ describe('LimitCheckService — edge cases', () => {
 
   describe('email notification on block — concurrency', () => {
     it('handles concurrent requests without crashing (race demonstrates dedup gap)', async () => {
-      mockResolveUserEmail.mockResolvedValue('test@example.com');
+      mockResolveRecipientEmail.mockResolvedValue('test@example.com');
 
       // Fire two concurrent checks before either has resolved insertLog.
       const [a, b] = await Promise.all([
@@ -124,7 +123,7 @@ describe('LimitCheckService — edge cases', () => {
     });
 
     it('subsequent invocation after committed log is deduped', async () => {
-      mockResolveUserEmail.mockResolvedValue('test@example.com');
+      mockResolveRecipientEmail.mockResolvedValue('test@example.com');
 
       await service.checkLimits(TENANT, AGENT);
       await new Promise((r) => setTimeout(r, 50));
@@ -147,7 +146,7 @@ describe('LimitCheckService — edge cases', () => {
       // Silence the error logger so the test output stays clean.
       const loggerSpy = jest.spyOn(service['logger'], 'error').mockImplementation(() => undefined);
 
-      mockResolveUserEmail.mockResolvedValue('test@example.com');
+      mockResolveRecipientEmail.mockResolvedValue('test@example.com');
 
       // First call: insertLog fails.
       mockInsertLog.mockRejectedValueOnce(new Error('DB connection lost'));
@@ -191,7 +190,7 @@ describe('LimitCheckService — edge cases', () => {
         notificationEmail: null,
       });
       // User row exists but has no email either.
-      mockResolveUserEmail.mockResolvedValue(null);
+      mockResolveRecipientEmail.mockResolvedValue(null);
 
       const result = await service.checkLimits(TENANT, AGENT);
       await new Promise((r) => setTimeout(r, 50));
@@ -216,7 +215,7 @@ describe('LimitCheckService — edge cases', () => {
 
       // resolveUserEmail was invoked with the null override, exercising the
       // full fallback path inside notification-log.service.
-      expect(mockResolveUserEmail).toHaveBeenCalledWith('u1', null);
+      expect(mockResolveRecipientEmail).toHaveBeenCalledWith(TENANT, null);
     });
   });
 
@@ -225,7 +224,7 @@ describe('LimitCheckService — edge cases', () => {
   describe('numeric edge cases for consumption / threshold comparison', () => {
     it('handles MAX_SAFE_INTEGER consumption against finite threshold', async () => {
       mockGetConsumption.mockResolvedValue(Number.MAX_SAFE_INTEGER);
-      mockResolveUserEmail.mockResolvedValue('test@example.com');
+      mockResolveRecipientEmail.mockResolvedValue('test@example.com');
 
       const result = await service.checkLimits(TENANT, AGENT);
 
@@ -239,7 +238,7 @@ describe('LimitCheckService — edge cases', () => {
     it('handles 999_999_999 tokens without precision loss', async () => {
       mockGetActiveBlockRules.mockResolvedValue([{ ...BLOCK_RULE, threshold: 999_999_999 }]);
       mockGetConsumption.mockResolvedValue(999_999_999);
-      mockResolveUserEmail.mockResolvedValue('test@example.com');
+      mockResolveRecipientEmail.mockResolvedValue('test@example.com');
 
       const result = await service.checkLimits(TENANT, AGENT);
       await new Promise((r) => setTimeout(r, 50));
@@ -266,7 +265,7 @@ describe('LimitCheckService — edge cases', () => {
       };
       mockGetActiveBlockRules.mockResolvedValue([costRule]);
       mockGetConsumption.mockResolvedValue(999_999.99);
-      mockResolveUserEmail.mockResolvedValue('test@example.com');
+      mockResolveRecipientEmail.mockResolvedValue('test@example.com');
 
       const result = await service.checkLimits(TENANT, AGENT);
 

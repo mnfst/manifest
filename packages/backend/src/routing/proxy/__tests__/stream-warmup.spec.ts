@@ -1,4 +1,4 @@
-import { peekStream, WarmupResult } from '../stream-warmup';
+import { DEFAULT_STREAM_WARMUP_MS, parseStreamWarmupMs, peekStream } from '../stream-warmup';
 
 function makeStream(chunks: Uint8Array[], delayMs = 0): ReadableStream<Uint8Array> {
   let i = 0;
@@ -60,6 +60,35 @@ async function collectStream(stream: ReadableStream<Uint8Array>): Promise<string
 }
 
 describe('peekStream', () => {
+  describe('timeout config', () => {
+    it('defaults to 15000 ms when env var is unset', () => {
+      expect(parseStreamWarmupMs(undefined)).toBe(DEFAULT_STREAM_WARMUP_MS);
+    });
+
+    it('uses the configured value when env var is a positive integer', () => {
+      expect(parseStreamWarmupMs('45000')).toBe(45_000);
+    });
+
+    it('falls back to 15000 ms when env var is non-numeric', () => {
+      expect(parseStreamWarmupMs('abc')).toBe(DEFAULT_STREAM_WARMUP_MS);
+    });
+
+    it.each(['45000abc', '45000.5', '45_000', ' 45000'])(
+      'falls back to 15000 ms when env var is not digits-only: %s',
+      (rawValue) => {
+        expect(parseStreamWarmupMs(rawValue)).toBe(DEFAULT_STREAM_WARMUP_MS);
+      },
+    );
+
+    it('falls back to 15000 ms when env var is negative', () => {
+      expect(parseStreamWarmupMs('-1')).toBe(DEFAULT_STREAM_WARMUP_MS);
+    });
+
+    it('falls back to 15000 ms when env var is zero', () => {
+      expect(parseStreamWarmupMs('0')).toBe(DEFAULT_STREAM_WARMUP_MS);
+    });
+  });
+
   it('returns success and preserves data for a healthy stream', async () => {
     const data = new TextEncoder().encode('data: {"content":"hello"}\n\n');
     const stream = makeStream([data, new TextEncoder().encode('data: [DONE]\n\n')]);
@@ -127,6 +156,18 @@ describe('peekStream', () => {
     if (result.ok) {
       const text = await collectStream(result.stream);
       expect(text).toBe('only-chunk');
+    }
+  });
+
+  it('cancels the source reader when the returned stream is cancelled', async () => {
+    const data = new TextEncoder().encode('chunk');
+    const source = makeStream([data]);
+
+    const result = await peekStream(source, 5000);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      await expect(result.stream.cancel()).resolves.toBeUndefined();
     }
   });
 

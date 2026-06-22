@@ -5,6 +5,7 @@ import {
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
+  getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
 } from '../src/subscription';
 
@@ -16,6 +17,7 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
         'byteplus',
         'openai',
         'minimax',
+        'xiaomi',
         'qwen',
         'moonshot',
         'copilot',
@@ -91,6 +93,25 @@ describe('getSubscriptionProviderConfig', () => {
     expect(config).toMatchObject({
       subscriptionAuthMode: 'device_code',
     });
+  });
+
+  it('returns config for Xiaomi MiMo Token Plan', () => {
+    const config = getSubscriptionProviderConfig('xiaomi');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Xiaomi MiMo Token Plan',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your MiMo Token Plan API key',
+      subscriptionTokenPrefix: 'tp-',
+      knownModelsMatch: 'exact',
+    });
+    expect(config?.knownModels).toEqual([
+      'mimo-v2.5-pro',
+      'mimo-v2-pro',
+      'mimo-v2.5',
+      'mimo-v2-omni',
+      'mimo-v2-flash',
+    ]);
   });
 
   it('returns config for Qwen Token Plan', () => {
@@ -222,6 +243,11 @@ describe('getSubscriptionProviderConfig', () => {
     expect(getSubscriptionProviderConfig('OpenAI')).not.toBeNull();
   });
 
+  it('resolves provider aliases to subscription configs', () => {
+    expect(getSubscriptionProviderConfig('google')).toBe(getSubscriptionProviderConfig('gemini'));
+    expect(getSubscriptionProviderConfig('Google')).toBe(getSubscriptionProviderConfig('gemini'));
+  });
+
   it('returns null for unsupported providers', () => {
     expect(getSubscriptionProviderConfig('unknown')).toBeNull();
   });
@@ -237,6 +263,7 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('byteplus')).toBe(true);
     expect(supportsSubscriptionProvider('openai')).toBe(true);
     expect(supportsSubscriptionProvider('minimax')).toBe(true);
+    expect(supportsSubscriptionProvider('xiaomi')).toBe(true);
     expect(supportsSubscriptionProvider('qwen')).toBe(true);
     expect(supportsSubscriptionProvider('moonshot')).toBe(true);
     expect(supportsSubscriptionProvider('copilot')).toBe(true);
@@ -246,6 +273,11 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('opencode-go')).toBe(true);
     expect(supportsSubscriptionProvider('gemini')).toBe(true);
     expect(supportsSubscriptionProvider('xai')).toBe(true);
+  });
+
+  it('returns true for aliases of supported providers', () => {
+    expect(supportsSubscriptionProvider('google')).toBe(true);
+    expect(supportsSubscriptionProvider('Google')).toBe(true);
   });
 
   it('returns false for unsupported providers', () => {
@@ -258,6 +290,7 @@ describe('supportsSubscriptionProvider', () => {
 describe('getSubscriptionKnownModels', () => {
   it('returns known models for anthropic', () => {
     const models = getSubscriptionKnownModels('anthropic');
+    expect(models).toContain('claude-fable-5');
     expect(models).toContain('claude-opus-4');
     expect(models).toContain('claude-sonnet-4');
   });
@@ -284,6 +317,17 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('MiniMax-M2.7');
     expect(models).toContain('MiniMax-M2.7-highspeed');
     expect(models).toContain('MiniMax-M2.5');
+  });
+
+  it('returns known models for Xiaomi MiMo Token Plan', () => {
+    const models = getSubscriptionKnownModels('xiaomi');
+    expect(models).toEqual([
+      'mimo-v2.5-pro',
+      'mimo-v2-pro',
+      'mimo-v2.5',
+      'mimo-v2-omni',
+      'mimo-v2-flash',
+    ]);
   });
 
   it('returns null known models for Qwen Token Plan (relies on live /v1/models discovery)', () => {
@@ -336,8 +380,8 @@ describe('getSubscriptionKnownModelsMatch', () => {
     expect(getSubscriptionKnownModelsMatch('anthropic')).toBe('prefix');
   });
 
-  it('returns prefix for openai (no override)', () => {
-    expect(getSubscriptionKnownModelsMatch('openai')).toBe('prefix');
+  it('returns exact for openai', () => {
+    expect(getSubscriptionKnownModelsMatch('openai')).toBe('exact');
   });
 
   it('returns exact for gemini', () => {
@@ -354,6 +398,10 @@ describe('getSubscriptionKnownModelsMatch', () => {
     expect(getSubscriptionKnownModelsMatch('moonshot')).toBe('exact');
   });
 
+  it('returns exact for Xiaomi MiMo Token Plan', () => {
+    expect(getSubscriptionKnownModelsMatch('xiaomi')).toBe('exact');
+  });
+
   it('returns prefix for Qwen Token Plan (no hardcoded known-model matching)', () => {
     expect(getSubscriptionKnownModelsMatch('qwen')).toBe('prefix');
   });
@@ -365,6 +413,20 @@ describe('getSubscriptionKnownModelsMatch', () => {
   it('is case-insensitive', () => {
     expect(getSubscriptionKnownModelsMatch('GEMINI')).toBe('exact');
     expect(getSubscriptionKnownModelsMatch('Anthropic')).toBe('prefix');
+  });
+});
+
+describe('getSubscriptionExcludedModels', () => {
+  it('returns the -fast exclusion for anthropic', () => {
+    expect(getSubscriptionExcludedModels('anthropic')).toEqual(['-fast']);
+  });
+
+  it('returns an empty array for providers with no exclusion configured', () => {
+    expect(getSubscriptionExcludedModels('gemini')).toEqual([]);
+  });
+
+  it('returns an empty array for unknown providers', () => {
+    expect(getSubscriptionExcludedModels('unknown')).toEqual([]);
   });
 });
 
@@ -428,6 +490,15 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('qwen');
     expect(caps).toMatchObject({
       maxContextWindow: 991000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for Xiaomi MiMo Token Plan', () => {
+    const caps = getSubscriptionCapabilities('xiaomi');
+    expect(caps).toMatchObject({
+      maxContextWindow: 1048576,
       supportsPromptCaching: false,
       supportsBatching: false,
     });

@@ -24,6 +24,71 @@ describe('ChatGPT Adapter – transformResponsesStreamChunk', () => {
     expect(result).toContain('data: [DONE]');
   });
 
+  it('converts response.failed to a terminal error event', () => {
+    const chunk =
+      'event: response.failed\ndata: {"response":{"error":{"code":"rate_limit_exceeded","message":"Too many requests"}}}';
+    const result = transformResponsesStreamChunk(chunk, 'gpt-5');
+
+    expect(result).not.toBeNull();
+    expect(result).toContain('data: [DONE]');
+    const errorLine = result!.split('\n').find((line) => line.startsWith('data: {'));
+    const json = JSON.parse(errorLine!.replace('data: ', ''));
+    expect(json.error).toEqual({
+      message: 'Too many requests',
+      type: 'upstream_error',
+      status: 429,
+      code: 'rate_limit_exceeded',
+    });
+  });
+
+  it('converts Responses error events to terminal error events', () => {
+    const chunk =
+      'event: error\ndata: {"error":{"type":"invalid_request_error","message":"Model unavailable"}}';
+    const result = transformResponsesStreamChunk(chunk, 'gpt-5');
+
+    expect(result).not.toBeNull();
+    expect(result).toContain('data: [DONE]');
+    const errorLine = result!.split('\n').find((line) => line.startsWith('data: {'));
+    const json = JSON.parse(errorLine!.replace('data: ', ''));
+    expect(json.error).toEqual({
+      message: 'Model unavailable',
+      type: 'invalid_request_error',
+      status: 400,
+    });
+  });
+
+  it('converts response.incomplete (max_output_tokens) to a length finish chunk', () => {
+    const chunk =
+      'event: response.incomplete\ndata: {"response":{"incomplete_details":{"reason":"max_output_tokens"},"usage":{"input_tokens":10,"output_tokens":4,"total_tokens":14}}}';
+    const result = transformResponsesStreamChunk(chunk, 'gpt-5');
+
+    expect(result).not.toBeNull();
+    expect(result).toContain('data: [DONE]');
+    const finishLine = result!.split('\n').find((line) => line.startsWith('data: {'));
+    const json = JSON.parse(finishLine!.replace('data: ', ''));
+    expect(json.choices[0].finish_reason).toBe('length');
+    expect(json.usage).toEqual({
+      prompt_tokens: 10,
+      completion_tokens: 4,
+      total_tokens: 14,
+      cache_read_tokens: 0,
+      cache_creation_tokens: 0,
+    });
+  });
+
+  it('converts response.incomplete (content_filter) to a content_filter finish chunk', () => {
+    const chunk =
+      'event: response.incomplete\ndata: {"response":{"incomplete_details":{"reason":"content_filter"}}}';
+    const result = transformResponsesStreamChunk(chunk, 'gpt-5');
+
+    expect(result).not.toBeNull();
+    expect(result).toContain('data: [DONE]');
+    const finishLine = result!.split('\n').find((line) => line.startsWith('data: {'));
+    const json = JSON.parse(finishLine!.replace('data: ', ''));
+    expect(json.choices[0].finish_reason).toBe('content_filter');
+    expect(json.usage).toBeUndefined();
+  });
+
   it('extracts usage from response.completed event', () => {
     const data = JSON.stringify({
       response: {

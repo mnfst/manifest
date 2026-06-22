@@ -5,9 +5,12 @@ import {
   CODEX_CLI_USER_AGENT,
   COPILOT_EDITOR_VERSION,
   COPILOT_PLUGIN_VERSION,
+  buildClaudeCodeSubscriptionHeaders,
 } from '../../common/constants/subscription-clients';
 import { normalizeProviderBaseUrl } from '../provider-base-url';
+import { getBedrockMantleBaseUrl } from '../bedrock-region';
 import { getQwenCompatibleBaseUrl } from '../qwen-region';
+import { getXiaomiTokenPlanBaseUrl } from '../xiaomi-region';
 import { getZaiCodingPlanBaseUrl } from '../zai-region';
 import { buildKiroHeaders, KIRO_BASE_URL, KIRO_CHAT_TARGET } from './kiro-adapter';
 
@@ -64,16 +67,15 @@ const openaiHeaders = (apiKey: string) => ({
 const openaiPath = () => '/v1/chat/completions';
 
 const anthropicHeaders = (apiKey: string, authType?: string): Record<string, string> => {
+  if (authType === 'subscription') {
+    return buildClaudeCodeSubscriptionHeaders(apiKey);
+  }
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'anthropic-version': '2023-06-01',
   };
-  if (authType === 'subscription') {
-    headers['Authorization'] = `Bearer ${apiKey}`;
-    headers['anthropic-beta'] = 'oauth-2025-04-20';
-  } else {
-    headers['x-api-key'] = apiKey;
-  }
+  headers['x-api-key'] = apiKey;
   return headers;
 };
 
@@ -102,6 +104,8 @@ const BYTEPLUS_CODING_BASE = 'https://ark.ap-southeast.bytepluses.com/api/coding
 const COMMAND_CODE_PROVIDER_BASE = 'https://api.commandcode.ai/provider';
 const KIMI_CODING_SUBSCRIPTION_BASE = 'https://api.kimi.com/coding';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
+const XIAOMI_MIMO_BASE = 'https://api.xiaomimimo.com';
+const XIAOMI_TOKEN_PLAN_BASE = getXiaomiTokenPlanBaseUrl();
 const QWEN_TOKEN_PLAN_BASE = 'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode';
 const ZAI_SUBSCRIPTION_BASE = getZaiCodingPlanBaseUrl('global');
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
@@ -143,6 +147,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: anthropicHeaders,
     buildPath: () => '/v1/messages',
     format: 'anthropic',
+  },
+  bedrock: {
+    baseUrl: getBedrockMantleBaseUrl(),
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
   },
   deepseek: {
     baseUrl: 'https://api.deepseek.com',
@@ -231,6 +242,20 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: anthropicBearerHeaders,
     buildPath: () => '/v1/messages',
     format: 'anthropic',
+  },
+  xiaomi: {
+    baseUrl: XIAOMI_MIMO_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  'xiaomi-subscription': {
+    baseUrl: XIAOMI_TOKEN_PLAN_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
   },
   moonshot: {
     baseUrl: 'https://api.moonshot.ai',

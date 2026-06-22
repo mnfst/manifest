@@ -131,7 +131,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
       setError(
         err instanceof Error
           ? err.message
-          : 'Failed to exchange code. The code may have expired — sign in again to retry.',
+          : 'Failed to exchange code. The code may have expired. Sign in again to retry.',
       );
     } finally {
       props.setBusy(false);
@@ -215,7 +215,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
       <Show when={showConnectFlow()}>
         <div class="anthropic-detail__primary">
           <p class="provider-detail__hint">
-            Sign in with your Claude Pro or Max account — Manifest will route through your
+            Sign in with your Claude Pro or Max account. Manifest will route through your
             subscription with auto-refreshing tokens.
           </p>
           <button
