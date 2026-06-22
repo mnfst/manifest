@@ -1,4 +1,4 @@
-import { createSignal, For, Show, type Component } from 'solid-js';
+import { createSignal, createMemo, For, Show, type Component } from 'solid-js';
 import {
   refreshProviderModels,
   type AuthType,
@@ -145,23 +145,28 @@ const ModelPickerModal: Component<Props> = (props) => {
     }
   };
 
-  const providerLabelMap = (): Map<string, string> => {
+  // PROVIDERS is a module constant, so these maps never change once built —
+  // memoize them so they're computed once instead of being rebuilt on every
+  // groupedModels() recompute (e.g. on every search keystroke).
+  const providerLabelMap = createMemo((): Map<string, string> => {
     const map = new Map<string, string>();
     for (const prov of PROVIDERS) {
       for (const m of prov.models) map.set(m.value, m.label);
     }
     return map;
-  };
+  });
 
-  const providerIdSet = (): Set<string> => new Set(PROVIDERS.map((p) => p.id.toLowerCase()));
+  const providerIdSet = createMemo(
+    (): Set<string> => new Set(PROVIDERS.map((p) => p.id.toLowerCase())),
+  );
 
-  const customProviderNameMap = (): Map<string, string> => {
+  const customProviderNameMap = createMemo((): Map<string, string> => {
     const map = new Map<string, string>();
     for (const cp of props.customProviders ?? []) {
       map.set(`custom:${cp.id}`, cp.name);
     }
     return map;
-  };
+  });
 
   /** Provider IDs that have an active connection of the given auth type. */
   const providerIdsForTab = (authType: AuthType): Set<string> => {
@@ -176,7 +181,12 @@ const ModelPickerModal: Component<Props> = (props) => {
     return ids;
   };
 
-  const groupedModels = () => {
+  // Grouping/filtering/sorting every model is read from three separate JSX
+  // sites (the list, the empty-state, and the count). As a plain function each
+  // read re-ran the full pass; memoizing collapses them into one computation
+  // that only re-derives when an actual dependency (search, tab, models, …)
+  // changes.
+  const groupedModels = createMemo(() => {
     const q = search().toLowerCase().trim();
     const labels = providerLabelMap();
     const providerIds = providerIdSet();
@@ -266,7 +276,7 @@ const ModelPickerModal: Component<Props> = (props) => {
     }
     groups.sort((a, b) => a.name.localeCompare(b.name));
     return groups;
-  };
+  });
 
   /** Returns the role of a model in the current tier: "Primary", "Fallback 1", etc. or null */
   const modelRole = (

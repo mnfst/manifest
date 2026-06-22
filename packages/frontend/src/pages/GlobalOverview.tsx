@@ -576,9 +576,13 @@ const GlobalOverview: Component = () => {
 
         {/* ── 3. Summary Stat Cards (4 columns) ────────────────────── */}
         {(() => {
-          const subs = () => providerList().filter((g) => g.auth_type === 'subscription');
-          const byok = () => providerList().filter((g) => g.auth_type === 'api_key');
-          const local = () => providerList().filter((g) => g.auth_type === 'local');
+          // Each list is read twice below (count + preview row); memoize so the
+          // provider list is filtered once per change instead of on every read.
+          const subs = createMemo(() =>
+            providerList().filter((g) => g.auth_type === 'subscription'),
+          );
+          const byok = createMemo(() => providerList().filter((g) => g.auth_type === 'api_key'));
+          const local = createMemo(() => providerList().filter((g) => g.auth_type === 'local'));
           const totalConns = (list: ProviderGroup[]) =>
             list.reduce((s, g) => s + g.connections.length, 0);
           const connList = (groups: ProviderGroup[]) => {
