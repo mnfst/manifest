@@ -12,7 +12,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json --runInBand",
     "lint": "eslint src/",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/database/datasource.ts",
-    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/datasource.ts",
+    "migration:run": "ts-node -T src/database/migrate.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/datasource.ts",
     "migration:show": "typeorm-ts-node-commonjs migration:show -d src/database/datasource.ts",
     "migration:create": "typeorm-ts-node-commonjs migration:create",
@@ -85,6 +85,7 @@
       "!main.ts",
       "!**/database/migrations/**",
       "!**/database/datasource.ts",
+      "!**/database/migrate.ts",
       "!**/*.module.ts",
       "!**/otlp/interfaces/index.ts",
       "!**/otlp/proto/**"
