@@ -837,7 +837,11 @@ describe('Routing page', () => {
   });
 
   it('updates the default response mode for the default tier', async () => {
+    // Ensure legacy path (tabbed view) by providing a non-default tier override
     mockGetComplexityStatus.mockResolvedValue({ enabled: false });
+    mockGetTierAssignments.mockResolvedValue([
+      { tier: 'simple', override_route: { model: 'm', provider: 'p' } },
+    ]);
     render(() => <Routing />);
     await waitFor(() => {
       expect(screen.getByTestId('default-response-stream')).toBeDefined();
@@ -851,6 +855,9 @@ describe('Routing page', () => {
 
   it('shows buffered copy when default response mode is set back to buffered', async () => {
     mockGetComplexityStatus.mockResolvedValue({ enabled: false });
+    mockGetTierAssignments.mockResolvedValue([
+      { tier: 'simple', override_route: { model: 'm', provider: 'p' } },
+    ]);
     render(() => <Routing />);
     await waitFor(() => {
       expect(screen.getByTestId('default-response-buffered')).toBeDefined();
@@ -864,6 +871,9 @@ describe('Routing page', () => {
 
   it('toasts the API error when default response mode update fails', async () => {
     mockGetComplexityStatus.mockResolvedValue({ enabled: false });
+    mockGetTierAssignments.mockResolvedValue([
+      { tier: 'simple', override_route: { model: 'm', provider: 'p' } },
+    ]);
     mockSetTierResponseMode.mockRejectedValue(new Error('response boom'));
     render(() => <Routing />);
     await waitFor(() => {
@@ -877,6 +887,9 @@ describe('Routing page', () => {
 
   it('inherits streaming mode when complexity routing is enabled from a streamed default tier', async () => {
     mockGetComplexityStatus.mockResolvedValue({ enabled: false });
+    mockGetTierAssignments.mockResolvedValue([
+      { tier: 'simple', override_route: { model: 'm', provider: 'p' } },
+    ]);
     mockToggleComplexity.mockResolvedValue({ enabled: true });
     mockActionGetTier.mockImplementation((tier: string) =>
       tier === 'default' ? { tier: 'default', response_mode: 'stream' } : undefined,

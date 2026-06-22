@@ -192,14 +192,49 @@
   margin: 0 auto;
 }
 
+.routing-cards--unified-compact {
+  grid-template-columns: repeat(2, minmax(280px, 340px));
+  justify-content: center;
+}
+
 .routing-cards-backdrop {
   padding: 16px;
   background: hsl(var(--muted) / 0.45);
   border-radius: var(--radius);
 }
 
+/* ── Dashed add-card for unified routing view ────────── */
+.routing-card.routing-unified-add-card {
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.5px dashed hsl(var(--border));
+  background: transparent;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+}
+
+.dark .routing-card.routing-unified-add-card {
+  background: transparent;
+}
+
+.routing-card.routing-unified-add-card:hover {
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.04);
+}
+
 @media (max-width: 700px) {
-  .routing-cards--centered {
+  .routing-cards--centered,
+  .routing-cards--unified-compact {
+    grid-template-columns: 1fr;
     max-width: 100%;
     min-width: 0;
   }

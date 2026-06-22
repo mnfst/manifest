@@ -43,6 +43,28 @@ export interface RoutingHeaderTiersSectionProps {
   externalRefetch?: () => void;
   externalMutate?: (mutator: (prev: HeaderTier[] | undefined) => HeaderTier[] | undefined) => void;
   embedded?: boolean;
+  /**
+   * When true, the section renders only its modals (manage, create/edit,
+   * snippet) without the card grid or header. The parent is responsible for
+   * rendering the cards and triggering modal opens via the `onOpenRef`
+   * callback. Used by the unified routing view for clean agents.
+   */
+  headless?: boolean;
+  /**
+   * Called once with an opener function the parent can use to trigger the
+   * manage-or-create modal. Only meaningful when `headless` is true.
+   */
+  onOpenRef?: (opener: () => void) => void;
+  /**
+   * Called once with a function to open the create modal directly.
+   * Only meaningful when `headless` is true.
+   */
+  onCreateRef?: (opener: () => void) => void;
+  /**
+   * Called once with a function to open the edit modal for a specific tier.
+   * Only meaningful when `headless` is true.
+   */
+  onEditRef?: (opener: (tier: HeaderTier) => void) => void;
   getModelParams?: (
     scope: string,
     provider: string,
@@ -171,6 +193,11 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
       setModalTier('new');
     }
   };
+
+  // Expose openers to the parent for headless mode.
+  if (props.onOpenRef) props.onOpenRef(openCreateOrManage);
+  if (props.onCreateRef) props.onCreateRef(() => setModalTier('new'));
+  if (props.onEditRef) props.onEditRef((tier) => setModalTier(tier));
 
   const handleDeleteFromEdit = async (id: string) => {
     await handleDelete(id);
@@ -366,6 +393,149 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
       </Show>
     </>
   );
+
+  if (props.headless) {
+    // Headless mode: render only the modals, no cards or header.
+    // The parent renders cards and triggers openCreateOrManage via onOpenRef.
+    return (
+      <>
+        {/* ── Manage custom routing modal ──────────────────── */}
+        <Show when={manageOpen()}>
+          <div
+            class="modal-overlay"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setManageOpen(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setManageOpen(false);
+            }}
+          >
+            <div
+              class="modal-card header-tier-manage-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="manage-tiers-title"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 id="manage-tiers-title" class="specificity-modal__title">
+                Manage custom routing
+              </h2>
+              <p class="specificity-modal__desc">
+                Toggle tiers on or off. Create new tiers or edit them directly on their card.
+              </p>
+              <div class="specificity-modal__list">
+                <For each={tiers()}>
+                  {(tier) => {
+                    const loading = () => toggling() === tier.id;
+                    const toggle = () => {
+                      if (!loading()) handleToggle(tier.id, !tier.enabled);
+                    };
+                    return (
+                      <div
+                        class="specificity-modal__row"
+                        role="button"
+                        tabIndex={0}
+                        aria-pressed={tier.enabled}
+                        style="cursor: pointer;"
+                        onClick={toggle}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggle();
+                          }
+                        }}
+                      >
+                        <div class="specificity-modal__info">
+                          <span class="specificity-modal__name">{tier.name}</span>
+                          <span class="specificity-modal__stage-desc">
+                            {tier.header_key}: {tier.header_value}
+                          </span>
+                        </div>
+                        <span
+                          class="specificity-modal__toggle"
+                          classList={{
+                            'specificity-modal__toggle--on': tier.enabled,
+                          }}
+                          aria-hidden="true"
+                        >
+                          <Show
+                            when={loading()}
+                            fallback={<span class="specificity-modal__toggle-thumb" />}
+                          >
+                            <span class="specificity-modal__toggle-thumb">
+                              <span class="spinner" style="width: 10px; height: 10px;" />
+                            </span>
+                          </Show>
+                        </span>
+                      </div>
+                    );
+                  }}
+                </For>
+              </div>
+              <div class="header-tier-manage__footer">
+                <button
+                  type="button"
+                  class="btn btn--outline header-tier-manage__create-btn"
+                  onClick={() => {
+                    setManageOpen(false);
+                    setModalTier('new');
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="m21,4h-1v-1c0-.55-.45-1-1-1s-1,.45-1,1v1h-1c-.55,0-1,.45-1,1s.45,1,1,1h1v1c0,.55.45,1,1,1s1-.45,1-1v-1h1c.55,0,1-.45,1-1s-.45-1-1-1Z" />
+                    <path d="m3.24,16.5c0,.76.42,1.45,1.11,1.79l5.87,2.93c.56.28,1.18.42,1.79.42s1.23-.14,1.79-.42l5.87-2.93c.68-.34,1.11-1.03,1.11-1.79s-.42-1.45-1.11-1.79l-.42-.21.42-.21c.68-.34,1.11-1.03,1.11-1.79,0-.76-.42-1.45-1.11-1.79l-5.87-2.93c-1.12-.56-2.46-.56-3.58,0l-5.87,2.93c-.68.34-1.11,1.03-1.11,1.79,0,.76.42,1.45,1.11,1.79l.42.21-.42.21c-.68.34-1.11,1.03-1.11,1.79Zm2-4l5.87-2.93c.28-.14.59-.21.89-.21s.61.07.89.21l5.88,2.93-5.88,2.94c-.56.28-1.23.28-1.79,0l-4.11-2.05-1.76-.88Zm4.97,4.72c1.12.56,2.46.56,3.58,0l3.21-1.61,1.77.88-5.88,2.94c-.56.28-1.23.28-1.79,0l-5.87-2.93,1.76-.88,3.21,1.61Z" />
+                  </svg>
+                  Create new tier
+                </button>
+                <button class="btn btn--primary" onClick={() => setManageOpen(false)}>
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </Show>
+
+        {/* ── Create / Edit modal ────────────────────────── */}
+        <Show when={modalTier()} keyed>
+          {(state) => (
+            <Suspense fallback={null}>
+              <HeaderTierModal
+                agentName={props.agentName()}
+                existingTiers={tiers()}
+                editing={state === 'new' ? undefined : state}
+                models={props.models()}
+                onClose={() => setModalTier(null)}
+                onSaved={(saved) => {
+                  const wasCreate = state === 'new';
+                  setModalTier(null);
+                  refetch();
+                  if (wasCreate) setSnippetTier(saved);
+                }}
+                onDelete={state !== 'new' ? handleDeleteFromEdit : undefined}
+              />
+            </Suspense>
+          )}
+        </Show>
+
+        <Show when={snippetTier()} keyed>
+          {(t) => (
+            <HeaderTierSnippetModal
+              agentName={props.agentName()}
+              tier={t}
+              onClose={() => setSnippetTier(null)}
+            />
+          )}
+        </Show>
+      </>
+    );
+  }
 
   if (props.embedded) {
     return (
