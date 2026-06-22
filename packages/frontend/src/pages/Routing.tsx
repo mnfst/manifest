@@ -110,6 +110,26 @@ const Routing: Component = () => {
   const [changingSpecificityResponseMode, setChangingSpecificityResponseMode] = createSignal(false);
   const complexityEnabled = () => complexityStatus()?.enabled ?? true;
 
+  // ── Routing deprecation gate ──────────────────────────────────────────────
+  // Complexity and task-specific routing are being retired. We hide both from
+  // agents that never configured them (the "clean" cohort) while keeping them
+  // fully visible for agents that already invested in them (the "legacy"
+  // cohort). The gate keys off config-presence — not signup date — so long-time
+  // users who never touched these features also get the simplified surface.
+  // Visibility is sticky within a session: once shown it stays shown, so
+  // toggling complexity off mid-session doesn't yank the control away.
+  const [legacyComplexityVisible, setLegacyComplexityVisible] = createSignal(false);
+  const [legacySpecificityVisible, setLegacySpecificityVisible] = createSignal(false);
+  createEffect(() => {
+    const hasComplexityConfig =
+      (complexityStatus()?.enabled ?? false) ||
+      (tiers()?.some((t) => t.tier !== 'default' && t.override_route !== null) ?? false);
+    if (hasComplexityConfig && !legacyComplexityVisible()) setLegacyComplexityVisible(true);
+    const hasSpecificityConfig =
+      specificityAssignments()?.some((a) => a.is_active || a.override_route !== null) ?? false;
+    if (hasSpecificityConfig && !legacySpecificityVisible()) setLegacySpecificityVisible(true);
+  });
+
   // Per-route model params, fetched once and threaded down. Scope separates
   // default/complexity tiers, task-specific tiers, and custom header tiers so
   // the same model can have different values in different routing surfaces.
@@ -523,6 +543,7 @@ const Routing: Component = () => {
           <RoutingTabs
             specificityEnabled={hasAnySpecificityActive}
             customEnabled={hasCustomTiersEnabled}
+            showSpecificity={legacySpecificityVisible}
             pipelineHelp={() =>
               buildPipelineHelp(
                 hasAnySpecificityActive(),
@@ -556,6 +577,7 @@ const Routing: Component = () => {
                   complexityEnabled={complexityEnabled}
                   togglingComplexity={togglingComplexity}
                   onToggleComplexity={handleToggleComplexity}
+                  showComplexityToggle={legacyComplexityVisible}
                   responseMode={defaultResponseMode}
                   changingResponseMode={changingDefaultResponseMode}
                   onResponseModeChange={handleDefaultResponseModeChange}

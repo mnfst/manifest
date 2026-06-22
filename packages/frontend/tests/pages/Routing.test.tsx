@@ -138,6 +138,7 @@ vi.mock('../../src/components/RoutingTabs.js', () => ({
     const _read = [
       props.specificityEnabled,
       props.customEnabled,
+      props.showSpecificity,
       (props.pipelineHelp as () => unknown)?.(),
     ];
     void _read;
@@ -331,6 +332,7 @@ vi.mock('../../src/pages/RoutingDefaultTierSection.js', () => ({
       props.getTier,
       props.complexityEnabled,
       props.togglingComplexity,
+      props.showComplexityToggle,
       props.responseMode,
       props.changingResponseMode,
       props.onResponseModeChange,
@@ -800,6 +802,37 @@ describe('Routing page', () => {
     fireEvent.click(screen.getByTestId('toggle-complexity'));
     await waitFor(() => {
       expect(mockToastError).toHaveBeenCalledWith('Failed to toggle complexity routing');
+    });
+  });
+
+  it('reveals complexity controls when a non-default tier has an override even with complexity disabled', async () => {
+    // Exercises the deprecation gate: complexity is OFF, but a configured
+    // (non-default) tier override marks the agent as "legacy", so the complexity
+    // surface stays visible.
+    mockGetComplexityStatus.mockResolvedValue({ enabled: false });
+    mockGetTierAssignments.mockResolvedValue([
+      {
+        id: 't0',
+        agent_id: 'a',
+        tier: 'default',
+        override_route: null,
+        auto_assigned_route: null,
+        fallback_routes: null,
+        updated_at: '2025-01-01',
+      },
+      {
+        id: 't1',
+        agent_id: 'a',
+        tier: 'simple',
+        override_route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+        auto_assigned_route: null,
+        fallback_routes: null,
+        updated_at: '2025-01-01',
+      },
+    ]);
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId('default-section')).toBeDefined();
     });
   });
 
