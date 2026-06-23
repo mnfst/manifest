@@ -561,4 +561,63 @@ describe('RoutingHeaderTiersSection', () => {
       expect(mockToggleHeaderTier).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('headless mode', () => {
+    it('renders only the modals (no header/cards) and exposes an opener that opens manage', async () => {
+      let opener: (() => void) | undefined;
+      const { container } = render(() => (
+        <RoutingHeaderTiersSection
+          {...makeProps({
+            externalTiers: () => [tier1, tier2],
+            headless: true,
+            onOpenRef: (open) => {
+              opener = open;
+            },
+          })}
+        />
+      ));
+      // Headless mode renders neither the section title nor the card grid.
+      expect(screen.queryByText('Custom routing')).toBeNull();
+      expect(container.querySelector('.header-tier-list')).toBeNull();
+      // The captured opener drives the manage modal (tiers exist).
+      opener?.();
+      await waitFor(() => {
+        expect(container.querySelector('.header-tier-manage-modal')).not.toBeNull();
+      });
+    });
+
+    it('opens the create modal via the onCreateRef opener', async () => {
+      let createOpener: (() => void) | undefined;
+      const { findByTestId } = render(() => (
+        <RoutingHeaderTiersSection
+          {...makeProps({
+            externalTiers: () => [tier1],
+            headless: true,
+            onCreateRef: (open) => {
+              createOpener = open;
+            },
+          })}
+        />
+      ));
+      createOpener?.();
+      expect((await findByTestId('tier-modal-mode')).textContent).toBe('create');
+    });
+
+    it('opens the edit modal for a specific tier via the onEditRef opener', async () => {
+      let editOpener: ((tier: HeaderTier) => void) | undefined;
+      const { findByTestId } = render(() => (
+        <RoutingHeaderTiersSection
+          {...makeProps({
+            externalTiers: () => [tier1],
+            headless: true,
+            onEditRef: (open) => {
+              editOpener = open;
+            },
+          })}
+        />
+      ));
+      editOpener?.(tier1);
+      expect((await findByTestId('tier-modal-mode')).textContent).toBe('edit');
+    });
+  });
 });

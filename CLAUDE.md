@@ -456,9 +456,40 @@ values with 400, so downgrades stay safe.
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
 - **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SendGrid email providers.
 - **LLM Routing**: Two-layer routing system with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`:
-  - **Complexity tiers** (always active): 4 tiers (simple/standard/complex/reasoning) based on request content scoring with 23 weighted keyword dimensions.
-  - **Specificity routing** (opt-in): 9 task-type categories (coding, web_browsing, data_analysis, image_generation, video_generation, social_media, email_management, calendar_management, trading). When enabled, overrides complexity tiers. Detection uses keyword analysis on the last user message + tool name heuristics. Categories defined in `shared/src/specificity.ts`, keywords in `scoring/keywords.ts`, detection in `scoring/specificity-detector.ts`.
+  - **Complexity tiers** (_being retired_ — see [Routing deprecation](#routing-deprecation-legacy-vs-clean-cohorts)): 4 tiers (simple/standard/complex/reasoning) based on request content scoring with 23 weighted keyword dimensions. Per-agent, gated by `complexity_routing_enabled`; agents with it off route everything to the `default` tier.
+  - **Specificity routing** (opt-in; _being retired_): 9 task-type categories (coding, web_browsing, data_analysis, image_generation, video_generation, social_media, email_management, calendar_management, trading). When enabled, overrides complexity tiers. Detection uses keyword analysis on the last user message + tool name heuristics. Categories defined in `shared/src/specificity.ts`, keywords in `scoring/keywords.ts`, detection in `scoring/specificity-detector.ts`.
   - **Resolution order**: specificity check (if any category active) → complexity scoring → tier assignment → provider/model resolution → proxy forward.
+  - **Kept long-term**: **default routing** (one model + up to 5 fallbacks) and **custom routing** (header-triggered tiers).
+
+### Routing deprecation: legacy vs clean cohorts
+
+Complexity routing (simple/standard/complex/reasoning) and task-specific / specificity routing (the 9 categories) are **being retired**. We are keeping **default routing** and **custom (header) routing**. In this phase the routing _engine_ is unchanged — nothing is migrated or deleted — but the dashboard **hides the retiring surfaces from agents that never used them**.
+
+**The gate is per-agent and keyed off config-presence, _not_ per-user signup date.** An agent is **legacy** (still sees the deprecated surfaces) if _any_ of these is true:
+
+- complexity routing is enabled for it (`complexity_routing_enabled`), **or**
+- a non-`default` tier has an `override_route`, **or**
+- a specificity category is active or has an override.
+
+Otherwise the agent is **clean** and gets the simplified view. The signals live in `packages/frontend/src/pages/Routing.tsx` (`legacyComplexityVisible` / `legacySpecificityVisible` / `isCleanAgent`) and are **sticky per agent** within a session — once a surface is revealed for an agent we keep it (so toggling complexity off mid-session doesn't yank the control away), but the stickiness compares the remembered agent against the current one, so switching agents re-evaluates from the new agent's own config and never carries a legacy reveal onto a clean agent.
+
+| | Clean agent | Legacy agent |
+|---|---|---|
+| Routing page | One unified view, **no tabs** | Tabbed view (Default / Task-specific / Custom) |
+| "Route by complexity" toggle | Hidden | Shown |
+| Task-specific tab | Hidden | Shown |
+| Custom (header) routing | Shown (cards + "Create custom tier") | Shown |
+| Deprecation banners | None | Shown on each retiring surface (`RoutingDeprecationNotice`) |
+
+**This is by _agent_, not by user.** "Old users keep routing, new users don't see it" is the right intuition but imprecise — the real axis is each agent's own config:
+
+- **New user** → every agent is clean (nothing was ever configured) → simplified view everywhere.
+- **Old user, existing agent that used complexity/task-specific** → stays legacy → full surfaces + banners, behavior untouched.
+- **Old user creating a _new_ agent** → the new agent is **clean** (it has no complexity/specificity config of its own), so it gets the **simplified view** — even though the user is "old". An old user whose agent long ago stopped using these (no active config left) is likewise treated as clean.
+
+Dev seeding (`packages/backend/src/database/seed-cohorts.ts`, `seedRoutingCohorts`) creates two demo logins so both states are visible side by side: `admin@manifest.build` (legacy — complexity + task-specific visible) and `newuser@manifest.build` (clean — Default + Custom only). Both passwords are `manifest`. Seeding is idempotent.
+
+Still to come (not in this phase): a migration assistant (task-specific → header rules, complexity → collapse to default) and a committed end date.
 
 ## Providers & Models
 
