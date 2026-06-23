@@ -107,8 +107,8 @@ export interface SuccessMessageOpts extends HeaderTierRef {
 /**
  * Reasons that mark a `recordSuccessMessage` call as a Manifest-generated
  * stub instead of a real upstream completion. The HTTP envelope is 200 OK
- * (so the chat client renders the canned `[🦚 Manifest] …` text), but the
- * dashboard should classify the row as failed and surface why.
+ * (so the chat client renders the canned Manifest text), but the dashboard
+ * should classify the row as failed and surface why.
  */
 const CANNED_RESPONSE_REASONS: Record<string, string> = {
   no_provider: 'No providers configured for this agent',
@@ -117,11 +117,65 @@ const CANNED_RESPONSE_REASONS: Record<string, string> = {
   friendly_error: 'Manifest internal error',
 };
 
+function sanitizePostgresString(value: string): string {
+  let out = '';
+
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+
+    if (code === 0) continue;
+
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(i + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        out += value[i] + value[i + 1];
+        i++;
+      } else {
+        out += '?';
+      }
+      continue;
+    }
+
+    if (code >= 0xdc00 && code <= 0xdfff) {
+      out += '?';
+      continue;
+    }
+
+    out += value[i];
+  }
+
+  return out;
+}
+
+function sanitizePostgresJson<T>(value: T, seen = new WeakSet<object>()): T {
+  if (typeof value === 'string') return sanitizePostgresString(value) as T;
+  if (value === null || typeof value !== 'object') return value;
+
+  if (seen.has(value)) return null as T;
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizePostgresJson(item, seen)) as T;
+  }
+
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof nested === 'undefined') continue;
+    sanitized[sanitizePostgresString(key)] = sanitizePostgresJson(nested, seen);
+  }
+
+  return sanitized as T;
+}
+
+function sanitizeAgentMessageRow<T extends Partial<AgentMessage>>(row: T): T {
+  return sanitizePostgresJson(row);
+}
+
 function buildMessageRow(
   ctx: IngestionContext,
   overrides: Partial<AgentMessage>,
 ): Partial<AgentMessage> {
-  return {
+  return sanitizeAgentMessageRow({
     id: uuid(),
     tenant_id: ctx.tenantId,
     agent_id: ctx.agentId,
@@ -134,7 +188,7 @@ function buildMessageRow(
     cache_read_tokens: 0,
     cache_creation_tokens: 0,
     ...overrides,
-  };
+  });
 }
 
 @Injectable()
@@ -170,6 +224,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     errorMessage: string,
     opts?: ProviderErrorOpts,
   ): Promise<void> {
+    if (!this.isRecordingEnabled()) return;
+
     const {
       model,
       provider,
@@ -217,7 +273,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         trace_id: traceId ?? null,
         timestamp: new Date().toISOString(),
         status: messageStatus,
-        error_message: scrubSecrets(errorMessage).slice(0, 2000),
+        error_message: scrubSecrets(sanitizePostgresString(errorMessage)).slice(0, 2000),
         error_http_status: httpStatus,
         model: canonical.model,
         provider: canonical.provider,
@@ -260,6 +316,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierColor?: string | null;
     },
   ): Promise<void> {
+    if (!this.isRecordingEnabled()) return;
+
     const {
       traceId,
       baseTimeMs,
@@ -311,7 +369,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           trace_id: traceId ?? null,
           timestamp: ts,
           status,
-          error_message: scrubSecrets(f.errorBody).slice(0, 2000),
+          error_message: scrubSecrets(sanitizePostgresString(f.errorBody)).slice(0, 2000),
           error_http_status: f.status,
           model: canonical.model,
           provider: canonical.provider,
@@ -354,6 +412,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierColor?: string | null;
     },
   ): Promise<void> {
+    if (!this.isRecordingEnabled()) return;
+
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
       ctx.tenantId,
       opts?.provider,
@@ -363,7 +423,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       buildMessageRow(ctx, {
         timestamp,
         status: 'fallback_error',
-        error_message: scrubSecrets(errorBody).slice(0, 2000),
+        error_message: scrubSecrets(sanitizePostgresString(errorBody)).slice(0, 2000),
         model: canonical.model,
         provider: canonical.provider,
         routing_tier: tier,
@@ -389,6 +449,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     tier: string,
     opts?: FallbackSuccessOpts,
   ): Promise<void> {
+    if (!this.isRecordingEnabled()) return;
+
     const {
       traceId,
       provider,
@@ -471,6 +533,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     usage: StreamUsage,
     opts?: SuccessMessageOpts,
   ): Promise<void> {
+    if (!this.isRecordingEnabled()) return;
+
     const {
       traceId,
       provider,
@@ -534,7 +598,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               (existing.input_tokens ?? 0) > 0 || (existing.output_tokens ?? 0) > 0;
             if (hasRecordedTokens) return;
 
-            const updatePayload: Partial<AgentMessage> = {
+            const updatePayload: Partial<AgentMessage> = sanitizeAgentMessageRow({
               status,
               error_message: errorMessage,
               model: canonicalModel,
@@ -558,7 +622,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
-            };
+            });
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
 
             await messageRepo.update({ id: existing.id }, updatePayload);
@@ -611,7 +675,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
   /**
    * Resolve the per-request USD cost for subscription providers that bill
    * against a dollar quota (today: OpenCode Go). Returns `null` for every
-   * other provider, leaving the existing "subscription → $0" path intact.
+   * other provider, leaving the existing "subscription -> $0" path intact.
    * Canonicalizes the provider through the registry so aliases (e.g.
    * `opencodego`, `OpenCode-Go`) resolve identically. Awaits the catalog
    * `list()` once if its in-memory index is still cold so the first request
@@ -627,6 +691,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const canonical = PROVIDER_BY_ID_OR_ALIAS.get(provider.toLowerCase())?.id;
     if (canonical !== 'opencode-go') return null;
     return this.opencodeGoCatalog.resolveCostPerRequest(model);
+  }
+
+  private isRecordingEnabled(): boolean {
+    return process.env['MESSAGE_RECORDING_ENABLED'] !== 'false';
   }
 
   private evictExpiredCooldowns(): void {
