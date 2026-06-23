@@ -1,0 +1,52 @@
+name: mnfst
+
+services:
+  manifest:
+    image: manifestdotbuild/manifest:latest
+    expose:
+      - "2099"
+    environment:
+      PORT: "2099"
+      DATABASE_URL: "postgresql://manifest:manifest@postgres:5432/manifest"
+      BETTER_AUTH_SECRET: "CHANGE_ME_IN_COOLIFY_ENV"
+      BETTER_AUTH_URL: "https://manifest.gasatec.com.br"
+      OLLAMA_HOST: "http://host.docker.internal:11434"
+      PROVIDER_TIMEOUT_MS: "180000"
+      STREAM_WARMUP_MS: "15000"
+      MESSAGE_RECORDING_ENABLED: "false"
+      SEED_DATA: "false"
+      NODE_ENV: "production"
+      MANIFEST_MODE: "selfhosted"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:2099/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 90s
+      retries: 3
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: manifest
+      POSTGRES_PASSWORD: manifest
+      POSTGRES_DB: manifest
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U manifest
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:
+    name: manifest_pgdata
