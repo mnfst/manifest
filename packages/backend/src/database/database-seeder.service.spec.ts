@@ -17,6 +17,7 @@ function makeMockRepo() {
   return {
     count: jest.fn().mockResolvedValue(0),
     insert: jest.fn().mockResolvedValue({}),
+    update: jest.fn().mockResolvedValue({}),
     findOne: jest.fn().mockResolvedValue(null),
   };
 }
@@ -31,6 +32,9 @@ describe('DatabaseSeederService', () => {
   let mockApiKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockMessageRepo: ReturnType<typeof makeMockRepo>;
   let mockProviderRepo: ReturnType<typeof makeMockRepo>;
+  let mockEnabledProviderRepo: ReturnType<typeof makeMockRepo>;
+  let mockTierRepo: ReturnType<typeof makeMockRepo>;
+  let mockSpecificityRepo: ReturnType<typeof makeMockRepo>;
   let configValues: Record<string, string | undefined>;
 
   beforeEach(() => {
@@ -47,6 +51,9 @@ describe('DatabaseSeederService', () => {
     mockApiKeyRepo = makeMockRepo();
     mockMessageRepo = makeMockRepo();
     mockProviderRepo = makeMockRepo();
+    mockEnabledProviderRepo = makeMockRepo();
+    mockTierRepo = makeMockRepo();
+    mockSpecificityRepo = makeMockRepo();
 
     service = new DatabaseSeederService(
       mockDataSource as never,
@@ -57,6 +64,9 @@ describe('DatabaseSeederService', () => {
       mockApiKeyRepo as never,
       mockMessageRepo as never,
       mockProviderRepo as never,
+      mockEnabledProviderRepo as never,
+      mockTierRepo as never,
+      mockSpecificityRepo as never,
     );
 
     jest.clearAllMocks();
@@ -68,6 +78,12 @@ describe('DatabaseSeederService', () => {
 
     // Default: admin user exists
     mockDataSource.query.mockResolvedValue([{ id: 'admin-user-id' }]);
+
+    // The routing-cohort seed is keyed on the clean agent already existing;
+    // default it to "already seeded" so the existing seeder tests are
+    // unaffected. The seedDemoCohorts tests below flip this to 0 to exercise
+    // the cohort-seeding path.
+    mockAgentRepo.count.mockResolvedValue(1);
   });
 
   describe('onModuleInit', () => {
@@ -458,6 +474,42 @@ describe('DatabaseSeederService', () => {
 
       // seedApiKey should skip insert because getAdminUserId returned null
       expect(mockApiKeyRepo.insert).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('seedDemoCohorts', () => {
+    it('seeds the clean + legacy cohorts when the legacy agent does not yet exist', async () => {
+      mockAgentRepo.count.mockResolvedValue(0);
+
+      await service.onModuleInit();
+
+      // The new legacy (olduser) agent is flipped to complexity-on so the
+      // deprecated surfaces stay visible.
+      expect(mockAgentRepo.update).toHaveBeenCalledWith(
+        { id: 'seed-agent-old-001' },
+        { complexity_routing_enabled: true },
+      );
+      // A brand-new legacy "old" user is signed up.
+      expect(auth.api.signUpEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: expect.objectContaining({ email: 'olduser@manifest.build' }),
+        }),
+      );
+      // The legacy cohort tenant is created.
+      expect(mockTenantRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'seed-tenant-old-001' }),
+      );
+    });
+
+    it('skips cohort seeding when the legacy agent already exists', async () => {
+      // mockAgentRepo.count defaults to 1 (set in beforeEach) → cohort is a no-op,
+      // while the normal admin/demo-agent seed still runs.
+      await service.onModuleInit();
+
+      expect(mockAgentRepo.update).not.toHaveBeenCalled();
+      expect(mockTenantRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'seed-tenant-001' }),
+      );
     });
   });
 });

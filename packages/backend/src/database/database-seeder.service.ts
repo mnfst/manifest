@@ -9,8 +9,12 @@ import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { ApiKey } from '../entities/api-key.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { TenantProvider } from '../entities/tenant-provider.entity';
+import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
+import { TierAssignment } from '../entities/tier-assignment.entity';
+import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { hashKey, keyPrefix } from '../common/utils/hash.util';
 import { getSeedConnections, seedAgentMessages } from './seed-messages';
+import { seedRoutingCohorts } from './seed-cohorts';
 
 const SEED_API_KEY = 'dev-api-key-manifest-001';
 const SEED_OTLP_KEY = 'mnfst_dev-otlp-key-001';
@@ -30,6 +34,11 @@ export class DatabaseSeederService implements OnModuleInit {
     @InjectRepository(ApiKey) private readonly apiKeyRepo: Repository<ApiKey>,
     @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
     @InjectRepository(TenantProvider) private readonly providerRepo: Repository<TenantProvider>,
+    @InjectRepository(AgentEnabledProvider)
+    private readonly enabledProviderRepo: Repository<AgentEnabledProvider>,
+    @InjectRepository(TierAssignment) private readonly tierRepo: Repository<TierAssignment>,
+    @InjectRepository(SpecificityAssignment)
+    private readonly specificityRepo: Repository<SpecificityAssignment>,
   ) {}
 
   async onModuleInit() {
@@ -64,6 +73,10 @@ export class DatabaseSeederService implements OnModuleInit {
       // tenant_providers row via the FK on agent_messages.tenant_provider_id.
       await this.seedTenantProviders();
       await this.seedAgentMessages();
+      // Two routing cohorts for the complexity/task-specific deprecation demo:
+      // the admin demo agent becomes "clean" (features hidden) and a fresh
+      // olduser gets a "legacy" agent (features visible).
+      await this.seedDemoCohorts();
       this.logger.log('Seeded demo data (SEED_DATA=true, dev/test only)');
       this.logger.warn(
         'SECURITY: Default seed credentials are active (admin@manifest.build). Do NOT use in production.',
@@ -209,5 +222,22 @@ export class DatabaseSeederService implements OnModuleInit {
     const userId = await this.getAdminUserId();
     if (!userId) return;
     await seedAgentMessages(this.messageRepo, userId, this.logger);
+  }
+
+  private async seedDemoCohorts() {
+    const userId = await this.getAdminUserId();
+    if (!userId) return;
+    await seedRoutingCohorts({
+      dataSource: this.dataSource,
+      tenantRepo: this.tenantRepo,
+      agentRepo: this.agentRepo,
+      agentKeyRepo: this.agentKeyRepo,
+      providerRepo: this.providerRepo,
+      enabledProviderRepo: this.enabledProviderRepo,
+      tierRepo: this.tierRepo,
+      specificityRepo: this.specificityRepo,
+      logger: this.logger,
+      cleanAgentId: SEED_AGENT_ID,
+    });
   }
 }
