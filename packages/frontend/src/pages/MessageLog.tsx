@@ -16,7 +16,6 @@ import ErrorState from '../components/ErrorState.jsx';
 import FeedbackModal from '../components/FeedbackModal.jsx';
 import MessageTable from '../components/MessageTable.jsx';
 import Pagination from '../components/Pagination.jsx';
-import RecordedMessageModal from '../components/RecordedMessageModal.jsx';
 import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
@@ -26,6 +25,7 @@ import {
   getAgents,
   getSpecificityAssignments,
   getMessages,
+  getMessageFilterOptions,
   getRoutingStatus,
   listHeaderTiers,
   setMessageFeedback,
@@ -41,9 +41,6 @@ import { checkIsSelfHosted } from '../services/setup-status.js';
 import { messagePing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/routing.css';
-// The recorded-message drawer/modal styles. Only the Messages log mounts
-// RecordedMessageModal, so this CSS stays out of the global theme bundle.
-import '../styles/recording.css';
 // The filtered-empty state here reuses .model-filter__empty classes, so this
 // route imports model-filter.css directly (also imported by ModelPrices).
 import '../styles/model-filter.css';
@@ -52,6 +49,12 @@ interface MessagesData {
   items: MessageRow[];
   next_cursor: string | null;
   total_count: number;
+  total_count_exact?: boolean;
+  providers: string[];
+  provider_labels?: Record<string, string>;
+}
+
+interface MessageFilterOptionsData {
   providers: string[];
   provider_labels?: Record<string, string>;
 }
@@ -140,10 +143,6 @@ const MessageLog: Component = () => {
   const [tierFilter, setTierFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
   const [costMax, setCostMax] = createSignal('');
-  const [recordingModalId, setRecordingModalId] = createSignal<string | null>(null);
-  const closeDr = () => setRecordingModalId(null);
-  onMount(() => window.addEventListener('sidebar-navigate', closeDr));
-  onCleanup(() => window.removeEventListener('sidebar-navigate', closeDr));
   const [setupOpen, setSetupOpen] = createSignal(false);
   const [setupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
@@ -264,7 +263,18 @@ const MessageLog: Component = () => {
       if (p.agentName) q.agent_name = p.agentName;
       if (p.cursor) q.cursor = p.cursor;
       q.limit = String(p.limit);
+      q.include_total = 'false';
+      q.include_filter_options = 'false';
       return getMessages(q) as Promise<MessagesData>;
+    },
+  );
+
+  const [messageFilterOptions] = createResource(
+    () => ({ agentName: agentFilter() || params.agentName, _ping: messagePing() }),
+    (p) => {
+      const q: Record<string, string> = {};
+      if (p.agentName) q.agent_name = p.agentName;
+      return getMessageFilterOptions(q) as Promise<MessageFilterOptionsData>;
     },
   );
 
@@ -296,6 +306,13 @@ const MessageLog: Component = () => {
   const hasNoData = () => {
     const d = data();
     return d && d.total_count === 0;
+  };
+
+  const totalForPager = () => {
+    const d = data();
+    if (!d) return 0;
+    if (d.total_count_exact !== false) return d.total_count;
+    return (pager.currentPage() - 1) * pager.pageSize + d.total_count;
   };
 
   const showEmptyState = () => hasNoData() && !hasActiveFilters() && !hasProviders();
@@ -341,12 +358,12 @@ const MessageLog: Component = () => {
     if (prov) return prov.name;
     // Custom providers arrive as `custom:<uuid>` — the backend ships a label
     // map alongside the provider list so the dropdown can show their names.
-    return data()?.provider_labels?.[id] ?? id;
+    return messageFilterOptions()?.provider_labels?.[id] ?? id;
   };
 
   const providerOptions = createMemo(() => [
     { label: 'All providers', value: '' },
-    ...(data()?.providers ?? []).map((id) => ({
+    ...(messageFilterOptions()?.providers ?? []).map((id) => ({
       label: providerDisplayName(id),
       icon: providerIcon(id, 14) ?? undefined,
       value: id,
@@ -600,7 +617,7 @@ const MessageLog: Component = () => {
                   Messages
                 </div>
                 <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                  {data()?.total_count ?? 0} total
+                  {totalForPager()} total
                 </span>
               </div>
               <div class="data-table-scroll">
@@ -614,7 +631,6 @@ const MessageLog: Component = () => {
                   onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                   onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
                   onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
-                  onOpenRecording={(id) => setRecordingModalId(id)}
                   rowIdPrefix="msg-"
                   showHeaderTooltips
                   expandable
@@ -622,7 +638,7 @@ const MessageLog: Component = () => {
               </div>
               <Pagination
                 currentPage={pager.currentPage}
-                totalItems={() => data()?.total_count ?? 0}
+                totalItems={totalForPager}
                 pageSize={pager.pageSize}
                 hasNextPage={pager.hasNextPage}
                 isLoading={() => data.loading}
@@ -651,13 +667,6 @@ const MessageLog: Component = () => {
           onSubmit={handleFeedbackSubmit}
         />
       </Show>
-
-      <RecordedMessageModal
-        open={recordingModalId() !== null}
-        messageId={recordingModalId()}
-        onClose={() => setRecordingModalId(null)}
-        onDeleted={() => refetch()}
-      />
     </div>
   );
 };

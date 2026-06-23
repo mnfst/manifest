@@ -267,4 +267,63 @@ describe('AggregationService', () => {
       expect(clauses).not.toContain(labelClause);
     });
   });
+
+  describe('getPreviousWindowMetrics', () => {
+    it('returns previous-window token, cost, and message totals', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ msg_count: 40, tokens: 4000, cost: 4.0 });
+
+      const result = await service.getPreviousWindowMetrics('24h', 'tenant-123');
+      expect(result).toEqual({ tokens: 4000, cost: 4.0, messages: 40 });
+      // Only one query — the current window is derived from the timeseries.
+      expect(mockGetRawOne).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns zeros when there is no previous-window data', async () => {
+      mockGetRawOne.mockResolvedValueOnce(null);
+
+      const result = await service.getPreviousWindowMetrics('24h', 'tenant-123');
+      expect(result).toEqual({ tokens: 0, cost: 0, messages: 0 });
+    });
+
+    it('excludes Playground traffic when requested', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ msg_count: 8, tokens: 120, cost: 0.8 });
+
+      const result = await service.getPreviousWindowMetrics('7d', 'tenant-123', 'bot-1', true);
+      expect(result.messages).toBe(8);
+      // The Playground-exclusion predicate is applied to the previous-window query.
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(
+        clauses.some((c: unknown) => typeof c === 'string' && c.includes('is_playground')),
+      ).toBe(true);
+    });
+  });
+
+  describe('buildSummary', () => {
+    it('assembles summary cards with trends from current and previous totals', () => {
+      const result = AggregationService.buildSummary(
+        { input: 3000, output: 2000, cost: 5.5, messages: 50 },
+        { tokens: 4000, cost: 4.0, messages: 40 },
+      );
+      expect(result.tokens.tokens_today.value).toBe(5000);
+      expect(result.tokens.tokens_today.trend_pct).toBe(25); // (5000-4000)/4000
+      expect(result.tokens.tokens_today.sub_values).toEqual({ input: 3000, output: 2000 });
+      expect(result.tokens.input_tokens).toBe(3000);
+      expect(result.tokens.output_tokens).toBe(2000);
+      expect(result.cost.value).toBe(5.5);
+      expect(result.cost.trend_pct).toBe(38); // 37.5 rounded
+      expect(result.messages.value).toBe(50);
+      expect(result.messages.trend_pct).toBe(25);
+    });
+
+    it('returns zero trends when previous totals are zero', () => {
+      const result = AggregationService.buildSummary(
+        { input: 100, output: 50, cost: 1.0, messages: 10 },
+        { tokens: 0, cost: 0, messages: 0 },
+      );
+      expect(result.tokens.tokens_today.value).toBe(150);
+      expect(result.tokens.tokens_today.trend_pct).toBe(0);
+      expect(result.cost.trend_pct).toBe(0);
+      expect(result.messages.trend_pct).toBe(0);
+    });
+  });
 });

@@ -16,11 +16,11 @@ import {
 } from '../routing/proxy/oauth-credentials';
 import { ProviderKeyService } from '../routing/routing-core/provider-key.service';
 import { PlaygroundAgentService } from './playground-agent.service';
-import { OpenaiOauthService } from '../routing/oauth/openai-oauth.service';
-import { MinimaxOauthService } from '../routing/oauth/minimax-oauth.service';
+import { OpenaiOauthService } from '../routing/oauth/openai/openai-oauth.service';
+import { MinimaxOauthService } from '../routing/oauth/minimax/minimax-oauth.service';
 import { AnthropicOauthService } from '../routing/oauth/anthropic/anthropic-oauth.service';
-import { GeminiOauthService } from '../routing/oauth/gemini-oauth.service';
-import { KiroOauthService } from '../routing/oauth/kiro-oauth.service';
+import { GeminiOauthService } from '../routing/oauth/gemini/gemini-oauth.service';
+import { KiroOauthService } from '../routing/oauth/kiro/kiro-oauth.service';
 import { XaiOauthService } from '../routing/oauth/xai/xai-oauth.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { computeTokenCost } from '../common/utils/cost-calculator';

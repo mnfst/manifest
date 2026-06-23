@@ -55,7 +55,7 @@ describe('AddCustomProviderFkToUserProviders deployment data-loss invariant (e2e
   beforeAll(async () => {
     ds = makeDataSource();
     await ds.initialize();
-    await ds.runMigrations();
+    await ds.runMigrations({ transaction: 'each' });
 
     // The tenant-canonical chain (later migrations) renames user_providers →
     // tenant_providers and demotes custom_providers.user_id → created_by_user_id;

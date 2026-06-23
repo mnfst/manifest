@@ -11,18 +11,15 @@ const apiMocks = vi.hoisted(() => ({
   getAgents: vi.fn(),
   getCustomProviders: vi.fn(),
   getGlobalProviders: vi.fn(),
+  getGlobalProviderUsage: vi.fn(),
   getAgentProviders: vi.fn(),
   disconnectProvider: vi.fn(),
   renameProviderKey: vi.fn(),
   refreshModels: vi.fn(),
   fetchMutate: vi.fn(),
   getOverview: vi.fn(),
-  getGlobalPerAgentTimeseries: vi.fn(),
-  getGlobalPerAgentMessageTimeseries: vi.fn(),
-  getGlobalPerProviderTimeseries: vi.fn(),
-  getGlobalPerProviderMessageTimeseries: vi.fn(),
-  getGlobalPerAgentCostTimeseries: vi.fn(),
-  getGlobalPerProviderCostTimeseries: vi.fn(),
+  getOverviewAgentUsage: vi.fn(),
+  getOverviewProviderUsage: vi.fn(),
   getConnectionDetail: vi.fn(),
   getProviderAnalytics: vi.fn(),
   getPerAgentTimeseries: vi.fn(),
@@ -49,12 +46,20 @@ vi.mock('../../src/services/api/core.js', () => ({
   routingPath: (agent: string, path: string) => `/api/v1/routing/${agent}/${path}`,
 }));
 
-vi.mock('../../src/services/api.js', () => ({
-  getAgents: (...args: unknown[]) => apiMocks.getAgents(...args),
-  getCustomProviders: (...args: unknown[]) => apiMocks.getCustomProviders(...args),
-  getGlobalProviders: (...args: unknown[]) => apiMocks.getGlobalProviders(...args),
-  disconnectProvider: (...args: unknown[]) => apiMocks.disconnectProvider(...args),
-}));
+vi.mock('../../src/services/api.js', async () => {
+  const providers = await vi.importActual<typeof import('../../src/services/api/providers')>(
+    '../../src/services/api/providers',
+  );
+  return {
+    getAgents: (...args: unknown[]) => apiMocks.getAgents(...args),
+    getCustomProviders: (...args: unknown[]) => apiMocks.getCustomProviders(...args),
+    getGlobalProviders: (...args: unknown[]) => apiMocks.getGlobalProviders(...args),
+    getGlobalProviderUsage: (...args: unknown[]) => apiMocks.getGlobalProviderUsage(...args),
+    // Real merge so the page's config+usage join stays under test.
+    mergeUsage: providers.mergeUsage,
+    disconnectProvider: (...args: unknown[]) => apiMocks.disconnectProvider(...args),
+  };
+});
 
 vi.mock('../../src/services/api/routing.js', () => ({
   getProviders: (...args: unknown[]) => apiMocks.getAgentProviders(...args),
@@ -65,18 +70,8 @@ vi.mock('../../src/services/api/routing.js', () => ({
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
-  getGlobalPerAgentTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerAgentTimeseries(...args),
-  getGlobalPerAgentMessageTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerAgentMessageTimeseries(...args),
-  getGlobalPerProviderTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerProviderTimeseries(...args),
-  getGlobalPerProviderMessageTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerProviderMessageTimeseries(...args),
-  getGlobalPerAgentCostTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerAgentCostTimeseries(...args),
-  getGlobalPerProviderCostTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerProviderCostTimeseries(...args),
+  getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
+  getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
   getConnectionDetail: (...args: unknown[]) => apiMocks.getConnectionDetail(...args),
   getProviderAnalytics: (...args: unknown[]) => apiMocks.getProviderAnalytics(...args),
   getPerAgentTimeseries: (...args: unknown[]) => apiMocks.getPerAgentTimeseries(...args),
@@ -179,6 +174,27 @@ vi.mock('../../src/components/AddAgentModal.jsx', () => ({
   ),
 }));
 
+const mockCustomProviderForm = vi.fn();
+vi.mock('../../src/components/CustomProviderForm.jsx', () => ({
+  default: (props: Record<string, unknown>) => {
+    mockCustomProviderForm(props);
+    return (
+      <div data-testid="custom-provider-form">
+        Edit custom provider
+        <button onClick={() => (props.onCreated as () => void)()}>form-created</button>
+        <button onClick={() => (props.onBack as () => void)()}>form-back</button>
+        <button
+          onClick={() => {
+            if (props.onDeleted) (props.onDeleted as () => void)();
+          }}
+        >
+          form-deleted
+        </button>
+      </div>
+    );
+  },
+}));
+
 vi.mock('../../src/components/ProviderSelectModal.jsx', () => ({
   default: (props: {
     agentName?: string;
@@ -207,6 +223,7 @@ vi.mock('../../src/components/AuthBadge.jsx', () => ({
 vi.mock('../../src/services/sse.js', () => ({
   agentPing: () => 0,
   messagePing: () => 0,
+  routingPing: () => 0,
 }));
 
 const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn() }));
@@ -425,6 +442,20 @@ const providersResponse = {
   model_counts: { openai: 10, anthropic: 8, ollama: 3 },
 };
 
+// Derive the usage-endpoint payload from the config fixture so GlobalOverview's
+// merged provider table shows the same numbers as before the config/usage split.
+const usageFrom = (resp: { providers: Array<Record<string, unknown>> }) => ({
+  providers: resp.providers.map((p) => ({
+    provider: p.provider,
+    auth_type: p.auth_type,
+    consumption_tokens: p.consumption_tokens ?? 0,
+    consumption_messages: p.consumption_messages ?? 0,
+    consumption_cost: p.consumption_cost ?? 0,
+    last_used_at: p.last_used_at ?? null,
+    sparkline_7d: p.sparkline_7d ?? [],
+  })),
+});
+
 const agentsResponse = {
   agents: [
     {
@@ -456,6 +487,18 @@ const agentTimeseries = {
 const providerTimeseries = {
   agents: ['openai', 'anthropic'],
   timeseries: [{ hour: '2026-06-04 10:00:00', openai: 1200, anthropic: 900 }],
+};
+
+const agentUsageTimeseries = {
+  tokenUsage: agentTimeseries,
+  messageUsage: agentTimeseries,
+  costUsage: agentTimeseries,
+};
+
+const providerUsageTimeseries = {
+  tokenUsage: providerTimeseries,
+  messageUsage: providerTimeseries,
+  costUsage: providerTimeseries,
 };
 
 const connectionDetail = {
@@ -517,18 +560,15 @@ beforeEach(() => {
     { id: 'cp-3', name: 'Custom Local' },
   ]);
   apiMocks.getGlobalProviders.mockResolvedValue(providersResponse);
+  apiMocks.getGlobalProviderUsage.mockResolvedValue(usageFrom(providersResponse));
   apiMocks.getAgentProviders.mockResolvedValue([]);
   apiMocks.disconnectProvider.mockResolvedValue({ notifications: [] });
   apiMocks.renameProviderKey.mockResolvedValue(undefined);
   apiMocks.refreshModels.mockResolvedValue(undefined);
   apiMocks.fetchMutate.mockResolvedValue({});
   apiMocks.getOverview.mockResolvedValue(overviewResponse);
-  apiMocks.getGlobalPerAgentTimeseries.mockResolvedValue(agentTimeseries);
-  apiMocks.getGlobalPerAgentMessageTimeseries.mockResolvedValue(agentTimeseries);
-  apiMocks.getGlobalPerProviderTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerProviderMessageTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerAgentCostTimeseries.mockResolvedValue(agentTimeseries);
-  apiMocks.getGlobalPerProviderCostTimeseries.mockResolvedValue(providerTimeseries);
+  apiMocks.getOverviewAgentUsage.mockResolvedValue(agentUsageTimeseries);
+  apiMocks.getOverviewProviderUsage.mockResolvedValue(providerUsageTimeseries);
   apiMocks.getConnectionDetail.mockResolvedValue(connectionDetail);
   apiMocks.getProviderAnalytics.mockResolvedValue(connectionAnalytics);
   apiMocks.getPerAgentTimeseries.mockResolvedValue(agentTimeseries);
@@ -713,9 +753,11 @@ describe('GlobalOverview (analytics)', () => {
       agents: ['openai', 'custom:cp-1'],
       timeseries: [{ hour: '2026-06-04 10:00:00', openai: 1200, 'custom:cp-1': 300 }],
     };
-    apiMocks.getGlobalPerProviderTimeseries.mockResolvedValue(customSeries);
-    apiMocks.getGlobalPerProviderMessageTimeseries.mockResolvedValue(customSeries);
-    apiMocks.getGlobalPerProviderCostTimeseries.mockResolvedValue(customSeries);
+    apiMocks.getOverviewProviderUsage.mockResolvedValue({
+      tokenUsage: customSeries,
+      messageUsage: customSeries,
+      costUsage: customSeries,
+    });
     // A custom model with no display_name must render its stripped name, not
     // the raw custom:<uuid>/ slug.
     apiMocks.getOverview.mockResolvedValue({
@@ -845,6 +887,16 @@ describe('GlobalOverview (analytics)', () => {
     render(() => <GlobalOverview />);
     // Both empty → onboarding empty state
     await waitFor(() => expect(screen.getByText('No activity yet')).toBeDefined());
+  });
+
+  it('renders config-only when the usage endpoint rejects (usage zeroed)', async () => {
+    // Config resolves so the provider table paints; usage rejects → the page's
+    // usage resource catch returns [] and the merged rows show 0 tokens.
+    apiMocks.getGlobalProviderUsage.mockRejectedValue(new Error('usage down'));
+
+    render(() => <GlobalOverview />);
+
+    await waitFor(() => expect(screen.getAllByText(/0 tokens/).length).toBeGreaterThan(0));
   });
 });
 
@@ -1016,9 +1068,7 @@ describe('ConnectionDetail (analytics)', () => {
     apiMocks.getConnectionDetail.mockRejectedValueOnce(new Error('network down'));
 
     const { container } = render(() => <ConnectionDetail />);
-    await waitFor(() =>
-      expect(screen.getByText("Couldn't load this connection")).toBeDefined(),
-    );
+    await waitFor(() => expect(screen.getByText("Couldn't load this connection")).toBeDefined());
     expect(container.querySelector('[style*="skeleton-pulse"]')).toBeNull();
 
     // Retry re-fetches; on success the connection renders.
@@ -1065,8 +1115,67 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(screen.getByText('Custom Provider')).toBeDefined());
 
     fireEvent.click(screen.getByText('Manage'));
-    expect(screen.getByText('Connection name')).toBeDefined();
-    fireEvent.click(screen.getByText('Done'));
+    // Custom providers open the CustomProviderForm in edit mode
+    await waitFor(() => expect(screen.getByText('Edit custom provider')).toBeDefined());
+  });
+
+  const setupCustomConnectionDetail = () => {
+    routerState.params = { connectionId: 'conn-custom' };
+    apiMocks.getConnectionDetail.mockResolvedValue({
+      ...connectionDetail,
+      connection: {
+        ...connectionDetail.connection,
+        id: 'conn-custom',
+        provider: 'custom:cp-1',
+        label: 'Custom key',
+      },
+    });
+  };
+
+  it('closes the custom provider edit modal and refetches on onCreated', async () => {
+    setupCustomConnectionDetail();
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getByText('Custom Provider')).toBeDefined());
+
+    fireEvent.click(screen.getByText('Manage'));
+    await waitFor(() => expect(screen.getByTestId('custom-provider-form')).toBeDefined());
+
+    fireEvent.click(screen.getByText('form-created'));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Edit custom provider' })).toBeNull(),
+    );
+    // Detail is refetched after onCreated.
+    expect(apiMocks.getConnectionDetail.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it('closes the custom provider edit modal on onBack', async () => {
+    setupCustomConnectionDetail();
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getByText('Custom Provider')).toBeDefined());
+
+    fireEvent.click(screen.getByText('Manage'));
+    await waitFor(() => expect(screen.getByTestId('custom-provider-form')).toBeDefined());
+
+    fireEvent.click(screen.getByText('form-back'));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Edit custom provider' })).toBeNull(),
+    );
+  });
+
+  it('closes the custom provider edit modal and navigates back on onDeleted', async () => {
+    setupCustomConnectionDetail();
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getByText('Custom Provider')).toBeDefined());
+
+    fireEvent.click(screen.getByText('Manage'));
+    await waitFor(() => expect(screen.getByTestId('custom-provider-form')).toBeDefined());
+
+    fireEvent.click(screen.getByText('form-deleted'));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Edit custom provider' })).toBeNull(),
+    );
+    // onDeleted navigates to backLink() (usage-based for api_key auth type).
+    expect(routerState.navigate).toHaveBeenCalledWith('/providers/usage-based');
   });
 
   it('falls back to empty data when the custom provider lookup rejects', async () => {
@@ -1353,9 +1462,7 @@ describe('ConnectionDetail (analytics)', () => {
 
     fireEvent.click(screen.getByText('Manage'));
     // Active subscription → "Connected via subscription" (line 963 truthy branch).
-    await waitFor(() =>
-      expect(screen.getByText(/Connected via\s+subscription/)).toBeDefined(),
-    );
+    await waitFor(() => expect(screen.getByText(/Connected via\s+subscription/)).toBeDefined());
   });
 
   it('renders a dash for a recent message with no model', async () => {

@@ -72,20 +72,15 @@ describe('MessagesQueryDto', () => {
     expect(flat.join('\n')).toMatch(/status must be one of/);
   });
 
-  it('coerces the recorded flag from common truthy values', async () => {
-    for (const value of [true, 'true', '1']) {
-      const dto = plainToInstance(MessagesQueryDto, { recorded: value });
-      const errors = await validate(dto);
-      expect(errors).toHaveLength(0);
-      expect(dto.recorded).toBe(true);
-    }
-  });
-
-  it('treats other values for recorded as false', async () => {
-    const dto = plainToInstance(MessagesQueryDto, { recorded: 'no' });
+  it('coerces include_total and include_filter_options flags', async () => {
+    const dto = plainToInstance(MessagesQueryDto, {
+      include_total: 'false',
+      include_filter_options: '1',
+    });
     const errors = await validate(dto);
     expect(errors).toHaveLength(0);
-    expect(dto.recorded).toBe(false);
+    expect(dto.include_total).toBe(false);
+    expect(dto.include_filter_options).toBe(true);
   });
 
   it('accepts each known routing_tier value including playground', async () => {

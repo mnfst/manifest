@@ -16,8 +16,11 @@ import {
 } from '../../services/api.js';
 import {
   getProviders as getGlobalProviders,
+  getProviderUsage,
+  mergeUsage,
   type TenantProviderSummary,
 } from '../../services/api/providers.js';
+import { messagePing, routingPing } from '../../services/sse.js';
 import { renameProviderKey } from '../../services/api/routing.js';
 import type { AuthType, CustomProviderData, RoutingProvider } from '../../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../../services/routing-params.js';
@@ -32,6 +35,7 @@ import { providerIcon } from '../../components/ProviderIcon.jsx';
 import InfoTooltip from '../../components/InfoTooltip.jsx';
 import { toast } from '../../services/toast-store.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
+import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
 import '../../styles/routing.css';
 
@@ -130,6 +134,22 @@ const providerDisplayName = (
 ): string =>
   customProviderName(providerId, customProviders) ?? standardProviderName(providerId) ?? providerId;
 
+/** Shimmer placeholder shown in usage cells while the usage fetch is in flight. */
+const UsageShimmer: Component<{ width?: number }> = (props) => (
+  <span
+    aria-hidden="true"
+    style={{
+      display: 'inline-block',
+      width: `${props.width ?? 56}px`,
+      height: '12px',
+      'border-radius': 'var(--radius-sm)',
+      background: 'hsl(var(--muted) / 0.6)',
+      animation: 'skeleton-pulse 1.2s ease-in-out infinite',
+      'vertical-align': 'middle',
+    }}
+  />
+);
+
 const StatusBadge: Component<{ active: boolean }> = (props) => (
   <Show
     when={props.active}
@@ -205,6 +225,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const copy = () => PAGE_COPY[props.kind];
   const navigate = useNavigate();
   const [showModal, setShowModal] = createSignal(false);
+  const [showCustomModal, setShowCustomModal] = createSignal(false);
   const [deepLink, setDeepLink] = createSignal<ProviderDeepLink | null>(null);
   const [customProviderPrefill, setCustomProviderPrefill] =
     createSignal<CustomProviderPrefill | null>(null);
@@ -267,12 +288,48 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     }
   };
 
-  const [data, { refetch: refetchGlobalProviders }] = createResource(async () => {
+  // CONFIG resource — paints the page immediately (cheap endpoint, no
+  // agent_messages scan).
+  const [config, { refetch: refetchConfig }] = createResource(async () => {
     try {
       return await getGlobalProviders();
     } catch {
       return { providers: [], model_counts: {} };
     }
+  });
+
+  // USAGE resource — the expensive 30d aggregation, fetched independently. Its
+  // source includes the SSE ping signals so a newly ingested message
+  // (messagePing) or a provider connect/disconnect/rename (routingPing)
+  // re-runs the usage fetch within ~500ms, exactly like Overview/MessageLog.
+  const [usage, { refetch: refetchUsage }] = createResource(
+    () => ({ m: messagePing(), r: routingPing() }),
+    async () => {
+      try {
+        return (await getProviderUsage()).providers;
+      } catch {
+        return [];
+      }
+    },
+  );
+
+  // Distinguish "loading" (shimmer the usage cells) from "loaded-zero" (a real
+  // 0). Only the FIRST load shimmers; SSE-driven refetches keep the prior
+  // numbers on screen (usage() stays defined) so the table doesn't flicker.
+  const usageLoading = () => usage.loading && usage() === undefined;
+
+  // Coordinate a usage refetch alongside config on connect/disconnect/rename.
+  const refetchGlobalProviders = () => {
+    void refetchConfig();
+    void refetchUsage();
+  };
+
+  // Merge config + usage by (provider, auth_type). While usage is still loading
+  // every row carries zeroed usage; `usageLoading()` tells the view to shimmer
+  // instead of rendering those zeros.
+  const data = () => ({
+    providers: mergeUsage(config()?.providers ?? [], usage()),
+    model_counts: config()?.model_counts ?? {},
   });
 
   const [agents] = createResource(async () => {
@@ -397,12 +454,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     }
   });
 
-  /* v8 ignore next 6 -- the "Add custom provider" affordance lives in ProviderApiKeyTab; this page never wires a trigger to openCustomProvider, so its body is unreachable from the DOM. */
   const openCustomProvider = () => {
-    setDeepLink(null);
-    setCustomProviderPrefill({ name: '', baseUrl: '' });
-    void refetchModalProviders();
-    setShowModal(true);
+    setShowCustomModal(true);
+  };
+
+  const handleCustomModalClose = () => {
+    setShowCustomModal(false);
+    void refetchGlobalProviders();
+    void refetchCustomProviders();
   };
 
   const handleModalClose = () => {
@@ -428,6 +487,25 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           <h1 class="page-header__title">{copy().heading}</h1>
           <p class="page-header__subtitle">{copy().subtitle}</p>
         </div>
+        <Show when={copy().customAddLabel}>
+          <button
+            class="btn btn--outline btn--sm"
+            onClick={() => openCustomProvider()}
+            style="display: inline-flex; align-items: center; gap: 6px;"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M7 11h10c.37 0 .72-.21.89-.54s.14-.73-.08-1.04l-5-7c-.38-.53-1.25-.53-1.63 0l-5 7A.997.997 0 0 0 6.99 11Zm5-6.28L15.06 9H8.95l3.06-4.28ZM17.5 13c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5m0 7a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5M3 22h7c.55 0 1-.45 1-1v-7c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v7c0 .55.45 1 1 1m1-7h5v5H4z" />
+            </svg>
+            {copy().customAddLabel}
+          </button>
+        </Show>
       </div>
 
       <Show when={showMetricCard()}>
@@ -437,7 +515,16 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
             <InfoTooltip text={copy().metricTooltip!} />
           </span>
           <div class="chart-card__value-row" style="margin-top: 4px;">
-            <span class="chart-card__value">{formatCost(totalApiCost()) ?? '$0.00'}</span>
+            <Show
+              when={!usageLoading()}
+              fallback={
+                <span class="chart-card__value">
+                  <UsageShimmer width={72} />
+                </span>
+              }
+            >
+              <span class="chart-card__value">{formatCost(totalApiCost()) ?? '$0.00'}</span>
+            </Show>
           </div>
         </div>
       </Show>
@@ -569,25 +656,33 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       </Show>
                     </td>
                     <td>
-                      <div style="display: flex; align-items: center; gap: 8px;">
-                        <Show when={row.summary.sparkline_7d?.length}>
-                          <span style="flex-shrink: 0;">
-                            <Sparkline data={row.summary.sparkline_7d} width={60} height={20} />
-                          </span>
-                        </Show>
-                        <span>{formatNumber(perConnectionTokens(row.summary))} tokens</span>
-                      </div>
+                      <Show when={!usageLoading()} fallback={<UsageShimmer width={96} />}>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <Show when={row.summary.sparkline_7d?.length}>
+                            <span style="flex-shrink: 0;">
+                              <Sparkline data={row.summary.sparkline_7d} width={60} height={20} />
+                            </span>
+                          </Show>
+                          <span>{formatNumber(perConnectionTokens(row.summary))} tokens</span>
+                        </div>
+                      </Show>
                     </td>
                     <Show when={copy().rowMetricHeading}>
-                      <td>{formatCost(perConnectionCost(row.summary)) ?? '$0.00'}</td>
+                      <td>
+                        <Show when={!usageLoading()} fallback={<UsageShimmer />}>
+                          {formatCost(perConnectionCost(row.summary)) ?? '$0.00'}
+                        </Show>
+                      </td>
                     </Show>
                     <td>
                       <StatusBadge active={row.connection.is_active} />
                     </td>
                     <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                      {connectionLastUsedAt(row.summary)
-                        ? formatTimeAgo(connectionLastUsedAt(row.summary)!)
-                        : '-'}
+                      <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
+                        {connectionLastUsedAt(row.summary)
+                          ? formatTimeAgo(connectionLastUsedAt(row.summary)!)
+                          : '-'}
+                      </Show>
                     </td>
                     <td style="text-align: right;">
                       <button
@@ -755,6 +850,32 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           onUpdate={handleModalUpdate}
           onClose={handleModalClose}
         />
+      </Show>
+
+      <Show when={showCustomModal() && firstAgentName()}>
+        <div
+          class="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleCustomModalClose();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') handleCustomModalClose();
+          }}
+        >
+          <div
+            class="modal-card routing-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Add custom provider"
+            style="max-width: 600px; max-height: 85vh; overflow-y: auto;"
+          >
+            <CustomProviderForm
+              agentName={firstAgentName()}
+              onCreated={handleCustomModalClose}
+              onBack={() => handleCustomModalClose()}
+            />
+          </div>
+        </div>
       </Show>
     </div>
   );

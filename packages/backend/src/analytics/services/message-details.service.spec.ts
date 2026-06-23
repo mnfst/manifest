@@ -3,10 +3,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { MessageDetailsService } from './message-details.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { LlmCall } from '../../entities/llm-call.entity';
-import { ToolExecution } from '../../entities/tool-execution.entity';
-import { AgentLog } from '../../entities/agent-log.entity';
-import { MessageRecording } from '../../entities/message-recording.entity';
 
 function mockQb(result: unknown = null) {
   const qb: Record<string, jest.Mock> = {
@@ -23,10 +19,6 @@ function mockQb(result: unknown = null) {
 describe('MessageDetailsService', () => {
   let service: MessageDetailsService;
   let msgQb: ReturnType<typeof mockQb>;
-  let llmQb: ReturnType<typeof mockQb>;
-  let toolQb: ReturnType<typeof mockQb>;
-  let logQb: ReturnType<typeof mockQb>;
-  let recordingFindOne: jest.Mock;
 
   const baseMessage = {
     id: 'msg-1',
@@ -50,6 +42,7 @@ describe('MessageDetailsService', () => {
     routing_tier: 'standard',
     routing_reason: null,
     auth_type: 'api_key',
+    provider_key_label: null,
     skill_name: null,
     fallback_from_model: null,
     fallback_index: null,
@@ -60,16 +53,15 @@ describe('MessageDetailsService', () => {
     request_headers: null,
     request_params: null,
     caller_attribution: null,
-    recorded: false,
+    header_tier_id: null,
+    header_tier_name: null,
+    header_tier_color: null,
     specificity_category: null,
     specificity_miscategorized: false,
   };
 
   beforeEach(async () => {
     msgQb = mockQb(baseMessage);
-    llmQb = mockQb([]);
-    toolQb = mockQb([]);
-    logQb = mockQb([]);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -78,37 +70,18 @@ describe('MessageDetailsService', () => {
           provide: getRepositoryToken(AgentMessage),
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(msgQb) },
         },
-        {
-          provide: getRepositoryToken(LlmCall),
-          useValue: { createQueryBuilder: jest.fn().mockReturnValue(llmQb) },
-        },
-        {
-          provide: getRepositoryToken(ToolExecution),
-          useValue: { createQueryBuilder: jest.fn().mockReturnValue(toolQb) },
-        },
-        {
-          provide: getRepositoryToken(AgentLog),
-          useValue: { createQueryBuilder: jest.fn().mockReturnValue(logQb) },
-        },
-        {
-          provide: getRepositoryToken(MessageRecording),
-          useValue: { findOne: (recordingFindOne = jest.fn().mockResolvedValue(null)) },
-        },
       ],
     }).compile();
 
     service = module.get<MessageDetailsService>(MessageDetailsService);
   });
 
-  it('returns message details with empty related data', async () => {
+  it('returns the message row', async () => {
     const result = await service.getDetails('msg-1', 'u1');
 
     expect(result.message.id).toBe('msg-1');
     expect(result.message.model).toBe('gpt-4o');
     expect(result.message.status).toBe('ok');
-    expect(result.llm_calls).toEqual([]);
-    expect(result.tool_executions).toEqual([]);
-    expect(result.agent_logs).toEqual([]);
   });
 
   it('throws NotFoundException when message not found', async () => {
@@ -126,108 +99,6 @@ describe('MessageDetailsService', () => {
   it('throws NotFoundException when tenant is null (no tenant scope)', async () => {
     await expect(service.getDetails('msg-1', null)).rejects.toThrow(NotFoundException);
     expect(msgQb.andWhere).not.toHaveBeenCalled();
-  });
-
-  it('tenant-scopes the llm_calls, agent_logs, and tool_executions child queries', async () => {
-    // An llm call is needed so the tool_executions query runs (llmCallIds.length > 0).
-    llmQb.getMany.mockResolvedValue([{ id: 'lc-1', call_index: 0 }]);
-
-    await service.getDetails('msg-1', 'tenant-xyz');
-
-    // trace_id child lookups must not rely on the parent gate alone: a forged/colliding
-    // trace_id off attacker-supplied telemetry could otherwise surface another tenant's rows.
-    expect(llmQb.andWhere).toHaveBeenCalledWith('lc.tenant_id = :tenantId', {
-      tenantId: 'tenant-xyz',
-    });
-    expect(logQb.andWhere).toHaveBeenCalledWith('al.tenant_id = :tenantId', {
-      tenantId: 'tenant-xyz',
-    });
-    expect(toolQb.andWhere).toHaveBeenCalledWith('te.tenant_id = :tenantId', {
-      tenantId: 'tenant-xyz',
-    });
-  });
-
-  it('returns related llm calls', async () => {
-    const llmCall = {
-      id: 'lc-1',
-      call_index: 0,
-      request_model: 'gpt-4o',
-      response_model: 'gpt-4o',
-      gen_ai_system: 'openai',
-      input_tokens: 100,
-      output_tokens: 50,
-      cache_read_tokens: 0,
-      cache_creation_tokens: 0,
-      duration_ms: 800,
-      ttft_ms: 120,
-      temperature: 0.7,
-      max_output_tokens: 4096,
-      timestamp: '2026-02-16 10:00:00',
-    };
-    llmQb.getMany.mockResolvedValue([llmCall]);
-
-    const result = await service.getDetails('msg-1', 'u1');
-
-    expect(result.llm_calls).toHaveLength(1);
-    expect(result.llm_calls[0].request_model).toBe('gpt-4o');
-    expect(result.llm_calls[0].ttft_ms).toBe(120);
-  });
-
-  it('returns related tool executions', async () => {
-    const llmCall = { id: 'lc-1', call_index: 0 };
-    llmQb.getMany.mockResolvedValue([llmCall]);
-
-    const tool = {
-      id: 'te-1',
-      llm_call_id: 'lc-1',
-      tool_name: 'Read',
-      duration_ms: 50,
-      status: 'ok',
-      error_message: null,
-    };
-    toolQb.getMany.mockResolvedValue([tool]);
-
-    const result = await service.getDetails('msg-1', 'u1');
-
-    expect(result.tool_executions).toHaveLength(1);
-    expect(result.tool_executions[0].tool_name).toBe('Read');
-    expect(result.tool_executions[0].status).toBe('ok');
-  });
-
-  it('does not query tool_executions when no llm calls', async () => {
-    llmQb.getMany.mockResolvedValue([]);
-
-    const result = await service.getDetails('msg-1', 'u1');
-
-    expect(result.tool_executions).toEqual([]);
-    expect(toolQb.where).not.toHaveBeenCalled();
-  });
-
-  it('returns related agent logs', async () => {
-    const log = {
-      id: 'al-1',
-      severity: 'info',
-      body: 'Agent started',
-      timestamp: '2026-02-16 10:00:00',
-      span_id: 'span-1',
-    };
-    logQb.getMany.mockResolvedValue([log]);
-
-    const result = await service.getDetails('msg-1', 'u1');
-
-    expect(result.agent_logs).toHaveLength(1);
-    expect(result.agent_logs[0].body).toBe('Agent started');
-    expect(result.agent_logs[0].severity).toBe('info');
-  });
-
-  it('does not query agent logs when trace_id is null', async () => {
-    const msgNoTrace = { ...baseMessage, trace_id: null };
-    msgQb.getOne.mockResolvedValue(msgNoTrace);
-
-    const result = await service.getDetails('msg-1', 'u1');
-
-    expect(result.agent_logs).toEqual([]);
-    expect(logQb.where).not.toHaveBeenCalled();
   });
 
   it('maps all message fields correctly', async () => {
@@ -252,7 +123,10 @@ describe('MessageDetailsService', () => {
       trace_id: 'trace-abc',
       routing_tier: 'standard',
       routing_reason: null,
+      specificity_category: null,
+      specificity_miscategorized: false,
       auth_type: 'api_key',
+      provider_key_label: null,
       skill_name: null,
       fallback_from_model: null,
       fallback_index: null,
@@ -263,10 +137,21 @@ describe('MessageDetailsService', () => {
       request_headers: null,
       request_params: null,
       caller_attribution: null,
-      recorded: false,
-      specificity_category: null,
-      specificity_miscategorized: false,
+      header_tier_id: null,
+      header_tier_name: null,
+      header_tier_color: null,
     });
+  });
+
+  it('does not return recording, llm_calls, tool_executions, or agent_logs', async () => {
+    const result = (await service.getDetails('msg-1', 'u1')) as unknown as Record<string, unknown>;
+
+    expect(Object.keys(result)).toEqual(['message']);
+    expect(result['recording']).toBeUndefined();
+    expect(result['llm_calls']).toBeUndefined();
+    expect(result['tool_executions']).toBeUndefined();
+    expect(result['agent_logs']).toBeUndefined();
+    expect((result['message'] as Record<string, unknown>)['recorded']).toBeUndefined();
   });
 
   it('returns caller_attribution when stored on the message', async () => {
@@ -299,38 +184,6 @@ describe('MessageDetailsService', () => {
     msgQb.getOne.mockResolvedValue({ ...baseMessage, request_params: future });
     const result = await service.getDetails('msg-1', 'u1');
     expect(result.message.request_params).toEqual(future);
-  });
-
-  it('returns the captured recording when recorded=true', async () => {
-    msgQb.getOne.mockResolvedValue({ ...baseMessage, recorded: true });
-    recordingFindOne.mockResolvedValue({
-      message_id: 'msg-1',
-      request_body: { messages: [{ role: 'user', content: 'hi' }] },
-      response_body: { type: 'json', body: { choices: [] } },
-      response_headers: { 'content-type': 'application/json' },
-      size_bytes: 123,
-      created_at: '2026-02-16 10:00:00',
-    });
-
-    const result = await service.getDetails('msg-1', 'u1');
-
-    expect(result.message.recorded).toBe(true);
-    expect(result.recording).toEqual(
-      expect.objectContaining({
-        request_body: { messages: [{ role: 'user', content: 'hi' }] },
-        response_body: { type: 'json', body: { choices: [] } },
-        response_headers: { 'content-type': 'application/json' },
-        size_bytes: 123,
-      }),
-    );
-    expect(recordingFindOne).toHaveBeenCalledWith({ where: { message_id: 'msg-1' } });
-  });
-
-  it('does not look up a recording when recorded=false', async () => {
-    msgQb.getOne.mockResolvedValue({ ...baseMessage, recorded: false });
-    const result = await service.getDetails('msg-1', 'u1');
-    expect(result.recording).toBeNull();
-    expect(recordingFindOne).not.toHaveBeenCalled();
   });
 
   it('splits feedback_tags into an array when present', async () => {

@@ -67,21 +67,6 @@ export function FallbackIcon(): JSX.Element {
   );
 }
 
-export function RecordedIcon(): JSX.Element {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="10" fill="hsl(var(--destructive) / 0.25)" />
-      <circle cx="12" cy="12" r="5" fill="hsl(var(--destructive))" />
-    </svg>
-  );
-}
-
 const THUMB_UP_OUTLINED =
   'M19.5 8h-5.11l.9-2.71c.25-.76.13-1.6-.34-2.25A2.52 2.52 0 0 0 12.92 2h-.57c-.52 0-1.01.23-1.34.63L6.53 8H4.5A2.5 2.5 0 0 0 2 10.5v8A2.5 2.5 0 0 0 4.5 21h11.42a4.03 4.03 0 0 0 3.75-2.59l2.17-5.8c.11-.28.16-.58.16-.88V10.5A2.5 2.5 0 0 0 19.5 8M6 19H4.5c-.28 0-.5-.22-.5-.5v-8c0-.28.22-.5.5-.5H6zm14-7.27q0 .09-.03.18l-2.17 5.8a2 2 0 0 1-1.87 1.3H8.01V9.37l4.47-5.36h.45c.22 0 .35.13.41.21s.14.24.07.45L12.4 7.71c-.18.53-.09 1.12.24 1.58s.86.73 1.42.73h5.46c.28 0 .5.22.5.5v1.23Z';
 const THUMB_UP_FILLED =
@@ -176,10 +161,10 @@ export function MessageCell(item: MessageRow): JSX.Element {
 }
 
 export function CostCell(item: MessageRow): JSX.Element {
-  // Subscription rows with a non-zero recorded cost are per-request
-  // subscriptions like OpenCode Go (docs-attributed $/request). Flat-fee
-  // subscriptions (Claude Max, ChatGPT Plus, GLM Coding, Copilot) record
-  // $0 and keep the "Included in subscription" treatment.
+  // Subscription rows with a non-zero cost are per-request subscriptions
+  // like OpenCode Go (docs-attributed $/request). Flat-fee subscriptions
+  // (Claude Max, ChatGPT Plus, GLM Coding, Copilot) report $0 and keep the
+  // "Included in subscription" treatment.
   const isPerRequestSubscription =
     item.auth_type === 'subscription' && item.cost != null && item.cost > 0;
   return (
@@ -232,7 +217,7 @@ function resolveMessageProviderName(item: MessageRow): string | undefined {
   );
 }
 
-export function ModelCell(item: MessageRow, onOpenRecording?: (id: string) => void): JSX.Element {
+export function ModelCell(item: MessageRow): JSX.Element {
   const provId = resolveMessageProvider(item);
   const provName = resolveMessageProviderName(item);
   // Custom providers are identified by either the literal 'custom' (from
@@ -478,7 +463,6 @@ export interface CellRenderContext {
   onFeedbackLike?: (id: string) => void;
   onFeedbackDislike?: (id: string) => void;
   onFeedbackClear?: (id: string) => void;
-  onOpenRecording?: (id: string) => void;
 }
 
 export function renderCell(
@@ -500,7 +484,7 @@ export function renderCell(
     case 'output':
       return SmallTokenCell(item.output_tokens);
     case 'model':
-      return ModelCell(item, ctx.onOpenRecording);
+      return ModelCell(item);
     case 'cache':
       return CacheCell(item);
     case 'duration':

@@ -86,6 +86,7 @@ export default defineConfig(({ command }) => ({
   test: {
     environment: 'jsdom',
     globals: true,
+    setupFiles: ['./tests/setup.ts'],
     transformMode: { web: [/\.[jt]sx?$/] },
     deps: {
       optimizer: { web: { include: ['solid-js'] } },

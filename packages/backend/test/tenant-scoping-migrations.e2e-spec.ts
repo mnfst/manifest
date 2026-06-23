@@ -65,7 +65,7 @@ describe('Tenant-canonical scoping migrations — data backfill (e2e)', () => {
       logging: false,
     });
     await ds.initialize();
-    await ds.runMigrations();
+    await ds.runMigrations({ transaction: 'each' });
 
     // Revert the four tenant migrations, newest first → pre-tenant schema
     // (user_id scope columns everywhere, no owner_user_id).

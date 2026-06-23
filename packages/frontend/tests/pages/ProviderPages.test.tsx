@@ -39,6 +39,20 @@ vi.mock('../../src/components/ProviderSelectModal.jsx', () => ({
   },
 }));
 
+const mockCustomProviderForm = vi.fn();
+vi.mock('../../src/components/CustomProviderForm.jsx', () => ({
+  default: (props: Record<string, unknown>) => {
+    mockCustomProviderForm(props);
+    return (
+      <div data-testid="custom-provider-form">
+        Custom provider form
+        <button onClick={() => (props.onCreated as () => void)()}>created</button>
+        <button onClick={() => (props.onBack as () => void)()}>back</button>
+      </div>
+    );
+  },
+}));
+
 vi.mock('../../src/components/ProviderIcon.jsx', () => ({
   providerIcon: (providerId: string) =>
     providerId === 'openai' ? <span data-testid="provider-icon" /> : null,
@@ -60,14 +74,30 @@ vi.mock('../../src/services/formatters.js', () => ({
   formatTimeAgo: () => 'recently',
 }));
 
-vi.mock('../../src/services/api/providers.js', () => ({
-  getProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
-}));
+const mockGetProviderUsage = vi.fn();
+// Use the real mergeUsage so the merge logic stays under test through the page.
+vi.mock('../../src/services/api/providers.js', async () => {
+  const actual = await vi.importActual<typeof import('../../src/services/api/providers')>(
+    '../../src/services/api/providers',
+  );
+  return {
+    getProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
+    getProviderUsage: (...args: unknown[]) => mockGetProviderUsage(...args),
+    mergeUsage: actual.mergeUsage,
+  };
+});
 
 vi.mock('../../src/services/api.js', () => ({
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
   getProviders: (...args: unknown[]) => mockGetAgentProviders(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
+}));
+
+// SSE ping signals drive the usage resource's source; stub them to no-op
+// accessors so the page mounts without a live EventSource under jsdom.
+vi.mock('../../src/services/sse.js', () => ({
+  messagePing: () => 0,
+  routingPing: () => 0,
 }));
 
 const mockRenameProviderKey = vi.fn();
@@ -156,6 +186,20 @@ describe('provider pages', () => {
     mockIsSelfHosted = true;
     mockRenameProviderKey.mockResolvedValue(undefined);
     mockGetGlobalProviders.mockResolvedValue(globalProvidersResponse);
+    // The usage endpoint returns the per-(provider, auth_type) stats that the
+    // page merges into config. Derive it from the same fixture so the existing
+    // usage assertions still hold.
+    mockGetProviderUsage.mockResolvedValue({
+      providers: globalProvidersResponse.providers.map((p) => ({
+        provider: p.provider,
+        auth_type: p.auth_type,
+        consumption_tokens: p.consumption_tokens,
+        consumption_messages: p.consumption_messages,
+        consumption_cost: p.consumption_cost,
+        last_used_at: p.last_used_at,
+        sparkline_7d: p.sparkline_7d,
+      })),
+    });
     mockGetAgents.mockResolvedValue({ agents: [{ agent_name: 'demo-agent' }] });
     mockGetAgentProviders.mockResolvedValue([{ id: 'route-provider' }]);
     mockGetCustomProviders.mockResolvedValue([
@@ -246,6 +290,17 @@ describe('provider pages', () => {
       expect(screen.getByText('Inactive')).toBeDefined();
       expect(screen.getByText('Supported usage-based providers')).toBeDefined();
     });
+  });
+
+  it('still renders connected rows when the usage endpoint rejects', async () => {
+    // Config resolves so connections paint; usage rejects → the page's usage
+    // resource catch returns [] and the row shows zeroed usage (0 tokens).
+    mockGetProviderUsage.mockRejectedValue(new Error('usage down'));
+
+    render(() => <Subscriptions />);
+
+    await waitFor(() => expect(screen.getByText('ChatGPT')).toBeDefined());
+    await waitFor(() => expect(screen.getByText(/0 tokens/)).toBeDefined());
   });
 
   it('renders the local providers page', async () => {
@@ -600,6 +655,95 @@ describe('provider pages', () => {
     await waitFor(() => expect(screen.getAllByText('Connected').length).toBeGreaterThan(0));
   });
 
+  it('opens and closes the custom provider modal on the BYOK page', async () => {
+    render(() => <Byok />);
+    await waitFor(() => expect(screen.getByText('Add custom provider')).toBeDefined());
+
+    // Wait for agent to load so the modal can render (guarded by firstAgentName()).
+    await waitFor(() =>
+      expect(
+        (screen.getAllByText('Connect') as HTMLButtonElement[]).some((btn) => !btn.disabled),
+      ).toBe(true),
+    );
+
+    fireEvent.click(screen.getByText('Add custom provider'));
+    await waitFor(() =>
+      expect(screen.getByRole('dialog', { name: 'Add custom provider' })).toBeDefined(),
+    );
+    expect(mockCustomProviderForm).toHaveBeenCalledWith(
+      expect.objectContaining({ agentName: 'demo-agent' }),
+    );
+    // initialData must NOT be passed in create mode.
+    expect(mockCustomProviderForm).toHaveBeenCalledWith(
+      expect.not.objectContaining({ initialData: expect.anything() }),
+    );
+
+    // Close via Escape key.
+    const overlay = document.querySelector('.modal-overlay') as HTMLElement;
+    fireEvent.keyDown(overlay, { key: 'Escape' });
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Add custom provider' })).toBeNull(),
+    );
+    // Closing refetches both global and custom providers.
+    expect(mockGetGlobalProviders.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(mockGetCustomProviders.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('closes the custom modal via overlay click', async () => {
+    render(() => <Byok />);
+    await waitFor(() =>
+      expect(
+        (screen.getAllByText('Connect') as HTMLButtonElement[]).some((btn) => !btn.disabled),
+      ).toBe(true),
+    );
+
+    fireEvent.click(screen.getByText('Add custom provider'));
+    await waitFor(() =>
+      expect(screen.getByRole('dialog', { name: 'Add custom provider' })).toBeDefined(),
+    );
+
+    // Click the overlay itself (target === currentTarget).
+    const overlay = document.querySelector('.modal-overlay') as HTMLElement;
+    fireEvent.click(overlay);
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Add custom provider' })).toBeNull(),
+    );
+  });
+
+  it('closes the custom modal when the form fires onCreated', async () => {
+    render(() => <Byok />);
+    await waitFor(() =>
+      expect(
+        (screen.getAllByText('Connect') as HTMLButtonElement[]).some((btn) => !btn.disabled),
+      ).toBe(true),
+    );
+
+    fireEvent.click(screen.getByText('Add custom provider'));
+    await waitFor(() => expect(screen.getByTestId('custom-provider-form')).toBeDefined());
+
+    fireEvent.click(screen.getByText('created'));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Add custom provider' })).toBeNull(),
+    );
+  });
+
+  it('closes the custom modal when the form fires onBack', async () => {
+    render(() => <Byok />);
+    await waitFor(() =>
+      expect(
+        (screen.getAllByText('Connect') as HTMLButtonElement[]).some((btn) => !btn.disabled),
+      ).toBe(true),
+    );
+
+    fireEvent.click(screen.getByText('Add custom provider'));
+    await waitFor(() => expect(screen.getByTestId('custom-provider-form')).toBeDefined());
+
+    fireEvent.click(screen.getByText('back'));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Add custom provider' })).toBeNull(),
+    );
+  });
+
   it('renders a usage sparkline for connected rows that have 7-day data', async () => {
     // A connected row with a non-empty sparkline_7d renders the Sparkline cell;
     // the default fixtures use empty arrays, so this drives the sparkline branch.
@@ -611,6 +755,16 @@ describe('provider pages', () => {
           connection_count: 1,
           connections: [connection('sub-spark', 'Sparkly')],
           total_models: 3,
+        },
+      ],
+      model_counts: {},
+    });
+    // Sparkline data now arrives via the usage endpoint and is merged in.
+    mockGetProviderUsage.mockResolvedValue({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
           consumption_tokens: 1200,
           consumption_messages: 5,
           consumption_cost: 0,
@@ -618,7 +772,6 @@ describe('provider pages', () => {
           sparkline_7d: [1, 2, 3, 4],
         },
       ],
-      model_counts: {},
     });
 
     render(() => <Subscriptions />);

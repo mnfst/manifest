@@ -6,11 +6,11 @@ import {
   SYNTHETIC_OLLAMA_PROVIDER_ID,
 } from '../routing-core/provider-key.service';
 import { TierService } from '../routing-core/tier.service';
-import { OpenaiOauthService } from '../oauth/openai-oauth.service';
-import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
+import { OpenaiOauthService } from '../oauth/openai/openai-oauth.service';
+import { MinimaxOauthService } from '../oauth/minimax/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
-import { GeminiOauthService } from '../oauth/gemini-oauth.service';
-import { KiroOauthService } from '../oauth/kiro-oauth.service';
+import { GeminiOauthService } from '../oauth/gemini/gemini-oauth.service';
+import { KiroOauthService } from '../oauth/kiro/kiro-oauth.service';
 import { XaiOauthService } from '../oauth/xai/xai-oauth.service';
 import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
@@ -164,14 +164,26 @@ export class ProxyService {
     const { agentId, tenantId, body, sessionKey, agentName, signal, specificityOverride, headers } =
       opts;
     const apiMode = opts.apiMode ?? 'chat_completions';
+    const routingSource = opts.routingBody ?? body;
     const chatBody =
       apiMode === 'responses'
         ? toChatCompletionsRequest(body)
         : apiMode === 'messages'
           ? messagesToChatCompletionsRequest(body)
           : undefined;
-    const routingBody = chatBody ?? body;
-    this.validatePayload(routingBody);
+    const forwardingBody = chatBody ?? body;
+    let routingBody = forwardingBody;
+    if (routingSource !== body) {
+      const routingChatBody =
+        apiMode === 'responses'
+          ? toChatCompletionsRequest(routingSource)
+          : apiMode === 'messages'
+            ? messagesToChatCompletionsRequest(routingSource)
+            : undefined;
+      routingBody = routingChatBody ?? routingSource;
+    }
+    this.validatePayload(forwardingBody);
+    if (routingBody !== forwardingBody) this.validatePayload(routingBody);
 
     const limitMessage = await this.enforceLimits(tenantId, agentName);
     if (limitMessage) {

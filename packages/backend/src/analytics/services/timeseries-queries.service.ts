@@ -30,6 +30,17 @@ interface TimeseriesBucketRow {
   count: number;
 }
 
+export interface PivotedTimeseries {
+  agents: string[];
+  timeseries: Array<Record<string, number | string>>;
+}
+
+export interface UsageTimeseries {
+  tokenUsage: PivotedTimeseries;
+  messageUsage: PivotedTimeseries;
+  costUsage: PivotedTimeseries;
+}
+
 @Injectable()
 export class TimeseriesQueriesService {
   constructor(
@@ -293,7 +304,6 @@ export class TimeseriesQueriesService {
         display_name: a.display_name ?? a.name,
         agent_category: a.agent_category ?? null,
         agent_platform: a.agent_platform ?? null,
-        record_messages: a.record_messages === true,
         message_count: stats?.message_count ?? 0,
         last_active: stats?.last_active || String(a.created_at ?? ''),
         total_cost: stats?.total_cost ?? 0,
@@ -419,6 +429,45 @@ export class TimeseriesQueriesService {
       .getRawMany();
 
     return pivotByKey(rows, bucketAlias, 'agent_name', 'cost');
+  }
+
+  async getAgentUsageTimeseries(
+    range: string,
+    tenantId: string | null,
+    hourly: boolean,
+    authType?: string,
+    provider?: string,
+    label?: string,
+    tenantProviderId?: string,
+  ): Promise<UsageTimeseries> {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
+
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.agent_name', 'agent_name')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+      .addSelect('COUNT(*)', 'messages')
+      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.agent_name IS NOT NULL');
+    excludePlaygroundAgents(qb);
+    addTenantFilter(qb, tenantId);
+    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
+    if (provider) qb.andWhere('at.provider = :provider', { provider });
+    scopeToConnection(qb, tenantProviderId, label);
+
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.agent_name')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+
+    return pivotUsageRows(rows, bucketAlias, 'agent_name');
   }
 
   async getPerProviderTimeseries(
@@ -589,6 +638,37 @@ export class TimeseriesQueriesService {
     return pivotByKey(rows, bucketAlias, 'provider', 'cost');
   }
 
+  async getProviderUsageTimeseries(
+    range: string,
+    tenantId: string | null,
+    hourly: boolean,
+    agentName?: string,
+  ): Promise<UsageTimeseries> {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
+      .select(bucketExpr, bucketAlias)
+      .addSelect(PROVIDER_SERIES_KEY_EXPR, 'provider')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+      .addSelect('COUNT(*)', 'messages')
+      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.provider IS NOT NULL');
+    excludePlaygroundAgents(qb);
+    addTenantFilter(qb, tenantId, agentName);
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy(PROVIDER_SERIES_KEY_EXPR)
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+    return pivotUsageRows(rows, bucketAlias, 'provider');
+  }
+
   async getPerModelCostTimeseries(
     range: string,
     tenantId: string | null,
@@ -680,4 +760,16 @@ function pivotByKey(
   });
 
   return { agents: keys, timeseries };
+}
+
+function pivotUsageRows(
+  rows: Array<Record<string, unknown>>,
+  bucketAlias: string,
+  keyField: string,
+): UsageTimeseries {
+  return {
+    tokenUsage: pivotByKey(rows, bucketAlias, keyField, 'tokens'),
+    messageUsage: pivotByKey(rows, bucketAlias, keyField, 'messages'),
+    costUsage: pivotByKey(rows, bucketAlias, keyField, 'cost'),
+  };
 }

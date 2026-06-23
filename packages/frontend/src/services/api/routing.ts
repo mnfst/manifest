@@ -428,12 +428,17 @@ export function invalidateCustomProvidersCache(agentName?: string): void {
 export function getCustomProviders(agentName: string): Promise<CustomProviderData[]> {
   const cached = customProvidersCache.get(agentName);
   if (cached) return cached;
-  const promise = fetchJson<CustomProviderData[]>(routingPath(agentName, 'custom-providers')).catch(
-    (err) => {
-      customProvidersCache.delete(agentName);
-      throw err;
-    },
-  );
+  // Opt out of the shared SWR cache (core.ts): this endpoint already has its own
+  // module-scoped cache + invalidation (above), and double-caching would let a
+  // stale SWR entry mask the invalidations this function manages.
+  const promise = fetchJson<CustomProviderData[]>(
+    routingPath(agentName, 'custom-providers'),
+    undefined,
+    { cache: false },
+  ).catch((err) => {
+    customProvidersCache.delete(agentName);
+    throw err;
+  });
   customProvidersCache.set(agentName, promise);
   return promise;
 }

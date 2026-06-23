@@ -51,11 +51,11 @@ import {
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { resolveForwardEndpoint } from './forward-endpoint-resolver';
-import { OpenaiOauthService } from '../oauth/openai-oauth.service';
-import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
+import { OpenaiOauthService } from '../oauth/openai/openai-oauth.service';
+import { MinimaxOauthService } from '../oauth/minimax/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
-import { GeminiOauthService } from '../oauth/gemini-oauth.service';
-import { KiroOauthService } from '../oauth/kiro-oauth.service';
+import { GeminiOauthService } from '../oauth/gemini/gemini-oauth.service';
+import { KiroOauthService } from '../oauth/kiro/kiro-oauth.service';
 import { XaiOauthService } from '../oauth/xai/xai-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';

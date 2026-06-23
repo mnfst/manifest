@@ -21,7 +21,7 @@ import {
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
 import { getBedrockMantleBaseUrl, isBedrockRegion } from '../bedrock-region';
-import { MINIMAX_BASE_URLS } from '../oauth/minimax-oauth-helpers';
+import { MINIMAX_BASE_URLS } from '../oauth/minimax/minimax-oauth-helpers';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
 import {
   getXiaomiTokenPlanBaseUrl,

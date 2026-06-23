@@ -12,13 +12,17 @@ import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library';
 const apiMocks = vi.hoisted(() => ({
   getAgents: vi.fn(),
   getGlobalProviders: vi.fn(),
+  getGlobalProviderUsage: vi.fn(),
   getOverview: vi.fn(),
-  getGlobalPerAgentTimeseries: vi.fn(),
-  getGlobalPerAgentMessageTimeseries: vi.fn(),
-  getGlobalPerProviderTimeseries: vi.fn(),
-  getGlobalPerProviderMessageTimeseries: vi.fn(),
-  getGlobalPerAgentCostTimeseries: vi.fn(),
-  getGlobalPerProviderCostTimeseries: vi.fn(),
+  getOverviewAgentUsage: vi.fn(),
+  getOverviewProviderUsage: vi.fn(),
+}));
+
+const sseMocks = vi.hoisted(() => ({
+  bumpAgent: undefined as undefined | (() => void),
+  bumpMessage: undefined as undefined | (() => void),
+  bumpRouting: undefined as undefined | (() => void),
+  reset: undefined as undefined | (() => void),
 }));
 
 let filterSelectProps: {
@@ -40,25 +44,22 @@ vi.mock('@solidjs/router', () => ({
   useNavigate: () => vi.fn(),
 }));
 
-vi.mock('../../src/services/api.js', () => ({
-  getAgents: (...args: unknown[]) => apiMocks.getAgents(...args),
-  getGlobalProviders: (...args: unknown[]) => apiMocks.getGlobalProviders(...args),
-}));
+vi.mock('../../src/services/api.js', async () => {
+  const providers = await vi.importActual<typeof import('../../src/services/api/providers')>(
+    '../../src/services/api/providers',
+  );
+  return {
+    getAgents: (...args: unknown[]) => apiMocks.getAgents(...args),
+    getGlobalProviders: (...args: unknown[]) => apiMocks.getGlobalProviders(...args),
+    getGlobalProviderUsage: (...args: unknown[]) => apiMocks.getGlobalProviderUsage(...args),
+    mergeUsage: providers.mergeUsage,
+  };
+});
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
-  getGlobalPerAgentTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerAgentTimeseries(...args),
-  getGlobalPerAgentMessageTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerAgentMessageTimeseries(...args),
-  getGlobalPerProviderTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerProviderTimeseries(...args),
-  getGlobalPerProviderMessageTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerProviderMessageTimeseries(...args),
-  getGlobalPerAgentCostTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerAgentCostTimeseries(...args),
-  getGlobalPerProviderCostTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerProviderCostTimeseries(...args),
+  getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
+  getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
 }));
 
 vi.mock('../../src/services/providers.js', () => ({
@@ -137,10 +138,21 @@ vi.mock('../../src/components/GlobalOverviewSkeleton.jsx', () => ({
   default: () => <div data-testid="global-overview-skeleton" />,
 }));
 
-vi.mock('../../src/services/sse.js', () => ({
-  agentPing: () => 0,
-  messagePing: () => 0,
-}));
+vi.mock('../../src/services/sse.js', async () => {
+  const { createSignal } = await vi.importActual<typeof import('solid-js')>('solid-js');
+  const [agentPing, setAgentPing] = createSignal(0);
+  const [messagePing, setMessagePing] = createSignal(0);
+  const [routingPing, setRoutingPing] = createSignal(0);
+  sseMocks.bumpAgent = () => setAgentPing((n) => n + 1);
+  sseMocks.bumpMessage = () => setMessagePing((n) => n + 1);
+  sseMocks.bumpRouting = () => setRoutingPing((n) => n + 1);
+  sseMocks.reset = () => {
+    setAgentPing(0);
+    setMessagePing(0);
+    setRoutingPing(0);
+  };
+  return { agentPing, messagePing, routingPing };
+});
 
 vi.mock('../../src/services/scroll-fade.js', () => ({
   toggleScrollFade: vi.fn(),
@@ -223,6 +235,11 @@ const providerTimeseries = {
   agents: ['openai', 'anthropic'],
   timeseries: [{ hour: '2026-06-04 10:00:00', openai: 1200, anthropic: 900 }],
 };
+const providerUsageTimeseries = {
+  tokenUsage: providerTimeseries,
+  messageUsage: providerTimeseries,
+  costUsage: providerTimeseries,
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -230,16 +247,14 @@ beforeEach(() => {
   sessionStorage.clear();
   mockIsSelfHosted = false;
   filterSelectProps = null;
+  sseMocks.reset?.();
 
   apiMocks.getAgents.mockResolvedValue(agentsResponse);
   apiMocks.getGlobalProviders.mockResolvedValue(providersResponse);
+  apiMocks.getGlobalProviderUsage.mockResolvedValue({ providers: [] });
   apiMocks.getOverview.mockResolvedValue(overviewResponse);
-  apiMocks.getGlobalPerAgentTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerAgentMessageTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerProviderTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerProviderMessageTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerAgentCostTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerProviderCostTimeseries.mockResolvedValue(providerTimeseries);
+  apiMocks.getOverviewAgentUsage.mockResolvedValue(providerUsageTimeseries);
+  apiMocks.getOverviewProviderUsage.mockResolvedValue(providerUsageTimeseries);
 });
 
 afterEach(() => {
@@ -265,9 +280,7 @@ describe('GlobalOverview filter onUnselectAll', () => {
     // Fire the unselect-all handler (GlobalOverview's inline callback).
     fireEvent.click(getByTestId('filter-unselect-all'));
 
-    await waitFor(() =>
-      expect(sessionStorage.getItem('global-agent-filter:provider')).toBe('[]'),
-    );
+    await waitFor(() => expect(sessionStorage.getItem('global-agent-filter:provider')).toBe('[]'));
   });
 
   it('swallows a sessionStorage write failure during "unselect all"', async () => {
@@ -292,5 +305,23 @@ describe('GlobalOverview filter onUnselectAll', () => {
     render(() => <GlobalOverview />);
     await waitFor(() => expect(filterSelectProps).not.toBeNull());
     expect(typeof filterSelectProps!.onUnselectAll).toBe('function');
+  });
+
+  it('refetches global usage data when a message SSE ping lands', async () => {
+    render(() => <GlobalOverview />);
+
+    await waitFor(() => expect(apiMocks.getOverview).toHaveBeenCalledTimes(1));
+    expect(apiMocks.getAgents).toHaveBeenCalledTimes(1);
+    expect(apiMocks.getGlobalProviders).toHaveBeenCalledTimes(1);
+    expect(apiMocks.getGlobalProviderUsage).toHaveBeenCalledTimes(1);
+    expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalledTimes(1);
+
+    sseMocks.bumpMessage?.();
+
+    await waitFor(() => expect(apiMocks.getOverview).toHaveBeenCalledTimes(2));
+    expect(apiMocks.getAgents).toHaveBeenCalledTimes(2);
+    expect(apiMocks.getGlobalProviders).toHaveBeenCalledTimes(1);
+    expect(apiMocks.getGlobalProviderUsage).toHaveBeenCalledTimes(2);
+    expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalledTimes(2);
   });
 });

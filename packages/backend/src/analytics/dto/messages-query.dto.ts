@@ -64,11 +64,6 @@ export class MessagesQueryDto {
   status?: MessageStatusFilter;
 
   @IsOptional()
-  @IsBoolean()
-  @Transform(({ value }) => value === true || value === 'true' || value === '1')
-  recorded?: boolean;
-
-  @IsOptional()
   @IsIn(ALL_TIERS, {
     message: `routing_tier must be one of: ${ALL_TIERS.join(', ')}`,
   })
@@ -83,4 +78,14 @@ export class MessagesQueryDto {
   @IsOptional()
   @IsString()
   header_tier_id?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  include_total?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  include_filter_options?: boolean;
 }

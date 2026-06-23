@@ -10,11 +10,11 @@ import { ProxyService } from '../proxy.service';
 import type { ResolveService } from '../../resolve/resolve.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
 import type { TierService } from '../../routing-core/tier.service';
-import type { OpenaiOauthService } from '../../oauth/openai-oauth.service';
-import type { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import type { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
+import type { MinimaxOauthService } from '../../oauth/minimax/minimax-oauth.service';
 import type { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
-import type { GeminiOauthService } from '../../oauth/gemini-oauth.service';
-import type { KiroOauthService } from '../../oauth/kiro-oauth.service';
+import type { GeminiOauthService } from '../../oauth/gemini/gemini-oauth.service';
+import type { KiroOauthService } from '../../oauth/kiro/kiro-oauth.service';
 import type { XaiOauthService } from '../../oauth/xai/xai-oauth.service';
 import type { SessionMomentumService } from '../session-momentum.service';
 import type { LimitCheckService } from '../../../notifications/services/limit-check.service';
@@ -226,6 +226,31 @@ describe('ProxyService — orchestration', () => {
       expect(resolveService.resolve).toHaveBeenCalled();
       expect(result.forward.response.status).toBeGreaterThanOrEqual(200);
     });
+
+    it('replaces null content on the forwarded body when routing uses a redacted copy', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const body = { messages: [{ role: 'user', content: null }] };
+      const routingBody = { messages: [{ role: 'user', content: null }] };
+
+      await svc.proxyRequest(baseOpts({ body, routingBody } as never));
+
+      expect(body.messages[0].content).toBe('');
+      expect(routingBody.messages[0].content).toBe('');
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toBe(body);
+    });
   });
 
   describe('limit enforcement', () => {
@@ -302,6 +327,91 @@ describe('ProxyService — orchestration', () => {
   });
 
   describe('happy path forward', () => {
+    it('uses the redacted routing body for scoring while forwarding the original body', async () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Describe this image' },
+              {
+                type: 'image_url',
+                image_url: { url: 'data:image/png;base64,aGVsbG8=' },
+              },
+            ],
+          },
+        ],
+        stream: false,
+      };
+      const routingBody = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Describe this image' },
+              {
+                type: 'image_url',
+                image_url: { url: '[inline image: image/png, 5 bytes, 8 base64 chars]' },
+              },
+            ],
+          },
+        ],
+        stream: false,
+      };
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts({ body, routingBody }));
+
+      const [, , scoringMessages] = resolveService.resolve.mock.calls[0];
+      expect(scoringMessages).toEqual(routingBody.messages);
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toBe(body);
+    });
+
+    it('reuses converted Responses bodies for routing when no separate routing body is provided', async () => {
+      const body = {
+        input: 'Describe this image',
+        stream: false,
+      };
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const validateSpy = jest.spyOn(
+        svc as unknown as { validatePayload: (body: Record<string, unknown>) => void },
+        'validatePayload',
+      );
+
+      await svc.proxyRequest(baseOpts({ body, apiMode: 'responses' } as never));
+
+      const forwardedBody = fallbackService.tryForwardToProvider.mock.calls[0][0].chatBody;
+      expect(validateSpy).toHaveBeenCalledTimes(1);
+      expect(forwardedBody).toBeDefined();
+      expect(forwardedBody?.messages).toEqual([{ role: 'user', content: 'Describe this image' }]);
+    });
+
     it('returns the forward result and records tier momentum on a 200 non-stream response', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',

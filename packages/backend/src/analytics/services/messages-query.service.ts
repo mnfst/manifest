@@ -17,6 +17,60 @@ const DISTINCT_MODELS_DEFAULT_INTERVAL = '90 days';
 const COUNT_CACHE_TTL_MS = 30_000;
 const MAX_CACHE_ENTRIES = 5_000;
 
+// Recursive loose-index-scan ("skip scan") that enumerates a tenant's distinct
+// models without scanning/sorting every row: the base case grabs the smallest
+// value via the (tenant_id, model) index, and each recursive step seeks the next
+// value strictly greater than the last. ~one index seek per distinct value.
+// $1 (tenant_id) is reused by position across all three references.
+const DISTINCT_MODELS_SKIP_SCAN_SQL = `
+WITH RECURSIVE t AS (
+  (SELECT model FROM agent_messages
+     WHERE tenant_id = $1 AND model IS NOT NULL AND model <> ''
+     ORDER BY model LIMIT 1)
+  UNION ALL
+  SELECT (SELECT model FROM agent_messages
+            WHERE tenant_id = $1 AND model > t.model AND model IS NOT NULL AND model <> ''
+            ORDER BY model LIMIT 1)
+  FROM t WHERE t.model IS NOT NULL
+)
+SELECT model FROM t WHERE model IS NOT NULL`;
+
+// Same technique for distinct providers, backed by the partial
+// IDX_agent_messages_tenant_provider_value (tenant_id, provider) index.
+const DISTINCT_PROVIDERS_SKIP_SCAN_SQL = `
+WITH RECURSIVE p AS (
+  (SELECT provider FROM agent_messages
+     WHERE tenant_id = $1 AND provider IS NOT NULL AND provider <> ''
+     ORDER BY provider LIMIT 1)
+  UNION ALL
+  SELECT (SELECT provider FROM agent_messages
+            WHERE tenant_id = $1 AND provider > p.provider AND provider IS NOT NULL AND provider <> ''
+            ORDER BY provider LIMIT 1)
+  FROM p WHERE p.provider IS NOT NULL
+)
+SELECT provider FROM p WHERE provider IS NOT NULL`;
+
+interface MessageFilterParams {
+  range?: string;
+  tenantId: string | null;
+  agent_name?: string;
+}
+
+interface MessageQueryParams extends MessageFilterParams {
+  provider?: string;
+  service_type?: string;
+  cost_min?: number;
+  cost_max?: number;
+  limit: number;
+  cursor?: string;
+  status?: MessageStatusFilter;
+  routing_tier?: string;
+  specificity_category?: string;
+  header_tier_id?: string;
+  include_total?: boolean;
+  include_filter_options?: boolean;
+}
+
 @Injectable()
 export class MessagesQueryService {
   private readonly modelsCache = new TtlCache<string, { models: string[]; providers: string[] }>({
@@ -35,24 +89,11 @@ export class MessagesQueryService {
     private readonly customProviderRepo: Repository<CustomProvider>,
   ) {}
 
-  async getMessages(params: {
-    range?: string;
-    tenantId: string | null;
-    provider?: string;
-    service_type?: string;
-    cost_min?: number;
-    cost_max?: number;
-    limit: number;
-    cursor?: string;
-    agent_name?: string;
-    status?: MessageStatusFilter;
-    recorded?: boolean;
-    routing_tier?: string;
-    specificity_category?: string;
-    header_tier_id?: string;
-  }) {
+  async getMessages(params: MessageQueryParams) {
     const baseQb = await this.buildBaseMessageQuery(params);
 
+    const includeTotal = params.include_total !== false;
+    const includeFilterOptions = params.include_filter_options !== false;
     const countCacheKey = this.buildCountCacheKey(params);
     const countQb = baseQb.clone().select('COUNT(*)', 'total');
 
@@ -67,39 +108,60 @@ export class MessagesQueryService {
 
     this.applyCursor(dataQb, params.cursor);
 
-    // Run count, data, and models+providers queries in parallel. The models
-    // query row shape includes both model and provider so we can derive the
-    // full provider set in a single round trip.
-    const cachedCount = params.cursor ? this.countCache.get(countCacheKey) : undefined;
+    // Only reuse a cached count on paginated (cursor) requests; the first page
+    // always runs a fresh count so the total stays current for clients that poll
+    // it (a stale first-page total would lag newly recorded messages by the TTL).
+    const cachedCount =
+      includeTotal && params.cursor ? this.countCache.get(countCacheKey) : undefined;
     const countHit = cachedCount !== undefined;
-    const [countResult, rows, distinctRows] = await Promise.all([
-      countHit ? null : countQb.getRawOne(),
+    const [countResult, rows, filterOptions] = await Promise.all([
+      includeTotal ? (countHit ? null : countQb.getRawOne()) : null,
       dataQb
         .orderBy('at.timestamp', 'DESC')
         .addOrderBy('at.id', 'DESC')
         .limit(params.limit + 1)
         .getRawMany(),
-      this.getDistinctModels(params.tenantId, params.range, params.agent_name),
+      includeFilterOptions
+        ? this.getMessageFilterOptions(params)
+        : Promise.resolve({ providers: [] as string[], provider_labels: {} }),
     ]);
-
-    const totalCount = countHit
-      ? cachedCount
-      : this.cacheAndReturnCount(countCacheKey, Number(countResult?.total ?? 0));
 
     const hasMore = rows.length > params.limit;
     const items = rows.slice(0, params.limit);
+    let totalCount: number;
+    if (!includeTotal) {
+      totalCount = items.length;
+      if (hasMore) totalCount += 1;
+    } else if (cachedCount !== undefined) {
+      totalCount = cachedCount;
+    } else {
+      totalCount = this.cacheAndReturnCount(countCacheKey, Number(countResult?.total ?? 0));
+    }
     const lastItem = items[items.length - 1] as Record<string, unknown> | undefined;
     const nextCursor = hasMore && lastItem ? this.encodeCursor(lastItem) : null;
-    const providers = this.deriveProviders(distinctRows.models, distinctRows.providers);
-    const providerLabels = await this.resolveCustomProviderLabels(providers, params.tenantId);
 
     return {
       items,
       next_cursor: nextCursor,
       total_count: totalCount,
-      providers,
-      provider_labels: providerLabels,
+      total_count_exact: includeTotal,
+      providers: filterOptions.providers,
+      provider_labels: filterOptions.provider_labels,
     };
+  }
+
+  async getMessageFilterOptions(params: MessageFilterParams): Promise<{
+    providers: string[];
+    provider_labels: Record<string, string>;
+  }> {
+    const distinctRows = await this.getDistinctModels(
+      params.tenantId,
+      params.range,
+      params.agent_name,
+    );
+    const providers = this.deriveProviders(distinctRows.models, distinctRows.providers);
+    const providerLabels = await this.resolveCustomProviderLabels(providers, params.tenantId);
+    return { providers, provider_labels: providerLabels };
   }
 
   /**
@@ -132,7 +194,6 @@ export class MessagesQueryService {
     cost_max?: number;
     agent_name?: string;
     status?: MessageStatusFilter;
-    recorded?: boolean;
     routing_tier?: string;
     specificity_category?: string;
     header_tier_id?: string;
@@ -166,10 +227,6 @@ export class MessagesQueryService {
       qb.andWhere('at.status IN (:...errorStatuses)', { errorStatuses: ERROR_STATUSES });
     } else if (params.status) {
       qb.andWhere('at.status = :statusFilter', { statusFilter: params.status });
-    }
-
-    if (params.recorded) {
-      qb.andWhere('at.recorded = true');
     }
 
     if (params.routing_tier) {
@@ -283,6 +340,42 @@ export class MessagesQueryService {
     const cached = this.modelsCache.get(cacheKey);
     if (cached) return cached;
 
+    // Fast path: the tenant-global filter dropdown (no agent constraint, tenant
+    // resolved). A recursive loose-index-scan jumps value-to-value through
+    // IDX_agent_messages_tenant_model / IDX_agent_messages_tenant_provider_value
+    // — roughly one index seek per distinct value, versus scanning and
+    // disk-sorting the tenant's entire history (measured 2.2s -> ~10ms on a
+    // 322k-row tenant). The window is intentionally all-time: cost is now bounded
+    // by cardinality, and a rarely-used older model in the dropdown is harmless.
+    // The per-agent / no-tenant cases stay on the bounded scan below — they touch
+    // far fewer rows (or lack a supporting index for the skip scan).
+    const result =
+      tenantId && !agentName
+        ? await this.getDistinctModelsViaSkipScan(tenantId)
+        : await this.getDistinctModelsViaScan(tenantId, range, agentName);
+
+    this.modelsCache.set(cacheKey, result);
+    return result;
+  }
+
+  private async getDistinctModelsViaSkipScan(
+    tenantId: string,
+  ): Promise<{ models: string[]; providers: string[] }> {
+    const [modelRows, providerRows] = (await Promise.all([
+      this.turnRepo.query(DISTINCT_MODELS_SKIP_SCAN_SQL, [tenantId]),
+      this.turnRepo.query(DISTINCT_PROVIDERS_SKIP_SCAN_SQL, [tenantId]),
+    ])) as [{ model: string }[], { provider: string }[]];
+    return {
+      models: modelRows.map((r) => String(r.model)).filter((m) => m !== ''),
+      providers: providerRows.map((r) => String(r.provider)).filter((p) => p !== ''),
+    };
+  }
+
+  private async getDistinctModelsViaScan(
+    tenantId: string | null,
+    range: string | undefined,
+    agentName: string | undefined,
+  ): Promise<{ models: string[]; providers: string[] }> {
     // Bound the scan: when the caller doesn't constrain the range, default to
     // the last 90 days. The DISTINCT covers the entire agent_messages table
     // otherwise, which scales poorly as ingest grows.
@@ -312,12 +405,7 @@ export class MessagesQueryService {
         providerSet.add(String(providerValue));
       }
     }
-    const result = {
-      models: [...modelSet],
-      providers: [...providerSet],
-    };
-    this.modelsCache.set(cacheKey, result);
-    return result;
+    return { models: [...modelSet], providers: [...providerSet] };
   }
 
   private buildCountCacheKey(params: {
@@ -329,7 +417,6 @@ export class MessagesQueryService {
     cost_min?: number;
     cost_max?: number;
     status?: MessageStatusFilter;
-    recorded?: boolean;
     routing_tier?: string;
     specificity_category?: string;
     header_tier_id?: string;
@@ -343,7 +430,6 @@ export class MessagesQueryService {
       params.cost_min ?? '',
       params.cost_max ?? '',
       params.status ?? '',
-      params.recorded ? '1' : '',
       params.routing_tier ?? '',
       params.specificity_category ?? '',
       params.header_tier_id ?? '',

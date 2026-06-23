@@ -30,9 +30,6 @@ export class Agent {
   @Column('boolean', { default: false })
   complexity_routing_enabled!: boolean;
 
-  @Column('boolean', { default: true })
-  record_messages!: boolean;
-
   // Reserved Playground agent (the per-tenant "Playground" agent). Hidden
   // from the agent list / switcher / counts and not user-creatable/renamable.
   @Column('boolean', { default: false })

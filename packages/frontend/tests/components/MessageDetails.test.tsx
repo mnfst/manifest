@@ -10,14 +10,6 @@ vi.mock('../../src/services/api.js', () => ({
   clearMessageMiscategorized: (...args: unknown[]) => mockClearMiscategorized(...args),
 }));
 
-vi.mock('../../src/services/formatters.js', () => ({
-  formatDuration: (ms: number) => `${ms}ms`,
-  formatTime: (t: string) => t,
-  formatNumber: (v: number) => String(v),
-  sortedHeaderEntries: (h: Record<string, string> | null | undefined) =>
-    h ? Object.entries(h).sort(([a], [b]) => a.localeCompare(b)) : [],
-}));
-
 vi.mock('../../src/services/routing-utils.js', () => ({
   inferProviderName: (m: string) => {
     if (m.startsWith('gpt')) return 'OpenAI';
@@ -61,43 +53,6 @@ const detailsResponse = {
     fallback_index: null,
     session_key: 'sess-001',
   },
-  llm_calls: [
-    {
-      id: 'lc-1',
-      call_index: 0,
-      request_model: 'gpt-4o',
-      response_model: 'gpt-4o',
-      gen_ai_system: 'openai',
-      input_tokens: 100,
-      output_tokens: 50,
-      cache_read_tokens: 0,
-      cache_creation_tokens: 0,
-      duration_ms: 800,
-      ttft_ms: 120,
-      temperature: 0.7,
-      max_output_tokens: 4096,
-      timestamp: '2026-02-16 10:00:01',
-    },
-  ],
-  tool_executions: [
-    {
-      id: 'te-1',
-      llm_call_id: 'lc-1',
-      tool_name: 'Read',
-      duration_ms: 50,
-      status: 'ok',
-      error_message: null,
-    },
-  ],
-  agent_logs: [
-    {
-      id: 'al-1',
-      severity: 'info',
-      body: 'Agent started processing',
-      timestamp: '2026-02-16 10:00:00',
-      span_id: 'span-1',
-    },
-  ],
 };
 
 describe('MessageDetails', () => {
@@ -110,37 +65,6 @@ describe('MessageDetails', () => {
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     expect(container.querySelector('.msg-detail__spinner')).not.toBeNull();
     expect(container.textContent).toContain('Loading details');
-  });
-
-  it('displays LLM calls section', async () => {
-    mockGetMessageDetails.mockResolvedValue(detailsResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain('LLM Calls');
-      expect(container.textContent).toContain('gpt-4o');
-      expect(container.textContent).toContain('800ms');
-      expect(container.textContent).toContain('120ms');
-    });
-  });
-
-  it('displays tool executions section', async () => {
-    mockGetMessageDetails.mockResolvedValue(detailsResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain('Tool Executions');
-      expect(container.textContent).toContain('Read');
-      expect(container.textContent).toContain('50ms');
-    });
-  });
-
-  it('displays agent logs section', async () => {
-    mockGetMessageDetails.mockResolvedValue(detailsResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain('Harness Logs');
-      expect(container.textContent).toContain('Agent started processing');
-      expect(container.textContent).toContain('info');
-    });
   });
 
   it('displays trace ID in metadata', async () => {
@@ -179,20 +103,16 @@ describe('MessageDetails', () => {
     });
   });
 
-  it('shows message summary even without related data', async () => {
-    const emptyResponse = {
+  it('shows message summary', async () => {
+    const summaryResponse = {
       message: { ...detailsResponse.message, error_message: null },
-      llm_calls: [],
-      tool_executions: [],
-      agent_logs: [],
     };
-    mockGetMessageDetails.mockResolvedValue(emptyResponse);
+    mockGetMessageDetails.mockResolvedValue(summaryResponse);
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain('Message');
       expect(container.textContent).toContain('Provider');
       expect(container.textContent).toContain('OpenAI');
-      expect(container.textContent).not.toContain('LLM Calls');
     });
   });
 
@@ -202,111 +122,6 @@ describe('MessageDetails', () => {
     await vi.waitFor(() => {
       const errorEl = container.querySelector('.msg-detail__error');
       expect(errorEl).not.toBeNull();
-    });
-  });
-
-  it('displays section counts', async () => {
-    mockGetMessageDetails.mockResolvedValue(detailsResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      const counts = container.querySelectorAll('.msg-detail__count');
-      expect(counts.length).toBe(3);
-      expect(counts[0]!.textContent).toBe('1');
-      expect(counts[1]!.textContent).toBe('1');
-      expect(counts[2]!.textContent).toBe('1');
-    });
-  });
-
-  it('displays tool execution status badge', async () => {
-    mockGetMessageDetails.mockResolvedValue(detailsResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      const badge = container.querySelector('.status-badge--ok');
-      expect(badge).not.toBeNull();
-    });
-  });
-
-  it('displays tool execution error status', async () => {
-    const errorToolResponse = {
-      ...detailsResponse,
-      tool_executions: [
-        {
-          id: 'te-err',
-          llm_call_id: 'lc-1',
-          tool_name: 'Write',
-          duration_ms: 100,
-          status: 'error',
-          error_message: 'Permission denied',
-        },
-      ],
-    };
-    mockGetMessageDetails.mockResolvedValue(errorToolResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain('Permission denied');
-      const badge = container.querySelector('.status-badge--error');
-      expect(badge).not.toBeNull();
-    });
-  });
-
-  it('displays severity dot with warn color for warn logs', async () => {
-    const warnLogResponse = {
-      ...detailsResponse,
-      agent_logs: [
-        {
-          id: 'al-warn',
-          severity: 'warn',
-          body: 'Deprecation notice',
-          timestamp: '2026-02-16 10:00:00',
-          span_id: null,
-        },
-      ],
-    };
-    mockGetMessageDetails.mockResolvedValue(warnLogResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      const dot = container.querySelector('.msg-detail__severity-dot') as HTMLElement;
-      expect(dot).not.toBeNull();
-      expect(dot.getAttribute('title')).toBe('warn');
-      // The warn branch returns hsl(var(--chart-5)). The style attribute is a string.
-      expect(dot.getAttribute('style') ?? '').toContain('--chart-5');
-    });
-  });
-
-  it('displays severity dot with correct color for error logs', async () => {
-    const errorLogResponse = {
-      ...detailsResponse,
-      agent_logs: [
-        {
-          id: 'al-err',
-          severity: 'error',
-          body: 'Critical failure',
-          timestamp: '2026-02-16 10:00:00',
-          span_id: null,
-        },
-      ],
-    };
-    mockGetMessageDetails.mockResolvedValue(errorLogResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      const dot = container.querySelector('.msg-detail__severity-dot');
-      expect(dot).not.toBeNull();
-      expect(dot!.getAttribute('title')).toBe('error');
-    });
-  });
-
-  it('hides sections with no data', async () => {
-    const partialResponse = {
-      ...detailsResponse,
-      tool_executions: [],
-      agent_logs: [],
-    };
-    mockGetMessageDetails.mockResolvedValue(partialResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain('LLM Calls');
-      expect(container.textContent).not.toContain('Tool Executions');
-      expect(container.textContent).not.toContain('Harness Logs');
     });
   });
 
@@ -461,21 +276,17 @@ describe('MessageDetails', () => {
     expect(toggle!.getAttribute('aria-expanded')).toBe('false');
 
     // Count badge stays visible when collapsed. Request Headers uses the
-    // distinct `msg-detail__count-badge` styling (border + bg) merged in from
-    // the header-tier work, while the table sections still use the plain
-    // `msg-detail__count`. Together they cover all four section counts.
+    // `msg-detail__count-badge` styling (border + bg).
     const headerCount = container.querySelector('.msg-detail__count-badge');
     expect(headerCount).not.toBeNull();
     expect(headerCount!.textContent).toBe('3');
-    const counts = container.querySelectorAll('.msg-detail__count');
-    expect(counts.length).toBe(3);
 
     // Table body is not rendered while collapsed.
     expect(container.textContent).not.toContain('curl/8.14.1');
     expect(container.textContent).not.toContain('x-custom-foo');
-    // There should be 3 tables visible (LLM Calls, Tool Executions, Harness Logs), not 4.
+    // No tables render while the only collapsible section is collapsed.
     const tables = container.querySelectorAll('table.msg-detail__table');
-    expect(tables.length).toBe(3);
+    expect(tables.length).toBe(0);
   });
 
   it('expands Request Headers when the title is clicked, and collapses on second click', async () => {
@@ -592,75 +403,6 @@ describe('MessageDetails', () => {
     expect(container.textContent).not.toContain('Request Headers');
   });
 
-  it('renders em dashes for null call_index, request_model, and response_model in an LLM call', async () => {
-    const nullFieldsResponse = {
-      ...detailsResponse,
-      llm_calls: [
-        {
-          ...detailsResponse.llm_calls[0],
-          call_index: null,
-          request_model: null,
-          response_model: null,
-        },
-      ],
-    };
-    mockGetMessageDetails.mockResolvedValue(nullFieldsResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain('LLM Calls');
-      const cells = container.querySelectorAll('.msg-detail__table td');
-      const emDashes = Array.from(cells).filter((c) => c.textContent === '\u2014');
-      // Three null fields → at least three em-dashes in the LLM-call row.
-      expect(emDashes.length).toBeGreaterThanOrEqual(3);
-    });
-  });
-
-  it('renders em dash for null tool duration', async () => {
-    const nullToolDurationResponse = {
-      ...detailsResponse,
-      tool_executions: [
-        {
-          id: 'te-null',
-          llm_call_id: 'lc-1',
-          tool_name: 'Bash',
-          duration_ms: null,
-          status: 'ok',
-          error_message: null,
-        },
-      ],
-    };
-    mockGetMessageDetails.mockResolvedValue(nullToolDurationResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain('Bash');
-      const cells = container.querySelectorAll('.msg-detail__table td');
-      const emDashCells = Array.from(cells).filter((c) => c.textContent === '\u2014');
-      expect(emDashCells.length).toBeGreaterThanOrEqual(1);
-    });
-  });
-
-  it('renders em dash for null log body', async () => {
-    const nullBodyLogResponse = {
-      ...detailsResponse,
-      agent_logs: [
-        {
-          id: 'al-nobody',
-          severity: 'info',
-          body: null,
-          timestamp: '2026-02-16 10:00:00',
-          span_id: null,
-        },
-      ],
-    };
-    mockGetMessageDetails.mockResolvedValue(nullBodyLogResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      const logCells = container.querySelectorAll('.msg-detail__log-body');
-      expect(logCells.length).toBe(1);
-      expect(logCells[0]!.textContent).toBe('\u2014');
-    });
-  });
-
   it('omits Provider and Model when the message has no model attached', async () => {
     const noModelResponse = {
       ...detailsResponse,
@@ -694,21 +436,6 @@ describe('MessageDetails', () => {
       expect(banner!.textContent).toContain('gemini-2.5-flash-lite');
       // Without fallback_index, the "(attempt #N)" suffix is hidden.
       expect(banner!.textContent).not.toContain('attempt #');
-    });
-  });
-
-  it('shows em dash for null duration in LLM call', async () => {
-    const nullDurationResponse = {
-      ...detailsResponse,
-      llm_calls: [{ ...detailsResponse.llm_calls[0], duration_ms: null, ttft_ms: null }],
-    };
-    mockGetMessageDetails.mockResolvedValue(nullDurationResponse);
-    const { container } = render(() => <MessageDetails messageId="msg-1" />);
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain('LLM Calls');
-      const cells = container.querySelectorAll('.msg-detail__table td');
-      const durationValues = Array.from(cells).filter((c) => c.textContent === '\u2014');
-      expect(durationValues.length).toBeGreaterThanOrEqual(2);
     });
   });
 
@@ -826,7 +553,7 @@ describe('MessageDetails', () => {
   // The Model Parameters section is purely additive — every existing test
   // above this block uses a `detailsResponse` fixture that never sets
   // `request_params`, so they implicitly verify the back-compat property
-  // (rows recorded before this feature stay visually unchanged).
+  // (rows created before this feature stay visually unchanged).
   describe('Model Parameters section', () => {
     it('stays hidden for messages without request_params (back-compat for pre-feature rows)', async () => {
       // No `request_params` on the base fixture → the dashboard renders
@@ -1018,10 +745,9 @@ describe('MessageDetails', () => {
       expect(titleButton.textContent).toContain('3');
       titleButton.click();
       // Scope the key-extraction to the Model Parameters table specifically;
-      // the LLM Calls / Tool Executions / Harness Logs sections also use
-      // `.msg-detail__table` and would dilute a global selector. The
-      // wrapper id starts with `msg-detail-model-params-` for exactly this
-      // kind of disambiguation.
+      // the Request Headers section also uses `.msg-detail__table` and would
+      // dilute a global selector. The wrapper id starts with
+      // `msg-detail-model-params-` for exactly this kind of disambiguation.
       await vi.waitFor(() => {
         const wrapper = Array.from(container.querySelectorAll<HTMLElement>('[id]')).find((el) =>
           el.id.startsWith('msg-detail-model-params-'),

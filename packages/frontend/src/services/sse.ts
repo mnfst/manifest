@@ -1,5 +1,6 @@
 import { createSignal } from 'solid-js';
 import { invalidateCustomProvidersCache } from './api/routing.js';
+import { invalidateGroup } from './api/cache.js';
 
 // pingCount counts ANY event from the bus (legacy back-compat for callers that
 // don't care which kind fired). New code should depend on the targeted
@@ -25,6 +26,11 @@ export function connectSse(): () => void {
     if (messageBumpTimer) return;
     messageBumpTimer = setTimeout(() => {
       messageBumpTimer = null;
+      // Invalidate the SWR cache BEFORE bumping the ping. The ping drives the
+      // resource refetch; if the stale message/overview/usage entries were still
+      // cached, that refetch would read them and the dashboard wouldn't update
+      // live. Dropping them first guarantees the refetch hits the network.
+      invalidateGroup('message');
       setMessagePing((n) => n + 1);
     }, 500);
   };
@@ -43,13 +49,18 @@ export function connectSse(): () => void {
     bumpPing();
   });
   es.addEventListener('agent', () => {
+    // Drop agent-list/per-agent GET cache before the agentPing refetch reads it.
+    invalidateGroup('agent');
     setAgentPing((n) => n + 1);
     bumpPing();
   });
   es.addEventListener('routing', () => {
     // Custom providers are user-global; a routing change (incl. a custom-provider
     // create/update/delete on any agent) can change every agent's list, so drop
-    // the cached lists before the routingPing-driven refetch reads them.
+    // the cached lists before the routingPing-driven refetch reads them. Order
+    // matters: invalidate the SWR cache (and the custom-providers cache) BEFORE
+    // bumping routingPing so the refetch reads fresh routing/provider data.
+    invalidateGroup('routing');
     invalidateCustomProvidersCache();
     setRoutingPing((n) => n + 1);
     bumpPing();

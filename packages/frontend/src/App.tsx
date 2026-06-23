@@ -13,6 +13,7 @@ import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
 import VersionIndicator from './components/VersionIndicator.jsx';
+import WhatsNewModal from './components/WhatsNewModal.jsx';
 import { connectSse } from './services/sse.js';
 import { RightSidebarProvider, useRightSidebar } from './services/right-sidebar.jsx';
 
@@ -84,6 +85,7 @@ const AppInner: ParentComponent = (props) => {
         {rightSidebar()}
       </div>
       <VersionIndicator />
+      <WhatsNewModal />
       {__DEV_MODE__ && WingmanDevTools && (
         <Suspense fallback={null}>
           <WingmanDevTools />

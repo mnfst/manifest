@@ -19,7 +19,7 @@ import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
 import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { ProviderService } from '../../routing-core/provider.service';
 import { oauthDoneHtml, type OAuthTokenBlob } from '../core';
-import { optionalTrimmedStringQuery } from '../query-params';
+import { optionalTrimmedStringQuery } from '../core/query-params';
 import { XaiOauthService } from './xai-oauth.service';
 
 @Controller('api/v1/oauth/xai')

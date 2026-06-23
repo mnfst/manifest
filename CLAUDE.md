@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-04-12
+Last updated: 2026-06-15
 
 ## What Manifest Is
 
@@ -59,7 +59,7 @@ The `AgentKeyAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in the
 - **Frontend**: SolidJS, Vite, uPlot (charts), Better Auth client, custom CSS theme
 - **Runtime**: TypeScript 5.x (strict mode), Node.js 24.x
 - **Monorepo**: npm workspaces + Turborepo
-- **Release**: Changesets for version management + GitHub Actions for npm publishing
+- **Release**: Changesets for version management + GitHub Actions for Docker image release
 
 ## Project Structure
 
@@ -83,27 +83,20 @@ packages/
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
 │   │   │   └── seed-messages.ts             # Demo agent message seed data
-│   │   ├── entities/                        # TypeORM entities (17 files)
+│   │   ├── entities/                        # TypeORM entities (20 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
-│   │   │   └── ...                          # agent-message, agent-log, llm-call, tool-execution, etc.
+│   │   │   └── ...                          # agent-message, tenant-provider, tier-assignment, header-tier, specificity-assignment, playground-run/column, reasoning-content-cache-entry, etc.
 │   │   ├── common/
 │   │   │   ├── guards/api-key.guard.ts      # X-API-Key header auth (timing-safe)
 │   │   │   ├── decorators/public.decorator.ts
 │   │   │   ├── dto/                         # create-agent, range-query, rename-agent DTOs
 │   │   │   ├── filters/spa-fallback.filter.ts
 │   │   │   ├── interceptors/               # agent-cache, user-cache
-│   │   │   ├── constants/                   # api-key, cache, ollama, providers
+│   │   │   ├── constants/                   # api-key, cache, ollama, providers, openai-models, xai-models, subscription-clients
 │   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache
-│   │   │   ├── utils/range.util.ts
-│   │   │   ├── utils/hash.util.ts           # API key hashing (scrypt KDF)
-│   │   │   ├── utils/crypto.util.ts         # AES-256-GCM encryption
-│   │   │   ├── utils/postgres-sql.ts        # Postgres SQL helpers (column types, bucket/cast expressions)
-│   │   │   ├── utils/slugify.ts             # Name slugification
-│   │   │   ├── utils/url-validation.ts      # URL validation
-│   │   │   ├── utils/provider-inference.ts  # Provider detection from model names
-│   │   │   └── utils/period.util.ts         # Time period utilities
+│   │   │   └── utils/                       # crypto, hash, range, period, slugify, url-validation, provider-inference, postgres-sql, cost-calculator, detect-self-hosted, frontend-path, og-rewrite, secret-scrub, ttl-cache, local-ip, etc.
 │   │   ├── health/                          # @Public() health check
 │   │   ├── analytics/                       # Dashboard analytics
 │   │   │   ├── controllers/                 # overview, tokens, costs, messages, agents
@@ -114,14 +107,18 @@ packages/
 │   │   ├── routing/                         # LLM routing (providers, tiers, proxy, scorer)
 │   │   │   ├── proxy/                       # OpenAI-compatible proxy (anthropic/google adapters)
 │   │   │   ├── routing-core/               # Tier, provider, specificity services + cache
-│   │   │   ├── specificity.controller.ts   # Specificity routing CRUD endpoints
-│   │   │   └── resolve/                     # Scoring-based tier + specificity resolution
+│   │   │   ├── resolve/                     # Scoring-based tier + specificity resolution
+│   │   │   ├── custom-provider/             # Custom provider CRUD
+│   │   │   ├── header-tiers/               # Header-based tier overrides
+│   │   │   ├── oauth/                       # OAuth flows (Gemini, OpenAI, Kiro, MiniMax)
+│   │   │   └── specificity.controller.ts   # Specificity routing CRUD endpoints
 │   │   ├── scoring/                         # Request complexity scoring engine
 │   │   │   ├── keywords.ts                 # Keyword lists for all dimensions (complexity + specificity)
 │   │   │   ├── specificity-detector.ts     # Task-type detection (coding, trading, etc.)
 │   │   │   └── scan-messages.ts            # Message scanner for specificity detection
 │   │   ├── model-prices/                    # Model pricing management + sync
 │   │   ├── notifications/                   # Alert rules, email providers, cron
+│   │   ├── playground/                      # Prompt playground (runs, columns, starred/best)
 │   │   ├── github/                          # GitHub stars endpoint
 │   │   ├── sse/                             # Server-Sent Events for real-time updates
 │   │   ├── setup/                           # First-run admin setup wizard
@@ -152,16 +149,23 @@ packages/
 │   │   │   ├── Routing.tsx                  # LLM routing config
 │   │   │   ├── Limits.tsx                   # Alert rule management (token/cost thresholds)
 │   │   │   ├── ModelPrices.tsx              # Model pricing table
+│   │   │   ├── Playground.tsx               # Prompt playground
+│   │   │   ├── ConnectProvider.tsx          # Provider connection flow
+│   │   │   ├── FreeModels.tsx               # Free model catalog
+│   │   │   ├── Setup.tsx                    # First-run setup wizard
 │   │   │   ├── Help.tsx                     # Help page
 │   │   │   └── NotFound.tsx                 # 404 page
 │   │   ├── services/
 │   │   │   ├── auth-client.ts               # Better Auth SolidJS client
 │   │   │   ├── api.ts                       # API functions (credentials: include)
+│   │   │   ├── providers.ts                 # ProviderDef list + SPECIFICITY_STAGES + STAGES
+│   │   │   ├── model-display.ts             # Model display-name cache
 │   │   │   ├── formatters.ts               # Number/cost formatting
 │   │   │   ├── provider-utils.ts            # LLM provider helpers
 │   │   │   ├── routing.ts, routing-utils.ts # Routing config helpers
 │   │   │   ├── theme.ts                     # Theme management
-│   │   │   └── toast-store.ts               # Toast notification state
+│   │   │   ├── toast-store.ts               # Toast notification state
+│   │   │   └── ...                          # setup-status, playground-store, pagination, sse, oauth-popup, etc.
 │   │   ├── layouts/                         # Layout components
 │   │   └── styles/
 │   └── tests/
@@ -322,27 +326,36 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET | `/api/v1/overview` | Session/API Key | Dashboard summary |
 | GET | `/api/v1/tokens` | Session/API Key | Token usage analytics |
 | GET | `/api/v1/costs` | Session/API Key | Cost analytics |
-| GET | `/api/v1/messages` | Session/API Key | Paginated message log |
 | GET | `/api/v1/agents` | Session/API Key | Agent list with sparklines |
 | POST | `/api/v1/agents` | Session/API Key | Create agent + API key |
-| DELETE | `/api/v1/agents/:name` | Session/API Key | Delete agent |
-| GET | `/api/v1/agents/:name/key` | Session/API Key | Get agent API key |
-| POST | `/api/v1/agents/:name/rotate-key` | Session/API Key | Rotate API key |
-| PATCH | `/api/v1/agents/:name` | Session/API Key | Rename agent |
+| GET | `/api/v1/agents/:agentName` | Session/API Key | Single agent detail |
+| GET/POST | `/api/v1/agents/:agentName/duplicate*` | Session/API Key | Duplicate agent (preview + confirm) |
+| DELETE | `/api/v1/agents/:agentName` | Session/API Key | Delete agent |
+| GET | `/api/v1/agents/:agentName/key` | Session/API Key | Get agent API key |
+| POST | `/api/v1/agents/:agentName/rotate-key` | Session/API Key | Rotate API key |
+| PATCH | `/api/v1/agents/:agentName` | Session/API Key | Rename agent |
+| GET | `/api/v1/messages` | Session/API Key | Paginated message log |
+| GET/PATCH/DELETE | `/api/v1/messages/:id/*` | Session/API Key | Message details, feedback, miscategorized flag |
 | GET | `/api/v1/security` | Session/API Key | Security score + events |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
+| GET | `/api/v1/free-models` | Session/API Key | Free LLM model catalog |
+| GET | `/api/v1/savings/*` | Session/API Key | Savings analytics (summary, timeseries, baseline candidates) |
 | GET | `/api/v1/agent/:agentName/usage` | Session/API Key | Per-agent token usage |
 | GET | `/api/v1/agent/:agentName/costs` | Session/API Key | Per-agent cost data |
-| GET/POST/PATCH/DELETE | `/api/v1/notifications` | Session/API Key | Notification rules CRUD |
-| GET/POST/DELETE | `/api/v1/notifications/email-provider` | Session/API Key | Email provider config |
-| GET/POST/PUT/DELETE | `/api/v1/routing/*` | Session/API Key | Routing config (tiers + providers) |
-| GET/PUT/POST/DELETE | `/api/v1/routing/:agent/specificity/*` | Session/API Key | Specificity routing config |
-| POST | `/api/v1/routing/subscription-providers` | Session/API Key | Subscription provider config |
-| POST | `/api/v1/routing/:agentName/ollama/sync` | Session/API Key | Sync Ollama models |
+| GET/POST/PATCH/DELETE | `/api/v1/notifications/*` | Session/API Key | Notification rules CRUD + email provider config |
+| GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*` | Session/API Key | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, etc.) |
+| POST | `/api/v1/routing/ollama/sync` | Session/API Key | Sync Ollama models |
+| GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows (Gemini, OpenAI, Kiro, MiniMax) |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
+| POST | `/api/v1/routing/subscription-providers` | Bearer (mnfst_*) | Subscription provider config |
+| GET | `/api/v1/setup/status` | Public | First-run setup status |
+| POST | `/api/v1/setup/admin` | Public | Create initial admin user |
+| GET | `/api/v1/public/*` | Public (opt-in) | Aggregate public stats (controlled by `MANIFEST_PUBLIC_STATS`) |
+| GET | `/v1/models` | Bearer (mnfst_*) | Available model list (proxy) |
 | POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
 | POST | `/v1/responses` | Bearer (mnfst_*) | LLM proxy (OpenAI Responses API) |
 | POST | `/v1/messages` | Bearer (mnfst_*) | LLM proxy (Anthropic Messages API) |
+| GET/POST/PATCH | `/api/v1/playground/*` | Session/API Key | Playground runs (run, list, star, mark best) |
 | GET | `/api/v1/events` | Session | SSE real-time events |
 | GET | `/api/v1/github/stars` | Public | GitHub star count |
 
@@ -352,6 +365,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 
 - `BETTER_AUTH_SECRET` — **Required.** Secret for Better Auth session signing (min 32 chars). Generate with `openssl rand -hex 32`.
 - `DATABASE_URL` — **Required in production.** PostgreSQL connection string. Format: `postgresql://user:password@host:port/database`. Defaults to `postgresql://myuser:mypassword@localhost:5432/mydatabase` (matches the local Docker command).
+- `MANIFEST_ENCRYPTION_KEY` — Recommended. AES-256-GCM key (min 32 chars) for encrypting stored provider API keys and OAuth tokens. Defaults to `BETTER_AUTH_SECRET` if unset — set this independently so a session-cookie leak doesn't also expose provider credentials.
 - `PORT` — Server port. Default: `3001`
 - `BIND_ADDRESS` — Bind address. Default: `127.0.0.1` (use `0.0.0.0` for Railway/Docker)
 - `NODE_ENV` — `development` or `production`. CORS only enabled in dev.
@@ -361,14 +375,21 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `API_KEY` — Secret for programmatic API access (X-API-Key header).
 - `THROTTLE_TTL` — Rate limit window in ms. Default: `60000`
 - `THROTTLE_LIMIT` — Max requests per window. Default: `100`
-- `MAILGUN_API_KEY` — Mailgun API key for email verification/password reset.
-- `MAILGUN_DOMAIN` — Mailgun sending domain (e.g. `mg.manifest.build`).
-- `NOTIFICATION_FROM_EMAIL` — Sender email. Default: `noreply@manifest.build`
+- `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `20`
+- `PROVIDER_TIMEOUT_MS` — Per-attempt timeout (ms) for upstream provider requests. Default: `180000`
+- `STREAM_WARMUP_MS` — Timeout (ms) to wait for the first chunk of a streaming response before trying a fallback. Default: `15000`
+- `EMAIL_PROVIDER` — Unified email provider: `resend` (recommended), `mailgun`, or `sendgrid`. Used for Better Auth transactional emails and threshold alerts.
+- `EMAIL_API_KEY` — API key for the configured `EMAIL_PROVIDER`.
+- `EMAIL_DOMAIN` — Sending domain (required for Mailgun).
+- `EMAIL_FROM` — Sender address. Default: `noreply@manifest.build`
+- `MAILGUN_API_KEY` / `MAILGUN_DOMAIN` / `NOTIFICATION_FROM_EMAIL` — Legacy Mailgun-only variables. Deprecated; use `EMAIL_*` instead. Still honored for backward compatibility.
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth (optional)
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` — GitHub OAuth (optional)
 - `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` — Discord OAuth (optional)
 - `SEED_DATA` — Set `true` to seed demo data on startup.
-- `MANIFEST_MODE` — `selfhosted` or `cloud` (default: `cloud`; auto-`selfhosted` inside Docker via `/.dockerenv`). Self-hosted mode enables loopback auth shortcuts and allows custom-provider URLs with `http://` / private IPs. `local` is accepted as a legacy alias for `selfhosted`.
+- `MANIFEST_MODE` — `selfhosted` or `cloud` (default: `cloud`; auto-detected as `selfhosted` inside Docker via `/.dockerenv` or Podman via `/run/.containerenv`). Self-hosted mode enables loopback auth shortcuts and allows custom-provider URLs with `http://` / private IPs. `local` is accepted as a legacy alias for `selfhosted`.
+- `MANIFEST_TELEMETRY_DISABLED` — Set `1` to opt out of anonymous telemetry (self-hosted only).
+- `MANIFEST_PUBLIC_STATS` — Set `true` to expose `/api/v1/public/*` aggregate stats without auth (cloud-only marketing use).
 - `OLLAMA_HOST` — Ollama endpoint for the built-in tile. Defaults to `http://localhost:11434` outside Docker and `http://host.docker.internal:11434` inside the bundled `docker/docker-compose.yml`.
 
 ## Domain Terminology
@@ -396,6 +417,7 @@ Helmet enforces a strict CSP in `main.ts`. The policy only allows `'self'` origi
 
 Current self-hosted assets:
 - **Boxicons Duotone** — `public/fonts/boxicons/` (CSS + woff/ttf font files)
+- **DM Sans**, **Bricolage Grotesque**, **JetBrains Mono** — individual `.woff2` files in `public/fonts/`
 
 To add a new font or icon library:
 1. Download the CSS and font files into `packages/frontend/public/`
@@ -456,7 +478,7 @@ values with 400, so downgrades stay safe.
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
 - **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SendGrid email providers.
 - **LLM Routing**: Two-layer routing system with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`:
-  - **Complexity tiers** (_being retired_ — see [Routing deprecation](#routing-deprecation-legacy-vs-clean-cohorts)): 4 tiers (simple/standard/complex/reasoning) based on request content scoring with 23 weighted keyword dimensions. Per-agent, gated by `complexity_routing_enabled`; agents with it off route everything to the `default` tier.
+  - **Complexity tiers** (_being retired_ — see [Routing deprecation](#routing-deprecation-legacy-vs-clean-cohorts)): 4 tiers (simple/standard/complex/reasoning) based on request content scoring with 31 weighted keyword dimensions. Per-agent, gated by `complexity_routing_enabled`; agents with it off route everything to the `default` tier.
   - **Specificity routing** (opt-in; _being retired_): 9 task-type categories (coding, web_browsing, data_analysis, image_generation, video_generation, social_media, email_management, calendar_management, trading). When enabled, overrides complexity tiers. Detection uses keyword analysis on the last user message + tool name heuristics. Categories defined in `shared/src/specificity.ts`, keywords in `scoring/keywords.ts`, detection in `scoring/specificity-detector.ts`.
   - **Resolution order**: specificity check (if any category active) → complexity scoring → tier assignment → provider/model resolution → proxy forward.
   - **Kept long-term**: **default routing** (one model + up to 5 fallbacks) and **custom routing** (header-triggered tiers).
@@ -645,3 +667,5 @@ This applies to:
 ### E2E Test Entities
 
 When adding new TypeORM entities to `database.module.ts`, also add them to the E2E test helper (`packages/backend/test/helpers.ts`) entities array. Missing entities cause `EntityMetadataNotFoundError` in services that depend on them.
+
+**Known gap (code bug):** `ReasoningContentCacheEntry` is registered in `database.module.ts` but is absent from the `entities` array in `packages/backend/test/helpers.ts`. Add it there to avoid E2E failures in services that touch that entity.

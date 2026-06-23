@@ -73,7 +73,10 @@ describe('MessagesQueryService — cost filter edge cases', () => {
         MessagesQueryService,
         {
           provide: getRepositoryToken(AgentMessage),
-          useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockQb) },
+          useValue: {
+            createQueryBuilder: jest.fn().mockReturnValue(mockQb),
+            query: jest.fn().mockResolvedValue([]),
+          },
         },
         {
           provide: getRepositoryToken(CustomProvider),

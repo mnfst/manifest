@@ -3,16 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
-import { LlmCall } from '../entities/llm-call.entity';
-import { ToolExecution } from '../entities/tool-execution.entity';
-import { AgentLog } from '../entities/agent-log.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { TenantProvider } from '../entities/tenant-provider.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
-import { MessageRecording } from '../entities/message-recording.entity';
 import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { OtlpModule } from '../otlp/otlp.module';
 import { RoutingCoreModule } from '../routing/routing-core/routing-core.module';
@@ -24,10 +20,11 @@ import { TimeseriesQueriesService } from './services/timeseries-queries.service'
 import { MessagesQueryService } from './services/messages-query.service';
 import { MessageDetailsService } from './services/message-details.service';
 import { MessageFeedbackService } from './services/message-feedback.service';
-import { MessageRecordingService } from './services/message-recording.service';
 import { SpecificityFeedbackService } from './services/specificity-feedback.service';
 import { AgentAnalyticsService } from './services/agent-analytics.service';
+import { ProviderUsageService } from './services/provider-usage.service';
 import { OverviewController } from './controllers/overview.controller';
+import { ProviderUsageController } from './controllers/provider-usage.controller';
 import { TokensController } from './controllers/tokens.controller';
 import { CostsController } from './controllers/costs.controller';
 import { MessagesController } from './controllers/messages.controller';
@@ -41,16 +38,12 @@ import { ProviderAnalyticsController } from './controllers/provider-analytics.co
       AgentMessage,
       Agent,
       Tenant,
-      LlmCall,
-      ToolExecution,
-      AgentLog,
       CustomProvider,
       TenantProvider,
       AgentEnabledProvider,
       TierAssignment,
       SpecificityAssignment,
       HeaderTier,
-      MessageRecording,
       AgentModelParams,
     ]),
     OtlpModule,
@@ -65,6 +58,7 @@ import { ProviderAnalyticsController } from './controllers/provider-analytics.co
     AgentsController,
     AgentAnalyticsController,
     ProviderAnalyticsController,
+    ProviderUsageController,
   ],
   providers: [
     AggregationService,
@@ -74,10 +68,10 @@ import { ProviderAnalyticsController } from './controllers/provider-analytics.co
     MessagesQueryService,
     MessageDetailsService,
     MessageFeedbackService,
-    MessageRecordingService,
     SpecificityFeedbackService,
     AgentAnalyticsService,
+    ProviderUsageService,
   ],
-  exports: [SpecificityFeedbackService, MessageRecordingService],
+  exports: [SpecificityFeedbackService, ProviderUsageService],
 })
 export class AnalyticsModule {}
