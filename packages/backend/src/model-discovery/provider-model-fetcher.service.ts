@@ -647,6 +647,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     },
     parse: parseAnthropic,
   },
+  atlascloud: {
+    endpoint: 'https://api.atlascloud.ai/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
   bedrock: {
     endpoint: `${getBedrockMantleBaseUrl()}/v1/models`,
     buildHeaders: bearerHeaders,

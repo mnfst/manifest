@@ -127,6 +127,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionAuthMode: 'popup_paste',
     models: [],
   },
+  atlascloud: {
+    initial: 'Ac',
+    subtitle: 'Claude, GPT, DeepSeek, Qwen, Llama via Atlas Cloud',
+    models: [],
+  },
   bedrock: {
     initial: 'AWS',
     subtitle: 'Claude, Llama, Mistral, Nova via Amazon Bedrock',
@@ -407,6 +412,7 @@ export function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
 const PROVIDER_ORDER = [
   'qwen',
   'anthropic',
+  'atlascloud',
   'bedrock',
   'byteplus',
   'commandcode',

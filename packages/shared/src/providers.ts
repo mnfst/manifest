@@ -69,6 +69,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-ant-...',
   },
   {
+    id: 'atlascloud',
+    displayName: 'Atlas Cloud',
+    aliases: ['atlas-cloud', 'atlas cloud', 'atlas'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#6E56CF',
+    keyPrefix: '',
+    minKeyLength: 20,
+    keyPlaceholder: 'Atlas Cloud API key',
+  },
+  {
     id: 'bedrock',
     displayName: 'AWS Bedrock',
     aliases: ['aws-bedrock', 'aws bedrock', 'amazon-bedrock', 'amazon bedrock'],
