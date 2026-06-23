@@ -5,7 +5,7 @@ import {
   resolveEndpointKey,
   PROVIDER_ENDPOINTS,
 } from '../provider-endpoints';
-import { resolveSubscriptionEndpointKey } from '../provider-hooks';
+import { buildProviderExtraHeaders, resolveSubscriptionEndpointKey } from '../provider-hooks';
 
 describe('buildCustomEndpoint', () => {
   it('strips trailing /v1 from base URL to avoid double /v1', () => {
@@ -763,5 +763,31 @@ describe('gemini-subscription endpoint', () => {
 
   it('buildStreamPath returns the streamGenerateContent path', () => {
     expect(ep.buildStreamPath!('gemini-2.5-pro')).toBe('/v1internal:streamGenerateContent');
+  });
+});
+
+describe('buildProviderExtraHeaders', () => {
+  it('returns x-grok-conv-id for xai', () => {
+    expect(buildProviderExtraHeaders('xai', 'sess-abc')).toEqual({
+      'x-grok-conv-id': 'sess-abc',
+    });
+  });
+
+  it('returns x-session-id for openrouter', () => {
+    expect(buildProviderExtraHeaders('openrouter', 'ba44c58a-a1f5-4cc7-bc2a-9394d266cc2b')).toEqual(
+      { 'x-session-id': 'ba44c58a-a1f5-4cc7-bc2a-9394d266cc2b' },
+    );
+  });
+
+  it('is case-insensitive for provider name', () => {
+    expect(buildProviderExtraHeaders('OpenRouter', 'sess-xyz')).toEqual({
+      'x-session-id': 'sess-xyz',
+    });
+  });
+
+  it('returns undefined for providers with no extra headers', () => {
+    expect(buildProviderExtraHeaders('anthropic', 'sess-abc')).toBeUndefined();
+    expect(buildProviderExtraHeaders('openai', 'sess-abc')).toBeUndefined();
+    expect(buildProviderExtraHeaders('unknown', 'sess-abc')).toBeUndefined();
   });
 });

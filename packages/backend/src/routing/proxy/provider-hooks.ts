@@ -39,6 +39,7 @@ const PROVIDER_EXTRA_HEADER_BUILDERS: Record<
   (sessionKey: string) => Record<string, string>
 > = {
   xai: (sessionKey) => ({ 'x-grok-conv-id': sessionKey }),
+  openrouter: (sessionKey) => ({ 'x-session-id': sessionKey }),
 };
 
 export function buildProviderExtraHeaders(
