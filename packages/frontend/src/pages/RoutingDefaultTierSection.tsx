@@ -174,9 +174,9 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
   // toggle) while complexity routing is actually active.
   const deprecationNotice = () => (
     <Show when={showComplexityToggle() && props.complexityEnabled()}>
-      <RoutingDeprecationNotice title="Complexity routing is going away.">
-        It still works for now, so nothing breaks today. When you're ready, switch to a single
-        default model or rebuild these tiers as Custom (header) rules.
+      <RoutingDeprecationNotice title="We're deprecating rule-based routing.">
+        You can still use it until September 1, 2026, but we recommend migrating to default or
+        custom routing.
       </RoutingDeprecationNotice>
     </Show>
   );

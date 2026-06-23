@@ -38,3 +38,8 @@
   color: inherit;
   text-decoration: underline;
 }
+
+.routing-deprecation__link {
+  white-space: nowrap;
+  font-weight: 500;
+}

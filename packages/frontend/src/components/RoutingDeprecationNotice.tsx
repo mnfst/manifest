@@ -1,6 +1,9 @@
 import { type Component, type JSX } from 'solid-js';
 import '../styles/routing-deprecation.css';
 
+/** Blog post explaining why rule-based (complexity + task-specific) routing is being retired. */
+const DEPRECATION_BLOG_URL = 'https://manifest.build/blog/deprecating-rule-based-routing/';
+
 export interface RoutingDeprecationNoticeProps {
   /** Short bold lead-in, e.g. "Complexity routing is being retired." */
   title: string;
@@ -33,7 +36,15 @@ const RoutingDeprecationNotice: Component<RoutingDeprecationNoticeProps> = (prop
     </span>
     <div class="routing-deprecation__text">
       <span class="routing-deprecation__title">{props.title}</span>{' '}
-      <span class="routing-deprecation__body">{props.children}</span>
+      <span class="routing-deprecation__body">{props.children}</span>{' '}
+      <a
+        class="routing-deprecation__link"
+        href={DEPRECATION_BLOG_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        View more
+      </a>
     </div>
   </div>
 );

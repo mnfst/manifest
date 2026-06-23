@@ -236,9 +236,9 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
   // This section only renders for legacy/invested agents (gated in Routing.tsx),
   // so the deprecation banner is always appropriate here.
   const deprecationNotice = () => (
-    <RoutingDeprecationNotice title="Task-specific routing is going away.">
-      Your active categories still work for now. You can recreate any you want to keep as Custom
-      (header) rules.
+    <RoutingDeprecationNotice title="We're deprecating rule-based routing.">
+      You can still use it until September 1, 2026, but we recommend migrating to default or custom
+      routing.
     </RoutingDeprecationNotice>
   );
 

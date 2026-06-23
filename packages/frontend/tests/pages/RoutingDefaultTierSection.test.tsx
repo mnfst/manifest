@@ -167,12 +167,12 @@ describe('RoutingDefaultTierSection', () => {
 
   it('shows the complexity deprecation notice for a legacy agent with complexity enabled', () => {
     render(() => <RoutingDefaultTierSection {...makeProps({ complexityEnabled: () => true })} />);
-    expect(screen.getByText('Complexity routing is going away.')).toBeDefined();
+    expect(screen.getByText("We're deprecating rule-based routing.")).toBeDefined();
   });
 
   it('hides the deprecation notice when complexity is disabled', () => {
     render(() => <RoutingDefaultTierSection {...makeProps({ complexityEnabled: () => false })} />);
-    expect(screen.queryByText('Complexity routing is going away.')).toBeNull();
+    expect(screen.queryByText("We're deprecating rule-based routing.")).toBeNull();
   });
 
   it('hides the deprecation notice for a clean agent even if complexity would be on', () => {
@@ -181,7 +181,7 @@ describe('RoutingDefaultTierSection', () => {
         {...makeProps({ complexityEnabled: () => true, showComplexityToggle: () => false })}
       />
     ));
-    expect(screen.queryByText('Complexity routing is going away.')).toBeNull();
+    expect(screen.queryByText("We're deprecating rule-based routing.")).toBeNull();
   });
 
   it('does not render the section title in embedded mode', () => {

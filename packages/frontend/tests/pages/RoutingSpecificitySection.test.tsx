@@ -151,7 +151,7 @@ describe('RoutingSpecificitySection', () => {
 
   it('renders the task-specific deprecation notice', () => {
     render(() => <RoutingSpecificitySection {...makeProps({ assignments: () => [codingActive] })} />);
-    expect(screen.getByText('Task-specific routing is going away.')).toBeDefined();
+    expect(screen.getByText("We're deprecating rule-based routing.")).toBeDefined();
   });
 
   it('renders the deprecation notice in embedded mode', () => {
@@ -160,7 +160,7 @@ describe('RoutingSpecificitySection', () => {
         {...makeProps({ embedded: true, assignments: () => [codingActive] })}
       />
     ));
-    expect(screen.getByText('Task-specific routing is going away.')).toBeDefined();
+    expect(screen.getByText("We're deprecating rule-based routing.")).toBeDefined();
   });
 
   it('renders the Response mode control and forwards response mode changes', async () => {
