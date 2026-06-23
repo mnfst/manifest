@@ -1,5 +1,26 @@
 # manifest
 
+## 6.12.0
+
+### Minor Changes
+
+- 8956f43: Stop storing full message request/response bodies. The Messages page keeps the per-message metadata view (status, model, provider, tokens, cost, routing, request headers, model parameters) but the recorded-body drawer is removed. A migration drops the `message_recordings` table and the unused `llm_calls` / `tool_executions` / `agent_logs` tables, significantly reducing database storage.
+
+### Patch Changes
+
+- b27a16e: Stop index migrations from deadlocking deploys against live traffic. The agent_messages index migrations used blocking DDL (plain CREATE/DROP INDEX), which takes an ACCESS EXCLUSIVE lock and deadlocked against live INSERTs while the previous deployment was still serving — failing every deploy and leaving the schema (and the dashboard perf work) unshipped. Those migrations now run CONCURRENTLY (SHARE UPDATE EXCLUSIVE, which does not conflict with writes) outside a transaction, and the migration runner uses per-migration ('each') transactions. The covering index also builds without a write stall.
+- 88a8590: Add a timestamp-leading partial index for cross-tenant error scans. The Cloud control plane's hourly error-insights rollup scans agent_messages by time window across all tenants, but the only error index was tenant-leading — so each run scanned every error row ever recorded (cost growing with total accumulated errors), which turned into multi-minute scans that saturated the database. A timestamp-leading partial index over error rows turns those into windowed range scans (measured 110ms/29k buffers down to 2ms/274 buffers on ~2M error rows). The index stays partial so write amplification on ingest is negligible.
+- 29ee8be: Speed up the dashboard, message log, and provider/subscription lists for high-volume tenants. Distinct model/provider lookups now use an index skip-scan instead of scanning a tenant's whole history, and the Overview derives its summary cards from the timeseries it already fetches (one fewer full-range scan). A covering index lets the Overview summary, timeseries, and cost-by-model aggregations run as index-only scans on every install (previously self-hosted had none). Postgres planner defaults (JIT off, larger work_mem, SSD-tuned random_page_cost) plus tighter autovacuum on agent_messages keep those aggregations off the heap, and a redundant index is dropped to lighten ingest.
+- 46c88c2: Lazy-load hidden token and cost chart series on agent overview.
+- 1591e53: Name the affected agent when provider disconnect is blocked by routing.
+- 8fb56c1: Speed up provider disconnect route checks and ignore disabled route rows.
+- e266b8e: Support large OpenAI-compatible inline image requests on `/v1/*` with route-scoped body parsing, clear body-size errors, and redacted inline image data for routing and message recordings.
+- 49ef687: Start retiring complexity and task-specific routing. Agents that never configured them now see only Default and Custom routing, so the routing page is simpler for new and unconfigured agents. Agents already using complexity tiers or task-specific categories keep everything working and see a banner explaining the change.
+- 0501bb0: Improve the agent routing empty state contrast in dark mode.
+- 5eec940: Stop deploys from deadlocking on database migrations. Migrations ran on every replica's boot over PgBouncer, so multi-replica deploys with pending migrations could deadlock acquiring locks on agent_messages and fail. Migrations now run once in a pre-deploy step over the direct connection (with an advisory lock so overlapping deploys serialize), before any replica starts. App-boot migration is now configurable (RUN_MIGRATIONS_ON_BOOT, default on for dev and single-instance self-hosted). The migration runner also uses the committed migration list instead of a compiled-file glob, so stale build artifacts from deleted migrations can never run.
+- 100a3b4: Run database migrations under a Postgres advisory lock so concurrent runners serialize instead of deadlocking. When more than one process ran migrations at once (overlapping deployments, or replicas across regions), they could deadlock acquiring DDL locks on the high-churn agent_messages table and fail the deploy. The deploy migration step now takes a single advisory lock over the direct migration connection: the first runner applies every pending migration, the rest wait and then find nothing pending. Single-instance and self-hosted deploys are unaffected.
+- ca62d7b: Clarify Xiaomi MiMo Basic API-key setup by linking directly to the API Keys console and validating the documented `sk-xxxxx` pay-as-you-go key shape separately from Token Plan `tp-` credentials.
+
 ## 6.11.0
 
 ### Minor Changes
