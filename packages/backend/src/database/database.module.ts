@@ -15,7 +15,6 @@ import { TierAssignment } from '../entities/tier-assignment.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
-import { MessageRecording } from '../entities/message-recording.entity';
 import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
@@ -82,7 +81,6 @@ import { shouldRetryDbConnection } from '../common/utils/db-retry';
       CustomProvider,
       SpecificityAssignment,
       HeaderTier,
-      MessageRecording,
       AgentModelParams,
       ReasoningContentCacheEntry,
       AgentEnabledProvider,

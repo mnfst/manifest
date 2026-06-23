@@ -30,7 +30,6 @@ import { AgentListCacheInterceptor } from '../../common/interceptors/agent-list-
 import { AGENT_LIST_CACHE_TTL_MS, agentListCacheKey } from '../../common/constants/cache.constants';
 import { slugify } from '../../common/utils/slugify';
 import { PLAYGROUND_AGENT_SLUG } from '../../common/constants/playground.constants';
-import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
 import { ProviderService } from '../../routing/routing-core/provider.service';
 
 @Controller('api/v1')
@@ -43,7 +42,6 @@ export class AgentsController {
     private readonly duplication: AgentDuplicationService,
     private readonly apiKeyGenerator: ApiKeyGeneratorService,
     private readonly eventBus: IngestEventBusService,
-    private readonly recordingCache: AgentRecordingCacheService,
     private readonly providerService: ProviderService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
@@ -260,17 +258,6 @@ export class AgentsController {
       );
       if (body.agent_category !== undefined) result['agent_category'] = body.agent_category;
       if (body.agent_platform !== undefined) result['agent_platform'] = body.agent_platform;
-    }
-
-    if (body.record_messages !== undefined) {
-      const effectiveName = body.name ? slugify(body.name)! : agentName;
-      const { agentId } = await this.lifecycle.setRecordMessages(
-        ctx.tenantId,
-        effectiveName,
-        body.record_messages,
-      );
-      this.recordingCache.invalidate(agentId);
-      result['record_messages'] = body.record_messages;
     }
 
     await this.invalidateAgentListCache(ctx.tenantId);

@@ -15,7 +15,6 @@ export interface MessageTableProps {
   onFeedbackLike?: (id: string) => void;
   onFeedbackDislike?: (id: string) => void;
   onFeedbackClear?: (id: string) => void;
-  onOpenRecording?: (id: string) => void;
   rowIdPrefix?: string;
   showHeaderTooltips?: boolean;
   expandable?: boolean;
@@ -40,26 +39,6 @@ function ChevronIcon(): JSX.Element {
   );
 }
 
-function EyeIcon(): JSX.Element {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
 function ExpandableRow(props: {
   item: MessageRow;
   columns: MessageColumnKey[];
@@ -76,19 +55,12 @@ function ExpandableRow(props: {
     onFeedbackLike: props.tableProps.onFeedbackLike,
     onFeedbackDislike: props.tableProps.onFeedbackDislike,
     onFeedbackClear: props.tableProps.onFeedbackClear,
-    onOpenRecording: props.tableProps.onOpenRecording,
   };
-
-  const isRecorded = () => props.item.recorded && !!props.tableProps.onOpenRecording;
 
   const handleRowClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
     if (target.closest('button, a, [role="button"]')) return;
-    if (isRecorded()) {
-      props.tableProps.onOpenRecording!(props.item.id);
-    } else {
-      setExpanded(!expanded());
-    }
+    setExpanded(!expanded());
   };
 
   return (
@@ -100,30 +72,21 @@ function ExpandableRow(props: {
       >
         <For each={props.columns}>{(col) => renderCell(col, props.item, ctx)}</For>
         <td class="msg-detail__chevron-cell">
-          <Show
-            when={isRecorded()}
-            fallback={
-              <button
-                class={`msg-detail__chevron-btn${expanded() ? ' msg-detail__chevron-btn--open' : ''}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setExpanded(!expanded());
-                }}
-                aria-expanded={expanded()}
-                aria-label={expanded() ? 'Collapse details' : 'Expand details'}
-                title={expanded() ? 'Collapse details' : 'Expand details'}
-              >
-                <ChevronIcon />
-              </button>
-            }
+          <button
+            class={`msg-detail__chevron-btn${expanded() ? ' msg-detail__chevron-btn--open' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded(!expanded());
+            }}
+            aria-expanded={expanded()}
+            aria-label={expanded() ? 'Collapse details' : 'Expand details'}
+            title={expanded() ? 'Collapse details' : 'Expand details'}
           >
-            <span class="msg-detail__eye-btn" title="View log details">
-              <EyeIcon />
-            </span>
-          </Show>
+            <ChevronIcon />
+          </button>
         </td>
       </tr>
-      <Show when={expanded() && !isRecorded()}>
+      <Show when={expanded()}>
         <tr class="msg-detail__row">
           <td colspan={colSpan()} class="msg-detail__cell">
             <MessageDetails messageId={props.item.id} />
@@ -148,7 +111,6 @@ function PlainRow(props: {
     onFeedbackLike: props.tableProps.onFeedbackLike,
     onFeedbackDislike: props.tableProps.onFeedbackDislike,
     onFeedbackClear: props.tableProps.onFeedbackClear,
-    onOpenRecording: props.tableProps.onOpenRecording,
   };
   return (
     <tr id={props.rowId}>

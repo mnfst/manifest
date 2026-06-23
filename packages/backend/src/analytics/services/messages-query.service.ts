@@ -64,7 +64,6 @@ interface MessageQueryParams extends MessageFilterParams {
   limit: number;
   cursor?: string;
   status?: MessageStatusFilter;
-  recorded?: boolean;
   routing_tier?: string;
   specificity_category?: string;
   header_tier_id?: string;
@@ -195,7 +194,6 @@ export class MessagesQueryService {
     cost_max?: number;
     agent_name?: string;
     status?: MessageStatusFilter;
-    recorded?: boolean;
     routing_tier?: string;
     specificity_category?: string;
     header_tier_id?: string;
@@ -229,10 +227,6 @@ export class MessagesQueryService {
       qb.andWhere('at.status IN (:...errorStatuses)', { errorStatuses: ERROR_STATUSES });
     } else if (params.status) {
       qb.andWhere('at.status = :statusFilter', { statusFilter: params.status });
-    }
-
-    if (params.recorded) {
-      qb.andWhere('at.recorded = true');
     }
 
     if (params.routing_tier) {
@@ -423,7 +417,6 @@ export class MessagesQueryService {
     cost_min?: number;
     cost_max?: number;
     status?: MessageStatusFilter;
-    recorded?: boolean;
     routing_tier?: string;
     specificity_category?: string;
     header_tier_id?: string;
@@ -437,7 +430,6 @@ export class MessagesQueryService {
       params.cost_min ?? '',
       params.cost_max ?? '',
       params.status ?? '',
-      params.recorded ? '1' : '',
       params.routing_tier ?? '',
       params.specificity_category ?? '',
       params.header_tier_id ?? '',

@@ -4,7 +4,7 @@ import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interf
 import { RoutingMeta } from './proxy.service';
 import { FailedFallback } from './proxy-fallback.service';
 import { ForwardResult } from './provider-client';
-import { ProxyMessageRecorder, SuccessRecordingPayload } from './proxy-message-recorder';
+import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ProviderClient } from './provider-client';
 import {
   initSseHeaders,
@@ -34,8 +34,6 @@ import {
 } from './anthropic-adapter';
 import { getOpenAiReasoningStreamFormat, supportsReasoningContent } from './reasoning-format';
 import type { CallerAttribution } from './caller-classifier';
-import type { CaptureSink } from './recording-capture';
-import { sanitizeResponseHeaders } from './recording-capture';
 import {
   unwrapCodeAssistResponse,
   unwrapCodeAssistStreamPayload,
@@ -296,15 +294,11 @@ export async function handleStreamResponse(
   sessionKey?: string,
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
-  capture?: CaptureSink,
   reasoningCache?: ReasoningContentCache,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders, 200);
 
-  if (capture) {
-    capture.setHeaders(sanitizeResponseHeaders(forward.response.headers));
-  }
-  const onClient = capture ? (text: string) => capture.appendRaw(text) : undefined;
+  const onClient = undefined;
 
   const messagesTransformer =
     apiMode === 'messages' ? createMessagesStreamTransformer(meta.model) : null;
@@ -458,12 +452,8 @@ export async function handleNonStreamResponse(
   sessionKey?: string,
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
-  capture?: CaptureSink,
   reasoningCache?: ReasoningContentCache,
 ): Promise<StreamUsage | null> {
-  if (capture) {
-    capture.setHeaders(sanitizeResponseHeaders(forward.response.headers));
-  }
   let responseBody: unknown;
 
   if (apiMode === 'responses' && forward.isResponses) {
@@ -530,8 +520,6 @@ export async function handleNonStreamResponse(
   const body = responseBody as Record<string, unknown> | undefined;
   const streamUsage = parseUsageObject(body?.usage);
 
-  if (capture) capture.setJson(responseBody);
-
   res.status(200);
   setHeaders(res, metaHeaders);
   res.json(responseBody);
@@ -565,7 +553,6 @@ export function recordSuccess(
   startTime?: number,
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
-  recording?: { requestBody: Record<string, unknown>; capture: CaptureSink },
 ): void {
   if (meta.fallbackFromModel && fallbackSuccessTs) {
     recordSafely(
@@ -592,23 +579,6 @@ export function recordSuccess(
   } else {
     const usage = streamUsage ?? { prompt_tokens: 0, completion_tokens: 0 };
     const durationMs = startTime ? Date.now() - startTime : undefined;
-    let recordingPayload: SuccessRecordingPayload | undefined;
-    if (recording) {
-      const { capture, requestBody } = recording;
-      if (capture.overflowed) {
-        logger.warn('Recording skipped: payload exceeded size cap');
-      } else {
-        const responseBody = capture.buildResponseBody();
-        if (responseBody !== null) {
-          recordingPayload = {
-            request_body: requestBody,
-            response_body: responseBody,
-            response_headers: capture.responseHeaders,
-            size_bytes: capture.getSizeBytes(),
-          };
-        }
-      }
-    }
     recordSafely(
       recorder.recordSuccessMessage(ctx, meta.model, meta.tier, meta.reason, usage, {
         traceId,
@@ -625,7 +595,6 @@ export function recordSuccess(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
-        recordingPayload,
       }),
       'success message',
     );

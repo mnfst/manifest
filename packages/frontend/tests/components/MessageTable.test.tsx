@@ -235,7 +235,7 @@ describe('MessageTable', () => {
       expect(container.querySelector('[title="Included in subscription"]')).not.toBeNull();
     });
 
-    it('renders the recorded per-request cost for OpenCode-Go-style subscriptions', () => {
+    it('renders the per-request cost for OpenCode-Go-style subscriptions', () => {
       const { container } = render(() => (
         <MessageTable
           items={[makeRow({ auth_type: 'subscription', cost: 0.013636 })]}
@@ -884,54 +884,6 @@ describe('MessageTable', () => {
       ));
       expect(container.querySelector('.feedback-btn--active-like')).toBeNull();
       expect(container.querySelector('.feedback-btn--active-dislike')).toBeNull();
-    });
-  });
-
-  describe('recorded indicator', () => {
-    it('renders eye icon when row.recorded is true and a handler is provided', () => {
-      const onOpen = vi.fn();
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ recorded: true })]}
-          columns={['model']}
-          agentName="agent-1"
-          onOpenRecording={onOpen}
-          expandable
-        />
-      ));
-      const eye = container.querySelector('.msg-detail__eye-btn');
-      expect(eye).not.toBeNull();
-      // Clicking the row should open the recording
-      const row = container.querySelector('.msg-row--clickable') as HTMLElement;
-      fireEvent.click(row);
-      expect(onOpen).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders chevron (not eye) when row.recorded is false', () => {
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ recorded: false })]}
-          columns={['model']}
-          agentName="agent-1"
-          onOpenRecording={vi.fn()}
-          expandable
-        />
-      ));
-      expect(container.querySelector('.msg-detail__eye-btn')).toBeNull();
-      expect(container.querySelector('.msg-detail__chevron-btn')).not.toBeNull();
-    });
-
-    it('renders chevron when no onOpenRecording handler is given', () => {
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ recorded: true })]}
-          columns={['model']}
-          agentName="agent-1"
-          expandable
-        />
-      ));
-      expect(container.querySelector('.msg-detail__eye-btn')).toBeNull();
-      expect(container.querySelector('.msg-detail__chevron-btn')).not.toBeNull();
     });
   });
 

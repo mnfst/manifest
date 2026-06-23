@@ -304,7 +304,6 @@ export class TimeseriesQueriesService {
         display_name: a.display_name ?? a.name,
         agent_category: a.agent_category ?? null,
         agent_platform: a.agent_platform ?? null,
-        record_messages: a.record_messages === true,
         message_count: stats?.message_count ?? 0,
         last_active: stats?.last_active || String(a.created_at ?? ''),
         total_cost: stats?.total_cost ?? 0,

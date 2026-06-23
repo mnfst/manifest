@@ -11,7 +11,6 @@ import { AgentDuplicationService } from '../services/agent-duplication.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
-import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
 import { ProviderService } from '../../routing/routing-core/provider.service';
 
 // Shared no-op ProviderService stub. createAgent now auto-enables every usable
@@ -85,7 +84,6 @@ describe('AgentsController', () => {
             deleteAgent: mockDeleteAgent,
             renameAgent: mockRenameAgent,
             updateAgentType: jest.fn(),
-            setRecordMessages: jest.fn().mockResolvedValue({ agentId: 'id-1' }),
             findAgentInfo: jest.fn(async (_userId: string, agentName: string) =>
               agentName === 'bot-1'
                 ? {
@@ -93,15 +91,10 @@ describe('AgentsController', () => {
                     display_name: 'Bot One',
                     agent_category: 'app',
                     agent_platform: 'openai-sdk',
-                    record_messages: false,
                   }
                 : null,
             ),
           },
-        },
-        {
-          provide: AgentRecordingCacheService,
-          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
         {
           provide: ApiKeyGeneratorService,
@@ -171,7 +164,6 @@ describe('AgentsController', () => {
         display_name: 'Bot One',
         agent_category: 'app',
         agent_platform: 'openai-sdk',
-        record_messages: false,
       },
     });
   });
@@ -297,7 +289,6 @@ describe('AgentsController', () => {
             renameAgent: jest.fn(),
             updateAgentType: jest.fn(),
             findAgentInfo: jest.fn().mockResolvedValue(null),
-            setRecordMessages: jest.fn(),
           },
         },
         {
@@ -310,10 +301,6 @@ describe('AgentsController', () => {
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
-        },
-        {
-          provide: AgentRecordingCacheService,
-          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
         providerServiceProvider(),
       ],
@@ -360,7 +347,6 @@ describe('AgentsController', () => {
             renameAgent: jest.fn(),
             updateAgentType: jest.fn(),
             findAgentInfo: jest.fn().mockResolvedValue(null),
-            setRecordMessages: jest.fn(),
           },
         },
         {
@@ -373,10 +359,6 @@ describe('AgentsController', () => {
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
-        },
-        {
-          provide: AgentRecordingCacheService,
-          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
         providerServiceProvider(),
       ],
@@ -404,53 +386,6 @@ describe('AgentsController', () => {
     });
   });
 
-  it('routes record_messages toggle through setRecordMessages and invalidates cache', async () => {
-    const mockSetRecord = jest.fn().mockResolvedValue({ agentId: 'id-7' });
-    const mockInvalidate = jest.fn();
-
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [CacheModule.register()],
-      controllers: [AgentsController],
-      providers: [
-        { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
-        {
-          provide: AgentLifecycleService,
-          useValue: {
-            deleteAgent: jest.fn(),
-            renameAgent: jest.fn(),
-            updateAgentType: jest.fn(),
-            setRecordMessages: mockSetRecord,
-          },
-        },
-        {
-          provide: ApiKeyGeneratorService,
-          useValue: { onboardAgent: jest.fn(), getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
-        },
-        { provide: ConfigService, useValue: { get: jest.fn() } },
-        { provide: TenantCacheService, useValue: { resolve: jest.fn() } },
-        { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
-        {
-          provide: AgentDuplicationService,
-          useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
-        },
-        {
-          provide: AgentRecordingCacheService,
-          useValue: { isRecording: jest.fn(), invalidate: mockInvalidate },
-        },
-        providerServiceProvider(),
-      ],
-    }).compile();
-    const ctrl = module.get<AgentsController>(AgentsController);
-
-    const result = await ctrl.updateAgent(ctx as never, 'bot-1', {
-      record_messages: true,
-    } as never);
-
-    expect(mockSetRecord).toHaveBeenCalledWith('tenant-123', 'bot-1', true);
-    expect(mockInvalidate).toHaveBeenCalledWith('id-7');
-    expect(result).toMatchObject({ record_messages: true });
-  });
-
   it('invalidates agent list cache after successful createAgent', async () => {
     const mockOnboard = jest.fn().mockResolvedValue({
       tenantId: 't1',
@@ -469,7 +404,6 @@ describe('AgentsController', () => {
             renameAgent: jest.fn(),
             updateAgentType: jest.fn(),
             findAgentInfo: jest.fn().mockResolvedValue(null),
-            setRecordMessages: jest.fn(),
           },
         },
         {
@@ -482,10 +416,6 @@ describe('AgentsController', () => {
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
-        },
-        {
-          provide: AgentRecordingCacheService,
-          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
         providerServiceProvider(),
       ],
@@ -525,7 +455,6 @@ describe('AgentsController', () => {
             renameAgent: jest.fn(),
             updateAgentType: jest.fn(),
             findAgentInfo: jest.fn().mockResolvedValue(null),
-            setRecordMessages: jest.fn(),
           },
         },
         {
@@ -538,10 +467,6 @@ describe('AgentsController', () => {
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
-        },
-        {
-          provide: AgentRecordingCacheService,
-          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
         {
           provide: ProviderService,
@@ -586,7 +511,6 @@ describe('AgentsController', () => {
             renameAgent: jest.fn(),
             updateAgentType: jest.fn(),
             findAgentInfo: jest.fn().mockResolvedValue(null),
-            setRecordMessages: jest.fn(),
           },
         },
         {
@@ -599,10 +523,6 @@ describe('AgentsController', () => {
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
-        },
-        {
-          provide: AgentRecordingCacheService,
-          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
         {
           provide: ProviderService,
@@ -635,7 +555,6 @@ describe('AgentsController', () => {
             renameAgent: jest.fn(),
             updateAgentType: jest.fn(),
             findAgentInfo: jest.fn().mockResolvedValue(null),
-            setRecordMessages: jest.fn(),
           },
         },
         {
@@ -648,10 +567,6 @@ describe('AgentsController', () => {
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
-        },
-        {
-          provide: AgentRecordingCacheService,
-          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
         providerServiceProvider(),
       ],
@@ -680,7 +595,6 @@ describe('AgentsController', () => {
             renameAgent: jest.fn(),
             updateAgentType: jest.fn(),
             findAgentInfo: jest.fn().mockResolvedValue(null),
-            setRecordMessages: jest.fn(),
           },
         },
         {
@@ -693,10 +607,6 @@ describe('AgentsController', () => {
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
-        },
-        {
-          provide: AgentRecordingCacheService,
-          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
         providerServiceProvider(),
       ],
@@ -806,7 +716,6 @@ describe('AgentsController', () => {
             renameAgent: jest.fn(),
             updateAgentType: jest.fn(),
             findAgentInfo: jest.fn().mockResolvedValue(null),
-            setRecordMessages: jest.fn(),
           },
         },
         {
@@ -819,10 +728,6 @@ describe('AgentsController', () => {
         {
           provide: AgentDuplicationService,
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
-        },
-        {
-          provide: AgentRecordingCacheService,
-          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
         providerServiceProvider(),
       ],

@@ -292,9 +292,9 @@ describe('AggregationService', () => {
       expect(result.messages).toBe(8);
       // The Playground-exclusion predicate is applied to the previous-window query.
       const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
-      expect(clauses.some((c: unknown) => typeof c === 'string' && c.includes('is_playground'))).toBe(
-        true,
-      );
+      expect(
+        clauses.some((c: unknown) => typeof c === 'string' && c.includes('is_playground')),
+      ).toBe(true);
     });
   });
 

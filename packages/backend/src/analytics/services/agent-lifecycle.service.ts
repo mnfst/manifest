@@ -25,7 +25,6 @@ export class AgentLifecycleService {
     display_name: string;
     agent_category: string | null;
     agent_platform: string | null;
-    record_messages: boolean;
   } | null> {
     const agent = await this.findAgentByTenant(tenantId, agentName);
     if (!agent) return null;
@@ -34,7 +33,6 @@ export class AgentLifecycleService {
       display_name: agent.display_name ?? agent.name,
       agent_category: agent.agent_category ?? null,
       agent_platform: agent.agent_platform ?? null,
-      record_messages: agent.record_messages === true,
     };
   }
 
@@ -101,24 +99,6 @@ export class AgentLifecycleService {
       .set(update)
       .where('id = :id', { id: agent.id })
       .execute();
-  }
-
-  async setRecordMessages(
-    tenantId: string | null,
-    agentName: string,
-    enabled: boolean,
-  ): Promise<{ agentId: string }> {
-    const agent = await this.findAgentByTenant(tenantId, agentName);
-    if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
-
-    await this.agentRepo
-      .createQueryBuilder()
-      .update('agents')
-      .set({ record_messages: enabled })
-      .where('id = :id', { id: agent.id })
-      .execute();
-
-    return { agentId: agent.id };
   }
 
   async renameAgent(

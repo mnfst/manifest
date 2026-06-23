@@ -4,9 +4,6 @@
 // the exact same migration set. Using an explicit array (not a dist glob) keeps
 // stale compiled .js from deleted migrations out of the run (deleteOutDir is off).
 import { AgentMessage } from '../entities/agent-message.entity';
-import { LlmCall } from '../entities/llm-call.entity';
-import { ToolExecution } from '../entities/tool-execution.entity';
-import { AgentLog } from '../entities/agent-log.entity';
 import { ApiKey } from '../entities/api-key.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { Agent } from '../entities/agent.entity';
@@ -21,7 +18,6 @@ import { SpecificityAssignment } from '../entities/specificity-assignment.entity
 import { HeaderTier } from '../entities/header-tier.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
 import { BackfillState } from '../entities/backfill-state.entity';
-import { MessageRecording } from '../entities/message-recording.entity';
 import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
@@ -129,12 +125,10 @@ import { TuneAgentMessagesAutovacuum1792900000000 } from './migrations/179290000
 import { AddTenantProviderValueIndex1793000000000 } from './migrations/1793000000000-AddTenantProviderValueIndex';
 import { DropRedundantTenantAgentNameIndex1793100000000 } from './migrations/1793100000000-DropRedundantTenantAgentNameIndex';
 import { AddDashboardCoveringIndex1793200000000 } from './migrations/1793200000000-AddDashboardCoveringIndex';
+import { RemoveMessageRecording1795000000000 } from './migrations/1795000000000-RemoveMessageRecording';
 
 export const entities = [
   AgentMessage,
-  LlmCall,
-  ToolExecution,
-  AgentLog,
   ApiKey,
   Tenant,
   Agent,
@@ -148,7 +142,6 @@ export const entities = [
   SpecificityAssignment,
   HeaderTier,
   InstallMetadata,
-  MessageRecording,
   AgentModelParams,
   PlaygroundRun,
   PlaygroundColumn,
@@ -260,4 +253,5 @@ export const migrations = [
   AddTenantProviderValueIndex1793000000000,
   DropRedundantTenantAgentNameIndex1793100000000,
   AddDashboardCoveringIndex1793200000000,
+  RemoveMessageRecording1795000000000,
 ];

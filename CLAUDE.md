@@ -83,11 +83,11 @@ packages/
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
 │   │   │   └── seed-messages.ts             # Demo agent message seed data
-│   │   ├── entities/                        # TypeORM entities (22 files)
+│   │   ├── entities/                        # TypeORM entities (20 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
-│   │   │   └── ...                          # agent-message, agent-log, llm-call, tool-execution, user-provider, tier-assignment, header-tier, specificity-assignment, message-recording, playground-run/column, reasoning-content-cache-entry, etc.
+│   │   │   └── ...                          # agent-message, tenant-provider, tier-assignment, header-tier, specificity-assignment, playground-run/column, reasoning-content-cache-entry, etc.
 │   │   ├── common/
 │   │   │   ├── guards/api-key.guard.ts      # X-API-Key header auth (timing-safe)
 │   │   │   ├── decorators/public.decorator.ts
@@ -95,7 +95,7 @@ packages/
 │   │   │   ├── filters/spa-fallback.filter.ts
 │   │   │   ├── interceptors/               # agent-cache, user-cache
 │   │   │   ├── constants/                   # api-key, cache, ollama, providers, openai-models, xai-models, subscription-clients
-│   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache, agent-recording-cache
+│   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache
 │   │   │   └── utils/                       # crypto, hash, range, period, slugify, url-validation, provider-inference, postgres-sql, cost-calculator, detect-self-hosted, frontend-path, og-rewrite, secret-scrub, ttl-cache, local-ip, etc.
 │   │   ├── health/                          # @Public() health check
 │   │   ├── analytics/                       # Dashboard analytics
@@ -335,7 +335,7 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | POST | `/api/v1/agents/:agentName/rotate-key` | Session/API Key | Rotate API key |
 | PATCH | `/api/v1/agents/:agentName` | Session/API Key | Rename agent |
 | GET | `/api/v1/messages` | Session/API Key | Paginated message log |
-| GET/PATCH/DELETE | `/api/v1/messages/:id/*` | Session/API Key | Message details, feedback, miscategorized flag, recording |
+| GET/PATCH/DELETE | `/api/v1/messages/:id/*` | Session/API Key | Message details, feedback, miscategorized flag |
 | GET | `/api/v1/security` | Session/API Key | Security score + events |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
 | GET | `/api/v1/free-models` | Session/API Key | Free LLM model catalog |

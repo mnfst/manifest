@@ -1,47 +1,5 @@
 import { fetchJson, fetchMutate } from './core.js';
 
-export interface MessageDetailLlmCall {
-  id: string;
-  call_index: number | null;
-  request_model: string | null;
-  response_model: string | null;
-  gen_ai_system: string | null;
-  input_tokens: number;
-  output_tokens: number;
-  cache_read_tokens: number;
-  cache_creation_tokens: number;
-  duration_ms: number | null;
-  ttft_ms: number | null;
-  temperature: number | null;
-  max_output_tokens: number | null;
-  timestamp: string;
-}
-
-export interface MessageDetailToolExecution {
-  id: string;
-  llm_call_id: string | null;
-  tool_name: string;
-  duration_ms: number | null;
-  status: string;
-  error_message: string | null;
-}
-
-export interface MessageDetailLog {
-  id: string;
-  severity: string;
-  body: string | null;
-  timestamp: string;
-  span_id: string | null;
-}
-
-export interface MessageRecording {
-  request_body: Record<string, unknown> | null;
-  response_body: { type: 'json'; body?: unknown } | { type: 'stream'; raw_sse?: string } | null;
-  response_headers: Record<string, string> | null;
-  size_bytes: number | null;
-  created_at: string;
-}
-
 export interface MessageDetailResponse {
   message: {
     id: string;
@@ -80,7 +38,6 @@ export interface MessageDetailResponse {
     header_tier_id: string | null;
     header_tier_name: string | null;
     header_tier_color: string | null;
-    recorded: boolean;
     caller_attribution: {
       sdk?: string;
       sdkVersion?: string;
@@ -94,10 +51,6 @@ export interface MessageDetailResponse {
       categories?: string[];
     } | null;
   };
-  recording: MessageRecording | null;
-  llm_calls: MessageDetailLlmCall[];
-  tool_executions: MessageDetailToolExecution[];
-  agent_logs: MessageDetailLog[];
 }
 
 export function getMessages(
@@ -110,7 +63,6 @@ export function getMessages(
     agent_name?: string;
     cost_min?: string;
     cost_max?: string;
-    recorded?: string;
     routing_tier?: string;
     specificity_category?: string;
     header_tier_id?: string;
@@ -132,12 +84,6 @@ export function getMessageFilterOptions(
 
 export function getMessageDetails(id: string) {
   return fetchJson<MessageDetailResponse>(`/messages/${encodeURIComponent(id)}/details`);
-}
-
-export function deleteMessageRecording(id: string) {
-  return fetchMutate<void>(`/messages/${encodeURIComponent(id)}/recording`, {
-    method: 'DELETE',
-  });
 }
 
 export function setMessageFeedback(

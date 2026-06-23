@@ -2,10 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { LlmCall } from '../../entities/llm-call.entity';
-import { ToolExecution } from '../../entities/tool-execution.entity';
-import { AgentLog } from '../../entities/agent-log.entity';
-import { MessageRecording, RecordingResponseBody } from '../../entities/message-recording.entity';
 import type { CallerAttribution } from '../../routing/proxy/caller-classifier';
 import type { RequestParamDefaults } from 'manifest-shared';
 
@@ -46,46 +42,7 @@ export interface MessageDetailResponse {
     header_tier_id: string | null;
     header_tier_name: string | null;
     header_tier_color: string | null;
-    recorded: boolean;
   };
-  recording: {
-    request_body: Record<string, unknown> | null;
-    response_body: RecordingResponseBody | null;
-    response_headers: Record<string, string> | null;
-    size_bytes: number | null;
-    created_at: string;
-  } | null;
-  llm_calls: {
-    id: string;
-    call_index: number | null;
-    request_model: string | null;
-    response_model: string | null;
-    gen_ai_system: string | null;
-    input_tokens: number;
-    output_tokens: number;
-    cache_read_tokens: number;
-    cache_creation_tokens: number;
-    duration_ms: number | null;
-    ttft_ms: number | null;
-    temperature: number | null;
-    max_output_tokens: number | null;
-    timestamp: string;
-  }[];
-  tool_executions: {
-    id: string;
-    llm_call_id: string | null;
-    tool_name: string;
-    duration_ms: number | null;
-    status: string;
-    error_message: string | null;
-  }[];
-  agent_logs: {
-    id: string;
-    severity: string;
-    body: string | null;
-    timestamp: string;
-    span_id: string | null;
-  }[];
 }
 
 @Injectable()
@@ -93,14 +50,6 @@ export class MessageDetailsService {
   constructor(
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
-    @InjectRepository(LlmCall)
-    private readonly llmCallRepo: Repository<LlmCall>,
-    @InjectRepository(ToolExecution)
-    private readonly toolRepo: Repository<ToolExecution>,
-    @InjectRepository(AgentLog)
-    private readonly logRepo: Repository<AgentLog>,
-    @InjectRepository(MessageRecording)
-    private readonly recordingRepo: Repository<MessageRecording>,
   ) {}
 
   async getDetails(messageId: string, tenantId: string | null): Promise<MessageDetailResponse> {
@@ -113,42 +62,6 @@ export class MessageDetailsService {
       .andWhere('m.tenant_id = :tenantId', { tenantId })
       .getOne();
     if (!message) throw new NotFoundException('Message not found');
-
-    const llmCallsQb = this.llmCallRepo
-      .createQueryBuilder('lc')
-      .where('lc.turn_id = :turnId', { turnId: messageId })
-      .andWhere('lc.tenant_id = :tenantId', { tenantId })
-      .orderBy('lc.call_index', 'ASC')
-      .addOrderBy('lc.timestamp', 'ASC');
-
-    const logsQb = message.trace_id
-      ? this.logRepo
-          .createQueryBuilder('al')
-          .where('al.trace_id = :traceId', { traceId: message.trace_id })
-          .andWhere('al.tenant_id = :tenantId', { tenantId })
-          .orderBy('al.timestamp', 'ASC')
-      : null;
-
-    const recordingPromise = message.recorded
-      ? this.recordingRepo.findOne({ where: { message_id: message.id } })
-      : Promise.resolve(null);
-
-    const [llmCalls, agentLogs, recording] = await Promise.all([
-      llmCallsQb.getMany(),
-      logsQb ? logsQb.getMany() : Promise.resolve([]),
-      recordingPromise,
-    ]);
-
-    const llmCallIds = llmCalls.map((lc) => lc.id);
-    const toolExecutions =
-      llmCallIds.length > 0
-        ? await this.toolRepo
-            .createQueryBuilder('te')
-            .where('te.llm_call_id IN (:...ids)', { ids: llmCallIds })
-            .andWhere('te.tenant_id = :tenantId', { tenantId })
-            .orderBy('te.llm_call_id', 'ASC')
-            .getMany()
-        : [];
 
     return {
       message: {
@@ -187,48 +100,7 @@ export class MessageDetailsService {
         header_tier_id: message.header_tier_id,
         header_tier_name: message.header_tier_name,
         header_tier_color: message.header_tier_color,
-        recorded: message.recorded,
       },
-      recording: recording
-        ? {
-            request_body: recording.request_body,
-            response_body: recording.response_body,
-            response_headers: recording.response_headers,
-            size_bytes: recording.size_bytes,
-            created_at: recording.created_at,
-          }
-        : null,
-      llm_calls: llmCalls.map((lc) => ({
-        id: lc.id,
-        call_index: lc.call_index,
-        request_model: lc.request_model,
-        response_model: lc.response_model,
-        gen_ai_system: lc.gen_ai_system,
-        input_tokens: lc.input_tokens,
-        output_tokens: lc.output_tokens,
-        cache_read_tokens: lc.cache_read_tokens,
-        cache_creation_tokens: lc.cache_creation_tokens,
-        duration_ms: lc.duration_ms,
-        ttft_ms: lc.ttft_ms,
-        temperature: lc.temperature,
-        max_output_tokens: lc.max_output_tokens,
-        timestamp: lc.timestamp,
-      })),
-      tool_executions: toolExecutions.map((te) => ({
-        id: te.id,
-        llm_call_id: te.llm_call_id,
-        tool_name: te.tool_name,
-        duration_ms: te.duration_ms,
-        status: te.status,
-        error_message: te.error_message,
-      })),
-      agent_logs: agentLogs.map((al) => ({
-        id: al.id,
-        severity: al.severity,
-        body: al.body,
-        timestamp: al.timestamp,
-        span_id: al.span_id,
-      })),
     };
   }
 }

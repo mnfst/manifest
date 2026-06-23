@@ -69,12 +69,7 @@ describe('messages API client', () => {
   });
 
   it('getMessageDetails GETs the details endpoint with encoded id', async () => {
-    const fetchMock = setupFetch({
-      message: {},
-      llm_calls: [],
-      tool_executions: [],
-      agent_logs: [],
-    });
+    const fetchMock = setupFetch({ message: {} });
     await messages.getMessageDetails('msg/1');
     const url = fetchMock.mock.calls[0][0] as string;
     expect(url).toContain('/api/v1/messages/msg%2F1/details');
@@ -114,14 +109,6 @@ describe('messages API client', () => {
     await messages.clearMessageMiscategorized('m-1');
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain('/api/v1/messages/m-1/miscategorized');
-    expect((init as RequestInit).method).toBe('DELETE');
-  });
-
-  it('deleteMessageRecording DELETEs the recording resource with encoded id', async () => {
-    const fetchMock = setupFetch({});
-    await messages.deleteMessageRecording('m/1');
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain('/api/v1/messages/m%2F1/recording');
     expect((init as RequestInit).method).toBe('DELETE');
   });
 });

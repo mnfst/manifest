@@ -1073,7 +1073,7 @@ describe('Overview', () => {
     });
   });
 
-  it('renders the recorded cost for per-request subscriptions (e.g. OpenCode Go)', async () => {
+  it('renders the per-request cost for subscriptions (e.g. OpenCode Go)', async () => {
     const dataWithPerRequestSub = {
       ...overviewData,
       recent_activity: [

@@ -18,9 +18,6 @@ import { appConfig } from '../src/config/app.config';
 import { IS_PUBLIC_KEY } from '../src/common/decorators/public.decorator';
 import { hashKey, keyPrefix } from '../src/common/utils/hash.util';
 import { AgentMessage } from '../src/entities/agent-message.entity';
-import { LlmCall } from '../src/entities/llm-call.entity';
-import { ToolExecution } from '../src/entities/tool-execution.entity';
-import { AgentLog } from '../src/entities/agent-log.entity';
 import { ApiKey } from '../src/entities/api-key.entity';
 import { Tenant } from '../src/entities/tenant.entity';
 import { Agent } from '../src/entities/agent.entity';
@@ -34,7 +31,6 @@ import { EmailProviderConfig } from '../src/entities/email-provider-config.entit
 import { SpecificityAssignment } from '../src/entities/specificity-assignment.entity';
 import { HeaderTier } from '../src/entities/header-tier.entity';
 import { InstallMetadata } from '../src/entities/install-metadata.entity';
-import { MessageRecording } from '../src/entities/message-recording.entity';
 import { AgentModelParams } from '../src/entities/agent-model-params.entity';
 import { PlaygroundRun } from '../src/entities/playground-run.entity';
 import { PlaygroundColumn } from '../src/entities/playground-column.entity';
@@ -61,9 +57,6 @@ export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
 const entities = [
   AgentMessage,
-  LlmCall,
-  ToolExecution,
-  AgentLog,
   ApiKey,
   Tenant,
   Agent,
@@ -77,7 +70,6 @@ const entities = [
   SpecificityAssignment,
   HeaderTier,
   InstallMetadata,
-  MessageRecording,
   AgentModelParams,
   PlaygroundRun,
   PlaygroundColumn,
