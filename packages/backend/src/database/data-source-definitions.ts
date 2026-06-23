@@ -125,6 +125,7 @@ import { TuneAgentMessagesAutovacuum1792900000000 } from './migrations/179290000
 import { AddTenantProviderValueIndex1793000000000 } from './migrations/1793000000000-AddTenantProviderValueIndex';
 import { DropRedundantTenantAgentNameIndex1793100000000 } from './migrations/1793100000000-DropRedundantTenantAgentNameIndex';
 import { AddDashboardCoveringIndex1793200000000 } from './migrations/1793200000000-AddDashboardCoveringIndex';
+import { AddCrossTenantErrorTimestampIndex1795100000000 } from './migrations/1795100000000-AddCrossTenantErrorTimestampIndex';
 import { RemoveMessageRecording1795000000000 } from './migrations/1795000000000-RemoveMessageRecording';
 
 export const entities = [
@@ -254,4 +255,5 @@ export const migrations = [
   DropRedundantTenantAgentNameIndex1793100000000,
   AddDashboardCoveringIndex1793200000000,
   RemoveMessageRecording1795000000000,
+  AddCrossTenantErrorTimestampIndex1795100000000,
 ];
