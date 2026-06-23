@@ -26,6 +26,7 @@ import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { CodexSessionAffinity } from './codex-session-affinity';
 import { ProxyExceptionFilter } from './proxy-exception.filter';
+import { HealingModule } from '../../healing/healing.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     ResolveModule,
     CustomProviderModule,
     HeaderTiersModule,
+    HealingModule,
   ],
   controllers: [ProxyController],
   providers: [

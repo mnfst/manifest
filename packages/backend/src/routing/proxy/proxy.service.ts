@@ -57,6 +57,8 @@ import { peekStream, STREAM_WARMUP_MS } from './stream-warmup';
 import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
+import { randomUUID } from 'crypto';
+import { HealingService } from '../../healing/healing.service';
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
 
@@ -158,6 +160,7 @@ export class ProxyService {
     private readonly reasoningCache: ReasoningContentCache,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
+    private readonly healing: HealingService,
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
@@ -263,7 +266,7 @@ export class ProxyService {
       specs: primarySpecs,
     });
 
-    const forward = await this.fallbackService.tryForwardToProvider({
+    const forwardOpts = {
       provider: route.provider,
       apiKey: credentials.apiKey,
       model: primaryModel,
@@ -284,7 +287,43 @@ export class ProxyService {
       thinkingLookup,
       reasoningContentLookup,
       paramMergeContext,
-    });
+    };
+    let forward = await this.fallbackService.tryForwardToProvider(forwardOpts);
+
+    // Request healing: on a request-side 4xx (chat_completions only), ask the
+    // Healing service for catalog fixes, apply them locally, and retry the same
+    // provider once before falling back. Fully guarded — it can only upgrade a
+    // failed response to a success, never make the original failure worse.
+    if (
+      apiMode === 'chat_completions' &&
+      !forward.response.ok &&
+      this.healing.configured &&
+      this.healing.isCandidateStatus(forward.response.status) &&
+      (await this.healing.isEnabled(agentId))
+    ) {
+      const healed = await this.healing.tryHeal({
+        requestId: randomUUID(),
+        tenantId,
+        agentId,
+        provider: route.provider,
+        model: primaryModel,
+        body,
+        errorStatus: forward.response.status,
+        errorBodyText: await forward.response.clone().text(),
+      });
+      if (healed) {
+        const healedForward = await this.fallbackService.tryForwardToProvider({
+          ...forwardOpts,
+          body: healed.body,
+        });
+        if (healedForward.response.ok) {
+          void this.healing.reportOutcome(healed.token, 'healed');
+          forward = healedForward;
+        } else {
+          void this.healing.reportOutcome(healed.token, 'failed');
+        }
+      }
+    }
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
       const fallbackResult = await this.tryFallbackChain({
