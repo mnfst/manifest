@@ -74,8 +74,8 @@ export class DatabaseSeederService implements OnModuleInit {
       await this.seedTenantProviders();
       await this.seedAgentMessages();
       // Two routing cohorts for the complexity/task-specific deprecation demo:
-      // the admin demo agent becomes "legacy" (features visible) and a fresh
-      // user gets a "clean" agent (features hidden).
+      // the admin demo agent becomes "clean" (features hidden) and a fresh
+      // olduser gets a "legacy" agent (features visible).
       await this.seedDemoCohorts();
       this.logger.log('Seeded demo data (SEED_DATA=true, dev/test only)');
       this.logger.warn(
@@ -237,7 +237,7 @@ export class DatabaseSeederService implements OnModuleInit {
       tierRepo: this.tierRepo,
       specificityRepo: this.specificityRepo,
       logger: this.logger,
-      legacyAgentId: SEED_AGENT_ID,
+      cleanAgentId: SEED_AGENT_ID,
     });
   }
 }

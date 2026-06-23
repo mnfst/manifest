@@ -509,7 +509,7 @@ Otherwise the agent is **clean** and gets the simplified view. The signals live 
 - **Old user, existing agent that used complexity/task-specific** → stays legacy → full surfaces + banners, behavior untouched.
 - **Old user creating a _new_ agent** → the new agent is **clean** (it has no complexity/specificity config of its own), so it gets the **simplified view** — even though the user is "old". An old user whose agent long ago stopped using these (no active config left) is likewise treated as clean.
 
-Dev seeding (`packages/backend/src/database/seed-cohorts.ts`, `seedRoutingCohorts`) creates two demo logins so both states are visible side by side: `admin@manifest.build` (legacy — complexity + task-specific visible) and `newuser@manifest.build` (clean — Default + Custom only). Both passwords are `manifest`. Seeding is idempotent.
+Dev seeding (`packages/backend/src/database/seed-cohorts.ts`, `seedRoutingCohorts`) creates two demo logins so both states are visible side by side: `admin@manifest.build` (clean — Default + Custom only) and `olduser@manifest.build` (legacy — complexity + task-specific visible). Both passwords are `manifest`. Seeding is idempotent.
 
 Still to come (not in this phase): a migration assistant (task-specific → header rules, complexity → collapse to default) and a committed end date.
 

@@ -55,39 +55,91 @@ describe('seedRoutingCohorts', () => {
       tierRepo: repos.tier as never,
       specificityRepo: repos.specificity as never,
       logger: logger as unknown as Logger,
-      legacyAgentId: 'seed-agent-001',
+      cleanAgentId: 'seed-agent-001',
     };
-    // Clean cohort issues two queries: UPDATE emailVerified, then SELECT id.
-    mockQuery.mockResolvedValueOnce(undefined).mockResolvedValueOnce([{ id: 'new-user-id' }]);
+    // Legacy cohort issues two queries: UPDATE emailVerified, then SELECT id.
+    mockQuery.mockResolvedValueOnce(undefined).mockResolvedValueOnce([{ id: 'old-user-id' }]);
     auth.api.signUpEmail.mockResolvedValue({});
   });
 
-  it('skips entirely when the clean agent already exists (idempotent re-seed)', async () => {
+  it('skips entirely when the legacy agent already exists (idempotent re-seed)', async () => {
     repos.agent.count.mockResolvedValue(1);
 
     await seedRoutingCohorts(deps);
 
     expect(repos.agent.update).not.toHaveBeenCalled();
     expect(repos.tenant.insert).not.toHaveBeenCalled();
+    expect(repos.enabledProvider.insert).not.toHaveBeenCalled();
     expect(auth.api.signUpEmail).not.toHaveBeenCalled();
     expect(logger.log).not.toHaveBeenCalled();
   });
 
-  it('enriches the legacy agent: enables providers, turns complexity on, seeds tiers + categories', async () => {
+  it('enables the existing admin agent providers without any complexity/task-specific config', async () => {
     await seedRoutingCohorts(deps);
 
     const conns = getSeedConnections();
+    // The clean (admin) agent only gets its providers enabled — by its own id,
+    // against the existing (unsuffixed) seed connections.
     expect(repos.enabledProvider.insert).toHaveBeenCalledWith({
       agent_id: 'seed-agent-001',
       tenant_provider_id: conns[0].id,
     });
-    expect(repos.agent.update).toHaveBeenCalledWith(
+    // No complexity flip or tier/category seeding targets the clean agent.
+    expect(repos.agent.update).not.toHaveBeenCalledWith(
       { id: 'seed-agent-001' },
+      expect.anything(),
+    );
+  });
+
+  it('creates the legacy old user, tenant, agent, OTLP key, and enabled providers', async () => {
+    await seedRoutingCohorts(deps);
+
+    expect(auth.api.signUpEmail).toHaveBeenCalledWith({
+      body: {
+        email: COHORT_SEED.oldUserEmail,
+        password: COHORT_SEED.oldUserPassword,
+        name: 'Old User',
+      },
+    });
+    expect(mockQuery).toHaveBeenCalledWith(
+      `UPDATE "user" SET "emailVerified" = true WHERE email = $1`,
+      [COHORT_SEED.oldUserEmail],
+    );
+    expect(repos.tenant.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ id: COHORT_SEED.oldTenantId, owner_user_id: 'old-user-id' }),
+    );
+    expect(repos.agent.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ id: COHORT_SEED.oldAgentId, tenant_id: COHORT_SEED.oldTenantId }),
+    );
+
+    const keyArg = repos.agentKey.insert.mock.calls[0][0] as {
+      key: unknown;
+      key_hash: string;
+      key_prefix: string;
+    };
+    expect(keyArg.key).toBeNull();
+    expect(verifyKey(COHORT_SEED.oldOtlpKey, keyArg.key_hash)).toBe(true);
+    expect(keyArg.key_prefix).toBe(keyPrefix(COHORT_SEED.oldOtlpKey));
+
+    const conns = getSeedConnections();
+    expect(repos.provider.insert).toHaveBeenCalledTimes(conns.length);
+    expect(repos.provider.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ id: `${conns[0].id}-old`, tenant_id: COHORT_SEED.oldTenantId }),
+    );
+    expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('Seeded routing cohorts'));
+  });
+
+  it('marks the legacy agent invested: turns complexity on, seeds tiers + categories', async () => {
+    await seedRoutingCohorts(deps);
+
+    expect(repos.agent.update).toHaveBeenCalledWith(
+      { id: COHORT_SEED.oldAgentId },
       { complexity_routing_enabled: true },
     );
 
-    const tierArg = repos.tier.insert.mock.calls[0][0] as Array<{ tier: string }>;
+    const tierArg = repos.tier.insert.mock.calls[0][0] as Array<{ tier: string; agent_id: string }>;
     expect(tierArg.map((t) => t.tier)).toEqual(['simple', 'standard', 'complex', 'reasoning']);
+    expect(tierArg.every((t) => t.agent_id === COHORT_SEED.oldAgentId)).toBe(true);
 
     const specArg = repos.specificity.insert.mock.calls[0][0] as Array<{
       category: string;
@@ -97,54 +149,20 @@ describe('seedRoutingCohorts', () => {
     expect(specArg.every((s) => s.is_active)).toBe(true);
   });
 
-  it('creates the clean user, tenant, agent, OTLP key, and enabled providers', async () => {
-    await seedRoutingCohorts(deps);
-
-    expect(auth.api.signUpEmail).toHaveBeenCalledWith({
-      body: {
-        email: COHORT_SEED.newUserEmail,
-        password: COHORT_SEED.newUserPassword,
-        name: 'New User',
-      },
-    });
-    expect(mockQuery).toHaveBeenCalledWith(
-      `UPDATE "user" SET "emailVerified" = true WHERE email = $1`,
-      [COHORT_SEED.newUserEmail],
-    );
-    expect(repos.tenant.insert).toHaveBeenCalledWith(
-      expect.objectContaining({ id: COHORT_SEED.newTenantId, owner_user_id: 'new-user-id' }),
-    );
-    expect(repos.agent.insert).toHaveBeenCalledWith(
-      expect.objectContaining({ id: COHORT_SEED.newAgentId, tenant_id: COHORT_SEED.newTenantId }),
-    );
-
-    const keyArg = repos.agentKey.insert.mock.calls[0][0] as {
-      key: unknown;
-      key_hash: string;
-      key_prefix: string;
-    };
-    expect(keyArg.key).toBeNull();
-    expect(verifyKey(COHORT_SEED.newOtlpKey, keyArg.key_hash)).toBe(true);
-    expect(keyArg.key_prefix).toBe(keyPrefix(COHORT_SEED.newOtlpKey));
-
-    const conns = getSeedConnections();
-    expect(repos.provider.insert).toHaveBeenCalledTimes(conns.length);
-    expect(repos.provider.insert).toHaveBeenCalledWith(
-      expect.objectContaining({ id: `${conns[0].id}-new`, tenant_id: COHORT_SEED.newTenantId }),
-    );
-    expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('Seeded routing cohorts'));
-  });
-
-  it('aborts the clean cohort when the new user id cannot be resolved', async () => {
+  it('aborts the legacy cohort when the old user id cannot be resolved', async () => {
     mockQuery.mockReset();
     mockQuery.mockResolvedValueOnce(undefined).mockResolvedValueOnce([]); // SELECT → no rows
 
     await seedRoutingCohorts(deps);
 
-    // The legacy enrichment still ran...
-    expect(repos.agent.update).toHaveBeenCalled();
-    // ...but the clean cohort bailed before creating the tenant/agent.
+    // The clean cohort still enabled the admin agent's providers...
+    expect(repos.enabledProvider.insert).toHaveBeenCalledWith({
+      agent_id: 'seed-agent-001',
+      tenant_provider_id: getSeedConnections()[0].id,
+    });
+    // ...but the legacy cohort bailed before creating the tenant/agent.
     expect(repos.tenant.insert).not.toHaveBeenCalled();
     expect(repos.agent.insert).not.toHaveBeenCalled();
+    expect(repos.agent.update).not.toHaveBeenCalled();
   });
 });

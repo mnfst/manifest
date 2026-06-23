@@ -478,29 +478,30 @@ describe('DatabaseSeederService', () => {
   });
 
   describe('seedDemoCohorts', () => {
-    it('seeds the legacy + clean cohorts when the clean agent does not yet exist', async () => {
+    it('seeds the clean + legacy cohorts when the legacy agent does not yet exist', async () => {
       mockAgentRepo.count.mockResolvedValue(0);
 
       await service.onModuleInit();
 
-      // Legacy demo agent is flipped to complexity-on (deprecated surfaces stay visible).
+      // The new legacy (olduser) agent is flipped to complexity-on so the
+      // deprecated surfaces stay visible.
       expect(mockAgentRepo.update).toHaveBeenCalledWith(
-        { id: 'seed-agent-001' },
+        { id: 'seed-agent-old-001' },
         { complexity_routing_enabled: true },
       );
-      // A brand-new clean user is signed up.
+      // A brand-new legacy "old" user is signed up.
       expect(auth.api.signUpEmail).toHaveBeenCalledWith(
         expect.objectContaining({
-          body: expect.objectContaining({ email: 'newuser@manifest.build' }),
+          body: expect.objectContaining({ email: 'olduser@manifest.build' }),
         }),
       );
-      // The clean cohort tenant is created.
+      // The legacy cohort tenant is created.
       expect(mockTenantRepo.insert).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'seed-tenant-new-001' }),
+        expect.objectContaining({ id: 'seed-tenant-old-001' }),
       );
     });
 
-    it('skips cohort seeding when the clean agent already exists', async () => {
+    it('skips cohort seeding when the legacy agent already exists', async () => {
       // mockAgentRepo.count defaults to 1 (set in beforeEach) → cohort is a no-op,
       // while the normal admin/demo-agent seed still runs.
       await service.onModuleInit();
