@@ -53,7 +53,17 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     supportsSubscription: true as const,
     subscriptionLabel: 'ChatGPT Plus/Pro/Team',
     subscriptionAuthMode: 'popup_oauth' as const,
-    knownModels: Object.freeze(['gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex-spark']),
+    knownModels: Object.freeze([
+      'gpt-5.5',
+      'gpt-5.4',
+      'gpt-5.4-image-2',
+      'gpt-5.4-mini',
+      'gpt-5.4-nano',
+      'gpt-5.3-codex-spark',
+      'gpt-5.2-chat',
+      'gpt-5.2-pro',
+      'gpt-5.1-codex-mini',
+    ]),
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
@@ -167,6 +177,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionAuthMode: 'token' as const,
     subscriptionKeyPlaceholder: 'Paste your Z.ai API key',
     knownModels: Object.freeze([
+      'glm-5.2',
       'glm-5.1',
       'glm-5-turbo',
       'glm-5',
