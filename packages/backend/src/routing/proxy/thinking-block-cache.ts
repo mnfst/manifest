@@ -14,6 +14,12 @@ interface CachedThinkingBlocks {
 
 const TTL_MS = 30 * 60 * 1000; // 30 minutes
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+/**
+ * Hard ceiling on cached turns. The key embeds an upstream-generated tool-use id
+ * (unique per turn), so the keyspace is unbounded and the lazy TTL sweep — which
+ * only runs on `store()` — cannot cap a burst. Oldest entries are evicted FIFO.
+ */
+export const MAX_CACHE_ENTRIES = 10_000;
 
 /**
  * In-memory cache for Anthropic extended-thinking content blocks.
@@ -48,6 +54,16 @@ export class ThinkingBlockCache {
       blocks,
       expiresAt: Date.now() + TTL_MS,
     });
+    this.evictOverflow();
+  }
+
+  /** Bound the cache to MAX_CACHE_ENTRIES, evicting oldest (FIFO) entries first. */
+  private evictOverflow(): void {
+    while (this.cache.size > MAX_CACHE_ENTRIES) {
+      // size > cap (> 0) guarantees a first key exists.
+      const oldest = this.cache.keys().next().value as string;
+      this.cache.delete(oldest);
+    }
   }
 
   /** Retrieve the cached thinking blocks, or null if not found/expired. */

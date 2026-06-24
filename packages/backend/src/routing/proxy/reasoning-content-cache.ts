@@ -11,6 +11,14 @@ interface CachedReasoningContent {
 
 const TTL_MS = 30 * 60 * 1000; // 30 minutes
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+/**
+ * Hard ceiling on turns held in the in-memory layer. The key embeds an
+ * upstream-generated tool call id (unique per turn), so the in-memory keyspace
+ * is unbounded and the lazy TTL sweep — which only runs on writes — cannot cap a
+ * burst. Oldest entries are evicted FIFO; the shared DB layer is pruned
+ * separately by `expires_at`.
+ */
+export const MAX_CACHE_ENTRIES = 10_000;
 
 /**
  * In-memory cache for OpenAI-compatible `reasoning_content` strings.
@@ -42,6 +50,7 @@ export class ReasoningContentCache {
       content,
       expiresAt,
     });
+    this.evictOverflow();
     void this.persist(sessionKey, firstToolCallId, content, expiresAt);
   }
 
@@ -92,6 +101,7 @@ export class ReasoningContentCache {
           expiresAt: new Date(row.expires_at).getTime(),
         });
       }
+      this.evictOverflow();
       if (expired.length > 0) void this.deleteExpired(sessionKey, expired);
     } catch (err) {
       this.logger.warn(`Failed to read shared reasoning_content cache: ${String(err)}`);
@@ -141,6 +151,15 @@ export class ReasoningContentCache {
       void this.repo.delete({ session_key: sessionKey }).catch((err) => {
         this.logger.warn(`Failed to clear shared reasoning_content cache: ${String(err)}`);
       });
+    }
+  }
+
+  /** Bound the in-memory cache to MAX_CACHE_ENTRIES, evicting oldest (FIFO) first. */
+  private evictOverflow(): void {
+    while (this.cache.size > MAX_CACHE_ENTRIES) {
+      // size > cap (> 0) guarantees a first key exists.
+      const oldest = this.cache.keys().next().value as string;
+      this.cache.delete(oldest);
     }
   }
 

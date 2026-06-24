@@ -1,6 +1,6 @@
 import type { Repository } from 'typeorm';
 import { ReasoningContentCacheEntry } from '../../../entities/reasoning-content-cache-entry.entity';
-import { ReasoningContentCache } from '../reasoning-content-cache';
+import { ReasoningContentCache, MAX_CACHE_ENTRIES } from '../reasoning-content-cache';
 
 const makeRepo = () =>
   ({
@@ -183,6 +183,18 @@ describe('ReasoningContentCache', () => {
 
     expect(result).toBe(body);
     expect(repo.find).not.toHaveBeenCalled();
+  });
+
+  it('evicts the oldest in-memory entries once MAX_CACHE_ENTRIES is exceeded', () => {
+    for (let i = 0; i < MAX_CACHE_ENTRIES + 5; i++) {
+      cache.store('session', `call_${i}`, `content-${i}`);
+    }
+
+    // The five oldest entries are evicted FIFO; the cap holds and recent entries survive.
+    expect(cache.retrieve('session', 'call_0')).toBeNull();
+    expect(cache.retrieve('session', 'call_4')).toBeNull();
+    expect(cache.retrieve('session', 'call_5')).not.toBeNull();
+    expect(cache.retrieve('session', `call_${MAX_CACHE_ENTRIES + 4}`)).not.toBeNull();
   });
 
   it('evicts expired entries lazily when cleanup interval has elapsed', () => {
