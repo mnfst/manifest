@@ -1,4 +1,4 @@
-import { ThinkingBlockCache, ThinkingBlock } from '../thinking-block-cache';
+import { ThinkingBlockCache, ThinkingBlock, MAX_CACHE_ENTRIES } from '../thinking-block-cache';
 
 describe('ThinkingBlockCache', () => {
   let cache: ThinkingBlockCache;
@@ -100,6 +100,19 @@ describe('ThinkingBlockCache', () => {
     cache.store('session-1', 'toolu_1', newBlocks);
 
     expect(cache.retrieve('session-1', 'toolu_1')).toBe(newBlocks);
+  });
+
+  it('evicts the oldest entries once MAX_CACHE_ENTRIES is exceeded', () => {
+    const block: ThinkingBlock[] = [{ type: 'thinking', thinking: 't', signature: 's' }];
+    for (let i = 0; i < MAX_CACHE_ENTRIES + 5; i++) {
+      cache.store('session', `toolu_${i}`, block);
+    }
+
+    // The five oldest entries are evicted FIFO; the cap holds and recent entries survive.
+    expect(cache.retrieve('session', 'toolu_0')).toBeNull();
+    expect(cache.retrieve('session', 'toolu_4')).toBeNull();
+    expect(cache.retrieve('session', 'toolu_5')).not.toBeNull();
+    expect(cache.retrieve('session', `toolu_${MAX_CACHE_ENTRIES + 4}`)).not.toBeNull();
   });
 
   describe('maybeCleanup (lazy eviction)', () => {
