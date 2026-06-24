@@ -369,6 +369,28 @@ export function disableProviderForAgent(agentName: string, userProviderId: strin
   );
 }
 
+/* -- Routing: Request healing (per-agent activation) -- */
+
+export interface HealingStatus {
+  enabled: boolean;
+}
+
+function healingPath(agentName: string): string {
+  return `/agents/${encodeURIComponent(agentName)}/healing`;
+}
+
+export function getHealingStatus(agentName: string) {
+  return fetchJson<HealingStatus>(healingPath(agentName));
+}
+
+export function enableHealing(agentName: string) {
+  return fetchMutate<{ ok: boolean }>(healingPath(agentName), { method: 'PUT' });
+}
+
+export function disableHealing(agentName: string) {
+  return fetchMutate<{ ok: boolean }>(healingPath(agentName), { method: 'DELETE' });
+}
+
 /* -- Routing: Pricing cache health -- */
 
 export interface PricingHealth {

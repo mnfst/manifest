@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "manifest-shared": "*",
+    "manifest-healing-engine": "*",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",

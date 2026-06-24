@@ -24,6 +24,7 @@ import type { ThinkingBlockCache } from '../thinking-block-cache';
 import type { ReasoningContentCache } from '../reasoning-content-cache';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import type { HealingService } from '../../../healing/healing.service';
 
 /**
  * Stream-warmup helper is mocked because the real implementation depends on
@@ -96,6 +97,13 @@ describe('ProxyService — orchestration', () => {
   let reasoningCache: ReasoningContentCache;
   let modelParamsService: { get: jest.Mock; list: jest.Mock; set: jest.Mock; delete: jest.Mock };
   let providerParamSpecs: { getSpecs: jest.Mock; list: jest.Mock };
+  let healingService: {
+    configured: boolean;
+    isCandidateStatus: jest.Mock;
+    isEnabled: jest.Mock;
+    tryHeal: jest.Mock;
+    reportOutcome: jest.Mock;
+  };
   let svc: ProxyService;
 
   beforeEach(() => {
@@ -158,6 +166,13 @@ describe('ProxyService — orchestration', () => {
       ),
       list: jest.fn().mockResolvedValue(specCatalog),
     };
+    healingService = {
+      configured: false,
+      isCandidateStatus: jest.fn((s: number) => s >= 400 && s < 500 && s !== 429),
+      isEnabled: jest.fn().mockResolvedValue(true),
+      tryHeal: jest.fn().mockResolvedValue(null),
+      reportOutcome: jest.fn().mockResolvedValue(undefined),
+    };
 
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
@@ -178,6 +193,7 @@ describe('ProxyService — orchestration', () => {
       reasoningCache,
       modelParamsService as unknown as AgentModelParamsService,
       providerParamSpecs as unknown as ProviderParamSpecService,
+      healingService as unknown as HealingService,
     );
   });
 
@@ -250,6 +266,106 @@ describe('ProxyService — orchestration', () => {
       expect(body.messages[0].content).toBe('');
       expect(routingBody.messages[0].content).toBe('');
       expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toBe(body);
+    });
+  });
+
+  describe('request healing', () => {
+    const setupRoute = () =>
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+    const forwardResult = (status: number) => ({
+      response: okResponse(status),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    const token = {
+      requestId: 'r',
+      patchRef: 'p',
+      issueRef: 'i',
+      tenantId: 'tenant-1',
+      agentId: 'agent-1',
+    };
+
+    it('heals a request-side 4xx and retries the same provider', async () => {
+      setupRoute();
+      healingService.configured = true;
+      fallbackService.tryForwardToProvider
+        .mockResolvedValueOnce(forwardResult(404))
+        .mockResolvedValueOnce(forwardResult(200));
+      healingService.tryHeal.mockResolvedValue({ body: { model: 'gpt-4o', messages: [] }, token });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(result.forward.response.status).toBe(200);
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(2);
+      expect(fallbackService.tryForwardToProvider.mock.calls[1][0].body).toEqual({
+        model: 'gpt-4o',
+        messages: [],
+      });
+      expect(healingService.reportOutcome).toHaveBeenCalledWith(
+        expect.objectContaining({ patchRef: 'p' }),
+        'healed',
+      );
+    });
+
+    it('reports a failed outcome and falls through when the retry still fails', async () => {
+      setupRoute();
+      healingService.configured = true;
+      fallbackService.tryForwardToProvider
+        .mockResolvedValueOnce(forwardResult(404))
+        .mockResolvedValueOnce(forwardResult(400));
+      fallbackService.tryFallbacks.mockResolvedValue({ success: null, failures: [] });
+      healingService.tryHeal.mockResolvedValue({ body: {}, token });
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(healingService.reportOutcome).toHaveBeenCalledWith(
+        expect.objectContaining({ patchRef: 'p' }),
+        'failed',
+      );
+    });
+
+    it('does not heal when the healer returns nothing', async () => {
+      setupRoute();
+      healingService.configured = true;
+      fallbackService.tryForwardToProvider.mockResolvedValue(forwardResult(404));
+      fallbackService.tryFallbacks.mockResolvedValue({ success: null, failures: [] });
+      healingService.tryHeal.mockResolvedValue(null);
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(healingService.tryHeal).toHaveBeenCalled();
+      expect(healingService.reportOutcome).not.toHaveBeenCalled();
+    });
+
+    it('skips healing when not enabled for the agent', async () => {
+      setupRoute();
+      healingService.configured = true;
+      healingService.isEnabled.mockResolvedValue(false);
+      fallbackService.tryForwardToProvider.mockResolvedValue(forwardResult(404));
+      fallbackService.tryFallbacks.mockResolvedValue({ success: null, failures: [] });
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(healingService.tryHeal).not.toHaveBeenCalled();
+    });
+
+    it('skips healing for non-request-side statuses', async () => {
+      setupRoute();
+      healingService.configured = true;
+      fallbackService.tryForwardToProvider.mockResolvedValue(forwardResult(500));
+      fallbackService.tryFallbacks.mockResolvedValue({ success: null, failures: [] });
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(healingService.tryHeal).not.toHaveBeenCalled();
     });
   });
 

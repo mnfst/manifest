@@ -13,6 +13,7 @@ import { toast } from '../services/toast-store.js';
 import { customProviderColor } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import NoConnectionsPrompt from '../components/NoConnectionsPrompt.jsx';
+import HealingToggle from '../components/HealingToggle.jsx';
 import '../styles/routing.css';
 
 const AUTH_BADGES: Record<string, string> = {
@@ -147,6 +148,8 @@ const AgentProviders: Component = () => {
         Enable the global provider connections this harness may use. A provider can't be turned off
         while its models are assigned to this harness's routing. Update routing first to remove it.
       </p>
+
+      <HealingToggle agentName={agentName} />
 
       <Show when={connections().length > 0} fallback={<NoConnectionsPrompt />}>
         <div class="panel" style="padding: 0; overflow-x: auto;">

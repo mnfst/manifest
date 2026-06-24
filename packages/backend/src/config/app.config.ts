@@ -51,4 +51,9 @@ export const appConfig = registerAs('app', () => ({
   // When true, /api/v1/public/* endpoints expose aggregate stats without auth.
   // Off by default — only Manifest Cloud's marketing homepage should enable it.
   publicStatsEnabled: process.env['MANIFEST_PUBLIC_STATS'] === 'true',
+  // Request-healing service (advisory). When HEALING_API_URL is set, the proxy
+  // asks it for a fix on a request-side 4xx, for agents that have healing enabled.
+  healingApiUrl: process.env['HEALING_API_URL'] ?? '',
+  healingApiToken: process.env['HEALING_API_TOKEN'] ?? '',
+  healingTimeoutMs: Number(process.env['HEALING_TIMEOUT_MS'] ?? 3000),
 }));

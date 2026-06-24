@@ -28,6 +28,7 @@
   "packageManager": "npm@10.9.2",
   "workspaces": [
     "packages/shared",
+    "packages/healing-engine",
     "packages/frontend",
     "packages/backend",
     "packages/manifest"
