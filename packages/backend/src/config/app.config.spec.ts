@@ -97,6 +97,18 @@ describe('appConfig', () => {
     expect(config.runMigrationsOnBoot).toBe(false);
   });
 
+  it('defaults shutdownDrainMs to 10000 when SHUTDOWN_DRAIN_MS is unset', async () => {
+    delete process.env['SHUTDOWN_DRAIN_MS'];
+    const config = await loadConfig();
+    expect(config.shutdownDrainMs).toBe(10000);
+  });
+
+  it('reads SHUTDOWN_DRAIN_MS from env', async () => {
+    process.env['SHUTDOWN_DRAIN_MS'] = '0';
+    const config = await loadConfig();
+    expect(config.shutdownDrainMs).toBe(0);
+  });
+
   it('throws when DATABASE_URL is missing in production', async () => {
     delete process.env['DATABASE_URL'];
     process.env['NODE_ENV'] = 'production';

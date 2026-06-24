@@ -41,6 +41,13 @@ export const appConfig = registerAs('app', () => ({
   // (Railway) where a pre-deploy step migrates once over a direct connection, so
   // replicas never migrate concurrently over PgBouncer.
   runMigrationsOnBoot: process.env['RUN_MIGRATIONS_ON_BOOT'] !== 'false',
+  // Graceful-shutdown drain window (ms). On a real termination signal in
+  // production the server keeps accepting traffic for this long — while the
+  // health probe reports 503 — so the platform edge (Railway) deregisters this
+  // replica before its socket closes, instead of refusing requests it is still
+  // routing during the post-SIGTERM deregistration lag (the rolling-deploy 5xx
+  // spike). Must be shorter than Railway's `drainingSeconds`. 0 disables it.
+  shutdownDrainMs: Number(process.env['SHUTDOWN_DRAIN_MS'] ?? 10000),
   // When true, /api/v1/public/* endpoints expose aggregate stats without auth.
   // Off by default — only Manifest Cloud's marketing homepage should enable it.
   publicStatsEnabled: process.env['MANIFEST_PUBLIC_STATS'] === 'true',
