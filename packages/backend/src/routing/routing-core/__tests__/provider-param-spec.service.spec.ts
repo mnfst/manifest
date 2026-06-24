@@ -578,4 +578,15 @@ describe('ProviderParamSpecService', () => {
       await expect(refresh.mock.results[0].value).rejects.toThrow('boom');
     });
   });
+
+  describe('getAllKnownParamRootPaths', () => {
+    it('returns all unique first-level param paths across the entire catalog', async () => {
+      mockRemoteCatalog();
+      const service = new ProviderParamSpecService();
+      await service.refreshCache();
+
+      const roots = service.getAllKnownParamRootPaths();
+      expect(roots).toEqual(new Set(['thinking', 'temperature', 'max_completion_tokens']));
+    });
+  });
 });

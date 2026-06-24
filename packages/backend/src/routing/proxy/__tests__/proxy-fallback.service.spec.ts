@@ -158,6 +158,7 @@ describe('ProxyFallbackService', () => {
         getProviderParamSpecs(specCatalog, provider, authType as 'api_key' | 'subscription', model),
       ),
       list: jest.fn().mockResolvedValue(specCatalog),
+      getAllKnownParamRootPaths: jest.fn().mockReturnValue(new Set(['thinking'])),
     } as unknown as jest.Mocked<ProviderParamSpecService>;
 
     reasoningCache = {
@@ -537,6 +538,44 @@ describe('ProxyFallbackService', () => {
       });
 
       expect(modelParamsService.get).not.toHaveBeenCalled();
+    });
+
+    it('strips client-supplied MPS params that the resolved model does not support', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      // Model has no saved params and only supports `thinking` in its specs.
+      modelParamsService.get.mockResolvedValueOnce(null);
+      // getAllKnownParamRootPaths returns `temperature` as a known MPS root.
+      providerParamSpecs.getAllKnownParamRootPaths.mockReturnValue(
+        new Set(['thinking', 'temperature']),
+      );
+
+      await service.tryForwardToProvider({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-v4-flash',
+        body: {
+          messages: [{ role: 'user', content: 'hi' }],
+          temperature: 0.7,
+          max_tokens: 2048,
+        },
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'api_key',
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
+      });
+
+      const forwarded = providerClient.forward.mock.calls[0][0];
+      // `temperature` is a known MPS root but not in this model's specs → stripped.
+      expect(forwarded.body.temperature).toBeUndefined();
+      // `max_tokens` is not a known MPS root → preserved (it's a standard API param).
+      expect(forwarded.body.max_tokens).toBe(2048);
+      // `messages` is not a known MPS root → preserved.
+      expect(forwarded.body.messages).toBeDefined();
     });
 
     it('re-injects shared reasoning_content before forwarding to compatible providers', async () => {

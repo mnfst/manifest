@@ -148,7 +148,21 @@ export class ProxyFallbackService {
       model,
     );
     const specs = await this.providerParamSpecs.getSpecs(provider, authType as AuthType, model);
-    return applyRequestParamDefaults(body, modelParams, specs);
+    const merged = applyRequestParamDefaults(body, modelParams, specs);
+
+    // Strip client-supplied params that are known MPS paths but not supported
+    // by this model. Example: `temperature` on claude-opus-4-7 which removed
+    // sampling controls — sending it causes a provider error.
+    const knownRoots = this.providerParamSpecs.getAllKnownParamRootPaths();
+    const modelRoots = new Set(specs.map((s) => s.path.split('.')[0]));
+    let stripped: Record<string, unknown> | null = null;
+    for (const key of Object.keys(merged)) {
+      if (knownRoots.has(key) && !modelRoots.has(key)) {
+        stripped ??= { ...merged };
+        delete stripped[key];
+      }
+    }
+    return stripped ?? merged;
   }
 
   async tryFallbacks(
