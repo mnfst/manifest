@@ -748,4 +748,153 @@ describe('AgentKeyAuthGuard', () => {
 
     expect(mockGetMany).toHaveBeenCalledTimes(1);
   });
+
+  describe('negative cache (rejected-key storm protection)', () => {
+    const negativeCacheOf = (g: AgentKeyAuthGuard) =>
+      (g as unknown as { negativeCache: Map<string, number> }).negativeCache;
+
+    it('serves a repeated bad key from the negative cache without a second DB lookup or log', async () => {
+      mockGetMany.mockResolvedValue([]); // unknown key — DB returns no candidates
+      const logger = (guard as unknown as { logger: { warn: jest.Mock } }).logger;
+      const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => undefined);
+
+      const { ctx: ctx1 } = makeContext({ authorization: 'Bearer mnfst_bad-key-storm' });
+      await expect(guard.canActivate(ctx1)).rejects.toThrow('Invalid API key');
+      // First miss pays the DB lookup and logs once.
+      expect(mockGetMany).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+
+      mockCreateQueryBuilder.mockClear();
+      mockGetMany.mockClear();
+      warnSpy.mockClear();
+
+      const { ctx: ctx2 } = makeContext({ authorization: 'Bearer mnfst_bad-key-storm' });
+      await expect(guard.canActivate(ctx2)).rejects.toThrow('Invalid API key');
+      // The repeat is served from the negative cache: no DB query, no log line.
+      expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('records a rejected unknown key (hashed, not plaintext) for the configured TTL', async () => {
+      const token = 'mnfst_record-bad-key';
+      const { ctx } = makeContext({ authorization: `Bearer ${token}` });
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key');
+
+      const negCache = negativeCacheOf(guard);
+      expect(negCache.has(testCacheKey(token))).toBe(true);
+      // Stored under the hash, never the raw token.
+      expect(negCache.has(token)).toBe(false);
+      const ttl = negCache.get(testCacheKey(token))! - Date.now();
+      expect(ttl).toBeGreaterThan(30 * 1000 - 2000);
+      expect(ttl).toBeLessThanOrEqual(30 * 1000 + 100);
+    });
+
+    it('LRU-touches a negative entry on a cache hit (moves it to the tail)', async () => {
+      const { ctx } = makeContext({ authorization: 'Bearer mnfst_neg-lru-key' });
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key');
+
+      const negCache = negativeCacheOf(guard);
+      negCache.set(testCacheKey('mnfst_neg-other'), Date.now() + 999_999);
+      expect(Array.from(negCache.keys())[0]).toBe(testCacheKey('mnfst_neg-lru-key'));
+
+      const { ctx: ctx2 } = makeContext({ authorization: 'Bearer mnfst_neg-lru-key' });
+      await expect(guard.canActivate(ctx2)).rejects.toThrow('Invalid API key');
+      // After the touch the rejected key sits behind the other entry.
+      expect(Array.from(negCache.keys())[1]).toBe(testCacheKey('mnfst_neg-lru-key'));
+    });
+
+    it('drops a stale negative entry and re-checks the DB so a since-created key works', async () => {
+      const token = 'mnfst_was-bad-now-good';
+      const negCache = negativeCacheOf(guard);
+      // An already-expired negative entry from an earlier rejection.
+      negCache.set(testCacheKey(token), Date.now() - 1000);
+
+      // The key now exists in the DB (created after that rejection).
+      mockGetMany.mockResolvedValue([
+        {
+          id: 'key-revived',
+          tenant_id: 'tenant-1',
+          agent_id: 'agent-1',
+          key_hash: hashKey(token),
+          expires_at: null,
+          agent: { name: 'test-agent' },
+          tenant: { owner_user_id: 'user-1' },
+        },
+      ]);
+
+      const { ctx, req } = makeContext({ authorization: `Bearer ${token}` });
+      expect(await guard.canActivate(ctx)).toBe(true);
+      expect(req.ingestionContext).toBeDefined();
+      expect(negCache.has(testCacheKey(token))).toBe(false);
+    });
+
+    it('evicts the oldest negative entry when the negative cache is full', async () => {
+      const negCache = negativeCacheOf(guard);
+      const firstHash = testCacheKey('mnfst_neg-filler-0');
+      for (let i = 0; i < 10_000; i++) {
+        negCache.set(testCacheKey(`mnfst_neg-filler-${i}`), Date.now() + 999_999);
+      }
+      expect(negCache.size).toBe(10_000);
+
+      const token = 'mnfst_neg-overflow-key';
+      const { ctx } = makeContext({ authorization: `Bearer ${token}` });
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key');
+
+      expect(negCache.has(firstHash)).toBe(false);
+      expect(negCache.has(testCacheKey(token))).toBe(true);
+      expect(negCache.size).toBeLessThanOrEqual(10_000);
+    });
+
+    it('evictExpired also sweeps expired negative-cache entries but keeps live ones', async () => {
+      const negCache = negativeCacheOf(guard);
+      const expiredHash = testCacheKey('mnfst_neg-expired');
+      const liveHash = testCacheKey('mnfst_neg-live');
+      negCache.set(expiredHash, Date.now() - 1000);
+      negCache.set(liveHash, Date.now() + 999_999);
+
+      // A successful validation runs evictExpired() before caching, which now
+      // sweeps the negative cache too.
+      const token = 'mnfst_valid-triggers-evict';
+      mockGetMany.mockResolvedValue([
+        {
+          id: 'key-ev',
+          tenant_id: 'tenant-1',
+          agent_id: 'agent-1',
+          key_hash: hashKey(token),
+          expires_at: null,
+          agent: { name: 'test-agent' },
+          tenant: { owner_user_id: 'user-1' },
+        },
+      ]);
+      const { ctx } = makeContext({ authorization: `Bearer ${token}` });
+      await guard.canActivate(ctx);
+
+      expect(negCache.has(expiredHash)).toBe(false);
+      expect(negCache.has(liveHash)).toBe(true);
+    });
+
+    it('invalidateCache removes the negative entry so a re-created key is not stuck', async () => {
+      const token = 'mnfst_inv-neg-key';
+      const { ctx } = makeContext({ authorization: `Bearer ${token}` });
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key');
+
+      const negCache = negativeCacheOf(guard);
+      expect(negCache.has(testCacheKey(token))).toBe(true);
+
+      guard.invalidateCache(token);
+      expect(negCache.has(testCacheKey(token))).toBe(false);
+    });
+
+    it('clearCache empties the negative cache', async () => {
+      const token = 'mnfst_clear-neg-key';
+      const { ctx } = makeContext({ authorization: `Bearer ${token}` });
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key');
+
+      const negCache = negativeCacheOf(guard);
+      expect(negCache.size).toBe(1);
+
+      guard.clearCache();
+      expect(negCache.size).toBe(0);
+    });
+  });
 });
