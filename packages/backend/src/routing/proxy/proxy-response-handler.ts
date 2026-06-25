@@ -373,15 +373,21 @@ export async function handleStreamResponse(
     );
   }
   if (forward.isChatGpt) {
+    const chatGptTransformer = providerClient.createChatGptStreamTransformer(meta.model);
+    const chatGptFinalize = () => {
+      const trailing = chatGptTransformer.finalize();
+      if (trailing) return messagesTransformer ? toClientChunk(trailing) : trailing;
+      return finalize ? finalize() : null;
+    };
     return pipeStream(
       forward.response.body!,
       res,
       (chunk) => {
-        const out = providerClient.convertChatGptStreamChunk(chunk, meta.model);
+        const out = chatGptTransformer.transform(chunk);
         if (!messagesTransformer) return out;
         return out ? toClientChunk(out) : null;
       },
-      finalize,
+      chatGptFinalize,
       onClient,
     );
   }

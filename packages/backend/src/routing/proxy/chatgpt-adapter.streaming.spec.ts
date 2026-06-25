@@ -10,7 +10,11 @@
  * Split out of chatgpt-adapter.spec.ts to keep each file under 300 lines.
  */
 
-import { collectChatGptSseResponse, transformResponsesStreamChunk } from './chatgpt-adapter';
+import {
+  collectChatGptSseResponse,
+  createChatGptStreamTransformer,
+  transformResponsesStreamChunk,
+} from './chatgpt-adapter';
 
 function parseFrame(frame: string | null): Record<string, unknown> | null {
   if (!frame) return null;
@@ -26,6 +30,28 @@ function deltaFromFrame(frame: string | null): string {
   const toolCalls = delta.tool_calls as Array<Record<string, unknown>>;
   const fn = toolCalls[0].function as Record<string, unknown>;
   return fn.arguments as string;
+}
+
+function parseFrames(frames: string | null): Record<string, unknown>[] {
+  if (!frames) return [];
+  return frames
+    .split('\n\n')
+    .map((frame) => frame.trim())
+    .filter((frame) => frame.startsWith('data: ') && frame !== 'data: [DONE]')
+    .map((frame) => JSON.parse(frame.replace(/^data: /, '')) as Record<string, unknown>);
+}
+
+function argumentDeltas(frames: string | null): string[] {
+  return parseFrames(frames).flatMap((frame) => {
+    const choices = frame.choices as Array<Record<string, unknown>>;
+    const delta = choices[0].delta as Record<string, unknown> | undefined;
+    const toolCalls = delta?.tool_calls as Array<Record<string, unknown>> | undefined;
+    if (!toolCalls) return [];
+    return toolCalls.map((toolCall) => {
+      const fn = toolCall.function as Record<string, unknown> | undefined;
+      return typeof fn?.arguments === 'string' ? fn.arguments : '';
+    });
+  });
 }
 
 describe('chatgpt-adapter streaming: truncated tool-call argument JSON', () => {
@@ -230,6 +256,125 @@ describe('chatgpt-adapter streaming: truncated tool-call argument JSON', () => {
       // The middle event is dropped; the two valid deltas still concatenate.
       expect(fnArgs).toBe('{"k":42}');
       expect(JSON.parse(fnArgs)).toEqual({ k: 42 });
+    });
+  });
+
+  describe('createChatGptStreamTransformer preserves final-only tool arguments', () => {
+    it('emits complete glob arguments from response.function_call_arguments.done', () => {
+      const transformer = createChatGptStreamTransformer('gpt-5.3-spark');
+      const added = transformer.transform(
+        'event: response.output_item.added\ndata: {"output_index":0,"item":{"type":"function_call","call_id":"call_glob","name":"glob"}}',
+      );
+      const done = transformer.transform(
+        `event: response.function_call_arguments.done\ndata: ${JSON.stringify({
+          output_index: 0,
+          arguments: '{"pattern":"**/*.ts"}',
+        })}`,
+      );
+      const completed = transformer.transform(
+        `event: response.completed\ndata: ${JSON.stringify({
+          response: {
+            output: [
+              {
+                type: 'function_call',
+                call_id: 'call_glob',
+                name: 'glob',
+                arguments: '{"pattern":"**/*.ts"}',
+              },
+            ],
+          },
+        })}`,
+      );
+
+      expect(argumentDeltas(`${added ?? ''}${done ?? ''}${completed ?? ''}`).join('')).toBe(
+        '{"pattern":"**/*.ts"}',
+      );
+      expect(JSON.parse(argumentDeltas(done).join(''))).toEqual({ pattern: '**/*.ts' });
+    });
+
+    it('emits complete write arguments from response.output_item.done', () => {
+      const transformer = createChatGptStreamTransformer('gpt-5.4');
+      const added = transformer.transform(
+        'event: response.output_item.added\ndata: {"output_index":0,"item":{"type":"function_call","call_id":"call_write","name":"write"}}',
+      );
+      const done = transformer.transform(
+        `event: response.output_item.done\ndata: ${JSON.stringify({
+          output_index: 0,
+          item: {
+            type: 'function_call',
+            call_id: 'call_write',
+            name: 'write',
+            arguments: '{"filePath":"idiot.md","content":"test"}',
+          },
+        })}`,
+      );
+
+      const args = argumentDeltas(`${added ?? ''}${done ?? ''}`).join('');
+      expect(JSON.parse(args)).toEqual({ filePath: 'idiot.md', content: 'test' });
+    });
+
+    it('emits final arguments from response.completed output when no argument deltas arrived', () => {
+      const transformer = createChatGptStreamTransformer('gpt-5.4');
+      const added = transformer.transform(
+        'event: response.output_item.added\ndata: {"output_index":1,"item":{"type":"function_call","call_id":"call_glob","name":"glob"}}',
+      );
+      const completed = transformer.transform(
+        `event: response.completed\ndata: ${JSON.stringify({
+          response: {
+            output: [
+              { type: 'message' },
+              {
+                type: 'function_call',
+                call_id: 'call_glob',
+                name: 'glob',
+                arguments: '{"pattern":"packages/backend/**/*.ts"}',
+              },
+            ],
+          },
+        })}`,
+      );
+
+      const args = argumentDeltas(`${added ?? ''}${completed ?? ''}`).join('');
+      expect(JSON.parse(args)).toEqual({ pattern: 'packages/backend/**/*.ts' });
+    });
+
+    it('does not duplicate full arguments repeated by a final done event', () => {
+      const transformer = createChatGptStreamTransformer('gpt-5.4');
+      const events = [
+        transformer.transform(
+          'event: response.output_item.added\ndata: {"output_index":0,"item":{"type":"function_call","call_id":"call_glob","name":"glob"}}',
+        ),
+        transformer.transform(
+          'event: response.function_call_arguments.delta\ndata: {"output_index":0,"delta":"{\\"pattern\\":"}',
+        ),
+        transformer.transform(
+          'event: response.function_call_arguments.delta\ndata: {"output_index":0,"delta":"\\"**/*.ts\\"}"}',
+        ),
+        transformer.transform(
+          `event: response.function_call_arguments.done\ndata: ${JSON.stringify({
+            output_index: 0,
+            arguments: '{"pattern":"**/*.ts"}',
+          })}`,
+        ),
+        transformer.transform(
+          `event: response.completed\ndata: ${JSON.stringify({
+            response: {
+              output: [
+                {
+                  type: 'function_call',
+                  call_id: 'call_glob',
+                  name: 'glob',
+                  arguments: '{"pattern":"**/*.ts"}',
+                },
+              ],
+            },
+          })}`,
+        ),
+      ].join('');
+
+      const args = argumentDeltas(events).join('');
+      expect(args).toBe('{"pattern":"**/*.ts"}');
+      expect(JSON.parse(args)).toEqual({ pattern: '**/*.ts' });
     });
   });
 });

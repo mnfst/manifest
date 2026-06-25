@@ -184,6 +184,41 @@ describe('ChatGPT Adapter – collectChatGptSseResponse', () => {
     expect(choices[0].message.tool_calls[0].function.arguments).toBe('{"city":"Paris"}');
   });
 
+  it('collects final-only function arguments from response.function_call_arguments.done', () => {
+    const sse = [
+      'event: response.output_item.added\ndata: {"item":{"type":"function_call","call_id":"call_glob","name":"glob"},"output_index":0}',
+      'event: response.function_call_arguments.done\ndata: {"arguments":"{\\"pattern\\":\\"**/*.ts\\"}","output_index":0}',
+      'event: response.completed\ndata: {"response":{"output":[{"type":"function_call","call_id":"call_glob","name":"glob","arguments":"{\\"pattern\\":\\"**/*.ts\\"}"}]}}',
+    ].join('\n\n');
+
+    const result = collectChatGptSseResponse(sse, 'gpt-5.3-spark');
+    const choices = result.choices as {
+      message: { tool_calls: { function: { arguments: string } }[] };
+    }[];
+
+    expect(JSON.parse(choices[0].message.tool_calls[0].function.arguments)).toEqual({
+      pattern: '**/*.ts',
+    });
+  });
+
+  it('collects final-only function arguments from response.output_item.done', () => {
+    const sse = [
+      'event: response.output_item.added\ndata: {"item":{"type":"function_call","call_id":"call_write","name":"write"},"output_index":0}',
+      'event: response.output_item.done\ndata: {"item":{"type":"function_call","call_id":"call_write","name":"write","arguments":"{\\"filePath\\":\\"idiot.md\\",\\"content\\":\\"test\\"}"},"output_index":0}',
+      'event: response.completed\ndata: {"response":{"output":[{"type":"function_call"}]}}',
+    ].join('\n\n');
+
+    const result = collectChatGptSseResponse(sse, 'gpt-5.4');
+    const choices = result.choices as {
+      message: { tool_calls: { function: { arguments: string } }[] };
+    }[];
+
+    expect(JSON.parse(choices[0].message.tool_calls[0].function.arguments)).toEqual({
+      filePath: 'idiot.md',
+      content: 'test',
+    });
+  });
+
   it('handles function calls at non-zero output_index (mixed output items)', () => {
     const sse = [
       'event: response.output_text.delta\ndata: {"delta":"Let me check."}',

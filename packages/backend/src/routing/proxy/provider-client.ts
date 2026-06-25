@@ -15,6 +15,7 @@ import {
   collectChatGptSseResponse as chatGptSseCollector,
   convertChatGptResponse as chatGptResponseConverter,
   convertChatGptStreamChunk as chatGptStreamChunkConverter,
+  createChatGptTransformer as chatGptStreamTransformer,
   convertGoogleResponse as googleResponseConverter,
   convertGoogleStreamChunk as googleStreamChunkConverter,
   convertAnthropicResponse as anthropicResponseConverter,
@@ -539,6 +540,7 @@ export class ProviderClient {
    */
   readonly convertChatGptResponse = chatGptResponseConverter;
   readonly convertChatGptStreamChunk = chatGptStreamChunkConverter;
+  readonly createChatGptStreamTransformer = chatGptStreamTransformer;
   readonly convertGoogleResponse = googleResponseConverter;
   readonly convertGoogleStreamChunk = googleStreamChunkConverter;
   readonly convertAnthropicResponse = anthropicResponseConverter;

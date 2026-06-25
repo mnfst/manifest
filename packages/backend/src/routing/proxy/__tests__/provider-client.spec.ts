@@ -890,6 +890,29 @@ describe('ProviderClient', () => {
       expect(headers['Authorization']).toBe('Bearer oauth-token');
     });
 
+    it.each(['gpt-5.3-spark', 'gpt-5.3-codex-spark', 'gpt-5.4'])(
+      'routes %s through the ChatGPT subscription adapter',
+      async (model) => {
+        mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+        const result = await client.forward({
+          provider: 'openai',
+          apiKey: 'oauth-token',
+          model,
+          body,
+          stream: true,
+          authType: 'subscription',
+        });
+
+        expect(mockFetch.mock.calls[0][0]).toBe('https://chatgpt.com/backend-api/codex/responses');
+        expect(result.isChatGpt).toBe(true);
+        expect(result.isResponses).toBe(false);
+        const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(sentBody.model).toBe(model);
+        expect(sentBody.stream).toBe(true);
+      },
+    );
+
     it('converts request body using toResponsesRequest', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

@@ -17,7 +17,9 @@ import {
   toResponsesRequest,
   fromResponsesResponse,
   transformResponsesStreamChunk,
+  createChatGptStreamTransformer,
   collectChatGptSseResponse,
+  type ChatGptStreamTransformer,
 } from './chatgpt-adapter';
 import {
   normalizeOpenAiReasoningDelta,
@@ -36,6 +38,11 @@ export function convertChatGptResponse(
 /** Convert a ChatGPT Responses API SSE chunk to OpenAI format. */
 export function convertChatGptStreamChunk(chunk: string, model: string): string | null {
   return transformResponsesStreamChunk(chunk, model);
+}
+
+/** Create a stateful ChatGPT Responses stream transformer. */
+export function createChatGptTransformer(model: string): ChatGptStreamTransformer {
+  return createChatGptStreamTransformer(model);
 }
 
 /** Convert a Google non-streaming response to OpenAI format. */
@@ -80,6 +87,7 @@ export {
   toAnthropicRequest,
   toResponsesRequest,
   collectChatGptSseResponse,
+  createChatGptStreamTransformer,
 };
 export type { GoogleStreamChunkResult } from './google-adapter';
 export type { ThinkingBlocksCallback } from './anthropic-adapter';
