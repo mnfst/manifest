@@ -2017,6 +2017,101 @@
   margin-bottom: 8px;
 }
 
+/* ── Model Aliases ──────────────────────────────── */
+.model-aliases-panel {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+}
+
+.model-aliases-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.model-aliases-panel__create {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) minmax(180px, 1fr) minmax(160px, 0.8fr) 120px auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.model-aliases-panel__field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
+.model-aliases-panel__field input,
+.model-aliases-panel__field select,
+.model-alias-row input {
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-sm);
+  padding: 6px 8px;
+}
+
+.model-aliases-panel__empty {
+  margin-top: 12px;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+}
+
+.model-aliases-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.model-alias-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.22);
+}
+
+.model-alias-row__main {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(140px, 0.7fr) minmax(180px, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.model-alias-row__id {
+  font-family: var(--font-mono);
+}
+
+.model-alias-row__meta {
+  overflow: hidden;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.model-alias-row__actions {
+  display: flex;
+  gap: 6px;
+}
+
 @media (max-width: 640px) {
   .no-connections-prompt__cards {
     grid-template-columns: 1fr;
@@ -2064,6 +2159,16 @@
 
   .provider-toggle__expand {
     padding-left: 24px;
+  }
+
+  .model-aliases-panel__create,
+  .model-alias-row,
+  .model-alias-row__main {
+    grid-template-columns: 1fr;
+  }
+
+  .model-alias-row__actions {
+    flex-wrap: wrap;
   }
 }
 

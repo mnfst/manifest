@@ -21,6 +21,7 @@ import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
+import { ModelAliasService } from '../model-aliases/model-alias.service';
 import { classifyCaller } from './caller-classifier';
 import { sanitizeRequestHeaders } from './request-headers';
 import {
@@ -59,23 +60,40 @@ export class ProxyController {
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
     private readonly reasoningCache: ReasoningContentCache,
+    private readonly modelAliasService: ModelAliasService,
   ) {}
 
   @Get('models')
-  models(): Record<string, unknown> {
+  async models(
+    @Req() req: Request & { ingestionContext: IngestionContext },
+  ): Promise<Record<string, unknown>> {
+    const aliases = await this.modelAliasService.listEnabled(req.ingestionContext.agentId);
+    const data = [
+      {
+        id: 'auto',
+        object: 'model',
+        type: 'model',
+        display_name: 'Manifest Auto',
+      },
+      {
+        id: 'manifest/auto',
+        object: 'model',
+        type: 'model',
+        display_name: 'Manifest Auto',
+      },
+      ...aliases.map((alias) => ({
+        id: alias.model_id,
+        object: 'model',
+        type: 'model',
+        display_name: alias.display_name ?? alias.model_id,
+      })),
+    ];
     return {
       object: 'list',
-      data: [
-        {
-          id: 'auto',
-          object: 'model',
-          type: 'model',
-          display_name: 'Manifest Auto',
-        },
-      ],
+      data,
       has_more: false,
-      first_id: 'auto',
-      last_id: 'auto',
+      first_id: data[0]?.id ?? null,
+      last_id: data[data.length - 1]?.id ?? null,
     };
   }
 

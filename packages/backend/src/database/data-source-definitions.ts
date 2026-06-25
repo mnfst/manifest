@@ -23,6 +23,7 @@ import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
+import { ExposedModelRoute } from '../entities/exposed-model-route.entity';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
 import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
@@ -127,6 +128,7 @@ import { DropRedundantTenantAgentNameIndex1793100000000 } from './migrations/179
 import { AddDashboardCoveringIndex1793200000000 } from './migrations/1793200000000-AddDashboardCoveringIndex';
 import { AddCrossTenantErrorTimestampIndex1795100000000 } from './migrations/1795100000000-AddCrossTenantErrorTimestampIndex';
 import { RemoveMessageRecording1795000000000 } from './migrations/1795000000000-RemoveMessageRecording';
+import { AddExposedModelRoutes1795200000000 } from './migrations/1795200000000-AddExposedModelRoutes';
 
 export const entities = [
   AgentMessage,
@@ -148,6 +150,7 @@ export const entities = [
   PlaygroundColumn,
   ReasoningContentCacheEntry,
   AgentEnabledProvider,
+  ExposedModelRoute,
   BackfillState,
 ];
 
@@ -256,4 +259,5 @@ export const migrations = [
   AddDashboardCoveringIndex1793200000000,
   RemoveMessageRecording1795000000000,
   AddCrossTenantErrorTimestampIndex1795100000000,
+  AddExposedModelRoutes1795200000000,
 ];

@@ -12,6 +12,7 @@ import { OAuthModule } from '../oauth/oauth.module';
 import { ResolveModule } from '../resolve/resolve.module';
 import { CustomProviderModule } from '../custom-provider/custom-provider.module';
 import { HeaderTiersModule } from '../header-tiers/header-tiers.module';
+import { ModelAliasModule } from '../model-aliases/model-alias.module';
 import { ProxyController } from './proxy.controller';
 import { ProxyService } from './proxy.service';
 import { ProxyFallbackService } from './proxy-fallback.service';
@@ -39,6 +40,7 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     ResolveModule,
     CustomProviderModule,
     HeaderTiersModule,
+    ModelAliasModule,
   ],
   controllers: [ProxyController],
   providers: [

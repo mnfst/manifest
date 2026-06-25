@@ -13,6 +13,7 @@ import RoutingModals from '../components/RoutingModals.js';
 import { buildPipelineHelp } from '../components/RoutingPipelineCard.js';
 import RoutingTabs from '../components/RoutingTabs.js';
 import ResponseModeModal from '../components/ResponseModeModal.js';
+import ModelAliasesPanel from '../components/ModelAliasesPanel.js';
 import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import SetupModal from '../components/SetupModal.jsx';
@@ -28,9 +29,7 @@ import { createRoutingActions } from './RoutingActions.js';
 import {
   listHeaderTiers,
   overrideHeaderTier,
-  deleteHeaderTier,
   toggleHeaderTier,
-  setHeaderTierResponseMode,
   type HeaderTier,
 } from '../services/api/header-tiers.js';
 import {
@@ -52,10 +51,19 @@ import {
   setModelParams as setModelParamsApi,
   deleteModelParams,
   modelParamsKey,
+  listModelAliases,
+  createModelAlias,
+  updateModelAlias,
+  setModelAliasEnabled,
+  deleteModelAlias,
   type AgentModelParamsRow,
   type AuthType,
+  type CreateModelAliasInput,
+  type ModelAlias,
+  type ModelAliasSourceKind,
   type RequestParamDefaults,
   type ResponseMode,
+  type UpdateModelAliasInput,
 } from '../services/api.js';
 import { parseCustomProviderParams, parseProviderDeepLink } from '../services/routing-params.js';
 import { DEFAULT_STAGE, STAGES } from '../services/providers.js';
@@ -63,6 +71,8 @@ import { DEFAULT_STAGE, STAGES } from '../services/providers.js';
 // of the global theme bundle so login/overview/etc. don't download it.
 import NoConnectionsPrompt from '../components/NoConnectionsPrompt.jsx';
 import '../styles/routing.css';
+
+type RuleAliasSourceKind = Extract<ModelAliasSourceKind, 'tier' | 'specificity' | 'header_tier'>;
 
 const Routing: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -160,6 +170,11 @@ const Routing: Component = () => {
     () => agentName(),
     (name) => listModelParams(name).catch(() => [] as AgentModelParamsRow[]),
   );
+  const [modelAliases, { refetch: refetchModelAliases, mutate: mutateModelAliases }] =
+    createResource(
+      () => agentName(),
+      (name) => listModelAliases(name).catch(() => []),
+    );
   const modelParamsMap = createMemo(() => {
     const map = new Map<string, RequestParamDefaults>();
     for (const row of modelParams() ?? []) {
@@ -219,6 +234,80 @@ const Routing: Component = () => {
           ),
       );
       return [...without, saved];
+    });
+  };
+
+  const aliases = (): ModelAlias[] => modelAliases() ?? [];
+  const aliasForSource = (sourceKind: RuleAliasSourceKind, sourceKey: string): ModelAlias | null =>
+    aliases().find((alias) => alias.source_kind === sourceKind && alias.source_key === sourceKey) ??
+    null;
+
+  const aliasModelIdFor = (sourceKind: RuleAliasSourceKind, sourceKey: string): string | null =>
+    aliasForSource(sourceKind, sourceKey)?.model_id ?? null;
+
+  const aliasEnabledFor = (sourceKind: RuleAliasSourceKind, sourceKey: string): boolean =>
+    aliasForSource(sourceKind, sourceKey)?.enabled ?? false;
+
+  const handleCreateAlias = async (input: CreateModelAliasInput) => {
+    try {
+      const created = await createModelAlias(agentName(), input);
+      mutateModelAliases((prev) => [...(prev ?? []), created]);
+      toast.success('Model alias added');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to add model alias');
+    }
+  };
+
+  const handleUpdateAlias = async (id: string, patch: UpdateModelAliasInput) => {
+    try {
+      const updated = await updateModelAlias(agentName(), id, patch);
+      mutateModelAliases((prev) =>
+        (prev ?? []).map((alias) => (alias.id === updated.id ? updated : alias)),
+      );
+      toast.success('Model alias updated');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update model alias');
+    }
+  };
+
+  const handleToggleAlias = async (id: string, enabled: boolean) => {
+    try {
+      const updated = await setModelAliasEnabled(agentName(), id, enabled);
+      mutateModelAliases((prev) =>
+        (prev ?? []).map((alias) => (alias.id === updated.id ? updated : alias)),
+      );
+      toast.success(enabled ? 'Model alias exposed' : 'Model alias hidden');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update model alias');
+    }
+  };
+
+  const handleDeleteAlias = async (id: string) => {
+    try {
+      await deleteModelAlias(agentName(), id);
+      mutateModelAliases((prev) => (prev ?? []).filter((alias) => alias.id !== id));
+      toast.success('Model alias deleted');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete model alias');
+    }
+  };
+
+  const toggleRuleExposure = async (
+    sourceKind: RuleAliasSourceKind,
+    sourceKey: string,
+    label: string,
+  ) => {
+    const existing = aliasForSource(sourceKind, sourceKey);
+    if (existing) {
+      await handleToggleAlias(existing.id, !existing.enabled);
+      return;
+    }
+    await handleCreateAlias({
+      model_id: suggestedRuleAliasId(sourceKind, sourceKey, label),
+      display_name: label,
+      source_kind: sourceKind,
+      source_key: sourceKey,
+      response_mode: 'buffered',
     });
   };
 
@@ -352,6 +441,7 @@ const Routing: Component = () => {
       refetchSpecificity(),
       refetchHeaderTiers(),
       refetchEnabledProviders(),
+      refetchModelAliases(),
     ]);
   };
 
@@ -624,6 +714,9 @@ const Routing: Component = () => {
                     connectedProviders={enabledConnectedProviders}
                     getModelParams={getModelParamsFor}
                     setModelParams={setModelParamsFor}
+                    exposedModelId={() => aliasModelIdFor('tier', 'default')}
+                    exposedModelEnabled={() => aliasEnabledFor('tier', 'default')}
+                    onToggleExpose={() => toggleRuleExposure('tier', 'default', 'Default routing')}
                   />
                   <For each={(headerTiers() ?? []).filter((t) => t.enabled)}>
                     {(tier) => (
@@ -667,6 +760,9 @@ const Routing: Component = () => {
                         }}
                         getModelParams={getModelParamsFor}
                         setModelParams={setModelParamsFor}
+                        exposedModelId={() => aliasModelIdFor('header_tier', tier.id)}
+                        exposedModelEnabled={() => aliasEnabledFor('header_tier', tier.id)}
+                        onToggleExpose={() => toggleRuleExposure('header_tier', tier.id, tier.name)}
                       />
                     )}
                   </For>
@@ -711,6 +807,11 @@ const Routing: Component = () => {
                   }}
                   getModelParams={getModelParamsFor}
                   setModelParams={setModelParamsFor}
+                  exposedModelIdForHeaderTier={(id) => aliasModelIdFor('header_tier', id)}
+                  exposedModelEnabledForHeaderTier={(id) => aliasEnabledFor('header_tier', id)}
+                  onToggleHeaderTierExposure={(tier) =>
+                    toggleRuleExposure('header_tier', tier.id, tier.name)
+                  }
                 />
               </>
             }
@@ -759,6 +860,9 @@ const Routing: Component = () => {
                     embedded
                     getModelParams={getModelParamsFor}
                     setModelParams={setModelParamsFor}
+                    exposedModelIdForTier={(tier) => aliasModelIdFor('tier', tier)}
+                    exposedModelEnabledForTier={(tier) => aliasEnabledFor('tier', tier)}
+                    onToggleTierExposure={(tier, label) => toggleRuleExposure('tier', tier, label)}
                   />
                 ),
                 specificity: (
@@ -804,6 +908,15 @@ const Routing: Component = () => {
                     embedded
                     getModelParams={getModelParamsFor}
                     setModelParams={setModelParamsFor}
+                    exposedModelIdForCategory={(category) =>
+                      aliasModelIdFor('specificity', category)
+                    }
+                    exposedModelEnabledForCategory={(category) =>
+                      aliasEnabledFor('specificity', category)
+                    }
+                    onToggleCategoryExposure={(category, label) =>
+                      toggleRuleExposure('specificity', category, label)
+                    }
                   />
                 ),
                 custom: (
@@ -818,11 +931,25 @@ const Routing: Component = () => {
                     embedded
                     getModelParams={getModelParamsFor}
                     setModelParams={setModelParamsFor}
+                    exposedModelIdForHeaderTier={(id) => aliasModelIdFor('header_tier', id)}
+                    exposedModelEnabledForHeaderTier={(id) => aliasEnabledFor('header_tier', id)}
+                    onToggleHeaderTierExposure={(tier) =>
+                      toggleRuleExposure('header_tier', tier.id, tier.name)
+                    }
                   />
                 ),
               }}
             </RoutingTabs>
           </Show>
+
+          <ModelAliasesPanel
+            aliases={aliases()}
+            models={models() ?? []}
+            onCreate={handleCreateAlias}
+            onUpdate={handleUpdateAlias}
+            onToggle={handleToggleAlias}
+            onDelete={handleDeleteAlias}
+          />
 
           <RoutingFooter
             hasOverrides={hasOverrides}
@@ -952,5 +1079,24 @@ const Routing: Component = () => {
     </div>
   );
 };
+
+function suggestedRuleAliasId(
+  sourceKind: RuleAliasSourceKind,
+  sourceKey: string,
+  label: string,
+): string {
+  if (sourceKind === 'tier') return `manifest/tier-${slugModelId(sourceKey)}`;
+  if (sourceKind === 'specificity') return `manifest/task-${slugModelId(sourceKey)}`;
+  return `manifest/header-${slugModelId(label || sourceKey)}`;
+}
+
+function slugModelId(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
 
 export default Routing;

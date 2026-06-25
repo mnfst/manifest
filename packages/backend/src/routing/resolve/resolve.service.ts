@@ -16,7 +16,13 @@ import {
   readOverrideRoute,
 } from '../routing-core/route-helpers';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
-import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
+import {
+  scoreRequest,
+  ScorerInput,
+  MomentumInput,
+  scanMessages,
+  type ScoringReason,
+} from '../../scoring';
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { Agent } from '../../entities/agent.entity';
@@ -173,7 +179,7 @@ export class ResolveService {
     agentId: string,
     tenantId: string,
     tier: TierSlot,
-    reason: 'heartbeat' | 'default' = 'heartbeat',
+    reason: ScoringReason = 'heartbeat',
   ): Promise<ResolveResponse> {
     const tiers = await this.tierService.getTiers(agentId);
     const assignment = tiers.find((t) => t.tier === tier);
@@ -214,6 +220,130 @@ export class ResolveService {
       confidence: 1,
       score: 0,
       reason,
+    };
+  }
+
+  async resolveForSpecificityCategory(
+    agentId: string,
+    tenantId: string,
+    category: SpecificityCategory,
+    reason: ScoringReason = 'model-alias',
+  ): Promise<ResolveResponse> {
+    const assignments = await this.specificityService.getAssignments(agentId);
+    const assignment = assignments.find((a) => a.category === category);
+    if (!assignment || !assignment.is_active) {
+      return {
+        tier: 'standard',
+        route: null,
+        fallback_routes: null,
+        output_modality: DEFAULT_OUTPUT_MODALITY,
+        response_mode: DEFAULT_RESPONSE_MODE,
+        confidence: 1,
+        score: 0,
+        reason,
+        specificity_category: category,
+      };
+    }
+
+    const route = readOverrideRoute(assignment);
+    if (
+      !route ||
+      !(await this.providerKeyService.isModelAvailable(tenantId, route.model, agentId))
+    ) {
+      return {
+        tier: 'standard',
+        route: null,
+        fallback_routes: readFallbackRoutes(assignment),
+        output_modality: outputModalityFor(assignment),
+        response_mode: responseModeFor(assignment),
+        confidence: 1,
+        score: 0,
+        reason,
+        specificity_category: category,
+      };
+    }
+
+    const responseMode = responseModeFor(assignment);
+    const fallbackRoutes = readFallbackRoutes(assignment);
+    const effectiveRoutes = effectiveRoutesForResponseMode(
+      responseMode,
+      await this.enrichRouteKeyLabel(agentId, tenantId, route),
+      fallbackRoutes,
+    );
+    return {
+      tier: 'standard',
+      route: effectiveRoutes.primaryRoute,
+      fallback_routes: effectiveRoutes.fallbackRoutes,
+      output_modality: outputModalityFor(assignment),
+      response_mode: responseMode,
+      confidence: 1,
+      score: 0,
+      reason,
+      specificity_category: category,
+    };
+  }
+
+  async resolveForHeaderTierId(
+    agentId: string,
+    tenantId: string,
+    id: string,
+    reason: ScoringReason = 'model-alias',
+  ): Promise<ResolveResponse> {
+    const tiers = await this.headerTierService.list(agentId);
+    const tier = tiers.find((candidate) => candidate.id === id);
+    if (!tier || !tier.enabled) {
+      return {
+        tier: 'standard',
+        route: null,
+        fallback_routes: null,
+        output_modality: DEFAULT_OUTPUT_MODALITY,
+        response_mode: DEFAULT_RESPONSE_MODE,
+        confidence: 1,
+        score: 0,
+        reason,
+        header_tier_id: id,
+      };
+    }
+
+    const route = readOverrideRoute(tier);
+    if (
+      !route ||
+      !(await this.providerKeyService.isModelAvailable(tenantId, route.model, agentId))
+    ) {
+      return {
+        tier: 'standard',
+        route: null,
+        fallback_routes: readFallbackRoutes(tier),
+        output_modality: outputModalityFor(tier),
+        response_mode: responseModeFor(tier),
+        confidence: 1,
+        score: 0,
+        reason,
+        header_tier_id: tier.id,
+        header_tier_name: tier.name,
+        header_tier_color: tier.badge_color,
+      };
+    }
+
+    const responseMode = responseModeFor(tier);
+    const fallbackRoutes = readFallbackRoutes(tier);
+    const effectiveRoutes = effectiveRoutesForResponseMode(
+      responseMode,
+      await this.enrichRouteKeyLabel(agentId, tenantId, route),
+      fallbackRoutes,
+    );
+    return {
+      tier: 'standard',
+      route: effectiveRoutes.primaryRoute,
+      fallback_routes: effectiveRoutes.fallbackRoutes,
+      output_modality: outputModalityFor(tier),
+      response_mode: responseMode,
+      confidence: 1,
+      score: 0,
+      reason,
+      header_tier_id: tier.id,
+      header_tier_name: tier.name,
+      header_tier_color: tier.badge_color,
     };
   }
 

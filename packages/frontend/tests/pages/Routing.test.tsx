@@ -21,6 +21,11 @@ const mockSetSpecificityResponseMode = vi.fn();
 const mockListModelParams = vi.fn();
 const mockSetModelParams = vi.fn();
 const mockDeleteModelParams = vi.fn();
+const mockListModelAliases = vi.fn();
+const mockCreateModelAlias = vi.fn();
+const mockUpdateModelAlias = vi.fn();
+const mockSetModelAliasEnabled = vi.fn();
+const mockDeleteModelAlias = vi.fn();
 
 vi.mock('../../src/services/api.js', () => ({
   getTierAssignments: (...args: unknown[]) => mockGetTierAssignments(...args),
@@ -44,6 +49,11 @@ vi.mock('../../src/services/api.js', () => ({
   listModelParams: (...args: unknown[]) => mockListModelParams(...args),
   setModelParams: (...args: unknown[]) => mockSetModelParams(...args),
   deleteModelParams: (...args: unknown[]) => mockDeleteModelParams(...args),
+  listModelAliases: (...args: unknown[]) => mockListModelAliases(...args),
+  createModelAlias: (...args: unknown[]) => mockCreateModelAlias(...args),
+  updateModelAlias: (...args: unknown[]) => mockUpdateModelAlias(...args),
+  setModelAliasEnabled: (...args: unknown[]) => mockSetModelAliasEnabled(...args),
+  deleteModelAlias: (...args: unknown[]) => mockDeleteModelAlias(...args),
   modelParamsKey: (scope: string, provider: string, authType: string, model: string) =>
     `${scope}::${provider.toLowerCase()}::${model}::${authType}`,
   // Re-export types only — no runtime impact
@@ -790,6 +800,48 @@ beforeEach(() => {
       Promise.resolve({ category, response_mode }),
   );
   mockListModelParams.mockResolvedValue([]);
+  mockListModelAliases.mockResolvedValue([]);
+  mockCreateModelAlias.mockResolvedValue({
+    id: 'alias-1',
+    model_id: 'openai-api/gpt-4o',
+    display_name: null,
+    enabled: true,
+    source_kind: 'direct',
+    source_key: null,
+    route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+    fallback_routes: null,
+    request_params: null,
+    response_mode: 'buffered',
+  });
+  mockUpdateModelAlias.mockImplementation((_agent: string, id: string, patch: Record<string, unknown>) =>
+    Promise.resolve({
+      id,
+      model_id: patch.model_id ?? 'openai-api/gpt-4o',
+      display_name: patch.display_name ?? null,
+      enabled: true,
+      source_kind: 'direct',
+      source_key: null,
+      route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+      fallback_routes: null,
+      request_params: null,
+      response_mode: 'buffered',
+    }),
+  );
+  mockSetModelAliasEnabled.mockImplementation((_agent: string, id: string, enabled: boolean) =>
+    Promise.resolve({
+      id,
+      model_id: 'openai-api/gpt-4o',
+      display_name: null,
+      enabled,
+      source_kind: 'direct',
+      source_key: null,
+      route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+      fallback_routes: null,
+      request_params: null,
+      response_mode: 'buffered',
+    }),
+  );
+  mockDeleteModelAlias.mockResolvedValue(undefined);
 });
 
 describe('Routing page', () => {

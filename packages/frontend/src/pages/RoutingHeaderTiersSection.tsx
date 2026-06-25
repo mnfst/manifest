@@ -78,6 +78,9 @@ export interface RoutingHeaderTiersSectionProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  exposedModelIdForHeaderTier?: (tierId: string) => string | null;
+  exposedModelEnabledForHeaderTier?: (tierId: string) => boolean;
+  onToggleHeaderTierExposure?: (tier: HeaderTier) => void | Promise<void>;
 }
 
 type Props = RoutingHeaderTiersSectionProps;
@@ -390,6 +393,11 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 onResponseModeChange={(mode) => handleResponseModeChange(tier.id, mode)}
                 getModelParams={props.getModelParams}
                 setModelParams={props.setModelParams}
+                exposedModelId={() => props.exposedModelIdForHeaderTier?.(tier.id) ?? null}
+                exposedModelEnabled={() =>
+                  props.exposedModelEnabledForHeaderTier?.(tier.id) ?? false
+                }
+                onToggleExpose={() => props.onToggleHeaderTierExposure?.(tier)}
               />
             )}
           </For>

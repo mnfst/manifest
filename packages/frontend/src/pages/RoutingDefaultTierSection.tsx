@@ -9,7 +9,6 @@ import type {
   TierAssignment,
 } from '../services/api.js';
 import { DEFAULT_STAGE, STAGES } from '../services/providers.js';
-import OutputControls from '../components/OutputControls.js';
 import RoutingDeprecationNotice from '../components/RoutingDeprecationNotice.js';
 import RoutingTierCard from './RoutingTierCard.js';
 
@@ -75,6 +74,9 @@ export interface RoutingDefaultTierSectionProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  exposedModelIdForTier?: (tier: string) => string | null;
+  exposedModelEnabledForTier?: (tier: string) => boolean;
+  onToggleTierExposure?: (tier: string, label: string) => void | Promise<void>;
 }
 
 const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (props) => {
@@ -108,6 +110,9 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
         connectedProviders={props.connectedProviders}
         getModelParams={props.getModelParams}
         setModelParams={props.setModelParams}
+        exposedModelId={() => props.exposedModelIdForTier?.(DEFAULT_STAGE.id) ?? null}
+        exposedModelEnabled={() => props.exposedModelEnabledForTier?.(DEFAULT_STAGE.id) ?? false}
+        onToggleExpose={() => props.onToggleTierExposure?.(DEFAULT_STAGE.id, DEFAULT_STAGE.label)}
       />
     </div>
   );
@@ -138,6 +143,9 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
             connectedProviders={props.connectedProviders}
             getModelParams={props.getModelParams}
             setModelParams={props.setModelParams}
+            exposedModelId={() => props.exposedModelIdForTier?.(stage.id) ?? null}
+            exposedModelEnabled={() => props.exposedModelEnabledForTier?.(stage.id) ?? false}
+            onToggleExpose={() => props.onToggleTierExposure?.(stage.id, stage.label)}
           />
         )}
       </For>

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import type { AuthType, ModelRoute } from 'manifest-shared';
+import type { AuthType, ModelRoute, RequestParamDefaults } from 'manifest-shared';
 import { applyRequestParamDefaults } from 'manifest-shared';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
@@ -19,6 +19,7 @@ import { ProviderParamSpecService } from '../routing-core/provider-param-spec.se
 export interface ParamMergeContext {
   agentId: string;
   scopeKey: string;
+  requestParams?: RequestParamDefaults | null;
 }
 
 interface ForwardProviderOptions {
@@ -140,13 +141,16 @@ export class ProxyFallbackService {
     model: string,
   ): Promise<Record<string, unknown>> {
     if (!ctx || !authType) return body;
-    const modelParams = await this.modelParamsService.get(
-      ctx.agentId,
-      ctx.scopeKey,
-      provider,
-      authType as AuthType,
-      model,
-    );
+    const modelParams =
+      ctx.requestParams !== undefined
+        ? ctx.requestParams
+        : await this.modelParamsService.get(
+            ctx.agentId,
+            ctx.scopeKey,
+            provider,
+            authType as AuthType,
+            model,
+          );
     const specs = await this.providerParamSpecs.getSpecs(provider, authType as AuthType, model);
     return applyRequestParamDefaults(body, modelParams, specs);
   }

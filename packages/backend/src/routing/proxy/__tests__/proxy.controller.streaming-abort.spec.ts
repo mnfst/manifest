@@ -93,6 +93,7 @@ describe('ProxyController streaming abort', () => {
     releaseSlot: jest.Mock;
   };
   let providerClient: Record<string, jest.Mock>;
+  let modelAliasService: { listEnabled: jest.Mock };
   let mockMessageRepo: { insert: jest.Mock; findOne: jest.Mock; find: jest.Mock };
   let recorder: ProxyMessageRecorder;
 
@@ -112,6 +113,7 @@ describe('ProxyController streaming abort', () => {
       convertAnthropicResponse: jest.fn(),
       convertAnthropicStreamChunk: jest.fn(),
     };
+    modelAliasService = { listEnabled: jest.fn().mockResolvedValue([]) };
     mockMessageRepo = {
       insert: jest.fn().mockResolvedValue({}),
       findOne: jest.fn().mockResolvedValue(null),
@@ -126,6 +128,7 @@ describe('ProxyController streaming abort', () => {
       new ThoughtSignatureCache(),
       new ThinkingBlockCache(),
       new ReasoningContentCache(),
+      modelAliasService as never,
     );
   });
 

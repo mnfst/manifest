@@ -1,6 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ResolveService } from '../resolve/resolve.service';
+import { ModelAliasService } from '../model-aliases/model-alias.service';
 import {
   ProviderKeyService,
   SYNTHETIC_OLLAMA_PROVIDER_ID,
@@ -59,6 +60,12 @@ import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
+
+interface RoutingDecision {
+  resolved: ResolvedRouting;
+  requestParams?: RequestParamDefaults | null;
+  scopeKey?: string;
+}
 
 /**
  * Roles excluded from scoring. AI agents (OpenClaw, Hermes, and
@@ -141,6 +148,7 @@ export class ProxyService {
 
   constructor(
     private readonly resolveService: ResolveService,
+    private readonly modelAliasService: ModelAliasService,
     private readonly providerKeyService: ProviderKeyService,
     private readonly tierService: TierService,
     private readonly openaiOauth: OpenaiOauthService,
@@ -190,7 +198,7 @@ export class ProxyService {
       return buildFriendlyResponse(limitMessage, routingBody.stream === true, 'limit_exceeded');
     }
 
-    const resolved = await this.resolveRouting(
+    const routingDecision = await this.resolveRouting(
       agentId,
       tenantId,
       routingBody,
@@ -198,6 +206,7 @@ export class ProxyService {
       specificityOverride,
       headers,
     );
+    const resolved = routingDecision.resolved;
     const responseMode = resolved.response_mode ?? DEFAULT_RESPONSE_MODE;
     const stream = body.stream === true || responseMode === 'stream';
     if (!resolved.route) {
@@ -242,7 +251,11 @@ export class ProxyService {
       specificityCategory: resolved.specificity_category,
       headerTierId: resolved.header_tier_id,
     });
-    const paramMergeContext: ParamMergeContext = { agentId, scopeKey };
+    const paramMergeContext: ParamMergeContext = {
+      agentId,
+      scopeKey: routingDecision.scopeKey ?? scopeKey,
+      requestParams: routingDecision.requestParams,
+    };
 
     // Snapshot of which known param keys are *effectively in play* for the
     // primary attempt. Stored on every `agent_messages` row recorded for
@@ -254,7 +267,15 @@ export class ProxyService {
     // depend on each other, so fetch them concurrently to shave a round-trip
     // off the cold path before forwarding.
     const [primaryModelParams, primarySpecs] = await Promise.all([
-      this.modelParamsService.get(agentId, scopeKey, route.provider, route.authType, primaryModel),
+      routingDecision.requestParams !== undefined
+        ? Promise.resolve(routingDecision.requestParams)
+        : this.modelParamsService.get(
+            agentId,
+            scopeKey,
+            route.provider,
+            route.authType,
+            primaryModel,
+          ),
       this.providerParamSpecs.getSpecs(route.provider, route.authType, primaryModel),
     ]);
     const primaryRequestParams = snapshotRequestParams({
@@ -420,7 +441,20 @@ export class ProxyService {
     sessionKey: string,
     specificityOverride: ProxyRequestOptions['specificityOverride'],
     headers: ProxyRequestOptions['headers'],
-  ) {
+  ): Promise<RoutingDecision> {
+    const aliasDecision = await this.modelAliasService.resolveModelRequest(
+      agentId,
+      tenantId,
+      body.model,
+    );
+    if (aliasDecision.kind === 'resolved') {
+      return {
+        resolved: aliasDecision.resolved,
+        requestParams: aliasDecision.requestParams,
+        scopeKey: aliasDecision.scopeKey,
+      };
+    }
+
     const messages = body.messages as ScorerMessage[];
     const scoringMessages = this.filterScoringMessages(messages);
     const scoringTools = Array.isArray(body.tools) ? body.tools : undefined;
@@ -428,9 +462,9 @@ export class ProxyService {
     const recentTiers = this.momentum.getRecentTiers(sessionKey);
     const recentCategories = this.momentum.getRecentCategories(sessionKey);
 
-    return isHeartbeat
-      ? this.resolveService.resolveForTier(agentId, tenantId, 'simple')
-      : this.resolveService.resolve(
+    const resolved = isHeartbeat
+      ? await this.resolveService.resolveForTier(agentId, tenantId, 'simple')
+      : await this.resolveService.resolve(
           agentId,
           tenantId,
           scoringMessages,
@@ -442,6 +476,7 @@ export class ProxyService {
           recentCategories,
           headers,
         );
+    return { resolved };
   }
 
   private async resolveCredentials(
@@ -598,15 +633,17 @@ export class ProxyService {
       // → different lookup → different snapshot, matching the wire. The two
       // lookups are independent, so resolve them together.
       const [fallbackModelParams, fallbackSpecs] = await Promise.all([
-        success.authType
-          ? this.modelParamsService.get(
-              args.paramMergeContext.agentId,
-              args.paramMergeContext.scopeKey,
-              success.provider,
-              success.authType,
-              success.model,
-            )
-          : null,
+        args.paramMergeContext.requestParams !== undefined
+          ? Promise.resolve(args.paramMergeContext.requestParams)
+          : success.authType
+            ? this.modelParamsService.get(
+                args.paramMergeContext.agentId,
+                args.paramMergeContext.scopeKey,
+                success.provider,
+                success.authType,
+                success.model,
+              )
+            : null,
         success.authType
           ? this.providerParamSpecs.getSpecs(success.provider, success.authType, success.model)
           : [],

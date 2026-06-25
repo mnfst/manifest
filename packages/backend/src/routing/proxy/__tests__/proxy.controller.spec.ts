@@ -89,7 +89,9 @@ describe('ProxyController', () => {
     convertGoogleStreamChunk: jest.Mock;
     convertAnthropicResponse: jest.Mock;
     convertAnthropicStreamChunk: jest.Mock;
+    createChatGptStreamTransformer: jest.Mock;
   };
+  let modelAliasService: { listEnabled: jest.Mock };
   let mockMessageManager: {
     transaction: jest.Mock;
     getRepository: jest.Mock;
@@ -120,7 +122,12 @@ describe('ProxyController', () => {
       convertGoogleStreamChunk: jest.fn(),
       convertAnthropicResponse: jest.fn(),
       convertAnthropicStreamChunk: jest.fn(),
+      createChatGptStreamTransformer: jest.fn().mockReturnValue({
+        transform: jest.fn(),
+        finalize: jest.fn().mockReturnValue(null),
+      }),
     };
+    modelAliasService = { listEnabled: jest.fn().mockResolvedValue([]) };
     mockMessageManager = {
       transaction: jest.fn(async (cb: (manager: unknown) => Promise<unknown>) =>
         cb(mockMessageManager),
@@ -166,6 +173,7 @@ describe('ProxyController', () => {
       new ThoughtSignatureCache(),
       new ThinkingBlockCache(),
       new ReasoningContentCache(),
+      modelAliasService as never,
     );
   });
 
@@ -173,8 +181,8 @@ describe('ProxyController', () => {
     recorder.onModuleDestroy();
   });
 
-  it('should expose /v1/models with the Manifest auto route', () => {
-    expect(controller.models()).toEqual({
+  it('should expose /v1/models with the Manifest auto routes', async () => {
+    await expect(controller.models(mockRequest({}) as never)).resolves.toEqual({
       object: 'list',
       data: [
         {
@@ -183,11 +191,18 @@ describe('ProxyController', () => {
           type: 'model',
           display_name: 'Manifest Auto',
         },
+        {
+          id: 'manifest/auto',
+          object: 'model',
+          type: 'model',
+          display_name: 'Manifest Auto',
+        },
       ],
       has_more: false,
       first_id: 'auto',
-      last_id: 'auto',
+      last_id: 'manifest/auto',
     });
+    expect(modelAliasService.listEnabled).toHaveBeenCalledWith('agent-1');
   });
 
   it('should return JSON response for non-streaming OpenAI provider', async () => {
@@ -2220,7 +2235,7 @@ describe('ProxyController', () => {
       expect(written.some((w) => w.includes('delta'))).toBe(true);
     });
 
-    it('should transform ChatGPT streaming through convertChatGptStreamChunk', async () => {
+    it('should transform ChatGPT streaming through createChatGptStreamTransformer', async () => {
       const mockProviderResp = createMockStreamResponse([
         'event: response.output_text.delta\ndata: {"delta":"hi"}\n\n',
       ]);
@@ -2241,9 +2256,13 @@ describe('ProxyController', () => {
         },
       });
 
-      (providerClient as Record<string, jest.Mock>).convertChatGptStreamChunk = jest
-        .fn()
-        .mockReturnValue('data: {"choices":[{"delta":{"content":"hi"}}]}\n\n');
+      const transformer = {
+        transform: jest.fn().mockReturnValue('data: {"choices":[{"delta":{"content":"hi"}}]}\n\n'),
+        finalize: jest.fn().mockReturnValue(null),
+      };
+      (providerClient as Record<string, jest.Mock>).createChatGptStreamTransformer.mockReturnValue(
+        transformer,
+      );
 
       const req = mockRequest({
         messages: [{ role: 'user', content: 'test' }],
@@ -2254,8 +2273,9 @@ describe('ProxyController', () => {
       await controller.chatCompletions(req as never, res as never);
 
       expect(
-        (providerClient as Record<string, jest.Mock>).convertChatGptStreamChunk,
-      ).toHaveBeenCalled();
+        (providerClient as Record<string, jest.Mock>).createChatGptStreamTransformer,
+      ).toHaveBeenCalledWith('gpt-5.3-codex');
+      expect(transformer.transform).toHaveBeenCalled();
       expect(written.some((w) => w.includes('delta'))).toBe(true);
     });
 

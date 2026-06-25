@@ -128,6 +128,9 @@ export interface RoutingTierCardProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  exposedModelId?: () => string | null;
+  exposedModelEnabled?: () => boolean;
+  onToggleExpose?: () => void | Promise<void>;
 }
 
 const effectiveRoute = (
@@ -378,6 +381,15 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             + Add model
           </button>
         </Show>
+        <Show when={eff() && props.onToggleExpose}>
+          <button
+            type="button"
+            class="routing-card__header-action"
+            onClick={() => void props.onToggleExpose?.()}
+          >
+            {props.exposedModelEnabled?.() ? 'Hide model' : 'Expose as model'}
+          </button>
+        </Show>
       </div>
       <Show
         when={!props.tiersLoading}
@@ -596,6 +608,13 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                               <span class="routing-card__skipped-badge">Skipped in Stream</span>
                             </Show>
                           </span>
+                        </Show>
+                        <Show when={props.exposedModelId?.()}>
+                          {(id) => (
+                            <span class="routing-card__chip-meta">
+                              <span class="routing-card__chip-price">Model ID: {id()}</span>
+                            </span>
+                          )}
                         </Show>
                       </div>
                     </div>

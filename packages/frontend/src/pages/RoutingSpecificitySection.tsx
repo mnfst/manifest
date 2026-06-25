@@ -184,6 +184,9 @@ export interface RoutingSpecificitySectionProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  exposedModelIdForCategory?: (category: string) => string | null;
+  exposedModelEnabledForCategory?: (category: string) => boolean;
+  onToggleCategoryExposure?: (category: string, label: string) => void | Promise<void>;
 }
 
 function toTierAssignment(a: SpecificityAssignment | undefined): TierAssignment | undefined {
@@ -298,6 +301,11 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 }
                 getModelParams={props.getModelParams}
                 setModelParams={props.setModelParams}
+                exposedModelId={() => props.exposedModelIdForCategory?.(stage.id) ?? null}
+                exposedModelEnabled={() =>
+                  props.exposedModelEnabledForCategory?.(stage.id) ?? false
+                }
+                onToggleExpose={() => props.onToggleCategoryExposure?.(stage.id, stage.label)}
               />
             )}
           </For>

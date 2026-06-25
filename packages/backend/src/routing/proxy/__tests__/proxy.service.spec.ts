@@ -8,6 +8,7 @@ import {
 } from 'manifest-shared';
 import { ProxyService } from '../proxy.service';
 import type { ResolveService } from '../../resolve/resolve.service';
+import type { ModelAliasService } from '../../model-aliases/model-alias.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
 import type { TierService } from '../../routing-core/tier.service';
 import type { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
@@ -67,6 +68,7 @@ const specCatalog: ProviderParamSpecCatalog = [
 
 describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<Pick<ResolveService, 'resolve' | 'resolveForTier'>>;
+  let modelAliasService: jest.Mocked<Pick<ModelAliasService, 'resolveModelRequest'>>;
   let providerKeyService: jest.Mocked<
     Pick<
       ProviderKeyService,
@@ -104,6 +106,9 @@ describe('ProxyService — orchestration', () => {
     resolveService = {
       resolve: jest.fn(),
       resolveForTier: jest.fn(),
+    };
+    modelAliasService = {
+      resolveModelRequest: jest.fn().mockResolvedValue({ kind: 'auto' }),
     };
     providerKeyService = {
       getProviderApiKey: jest.fn().mockResolvedValue('decrypted-key'),
@@ -161,6 +166,7 @@ describe('ProxyService — orchestration', () => {
 
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
+      modelAliasService as unknown as ModelAliasService,
       providerKeyService as unknown as ProviderKeyService,
       tierService as unknown as TierService,
       openaiOauth as unknown as OpenaiOauthService,
@@ -250,6 +256,57 @@ describe('ProxyService — orchestration', () => {
       expect(body.messages[0].content).toBe('');
       expect(routingBody.messages[0].content).toBe('');
       expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toBe(body);
+    });
+  });
+
+  describe('model aliases', () => {
+    it('bypasses scoring for a resolved direct alias and carries alias request params', async () => {
+      modelAliasService.resolveModelRequest.mockResolvedValue({
+        kind: 'resolved',
+        resolved: {
+          tier: 'default',
+          route: route('openai', 'api_key', 'gpt-5'),
+          fallback_routes: null,
+          confidence: 1,
+          score: 0,
+          reason: 'direct-model',
+          response_mode: 'buffered',
+        },
+        requestParams: { reasoning_effort: 'high' },
+        scopeKey: 'model-alias:alias-1',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      const result = await svc.proxyRequest(
+        baseOpts({
+          body: {
+            model: 'openai-api/gpt-5-high',
+            messages: [{ role: 'user', content: 'solve this' }],
+          },
+        } as never),
+      );
+
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(resolveService.resolveForTier).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'openai',
+          authType: 'api_key',
+          model: 'gpt-5',
+          paramMergeContext: {
+            agentId: 'agent-1',
+            scopeKey: 'model-alias:alias-1',
+            requestParams: { reasoning_effort: 'high' },
+          },
+        }),
+      );
+      expect(modelParamsService.get).not.toHaveBeenCalled();
+      expect(result.meta.reason).toBe('direct-model');
     });
   });
 

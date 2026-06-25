@@ -284,6 +284,82 @@ export function clearFallbacks(agentName: string, tier: string) {
   });
 }
 
+/* -- Routing: Model Aliases -- */
+
+export type ModelAliasSourceKind = 'direct' | 'tier' | 'specificity' | 'header_tier';
+
+export interface ModelAlias {
+  id: string;
+  tenant_id: string;
+  agent_id: string;
+  model_id: string;
+  display_name: string | null;
+  enabled: boolean;
+  source_kind: ModelAliasSourceKind;
+  source_key: string | null;
+  route: ModelRoute | null;
+  fallback_routes: ModelRoute[] | null;
+  request_params: RequestParamDefaults | null;
+  response_mode: ResponseMode;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateModelAliasInput {
+  model_id: string;
+  display_name?: string | null;
+  enabled?: boolean;
+  source_kind: ModelAliasSourceKind;
+  source_key?: string | null;
+  route?: ModelRoute | null;
+  fallback_routes?: ModelRoute[] | null;
+  request_params?: RequestParamDefaults | null;
+  response_mode?: ResponseMode;
+}
+
+export type UpdateModelAliasInput = Partial<CreateModelAliasInput>;
+
+export function listModelAliases(agentName: string) {
+  return fetchJson<ModelAlias[]>(routingPath(agentName, 'model-aliases'));
+}
+
+export function createModelAlias(agentName: string, data: CreateModelAliasInput) {
+  return fetchMutate<ModelAlias>(routingPath(agentName, 'model-aliases'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateModelAlias(agentName: string, id: string, data: UpdateModelAliasInput) {
+  return fetchMutate<ModelAlias>(
+    routingPath(agentName, `model-aliases/${encodeURIComponent(id)}`),
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    },
+  );
+}
+
+export function setModelAliasEnabled(agentName: string, id: string, enabled: boolean) {
+  return fetchMutate<ModelAlias>(
+    routingPath(agentName, `model-aliases/${encodeURIComponent(id)}/enabled`),
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled }),
+    },
+  );
+}
+
+export function deleteModelAlias(agentName: string, id: string) {
+  return fetchMutate<{ ok: boolean }>(
+    routingPath(agentName, `model-aliases/${encodeURIComponent(id)}`),
+    { method: 'DELETE' },
+  );
+}
+
 /* -- Routing: Available Models -- */
 
 export interface AvailableModel {

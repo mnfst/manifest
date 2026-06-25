@@ -97,6 +97,9 @@ interface Props {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  exposedModelId?: () => string | null;
+  exposedModelEnabled?: () => boolean;
+  onToggleExpose?: () => void | Promise<void>;
 }
 
 const HeaderTierCard: Component<Props> = (props) => {
@@ -370,6 +373,15 @@ const HeaderTierCard: Component<Props> = (props) => {
             Reset
           </button>
         </Show>
+        <Show when={currentModel() && props.onToggleExpose}>
+          <button
+            type="button"
+            class="routing-card__header-action"
+            onClick={() => void props.onToggleExpose?.()}
+          >
+            {props.exposedModelEnabled?.() ? 'Hide model' : 'Expose as model'}
+          </button>
+        </Show>
       </div>
 
       <code
@@ -516,6 +528,13 @@ const HeaderTierCard: Component<Props> = (props) => {
                       <span class="routing-card__skipped-badge">Skipped in Stream</span>
                     </Show>
                   </span>
+                </Show>
+                <Show when={props.exposedModelId?.()}>
+                  {(id) => (
+                    <span class="routing-card__chip-meta">
+                      <span class="routing-card__chip-price">Model ID: {id()}</span>
+                    </span>
+                  )}
                 </Show>
               </div>
             </div>
