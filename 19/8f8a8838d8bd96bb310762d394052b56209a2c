@@ -1,0 +1,39 @@
+packages/backend/src/model-discovery/opencode-go-catalog.service.spec.ts
+  s_ba491a06ca7aa1::t_16974395eaf1d8 249-283
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_ba491a06ca7aa1::t_6be8cc8a3c8b42 696-699,715,734,884,886-888
+packages/backend/src/model-discovery/opencode-go-catalog.service.ts
+  s_ba491a06ca7aa1::t_7764809608a95a 82-99,101-102
+packages/backend/src/routing/model.controller.ts
+  s_ba491a06ca7aa1::t_4ea06bd65f2c35 86
+packages/backend/src/routing/model.controller.spec.ts
+  s_ba491a06ca7aa1::t_de67ad0122c8b9 166,170-172
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_ba491a06ca7aa1::t_badf581cc3ce68 57-60,98-101,190-194
+  s_ba491a06ca7aa1::t_7f62e02e16a5d8 195-200,292,300,343
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_ba491a06ca7aa1::t_1c021a89a69e16 2140-2166
+  s_ba491a06ca7aa1::t_c1935cc340e513 2167-2168
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_ba491a06ca7aa1::t_efd6faaf78a95c 476,485
+  s_ba491a06ca7aa1::t_ab59dd64d4bfeb 475,477-484,486-490
+  s_ba491a06ca7aa1::t_8664f07ac7ff40 491-492,551-553
+.changeset/opencode-go-cache-refresh.md
+  s_ba491a06ca7aa1::t_7f069545296fb0 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.1",
+  "base_commit_sha": "198f8a8838d8bd96bb310762d394052b56209a2c",
+  "prompts": {},
+  "sessions": {
+    "s_ba491a06ca7aa1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019efef8-9846-7b60-96a8-86eff405e8dc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
