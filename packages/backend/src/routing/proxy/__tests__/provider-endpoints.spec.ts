@@ -779,6 +779,10 @@ describe('buildProviderExtraHeaders', () => {
     );
   });
 
+  it('does not forward the fallback default session id to openrouter', () => {
+    expect(buildProviderExtraHeaders('openrouter', 'default')).toBeUndefined();
+  });
+
   it('is case-insensitive for provider name', () => {
     expect(buildProviderExtraHeaders('OpenRouter', 'sess-xyz')).toEqual({
       'x-session-id': 'sess-xyz',

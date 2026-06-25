@@ -36,10 +36,11 @@ export function resolveSubscriptionEndpointKey(endpointKey: string): string | un
  */
 const PROVIDER_EXTRA_HEADER_BUILDERS: Record<
   string,
-  (sessionKey: string) => Record<string, string>
+  (sessionKey: string) => Record<string, string> | undefined
 > = {
   xai: (sessionKey) => ({ 'x-grok-conv-id': sessionKey }),
-  openrouter: (sessionKey) => ({ 'x-session-id': sessionKey }),
+  openrouter: (sessionKey) =>
+    sessionKey === 'default' ? undefined : { 'x-session-id': sessionKey },
 };
 
 export function buildProviderExtraHeaders(
