@@ -578,6 +578,40 @@ describe('ProxyFallbackService', () => {
       expect(forwarded.body.messages).toBeDefined();
     });
 
+    it('preserves known MPS params when the resolved model has no specs', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      modelParamsService.get.mockResolvedValueOnce(null);
+      providerParamSpecs.getAllKnownParamRootPaths.mockReturnValue(
+        new Set(['temperature', 'top_p', 'max_tokens']),
+      );
+
+      await service.tryForwardToProvider({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'new-provider-model',
+        body: {
+          messages: [{ role: 'user', content: 'hi' }],
+          temperature: 0.7,
+          top_p: 0.9,
+          max_tokens: 2048,
+        },
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'api_key',
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
+      });
+
+      const forwarded = providerClient.forward.mock.calls[0][0];
+      expect(forwarded.body.temperature).toBe(0.7);
+      expect(forwarded.body.top_p).toBe(0.9);
+      expect(forwarded.body.max_tokens).toBe(2048);
+    });
+
     it('re-injects shared reasoning_content before forwarding to compatible providers', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),

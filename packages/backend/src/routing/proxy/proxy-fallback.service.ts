@@ -149,6 +149,7 @@ export class ProxyFallbackService {
     );
     const specs = await this.providerParamSpecs.getSpecs(provider, authType as AuthType, model);
     const merged = applyRequestParamDefaults(body, modelParams, specs);
+    if (specs.length === 0) return merged;
 
     // Strip client-supplied params that are known MPS paths but not supported
     // by this model. Example: `temperature` on claude-opus-4-7 which removed
