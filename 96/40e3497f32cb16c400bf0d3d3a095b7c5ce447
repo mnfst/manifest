@@ -1,0 +1,21 @@
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_b9fa30d944ddfa::t_94569f1ee51152 152
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_b9fa30d944ddfa::t_7883c7d1937463 581-614
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.1",
+  "base_commit_sha": "9640e3497f32cb16c400bf0d3d3a095b7c5ce447",
+  "prompts": {},
+  "sessions": {
+    "s_b9fa30d944ddfa": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019eff4d-6e55-7331-815f-2b86207bf6f1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
