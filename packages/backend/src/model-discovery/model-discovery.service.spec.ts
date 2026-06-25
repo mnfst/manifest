@@ -95,7 +95,11 @@ describe('ModelDiscoveryService', () => {
     registerModels: jest.Mock;
     getConfirmedModels: jest.Mock;
   };
-  let mockModelsDevSync: { lookupModel: jest.Mock; getModelsForProvider: jest.Mock };
+  let mockModelsDevSync: {
+    lookupModel: jest.Mock;
+    getModelsForProvider: jest.Mock;
+    refreshCache: jest.Mock;
+  };
   let mockCopilotTokenService: { getCopilotToken: jest.Mock };
 
   beforeEach(() => {
@@ -109,6 +113,7 @@ describe('ModelDiscoveryService', () => {
     mockModelsDevSync = {
       lookupModel: jest.fn().mockReturnValue(null),
       getModelsForProvider: jest.fn().mockReturnValue([]),
+      refreshCache: jest.fn().mockResolvedValue(0),
     };
     mockModelRegistry = {
       registerModels: jest.fn(),
@@ -472,6 +477,39 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).toHaveBeenCalledTimes(1);
     });
 
+    it('passes forceRefresh through to provider discovery when requested', async () => {
+      const providers = [
+        makeProvider({ id: 'p1', provider: 'opencode-go', auth_type: 'subscription' }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      fetcher.fetch.mockResolvedValue([makeModel({ id: 'opencode-go/glm-5.2' })]);
+
+      await service.discoverAllForAgent('tenant-1', { forceRefresh: true });
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'opencode-go',
+        'decrypted-key',
+        'subscription',
+        undefined,
+        { forceRefresh: true },
+      );
+    });
+
+    it('refreshes models.dev once for a forced all-provider refresh', async () => {
+      const providers = [
+        makeProvider({ id: 'p1', provider: 'openai' }),
+        makeProvider({ id: 'p2', provider: 'anthropic' }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+
+      await service.discoverAllForAgent('tenant-1', { forceRefresh: true });
+
+      expect(mockModelsDevSync.refreshCache).toHaveBeenCalledTimes(1);
+      expect(fetcher.fetch).toHaveBeenCalledWith('openai', 'decrypted-key', 'api_key', undefined, {
+        forceRefresh: true,
+      });
+    });
+
     it('should not throw when individual discovery fails', async () => {
       const providers = [
         makeProvider({ id: 'p1', provider: 'openai' }),
@@ -529,6 +567,9 @@ describe('ModelDiscoveryService', () => {
       const result = await service.refreshProvider('tenant-1', 'openai', 'api_key');
       expect(providerRepo.findOne).toHaveBeenCalledWith({
         where: { tenant_id: 'tenant-1', provider: 'openai', is_active: true, auth_type: 'api_key' },
+      });
+      expect(fetcher.fetch).toHaveBeenCalledWith('openai', 'decrypted-key', 'api_key', undefined, {
+        forceRefresh: true,
       });
       expect(result.ok).toBe(true);
       expect(result.model_count).toBe(2);
@@ -3060,6 +3101,109 @@ describe('ModelDiscoveryService', () => {
   /* ── models.dev fallback in discoverModels ── */
 
   describe('models.dev fallback in discoverModels', () => {
+    it('uses models.dev as the primary OpenCode Go catalog and preserves gateway model ids', async () => {
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) =>
+        providerId === 'opencode-go'
+          ? [
+              {
+                id: 'glm-5.2',
+                name: 'GLM-5.2',
+                contextWindow: 1000000,
+                inputPricePerToken: 0.0000014,
+                outputPricePerToken: 0.0000044,
+                reasoning: true,
+                toolCall: true,
+              },
+            ]
+          : [],
+      );
+
+      const result = await service.discoverModels(
+        makeProvider({ provider: 'opencode-go', auth_type: 'subscription' }),
+      );
+
+      expect(fetcher.fetch).not.toHaveBeenCalled();
+      expect(mockModelsDevSync.getModelsForProvider).toHaveBeenCalledWith('opencode-go');
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 'opencode-go/glm-5.2',
+          displayName: 'GLM-5.2',
+          provider: 'opencode-go',
+          contextWindow: 1000000,
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          capabilityReasoning: true,
+          capabilityCode: true,
+        }),
+      );
+    });
+
+    it('refreshes models.dev before a forced OpenCode Go provider refresh', async () => {
+      mockModelsDevSync.getModelsForProvider.mockReturnValue([
+        {
+          id: 'glm-5.2',
+          name: 'GLM-5.2',
+          contextWindow: 1000000,
+          inputPricePerToken: 0.0000014,
+          outputPricePerToken: 0.0000044,
+          reasoning: true,
+          toolCall: true,
+        },
+      ]);
+
+      await service.discoverModels(
+        makeProvider({ provider: 'opencode-go', auth_type: 'subscription' }),
+        { forceRefresh: true },
+      );
+
+      expect(mockModelsDevSync.refreshCache).toHaveBeenCalledTimes(1);
+      expect(fetcher.fetch).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the OpenCode Go docs catalog when forced models.dev refresh fails', async () => {
+      const warnSpy = jest.spyOn((service as any).logger, 'warn').mockImplementation(() => {});
+      mockModelsDevSync.refreshCache.mockRejectedValue(new Error('models.dev unavailable'));
+      fetcher.fetch.mockResolvedValue([makeModel({ id: 'opencode-go/glm-5.2' })]);
+
+      const result = await service.discoverModels(
+        makeProvider({ provider: 'opencode-go', auth_type: 'subscription' }),
+        { forceRefresh: true },
+      );
+
+      expect(mockModelsDevSync.refreshCache).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        'models.dev refresh failed during manual model discovery: models.dev unavailable',
+      );
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'opencode-go',
+        'decrypted-key',
+        'subscription',
+        undefined,
+        { forceRefresh: true },
+      );
+      expect(result[0].id).toBe('opencode-go/glm-5.2');
+
+      warnSpy.mockRestore();
+    });
+
+    it('falls back to the OpenCode Go docs catalog when models.dev has no catalog entry', async () => {
+      fetcher.fetch.mockResolvedValue([makeModel({ id: 'opencode-go/glm-5.1' })]);
+
+      const result = await service.discoverModels(
+        makeProvider({ provider: 'opencode-go', auth_type: 'subscription' }),
+      );
+
+      expect(mockModelsDevSync.getModelsForProvider).toHaveBeenCalledWith('opencode-go');
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'opencode-go',
+        'decrypted-key',
+        'subscription',
+        undefined,
+      );
+      expect(result[0].id).toBe('opencode-go/glm-5.1');
+    });
+
     it('should try models.dev before OpenRouter when native API returns empty', async () => {
       fetcher.fetch.mockResolvedValue([]);
       mockModelsDevSync.getModelsForProvider.mockReturnValue([
