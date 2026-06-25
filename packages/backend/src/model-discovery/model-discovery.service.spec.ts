@@ -3139,6 +3139,42 @@ describe('ModelDiscoveryService', () => {
       );
     });
 
+    it('uses models.dev as the primary OpenCode Zen catalog and preserves token pricing', async () => {
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) =>
+        providerId === 'opencode-zen'
+          ? [
+              {
+                id: 'ring-2.6-1t-free',
+                name: 'Ring 2.6 1T Free',
+                contextWindow: 200000,
+                inputPricePerToken: 0.000001,
+                outputPricePerToken: 0.000002,
+                reasoning: true,
+                toolCall: true,
+              },
+            ]
+          : [],
+      );
+
+      const result = await service.discoverModels(makeProvider({ provider: 'opencode-zen' }));
+
+      expect(fetcher.fetch).not.toHaveBeenCalled();
+      expect(mockModelsDevSync.getModelsForProvider).toHaveBeenCalledWith('opencode-zen');
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 'opencode-zen/ring-2.6-1t-free',
+          displayName: 'Ring 2.6 1T Free',
+          provider: 'opencode-zen',
+          contextWindow: 200000,
+          inputPricePerToken: 0.000001,
+          outputPricePerToken: 0.000002,
+          capabilityReasoning: true,
+          capabilityCode: true,
+        }),
+      );
+    });
+
     it('refreshes models.dev before a forced OpenCode Go provider refresh', async () => {
       mockModelsDevSync.getModelsForProvider.mockReturnValue([
         {
