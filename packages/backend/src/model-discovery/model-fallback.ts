@@ -166,11 +166,13 @@ export function buildModelsDevFallback(
     }[];
   } | null,
   providerId: string,
+  options: { idPrefix?: string } = {},
 ): DiscoveredModel[] {
   if (!modelsDevSync) return [];
   const entries = modelsDevSync.getModelsForProvider(providerId);
+  const idPrefix = options.idPrefix;
   return entries.map((e) => ({
-    id: e.id,
+    id: idPrefix ? `${idPrefix}/${e.id}` : e.id,
     displayName: e.name || e.id,
     provider: providerId,
     contextWindow: e.contextWindow ?? DEFAULT_CONTEXT_WINDOW,

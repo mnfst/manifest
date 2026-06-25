@@ -2137,6 +2137,35 @@ describe('ProviderModelFetcherService', () => {
       expect(result[1].id).toBe('opencode-go/minimax-m2.7');
     });
 
+    it('forces a catalog refresh when requested', async () => {
+      const catalog = {
+        list: jest.fn().mockResolvedValue([]),
+        refresh: jest
+          .fn()
+          .mockResolvedValue([
+            { id: 'glm-5.2', displayName: 'GLM-5.2', format: 'openai' as const },
+          ]),
+      };
+      const withCatalog = new ProviderModelFetcherService(
+        catalog as unknown as ConstructorParameters<typeof ProviderModelFetcherService>[0],
+      );
+
+      const result = await withCatalog.fetch('opencode-go', 'og-token', 'subscription', undefined, {
+        forceRefresh: true,
+      });
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(catalog.refresh).toHaveBeenCalledTimes(1);
+      expect(catalog.list).not.toHaveBeenCalled();
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 'opencode-go/glm-5.2',
+          displayName: 'GLM-5.2',
+          provider: 'opencode-go',
+        }),
+      );
+    });
+
     it('returns [] when no catalog service is wired up', async () => {
       const result = await service.fetch('opencode-go', 'og-token', 'subscription');
       expect(result).toEqual([]);

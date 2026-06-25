@@ -28,6 +28,8 @@ const PROVIDER_ID_MAP: Readonly<Record<string, string>> = {
   zai: 'zai',
   copilot: 'github-copilot',
   groq: 'groq',
+  'opencode-go': 'opencode-go',
+  'opencode-zen': 'opencode',
 };
 
 const SUPPORTED_PROVIDERS = new Set(Object.keys(PROVIDER_ID_MAP));

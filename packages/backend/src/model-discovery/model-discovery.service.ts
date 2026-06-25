@@ -46,12 +46,26 @@ function isQwenProvider(providerId: string): boolean {
   return lower === 'qwen' || lower === 'alibaba';
 }
 
+function modelsDevModelIdPrefix(providerId: string): string | undefined {
+  const lower = providerId.toLowerCase();
+  return lower === 'opencode-go' || lower === 'opencode-zen' ? lower : undefined;
+}
+
+function prefersModelsDevCatalog(providerId: string): boolean {
+  return providerId.toLowerCase() === 'opencode-go';
+}
+
 /** 2-minute TTL for the per-agent discovered-model list, matching RoutingCacheService. */
 const MODELS_CACHE_TTL_MS = 120_000;
 
 interface ModelsCacheEntry {
   data: DiscoveredModel[];
   expiresAt: number;
+}
+
+interface DiscoverModelsOptions {
+  forceRefresh?: boolean;
+  skipModelsDevRefresh?: boolean;
 }
 
 @Injectable()
@@ -91,7 +105,10 @@ export class ModelDiscoveryService {
     private readonly enabledProviderRepo: Repository<AgentEnabledProvider> | null = null,
   ) {}
 
-  async discoverModels(provider: TenantProvider): Promise<DiscoveredModel[]> {
+  async discoverModels(
+    provider: TenantProvider,
+    options: DiscoverModelsOptions = {},
+  ): Promise<DiscoveredModel[]> {
     let apiKey = '';
     let endpointOverride: string | undefined;
     const lowerProvider = provider.provider.toLowerCase();
@@ -164,10 +181,35 @@ export class ModelDiscoveryService {
       endpointOverride = getXiaomiTokenPlanBaseUrl(provider.region);
     }
 
+    if (options.forceRefresh && !options.skipModelsDevRefresh) {
+      await this.refreshModelsDevCache();
+    }
+
     let raw: DiscoveredModel[];
 
     const useCuratedSubscriptionModels =
       provider.auth_type === 'subscription' && (!apiKey || lowerProvider === 'anthropic');
+
+    const fetchProviderModels = () =>
+      options.forceRefresh
+        ? this.fetcher.fetch(provider.provider, apiKey, provider.auth_type, endpointOverride, {
+            forceRefresh: true,
+          })
+        : this.fetcher.fetch(provider.provider, apiKey, provider.auth_type, endpointOverride);
+
+    const buildModelsDevModels = () => {
+      const models = buildModelsDevFallback(this.modelsDevSync, provider.provider, {
+        idPrefix: modelsDevModelIdPrefix(provider.provider),
+      });
+      if (lowerProvider !== 'opencode-go') return models;
+      // OpenCode Go is surfaced as a subscription gateway with per-request
+      // quota cost from the docs catalog, not token pricing from models.dev.
+      return models.map((model) => ({
+        ...model,
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+      }));
+    };
 
     // Subscription providers without a token use curated fallback. Anthropic
     // subscription discovery is also static so connecting Claude Code does
@@ -179,13 +221,15 @@ export class ModelDiscoveryService {
           `Subscription provider ${provider.provider} — using ${raw.length} curated models`,
         );
       }
+    } else if (prefersModelsDevCatalog(provider.provider)) {
+      raw = buildModelsDevModels();
+      if (raw.length > 0) {
+        this.logger.log(`Using ${raw.length} models from models.dev for ${provider.provider}`);
+      } else {
+        raw = await fetchProviderModels();
+      }
     } else {
-      raw = await this.fetcher.fetch(
-        provider.provider,
-        apiKey,
-        provider.auth_type,
-        endpointOverride,
-      );
+      raw = await fetchProviderModels();
 
       // Register confirmed model IDs from native API for future fallback filtering
       if (raw.length > 0 && this.modelRegistry) {
@@ -205,9 +249,9 @@ export class ModelDiscoveryService {
         }
       }
 
-      // If native API returned no models, try models.dev first (native IDs), then OpenRouter
+      // If native API returned no models, try models.dev first, then OpenRouter.
       if (raw.length === 0) {
-        raw = buildModelsDevFallback(this.modelsDevSync, provider.provider);
+        raw = buildModelsDevModels();
         if (raw.length > 0) {
           this.logger.log(
             `Native API returned 0 models for ${provider.provider} — using ${raw.length} models from models.dev`,
@@ -277,7 +321,13 @@ export class ModelDiscoveryService {
     return filtered;
   }
 
-  async discoverAllForAgent(tenantId: string): Promise<void> {
+  async discoverAllForAgent(tenantId: string, options: DiscoverModelsOptions = {}): Promise<void> {
+    if (options.forceRefresh) {
+      await this.refreshModelsDevCache();
+    }
+    const discoveryOptions = options.forceRefresh
+      ? { ...options, skipModelsDevRefresh: true }
+      : options;
     const providers = await this.providerRepo.find({
       where: { tenant_id: tenantId, is_active: true },
     });
@@ -285,11 +335,21 @@ export class ModelDiscoveryService {
       providers
         .filter((p) => !p.provider.startsWith('custom:'))
         .map((p) =>
-          this.discoverModels(p).catch((err) => {
+          this.discoverModels(p, discoveryOptions).catch((err) => {
             this.logger.warn(`Discovery failed for ${p.provider}: ${err}`);
           }),
         ),
     );
+  }
+
+  private async refreshModelsDevCache(): Promise<void> {
+    if (!this.modelsDevSync) return;
+    try {
+      await this.modelsDevSync.refreshCache();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`models.dev refresh failed during manual model discovery: ${message}`);
+    }
   }
 
   async refreshProvider(
@@ -328,7 +388,7 @@ export class ModelDiscoveryService {
     }
 
     try {
-      const models = await this.discoverModels(provider);
+      const models = await this.discoverModels(provider, { forceRefresh: true });
       return {
         ok: models.length > 0,
         model_count: models.length,

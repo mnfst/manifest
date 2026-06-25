@@ -693,6 +693,10 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
 
 const OPENCODE_GO_CONTEXT_WINDOW = 200000;
 
+export interface ProviderModelFetchOptions {
+  forceRefresh?: boolean;
+}
+
 @Injectable()
 export class ProviderModelFetcherService {
   private readonly logger = new Logger(ProviderModelFetcherService.name);
@@ -708,6 +712,7 @@ export class ProviderModelFetcherService {
     apiKey: string,
     authType?: string,
     endpointOverride?: string,
+    options?: ProviderModelFetchOptions,
   ): Promise<DiscoveredModel[]> {
     let configKey = providerId.toLowerCase();
     // OpenAI subscription tokens use a different models endpoint
@@ -726,7 +731,7 @@ export class ProviderModelFetcherService {
     } else if (configKey === 'zai' && authType === 'subscription') {
       configKey = 'zai-subscription';
     } else if (configKey === 'opencode-go') {
-      return this.fetchOpencodeGoCatalog();
+      return this.fetchOpencodeGoCatalog(options?.forceRefresh === true);
     } else if (configKey === 'gemini' && authType === 'subscription') {
       // CodeAssist (`cloudcode-pa.googleapis.com`) does not expose a
       // `/models` endpoint; the discovery fallback chain pulls Gemini
@@ -876,9 +881,11 @@ export class ProviderModelFetcherService {
     return `${FIREWORKS_MODELS_URL}?${params.toString()}`;
   }
 
-  private async fetchOpencodeGoCatalog(): Promise<DiscoveredModel[]> {
+  private async fetchOpencodeGoCatalog(forceRefresh = false): Promise<DiscoveredModel[]> {
     if (!this.opencodeGoCatalog) return [];
-    const entries = await this.opencodeGoCatalog.list();
+    const entries = forceRefresh
+      ? await this.opencodeGoCatalog.refresh()
+      : await this.opencodeGoCatalog.list();
     return entries.map((entry) => ({
       id: `opencode-go/${entry.id}`,
       displayName: entry.displayName,

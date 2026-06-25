@@ -79,10 +79,27 @@ export class OpencodeGoCatalogService implements OnModuleInit {
       // fetching. Share its result so we don't issue a duplicate request.
       return this.inflight;
     }
-    this.inflight = this.fetchAndCache(now).finally(() => {
-      this.inflight = null;
+    return this.startFetch(now);
+  }
+
+  /**
+   * Force a live catalog fetch even when the one-hour cache is warm. Manual
+   * model refreshes use this so users can pick up newly published OpenCode Go
+   * models without restarting the backend.
+   */
+  async refresh(): Promise<OpencodeGoCatalogEntry[]> {
+    return this.startFetch(Date.now());
+  }
+
+  private startFetch(now: number): Promise<OpencodeGoCatalogEntry[]> {
+    const request = this.fetchAndCache(now);
+    const tracked = request.finally(() => {
+      if (this.inflight === tracked) {
+        this.inflight = null;
+      }
     });
-    return this.inflight;
+    this.inflight = tracked;
+    return tracked;
   }
 
   private async fetchAndCache(now: number): Promise<OpencodeGoCatalogEntry[]> {

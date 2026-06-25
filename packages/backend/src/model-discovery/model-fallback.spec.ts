@@ -619,6 +619,26 @@ describe('buildModelsDevFallback', () => {
     expect(buildModelsDevFallback(mockSync, 'unknown')).toEqual([]);
   });
 
+  it('should prefix model ids for gateway providers when requested', () => {
+    const mockSync = {
+      getModelsForProvider: jest.fn().mockReturnValue([
+        {
+          id: 'glm-5.2',
+          name: 'GLM-5.2',
+          inputPricePerToken: 0.0000014,
+          outputPricePerToken: 0.0000044,
+        },
+      ]),
+    };
+
+    const result = buildModelsDevFallback(mockSync, 'opencode-go', {
+      idPrefix: 'opencode-go',
+    });
+
+    expect(result[0].id).toBe('opencode-go/glm-5.2');
+    expect(result[0].provider).toBe('opencode-go');
+  });
+
   it('should use default context window when not provided', () => {
     const mockSync = {
       getModelsForProvider: jest

@@ -83,7 +83,7 @@ export class ModelController {
   @Post(':agentName/refresh-models')
   async refreshModels(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
-    await this.discoveryService.discoverAllForAgent(agent.tenant_id);
+    await this.discoveryService.discoverAllForAgent(agent.tenant_id, { forceRefresh: true });
     return { ok: true };
   }
 
