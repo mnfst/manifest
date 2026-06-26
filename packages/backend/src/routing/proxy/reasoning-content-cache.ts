@@ -13,10 +13,10 @@ const TTL_MS = 30 * 60 * 1000; // 30 minutes
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 /**
  * Hard ceiling on turns held in the in-memory layer. The key embeds an
- * upstream-generated tool call id (unique per turn), so the in-memory keyspace
- * is unbounded and the lazy TTL sweep — which only runs on writes — cannot cap a
- * burst. Oldest entries are evicted FIFO; the shared DB layer is pruned
- * separately by `expires_at`.
+ * upstream-generated tool call id, so the in-memory keyspace is unbounded and
+ * the lazy TTL sweep — which only runs on writes — cannot cap a burst. Oldest
+ * entries are evicted FIFO; the shared DB layer is pruned separately by
+ * `expires_at`.
  */
 export const MAX_CACHE_ENTRIES = 10_000;
 
@@ -26,8 +26,10 @@ export const MAX_CACHE_ENTRIES = 10_000;
  * DeepSeek-compatible reasoning providers require assistant tool-call turns to
  * be replayed with the same `reasoning_content` they returned. Generic
  * OpenAI-compatible SDKs often drop that provider-specific field when they
- * rebuild conversation history, so Manifest caches it by the first tool call id
- * and restores it before forwarding the next turn to a compatible provider.
+ * rebuild conversation history, so Manifest caches tool turns by the first tool
+ * call id. Normal assistant turns are intentionally not cached for replay:
+ * DeepSeek does not require them, and content-based matching can attach
+ * reasoning to the wrong visible turn.
  */
 @Injectable()
 export class ReasoningContentCache {
@@ -43,15 +45,16 @@ export class ReasoningContentCache {
 
   /** Store the reasoning_content string for an assistant tool-call turn. */
   store(sessionKey: string, firstToolCallId: string, content: string): void {
+    this.storeByCacheKey(sessionKey, firstToolCallId, content);
+  }
+
+  private storeByCacheKey(sessionKey: string, cacheKey: string, content: string): void {
     if (!content) return;
     this.maybeCleanup();
     const expiresAt = Date.now() + TTL_MS;
-    this.cache.set(`${sessionKey}:${firstToolCallId}`, {
-      content,
-      expiresAt,
-    });
+    this.cache.set(`${sessionKey}:${cacheKey}`, { content, expiresAt });
     this.evictOverflow();
-    void this.persist(sessionKey, firstToolCallId, content, expiresAt);
+    void this.persist(sessionKey, cacheKey, content, expiresAt);
   }
 
   /** Retrieve cached reasoning_content, or null if not found/expired. */
@@ -65,12 +68,12 @@ export class ReasoningContentCache {
     return entry.content;
   }
 
-  async retrieveMany(sessionKey: string, firstToolCallIds: string[]): Promise<Map<string, string>> {
+  async retrieveMany(sessionKey: string, cacheKeys: string[]): Promise<Map<string, string>> {
     this.maybeCleanup();
     const result = new Map<string, string>();
     const missing: string[] = [];
 
-    for (const id of [...new Set(firstToolCallIds)]) {
+    for (const id of [...new Set(cacheKeys)]) {
       const local = this.retrieve(sessionKey, id);
       if (local) {
         result.set(id, local);
@@ -120,19 +123,20 @@ export class ReasoningContentCache {
     const messages = body.messages;
     if (!Array.isArray(messages)) return body;
 
-    const ids = messages
-      .map((message) => firstToolCallIdMissingReasoning(message))
-      .filter((id): id is string => typeof id === 'string');
-    if (ids.length === 0) return body;
+    const keysByIndex = messages.map((message) => reasoningReplayKeyMissingReasoning(message));
+    const keys = keysByIndex.filter((id): id is string => typeof id === 'string');
+    if (keys.length === 0) return body;
+    const repeatedKeys = repeatedReplayKeys(keys);
 
-    const cached = await this.retrieveMany(sessionKey, ids);
+    const cached = await this.retrieveMany(sessionKey, keys);
     if (cached.size === 0) return body;
 
     let changed = false;
-    const nextMessages = messages.map((message) => {
-      const id = firstToolCallIdMissingReasoning(message);
-      if (!id) return message;
-      const content = cached.get(id);
+    const nextMessages = messages.map((message, index) => {
+      const key = keysByIndex[index];
+      if (!key) return message;
+      if (repeatedKeys.has(key)) return message;
+      const content = cached.get(key);
       if (!content) return message;
       changed = true;
       return { ...(message as Record<string, unknown>), reasoning_content: content };
@@ -236,4 +240,16 @@ function firstToolCallIdMissingReasoning(message: unknown): string | null {
   }
   const id = (firstToolCall as Record<string, unknown>).id;
   return typeof id === 'string' && id ? id : null;
+}
+
+function reasoningReplayKeyMissingReasoning(message: unknown): string | null {
+  return firstToolCallIdMissingReasoning(message);
+}
+
+function repeatedReplayKeys(keys: string[]): Set<string> {
+  const counts = new Map<string, number>();
+  for (const key of keys) {
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return new Set([...counts.entries()].filter(([, count]) => count > 1).map(([key]) => key));
 }

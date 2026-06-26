@@ -1010,6 +1010,33 @@ describe('proxy-response-handler', () => {
         undefined,
       );
     });
+
+    it('does not configure assistant-message reasoning cache callbacks for streams without tool calls', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta({ provider: 'deepseek', model: 'deepseek-chat' });
+      const reasoningCache = { store: jest.fn() };
+      const sessionKey = 'sess-reasoning-stream';
+      const transformer = jest.fn((chunk: string) => `data: ${chunk}\n\n`);
+      client.createReasoningContentStreamTransformer.mockReturnValue(transformer);
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        sessionKey,
+        undefined,
+        'chat_completions',
+        reasoningCache as any,
+      );
+
+      expect(client.createReasoningContentStreamTransformer.mock.calls[0][2]).toBeUndefined();
+      expect(reasoningCache.store).not.toHaveBeenCalled();
+    });
   });
 
   /* ── handleNonStreamResponse ── */
@@ -1631,6 +1658,43 @@ describe('proxy-response-handler', () => {
         'call_1',
         'I should call the tool.',
       );
+      expect(res.json).toHaveBeenCalledWith(body);
+    });
+
+    it('does not cache reasoning_content from compatible non-stream assistant responses without tool calls', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const reasoningCache = { store: jest.fn() };
+      const sessionKey = 'sess-reasoning-json';
+      const body = {
+        id: 'chatcmpl-1',
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content: 'The answer is 42.',
+              reasoning_content: 'I checked the arithmetic.',
+            },
+          },
+        ],
+      };
+      const forward = mockForward(body);
+      const meta = makeMeta({ provider: 'deepseek', model: 'deepseek-chat' });
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        sessionKey,
+        undefined,
+        'chat_completions',
+        reasoningCache as any,
+      );
+
+      expect(reasoningCache.store).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(body);
     });
 
