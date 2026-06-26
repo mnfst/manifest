@@ -353,6 +353,72 @@ describe('provider-client-converters', () => {
       expect(messages[0]).toHaveProperty('reasoning_content', 'cached reasoning');
     });
 
+    it('injects empty reasoning_content for compatible tool-call messages when no reasoning is recoverable', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const lookup = jest.fn(() => null);
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-v4-flash', lookup);
+      const messages = result.messages as any[];
+
+      expect(lookup).toHaveBeenCalledWith('call_1');
+      expect(messages[0]).toHaveProperty('reasoning_content', '');
+    });
+
+    it('does not map reasoning aliases to reasoning_content for compatible tool-call messages', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            reasoning: 'plain provider reasoning',
+            reasoning_text: 'provider reasoning',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-v4-flash');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).toHaveProperty('reasoning_content', '');
+      expect(messages[0]).not.toHaveProperty('reasoning');
+      expect(messages[0]).not.toHaveProperty('reasoning_text');
+    });
+
+    it('does not flatten reasoning_details to reasoning_content for compatible tool-call messages', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            reasoning_details: [
+              {
+                type: 'reasoning.text',
+                text: 'provider-specific reasoning',
+                signature: 'sig-abc',
+                format: 'anthropic-claude-v1',
+              },
+            ],
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-v4-flash');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).toHaveProperty('reasoning_content', '');
+      expect(messages[0]).not.toHaveProperty('reasoning_details');
+    });
+
     it('does not re-inject cached reasoning_content for strict providers', () => {
       const body = {
         messages: [
@@ -369,6 +435,27 @@ describe('provider-client-converters', () => {
       const messages = result.messages as any[];
 
       expect(lookup).not.toHaveBeenCalled();
+      expect(messages[0]).not.toHaveProperty('reasoning_content');
+    });
+
+    it('strips reasoning_text for strict providers', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            reasoning: 'plain provider reasoning',
+            reasoning_text: 'provider reasoning',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'mistral', 'mistral-large');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).not.toHaveProperty('reasoning_text');
+      expect(messages[0]).not.toHaveProperty('reasoning');
       expect(messages[0]).not.toHaveProperty('reasoning_content');
     });
 
@@ -390,6 +477,26 @@ describe('provider-client-converters', () => {
 
       expect(lookup).not.toHaveBeenCalled();
       expect(messages[0]).toHaveProperty('reasoning_content', 'client reasoning');
+    });
+
+    it('replaces empty reasoning_content with cached reasoning when available', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            reasoning_content: '',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const lookup = jest.fn(() => 'cached reasoning');
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-v4-flash', lookup);
+      const messages = result.messages as any[];
+
+      expect(lookup).toHaveBeenCalledWith('call_1');
+      expect(messages[0]).toHaveProperty('reasoning_content', 'cached reasoning');
     });
 
     it('does not re-inject cached reasoning_content without tool calls', () => {
@@ -1061,6 +1168,25 @@ describe('provider-client-converters', () => {
 
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith('call_1', 'I should use a tool.');
+    });
+
+    it('does not store reasoning_content for completed assistant messages without tool calls', () => {
+      const callback = jest.fn();
+      const transform = createReasoningContentStreamTransformer(callback);
+
+      transform(
+        JSON.stringify({
+          choices: [{ delta: { reasoning_content: 'I should calculate. ' }, finish_reason: null }],
+        }),
+      );
+      transform(
+        JSON.stringify({
+          choices: [{ delta: { content: 'The answer is 42.' }, finish_reason: null }],
+        }),
+      );
+      transform(JSON.stringify({ choices: [{ delta: {}, finish_reason: 'stop' }] }));
+
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it('updates cached reasoning_content if more reasoning arrives after the tool call id', () => {

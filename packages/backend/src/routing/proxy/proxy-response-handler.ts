@@ -444,14 +444,17 @@ function cacheReasoningContent(
   const reasoningContent = message.reasoning_content;
   if (typeof reasoningContent !== 'string' || !reasoningContent) return;
   const toolCalls = message.tool_calls;
-  if (!Array.isArray(toolCalls) || toolCalls.length === 0) return;
-  const firstToolCall = toolCalls[0];
-  const firstToolCallId =
-    firstToolCall && typeof firstToolCall === 'object' && !Array.isArray(firstToolCall)
-      ? (firstToolCall as Record<string, unknown>).id
-      : undefined;
-  if (typeof firstToolCallId !== 'string' || !firstToolCallId) return;
-  cache.store(sessionKey, firstToolCallId, reasoningContent);
+  if (Array.isArray(toolCalls) && toolCalls.length > 0) {
+    const firstToolCall = toolCalls[0];
+    const firstToolCallId =
+      firstToolCall && typeof firstToolCall === 'object' && !Array.isArray(firstToolCall)
+        ? (firstToolCall as Record<string, unknown>).id
+        : undefined;
+    if (typeof firstToolCallId === 'string' && firstToolCallId) {
+      cache.store(sessionKey, firstToolCallId, reasoningContent);
+      return;
+    }
+  }
 }
 
 export async function handleNonStreamResponse(
