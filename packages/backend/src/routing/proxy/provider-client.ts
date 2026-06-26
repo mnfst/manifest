@@ -431,9 +431,11 @@ export class ProviderClient {
             })
           : toResponsesRequest(requestSource, bareModel, {
               stream:
-                endpointKey === 'openai-responses' || endpointKey === 'xai-responses'
-                  ? ctx.stream
-                  : undefined,
+                endpointKey === 'openai-subscription'
+                  ? true
+                  : endpointKey === 'openai-responses' || endpointKey === 'xai-responses'
+                    ? ctx.stream
+                    : undefined,
               // The ChatGPT subscription backend rejects max_output_tokens with
               // unsupported_parameter; only opt in for the API-key paths.
               mapMaxOutputTokens:
