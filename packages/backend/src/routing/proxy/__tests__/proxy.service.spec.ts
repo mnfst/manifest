@@ -857,6 +857,32 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.primaryProvider).toBe('openai');
     });
 
+    it('does not trigger fallback on provider context length errors', async () => {
+      const message =
+        "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.";
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message,
+              code: 'context_length_exceeded',
+            },
+          }),
+          { status: 400, headers: { 'content-type': 'application/json' } },
+        ),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(400);
+      expect(await result.forward.response.text()).toContain(message);
+      expect(result.failedFallbacks).toBeUndefined();
+    });
+
     it('returns the successful fallback auth_type, not the primary auth_type (#1173)', async () => {
       // Mixed-auth chain: primary openai/api_key fails, fallback
       // anthropic/subscription succeeds. The recorder reads meta.auth_type to

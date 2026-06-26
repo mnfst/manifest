@@ -18,11 +18,11 @@ import { ProviderParamSpecService } from '../../routing-core/provider-param-spec
 /**
  * Status-code-driven fallback chain behavior for tryFallbacks().
  *
- * `shouldTriggerFallback(status)` currently returns true for ANY status >= 400,
- * so every upstream error (401 auth, 404 not-found, 429 rate limit, 5xx) keeps
- * the loop going to the next route. These tests pin that contract per status
- * code so a future change that re-introduces auth-failure short-circuit (or
- * any other selective stop) cannot land silently.
+ * `shouldTriggerFallback(status)` returns true for status-only errors >= 400,
+ * so upstream 401 auth, 404 not-found, 429 rate limit, and 5xx keep the loop
+ * going to the next route. Body-classified deterministic request errors
+ * (currently context overflow) stop the chain and surface back to the caller.
+ * These tests pin both sides of that contract.
  */
 
 describe('ProxyFallbackService.tryFallbacks — failure chain by status code', () => {
@@ -306,6 +306,46 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
     expect(result.failures).toHaveLength(2);
     expect(result.failures[0]).toMatchObject({ status: 401, provider: 'openai' });
     expect(result.failures[1]).toMatchObject({ status: 429, provider: 'anthropic' });
+  });
+
+  it('stops the fallback chain on a context length error body', async () => {
+    providerClient.forward
+      .mockResolvedValueOnce({
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message:
+                "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.",
+              code: 'context_length_exceeded',
+            },
+          }),
+          { status: 400 },
+        ),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      })
+      .mockResolvedValueOnce({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: true,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+    const routes: ModelRoute[] = [
+      route('openai', 'gpt-4o-mini'),
+      route('gemini', 'gemini-2.5-flash'),
+    ];
+    const result = await runFallbacks(['gpt-4o-mini', 'gemini-2.5-flash'], routes);
+
+    expect(providerClient.forward).toHaveBeenCalledTimes(1);
+    expect(result.success).toBeNull();
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0]).toMatchObject({
+      status: 400,
+      provider: 'openai',
+      model: 'gpt-4o-mini',
+    });
   });
 
   it('returns success=null with all-404 failures when every fallback lacks the model (no 503 collapse)', async () => {

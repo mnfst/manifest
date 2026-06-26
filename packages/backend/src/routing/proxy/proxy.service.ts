@@ -291,7 +291,7 @@ export class ProxyService {
       paramMergeContext,
     });
 
-    if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
+    if (!forward.response.ok && (await this.shouldTriggerFallbackResponse(forward.response))) {
       const fallbackResult = await this.tryFallbackChain({
         agentId,
         tenantId,
@@ -405,6 +405,16 @@ export class ProxyService {
     if ((TIERS as readonly string[]).includes(tier)) {
       this.momentum.recordTier(sessionKey, tier as Tier);
     }
+  }
+
+  private async shouldTriggerFallbackResponse(response: Response): Promise<boolean> {
+    let errorBody: string | undefined;
+    try {
+      errorBody = await response.clone().text();
+    } catch {
+      errorBody = undefined;
+    }
+    return shouldTriggerFallback(response.status, errorBody);
   }
 
   private validatePayload(body: ProxyRequestOptions['body']): void {

@@ -793,11 +793,15 @@ describe('ProxyController', () => {
 
     expect(res.status).toHaveBeenCalledWith(429);
     expect(res.json).toHaveBeenCalledWith({
-      error: {
+      error: expect.objectContaining({
         message: 'Rate limited by upstream provider',
-        type: 'upstream_error',
+        type: 'rate_limit_error',
+        code: null,
         status: 429,
-      },
+        source: 'provider',
+        provider: 'OpenAI',
+        model: 'gpt-4o',
+      }),
     });
   });
 
@@ -845,7 +849,7 @@ describe('ProxyController', () => {
     );
   });
 
-  it('should surface collected Responses SSE failures as upstream errors', async () => {
+  it('should surface collected Responses SSE failures as OpenAI-compatible errors', async () => {
     proxyService.proxyRequest.mockRejectedValue(
       new ResponsesSseError(
         'Model unavailable',
@@ -867,11 +871,13 @@ describe('ProxyController', () => {
 
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({
-      error: {
+      error: expect.objectContaining({
         message: 'Model unavailable',
-        type: 'upstream_error',
+        type: 'invalid_request_error',
+        code: null,
         status: 404,
-      },
+        source: 'provider',
+      }),
     });
   });
 
@@ -1335,11 +1341,13 @@ describe('ProxyController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        error: {
+        error: expect.objectContaining({
           message: 'Bad request to upstream provider',
-          type: 'upstream_error',
+          type: 'invalid_request_error',
+          code: null,
           status: 400,
-        },
+          source: 'provider',
+        }),
       });
     });
 
@@ -1735,11 +1743,13 @@ describe('ProxyController', () => {
 
       expect(res.status).toHaveBeenCalledWith(502);
       expect(res.json).toHaveBeenCalledWith({
-        error: {
+        error: expect.objectContaining({
           message: 'Upstream provider returned bad gateway',
-          type: 'upstream_error',
+          type: 'server_error',
+          code: null,
           status: 502,
-        },
+          source: 'provider',
+        }),
       });
       // Meta headers should still be set
       expect(headers['X-Manifest-Provider']).toBe('OpenAI');
@@ -2629,7 +2639,11 @@ describe('ProxyController', () => {
       expect(headers['X-Manifest-Fallback-Exhausted']).toBe('true');
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: expect.objectContaining({ type: 'fallback_exhausted' }),
+          error: expect.objectContaining({
+            type: 'server_error',
+            code: 'fallback_exhausted',
+            source: 'manifest',
+          }),
         }),
       );
     });
@@ -2678,7 +2692,9 @@ describe('ProxyController', () => {
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           error: expect.objectContaining({
-            type: 'fallback_exhausted',
+            type: 'server_error',
+            code: 'fallback_exhausted',
+            source: 'manifest',
             status: 502,
           }),
         }),
@@ -2895,7 +2911,7 @@ describe('ProxyController', () => {
     );
   });
 
-  it('should return primary error status with fallback_exhausted type and X-Manifest-Fallback-Exhausted header', async () => {
+  it('should return primary error status with fallback_exhausted code and X-Manifest-Fallback-Exhausted header', async () => {
     const mockProviderResp = new Response('primary error', {
       status: 502,
       headers: { 'Content-Type': 'text/plain' },
@@ -2937,7 +2953,9 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Fallback-Exhausted']).toBe('true');
     expect(res.json).toHaveBeenCalledWith({
       error: expect.objectContaining({
-        type: 'fallback_exhausted',
+        type: 'server_error',
+        code: 'fallback_exhausted',
+        source: 'manifest',
         status: 502,
         primary_model: 'gpt-4o',
         primary_provider: 'OpenAI',
@@ -2975,7 +2993,7 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Fallback-Exhausted']).toBeUndefined();
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: expect.objectContaining({ type: 'upstream_error' }),
+        error: expect.objectContaining({ type: 'invalid_request_error', code: null }),
       }),
     );
   });
