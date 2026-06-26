@@ -1,0 +1,69 @@
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_9b4dc789cf1eb2::t_5de55e044eda83 303,315
+  s_9b4dc789cf1eb2::t_c0391abde6545e 174-181
+packages/backend/src/routing/qwen-region.spec.ts
+  s_9b4dc789cf1eb2::t_58e259aa10aca0 15-17,38-42,54-58,60-69
+packages/backend/src/routing/dto/routing.dto.ts
+  s_9b4dc789cf1eb2::t_8c982596653fd6 81-88
+packages/frontend/src/services/api/routing.ts
+  s_9b4dc789cf1eb2::t_c8be2e55e8d202 64-65
+packages/backend/src/routing/proxy/forward-endpoint-resolver.spec.ts
+  s_9b4dc789cf1eb2::t_3eec1781802367 149-161
+packages/backend/src/routing/proxy/forward-endpoint-resolver.ts
+  s_9b4dc789cf1eb2::t_483c69a9178b30 25,121
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_9b4dc789cf1eb2::t_c2c9f58de66f3d 16,164
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_9b4dc789cf1eb2::t_e4f90ab7771b62 1682-1699
+.changeset/alibaba-frankfurt-endpoint.md
+  s_9b4dc789cf1eb2::t_a2ed62582c91fb 1-5
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_9b4dc789cf1eb2::t_e7bd4158052504 13,107,154,158-160,163,174-176,179,184-190,209-213,215-226,229-231,233-238
+  s_9b4dc789cf1eb2::t_b64637c9cfa09c 214,232,718,732
+  s_9b4dc789cf1eb2::t_01bbfa1265ef40 32-49,103-106,108-111,113,155-157,227-228
+  s_9b4dc789cf1eb2::t_bb005d1fc03074 611-616,637-640,642,647,713-717,719-731,733-735
+  s_9b4dc789cf1eb2::t_2e6127c947bdc8 114
+  s_9b4dc789cf1eb2::t_accb96aa81a3a3 142,147,152-153,249,278,591,607,803
+packages/backend/src/routing/qwen-region.ts
+  s_9b4dc789cf1eb2::t_aed95641ebe53a 25,48-49
+  s_9b4dc789cf1eb2::t_46b726d94de7e1 10-16,19-22,38,42-43,50-92
+packages/backend/src/routing/routing-core/__tests__/provider.service.region.spec.ts
+  s_9b4dc789cf1eb2::t_fb9a68ff146b2f 103
+  s_9b4dc789cf1eb2::t_3a3fffa8c12fd0 87-91,104-108
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_9b4dc789cf1eb2::t_e61a8d78c3b106 1239-1259
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_9b4dc789cf1eb2::t_dc78797ac024b6 30,543-544
+  s_9b4dc789cf1eb2::t_606b4f34bc8836 26-29,31,536,540,549
+  s_9b4dc789cf1eb2::t_b64ac9b2c332ad 25
+packages/backend/src/routing/provider.controller.ts
+  s_9b4dc789cf1eb2::t_fba11dc2afc0d5 29,108-109,115-123,125-126,157
+packages/frontend/tests/components/ProviderKeyForm.test.tsx
+  s_9b4dc789cf1eb2::t_a5b4d507b9f6b4 418-511
+  s_9b4dc789cf1eb2::t_8701a2c157e96d 375-417
+packages/frontend/tests/services/providers.test.ts
+  s_9b4dc789cf1eb2::t_01bbfa1265ef40 522-539
+  s_9b4dc789cf1eb2::t_3471e517bc753b 517-521,540-543
+packages/frontend/src/services/providers.ts
+  s_9b4dc789cf1eb2::t_6ea58beebb21c6 8,115-120,139-144
+  s_9b4dc789cf1eb2::t_01bbfa1265ef40 121-138
+packages/backend/src/routing/provider.controller.spec.ts
+  s_9b4dc789cf1eb2::t_03706e61d2e69b 121-153
+  s_9b4dc789cf1eb2::t_5e5af7dfd77a42 77-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "3e0b51736e2dc2b3df1bb1ce2fd3bbdcc437d998",
+  "prompts": {},
+  "sessions": {
+    "s_9b4dc789cf1eb2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f03c1-d475-7db1-a710-fbc453c3d6c2",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
