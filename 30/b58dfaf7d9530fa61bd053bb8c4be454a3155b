@@ -1,0 +1,36 @@
+.changeset/news-banner.md
+  s_75a6a715eccf13::t_2fa69d057a7272 1-5
+packages/frontend/src/styles/overview.css
+  s_75a6a715eccf13::t_7b45695686d0bf 103-192
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_75a6a715eccf13::t_e1b6adb5afa4d7 553-555
+  s_75a6a715eccf13::t_f81806eca64d06 36-37
+packages/frontend/src/services/news.ts
+  s_75a6a715eccf13::t_15392417fdf636 1-27,29-31
+  s_75a6a715eccf13::t_7023994bd918d7 28
+packages/frontend/tests/services/news.test.ts
+  s_75a6a715eccf13::t_15392417fdf636 1-19
+packages/frontend/tests/components/NewsBanner.test.tsx
+  s_75a6a715eccf13::t_15392417fdf636 2-55,81
+  s_75a6a715eccf13::t_5b2d79b2da3327 56-80
+  s_75a6a715eccf13::t_623cad6cdcd64a 1
+packages/frontend/src/components/NewsBanner.tsx
+  s_75a6a715eccf13::t_b40b41387c9553 10-17,19,24-28
+  s_75a6a715eccf13::t_15392417fdf636 1-9,18,20-23,29-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "30b58dfaf7d9530fa61bd053bb8c4be454a3155b",
+  "prompts": {},
+  "sessions": {
+    "s_75a6a715eccf13": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "54ab3d2d-4edf-4d62-bb79-b66f96262452",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
