@@ -1,0 +1,29 @@
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_1241a188afa721::t_06a10da91bb8a7 691
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_1241a188afa721::t_06a10da91bb8a7 724,755
+.changeset/opencode-go-quota-label.md
+  s_1241a188afa721::t_06a10da91bb8a7 1-5
+packages/frontend/tests/services/formatters.test.ts
+  s_1241a188afa721::t_48ee2bf6504d10 44-45,48
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_1241a188afa721::t_06a10da91bb8a7 474,504
+packages/frontend/src/services/formatters.ts
+  s_1241a188afa721::t_c3449deae35371 30-32,38-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "9c3669565286d1f677ed9f39d00729f0d4bcf5db",
+  "prompts": {},
+  "sessions": {
+    "s_1241a188afa721": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f0409-edbf-77a1-ba27-d99616ae1728",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
