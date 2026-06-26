@@ -1,0 +1,22 @@
+packages/backend/src/routing/proxy/proxy-error-sanitizer.ts
+  s_2cab731bb7226a::t_74fe2b567a8267 29-35,59-78,83
+packages/backend/src/routing/proxy/proxy-error-sanitizer.spec.ts
+  s_2cab731bb7226a::t_5e425b95b3014a 162-180,194-208
+  s_2cab731bb7226a::t_97583aa11d9456 209-211
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "463568f513703d19d0af141cc76c875cd236396c",
+  "prompts": {},
+  "sessions": {
+    "s_2cab731bb7226a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f02a6-be8b-7ea2-943d-d18d3db7ee64",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
