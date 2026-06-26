@@ -448,6 +448,15 @@ function cacheReasoningContent(
   cache.store(sessionKey, firstToolCallId, reasoningContent);
 }
 
+function isEventStreamPayload(contentType: string, text: string): boolean {
+  const trimmed = text.trimStart();
+  return (
+    contentType.toLowerCase().includes('text/event-stream') ||
+    trimmed.startsWith('event:') ||
+    trimmed.startsWith('data:')
+  );
+}
+
 export async function handleNonStreamResponse(
   res: ExpressResponse,
   forward: ForwardResult,
@@ -500,10 +509,14 @@ export async function handleNonStreamResponse(
     }
     delete (responseBody as Record<string, unknown>)._extractedThinkingBlocks;
   } else if (forward.isChatGpt) {
-    // The Codex Responses API always returns SSE even when stream: false.
-    // Consume the SSE text and build a non-streaming response.
-    const sseText = await forward.response.text();
-    responseBody = providerClient.collectChatGptSseResponse(sseText, meta.model);
+    const responseText = await forward.response.text();
+    const contentType = forward.response.headers.get('content-type') ?? '';
+    responseBody = isEventStreamPayload(contentType, responseText)
+      ? providerClient.collectChatGptSseResponse(responseText, meta.model)
+      : providerClient.convertChatGptResponse(
+          JSON.parse(responseText) as Record<string, unknown>,
+          meta.model,
+        );
   } else {
     responseBody = await forward.response.json();
     if (supportsReasoningContent(meta.provider, meta.model)) {
@@ -535,13 +548,8 @@ export async function handleNonStreamResponse(
 async function readNativeResponsesBody(response: Response): Promise<unknown> {
   const contentType = response.headers.get('content-type') ?? '';
   const text = await response.text();
-  const trimmed = text.trimStart();
 
-  if (
-    contentType.includes('text/event-stream') ||
-    trimmed.startsWith('event:') ||
-    trimmed.startsWith('data:')
-  ) {
+  if (isEventStreamPayload(contentType, text)) {
     return collectResponsesSseResponse(text);
   }
 

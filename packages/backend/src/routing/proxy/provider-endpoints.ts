@@ -28,6 +28,13 @@ export interface ProviderEndpoint {
   buildStreamPath?: (model: string) => string;
   format: 'openai' | 'google' | 'anthropic' | 'chatgpt' | 'kiro';
   /**
+   * Some Responses-shaped upstreams require or only safely support SSE when
+   * Manifest adapts them back to Chat Completions. This controls the upstream
+   * request body only; the response handler still buffers SSE when the client
+   * requested a non-streaming response.
+   */
+  forceStreamForChatCompletions?: boolean;
+  /**
    * How this endpoint can report exact token usage for streaming responses.
    * `openai_stream_options` means the proxy should request a final usage event
    * by sending `stream_options.include_usage`.
@@ -133,6 +140,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: chatgptSubscriptionHeaders,
     buildPath: () => '/codex/responses',
     format: 'chatgpt',
+    forceStreamForChatCompletions: true,
   },
   // Standard OpenAI API key against api.openai.com/v1/responses — used for
   // Codex, -pro, o1-pro, and deep-research models that reject /v1/chat/completions.
@@ -367,6 +375,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     }),
     buildPath: () => '/responses',
     format: 'chatgpt',
+    forceStreamForChatCompletions: true,
   },
   openrouter: {
     baseUrl: 'https://openrouter.ai',

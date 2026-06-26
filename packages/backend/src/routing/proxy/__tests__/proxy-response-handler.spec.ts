@@ -1263,6 +1263,45 @@ describe('proxy-response-handler', () => {
       expect(forward.response.text).toHaveBeenCalled();
     });
 
+    it('should convert ChatGPT JSON response bodies for non-streaming requests', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const responseBody = {
+        id: 'resp_123',
+        output: [{ type: 'message', content: [{ type: 'output_text', text: 'Hi' }] }],
+      };
+      client.convertChatGptResponse.mockReturnValue({
+        id: 'chatcmpl-json',
+        usage: { prompt_tokens: 3, completion_tokens: 2 },
+      });
+      const forward = mockForward(responseBody, {
+        isChatGpt: true,
+        contentType: 'application/json',
+      });
+      const meta = makeMeta();
+
+      const usage = await handleNonStreamResponse(
+        res as unknown as Parameters<typeof handleNonStreamResponse>[0],
+        forward as unknown as Parameters<typeof handleNonStreamResponse>[1],
+        meta,
+        {},
+        client as unknown as Parameters<typeof handleNonStreamResponse>[4],
+      );
+
+      expect(client.collectChatGptSseResponse).not.toHaveBeenCalled();
+      expect(client.convertChatGptResponse).toHaveBeenCalledWith(responseBody, meta.model);
+      expect(res.json).toHaveBeenCalledWith({
+        id: 'chatcmpl-json',
+        usage: { prompt_tokens: 3, completion_tokens: 2 },
+      });
+      expect(usage).toEqual({
+        prompt_tokens: 3,
+        completion_tokens: 2,
+        cache_read_tokens: undefined,
+        cache_creation_tokens: undefined,
+      });
+    });
+
     it('should pass through standard OpenAI response', async () => {
       const { res } = mockResponse();
       const client = mockProviderClient();

@@ -70,6 +70,13 @@ Alias routing:
 - Header-tier aliases resolve the current header-tier route and fallback configuration.
 - Alias routing bypasses scoring but continues to use provider credentials, fallbacks, response conversion, rate limits, and message recording.
 
+Transport compatibility:
+
+- Responses-shaped upstreams used to satisfy Chat Completions requests must be safe for both client response modes.
+- Endpoints that require SSE upstream while Manifest returns buffered JSON downstream declare `forceStreamForChatCompletions`.
+- Non-stream Chat Completions handling must accept either upstream SSE or upstream JSON from Responses-format providers and convert both to OpenAI-compatible Chat Completions JSON.
+- Normal OpenAI-compatible, Anthropic, and Google chat routes keep their provider-native response mode behavior.
+
 ## Reasoning Params
 
 Direct aliases can store request params such as reasoning effort. The proxy applies those params before forwarding, using the existing endpoint/provider request-parameter machinery so Chat Completions and Responses requests get the correct shape.

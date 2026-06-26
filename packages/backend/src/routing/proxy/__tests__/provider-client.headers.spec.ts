@@ -282,6 +282,24 @@ describe('ProviderClient — Codex prompt-cache affinity (openai-subscription)',
     expect(sentBody.stream).toBe(true);
   });
 
+  it('uses endpoint force-stream capability for Copilot Responses-backed chat requests', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await client.forward({
+      provider: 'copilot',
+      apiKey: 'copilot-token',
+      model: 'gpt-5-codex',
+      body: { ...body, stream: false },
+      stream: false,
+      authType: 'subscription',
+    });
+
+    const url = mockFetch.mock.calls[0][0] as string;
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+    expect(url).toBe('https://api.githubcopilot.com/responses');
+    expect(sentBody.stream).toBe(true);
+  });
+
   it('forwards the caller prompt_cache_key on the api-key /responses conversion path', async () => {
     mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

@@ -416,6 +416,8 @@ export class ProviderClient {
     }
 
     if (endpoint.format === 'chatgpt') {
+      const forceStreamForChatCompletions =
+        ctx.apiMode !== 'responses' && endpoint.forceStreamForChatCompletions === true;
       const requestBody =
         ctx.apiMode === 'responses'
           ? // ChatGPT subscription tokens hit the Codex Responses backend, which
@@ -430,12 +432,11 @@ export class ProviderClient {
               stripCodexUnsupported: endpointKey === 'openai-subscription',
             })
           : toResponsesRequest(requestSource, bareModel, {
-              stream:
-                endpointKey === 'openai-subscription'
-                  ? true
-                  : endpointKey === 'openai-responses' || endpointKey === 'xai-responses'
-                    ? ctx.stream
-                    : undefined,
+              stream: forceStreamForChatCompletions
+                ? true
+                : endpointKey === 'openai-responses' || endpointKey === 'xai-responses'
+                  ? ctx.stream
+                  : undefined,
               // The ChatGPT subscription backend rejects max_output_tokens with
               // unsupported_parameter; only opt in for the API-key paths.
               mapMaxOutputTokens:
@@ -447,13 +448,6 @@ export class ProviderClient {
               forwardPromptCacheKey:
                 endpointKey === 'openai-subscription' || endpointKey === 'openai-responses',
             });
-      // Force upstream streaming for copilot-responses so the SSE collector in
-      // handleNonStreamResponse stays the single source of truth. Without this,
-      // an explicit `stream: false` from the caller could hand us a plain JSON
-      // body that our SSE parser would silently drop (mnfst/manifest#1849).
-      if (endpointKey === 'copilot-responses') {
-        requestBody.stream = true;
-      }
       return {
         url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
         headers: endpoint.buildHeaders(apiKey, authType),
