@@ -26,6 +26,13 @@ export interface ClassifiedProviderError {
   source: 'provider';
 }
 
+const KNOWN_CONTEXT_ERROR_CODES = new Set(['context_length_exceeded']);
+
+const KNOWN_CONTEXT_ERROR_MESSAGE_PATTERNS = [
+  /\b(?:this (?:model|endpoint)'s )?maximum context length is \d+ tokens\b/i,
+  /\bmaximum context length exceeded\b/i,
+];
+
 function sanitizeSensitivePatterns(msg: string): string {
   return msg
     .replace(/sk-ant-[a-zA-Z0-9_-]{20,}/g, 'sk-ant-***')
@@ -49,22 +56,31 @@ function extractProviderMessage(rawBody: string): string | null {
   }
 }
 
-function providerErrorSearchText(rawBody: string): string {
-  const message = extractProviderMessage(rawBody);
-  return `${message ?? ''}\n${rawBody}`;
+function extractProviderErrorCode(rawBody: string): string | null {
+  try {
+    const parsed = JSON.parse(rawBody) as Record<string, unknown>;
+    const error = parsed.error as Record<string, unknown> | undefined;
+    const code = error?.code ?? parsed.code;
+    return typeof code === 'string' && code.length > 0 ? code : null;
+  } catch {
+    return null;
+  }
+}
+
+function hasKnownContextErrorCode(rawBody: string): boolean {
+  const code = extractProviderErrorCode(rawBody);
+  if (code && KNOWN_CONTEXT_ERROR_CODES.has(code.toLowerCase())) return true;
+  return /\bcontext_length_exceeded\b/i.test(rawBody);
+}
+
+function hasKnownContextErrorMessage(rawBody: string): boolean {
+  const message = extractProviderMessage(rawBody) ?? rawBody;
+  return KNOWN_CONTEXT_ERROR_MESSAGE_PATTERNS.some((pattern) => pattern.test(message));
 }
 
 function isContextLengthError(status: number, rawBody: string): boolean {
   if (status < 400) return false;
-  const text = providerErrorSearchText(rawBody).toLowerCase();
-  return (
-    text.includes('context_length_exceeded') ||
-    text.includes('maximum context length') ||
-    /\bcontext (?:length|window)\b.{0,80}\b(?:exceed|exceeded|limit|maximum|too long|too large)\b/.test(
-      text,
-    ) ||
-    /\b(?:prompt|input)\b.{0,40}\btoo long\b/.test(text)
-  );
+  return hasKnownContextErrorCode(rawBody) || hasKnownContextErrorMessage(rawBody);
 }
 
 export function openAiErrorTypeForStatus(status: number): OpenAiCompatibleErrorType {

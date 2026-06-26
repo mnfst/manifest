@@ -159,6 +159,25 @@ describe('classifyProviderError', () => {
     ).toBe(message);
   });
 
+  it('classifies exact context overflow provider codes even when the message is generic', () => {
+    expect(
+      classifyProviderError(
+        400,
+        JSON.stringify({
+          error: {
+            message: 'Request rejected by upstream provider',
+            code: 'context_length_exceeded',
+          },
+        }),
+      ),
+    ).toEqual({
+      message: 'Request rejected by upstream provider',
+      type: 'invalid_request_error',
+      code: 'context_length_exceeded',
+      source: 'provider',
+    });
+  });
+
   it('scrubs secrets from classified provider messages', () => {
     expect(
       classifyProviderError(
@@ -171,6 +190,24 @@ describe('classifyProviderError', () => {
         }),
       )?.message,
     ).toBe('Maximum context length exceeded for key=*** and Bearer ***');
+  });
+
+  it('does not classify generic input length validation errors as context overflow', () => {
+    expect(
+      classifyProviderError(
+        400,
+        JSON.stringify({ error: { message: 'Field input.name is too long' } }),
+      ),
+    ).toBeNull();
+  });
+
+  it('does not classify generic token quota messages as context overflow', () => {
+    expect(
+      classifyProviderError(
+        400,
+        JSON.stringify({ error: { message: 'You hit your tokens limit' } }),
+      ),
+    ).toBeNull();
   });
 });
 
