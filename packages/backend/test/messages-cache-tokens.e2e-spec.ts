@@ -106,6 +106,22 @@ beforeAll(async () => {
     ],
   );
 
+  await ds.query(
+    `INSERT INTO exposed_model_routes
+       (id, tenant_id, agent_id, model_id, display_name, enabled, source_kind, source_key, route, fallback_routes, request_params, response_mode, created_at, updated_at)
+     VALUES ($1,$2,$3,$4,$5,true,'direct',NULL,$6::jsonb,$7::jsonb,NULL,'buffered',$8,$8)`,
+    [
+      'alias-anthropic-1871',
+      TEST_TENANT_ID,
+      TEST_AGENT_ID,
+      MODEL,
+      MODEL,
+      JSON.stringify({ provider: 'anthropic', authType: 'api_key', model: MODEL }),
+      JSON.stringify([]),
+      now,
+    ],
+  );
+
   // Lock routing to the default tier so the scorer can't pick something else.
   await ds.query(`UPDATE agents SET complexity_routing_enabled = false WHERE id = $1`, [
     TEST_AGENT_ID,

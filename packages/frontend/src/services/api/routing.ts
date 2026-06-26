@@ -5,10 +5,19 @@ import type {
   ModelRoute,
   ResponseMode,
   OutputModality,
+  RequestParamDefaults,
 } from 'manifest-shared';
 import { BASE_URL, fetchJson, fetchMutate, parseErrorMessage, routingPath } from './core.js';
 
-export type { AuthType, ModelCapability, ModelModality, ModelRoute, ResponseMode, OutputModality };
+export type {
+  AuthType,
+  ModelCapability,
+  ModelModality,
+  ModelRoute,
+  ResponseMode,
+  OutputModality,
+  RequestParamDefaults,
+};
 
 export interface RoutingProvider {
   id: string;
@@ -184,7 +193,6 @@ export function toggleComplexity(agentName: string) {
  * `agent_model_params` table — see `services/api/model-params.ts` for the
  * CRUD client.
  */
-export type { RequestParamDefaults } from 'manifest-shared';
 
 export interface TierAssignment {
   id: string;
