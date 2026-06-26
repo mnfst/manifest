@@ -33,6 +33,8 @@ import { getModelDisplayName, preloadModelDisplayNames } from '../services/model
 import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import ProviderChartCard from '../components/ProviderChartCard.jsx';
+import NewsBanner from '../components/NewsBanner.jsx';
+import { CURRENT_NEWS } from '../services/news.js';
 import Sparkline from '../components/Sparkline.jsx';
 import FilterSelect from '../components/FilterSelect.jsx';
 import Select from '../components/Select.jsx';
@@ -548,6 +550,9 @@ const GlobalOverview: Component = () => {
           </Show>
         }
       >
+        {/* ── News banner ─────────────────────────────────────────────── */}
+        <Show when={CURRENT_NEWS}>{(news) => <NewsBanner item={news()} />}</Show>
+
         {/* ── 2. Chart Card ───────────────────────────────────────────── */}
         <div style="margin-bottom: 24px;">
           {(() => {
