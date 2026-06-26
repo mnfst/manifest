@@ -53,7 +53,7 @@ function modelsDevModelIdPrefix(providerId: string): string | undefined {
 
 function prefersModelsDevCatalog(providerId: string): boolean {
   const lower = providerId.toLowerCase();
-  return lower === 'opencode-go' || lower === 'opencode-zen';
+  return lower === 'opencode-zen';
 }
 
 /** 2-minute TTL for the per-agent discovered-model list, matching RoutingCacheService. */

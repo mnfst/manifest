@@ -3101,7 +3101,7 @@ describe('ModelDiscoveryService', () => {
   /* ── models.dev fallback in discoverModels ── */
 
   describe('models.dev fallback in discoverModels', () => {
-    it('uses models.dev as the primary OpenCode Go catalog and preserves gateway model ids', async () => {
+    it('uses the live OpenCode Go catalog before models.dev fallback', async () => {
       mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) =>
         providerId === 'opencode-go'
           ? [
@@ -3117,20 +3117,37 @@ describe('ModelDiscoveryService', () => {
             ]
           : [],
       );
+      fetcher.fetch.mockResolvedValue([
+        makeModel({
+          id: 'opencode-go/glm-5.2',
+          displayName: 'opencode-go/glm-5.2',
+          provider: 'opencode-go',
+          contextWindow: 200000,
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          capabilityReasoning: true,
+          capabilityCode: true,
+        }),
+      ]);
 
       const result = await service.discoverModels(
         makeProvider({ provider: 'opencode-go', auth_type: 'subscription' }),
       );
 
-      expect(fetcher.fetch).not.toHaveBeenCalled();
-      expect(mockModelsDevSync.getModelsForProvider).toHaveBeenCalledWith('opencode-go');
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'opencode-go',
+        'decrypted-key',
+        'subscription',
+        undefined,
+      );
+      expect(mockModelsDevSync.getModelsForProvider).not.toHaveBeenCalledWith('opencode-go');
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual(
         expect.objectContaining({
           id: 'opencode-go/glm-5.2',
-          displayName: 'GLM-5.2',
+          displayName: 'opencode-go/glm-5.2',
           provider: 'opencode-go',
-          contextWindow: 1000000,
+          contextWindow: 200000,
           inputPricePerToken: 0,
           outputPricePerToken: 0,
           capabilityReasoning: true,
@@ -3175,17 +3192,14 @@ describe('ModelDiscoveryService', () => {
       );
     });
 
-    it('refreshes models.dev before a forced OpenCode Go provider refresh', async () => {
-      mockModelsDevSync.getModelsForProvider.mockReturnValue([
-        {
-          id: 'glm-5.2',
-          name: 'GLM-5.2',
-          contextWindow: 1000000,
-          inputPricePerToken: 0.0000014,
-          outputPricePerToken: 0.0000044,
-          reasoning: true,
-          toolCall: true,
-        },
+    it('refreshes metadata and fetches live OpenCode Go models on forced refresh', async () => {
+      fetcher.fetch.mockResolvedValue([
+        makeModel({
+          id: 'opencode-go/glm-5.2',
+          provider: 'opencode-go',
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+        }),
       ]);
 
       await service.discoverModels(
@@ -3194,7 +3208,13 @@ describe('ModelDiscoveryService', () => {
       );
 
       expect(mockModelsDevSync.refreshCache).toHaveBeenCalledTimes(1);
-      expect(fetcher.fetch).not.toHaveBeenCalled();
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'opencode-go',
+        'decrypted-key',
+        'subscription',
+        undefined,
+        { forceRefresh: true },
+      );
     });
 
     it('falls back to the OpenCode Go docs catalog when forced models.dev refresh fails', async () => {
@@ -3223,14 +3243,14 @@ describe('ModelDiscoveryService', () => {
       warnSpy.mockRestore();
     });
 
-    it('falls back to the OpenCode Go docs catalog when models.dev has no catalog entry', async () => {
+    it('uses the OpenCode Go provider fetch when models.dev has no catalog entry', async () => {
       fetcher.fetch.mockResolvedValue([makeModel({ id: 'opencode-go/glm-5.1' })]);
 
       const result = await service.discoverModels(
         makeProvider({ provider: 'opencode-go', auth_type: 'subscription' }),
       );
 
-      expect(mockModelsDevSync.getModelsForProvider).toHaveBeenCalledWith('opencode-go');
+      expect(mockModelsDevSync.getModelsForProvider).not.toHaveBeenCalledWith('opencode-go');
       expect(fetcher.fetch).toHaveBeenCalledWith(
         'opencode-go',
         'decrypted-key',

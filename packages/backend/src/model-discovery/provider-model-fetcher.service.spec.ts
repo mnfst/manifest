@@ -2109,35 +2109,52 @@ describe('ProviderModelFetcherService', () => {
   });
 
   describe('opencode-go provider', () => {
-    it('delegates to the catalog service instead of hitting the network', async () => {
+    it('fetches the live OpenCode Go /models catalog and namespaces model ids', async () => {
       const catalog = {
-        list: jest.fn().mockResolvedValue([
-          { id: 'glm-5.1', displayName: 'GLM-5.1', format: 'openai' as const },
-          { id: 'minimax-m2.7', displayName: 'MiniMax M2.7', format: 'anthropic' as const },
-        ]),
+        list: jest.fn().mockResolvedValue([]),
+        refresh: jest
+          .fn()
+          .mockResolvedValue([
+            { id: 'glm-5.1', displayName: 'GLM-5.1', format: 'openai' as const },
+          ]),
       };
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'glm-5.2', object: 'model', owned_by: 'opencode' },
+            { id: 'glm-5.1', object: 'model', owned_by: 'opencode' },
+          ],
+        }),
+      });
       const withCatalog = new ProviderModelFetcherService(
         catalog as unknown as ConstructorParameters<typeof ProviderModelFetcherService>[0],
       );
 
       const result = await withCatalog.fetch('opencode-go', 'og-token', 'subscription');
 
-      expect(fetchSpy).not.toHaveBeenCalled();
-      expect(catalog.list).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/go/v1/models',
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: 'Bearer og-token' }),
+        }),
+      );
+      expect(catalog.list).not.toHaveBeenCalled();
+      expect(catalog.refresh).not.toHaveBeenCalled();
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual(
         expect.objectContaining({
-          id: 'opencode-go/glm-5.1',
-          displayName: 'GLM-5.1',
+          id: 'opencode-go/glm-5.2',
+          displayName: 'opencode-go/glm-5.2',
           provider: 'opencode-go',
           inputPricePerToken: 0,
           outputPricePerToken: 0,
         }),
       );
-      expect(result[1].id).toBe('opencode-go/minimax-m2.7');
+      expect(result[1].id).toBe('opencode-go/glm-5.1');
     });
 
-    it('forces a catalog refresh when requested', async () => {
+    it('falls back to a refreshed docs catalog when live /models is empty', async () => {
       const catalog = {
         list: jest.fn().mockResolvedValue([]),
         refresh: jest
@@ -2149,12 +2166,21 @@ describe('ProviderModelFetcherService', () => {
       const withCatalog = new ProviderModelFetcherService(
         catalog as unknown as ConstructorParameters<typeof ProviderModelFetcherService>[0],
       );
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
 
       const result = await withCatalog.fetch('opencode-go', 'og-token', 'subscription', undefined, {
         forceRefresh: true,
       });
 
-      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/go/v1/models',
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: 'Bearer og-token' }),
+        }),
+      );
       expect(catalog.refresh).toHaveBeenCalledTimes(1);
       expect(catalog.list).not.toHaveBeenCalled();
       expect(result[0]).toEqual(
@@ -2166,10 +2192,15 @@ describe('ProviderModelFetcherService', () => {
       );
     });
 
-    it('returns [] when no catalog service is wired up', async () => {
+    it('uses live models even when no docs catalog service is wired up', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [{ id: 'glm-5.2' }] }),
+      });
+
       const result = await service.fetch('opencode-go', 'og-token', 'subscription');
-      expect(result).toEqual([]);
-      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(result.map((m) => m.id)).toEqual(['opencode-go/glm-5.2']);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
   });
 
