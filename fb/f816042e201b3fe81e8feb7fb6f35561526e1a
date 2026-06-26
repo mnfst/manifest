@@ -1,0 +1,38 @@
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_30be7802d4cc09::t_0b0a41246d2c5e 215-246,248,252
+  s_30be7802d4cc09::t_e0d313862aa896 214,247,249-250
+  s_30be7802d4cc09::t_135f66c238a692 251
+packages/backend/src/routing/proxy/__tests__/message-limit.spec.ts
+  s_30be7802d4cc09::t_e0d313862aa896 1-26
+docker/.env.example
+  s_30be7802d4cc09::t_e0d313862aa896 43-46
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_30be7802d4cc09::t_251e1da57aa63e 60,141,162,166,416-417,419
+  s_30be7802d4cc09::t_0b0a41246d2c5e 163-165
+  s_30be7802d4cc09::t_88cba7e5af9cae 418
+packages/backend/.env.example
+  s_30be7802d4cc09::t_e0d313862aa896 36-38
+packages/backend/src/routing/proxy/message-limit.ts
+  s_30be7802d4cc09::t_251e1da57aa63e 1-2,4-9,11
+  s_30be7802d4cc09::t_6a15360b0d6f08 3,10
+docker/docker-compose.yml
+  s_30be7802d4cc09::t_e0d313862aa896 69
+.changeset/max-messages-env.md
+  s_30be7802d4cc09::t_e0d313862aa896 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.1",
+  "base_commit_sha": "fbf816042e201b3fe81e8feb7fb6f35561526e1a",
+  "prompts": {},
+  "sessions": {
+    "s_30be7802d4cc09": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f02a7-f362-7860-a3b7-b02a72804cc6",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
