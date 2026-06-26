@@ -1,0 +1,20 @@
+packages/backend/test/proxy.e2e-spec.ts
+  s_2cab731bb7226a::t_7ab719d52d4646 182-187,189,192-193,196,211-214,219-220
+  s_2cab731bb7226a::t_01b96ee0f61ab4 26-28,92,111,128,135,142,148,158-161,227-230
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "24995721d62b0626b373b71365e5a61752fd51ca",
+  "prompts": {},
+  "sessions": {
+    "s_2cab731bb7226a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f02a6-be8b-7ea2-943d-d18d3db7ee64",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
