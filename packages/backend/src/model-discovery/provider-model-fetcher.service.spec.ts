@@ -2192,6 +2192,52 @@ describe('ProviderModelFetcherService', () => {
       );
     });
 
+    it('falls back to the docs catalog when live /models returns an error', async () => {
+      const catalog = {
+        list: jest
+          .fn()
+          .mockResolvedValue([
+            { id: 'glm-5.1', displayName: 'GLM-5.1', format: 'openai' as const },
+          ]),
+        refresh: jest.fn().mockResolvedValue([]),
+      };
+      fetchSpy.mockResolvedValue({
+        ok: false,
+        status: 503,
+        json: async () => ({}),
+      });
+      const withCatalog = new ProviderModelFetcherService(
+        catalog as unknown as ConstructorParameters<typeof ProviderModelFetcherService>[0],
+      );
+
+      const result = await withCatalog.fetch('opencode-go', 'og-token', 'subscription');
+
+      expect(catalog.list).toHaveBeenCalledTimes(1);
+      expect(catalog.refresh).not.toHaveBeenCalled();
+      expect(result.map((m) => m.id)).toEqual(['opencode-go/glm-5.1']);
+    });
+
+    it('falls back to the docs catalog when live /models throws', async () => {
+      const catalog = {
+        list: jest
+          .fn()
+          .mockResolvedValue([
+            { id: 'glm-5.1', displayName: 'GLM-5.1', format: 'openai' as const },
+          ]),
+        refresh: jest.fn().mockResolvedValue([]),
+      };
+      fetchSpy.mockRejectedValue(new Error('network down'));
+      const withCatalog = new ProviderModelFetcherService(
+        catalog as unknown as ConstructorParameters<typeof ProviderModelFetcherService>[0],
+      );
+
+      const result = await withCatalog.fetch('opencode-go', 'og-token', 'subscription');
+
+      expect(catalog.list).toHaveBeenCalledTimes(1);
+      expect(catalog.refresh).not.toHaveBeenCalled();
+      expect(result.map((m) => m.id)).toEqual(['opencode-go/glm-5.1']);
+    });
+
     it('uses live models even when no docs catalog service is wired up', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
