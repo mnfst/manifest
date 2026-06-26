@@ -1,4 +1,8 @@
-import { sanitizeProviderError } from './proxy-error-sanitizer';
+import {
+  classifyProviderError,
+  openAiErrorTypeForStatus,
+  sanitizeProviderError,
+} from './proxy-error-sanitizer';
 
 describe('sanitizeProviderError', () => {
   it('extracts error.message from JSON body in non-production', () => {
@@ -115,5 +119,106 @@ describe('sanitizeProviderError', () => {
       const result = sanitizeProviderError(401, body, 'production');
       expect(result).toBe('Authentication failed with upstream provider');
     });
+  });
+});
+
+describe('classifyProviderError', () => {
+  it('classifies provider context overflow and preserves the provider message', () => {
+    const message =
+      "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.";
+
+    expect(
+      classifyProviderError(
+        400,
+        JSON.stringify({
+          error: {
+            message,
+            type: 'invalid_request_error',
+            code: 'context_length_exceeded',
+          },
+        }),
+      ),
+    ).toEqual({
+      message,
+      type: 'invalid_request_error',
+      code: 'context_length_exceeded',
+      source: 'provider',
+    });
+  });
+
+  it('returns context overflow messages in production instead of the generic 400', () => {
+    const message =
+      "This endpoint's maximum context length is 262144 tokens. Please reduce the messages.";
+
+    expect(
+      sanitizeProviderError(
+        400,
+        JSON.stringify({ error: { message, code: 'context_length_exceeded' } }),
+        'production',
+      ),
+    ).toBe(message);
+  });
+
+  it('classifies exact context overflow provider codes even when the message is generic', () => {
+    expect(
+      classifyProviderError(
+        400,
+        JSON.stringify({
+          error: {
+            message: 'Request rejected by upstream provider',
+            code: 'context_length_exceeded',
+          },
+        }),
+      ),
+    ).toEqual({
+      message: 'Request rejected by upstream provider',
+      type: 'invalid_request_error',
+      code: 'context_length_exceeded',
+      source: 'provider',
+    });
+  });
+
+  it('scrubs secrets from classified provider messages', () => {
+    expect(
+      classifyProviderError(
+        400,
+        JSON.stringify({
+          error: {
+            message:
+              'Maximum context length exceeded for key=abc123 and Bearer sk-live-secret-token-value',
+          },
+        }),
+      )?.message,
+    ).toBe('Maximum context length exceeded for key=*** and Bearer ***');
+  });
+
+  it('does not classify generic input length validation errors as context overflow', () => {
+    expect(
+      classifyProviderError(
+        400,
+        JSON.stringify({ error: { message: 'Field input.name is too long' } }),
+      ),
+    ).toBeNull();
+  });
+
+  it('does not classify generic token quota messages as context overflow', () => {
+    expect(
+      classifyProviderError(
+        400,
+        JSON.stringify({ error: { message: 'You hit your tokens limit' } }),
+      ),
+    ).toBeNull();
+  });
+});
+
+describe('openAiErrorTypeForStatus', () => {
+  it.each([
+    [400, 'invalid_request_error'],
+    [401, 'authentication_error'],
+    [403, 'permission_error'],
+    [429, 'rate_limit_error'],
+    [500, 'server_error'],
+  ])('maps HTTP %d to OpenAI-compatible type %s', (status, type) => {
+    expect(openAiErrorTypeForStatus(status)).toBe(type);
   });
 });

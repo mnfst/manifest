@@ -13,7 +13,11 @@ import {
   pipeStream,
   StreamUsage,
 } from './stream-writer';
-import { sanitizeProviderError } from './proxy-error-sanitizer';
+import {
+  classifyProviderError,
+  openAiErrorTypeForStatus,
+  sanitizeProviderError,
+} from './proxy-error-sanitizer';
 import {
   collectResponsesSseResponse,
   createResponsesStreamTransformer,
@@ -81,6 +85,33 @@ function setHeaders(res: ExpressResponse, headers: Record<string, string>): void
   for (const [k, v] of Object.entries(headers)) res.setHeader(k, v);
 }
 
+type OpenAiErrorSource = 'provider' | 'manifest';
+
+export function buildOpenAiCompatibleError(
+  status: number,
+  errorBody: string,
+  opts: {
+    source?: OpenAiErrorSource;
+    code?: string | null;
+    provider?: string;
+    model?: string;
+    extra?: Record<string, unknown>;
+  } = {},
+): Record<string, unknown> {
+  const classified = classifyProviderError(status, errorBody);
+  return {
+    message: classified?.message ?? sanitizeProviderError(status, errorBody, process.env.NODE_ENV),
+    type: classified?.type ?? openAiErrorTypeForStatus(status),
+    param: null,
+    code: opts.code !== undefined ? opts.code : (classified?.code ?? null),
+    status,
+    source: opts.source ?? classified?.source ?? 'provider',
+    ...(opts.provider ? { provider: opts.provider } : {}),
+    ...(opts.model ? { model: opts.model } : {}),
+    ...(opts.extra ?? {}),
+  };
+}
+
 export async function handleProviderError(
   res: ExpressResponse,
   ctx: IngestionContext,
@@ -140,11 +171,11 @@ export async function handleProviderError(
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
   res.json({
-    error: {
-      message: sanitizeProviderError(errorStatus, errorBody, process.env.NODE_ENV),
-      type: 'upstream_error',
-      status: errorStatus,
-    },
+    error: buildOpenAiCompatibleError(errorStatus, errorBody, {
+      source: 'provider',
+      provider: meta.provider,
+      model: meta.model,
+    }),
   });
 }
 
@@ -206,22 +237,26 @@ function handleFallbackExhausted(
   );
 
   logger.warn(`Fallback chain exhausted: ${errorBody.slice(0, 200)}`);
+  const classified = classifyProviderError(errorStatus, errorBody);
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
   res.setHeader('X-Manifest-Fallback-Exhausted', 'true');
   res.json({
-    error: {
-      message: sanitizeProviderError(errorStatus, errorBody, process.env.NODE_ENV),
-      type: 'fallback_exhausted',
-      status: errorStatus,
-      primary_model: meta.model,
-      primary_provider: meta.provider,
-      attempted_fallbacks: failedFallbacks.map((f) => ({
-        model: f.model,
-        provider: f.provider,
-        status: f.status,
-      })),
-    },
+    error: buildOpenAiCompatibleError(errorStatus, errorBody, {
+      source: classified?.source ?? 'manifest',
+      code: classified?.code ?? 'fallback_exhausted',
+      provider: meta.provider,
+      model: meta.model,
+      extra: {
+        primary_model: meta.model,
+        primary_provider: meta.provider,
+        attempted_fallbacks: failedFallbacks.map((f) => ({
+          model: f.model,
+          provider: f.provider,
+          status: f.status,
+        })),
+      },
+    }),
   });
 }
 

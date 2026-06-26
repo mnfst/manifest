@@ -153,7 +153,14 @@ describe('proxy-response-handler', () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: expect.objectContaining({ type: 'upstream_error', status: 500 }),
+          error: expect.objectContaining({
+            type: 'server_error',
+            code: null,
+            status: 500,
+            source: 'provider',
+            provider: 'openai',
+            model: 'gpt-4o',
+          }),
         }),
       );
     });
@@ -215,9 +222,61 @@ describe('proxy-response-handler', () => {
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           error: expect.objectContaining({
-            type: 'fallback_exhausted',
+            type: 'server_error',
+            code: 'fallback_exhausted',
+            source: 'manifest',
             primary_model: 'gpt-4o',
             attempted_fallbacks: [{ model: 'claude-3-haiku', provider: 'anthropic', status: 429 }],
+          }),
+        }),
+      );
+    });
+
+    it('preserves provider context overflow code when fallback chain is exhausted', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'opencode-go', model: 'opencode-go/kimi-k2.6' });
+      const metaHeaders = buildMetaHeaders(meta);
+      const message =
+        "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.";
+      const failedFallbacks: FailedFallback[] = [
+        {
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          status: 400,
+          errorBody: 'also too long',
+        },
+      ];
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        metaHeaders,
+        400,
+        JSON.stringify({
+          error: {
+            message,
+            type: 'invalid_request_error',
+            code: 'context_length_exceeded',
+          },
+        }),
+        failedFallbacks,
+        recorder as any,
+      );
+
+      expect(res.setHeader).toHaveBeenCalledWith('X-Manifest-Fallback-Exhausted', 'true');
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            message,
+            type: 'invalid_request_error',
+            code: 'context_length_exceeded',
+            source: 'provider',
+            attempted_fallbacks: [
+              { model: 'claude-sonnet-4-6', provider: 'anthropic', status: 400 },
+            ],
           }),
         }),
       );
@@ -321,6 +380,54 @@ describe('proxy-response-handler', () => {
             error: expect.objectContaining({ message: 'Invalid model' }),
           }),
         );
+      } finally {
+        if (originalEnv === undefined) {
+          delete process.env.NODE_ENV;
+        } else {
+          process.env.NODE_ENV = originalEnv;
+        }
+      }
+    });
+
+    it('returns provider context overflow as an OpenAI-compatible error in production', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        const { res } = mockResponse();
+        const recorder = mockRecorder();
+        const meta = makeMeta({ provider: 'opencode-go', model: 'opencode-go/kimi-k2.6' });
+        const message =
+          "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.";
+
+        await handleProviderError(
+          res as any,
+          testCtx,
+          meta,
+          buildMetaHeaders(meta),
+          400,
+          JSON.stringify({
+            error: {
+              message,
+              type: 'invalid_request_error',
+              code: 'context_length_exceeded',
+            },
+          }),
+          undefined,
+          recorder as any,
+        );
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: expect.objectContaining({
+            message,
+            type: 'invalid_request_error',
+            code: 'context_length_exceeded',
+            status: 400,
+            source: 'provider',
+            provider: 'opencode-go',
+            model: 'opencode-go/kimi-k2.6',
+          }),
+        });
       } finally {
         if (originalEnv === undefined) {
           delete process.env.NODE_ENV;
