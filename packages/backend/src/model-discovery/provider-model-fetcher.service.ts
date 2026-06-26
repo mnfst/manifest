@@ -41,6 +41,7 @@ const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const FIREWORKS_MODELS_URL = 'https://api.fireworks.ai/v1/accounts/fireworks/models';
 const FIREWORKS_MODELS_PAGE_SIZE = 200;
 const FIREWORKS_MODELS_MAX_PAGES = 20;
+const OPENCODE_GO_MODELS_URL = 'https://opencode.ai/zen/go/v1/models';
 
 /* ── Generic parser factory ── */
 
@@ -731,7 +732,7 @@ export class ProviderModelFetcherService {
     } else if (configKey === 'zai' && authType === 'subscription') {
       configKey = 'zai-subscription';
     } else if (configKey === 'opencode-go') {
-      return this.fetchOpencodeGoCatalog(options?.forceRefresh === true);
+      return this.fetchOpencodeGoModels(apiKey, options?.forceRefresh === true);
     } else if (configKey === 'gemini' && authType === 'subscription') {
       // CodeAssist (`cloudcode-pa.googleapis.com`) does not expose a
       // `/models` endpoint; the discovery fallback chain pulls Gemini
@@ -881,7 +882,54 @@ export class ProviderModelFetcherService {
     return `${FIREWORKS_MODELS_URL}?${params.toString()}`;
   }
 
-  private async fetchOpencodeGoCatalog(forceRefresh = false): Promise<DiscoveredModel[]> {
+  private async fetchOpencodeGoModels(
+    apiKey: string,
+    forceRefresh = false,
+  ): Promise<DiscoveredModel[]> {
+    const live = await this.fetchOpencodeGoLiveModels(apiKey);
+    if (live.length > 0) return live;
+    return this.fetchOpencodeGoDocsCatalog(forceRefresh);
+  }
+
+  private async fetchOpencodeGoLiveModels(apiKey: string): Promise<DiscoveredModel[]> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const res = await fetch(OPENCODE_GO_MODELS_URL, {
+        headers: apiKey ? bearerHeaders(apiKey) : {},
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        this.logger.warn(`OpenCode Go returned ${res.status} from ${OPENCODE_GO_MODELS_URL}`);
+        return [];
+      }
+
+      const body = await res.json();
+      const models = parseOpenAI(body, 'opencode-go').map((model) => {
+        const id = `opencode-go/${model.id}`;
+        return {
+          ...model,
+          id,
+          displayName: id,
+          provider: 'opencode-go',
+          contextWindow: OPENCODE_GO_CONTEXT_WINDOW,
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          capabilityReasoning: true,
+          capabilityCode: true,
+        };
+      });
+      return filterNonChatModels(models, 'opencode-go');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to fetch OpenCode Go models: ${message}`);
+      return [];
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  private async fetchOpencodeGoDocsCatalog(forceRefresh = false): Promise<DiscoveredModel[]> {
     if (!this.opencodeGoCatalog) return [];
     const entries = forceRefresh
       ? await this.opencodeGoCatalog.refresh()

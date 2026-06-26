@@ -2,4 +2,4 @@
 'manifest': patch
 ---
 
-Clarify OpenCode Go per-request subscription values as quota usage instead of extra billing.
+Refresh OpenCode Go models from the live OpenCode catalog and clarify per-request subscription values as quota usage instead of extra billing.
