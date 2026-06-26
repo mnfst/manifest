@@ -25,7 +25,11 @@ import {
 } from './anthropic-messages-adapter';
 import type { ProxyApiMode } from './proxy-types';
 import type { ThoughtSignatureCache } from './thought-signature-cache';
-import type { ThinkingBlockCache, ThinkingBlock } from './thinking-block-cache';
+import type {
+  ThinkingBlockCache,
+  ThinkingBlock,
+  ThinkingBlockRouteContext,
+} from './thinking-block-cache';
 import type { ReasoningContentCache } from './reasoning-content-cache';
 import type { ExtractedSignature } from './google-adapter';
 import {
@@ -43,6 +47,14 @@ const logger = new Logger('ProxyResponseHandler');
 
 function recordSafely(promise: Promise<unknown>, label: string): void {
   promise.catch((e) => logger.warn(`Failed to record ${label}: ${e}`));
+}
+
+function thinkingRouteContext(meta: RoutingMeta): ThinkingBlockRouteContext {
+  return {
+    provider: meta.provider,
+    authType: meta.auth_type,
+    model: meta.model,
+  };
 }
 
 export function buildMetaHeaders(meta: RoutingMeta): Record<string, string> {
@@ -344,7 +356,7 @@ export async function handleStreamResponse(
     const onThinkingBlocks =
       thinkingCache && sessionKey
         ? (firstToolUseId: string, blocks: ThinkingBlock[]) => {
-            thinkingCache.store(sessionKey, firstToolUseId, blocks);
+            thinkingCache.store(sessionKey, firstToolUseId, blocks, thinkingRouteContext(meta));
           }
         : undefined;
     const anthropicTransformer = providerClient.createAnthropicStreamTransformer(
@@ -480,7 +492,12 @@ export async function handleNonStreamResponse(
     const anthropicData = (await forward.response.json()) as Record<string, unknown>;
     const extracted = extractThinkingBlocksFromMessagesResponse(anthropicData);
     if (extracted && thinkingCache && sessionKey) {
-      thinkingCache.store(sessionKey, extracted.firstToolUseId, extracted.blocks);
+      thinkingCache.store(
+        sessionKey,
+        extracted.firstToolUseId,
+        extracted.blocks,
+        thinkingRouteContext(meta),
+      );
     }
     responseBody = anthropicData;
   } else if (forward.isAnthropic) {
@@ -490,7 +507,12 @@ export async function handleNonStreamResponse(
       | ExtractedThinkingBlocks
       | undefined;
     if (extracted && thinkingCache && sessionKey) {
-      thinkingCache.store(sessionKey, extracted.firstToolUseId, extracted.blocks);
+      thinkingCache.store(
+        sessionKey,
+        extracted.firstToolUseId,
+        extracted.blocks,
+        thinkingRouteContext(meta),
+      );
     }
     delete (responseBody as Record<string, unknown>)._extractedThinkingBlocks;
   } else if (forward.isChatGpt) {

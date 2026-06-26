@@ -550,7 +550,11 @@ describe('proxy-response-handler', () => {
       const { res } = mockResponse();
       const forward = mockForward({ isAnthropic: true });
       const client = mockProviderClient();
-      const meta = makeMeta();
+      const meta = makeMeta({
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      });
       const thinkingCache = { store: jest.fn() };
       const sessionKey = 'sess-anthro-stream';
 
@@ -576,6 +580,11 @@ describe('proxy-response-handler', () => {
         'sess-anthro-stream',
         'toolu_stream',
         blocks,
+        {
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-sonnet-4-5-20250929',
+        },
       );
     });
 
@@ -1096,7 +1105,11 @@ describe('proxy-response-handler', () => {
         usage: { input_tokens: 50, output_tokens: 12, cache_read_input_tokens: 0 },
       };
       const forward = mockForward(body, { isAnthropic: true });
-      const meta = makeMeta();
+      const meta = makeMeta({
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      });
       const thinkingCache = { store: jest.fn() };
 
       const usage = await handleNonStreamResponse(
@@ -1137,7 +1150,11 @@ describe('proxy-response-handler', () => {
         usage: { input_tokens: 1, output_tokens: 1 },
       };
       const forward = mockForward(body, { isAnthropic: true });
-      const meta = makeMeta();
+      const meta = makeMeta({
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      });
       const thinkingCache = { store: jest.fn() };
 
       await handleNonStreamResponse(
@@ -1152,9 +1169,16 @@ describe('proxy-response-handler', () => {
         'messages',
       );
 
-      expect(thinkingCache.store).toHaveBeenCalledWith('sess-x', 'toolu_1', [
-        { type: 'thinking', thinking: 'searching...', signature: 'sig' },
-      ]);
+      expect(thinkingCache.store).toHaveBeenCalledWith(
+        'sess-x',
+        'toolu_1',
+        [{ type: 'thinking', thinking: 'searching...', signature: 'sig' }],
+        {
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-sonnet-4-5-20250929',
+        },
+      );
     });
 
     it('should convert Anthropic response', async () => {
@@ -1162,7 +1186,11 @@ describe('proxy-response-handler', () => {
       const client = mockProviderClient();
       client.convertAnthropicResponse.mockReturnValue({});
       const forward = mockForward({}, { isAnthropic: true });
-      const meta = makeMeta();
+      const meta = makeMeta({
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      });
 
       const usage = await handleNonStreamResponse(
         res as any,
@@ -1191,7 +1219,11 @@ describe('proxy-response-handler', () => {
       });
 
       const forward = mockForward({}, { isAnthropic: true });
-      const meta = makeMeta();
+      const meta = makeMeta({
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      });
 
       await handleNonStreamResponse(
         res as any,
@@ -1205,9 +1237,16 @@ describe('proxy-response-handler', () => {
       );
 
       expect(thinkingCache.store).toHaveBeenCalledTimes(1);
-      expect(thinkingCache.store).toHaveBeenCalledWith('sess-anthro', 'toolu_01', [
-        { type: 'thinking', thinking: 'reason', signature: 's' },
-      ]);
+      expect(thinkingCache.store).toHaveBeenCalledWith(
+        'sess-anthro',
+        'toolu_01',
+        [{ type: 'thinking', thinking: 'reason', signature: 's' }],
+        {
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-sonnet-4-5-20250929',
+        },
+      );
 
       // The internal side-channel is stripped before the body reaches the client.
       const sentBody = res.json.mock.calls[0][0];

@@ -6,7 +6,7 @@
 import { randomUUID } from 'crypto';
 
 import { OpenAIMessage, ThinkingBlockLookup } from './proxy-types';
-import type { ThinkingBlock } from './thinking-block-cache';
+import type { ThinkingBlock, ThinkingBlockRouteContext } from './thinking-block-cache';
 
 interface ContentBlock {
   type: string;
@@ -200,6 +200,7 @@ function toContentBlocks(content: unknown, includeImages = false): ContentBlock[
 function convertMessage(
   msg: OpenAIMessage,
   thinkingLookup?: ThinkingBlockLookup,
+  thinkingRouteContext?: ThinkingBlockRouteContext,
 ): { role: 'user' | 'assistant'; content: ContentBlock[] } | null {
   if (msg.role === 'system' || msg.role === 'developer') return null;
 
@@ -228,7 +229,9 @@ function convertMessage(
     // tool_call ids back unchanged.
     const firstToolCallId = Array.isArray(msg.tool_calls) && msg.tool_calls[0]?.id;
     if (thinkingLookup && typeof firstToolCallId === 'string' && firstToolCallId) {
-      const cached = thinkingLookup(firstToolCallId);
+      const cached = thinkingRouteContext
+        ? thinkingLookup(firstToolCallId, thinkingRouteContext)
+        : thinkingLookup(firstToolCallId);
       if (cached) {
         for (const block of cached) blocks.push(block as ContentBlock);
       }
@@ -271,6 +274,8 @@ export interface AnthropicRequestOptions {
   injectSubscriptionIdentity?: boolean;
   /** Lookup for re-injecting cached extended-thinking blocks. */
   thinkingLookup?: ThinkingBlockLookup;
+  /** Route context for replaying only compatible cached thinking blocks. */
+  thinkingRouteContext?: ThinkingBlockRouteContext;
   /** Resolved Anthropic upstream model, used for model-specific body normalization. */
   targetModel?: string;
 }
@@ -293,7 +298,10 @@ export function toAnthropicRequest(
   }
 
   const thinkingLookup = options?.thinkingLookup;
-  const converted = messages.map((msg) => convertMessage(msg, thinkingLookup)).filter(Boolean);
+  const thinkingRouteContext = options?.thinkingRouteContext;
+  const converted = messages
+    .map((msg) => convertMessage(msg, thinkingLookup, thinkingRouteContext))
+    .filter(Boolean);
   const result: Record<string, unknown> = {
     messages: converted,
     max_tokens: (body.max_tokens as number) || 4096,
@@ -426,6 +434,7 @@ export function applyAnthropicMessagesMutations(
   }
 
   const thinkingLookup = options?.thinkingLookup;
+  const thinkingRouteContext = options?.thinkingRouteContext;
   if (thinkingLookup && Array.isArray(body.messages)) {
     result.messages = (body.messages as Array<Record<string, unknown>>).map((m) => {
       if (m.role !== 'assistant' || !Array.isArray(m.content)) return m;
@@ -441,7 +450,9 @@ export function applyAnthropicMessagesMutations(
         (b) => b.type === 'thinking' || b.type === 'redacted_thinking',
       );
       if (alreadyHasThinking) return m;
-      const cached = thinkingLookup(firstToolUse.id);
+      const cached = thinkingRouteContext
+        ? thinkingLookup(firstToolUse.id, thinkingRouteContext)
+        : thinkingLookup(firstToolUse.id);
       if (!cached || cached.length === 0) return m;
       return { ...m, content: [...(cached as ContentBlock[]), ...content] };
     });

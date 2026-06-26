@@ -22,6 +22,75 @@ describe('ThinkingBlockCache', () => {
     expect(retrieved).toBe(blocks);
   });
 
+  it('retrieves route-scoped blocks only for the same provider auth and model', () => {
+    const blocks: ThinkingBlock[] = [
+      { type: 'thinking', thinking: 'reasoning...', signature: 'sig_1' },
+    ];
+    const routeContext = {
+      provider: 'anthropic',
+      authType: 'subscription',
+      model: 'claude-sonnet-4-5-20250929',
+    };
+
+    cache.store('session-1', 'toolu_1', blocks, routeContext);
+
+    expect(cache.retrieve('session-1', 'toolu_1', routeContext)).toBe(blocks);
+    expect(
+      cache.retrieve('session-1', 'toolu_1', {
+        provider: 'anthropic',
+        authType: 'api_key',
+        model: 'claude-sonnet-4-5-20250929',
+      }),
+    ).toBeNull();
+    expect(
+      cache.retrieve('session-1', 'toolu_1', {
+        provider: 'minimax',
+        authType: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      }),
+    ).toBeNull();
+    expect(
+      cache.retrieve('session-1', 'toolu_1', {
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'claude-opus-4-1-20250805',
+      }),
+    ).toBeNull();
+
+    // Incompatible attempts do not consume or mutate the cached blocks.
+    expect(cache.retrieve('session-1', 'toolu_1', routeContext)).toBe(blocks);
+  });
+
+  it('normalizes route context case and defaults missing auth type to api_key', () => {
+    const blocks: ThinkingBlock[] = [{ type: 'thinking', thinking: 'ok', signature: 'sig' }];
+    cache.store('session-1', 'toolu_1', blocks, {
+      provider: 'Anthropic',
+      model: 'Claude-Sonnet-4-5-20250929',
+    });
+
+    expect(
+      cache.retrieve('session-1', 'toolu_1', {
+        provider: 'anthropic',
+        authType: 'api_key',
+        model: 'claude-sonnet-4-5-20250929',
+      }),
+    ).toBe(blocks);
+  });
+
+  it('does not replay an unscoped entry into a scoped lookup', () => {
+    const blocks: ThinkingBlock[] = [{ type: 'thinking', thinking: 'legacy', signature: 'sig' }];
+    cache.store('session-1', 'toolu_1', blocks);
+
+    expect(
+      cache.retrieve('session-1', 'toolu_1', {
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      }),
+    ).toBeNull();
+    expect(cache.retrieve('session-1', 'toolu_1')).toBe(blocks);
+  });
+
   it('returns null for a non-existent key', () => {
     expect(cache.retrieve('no-session', 'no-tool')).toBeNull();
   });

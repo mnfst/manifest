@@ -232,8 +232,10 @@ export class ProxyService {
 
     const signatureLookup = (toolCallId: string) =>
       this.signatureCache.retrieve(sessionKey, toolCallId);
-    const thinkingLookup = (firstToolUseId: string) =>
-      this.thinkingCache.retrieve(sessionKey, firstToolUseId);
+    const thinkingLookup: ThinkingBlockLookup = (firstToolUseId, routeContext) =>
+      routeContext
+        ? this.thinkingCache.retrieve(sessionKey, firstToolUseId, routeContext)
+        : this.thinkingCache.retrieve(sessionKey, firstToolUseId);
     const reasoningContentLookup = (firstToolCallId: string) =>
       this.reasoningCache.retrieve(sessionKey, firstToolCallId);
 

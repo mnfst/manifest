@@ -1443,6 +1443,45 @@ describe('Anthropic Adapter', () => {
         expect(content[2].id).toBe('toolu_first');
       });
 
+      it('passes the route context to thinkingLookup', () => {
+        const thinkingBlock = {
+          type: 'thinking',
+          thinking: 'cached reasoning',
+          signature: 'sig_cached',
+        };
+        const routeContext = {
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-sonnet-4-5-20250929',
+        };
+        const lookup = jest.fn().mockReturnValue([thinkingBlock]);
+
+        toAnthropicRequest(
+          {
+            messages: [
+              {
+                role: 'assistant',
+                content: null,
+                tool_calls: [
+                  {
+                    id: 'toolu_first',
+                    type: 'function',
+                    function: { name: 'search', arguments: '{}' },
+                  },
+                ],
+              },
+            ],
+          },
+          'claude-sonnet-4-5-20250929',
+          {
+            thinkingLookup: lookup,
+            thinkingRouteContext: routeContext,
+          },
+        );
+
+        expect(lookup).toHaveBeenCalledWith('toolu_first', routeContext);
+      });
+
       it('prepends multiple cached blocks in the order they were cached', () => {
         const b1 = { type: 'thinking', thinking: 'one', signature: 's1' };
         const b2 = { type: 'redacted_thinking', data: 'opaque' };
@@ -2231,6 +2270,32 @@ describe('Anthropic Adapter', () => {
       const content = assistant.content as Array<Record<string, unknown>>;
       expect(content[0]).toEqual({ type: 'thinking', thinking: 'searching', signature: 'sig' });
       expect(content[1]).toMatchObject({ type: 'tool_use', id: 'call_1' });
+    });
+
+    it('passes the route context when replaying cached thinking blocks', () => {
+      const cached = [{ type: 'thinking' as const, thinking: 'searching', signature: 'sig' }];
+      const routeContext = {
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      };
+      const lookup = jest.fn().mockReturnValue(cached);
+
+      applyAnthropicMessagesMutations(
+        {
+          messages: [
+            {
+              role: 'assistant',
+              content: [
+                { type: 'tool_use', id: 'call_1', name: 'web_search', input: { q: 'cats' } },
+              ],
+            },
+          ],
+        },
+        { thinkingLookup: lookup, thinkingRouteContext: routeContext },
+      );
+
+      expect(lookup).toHaveBeenCalledWith('call_1', routeContext);
     });
 
     it('does not duplicate thinking blocks the client already echoed', () => {
