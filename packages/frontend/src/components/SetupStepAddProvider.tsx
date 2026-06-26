@@ -6,10 +6,21 @@ import NanobotSetup from './NanobotSetup.jsx';
 import CraftAgentSetup from './CraftAgentSetup.jsx';
 import ClaudeCodeSetup from './ClaudeCodeSetup.jsx';
 import OpenCodeSetup from './OpenCodeSetup.jsx';
+import WarpSetup from './WarpSetup.jsx';
+import PiSetup from './PiSetup.jsx';
 import type { ToolkitId } from '../services/framework-snippets.js';
+import type { ModelAlias } from '../services/api.js';
 
 type SetupTab = 'toolkits' | 'agents';
-type AgentId = 'openclaw' | 'hermes' | 'nanobot' | 'craft' | 'claude-code' | 'opencode';
+type AgentId =
+  | 'openclaw'
+  | 'hermes'
+  | 'nanobot'
+  | 'craft'
+  | 'claude-code'
+  | 'opencode'
+  | 'warp'
+  | 'pi';
 
 interface Props {
   apiKey: string | null;
@@ -17,6 +28,7 @@ interface Props {
   baseUrl: string;
   hideFullKey?: boolean;
   platform?: string | null;
+  modelAliases?: ModelAlias[];
 }
 
 const PLATFORM_TO_TOOLKIT: Record<string, ToolkitId> = {
@@ -35,6 +47,7 @@ const SetupStepAddProvider: Component<Props> = (props) => {
     apiKey: props.apiKey,
     keyPrefix: props.keyPrefix,
     baseUrl: props.baseUrl,
+    modelAliases: props.modelAliases,
   }));
 
   const isFiltered = () => !!props.platform;
@@ -55,7 +68,11 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                   ? 'Connect Claude Code to Manifest'
                   : props.platform === 'opencode'
                     ? 'Connect OpenCode to Manifest'
-                    : 'Connect your harness to Manifest'}
+                    : props.platform === 'warp'
+                      ? 'Connect Warp to Manifest'
+                      : props.platform === 'pi'
+                        ? 'Connect Pi to Manifest'
+                        : 'Connect your harness to Manifest'}
       </h3>
 
       {/* Platform-filtered mode: show only relevant content */}
@@ -78,6 +95,12 @@ const SetupStepAddProvider: Component<Props> = (props) => {
           </Match>
           <Match when={props.platform === 'opencode'}>
             <OpenCodeSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'warp'}>
+            <WarpSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'pi'}>
+            <PiSetup {...snippetProps()} />
           </Match>
           <Match when={toolkitId()}>
             <FrameworkSnippets
@@ -221,6 +244,26 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                 />
                 OpenCode
               </button>
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeAgent() === 'warp' }}
+                onClick={() => setActiveAgent('warp')}
+                role="tab"
+                aria-selected={activeAgent() === 'warp'}
+              >
+                <img src="/icons/other.svg" alt="" class="panel__tab-icon" width="16" height="16" />
+                Warp
+              </button>
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeAgent() === 'pi' }}
+                onClick={() => setActiveAgent('pi')}
+                role="tab"
+                aria-selected={activeAgent() === 'pi'}
+              >
+                <img src="/icons/other.svg" alt="" class="panel__tab-icon" width="16" height="16" />
+                Pi
+              </button>
             </div>
           </div>
 
@@ -242,6 +285,12 @@ const SetupStepAddProvider: Component<Props> = (props) => {
             </Match>
             <Match when={activeAgent() === 'opencode'}>
               <OpenCodeSetup {...snippetProps()} />
+            </Match>
+            <Match when={activeAgent() === 'warp'}>
+              <WarpSetup {...snippetProps()} />
+            </Match>
+            <Match when={activeAgent() === 'pi'}>
+              <PiSetup {...snippetProps()} />
             </Match>
           </Switch>
         </Show>

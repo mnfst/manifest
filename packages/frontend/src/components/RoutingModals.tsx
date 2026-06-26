@@ -16,6 +16,7 @@ import type {
   SpecificityAssignment,
   ModelCapability,
   ResponseMode,
+  ModelAlias,
 } from '../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
 import {
@@ -50,6 +51,7 @@ interface RoutingModalsProps {
   specificityAssignments?: () => SpecificityAssignment[];
   customProviders: () => CustomProviderData[];
   connectedProviders: () => RoutingProvider[];
+  modelAliases?: () => ModelAlias[];
   getTier: (tierId: string) => TierAssignment | undefined;
   onOverride: (
     tierId: string,
@@ -321,6 +323,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
         mode={props.instructionModal() ?? 'enable'}
         agentName={props.agentName()}
         connectedProvider={props.instructionProvider()}
+        modelAliases={props.modelAliases?.() ?? []}
         onClose={props.onInstructionClose}
       />
     </>

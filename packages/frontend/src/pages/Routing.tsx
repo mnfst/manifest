@@ -48,6 +48,7 @@ import {
   getComplexityStatus,
   toggleComplexity,
   listModelParams,
+  getModelParamSpecs,
   setModelParams as setModelParamsApi,
   deleteModelParams,
   modelParamsKey,
@@ -949,6 +950,9 @@ const Routing: Component = () => {
             onUpdate={handleUpdateAlias}
             onToggle={handleToggleAlias}
             onDelete={handleDeleteAlias}
+            getParamSpecs={(route) =>
+              getModelParamSpecs(agentName(), route.provider, route.authType, route.model)
+            }
           />
 
           <RoutingFooter
@@ -1046,6 +1050,7 @@ const Routing: Component = () => {
         specificityAssignments={() => specificityAssignments() ?? []}
         customProviders={() => customProviders() ?? []}
         connectedProviders={enabledConnectedProviders}
+        modelAliases={aliases}
         getTier={(tierId) => {
           const generalist = actions.getTier(tierId);
           if (generalist) return generalist;
@@ -1065,6 +1070,7 @@ const Routing: Component = () => {
         apiKey={(location.state as { newApiKey?: string } | undefined)?.newApiKey ?? null}
         agentPlatform={agentPlatform()}
         agentCategory={agentCategory()}
+        modelAliases={aliases()}
         onClose={() => {
           localStorage.setItem(`setup_dismissed_${params.agentName}`, '1');
           clearSetupPending(agentName());

@@ -1,4 +1,4 @@
-# Issue 2285 Product Spec: Direct Model Routing and Model Aliases
+# Issue 2285 Product Spec: Direct Model Routing, Reasoning Aliases, and Client Setup
 
 ## Goal
 
@@ -11,9 +11,13 @@ Make Manifest usable as a drop-in OpenAI-compatible endpoint for clients that re
 - Alias ids are agent-scoped, case-insensitively unique, and user-editable.
 - Disabled aliases are hidden from `/v1/models` and rejected by proxy requests.
 - Direct aliases route to a stored provider/auth/model tuple and bypass request scoring.
+- Direct aliases can expose fixed reasoning variants, for example `openai-subscription/gpt-5.5-high`, by storing provider-shaped reasoning request params.
+- Direct aliases can also accept a per-request `x-manifest-reasoning-effort` header. The header applies only after the requested model resolves to one concrete direct provider route.
 - Rule aliases expose an existing tier, specificity, or header-tier rule as a model id and follow that rule's current route and fallback configuration.
 - Raw `provider/model` direct routing is accepted only when it maps unambiguously to one enabled provider/auth route. Ambiguous matches return an OpenAI-style error asking the user to configure an alias.
 - `auto` and `manifest/auto` keep the existing scoring-based route selection.
+- The reasoning header never changes `auto`, tier aliases, specificity aliases, or header-tier aliases.
+- Streamed Chat Completions responses always end with a valid terminal OpenAI chunk before `[DONE]`, regardless of whether the request used `manifest/auto`, a direct alias, a rule alias, a raw direct route, or a fallback route.
 
 ## Alias Types
 
@@ -46,9 +50,18 @@ The alias resolves the rule at request time so future edits to the rule are refl
 
 - Tier, specificity, and header-tier cards include an "Expose as model" control.
 - Routing includes a compact direct alias management panel.
+- Direct alias rows can edit or clear their reasoning effort.
+- Direct alias controls can generate reasoning variants for the selected model.
 - Alias rows show the advertised id, provider, auth badge, key label, model, reasoning effort, response mode, and enabled state.
 - Suggested ids distinguish provider/auth source, for example `openai-api/...`, `openai-subscription/...`, `anthropic-api/...`, and `anthropic-subscription/...`.
 - Users can edit suggested ids before saving.
+
+## Client Setup Requirements
+
+- OpenCode setup output includes `auto`, `manifest/auto`, and every enabled exposed alias under `provider.manifest.models`.
+- Pi is a supported coding client. Its setup output uses a static `~/.pi/agent/models.json` provider configured for Manifest's OpenAI-compatible Chat Completions endpoint.
+- Warp is a supported coding client. Its setup output lists the Manifest custom inference endpoint and every enabled exposed model row. Direct aliases are shown ahead of rule aliases after the `auto` rows for deterministic client testing.
+- SDK and cURL setup output shows the optional `x-manifest-reasoning-effort` header for clients that prefer a base alias plus per-request reasoning control.
 
 ## Non-Goals
 

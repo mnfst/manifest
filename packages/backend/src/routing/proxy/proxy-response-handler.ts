@@ -38,6 +38,10 @@ import {
   unwrapCodeAssistResponse,
   unwrapCodeAssistStreamPayload,
 } from '../oauth/gemini/codeassist-envelope';
+import {
+  createOpenAiChatCompletionStreamNormalizer,
+  createOpenAiChatCompletionTerminalGuard,
+} from './openai-stream-normalizer';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -314,6 +318,12 @@ export async function handleStreamResponse(
   const toClientChunk = streamTransformer
     ? (chunk: string) => streamTransformer.transform(chunk)
     : (chunk: string) => chunk;
+  const terminalGuard =
+    apiMode === 'chat_completions' ? createOpenAiChatCompletionTerminalGuard(meta.model) : null;
+  const guardOpenAiChunk = (chunk: string | null): string | null =>
+    terminalGuard ? terminalGuard.transform(chunk) : chunk;
+  const finalizeOpenAiChat = (): string | null =>
+    finalize ? finalize() : (terminalGuard?.finalize() ?? null);
 
   if (apiMode === 'responses' && forward.isResponses) {
     return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
@@ -334,9 +344,9 @@ export async function handleStreamResponse(
             signatureCache.store(sessionKey, s.toolCallId, s.signature);
           }
         }
-        return out ? toClientChunk(out) : null;
+        return out ? guardOpenAiChunk(toClientChunk(out)) : null;
       },
-      finalize,
+      finalizeOpenAiChat,
       onClient,
     );
   }
@@ -366,9 +376,9 @@ export async function handleStreamResponse(
       res,
       (chunk) => {
         const out = anthropicTransformer(chunk);
-        return out ? toClientChunk(out) : null;
+        return out ? guardOpenAiChunk(toClientChunk(out)) : null;
       },
-      finalize,
+      finalizeOpenAiChat,
       onClient,
     );
   }
@@ -408,16 +418,23 @@ export async function handleStreamResponse(
       res,
       (chunk) => {
         const out = transformer(chunk);
-        return out ? toClientChunk(out) : null;
+        return out ? guardOpenAiChunk(toClientChunk(out)) : null;
       },
-      finalize,
+      finalizeOpenAiChat,
       onClient,
     );
   }
   if (apiMode === 'responses' || apiMode === 'messages') {
     return pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient);
   }
-  return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
+  const openAiNormalizer = createOpenAiChatCompletionStreamNormalizer(meta.model);
+  return pipeStream(
+    forward.response.body!,
+    res,
+    openAiNormalizer.transform,
+    openAiNormalizer.finalize,
+    onClient,
+  );
 }
 
 function cacheReasoningContent(

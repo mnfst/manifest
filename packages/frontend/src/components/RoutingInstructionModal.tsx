@@ -2,7 +2,7 @@ import { type Component, Show, createResource, createSignal } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import ModelSelectDropdown from './ModelSelectDropdown.jsx';
 import SetupStepAddProvider from './SetupStepAddProvider.jsx';
-import { getAgentKey } from '../services/api.js';
+import { getAgentKey, type ModelAlias } from '../services/api.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import { platformIcon } from 'manifest-shared';
 
@@ -11,6 +11,7 @@ interface Props {
   mode: 'enable' | 'disable';
   agentName: string;
   connectedProvider?: string | null;
+  modelAliases?: ModelAlias[];
   onClose: () => void;
 }
 
@@ -160,6 +161,7 @@ const RoutingInstructionModal: Component<Props> = (props) => {
               keyPrefix={apiKeyData()?.keyPrefix ?? null}
               baseUrl={baseUrl()}
               platform={agentPlatform()}
+              modelAliases={props.modelAliases}
             />
           </Show>
 

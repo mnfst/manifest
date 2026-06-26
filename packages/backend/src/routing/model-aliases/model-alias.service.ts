@@ -13,6 +13,7 @@ import {
   setProviderParamValue,
   type AuthType,
   type ModelRoute,
+  type ProviderParamSpec,
   type RequestParamDefaults,
   type ResponseMode,
   type SpecificityCategory,
@@ -49,6 +50,7 @@ export type ModelAliasResolution =
       resolved: ResolveResponse;
       requestParams?: RequestParamDefaults | null;
       scopeKey?: string;
+      acceptsReasoningEffortHeader?: boolean;
     };
 
 interface NormalizedAliasInput {
@@ -197,6 +199,7 @@ export class ModelAliasService {
         resolved: await this.resolveAlias(agentId, tenantId, alias),
         requestParams: alias.source_kind === 'direct' ? (alias.request_params ?? null) : undefined,
         scopeKey: alias.source_kind === 'direct' ? `model-alias:${alias.id}` : undefined,
+        acceptsReasoningEffortHeader: alias.source_kind === 'direct',
       };
     }
 
@@ -212,6 +215,7 @@ export class ModelAliasService {
         resolved: rawDirect.resolved,
         requestParams: rawDirect.requestParams,
         scopeKey: `direct-model:${rawDirect.resolved.route?.provider}:${rawDirect.resolved.route?.authType}:${rawDirect.resolved.route?.model}`,
+        acceptsReasoningEffortHeader: true,
       };
     }
 
@@ -292,6 +296,37 @@ export class ModelAliasService {
     return this.buildRawDirectResolution(agentId, tenantId, withSuffix[0], requestParams);
   }
 
+  async requestParamsForReasoningEffort(
+    route: ModelRoute,
+    effort: string,
+  ): Promise<RequestParamDefaults> {
+    const normalized = normalizeReasoningEffort(effort);
+    const specs = await this.providerParamSpecs.getSpecs(
+      route.provider,
+      route.authType,
+      route.model,
+    );
+    const candidates = specs.filter(isReasoningEffortSpec);
+    const spec = candidates.find(
+      (candidate) =>
+        !candidate.values ||
+        candidate.values.some(
+          (value) => typeof value === 'string' && value.toLowerCase() === normalized,
+        ),
+    );
+    if (!spec) {
+      if (candidates.length === 0) {
+        throw new BadRequestException(
+          `Reasoning effort is not supported for ${route.provider}/${route.model}.`,
+        );
+      }
+      throw new BadRequestException(
+        `Reasoning effort "${normalized}" is not supported for ${route.provider}/${route.model}.`,
+      );
+    }
+    return setProviderParamValue({}, spec.path, normalized);
+  }
+
   private async buildRawDirectResolution(
     agentId: string,
     tenantId: string,
@@ -343,25 +378,6 @@ export class ModelAliasService {
     }
     ids.add(`${provider}-${authModeSlug(model.authType)}/${modelId}`);
     return [...ids];
-  }
-
-  private async requestParamsForReasoningEffort(
-    route: ModelRoute,
-    effort: string,
-  ): Promise<RequestParamDefaults> {
-    const specs = await this.providerParamSpecs.getSpecs(
-      route.provider,
-      route.authType,
-      route.model,
-    );
-    const spec = specs.find(
-      (candidate) =>
-        candidate.group === 'reasoning' &&
-        (candidate.path === 'reasoning_effort' || candidate.path.endsWith('.effort')) &&
-        (!candidate.values || candidate.values.includes(effort)),
-    );
-    if (!spec) return { reasoning_effort: effort };
-    return setProviderParamValue({}, spec.path, effort);
   }
 
   private async normalizeInput(
@@ -579,6 +595,24 @@ function parseReasoningSuffix(modelId: string): { baseModelId: string; effort: s
     return { baseModelId, effort };
   }
   return null;
+}
+
+function normalizeReasoningEffort(effort: string): string {
+  const normalized = effort.trim().toLowerCase();
+  if (!normalized || /[\s\x00-\x1F\x7F]/.test(normalized)) {
+    throw new BadRequestException('Reasoning effort must be a non-empty token.');
+  }
+  return normalized;
+}
+
+function isReasoningEffortSpec(spec: ProviderParamSpec): boolean {
+  if (spec.group !== 'reasoning') return false;
+  const path = spec.path.toLowerCase();
+  if (path === 'reasoning_effort') return true;
+  if (path.endsWith('.effort')) return true;
+  if (path.endsWith('thinkinglevel')) return true;
+  const label = spec.label.toLowerCase();
+  return spec.type === 'enum' && label.includes('effort');
 }
 
 function dedupeRoutes(routes: ModelRoute[]): ModelRoute[] {

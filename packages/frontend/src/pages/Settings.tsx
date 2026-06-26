@@ -11,6 +11,7 @@ import {
   deleteAgent,
   getAgentInfo,
   getAgentKey,
+  listModelAliases,
   renameAgent,
   rotateAgentKey,
   updateAgent,
@@ -50,6 +51,10 @@ const Settings: Component = () => {
 
   const [agentInfo, { refetch: refetchInfo }] = createResource(() => agentName(), getAgentInfo);
   const [apiKeyData, { refetch: refetchKey }] = createResource(() => agentName(), getAgentKey);
+  const [modelAliases] = createResource(
+    () => agentName(),
+    (name) => listModelAliases(name).catch(() => []),
+  );
 
   const currentCategory = () => (agentInfo()?.agent_category as AgentCategory) ?? null;
   const currentPlatform = () => (agentInfo()?.agent_platform as AgentPlatform) ?? null;
@@ -321,6 +326,7 @@ const Settings: Component = () => {
               baseUrl={baseUrl()}
               hideFullKey
               platform={currentPlatform()}
+              modelAliases={modelAliases() ?? []}
             />
           </div>
         </Show>

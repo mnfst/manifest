@@ -1,4 +1,4 @@
-# Issue 2285 Technical Spec: Direct Model Routing and Model Aliases
+# Issue 2285 Technical Spec: Direct Model Routing, Reasoning Aliases, and Client Setup
 
 ## Data Model
 
@@ -77,18 +77,39 @@ Transport compatibility:
 - Non-stream Chat Completions handling must accept either upstream SSE or upstream JSON from Responses-format providers and convert both to OpenAI-compatible Chat Completions JSON.
 - Normal OpenAI-compatible, Anthropic, and Google chat routes keep their provider-native response mode behavior.
 
+Stream correctness:
+
+- Streamed Chat Completions responses normalize terminal framing after routing has resolved, so the behavior applies equally to `auto`, `manifest/auto`, direct aliases, raw direct routes, rule aliases, and fallback-success routes.
+- Raw OpenAI-compatible streams are parsed and re-emitted as `data: <valid JSON>` frames, consuming upstream `[DONE]` and emitting exactly one downstream `[DONE]`.
+- Transformed streams that output OpenAI Chat Completions chunks use a terminal guard. If no chunk with `choices[0].finish_reason` is observed before upstream close, Manifest emits a synthetic `chat.completion.chunk` with `finish_reason: "stop"` before `[DONE]`.
+- Native `/v1/responses` streams and Anthropic `/v1/messages` passthrough streams are not rewritten by the Chat Completions terminal guard.
+
 ## Reasoning Params
 
 Direct aliases can store request params such as reasoning effort. The proxy applies those params before forwarding, using the existing endpoint/provider request-parameter machinery so Chat Completions and Responses requests get the correct shape.
+
+Requests can also set `x-manifest-reasoning-effort` when the requested model resolves to a direct alias or an unambiguous raw direct route:
+
+- The header is ignored for `auto`, `manifest/auto`, tier aliases, specificity aliases, and header-tier aliases.
+- The header is consumed by Manifest and is not forwarded upstream as a provider header.
+- Provider param specs choose the request-body shape, including `reasoning_effort`, `reasoning.effort`, Gemini thinking-level paths, and future provider-specific paths.
+- A header that conflicts with a direct alias's stored reasoning effort returns an OpenAI-style `invalid_request_error`.
+- Unsupported effort values return an OpenAI-style `invalid_request_error`.
 
 ## Frontend
 
 Add a small API client for model aliases and integrate it into the Routing page:
 
 - Direct alias panel for create, edit, enable/disable, and delete.
+- Direct alias reasoning effort editing and variant generation.
 - Rule exposure controls on tier, specificity, and header-tier cards.
 - Collision-safe suggested names based on provider/auth/model.
 - Existing route/auth badges should be reused.
+- Setup snippets receive enabled aliases where available.
+- OpenCode config generation emits every enabled alias as an available model.
+- Pi setup is added as a coding-client setup surface using `models.json`.
+- Warp setup is added as a coding-client setup surface. Its generated copy lists the Manifest custom endpoint fields and every enabled exposed model row; Warp generates its own internal `config_key` values.
+- SDK and cURL snippets document the optional `x-manifest-reasoning-effort` header.
 
 ## Tests
 
@@ -97,11 +118,22 @@ Add focused coverage for:
 - Alias validation and case-insensitive uniqueness.
 - Disabled aliases.
 - Direct alias resolution.
+- Direct reasoning-header resolution and conflict/unsupported-value errors.
 - Rule alias resolution.
 - Ambiguous raw direct routing.
 - `/v1/models` agent scoping and credential-free responses.
+- Stream finalization for Responses-backed transformed streams, raw OpenAI-compatible streams that end with only `[DONE]`, and transformed Chat Completions streams that close without a terminal event.
+- Streamed `/v1/chat/completions` output for `manifest/auto` and a direct alias-shaped model id has valid JSON `data:` frames, a terminal finish chunk, and `[DONE]`.
 - Migration/index shape.
-- Frontend creation/editing and rule exposure controls.
+- Frontend creation/editing, reasoning variant generation, setup alias export, Pi setup, Warp setup, and rule exposure controls.
+
+## Diagnostics
+
+Use a raw-SSE probe against a local or staging Manifest instance to compare `manifest/auto`, a direct exposed alias, and a non-streaming request. The probe should send a minimal prompt, redact the bearer token from output, and validate:
+
+- Every downstream `data:` frame parses as JSON except `data: [DONE]`.
+- A final `chat.completion.chunk` with `choices[0].finish_reason` appears before `[DONE]`.
+- No empty, partial, or non-JSON `data:` frames reach the client.
 
 ## Container Publishing
 

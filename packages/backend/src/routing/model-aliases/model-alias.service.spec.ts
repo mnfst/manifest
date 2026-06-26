@@ -286,4 +286,72 @@ describe('ModelAliasService', () => {
       expect(result.requestParams).toEqual({ reasoning_effort: 'high' });
     }
   });
+
+  it('maps reasoning effort to provider-specific thinking level params', async () => {
+    providerParamSpecs.getSpecs.mockResolvedValue([
+      {
+        provider: 'gemini',
+        authType: 'api_key',
+        model: 'gemini-3.5-flash',
+        path: 'generationConfig.thinkingConfig.thinkingLevel',
+        label: 'Thinking level',
+        description: '',
+        group: 'reasoning',
+        type: 'enum',
+        values: ['low', 'medium', 'high'],
+      } as ProviderParamSpec,
+    ]);
+
+    await expect(
+      service.requestParamsForReasoningEffort(
+        route('gemini', 'api_key', 'gemini-3.5-flash'),
+        'High',
+      ),
+    ).resolves.toEqual({
+      generationConfig: { thinkingConfig: { thinkingLevel: 'high' } },
+    });
+  });
+
+  it('rejects unsupported reasoning efforts for known reasoning params', async () => {
+    providerParamSpecs.getSpecs.mockResolvedValue([
+      {
+        provider: 'openai',
+        authType: 'api_key',
+        model: 'gpt-5',
+        path: 'reasoning_effort',
+        label: 'Reasoning effort',
+        description: '',
+        group: 'reasoning',
+        type: 'enum',
+        values: ['low', 'medium', 'high'],
+      } as ProviderParamSpec,
+    ]);
+
+    await expect(
+      service.requestParamsForReasoningEffort(route('openai', 'api_key', 'gpt-5'), 'xhigh'),
+    ).rejects.toThrow(BadRequestException);
+  });
+
+  it('does not treat reasoning summary enums as effort params', async () => {
+    providerParamSpecs.getSpecs.mockResolvedValue([
+      {
+        provider: 'openai',
+        authType: 'subscription',
+        model: 'gpt-5.1-codex',
+        path: 'reasoning.summary',
+        label: 'Reasoning summary',
+        description: 'Controls the level of reasoning summary returned with the response.',
+        group: 'reasoning',
+        type: 'enum',
+        values: ['auto', 'concise', 'detailed', 'none'],
+      } as ProviderParamSpec,
+    ]);
+
+    await expect(
+      service.requestParamsForReasoningEffort(
+        route('openai', 'subscription', 'gpt-5.1-codex'),
+        'none',
+      ),
+    ).rejects.toThrow(/not supported/);
+  });
 });

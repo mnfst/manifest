@@ -1,5 +1,5 @@
 import { createResource, Show, type Component } from 'solid-js';
-import { getAgentKey } from '../services/api.js';
+import { getAgentKey, type ModelAlias } from '../services/api.js';
 import { platformIcon } from 'manifest-shared';
 import ErrorState from './ErrorState.jsx';
 import SetupStepAddProvider from './SetupStepAddProvider.jsx';
@@ -10,6 +10,7 @@ const SetupModal: Component<{
   apiKey?: string | null;
   agentPlatform?: string | null;
   agentCategory?: string | null;
+  modelAliases?: ModelAlias[];
   onClose: () => void;
   onDone?: () => void;
   onGoToRouting?: () => void;
@@ -101,6 +102,7 @@ const SetupModal: Component<{
               keyPrefix={apiKeyData()?.keyPrefix ?? null}
               baseUrl={baseUrl()}
               platform={props.agentPlatform}
+              modelAliases={props.modelAliases}
             />
           </Show>
 

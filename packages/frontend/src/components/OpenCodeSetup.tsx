@@ -1,33 +1,43 @@
 import { createSignal, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
+import type { ModelAlias } from '../services/api.js';
+import { exposedSetupModels } from '../services/exposed-models.js';
 
 interface Props {
   apiKey: string | null;
   keyPrefix: string | null;
   baseUrl: string;
+  modelAliases?: ModelAlias[];
 }
 
-function getOpenCodeConfig(baseUrl: string, apiKey: string): string {
-  return `{
-  "$schema": "https://opencode.ai/config.json",
-  "provider": {
-    "manifest": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Manifest",
-      "options": {
-        "baseURL": "${baseUrl}",
-        "apiKey": "${apiKey}"
+export function getOpenCodeConfig(
+  baseUrl: string,
+  apiKey: string,
+  modelAliases?: ModelAlias[],
+): string {
+  const models = Object.fromEntries(
+    exposedSetupModels(modelAliases).map((model) => [model.id, { name: model.name }]),
+  );
+  return JSON.stringify(
+    {
+      $schema: 'https://opencode.ai/config.json',
+      provider: {
+        manifest: {
+          npm: '@ai-sdk/openai-compatible',
+          name: 'Manifest',
+          options: {
+            baseURL: baseUrl,
+            apiKey,
+          },
+          models,
+        },
       },
-      "models": {
-        "auto": {
-          "name": "Manifest Auto"
-        }
-      }
-    }
-  },
-  "model": "manifest/auto"
-}`;
+      model: 'manifest/auto',
+    },
+    null,
+    2,
+  );
 }
 
 const EyeIcon: Component<{ open: boolean }> = (props) => (
@@ -71,8 +81,8 @@ const OpenCodeSetup: Component<Props> = (props) => {
     return keyRevealed() ? props.apiKey : masked();
   };
 
-  const settingsCopy = () => getOpenCodeConfig(props.baseUrl, copyKey());
-  const settingsShown = () => getOpenCodeConfig(props.baseUrl, visibleKey());
+  const settingsCopy = () => getOpenCodeConfig(props.baseUrl, copyKey(), props.modelAliases);
+  const settingsShown = () => getOpenCodeConfig(props.baseUrl, visibleKey(), props.modelAliases);
 
   return (
     <div class="setup-agents-card">

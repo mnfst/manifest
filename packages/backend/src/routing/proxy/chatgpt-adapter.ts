@@ -552,9 +552,14 @@ export function createChatGptStreamTransformer(model: string): ChatGptStreamTran
     },
 
     finalize(): string | null {
-      return terminalSeen ? null : 'data: [DONE]\n\n';
+      return terminalSeen ? null : formatSyntheticCompletedEvent(model);
     },
   };
+}
+
+function formatSyntheticCompletedEvent(model: string): string {
+  const finish = formatSSE({ delta: {}, finish_reason: 'stop' }, model);
+  return `${finish}data: [DONE]\n\n`;
 }
 
 function handleCompletedEvent(dataStr: string, model: string): string {

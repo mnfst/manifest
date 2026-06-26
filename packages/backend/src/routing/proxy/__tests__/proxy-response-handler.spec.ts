@@ -531,7 +531,7 @@ describe('proxy-response-handler', () => {
         forward.response.body,
         res,
         expect.any(Function),
-        undefined,
+        expect.any(Function),
         undefined,
       );
     });
@@ -689,21 +689,41 @@ describe('proxy-response-handler', () => {
       expect(transformer.transform).toHaveBeenCalledWith('data: in\n\n');
     });
 
-    it('should pipe without transformer for standard OpenAI responses', async () => {
+    it('normalizes standard OpenAI-compatible chat streams with a terminal guard', async () => {
       const { res } = mockResponse();
       const forward = mockForward();
       const client = mockProviderClient();
       const meta = makeMeta();
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      let capturedFinalize: (() => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (
+          _body: unknown,
+          _res: unknown,
+          transform?: (chunk: string) => string | null,
+          finalize?: () => string | null,
+        ) => {
+          capturedTransform = transform;
+          capturedFinalize = finalize;
+          return null;
+        },
+      );
 
       await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
 
       expect(pipeStreamSpy).toHaveBeenCalledWith(
         forward.response.body,
         res,
-        undefined,
-        undefined,
+        expect.any(Function),
+        expect.any(Function),
         undefined,
       );
+      expect(capturedTransform).toBeDefined();
+      expect(capturedFinalize).toBeDefined();
+      expect(capturedTransform!('data: [DONE]\n\n')).toBeNull();
+      const tail = capturedFinalize!();
+      expect(tail).toContain('"finish_reason":"stop"');
+      expect(tail).toContain('data: [DONE]');
     });
 
     it('normalizes Copilot OpenAI-compatible reasoning streams through the reasoning transformer', async () => {
@@ -724,7 +744,7 @@ describe('proxy-response-handler', () => {
         forward.response.body,
         res,
         expect.any(Function),
-        undefined,
+        expect.any(Function),
         undefined,
       );
     });
@@ -1012,7 +1032,7 @@ describe('proxy-response-handler', () => {
         forward.response.body,
         res,
         expect.any(Function),
-        undefined,
+        expect.any(Function),
         undefined,
       );
     });

@@ -5,6 +5,7 @@ import {
   type AuthType,
   type ModelRoute,
   type ProviderParamSpecCatalog,
+  type RequestParamDefaults,
 } from 'manifest-shared';
 import { ProxyService } from '../proxy.service';
 import type { ResolveService } from '../../resolve/resolve.service';
@@ -68,7 +69,9 @@ const specCatalog: ProviderParamSpecCatalog = [
 
 describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<Pick<ResolveService, 'resolve' | 'resolveForTier'>>;
-  let modelAliasService: jest.Mocked<Pick<ModelAliasService, 'resolveModelRequest'>>;
+  let modelAliasService: jest.Mocked<
+    Pick<ModelAliasService, 'resolveModelRequest' | 'requestParamsForReasoningEffort'>
+  >;
   let providerKeyService: jest.Mocked<
     Pick<
       ProviderKeyService,
@@ -109,6 +112,20 @@ describe('ProxyService — orchestration', () => {
     };
     modelAliasService = {
       resolveModelRequest: jest.fn().mockResolvedValue({ kind: 'auto' }),
+      requestParamsForReasoningEffort: jest.fn(
+        async (modelRoute: ModelRoute, effort: string): Promise<RequestParamDefaults> => {
+          const normalized = effort.trim().toLowerCase();
+          if (modelRoute.provider === 'gemini') {
+            return {
+              generationConfig: { thinkingConfig: { thinkingLevel: normalized } },
+            } as RequestParamDefaults;
+          }
+          if (modelRoute.authType === 'subscription') {
+            return { reasoning: { effort: normalized } } as RequestParamDefaults;
+          }
+          return { reasoning_effort: normalized } as RequestParamDefaults;
+        },
+      ),
     };
     providerKeyService = {
       getProviderApiKey: jest.fn().mockResolvedValue('decrypted-key'),
@@ -307,6 +324,165 @@ describe('ProxyService — orchestration', () => {
       );
       expect(modelParamsService.get).not.toHaveBeenCalled();
       expect(result.meta.reason).toBe('direct-model');
+    });
+
+    it('applies x-manifest-reasoning-effort to direct aliases', async () => {
+      modelAliasService.resolveModelRequest.mockResolvedValue({
+        kind: 'resolved',
+        resolved: {
+          tier: 'default',
+          route: route('openai', 'api_key', 'gpt-5'),
+          fallback_routes: null,
+          confidence: 1,
+          score: 0,
+          reason: 'direct-model',
+          response_mode: 'buffered',
+        },
+        requestParams: null,
+        scopeKey: 'model-alias:alias-1',
+        acceptsReasoningEffortHeader: true,
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: {
+            model: 'openai-api/gpt-5',
+            messages: [{ role: 'user', content: 'solve this' }],
+          },
+          headers: { 'x-manifest-reasoning-effort': 'High' },
+        } as never),
+      );
+
+      expect(modelAliasService.requestParamsForReasoningEffort).toHaveBeenCalledWith(
+        { provider: 'openai', authType: 'api_key', model: 'gpt-5' },
+        'High',
+      );
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paramMergeContext: {
+            agentId: 'agent-1',
+            scopeKey: 'model-alias:alias-1',
+            requestParams: { reasoning_effort: 'high' },
+          },
+        }),
+      );
+    });
+
+    it('maps the reasoning header through provider-shaped params', async () => {
+      modelAliasService.resolveModelRequest.mockResolvedValue({
+        kind: 'resolved',
+        resolved: {
+          tier: 'default',
+          route: route('gemini', 'api_key', 'gemini-3.5-flash'),
+          fallback_routes: null,
+          confidence: 1,
+          score: 0,
+          reason: 'direct-model',
+          response_mode: 'buffered',
+        },
+        requestParams: null,
+        scopeKey: 'direct-model:gemini:api_key:gemini-3.5-flash',
+        acceptsReasoningEffortHeader: true,
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: true,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: {
+            model: 'gemini/gemini-3.5-flash',
+            messages: [{ role: 'user', content: 'solve this' }],
+          },
+          headers: { 'x-manifest-reasoning-effort': 'high' },
+        } as never),
+      );
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paramMergeContext: expect.objectContaining({
+            requestParams: { generationConfig: { thinkingConfig: { thinkingLevel: 'high' } } },
+          }),
+        }),
+      );
+    });
+
+    it('rejects a reasoning header that conflicts with a fixed direct alias', async () => {
+      modelAliasService.resolveModelRequest.mockResolvedValue({
+        kind: 'resolved',
+        resolved: {
+          tier: 'default',
+          route: route('openai', 'api_key', 'gpt-5'),
+          fallback_routes: null,
+          confidence: 1,
+          score: 0,
+          reason: 'direct-model',
+          response_mode: 'buffered',
+        },
+        requestParams: { reasoning_effort: 'high' },
+        scopeKey: 'model-alias:alias-1',
+        acceptsReasoningEffortHeader: true,
+      });
+
+      await expect(
+        svc.proxyRequest(
+          baseOpts({
+            body: {
+              model: 'openai-api/gpt-5-high',
+              messages: [{ role: 'user', content: 'solve this' }],
+            },
+            headers: { 'x-manifest-reasoning-effort': 'low' },
+          } as never),
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+    });
+
+    it('ignores the reasoning header for rule aliases', async () => {
+      modelAliasService.resolveModelRequest.mockResolvedValue({
+        kind: 'resolved',
+        resolved: {
+          tier: 'reasoning',
+          route: route('openai', 'api_key', 'gpt-5'),
+          fallback_routes: null,
+          confidence: 1,
+          score: 0,
+          reason: 'model-alias',
+          response_mode: 'buffered',
+        },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: {
+            model: 'manifest/tier-reasoning',
+            messages: [{ role: 'user', content: 'solve this' }],
+          },
+          headers: { 'x-manifest-reasoning-effort': 'high' },
+        } as never),
+      );
+
+      expect(modelAliasService.requestParamsForReasoningEffort).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:reasoning' },
+        }),
+      );
     });
   });
 

@@ -1,4 +1,4 @@
-import { transformResponsesStreamChunk } from '../chatgpt-adapter';
+import { createChatGptStreamTransformer, transformResponsesStreamChunk } from '../chatgpt-adapter';
 
 describe('ChatGPT Adapter – transformResponsesStreamChunk', () => {
   it('converts output_text delta to chat completion chunk', () => {
@@ -223,5 +223,46 @@ describe('ChatGPT Adapter – transformResponsesStreamChunk', () => {
 
     expect(result).not.toBeNull();
     expect(result).toContain('"finish_reason":"tool_calls"');
+  });
+
+  it('finalizes an unterminated transformed stream with a finish chunk before DONE', () => {
+    const transformer = createChatGptStreamTransformer('gpt-5');
+    const delta = transformer.transform(
+      'event: response.output_text.delta\ndata: {"delta":"Hello"}',
+    );
+    const trailing = transformer.finalize();
+
+    expect(delta).toContain('"content":"Hello"');
+    expect(trailing).not.toBeNull();
+    expect(trailing).toContain('"finish_reason":"stop"');
+    expect(trailing).toContain('data: [DONE]');
+
+    const frames = trailing!.trim().split('\n\n');
+    expect(frames).toHaveLength(2);
+    expect(frames[0]).toMatch(/^data: /);
+    const json = JSON.parse(frames[0].replace('data: ', ''));
+    expect(json.object).toBe('chat.completion.chunk');
+    expect(json.choices[0].finish_reason).toBe('stop');
+    expect(frames[1]).toBe('data: [DONE]');
+  });
+
+  it('does not add a duplicate trailer after response.completed', () => {
+    const transformer = createChatGptStreamTransformer('gpt-5');
+    const result = transformer.transform('event: response.completed\ndata: {}');
+
+    expect(result).toContain('"finish_reason":"stop"');
+    expect(result).toContain('data: [DONE]');
+    expect(transformer.finalize()).toBeNull();
+  });
+
+  it('does not add a duplicate trailer after response.incomplete', () => {
+    const transformer = createChatGptStreamTransformer('gpt-5');
+    const result = transformer.transform(
+      'event: response.incomplete\ndata: {"response":{"incomplete_details":{"reason":"max_output_tokens"}}}',
+    );
+
+    expect(result).toContain('"finish_reason":"length"');
+    expect(result).toContain('data: [DONE]');
+    expect(transformer.finalize()).toBeNull();
   });
 });

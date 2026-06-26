@@ -26,12 +26,12 @@ function model(route: ModelRoute, displayName = route.model): AvailableModel {
 
 describe('ModelAliasesPanel', () => {
   it('suggests provider/auth-scoped model ids', () => {
-    expect(
-      suggestedModelId({ provider: 'openai', authType: 'api_key', model: 'gpt-5' }),
-    ).toBe('openai-api/gpt-5');
-    expect(
-      suggestedModelId({ provider: 'openai', authType: 'subscription', model: 'gpt-5' }),
-    ).toBe('openai-subscription/gpt-5');
+    expect(suggestedModelId({ provider: 'openai', authType: 'api_key', model: 'gpt-5' })).toBe(
+      'openai-api/gpt-5',
+    );
+    expect(suggestedModelId({ provider: 'openai', authType: 'subscription', model: 'gpt-5' })).toBe(
+      'openai-subscription/gpt-5',
+    );
     expect(
       suggestedModelId({ provider: 'anthropic', authType: 'api_key', model: 'claude-opus-4' }),
     ).toBe('anthropic-api/claude-opus-4');
@@ -72,9 +72,7 @@ describe('ModelAliasesPanel', () => {
     render(() => (
       <ModelAliasesPanel
         aliases={[]}
-        models={[
-          model({ provider: 'openai', authType: 'subscription', model: 'gpt-5-codex' }),
-        ]}
+        models={[model({ provider: 'openai', authType: 'subscription', model: 'gpt-5-codex' })]}
         onCreate={onCreate}
         onUpdate={vi.fn<(_: string, __: UpdateModelAliasInput) => Promise<void>>()}
         onToggle={vi.fn<(_: string, __: boolean) => Promise<void>>()}
@@ -114,7 +112,9 @@ describe('ModelAliasesPanel', () => {
       created_at: '2026-01-01T00:00:00.000Z',
       updated_at: '2026-01-01T00:00:00.000Z',
     };
-    const onUpdate = vi.fn<(_: string, __: UpdateModelAliasInput) => Promise<void>>().mockResolvedValue();
+    const onUpdate = vi
+      .fn<(_: string, __: UpdateModelAliasInput) => Promise<void>>()
+      .mockResolvedValue();
     const onToggle = vi.fn<(_: string, __: boolean) => Promise<void>>().mockResolvedValue();
     const onDelete = vi.fn<(_: string) => Promise<void>>().mockResolvedValue();
 
@@ -139,6 +139,7 @@ describe('ModelAliasesPanel', () => {
       expect(onUpdate).toHaveBeenCalledWith('alias-1', {
         model_id: 'openai-api/gpt-5-medium',
         display_name: 'GPT 5 low',
+        request_params: { reasoning_effort: 'low' },
       });
     });
 
@@ -151,5 +152,100 @@ describe('ModelAliasesPanel', () => {
     await waitFor(() => {
       expect(onDelete).toHaveBeenCalledWith('alias-1');
     });
+  });
+
+  it('updates direct alias reasoning effort', async () => {
+    const alias: ModelAlias = {
+      id: 'alias-1',
+      tenant_id: 'tenant-1',
+      agent_id: 'agent-1',
+      model_id: 'openai-api/gpt-5-low',
+      display_name: 'GPT 5 low',
+      enabled: true,
+      source_kind: 'direct',
+      source_key: null,
+      route: { provider: 'openai', authType: 'api_key', model: 'gpt-5' },
+      fallback_routes: null,
+      request_params: { reasoning_effort: 'low' },
+      response_mode: 'buffered',
+      created_at: '2026-01-01T00:00:00.000Z',
+      updated_at: '2026-01-01T00:00:00.000Z',
+    };
+    const onUpdate = vi
+      .fn<(_: string, __: UpdateModelAliasInput) => Promise<void>>()
+      .mockResolvedValue();
+
+    render(() => (
+      <ModelAliasesPanel
+        aliases={[alias]}
+        models={[]}
+        onCreate={vi.fn<(_: CreateModelAliasInput) => Promise<void>>()}
+        onUpdate={onUpdate}
+        onToggle={vi.fn<(_: string, __: boolean) => Promise<void>>()}
+        onDelete={vi.fn<(_: string) => Promise<void>>()}
+      />
+    ));
+
+    fireEvent.input(screen.getByDisplayValue('low'), { target: { value: 'high' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledWith('alias-1', {
+        model_id: 'openai-api/gpt-5-low',
+        display_name: 'GPT 5 low',
+        request_params: { reasoning_effort: 'high' },
+      });
+    });
+  });
+
+  it('bulk-creates reasoning variants from provider param specs', async () => {
+    const onCreate = vi.fn<(_: CreateModelAliasInput) => Promise<void>>().mockResolvedValue();
+    render(() => (
+      <ModelAliasesPanel
+        aliases={[]}
+        models={[model({ provider: 'openai', authType: 'api_key', model: 'gpt-5' })]}
+        onCreate={onCreate}
+        onUpdate={vi.fn<(_: string, __: UpdateModelAliasInput) => Promise<void>>()}
+        onToggle={vi.fn<(_: string, __: boolean) => Promise<void>>()}
+        onDelete={vi.fn<(_: string) => Promise<void>>()}
+        getParamSpecs={async () => [
+          {
+            provider: 'openai',
+            authType: 'api_key',
+            model: 'gpt-5',
+            path: 'reasoning_effort',
+            type: 'enum',
+            label: 'Reasoning effort',
+            description: '',
+            group: 'reasoning',
+            values: ['low', 'high'],
+          },
+        ]}
+      />
+    ));
+
+    await screen.findByDisplayValue('openai-api/gpt-5');
+    await waitFor(() => {
+      expect((screen.getByText('Expose variants') as HTMLButtonElement).disabled).toBe(false);
+    });
+    fireEvent.click(screen.getByText('Expose variants'));
+
+    await waitFor(() => {
+      expect(onCreate).toHaveBeenCalledTimes(2);
+    });
+    expect(onCreate).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        model_id: 'openai-api/gpt-5-low',
+        request_params: { reasoning_effort: 'low' },
+      }),
+    );
+    expect(onCreate).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        model_id: 'openai-api/gpt-5-high',
+        request_params: { reasoning_effort: 'high' },
+      }),
+    );
   });
 });

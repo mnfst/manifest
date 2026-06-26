@@ -15,6 +15,8 @@ import {
   getSnippetForToolkit,
   getLangForToolkit,
 } from '../services/framework-snippets.js';
+import type { ModelAlias } from '../services/api.js';
+import { exposedSetupModels } from '../services/exposed-models.js';
 
 interface Props {
   apiKey: string | null;
@@ -28,6 +30,7 @@ interface Props {
    * Used by the header-tier "How to send this" modal.
    */
   customHeaders?: Record<string, string>;
+  modelAliases?: ModelAlias[];
 }
 
 const EyeOpen: Component = () => (
@@ -118,6 +121,7 @@ const FrameworkSnippets: Component<Props> = (props) => {
 
   const headerEntries = (): [string, string][] =>
     props.customHeaders ? Object.entries(props.customHeaders) : [];
+  const exposedModels = () => exposedSetupModels(props.modelAliases);
 
   return (
     <div class="framework-snippets">
@@ -240,11 +244,28 @@ const FrameworkSnippets: Component<Props> = (props) => {
             <CopyButton text={copyKey()} />
           </span>
         </div>
+        <For each={exposedModels()}>
+          {(model, index) => (
+            <div class="setup-onboard-fields__row" role="listitem">
+              <span class="setup-onboard-fields__label">
+                {index() === 0 ? 'Model' : 'Model alias'}
+              </span>
+              <span class="setup-onboard-fields__value">
+                <code>{model.id}</code>
+                <CopyButton text={model.id} />
+              </span>
+            </div>
+          )}
+        </For>
         <div class="setup-onboard-fields__row" role="listitem">
-          <span class="setup-onboard-fields__label">Model</span>
+          <span class="setup-onboard-fields__label">
+            Header <code>x-manifest-reasoning-effort</code>
+          </span>
           <span class="setup-onboard-fields__value">
-            <code>auto</code>
-            <CopyButton text="auto" />
+            <code>low</code>
+            <code>medium</code>
+            <code>high</code>
+            <CopyButton text="x-manifest-reasoning-effort: high" />
           </span>
         </div>
         <For each={headerEntries()}>

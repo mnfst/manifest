@@ -18,6 +18,8 @@ describe('agent-type', () => {
       'craft',
       'claude-code',
       'opencode',
+      'warp',
+      'pi',
       'openai-sdk',
       'anthropic-sdk',
       'vercel-ai-sdk',
@@ -59,10 +61,16 @@ describe('agent-type', () => {
   it('places coding assistants under coding only, not personal or app', () => {
     expect(PLATFORMS_BY_CATEGORY.coding).toContain('claude-code');
     expect(PLATFORMS_BY_CATEGORY.coding).toContain('opencode');
+    expect(PLATFORMS_BY_CATEGORY.coding).toContain('warp');
+    expect(PLATFORMS_BY_CATEGORY.coding).toContain('pi');
     expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('claude-code');
     expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('opencode');
+    expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('warp');
+    expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('pi');
     expect(PLATFORMS_BY_CATEGORY.app).not.toContain('claude-code');
     expect(PLATFORMS_BY_CATEGORY.app).not.toContain('opencode');
+    expect(PLATFORMS_BY_CATEGORY.app).not.toContain('warp');
+    expect(PLATFORMS_BY_CATEGORY.app).not.toContain('pi');
   });
 
   it('keeps "other" available in every category for the unknown-platform fallback', () => {
@@ -119,6 +127,8 @@ describe('agent-type', () => {
       expect(platformIcon('nanobot', 'personal')).toBe(PLATFORM_ICONS.nanobot);
       expect(platformIcon('claude-code', 'coding')).toBe(PLATFORM_ICONS['claude-code']);
       expect(platformIcon('opencode', 'coding')).toBe(PLATFORM_ICONS.opencode);
+      expect(platformIcon('warp', 'coding')).toBe(PLATFORM_ICONS.warp);
+      expect(platformIcon('pi', 'coding')).toBe(PLATFORM_ICONS.pi);
       expect(platformIcon('openai-sdk', 'app')).toBe(PLATFORM_ICONS['openai-sdk']);
       expect(platformIcon('anthropic-sdk', 'app')).toBe(PLATFORM_ICONS['anthropic-sdk']);
       expect(platformIcon('vercel-ai-sdk', 'app')).toBe(PLATFORM_ICONS['vercel-ai-sdk']);
@@ -142,6 +152,8 @@ describe('agent-type', () => {
       expect(platformIcon('claude-code', 'personal')).toBe(PLATFORM_ICONS['claude-code']);
       expect(platformIcon('claude-code', null)).toBe(PLATFORM_ICONS['claude-code']);
       expect(platformIcon('opencode', 'personal')).toBe(PLATFORM_ICONS.opencode);
+      expect(platformIcon('warp', 'personal')).toBe(PLATFORM_ICONS.warp);
+      expect(platformIcon('pi', 'personal')).toBe(PLATFORM_ICONS.pi);
       expect(platformIcon('openclaw', 'coding')).toBe(PLATFORM_ICONS.openclaw);
     });
 

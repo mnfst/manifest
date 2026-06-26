@@ -1,7 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ResolveService } from '../resolve/resolve.service';
-import { ModelAliasService } from '../model-aliases/model-alias.service';
+import { ModelAliasService, type ModelAliasResolution } from '../model-aliases/model-alias.service';
 import {
   ProviderKeyService,
   SYNTHETIC_OLLAMA_PROVIDER_ID,
@@ -77,6 +77,7 @@ interface RoutingDecision {
 const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
 const MAX_MESSAGES_PER_REQUEST = 1000;
+const REASONING_EFFORT_HEADER = 'x-manifest-reasoning-effort';
 
 export interface RoutingMeta {
   tier: TierSlot;
@@ -448,9 +449,10 @@ export class ProxyService {
       body.model,
     );
     if (aliasDecision.kind === 'resolved') {
+      const requestParams = await this.applyReasoningEffortHeader(aliasDecision, headers);
       return {
         resolved: aliasDecision.resolved,
-        requestParams: aliasDecision.requestParams,
+        requestParams,
         scopeKey: aliasDecision.scopeKey,
       };
     }
@@ -477,6 +479,31 @@ export class ProxyService {
           headers,
         );
     return { resolved };
+  }
+
+  private async applyReasoningEffortHeader(
+    aliasDecision: Extract<ModelAliasResolution, { kind: 'resolved' }>,
+    headers: ProxyRequestOptions['headers'],
+  ): Promise<RequestParamDefaults | null | undefined> {
+    const effort = singleHeaderValue(headers, REASONING_EFFORT_HEADER);
+    if (!effort) return aliasDecision.requestParams;
+    if (!aliasDecision.acceptsReasoningEffortHeader || !aliasDecision.resolved.route) {
+      return aliasDecision.requestParams;
+    }
+
+    const headerParams = await this.modelAliasService.requestParamsForReasoningEffort(
+      aliasDecision.resolved.route,
+      effort,
+    );
+    const existingEffort = extractReasoningEffort(aliasDecision.requestParams);
+    const headerEffort = extractReasoningEffort(headerParams) ?? effort.trim().toLowerCase();
+    if (existingEffort && existingEffort.toLowerCase() !== headerEffort) {
+      throw new BadRequestException(
+        `Model alias already fixes reasoning effort "${existingEffort}". Use a matching header or choose a base alias.`,
+      );
+    }
+    if (existingEffort) return aliasDecision.requestParams;
+    return mergeRequestParams(aliasDecision.requestParams ?? null, headerParams);
   }
 
   private async resolveCredentials(
@@ -812,4 +839,66 @@ function sanitizeNullContent(messages: Record<string, unknown>[]): void {
   for (const msg of messages) {
     if (msg && typeof msg === 'object' && msg.content === null) msg.content = '';
   }
+}
+
+function singleHeaderValue(
+  headers: ProxyRequestOptions['headers'],
+  key: string,
+): string | undefined {
+  const value = headers?.[key];
+  if (Array.isArray(value)) return value[0]?.trim() || undefined;
+  return typeof value === 'string' ? value.trim() || undefined : undefined;
+}
+
+function extractReasoningEffort(params: RequestParamDefaults | null | undefined): string | null {
+  if (!params) return null;
+  const flat = params.reasoning_effort;
+  if (typeof flat === 'string') return flat;
+  const reasoning = params.reasoning;
+  if (isRecord(reasoning)) {
+    const effort = reasoning.effort;
+    if (typeof effort === 'string') return effort;
+  }
+  const generationConfig = params.generationConfig;
+  if (isRecord(generationConfig)) {
+    const thinkingConfig = generationConfig.thinkingConfig;
+    if (isRecord(thinkingConfig)) {
+      const thinkingLevel = thinkingConfig.thinkingLevel;
+      if (typeof thinkingLevel === 'string') return thinkingLevel;
+    }
+  }
+  return null;
+}
+
+function mergeRequestParams(
+  base: RequestParamDefaults | null,
+  overrides: RequestParamDefaults,
+): RequestParamDefaults {
+  if (!base) return structuredCloneRecord(overrides) as RequestParamDefaults;
+  return deepMergeRecords(base, overrides) as RequestParamDefaults;
+}
+
+function deepMergeRecords(
+  base: Record<string, unknown>,
+  overrides: Record<string, unknown>,
+): Record<string, unknown> {
+  const out = structuredCloneRecord(base);
+  for (const [key, value] of Object.entries(overrides)) {
+    if (isRecord(value) && isRecord(out[key])) {
+      out[key] = deepMergeRecords(out[key] as Record<string, unknown>, value);
+    } else {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
+function structuredCloneRecord<T extends Record<string, unknown>>(
+  value: T,
+): Record<string, unknown> {
+  return JSON.parse(JSON.stringify(value)) as Record<string, unknown>;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
