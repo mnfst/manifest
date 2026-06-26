@@ -211,6 +211,45 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
+    it('uses MANIFEST_MAX_MESSAGES when validating oversized payloads', async () => {
+      configService = {
+        get: jest.fn((key: string) => (key === 'MANIFEST_MAX_MESSAGES' ? '1001' : undefined)),
+      } as unknown as ConfigService;
+      svc = new ProxyService(
+        resolveService as unknown as ResolveService,
+        providerKeyService as unknown as ProviderKeyService,
+        tierService as unknown as TierService,
+        openaiOauth as unknown as OpenaiOauthService,
+        minimaxOauth as unknown as MinimaxOauthService,
+        anthropicOauth as unknown as AnthropicOauthService,
+        geminiOauth as unknown as GeminiOauthService,
+        kiroOauth as unknown as KiroOauthService,
+        xaiOauth as unknown as XaiOauthService,
+        momentum as unknown as SessionMomentumService,
+        limitCheck as unknown as LimitCheckService,
+        fallbackService as unknown as ProxyFallbackService,
+        configService,
+        signatureCache,
+        thinkingCache,
+        reasoningCache,
+        modelParamsService as unknown as AgentModelParamsService,
+        providerParamSpecs as unknown as ProviderParamSpecService,
+      );
+      const messages = Array.from({ length: 1001 }, () => ({ role: 'user', content: 'x' }));
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: null,
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+
+      await expect(
+        svc.proxyRequest(baseOpts({ body: { messages } as never })),
+      ).resolves.toBeDefined();
+    });
+
     it('replaces null content with empty string', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',

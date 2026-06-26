@@ -57,6 +57,7 @@ import { peekStream, STREAM_WARMUP_MS } from './stream-warmup';
 import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
+import { parseMaxMessagesPerRequest } from './message-limit';
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
 
@@ -69,7 +70,6 @@ type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
  */
 const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
-const MAX_MESSAGES_PER_REQUEST = 1000;
 
 export interface RoutingMeta {
   tier: TierSlot;
@@ -138,6 +138,7 @@ export interface ProxyResult {
 @Injectable()
 export class ProxyService {
   private readonly logger = new Logger(ProxyService.name);
+  private readonly maxMessagesPerRequest: number;
 
   constructor(
     private readonly resolveService: ResolveService,
@@ -158,7 +159,11 @@ export class ProxyService {
     private readonly reasoningCache: ReasoningContentCache,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
-  ) {}
+  ) {
+    this.maxMessagesPerRequest = parseMaxMessagesPerRequest(
+      this.config.get<string>('MANIFEST_MAX_MESSAGES'),
+    );
+  }
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
     const { agentId, tenantId, body, sessionKey, agentName, signal, specificityOverride, headers } =
@@ -408,8 +413,10 @@ export class ProxyService {
       throw new BadRequestException(formatManifestError('M300'));
     }
     sanitizeNullContent(messages as Record<string, unknown>[]);
-    if (messages.length > MAX_MESSAGES_PER_REQUEST) {
-      throw new BadRequestException(formatManifestError('M301', { max: MAX_MESSAGES_PER_REQUEST }));
+    if (messages.length > this.maxMessagesPerRequest) {
+      throw new BadRequestException(
+        formatManifestError('M301', { max: this.maxMessagesPerRequest }),
+      );
     }
   }
 
