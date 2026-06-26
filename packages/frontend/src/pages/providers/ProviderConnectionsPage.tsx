@@ -381,7 +381,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     }> = [];
     for (const summary of connectedSummaries()) {
       for (const connection of summary.connections) {
-        if (!connection.is_active && !hasUsage(summary)) continue;
+        if (!connection.is_active && props.kind !== 'subscriptions' && !hasUsage(summary)) continue;
         rows.push({
           summary,
           connection,

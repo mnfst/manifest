@@ -1482,7 +1482,7 @@ describe('ConnectionDetail (analytics)', () => {
     expect(dashCell).toBeDefined();
   });
 
-  it('closes the manage modal for an inactive connection via the Close button', async () => {
+  it('requires confirmation before deleting an inactive connection', async () => {
     routerState.params = { connectionId: 'conn-inactive' };
     apiMocks.getConnectionDetail.mockResolvedValue({
       ...connectionDetail,
@@ -1498,12 +1498,58 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(screen.getAllByText('Stale').length).toBeGreaterThan(0));
 
     fireEvent.click(screen.getByText('Manage'));
-    // Inactive connections expose a single Close button (line 987) instead of the
-    // active Done/Disconnect/Refresh controls.
     expect(screen.getByText('Connection name')).toBeDefined();
     expect(screen.queryByText('Disconnect')).toBeNull();
+    expect(screen.getByText('Delete')).toBeDefined();
+    fireEvent.click(screen.getByText('Delete'));
+
+    expect(
+      screen.getByText('Deleting this connection will remove its usage history.'),
+    ).toBeDefined();
+    fireEvent.click(screen.getByText('Cancel'));
+
+    expect(
+      screen.queryByText('Deleting this connection will remove its usage history.'),
+    ).toBeNull();
+    expect(screen.getByText('Delete')).toBeDefined();
     fireEvent.click(screen.getByText('Close'));
 
     await waitFor(() => expect(screen.queryByText('Connection name')).toBeNull());
+    expect(apiMocks.disconnectProvider).not.toHaveBeenCalled();
+  });
+
+  it('deletes an inactive subscription connection and navigates back on success', async () => {
+    routerState.params = { connectionId: 'conn-inactive-subscription' };
+    apiMocks.getConnectionDetail.mockResolvedValue({
+      ...connectionDetail,
+      connection: {
+        ...connectionDetail.connection,
+        id: 'conn-inactive-subscription',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: false,
+        label: 'Old Claude',
+      },
+    });
+
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Old Claude').length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByText('Manage'));
+    fireEvent.click(screen.getByText('Delete'));
+    expect(
+      screen.getByText('Deleting this connection will remove its usage history.'),
+    ).toBeDefined();
+    fireEvent.click(screen.getByText('Confirm'));
+
+    await waitFor(() =>
+      expect(apiMocks.disconnectProvider).toHaveBeenCalledWith(
+        'demo-agent',
+        'anthropic',
+        'subscription',
+        'Old Claude',
+      ),
+    );
+    expect(routerState.navigate).toHaveBeenCalledWith('/providers/subscriptions');
   });
 });

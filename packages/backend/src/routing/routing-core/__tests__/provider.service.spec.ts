@@ -51,7 +51,7 @@ const makeRepo = (agents: AgentRow[] = ['agent-1']) => ({
   delete: jest.fn().mockResolvedValue(undefined),
   remove: jest.fn().mockResolvedValue(undefined),
   update: jest.fn().mockResolvedValue(undefined),
-  manager: { transaction: jest.fn() },
+  manager: { transaction: jest.fn(), getRepository: jest.fn() },
   createQueryBuilder: jest.fn().mockReturnValue(makeQueryBuilder(agents)),
 });
 
@@ -583,6 +583,40 @@ describe('ProviderService — route-only cleanup paths', () => {
       ).resolves.toEqual({ notifications: [] });
 
       expect(providerRepo.remove).toHaveBeenCalledWith(target);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
+    });
+
+    it('deletes exact usage history before hard-deleting an inactive labeled key', async () => {
+      const messageRepo = makeRepo();
+      const target = {
+        id: 'inactive-sub',
+        agent_id: null,
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        label: 'Old Claude',
+        priority: 0,
+        is_active: false,
+      } as unknown as TenantProvider;
+      providerRepo.find.mockImplementation(async (options?: { order?: unknown }) =>
+        options?.order ? [] : [target],
+      );
+      providerRepo.manager.getRepository.mockReturnValue(messageRepo);
+      tierRepo.find.mockResolvedValue([]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await expect(
+        svc.removeProvider('agent-1', 'tenant-1', 'anthropic', 'subscription', 'Old Claude'),
+      ).resolves.toEqual({ notifications: [] });
+
+      expect(messageRepo.delete).toHaveBeenCalledWith({
+        tenant_id: 'tenant-1',
+        tenant_provider_id: 'inactive-sub',
+      });
+      expect(providerRepo.remove).toHaveBeenCalledWith(target);
+      expect(providerRepo.save).not.toHaveBeenCalled();
+      expect(providerRepo.findOne).not.toHaveBeenCalled();
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
       expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
     });

@@ -366,6 +366,8 @@ const ConnectionDetail: Component = () => {
   const [renaming, setRenaming] = createSignal(false);
   const [renameError, setRenameError] = createSignal('');
   const [refreshingModels, setRefreshingModels] = createSignal(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
+  const [deletingConnection, setDeletingConnection] = createSignal(false);
   const [agents] = createResource(async () => {
     try {
       const res = await getAgents();
@@ -380,6 +382,7 @@ const ConnectionDetail: Component = () => {
     const c = conn();
     if (c) setRenameValue(c.label);
     setRenameError('');
+    setShowDeleteConfirm(false);
     setShowManageModal(true);
   };
 
@@ -418,15 +421,20 @@ const ConnectionDetail: Component = () => {
     if (!c) return;
     const agent = firstAgentName();
     if (!agent) {
-      toast.error('Create at least one harness before disconnecting a provider.');
+      toast.error(
+        `Create at least one harness before ${c.is_active ? 'disconnecting' : 'deleting'} a provider.`,
+      );
       return;
     }
+    setDeletingConnection(true);
     try {
       await disconnectProvider(agent, c.provider, c.auth_type as any, c.label);
       toast.success('Connection removed');
       navigate(backLink());
     } catch (e: any) {
       toast.error(e?.message ?? 'Failed to disconnect');
+    } finally {
+      setDeletingConnection(false);
     }
   };
 
@@ -985,14 +993,51 @@ const ConnectionDetail: Component = () => {
                         </Show>
 
                         <Show when={!c.is_active}>
-                          <div style="display: flex; justify-content: flex-end; padding-top: 12px; border-top: 1px solid hsl(var(--border));">
-                            <button
-                              class="btn btn--outline btn--sm"
-                              onClick={() => setShowManageModal(false)}
+                          <Show
+                            when={showDeleteConfirm()}
+                            fallback={
+                              <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid hsl(var(--border));">
+                                <button
+                                  class="btn btn--destructive btn--sm"
+                                  onClick={() => setShowDeleteConfirm(true)}
+                                >
+                                  Delete
+                                </button>
+                                <button
+                                  class="btn btn--outline btn--sm"
+                                  onClick={() => setShowManageModal(false)}
+                                >
+                                  Close
+                                </button>
+                              </div>
+                            }
+                          >
+                            <div
+                              style="padding-top: 12px; border-top: 1px solid hsl(var(--border));"
+                              role="alertdialog"
+                              aria-label="Delete connection confirmation"
                             >
-                              Close
-                            </button>
-                          </div>
+                              <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin: 0 0 12px;">
+                                Deleting this connection will remove its usage history.
+                              </p>
+                              <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                                <button
+                                  class="btn btn--outline btn--sm"
+                                  onClick={() => setShowDeleteConfirm(false)}
+                                  disabled={deletingConnection()}
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  class="btn btn--destructive btn--sm"
+                                  onClick={handleDisconnect}
+                                  disabled={deletingConnection()}
+                                >
+                                  {deletingConnection() ? 'Deleting...' : 'Confirm'}
+                                </button>
+                              </div>
+                            </div>
+                          </Show>
                         </Show>
                       </div>
                     </div>
