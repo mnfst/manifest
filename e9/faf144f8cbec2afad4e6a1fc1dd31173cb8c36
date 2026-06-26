@@ -1,0 +1,37 @@
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_2cab731bb7226a::t_a86eb70f73bf1e 294
+packages/backend/src/routing/proxy/__tests__/fallback-status-codes.spec.ts
+  s_2cab731bb7226a::t_7eea81f2c5ca96 15-16
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_2cab731bb7226a::t_a86eb70f73bf1e 228,234-235
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_2cab731bb7226a::t_7eea81f2c5ca96 235-284,392
+packages/backend/src/routing/proxy/fallback-status-codes.ts
+  s_2cab731bb7226a::t_a86eb70f73bf1e 1
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_2cab731bb7226a::t_a86eb70f73bf1e 363
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_2cab731bb7226a::t_7eea81f2c5ca96 860,877-890,894-897
+.changeset/provider-context-errors.md
+  s_2cab731bb7226a::t_7eea81f2c5ca96 5
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.failures.spec.ts
+  s_2cab731bb7226a::t_7eea81f2c5ca96 23-24,310,340-343
+packages/backend/src/routing/proxy/proxy-error-sanitizer.spec.ts
+  s_2cab731bb7226a::t_7eea81f2c5ca96 126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "e9faf144f8cbec2afad4e6a1fc1dd31173cb8c36",
+  "prompts": {},
+  "sessions": {
+    "s_2cab731bb7226a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f02a6-be8b-7ea2-943d-d18d3db7ee64",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
