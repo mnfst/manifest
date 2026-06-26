@@ -61,6 +61,8 @@ export function connectProvider(
     authType?: AuthType;
     label?: string;
     region?: string;
+    baseUrl?: string;
+    base_url?: string;
   },
 ) {
   return fetchMutate<{

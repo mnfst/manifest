@@ -22,7 +22,7 @@ import { CustomProviderService } from '../custom-provider/custom-provider.servic
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
 import { getBedrockMantleBaseUrl, isBedrockRegion } from '../bedrock-region';
 import { MINIMAX_BASE_URLS } from '../oauth/minimax/minimax-oauth-helpers';
-import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
+import { getQwenCompatibleBaseUrl, isQwenResolvedEndpoint } from '../qwen-region';
 import {
   getXiaomiTokenPlanBaseUrl,
   isXiaomiProviderId,
@@ -118,7 +118,7 @@ export function resolveForwardEndpoint(
     }
   } else if (resolveEndpointKey(provider) === 'bedrock' && isBedrockRegion(providerRegion)) {
     customEndpoint = buildEndpointOverride(getBedrockMantleBaseUrl(providerRegion), 'bedrock');
-  } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {
+  } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedEndpoint(providerRegion)) {
     customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
   } else if (authType === 'subscription' && lower === 'minimax') {
     // OAuth tokens carry the region in resource_url; pasted Coding Plan tokens

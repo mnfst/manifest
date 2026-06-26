@@ -22,7 +22,13 @@ import {
   isSupportedSubscriptionProvider,
 } from '../../common/utils/subscription-support';
 import type { AuthType, ModelRoute } from 'manifest-shared';
-import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
+import {
+  QWEN_REGION_VALIDATION_MESSAGE,
+  detectQwenRegion,
+  isQwenRegion,
+  isQwenResolvedEndpoint,
+  normalizeQwenCompatibleBaseUrl,
+} from '../qwen-region';
 import {
   DEFAULT_BEDROCK_REGION,
   detectBedrockRegionFromApiKey,
@@ -527,18 +533,20 @@ export class ProviderService {
       if (apiKey) {
         return this.detectQwenRegionOrThrow(apiKey);
       }
-      return isQwenResolvedRegion(existing?.region) ? existing.region : null;
+      return isQwenResolvedEndpoint(existing?.region) ? existing.region : null;
     }
 
     if (!isQwenRegion(requestedRegion)) {
-      throw new BadRequestException('Qwen region must be one of: auto, singapore, us, beijing');
+      throw new BadRequestException(QWEN_REGION_VALIDATION_MESSAGE);
     }
 
+    const qwenEndpoint = normalizeQwenCompatibleBaseUrl(requestedRegion);
+    if (qwenEndpoint) return qwenEndpoint;
     if (requestedRegion !== 'auto') return requestedRegion;
 
     const keyToProbe = await this.getQwenDetectionKey(apiKey, existing);
     if (!keyToProbe) {
-      return isQwenResolvedRegion(existing?.region) ? existing.region : null;
+      return isQwenResolvedEndpoint(existing?.region) ? existing.region : null;
     }
 
     return this.detectQwenRegionOrThrow(keyToProbe);

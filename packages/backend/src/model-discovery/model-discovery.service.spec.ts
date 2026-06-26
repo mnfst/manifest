@@ -1679,6 +1679,24 @@ describe('ModelDiscoveryService', () => {
       expect(provider.cached_models).toEqual([]);
     });
 
+    it('routes Qwen discovery to a stored Alibaba Model Studio base URL', async () => {
+      fetcher.fetch.mockResolvedValue([]);
+      mockPricingSync.getAll.mockReturnValue(new Map());
+
+      const provider = makeProvider({
+        provider: 'qwen',
+        region: 'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode',
+      });
+      await service.discoverModels(provider);
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'qwen',
+        'decrypted-key',
+        'api_key',
+        'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode',
+      );
+    });
+
     it('should stamp authType as api_key for regular providers', async () => {
       const models = [makeModel({ id: 'gpt-4o' })];
       fetcher.fetch.mockResolvedValue(models);
