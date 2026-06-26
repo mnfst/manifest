@@ -123,7 +123,7 @@ describe('sanitizeProviderError', () => {
 });
 
 describe('classifyProviderError', () => {
-  it('classifies provider context overflow as terminal and preserves the provider message', () => {
+  it('classifies provider context overflow and preserves the provider message', () => {
     const message =
       "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.";
 
@@ -143,7 +143,6 @@ describe('classifyProviderError', () => {
       type: 'invalid_request_error',
       code: 'context_length_exceeded',
       source: 'provider',
-      terminal: true,
     });
   });
 

@@ -12,18 +12,7 @@ describe('shouldTriggerFallback', () => {
     expect(shouldTriggerFallback(status)).toBe(false);
   });
 
-  it('should not fallback for provider context length errors', () => {
-    expect(
-      shouldTriggerFallback(
-        400,
-        JSON.stringify({
-          error: {
-            message:
-              "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.",
-            code: 'context_length_exceeded',
-          },
-        }),
-      ),
-    ).toBe(false);
+  it('should still fallback for provider context length errors', () => {
+    expect(shouldTriggerFallback(400)).toBe(true);
   });
 });

@@ -232,6 +232,56 @@ describe('proxy-response-handler', () => {
       );
     });
 
+    it('preserves provider context overflow code when fallback chain is exhausted', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'opencode-go', model: 'opencode-go/kimi-k2.6' });
+      const metaHeaders = buildMetaHeaders(meta);
+      const message =
+        "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.";
+      const failedFallbacks: FailedFallback[] = [
+        {
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          status: 400,
+          errorBody: 'also too long',
+        },
+      ];
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        metaHeaders,
+        400,
+        JSON.stringify({
+          error: {
+            message,
+            type: 'invalid_request_error',
+            code: 'context_length_exceeded',
+          },
+        }),
+        failedFallbacks,
+        recorder as any,
+      );
+
+      expect(res.setHeader).toHaveBeenCalledWith('X-Manifest-Fallback-Exhausted', 'true');
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            message,
+            type: 'invalid_request_error',
+            code: 'context_length_exceeded',
+            source: 'provider',
+            attempted_fallbacks: [
+              { model: 'claude-sonnet-4-6', provider: 'anthropic', status: 400 },
+            ],
+          }),
+        }),
+      );
+    });
+
     it('should record simple error when failedFallbacks present but meta has fallbackFromModel', async () => {
       const { res } = mockResponse();
       const recorder = mockRecorder();
@@ -339,7 +389,7 @@ describe('proxy-response-handler', () => {
       }
     });
 
-    it('returns provider context overflow as an OpenAI-compatible terminal error in production', async () => {
+    it('returns provider context overflow as an OpenAI-compatible error in production', async () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
       try {

@@ -24,7 +24,6 @@ export interface ClassifiedProviderError {
   type: OpenAiCompatibleErrorType;
   code: 'context_length_exceeded';
   source: 'provider';
-  terminal: true;
 }
 
 function sanitizeSensitivePatterns(msg: string): string {
@@ -87,7 +86,6 @@ export function classifyProviderError(
     type: 'invalid_request_error',
     code: 'context_length_exceeded',
     source: 'provider',
-    terminal: true,
   };
 }
 

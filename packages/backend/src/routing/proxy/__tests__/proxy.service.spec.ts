@@ -857,7 +857,7 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.primaryProvider).toBe('openai');
     });
 
-    it('does not trigger fallback on provider context length errors', async () => {
+    it('triggers fallback on provider context length errors', async () => {
       const message =
         "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.";
       fallbackService.tryForwardToProvider.mockResolvedValue({
@@ -874,13 +874,27 @@ describe('ProxyService — orchestration', () => {
         isAnthropic: false,
         isChatGpt: false,
       });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: {
+            response: okResponse(),
+            isGoogle: false,
+            isAnthropic: true,
+            isChatGpt: false,
+          },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+        },
+        failures: [],
+      } as never);
 
       const result = await svc.proxyRequest(baseOpts());
 
-      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
-      expect(result.forward.response.status).toBe(400);
-      expect(await result.forward.response.text()).toContain(message);
-      expect(result.failedFallbacks).toBeUndefined();
+      expect(fallbackService.tryFallbacks).toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(200);
+      expect(result.meta.fallbackFromModel).toBe('gpt-4o');
+      expect(result.meta.provider).toBe('anthropic');
     });
 
     it('returns the successful fallback auth_type, not the primary auth_type (#1173)', async () => {

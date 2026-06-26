@@ -360,7 +360,7 @@ export class ProxyFallbackService {
       updated.add(authType);
       failedAuthByProvider.set(provider.toLowerCase(), updated);
 
-      if (!shouldTriggerFallback(forward.response.status, errorBody)) break;
+      if (!shouldTriggerFallback(forward.response.status)) break;
     }
     return { success: null, failures };
   }

@@ -20,9 +20,8 @@ import { ProviderParamSpecService } from '../../routing-core/provider-param-spec
  *
  * `shouldTriggerFallback(status)` returns true for status-only errors >= 400,
  * so upstream 401 auth, 404 not-found, 429 rate limit, and 5xx keep the loop
- * going to the next route. Body-classified deterministic request errors
- * (currently context overflow) stop the chain and surface back to the caller.
- * These tests pin both sides of that contract.
+ * going to the next route. Context overflow follows the same route policy so
+ * a later fallback with a larger context window can recover.
  */
 
 describe('ProxyFallbackService.tryFallbacks — failure chain by status code', () => {
@@ -308,7 +307,7 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
     expect(result.failures[1]).toMatchObject({ status: 429, provider: 'anthropic' });
   });
 
-  it('stops the fallback chain on a context length error body', async () => {
+  it('continues the fallback chain on a context length error body', async () => {
     providerClient.forward
       .mockResolvedValueOnce({
         response: new Response(
@@ -338,8 +337,10 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
     ];
     const result = await runFallbacks(['gpt-4o-mini', 'gemini-2.5-flash'], routes);
 
-    expect(providerClient.forward).toHaveBeenCalledTimes(1);
-    expect(result.success).toBeNull();
+    expect(providerClient.forward).toHaveBeenCalledTimes(2);
+    expect(result.success).not.toBeNull();
+    expect(result.success!.provider).toBe('gemini');
+    expect(result.success!.model).toBe('gemini-2.5-flash');
     expect(result.failures).toHaveLength(1);
     expect(result.failures[0]).toMatchObject({
       status: 400,
