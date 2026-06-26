@@ -1,0 +1,57 @@
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_2cab731bb7226a::t_4de40886aefcfa 363
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_2cab731bb7226a::t_a856cafcf2e211 156-163,225-227,341-380
+  s_211944a0fbf113::t_07c4463a3a07fd 381-388
+packages/backend/src/routing/proxy/fallback-status-codes.ts
+  s_2cab731bb7226a::t_d30859fd824e5a 1-4
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_2cab731bb7226a::t_045437873ff48d 860-885
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.failures.spec.ts
+  s_2cab731bb7226a::t_72b3cfed208b97 21-25,311-348
+  s_211944a0fbf113::t_22c7a6f5143813 349-350
+.changeset/provider-context-errors.md
+  s_2cab731bb7226a::t_86e62a6bffc1af 1-5
+packages/backend/src/routing/proxy/proxy-error-sanitizer.ts
+  s_2cab731bb7226a::t_692c2f7632b524 15-29,38-40,42,47,49-104
+packages/backend/src/routing/proxy/proxy-error-sanitizer.spec.ts
+  s_2cab731bb7226a::t_0e6732f3d248a4 1-5,124-188
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_2cab731bb7226a::t_4a3155634ce130 796,798-799,801-804,852,874,876-877,879-880
+  s_2cab731bb7226a::t_deaefa4aa1cad4 1344,1346-1347,1349-1350,1746,1748-1749,1751-1752
+  s_2cab731bb7226a::t_84952ad7890937 2642-2646,2695-2697,2914,2956-2958,2996
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_2cab731bb7226a::t_9e089ea0772e6b 28,281
+packages/backend/src/routing/proxy/__tests__/fallback-status-codes.spec.ts
+  s_2cab731bb7226a::t_d30d87cbf49568 14-28
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_2cab731bb7226a::t_94a6f037dc7cde 294,410-417
+  s_211944a0fbf113::t_e27db199e52d1b 418-419
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_2cab731bb7226a::t_4e14eb5a022f87 17-20,76-102,162-166,232-246
+  s_2cab731bb7226a::t_292382a33abe7f 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "4aace1bf4c1cd455dc4edf7b2044c346f35d2915",
+  "prompts": {},
+  "sessions": {
+    "s_211944a0fbf113": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f02a4-c96a-7e30-b6ce-40af8dfa8c81",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_2cab731bb7226a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f02a6-be8b-7ea2-943d-d18d3db7ee64",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
