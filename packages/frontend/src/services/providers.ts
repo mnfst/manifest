@@ -5,6 +5,7 @@ import { SHARED_PROVIDER_BY_ID, type SharedProviderEntry } from 'manifest-shared
 export interface SubscriptionEndpointRegion {
   value: string;
   label: string;
+  baseUrlPlaceholder?: string;
 }
 
 export interface ProviderDef {
@@ -111,6 +112,36 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   qwen: {
     initial: 'Al',
     subtitle: 'Qwen, DeepSeek, Kimi, GLM via Alibaba Cloud',
+    apiKeyEndpointRegions: [
+      { value: 'auto', label: 'Auto-detect' },
+      { value: 'beijing', label: 'China (Beijing)' },
+      { value: 'singapore', label: 'Singapore' },
+      { value: 'us', label: 'United States' },
+      {
+        value: 'workspace-cn-hongkong',
+        label: 'China (Hong Kong)',
+        baseUrlPlaceholder:
+          'https://<workspace-id>.cn-hongkong.maas.aliyuncs.com/compatible-mode/v1',
+      },
+      {
+        value: 'workspace-eu-central-1',
+        label: 'Germany (Frankfurt)',
+        baseUrlPlaceholder:
+          'https://<workspace-id>.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+      },
+      {
+        value: 'workspace-ap-northeast-1',
+        label: 'Japan (Tokyo)',
+        baseUrlPlaceholder:
+          'https://<workspace-id>.ap-northeast-1.maas.aliyuncs.com/compatible-mode/v1',
+      },
+      {
+        value: 'custom',
+        label: 'Custom endpoint',
+        baseUrlPlaceholder:
+          'https://<workspace-id>.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+      },
+    ],
     supportsSubscription: true,
     subscriptionLabel: 'Qwen Token Plan',
     subscriptionAuthMode: 'token',

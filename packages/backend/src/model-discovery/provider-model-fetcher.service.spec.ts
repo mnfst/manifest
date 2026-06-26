@@ -1236,6 +1236,27 @@ describe('ProviderModelFetcherService', () => {
     warnSpy.mockRestore();
   });
 
+  it('fetches Qwen models from an Alibaba Model Studio compatible-mode base URL', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.fetch(
+      'qwen',
+      'sk-qwen',
+      'api_key',
+      'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer sk-qwen' },
+      }),
+    );
+  });
+
   /* ── Anthropic provider ── */
 
   describe('parseAnthropic (via anthropic provider)', () => {

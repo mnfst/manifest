@@ -12,6 +12,9 @@ describe('qwen-region', () => {
     expect(isQwenRegion('singapore')).toBe(true);
     expect(isQwenRegion('us')).toBe(true);
     expect(isQwenRegion('beijing')).toBe(true);
+    expect(
+      isQwenRegion('https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode/v1'),
+    ).toBe(true);
     expect(isQwenRegion('moon')).toBe(false);
   });
 
@@ -32,6 +35,11 @@ describe('qwen-region', () => {
     expect(getQwenCompatibleBaseUrl('beijing')).toBe(
       'https://dashscope.aliyuncs.com/compatible-mode',
     );
+    expect(
+      getQwenCompatibleBaseUrl(
+        'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+      ),
+    ).toBe('https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode');
   });
 
   it('defaults to Beijing when region is unset', () => {
@@ -43,7 +51,22 @@ describe('qwen-region', () => {
     expect(
       normalizeQwenCompatibleBaseUrl('https://dashscope-intl.aliyuncs.com/compatible-mode/'),
     ).toBe('https://dashscope-intl.aliyuncs.com/compatible-mode');
+    expect(
+      normalizeQwenCompatibleBaseUrl(
+        'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode/v1/',
+      ),
+    ).toBe('https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode');
     expect(normalizeQwenCompatibleBaseUrl('https://example.com/compatible-mode')).toBeNull();
+    expect(
+      normalizeQwenCompatibleBaseUrl(
+        'https://workspace-123.eu-central-1.maas.aliyuncs.com.evil.test/compatible-mode',
+      ),
+    ).toBeNull();
+    expect(
+      normalizeQwenCompatibleBaseUrl(
+        'https://workspace-123.eu-west-3.maas.aliyuncs.com/compatible-mode',
+      ),
+    ).toBeNull();
   });
 
   it('detects the first region whose models endpoint succeeds', async () => {

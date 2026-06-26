@@ -13,7 +13,7 @@ import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/core';
-import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
+import { getQwenCompatibleBaseUrl, isQwenResolvedEndpoint } from '../routing/qwen-region';
 import {
   getBedrockMantleBaseUrl,
   isBedrockProvider,
@@ -161,7 +161,7 @@ export class ModelDiscoveryService {
         }
       }
     }
-    if (isQwenProvider(provider.provider) && isQwenResolvedRegion(provider.region)) {
+    if (isQwenProvider(provider.provider) && isQwenResolvedEndpoint(provider.region)) {
       endpointOverride = getQwenCompatibleBaseUrl(provider.region);
     }
     if (isBedrockProvider(provider.provider) && isBedrockRegion(provider.region)) {
