@@ -1234,6 +1234,65 @@ describe('ProviderKeyForm', () => {
       });
     });
 
+    it('list-mode AddAnotherKey sends a named Qwen workspace endpoint URL', async () => {
+      const def = makeProviderDef({
+        id: 'qwen',
+        name: 'Alibaba Cloud',
+        apiKeyEndpointRegions: [
+          { value: 'auto', label: 'Auto-detect' },
+          {
+            value: 'workspace-ap-northeast-1',
+            label: 'Japan (Tokyo)',
+            baseUrlPlaceholder:
+              'https://<workspace-id>.ap-northeast-1.maas.aliyuncs.com/compatible-mode/v1',
+          },
+        ],
+      });
+      const { container, getByText } = mount({
+        provDef: def,
+        provId: 'qwen',
+        connected: true,
+        addKeyOpen: true,
+        providers: [
+          makeProvider({
+            id: 'q1',
+            provider: 'qwen',
+            label: 'Personal',
+            priority: 0,
+            region: 'auto',
+          }),
+          makeProvider({
+            id: 'q2',
+            provider: 'qwen',
+            label: 'Work',
+            priority: 1,
+            region: 'auto',
+          }),
+        ],
+      });
+
+      const endpoint = container.querySelector('#add-key-endpoint') as HTMLSelectElement;
+      fireEvent.change(endpoint, { target: { value: 'workspace-ap-northeast-1' } });
+      fireEvent.input(screen.getByLabelText('Base URL'), {
+        target: {
+          value: 'https://workspace-123.ap-northeast-1.maas.aliyuncs.com/compatible-mode/v1',
+        },
+      });
+      const apiKeyInput = container.querySelector('#add-key-value') as HTMLInputElement;
+      fireEvent.input(apiKeyInput, { target: { value: 'sk-third' } });
+      fireEvent.click(getByText('Add key'));
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'qwen',
+        apiKey: 'sk-third',
+        authType: 'api_key',
+        label: 'Key 3',
+        region: 'https://workspace-123.ap-northeast-1.maas.aliyuncs.com/compatible-mode/v1',
+      });
+    });
+
     it('handleAddKey returns false when connectProvider rejects', async () => {
       connectProviderMock.mockRejectedValueOnce(new Error('bad'));
       const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });

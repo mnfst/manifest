@@ -69,6 +69,40 @@ describe('qwen-region', () => {
     ).toBeNull();
   });
 
+  it('accepts Alibaba workspace endpoints in every supported region code', () => {
+    for (const regionCode of [
+      'cn-beijing',
+      'ap-southeast-1',
+      'ap-northeast-1',
+      'cn-hongkong',
+      'eu-central-1',
+    ]) {
+      expect(
+        normalizeQwenCompatibleBaseUrl(
+          `https://workspace-123.${regionCode}.maas.aliyuncs.com/compatible-mode/v1`,
+        ),
+      ).toBe(`https://workspace-123.${regionCode}.maas.aliyuncs.com/compatible-mode`);
+    }
+  });
+
+  it('rejects malformed Alibaba workspace base urls', () => {
+    const invalidUrls = [
+      'http://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode',
+      'https://user@workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode',
+      'https://workspace-123.eu-central-1.maas.aliyuncs.com:8443/compatible-mode',
+      'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode?x=1',
+      'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode#models',
+      'https://workspace-123.eu-central-1.maas.aliyuncs.com/not-compatible-mode',
+      'https://work_space.eu-central-1.maas.aliyuncs.com/compatible-mode',
+      'https://workspace-123.eu-central-1.mars.aliyuncs.com/compatible-mode',
+      'https://workspace-123.eu-central-1.maas.aliyuncs.net/compatible-mode',
+    ];
+
+    for (const invalidUrl of invalidUrls) {
+      expect(normalizeQwenCompatibleBaseUrl(invalidUrl)).toBeNull();
+    }
+  });
+
   it('detects the first region whose models endpoint succeeds', async () => {
     const fetchMock = jest
       .fn<ReturnType<typeof fetch>, Parameters<typeof fetch>>()

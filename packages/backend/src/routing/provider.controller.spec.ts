@@ -119,6 +119,16 @@ describe('ProviderController', () => {
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
+    it('rejects baseUrl for non-Qwen providers', async () => {
+      await expect(
+        controller.upsertProvider(mockCtx, mockAgentName, {
+          provider: 'openai',
+          authType: 'api_key',
+          baseUrl: 'https://api.openai.com/v1',
+        } as never),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
     it('accepts snake-case Qwen base_url on connect', async () => {
       mockProviderService.upsertProvider.mockResolvedValueOnce({
         provider: {
