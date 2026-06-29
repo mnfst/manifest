@@ -57,7 +57,7 @@ describe('MessagesQueryDto', () => {
   });
 
   it('accepts each known status value', async () => {
-    for (const status of ['ok', 'error', 'rate_limited', 'fallback_error', 'errors']) {
+    for (const status of ['ok', 'failed', 'error', 'rate_limited', 'fallback_error', 'errors']) {
       const dto = plainToInstance(MessagesQueryDto, { status });
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
