@@ -182,6 +182,10 @@
   background: hsl(var(--chart-1) / 0.15);
   color: hsl(var(--chart-1));
 }
+.tier-badge--direct {
+  background: hsl(188 80% 42% / 0.14);
+  color: hsl(188 82% 32%);
+}
 .tier-badge--specificity {
   background: hsl(270 60% 50% / 0.12);
   color: hsl(270 60% 45%);

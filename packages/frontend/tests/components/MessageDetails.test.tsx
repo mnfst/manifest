@@ -213,6 +213,23 @@ describe('MessageDetails', () => {
     });
   });
 
+  it('displays direct model overrides as DIRECT routing metadata', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      ...detailsResponse,
+      message: {
+        ...detailsResponse.message,
+        routing_tier: 'direct',
+        routing_reason: 'direct',
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Routing');
+      expect(container.textContent).toContain('DIRECT');
+      expect(container.textContent).not.toContain('default');
+    });
+  });
+
   it('renders App and SDK metadata when caller_attribution is present', async () => {
     const withAttribution = {
       ...detailsResponse,

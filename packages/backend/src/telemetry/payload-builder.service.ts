@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AUTH_TYPES, TIER_SLOTS } from 'manifest-shared';
+import { ALL_TIERS, AUTH_TYPES, TIER_SLOTS } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../common/constants/providers';
 import { Agent } from '../entities/agent.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import type { TelemetryPayloadV1 } from './dto/telemetry-payload';
 import { TELEMETRY_SCHEMA_VERSION } from './telemetry.config';
 
-const TIER_WHITELIST: ReadonlySet<string> = new Set<string>(TIER_SLOTS);
+const TIER_WHITELIST: ReadonlySet<string> = new Set<string>([...TIER_SLOTS, ...ALL_TIERS]);
 const AUTH_TYPE_WHITELIST: ReadonlySet<string> = new Set<string>(AUTH_TYPES);
 
 interface ProviderAggregateRow {
