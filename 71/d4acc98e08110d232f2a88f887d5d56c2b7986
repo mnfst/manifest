@@ -4,6 +4,7 @@ packages/backend/src/model-discovery/model-discovery.service.spec.ts
   s_4c34b7e0ae2628::t_026c2720403d20 688-711
 packages/frontend/tests/services/providers.test.ts
   s_4c34b7e0ae2628::t_45c04ee17f8ddb 540-550,663-669,852-855,871-881
+  s_4c34b7e0ae2628::t_428f43f1bc6d2c 867-870
 packages/frontend/src/services/provider-api-key-urls.ts
   s_4c34b7e0ae2628::t_45c04ee17f8ddb 43
 packages/shared/src/subscription/configs.ts
