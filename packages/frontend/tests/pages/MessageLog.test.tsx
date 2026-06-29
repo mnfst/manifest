@@ -39,7 +39,7 @@ const mockGetRoutingStatus = vi.fn();
 const mockListHeaderTiers = vi.fn();
 const mockSetMessageFeedback = vi.fn();
 const mockClearMessageFeedback = vi.fn();
-vi.mock("../../src/services/api.js", () => ({
+vi.mock('../../src/services/api.js', () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
   getMessageFilterOptions: (...args: unknown[]) => mockGetMessageFilterOptions(...args),
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
@@ -897,7 +897,7 @@ describe('MessageLog', () => {
     });
   });
 
-  it("shows the per-request cost for OpenCode Go subscription messages", async () => {
+  it('shows the per-request cost for OpenCode Go subscription messages', async () => {
     const dataWithPerRequestSub = {
       ...messagesData,
       items: [{ ...messagesData.items[0], auth_type: 'subscription', cost: 0.013636 }],
@@ -907,10 +907,8 @@ describe('MessageLog', () => {
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       // Per-request subscriptions (OpenCode Go) carry real costs — don't hide them.
-      expect(container.textContent).toContain("$0.01");
-      expect(
-        container.querySelector('[title^="Per-request subscription cost:"]'),
-      ).not.toBeNull();
+      expect(container.textContent).toContain('$0.01');
+      expect(container.querySelector('[title^="Per-request subscription cost:"]')).not.toBeNull();
     });
   });
 
@@ -1253,8 +1251,8 @@ describe('MessageLog', () => {
     });
   });
 
-  describe("Tier filter", () => {
-    it("renders a Tier select with Playground among the options", async () => {
+  describe('Tier filter', () => {
+    it('renders a Tier select with Playground among the options', async () => {
       mockGetMessages.mockResolvedValue(messagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
@@ -1456,6 +1454,33 @@ describe('MessageLog', () => {
         const calls = mockGetMessages.mock.calls;
         const lastQ = calls[calls.length - 1]?.[0] ?? {};
         expect(lastQ.agent_name).toBe('agent-alpha');
+      });
+    });
+
+    it('loads custom tier options for the selected agent in global mode', async () => {
+      mockAgentName = '';
+      mockGetMessages.mockResolvedValue(messagesData);
+      mockListHeaderTiers.mockResolvedValue([{ id: 'ht-premium', name: 'Premium' }]);
+
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll(
+          '[data-testid="select"]',
+        )[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain('agent-alpha');
+      });
+
+      const agentSelect = container.querySelectorAll(
+        '[data-testid="select"]',
+      )[0] as HTMLSelectElement;
+      fireEvent.change(agentSelect, { target: { value: 'agent-alpha' } });
+
+      await vi.waitFor(() => {
+        expect(mockListHeaderTiers).toHaveBeenCalledWith('agent-alpha');
+        const tierSelect = container.querySelectorAll(
+          '[data-testid="select"]',
+        )[2] as HTMLSelectElement;
+        expect(tierSelect.textContent).toContain('Premium');
       });
     });
 
