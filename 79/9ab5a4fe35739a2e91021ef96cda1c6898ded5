@@ -1,0 +1,26 @@
+.changeset/real-v1-models-list.md
+  s_8d7abb4142b62c::t_8b8829f5ba777e 1-5
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_8d7abb4142b62c::t_6b7be8071f6da5 10,78-93,123,158-160,190,198-199,205-253
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_8d7abb4142b62c::t_d33d756d166548 24-25,46-71,90,94-120,125
+  s_8d7abb4142b62c::t_63ea7faded576b 121-122
+packages/backend/test/proxy.e2e-spec.ts
+  s_8d7abb4142b62c::t_f666c6d837f189 94-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "799ab5a4fe35739a2e91021ef96cda1c6898ded5",
+  "prompts": {},
+  "sessions": {
+    "s_8d7abb4142b62c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f120a-9765-72e1-bb87-22a45d71fc0c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
