@@ -367,6 +367,7 @@ const ConnectionDetail: Component = () => {
   const [renameError, setRenameError] = createSignal('');
   const [refreshingModels, setRefreshingModels] = createSignal(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = createSignal(false);
+  const [deleteConfirmName, setDeleteConfirmName] = createSignal('');
   const [deletingConnection, setDeletingConnection] = createSignal(false);
   const [agents] = createResource(async () => {
     try {
@@ -383,7 +384,29 @@ const ConnectionDetail: Component = () => {
     if (c) setRenameValue(c.label);
     setRenameError('');
     setShowDeleteConfirm(false);
+    setDeleteConfirmName('');
     setShowManageModal(true);
+  };
+
+  const closeManageModal = () => {
+    setShowManageModal(false);
+    setShowDeleteConfirm(false);
+    setDeleteConfirmName('');
+  };
+
+  const openDeleteConfirm = () => {
+    setDeleteConfirmName('');
+    setShowDeleteConfirm(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    setShowDeleteConfirm(false);
+    setDeleteConfirmName('');
+  };
+
+  const deleteConfirmMatches = () => {
+    const c = conn();
+    return !!c && deleteConfirmName() === c.label;
   };
 
   const handleRename = async () => {
@@ -399,7 +422,7 @@ const ConnectionDetail: Component = () => {
       return;
     }
     if (newLabel === c.label) {
-      setShowManageModal(false);
+      closeManageModal();
       return;
     }
     setRenaming(true);
@@ -407,7 +430,7 @@ const ConnectionDetail: Component = () => {
     try {
       await renameProviderKey(firstAgentName(), c.provider, c.label, newLabel, c.auth_type as any);
       toast.success('Connection renamed');
-      setShowManageModal(false);
+      closeManageModal();
       refetchDetail();
     } catch (e: any) {
       setRenameError(e?.message ?? 'Failed to rename');
@@ -419,6 +442,7 @@ const ConnectionDetail: Component = () => {
   const handleDisconnect = async () => {
     const c = conn();
     if (!c) return;
+    if (!c.is_active && !deleteConfirmMatches()) return;
     const agent = firstAgentName();
     if (!agent) {
       toast.error(
@@ -877,10 +901,10 @@ const ConnectionDetail: Component = () => {
                     <div
                       class="modal-overlay"
                       onClick={(e) => {
-                        if (e.target === e.currentTarget) setShowManageModal(false);
+                        if (e.target === e.currentTarget) closeManageModal();
                       }}
                       onKeyDown={(e) => {
-                        if (e.key === 'Escape') setShowManageModal(false);
+                        if (e.key === 'Escape') closeManageModal();
                       }}
                     >
                       <div
@@ -910,7 +934,7 @@ const ConnectionDetail: Component = () => {
                           </div>
                           <button
                             type="button"
-                            onClick={() => setShowManageModal(false)}
+                            onClick={closeManageModal}
                             style="background: none; border: none; cursor: pointer; padding: 4px; color: hsl(var(--muted-foreground)); font-size: 18px; line-height: 1;"
                             aria-label="Close"
                           >
@@ -980,13 +1004,10 @@ const ConnectionDetail: Component = () => {
 
                           {/* Actions */}
                           <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid hsl(var(--border));">
-                            <button class="btn btn--destructive btn--sm" onClick={handleDisconnect}>
+                            <button class="btn btn--danger btn--sm" onClick={handleDisconnect}>
                               Disconnect
                             </button>
-                            <button
-                              class="btn btn--outline btn--sm"
-                              onClick={() => setShowManageModal(false)}
-                            >
+                            <button class="btn btn--outline btn--sm" onClick={closeManageModal}>
                               Done
                             </button>
                           </div>
@@ -997,43 +1018,69 @@ const ConnectionDetail: Component = () => {
                             when={showDeleteConfirm()}
                             fallback={
                               <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid hsl(var(--border));">
-                                <button
-                                  class="btn btn--destructive btn--sm"
-                                  onClick={() => setShowDeleteConfirm(true)}
-                                >
+                                <button class="btn btn--danger btn--sm" onClick={openDeleteConfirm}>
                                   Delete
                                 </button>
-                                <button
-                                  class="btn btn--outline btn--sm"
-                                  onClick={() => setShowManageModal(false)}
-                                >
+                                <button class="btn btn--outline btn--sm" onClick={closeManageModal}>
                                   Close
                                 </button>
                               </div>
                             }
                           >
                             <div
-                              style="padding-top: 12px; border-top: 1px solid hsl(var(--border));"
+                              class="connection-delete-confirmation"
                               role="alertdialog"
-                              aria-label="Delete connection confirmation"
+                              aria-labelledby="delete-connection-confirm-title"
+                              aria-describedby="delete-connection-confirm-copy"
                             >
-                              <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin: 0 0 12px;">
-                                Deleting this connection will remove its usage history.
-                              </p>
-                              <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                              <div class="connection-delete-confirmation__warning">
+                                <h3
+                                  id="delete-connection-confirm-title"
+                                  class="connection-delete-confirmation__title"
+                                >
+                                  Delete usage history?
+                                </h3>
+                                <p
+                                  id="delete-connection-confirm-copy"
+                                  class="connection-delete-confirmation__copy"
+                                >
+                                  This will permanently delete this inactive connection and its
+                                  usage history. This action cannot be undone.
+                                </p>
+                              </div>
+                              <label
+                                for="delete-connection-confirm-input"
+                                class="connection-delete-confirmation__label"
+                              >
+                                Type the connection name to confirm
+                              </label>
+                              <input
+                                id="delete-connection-confirm-input"
+                                class="provider-detail__input"
+                                type="text"
+                                value={deleteConfirmName()}
+                                onInput={(e) => setDeleteConfirmName(e.currentTarget.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && deleteConfirmMatches()) {
+                                    handleDisconnect();
+                                  }
+                                }}
+                                placeholder={c.label}
+                              />
+                              <div class="connection-delete-confirmation__footer">
                                 <button
                                   class="btn btn--outline btn--sm"
-                                  onClick={() => setShowDeleteConfirm(false)}
+                                  onClick={closeDeleteConfirm}
                                   disabled={deletingConnection()}
                                 >
                                   Cancel
                                 </button>
                                 <button
-                                  class="btn btn--destructive btn--sm"
+                                  class="btn btn--danger btn--sm"
                                   onClick={handleDisconnect}
-                                  disabled={deletingConnection()}
+                                  disabled={!deleteConfirmMatches() || deletingConnection()}
                                 >
-                                  {deletingConnection() ? 'Deleting...' : 'Confirm'}
+                                  {deletingConnection() ? 'Deleting...' : 'Delete connection'}
                                 </button>
                               </div>
                             </div>
@@ -1047,10 +1094,10 @@ const ConnectionDetail: Component = () => {
                   <div
                     class="modal-overlay"
                     onClick={(e) => {
-                      if (e.target === e.currentTarget) setShowManageModal(false);
+                      if (e.target === e.currentTarget) closeManageModal();
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Escape') setShowManageModal(false);
+                      if (e.key === 'Escape') closeManageModal();
                     }}
                   >
                     <div
@@ -1064,12 +1111,12 @@ const ConnectionDetail: Component = () => {
                         agentName={firstAgentName()}
                         initialData={customProviderData()!}
                         onCreated={() => {
-                          setShowManageModal(false);
+                          closeManageModal();
                           refetchDetail();
                         }}
-                        onBack={() => setShowManageModal(false)}
+                        onBack={closeManageModal}
                         onDeleted={() => {
-                          setShowManageModal(false);
+                          closeManageModal();
                           navigate(backLink());
                         }}
                       />

@@ -589,6 +589,14 @@ describe('ProviderService — route-only cleanup paths', () => {
 
     it('deletes exact usage history before hard-deleting an inactive labeled key', async () => {
       const messageRepo = makeRepo();
+      const enabledRepo = makeRepo();
+      const messages = [
+        { id: 'target-1', tenant_id: 'tenant-1', tenant_provider_id: 'inactive-sub' },
+        { id: 'target-2', tenant_id: 'tenant-1', tenant_provider_id: 'inactive-sub' },
+        { id: 'other-tenant', tenant_id: 'tenant-2', tenant_provider_id: 'inactive-sub' },
+        { id: 'other-key', tenant_id: 'tenant-1', tenant_provider_id: 'active-sub' },
+        { id: 'legacy-null', tenant_id: 'tenant-1', tenant_provider_id: null },
+      ];
       const target = {
         id: 'inactive-sub',
         agent_id: null,
@@ -601,20 +609,54 @@ describe('ProviderService — route-only cleanup paths', () => {
       providerRepo.find.mockImplementation(async (options?: { order?: unknown }) =>
         options?.order ? [] : [target],
       );
+      messageRepo.delete.mockImplementation(async ({ tenant_id, tenant_provider_id }) => {
+        const before = messages.length;
+        for (let index = messages.length - 1; index >= 0; index -= 1) {
+          const message = messages[index];
+          if (
+            message.tenant_id === tenant_id &&
+            message.tenant_provider_id === tenant_provider_id
+          ) {
+            messages.splice(index, 1);
+          }
+        }
+        return { affected: before - messages.length, raw: [] };
+      });
       providerRepo.manager.getRepository.mockReturnValue(messageRepo);
       tierRepo.find.mockResolvedValue([]);
       specRepo.find.mockResolvedValue([]);
       headerTierRepo.find.mockResolvedValue([]);
+      const localSvc = new ProviderService(
+        providerRepo as unknown as Repository<TenantProvider>,
+        tierRepo as unknown as Repository<TierAssignment>,
+        specRepo as unknown as Repository<SpecificityAssignment>,
+        makeRepo() as unknown as Repository<Agent>,
+        headerTierRepo as unknown as Repository<HeaderTier>,
+        pricingCache as unknown as ModelPricingCacheService,
+        routingCache as unknown as RoutingCacheService,
+        enabledRepo as unknown as Repository<AgentEnabledProvider>,
+      );
 
       await expect(
-        svc.removeProvider('agent-1', 'tenant-1', 'anthropic', 'subscription', 'Old Claude'),
+        localSvc.removeProvider('agent-1', 'tenant-1', 'anthropic', 'subscription', 'Old Claude'),
       ).resolves.toEqual({ notifications: [] });
 
       expect(messageRepo.delete).toHaveBeenCalledWith({
         tenant_id: 'tenant-1',
         tenant_provider_id: 'inactive-sub',
       });
+      expect(messages).toEqual([
+        { id: 'other-tenant', tenant_id: 'tenant-2', tenant_provider_id: 'inactive-sub' },
+        { id: 'other-key', tenant_id: 'tenant-1', tenant_provider_id: 'active-sub' },
+        { id: 'legacy-null', tenant_id: 'tenant-1', tenant_provider_id: null },
+      ]);
+      expect(messageRepo.delete.mock.invocationCallOrder[0]).toBeLessThan(
+        providerRepo.remove.mock.invocationCallOrder[0],
+      );
       expect(providerRepo.remove).toHaveBeenCalledWith(target);
+      expect(enabledRepo.delete).toHaveBeenCalledWith({
+        tenant_provider_id: In(['inactive-sub']),
+      });
       expect(providerRepo.save).not.toHaveBeenCalled();
       expect(providerRepo.findOne).not.toHaveBeenCalled();
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
