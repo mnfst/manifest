@@ -9,6 +9,7 @@ import {
 
 export const MESSAGE_STATUS_FILTER_VALUES = [
   'ok',
+  'failed',
   'error',
   'rate_limited',
   'fallback_error',

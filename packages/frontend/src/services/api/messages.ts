@@ -63,6 +63,7 @@ export function getMessages(
     agent_name?: string;
     cost_min?: string;
     cost_max?: string;
+    status?: string;
     routing_tier?: string;
     specificity_category?: string;
     header_tier_id?: string;

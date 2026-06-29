@@ -7,6 +7,7 @@ import { rangeToInterval } from '../../common/utils/range.util';
 import { addTenantFilter, formatTimestamp, selectMessageRowColumns } from './query-helpers';
 import type { MessageStatusFilter } from '../dto/messages-query.dto';
 
+const FAILED_STATUSES = ['error', 'fallback_error', 'rate_limited'] as const;
 const ERROR_STATUSES = ['error', 'fallback_error', 'rate_limited'] as const;
 import { computeCutoff, sqlCastFloat, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 import { inferProviderFromModel } from '../../common/utils/provider-inference';
@@ -223,7 +224,9 @@ export class MessagesQueryService {
       );
     }
 
-    if (params.status === 'errors') {
+    if (params.status === 'failed') {
+      qb.andWhere('at.status IN (:...failedStatuses)', { failedStatuses: FAILED_STATUSES });
+    } else if (params.status === 'errors') {
       qb.andWhere('at.status IN (:...errorStatuses)', { errorStatuses: ERROR_STATUSES });
     } else if (params.status) {
       qb.andWhere('at.status = :statusFilter', { statusFilter: params.status });
