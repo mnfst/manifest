@@ -1,0 +1,19 @@
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_2351d28ef04d06::t_ff3e8d1fecb17a 66-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "1ef5126ee0d83f92e38036462f30157e993d6610",
+  "prompts": {},
+  "sessions": {
+    "s_2351d28ef04d06": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f127c-75cc-7171-b057-147381de38dd",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
