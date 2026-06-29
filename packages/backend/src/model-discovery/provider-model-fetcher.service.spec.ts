@@ -198,6 +198,128 @@ describe('ProviderModelFetcherService', () => {
     });
   });
 
+  it('should keep Pioneer model discovery when the pricing catalog fetch fails', async () => {
+    fetchSpy
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'gpt-4o', display_name: 'GPT-4o' }],
+        }),
+      })
+      .mockRejectedValueOnce(new Error('catalog down'));
+
+    const result = await service.fetch('pioneer', 'pio_sk_test_key');
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      id: 'gpt-4o',
+      displayName: 'GPT-4o',
+      inputPricePerToken: null,
+      outputPricePerToken: null,
+    });
+  });
+
+  it('should keep Pioneer model discovery when the pricing catalog is malformed', async () => {
+    fetchSpy
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'gpt-4o' }],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ models: 'not-array' }),
+      });
+
+    const result = await service.fetch('pioneer', 'pio_sk_test_key');
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      id: 'gpt-4o',
+      displayName: 'gpt-4o',
+      inputPricePerToken: null,
+      outputPricePerToken: null,
+    });
+  });
+
+  it('should ignore invalid Pioneer pricing rows and invalid prices', async () => {
+    fetchSpy
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'bare-model' },
+            { id: 'invalid-prices', display_name: 'Invalid Prices', context_length: 64000 },
+            { id: 'label-fallback', display_name: 'Label Fallback', context_length: 32000 },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          models: [
+            { id: '' },
+            { id: 123 },
+            {
+              id: 'invalid-prices',
+              label: 'Invalid Prices',
+              input_price_per_million: -1,
+              output_price_per_million: Number.POSITIVE_INFINITY,
+              is_chat_model: false,
+            },
+            {
+              id: 'label-fallback',
+              label: '',
+              context_window: undefined,
+              input_price_per_million: null,
+              output_price_per_million: undefined,
+              supports_image_input: false,
+            },
+          ],
+        }),
+      });
+
+    const result = await service.fetch('pioneer', 'pio_sk_test_key');
+
+    expect(result.map((m) => m.id)).toEqual(['bare-model', 'invalid-prices', 'label-fallback']);
+    expect(result[0]).toMatchObject({
+      displayName: 'bare-model',
+      contextWindow: 128000,
+    });
+    expect(result[1]).toMatchObject({
+      displayName: 'Invalid Prices',
+      contextWindow: 64000,
+      inputPricePerToken: null,
+      outputPricePerToken: null,
+      capabilityCode: false,
+    });
+    expect(result[2]).toMatchObject({
+      displayName: 'Label Fallback',
+      contextWindow: 32000,
+      inputPricePerToken: null,
+      outputPricePerToken: null,
+    });
+    expect(result[2].inputModalities).toBeUndefined();
+  });
+
+  it('should return [] when Pioneer model discovery is unavailable', async () => {
+    fetchSpy.mockResolvedValueOnce({ ok: false, status: 401 });
+
+    const result = await service.fetch('pioneer', 'pio_sk_test_key');
+
+    expect(result).toEqual([]);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should return [] when Pioneer model discovery throws', async () => {
+    fetchSpy.mockRejectedValueOnce(new Error('pioneer down'));
+
+    const result = await service.fetch('pioneer', 'pio_sk_test_key');
+
+    expect(result).toEqual([]);
+  });
+
   /* ── Unknown provider ── */
 
   it('should return [] for unknown provider', async () => {
