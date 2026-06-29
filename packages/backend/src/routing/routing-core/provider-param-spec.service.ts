@@ -290,9 +290,6 @@ function pushUniqueCandidate(
   values: ProviderlessModelParamCandidate[],
   value: ProviderlessModelParamCandidate,
 ): void {
-  if (values.some((entry) => entry.authType === value.authType && entry.model === value.model)) {
-    return;
-  }
   values.push(value);
 }
 

@@ -63,6 +63,23 @@ describe('ProviderParamSpecService', () => {
     );
   });
 
+  it('accepts Copilot subscription route ids that already include the subscription suffix', async () => {
+    const service = new ProviderParamSpecService();
+
+    const specs = await service.getSpecs('copilot', 'subscription', 'copilot/gpt-5.5-subscription');
+
+    expect(specs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          provider: 'copilot',
+          authType: 'subscription',
+          model: 'copilot/gpt-5.5-subscription',
+          path: 'reasoning.effort',
+        }),
+      ]),
+    );
+  });
+
   it('normalizes Copilot Claude dotted minor versions before providerless lookup', async () => {
     const service = new ProviderParamSpecService();
 
