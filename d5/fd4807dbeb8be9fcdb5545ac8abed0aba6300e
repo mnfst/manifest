@@ -1,0 +1,42 @@
+.changeset/antigravity-coding-agent.md
+  s_24fc4145b9c9da::t_3cddfb37df98ab 1-5
+packages/shared/src/agent-type.ts
+  s_24fc4145b9c9da::t_3cddfb37df98ab 11,34,46,56
+packages/frontend/src/components/SetupStepAddProvider.tsx
+  s_24fc4145b9c9da::t_3cddfb37df98ab 9,13-20,66-68,92-94,237-252,275-276
+  s_8d7abb4142b62c::t_644a729fd7c5f9 277
+packages/frontend/src/components/AntigravitySetup.tsx
+  s_24fc4145b9c9da::t_3cddfb37df98ab 1-102
+packages/shared/__tests__/agent-type.spec.ts
+  s_24fc4145b9c9da::t_3cddfb37df98ab 21,63,66,69,126,143-146,154
+packages/frontend/tests/components/SetupStepAddProvider.test.tsx
+  s_24fc4145b9c9da::t_3cddfb37df98ab 49,51-62,64,66-67,70,72,74-75,78,80,82-83,86,88,90,94-103,105-106,109,111,113,116,118-119,122,124,126,129,131,134-135,138,140,142,144-145,148,150-152,155,157-158,161,163-165,168,170-171,173-174,177,179-181,183-194,201,205-206,208,211,217,220,227,229,231-232,235,237-238,240-241,244,248-249,252,254,257,259,263,265-266,268-269,271-272,275,277,280,285,288-289,293,297-299,302,306,310-312,315,319-320,325-327,330,334-335,340-342,345,349-350,355-357,360,364,369-376,378-386,396-397,414,416,423,432,437,446,450
+  s_24fc4145b9c9da::t_c061c3312a7a33 1-2,4,8,10,14,21,23,26,28-29,32,34,36,38-39,42,44,46,389,393,398,401,405,407,410,419,424,427,431,453,457,460,464
+packages/frontend/tests/components/AgentTypeGrid.test.tsx
+  s_24fc4145b9c9da::t_3cddfb37df98ab 22-23,26-28,31-40,44,46,48-49,58,60,62-64,67,69-70,73,75,79,81,83,86,96,98-99,102,112,114-115,118,128,130-131,134-150,152,154,157,159-161,164,168-171,174,176-179,182,184-186,189,191-193,196-202,204,206,227,231,236,239-241,244-245,249
+  s_24fc4145b9c9da::t_1137c3fb7bcd70 1-2,4-5,7-9,12-21,203,205,207,213,215,218,221-222,225,229,234,237-238,242-243,247
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "d5fd4807dbeb8be9fcdb5545ac8abed0aba6300e",
+  "prompts": {},
+  "sessions": {
+    "s_24fc4145b9c9da": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f12a4-5c55-7bf3-9c4f-5e170d64d4c8",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_8d7abb4142b62c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f120a-9765-72e1-bb87-22a45d71fc0c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
