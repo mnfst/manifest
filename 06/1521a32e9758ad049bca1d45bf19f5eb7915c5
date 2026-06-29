@@ -1,0 +1,21 @@
+packages/backend/src/common/utils/range.util.spec.ts
+  s_188691f75f819b::t_201f5943430bb0 10-11,29-30,50-51
+packages/backend/src/common/dto/range-query.dto.spec.ts
+  s_188691f75f819b::t_201f5943430bb0 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "061521a32e9758ad049bca1d45bf19f5eb7915c5",
+  "prompts": {},
+  "sessions": {
+    "s_188691f75f819b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f11f1-4c92-7bf1-89eb-27adc0ea2aff",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
