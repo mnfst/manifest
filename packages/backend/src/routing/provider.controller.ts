@@ -4,12 +4,15 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   Param,
   Patch,
   Post,
   Put,
   Query,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
@@ -39,6 +42,7 @@ export class ProviderController {
     private readonly resolveAgentService: ResolveAgentService,
     private readonly tierService: TierService,
     private readonly pricingSync: PricingSyncService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   @Get(':agentName/status')
@@ -240,6 +244,7 @@ export class ProviderController {
       query.authType,
       query.label,
     );
+    await this.cacheManager.clear();
     return { ok: true, notifications };
   }
 }
