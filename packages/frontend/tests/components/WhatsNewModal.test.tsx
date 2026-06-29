@@ -3,7 +3,8 @@ import { render, screen, fireEvent, cleanup } from '@solidjs/testing-library';
 
 import WhatsNewModal from '../../src/components/WhatsNewModal';
 
-const STORAGE_KEY = 'manifest:whatsnew:global-providers-v1';
+const STORAGE_KEY = 'manifest:whatsnew:openai-sdk-models-v1';
+const PREVIOUS_STORAGE_KEY = 'manifest:whatsnew:global-providers-v1';
 const HEADLINE = 'What we just shipped';
 
 describe('WhatsNewModal', () => {
@@ -28,12 +29,18 @@ describe('WhatsNewModal', () => {
     expect(screen.queryByText(HEADLINE)).toBeNull();
   });
 
+  it('opens when only the previous announcement was dismissed', () => {
+    localStorage.setItem(PREVIOUS_STORAGE_KEY, new Date().toISOString());
+    render(() => <WhatsNewModal />);
+    expect(screen.getByText(HEADLINE)).toBeDefined();
+  });
+
   it('renders every highlight bullet', () => {
     render(() => <WhatsNewModal />);
-    expect(screen.getByText(/One unified place to connect and manage/)).toBeDefined();
-    expect(screen.getByText(/Connect a provider once/)).toBeDefined();
-    expect(screen.getByText(/Need isolation\?/)).toBeDefined();
-    expect(screen.getByText(/Track consumption/)).toBeDefined();
+    expect(screen.getByText(/GET \/v1\/models/)).toBeDefined();
+    expect(screen.getByText(/returned model ID/)).toBeDefined();
+    expect(screen.getByText(/model: auto/)).toBeDefined();
+    expect(screen.getByText(/Messages and provider usage/)).toBeDefined();
   });
 
   it('links out to GitHub issues and Discord in a new tab', () => {
