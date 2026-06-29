@@ -68,6 +68,24 @@ vi.mock("../../src/components/AddAgentModal.jsx", async () => {
   };
 });
 
+// Stub the AutofixModal for the same reason.
+const mockAutofixModal = vi.fn();
+vi.mock("../../src/components/AutofixModal.jsx", async () => {
+  const { Show } = await import("solid-js");
+  return {
+    default: (props: any) => (
+      <Show
+        when={(() => {
+          mockAutofixModal(props.open);
+          return props.open;
+        })()}
+      >
+        <div data-testid="autofix-modal" />
+      </Show>
+    ),
+  };
+});
+
 import Sidebar from "../../src/components/Sidebar";
 
 const SAMPLE_AGENTS = [
@@ -470,13 +488,32 @@ describe("Sidebar — structure and interaction", () => {
     expect(onNavigate).toHaveBeenCalled();
   });
 
-  it("renders Feedback section with hint and external attributes", () => {
+  it("does not render the old Feedback section", () => {
     const { container } = render(() => <Sidebar />);
-    expect(screen.getByText("Feedback")).toBeDefined();
-    expect(container.textContent).toContain("Share ideas or report bugs");
-    const feedbackLink = container.querySelector("a.sidebar__feedback") as HTMLAnchorElement;
-    expect(feedbackLink).not.toBeNull();
-    expect(feedbackLink.target).toBe("_blank");
-    expect(feedbackLink.rel).toContain("noopener");
+    expect(container.querySelector("a.sidebar__feedback")).toBeNull();
+  });
+});
+
+describe("Sidebar — Auto-fix card", () => {
+  it("renders the Auto-fix card with badge, title, description, and button", () => {
+    const { container } = render(() => <Sidebar />);
+    expect(container.querySelector(".sidebar-autofix")).not.toBeNull();
+    expect(container.querySelector(".sidebar-autofix__new-badge")?.textContent).toBe("New");
+    expect(container.querySelector(".sidebar-autofix__title")?.textContent).toBe("Auto-fix");
+    expect(container.textContent).toContain("Failing requests are automatically fixed");
+    expect(container.querySelector(".sidebar-autofix__btn")?.textContent).toBe("Get early access");
+  });
+
+  it("opens the AutofixModal when the Get early access button is clicked", async () => {
+    const { container } = render(() => <Sidebar />);
+    expect(container.querySelector('[data-testid="autofix-modal"]')).toBeNull();
+
+    const btn = container.querySelector(".sidebar-autofix__btn") as HTMLButtonElement;
+    await fireEvent.click(btn);
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-testid="autofix-modal"]')).not.toBeNull();
+    });
+    expect(mockAutofixModal).toHaveBeenCalledWith(true);
   });
 });

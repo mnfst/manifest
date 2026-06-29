@@ -127,6 +127,7 @@ import { DropRedundantTenantAgentNameIndex1793100000000 } from './migrations/179
 import { AddDashboardCoveringIndex1793200000000 } from './migrations/1793200000000-AddDashboardCoveringIndex';
 import { AddCrossTenantErrorTimestampIndex1795100000000 } from './migrations/1795100000000-AddCrossTenantErrorTimestampIndex';
 import { RemoveMessageRecording1795000000000 } from './migrations/1795000000000-RemoveMessageRecording';
+import { AddAutofixWaitlist1796000000000 } from './migrations/1796000000000-AddAutofixWaitlist';
 
 export const entities = [
   AgentMessage,
@@ -256,4 +257,5 @@ export const migrations = [
   AddDashboardCoveringIndex1793200000000,
   RemoveMessageRecording1795000000000,
   AddCrossTenantErrorTimestampIndex1795100000000,
+  AddAutofixWaitlist1796000000000,
 ];
