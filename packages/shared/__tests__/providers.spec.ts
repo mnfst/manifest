@@ -163,6 +163,16 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(byteplus!.keyPlaceholder).toBe('ModelArk Coding Plan API key');
   });
 
+  it('cerebras exposes API-key provider metadata', () => {
+    const cerebras = SHARED_PROVIDER_BY_ID.get('cerebras');
+    expect(cerebras).toBeDefined();
+    expect(cerebras!.displayName).toBe('Cerebras');
+    expect(cerebras!.openRouterPrefixes).toEqual([]);
+    expect(cerebras!.keyPrefix).toBe('');
+    expect(cerebras!.minKeyLength).toBe(20);
+    expect(cerebras!.keyPlaceholder).toBe('Cerebras API key');
+  });
+
   it('bedrock has no OpenRouter prefixes and accepts raw AWS bearer token metadata', () => {
     const bedrock = SHARED_PROVIDER_BY_ID.get('bedrock');
     expect(bedrock).toBeDefined();

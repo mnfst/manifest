@@ -190,6 +190,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionKeyPlaceholder: 'Paste your ModelArk Coding Plan API key',
     models: [],
   },
+  cerebras: {
+    initial: 'Cb',
+    subtitle: 'GPT OSS and GLM on Cerebras inference',
+    models: [],
+  },
   deepseek: {
     initial: 'D',
     subtitle: 'DeepSeek V3, R1',
@@ -440,6 +445,7 @@ const PROVIDER_ORDER = [
   'anthropic',
   'bedrock',
   'byteplus',
+  'cerebras',
   'commandcode',
   'deepseek',
   'fireworks',

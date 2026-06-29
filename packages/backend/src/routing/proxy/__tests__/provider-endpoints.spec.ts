@@ -67,6 +67,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('openai')).toBe('openai');
     expect(resolveEndpointKey('anthropic')).toBe('anthropic');
     expect(resolveEndpointKey('bedrock')).toBe('bedrock');
+    expect(resolveEndpointKey('cerebras')).toBe('cerebras');
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('byteplus')).toBe('byteplus');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
@@ -140,6 +141,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('openai');
     expect(known).toContain('anthropic');
     expect(known).toContain('bedrock');
+    expect(known).toContain('cerebras');
     expect(known).toContain('google');
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
@@ -264,6 +266,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(ep.buildPath('accounts/fireworks/models/deepseek-v3p1')).toBe('/v1/chat/completions');
     expect(ep.buildHeaders('fw_test_key')).toEqual({
       Authorization: 'Bearer fw_test_key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('cerebras uses the OpenAI-compatible API endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['cerebras'];
+    expect(ep.baseUrl).toBe('https://api.cerebras.ai');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('gpt-oss-120b')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('cerebras-key')).toEqual({
+      Authorization: 'Bearer cerebras-key',
       'Content-Type': 'application/json',
     });
   });
@@ -631,6 +644,7 @@ describe('PROVIDER_ENDPOINTS', () => {
     const endpointKeys = [
       'openai',
       'byteplus',
+      'cerebras',
       'deepseek',
       'groq',
       'kilo',
