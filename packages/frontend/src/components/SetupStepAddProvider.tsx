@@ -6,10 +6,18 @@ import NanobotSetup from './NanobotSetup.jsx';
 import CraftAgentSetup from './CraftAgentSetup.jsx';
 import ClaudeCodeSetup from './ClaudeCodeSetup.jsx';
 import OpenCodeSetup from './OpenCodeSetup.jsx';
+import AntigravitySetup from './AntigravitySetup.jsx';
 import type { ToolkitId } from '../services/framework-snippets.js';
 
 type SetupTab = 'toolkits' | 'agents';
-type AgentId = 'openclaw' | 'hermes' | 'nanobot' | 'craft' | 'claude-code' | 'opencode';
+type AgentId =
+  | 'openclaw'
+  | 'hermes'
+  | 'nanobot'
+  | 'craft'
+  | 'claude-code'
+  | 'opencode'
+  | 'antigravity';
 
 interface Props {
   apiKey: string | null;
@@ -55,7 +63,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                   ? 'Connect Claude Code to Manifest'
                   : props.platform === 'opencode'
                     ? 'Connect OpenCode to Manifest'
-                    : 'Connect your harness to Manifest'}
+                    : props.platform === 'antigravity'
+                      ? 'Antigravity cannot connect to Manifest yet'
+                      : 'Connect your harness to Manifest'}
       </h3>
 
       {/* Platform-filtered mode: show only relevant content */}
@@ -78,6 +88,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
           </Match>
           <Match when={props.platform === 'opencode'}>
             <OpenCodeSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'antigravity'}>
+            <AntigravitySetup {...snippetProps()} />
           </Match>
           <Match when={toolkitId()}>
             <FrameworkSnippets
@@ -221,6 +234,22 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                 />
                 OpenCode
               </button>
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeAgent() === 'antigravity' }}
+                onClick={() => setActiveAgent('antigravity')}
+                role="tab"
+                aria-selected={activeAgent() === 'antigravity'}
+              >
+                <img
+                  src="/icons/providers/antigravity.svg"
+                  alt=""
+                  class="panel__tab-icon"
+                  width="16"
+                  height="16"
+                />
+                Antigravity
+              </button>
             </div>
           </div>
 
@@ -242,6 +271,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
             </Match>
             <Match when={activeAgent() === 'opencode'}>
               <OpenCodeSetup {...snippetProps()} />
+            </Match>
+            <Match when={activeAgent() === 'antigravity'}>
+              <AntigravitySetup {...snippetProps()} />
             </Match>
           </Switch>
         </Show>

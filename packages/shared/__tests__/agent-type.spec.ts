@@ -18,6 +18,7 @@ describe('agent-type', () => {
       'craft',
       'claude-code',
       'opencode',
+      'antigravity',
       'openai-sdk',
       'anthropic-sdk',
       'vercel-ai-sdk',
@@ -59,10 +60,13 @@ describe('agent-type', () => {
   it('places coding assistants under coding only, not personal or app', () => {
     expect(PLATFORMS_BY_CATEGORY.coding).toContain('claude-code');
     expect(PLATFORMS_BY_CATEGORY.coding).toContain('opencode');
+    expect(PLATFORMS_BY_CATEGORY.coding).toContain('antigravity');
     expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('claude-code');
     expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('opencode');
+    expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('antigravity');
     expect(PLATFORMS_BY_CATEGORY.app).not.toContain('claude-code');
     expect(PLATFORMS_BY_CATEGORY.app).not.toContain('opencode');
+    expect(PLATFORMS_BY_CATEGORY.app).not.toContain('antigravity');
   });
 
   it('keeps "other" available in every category for the unknown-platform fallback', () => {
@@ -119,6 +123,7 @@ describe('agent-type', () => {
       expect(platformIcon('nanobot', 'personal')).toBe(PLATFORM_ICONS.nanobot);
       expect(platformIcon('claude-code', 'coding')).toBe(PLATFORM_ICONS['claude-code']);
       expect(platformIcon('opencode', 'coding')).toBe(PLATFORM_ICONS.opencode);
+      expect(platformIcon('antigravity', 'coding')).toBe(PLATFORM_ICONS.antigravity);
       expect(platformIcon('openai-sdk', 'app')).toBe(PLATFORM_ICONS['openai-sdk']);
       expect(platformIcon('anthropic-sdk', 'app')).toBe(PLATFORM_ICONS['anthropic-sdk']);
       expect(platformIcon('vercel-ai-sdk', 'app')).toBe(PLATFORM_ICONS['vercel-ai-sdk']);
@@ -135,6 +140,10 @@ describe('agent-type', () => {
       expect(platformIcon('opencode', 'coding')).toBe('/icons/providers/opencode.svg');
     });
 
+    it('antigravity resolves to the providers/antigravity.svg mark', () => {
+      expect(platformIcon('antigravity', 'coding')).toBe('/icons/providers/antigravity.svg');
+    });
+
     it('returns the platform icon regardless of the category passed (icon is keyed by platform)', () => {
       // Even if the caller passes an inconsistent (platform, category) pair —
       // e.g. a stale row in the DB — we still resolve to the registered icon
@@ -142,6 +151,7 @@ describe('agent-type', () => {
       expect(platformIcon('claude-code', 'personal')).toBe(PLATFORM_ICONS['claude-code']);
       expect(platformIcon('claude-code', null)).toBe(PLATFORM_ICONS['claude-code']);
       expect(platformIcon('opencode', 'personal')).toBe(PLATFORM_ICONS.opencode);
+      expect(platformIcon('antigravity', 'personal')).toBe(PLATFORM_ICONS.antigravity);
       expect(platformIcon('openclaw', 'coding')).toBe(PLATFORM_ICONS.openclaw);
     });
 
