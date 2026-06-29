@@ -1030,6 +1030,62 @@ describe('ConnectionDetail (analytics)', () => {
     expect(screen.getByText(/Subscriptions/)).toBeDefined();
   });
 
+  it('requires typing an inactive connection name before deleting usage history', async () => {
+    routerState.params = { connectionId: 'conn-anthropic' };
+    apiMocks.getConnectionDetail.mockResolvedValue({
+      ...connectionDetail,
+      connection: {
+        ...connectionDetail.connection,
+        id: 'conn-anthropic',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        label: 'Default',
+        key_prefix: null,
+        cached_model_count: 0,
+        is_active: false,
+      },
+    });
+
+    const { container } = render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getByText('Inactive')).toBeDefined());
+
+    fireEvent.click(screen.getByText('Manage'));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+    const dialog = screen.getByRole('alertdialog', { name: 'Delete usage history?' });
+    expect(dialog).toBeDefined();
+    expect(dialog.textContent).not.toContain('Connection');
+    expect(dialog.textContent).not.toContain('Default');
+    expect(dialog.textContent).not.toContain('Enter Default exactly.');
+    expect(container.querySelector('.connection-delete-confirmation__target')).toBeNull();
+    expect(container.querySelector('.connection-delete-confirmation__hint')).toBeNull();
+    const deleteButton = screen.getByRole('button', {
+      name: 'Delete connection',
+    }) as HTMLButtonElement;
+    expect(deleteButton.disabled).toBe(true);
+
+    const confirmInput = screen.getByLabelText(
+      'Type the connection name to confirm',
+    ) as HTMLInputElement;
+    fireEvent.input(confirmInput, { target: { value: 'Wrong' } });
+    expect(deleteButton.disabled).toBe(true);
+    expect(apiMocks.disconnectProvider).not.toHaveBeenCalled();
+
+    fireEvent.input(confirmInput, { target: { value: 'Default' } });
+    expect(deleteButton.disabled).toBe(false);
+    fireEvent.click(deleteButton);
+
+    await waitFor(() =>
+      expect(apiMocks.disconnectProvider).toHaveBeenCalledWith(
+        'demo-agent',
+        'anthropic',
+        'subscription',
+        'Default',
+      ),
+    );
+    expect(routerState.navigate).toHaveBeenCalledWith('/providers/subscriptions');
+  });
+
   it('shows a loading state until the connection detail resolves', async () => {
     let resolveDetail!: (value: unknown) => void;
     apiMocks.getConnectionDetail.mockReturnValue(
@@ -1482,7 +1538,7 @@ describe('ConnectionDetail (analytics)', () => {
     expect(dashCell).toBeDefined();
   });
 
-  it('closes the manage modal for an inactive connection via the Close button', async () => {
+  it('requires confirmation before deleting an inactive connection', async () => {
     routerState.params = { connectionId: 'conn-inactive' };
     apiMocks.getConnectionDetail.mockResolvedValue({
       ...connectionDetail,
@@ -1498,12 +1554,60 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(screen.getAllByText('Stale').length).toBeGreaterThan(0));
 
     fireEvent.click(screen.getByText('Manage'));
-    // Inactive connections expose a single Close button (line 987) instead of the
-    // active Done/Disconnect/Refresh controls.
     expect(screen.getByText('Connection name')).toBeDefined();
     expect(screen.queryByText('Disconnect')).toBeNull();
+    expect(screen.getByText('Delete')).toBeDefined();
+    fireEvent.click(screen.getByText('Delete'));
+
+    expect(screen.getByRole('alertdialog', { name: 'Delete usage history?' })).toBeDefined();
+    expect(screen.getByLabelText('Type the connection name to confirm')).toBeDefined();
+    fireEvent.click(screen.getByText('Cancel'));
+
+    expect(screen.queryByRole('alertdialog', { name: 'Delete usage history?' })).toBeNull();
+    expect(screen.getByText('Delete')).toBeDefined();
     fireEvent.click(screen.getByText('Close'));
 
     await waitFor(() => expect(screen.queryByText('Connection name')).toBeNull());
+    expect(apiMocks.disconnectProvider).not.toHaveBeenCalled();
+  });
+
+  it('deletes an inactive subscription connection and navigates back on success', async () => {
+    routerState.params = { connectionId: 'conn-inactive-subscription' };
+    apiMocks.getConnectionDetail.mockResolvedValue({
+      ...connectionDetail,
+      connection: {
+        ...connectionDetail.connection,
+        id: 'conn-inactive-subscription',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: false,
+        label: 'Old Claude',
+      },
+    });
+
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Old Claude').length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByText('Manage'));
+    fireEvent.click(screen.getByText('Delete'));
+    const deleteButton = screen.getByRole('button', {
+      name: 'Delete connection',
+    }) as HTMLButtonElement;
+    expect(deleteButton.disabled).toBe(true);
+    fireEvent.input(screen.getByLabelText('Type the connection name to confirm'), {
+      target: { value: 'Old Claude' },
+    });
+    expect(deleteButton.disabled).toBe(false);
+    fireEvent.click(deleteButton);
+
+    await waitFor(() =>
+      expect(apiMocks.disconnectProvider).toHaveBeenCalledWith(
+        'demo-agent',
+        'anthropic',
+        'subscription',
+        'Old Claude',
+      ),
+    );
+    expect(routerState.navigate).toHaveBeenCalledWith('/providers/subscriptions');
   });
 });

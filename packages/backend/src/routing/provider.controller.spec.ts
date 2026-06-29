@@ -21,6 +21,7 @@ describe('ProviderController', () => {
   let mockResolveAgent: Record<string, jest.Mock>;
   let mockTierService: Record<string, jest.Mock>;
   let mockPricingSync: Record<string, jest.Mock>;
+  let mockCacheManager: { clear: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -53,6 +54,9 @@ describe('ProviderController', () => {
     mockPricingSync = {
       getAll: jest.fn().mockReturnValue(new Map([['model-1', {}]])),
     };
+    mockCacheManager = {
+      clear: jest.fn().mockResolvedValue(true),
+    };
 
     controller = new ProviderController(
       mockProviderService as unknown as ProviderService,
@@ -61,6 +65,7 @@ describe('ProviderController', () => {
       mockResolveAgent as unknown as ResolveAgentService,
       mockTierService as unknown as TierService,
       mockPricingSync as unknown as PricingSyncService,
+      mockCacheManager as never,
     );
   });
 
@@ -758,6 +763,7 @@ describe('ProviderController', () => {
         undefined,
       );
       expect(result).toEqual({ ok: true, notifications: 3 });
+      expect(mockCacheManager.clear).toHaveBeenCalled();
     });
 
     it('should return zero notifications when none cleared', async () => {
