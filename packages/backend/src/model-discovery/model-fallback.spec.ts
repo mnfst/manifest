@@ -325,6 +325,17 @@ describe('buildSubscriptionFallbackModels', () => {
     expect(result).toEqual([]);
   });
 
+  it('uses configured display names for opaque subscription aliases', () => {
+    const result = buildSubscriptionFallbackModels(makePricingSync(new Map()), 'moonshot');
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 'kimi-for-coding',
+        displayName: 'Kimi K2.7 Code',
+      }),
+    ]);
+  });
+
   describe('knownModelsMatch exact mode (gemini)', () => {
     it('includes only verbatim knownModel entries from the OpenRouter cache', () => {
       const cache = new Map([
@@ -569,6 +580,17 @@ describe('supplementWithKnownModels', () => {
 
     expect(ids).toContain('gemini-3.1-flash-lite');
     expect(ids).toContain('gemini-3.1-flash-lite-preview');
+  });
+
+  it('uses configured display names when supplementing opaque subscription aliases', () => {
+    const result = supplementWithKnownModels([], 'moonshot');
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 'kimi-for-coding',
+        displayName: 'Kimi K2.7 Code',
+      }),
+    ]);
   });
 });
 

@@ -5,6 +5,7 @@ import {
 } from '../common/constants/providers';
 import {
   getSubscriptionKnownModels,
+  getSubscriptionKnownModelDisplayName,
   getSubscriptionKnownModelsMatch,
   getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
@@ -29,6 +30,10 @@ function normalizeProviderModelId(providerId: string, modelId: string): string {
   return providerId.toLowerCase() === 'anthropic'
     ? normalizeAnthropicShortModelId(modelId)
     : modelId;
+}
+
+function displayNameForKnownModel(providerId: string, modelId: string): string {
+  return getSubscriptionKnownModelDisplayName(providerId, modelId) ?? modelId;
 }
 
 /**
@@ -306,7 +311,7 @@ export function buildSubscriptionFallbackModels(
     if (covered) continue;
     models.push({
       id: modelId,
-      displayName: modelId,
+      displayName: displayNameForKnownModel(providerId, modelId),
       provider: providerId,
       contextWindow: defaultCtx,
       inputPricePerToken: 0,
@@ -348,7 +353,7 @@ export function supplementWithKnownModels(
     if (covered) continue;
     raw.push({
       id: modelId,
-      displayName: modelId,
+      displayName: displayNameForKnownModel(providerId, modelId),
       provider: providerId,
       contextWindow: defaultCtx,
       inputPricePerToken: 0,

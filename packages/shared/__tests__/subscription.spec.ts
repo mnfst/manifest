@@ -4,6 +4,7 @@ import {
   getSubscriptionProviderConfig,
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
+  getSubscriptionKnownModelDisplayName,
   getSubscriptionKnownModelsMatch,
   getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
@@ -336,6 +337,14 @@ describe('getSubscriptionKnownModels', () => {
 
   it('returns the fixed model id for moonshot Kimi Coding Plan', () => {
     expect(getSubscriptionKnownModels('moonshot')).toEqual(['kimi-for-coding']);
+  });
+
+  it('labels the Kimi Coding Plan alias as Kimi K2.7 Code', () => {
+    expect(getSubscriptionKnownModelDisplayName('moonshot', 'kimi-for-coding')).toBe(
+      'Kimi K2.7 Code',
+    );
+    expect(getSubscriptionKnownModelDisplayName('moonshot', 'kimi-k2')).toBeNull();
+    expect(getSubscriptionKnownModelDisplayName('unsupported', 'kimi-for-coding')).toBeNull();
   });
 
   it('returns null known models for ollama-cloud (relies on live /api/tags discovery)', () => {
