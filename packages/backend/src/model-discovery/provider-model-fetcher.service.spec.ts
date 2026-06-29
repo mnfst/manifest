@@ -20,6 +20,7 @@ describe('ProviderModelFetcherService', () => {
       'openai',
       'openai-subscription',
       'bedrock',
+      'cerebras',
       'deepseek',
       'byteplus',
       'commandcode',
@@ -78,6 +79,31 @@ describe('ProviderModelFetcherService', () => {
       }),
     );
     expect(result.map((m) => m.id)).toEqual(['mistral.ministral-3-8b-instruct']);
+  });
+
+  it('should fetch Cerebras models from the OpenAI-compatible models endpoint', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'gpt-oss-120b' }, { id: 'zai-glm-4.7' }, { id: 'text-embedding-test' }],
+      }),
+    });
+
+    const result = await service.fetch('cerebras', 'cerebras-api-key');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.cerebras.ai/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer cerebras-api-key' },
+      }),
+    );
+    expect(result.map((m) => m.id)).toEqual(['gpt-oss-120b', 'zai-glm-4.7']);
+    expect(result[0]).toMatchObject({
+      provider: 'cerebras',
+      contextWindow: 128000,
+      inputPricePerToken: null,
+      outputPricePerToken: null,
+    });
   });
 
   /* ── Unknown provider ── */

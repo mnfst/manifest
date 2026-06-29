@@ -144,6 +144,18 @@ describe('PROVIDER_REGISTRY', () => {
     expect(byteplus!.localOnly).toBe(false);
     expect(byteplus!.keyPlaceholder).toBe('ModelArk Coding Plan API key');
   });
+
+  it('cerebras is registered as an API-key provider', () => {
+    const cerebras = PROVIDER_REGISTRY.find((p) => p.id === 'cerebras');
+    expect(cerebras).toBeDefined();
+    expect(cerebras!.displayName).toBe('Cerebras');
+    expect(cerebras!.aliases).toEqual([]);
+    expect(cerebras!.openRouterPrefixes).toEqual([]);
+    expect(cerebras!.requiresApiKey).toBe(true);
+    expect(cerebras!.localOnly).toBe(false);
+    expect(cerebras!.keyPrefix).toBe('');
+    expect(cerebras!.keyPlaceholder).toBe('Cerebras API key');
+  });
 });
 
 describe('PROVIDER_BY_ID', () => {
@@ -218,6 +230,13 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
     expect(entry).toBeDefined();
     expect(entry.id).toBe('byteplus');
     expect(entry.displayName).toBe('BytePlus');
+  });
+
+  it('resolves cerebras by canonical id', () => {
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get('cerebras') as ProviderRegistryEntry;
+    expect(entry).toBeDefined();
+    expect(entry.id).toBe('cerebras');
+    expect(entry.displayName).toBe('Cerebras');
   });
 
   it('returns undefined for an unknown alias', () => {

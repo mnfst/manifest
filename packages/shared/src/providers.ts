@@ -93,6 +93,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'ModelArk Coding Plan API key',
   },
   {
+    id: 'cerebras',
+    displayName: 'Cerebras',
+    aliases: [],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#F1592A',
+    keyPrefix: '',
+    minKeyLength: 20,
+    keyPlaceholder: 'Cerebras API key',
+  },
+  {
     id: 'deepseek',
     displayName: 'DeepSeek',
     aliases: [],

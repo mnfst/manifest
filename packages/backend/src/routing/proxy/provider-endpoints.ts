@@ -183,6 +183,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     format: 'openai',
     ...openaiStreamUsage,
   },
+  cerebras: {
+    baseUrl: 'https://api.cerebras.ai',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
   'commandcode-anthropic': {
     baseUrl: COMMAND_CODE_PROVIDER_BASE,
     buildHeaders: anthropicApiKeyHeaders,

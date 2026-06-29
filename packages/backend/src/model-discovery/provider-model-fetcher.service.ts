@@ -555,6 +555,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseCommandCode,
   },
+  cerebras: {
+    endpoint: 'https://api.cerebras.ai/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
   groq: {
     endpoint: 'https://api.groq.com/openai/v1/models',
     buildHeaders: bearerHeaders,

@@ -771,7 +771,7 @@ describe('MessageLog', () => {
           agent_name: 'test-agent',
           model: 'custom:abc-123/my-llama',
           provider: 'custom:abc-123',
-          custom_provider_name: 'Cerebras',
+          custom_provider_name: 'Cohere',
           input_tokens: 100,
           output_tokens: 50,
           total_tokens: 150,
@@ -785,14 +785,14 @@ describe('MessageLog', () => {
       next_cursor: null,
       total_count: 1,
       providers: ['custom:abc-123'],
-      provider_labels: { 'custom:abc-123': 'Cerebras' },
+      provider_labels: { 'custom:abc-123': 'Cohere' },
     };
 
     it('renders custom provider icon in message rows', async () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        const img = container.querySelector('img[alt="Cerebras"]');
+        const img = container.querySelector('img[alt="Cohere"]');
         expect(img).not.toBeNull();
       });
     });
@@ -810,11 +810,11 @@ describe('MessageLog', () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
       mockGetMessageFilterOptions.mockResolvedValue({
         providers: ['custom:abc-123'],
-        provider_labels: { 'custom:abc-123': 'Cerebras' },
+        provider_labels: { 'custom:abc-123': 'Cohere' },
       });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('Cerebras');
+        expect(container.textContent).toContain('Cohere');
       });
     });
 
@@ -842,7 +842,7 @@ describe('MessageLog', () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.querySelector('img[alt="Cerebras"]')).not.toBeNull();
+        expect(container.querySelector('img[alt="Cohere"]')).not.toBeNull();
         expect(container.textContent).not.toContain('custom:abc-123/');
       });
     });

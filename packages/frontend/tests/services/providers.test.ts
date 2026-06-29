@@ -125,6 +125,20 @@ describe('validateApiKey', () => {
     expect(validateApiKey(fireworks, 'fw_' + 'a'.repeat(20))).toEqual({ valid: true });
   });
 
+  it('validates Cerebras keys by length without enforcing an undocumented prefix', () => {
+    const cerebras = getProvider('cerebras')!;
+    expect(cerebras.keyPlaceholder).toBe('Cerebras API key');
+    expect(validateApiKey(cerebras, '')).toEqual({
+      valid: false,
+      error: 'API key is required',
+    });
+    expect(validateApiKey(cerebras, 'short')).toEqual({
+      valid: false,
+      error: 'Key is too short (minimum 20 characters)',
+    });
+    expect(validateApiKey(cerebras, 'x'.repeat(20))).toEqual({ valid: true });
+  });
+
   it('validates AWS Bedrock raw bearer-token and legacy API-key lengths', () => {
     const bedrock = getProvider('bedrock')!;
     expect(validateApiKey(bedrock, '')).toEqual({
@@ -505,6 +519,17 @@ describe('PROVIDERS', () => {
     expect(byteplus.models).toEqual([]);
   });
 
+  it('Cerebras is an API-key provider with dynamic models', () => {
+    const cerebras = PROVIDERS.find((p) => p.id === 'cerebras')!;
+    expect(cerebras).toBeDefined();
+    expect(cerebras.name).toBe('Cerebras');
+    expect(cerebras.supportsSubscription).toBeUndefined();
+    expect(cerebras.subscriptionOnly).toBeUndefined();
+    expect(cerebras.keyPlaceholder).toBe('Cerebras API key');
+    expect(cerebras.minKeyLength).toBe(20);
+    expect(cerebras.models).toEqual([]);
+  });
+
   it('MiniMax supports subscription with device-code flow', () => {
     const minimax = PROVIDERS.find((p) => p.id === 'minimax')!;
     expect(minimax.supportsSubscription).toBe(true);
@@ -688,6 +713,10 @@ describe('PROVIDERS', () => {
 
   it('provides an API key URL for Fireworks AI', () => {
     expect(getRoutingProviderApiKeyUrl('fireworks')).toBe('https://app.fireworks.ai/api-keys');
+  });
+
+  it('provides an API key URL for Cerebras', () => {
+    expect(getRoutingProviderApiKeyUrl('cerebras')).toBe('https://cloud.cerebras.ai');
   });
 
   it('OpenCode Go is subscription-only with a sign-in URL', () => {

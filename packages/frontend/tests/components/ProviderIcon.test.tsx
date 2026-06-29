@@ -7,6 +7,7 @@ const KNOWN_PROVIDERS = [
   'anthropic',
   'bedrock',
   'byteplus',
+  'cerebras',
   'copilot',
   'commandcode',
   'gemini',
