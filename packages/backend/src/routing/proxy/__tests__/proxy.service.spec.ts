@@ -443,7 +443,8 @@ describe('ProxyService — orchestration', () => {
       expect(modelParamsService.get).not.toHaveBeenCalled();
       expect(providerParamSpecs.getSpecs).not.toHaveBeenCalled();
       expect(result.meta).toMatchObject({
-        tier: 'default',
+        tier: 'direct',
+        reason: 'direct',
         provider: 'openai',
         auth_type: 'api_key',
         model: 'gpt-4o-mini',
@@ -611,6 +612,8 @@ describe('ProxyService — orchestration', () => {
       expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
       expect(result.forward.response.status).toBe(502);
       expect(result.meta).toMatchObject({
+        tier: 'direct',
+        reason: 'direct',
         provider: 'openai',
         model: 'gpt-4o-mini',
       });

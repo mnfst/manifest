@@ -76,7 +76,7 @@ const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
 
 export interface RoutingMeta {
-  tier: TierSlot;
+  tier: TierSlot | 'direct';
   model: string;
   provider: string;
   confidence: number;
@@ -753,12 +753,13 @@ export class ProxyService {
     model: string,
     overrides: Partial<RoutingMeta> = {},
   ): RoutingMeta {
+    const directOverride = resolved.explicit_model_override === true;
     return {
-      tier: resolved.tier,
+      tier: directOverride ? 'direct' : resolved.tier,
       model,
       provider: overrides.provider ?? resolved.route?.provider ?? '',
       confidence: resolved.confidence,
-      reason: resolved.reason,
+      reason: directOverride ? 'direct' : resolved.reason,
       auth_type: resolved.route?.authType,
       specificity_category: resolved.specificity_category,
       provider_key_label: resolved.route?.keyLabel ?? undefined,

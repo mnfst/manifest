@@ -83,8 +83,8 @@ describe('MessagesQueryDto', () => {
     expect(dto.include_filter_options).toBe(true);
   });
 
-  it('accepts each known routing_tier value including playground', async () => {
-    for (const tier of ['simple', 'standard', 'complex', 'reasoning', 'playground']) {
+  it('accepts each known routing_tier value including direct and playground', async () => {
+    for (const tier of ['simple', 'standard', 'complex', 'reasoning', 'direct', 'playground']) {
       const dto = plainToInstance(MessagesQueryDto, { routing_tier: tier });
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
