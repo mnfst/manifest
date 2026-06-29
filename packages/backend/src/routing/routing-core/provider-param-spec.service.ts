@@ -172,6 +172,23 @@ export class ProviderParamSpecService implements OnModuleInit {
     return this.lastFetchedAt;
   }
 
+  /**
+   * All unique first-level param paths known to the MPS catalog across every
+   * provider/model. Used by the proxy to strip client-supplied params that
+   * the resolved model doesn't support (e.g. `temperature` on claude-opus-4-7
+   * which removed sampling controls).
+   */
+  getAllKnownParamRootPaths(): Set<string> {
+    const paths = new Set<string>();
+    for (const entry of this.specs) {
+      for (const param of entry.params) {
+        const root = param.path.split('.')[0];
+        paths.add(root);
+      }
+    }
+    return paths;
+  }
+
   private async fetchModelParametersData(): Promise<{
     notModified: boolean;
     data: unknown | null;
