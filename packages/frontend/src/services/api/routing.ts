@@ -401,12 +401,21 @@ export interface CustomProviderModel {
   price_estimated?: boolean;
 }
 
+export interface CustomProviderKey {
+  label: string;
+  key_prefix: string | null;
+  priority: number;
+  is_active: boolean;
+  region: string | null;
+}
+
 export interface CustomProviderData {
   id: string;
   name: string;
   base_url: string;
   api_kind: CustomProviderApiKind;
   has_api_key: boolean;
+  keys: CustomProviderKey[];
   models: CustomProviderModel[];
   created_at: string;
 }
@@ -512,5 +521,74 @@ export function deleteCustomProvider(agentName: string, id: string) {
   return fetchMutate<{ ok: boolean }>(
     routingPath(agentName, `custom-providers/${encodeURIComponent(id)}`),
     { method: 'DELETE' },
+  );
+}
+
+/* -- Routing: Custom Provider Keys -- */
+
+export function addCustomProviderKey(
+  agentName: string,
+  customProviderId: string,
+  data: { apiKey: string; label?: string },
+) {
+  invalidateCustomProvidersCache();
+  return fetchMutate<{ ok: boolean }>(
+    routingPath(agentName, `custom-providers/${encodeURIComponent(customProviderId)}/keys`),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    },
+  );
+}
+
+export function removeCustomProviderKey(
+  agentName: string,
+  customProviderId: string,
+  label: string,
+) {
+  invalidateCustomProvidersCache();
+  return fetchMutate<{ ok: boolean }>(
+    routingPath(
+      agentName,
+      `custom-providers/${encodeURIComponent(customProviderId)}/keys/${encodeURIComponent(label)}`,
+    ),
+    { method: 'DELETE' },
+  );
+}
+
+export function renameCustomProviderKey(
+  agentName: string,
+  customProviderId: string,
+  label: string,
+  newLabel: string,
+) {
+  invalidateCustomProvidersCache();
+  return fetchMutate<{ ok: boolean }>(
+    routingPath(
+      agentName,
+      `custom-providers/${encodeURIComponent(customProviderId)}/keys/${encodeURIComponent(label)}`,
+    ),
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newLabel }),
+    },
+  );
+}
+
+export function reorderCustomProviderKeys(
+  agentName: string,
+  customProviderId: string,
+  orderedLabels: string[],
+) {
+  invalidateCustomProvidersCache();
+  return fetchMutate<{ ok: boolean }>(
+    routingPath(agentName, `custom-providers/${encodeURIComponent(customProviderId)}/keys/reorder`),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderedLabels }),
+    },
   );
 }
