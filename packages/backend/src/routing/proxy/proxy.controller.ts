@@ -22,7 +22,6 @@ import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
-import type { DiscoveredModel } from '../../model-discovery/model-fetcher';
 import { classifyCaller } from './caller-classifier';
 import { sanitizeRequestHeaders } from './request-headers';
 import {
@@ -40,11 +39,11 @@ import { formatManifestError } from '../../common/errors/error-codes';
 import type { ProxyApiMode } from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
+import { openAiModelId } from './openai-model-id';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
 const MODEL_CREATED_UNKNOWN = 0;
-const SUBSCRIPTION_MODEL_SUFFIX = '-subscription';
 
 interface OpenAiModelObject {
   id: string;
@@ -56,18 +55,6 @@ interface OpenAiModelObject {
 interface OpenAiModelList {
   object: 'list';
   data: OpenAiModelObject[];
-}
-
-function openAiModelId(model: DiscoveredModel): string {
-  const provider = model.provider.toLowerCase();
-  if (provider.startsWith('custom:')) return model.id;
-
-  const prefix = `${provider}/`;
-  const routeId = model.id.toLowerCase().startsWith(prefix) ? model.id : `${provider}/${model.id}`;
-  if (model.authType !== 'subscription' || routeId.endsWith(SUBSCRIPTION_MODEL_SUFFIX)) {
-    return routeId;
-  }
-  return `${routeId}${SUBSCRIPTION_MODEL_SUFFIX}`;
 }
 
 @Controller('v1')
