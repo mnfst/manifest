@@ -7,6 +7,7 @@ import { ThoughtSignatureCache } from '../thought-signature-cache';
 import { ThinkingBlockCache } from '../thinking-block-cache';
 import { ReasoningContentCache } from '../reasoning-content-cache';
 import { ResponsesSseError } from '../chatgpt-adapter';
+import type { DiscoveredModel } from '../../../model-discovery/model-fetcher';
 
 /**
  * Flush enough microtasks for the recorder's fire-and-forget chain to
@@ -74,6 +75,22 @@ function mockRequest(
   };
 }
 
+function makeDiscoveredModel(overrides: Partial<DiscoveredModel> = {}): DiscoveredModel {
+  return {
+    id: 'gpt-4o',
+    displayName: 'GPT-4o',
+    provider: 'openai',
+    contextWindow: 128000,
+    inputPricePerToken: 0.0000025,
+    outputPricePerToken: 0.00001,
+    capabilityReasoning: false,
+    capabilityCode: false,
+    qualityScore: 4,
+    authType: 'api_key',
+    ...overrides,
+  };
+}
+
 describe('ProxyController', () => {
   let controller: ProxyController;
   let proxyService: { proxyRequest: jest.Mock };
@@ -103,6 +120,7 @@ describe('ProxyController', () => {
     manager: { transaction: jest.Mock };
   };
   let mockPricingCache: { getByModel: jest.Mock };
+  let modelDiscovery: { getModelsForAgent: jest.Mock };
   let recorder: ProxyMessageRecorder;
 
   beforeEach(() => {
@@ -137,6 +155,9 @@ describe('ProxyController', () => {
     };
     mockMessageManager.getRepository.mockReturnValue(mockMessageRepo);
     mockPricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
+    modelDiscovery = {
+      getModelsForAgent: jest.fn().mockResolvedValue([]),
+    };
     const mockCustomProviders = {
       canonicalizeAgentMessageKeys: jest
         .fn()
@@ -166,6 +187,7 @@ describe('ProxyController', () => {
       new ThoughtSignatureCache(),
       new ThinkingBlockCache(),
       new ReasoningContentCache(),
+      modelDiscovery as never,
     );
   });
 
@@ -173,20 +195,64 @@ describe('ProxyController', () => {
     recorder.onModuleDestroy();
   });
 
-  it('should expose /v1/models with the Manifest auto route', () => {
-    expect(controller.models()).toEqual({
+  it('should expose /v1/models as an OpenAI-compatible list with the Manifest auto route', async () => {
+    await expect(controller.models(mockRequest({}) as never)).resolves.toEqual({
       object: 'list',
       data: [
         {
           id: 'auto',
           object: 'model',
-          type: 'model',
-          display_name: 'Manifest Auto',
+          created: 0,
+          owned_by: 'manifest',
         },
       ],
-      has_more: false,
-      first_id: 'auto',
-      last_id: 'auto',
+    });
+    expect(modelDiscovery.getModelsForAgent).toHaveBeenCalledWith('tenant-1', 'agent-1');
+  });
+
+  it('should include authenticated agent models using provider-qualified ids', async () => {
+    modelDiscovery.getModelsForAgent.mockResolvedValue([
+      makeDiscoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'api_key' }),
+      makeDiscoveredModel({ id: 'gpt-4o', provider: 'openrouter', authType: 'api_key' }),
+      makeDiscoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'subscription' }),
+      makeDiscoveredModel({
+        id: 'opencode-go/glm-5.1',
+        provider: 'opencode-go',
+        authType: 'subscription',
+      }),
+      makeDiscoveredModel({
+        id: 'custom:provider-1/model-a',
+        provider: 'custom:provider-1',
+        authType: 'api_key',
+      }),
+      makeDiscoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'api_key' }),
+    ]);
+
+    await expect(controller.models(mockRequest({}) as never)).resolves.toEqual({
+      object: 'list',
+      data: [
+        { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
+        { id: 'openai/gpt-4o', object: 'model', created: 0, owned_by: 'openai' },
+        { id: 'openrouter/gpt-4o', object: 'model', created: 0, owned_by: 'openrouter' },
+        {
+          id: 'openai/gpt-4o-subscription',
+          object: 'model',
+          created: 0,
+          owned_by: 'openai',
+        },
+        {
+          id: 'opencode-go/glm-5.1-subscription',
+          object: 'model',
+          created: 0,
+          owned_by: 'opencode-go',
+        },
+        {
+          id: 'custom:provider-1/model-a',
+          object: 'model',
+          created: 0,
+          owned_by: 'custom:provider-1',
+        },
+      ],
     });
   });
 
