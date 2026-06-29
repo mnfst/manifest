@@ -204,7 +204,7 @@ const Overview: Component = () => {
     }
   });
 
-  const SMART_RANGES: string[] = ['30d', '7d', '24h'];
+  const SMART_RANGES: string[] = ['365d', '90d', '30d', '7d', '24h'];
 
   // Step the chart range down to the next bucket while it has no data, but only
   // after a fetch resolves — `defer: true` skips the no-op run at mount where
@@ -354,6 +354,8 @@ const Overview: Component = () => {
                 { label: 'Last 24 hours', value: '24h' },
                 { label: 'Last 7 days', value: '7d' },
                 { label: 'Last 30 days', value: '30d' },
+                { label: 'Last 90 days', value: '90d' },
+                { label: 'Last 365 days', value: '365d' },
               ]}
             />
           </Show>

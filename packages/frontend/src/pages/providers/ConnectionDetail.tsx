@@ -162,9 +162,9 @@ const ConnectionDetail: Component = () => {
   const savedRange = () => {
     try {
       const v = sessionStorage.getItem(rangeKey());
-      // Restore any persisted range, including '24h' (previously dropped, so a
-      // saved 24h selection silently reset to the 7d default on reload).
-      if (v === '24h' || v === '7d' || v === '30d') return v;
+      // Restore any persisted range, including longer windows, so saved
+      // selections survive reload instead of silently resetting to the 7d default.
+      if (v === '24h' || v === '7d' || v === '30d' || v === '90d' || v === '365d') return v;
     } catch {
       /* ignore */
     }
@@ -619,6 +619,8 @@ const ConnectionDetail: Component = () => {
                       { label: 'Last 24 hours', value: '24h' },
                       { label: 'Last 7 days', value: '7d' },
                       { label: 'Last 30 days', value: '30d' },
+                      { label: 'Last 90 days', value: '90d' },
+                      { label: 'Last 365 days', value: '365d' },
                     ]}
                   />
                   <button class="btn btn--outline btn--sm" onClick={openManageModal}>
