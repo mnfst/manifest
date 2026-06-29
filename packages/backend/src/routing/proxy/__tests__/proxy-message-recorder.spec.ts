@@ -205,6 +205,27 @@ describe('ProxyMessageRecorder', () => {
       expect(inserted.cost_usd).toBe(0);
     });
 
+    it('uses provider-reported cost for subscription fallback success', async () => {
+      await recorder.recordFallbackSuccess(ctx, 'stepfun/step-3.7-flash:free', 'default', {
+        provider: 'nous',
+        authType: 'subscription',
+        usage: {
+          prompt_tokens: 16,
+          completion_tokens: 1,
+          reported_cost_usd: 0.00005,
+        },
+      });
+
+      const inserted = insertMock.mock.calls[0][0];
+      expect(inserted).toMatchObject({
+        provider: 'nous',
+        auth_type: 'subscription',
+        input_tokens: 16,
+        output_tokens: 1,
+        cost_usd: 0.00005,
+      });
+    });
+
     it('sets cost_usd to null when no pricing data exists', async () => {
       getByModelMock.mockReturnValue(undefined);
       await recorder.recordFallbackSuccess(ctx, 'unknown-model', 'standard', {
@@ -691,6 +712,30 @@ describe('ProxyMessageRecorder', () => {
       });
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
+    });
+
+    it('uses provider-reported cost for subscription success messages', async () => {
+      await recorder.recordSuccessMessage(
+        ctx,
+        'stepfun/step-3.7-flash:free',
+        'default',
+        'default',
+        {
+          prompt_tokens: 16,
+          completion_tokens: 1,
+          reported_cost_usd: 0.00005,
+        },
+        { provider: 'nous', authType: 'subscription' },
+      );
+
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        provider: 'nous',
+        auth_type: 'subscription',
+        input_tokens: 16,
+        output_tokens: 1,
+        cost_usd: 0.00005,
+      });
     });
 
     it('records message even when tokens are zero', async () => {

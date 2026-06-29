@@ -41,6 +41,7 @@ const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const FIREWORKS_MODELS_URL = 'https://api.fireworks.ai/v1/accounts/fireworks/models';
 const FIREWORKS_MODELS_PAGE_SIZE = 200;
 const FIREWORKS_MODELS_MAX_PAGES = 20;
+const NOUS_PORTAL_MODELS_URL = 'https://inference-api.nousresearch.com/v1/models';
 const OPENCODE_GO_MODELS_URL = 'https://opencode.ai/zen/go/v1/models';
 
 /* ── Generic parser factory ── */
@@ -584,6 +585,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.moonshot.ai/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  nous: {
+    endpoint: NOUS_PORTAL_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseOpenRouter,
   },
   nvidia: {
     endpoint: 'https://integrate.api.nvidia.com/v1/models',

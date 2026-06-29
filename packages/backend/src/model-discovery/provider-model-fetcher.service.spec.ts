@@ -29,6 +29,7 @@ describe('ProviderModelFetcherService', () => {
       'kilo',
       'mistral',
       'moonshot',
+      'nous',
       'nvidia',
       'xai',
       'minimax',
@@ -647,6 +648,49 @@ describe('ProviderModelFetcherService', () => {
       // deprecated-model filtered by metadata, labs-experimental by regex, voxtral-mini-2602 by blocklist
       expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
     });
+  });
+
+  /* ── Nous Portal subscription routing ── */
+
+  it('should fetch Nous Portal models from its OpenAI-compatible catalog', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'anthropic/claude-sonnet-4.5',
+            name: 'Anthropic: Claude Sonnet 4.5',
+            context_length: 200000,
+            architecture: { output_modalities: ['text'] },
+            pricing: { prompt: '0.000003', completion: '0.000015' },
+          },
+          {
+            id: 'google/gemini-3-pro-image',
+            name: 'Google: Gemini 3 Pro Image',
+            architecture: { output_modalities: ['image', 'text'] },
+          },
+        ],
+      }),
+    });
+
+    const result = await service.fetch('nous', 'nous-api-key', 'subscription');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://inference-api.nousresearch.com/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer nous-api-key' },
+      }),
+    );
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 'anthropic/claude-sonnet-4.5',
+        displayName: 'Anthropic: Claude Sonnet 4.5',
+        provider: 'nous',
+        contextWindow: 200000,
+        inputPricePerToken: 0.000003,
+        outputPricePerToken: 0.000015,
+      }),
+    ]);
   });
 
   /* ── Z.ai subscription routing ── */
