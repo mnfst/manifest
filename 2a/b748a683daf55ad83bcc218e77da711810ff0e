@@ -1,0 +1,38 @@
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_8d7abb4142b62c::t_221f3e809f31af 417-421,426,439-440,443-444,446,451,567,594,611-612,614-615,617
+  s_8d7abb4142b62c::t_65c05886b81c25 27-28,51-66,118,127-129,186,243
+  s_8d7abb4142b62c::t_3f03976a69511e 392-416,422-425,427-438,441-442,445,447-450,452-566,568-571,595-610,613,616
+  s_8d7abb4142b62c::t_1d4557a8b4dd51 572-593
+  s_8d7abb4142b62c::t_438db58b7217c4 618-620
+packages/backend/src/routing/proxy/__tests__/openai-model-id.spec.ts
+  s_8d7abb4142b62c::t_65c05886b81c25 1-30,34-76,78-80
+  s_8d7abb4142b62c::t_164fbf6c977cde 31-33,77
+packages/backend/src/routing/proxy/openai-model-id.ts
+  s_8d7abb4142b62c::t_2ae198a1be768a 1-33
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_8d7abb4142b62c::t_2ae198a1be768a 42
+.changeset/v1-model-routing.md
+  s_8d7abb4142b62c::t_c584922d13e1af 1-5
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_8d7abb4142b62c::t_947ff66bc15e4c 278-281,459,466,472
+  s_8d7abb4142b62c::t_a63e9e2e75db96 4,62,149,460,484,497-498
+  s_8d7abb4142b62c::t_9664067f04d76b 210,458
+  s_8d7abb4142b62c::t_a84b20e96a1da1 64-66,253,259-261,276-277,290,315-320,386-406,461-465,467-471,473-476,499
+  s_8d7abb4142b62c::t_edbc57350b4b25 272-275,282-289
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "2ab748a683daf55ad83bcc218e77da711810ff0e",
+  "prompts": {},
+  "sessions": {
+    "s_8d7abb4142b62c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f120a-9765-72e1-bb87-22a45d71fc0c",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
