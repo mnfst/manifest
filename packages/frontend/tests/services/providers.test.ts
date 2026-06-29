@@ -514,6 +514,33 @@ describe('PROVIDERS', () => {
 
   it('Qwen supports Token Plan subscription with token flow', () => {
     const qwen = PROVIDERS.find((p) => p.id === 'qwen')!;
+    expect(qwen.apiKeyEndpointRegions?.[0]).toEqual({
+      value: 'auto',
+      label: 'Auto-detect',
+    });
+    expect(qwen.apiKeyEndpointRegions).toContainEqual({
+      value: 'workspace-cn-hongkong',
+      label: 'China (Hong Kong)',
+      baseUrlPlaceholder: 'https://<workspace-id>.cn-hongkong.maas.aliyuncs.com/compatible-mode/v1',
+    });
+    expect(qwen.apiKeyEndpointRegions).toContainEqual({
+      value: 'workspace-eu-central-1',
+      label: 'Germany (Frankfurt)',
+      baseUrlPlaceholder:
+        'https://<workspace-id>.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+    });
+    expect(qwen.apiKeyEndpointRegions).toContainEqual({
+      value: 'workspace-ap-northeast-1',
+      label: 'Japan (Tokyo)',
+      baseUrlPlaceholder:
+        'https://<workspace-id>.ap-northeast-1.maas.aliyuncs.com/compatible-mode/v1',
+    });
+    expect(qwen.apiKeyEndpointRegions).toContainEqual({
+      value: 'custom',
+      label: 'Custom endpoint',
+      baseUrlPlaceholder:
+        'https://<workspace-id>.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+    });
     expect(qwen.supportsSubscription).toBe(true);
     expect(qwen.subscriptionLabel).toBe('Qwen Token Plan');
     expect(qwen.subscriptionAuthMode).toBe('token');

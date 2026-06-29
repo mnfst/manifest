@@ -212,6 +212,38 @@ describe('ProxyFallbackService', () => {
       expect(result.response.ok).toBe(true);
     });
 
+    it('passes Anthropic thinking lookup with route-specific replay context', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+      const thinkingLookup = jest.fn();
+
+      await service.tryForwardToProvider({
+        provider: 'anthropic',
+        apiKey: 'sk-ant',
+        model: 'anthropic/claude-sonnet-4.5',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        thinkingLookup,
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          thinkingLookup,
+          thinkingRouteContext: {
+            provider: 'anthropic',
+            authType: 'subscription',
+            model: 'anthropic/claude-sonnet-4.5',
+          },
+        }),
+      );
+    });
+
     it.each([
       {
         provider: 'openai',

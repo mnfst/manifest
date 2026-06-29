@@ -25,6 +25,7 @@ import { classifyCaller } from './caller-classifier';
 import { sanitizeRequestHeaders } from './request-headers';
 import {
   buildMetaHeaders,
+  buildOpenAiCompatibleError,
   handleProviderError,
   recordFallbackFailures,
   handleStreamResponse,
@@ -36,7 +37,6 @@ import { sendFriendlyResponse } from './proxy-friendly-response';
 import { formatManifestError } from '../../common/errors/error-codes';
 import type { ProxyApiMode } from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
-import { sanitizeProviderError } from './proxy-error-sanitizer';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
 
 const MAX_SEEN_TENANTS = 10_000;
@@ -278,11 +278,7 @@ export class ProxyController {
 
     if (err instanceof ResponsesSseError) {
       res.status(err.status).json({
-        error: {
-          message: sanitizeProviderError(err.status, err.body, process.env.NODE_ENV),
-          type: 'upstream_error',
-          status: err.status,
-        },
+        error: buildOpenAiCompatibleError(err.status, err.body),
       });
       return;
     }

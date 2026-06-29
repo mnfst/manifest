@@ -187,8 +187,8 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionLabel: 'OpenCode Go (beta)',
     subscriptionAuthMode: 'token' as const,
     subscriptionKeyPlaceholder: 'Paste your OpenCode API key',
-    // Model list is fetched dynamically from the public OpenCode Go docs source;
-    // see OpencodeGoCatalogService in the backend.
+    // Model list is discovered from OpenCode Go's live /models endpoint; models.dev
+    // and the docs catalog provide metadata, quota cost, and fallback data.
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
       supportsPromptCaching: false,

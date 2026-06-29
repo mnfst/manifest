@@ -21,7 +21,6 @@
     "backfill:message-providers:prod": "node dist/database/backfills/backfill-message-providers.cli.js"
   },
   "dependencies": {
-    "manifest-shared": "*",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
@@ -35,12 +34,14 @@
     "@react-email/render": "^2.0.4",
     "better-auth": "^1.6.11",
     "cache-manager": "^7.2.8",
+    "cacheable": "^2.3.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "compression": "^1.8.1",
     "eventsource-parser": "^3.1.0",
     "express-rate-limit": "^8.5.1",
     "helmet": "^8.1.0",
+    "manifest-shared": "*",
     "pg": "^8.13.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

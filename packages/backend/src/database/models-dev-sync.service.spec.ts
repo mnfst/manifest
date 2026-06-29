@@ -269,6 +269,36 @@ const MOCK_API_RESPONSE = {
       },
     },
   },
+  'opencode-go': {
+    id: 'opencode-go',
+    name: 'OpenCode Go',
+    models: {
+      'glm-5.2': {
+        id: 'glm-5.2',
+        name: 'GLM-5.2',
+        reasoning: true,
+        tool_call: true,
+        cost: { input: 1.4, output: 4.4, cache_read: 0.26 },
+        limit: { context: 1000000, output: 131072 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
+  opencode: {
+    id: 'opencode',
+    name: 'OpenCode Zen',
+    models: {
+      'ring-2.6-1t-free': {
+        id: 'ring-2.6-1t-free',
+        name: 'Ring 2.6 1T Free',
+        reasoning: true,
+        tool_call: true,
+        cost: { input: 0, output: 0 },
+        limit: { context: 200000, output: 32768 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
   'unknown-provider': {
     id: 'unknown-provider',
     name: 'Unknown',
@@ -303,8 +333,9 @@ describe('ModelsDevSyncService', () => {
         expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
       // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1,
-      // fireworks: 1, mistral: 6, xai: 3, bedrock: 8, groq: 2, nvidia: 1 = 26
-      expect(count).toBe(26);
+      // fireworks: 1, mistral: 6, xai: 3, bedrock: 8, groq: 2,
+      // nvidia: 1, opencode-go: 1, opencode: 1 = 28
+      expect(count).toBe(28);
     });
 
     it('should filter out non-text-output models', async () => {
@@ -627,6 +658,13 @@ describe('ModelsDevSyncService', () => {
       expect(ids).toContain('claude-sonnet-4-6');
     });
 
+    it('should map OpenCode providers to their models.dev provider IDs', () => {
+      expect(service.getModelsForProvider('opencode-go').map((m) => m.id)).toEqual(['glm-5.2']);
+      expect(service.getModelsForProvider('opencode-zen').map((m) => m.id)).toEqual([
+        'ring-2.6-1t-free',
+      ]);
+    });
+
     it('should return empty array for unmapped provider', () => {
       expect(service.getModelsForProvider('nonexistent')).toEqual([]);
     });
@@ -638,6 +676,8 @@ describe('ModelsDevSyncService', () => {
       expect(service.isProviderSupported('gemini')).toBe(true);
       expect(service.isProviderSupported('nvidia')).toBe(true);
       expect(service.isProviderSupported('qwen')).toBe(true);
+      expect(service.isProviderSupported('opencode-go')).toBe(true);
+      expect(service.isProviderSupported('opencode-zen')).toBe(true);
       expect(service.isProviderSupported('fireworks')).toBe(true);
       expect(service.isProviderSupported('bedrock')).toBe(true);
     });

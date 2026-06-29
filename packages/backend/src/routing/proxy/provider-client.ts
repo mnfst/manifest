@@ -146,6 +146,7 @@ export class ProviderClient {
     const { url, headers, requestBody } = this.buildRequest({
       endpoint,
       endpointKey,
+      provider,
       bareModel,
       model,
       apiKey,
@@ -156,6 +157,7 @@ export class ProviderClient {
       stream,
       signatureLookup: opts.signatureLookup,
       thinkingLookup: opts.thinkingLookup,
+      thinkingRouteContext: opts.thinkingRouteContext,
       reasoningContentLookup: opts.reasoningContentLookup,
       providerResource: opts.providerResource,
     });
@@ -336,6 +338,7 @@ export class ProviderClient {
   private buildRequest(ctx: {
     endpoint: ProviderEndpoint;
     endpointKey: string;
+    provider: string;
     bareModel: string;
     model: string;
     apiKey: string;
@@ -346,6 +349,7 @@ export class ProviderClient {
     stream: boolean;
     signatureLookup?: ForwardOptions['signatureLookup'];
     thinkingLookup?: ForwardOptions['thinkingLookup'];
+    thinkingRouteContext?: ForwardOptions['thinkingRouteContext'];
     reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
     providerResource?: string;
   }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
@@ -385,6 +389,11 @@ export class ProviderClient {
     if (endpoint.format === 'anthropic') {
       const injectSubscriptionIdentity =
         authType === 'subscription' && !endpoint.skipSubscriptionIdentity;
+      const thinkingRouteContext = ctx.thinkingRouteContext ?? {
+        provider: ctx.provider,
+        authType,
+        model: ctx.model,
+      };
       // When the inbound request is already Anthropic Messages
       // (`POST /v1/messages`) and the resolved upstream is also Anthropic,
       // skip the OpenAI translation round-trip and apply only the additive
@@ -399,11 +408,13 @@ export class ProviderClient {
           ? applyAnthropicMessagesMutations(body, {
               injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
+              thinkingRouteContext,
               targetModel: bareModel,
             })
           : toAnthropicRequest(requestSource, bareModel, {
               injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
+              thinkingRouteContext,
             });
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;

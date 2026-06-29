@@ -26,7 +26,7 @@ import {
   RenameProviderKeyDto,
   ReorderProviderKeysDto,
 } from './dto/routing.dto';
-import { isQwenRegion } from './qwen-region';
+import { QWEN_REGION_VALIDATION_MESSAGE, isQwenRegion } from './qwen-region';
 import { getSubscriptionEndpointRegionConfig } from './subscription-region';
 import { isBedrockProvider, isBedrockRegion } from './bedrock-region';
 
@@ -105,15 +105,25 @@ export class ProviderController {
     });
     const lowerProvider = body.provider.toLowerCase();
     const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';
+    const qwenBaseUrl = body.baseUrl ?? body.base_url;
+    const qwenRegion = qwenBaseUrl ?? body.region;
     const subscriptionRegionConfig = getSubscriptionEndpointRegionConfig(
       lowerProvider,
       body.authType,
     );
 
-    if (body.region !== undefined) {
+    if (qwenBaseUrl !== undefined && !isQwenProvider) {
+      throw new BadRequestException('baseUrl is only supported for Alibaba/Qwen providers');
+    }
+
+    if (qwenBaseUrl !== undefined && body.region !== undefined) {
+      throw new BadRequestException('Use either region or baseUrl for Alibaba/Qwen providers');
+    }
+
+    if (qwenRegion !== undefined || body.region !== undefined) {
       if (isQwenProvider) {
-        if (!isQwenRegion(body.region)) {
-          throw new BadRequestException('region must be one of: auto, singapore, us, beijing');
+        if (!isQwenRegion(qwenRegion)) {
+          throw new BadRequestException(QWEN_REGION_VALIDATION_MESSAGE);
         }
       } else if (isBedrockProvider(lowerProvider) && (body.authType ?? 'api_key') === 'api_key') {
         if (!isBedrockRegion(body.region)) {
@@ -144,7 +154,7 @@ export class ProviderController {
       body.provider,
       body.apiKey,
       body.authType,
-      body.region,
+      qwenRegion,
       body.label,
       ctx.userId,
     );

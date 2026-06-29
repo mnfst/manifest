@@ -80,6 +80,14 @@ export class ConnectProviderDto {
 
   @IsOptional()
   @IsString()
+  baseUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  base_url?: string;
+
+  @IsOptional()
+  @IsString()
   @IsNotEmpty()
   @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))

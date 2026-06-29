@@ -41,11 +41,11 @@ describe("formatCost", () => {
 
 describe("formatPerRequestCost", () => {
   it("formats a per-request cost with 4 decimals", () => {
-    expect(formatPerRequestCost(0.013636)).toBe("$0.0136/req");
-    expect(formatPerRequestCost(0.05)).toBe("$0.0500/req");
+    expect(formatPerRequestCost(0.013636)).toBe("Included ($0.0136 quota/req)");
+    expect(formatPerRequestCost(0.05)).toBe("Included ($0.0500 quota/req)");
   });
   it("returns a floor label for tiny positive costs", () => {
-    expect(formatPerRequestCost(0.00001)).toBe("< $0.0001/req");
+    expect(formatPerRequestCost(0.00001)).toBe("Included (< $0.0001 quota/req)");
   });
   it("returns null for missing, zero, negative, or non-finite values", () => {
     expect(formatPerRequestCost(null)).toBeNull();

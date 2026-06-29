@@ -1,4 +1,13 @@
 export const DASHBOARD_CACHE_TTL_MS = 30_000;
+/**
+ * Hard cap on entries in the global response cache. cache-manager@7's default
+ * in-memory store is an unbounded Keyv Map; the dashboard interceptors key by
+ * full request URL, so without a cap high-cardinality query strings accumulate
+ * forever. Oldest entries are LRU-evicted once this ceiling is reached.
+ */
+export const DASHBOARD_CACHE_MAX_ENTRIES = 5_000;
+/** Interval (ms) for the active sweep of expired global response-cache entries. */
+export const DASHBOARD_CACHE_SWEEP_MS = 60_000;
 export const AGENT_LIST_CACHE_TTL_MS = 60_000;
 export const MODEL_PRICES_CACHE_TTL_MS = 300_000;
 export const PUBLIC_STATS_CACHE_TTL_MS = 86_400_000;

@@ -211,6 +211,45 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
+    it('uses MANIFEST_MAX_MESSAGES when validating oversized payloads', async () => {
+      configService = {
+        get: jest.fn((key: string) => (key === 'MANIFEST_MAX_MESSAGES' ? '1001' : undefined)),
+      } as unknown as ConfigService;
+      svc = new ProxyService(
+        resolveService as unknown as ResolveService,
+        providerKeyService as unknown as ProviderKeyService,
+        tierService as unknown as TierService,
+        openaiOauth as unknown as OpenaiOauthService,
+        minimaxOauth as unknown as MinimaxOauthService,
+        anthropicOauth as unknown as AnthropicOauthService,
+        geminiOauth as unknown as GeminiOauthService,
+        kiroOauth as unknown as KiroOauthService,
+        xaiOauth as unknown as XaiOauthService,
+        momentum as unknown as SessionMomentumService,
+        limitCheck as unknown as LimitCheckService,
+        fallbackService as unknown as ProxyFallbackService,
+        configService,
+        signatureCache,
+        thinkingCache,
+        reasoningCache,
+        modelParamsService as unknown as AgentModelParamsService,
+        providerParamSpecs as unknown as ProviderParamSpecService,
+      );
+      const messages = Array.from({ length: 1001 }, () => ({ role: 'user', content: 'x' }));
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: null,
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+
+      await expect(
+        svc.proxyRequest(baseOpts({ body: { messages } as never })),
+      ).resolves.toBeDefined();
+    });
+
     it('replaces null content with empty string', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
@@ -816,6 +855,46 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.fallbackFromModel).toBe('gpt-4o');
       expect(result.meta.provider).toBe('anthropic');
       expect(result.meta.primaryProvider).toBe('openai');
+    });
+
+    it('triggers fallback on provider context length errors', async () => {
+      const message =
+        "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.";
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message,
+              code: 'context_length_exceeded',
+            },
+          }),
+          { status: 400, headers: { 'content-type': 'application/json' } },
+        ),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: {
+            response: okResponse(),
+            isGoogle: false,
+            isAnthropic: true,
+            isChatGpt: false,
+          },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+        },
+        failures: [],
+      } as never);
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.tryFallbacks).toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(200);
+      expect(result.meta.fallbackFromModel).toBe('gpt-4o');
+      expect(result.meta.provider).toBe('anthropic');
     });
 
     it('returns the successful fallback auth_type, not the primary auth_type (#1173)', async () => {
