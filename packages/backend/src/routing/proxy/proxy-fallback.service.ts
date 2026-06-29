@@ -99,6 +99,12 @@ export interface FailedFallback {
   tenantProviderId?: string | null;
 }
 
+export interface AlternateKeyResult {
+  forward: ForwardResult;
+  keyId: string;
+  keyLabel: string;
+}
+
 @Injectable()
 export class ProxyFallbackService {
   private readonly logger = new Logger(ProxyFallbackService.name);
@@ -149,6 +155,96 @@ export class ProxyFallbackService {
     );
     const specs = await this.providerParamSpecs.getSpecs(provider, authType as AuthType, model);
     return applyRequestParamDefaults(body, modelParams, specs);
+  }
+
+  /**
+   * Same-provider key rotation on failure.
+   *
+   * When the primary key fails (401/402/429/etc.), try remaining keys for the
+   * same (provider, authType) in priority order, skipping the already-failed key.
+   * Returns the first successful result, or null if all alternate keys also fail.
+   */
+  async tryAlternateKeys(opts: {
+    tenantId: string;
+    agentId: string;
+    provider: string;
+    authType: AuthType;
+    failedKeyId: string;
+    model: string;
+    body: Record<string, unknown>;
+    chatBody?: Record<string, unknown>;
+    stream: boolean;
+    sessionKey: string;
+    signal?: AbortSignal;
+    apiMode?: ProxyApiMode;
+    signatureLookup?: SignatureLookup;
+    thinkingLookup?: ThinkingBlockLookup;
+    reasoningContentLookup?: ReasoningContentLookup;
+    paramMergeContext?: ParamMergeContext;
+  }): Promise<AlternateKeyResult | null> {
+    const allKeys = await this.providerKeyService.getProviderKeys(
+      opts.tenantId,
+      opts.provider,
+      opts.authType,
+      opts.agentId,
+    );
+    // Skip the key that already failed and any keys in cooldown
+    const alternateKeys = allKeys.filter((k) => k.id !== opts.failedKeyId && k.apiKey !== null);
+    if (alternateKeys.length === 0) return null;
+
+    for (const key of alternateKeys) {
+      const resolvedCreds = await resolveApiKey(
+        opts.provider,
+        key.apiKey!,
+        opts.authType,
+        opts.agentId,
+        opts.tenantId,
+        this.openaiOauth,
+        this.minimaxOauth,
+        this.anthropicOauth,
+        this.geminiOauth,
+        this.kiroOauth,
+        this.xaiOauth,
+        key.label,
+      );
+      if (resolvedCreds.apiKey === null) continue;
+
+      this.logger.log(
+        `Alternate key: trying provider=${opts.provider} model=${opts.model} key=${key.label} (failed key excluded)`,
+      );
+
+      const forward = await this.tryForwardToProvider({
+        provider: opts.provider,
+        apiKey: resolvedCreds.apiKey,
+        model: opts.model,
+        body: opts.body,
+        chatBody: opts.chatBody,
+        stream: opts.stream,
+        sessionKey: opts.sessionKey,
+        signal: opts.signal,
+        agentId: opts.agentId,
+        tenantId: opts.tenantId,
+        rawApiKey: key.apiKey!,
+        providerKeyLabel: key.label,
+        authType: opts.authType,
+        apiMode: opts.apiMode,
+        resourceUrl: resolvedCreds.resourceUrl,
+        providerRegion: key.region,
+        signatureLookup: opts.signatureLookup,
+        thinkingLookup: opts.thinkingLookup,
+        reasoningContentLookup: opts.reasoningContentLookup,
+        paramMergeContext: opts.paramMergeContext,
+      });
+
+      if (forward.response.ok) {
+        return { forward, keyId: key.id, keyLabel: key.label };
+      }
+
+      this.logger.debug(
+        `Alternate key ${key.label} also failed: status=${forward.response.status} provider=${opts.provider}`,
+      );
+    }
+    return null;
   }
 
   async tryFallbacks(
