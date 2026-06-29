@@ -27,6 +27,9 @@ describe("CodexSetup", () => {
     expect(container.textContent).toContain('base_url = "http://localhost:38240/v1"');
     expect(container.textContent).toContain('wire_api = "responses"');
     expect(container.textContent).toContain('env_key = "MANIFEST_API_KEY"');
+    // Manifest is a profile, not the global default model/provider.
+    expect(container.textContent).toContain("[profiles.manifest]");
+    expect(container.textContent).toContain("codex --profile manifest");
     expect(container.textContent).toContain('export MANIFEST_API_KEY="mnfst_YOUR_KEY"');
     expect(container.textContent).not.toContain("mnfst_live...");
     expect(screen.queryByLabelText("Reveal API key")).toBeNull();
@@ -34,16 +37,21 @@ describe("CodexSetup", () => {
     const copyButtons = container.querySelectorAll(
       '.setup-cli-block__actions [aria-label="Copy to clipboard"]',
     );
-    expect(copyButtons.length).toBe(2);
+    expect(copyButtons.length).toBe(3);
 
     fireEvent.click(copyButtons[0]!); // config.toml
     await vi.waitFor(() => {
-      expect(writeText).toHaveBeenCalledWith(expect.stringContaining('wire_api = "responses"'));
+      expect(writeText).toHaveBeenCalledWith(expect.stringContaining("[profiles.manifest]"));
     });
 
     fireEvent.click(copyButtons[1]!); // key export
     await vi.waitFor(() => {
       expect(writeText).toHaveBeenCalledWith('export MANIFEST_API_KEY="mnfst_YOUR_KEY"');
+    });
+
+    fireEvent.click(copyButtons[2]!); // run command
+    await vi.waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith("codex --profile manifest");
     });
     expect(writeText).not.toHaveBeenCalledWith(expect.stringContaining("mnfst_live..."));
   });

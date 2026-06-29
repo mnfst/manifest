@@ -11,15 +11,26 @@ interface Props {
 // Codex CLI speaks the OpenAI Responses API (`wire_api = "responses"`), which
 // Manifest serves at `<baseUrl>/responses`. `baseUrl` already ends in `/v1`,
 // so Codex's `{base_url}/responses` lands on Manifest's `/v1/responses` route.
+//
+// Manifest is wired as a named profile, NOT the top-level `model` /
+// `model_provider`. Setting those globally hijacks every Codex session (and
+// breaks the home screen if the env var is missing); a profile keeps Manifest
+// opt-in via `codex --profile manifest` and leaves the user's default intact.
 function getCodexConfig(baseUrl: string): string {
-  return `model = "auto"
-model_provider = "manifest"
-
-[model_providers.manifest]
+  return `[model_providers.manifest]
 name = "Manifest"
 base_url = "${baseUrl}"
 env_key = "MANIFEST_API_KEY"
-wire_api = "responses"`;
+wire_api = "responses"
+
+[profiles.manifest]
+model = "auto"
+model_provider = "manifest"`;
+}
+
+// The command that runs Codex against Manifest via the profile above.
+function getCodexRunCommand(): string {
+  return `codex --profile manifest`;
 }
 
 // Codex reads the key from the env var named by `env_key` and sends it as a
@@ -73,12 +84,14 @@ const CodexSetup: Component<Props> = (props) => {
   const config = () => getCodexConfig(props.baseUrl);
   const keyExportCopy = () => getCodexKeyExport(copyKey());
   const keyExportShown = () => getCodexKeyExport(visibleKey());
+  const runCommand = () => getCodexRunCommand();
 
   return (
     <div class="setup-agents-card">
       <p class="setup-method__hint">
         Add this block to your global{' '}
-        <code class="setup-model-hint__code">~/.codex/config.toml</code>.
+        <code class="setup-model-hint__code">~/.codex/config.toml</code>. It adds Manifest as a
+        profile, so your default Codex setup stays untouched.
       </p>
 
       <div class="setup-cli-block">
@@ -105,6 +118,15 @@ const CodexSetup: Component<Props> = (props) => {
           <CopyButton text={keyExportCopy()} />
         </div>
         <CodeBlock code={keyExportShown()} language="bash" />
+      </div>
+
+      <p class="setup-method__hint">Then run Codex against Manifest with the profile:</p>
+
+      <div class="setup-cli-block">
+        <div class="setup-cli-block__actions">
+          <CopyButton text={runCommand()} />
+        </div>
+        <CodeBlock code={runCommand()} language="bash" />
       </div>
     </div>
   );
