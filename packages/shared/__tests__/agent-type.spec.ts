@@ -18,6 +18,7 @@ describe('agent-type', () => {
       'craft',
       'claude-code',
       'opencode',
+      'codex',
       'openai-sdk',
       'anthropic-sdk',
       'vercel-ai-sdk',
@@ -59,10 +60,13 @@ describe('agent-type', () => {
   it('places coding assistants under coding only, not personal or app', () => {
     expect(PLATFORMS_BY_CATEGORY.coding).toContain('claude-code');
     expect(PLATFORMS_BY_CATEGORY.coding).toContain('opencode');
+    expect(PLATFORMS_BY_CATEGORY.coding).toContain('codex');
     expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('claude-code');
     expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('opencode');
+    expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('codex');
     expect(PLATFORMS_BY_CATEGORY.app).not.toContain('claude-code');
     expect(PLATFORMS_BY_CATEGORY.app).not.toContain('opencode');
+    expect(PLATFORMS_BY_CATEGORY.app).not.toContain('codex');
   });
 
   it('keeps "other" available in every category for the unknown-platform fallback', () => {
@@ -129,6 +133,10 @@ describe('agent-type', () => {
       // Pinning the path explicitly so a future drift away from the upstream
       // Claude mark fails this test loudly rather than silently.
       expect(platformIcon('claude-code', 'coding')).toBe('/icons/providers/claude-code.svg');
+    });
+
+    it('codex resolves to the providers/codex.svg mark', () => {
+      expect(platformIcon('codex', 'coding')).toBe('/icons/providers/codex.svg');
     });
 
     it('opencode resolves to the providers/opencode.svg mark', () => {
