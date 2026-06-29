@@ -40,6 +40,7 @@ export const SUBSCRIPTION_PROVIDER_KEY_URLS: Record<string, string> = {
   moonshot: 'https://www.kimi.com/code/console',
   'ollama-cloud': 'https://ollama.com/settings/keys',
   kiro: 'https://app.kiro.dev',
+  mistral: 'https://chat.mistral.ai/code/extensions',
   xiaomi: 'https://platform.xiaomimimo.com/token-plan',
   zai: 'https://z.ai/manage-apikey/apikey-list',
 };

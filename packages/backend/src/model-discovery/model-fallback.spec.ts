@@ -325,6 +325,31 @@ describe('buildSubscriptionFallbackModels', () => {
     expect(result).toEqual([]);
   });
 
+  it('surfaces the fixed Mistral Vibe model even when the pricing cache lacks it', () => {
+    const ids = buildSubscriptionFallbackModels(makePricingSync(new Map()), 'mistral').map(
+      (m) => m.id,
+    );
+
+    expect(ids).toEqual(['mistral-vibe-cli-latest']);
+  });
+
+  it('keeps Mistral Vibe fallback matching exact', () => {
+    const cache = new Map([
+      [
+        'mistralai/mistral-vibe-cli-latest',
+        { input: 0.000001, output: 0.000003, displayName: 'Mistral Vibe CLI' },
+      ],
+      [
+        'mistralai/mistral-vibe-cli-fast',
+        { input: 0.000001, output: 0.000003, displayName: 'Mistral Vibe CLI Fast' },
+      ],
+    ]);
+
+    const result = buildSubscriptionFallbackModels(makePricingSync(cache), 'mistral');
+    expect(result.map((m) => m.id)).toEqual(['mistral-vibe-cli-latest']);
+    expect(result[0].displayName).toBe('Mistral Vibe CLI');
+  });
+
   describe('knownModelsMatch exact mode (gemini)', () => {
     it('includes only verbatim knownModel entries from the OpenRouter cache', () => {
       const cache = new Map([

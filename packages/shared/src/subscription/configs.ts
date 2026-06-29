@@ -83,6 +83,19 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  mistral: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Mistral Vibe subscription',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your Mistral Vibe API key',
+    knownModels: Object.freeze(['mistral-vibe-cli-latest']),
+    knownModelsMatch: 'exact' as const,
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 200000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   xiaomi: Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'Xiaomi MiMo Token Plan',

@@ -213,6 +213,7 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
     /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview-\d{2}-\d{4}$|robotics)/i,
   mistral:
     /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-|^mistral-vibe-cli)/i,
+  'mistral-subscription': /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-)/i,
   // Groq filters:
   //  - compound family: server-side router/agent product (compound,
   //    compound-mini, compound-beta). Not a model the user picks directly,
@@ -249,6 +250,9 @@ export const PROVIDER_BLOCKLIST: Record<string, ReadonlySet<string>> = {
     'gpt-5.1-codex', // ChatGPT Codex returns 400: not supported with a ChatGPT account
   ]),
   mistral: new Set([
+    'voxtral-mini-2602', // Invalid model returned by API; not a real chat endpoint
+  ]),
+  'mistral-subscription': new Set([
     'voxtral-mini-2602', // Invalid model returned by API; not a real chat endpoint
   ]),
 };
@@ -295,6 +299,11 @@ const parseMistral = createModelParser<MistralModelEntry>({
   getId: (entry) => entry.id,
   getDisplayName: (_entry, id) => id,
 });
+
+const parseMistralVibeSubscription = (body: unknown, provider: string): DiscoveredModel[] => {
+  const known = new Set(getSubscriptionKnownModels('mistral') ?? []);
+  return parseMistral(body, provider).filter((model) => known.has(model.id));
+};
 
 interface AnthropicModelEntry {
   id: string;
@@ -581,6 +590,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseMistral,
   },
+  'mistral-subscription': {
+    endpoint: 'https://api.mistral.ai/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseMistralVibeSubscription,
+  },
   moonshot: {
     endpoint: 'https://api.moonshot.ai/v1/models',
     buildHeaders: bearerHeaders,
@@ -732,6 +746,8 @@ export class ProviderModelFetcherService {
       configKey = 'openai-subscription';
     } else if (configKey === 'minimax' && authType === 'subscription') {
       configKey = 'minimax-subscription';
+    } else if (configKey === 'mistral' && authType === 'subscription') {
+      configKey = 'mistral-subscription';
     } else if (configKey === 'xiaomi' && authType === 'subscription') {
       configKey = 'xiaomi-subscription';
     } else if (configKey === 'moonshot' && authType === 'subscription') {
