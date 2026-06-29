@@ -1,0 +1,83 @@
+packages/shared/__tests__/providers.spec.ts
+  s_593505829f2976::t_27c1d162333b0f 176-185
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_593505829f2976::t_66212ecf41e88c 18
+packages/frontend/tests/services/providers.test.ts
+  s_593505829f2976::t_0c07777a248bc0 752-755
+  s_593505829f2976::t_154a85f916f568 142-159
+  s_593505829f2976::t_1739f481c2e7e5 551-562
+packages/shared/src/providers.ts
+  s_593505829f2976::t_157df44846a269 333-343
+  s_593505829f2976::t_bf65930112e766 332
+packages/frontend/src/components/ProviderIcon.tsx
+  s_593505829f2976::t_83bf1ee1ac9894 103-119,638-639,663
+packages/shared/__tests__/provider-inference.spec.ts
+  s_593505829f2976::t_edd12cf2e3b450 49
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_593505829f2976::t_1de68609cb2ced 67-71,121,199-201
+  s_593505829f2976::t_ddd8f01bf6e7fe 202-204
+  s_593505829f2976::t_f2b7f6bd015af7 205
+packages/backend/src/common/constants/providers.spec.ts
+  s_593505829f2976::t_1af58966304143 159-170,254-261
+  s_593505829f2976::t_7252f2fe5c5464 262
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_593505829f2976::t_3fc0171264641a 71,114-116
+  s_593505829f2976::t_052c5a44cde323 666
+  s_593505829f2976::t_a86c7d55205647 151,291-297
+  s_593505829f2976::t_c8982fe0a916ef 117-118
+  s_593505829f2976::t_d168b2b6e1160f 298-300
+  s_593505829f2976::t_cc46690797138d 301
+packages/backend/src/routing/proxy/provider-client.ts
+  s_593505829f2976::t_77962c2cdd10c7 69,78-79
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_593505829f2976::t_99da3943cc181e 2699-2713
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_593505829f2976::t_13b0cbcb012d6e 111-146,150-151,157-161,173-198
+  s_593505829f2976::t_0d1160779eeb1a 32,110,147-149,152-156,162-172
+  s_8d7abb4142b62c::t_2e44e87a144b81 199
+packages/frontend/src/services/providers.ts
+  s_593505829f2976::t_1248a18c7cd842 198-202
+  s_593505829f2976::t_edd12cf2e3b450 474
+packages/shared/src/provider-inference.ts
+  s_593505829f2976::t_edd12cf2e3b450 22
+packages/frontend/public/icons/pioneer.svg
+  s_593505829f2976::t_f0eda314794ad8 1-4
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_593505829f2976::t_240da124bf8831 45-46,115-125,145-181,340
+  s_593505829f2976::t_18759a804e84fb 656,658-660
+  s_593505829f2976::t_c2af967ce6ca58 299,338-339
+  s_593505829f2976::t_f049d5482b7d60 657,831-832
+  s_593505829f2976::t_6402c127afc8f5 833,966-1016,1018
+  s_593505829f2976::t_25664cf01cd833 110-114,138-143
+  s_593505829f2976::t_5df7847f278363 144,182,341,1017
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_593505829f2976::t_2e5bdeaf8313d0 25
+  s_593505829f2976::t_1813bf15269e4c 128-136
+.changeset/pioneer-provider.md
+  s_593505829f2976::t_15937bdb4398b0 1,3-4
+  s_593505829f2976::t_c690ad6299c46f 2,5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "ea9b422c0366d70bd8a90ff5015ba3b295bf0064",
+  "prompts": {},
+  "sessions": {
+    "s_593505829f2976": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f122a-52d9-7130-b575-459b0cc72d21",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_8d7abb4142b62c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f120a-9765-72e1-bb87-22a45d71fc0c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
