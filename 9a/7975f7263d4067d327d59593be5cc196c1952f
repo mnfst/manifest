@@ -1,0 +1,64 @@
+packages/frontend/public/icons/providers/antigravity.svg
+  s_24fc4145b9c9da::t_231b37e1e56401 17-23
+  s_24fc4145b9c9da::t_aa25cdc9b94b54 1-16
+packages/shared/__tests__/agent-type.spec.ts
+  s_24fc4145b9c9da::t_3cddfb37df98ab 21,63,66,69,126,145-146,154
+  s_24fc4145b9c9da::t_aa25cdc9b94b54 143-144
+packages/frontend/tests/components/SetupStepAddProvider.test.tsx
+  s_24fc4145b9c9da::t_a456b3adbdaa32 49,51,53-59,94,101-102,104-108,110,381-383,386,392,396-397
+  s_24fc4145b9c9da::t_c061c3312a7a33 1-2,4,8,10,14,21,23,26,28-29,32,34,36,38-39,42,44,46,401,405,410,413,417,419,422,431,436,439,443,465,469,472,476
+  s_4c34b7e0ae2628::t_ff3e1344db9939 114
+  s_24fc4145b9c9da::t_d5aa5594064915 99,103,109,111-112,390,398
+  s_24fc4145b9c9da::t_3cddfb37df98ab 52,60-62,64,66-67,70,72,74-75,78,80,82-83,86,88,90,95-98,100,113,115,117-118,121,123,125,128,130-131,134,136,138,141,143,146-147,150,152,154,156-157,160,162-164,167,169-170,173,175-177,180,182-183,185-186,189,191-193,195-206,213,217-218,220,223,229,232,239,241,243-244,247,249-250,252-253,256,260-261,264,266,269,271,275,277-278,280-281,283-284,287,289,292,297,300-301,305,309-311,314,318,322-324,327,331-332,337-339,342,346-347,352-354,357,361-362,367-369,372,376,384-385,387-388,393-395,408-409,426,428,435,444,449,458,462
+  s_24fc4145b9c9da::t_592eea1f07a30d 391
+packages/frontend/src/components/SetupStepAddProvider.tsx
+  s_24fc4145b9c9da::t_d5aa5594064915 67
+  s_8d7abb4142b62c::t_644a729fd7c5f9 277
+  s_24fc4145b9c9da::t_3cddfb37df98ab 9,13-20,66,68,92-94,237-244,246-252,275-276
+  s_24fc4145b9c9da::t_aa25cdc9b94b54 245
+.changeset/antigravity-coding-agent.md
+  s_24fc4145b9c9da::t_3cddfb37df98ab 1-5
+packages/frontend/src/components/AntigravitySetup.tsx
+  s_24fc4145b9c9da::t_d5aa5594064915 1,26-36,38-41,43-44
+  s_24fc4145b9c9da::t_3cddfb37df98ab 2-25,37,42,45-46
+packages/frontend/tests/components/AgentTypeGrid.test.tsx
+  s_24fc4145b9c9da::t_26b4cb5e7f1211 196-197,199,202-203,205,207,215,218,221-222,245
+  s_24fc4145b9c9da::t_1137c3fb7bcd70 1-2,4-5,7-9,201,213,227,236,240-241
+  s_24fc4145b9c9da::t_aa25cdc9b94b54 12-23,26-28,31-40,69,176,178-179,200,249
+  s_24fc4145b9c9da::t_3cddfb37df98ab 44,46,48-49,58,60,62-64,67,70,73,75,79,81,83,86,96,98-99,102,112,114-115,118,128,130-131,134-150,152,154,157,159-161,164,168-171,174,177,182,184-186,189,191-193,198,204,206,225,229,231,234,237-239,242-244,247
+packages/shared/src/agent-type.ts
+  s_24fc4145b9c9da::t_aa25cdc9b94b54 56
+  s_24fc4145b9c9da::t_3cddfb37df98ab 11,34,46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "9a7975f7263d4067d327d59593be5cc196c1952f",
+  "prompts": {},
+  "sessions": {
+    "s_24fc4145b9c9da": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f12a4-5c55-7bf3-9c4f-5e170d64d4c8",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_4c34b7e0ae2628": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f1228-ea11-7741-954d-9e29115cd4a5",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_8d7abb4142b62c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f120a-9765-72e1-bb87-22a45d71fc0c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
