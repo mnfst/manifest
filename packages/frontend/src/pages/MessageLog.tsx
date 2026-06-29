@@ -200,14 +200,18 @@ const MessageLog: Component = () => {
     (name) => getRoutingStatus(decodeURIComponent(name)),
   );
 
+  const tierMetadataAgentName = createMemo(
+    () => agentFilter() || (params.agentName ? decodeURIComponent(params.agentName) : ''),
+  );
+
   const [specificityAssignments] = createResource(
-    () => params.agentName,
-    (name) => getSpecificityAssignments(decodeURIComponent(name)),
+    () => ({ agentName: tierMetadataAgentName() }),
+    ({ agentName }) => (agentName ? getSpecificityAssignments(agentName) : Promise.resolve([])),
   );
 
   const [headerTiers] = createResource(
-    () => params.agentName,
-    (name) => listHeaderTiers(decodeURIComponent(name)),
+    () => ({ agentName: tierMetadataAgentName() }),
+    ({ agentName }) => (agentName ? listHeaderTiers(agentName) : Promise.resolve([])),
   );
 
   const hasProviders = () => routingStatus()?.enabled === true;
