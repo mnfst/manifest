@@ -28,6 +28,7 @@ describe('ProviderModelFetcherService', () => {
       'groq',
       'kilo',
       'mistral',
+      'mistral-subscription',
       'moonshot',
       'nous',
       'nvidia',
@@ -2575,6 +2576,31 @@ describe('ProviderModelFetcherService', () => {
       const result = await service.fetch('mistral', 'key');
       // Both pass: pixtral has no "mistral-ocr" prefix, "some-ocr-model" has "ocr" mid-name not prefix
       expect(result).toHaveLength(2);
+    });
+
+    it('filters the Vibe CLI model from API-key discovery and restricts subscription discovery to it', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'mistral-vibe-cli-latest' }, { id: 'mistral-large-latest' }],
+        }),
+      });
+
+      const apiKeyResult = await service.fetch('mistral', 'mistral-api-key', 'api_key');
+      const subscriptionResult = await service.fetch('mistral', 'mistral-vibe-key', 'subscription');
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        1,
+        'https://api.mistral.ai/v1/models',
+        expect.objectContaining({ headers: { Authorization: 'Bearer mistral-api-key' } }),
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        2,
+        'https://api.mistral.ai/v1/models',
+        expect.objectContaining({ headers: { Authorization: 'Bearer mistral-vibe-key' } }),
+      );
+      expect(apiKeyResult.map((m) => m.id)).toEqual(['mistral-large-latest']);
+      expect(subscriptionResult.map((m) => m.id)).toEqual(['mistral-vibe-cli-latest']);
     });
   });
 

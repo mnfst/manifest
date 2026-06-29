@@ -313,6 +313,12 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   mistral: {
     initial: 'M',
     subtitle: 'Mistral Large, Codestral, Pixtral',
+    supportsSubscription: true,
+    subscriptionLabel: 'Mistral Vibe subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionCredentialName: 'Mistral Vibe',
+    subscriptionKeyPlaceholder: 'Paste your Mistral Vibe API key',
     models: [],
   },
   moonshot: {

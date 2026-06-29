@@ -537,6 +537,17 @@ describe('PROVIDERS', () => {
     expect(minimax.subscriptionAuthMode).toBe('device_code');
   });
 
+  it('Mistral supports Vibe subscription with token flow', () => {
+    const mistral = PROVIDERS.find((p) => p.id === 'mistral')!;
+    expect(mistral.supportsSubscription).toBe(true);
+    expect(mistral.subscriptionLabel).toBe('Mistral Vibe subscription');
+    expect(mistral.subscriptionAuthMode).toBe('token');
+    expect(mistral.subscriptionCredentialKind).toBe('api-key');
+    expect(mistral.subscriptionCredentialName).toBe('Mistral Vibe');
+    expect(mistral.subscriptionKeyPlaceholder).toBe('Paste your Mistral Vibe API key');
+    expect(mistral.subscriptionOnly).toBeUndefined();
+  });
+
   it('Qwen supports Token Plan subscription with token flow', () => {
     const qwen = PROVIDERS.find((p) => p.id === 'qwen')!;
     expect(qwen.apiKeyEndpointRegions?.[0]).toEqual({
@@ -647,6 +658,13 @@ describe('PROVIDERS', () => {
 
   it('provides a subscription-key URL for Moonshot/Kimi pointing at the Kimi Code console', () => {
     expect(getSubscriptionProviderKeyUrl('moonshot')).toBe('https://www.kimi.com/code/console');
+  });
+
+  it('provides distinct API-key and subscription-key URLs for Mistral', () => {
+    expect(getRoutingProviderApiKeyUrl('mistral')).toBe('https://console.mistral.ai/api-keys/');
+    expect(getSubscriptionProviderKeyUrl('mistral')).toBe(
+      'https://chat.mistral.ai/code/extensions',
+    );
   });
 
   it('provides only the subscription-key URL for Command Code', () => {
@@ -846,6 +864,21 @@ describe('PROVIDERS', () => {
       error: 'Token is too short (minimum 10 characters)',
     });
     expect(validateSubscriptionKey(nous, 'nous-valid-token-1234')).toEqual({
+      valid: true,
+    });
+  });
+
+  it('Mistral Vibe subscription key is validated with generic token length', () => {
+    const mistral = PROVIDERS.find((p) => p.id === 'mistral')!;
+    expect(validateSubscriptionKey(mistral, '')).toEqual({
+      valid: false,
+      error: 'Token is required',
+    });
+    expect(validateSubscriptionKey(mistral, 'short')).toEqual({
+      valid: false,
+      error: 'Token is too short (minimum 10 characters)',
+    });
+    expect(validateSubscriptionKey(mistral, 'mistral-vibe-token-1234')).toEqual({
       valid: true,
     });
   });
