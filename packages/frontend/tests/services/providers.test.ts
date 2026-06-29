@@ -139,6 +139,24 @@ describe('validateApiKey', () => {
     expect(validateApiKey(cerebras, 'x'.repeat(20))).toEqual({ valid: true });
   });
 
+  it('validates Pioneer key prefix and length', () => {
+    const pioneer = getProvider('pioneer')!;
+    expect(pioneer.keyPlaceholder).toBe('pio_sk_...');
+    expect(validateApiKey(pioneer, '')).toEqual({
+      valid: false,
+      error: 'API key is required',
+    });
+    expect(validateApiKey(pioneer, 'sk-wrong-prefix-that-is-long-enough')).toEqual({
+      valid: false,
+      error: 'Pioneer keys start with "pio_sk_"',
+    });
+    expect(validateApiKey(pioneer, 'pio_sk_short')).toEqual({
+      valid: false,
+      error: 'Key is too short (minimum 20 characters)',
+    });
+    expect(validateApiKey(pioneer, 'pio_sk_' + 'a'.repeat(20))).toEqual({ valid: true });
+  });
+
   it('validates AWS Bedrock raw bearer-token and legacy API-key lengths', () => {
     const bedrock = getProvider('bedrock')!;
     expect(validateApiKey(bedrock, '')).toEqual({
@@ -530,6 +548,18 @@ describe('PROVIDERS', () => {
     expect(cerebras.models).toEqual([]);
   });
 
+  it('Pioneer is an API-key provider with dynamic models', () => {
+    const pioneer = PROVIDERS.find((p) => p.id === 'pioneer')!;
+    expect(pioneer).toBeDefined();
+    expect(pioneer.name).toBe('Pioneer');
+    expect(pioneer.supportsSubscription).toBeUndefined();
+    expect(pioneer.subscriptionOnly).toBeUndefined();
+    expect(pioneer.keyPrefix).toBe('pio_sk_');
+    expect(pioneer.keyPlaceholder).toBe('pio_sk_...');
+    expect(pioneer.minKeyLength).toBe(20);
+    expect(pioneer.models).toEqual([]);
+  });
+
   it('MiniMax supports subscription with device-code flow', () => {
     const minimax = PROVIDERS.find((p) => p.id === 'minimax')!;
     expect(minimax.supportsSubscription).toBe(true);
@@ -753,6 +783,10 @@ describe('PROVIDERS', () => {
 
   it('provides an API key URL for Cerebras', () => {
     expect(getRoutingProviderApiKeyUrl('cerebras')).toBe('https://cloud.cerebras.ai');
+  });
+
+  it('provides an API key URL for Pioneer', () => {
+    expect(getRoutingProviderApiKeyUrl('pioneer')).toBe('https://pioneer.ai');
   });
 
   it('OpenCode Go is subscription-only with a sign-in URL', () => {

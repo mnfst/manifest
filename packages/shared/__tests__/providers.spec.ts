@@ -183,6 +183,16 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(cerebras!.keyPlaceholder).toBe('Cerebras API key');
   });
 
+  it('pioneer exposes API-key provider metadata', () => {
+    const pioneer = SHARED_PROVIDER_BY_ID.get('pioneer');
+    expect(pioneer).toBeDefined();
+    expect(pioneer!.displayName).toBe('Pioneer');
+    expect(pioneer!.openRouterPrefixes).toEqual([]);
+    expect(pioneer!.keyPrefix).toBe('pio_sk_');
+    expect(pioneer!.minKeyLength).toBe(20);
+    expect(pioneer!.keyPlaceholder).toBe('pio_sk_...');
+  });
+
   it('nous exposes subscription-gateway provider metadata', () => {
     const nous = SHARED_PROVIDER_BY_ID.get('nous');
     expect(nous).toBeDefined();

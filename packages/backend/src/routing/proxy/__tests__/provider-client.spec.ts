@@ -2723,6 +2723,21 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('accounts/fireworks/models/deepseek-v3p1');
     });
+
+    it('preserves Pioneer slash-prefixed model names', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'pioneer',
+        apiKey: 'pio_sk_test',
+        model: 'openai/gpt-oss-120b',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('openai/gpt-oss-120b');
+    });
   });
 
   describe('Body sanitization for non-OpenAI providers', () => {

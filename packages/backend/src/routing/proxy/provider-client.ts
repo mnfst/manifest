@@ -66,7 +66,7 @@ function stripModelPrefix(model: string, endpointKey: string): string {
   if (endpointKey === 'commandcode' || endpointKey === 'commandcode-anthropic') {
     return model.startsWith('commandcode/') ? model.slice('commandcode/'.length) : model;
   }
-  // Custom providers, Fireworks, Groq, Kilo, Nous, and NVIDIA NIM: model IDs from these APIs contain
+  // Custom providers, Fireworks, Groq, Kilo, Nous, NVIDIA NIM, and Pioneer: model IDs from these APIs contain
   // legitimate slash segments (e.g. "accounts/fireworks/models/deepseek-v3p1",
   // "MiniMaxAI/MiniMax-2.7", "meta-llama/llama-guard-4-12b", "anthropic/claude-sonnet-4.5").
   // Stripping would mangle the name the upstream API expects.
@@ -76,7 +76,8 @@ function stripModelPrefix(model: string, endpointKey: string): string {
     endpointKey === 'groq' ||
     endpointKey === 'kilo' ||
     endpointKey === 'nous' ||
-    endpointKey === 'nvidia'
+    endpointKey === 'nvidia' ||
+    endpointKey === 'pioneer'
   )
     return model;
   return stripVendorPrefix(model);
