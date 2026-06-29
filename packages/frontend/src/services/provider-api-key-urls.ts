@@ -16,6 +16,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   openai: 'https://platform.openai.com/api-keys',
   'opencode-zen': 'https://opencode.ai/auth',
   openrouter: 'https://openrouter.ai/keys',
+  requesty: 'https://app.requesty.ai/api-keys',
   qwen: 'https://www.alibabacloud.com/help/en/model-studio/developer-reference/get-api-key',
   xiaomi: 'https://platform.xiaomimimo.com/console/api-keys',
   xai: 'https://docs.x.ai/docs/api-reference',

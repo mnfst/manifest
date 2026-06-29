@@ -62,7 +62,7 @@ Open [http://localhost:2099](http://localhost:2099) and sign up — the first ac
 
 ## Providers
 
-Manifest connects to **300+ models across 18 providers** plus any custom provider (OpenAI/Anthropic compatible). Bring your own API key, reuse a paid subscription you already have, or run models locally — all routed through
+Manifest connects to **300+ models across 19 providers** plus any custom provider (OpenAI/Anthropic compatible). Bring your own API key, reuse a paid subscription you already have, or run models locally — all routed through
 the same `/auto` endpoint.
 
 | Provider                                                                                 | API key  | Subscription                 | Featured models                                         |
@@ -84,6 +84,7 @@ the same `/auto` endpoint.
 | [**LM Studio**](https://lmstudio.ai/)                                                    | 🖥️ Local | —                            | Any GGUF model, port `1234`                             |
 | [**llama.cpp**](https://github.com/ggml-org/llama.cpp)                                   | 🖥️ Local | —                            | Any GGUF model, port `8080`                             |
 | [**OpenRouter**](https://openrouter.ai/)                                                 |    ✅    | —                            | Routes to 300+ models across labs                       |
+| [**Requesty**](https://requesty.ai/)                                                     |    ✅    | —                            | Routes to 500+ models across providers                  |
 | [**GitHub Copilot**](https://github.com/features/copilot)                                |    —     | ✅ Copilot subscription      | OAuth, no API key needed                                |
 | **Custom** (OpenAI/Anthropic-compatible)                                                 |    ✅    | —                            | Any `/v1/chat/completions` or `/v1/messages` endpoint   |
 
