@@ -39,7 +39,7 @@ const mockGetRoutingStatus = vi.fn();
 const mockListHeaderTiers = vi.fn();
 const mockSetMessageFeedback = vi.fn();
 const mockClearMessageFeedback = vi.fn();
-vi.mock("../../src/services/api.js", () => ({
+vi.mock('../../src/services/api.js', () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
   getMessageFilterOptions: (...args: unknown[]) => mockGetMessageFilterOptions(...args),
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
@@ -771,7 +771,7 @@ describe('MessageLog', () => {
           agent_name: 'test-agent',
           model: 'custom:abc-123/my-llama',
           provider: 'custom:abc-123',
-          custom_provider_name: 'Cerebras',
+          custom_provider_name: 'Cohere',
           input_tokens: 100,
           output_tokens: 50,
           total_tokens: 150,
@@ -785,14 +785,14 @@ describe('MessageLog', () => {
       next_cursor: null,
       total_count: 1,
       providers: ['custom:abc-123'],
-      provider_labels: { 'custom:abc-123': 'Cerebras' },
+      provider_labels: { 'custom:abc-123': 'Cohere' },
     };
 
     it('renders custom provider icon in message rows', async () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        const img = container.querySelector('img[alt="Cerebras"]');
+        const img = container.querySelector('img[alt="Cohere"]');
         expect(img).not.toBeNull();
       });
     });
@@ -810,11 +810,11 @@ describe('MessageLog', () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
       mockGetMessageFilterOptions.mockResolvedValue({
         providers: ['custom:abc-123'],
-        provider_labels: { 'custom:abc-123': 'Cerebras' },
+        provider_labels: { 'custom:abc-123': 'Cohere' },
       });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('Cerebras');
+        expect(container.textContent).toContain('Cohere');
       });
     });
 
@@ -842,7 +842,7 @@ describe('MessageLog', () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.querySelector('img[alt="Cerebras"]')).not.toBeNull();
+        expect(container.querySelector('img[alt="Cohere"]')).not.toBeNull();
         expect(container.textContent).not.toContain('custom:abc-123/');
       });
     });
@@ -897,7 +897,7 @@ describe('MessageLog', () => {
     });
   });
 
-  it("shows the per-request cost for OpenCode Go subscription messages", async () => {
+  it('shows the per-request cost for OpenCode Go subscription messages', async () => {
     const dataWithPerRequestSub = {
       ...messagesData,
       items: [{ ...messagesData.items[0], auth_type: 'subscription', cost: 0.013636 }],
@@ -907,10 +907,8 @@ describe('MessageLog', () => {
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       // Per-request subscriptions (OpenCode Go) carry real costs — don't hide them.
-      expect(container.textContent).toContain("$0.01");
-      expect(
-        container.querySelector('[title^="Per-request subscription cost:"]'),
-      ).not.toBeNull();
+      expect(container.textContent).toContain('$0.01');
+      expect(container.querySelector('[title^="Per-request subscription cost:"]')).not.toBeNull();
     });
   });
 
@@ -1253,8 +1251,8 @@ describe('MessageLog', () => {
     });
   });
 
-  describe("Tier filter", () => {
-    it("renders a Tier select with Playground among the options", async () => {
+  describe('Tier filter', () => {
+    it('renders a Tier select with Playground among the options', async () => {
       mockGetMessages.mockResolvedValue(messagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
