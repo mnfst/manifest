@@ -415,7 +415,7 @@ export interface CustomProviderData {
   base_url: string;
   api_kind: CustomProviderApiKind;
   has_api_key: boolean;
-  keys: CustomProviderKey[];
+  keys?: CustomProviderKey[];
   models: CustomProviderModel[];
   created_at: string;
 }

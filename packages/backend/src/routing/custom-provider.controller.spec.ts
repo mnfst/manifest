@@ -78,12 +78,21 @@ describe('CustomProviderController', () => {
           id: 'cp-1',
           name: 'Groq',
           base_url: 'https://api.groq.com/v1',
+          api_kind: 'openai',
           models: [{ model_name: 'llama' }],
           created_at: '2026-03-04',
         },
       ]);
       mockProviderService.getProviders.mockResolvedValue([
-        { provider: 'custom:cp-1', api_key_encrypted: 'enc-value' },
+        {
+          provider: 'custom:cp-1',
+          api_key_encrypted: 'enc-value',
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+          key_prefix: 'sk-abc12',
+          region: null,
+        },
       ]);
 
       const result = await controller.list(mockCtx, { agentName: 'test-agent' } as never);
@@ -93,7 +102,11 @@ describe('CustomProviderController', () => {
         id: 'cp-1',
         name: 'Groq',
         base_url: 'https://api.groq.com/v1',
+        api_kind: 'openai',
         has_api_key: true,
+        keys: [
+          { label: 'Default', key_prefix: 'sk-abc12', priority: 0, is_active: true, region: null },
+        ],
         models: [{ model_name: 'llama' }],
         created_at: '2026-03-04',
       });
@@ -105,6 +118,7 @@ describe('CustomProviderController', () => {
           id: 'cp-1',
           name: 'Local',
           base_url: 'http://localhost:8000',
+          api_kind: 'openai',
           models: [],
           created_at: '2026-03-04',
         },
@@ -114,6 +128,7 @@ describe('CustomProviderController', () => {
       const result = await controller.list(mockCtx, { agentName: 'test-agent' } as never);
 
       expect(result[0].has_api_key).toBe(false);
+      expect(result[0].keys).toEqual([]);
     });
 
     it('returns has_api_key false when user provider has no key', async () => {
@@ -122,12 +137,21 @@ describe('CustomProviderController', () => {
           id: 'cp-1',
           name: 'Local',
           base_url: 'http://localhost:8000',
+          api_kind: 'openai',
           models: [],
           created_at: '2026-03-04',
         },
       ]);
       mockProviderService.getProviders.mockResolvedValue([
-        { provider: 'custom:cp-1', api_key_encrypted: null },
+        {
+          provider: 'custom:cp-1',
+          api_key_encrypted: null,
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+          key_prefix: null,
+          region: null,
+        },
       ]);
 
       const result = await controller.list(mockCtx, { agentName: 'test-agent' } as never);
