@@ -114,6 +114,8 @@ const RANGE_OPTIONS = [
   { label: 'Last 24 hours', value: '24h' },
   { label: 'Last 7 days', value: '7d' },
   { label: 'Last 30 days', value: '30d' },
+  { label: 'Last 90 days', value: '90d' },
+  { label: 'Last 365 days', value: '365d' },
 ];
 
 const GROUP_OPTIONS = [
@@ -127,7 +129,7 @@ const GROUP_STORAGE_KEY = 'manifest_global_group';
 function loadRange(): string {
   try {
     const v = localStorage.getItem(RANGE_STORAGE_KEY);
-    if (v === '24h' || v === '7d' || v === '30d') return v;
+    if (v === '24h' || v === '7d' || v === '30d' || v === '90d' || v === '365d') return v;
   } catch {
     /* ignore */
   }

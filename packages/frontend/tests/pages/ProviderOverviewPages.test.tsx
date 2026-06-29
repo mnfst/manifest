@@ -545,10 +545,51 @@ const connectionAnalytics = {
   message_usage: overviewResponse.message_usage,
 };
 
+function makeMemoryStorage() {
+  const data = new Map<string, string>();
+  return {
+    get length() {
+      return data.size;
+    },
+    clear() {
+      data.clear();
+    },
+    getItem(key: string) {
+      return data.has(key) ? data.get(key)! : null;
+    },
+    key(index: number) {
+      return Array.from(data.keys())[index] ?? null;
+    },
+    removeItem(key: string) {
+      data.delete(key);
+    },
+    setItem(key: string, value: string) {
+      data.set(key, String(value));
+    },
+  };
+}
+
+function ensureStorageLike(kind: 'localStorage' | 'sessionStorage') {
+  const current = globalThis[kind] as Partial<Storage> | undefined;
+  const ready =
+    current &&
+    typeof current.getItem === 'function' &&
+    typeof current.setItem === 'function' &&
+    typeof current.removeItem === 'function' &&
+    typeof current.clear === 'function';
+  if (ready) return current;
+  const replacement = makeMemoryStorage();
+  Object.defineProperty(globalThis, kind, { configurable: true, value: replacement });
+  if (typeof window !== 'undefined') {
+    Object.defineProperty(window, kind, { configurable: true, value: replacement });
+  }
+  return replacement;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
-  localStorage.clear();
-  sessionStorage.clear();
+  ensureStorageLike('localStorage').clear();
+  ensureStorageLike('sessionStorage').clear();
   routerState.navigate.mockReset();
   routerState.params = { connectionId: 'conn-openai' };
   mockIsSelfHosted = true;
@@ -679,8 +720,8 @@ describe('GlobalOverview (analytics)', () => {
     fireEvent.change(selects[0]!, { target: { value: 'agent' } });
     expect(localStorage.getItem('manifest_global_group')).toBe('agent');
 
-    fireEvent.change(selects[1]!, { target: { value: '30d' } });
-    expect(localStorage.getItem('manifest_global_range')).toBe('30d');
+    fireEvent.change(selects[1]!, { target: { value: '90d' } });
+    expect(localStorage.getItem('manifest_global_range')).toBe('90d');
 
     // After grouping by harness, the filter trigger lists harnesses.
     await waitFor(() => expect(screen.getByText('1 of 2 harnesses')).toBeDefined());
@@ -836,9 +877,9 @@ describe('GlobalOverview (analytics)', () => {
     await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
 
     const selects = screen.getAllByRole('combobox');
-    // group → harness, range → 30d both attempt to persist and swallow errors
+    // group → harness, range → 365d both attempt to persist and swallow errors
     fireEvent.change(selects[0]!, { target: { value: 'agent' } });
-    fireEvent.change(selects[1]!, { target: { value: '30d' } });
+    fireEvent.change(selects[1]!, { target: { value: '365d' } });
 
     await waitFor(() => expect(screen.getByText('All harnesses (2)')).toBeDefined());
     fireEvent.click(screen.getByText('All harnesses (2)'));
@@ -932,8 +973,8 @@ describe('ConnectionDetail (analytics)', () => {
     render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
 
-    fireEvent.change(screen.getByDisplayValue('Last 7 days'), { target: { value: '30d' } });
-    expect(sessionStorage.getItem('chart-range:conn-openai')).toBe('30d');
+    fireEvent.change(screen.getByDisplayValue('Last 7 days'), { target: { value: '365d' } });
+    expect(sessionStorage.getItem('chart-range:conn-openai')).toBe('365d');
 
     fireEvent.click(screen.getByText('Messages chart'));
     expect(sessionStorage.getItem('chart-view:conn-openai')).toBe('messages');
