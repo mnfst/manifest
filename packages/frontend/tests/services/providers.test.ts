@@ -616,6 +616,19 @@ describe('PROVIDERS', () => {
     expect(cloud.subscriptionCommand).toBeUndefined();
   });
 
+  it('NousResearch is subscription-only with API-key token paste flow', () => {
+    const nous = PROVIDERS.find((p) => p.id === 'nous')!;
+    expect(nous).toBeDefined();
+    expect(nous.name).toBe('NousResearch');
+    expect(nous.supportsSubscription).toBe(true);
+    expect(nous.subscriptionOnly).toBe(true);
+    expect(nous.subscriptionAuthMode).toBe('token');
+    expect(nous.subscriptionCredentialKind).toBe('api-key');
+    expect(nous.subscriptionLabel).toBe('NousResearch subscription');
+    expect(nous.subscriptionKeyPlaceholder).toBe('Paste your NousResearch API key');
+    expect(nous.models).toEqual([]);
+  });
+
   it('Kilo is an API-key gateway provider with dynamic models', () => {
     const kilo = PROVIDERS.find((p) => p.id === 'kilo')!;
     expect(kilo).toBeDefined();
@@ -646,6 +659,11 @@ describe('PROVIDERS', () => {
     expect(getSubscriptionProviderKeyUrl('byteplus')).toBe(
       'https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey',
     );
+  });
+
+  it('provides only the subscription-key URL for Nous', () => {
+    expect(getRoutingProviderApiKeyUrl('nous')).toBeUndefined();
+    expect(getSubscriptionProviderKeyUrl('nous')).toBe('https://portal.nousresearch.com');
   });
 
   it('provides a subscription-key URL for Qwen Token Plan', () => {
@@ -813,6 +831,21 @@ describe('PROVIDERS', () => {
       error: 'Token is too short (minimum 10 characters)',
     });
     expect(validateSubscriptionKey(byteplus, 'bp-valid-token-1234')).toEqual({
+      valid: true,
+    });
+  });
+
+  it('Nous subscription key is validated with generic token length', () => {
+    const nous = PROVIDERS.find((p) => p.id === 'nous')!;
+    expect(validateSubscriptionKey(nous, '')).toEqual({
+      valid: false,
+      error: 'Token is required',
+    });
+    expect(validateSubscriptionKey(nous, 'short')).toEqual({
+      valid: false,
+      error: 'Token is too short (minimum 10 characters)',
+    });
+    expect(validateSubscriptionKey(nous, 'nous-valid-token-1234')).toEqual({
       valid: true,
     });
   });

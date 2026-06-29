@@ -111,6 +111,7 @@ const ZAI_SUBSCRIPTION_BASE = getZaiCodingPlanBaseUrl('global');
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
 const OPENCODE_ZEN_BASE = 'https://opencode.ai/zen';
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
+const NOUS_PORTAL_BASE = 'https://inference-api.nousresearch.com';
 const NVIDIA_NIM_BASE = 'https://integrate.api.nvidia.com';
 const FIREWORKS_INFERENCE_BASE = 'https://api.fireworks.ai/inference';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
@@ -219,6 +220,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   mistral: {
     baseUrl: 'https://api.mistral.ai',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  nous: {
+    baseUrl: NOUS_PORTAL_BASE,
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',

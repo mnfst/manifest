@@ -10,6 +10,7 @@ export interface StreamUsage {
   completion_tokens: number;
   cache_read_tokens?: number;
   cache_creation_tokens?: number;
+  reported_cost_usd?: number;
 }
 
 /**
@@ -26,6 +27,7 @@ export interface StreamUsage {
 export function parseUsageObject(usage: unknown): StreamUsage | null {
   if (!usage || typeof usage !== 'object') return null;
   const u = usage as Record<string, unknown>;
+  const reportedCostUsd = readReportedCostUsd(u);
 
   if (typeof u.prompt_tokens === 'number') {
     const promptDetails =
@@ -44,6 +46,7 @@ export function parseUsageObject(usage: unknown): StreamUsage | null {
       cache_read_tokens: cacheRead,
       cache_creation_tokens:
         typeof u.cache_creation_tokens === 'number' ? u.cache_creation_tokens : undefined,
+      ...(reportedCostUsd !== undefined ? { reported_cost_usd: reportedCostUsd } : {}),
     };
   }
 
@@ -78,10 +81,26 @@ export function parseUsageObject(usage: unknown): StreamUsage | null {
       completion_tokens: typeof u.output_tokens === 'number' ? u.output_tokens : 0,
       cache_read_tokens: isAnthropicNative ? nativeCacheRead : cacheRead || undefined,
       cache_creation_tokens: nativeCacheCreation,
+      ...(reportedCostUsd !== undefined ? { reported_cost_usd: reportedCostUsd } : {}),
     };
   }
 
   return null;
+}
+
+function readReportedCostUsd(usage: Record<string, unknown>): number | undefined {
+  const direct = readNonNegativeFiniteNumber(usage.cost);
+  if (direct !== undefined) return direct;
+
+  const details =
+    typeof usage.cost_details === 'object' && usage.cost_details !== null
+      ? (usage.cost_details as Record<string, unknown>)
+      : undefined;
+  return readNonNegativeFiniteNumber(details?.upstream_inference_cost);
+}
+
+function readNonNegativeFiniteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : undefined;
 }
 
 function extractUsageFromObject(obj: unknown): StreamUsage | null {

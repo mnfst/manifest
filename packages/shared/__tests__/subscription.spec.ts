@@ -20,6 +20,7 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
         'xiaomi',
         'qwen',
         'moonshot',
+        'nous',
         'copilot',
         'commandcode',
         'ollama-cloud',
@@ -156,6 +157,16 @@ describe('getSubscriptionProviderConfig', () => {
     });
   });
 
+  it('returns config for NousResearch', () => {
+    const config = getSubscriptionProviderConfig('nous');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'NousResearch subscription',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your NousResearch API key',
+    });
+  });
+
   it('returns config for ollama-cloud', () => {
     const config = getSubscriptionProviderConfig('ollama-cloud');
     expect(config).toMatchObject({
@@ -266,6 +277,7 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('xiaomi')).toBe(true);
     expect(supportsSubscriptionProvider('qwen')).toBe(true);
     expect(supportsSubscriptionProvider('moonshot')).toBe(true);
+    expect(supportsSubscriptionProvider('nous')).toBe(true);
     expect(supportsSubscriptionProvider('copilot')).toBe(true);
     expect(supportsSubscriptionProvider('commandcode')).toBe(true);
     expect(supportsSubscriptionProvider('ollama-cloud')).toBe(true);
@@ -310,6 +322,10 @@ describe('getSubscriptionKnownModels', () => {
 
   it('returns null for Command Code (dynamic Provider API catalog, no hardcoded list)', () => {
     expect(getSubscriptionKnownModels('commandcode')).toBeNull();
+  });
+
+  it('returns null for Nous (dynamic Portal catalog, no hardcoded list)', () => {
+    expect(getSubscriptionKnownModels('nous')).toBeNull();
   });
 
   it('returns known models for minimax including M2.7', () => {
@@ -515,6 +531,15 @@ describe('getSubscriptionCapabilities', () => {
 
   it('returns capabilities for Command Code', () => {
     const caps = getSubscriptionCapabilities('commandcode');
+    expect(caps).toMatchObject({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for Nous', () => {
+    const caps = getSubscriptionCapabilities('nous');
     expect(caps).toMatchObject({
       maxContextWindow: 1000000,
       supportsPromptCaching: false,

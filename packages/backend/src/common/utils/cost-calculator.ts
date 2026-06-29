@@ -21,12 +21,20 @@ export interface CostInput {
    * attribute to one request. Ignored unless `isSubscription` is true.
    */
   perRequestCostUsd?: number | null;
+  /**
+   * USD cost reported by the upstream provider in the response usage block.
+   * Used for subscription providers that debit a quota/balance per request
+   * (for example NousResearch Portal) instead of being flat-fee unlimited.
+   */
+  reportedCostUsd?: number | null;
 }
 
 /**
  * Computes the USD cost for a set of tokens given a pricing entry.
  *
  * Returns:
+ * - `reportedCostUsd` when subscription usage includes a provider-reported
+ *   non-negative USD cost (NousResearch Portal pattern)
  * - `perRequestCostUsd` when the usage is subscription-based AND a positive
  *   per-request rate is provided (OpenCode Go pattern)
  * - `0` when the usage is subscription-based with no per-request rate
@@ -37,6 +45,9 @@ export interface CostInput {
 export function computeTokenCost(input: CostInput): number | null {
   if (!input.model) return null;
   if (input.isSubscription) {
+    if (input.reportedCostUsd != null && input.reportedCostUsd >= 0) {
+      return input.reportedCostUsd;
+    }
     if (input.perRequestCostUsd != null && input.perRequestCostUsd > 0) {
       return input.perRequestCostUsd;
     }

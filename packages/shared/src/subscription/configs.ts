@@ -128,6 +128,18 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  nous: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'NousResearch subscription',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your NousResearch API key',
+    // Model list is discovered dynamically from NousResearch Portal's OpenAI-compatible /v1/models.
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   'ollama-cloud': Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'Ollama Cloud subscription',

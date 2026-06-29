@@ -35,6 +35,7 @@ export const getRoutingProviderApiKeyUrl = (providerId: string): string | undefi
 export const SUBSCRIPTION_PROVIDER_KEY_URLS: Record<string, string> = {
   byteplus: 'https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey',
   commandcode: 'https://commandcode.ai/studio',
+  nous: 'https://portal.nousresearch.com',
   qwen: 'https://home.qwencloud.com/api-keys',
   moonshot: 'https://www.kimi.com/code/console',
   'ollama-cloud': 'https://ollama.com/settings/keys',
