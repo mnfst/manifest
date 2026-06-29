@@ -1,0 +1,55 @@
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_4c34b7e0ae2628::t_2a51c1f1defba9 8-13,64-74,492
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_4c34b7e0ae2628::t_026c2720403d20 688-711
+packages/frontend/tests/services/providers.test.ts
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 540-550,650-656,834-848
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 42
+packages/shared/src/subscription/configs.ts
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 86-98
+packages/shared/__tests__/subscription.spec.ts
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 20,99-110,279,335-338,418-421,519-522,525-526
+  s_8d7abb4142b62c::t_224f719c59e111 523-524,527
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_4c34b7e0ae2628::t_a63880ab495cb5 2537,2546,2559
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 31,2536,2538-2545,2547-2558
+  s_8d7abb4142b62c::t_1bb924197dc246 2560
+packages/frontend/src/services/providers.ts
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 316-321
+.changeset/mistral-vibe-subscription.md
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 1-5
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_4c34b7e0ae2628::t_325f79676167e1 280-285
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_4c34b7e0ae2628::t_ca033dab43913d 328-352
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_4c34b7e0ae2628::t_692fd9b1b27e7f 302-305
+  s_4c34b7e0ae2628::t_a63880ab495cb5 215,595
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 254-256,592,743-744
+  s_8d7abb4142b62c::t_8306963b8efca7 306,593-594,596
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "65fd9321fd83b84a44bf324a92d4c25c7bfa0f96",
+  "prompts": {},
+  "sessions": {
+    "s_4c34b7e0ae2628": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f1228-ea11-7741-954d-9e29115cd4a5",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_8d7abb4142b62c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f120a-9765-72e1-bb87-22a45d71fc0c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
