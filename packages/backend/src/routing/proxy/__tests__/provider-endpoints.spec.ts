@@ -74,6 +74,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
     expect(resolveEndpointKey('commandcode')).toBe('commandcode');
     expect(resolveEndpointKey('fireworks')).toBe('fireworks');
+    expect(resolveEndpointKey('nous')).toBe('nous');
     expect(resolveEndpointKey('nvidia')).toBe('nvidia');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
     expect(resolveEndpointKey('kilo')).toBe('kilo');
@@ -157,6 +158,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('commandcode');
     expect(known).toContain('commandcode-anthropic');
     expect(known).toContain('fireworks');
+    expect(known).toContain('nous');
     expect(known).toContain('openrouter');
     expect(known).toContain('nvidia');
     expect(known).toContain('ollama');
@@ -193,6 +195,12 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('kilo')).toBe('kilo');
     expect(resolveEndpointKey('KiloCode')).toBe('kilo');
     expect(resolveEndpointKey('kilo-code')).toBe('kilo');
+  });
+
+  it('resolves Nous Research aliases to nous', () => {
+    expect(resolveEndpointKey('nous')).toBe('nous');
+    expect(resolveEndpointKey('NousResearch')).toBe('nous');
+    expect(resolveEndpointKey('nous-research')).toBe('nous');
   });
 
   it('resolves every proxy-capable provider id and alias from the registry', () => {
@@ -334,6 +342,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     const headers = PROVIDER_ENDPOINTS['nvidia'].buildHeaders('nvapi-test-key');
     expect(headers).toEqual({
       Authorization: 'Bearer nvapi-test-key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('nous uses the Nous Portal OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['nous'];
+    expect(ep.baseUrl).toBe('https://inference-api.nousresearch.com');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('anthropic/claude-sonnet-4.5')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('nous-api-key')).toEqual({
+      Authorization: 'Bearer nous-api-key',
       'Content-Type': 'application/json',
     });
   });
@@ -672,6 +691,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'minimax',
       'xiaomi',
       'moonshot',
+      'nous',
       'nvidia',
       'bedrock',
       'qwen',

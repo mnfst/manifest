@@ -67,10 +67,19 @@ interface AgentFilterOption {
 
 const SPECIFICITY_FILTER_PREFIX = 'specificity:';
 const HEADER_TIER_FILTER_PREFIX = 'header:';
+const MESSAGE_STATUS_FILTERS = ['ok', 'failed'] as const;
+type MessageStatusFilter = (typeof MESSAGE_STATUS_FILTERS)[number];
+type MessageStatusFilterValue = '' | MessageStatusFilter;
+
+const isMessageStatusFilter = (value: unknown): value is MessageStatusFilter =>
+  typeof value === 'string' && (MESSAGE_STATUS_FILTERS as readonly string[]).includes(value);
+
+const normalizeStatusFilter = (value: unknown): MessageStatusFilterValue =>
+  isMessageStatusFilter(value) ? value : '';
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
-  const [searchParams] = useSearchParams<{ agent?: string }>();
+  const [searchParams, setSearchParams] = useSearchParams<{ agent?: string; status?: string }>();
   const navigate = useNavigate();
 
   preloadModelDisplayNames();
@@ -141,6 +150,9 @@ const MessageLog: Component = () => {
   ]);
   const [providerFilter, setProviderFilter] = createSignal('');
   const [tierFilter, setTierFilter] = createSignal('');
+  const [statusFilterValue, setStatusFilterValue] = createSignal<MessageStatusFilterValue>(
+    normalizeStatusFilter(searchParams.status),
+  );
   const [costMin, setCostMin] = createSignal('');
   const [costMax, setCostMax] = createSignal('');
   const [setupOpen, setSetupOpen] = createSignal(false);
@@ -232,17 +244,35 @@ const MessageLog: Component = () => {
     clearTimeout(costMaxTimer);
     costMaxTimer = setTimeout(() => setCostMax(val), 400);
   };
+  const setStatusFilter = (value: string) => {
+    const next = normalizeStatusFilter(value);
+    setStatusFilterValue(next);
+    setSearchParams({ status: next || undefined }, { replace: true });
+  };
 
   createEffect(
-    on([agentFilter, providerFilter, tierFilter, costMin, costMax], () => pager.resetPage(), {
-      defer: true,
-    }),
+    on(
+      () => searchParams.status,
+      (status) => setStatusFilterValue(normalizeStatusFilter(status)),
+      { defer: true },
+    ),
+  );
+
+  createEffect(
+    on(
+      [agentFilter, providerFilter, tierFilter, statusFilterValue, costMin, costMax],
+      () => pager.resetPage(),
+      {
+        defer: true,
+      },
+    ),
   );
 
   const [data, { refetch }] = createResource(
     () => ({
       provider: providerFilter(),
       tier: tierFilter(),
+      status: statusFilterValue(),
       costMin: costMin(),
       costMax: costMax(),
       agentName: agentFilter() || params.agentName,
@@ -262,6 +292,7 @@ const MessageLog: Component = () => {
           q.routing_tier = p.tier;
         }
       }
+      if (p.status) q.status = p.status;
       if (p.costMin) q.cost_min = p.costMin;
       if (p.costMax) q.cost_max = p.costMax;
       if (p.agentName) q.agent_name = p.agentName;
@@ -304,6 +335,7 @@ const MessageLog: Component = () => {
     agentFilter() !== '' ||
     providerFilter() !== '' ||
     tierFilter() !== '' ||
+    statusFilterValue() !== '' ||
     costMin() !== '' ||
     costMax() !== '';
 
@@ -327,6 +359,7 @@ const MessageLog: Component = () => {
     setAgentFilter('');
     setProviderFilter('');
     setTierFilter('');
+    setStatusFilter('');
     setCostMin('');
     setCostMax('');
   };
@@ -374,6 +407,12 @@ const MessageLog: Component = () => {
     })),
   ]);
 
+  const statusOptions = [
+    { label: 'All statuses', value: '' },
+    { label: 'Success', value: 'ok' },
+    { label: 'Failed', value: 'failed' },
+  ];
+
   const scrollToFallbackSuccess = (model: string) => {
     const items = data()?.items;
     if (!items) return;
@@ -397,14 +436,16 @@ const MessageLog: Component = () => {
         name="description"
         content={
           params.agentName
-            ? `Browse all messages sent and received by ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider or cost.`
-            : 'Browse all messages across all harnesses. Filter by provider or cost.'
+            ? `Browse all messages sent and received by ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider, status, or cost.`
+            : 'Browse all messages across all harnesses. Filter by provider, status, or cost.'
         }
       />
       <div class="page-header">
         <div>
           <h1>Messages</h1>
-          <span class="breadcrumb">Full log of every LLM call. Filter by provider or cost.</span>
+          <span class="breadcrumb">
+            Full log of every LLM call. Filter by provider, status, or cost.
+          </span>
         </div>
         <div class="header-controls">
           <Show when={!showEmptyState()}>
@@ -419,6 +460,12 @@ const MessageLog: Component = () => {
               value={providerFilter()}
               onChange={setProviderFilter}
               options={providerOptions()}
+            />
+            <Select
+              value={statusFilterValue()}
+              onChange={setStatusFilter}
+              options={statusOptions}
+              label="Status filter"
             />
             <Select value={tierFilter()} onChange={setTierFilter} options={tierOptions()} />
             <div class="cost-range-filter">
@@ -600,7 +647,7 @@ const MessageLog: Component = () => {
               <div class="model-filter__empty">
                 <p class="model-filter__empty-title">No messages match your filters</p>
                 <p class="model-filter__empty-hint">
-                  Try adjusting your provider or cost filters to see more results.
+                  Try adjusting your provider, status, or cost filters to see more results.
                 </p>
                 <button class="btn btn--outline btn--sm" onClick={clearFilters} type="button">
                   Clear filters

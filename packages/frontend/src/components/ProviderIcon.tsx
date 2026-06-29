@@ -331,6 +331,19 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── NousResearch ─────────────────────────────── */
+    case 'nous':
+      return (
+        <img
+          src="/icons/providers/nousresearch.svg"
+          alt=""
+          width={size}
+          height={size}
+          style={{ ...s, display: 'block', 'object-fit': 'contain' }}
+          aria-hidden="true"
+        />
+      );
+
     /* ── xAI (Grok) ──────────────────────────────── */
     case 'xai':
       return (

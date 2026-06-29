@@ -293,6 +293,33 @@ describe('ProviderClient', () => {
       expect(sentBody.model).toBe('openrouter/auto');
     });
 
+    it('builds Nous Portal requests without stripping vendor-prefixed model IDs', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'nous',
+        apiKey: 'nous-api-key',
+        model: 'anthropic/claude-sonnet-4.5',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://inference-api.nousresearch.com/v1/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer nous-api-key',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('anthropic/claude-sonnet-4.5');
+    });
+
     it('sets stream=true when streaming', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward({

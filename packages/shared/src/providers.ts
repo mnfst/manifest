@@ -256,6 +256,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-...',
   },
   {
+    id: 'nous',
+    displayName: 'NousResearch',
+    aliases: ['nousresearch', 'nous-research', 'nous research'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#101820',
+    keyPrefix: '',
+    minKeyLength: 10,
+    keyPlaceholder: 'NousResearch API key',
+  },
+  {
     id: 'nvidia',
     displayName: 'NVIDIA NIM',
     aliases: ['nvidia-nim', 'nvidia nim', 'nvidianim', 'nim'],

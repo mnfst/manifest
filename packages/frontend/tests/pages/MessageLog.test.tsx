@@ -5,6 +5,7 @@ import { createSignal } from 'solid-js';
 let mockAgentName = 'test-agent';
 let mockSearchParams: Record<string, string | undefined> = {};
 let mockSearchAgentAccessor: (() => string | undefined) | null = null;
+const mockSetSearchParams = vi.fn();
 const mockNavigate = vi.fn();
 vi.mock('@solidjs/router', () => ({
   useParams: () => ({ agentName: mockAgentName }),
@@ -13,8 +14,11 @@ vi.mock('@solidjs/router', () => ({
       get agent() {
         return mockSearchAgentAccessor ? mockSearchAgentAccessor() : mockSearchParams.agent;
       },
+      get status() {
+        return mockSearchParams.status;
+      },
     },
-    vi.fn(),
+    mockSetSearchParams,
   ],
   useNavigate: () => mockNavigate,
   A: (props: any) => (
@@ -192,6 +196,14 @@ const messagesData = {
   next_cursor: null,
   total_count: 2,
   providers: ['anthropic', 'openai'],
+};
+
+const selectWithOption = (container: HTMLElement, optionText: string): HTMLSelectElement => {
+  const select = Array.from(
+    container.querySelectorAll<HTMLSelectElement>('[data-testid="select"]'),
+  ).find((candidate) => candidate.textContent?.includes(optionText));
+  expect(select).toBeDefined();
+  return select!;
 };
 
 describe('MessageLog', () => {
@@ -490,6 +502,37 @@ describe('MessageLog', () => {
     render(() => <MessageLog />);
     await vi.waitFor(() => {
       expect(mockGetMessages).toHaveBeenCalled();
+    });
+  });
+
+  it('filters messages by failed status and writes the URL param', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const selects = container.querySelectorAll('[data-testid="select"]');
+      expect(selects.length).toBeGreaterThanOrEqual(3);
+    });
+
+    mockGetMessages.mockClear();
+    const statusSelect = selectWithOption(container, 'Failed');
+    expect(statusSelect.textContent).toContain('Success');
+    expect(statusSelect.textContent).not.toContain('Rate limited');
+    expect(statusSelect.textContent).not.toContain('Handled fallback');
+    await fireEvent.change(statusSelect, { target: { value: 'failed' } });
+
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }));
+    });
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ status: 'failed' }, { replace: true });
+  });
+
+  it('seeds the status filter from the status search param', async () => {
+    mockSearchParams = { status: 'failed' };
+    mockGetMessages.mockResolvedValue(messagesData);
+    render(() => <MessageLog />);
+
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }));
     });
   });
 
@@ -1259,9 +1302,7 @@ describe('MessageLog', () => {
         const selects = container.querySelectorAll('[data-testid="select"]');
         expect(selects.length).toBeGreaterThanOrEqual(2);
       });
-      const selects = container.querySelectorAll('[data-testid="select"]');
-      // Second Select is the tier filter (first is providers).
-      const tierSelect = selects[1] as HTMLSelectElement;
+      const tierSelect = selectWithOption(container, 'All tiers');
       expect(tierSelect.textContent).toContain('All tiers');
       expect(tierSelect.textContent).toContain('Playground');
       expect(tierSelect.textContent).toContain('Simple');
@@ -1280,16 +1321,12 @@ describe('MessageLog', () => {
 
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        const tierSelect = container.querySelectorAll(
-          '[data-testid="select"]',
-        )[1] as HTMLSelectElement;
+        const tierSelect = selectWithOption(container, 'All tiers');
         expect(tierSelect.textContent).toContain('Coding');
         expect(tierSelect.textContent).toContain('Premium');
       });
 
-      const tierSelect = container.querySelectorAll(
-        '[data-testid="select"]',
-      )[1] as HTMLSelectElement;
+      const tierSelect = selectWithOption(container, 'All tiers');
       expect(tierSelect.textContent).not.toContain('Trading');
       expect(tierSelect.textContent).toContain('Legacy');
       expect(tierSelect.textContent).not.toContain('Task:');
@@ -1304,9 +1341,7 @@ describe('MessageLog', () => {
           2,
         );
       });
-      const tierSelect = container.querySelectorAll(
-        '[data-testid="select"]',
-      )[1] as HTMLSelectElement;
+      const tierSelect = selectWithOption(container, 'All tiers');
       mockGetMessages.mockClear();
       fireEvent.change(tierSelect, { target: { value: 'playground' } });
       await vi.waitFor(() => {
@@ -1327,9 +1362,7 @@ describe('MessageLog', () => {
         );
       });
 
-      const tierSelect = container.querySelectorAll(
-        '[data-testid="select"]',
-      )[1] as HTMLSelectElement;
+      const tierSelect = selectWithOption(container, 'All tiers');
       mockGetMessages.mockClear();
       fireEvent.change(tierSelect, { target: { value: 'specificity:coding' } });
 
@@ -1352,9 +1385,7 @@ describe('MessageLog', () => {
         );
       });
 
-      const tierSelect = container.querySelectorAll(
-        '[data-testid="select"]',
-      )[1] as HTMLSelectElement;
+      const tierSelect = selectWithOption(container, 'All tiers');
       mockGetMessages.mockClear();
       fireEvent.change(tierSelect, { target: { value: 'header:ht-premium' } });
 
@@ -1477,9 +1508,7 @@ describe('MessageLog', () => {
 
       await vi.waitFor(() => {
         expect(mockListHeaderTiers).toHaveBeenCalledWith('agent-alpha');
-        const tierSelect = container.querySelectorAll(
-          '[data-testid="select"]',
-        )[2] as HTMLSelectElement;
+        const tierSelect = selectWithOption(container, 'All tiers');
         expect(tierSelect.textContent).toContain('Premium');
       });
     });

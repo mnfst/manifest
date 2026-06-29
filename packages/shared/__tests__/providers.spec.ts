@@ -112,6 +112,16 @@ describe('SHARED_PROVIDER_BY_ID_OR_ALIAS', () => {
     }
   });
 
+  it('resolves Nous Research aliases to the canonical provider entry', () => {
+    for (const name of ['nous', 'nousresearch', 'nous-research', 'Nous Research']) {
+      const normalized = normalizeProviderName(name);
+      const entry =
+        SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalized) ??
+        SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name.toLowerCase());
+      expect(entry?.id).toBe('nous');
+    }
+  });
+
   it('returns undefined for unknown names', () => {
     expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get('unknownprovider')).toBeUndefined();
   });
@@ -181,6 +191,16 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(pioneer!.keyPrefix).toBe('pio_sk_');
     expect(pioneer!.minKeyLength).toBe(20);
     expect(pioneer!.keyPlaceholder).toBe('pio_sk_...');
+  });
+
+  it('nous exposes subscription-gateway provider metadata', () => {
+    const nous = SHARED_PROVIDER_BY_ID.get('nous');
+    expect(nous).toBeDefined();
+    expect(nous!.displayName).toBe('NousResearch');
+    expect(nous!.openRouterPrefixes).toEqual([]);
+    expect(nous!.keyPrefix).toBe('');
+    expect(nous!.minKeyLength).toBe(10);
+    expect(nous!.keyPlaceholder).toBe('NousResearch API key');
   });
 
   it('bedrock has no OpenRouter prefixes and accepts raw AWS bearer token metadata', () => {

@@ -1010,6 +1010,39 @@ describe('parseUsageObject', () => {
     });
   });
 
+  it('preserves provider-reported OpenAI-compatible usage cost', () => {
+    expect(
+      parseUsageObject({
+        prompt_tokens: 16,
+        completion_tokens: 1,
+        cost: 0.00005,
+        cost_details: { upstream_inference_cost: 0.00000435 },
+      }),
+    ).toEqual({
+      prompt_tokens: 16,
+      completion_tokens: 1,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: undefined,
+      reported_cost_usd: 0.00005,
+    });
+  });
+
+  it('falls back to upstream inference cost when top-level cost is absent', () => {
+    expect(
+      parseUsageObject({
+        prompt_tokens: 16,
+        completion_tokens: 1,
+        cost_details: { upstream_inference_cost: 0.00000435 },
+      }),
+    ).toEqual({
+      prompt_tokens: 16,
+      completion_tokens: 1,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: undefined,
+      reported_cost_usd: 0.00000435,
+    });
+  });
+
   it('ignores non-object prompt_tokens_details', () => {
     expect(
       parseUsageObject({ prompt_tokens: 7, completion_tokens: 1, prompt_tokens_details: null }),
