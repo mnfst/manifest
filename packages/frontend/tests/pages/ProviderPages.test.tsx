@@ -635,7 +635,7 @@ describe('provider pages', () => {
   it('disables the list-view Connect button when no agent exists', async () => {
     mockGetAgents.mockResolvedValue({ agents: [] });
     render(() => <Subscriptions />);
-    await waitFor(() => expect(screen.getByText('Subscriptions')).toBeDefined());
+    await waitFor(() => expect(screen.getByLabelText('List view')).toBeDefined());
 
     fireEvent.click(screen.getByLabelText('List view'));
 

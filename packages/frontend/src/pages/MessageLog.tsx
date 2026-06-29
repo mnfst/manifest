@@ -304,6 +304,14 @@ const MessageLog: Component = () => {
     },
   );
 
+  // Track which agent the current data belongs to so we can show the skeleton
+  // instead of stale data when the user switches agents.
+  const [loadedAgent, setLoadedAgent] = createSignal(params.agentName ?? '');
+  createEffect(() => {
+    if (!data.loading && data() !== undefined) setLoadedAgent(params.agentName ?? '');
+  });
+  const isStale = () => data.loading && loadedAgent() !== (params.agentName ?? '');
+
   const [messageFilterOptions] = createResource(
     () => ({ agentName: agentFilter() || params.agentName, _ping: messagePing() }),
     (p) => {
@@ -501,7 +509,7 @@ const MessageLog: Component = () => {
       </div>
 
       <Show
-        when={data() !== undefined || !data.loading}
+        when={!isStale() && (data() !== undefined || !data.loading)}
         fallback={
           <div class="panel">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">

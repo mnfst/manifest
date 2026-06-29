@@ -38,6 +38,7 @@ import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
 import '../../styles/routing.css';
+import ProviderConnectionsSkeleton from '../../components/ProviderConnectionsSkeleton.jsx';
 
 type ProviderPageKind = 'subscriptions' | 'byok' | 'local';
 type ViewMode = 'list' | 'grid';
@@ -508,335 +509,337 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
         </Show>
       </div>
 
-      <Show when={showMetricCard()}>
-        <div class="chart-card" style="margin-bottom: 24px; padding: 20px 24px;">
-          <span class="chart-card__label" style="display: flex; align-items: center; gap: 0;">
-            {copy().metricLabel}
-            <InfoTooltip text={copy().metricTooltip!} />
-          </span>
-          <div class="chart-card__value-row" style="margin-top: 4px;">
-            <Show
-              when={!usageLoading()}
-              fallback={
-                <span class="chart-card__value">
-                  <UsageShimmer width={72} />
-                </span>
-              }
-            >
-              <span class="chart-card__value">{formatCost(totalApiCost()) ?? '$0.00'}</span>
-            </Show>
+      <Show when={!config.loading} fallback={<ProviderConnectionsSkeleton />}>
+        <Show when={showMetricCard()}>
+          <div class="chart-card" style="margin-bottom: 24px; padding: 20px 24px;">
+            <span class="chart-card__label" style="display: flex; align-items: center; gap: 0;">
+              {copy().metricLabel}
+              <InfoTooltip text={copy().metricTooltip!} />
+            </span>
+            <div class="chart-card__value-row" style="margin-top: 4px;">
+              <Show
+                when={!usageLoading()}
+                fallback={
+                  <span class="chart-card__value">
+                    <UsageShimmer width={72} />
+                  </span>
+                }
+              >
+                <span class="chart-card__value">{formatCost(totalApiCost()) ?? '$0.00'}</span>
+              </Show>
+            </div>
           </div>
-        </div>
-      </Show>
+        </Show>
 
-      <Show when={connectedRows().length > 0}>
-        <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
-          {copy().connectedHeading}
-        </h3>
-        <div class="panel" style="padding: 0; margin-bottom: 24px; overflow-x: auto;">
-          <table class="data-table" style="width: 100%;">
-            <thead>
-              <tr>
-                <th>Provider</th>
-                <th>Connection</th>
-                <th>Usage (30d)</th>
-                <Show when={copy().rowMetricHeading}>
-                  <th>{copy().rowMetricHeading}</th>
-                </Show>
-                <th>Status</th>
-                <th>Last used</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              <For each={connectedRows()}>
-                {(row) => (
-                  <tr
-                    style="cursor: pointer;"
-                    onClick={() => navigate(`/providers/connections/${row.connection.id}`)}
-                    onKeyDown={(event) => {
-                      if (event.target !== event.currentTarget) return;
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        navigate(`/providers/connections/${row.connection.id}`);
-                      }
-                    }}
-                    tabindex="0"
-                  >
-                    <td>
-                      <span style="display: flex; align-items: center; gap: 10px;">
-                        <ProviderMark providerId={row.summary.provider} name={row.name} />
-                        <span style="font-weight: 500;">{row.name}</span>
-                        <Show when={row.summary.provider.startsWith('custom:')}>
-                          <span style="display: inline-flex; padding: 1px 6px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                            Custom
-                          </span>
-                        </Show>
-                      </span>
-                    </td>
-                    <td
-                      style="color: hsl(var(--muted-foreground));"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Show
-                        when={renamingId() === row.connection.id}
-                        fallback={
-                          <span
-                            style="display: inline-flex; align-items: center; gap: 6px; cursor: default;"
-                            class="connection-label-cell"
-                          >
-                            {row.connection.label}
-                            <button
-                              type="button"
-                              class="connection-label-cell__edit"
-                              onClick={(e) =>
-                                startRename(row.connection.id, row.connection.label, e)
-                              }
-                              aria-label={`Rename ${row.connection.label}`}
-                              style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s; display: inline-flex; align-items: center; line-height: 1;"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M5 21h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2" />
-                                <path d="M7 13v3c0 .55.45 1 1 1h3c.27 0 .52-.11.71-.29l9-9a.996.996 0 0 0 0-1.41l-3-3a.996.996 0 0 0-1.41 0l-9.01 8.99A1 1 0 0 0 7 13m10-7.59L18.59 7 17.5 8.09 15.91 6.5zm-8 8 5.5-5.5 1.59 1.59-5.5 5.5H9z" />
-                              </svg>
-                            </button>
-                          </span>
+        <Show when={connectedRows().length > 0}>
+          <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
+            {copy().connectedHeading}
+          </h3>
+          <div class="panel" style="padding: 0; margin-bottom: 24px; overflow-x: auto;">
+            <table class="data-table" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Provider</th>
+                  <th>Connection</th>
+                  <th>Usage (30d)</th>
+                  <Show when={copy().rowMetricHeading}>
+                    <th>{copy().rowMetricHeading}</th>
+                  </Show>
+                  <th>Status</th>
+                  <th>Last used</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                <For each={connectedRows()}>
+                  {(row) => (
+                    <tr
+                      style="cursor: pointer;"
+                      onClick={() => navigate(`/providers/connections/${row.connection.id}`)}
+                      onKeyDown={(event) => {
+                        if (event.target !== event.currentTarget) return;
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          navigate(`/providers/connections/${row.connection.id}`);
                         }
+                      }}
+                      tabindex="0"
+                    >
+                      <td>
+                        <span style="display: flex; align-items: center; gap: 10px;">
+                          <ProviderMark providerId={row.summary.provider} name={row.name} />
+                          <span style="font-weight: 500;">{row.name}</span>
+                          <Show when={row.summary.provider.startsWith('custom:')}>
+                            <span style="display: inline-flex; padding: 1px 6px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                              Custom
+                            </span>
+                          </Show>
+                        </span>
+                      </td>
+                      <td
+                        style="color: hsl(var(--muted-foreground));"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                          <input
-                            type="text"
-                            class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
-                            value={renameValue()}
-                            onInput={(e) => {
-                              setRenameValue(e.currentTarget.value);
-                              setRenameError('');
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter')
+                        <Show
+                          when={renamingId() === row.connection.id}
+                          fallback={
+                            <span
+                              style="display: inline-flex; align-items: center; gap: 6px; cursor: default;"
+                              class="connection-label-cell"
+                            >
+                              {row.connection.label}
+                              <button
+                                type="button"
+                                class="connection-label-cell__edit"
+                                onClick={(e) =>
+                                  startRename(row.connection.id, row.connection.label, e)
+                                }
+                                aria-label={`Rename ${row.connection.label}`}
+                                style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s; display: inline-flex; align-items: center; line-height: 1;"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M5 21h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2" />
+                                  <path d="M7 13v3c0 .55.45 1 1 1h3c.27 0 .52-.11.71-.29l9-9a.996.996 0 0 0 0-1.41l-3-3a.996.996 0 0 0-1.41 0l-9.01 8.99A1 1 0 0 0 7 13m10-7.59L18.59 7 17.5 8.09 15.91 6.5zm-8 8 5.5-5.5 1.59 1.59-5.5 5.5H9z" />
+                                </svg>
+                              </button>
+                            </span>
+                          }
+                        >
+                          <div style="display: flex; align-items: center; gap: 6px;">
+                            <input
+                              type="text"
+                              class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
+                              value={renameValue()}
+                              onInput={(e) => {
+                                setRenameValue(e.currentTarget.value);
+                                setRenameError('');
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter')
+                                  submitRename(
+                                    row.summary.provider,
+                                    row.connection.label,
+                                    row.summary.auth_type ?? copy().authType,
+                                    e,
+                                  );
+                                if (e.key === 'Escape') cancelRename(e);
+                              }}
+                              style="width: 120px;"
+                              ref={(el) => requestAnimationFrame(() => el.focus())}
+                            />
+                            <button
+                              class="btn btn--primary btn--sm"
+                              style="font-size: var(--font-size-xs); padding: 4px 10px;"
+                              disabled={renameBusy()}
+                              onClick={(e) =>
                                 submitRename(
                                   row.summary.provider,
                                   row.connection.label,
                                   row.summary.auth_type ?? copy().authType,
                                   e,
-                                );
-                              if (e.key === 'Escape') cancelRename(e);
-                            }}
-                            style="width: 120px;"
-                            ref={(el) => requestAnimationFrame(() => el.focus())}
-                          />
-                          <button
-                            class="btn btn--primary btn--sm"
-                            style="font-size: var(--font-size-xs); padding: 4px 10px;"
-                            disabled={renameBusy()}
-                            onClick={(e) =>
-                              submitRename(
-                                row.summary.provider,
-                                row.connection.label,
-                                row.summary.auth_type ?? copy().authType,
-                                e,
-                              )
-                            }
-                          >
-                            Save
-                          </button>
-                          <button
-                            class="btn btn--outline btn--sm"
-                            style="font-size: var(--font-size-xs); padding: 4px 10px;"
-                            onClick={cancelRename}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                        <Show when={renameError()}>
-                          <div style="color: hsl(var(--destructive)); font-size: var(--font-size-xs); margin-top: 2px;">
-                            {renameError()}
+                                )
+                              }
+                            >
+                              Save
+                            </button>
+                            <button
+                              class="btn btn--outline btn--sm"
+                              style="font-size: var(--font-size-xs); padding: 4px 10px;"
+                              onClick={cancelRename}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                          <Show when={renameError()}>
+                            <div style="color: hsl(var(--destructive)); font-size: var(--font-size-xs); margin-top: 2px;">
+                              {renameError()}
+                            </div>
+                          </Show>
+                        </Show>
+                      </td>
+                      <td>
+                        <Show when={!usageLoading()} fallback={<UsageShimmer width={96} />}>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <Show when={row.summary.sparkline_7d?.length}>
+                              <span style="flex-shrink: 0;">
+                                <Sparkline data={row.summary.sparkline_7d} width={60} height={20} />
+                              </span>
+                            </Show>
+                            <span>{formatNumber(perConnectionTokens(row.summary))} tokens</span>
                           </div>
                         </Show>
-                      </Show>
-                    </td>
-                    <td>
-                      <Show when={!usageLoading()} fallback={<UsageShimmer width={96} />}>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                          <Show when={row.summary.sparkline_7d?.length}>
-                            <span style="flex-shrink: 0;">
-                              <Sparkline data={row.summary.sparkline_7d} width={60} height={20} />
-                            </span>
+                      </td>
+                      <Show when={copy().rowMetricHeading}>
+                        <td>
+                          <Show when={!usageLoading()} fallback={<UsageShimmer />}>
+                            {formatCost(perConnectionCost(row.summary)) ?? '$0.00'}
                           </Show>
-                          <span>{formatNumber(perConnectionTokens(row.summary))} tokens</span>
-                        </div>
+                        </td>
                       </Show>
-                    </td>
-                    <Show when={copy().rowMetricHeading}>
                       <td>
-                        <Show when={!usageLoading()} fallback={<UsageShimmer />}>
-                          {formatCost(perConnectionCost(row.summary)) ?? '$0.00'}
+                        <StatusBadge active={row.connection.is_active} />
+                      </td>
+                      <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                        <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
+                          {connectionLastUsedAt(row.summary)
+                            ? formatTimeAgo(connectionLastUsedAt(row.summary)!)
+                            : '-'}
                         </Show>
                       </td>
-                    </Show>
-                    <td>
-                      <StatusBadge active={row.connection.is_active} />
-                    </td>
-                    <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                      <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
-                        {connectionLastUsedAt(row.summary)
-                          ? formatTimeAgo(connectionLastUsedAt(row.summary)!)
-                          : '-'}
-                      </Show>
-                    </td>
-                    <td style="text-align: right;">
-                      <button
-                        class="btn btn--outline btn--sm"
-                        style="font-size: var(--font-size-xs); white-space: nowrap;"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          navigate(`/providers/connections/${row.connection.id}`);
-                        }}
-                      >
-                        View details
-                      </button>
-                    </td>
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
-        </div>
-      </Show>
-
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
-        <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin: 0;">
-          {copy().supportedHeading}
-        </h3>
-        <div class="panel__tabs" role="tablist" style="height: 30px;">
-          <button
-            role="tab"
-            aria-selected={viewMode() === 'grid'}
-            class="panel__tab"
-            classList={{ 'panel__tab--active': viewMode() === 'grid' }}
-            onClick={() => setViewMode('grid')}
-            aria-label="Grid view"
-            style="padding: 0 8px;"
-          >
-            <GridIcon />
-          </button>
-          <button
-            role="tab"
-            aria-selected={viewMode() === 'list'}
-            class="panel__tab"
-            classList={{ 'panel__tab--active': viewMode() === 'list' }}
-            onClick={() => setViewMode('list')}
-            aria-label="List view"
-            style="padding: 0 8px;"
-          >
-            <ListIcon />
-          </button>
-        </div>
-      </div>
-
-      <Show when={viewMode() === 'list'}>
-        <div class="panel" style="padding: 0; overflow-x: auto;">
-          <table class="data-table" style="width: 100%;">
-            <thead>
-              <tr>
-                <th>Provider</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              <For each={providerListForKind(props.kind)}>
-                {(provider) => {
-                  const activeCount = () => activeConnectionCount(provider.id);
-                  return (
-                    <tr>
-                      <td>
-                        <span style="display: flex; align-items: center; gap: 10px;">
-                          <ProviderMark providerId={provider.id} name={provider.name} />
-                          <span style="font-weight: 500;">{provider.name}</span>
-                        </span>
-                      </td>
                       <td style="text-align: right;">
-                        <span style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px;">
-                          <Show when={activeCount() > 0}>
-                            <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
-                              <svg
-                                width="8"
-                                height="8"
-                                fill="currentColor"
-                                viewBox="0 0 24 24"
-                                aria-hidden="true"
-                              >
-                                <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
-                              </svg>
-                              {activeLabel(activeCount())}
-                            </span>
-                          </Show>
-                          <button
-                            class="btn btn--outline btn--sm"
-                            disabled={!firstAgentName()}
-                            style="white-space: nowrap;"
-                            onClick={() => openModal(provider.id)}
-                          >
-                            {copy().addLabel}
-                          </button>
-                        </span>
+                        <button
+                          class="btn btn--outline btn--sm"
+                          style="font-size: var(--font-size-xs); white-space: nowrap;"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            navigate(`/providers/connections/${row.connection.id}`);
+                          }}
+                        >
+                          View details
+                        </button>
                       </td>
                     </tr>
-                  );
-                }}
-              </For>
-            </tbody>
-          </table>
-        </div>
-      </Show>
+                  )}
+                </For>
+              </tbody>
+            </table>
+          </div>
+        </Show>
 
-      <Show when={viewMode() === 'grid'}>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-          <For each={providerListForKind(props.kind)}>
-            {(provider) => {
-              const activeCount = () => activeConnectionCount(provider.id);
-              return (
-                <div
-                  class="panel"
-                  style="padding: 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 0;"
-                >
-                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                      <ProviderMark providerId={provider.id} name={provider.name} size={24} />
-                      <span style="font-weight: 600; font-size: var(--font-size-sm); color: hsl(var(--foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        {provider.name}
-                      </span>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+          <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin: 0;">
+            {copy().supportedHeading}
+          </h3>
+          <div class="panel__tabs" role="tablist" style="height: 30px;">
+            <button
+              role="tab"
+              aria-selected={viewMode() === 'grid'}
+              class="panel__tab"
+              classList={{ 'panel__tab--active': viewMode() === 'grid' }}
+              onClick={() => setViewMode('grid')}
+              aria-label="Grid view"
+              style="padding: 0 8px;"
+            >
+              <GridIcon />
+            </button>
+            <button
+              role="tab"
+              aria-selected={viewMode() === 'list'}
+              class="panel__tab"
+              classList={{ 'panel__tab--active': viewMode() === 'list' }}
+              onClick={() => setViewMode('list')}
+              aria-label="List view"
+              style="padding: 0 8px;"
+            >
+              <ListIcon />
+            </button>
+          </div>
+        </div>
+
+        <Show when={viewMode() === 'list'}>
+          <div class="panel" style="padding: 0; overflow-x: auto;">
+            <table class="data-table" style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Provider</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                <For each={providerListForKind(props.kind)}>
+                  {(provider) => {
+                    const activeCount = () => activeConnectionCount(provider.id);
+                    return (
+                      <tr>
+                        <td>
+                          <span style="display: flex; align-items: center; gap: 10px;">
+                            <ProviderMark providerId={provider.id} name={provider.name} />
+                            <span style="font-weight: 500;">{provider.name}</span>
+                          </span>
+                        </td>
+                        <td style="text-align: right;">
+                          <span style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                            <Show when={activeCount() > 0}>
+                              <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
+                                <svg
+                                  width="8"
+                                  height="8"
+                                  fill="currentColor"
+                                  viewBox="0 0 24 24"
+                                  aria-hidden="true"
+                                >
+                                  <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
+                                </svg>
+                                {activeLabel(activeCount())}
+                              </span>
+                            </Show>
+                            <button
+                              class="btn btn--outline btn--sm"
+                              disabled={!firstAgentName()}
+                              style="white-space: nowrap;"
+                              onClick={() => openModal(provider.id)}
+                            >
+                              {copy().addLabel}
+                            </button>
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  }}
+                </For>
+              </tbody>
+            </table>
+          </div>
+        </Show>
+
+        <Show when={viewMode() === 'grid'}>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+            <For each={providerListForKind(props.kind)}>
+              {(provider) => {
+                const activeCount = () => activeConnectionCount(provider.id);
+                return (
+                  <div
+                    class="panel"
+                    style="padding: 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 0;"
+                  >
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                      <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                        <ProviderMark providerId={provider.id} name={provider.name} size={24} />
+                        <span style="font-weight: 600; font-size: var(--font-size-sm); color: hsl(var(--foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                          {provider.name}
+                        </span>
+                      </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                      <Show when={activeCount() > 0} fallback={<span />}>
+                        <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
+                          <svg
+                            width="8"
+                            height="8"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
+                          </svg>
+                          {activeLabel(activeCount())}
+                        </span>
+                      </Show>
+                      <button
+                        class="btn btn--outline btn--sm"
+                        disabled={!firstAgentName()}
+                        style="font-size: var(--font-size-xs); white-space: nowrap;"
+                        onClick={() => openModal(provider.id)}
+                      >
+                        {copy().addLabel}
+                      </button>
                     </div>
                   </div>
-                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                    <Show when={activeCount() > 0} fallback={<span />}>
-                      <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
-                        <svg
-                          width="8"
-                          height="8"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
-                        </svg>
-                        {activeLabel(activeCount())}
-                      </span>
-                    </Show>
-                    <button
-                      class="btn btn--outline btn--sm"
-                      disabled={!firstAgentName()}
-                      style="font-size: var(--font-size-xs); white-space: nowrap;"
-                      onClick={() => openModal(provider.id)}
-                    >
-                      {copy().addLabel}
-                    </button>
-                  </div>
-                </div>
-              );
-            }}
-          </For>
-        </div>
+                );
+              }}
+            </For>
+          </div>
+        </Show>
       </Show>
 
       <Show when={showModal() && firstAgentName()}>

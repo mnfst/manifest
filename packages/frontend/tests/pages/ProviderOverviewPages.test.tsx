@@ -1095,8 +1095,8 @@ describe('ConnectionDetail (analytics)', () => {
     );
 
     const { container } = render(() => <ConnectionDetail />);
-    // Loading state renders a skeleton placeholder (no "Loading..." text).
-    expect(container.querySelector('[style*="skeleton-pulse"]')).not.toBeNull();
+    // Loading state renders skeleton placeholders (no "Loading..." text).
+    expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
 
     resolveDetail(connectionDetail);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
