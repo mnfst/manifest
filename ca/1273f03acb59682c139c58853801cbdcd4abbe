@@ -1,0 +1,22 @@
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_0476fb9f7e6c3a::t_eabebec0fbd410 774,788,795,813,817,845
+  s_0476fb9f7e6c3a::t_5d21b22282cd82 42,900,910-911,1254-1255
+packages/frontend/tests/pages/Overview.test.tsx
+  s_0476fb9f7e6c3a::t_a6026ad07953a1 664,676,689,707
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "ca1273f03acb59682c139c58853801cbdcd4abbe",
+  "prompts": {},
+  "sessions": {
+    "s_0476fb9f7e6c3a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f11e6-5f77-73d3-879a-f39cfce2011c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
