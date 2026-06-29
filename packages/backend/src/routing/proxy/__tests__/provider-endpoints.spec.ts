@@ -68,6 +68,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('anthropic')).toBe('anthropic');
     expect(resolveEndpointKey('bedrock')).toBe('bedrock');
     expect(resolveEndpointKey('cerebras')).toBe('cerebras');
+    expect(resolveEndpointKey('pioneer')).toBe('pioneer');
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('byteplus')).toBe('byteplus');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
@@ -110,6 +111,11 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('ModelArk')).toBe('byteplus');
   });
 
+  it('resolves Pioneer aliases to pioneer', () => {
+    expect(resolveEndpointKey('pioneer-ai')).toBe('pioneer');
+    expect(resolveEndpointKey('Pioneer AI')).toBe('pioneer');
+  });
+
   it('resolves Xiaomi MiMo aliases to xiaomi', () => {
     expect(resolveEndpointKey('mimo')).toBe('xiaomi');
     expect(resolveEndpointKey('xiaomi-mimo')).toBe('xiaomi');
@@ -142,6 +148,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('anthropic');
     expect(known).toContain('bedrock');
     expect(known).toContain('cerebras');
+    expect(known).toContain('pioneer');
     expect(known).toContain('google');
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
@@ -277,6 +284,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(ep.buildPath('gpt-oss-120b')).toBe('/v1/chat/completions');
     expect(ep.buildHeaders('cerebras-key')).toEqual({
       Authorization: 'Bearer cerebras-key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('pioneer uses the OpenAI-compatible API endpoint with X-API-Key auth', () => {
+    const ep = PROVIDER_ENDPOINTS['pioneer'];
+    expect(ep.baseUrl).toBe('https://api.pioneer.ai');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('pioneer/auto')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('pio_sk_test_key')).toEqual({
+      'X-API-Key': 'pio_sk_test_key',
       'Content-Type': 'application/json',
     });
   });
@@ -645,6 +663,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'openai',
       'byteplus',
       'cerebras',
+      'pioneer',
       'deepseek',
       'groq',
       'kilo',

@@ -173,6 +173,16 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(cerebras!.keyPlaceholder).toBe('Cerebras API key');
   });
 
+  it('pioneer exposes API-key provider metadata', () => {
+    const pioneer = SHARED_PROVIDER_BY_ID.get('pioneer');
+    expect(pioneer).toBeDefined();
+    expect(pioneer!.displayName).toBe('Pioneer');
+    expect(pioneer!.openRouterPrefixes).toEqual([]);
+    expect(pioneer!.keyPrefix).toBe('pio_sk_');
+    expect(pioneer!.minKeyLength).toBe(20);
+    expect(pioneer!.keyPlaceholder).toBe('pio_sk_...');
+  });
+
   it('bedrock has no OpenRouter prefixes and accepts raw AWS bearer token metadata', () => {
     const bedrock = SHARED_PROVIDER_BY_ID.get('bedrock');
     expect(bedrock).toBeDefined();

@@ -156,6 +156,18 @@ describe('PROVIDER_REGISTRY', () => {
     expect(cerebras!.keyPrefix).toBe('');
     expect(cerebras!.keyPlaceholder).toBe('Cerebras API key');
   });
+
+  it('pioneer is registered as an API-key provider', () => {
+    const pioneer = PROVIDER_REGISTRY.find((p) => p.id === 'pioneer');
+    expect(pioneer).toBeDefined();
+    expect(pioneer!.displayName).toBe('Pioneer');
+    expect(pioneer!.aliases).toEqual(['pioneer-ai', 'pioneer ai']);
+    expect(pioneer!.openRouterPrefixes).toEqual([]);
+    expect(pioneer!.requiresApiKey).toBe(true);
+    expect(pioneer!.localOnly).toBe(false);
+    expect(pioneer!.keyPrefix).toBe('pio_sk_');
+    expect(pioneer!.keyPlaceholder).toBe('pio_sk_...');
+  });
 });
 
 describe('PROVIDER_BY_ID', () => {
@@ -237,6 +249,15 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
     expect(entry).toBeDefined();
     expect(entry.id).toBe('cerebras');
     expect(entry.displayName).toBe('Cerebras');
+  });
+
+  it('resolves pioneer aliases to the canonical provider entry', () => {
+    for (const name of ['pioneer', 'pioneer-ai', 'pioneer ai']) {
+      const entry = PROVIDER_BY_ID_OR_ALIAS.get(name) as ProviderRegistryEntry;
+      expect(entry).toBeDefined();
+      expect(entry.id).toBe('pioneer');
+      expect(entry.displayName).toBe('Pioneer');
+    }
   });
 
   it('returns undefined for an unknown alias', () => {

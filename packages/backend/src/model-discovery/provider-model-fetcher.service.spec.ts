@@ -29,6 +29,7 @@ describe('ProviderModelFetcherService', () => {
       'kilo',
       'mistral',
       'moonshot',
+      'pioneer',
       'nvidia',
       'xai',
       'minimax',
@@ -101,6 +102,96 @@ describe('ProviderModelFetcherService', () => {
     expect(result[0]).toMatchObject({
       provider: 'cerebras',
       contextWindow: 128000,
+      inputPricePerToken: null,
+      outputPricePerToken: null,
+    });
+  });
+
+  it('should fetch Pioneer models from the OpenAI-compatible models endpoint', async () => {
+    fetchSpy
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'pioneer/auto', display_name: 'Pioneer Auto' },
+            {
+              id: 'claude-sonnet-4-6',
+              display_name: 'Claude Sonnet 4.6',
+              context_length: 1000000,
+            },
+            { id: 'fastino/gliner2-base-v1', display_name: 'GLiNER2 Base' },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              id: 'claude-sonnet-4-6',
+              label: 'Claude Sonnet 4.6',
+              context_window: 1000000,
+              input_price_per_million: 3,
+              output_price_per_million: 15,
+              supports_image_input: true,
+            },
+            {
+              id: 'fastino/gliner2-base-v1',
+              label: 'GLiNER2 Base',
+              input_price_per_million: 0.15,
+              output_price_per_million: 0.15,
+            },
+          ],
+        }),
+      });
+
+    const result = await service.fetch('pioneer', 'pio_sk_test_key');
+
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      1,
+      'https://api.pioneer.ai/v1/models',
+      expect.objectContaining({
+        headers: { 'X-API-Key': 'pio_sk_test_key' },
+      }),
+    );
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      2,
+      'https://api.pioneer.ai/base-models',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(result.map((m) => m.id)).toEqual(['pioneer/auto', 'claude-sonnet-4-6']);
+    expect(result[0]).toMatchObject({
+      provider: 'pioneer',
+      displayName: 'Pioneer Auto',
+      contextWindow: 128000,
+      inputPricePerToken: null,
+      outputPricePerToken: null,
+    });
+    expect(result[1]).toMatchObject({
+      displayName: 'Claude Sonnet 4.6',
+      contextWindow: 1000000,
+      inputPricePerToken: 3 / 1_000_000,
+      outputPricePerToken: 15 / 1_000_000,
+      inputModalities: ['text', 'image'],
+    });
+  });
+
+  it('should keep Pioneer model discovery when the pricing catalog is unavailable', async () => {
+    fetchSpy
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'gpt-4o', display_name: 'GPT-4o' }],
+        }),
+      })
+      .mockResolvedValueOnce({ ok: false, status: 503 });
+
+    const result = await service.fetch('pioneer', 'pio_sk_test_key');
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      id: 'gpt-4o',
+      displayName: 'GPT-4o',
       inputPricePerToken: null,
       outputPricePerToken: null,
     });

@@ -330,6 +330,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-...',
   },
   {
+    id: 'pioneer',
+    displayName: 'Pioneer',
+    aliases: ['pioneer-ai', 'pioneer ai'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#EA580C',
+    keyPrefix: 'pio_sk_',
+    minKeyLength: 20,
+    keyPlaceholder: 'pio_sk_...',
+  },
+  {
     id: 'opencode-go',
     displayName: 'OpenCode Go',
     aliases: ['opencodego'],

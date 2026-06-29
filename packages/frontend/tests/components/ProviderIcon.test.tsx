@@ -22,6 +22,7 @@ const KNOWN_PROVIDERS = [
   'openrouter',
   'ollama',
   'ollama-cloud',
+  'pioneer',
   'minimax',
   'xiaomi',
   'zai',
@@ -122,6 +123,15 @@ describe('customProviderLogo', () => {
     const img = container.querySelector('img');
     expect(img).not.toBeNull();
     expect(img!.getAttribute('src')).toBe('/icons/cohere.svg');
+  });
+
+  it('resolves Pioneer by base URL when name does not match', () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo('my-provider', 16, 'https://api.pioneer.ai/v1')}</div>
+    ));
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute('src')).toBe('/icons/pioneer.svg');
   });
 
   it('resolves Azure by name', () => {

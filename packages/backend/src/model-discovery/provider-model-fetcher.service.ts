@@ -42,6 +42,8 @@ const FIREWORKS_MODELS_URL = 'https://api.fireworks.ai/v1/accounts/fireworks/mod
 const FIREWORKS_MODELS_PAGE_SIZE = 200;
 const FIREWORKS_MODELS_MAX_PAGES = 20;
 const OPENCODE_GO_MODELS_URL = 'https://opencode.ai/zen/go/v1/models';
+const PIONEER_MODELS_URL = 'https://api.pioneer.ai/v1/models';
+const PIONEER_BASE_MODELS_URL = 'https://api.pioneer.ai/base-models';
 
 /* ── Generic parser factory ── */
 
@@ -105,6 +107,22 @@ interface OpenAIModelEntry {
   supported_endpoints?: unknown;
 }
 
+interface PioneerModelEntry extends OpenAIModelEntry {
+  display_name?: string;
+  context_length?: number;
+}
+
+interface PioneerBaseModelEntry {
+  id: string;
+  label?: string;
+  context_window?: number;
+  input_price_per_million?: number | null;
+  output_price_per_million?: number | null;
+  supports_inference?: boolean;
+  is_chat_model?: boolean;
+  supports_image_input?: boolean;
+}
+
 interface CommandCodeModelEntry extends OpenAIModelEntry {
   name?: string;
   context_length?: number;
@@ -116,6 +134,51 @@ const parseOpenAI = createModelParser<OpenAIModelEntry>({
   getId: (entry) => entry.id,
   getDisplayName: (_entry, id) => id,
 });
+
+const parsePioneer = createModelParser<PioneerModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
+  getId: (entry) => entry.id,
+  getDisplayName: (entry, id) => entry.display_name || id,
+  contextWindow: (entry) => entry.context_length ?? DEFAULT_CONTEXT_WINDOW,
+});
+
+function perMillionToPerToken(value: number | null | undefined): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? value / 1_000_000
+    : null;
+}
+
+function parsePioneerBaseCatalog(body: unknown): Map<string, PioneerBaseModelEntry> {
+  const models = (body as { models?: unknown[] })?.models;
+  const byId = new Map<string, PioneerBaseModelEntry>();
+  if (!Array.isArray(models)) return byId;
+  for (const model of models) {
+    const entry = model as PioneerBaseModelEntry;
+    if (typeof entry.id !== 'string' || entry.id.length === 0) continue;
+    byId.set(entry.id, entry);
+  }
+  return byId;
+}
+
+function enrichPioneerModels(
+  models: DiscoveredModel[],
+  catalog: Map<string, PioneerBaseModelEntry>,
+): DiscoveredModel[] {
+  return models.map((model) => {
+    const base = catalog.get(model.id);
+    if (!base) return model;
+    return {
+      ...model,
+      displayName: base.label || model.displayName,
+      contextWindow: base.context_window ?? model.contextWindow,
+      inputPricePerToken: perMillionToPerToken(base.input_price_per_million),
+      outputPricePerToken: perMillionToPerToken(base.output_price_per_million),
+      capabilityCode: base.is_chat_model !== false ? model.capabilityCode : false,
+      ...(base.supports_image_input ? { inputModalities: ['text', 'image'] as const } : {}),
+    };
+  });
+}
 
 const parseCommandCode = createModelParser<CommandCodeModelEntry>({
   arrayKey: 'data',
@@ -233,6 +296,7 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   xai: /imagine/i,
   copilot: /accounts\/[^/]+\/routers\//i,
   bedrock: /(?:^|[./])voxtral-/i,
+  pioneer: /(?:gliner|gliguard|privacy-filter|^fastino\/)/i,
 };
 
 /**
@@ -269,6 +333,10 @@ export function filterNonChatModels(
 
 function bearerHeaders(key: string): Record<string, string> {
   return { Authorization: `Bearer ${key}` };
+}
+
+function pioneerHeaders(key: string): Record<string, string> {
+  return { 'X-API-Key': key };
 }
 
 /* ── Provider-specific parsers ── */
@@ -585,6 +653,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
+  pioneer: {
+    endpoint: PIONEER_MODELS_URL,
+    buildHeaders: pioneerHeaders,
+    parse: parsePioneer,
+  },
   nvidia: {
     endpoint: 'https://integrate.api.nvidia.com/v1/models',
     buildHeaders: bearerHeaders,
@@ -755,6 +828,9 @@ export class ProviderModelFetcherService {
     if (configKey === 'fireworks') {
       return this.fetchFireworksModels(config, apiKey, providerId);
     }
+    if (configKey === 'pioneer') {
+      return this.fetchPioneerModels(config, apiKey, providerId, authType);
+    }
 
     let url = typeof config.endpoint === 'function' ? config.endpoint(apiKey) : config.endpoint;
     if (endpointOverride && configKey === 'minimax-subscription') {
@@ -885,6 +961,59 @@ export class ProviderModelFetcherService {
     });
     if (pageToken) params.set('pageToken', pageToken);
     return `${FIREWORKS_MODELS_URL}?${params.toString()}`;
+  }
+
+  private async fetchPioneerModels(
+    config: FetcherConfig,
+    apiKey: string,
+    providerId: string,
+    authType?: string,
+  ): Promise<DiscoveredModel[]> {
+    const headers = config.buildHeaders(apiKey, authType);
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+      const res = await fetch(PIONEER_MODELS_URL, {
+        headers,
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        this.logger.warn(
+          `Provider ${providerId} returned ${res.status} from ${PIONEER_MODELS_URL}`,
+        );
+        return [];
+      }
+
+      const models = config.parse(await res.json(), providerId);
+      const catalog = await this.fetchPioneerBaseCatalog();
+      return filterNonChatModels(enrichPioneerModels(models, catalog), 'pioneer');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to fetch models from ${providerId}: ${message}`);
+      return [];
+    }
+  }
+
+  private async fetchPioneerBaseCatalog(): Promise<Map<string, PioneerBaseModelEntry>> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const res = await fetch(PIONEER_BASE_MODELS_URL, { signal: controller.signal });
+      if (!res.ok) {
+        this.logger.warn(`Pioneer base model catalog returned ${res.status}`);
+        return new Map();
+      }
+      return parsePioneerBaseCatalog(await res.json());
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to fetch Pioneer base model catalog: ${message}`);
+      return new Map();
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   private async fetchOpencodeGoModels(

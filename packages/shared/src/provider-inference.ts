@@ -19,6 +19,7 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^qwen[23]|^qwq-/, 'qwen'],
   [/^copilot\//, 'copilot'],
   [/^commandcode\//, 'commandcode'],
+  [/^pioneer\//, 'pioneer'],
   [/^opencode-go\//, 'opencode-go'],
   [/^opencode-zen\//, 'opencode-zen'],
   [/^kiro\//, 'kiro'],

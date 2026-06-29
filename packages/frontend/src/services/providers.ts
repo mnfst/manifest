@@ -195,6 +195,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'GPT OSS and GLM on Cerebras inference',
     models: [],
   },
+  pioneer: {
+    initial: 'P',
+    subtitle: 'OpenAI-compatible inference and fine-tuned Pioneer models',
+    models: [],
+  },
   deepseek: {
     initial: 'D',
     subtitle: 'DeepSeek V3, R1',
@@ -466,6 +471,7 @@ const PROVIDER_ORDER = [
   'opencode-go',
   'opencode-zen',
   'openrouter',
+  'pioneer',
   'xai',
   'xiaomi',
   'zai',
