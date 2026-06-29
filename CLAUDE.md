@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-06-15
+Last updated: 2026-06-29
 
 ## What Manifest Is
 
@@ -77,12 +77,18 @@ packages/
 │   │   │   └── current-user.decorator.ts    # @CurrentUser() param decorator
 │   │   ├── database/
 │   │   │   ├── database.module.ts           # TypeORM PostgreSQL config
-│   │   │   ├── database-seeder.service.ts   # Seeds demo data (users, agents, security events)
+│   │   │   ├── data-source-definitions.ts  # Entity + migration arrays (shared by module and CLI)
 │   │   │   ├── datasource.ts               # CLI DataSource for migration commands
+│   │   │   ├── database-seeder.service.ts   # Seeds demo data (users, agents)
+│   │   │   ├── seed-cohorts.ts              # Routing cohort seed data (legacy vs clean agents)
+│   │   │   ├── seed-messages.ts             # Demo agent message seed data
+│   │   │   ├── db-tuning.service.ts         # PgBouncer-safe session-level planner tuning
+│   │   │   ├── run-migrations-with-lock.ts  # Advisory-lock wrapper for boot migrations
+│   │   │   ├── models-dev-sync.service.ts   # Dev-only model sync
 │   │   │   ├── pricing-sync.service.ts      # OpenRouter pricing data sync
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
-│   │   │   └── seed-messages.ts             # Demo agent message seed data
+│   │   │   └── backfills/                   # Background data backfill jobs
 │   │   ├── entities/                        # TypeORM entities (20 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
@@ -99,7 +105,7 @@ packages/
 │   │   │   └── utils/                       # crypto, hash, range, period, slugify, url-validation, provider-inference, postgres-sql, cost-calculator, detect-self-hosted, frontend-path, og-rewrite, secret-scrub, ttl-cache, local-ip, etc.
 │   │   ├── health/                          # @Public() health check
 │   │   ├── analytics/                       # Dashboard analytics
-│   │   │   ├── controllers/                 # overview, tokens, costs, messages, agents
+│   │   │   ├── controllers/                 # overview, tokens, costs, messages, agents, provider-analytics, provider-usage
 │   │   │   └── services/                    # aggregation + timeseries-queries + query-helpers
 │   │   ├── otlp/                            # Agent key auth + onboarding
 │   │   │   ├── guards/agent-key-auth.guard.ts # Bearer token auth (agent API keys)
@@ -109,13 +115,16 @@ packages/
 │   │   │   ├── routing-core/               # Tier, provider, specificity services + cache
 │   │   │   ├── resolve/                     # Scoring-based tier + specificity resolution
 │   │   │   ├── custom-provider/             # Custom provider CRUD
-│   │   │   ├── header-tiers/               # Header-based tier overrides
-│   │   │   ├── oauth/                       # OAuth flows (Gemini, OpenAI, Kiro, MiniMax)
+│   │   │   ├── header-tiers/               # Header-based tier overrides + seen-headers
+│   │   │   ├── oauth/                       # OAuth flows (Anthropic, Copilot, Gemini, OpenAI, Kiro, MiniMax, xAI)
 │   │   │   └── specificity.controller.ts   # Specificity routing CRUD endpoints
 │   │   ├── scoring/                         # Request complexity scoring engine
-│   │   │   ├── keywords.ts                 # Keyword lists for all dimensions (complexity + specificity)
+│   │   │   ├── keywords.ts                 # Keyword lists entry point
+│   │   │   ├── keywords/                   # Per-dimension keyword files
+│   │   │   ├── dimensions/                 # Per-dimension scoring logic
 │   │   │   ├── specificity-detector.ts     # Task-type detection (coding, trading, etc.)
-│   │   │   └── scan-messages.ts            # Message scanner for specificity detection
+│   │   │   ├── scan-messages.ts            # Message scanner for specificity detection
+│   │   │   └── ...                         # config, types, text-extractor, momentum, sigmoid, trie
 │   │   ├── model-prices/                    # Model pricing management + sync
 │   │   ├── notifications/                   # Alert rules, email providers, cron
 │   │   ├── playground/                      # Prompt playground (runs, columns, starred/best)
@@ -142,7 +151,11 @@ packages/
 │   │   │   ├── Login.tsx, Register.tsx       # Auth pages
 │   │   │   ├── ResetPassword.tsx            # Password reset flow
 │   │   │   ├── Workspace.tsx                # Agent grid + create agent
-│   │   │   ├── Overview.tsx                 # Agent dashboard
+│   │   │   ├── GlobalOverview.tsx           # Cross-agent dashboard
+│   │   │   ├── Overview.tsx                 # Single-agent dashboard
+│   │   │   ├── AgentDetail.tsx              # Agent detail layout wrapper
+│   │   │   ├── AgentOverview.tsx            # Per-agent overview
+│   │   │   ├── AgentProviders.tsx           # Per-agent provider management
 │   │   │   ├── MessageLog.tsx               # Paginated messages
 │   │   │   ├── Account.tsx                  # User profile (session data)
 │   │   │   ├── Settings.tsx                 # Agent settings
@@ -154,7 +167,8 @@ packages/
 │   │   │   ├── FreeModels.tsx               # Free model catalog
 │   │   │   ├── Setup.tsx                    # First-run setup wizard
 │   │   │   ├── Help.tsx                     # Help page
-│   │   │   └── NotFound.tsx                 # 404 page
+│   │   │   ├── NotFound.tsx                 # 404 page
+│   │   │   └── providers/                   # Provider pages (BYOK, subscriptions, local, detail)
 │   │   ├── services/
 │   │   │   ├── auth-client.ts               # Better Auth SolidJS client
 │   │   │   ├── api.ts                       # API functions (credentials: include)
@@ -206,7 +220,7 @@ cd packages/frontend && npx vite
 
 Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test only). This creates:
 
-- **Admin user**: `admin@manifest.build` / `manifest` (email verification email is skipped if Mailgun is not configured — user is created but unverified)
+- **Admin user**: `admin@manifest.build` / `manifest` (email verification is skipped if no email provider is configured — user is created but unverified)
 - **Tenant**: `seed-tenant-001` linked to the admin user
 - **Agent**: `demo-agent` with OTLP key `dev-otlp-key-001`
 - **API key**: `dev-api-key-manifest-001`
@@ -336,16 +350,18 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | PATCH | `/api/v1/agents/:agentName` | Session/API Key | Rename agent |
 | GET | `/api/v1/messages` | Session/API Key | Paginated message log |
 | GET/PATCH/DELETE | `/api/v1/messages/:id/*` | Session/API Key | Message details, feedback, miscategorized flag |
-| GET | `/api/v1/security` | Session/API Key | Security score + events |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
 | GET | `/api/v1/free-models` | Session/API Key | Free LLM model catalog |
-| GET | `/api/v1/savings/*` | Session/API Key | Savings analytics (summary, timeseries, baseline candidates) |
 | GET | `/api/v1/agent/:agentName/usage` | Session/API Key | Per-agent token usage |
 | GET | `/api/v1/agent/:agentName/costs` | Session/API Key | Per-agent cost data |
+| GET | `/api/v1/providers` | Session/API Key | All tenant-level providers |
+| GET | `/api/v1/providers/usage` | Session/API Key | Provider usage summary |
+| GET/PUT/DELETE | `/api/v1/agents/:agentName/enabled-providers/*` | Session/API Key | Per-agent provider enable/disable |
+| GET | `/api/v1/provider-analytics/*` | Session/API Key | Provider-level analytics (timeseries, per-agent, detail) |
 | GET/POST/PATCH/DELETE | `/api/v1/notifications/*` | Session/API Key | Notification rules CRUD + email provider config |
 | GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*` | Session/API Key | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, etc.) |
 | POST | `/api/v1/routing/ollama/sync` | Session/API Key | Sync Ollama models |
-| GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows (Gemini, OpenAI, Kiro, MiniMax) |
+| GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows (Anthropic, Copilot, Gemini, OpenAI, Kiro, MiniMax, xAI) |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
 | POST | `/api/v1/routing/subscription-providers` | Bearer (mnfst_*) | Subscription provider config |
 | GET | `/api/v1/setup/status` | Public | First-run setup status |
@@ -370,13 +386,14 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `BIND_ADDRESS` — Bind address. Default: `127.0.0.1` (use `0.0.0.0` for Railway/Docker)
 - `NODE_ENV` — `development` or `production`. CORS only enabled in dev.
 - `CORS_ORIGIN` — Allowed CORS origin. Default: `http://localhost:3000`
-- `BETTER_AUTH_URL` — Base URL for Better Auth. Default: `http://localhost:{PORT}`
+- `BETTER_AUTH_URL` — Base URL for Better Auth. No code default — must be set explicitly (e.g. `http://localhost:3001` in dev).
 - `FRONTEND_PORT` — Extra trusted origin port for Better Auth.
 - `API_KEY` — Secret for programmatic API access (X-API-Key header).
 - `THROTTLE_TTL` — Rate limit window in ms. Default: `60000`
 - `THROTTLE_LIMIT` — Max requests per window. Default: `100`
-- `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `20`
+- `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `30`
 - `PROVIDER_TIMEOUT_MS` — Per-attempt timeout (ms) for upstream provider requests. Default: `180000`
+- `MANIFEST_MAX_MESSAGES` — Maximum messages accepted per proxy request. Default: `1000`. Raise for long-running agent sessions with dense tool use.
 - `STREAM_WARMUP_MS` — Timeout (ms) to wait for the first chunk of a streaming response before trying a fallback. Default: `15000`
 - `EMAIL_PROVIDER` — Unified email provider: `resend` (recommended), `mailgun`, or `sendgrid`. Used for Better Auth transactional emails and threshold alerts.
 - `EMAIL_API_KEY` — API key for the configured `EMAIL_PROVIDER`.
@@ -667,5 +684,3 @@ This applies to:
 ### E2E Test Entities
 
 When adding new TypeORM entities to `database.module.ts`, also add them to the E2E test helper (`packages/backend/test/helpers.ts`) entities array. Missing entities cause `EntityMetadataNotFoundError` in services that depend on them.
-
-**Known gap (code bug):** `ReasoningContentCacheEntry` is registered in `database.module.ts` but is absent from the `entities` array in `packages/backend/test/helpers.ts`. Add it there to avoid E2E failures in services that touch that entity.
