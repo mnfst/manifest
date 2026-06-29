@@ -1,0 +1,24 @@
+packages/frontend/tests/components/CodexSetup.test.tsx
+  s_4e77446899d740::t_daf0171c98fb48 30-32,40,44,51-54
+  s_4e77446899d740::t_7215e40236734e 55
+packages/frontend/src/components/CodexSetup.tsx
+  s_4e77446899d740::t_cf6df6db43b343 87,93-94
+  s_4e77446899d740::t_73cc8983c22583 14-18,20,24-33
+  s_4e77446899d740::t_5312b8f8efc3e7 122-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "ba04b9d88d5635141a6debc484ca6278fe7633c2",
+  "prompts": {},
+  "sessions": {
+    "s_4e77446899d740": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f03b4ac3-4fdb-4fbc-8a00-a376336aa8b6",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
