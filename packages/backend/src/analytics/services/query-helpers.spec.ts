@@ -11,6 +11,8 @@ import {
   filterByKeyLabel,
   filterByLiveAgentName,
   MESSAGE_ROW_SELECT_ALIASES,
+  sqlCountMessages,
+  ERROR_MESSAGE_STATUSES,
 } from './query-helpers';
 import { SelectQueryBuilder } from 'typeorm';
 import { CustomProvider } from '../../entities/custom-provider.entity';
@@ -385,5 +387,26 @@ describe('selectMessageRowColumns', () => {
     expect(PROVIDER_SERIES_KEY_EXPR).toBe(
       "CASE WHEN at.provider LIKE 'custom:%' THEN COALESCE(cp.name, 'Deleted provider') ELSE at.provider END",
     );
+  });
+});
+
+describe('sqlCountMessages', () => {
+  it('excludes every error status and counts NULL status as a real message', () => {
+    expect(sqlCountMessages()).toBe(
+      "COUNT(*) FILTER (WHERE at.status IS NULL OR at.status NOT IN ('error', 'fallback_error', 'rate_limited'))",
+    );
+  });
+
+  it('honours a custom table alias', () => {
+    expect(sqlCountMessages('m')).toBe(
+      "COUNT(*) FILTER (WHERE m.status IS NULL OR m.status NOT IN ('error', 'fallback_error', 'rate_limited'))",
+    );
+  });
+
+  it('derives the excluded list from the shared error-status set', () => {
+    expect(ERROR_MESSAGE_STATUSES).toEqual(['error', 'fallback_error', 'rate_limited']);
+    for (const status of ERROR_MESSAGE_STATUSES) {
+      expect(sqlCountMessages()).toContain(`'${status}'`);
+    }
   });
 });

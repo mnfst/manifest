@@ -4,13 +4,20 @@ import { Brackets, In, Repository, SelectQueryBuilder } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
-import { addTenantFilter, formatTimestamp, selectMessageRowColumns } from './query-helpers';
+import {
+  addTenantFilter,
+  formatTimestamp,
+  selectMessageRowColumns,
+  ERROR_MESSAGE_STATUSES,
+} from './query-helpers';
 import type { MessageStatusFilter } from '../dto/messages-query.dto';
-
-const ERROR_STATUSES = ['error', 'fallback_error', 'rate_limited'] as const;
 import { computeCutoff, sqlCastFloat, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 import { inferProviderFromModel } from '../../common/utils/provider-inference';
 import { TtlCache } from '../../common/utils/ttl-cache';
+
+// The Messages-log "errors" filter and every "messages" KPI count share one
+// definition of what an error status is (see query-helpers.sqlCountMessages).
+const ERROR_STATUSES = ERROR_MESSAGE_STATUSES;
 
 const MODELS_CACHE_TTL_MS = 5 * 60_000;
 const DISTINCT_MODELS_DEFAULT_INTERVAL = '90 days';

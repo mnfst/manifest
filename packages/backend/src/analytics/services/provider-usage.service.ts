@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { addTenantFilter } from './query-helpers';
+import { addTenantFilter, sqlCountMessages } from './query-helpers';
 
 /**
  * Per (provider, auth_type) usage summary surfaced to the dashboard provider
@@ -95,7 +95,7 @@ export class ProviderUsageService {
       // Sum the RAW numeric cost (not a pre-rounded per-row value) so totals stay
       // precise; rounding for display happens client-side.
       .addSelect('SUM(COALESCE(at.cost_usd, 0))', 'cost')
-      .addSelect('COUNT(*)', 'messages')
+      .addSelect(sqlCountMessages(), 'messages')
       .addSelect('MAX(at.timestamp)', 'last_used_at')
       .where("at.timestamp >= NOW() - INTERVAL '30 days'")
       .groupBy('at.provider')
