@@ -100,93 +100,114 @@
   color: hsl(var(--success));
 }
 
-/* ── News banner ─────────────────────────────────── */
-.news-banner {
-  position: relative;
+/* ── Social follow banner ────────────────────────── */
+.overview-social-banner {
   display: flex;
-  align-items: center;
-  gap: var(--gap-md);
-  padding: 14px 44px 14px 14px;
-  margin-bottom: var(--gap-lg);
+  justify-content: stretch;
+  position: relative;
+  left: 50%;
+  width: calc(100vw - var(--sidebar-width));
+  margin: calc(-1 * var(--gap-xl)) 0 var(--gap-lg);
+  transform: translateX(-50%);
+}
+
+.overview-social-banner__inner {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  min-height: 38px;
+  overflow: hidden;
+  padding: 0 38px;
+  color: hsl(var(--foreground));
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  text-decoration: none;
-  color: inherit;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
 }
 
-.news-banner:hover {
-  border-color: hsl(var(--chart-1) / 0.5);
-  background: hsl(var(--chart-1) / 0.04);
-}
-
-.news-banner__thumb {
-  flex-shrink: 0;
-  width: 168px;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  border-radius: calc(var(--radius) - 2px);
-  background: hsl(var(--muted-foreground) / 0.1);
-}
-
-.news-banner__body {
-  min-width: 0;
-}
-
-.news-banner__title {
-  font-weight: 600;
-  font-size: var(--font-size-md, 15px);
-  line-height: 1.35;
-  color: hsl(var(--foreground));
-}
-
-.news-banner__blurb {
-  margin: 4px 0 0;
-  font-size: var(--font-size-sm);
-  line-height: 1.5;
+.overview-social-banner__dismiss,
+.overview-social-banner__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 38px;
+  min-height: 38px;
   color: hsl(var(--muted-foreground));
-}
-
-.news-banner__cta {
-  display: inline-block;
-  margin-top: 8px;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: hsl(var(--chart-1));
-}
-
-.news-banner__dismiss {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  padding: 4px;
-  border: none;
   background: transparent;
-  border-radius: var(--radius);
-  color: hsl(var(--muted-foreground));
+  border: none;
   cursor: pointer;
   transition:
-    color 0.15s ease,
-    background 0.15s ease;
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
-.news-banner__dismiss:hover {
+.overview-social-banner__dismiss {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  border-left: 1px solid hsl(var(--border));
+}
+
+.overview-social-banner__link {
   color: hsl(var(--foreground));
-  background: hsl(var(--muted-foreground) / 0.12);
+  text-decoration: none;
+}
+
+.overview-social-banner__dismiss:hover,
+.overview-social-banner__dismiss:focus-visible,
+.overview-social-banner__link:hover,
+.overview-social-banner__link:focus-visible {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
+}
+
+.overview-social-banner__text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 7px 14px;
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+  color: hsl(var(--foreground));
+  text-align: center;
+}
+
+.overview-social-banner__links {
+  display: flex;
+  align-items: stretch;
+  flex: 0 0 auto;
+  border-left: 1px solid hsl(var(--border));
+}
+
+@media (max-width: 1024px) {
+  .overview-social-banner {
+    margin-top: calc(-1 * var(--gap-lg));
+  }
+}
+
+@media (max-width: 768px) {
+  .overview-social-banner {
+    width: 100vw;
+    margin-top: calc(-1 * var(--gap-md));
+  }
 }
 
 @media (max-width: 560px) {
-  .news-banner {
-    flex-direction: column;
-    align-items: flex-start;
+  .overview-social-banner__text {
+    padding: 7px 10px;
+    font-size: var(--font-size-xs);
   }
 
-  .news-banner__thumb {
-    width: 100%;
+  .overview-social-banner__dismiss,
+  .overview-social-banner__link {
+    width: 36px;
   }
 }
 
