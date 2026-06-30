@@ -1,0 +1,42 @@
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_f54db24ada38e8::t_0332e99fb2261c 443
+  s_f54db24ada38e8::t_a608ede3279a90 36
+  s_f54db24ada38e8::t_1664120744da37 442
+.changeset/overview-social-banner.md
+  s_f54db24ada38e8::t_fb9edceba73fb3 2,5
+packages/frontend/src/components/SocialFollowBanner.tsx
+  s_f54db24ada38e8::t_a608ede3279a90 1,5-6,9,12-15,18,21-24,27,30-33,35,37,41-49,51-52,54,56,61-62,82-86,88-104,109
+  s_f54db24ada38e8::t_a0701c416c3d15 7-8,10-11,16-17,19-20,25-26,28-29
+  s_f54db24ada38e8::t_41bbbbfe0dc64b 63-81
+  s_f54db24ada38e8::t_0ab7dc8cc8379e 3
+packages/frontend/tests/components/SocialFollowBanner.test.tsx
+  s_f54db24ada38e8::t_2a2d4783ab9146 18-20
+  s_f54db24ada38e8::t_a608ede3279a90 1-9,13-16,39-40,42,44-45,47-49,52-55,57-61
+  s_f54db24ada38e8::t_a0701c416c3d15 17,21,23-25,27-33
+  s_f54db24ada38e8::t_799094774cd6f7 10
+  s_f54db24ada38e8::t_693302a0f73852 34-36
+packages/frontend/src/styles/overview.css
+  s_f54db24ada38e8::t_aea8699d89babe 117-118,122,149-153
+  s_f54db24ada38e8::t_0a1dbc7fad6aee 133-135,170-171
+  s_f54db24ada38e8::t_ade997f443ccc1 108-111,191,197-198
+  s_f54db24ada38e8::t_e07f416c362b9e 126-128,189-190,192,195-196,199
+  s_f54db24ada38e8::t_557ab4609b71e0 173
+  s_f54db24ada38e8::t_a0701c416c3d15 106,119,172,179,203-205,208-210
+  s_f54db24ada38e8::t_a608ede3279a90 103-105,112-114,116,120-121,123,131-132,136-145,148,156-158,161-164,166,169,174-175,177-178,182-186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.4",
+  "base_commit_sha": "ae7f5645287c277cfc18989baf12b84e57a204d0",
+  "prompts": {},
+  "sessions": {
+    "s_f54db24ada38e8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f1867-03d5-77b0-be22-99cca6e6e103",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
