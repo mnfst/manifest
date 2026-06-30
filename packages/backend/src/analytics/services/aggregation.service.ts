@@ -9,6 +9,7 @@ import {
   addTenantFilter,
   excludePlaygroundAgents,
   scopeToConnection,
+  sqlCountMessages,
 } from './query-helpers';
 import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 
@@ -81,7 +82,7 @@ export class AggregationService {
 
     const currentQb = this.turnRepo
       .createQueryBuilder('at')
-      .select('COUNT(*)', 'msg_count')
+      .select(sqlCountMessages(), 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'inp')
       .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'out')
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
@@ -103,7 +104,7 @@ export class AggregationService {
       label,
       tenantProviderId,
     )
-      .select('COUNT(*)', 'msg_count')
+      .select(sqlCountMessages(), 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost');
 
@@ -158,7 +159,7 @@ export class AggregationService {
       undefined,
       excludePlayground,
     )
-      .select('COUNT(*)', 'msg_count')
+      .select(sqlCountMessages(), 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
       .getRawOne();

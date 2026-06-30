@@ -15,8 +15,6 @@ export class AddAutofixWaitlist1796000000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "tenants" DROP COLUMN "autofix_waitlist_at"`,
-    );
+    await queryRunner.query(`ALTER TABLE "tenants" DROP COLUMN "autofix_waitlist_at"`);
   }
 }

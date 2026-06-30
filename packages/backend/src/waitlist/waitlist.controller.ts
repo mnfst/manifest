@@ -28,9 +28,7 @@ export class WaitlistController {
 
   @Post('autofix')
   @HttpCode(HttpStatus.OK)
-  async join(
-    @TenantCtx() ctx: TenantContext,
-  ): Promise<{ joined: boolean; joinedAt: string }> {
+  async join(@TenantCtx() ctx: TenantContext): Promise<{ joined: boolean; joinedAt: string }> {
     if (!ctx.tenantId) {
       return { joined: false, joinedAt: '' };
     }
