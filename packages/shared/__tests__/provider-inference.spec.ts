@@ -46,6 +46,7 @@ describe('inferProviderFromModel', () => {
     ['copilot/claude-opus-4.6', 'copilot'],
     ['commandcode/claude-sonnet-4-6', 'commandcode'],
     ['commandcode/deepseek/deepseek-v4-flash', 'commandcode'],
+    ['pioneer/auto', 'pioneer'],
     ['opencode-go/glm-5.1', 'opencode-go'],
     ['opencode-go/kimi-k2.5', 'opencode-go'],
     ['opencode-go/minimax-m2.7', 'opencode-go'],

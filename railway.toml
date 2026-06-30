@@ -10,5 +10,13 @@ startCommand = "npm start"
 preDeployCommand = "npm run migration:run:prod --workspace=packages/backend"
 healthcheckPath = "/api/v1/health"
 healthcheckTimeout = 300
+# Zero-downtime rolling deploys. The new deployment runs alongside the old one
+# for `overlapSeconds` (edge shifts traffic over) before the old replica is sent
+# SIGTERM. `drainingSeconds` is the SIGTERM→SIGKILL grace; it MUST exceed the
+# app's own drain window (SHUTDOWN_DRAIN_MS, default 10s — the server keeps
+# serving and reports 503 on /api/v1/health so the edge deregisters it) plus a
+# margin for in-flight requests to finish, or the drain gets cut short.
+overlapSeconds = 20
+drainingSeconds = 30
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3

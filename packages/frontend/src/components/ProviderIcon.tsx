@@ -80,6 +80,43 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── Cerebras ─────────────────────────────────── */
+    case 'cerebras':
+      return (
+        <svg
+          style={s}
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            clip-rule="evenodd"
+            d="M14.121 2.701a9.299 9.299 0 000 18.598V22.7c-5.91 0-10.7-4.791-10.7-10.701S8.21 1.299 14.12 1.299V2.7zm4.752 3.677A7.353 7.353 0 109.42 17.643l-.901 1.074a8.754 8.754 0 01-1.08-12.334 8.755 8.755 0 0112.335-1.08l-.901 1.075zm-2.255.844a5.407 5.407 0 00-5.048 9.563l-.656 1.24a6.81 6.81 0 016.358-12.043l-.654 1.24zM14.12 8.539a3.46 3.46 0 100 6.922v1.402a4.863 4.863 0 010-9.726v1.402z"
+            fill="#F15A29"
+            fill-rule="evenodd"
+          />
+          <path d="M15.407 10.836a2.24 2.24 0 00-.51-.409 1.084 1.084 0 00-.544-.152c-.255 0-.483.047-.684.14a1.58 1.58 0 00-.84.912c-.074.203-.11.416-.11.631 0 .218.036.43.11.631a1.594 1.594 0 00.84.913c.2.093.43.14.684.14.216 0 .417-.046.602-.135.188-.09.35-.225.475-.392l.928 1.006c-.14.14-.3.261-.482.363a3.367 3.367 0 01-1.083.38c-.17.026-.317.04-.44.04a3.315 3.315 0 01-1.182-.21 2.825 2.825 0 01-.961-.597 2.816 2.816 0 01-.644-.929 2.987 2.987 0 01-.238-1.21c0-.444.08-.847.238-1.21.15-.35.368-.666.643-.929.278-.261.605-.464.962-.596a3.315 3.315 0 011.182-.21c.355 0 .712.068 1.072.204.361.138.685.36.944.649l-.962.97z" />
+        </svg>
+      );
+
+    /* ── Pioneer ─────────────────────────────────── */
+    case 'pioneer':
+      return (
+        <svg
+          style={s}
+          viewBox="0 0 60 60"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M32.1028 25.4779L46.2919 13.1826L46.8173 13.7081L34.5212 27.8953L60 29.5634V30.4366L34.5202 32.1028L46.8173 46.2928L46.2919 46.8183L32.1028 34.5212L30.4366 60H29.5634L27.8953 34.5212L13.7072 46.8173L13.1817 46.2919L25.4769 32.1037L0 30.4366V29.5634L25.4769 27.8944L13.1826 13.7081L13.7081 13.1826L27.8953 25.4779L29.5634 0H30.4366L32.1028 25.4779Z"
+            fill="#EA580C"
+          />
+        </svg>
+      );
+
     /* ── Gemini ───────────────────────────────────── */
     case 'gemini':
       return (
@@ -292,6 +329,19 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
             fill="#E10500"
           />
         </svg>
+      );
+
+    /* ── NousResearch ─────────────────────────────── */
+    case 'nous':
+      return (
+        <img
+          src="/icons/providers/nousresearch.svg"
+          alt=""
+          width={size}
+          height={size}
+          style={{ ...s, display: 'block', 'object-fit': 'contain' }}
+          aria-hidden="true"
+        />
       );
 
     /* ── xAI (Grok) ──────────────────────────────── */
@@ -598,6 +648,8 @@ const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
   ollama: '/icons/ollama.svg',
   'ollama cloud': '/icons/ollama.svg',
   openrouter: '/icons/openrouter.svg',
+  pioneer: '/icons/pioneer.svg',
+  'pioneer ai': '/icons/pioneer.svg',
   qwen: '/icons/qwen.svg',
   siliconflow: '/icons/siliconflow.svg',
   'z ai': '/icons/zai.svg',
@@ -621,6 +673,7 @@ const BASE_URL_TO_PROVIDER: [RegExp, string][] = [
   [/integrate\.api\.nvidia\.com/i, 'nvidia nim'],
   [/api\.ollama\.com/i, 'ollama cloud'],
   [/openrouter\.ai/i, 'openrouter'],
+  [/api\.pioneer\.ai|pioneer\.ai/i, 'pioneer'],
   [/siliconflow\.cn|api\.siliconflow/i, 'siliconflow'],
 ];
 

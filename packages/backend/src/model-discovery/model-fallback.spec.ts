@@ -325,6 +325,31 @@ describe('buildSubscriptionFallbackModels', () => {
     expect(result).toEqual([]);
   });
 
+  it('surfaces the fixed Mistral Vibe model even when the pricing cache lacks it', () => {
+    const ids = buildSubscriptionFallbackModels(makePricingSync(new Map()), 'mistral').map(
+      (m) => m.id,
+    );
+
+    expect(ids).toEqual(['mistral-vibe-cli-latest']);
+  });
+
+  it('keeps Mistral Vibe fallback matching exact', () => {
+    const cache = new Map([
+      [
+        'mistralai/mistral-vibe-cli-latest',
+        { input: 0.000001, output: 0.000003, displayName: 'Mistral Vibe CLI' },
+      ],
+      [
+        'mistralai/mistral-vibe-cli-fast',
+        { input: 0.000001, output: 0.000003, displayName: 'Mistral Vibe CLI Fast' },
+      ],
+    ]);
+
+    const result = buildSubscriptionFallbackModels(makePricingSync(cache), 'mistral');
+    expect(result.map((m) => m.id)).toEqual(['mistral-vibe-cli-latest']);
+    expect(result[0].displayName).toBe('Mistral Vibe CLI');
+  });
+
   describe('knownModelsMatch exact mode (gemini)', () => {
     it('includes only verbatim knownModel entries from the OpenRouter cache', () => {
       const cache = new Map([
@@ -617,6 +642,26 @@ describe('buildModelsDevFallback', () => {
       getModelsForProvider: jest.fn().mockReturnValue([]),
     };
     expect(buildModelsDevFallback(mockSync, 'unknown')).toEqual([]);
+  });
+
+  it('should prefix model ids for gateway providers when requested', () => {
+    const mockSync = {
+      getModelsForProvider: jest.fn().mockReturnValue([
+        {
+          id: 'glm-5.2',
+          name: 'GLM-5.2',
+          inputPricePerToken: 0.0000014,
+          outputPricePerToken: 0.0000044,
+        },
+      ]),
+    };
+
+    const result = buildModelsDevFallback(mockSync, 'opencode-go', {
+      idPrefix: 'opencode-go',
+    });
+
+    expect(result[0].id).toBe('opencode-go/glm-5.2');
+    expect(result[0].provider).toBe('opencode-go');
   });
 
   it('should use default context window when not provided', () => {

@@ -84,7 +84,11 @@ describe('ModelDiscoveryService — boundary conditions', () => {
   let fetcher: { fetch: jest.Mock };
   let mockPricingSync: { lookupPricing: jest.Mock; getAll: jest.Mock };
   let mockModelRegistry: { registerModels: jest.Mock; getConfirmedModels: jest.Mock };
-  let mockModelsDevSync: { lookupModel: jest.Mock; getModelsForProvider: jest.Mock };
+  let mockModelsDevSync: {
+    lookupModel: jest.Mock;
+    getModelsForProvider: jest.Mock;
+    refreshCache: jest.Mock;
+  };
   let mockCopilotTokenService: { getCopilotToken: jest.Mock };
 
   beforeEach(() => {
@@ -98,6 +102,7 @@ describe('ModelDiscoveryService — boundary conditions', () => {
     mockModelsDevSync = {
       lookupModel: jest.fn().mockReturnValue(null),
       getModelsForProvider: jest.fn().mockReturnValue([]),
+      refreshCache: jest.fn().mockResolvedValue(0),
     };
     mockModelRegistry = {
       registerModels: jest.fn(),

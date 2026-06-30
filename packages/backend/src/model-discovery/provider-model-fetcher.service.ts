@@ -41,6 +41,10 @@ const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const FIREWORKS_MODELS_URL = 'https://api.fireworks.ai/v1/accounts/fireworks/models';
 const FIREWORKS_MODELS_PAGE_SIZE = 200;
 const FIREWORKS_MODELS_MAX_PAGES = 20;
+const NOUS_PORTAL_MODELS_URL = 'https://inference-api.nousresearch.com/v1/models';
+const OPENCODE_GO_MODELS_URL = 'https://opencode.ai/zen/go/v1/models';
+const PIONEER_MODELS_URL = 'https://api.pioneer.ai/v1/models';
+const PIONEER_BASE_MODELS_URL = 'https://api.pioneer.ai/base-models';
 
 /* ── Generic parser factory ── */
 
@@ -104,6 +108,22 @@ interface OpenAIModelEntry {
   supported_endpoints?: unknown;
 }
 
+interface PioneerModelEntry extends OpenAIModelEntry {
+  display_name?: string;
+  context_length?: number;
+}
+
+interface PioneerBaseModelEntry {
+  id: string;
+  label?: string;
+  context_window?: number;
+  input_price_per_million?: number | null;
+  output_price_per_million?: number | null;
+  supports_inference?: boolean;
+  is_chat_model?: boolean;
+  supports_image_input?: boolean;
+}
+
 interface CommandCodeModelEntry extends OpenAIModelEntry {
   name?: string;
   context_length?: number;
@@ -115,6 +135,51 @@ const parseOpenAI = createModelParser<OpenAIModelEntry>({
   getId: (entry) => entry.id,
   getDisplayName: (_entry, id) => id,
 });
+
+const parsePioneer = createModelParser<PioneerModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
+  getId: (entry) => entry.id,
+  getDisplayName: (entry, id) => entry.display_name || id,
+  contextWindow: (entry) => entry.context_length ?? DEFAULT_CONTEXT_WINDOW,
+});
+
+function perMillionToPerToken(value: number | null | undefined): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? value / 1_000_000
+    : null;
+}
+
+function parsePioneerBaseCatalog(body: unknown): Map<string, PioneerBaseModelEntry> {
+  const models = (body as { models?: unknown[] })?.models;
+  const byId = new Map<string, PioneerBaseModelEntry>();
+  if (!Array.isArray(models)) return byId;
+  for (const model of models) {
+    const entry = model as PioneerBaseModelEntry;
+    if (typeof entry.id !== 'string' || entry.id.length === 0) continue;
+    byId.set(entry.id, entry);
+  }
+  return byId;
+}
+
+function enrichPioneerModels(
+  models: DiscoveredModel[],
+  catalog: Map<string, PioneerBaseModelEntry>,
+): DiscoveredModel[] {
+  return models.map((model) => {
+    const base = catalog.get(model.id);
+    if (!base) return model;
+    return {
+      ...model,
+      displayName: base.label || model.displayName,
+      contextWindow: base.context_window ?? model.contextWindow,
+      inputPricePerToken: perMillionToPerToken(base.input_price_per_million),
+      outputPricePerToken: perMillionToPerToken(base.output_price_per_million),
+      capabilityCode: base.is_chat_model !== false ? model.capabilityCode : false,
+      ...(base.supports_image_input ? { inputModalities: ['text', 'image'] as const } : {}),
+    };
+  });
+}
 
 const parseCommandCode = createModelParser<CommandCodeModelEntry>({
   arrayKey: 'data',
@@ -211,6 +276,7 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
     /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview-\d{2}-\d{4}$|robotics)/i,
   mistral:
     /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-|^mistral-vibe-cli)/i,
+  'mistral-subscription': /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-)/i,
   // Groq filters:
   //  - compound family: server-side router/agent product (compound,
   //    compound-mini, compound-beta). Not a model the user picks directly,
@@ -232,6 +298,7 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   xai: /imagine/i,
   copilot: /accounts\/[^/]+\/routers\//i,
   bedrock: /(?:^|[./])voxtral-/i,
+  pioneer: /(?:gliner|gliguard|privacy-filter|^fastino\/)/i,
 };
 
 /**
@@ -247,6 +314,9 @@ export const PROVIDER_BLOCKLIST: Record<string, ReadonlySet<string>> = {
     'gpt-5.1-codex', // ChatGPT Codex returns 400: not supported with a ChatGPT account
   ]),
   mistral: new Set([
+    'voxtral-mini-2602', // Invalid model returned by API; not a real chat endpoint
+  ]),
+  'mistral-subscription': new Set([
     'voxtral-mini-2602', // Invalid model returned by API; not a real chat endpoint
   ]),
 };
@@ -268,6 +338,10 @@ export function filterNonChatModels(
 
 function bearerHeaders(key: string): Record<string, string> {
   return { Authorization: `Bearer ${key}` };
+}
+
+function pioneerHeaders(key: string): Record<string, string> {
+  return { 'X-API-Key': key };
 }
 
 /* ── Provider-specific parsers ── */
@@ -293,6 +367,11 @@ const parseMistral = createModelParser<MistralModelEntry>({
   getId: (entry) => entry.id,
   getDisplayName: (_entry, id) => id,
 });
+
+const parseMistralVibeSubscription = (body: unknown, provider: string): DiscoveredModel[] => {
+  const known = new Set(getSubscriptionKnownModels('mistral') ?? []);
+  return parseMistral(body, provider).filter((model) => known.has(model.id));
+};
 
 interface AnthropicModelEntry {
   id: string;
@@ -554,6 +633,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseCommandCode,
   },
+  cerebras: {
+    endpoint: 'https://api.cerebras.ai/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
   groq: {
     endpoint: 'https://api.groq.com/openai/v1/models',
     buildHeaders: bearerHeaders,
@@ -574,10 +658,25 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseMistral,
   },
+  'mistral-subscription': {
+    endpoint: 'https://api.mistral.ai/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseMistralVibeSubscription,
+  },
   moonshot: {
     endpoint: 'https://api.moonshot.ai/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  pioneer: {
+    endpoint: PIONEER_MODELS_URL,
+    buildHeaders: pioneerHeaders,
+    parse: parsePioneer,
+  },
+  nous: {
+    endpoint: NOUS_PORTAL_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseOpenRouter,
   },
   nvidia: {
     endpoint: 'https://integrate.api.nvidia.com/v1/models',
@@ -693,6 +792,10 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
 
 const OPENCODE_GO_CONTEXT_WINDOW = 200000;
 
+export interface ProviderModelFetchOptions {
+  forceRefresh?: boolean;
+}
+
 @Injectable()
 export class ProviderModelFetcherService {
   private readonly logger = new Logger(ProviderModelFetcherService.name);
@@ -708,6 +811,7 @@ export class ProviderModelFetcherService {
     apiKey: string,
     authType?: string,
     endpointOverride?: string,
+    options?: ProviderModelFetchOptions,
   ): Promise<DiscoveredModel[]> {
     let configKey = providerId.toLowerCase();
     // OpenAI subscription tokens use a different models endpoint
@@ -715,6 +819,8 @@ export class ProviderModelFetcherService {
       configKey = 'openai-subscription';
     } else if (configKey === 'minimax' && authType === 'subscription') {
       configKey = 'minimax-subscription';
+    } else if (configKey === 'mistral' && authType === 'subscription') {
+      configKey = 'mistral-subscription';
     } else if (configKey === 'xiaomi' && authType === 'subscription') {
       configKey = 'xiaomi-subscription';
     } else if (configKey === 'moonshot' && authType === 'subscription') {
@@ -726,7 +832,7 @@ export class ProviderModelFetcherService {
     } else if (configKey === 'zai' && authType === 'subscription') {
       configKey = 'zai-subscription';
     } else if (configKey === 'opencode-go') {
-      return this.fetchOpencodeGoCatalog();
+      return this.fetchOpencodeGoModels(apiKey, options?.forceRefresh === true);
     } else if (configKey === 'gemini' && authType === 'subscription') {
       // CodeAssist (`cloudcode-pa.googleapis.com`) does not expose a
       // `/models` endpoint; the discovery fallback chain pulls Gemini
@@ -743,6 +849,9 @@ export class ProviderModelFetcherService {
 
     if (configKey === 'fireworks') {
       return this.fetchFireworksModels(config, apiKey, providerId);
+    }
+    if (configKey === 'pioneer') {
+      return this.fetchPioneerModels(config, apiKey, providerId, authType);
     }
 
     let url = typeof config.endpoint === 'function' ? config.endpoint(apiKey) : config.endpoint;
@@ -876,9 +985,111 @@ export class ProviderModelFetcherService {
     return `${FIREWORKS_MODELS_URL}?${params.toString()}`;
   }
 
-  private async fetchOpencodeGoCatalog(): Promise<DiscoveredModel[]> {
+  private async fetchPioneerModels(
+    config: FetcherConfig,
+    apiKey: string,
+    providerId: string,
+    authType?: string,
+  ): Promise<DiscoveredModel[]> {
+    const headers = config.buildHeaders(apiKey, authType);
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+      const res = await fetch(PIONEER_MODELS_URL, {
+        headers,
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        this.logger.warn(
+          `Provider ${providerId} returned ${res.status} from ${PIONEER_MODELS_URL}`,
+        );
+        return [];
+      }
+
+      const models = config.parse(await res.json(), providerId);
+      const catalog = await this.fetchPioneerBaseCatalog();
+      return filterNonChatModels(enrichPioneerModels(models, catalog), 'pioneer');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to fetch models from ${providerId}: ${message}`);
+      return [];
+    }
+  }
+
+  private async fetchPioneerBaseCatalog(): Promise<Map<string, PioneerBaseModelEntry>> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const res = await fetch(PIONEER_BASE_MODELS_URL, { signal: controller.signal });
+      if (!res.ok) {
+        this.logger.warn(`Pioneer base model catalog returned ${res.status}`);
+        return new Map();
+      }
+      return parsePioneerBaseCatalog(await res.json());
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to fetch Pioneer base model catalog: ${message}`);
+      return new Map();
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  private async fetchOpencodeGoModels(
+    apiKey: string,
+    forceRefresh = false,
+  ): Promise<DiscoveredModel[]> {
+    const live = await this.fetchOpencodeGoLiveModels(apiKey);
+    if (live.length > 0) return live;
+    return this.fetchOpencodeGoDocsCatalog(forceRefresh);
+  }
+
+  private async fetchOpencodeGoLiveModels(apiKey: string): Promise<DiscoveredModel[]> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const res = await fetch(OPENCODE_GO_MODELS_URL, {
+        headers: apiKey ? bearerHeaders(apiKey) : {},
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        this.logger.warn(`OpenCode Go returned ${res.status} from ${OPENCODE_GO_MODELS_URL}`);
+        return [];
+      }
+
+      const body = await res.json();
+      const models = parseOpenAI(body, 'opencode-go').map((model) => {
+        const id = `opencode-go/${model.id}`;
+        return {
+          ...model,
+          id,
+          displayName: id,
+          provider: 'opencode-go',
+          contextWindow: OPENCODE_GO_CONTEXT_WINDOW,
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          capabilityReasoning: true,
+          capabilityCode: true,
+        };
+      });
+      return filterNonChatModels(models, 'opencode-go');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to fetch OpenCode Go models: ${message}`);
+      return [];
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  private async fetchOpencodeGoDocsCatalog(forceRefresh = false): Promise<DiscoveredModel[]> {
     if (!this.opencodeGoCatalog) return [];
-    const entries = await this.opencodeGoCatalog.list();
+    const entries = forceRefresh
+      ? await this.opencodeGoCatalog.refresh()
+      : await this.opencodeGoCatalog.list();
     return entries.map((entry) => ({
       id: `opencode-go/${entry.id}`,
       displayName: entry.displayName,

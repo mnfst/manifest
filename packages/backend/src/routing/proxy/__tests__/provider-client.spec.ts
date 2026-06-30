@@ -1,5 +1,6 @@
 import { ProviderClient } from '../provider-client';
 import { buildCustomEndpoint } from '../provider-endpoints';
+import { ThinkingBlockCache, type ThinkingBlockRouteContext } from '../thinking-block-cache';
 import type { ProviderModelRegistryService } from '../../../model-discovery/provider-model-registry.service';
 
 const mockFetch = jest.fn();
@@ -290,6 +291,33 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('openrouter/auto');
+    });
+
+    it('builds Nous Portal requests without stripping vendor-prefixed model IDs', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'nous',
+        apiKey: 'nous-api-key',
+        model: 'anthropic/claude-sonnet-4.5',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://inference-api.nousresearch.com/v1/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer nous-api-key',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('anthropic/claude-sonnet-4.5');
     });
 
     it('sets stream=true when streaming', async () => {
@@ -684,6 +712,80 @@ describe('ProviderClient', () => {
       expect(sentBody.max_tokens).toBeDefined();
       // toAnthropicRequest correctly maps temperature from the original body
       expect(sentBody.temperature).toBe(0.7);
+    });
+
+    it('replays cached thinking only for a compatible Anthropic route context', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const thinkingBlock = {
+        type: 'thinking',
+        thinking: 'cached reasoning',
+        signature: 'sig_cached',
+      };
+      const cache = new ThinkingBlockCache();
+      cache.store('sess-1', 'toolu_first', [thinkingBlock], {
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      });
+      const thinkingLookup = jest.fn(
+        (firstToolUseId: string, routeContext?: ThinkingBlockRouteContext) =>
+          cache.retrieve('sess-1', firstToolUseId, routeContext),
+      );
+      const continuationBody = {
+        messages: [
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: 'toolu_first',
+                type: 'function',
+                function: { name: 'search', arguments: '{"q":"cats"}' },
+              },
+            ],
+          },
+        ],
+      };
+
+      await client.forward({
+        provider: 'anthropic',
+        apiKey: 'oauth-token',
+        model: 'claude-opus-4-1-20250805',
+        body: continuationBody,
+        stream: false,
+        authType: 'subscription',
+        thinkingLookup,
+      });
+
+      await client.forward({
+        provider: 'anthropic',
+        apiKey: 'oauth-token',
+        model: 'claude-sonnet-4-5-20250929',
+        body: continuationBody,
+        stream: false,
+        authType: 'subscription',
+        thinkingLookup,
+      });
+
+      const firstSent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const firstContent = firstSent.messages[0].content as Array<Record<string, unknown>>;
+      expect(firstContent.some((block) => block.type === 'thinking')).toBe(false);
+
+      const secondSent = JSON.parse(mockFetch.mock.calls[1][1].body);
+      const secondContent = secondSent.messages[0].content as Array<Record<string, unknown>>;
+      expect(secondContent[0]).toEqual(thinkingBlock);
+      expect(secondContent[1]).toMatchObject({ type: 'tool_use', id: 'toolu_first' });
+      expect(thinkingLookup).toHaveBeenNthCalledWith(1, 'toolu_first', {
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'claude-opus-4-1-20250805',
+      });
+      expect(thinkingLookup).toHaveBeenNthCalledWith(2, 'toolu_first', {
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      });
     });
 
     it('sets stream=true in body when streaming', async () => {
@@ -2620,6 +2722,21 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('accounts/fireworks/models/deepseek-v3p1');
+    });
+
+    it('preserves Pioneer slash-prefixed model names', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'pioneer',
+        apiKey: 'pio_sk_test',
+        model: 'openai/gpt-oss-120b',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('openai/gpt-oss-120b');
     });
   });
 

@@ -48,6 +48,16 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
   // directly when keys rotate or deactivate.
   private readonly CACHE_TTL_MS = 5 * 60 * 1000;
   private readonly MAX_CACHE_SIZE = 10_000;
+  // Maps a rejected token's hash to when its rejection stops being trusted.
+  // Without this, every request bearing a wrong/revoked mnfst_ key runs a
+  // fresh indexed DB lookup AND emits a warn log — so a single misconfigured
+  // agent in a retry loop sustains DB load and floods the logs indefinitely.
+  // The TTL is deliberately much shorter than CACHE_TTL_MS so a key that gets
+  // created or reactivated starts working quickly; key mutations also clear
+  // this via clearCache()/invalidateCache(), so a created key is never stuck.
+  private negativeCache = new Map<string, number>();
+  private readonly NEGATIVE_CACHE_TTL_MS = 30 * 1000;
+  private readonly MAX_NEGATIVE_CACHE_SIZE = 10_000;
   private readonly cleanupTimer: ReturnType<typeof setInterval>;
 
   constructor(
@@ -124,11 +134,17 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
   }
 
   invalidateCache(key: string) {
-    this.cache.delete(cacheKey(key));
+    const hashed = cacheKey(key);
+    this.cache.delete(hashed);
+    // Drop any negative entry too, so re-creating or rotating a key that was
+    // briefly rejected (e.g. a client raced ahead of key creation) takes
+    // effect immediately instead of waiting out the negative TTL.
+    this.negativeCache.delete(hashed);
   }
 
   clearCache() {
     this.cache.clear();
+    this.negativeCache.clear();
   }
 
   private setContext(request: Request, ctx: IngestionContext): void {
@@ -146,6 +162,23 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
   private async validateMnfstToken(request: Request, token: string): Promise<boolean> {
     const hashed = cacheKey(token);
     const now = Date.now();
+
+    // Negative cache first: a recently-rejected token short-circuits here
+    // without touching the DB or emitting a log line. This is what collapses
+    // a wrong/revoked-key storm to one DB lookup + one warn per TTL window.
+    const negativeExpiry = this.negativeCache.get(hashed);
+    if (negativeExpiry !== undefined && negativeExpiry > now) {
+      // LRU touch — re-insert to move to tail of insertion order.
+      this.negativeCache.delete(hashed);
+      this.negativeCache.set(hashed, negativeExpiry);
+      throw new UnauthorizedException('Invalid API key');
+    }
+    if (negativeExpiry !== undefined) {
+      // Stale negative entry — drop it and re-check against the DB so a key
+      // that has since been created/reactivated can authenticate again.
+      this.negativeCache.delete(hashed);
+    }
+
     const cached = this.cache.get(hashed);
     // A key whose own expiry has passed must stop authenticating immediately,
     // even if its cache entry is still inside the 5-min TTL. Drop the stale
@@ -188,6 +221,9 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
     const keyRecord = candidates.find((c) => verifyKey(token, c.key_hash));
 
     if (!keyRecord) {
+      // Remember the rejection so an identical repeat is served from the
+      // negative cache (no DB, no log) until the short TTL lapses.
+      this.rememberInvalid(hashed);
       // Log only the fixed prefix — even leaking the next character or two
       // narrows the search space if these warnings end up in a SIEM that
       // retains them indefinitely.
@@ -269,10 +305,23 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
     return ctx;
   }
 
+  private rememberInvalid(hashed: string): void {
+    this.evictExpired();
+    while (this.negativeCache.size >= this.MAX_NEGATIVE_CACHE_SIZE) {
+      const firstKey = this.negativeCache.keys().next().value;
+      if (firstKey === undefined) break;
+      this.negativeCache.delete(firstKey);
+    }
+    this.negativeCache.set(hashed, Date.now() + this.NEGATIVE_CACHE_TTL_MS);
+  }
+
   private evictExpired() {
     const now = Date.now();
     for (const [key, entry] of this.cache) {
       if (entry.expiresAt <= now) this.cache.delete(key);
+    }
+    for (const [key, expiresAt] of this.negativeCache) {
+      if (expiresAt <= now) this.negativeCache.delete(key);
     }
   }
 }

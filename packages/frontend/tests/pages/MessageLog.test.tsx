@@ -5,6 +5,7 @@ import { createSignal } from 'solid-js';
 let mockAgentName = 'test-agent';
 let mockSearchParams: Record<string, string | undefined> = {};
 let mockSearchAgentAccessor: (() => string | undefined) | null = null;
+const mockSetSearchParams = vi.fn();
 const mockNavigate = vi.fn();
 vi.mock('@solidjs/router', () => ({
   useParams: () => ({ agentName: mockAgentName }),
@@ -13,8 +14,11 @@ vi.mock('@solidjs/router', () => ({
       get agent() {
         return mockSearchAgentAccessor ? mockSearchAgentAccessor() : mockSearchParams.agent;
       },
+      get status() {
+        return mockSearchParams.status;
+      },
     },
-    vi.fn(),
+    mockSetSearchParams,
   ],
   useNavigate: () => mockNavigate,
   A: (props: any) => (
@@ -39,7 +43,7 @@ const mockGetRoutingStatus = vi.fn();
 const mockListHeaderTiers = vi.fn();
 const mockSetMessageFeedback = vi.fn();
 const mockClearMessageFeedback = vi.fn();
-vi.mock("../../src/services/api.js", () => ({
+vi.mock('../../src/services/api.js', () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
   getMessageFilterOptions: (...args: unknown[]) => mockGetMessageFilterOptions(...args),
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
@@ -192,6 +196,14 @@ const messagesData = {
   next_cursor: null,
   total_count: 2,
   providers: ['anthropic', 'openai'],
+};
+
+const selectWithOption = (container: HTMLElement, optionText: string): HTMLSelectElement => {
+  const select = Array.from(
+    container.querySelectorAll<HTMLSelectElement>('[data-testid="select"]'),
+  ).find((candidate) => candidate.textContent?.includes(optionText));
+  expect(select).toBeDefined();
+  return select!;
 };
 
 describe('MessageLog', () => {
@@ -493,6 +505,37 @@ describe('MessageLog', () => {
     });
   });
 
+  it('filters messages by failed status and writes the URL param', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      const selects = container.querySelectorAll('[data-testid="select"]');
+      expect(selects.length).toBeGreaterThanOrEqual(3);
+    });
+
+    mockGetMessages.mockClear();
+    const statusSelect = selectWithOption(container, 'Failed');
+    expect(statusSelect.textContent).toContain('Success');
+    expect(statusSelect.textContent).not.toContain('Rate limited');
+    expect(statusSelect.textContent).not.toContain('Handled fallback');
+    await fireEvent.change(statusSelect, { target: { value: 'failed' } });
+
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }));
+    });
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ status: 'failed' }, { replace: true });
+  });
+
+  it('seeds the status filter from the status search param', async () => {
+    mockSearchParams = { status: 'failed' };
+    mockGetMessages.mockResolvedValue(messagesData);
+    render(() => <MessageLog />);
+
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }));
+    });
+  });
+
   describe('error tooltip', () => {
     it('shows tooltip when error_message is present on a failed row', async () => {
       const dataWithError = {
@@ -771,7 +814,7 @@ describe('MessageLog', () => {
           agent_name: 'test-agent',
           model: 'custom:abc-123/my-llama',
           provider: 'custom:abc-123',
-          custom_provider_name: 'Cerebras',
+          custom_provider_name: 'Cohere',
           input_tokens: 100,
           output_tokens: 50,
           total_tokens: 150,
@@ -785,14 +828,14 @@ describe('MessageLog', () => {
       next_cursor: null,
       total_count: 1,
       providers: ['custom:abc-123'],
-      provider_labels: { 'custom:abc-123': 'Cerebras' },
+      provider_labels: { 'custom:abc-123': 'Cohere' },
     };
 
     it('renders custom provider icon in message rows', async () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        const img = container.querySelector('img[alt="Cerebras"]');
+        const img = container.querySelector('img[alt="Cohere"]');
         expect(img).not.toBeNull();
       });
     });
@@ -810,11 +853,11 @@ describe('MessageLog', () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
       mockGetMessageFilterOptions.mockResolvedValue({
         providers: ['custom:abc-123'],
-        provider_labels: { 'custom:abc-123': 'Cerebras' },
+        provider_labels: { 'custom:abc-123': 'Cohere' },
       });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('Cerebras');
+        expect(container.textContent).toContain('Cohere');
       });
     });
 
@@ -842,7 +885,7 @@ describe('MessageLog', () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.querySelector('img[alt="Cerebras"]')).not.toBeNull();
+        expect(container.querySelector('img[alt="Cohere"]')).not.toBeNull();
         expect(container.textContent).not.toContain('custom:abc-123/');
       });
     });
@@ -897,7 +940,7 @@ describe('MessageLog', () => {
     });
   });
 
-  it("shows the per-request cost for OpenCode Go subscription messages", async () => {
+  it('shows the per-request cost for OpenCode Go subscription messages', async () => {
     const dataWithPerRequestSub = {
       ...messagesData,
       items: [{ ...messagesData.items[0], auth_type: 'subscription', cost: 0.013636 }],
@@ -907,10 +950,8 @@ describe('MessageLog', () => {
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       // Per-request subscriptions (OpenCode Go) carry real costs — don't hide them.
-      expect(container.textContent).toContain("$0.01");
-      expect(
-        container.querySelector('[title^="Per-request subscription cost:"]'),
-      ).not.toBeNull();
+      expect(container.textContent).toContain('$0.01');
+      expect(container.querySelector('[title^="Per-request subscription cost:"]')).not.toBeNull();
     });
   });
 
@@ -1253,17 +1294,15 @@ describe('MessageLog', () => {
     });
   });
 
-  describe("Tier filter", () => {
-    it("renders a Tier select with Playground among the options", async () => {
+  describe('Tier filter', () => {
+    it('renders a Tier select with Playground among the options', async () => {
       mockGetMessages.mockResolvedValue(messagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         const selects = container.querySelectorAll('[data-testid="select"]');
         expect(selects.length).toBeGreaterThanOrEqual(2);
       });
-      const selects = container.querySelectorAll('[data-testid="select"]');
-      // Second Select is the tier filter (first is providers).
-      const tierSelect = selects[1] as HTMLSelectElement;
+      const tierSelect = selectWithOption(container, 'All tiers');
       expect(tierSelect.textContent).toContain('All tiers');
       expect(tierSelect.textContent).toContain('Playground');
       expect(tierSelect.textContent).toContain('Simple');
@@ -1282,16 +1321,12 @@ describe('MessageLog', () => {
 
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        const tierSelect = container.querySelectorAll(
-          '[data-testid="select"]',
-        )[1] as HTMLSelectElement;
+        const tierSelect = selectWithOption(container, 'All tiers');
         expect(tierSelect.textContent).toContain('Coding');
         expect(tierSelect.textContent).toContain('Premium');
       });
 
-      const tierSelect = container.querySelectorAll(
-        '[data-testid="select"]',
-      )[1] as HTMLSelectElement;
+      const tierSelect = selectWithOption(container, 'All tiers');
       expect(tierSelect.textContent).not.toContain('Trading');
       expect(tierSelect.textContent).toContain('Legacy');
       expect(tierSelect.textContent).not.toContain('Task:');
@@ -1306,9 +1341,7 @@ describe('MessageLog', () => {
           2,
         );
       });
-      const tierSelect = container.querySelectorAll(
-        '[data-testid="select"]',
-      )[1] as HTMLSelectElement;
+      const tierSelect = selectWithOption(container, 'All tiers');
       mockGetMessages.mockClear();
       fireEvent.change(tierSelect, { target: { value: 'playground' } });
       await vi.waitFor(() => {
@@ -1329,9 +1362,7 @@ describe('MessageLog', () => {
         );
       });
 
-      const tierSelect = container.querySelectorAll(
-        '[data-testid="select"]',
-      )[1] as HTMLSelectElement;
+      const tierSelect = selectWithOption(container, 'All tiers');
       mockGetMessages.mockClear();
       fireEvent.change(tierSelect, { target: { value: 'specificity:coding' } });
 
@@ -1354,9 +1385,7 @@ describe('MessageLog', () => {
         );
       });
 
-      const tierSelect = container.querySelectorAll(
-        '[data-testid="select"]',
-      )[1] as HTMLSelectElement;
+      const tierSelect = selectWithOption(container, 'All tiers');
       mockGetMessages.mockClear();
       fireEvent.change(tierSelect, { target: { value: 'header:ht-premium' } });
 
@@ -1456,6 +1485,31 @@ describe('MessageLog', () => {
         const calls = mockGetMessages.mock.calls;
         const lastQ = calls[calls.length - 1]?.[0] ?? {};
         expect(lastQ.agent_name).toBe('agent-alpha');
+      });
+    });
+
+    it('loads custom tier options for the selected agent in global mode', async () => {
+      mockAgentName = '';
+      mockGetMessages.mockResolvedValue(messagesData);
+      mockListHeaderTiers.mockResolvedValue([{ id: 'ht-premium', name: 'Premium' }]);
+
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll(
+          '[data-testid="select"]',
+        )[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain('agent-alpha');
+      });
+
+      const agentSelect = container.querySelectorAll(
+        '[data-testid="select"]',
+      )[0] as HTMLSelectElement;
+      fireEvent.change(agentSelect, { target: { value: 'agent-alpha' } });
+
+      await vi.waitFor(() => {
+        expect(mockListHeaderTiers).toHaveBeenCalledWith('agent-alpha');
+        const tierSelect = selectWithOption(container, 'All tiers');
+        expect(tierSelect.textContent).toContain('Premium');
       });
     });
 

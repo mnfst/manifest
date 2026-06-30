@@ -38,4 +38,7 @@ export class Tenant {
 
   @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;
+
+  @Column('timestamp with time zone', { nullable: true })
+  autofix_waitlist_at!: string | null;
 }

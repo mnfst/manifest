@@ -171,12 +171,14 @@ describe('ProviderSelectModal', () => {
   let onClose: ReturnType<typeof vi.fn>;
   let onUpdate: ReturnType<typeof vi.fn>;
 
-  const renderModal = (props: {
-    providers?: RoutingProvider[];
-    customProviders?: unknown[];
-    deepLink?: DeepLink;
-    customProviderPrefill?: unknown;
-  } = {}) =>
+  const renderModal = (
+    props: {
+      providers?: RoutingProvider[];
+      customProviders?: unknown[];
+      deepLink?: DeepLink;
+      customProviderPrefill?: unknown;
+    } = {},
+  ) =>
     render(() => (
       <ProviderSelectModal
         providers={props.providers ?? []}
@@ -298,7 +300,7 @@ describe('ProviderSelectModal', () => {
       expect(screen.getByLabelText('Current API key (masked)')).toBeDefined();
     });
 
-    it('sends Alibaba API keys without a region override and relies on backend auto-detection', async () => {
+    it('sends Alibaba API keys with auto region detection selected', async () => {
       openApiKey('qwen');
       fireEvent.input(screen.getByLabelText('Alibaba Cloud API key'), {
         target: { value: VALID_QWEN_KEY },
@@ -310,6 +312,7 @@ describe('ProviderSelectModal', () => {
           provider: 'qwen',
           apiKey: VALID_QWEN_KEY,
           authType: 'api_key',
+          region: 'auto',
         });
       });
     });

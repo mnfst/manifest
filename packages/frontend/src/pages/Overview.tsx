@@ -354,6 +354,8 @@ const Overview: Component = () => {
                 { label: 'Last 24 hours', value: '24h' },
                 { label: 'Last 7 days', value: '7d' },
                 { label: 'Last 30 days', value: '30d' },
+                { label: 'Last 90 days', value: '90d' },
+                { label: 'Last 365 days', value: '365d' },
               ]}
             />
           </Show>

@@ -163,11 +163,13 @@ describe('ModelController', () => {
   /* ── refreshModels ── */
 
   describe('refreshModels', () => {
-    it('should call discoverAllForAgent and return ok', async () => {
+    it('forces provider catalogs to refresh and returns ok', async () => {
       const result = await controller.refreshModels(mockCtx, mockAgentName);
 
       expect(mockResolveAgent.resolve).toHaveBeenCalledWith('tenant-1', 'test-agent');
-      expect(mockDiscoveryService.discoverAllForAgent).toHaveBeenCalledWith('tenant-1');
+      expect(mockDiscoveryService.discoverAllForAgent).toHaveBeenCalledWith('tenant-1', {
+        forceRefresh: true,
+      });
       expect(result).toEqual({ ok: true });
     });
   });

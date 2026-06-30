@@ -635,6 +635,15 @@ export class ProxyFallbackService {
       apiMode: opts.apiMode,
       signatureLookup,
       thinkingLookup,
+      ...(thinkingLookup
+        ? {
+            thinkingRouteContext: {
+              provider,
+              authType,
+              model: opts.model,
+            },
+          }
+        : {}),
       reasoningContentLookup,
       providerResource,
     });

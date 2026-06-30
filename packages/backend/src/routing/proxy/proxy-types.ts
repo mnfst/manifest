@@ -1,6 +1,6 @@
 import type { IncomingHttpHeaders } from 'http';
 import { ProviderEndpoint } from './provider-endpoints';
-import type { ThinkingBlock } from './thinking-block-cache';
+import type { ThinkingBlock, ThinkingBlockRouteContext } from './thinking-block-cache';
 import { CallerAttribution } from './caller-classifier';
 
 /**
@@ -15,7 +15,10 @@ export type SignatureLookup = (toolCallId: string) => string | null;
  * stripped by the client. Called with the first tool_use id from the
  * assistant turn; returns the ordered block sequence or null.
  */
-export type ThinkingBlockLookup = (firstToolUseId: string) => ThinkingBlock[] | null;
+export type ThinkingBlockLookup = (
+  firstToolUseId: string,
+  routeContext?: ThinkingBlockRouteContext,
+) => ThinkingBlock[] | null;
 
 /**
  * Optional lookup to re-inject cached reasoning_content strings that were
@@ -55,6 +58,8 @@ export interface ForwardOptions {
   signatureLookup?: SignatureLookup;
   /** Lookup for re-injecting cached thinking blocks (Anthropic only). */
   thinkingLookup?: ThinkingBlockLookup;
+  /** Route scope used to decide whether cached Anthropic thinking can be replayed. */
+  thinkingRouteContext?: ThinkingBlockRouteContext;
   /** Lookup for re-injecting cached reasoning_content (DeepSeek-compatible providers). */
   reasoningContentLookup?: ReasoningContentLookup;
   /**

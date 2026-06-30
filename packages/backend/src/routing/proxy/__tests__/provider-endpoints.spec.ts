@@ -5,7 +5,7 @@ import {
   resolveEndpointKey,
   PROVIDER_ENDPOINTS,
 } from '../provider-endpoints';
-import { resolveSubscriptionEndpointKey } from '../provider-hooks';
+import { buildProviderExtraHeaders, resolveSubscriptionEndpointKey } from '../provider-hooks';
 
 describe('buildCustomEndpoint', () => {
   it('strips trailing /v1 from base URL to avoid double /v1', () => {
@@ -67,11 +67,14 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('openai')).toBe('openai');
     expect(resolveEndpointKey('anthropic')).toBe('anthropic');
     expect(resolveEndpointKey('bedrock')).toBe('bedrock');
+    expect(resolveEndpointKey('cerebras')).toBe('cerebras');
+    expect(resolveEndpointKey('pioneer')).toBe('pioneer');
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('byteplus')).toBe('byteplus');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
     expect(resolveEndpointKey('commandcode')).toBe('commandcode');
     expect(resolveEndpointKey('fireworks')).toBe('fireworks');
+    expect(resolveEndpointKey('nous')).toBe('nous');
     expect(resolveEndpointKey('nvidia')).toBe('nvidia');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
     expect(resolveEndpointKey('kilo')).toBe('kilo');
@@ -109,6 +112,11 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('ModelArk')).toBe('byteplus');
   });
 
+  it('resolves Pioneer aliases to pioneer', () => {
+    expect(resolveEndpointKey('pioneer-ai')).toBe('pioneer');
+    expect(resolveEndpointKey('Pioneer AI')).toBe('pioneer');
+  });
+
   it('resolves Xiaomi MiMo aliases to xiaomi', () => {
     expect(resolveEndpointKey('mimo')).toBe('xiaomi');
     expect(resolveEndpointKey('xiaomi-mimo')).toBe('xiaomi');
@@ -140,6 +148,8 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('openai');
     expect(known).toContain('anthropic');
     expect(known).toContain('bedrock');
+    expect(known).toContain('cerebras');
+    expect(known).toContain('pioneer');
     expect(known).toContain('google');
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
@@ -148,6 +158,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('commandcode');
     expect(known).toContain('commandcode-anthropic');
     expect(known).toContain('fireworks');
+    expect(known).toContain('nous');
     expect(known).toContain('openrouter');
     expect(known).toContain('nvidia');
     expect(known).toContain('ollama');
@@ -184,6 +195,12 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('kilo')).toBe('kilo');
     expect(resolveEndpointKey('KiloCode')).toBe('kilo');
     expect(resolveEndpointKey('kilo-code')).toBe('kilo');
+  });
+
+  it('resolves Nous Research aliases to nous', () => {
+    expect(resolveEndpointKey('nous')).toBe('nous');
+    expect(resolveEndpointKey('NousResearch')).toBe('nous');
+    expect(resolveEndpointKey('nous-research')).toBe('nous');
   });
 
   it('resolves every proxy-capable provider id and alias from the registry', () => {
@@ -268,6 +285,28 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
+  it('cerebras uses the OpenAI-compatible API endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['cerebras'];
+    expect(ep.baseUrl).toBe('https://api.cerebras.ai');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('gpt-oss-120b')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('cerebras-key')).toEqual({
+      Authorization: 'Bearer cerebras-key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('pioneer uses the OpenAI-compatible API endpoint with X-API-Key auth', () => {
+    const ep = PROVIDER_ENDPOINTS['pioneer'];
+    expect(ep.baseUrl).toBe('https://api.pioneer.ai');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('pioneer/auto')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('pio_sk_test_key')).toEqual({
+      'X-API-Key': 'pio_sk_test_key',
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('byteplus uses the ModelArk Coding Plan OpenAI-compatible endpoint', () => {
     const ep = PROVIDER_ENDPOINTS['byteplus'];
     expect(ep.baseUrl).toBe('https://ark.ap-southeast.bytepluses.com/api/coding');
@@ -303,6 +342,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     const headers = PROVIDER_ENDPOINTS['nvidia'].buildHeaders('nvapi-test-key');
     expect(headers).toEqual({
       Authorization: 'Bearer nvapi-test-key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('nous uses the Nous Portal OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['nous'];
+    expect(ep.baseUrl).toBe('https://inference-api.nousresearch.com');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('anthropic/claude-sonnet-4.5')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('nous-api-key')).toEqual({
+      Authorization: 'Bearer nous-api-key',
       'Content-Type': 'application/json',
     });
   });
@@ -631,6 +681,8 @@ describe('PROVIDER_ENDPOINTS', () => {
     const endpointKeys = [
       'openai',
       'byteplus',
+      'cerebras',
+      'pioneer',
       'deepseek',
       'groq',
       'kilo',
@@ -639,6 +691,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'minimax',
       'xiaomi',
       'moonshot',
+      'nous',
       'nvidia',
       'bedrock',
       'qwen',
@@ -763,5 +816,35 @@ describe('gemini-subscription endpoint', () => {
 
   it('buildStreamPath returns the streamGenerateContent path', () => {
     expect(ep.buildStreamPath!('gemini-2.5-pro')).toBe('/v1internal:streamGenerateContent');
+  });
+});
+
+describe('buildProviderExtraHeaders', () => {
+  it('returns x-grok-conv-id for xai', () => {
+    expect(buildProviderExtraHeaders('xai', 'sess-abc')).toEqual({
+      'x-grok-conv-id': 'sess-abc',
+    });
+  });
+
+  it('returns x-session-id for openrouter', () => {
+    expect(buildProviderExtraHeaders('openrouter', 'ba44c58a-a1f5-4cc7-bc2a-9394d266cc2b')).toEqual(
+      { 'x-session-id': 'ba44c58a-a1f5-4cc7-bc2a-9394d266cc2b' },
+    );
+  });
+
+  it('does not forward the fallback default session id to openrouter', () => {
+    expect(buildProviderExtraHeaders('openrouter', 'default')).toBeUndefined();
+  });
+
+  it('is case-insensitive for provider name', () => {
+    expect(buildProviderExtraHeaders('OpenRouter', 'sess-xyz')).toEqual({
+      'x-session-id': 'sess-xyz',
+    });
+  });
+
+  it('returns undefined for providers with no extra headers', () => {
+    expect(buildProviderExtraHeaders('anthropic', 'sess-abc')).toBeUndefined();
+    expect(buildProviderExtraHeaders('openai', 'sess-abc')).toBeUndefined();
+    expect(buildProviderExtraHeaders('unknown', 'sess-abc')).toBeUndefined();
   });
 });

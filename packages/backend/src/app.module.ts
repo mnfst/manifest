@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { appConfig } from './config/app.config';
 import { resolveFrontendDir } from './common/utils/frontend-path';
 import { DASHBOARD_CACHE_TTL_MS } from './common/constants/cache.constants';
+import { buildDashboardCacheStore } from './common/cache/dashboard-cache.factory';
 import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { ApiKey } from './entities/api-key.entity';
 import { SessionGuard } from './auth/session.guard';
@@ -28,6 +29,7 @@ import { PublicStatsModule } from './public-stats/public-stats.module';
 import { SetupModule } from './setup/setup.module';
 import { FreeModelsModule } from './free-models/free-models.module';
 import { TelemetryModule } from './telemetry/telemetry.module';
+import { WaitlistModule } from './waitlist/waitlist.module';
 
 const frontendPath = resolveFrontendDir();
 const ONE_YEAR_S = 365 * 24 * 60 * 60;
@@ -54,7 +56,11 @@ const serveStaticImports = frontendPath
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [appConfig] }),
-    CacheModule.register({ isGlobal: true, ttl: DASHBOARD_CACHE_TTL_MS }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: DASHBOARD_CACHE_TTL_MS,
+      stores: [buildDashboardCacheStore()],
+    }),
     ...serveStaticImports,
     ThrottlerModule.forRoot([
       {
@@ -80,6 +86,7 @@ const serveStaticImports = frontendPath
     FreeModelsModule,
     TelemetryModule,
     BackfillModule,
+    WaitlistModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: SessionGuard },

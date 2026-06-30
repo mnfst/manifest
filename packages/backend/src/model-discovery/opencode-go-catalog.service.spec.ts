@@ -246,6 +246,41 @@ describe('OpencodeGoCatalogService', () => {
       expect(ra).toBe(rb);
     });
 
+    it('refreshes from the live source even when list() has a warm cache', async () => {
+      const refreshedMdx = [
+        '---',
+        'title: Go',
+        '---',
+        '',
+        '| Model | requests per 5 hour | requests per week | requests per month |',
+        '| ----- | ------------------- | ----------------- | ------------------ |',
+        '| GLM-5.2 | 880 | 2,150 | 4,300 |',
+        '',
+        '| Model | Model ID | Endpoint | AI SDK Package |',
+        '| ----- | -------- | -------- | -------------- |',
+        `| GLM-5.2 | glm-5.2 | ${OAI} | ${OAI_SDK} |`,
+        '',
+      ].join('\n');
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => SAMPLE_MDX,
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => refreshedMdx,
+        } as Response);
+
+      await service.list();
+      const refreshed = await service.refresh();
+
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(refreshed.map((e) => e.id)).toEqual(['glm-5.2']);
+      expect(service.getCostPerRequest('glm-5.2')).toBeCloseTo(OPENCODE_GO_BUDGET_5H_USD / 880, 12);
+    });
+
     it('warms the catalog via onModuleInit so the cost index is ready before the first proxy call', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,

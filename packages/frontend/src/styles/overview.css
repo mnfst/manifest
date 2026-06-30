@@ -100,6 +100,117 @@
   color: hsl(var(--success));
 }
 
+/* ── Social follow banner ────────────────────────── */
+.overview-social-banner {
+  display: flex;
+  justify-content: stretch;
+  position: relative;
+  left: 50%;
+  width: calc(100vw - var(--sidebar-width));
+  margin: calc(-1 * var(--gap-xl)) 0 var(--gap-lg);
+  transform: translateX(-50%);
+}
+
+.overview-social-banner__inner {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  min-height: 38px;
+  overflow: hidden;
+  padding: 0 38px;
+  color: hsl(var(--foreground));
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
+}
+
+.overview-social-banner__dismiss,
+.overview-social-banner__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 38px;
+  min-height: 38px;
+  color: hsl(var(--muted-foreground));
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.overview-social-banner__dismiss {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  border-left: 1px solid hsl(var(--border));
+}
+
+.overview-social-banner__link {
+  color: hsl(var(--foreground));
+  text-decoration: none;
+}
+
+.overview-social-banner__dismiss:hover,
+.overview-social-banner__dismiss:focus-visible,
+.overview-social-banner__link:hover,
+.overview-social-banner__link:focus-visible {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
+}
+
+.overview-social-banner__text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 7px 14px;
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+  color: hsl(var(--foreground));
+  text-align: center;
+}
+
+.overview-social-banner__links {
+  display: flex;
+  align-items: stretch;
+  flex: 0 0 auto;
+  border-left: 1px solid hsl(var(--border));
+}
+
+@media (max-width: 1024px) {
+  .overview-social-banner {
+    margin-top: calc(-1 * var(--gap-lg));
+  }
+}
+
+@media (max-width: 768px) {
+  .overview-social-banner {
+    width: 100vw;
+    margin-top: calc(-1 * var(--gap-md));
+  }
+}
+
+@media (max-width: 560px) {
+  .overview-social-banner__text {
+    padding: 7px 10px;
+    font-size: var(--font-size-xs);
+  }
+
+  .overview-social-banner__dismiss,
+  .overview-social-banner__link {
+    width: 36px;
+  }
+}
+
 /* ── Fallback badge ──────────────────────────────── */
 .tier-badge--fallback {
   background: hsl(38 92% 50% / 0.15);

@@ -15,8 +15,9 @@ import { computeCutoff, sqlCastFloat, sqlSanitizeCost } from '../../common/utils
 import { inferProviderFromModel } from '../../common/utils/provider-inference';
 import { TtlCache } from '../../common/utils/ttl-cache';
 
-// The Messages-log "errors" filter and every "messages" KPI count share one
-// definition of what an error status is (see query-helpers.sqlCountMessages).
+// The Messages-log "failed"/"errors" filters and every "messages" KPI count
+// share one definition of an error status (see query-helpers.sqlCountMessages).
+const FAILED_STATUSES = ERROR_MESSAGE_STATUSES;
 const ERROR_STATUSES = ERROR_MESSAGE_STATUSES;
 
 const MODELS_CACHE_TTL_MS = 5 * 60_000;
@@ -230,7 +231,9 @@ export class MessagesQueryService {
       );
     }
 
-    if (params.status === 'errors') {
+    if (params.status === 'failed') {
+      qb.andWhere('at.status IN (:...failedStatuses)', { failedStatuses: FAILED_STATUSES });
+    } else if (params.status === 'errors') {
       qb.andWhere('at.status IN (:...errorStatuses)', { errorStatuses: ERROR_STATUSES });
     } else if (params.status) {
       qb.andWhere('at.status = :statusFilter', { statusFilter: params.status });

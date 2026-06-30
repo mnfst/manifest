@@ -66,7 +66,7 @@ function stripModelPrefix(model: string, endpointKey: string): string {
   if (endpointKey === 'commandcode' || endpointKey === 'commandcode-anthropic') {
     return model.startsWith('commandcode/') ? model.slice('commandcode/'.length) : model;
   }
-  // Custom providers, Fireworks, Groq, Kilo, and NVIDIA NIM: model IDs from these APIs contain
+  // Custom providers, Fireworks, Groq, Kilo, Nous, NVIDIA NIM, and Pioneer: model IDs from these APIs contain
   // legitimate slash segments (e.g. "accounts/fireworks/models/deepseek-v3p1",
   // "MiniMaxAI/MiniMax-2.7", "meta-llama/llama-guard-4-12b", "anthropic/claude-sonnet-4.5").
   // Stripping would mangle the name the upstream API expects.
@@ -75,7 +75,9 @@ function stripModelPrefix(model: string, endpointKey: string): string {
     endpointKey === 'fireworks' ||
     endpointKey === 'groq' ||
     endpointKey === 'kilo' ||
-    endpointKey === 'nvidia'
+    endpointKey === 'nous' ||
+    endpointKey === 'nvidia' ||
+    endpointKey === 'pioneer'
   )
     return model;
   return stripVendorPrefix(model);
@@ -146,6 +148,7 @@ export class ProviderClient {
     const { url, headers, requestBody } = this.buildRequest({
       endpoint,
       endpointKey,
+      provider,
       bareModel,
       model,
       apiKey,
@@ -156,6 +159,7 @@ export class ProviderClient {
       stream,
       signatureLookup: opts.signatureLookup,
       thinkingLookup: opts.thinkingLookup,
+      thinkingRouteContext: opts.thinkingRouteContext,
       reasoningContentLookup: opts.reasoningContentLookup,
       providerResource: opts.providerResource,
     });
@@ -336,6 +340,7 @@ export class ProviderClient {
   private buildRequest(ctx: {
     endpoint: ProviderEndpoint;
     endpointKey: string;
+    provider: string;
     bareModel: string;
     model: string;
     apiKey: string;
@@ -346,6 +351,7 @@ export class ProviderClient {
     stream: boolean;
     signatureLookup?: ForwardOptions['signatureLookup'];
     thinkingLookup?: ForwardOptions['thinkingLookup'];
+    thinkingRouteContext?: ForwardOptions['thinkingRouteContext'];
     reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
     providerResource?: string;
   }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
@@ -385,6 +391,11 @@ export class ProviderClient {
     if (endpoint.format === 'anthropic') {
       const injectSubscriptionIdentity =
         authType === 'subscription' && !endpoint.skipSubscriptionIdentity;
+      const thinkingRouteContext = ctx.thinkingRouteContext ?? {
+        provider: ctx.provider,
+        authType,
+        model: ctx.model,
+      };
       // When the inbound request is already Anthropic Messages
       // (`POST /v1/messages`) and the resolved upstream is also Anthropic,
       // skip the OpenAI translation round-trip and apply only the additive
@@ -399,11 +410,13 @@ export class ProviderClient {
           ? applyAnthropicMessagesMutations(body, {
               injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
+              thinkingRouteContext,
               targetModel: bareModel,
             })
           : toAnthropicRequest(requestSource, bareModel, {
               injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
+              thinkingRouteContext,
             });
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
