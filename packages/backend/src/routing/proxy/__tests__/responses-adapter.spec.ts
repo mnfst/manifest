@@ -135,8 +135,44 @@ describe('Responses adapter', () => {
         },
         { role: 'tool', tool_call_id: 'call_1', content: '{"ok":true}' },
       ]);
-      expect(result.tools).toEqual([{ type: 'web_search_preview' }]);
+      // Hosted tools (anything whose type isn't "function") are dropped on the
+      // chat/completions path — see the dedicated test below.
+      expect(result.tools).toEqual([]);
       expect(result.tool_choice).toBe('auto');
+    });
+
+    it('folds role:"developer" instruction messages into "system"', () => {
+      // Codex CLI wires its instructions as role:"developer"; non-OpenAI
+      // chat/completions upstreams 400 on that role, so we normalize it.
+      const result = toChatCompletionsRequest({
+        input: [
+          { role: 'developer', content: [{ type: 'input_text', text: 'You are concise.' }] },
+          { role: 'user', content: [{ type: 'input_text', text: 'Hi' }] },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        { role: 'system', content: 'You are concise.' },
+        { role: 'user', content: 'Hi' },
+      ]);
+    });
+
+    it('drops hosted tools and keeps only function tools', () => {
+      // Codex advertises OpenAI-hosted tools every turn; chat/completions
+      // upstreams reject any tool whose type isn't "function".
+      const result = toChatCompletionsRequest({
+        input: 'go',
+        tools: [
+          { type: 'web_search' },
+          { type: 'file_search' },
+          { type: 'computer_use_preview' },
+          { type: 'function', name: 'lookup', parameters: { type: 'object' } },
+        ],
+      });
+
+      expect(result.tools).toEqual([
+        { type: 'function', function: { name: 'lookup', parameters: { type: 'object' } } },
+      ]);
     });
 
     it('uses safe defaults for malformed input items', () => {
