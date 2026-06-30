@@ -482,6 +482,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       pricing: usage ? this.pricingCache.getByModel(model) : undefined,
       isSubscription: authType === 'subscription',
       perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
+      reportedCostUsd: usage?.reported_cost_usd,
     });
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
@@ -561,6 +562,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       pricing: this.pricingCache.getByModel(model),
       isSubscription: authType === 'subscription',
       perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
+      reportedCostUsd: usage.reported_cost_usd,
     });
 
     // `model` is a required string, so the overload on

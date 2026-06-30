@@ -33,8 +33,7 @@ import { getModelDisplayName, preloadModelDisplayNames } from '../services/model
 import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import ProviderChartCard from '../components/ProviderChartCard.jsx';
-import NewsBanner from '../components/NewsBanner.jsx';
-import { CURRENT_NEWS } from '../services/news.js';
+import SocialFollowBanner from '../components/SocialFollowBanner.jsx';
 import Sparkline from '../components/Sparkline.jsx';
 import FilterSelect from '../components/FilterSelect.jsx';
 import Select from '../components/Select.jsx';
@@ -114,6 +113,8 @@ const RANGE_OPTIONS = [
   { label: 'Last 24 hours', value: '24h' },
   { label: 'Last 7 days', value: '7d' },
   { label: 'Last 30 days', value: '30d' },
+  { label: 'Last 90 days', value: '90d' },
+  { label: 'Last 365 days', value: '365d' },
 ];
 
 const GROUP_OPTIONS = [
@@ -127,7 +128,7 @@ const GROUP_STORAGE_KEY = 'manifest_global_group';
 function loadRange(): string {
   try {
     const v = localStorage.getItem(RANGE_STORAGE_KEY);
-    if (v === '24h' || v === '7d' || v === '30d') return v;
+    if (v === '24h' || v === '7d' || v === '30d' || v === '90d' || v === '365d') return v;
   } catch {
     /* ignore */
   }
@@ -438,6 +439,8 @@ const GlobalOverview: Component = () => {
       {/* Add Harness Modal */}
       <AddAgentModal open={addAgentOpen()} onClose={dismissAddAgent} />
 
+      <SocialFollowBanner />
+
       {/* ── 1. Page Header ──────────────────────────────────────────── */}
       <div class="page-header" style="border-bottom: none; padding-bottom: 0;">
         <div>
@@ -550,9 +553,6 @@ const GlobalOverview: Component = () => {
           </Show>
         }
       >
-        {/* ── News banner ─────────────────────────────────────────────── */}
-        <Show when={CURRENT_NEWS}>{(news) => <NewsBanner item={news()} />}</Show>
-
         {/* ── 2. Chart Card ───────────────────────────────────────────── */}
         <div style="margin-bottom: 24px;">
           {(() => {

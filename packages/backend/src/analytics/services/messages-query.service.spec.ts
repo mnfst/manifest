@@ -708,6 +708,11 @@ describe('MessagesQueryService', () => {
 
   it.each<[MessageStatusFilter, string, Record<string, unknown>]>([
     [
+      'failed',
+      'at.status IN (:...failedStatuses)',
+      { failedStatuses: ['error', 'fallback_error', 'rate_limited'] },
+    ],
+    [
       'errors',
       'at.status IN (:...errorStatuses)',
       { errorStatuses: ['error', 'fallback_error', 'rate_limited'] },

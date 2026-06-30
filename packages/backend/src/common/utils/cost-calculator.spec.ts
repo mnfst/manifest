@@ -40,6 +40,20 @@ describe('computeTokenCost', () => {
     ).toBe(0);
   });
 
+  it('prefers provider-reported cost for subscription budget providers', () => {
+    expect(
+      computeTokenCost({
+        inputTokens: 1000,
+        outputTokens: 500,
+        model: 'stepfun/step-3.7-flash:free',
+        pricing,
+        isSubscription: true,
+        reportedCostUsd: 0.00005,
+        perRequestCostUsd: 0.01364,
+      }),
+    ).toBe(0.00005);
+  });
+
   it('returns null when pricing is undefined', () => {
     expect(
       computeTokenCost({

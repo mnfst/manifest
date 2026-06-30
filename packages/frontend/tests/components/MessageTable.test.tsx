@@ -438,6 +438,19 @@ describe('MessageTable', () => {
       expect(badge!.textContent).toBe('fast');
     });
 
+    it('renders direct routing tier badge in uppercase', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ routing_tier: 'direct' })]}
+          columns={['model']}
+          agentName="agent-1"
+        />
+      ));
+      const badge = container.querySelector('.tier-badge--direct');
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toBe('DIRECT');
+    });
+
     it('renders specificity category badge (with underscores replaced) over tier badge', () => {
       const { container } = render(() => (
         <MessageTable

@@ -70,6 +70,20 @@ const MOCK_API_RESPONSE = {
       },
     },
   },
+  cerebras: {
+    id: 'cerebras',
+    name: 'Cerebras',
+    models: {
+      'gpt-oss-120b': {
+        id: 'gpt-oss-120b',
+        name: 'GPT OSS 120B',
+        cost: { input: 0.25, output: 0.69 },
+        limit: { context: 128000, output: 65536 },
+        tool_call: true,
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
   'fireworks-ai': {
     id: 'fireworks-ai',
     name: 'Fireworks AI',
@@ -334,8 +348,8 @@ describe('ModelsDevSyncService', () => {
       );
       // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1,
       // fireworks: 1, mistral: 6, xai: 3, bedrock: 8, groq: 2,
-      // nvidia: 1, opencode-go: 1, opencode: 1 = 28
-      expect(count).toBe(28);
+      // nvidia: 1, opencode-go: 1, opencode: 1, cerebras: 1 = 29
+      expect(count).toBe(29);
     });
 
     it('should filter out non-text-output models', async () => {
@@ -665,6 +679,10 @@ describe('ModelsDevSyncService', () => {
       ]);
     });
 
+    it('should map Cerebras to the models.dev Cerebras provider ID', () => {
+      expect(service.getModelsForProvider('cerebras').map((m) => m.id)).toEqual(['gpt-oss-120b']);
+    });
+
     it('should return empty array for unmapped provider', () => {
       expect(service.getModelsForProvider('nonexistent')).toEqual([]);
     });
@@ -680,6 +698,7 @@ describe('ModelsDevSyncService', () => {
       expect(service.isProviderSupported('opencode-zen')).toBe(true);
       expect(service.isProviderSupported('fireworks')).toBe(true);
       expect(service.isProviderSupported('bedrock')).toBe(true);
+      expect(service.isProviderSupported('cerebras')).toBe(true);
     });
 
     it('should return false for unmapped providers', () => {

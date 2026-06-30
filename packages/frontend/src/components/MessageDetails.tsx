@@ -7,6 +7,7 @@ import {
 import { inferProviderName } from '../services/routing-utils.js';
 import { getModelDisplayName } from '../services/model-display.js';
 import { ModelParamsSection, RequestHeadersSection } from './MessageDetailsSections.jsx';
+import { routingTierLabel } from './message-table-types.js';
 
 export interface MessageDetailsProps {
   messageId: string;
@@ -124,7 +125,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                       m.header_tier_name ??
                       (m.specificity_category
                         ? m.specificity_category.replace(/_/g, ' ')
-                        : m.routing_tier)
+                        : routingTierLabel(m.routing_tier))
                     }
                   />
                   <Show when={m.specificity_category}>
@@ -133,7 +134,10 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                       initiallyFlagged={m.specificity_miscategorized}
                     />
                   </Show>
-                  <MetaField label="Reason" value={m.routing_reason} />
+                  <MetaField
+                    label="Reason"
+                    value={m.routing_reason === 'direct' ? 'DIRECT' : m.routing_reason}
+                  />
                   <MetaField label="Service" value={m.service_type} />
                   <MetaField label="Session" value={m.session_key} />
                   <MetaField label="Description" value={m.description} />

@@ -1,6 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ResolveService } from '../resolve/resolve.service';
+import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import {
   ProviderKeyService,
   SYNTHETIC_OLLAMA_PROVIDER_ID,
@@ -58,8 +59,11 @@ import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
 import { parseMaxMessagesPerRequest } from './message-limit';
+import { OPENAI_MODEL_ID_AUTO, routeForOpenAiModelId } from './openai-model-id';
 
-type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
+type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>> & {
+  explicit_model_override?: boolean;
+};
 
 /**
  * Roles excluded from scoring. AI agents (OpenClaw, Hermes, and
@@ -72,7 +76,7 @@ const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
 
 export interface RoutingMeta {
-  tier: TierSlot;
+  tier: TierSlot | 'direct';
   model: string;
   provider: string;
   confidence: number;
@@ -142,6 +146,7 @@ export class ProxyService {
 
   constructor(
     private readonly resolveService: ResolveService,
+    private readonly modelDiscovery: ModelDiscoveryService,
     private readonly providerKeyService: ProviderKeyService,
     private readonly tierService: TierService,
     private readonly openaiOauth: OpenaiOauthService,
@@ -202,6 +207,7 @@ export class ProxyService {
       sessionKey,
       specificityOverride,
       headers,
+      apiMode,
     );
     const responseMode = resolved.response_mode ?? DEFAULT_RESPONSE_MODE;
     const stream = body.stream === true || responseMode === 'stream';
@@ -244,12 +250,15 @@ export class ProxyService {
     // own (provider, auth_type, model) tuple in the model-params service.
     // Pass the agentId here as a thin context bag; the storage is already
     // route-scoped, so no per-provider filter is needed downstream.
+    const explicitModelOverride = resolved.explicit_model_override === true;
     const scopeKey = modelParamsScopeForRouting({
       tier: resolved.tier,
       specificityCategory: resolved.specificity_category,
       headerTierId: resolved.header_tier_id,
     });
-    const paramMergeContext: ParamMergeContext = { agentId, scopeKey };
+    const paramMergeContext: ParamMergeContext | undefined = explicitModelOverride
+      ? undefined
+      : { agentId, scopeKey };
 
     // Snapshot of which known param keys are *effectively in play* for the
     // primary attempt. Stored on every `agent_messages` row recorded for
@@ -260,15 +269,25 @@ export class ProxyService {
     // Independent reads — the params row and the provider spec list don't
     // depend on each other, so fetch them concurrently to shave a round-trip
     // off the cold path before forwarding.
-    const [primaryModelParams, primarySpecs] = await Promise.all([
-      this.modelParamsService.get(agentId, scopeKey, route.provider, route.authType, primaryModel),
-      this.providerParamSpecs.getSpecs(route.provider, route.authType, primaryModel),
-    ]);
-    const primaryRequestParams = snapshotRequestParams({
-      body: routingBody as Record<string, unknown>,
-      modelParams: primaryModelParams,
-      specs: primarySpecs,
-    });
+    const [primaryModelParams, primarySpecs] = explicitModelOverride
+      ? ([null, []] as const)
+      : await Promise.all([
+          this.modelParamsService.get(
+            agentId,
+            scopeKey,
+            route.provider,
+            route.authType,
+            primaryModel,
+          ),
+          this.providerParamSpecs.getSpecs(route.provider, route.authType, primaryModel),
+        ]);
+    const primaryRequestParams = explicitModelOverride
+      ? null
+      : snapshotRequestParams({
+          body: routingBody as Record<string, unknown>,
+          modelParams: primaryModelParams,
+          specs: primarySpecs,
+        });
 
     const forward = await this.fallbackService.tryForwardToProvider({
       provider: route.provider,
@@ -293,7 +312,12 @@ export class ProxyService {
       paramMergeContext,
     });
 
-    if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
+    if (
+      !explicitModelOverride &&
+      !forward.response.ok &&
+      shouldTriggerFallback(forward.response.status) &&
+      paramMergeContext
+    ) {
       const fallbackResult = await this.tryFallbackChain({
         agentId,
         tenantId,
@@ -359,25 +383,27 @@ export class ProxyService {
         isResponses: forward.isResponses,
         isCodeAssist: forward.isCodeAssist,
       };
-      const fallbackResult = await this.tryFallbackChain({
-        agentId,
-        tenantId,
-        resolved,
-        primaryModel,
-        forward: syntheticForward,
-        body,
-        chatBody,
-        stream,
-        sessionKey,
-        signal,
-        signatureLookup,
-        thinkingLookup,
-        reasoningContentLookup,
-        apiMode,
-        paramMergeContext,
-        primaryTenantProviderId: credentials.tenantProviderId,
-      });
-      if (fallbackResult) return fallbackResult;
+      if (!explicitModelOverride && paramMergeContext) {
+        const fallbackResult = await this.tryFallbackChain({
+          agentId,
+          tenantId,
+          resolved,
+          primaryModel,
+          forward: syntheticForward,
+          body,
+          chatBody,
+          stream,
+          sessionKey,
+          signal,
+          signatureLookup,
+          thinkingLookup,
+          reasoningContentLookup,
+          apiMode,
+          paramMergeContext,
+          primaryTenantProviderId: credentials.tenantProviderId,
+        });
+        if (fallbackResult) return fallbackResult;
+      }
 
       // Warmup failed and no fallbacks available: return the synthetic 502
       // instead of the original forward (whose body was consumed by peekStream).
@@ -429,7 +455,25 @@ export class ProxyService {
     sessionKey: string,
     specificityOverride: ProxyRequestOptions['specificityOverride'],
     headers: ProxyRequestOptions['headers'],
-  ) {
+    apiMode: ProxyApiMode,
+  ): Promise<ResolvedRouting> {
+    const requestedModel = typeof body.model === 'string' ? body.model : undefined;
+    // Anthropic Messages requests require a provider-native model field; only
+    // OpenAI-compatible surfaces use /v1/models IDs as route overrides.
+    if (apiMode !== 'messages' && requestedModel && requestedModel !== OPENAI_MODEL_ID_AUTO) {
+      const models = await this.modelDiscovery.getModelsForAgent(tenantId, agentId);
+      return {
+        tier: 'default' as const,
+        route: routeForOpenAiModelId(requestedModel, models),
+        fallback_routes: null,
+        response_mode: DEFAULT_RESPONSE_MODE,
+        confidence: 1,
+        score: 0,
+        reason: 'default' as const,
+        explicit_model_override: true,
+      };
+    }
+
     const messages = body.messages as ScorerMessage[];
     const scoringMessages = this.filterScoringMessages(messages);
     const scoringTools = Array.isArray(body.tools) ? body.tools : undefined;
@@ -437,7 +481,7 @@ export class ProxyService {
     const recentTiers = this.momentum.getRecentTiers(sessionKey);
     const recentCategories = this.momentum.getRecentCategories(sessionKey);
 
-    return isHeartbeat
+    const baseResolved = await (isHeartbeat
       ? this.resolveService.resolveForTier(agentId, tenantId, 'simple')
       : this.resolveService.resolve(
           agentId,
@@ -450,7 +494,9 @@ export class ProxyService {
           specificityOverride,
           recentCategories,
           headers,
-        );
+        ));
+
+    return baseResolved;
   }
 
   private async resolveCredentials(
@@ -707,12 +753,13 @@ export class ProxyService {
     model: string,
     overrides: Partial<RoutingMeta> = {},
   ): RoutingMeta {
+    const directOverride = resolved.explicit_model_override === true;
     return {
-      tier: resolved.tier,
+      tier: directOverride ? 'direct' : resolved.tier,
       model,
       provider: overrides.provider ?? resolved.route?.provider ?? '',
       confidence: resolved.confidence,
-      reason: resolved.reason,
+      reason: directOverride ? 'direct' : resolved.reason,
       auth_type: resolved.route?.authType,
       specificity_category: resolved.specificity_category,
       provider_key_label: resolved.route?.keyLabel ?? undefined,

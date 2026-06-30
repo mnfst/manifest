@@ -1,5 +1,7 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
+import { Injectable } from '@nestjs/common';
 import {
   AUTH_TYPES,
   MODEL_CAPABILITIES,
@@ -23,14 +25,9 @@ import {
   type ProviderParamSpec,
   type ProviderParamSpecCatalog,
 } from 'manifest-shared';
-import { MPS_CATALOG_SNAPSHOT } from './mps-catalog-snapshot';
 
-const MODEL_PARAMETERS_API = 'https://modelparams.dev/api/v1/models.json';
-const MODEL_PARAMETERS_BY_MODEL_API = 'https://modelparams.dev/api/v1/params';
-const FETCH_TIMEOUT_MS = 10000;
-const BY_MODEL_FETCH_TIMEOUT_MS = 1500;
-const BY_MODEL_CACHE_MAX_ENTRIES = 256;
-const BY_MODEL_MISS_CACHE_TTL_MS = 5 * 60 * 1000;
+const MODELPARAMS_PACKAGE_JSON = 'modelparams/package.json';
+const MODELPARAMS_DATA_RELATIVE_PATH = 'dist/generated/data.js';
 const SUBSCRIPTION_MODEL_SUFFIX = '-subscription';
 const SHORT_CLAUDE_MODEL_RE = /^claude-(opus|sonnet|haiku)-/i;
 const DOTTED_CLAUDE_MINOR_RE = /-(\d+)\.(\d{1,2})(?=$|-\d{8}$)/g;
@@ -57,64 +54,16 @@ interface ModelParametersApiResponse {
   models?: unknown;
 }
 
-interface ModelParametersByModelApiResponse {
-  model?: unknown;
-  params?: unknown;
+interface ProviderlessModelParamCandidate {
+  authType: AuthType;
+  model: string;
 }
 
-interface ProviderlessModelParamsCacheEntry {
-  params: readonly ModelParamDefinition[] | null;
-  expiresAt: number | null;
-}
+const requireFromThisModule = createRequire(__filename);
 
 @Injectable()
-export class ProviderParamSpecService implements OnModuleInit {
-  private readonly logger = new Logger(ProviderParamSpecService.name);
-  // Seed from the bundled snapshot so the params catalog is never empty when
-  // modelparams.dev is unreachable at boot (offline / blocked / migrated host).
-  // refreshCache() overwrites this with fresh data on a successful fetch.
-  private specs: ProviderParamSpecCatalog = freezeCatalog(
-    parseModelParametersCatalog(MPS_CATALOG_SNAPSHOT) ?? [],
-  );
-  private readonly byModelParams = new Map<string, ProviderlessModelParamsCacheEntry>();
-  private lastFetchedAt: Date | null = null;
-  private etag: string | null = null;
-
-  onModuleInit(): void {
-    // Fire-and-forget so a slow modelparams.dev fetch can't delay app.listen()
-    // and trip Railway's healthcheck (see #1894). The MPS catalog falls back to
-    // its frozen default until the fetch lands.
-    void this.refreshCache().catch((err) => {
-      this.logger.warn(`Startup modelparams.dev refresh failed: ${err}`);
-    });
-  }
-
-  @Cron(CronExpression.EVERY_DAY_AT_4AM)
-  async refreshCache(): Promise<number> {
-    const { notModified, data, etag } = await this.fetchModelParametersData();
-    if (notModified) {
-      // 304 from the conditional GET — the catalog is byte-for-byte unchanged,
-      // so the cached copy stays authoritative. Record the check, skip re-parse.
-      this.lastFetchedAt = new Date();
-      return this.specs.length;
-    }
-    if (!data) return 0;
-
-    const catalog = parseModelParametersCatalog(data);
-    if (!catalog) {
-      this.logger.warn('modelparams.dev returned an invalid MPS catalog; keeping current cache');
-      return 0;
-    }
-
-    this.specs = freezeCatalog(catalog);
-    this.byModelParams.clear();
-    // Adopt the ETag only now that the body parsed cleanly, so a malformed-but-new
-    // 200 can't suppress a future re-fetch under the same ETag.
-    if (etag) this.etag = etag;
-    this.lastFetchedAt = new Date();
-    this.logger.log(`modelparams.dev MPS catalog loaded: ${this.specs.length} models`);
-    return catalog.length;
-  }
+export class ProviderParamSpecService {
+  private readonly specs: ProviderParamSpecCatalog = loadModelparamsCatalog();
 
   async list(): Promise<ProviderParamSpecCatalog> {
     return this.specs;
@@ -141,7 +90,7 @@ export class ProviderParamSpecService implements OnModuleInit {
     authType: AuthType | undefined,
     model: string | undefined,
   ): Promise<readonly ProviderParamSpec[]> {
-    const providerlessSpecs = await this.getProviderlessSpecs(providerId, authType, model);
+    const providerlessSpecs = this.getProviderlessSpecs(this.specs, providerId, authType, model);
     if (providerlessSpecs.length > 0) return providerlessSpecs;
 
     const directSpecs = getProviderParamSpecs(this.specs, providerId, authType, model);
@@ -168,50 +117,12 @@ export class ProviderParamSpecService implements OnModuleInit {
     return getProviderModelCapabilities(this.specs, metadata.provider, authType, metadata.model);
   }
 
-  getLastFetchedAt(): Date | null {
-    return this.lastFetchedAt;
-  }
-
-  private async fetchModelParametersData(): Promise<{
-    notModified: boolean;
-    data: unknown | null;
-    etag: string | null;
-  }> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-    try {
-      const headers: Record<string, string> = {};
-      if (this.etag) headers['If-None-Match'] = this.etag;
-      const res = await fetch(MODEL_PARAMETERS_API, { signal: controller.signal, headers });
-      // 304 Not Modified: nothing changed since the last successful fetch, so
-      // the daily refresh costs a round-trip with no body transfer as the
-      // catalog grows.
-      if (res.status === 304) return { notModified: true, data: null, etag: null };
-      if (!res.ok) {
-        this.logger.warn(`modelparams.dev API returned ${res.status}`);
-        return { notModified: false, data: null, etag: null };
-      }
-      // Return the candidate ETag without committing it — refreshCache adopts it
-      // only after the body parses, so an invalid 200 can't poison the
-      // conditional request and strand us on the stale cache.
-      return {
-        notModified: false,
-        data: (await res.json()) as unknown,
-        etag: res.headers.get('etag'),
-      };
-    } catch (err) {
-      this.logger.warn(`Failed to fetch modelparams.dev data: ${err}`);
-      return { notModified: false, data: null, etag: null };
-    } finally {
-      clearTimeout(timeout);
-    }
-  }
-
-  private async getProviderlessSpecs(
+  private getProviderlessSpecs(
+    specs: ProviderParamSpecCatalog,
     providerId: string | undefined,
     authType: AuthType | undefined,
     model: string | undefined,
-  ): Promise<readonly ProviderParamSpec[]> {
+  ): readonly ProviderParamSpec[] {
     if (!providerId || !authType || !model || authType === 'local') return [];
 
     const provider = normalizeProviderParamProviderId(providerId);
@@ -219,67 +130,33 @@ export class ProviderParamSpecService implements OnModuleInit {
     const lookupProvider = metadata.provider
       ? normalizeProviderParamProviderId(metadata.provider)
       : provider;
-    const slugs = providerlessModelParamSlugs(lookupProvider, authType, metadata.model);
-    for (const slug of slugs) {
-      const params = await this.fetchProviderlessModelParams(slug);
-      if (!params || params.length === 0) continue;
-      return params
+    const candidates = providerlessModelParamCandidates(lookupProvider, authType, metadata.model);
+    for (const candidate of candidates) {
+      const entry = findProviderlessModelEntry(specs, lookupProvider, candidate);
+      if (!entry || entry.params.length === 0) continue;
+      return entry.params
         .map((param) => ({ provider, authType, model, ...param }))
         .sort(compareProviderParamSpecs);
     }
     return [];
   }
+}
 
-  private async fetchProviderlessModelParams(
-    slug: string,
-  ): Promise<readonly ModelParamDefinition[] | null> {
-    const cached = this.byModelParams.get(slug);
-    if (cached) {
-      if (cached.expiresAt === null || cached.expiresAt > Date.now()) return cached.params;
-      this.byModelParams.delete(slug);
-    }
+function loadModelparamsCatalog(): ProviderParamSpecCatalog {
+  const catalog = parseModelParametersCatalog({ models: loadModelparamsCatalogData() });
+  if (!catalog) throw new Error('modelparams package returned an invalid MPS catalog');
+  return freezeCatalog(catalog);
+}
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), BY_MODEL_FETCH_TIMEOUT_MS);
-    try {
-      const url = `${MODEL_PARAMETERS_BY_MODEL_API}/${encodeURIComponent(slug)}.json`;
-      const res = await fetch(url, { signal: controller.signal });
-      if (!res.ok) {
-        return null;
-      }
-
-      const contentType = res.headers.get('content-type') ?? '';
-      if (contentType && !contentType.toLowerCase().includes('application/json')) {
-        this.cacheProviderlessModelParams(slug, null, true);
-        return null;
-      }
-      const params = parseProviderlessModelParams((await res.json()) as unknown);
-      this.cacheProviderlessModelParams(slug, params, params === null);
-      return params;
-    } catch {
-      return null;
-    } finally {
-      clearTimeout(timeout);
-    }
-  }
-
-  private cacheProviderlessModelParams(
-    slug: string,
-    params: readonly ModelParamDefinition[] | null,
-    expires: boolean,
-  ): void {
-    this.byModelParams.delete(slug);
-    this.byModelParams.set(slug, {
-      params,
-      expiresAt: expires ? Date.now() + BY_MODEL_MISS_CACHE_TTL_MS : null,
-    });
-
-    while (this.byModelParams.size > BY_MODEL_CACHE_MAX_ENTRIES) {
-      const oldest = this.byModelParams.keys().next().value;
-      if (oldest === undefined) break;
-      this.byModelParams.delete(oldest);
-    }
-  }
+function loadModelparamsCatalogData(): unknown {
+  const packageJsonPath = requireFromThisModule.resolve(MODELPARAMS_PACKAGE_JSON);
+  const dataPath = join(dirname(packageJsonPath), MODELPARAMS_DATA_RELATIVE_PATH);
+  const dataModule = readFileSync(dataPath, 'utf8');
+  // modelparams is ESM-only while the backend is CommonJS, so read the generated
+  // JSON-shaped catalog literal directly from the installed package.
+  const match = dataModule.match(/export const CATALOG = ([\s\S]*?);\nfunction authSuffix/);
+  if (!match) throw new Error('modelparams package catalog file has an unknown shape');
+  return JSON.parse(match[1]) as unknown;
 }
 
 function providerMetadataIdentity(
@@ -315,21 +192,48 @@ function withRouteIdentity(
   };
 }
 
-function providerlessModelParamSlugs(
+function providerlessModelParamCandidates(
   providerId: string,
   authType: AuthType,
   model: string,
-): readonly string[] {
-  const out: string[] = [];
+): readonly ProviderlessModelParamCandidate[] {
+  const out: ProviderlessModelParamCandidate[] = [];
   for (const base of providerlessModelBaseCandidates(providerId, model)) {
     for (const variant of providerlessModelSlugVariants(base)) {
-      if (authType === 'subscription' && !variant.endsWith(SUBSCRIPTION_MODEL_SUFFIX)) {
-        pushUnique(out, `${variant}${SUBSCRIPTION_MODEL_SUFFIX}`);
+      if (authType === 'subscription') {
+        pushUniqueCandidate(out, {
+          authType: 'subscription',
+          model: stripSubscriptionModelSuffix(variant),
+        });
+        if (!variant.endsWith(SUBSCRIPTION_MODEL_SUFFIX)) {
+          pushUniqueCandidate(out, { authType: 'api_key', model: variant });
+        }
+        continue;
       }
-      pushUnique(out, variant);
+      pushUniqueCandidate(out, { authType, model: variant });
     }
   }
   return out;
+}
+
+function findProviderlessModelEntry(
+  catalog: ProviderParamSpecCatalog,
+  preferredProvider: string,
+  candidate: ProviderlessModelParamCandidate,
+): ProviderModelParamSpec | null {
+  const normalizedProvider = normalizeProviderParamProviderId(preferredProvider);
+  return (
+    catalog.find(
+      (entry) =>
+        normalizeProviderParamProviderId(entry.provider) === normalizedProvider &&
+        entry.authType === candidate.authType &&
+        entry.model === candidate.model,
+    ) ??
+    catalog.find(
+      (entry) => entry.authType === candidate.authType && entry.model === candidate.model,
+    ) ??
+    null
+  );
 }
 
 function providerlessModelBaseCandidates(providerId: string, model: string): readonly string[] {
@@ -373,8 +277,20 @@ function stripProviderlessDateSuffix(model: string): string {
   return model.replace(DATE_SUFFIX_RE, '');
 }
 
+function stripSubscriptionModelSuffix(model: string): string {
+  if (!model.endsWith(SUBSCRIPTION_MODEL_SUFFIX)) return model;
+  return model.slice(0, -SUBSCRIPTION_MODEL_SUFFIX.length);
+}
+
 function pushUnique(values: string[], value: string): void {
   if (value && !values.includes(value)) values.push(value);
+}
+
+function pushUniqueCandidate(
+  values: ProviderlessModelParamCandidate[],
+  value: ProviderlessModelParamCandidate,
+): void {
+  values.push(value);
 }
 
 function freezeCatalog(catalog: ProviderParamSpecCatalog): ProviderParamSpecCatalog {
@@ -403,18 +319,6 @@ function parseModelParametersCatalog(raw: unknown): ProviderParamSpecCatalog | n
     if (entry) catalog.push(entry);
   }
   return catalog.length > 0 ? catalog : null;
-}
-
-function parseProviderlessModelParams(raw: unknown): readonly ModelParamDefinition[] | null {
-  if (!isRecord(raw)) return null;
-  const response = raw as ModelParametersByModelApiResponse;
-  if (!isNonEmptyString(response.model)) return null;
-  if (!Array.isArray(response.params)) return null;
-
-  const params = response.params
-    .map(parseModelParamDefinition)
-    .filter((param): param is ModelParamDefinition => param !== null);
-  return params.length > 0 ? Object.freeze(params.sort(compareProviderParamSpecs)) : null;
 }
 
 function parseProviderModelParamSpec(raw: unknown): ProviderModelParamSpec | null {

@@ -91,6 +91,27 @@ afterAll(async () => {
 const api = () => request(app.getHttpServer());
 const bearer = (r: request.Test) => r.set('Authorization', `Bearer ${TEST_OTLP_KEY}`);
 
+describe('Proxy E2E — /v1/models', () => {
+  it('rejects unauthenticated requests with HTTP 401', async () => {
+    const res = await api().get('/v1/models').expect(401);
+
+    expect(res.body.error.type).toBe('auth_error');
+    expect(res.body.error.message).toContain('Missing the Authorization header');
+  });
+
+  it('lists the authenticated agent models using the OpenAI-compatible shape', async () => {
+    const res = await bearer(api().get('/v1/models')).expect(200);
+
+    expect(res.body).toEqual({
+      object: 'list',
+      data: [
+        { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
+        { id: 'openai/gpt-4o-mini', object: 'model', created: 0, owned_by: 'openai' },
+      ],
+    });
+  });
+});
+
 describe('Proxy E2E — /v1/chat/completions', () => {
   // Supertest doesn't set Accept by default, and these requests omit
   // `stream: true`, so the exception filter classifies them as non-chat

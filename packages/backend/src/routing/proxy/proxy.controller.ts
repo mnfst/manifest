@@ -21,6 +21,7 @@ import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
+import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { classifyCaller } from './caller-classifier';
 import { sanitizeRequestHeaders } from './request-headers';
 import {
@@ -38,9 +39,23 @@ import { formatManifestError } from '../../common/errors/error-codes';
 import type { ProxyApiMode } from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
+import { openAiModelId } from './openai-model-id';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
+const MODEL_CREATED_UNKNOWN = 0;
+
+interface OpenAiModelObject {
+  id: string;
+  object: 'model';
+  created: number;
+  owned_by: string;
+}
+
+interface OpenAiModelList {
+  object: 'list';
+  data: OpenAiModelObject[];
+}
 
 @Controller('v1')
 @Public()
@@ -59,23 +74,42 @@ export class ProxyController {
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
     private readonly reasoningCache: ReasoningContentCache,
+    private readonly modelDiscovery: ModelDiscoveryService,
   ) {}
 
   @Get('models')
-  models(): Record<string, unknown> {
+  async models(
+    @Req() req: Request & { ingestionContext: IngestionContext },
+  ): Promise<OpenAiModelList> {
+    const models = await this.modelDiscovery.getModelsForAgent(
+      req.ingestionContext.tenantId,
+      req.ingestionContext.agentId,
+    );
+    const data: OpenAiModelObject[] = [
+      {
+        id: 'auto',
+        object: 'model',
+        created: MODEL_CREATED_UNKNOWN,
+        owned_by: 'manifest',
+      },
+    ];
+    const seen = new Set(data.map((model) => model.id));
+
+    for (const model of models) {
+      const id = openAiModelId(model);
+      if (seen.has(id)) continue;
+      seen.add(id);
+      data.push({
+        id,
+        object: 'model',
+        created: MODEL_CREATED_UNKNOWN,
+        owned_by: model.provider,
+      });
+    }
+
     return {
       object: 'list',
-      data: [
-        {
-          id: 'auto',
-          object: 'model',
-          type: 'model',
-          display_name: 'Manifest Auto',
-        },
-      ],
-      has_more: false,
-      first_id: 'auto',
-      last_id: 'auto',
+      data,
     };
   }
 

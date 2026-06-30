@@ -5,7 +5,12 @@ import { resolveProviderMetadataIdentity, type AuthType } from 'manifest-shared'
 import { TenantProvider } from '../entities/tenant-provider.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
-import { ProviderModelFetcherService, filterNonChatModels } from './provider-model-fetcher.service';
+import {
+  ProviderModelFetcherService,
+  PROVIDER_BLOCKLIST,
+  PROVIDER_NON_CHAT,
+  filterNonChatModels,
+} from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
 import { DiscoveredModel, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
 import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
@@ -54,6 +59,17 @@ function modelsDevModelIdPrefix(providerId: string): string | undefined {
 function prefersModelsDevCatalog(providerId: string): boolean {
   const lower = providerId.toLowerCase();
   return lower === 'opencode-zen';
+}
+
+function nonChatFilterKey(providerId: string, authType: AuthType): string {
+  const normalizedProvider = providerId.toLowerCase();
+  if (authType !== 'subscription') return normalizedProvider;
+
+  const subscriptionKey = `${normalizedProvider}-subscription`;
+  if (PROVIDER_NON_CHAT[subscriptionKey] || PROVIDER_BLOCKLIST[subscriptionKey]) {
+    return subscriptionKey;
+  }
+  return normalizedProvider;
 }
 
 /** 2-minute TTL for the per-agent discovered-model list, matching RoutingCacheService. */
@@ -473,10 +489,7 @@ export class ModelDiscoveryService {
       if (!Array.isArray(rawCached)) continue;
       const providerAuthType: AuthType = p.auth_type;
       const providerId = p.provider.toLowerCase();
-      const filterKey =
-        providerId === 'openai' && providerAuthType === 'subscription'
-          ? 'openai-subscription'
-          : providerId;
+      const filterKey = nonChatFilterKey(providerId, providerAuthType);
       const cached = filterNonChatModels(rawCached, filterKey);
       for (const m of cached) {
         const effectiveAuthType = m.authType ?? providerAuthType;

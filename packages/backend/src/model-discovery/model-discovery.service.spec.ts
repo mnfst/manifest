@@ -685,6 +685,30 @@ describe('ModelDiscoveryService', () => {
       expect(result.map((m) => m.id)).toEqual(['gpt-5.5', 'gpt-5.3-codex-spark']);
     });
 
+    it('should keep Mistral Vibe subscription cached models that API-key Mistral hides', async () => {
+      const providers = [
+        makeProvider({
+          provider: 'mistral',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'mistral-vibe-cli-latest',
+              provider: 'mistral',
+              authType: 'subscription',
+            }),
+          ],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result.map((m) => `${m.provider}:${m.authType}:${m.id}`)).toEqual([
+        'mistral:subscription:mistral-vibe-cli-latest',
+      ]);
+    });
+
     it('should inherit auth_type from tenant_providers row for custom provider models', async () => {
       const providers = [
         makeProvider({

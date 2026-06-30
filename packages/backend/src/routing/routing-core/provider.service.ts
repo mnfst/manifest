@@ -13,6 +13,7 @@ import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { Agent } from '../../entities/agent.entity';
 import { HeaderTier } from '../../entities/header-tier.entity';
+import { AgentMessage } from '../../entities/agent-message.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { randomUUID } from 'crypto';
@@ -96,6 +97,12 @@ export class ProviderService {
   ): Repository<AgentEnabledProvider> | null {
     if (!this.enabledProviderRepo) return null;
     return manager ? manager.getRepository(AgentEnabledProvider) : this.enabledProviderRepo;
+  }
+
+  private agentMessageRepo(manager?: EntityManager): Repository<AgentMessage> {
+    return manager
+      ? manager.getRepository(AgentMessage)
+      : this.providerRepo.manager.getRepository(AgentMessage);
   }
 
   /**
@@ -959,10 +966,12 @@ export class ProviderService {
   /**
    * Delete a single labeled key from a provider's chain. If it was the last
    * key for the (agent, provider, auth_type) tuple, falls through to the
-   * existing whole-provider teardown. Routes pinned to this key block deletion.
+   * existing whole-provider teardown. Routes pinned to an active key block
+   * deletion; inactive keys are already disconnected, so deleting them clears
+   * stale label pins and removes the row.
    */
   private async removeKeyByLabel(
-    agentId: string,
+    agentId: string | null,
     tenantId: string,
     provider: string,
     authType: AuthType | undefined,
@@ -978,6 +987,20 @@ export class ProviderService {
     const target = matching.find((r) => r.label.toLowerCase() === label.toLowerCase());
     if (!target) throw new NotFoundException('Provider key not found');
 
+    if (!target.is_active) {
+      await this.relabelOverrides(tenantId, provider, target.auth_type, target.label, null);
+      await this.agentMessageRepo(manager).delete({
+        tenant_id: tenantId,
+        tenant_provider_id: target.id,
+      });
+      await repo.remove(target);
+      await this.deleteProviderAccess([target.id], manager);
+      await this.renumberPriorities(tenantId, provider, target.auth_type, manager);
+      if (agentId !== null) this.routingCache.invalidateAgent(agentId);
+      this.routingCache.invalidateTenant(tenantId);
+      return { notifications: [] };
+    }
+
     const stillHasOtherKeys = matching.some(
       (r) => r.id !== target.id && r.is_active && isManifestUsableProvider(r),
     );
@@ -992,7 +1015,7 @@ export class ProviderService {
     await repo.remove(target);
     await this.deleteProviderAccess([target.id], manager);
     await this.renumberPriorities(tenantId, provider, target.auth_type, manager);
-    this.routingCache.invalidateAgent(agentId);
+    if (agentId !== null) this.routingCache.invalidateAgent(agentId);
     this.routingCache.invalidateTenant(tenantId);
     return { notifications: [] };
   }

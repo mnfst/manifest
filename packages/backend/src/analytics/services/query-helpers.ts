@@ -26,6 +26,31 @@ export function computeTrend(current: number, previous: number): number {
   return Math.max(-999, Math.min(999, pct));
 }
 
+/**
+ * Statuses that represent a failed request. The single source of truth for
+ * "what is an error" — consumed both by the Messages-log error filter and by
+ * every "messages" KPI count below, so the two notions can never drift.
+ */
+export const ERROR_MESSAGE_STATUSES = ['error', 'fallback_error', 'rate_limited'] as const;
+
+/**
+ * SQL `COUNT(*)` expression that counts only real (non-error) messages.
+ *
+ * Use this for EVERY user-facing "messages" metric — Overview card, agent grid,
+ * per-agent usage, per-provider / per-model timeseries — so the surfaces always
+ * agree. Previously the Overview summed an unfiltered `COUNT(*)` while the agent
+ * grid excluded errors, so the headline total diverged from the per-agent sums
+ * by the whole error rate (~35% in production). A NULL status counts as a real
+ * message (legacy rows predate the status column).
+ *
+ * Note: the Messages *log* total intentionally stays an unfiltered `COUNT(*)` —
+ * it is a complete event listing that must page over failed rows too.
+ */
+export function sqlCountMessages(alias = 'at'): string {
+  const list = ERROR_MESSAGE_STATUSES.map((s) => `'${s}'`).join(', ');
+  return `COUNT(*) FILTER (WHERE ${alias}.status IS NULL OR ${alias}.status NOT IN (${list}))`;
+}
+
 export function downsample(data: number[], targetLen: number): number[] {
   if (data.length <= targetLen) return data;
   const result: number[] = [];

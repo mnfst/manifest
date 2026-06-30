@@ -17,9 +17,11 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
         'byteplus',
         'openai',
         'minimax',
+        'mistral',
         'xiaomi',
         'qwen',
         'moonshot',
+        'nous',
         'copilot',
         'commandcode',
         'ollama-cloud',
@@ -95,6 +97,18 @@ describe('getSubscriptionProviderConfig', () => {
     });
   });
 
+  it('returns config for Mistral Vibe subscription', () => {
+    const config = getSubscriptionProviderConfig('mistral');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Mistral Vibe subscription',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your Mistral Vibe API key',
+      knownModelsMatch: 'exact',
+    });
+    expect(config?.knownModels).toEqual(['mistral-vibe-cli-latest']);
+  });
+
   it('returns config for Xiaomi MiMo Token Plan', () => {
     const config = getSubscriptionProviderConfig('xiaomi');
     expect(config).toMatchObject({
@@ -153,6 +167,16 @@ describe('getSubscriptionProviderConfig', () => {
       subscriptionLabel: 'Command Code subscription',
       subscriptionAuthMode: 'token',
       subscriptionKeyPlaceholder: 'Paste your Command Code API key',
+    });
+  });
+
+  it('returns config for NousResearch', () => {
+    const config = getSubscriptionProviderConfig('nous');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'NousResearch subscription',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your NousResearch API key',
     });
   });
 
@@ -263,9 +287,11 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('byteplus')).toBe(true);
     expect(supportsSubscriptionProvider('openai')).toBe(true);
     expect(supportsSubscriptionProvider('minimax')).toBe(true);
+    expect(supportsSubscriptionProvider('mistral')).toBe(true);
     expect(supportsSubscriptionProvider('xiaomi')).toBe(true);
     expect(supportsSubscriptionProvider('qwen')).toBe(true);
     expect(supportsSubscriptionProvider('moonshot')).toBe(true);
+    expect(supportsSubscriptionProvider('nous')).toBe(true);
     expect(supportsSubscriptionProvider('copilot')).toBe(true);
     expect(supportsSubscriptionProvider('commandcode')).toBe(true);
     expect(supportsSubscriptionProvider('ollama-cloud')).toBe(true);
@@ -283,7 +309,6 @@ describe('supportsSubscriptionProvider', () => {
   it('returns false for unsupported providers', () => {
     expect(supportsSubscriptionProvider('deepseek')).toBe(false);
     expect(supportsSubscriptionProvider('kilo')).toBe(false);
-    expect(supportsSubscriptionProvider('mistral')).toBe(false);
   });
 });
 
@@ -312,11 +337,19 @@ describe('getSubscriptionKnownModels', () => {
     expect(getSubscriptionKnownModels('commandcode')).toBeNull();
   });
 
+  it('returns null for Nous (dynamic Portal catalog, no hardcoded list)', () => {
+    expect(getSubscriptionKnownModels('nous')).toBeNull();
+  });
+
   it('returns known models for minimax including M2.7', () => {
     const models = getSubscriptionKnownModels('minimax');
     expect(models).toContain('MiniMax-M2.7');
     expect(models).toContain('MiniMax-M2.7-highspeed');
     expect(models).toContain('MiniMax-M2.5');
+  });
+
+  it('returns the fixed model id for Mistral Vibe', () => {
+    expect(getSubscriptionKnownModels('mistral')).toEqual(['mistral-vibe-cli-latest']);
   });
 
   it('returns known models for Xiaomi MiMo Token Plan', () => {
@@ -396,6 +429,10 @@ describe('getSubscriptionKnownModelsMatch', () => {
 
   it('returns exact for moonshot Kimi Coding Plan', () => {
     expect(getSubscriptionKnownModelsMatch('moonshot')).toBe('exact');
+  });
+
+  it('returns exact for Mistral Vibe', () => {
+    expect(getSubscriptionKnownModelsMatch('mistral')).toBe('exact');
   });
 
   it('returns exact for Xiaomi MiMo Token Plan', () => {
@@ -495,6 +532,15 @@ describe('getSubscriptionCapabilities', () => {
     });
   });
 
+  it('returns capabilities for Mistral Vibe subscription', () => {
+    const caps = getSubscriptionCapabilities('mistral');
+    expect(caps).toMatchObject({
+      maxContextWindow: 200000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
   it('returns capabilities for Xiaomi MiMo Token Plan', () => {
     const caps = getSubscriptionCapabilities('xiaomi');
     expect(caps).toMatchObject({
@@ -515,6 +561,15 @@ describe('getSubscriptionCapabilities', () => {
 
   it('returns capabilities for Command Code', () => {
     const caps = getSubscriptionCapabilities('commandcode');
+    expect(caps).toMatchObject({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for Nous', () => {
+    const caps = getSubscriptionCapabilities('nous');
     expect(caps).toMatchObject({
       maxContextWindow: 1000000,
       supportsPromptCaching: false,
