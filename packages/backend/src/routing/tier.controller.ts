@@ -24,6 +24,7 @@ import {
   UpdateAutofixDto,
 } from './dto/routing.dto';
 import { Agent } from '../entities/agent.entity';
+import { AutofixService } from './autofix/autofix.service';
 
 @Controller('api/v1/routing')
 export class TierController {
@@ -32,6 +33,7 @@ export class TierController {
     private readonly resolveAgentService: ResolveAgentService,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
+    private readonly autofixService: AutofixService,
   ) {}
 
   @Get(':agentName/tiers')
@@ -173,6 +175,7 @@ export class TierController {
     if (Object.keys(update).length > 0) {
       await this.agentRepo.update(agent.id, update);
       this.resolveAgentService.invalidate(agent.tenant_id, agentName);
+      this.autofixService.invalidateConfig(agent.tenant_id, agent.id);
     }
     return {
       enabled: update.autofix_enabled ?? agent.autofix_enabled,

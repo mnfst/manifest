@@ -9,7 +9,7 @@ import type { ProxyApiMode } from '../proxy/proxy-types';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
 import { normalizeProviderError } from './provider-error-normalizer';
 import type { AutofixChainEntry, AutofixOutcome, AutofixRecord } from './autofix.types';
-import type { HealOutcome, HealResponse } from './phoenix.types';
+import type { HealOutcome, HealResponse, PhoenixProviderError } from './phoenix.types';
 
 export interface MaybeHealParams {
   forward: ForwardResult;
@@ -31,7 +31,14 @@ export interface AutofixAttempt {
   record: AutofixRecord;
 }
 
+interface AgentAutofixConfig {
+  enabled: boolean;
+  maxAttempts: number;
+}
+
 const DEFAULT_REPAIRABLE_STATUSES = '400,404,422';
+const CONFIG_CACHE_TTL_MS = 30_000;
+const CONFIG_CACHE_MAX = 5_000;
 
 function parseStatuses(raw: string | undefined): Set<number> {
   const source = raw && raw.trim().length > 0 ? raw : DEFAULT_REPAIRABLE_STATUSES;
@@ -57,12 +64,18 @@ function rebuildForward(base: ForwardResult, body: string, status: number): Forw
   };
 }
 
+/** Stable identity of a provider error — the dims that decide "same error". */
+function errorFingerprint(status: number, error: PhoenixProviderError): string {
+  return `${status}:${error.code ?? ''}:${error.param ?? ''}:${error.message}`;
+}
+
 /**
  * Auto-fix: heal a repairable request-side 4xx by handing the failed request and
  * its provider error to Phoenix, resending the patched body, and looping up to a
  * per-agent budget — all BEFORE the fallback chain runs. A no-op unless the
  * forward already failed with a repairable status AND the agent opted in, so
- * successful traffic is never touched.
+ * successful traffic is never touched. Any unexpected failure inside the flow
+ * degrades to the original provider error — healing never makes a request worse.
  */
 @Injectable()
 export class AutofixService {
@@ -70,6 +83,10 @@ export class AutofixService {
   private readonly globalEnabled: boolean;
   private readonly defaultMaxAttempts: number;
   private readonly repairableStatuses: Set<number>;
+  private readonly configCache = new Map<
+    string,
+    { value: AgentAutofixConfig; expiresAt: number }
+  >();
 
   constructor(
     @Inject(HEALING_CLIENT) private readonly client: HealingClient,
@@ -87,6 +104,11 @@ export class AutofixService {
     return this.repairableStatuses.has(status);
   }
 
+  /** Drop a cached per-agent config so a toggle/budget change takes effect now. */
+  invalidateConfig(tenantId: string, agentId: string): void {
+    this.configCache.delete(`${tenantId}:${agentId}`);
+  }
+
   async maybeHeal(params: MaybeHealParams): Promise<AutofixAttempt | null> {
     const { forward } = params;
     // Hot path: successful and non-repairable forwards never enter healing.
@@ -94,14 +116,48 @@ export class AutofixService {
     const status = forward.response.status;
     if (!this.isRepairable(status)) return null;
 
-    const cfg = await this.loadAgentConfig(params.agentId, params.tenantId);
+    let cfg: AgentAutofixConfig;
+    try {
+      cfg = await this.loadAgentConfig(params.agentId, params.tenantId);
+    } catch (err) {
+      // A config-load failure (DB hiccup) must never turn a recoverable provider
+      // error into a crash — skip healing; the forward is still intact.
+      this.logger.warn(`autofix config load failed, skipping: ${(err as Error).message}`);
+      return null;
+    }
     if (!cfg.enabled) return null;
 
     // Read the original error once, then rebuild it so it stays readable
-    // downstream (fallback / recorder) when we can't heal.
+    // downstream (fallback / recorder) whether or not we heal.
     const originalText = await forward.response.text();
     const originalForward = rebuildForward(forward, originalText, status);
 
+    try {
+      return await this.runHealLoop(params, status, originalText, originalForward, cfg.maxAttempts);
+    } catch (err) {
+      // Any unexpected failure inside the loop (reforward, network, parsing…)
+      // degrades to the original provider error — never a Manifest 500.
+      this.logger.warn(`autofix loop failed, using original error: ${(err as Error).message}`);
+      return {
+        forward: originalForward,
+        record: {
+          groupId: uuid(),
+          outcome: 'exhausted',
+          attempts: 0,
+          original_http_status: status,
+          chain: [],
+        },
+      };
+    }
+  }
+
+  private async runHealLoop(
+    params: MaybeHealParams,
+    status: number,
+    originalText: string,
+    originalForward: ForwardResult,
+    maxAttempts: number,
+  ): Promise<AutofixAttempt> {
     const groupId = uuid();
     const chain: AutofixChainEntry[] = [];
     let currentBody = params.requestBody;
@@ -110,9 +166,17 @@ export class AutofixService {
     let attempts = 0;
     let outcome: AutofixOutcome = 'exhausted';
     let healedForward: ForwardResult | null = null;
+    let lastFingerprint: string | null = null;
 
-    while (attempts < cfg.maxAttempts) {
+    while (attempts < maxAttempts) {
       const normalized = normalizeProviderError(currentText);
+      const fingerprint = errorFingerprint(currentStatus, normalized);
+      // "Healing sink": the retry produced the exact error we just tried to heal,
+      // so re-healing would loop with the same patch. Stop instead of burning the
+      // whole budget on a fix that isn't making progress.
+      if (fingerprint === lastFingerprint) break;
+      lastFingerprint = fingerprint;
+
       const entry: AutofixChainEntry = {
         attempt: attempts,
         origin: attempts === 0 ? 'original' : 'autofix',
@@ -196,18 +260,33 @@ export class AutofixService {
     };
   }
 
-  private async loadAgentConfig(
-    agentId: string,
-    tenantId: string,
-  ): Promise<{ enabled: boolean; maxAttempts: number }> {
+  private async loadAgentConfig(agentId: string, tenantId: string): Promise<AgentAutofixConfig> {
+    const key = `${tenantId}:${agentId}`;
+    const now = Date.now();
+    const cached = this.configCache.get(key);
+    if (cached && cached.expiresAt > now) return cached.value;
+
     const agent = await this.agentRepo.findOne({
       where: { id: agentId, tenant_id: tenantId },
       select: ['autofix_enabled', 'autofix_max_attempts'],
     });
-    if (!agent || !agent.autofix_enabled) return { enabled: false, maxAttempts: 0 };
-    const budget = agent.autofix_max_attempts;
-    const maxAttempts = Number.isInteger(budget) && budget > 0 ? budget : this.defaultMaxAttempts;
-    return { enabled: true, maxAttempts };
+    const budget = agent?.autofix_max_attempts;
+    const value: AgentAutofixConfig =
+      agent && agent.autofix_enabled
+        ? {
+            enabled: true,
+            maxAttempts:
+              Number.isInteger(budget) && (budget as number) > 0
+                ? (budget as number)
+                : this.defaultMaxAttempts,
+          }
+        : { enabled: false, maxAttempts: 0 };
+
+    // Only the failure path reaches here; caching keeps a 4xx storm from doing a
+    // DB read per failed request. Bounded + short TTL, invalidated on config change.
+    if (this.configCache.size >= CONFIG_CACHE_MAX) this.configCache.clear();
+    this.configCache.set(key, { value, expiresAt: now + CONFIG_CACHE_TTL_MS });
+    return value;
   }
 
   /** Fire-and-forget the learning signal so it never delays the client. */

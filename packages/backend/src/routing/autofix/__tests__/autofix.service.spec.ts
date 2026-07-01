@@ -101,6 +101,24 @@ function reforwardMock(
   );
 }
 
+/**
+ * A `reforward` mock that returns a DISTINCT repairable 4xx on every call (the
+ * `code`/`message` are incremented per attempt). Each retry therefore produces a
+ * new error fingerprint, so the "healing sink" guard never trips and the loop
+ * runs to the full budget — the only stop is `maxAttempts`.
+ */
+function distinctErrorReforward(
+  status = 400,
+): jest.Mock<Promise<ForwardResult>, [Record<string, unknown>]> {
+  let n = 0;
+  return jest.fn((_healedBody: Record<string, unknown>) => {
+    n += 1;
+    return Promise.resolve(
+      makeForward(JSON.stringify({ error: { message: `e${n}`, code: `c${n}` } }), status),
+    );
+  });
+}
+
 /** Yield to the microtask queue so fire-and-forget `.catch` handlers run. */
 const flushMicrotasks = () => new Promise((resolve) => setImmediate(resolve));
 
@@ -127,10 +145,11 @@ describe('AutofixService', () => {
     it('parses a valid AUTOFIX_DEFAULT_MAX_ATTEMPTS override', async () => {
       // A valid > 0 default is used when the agent has no explicit budget.
       const client = makeHealingClient();
-      // Phoenix keeps handing patched bodies; reforward keeps failing (repairable)
-      // → attempts are bounded by the default budget of 5.
+      // Phoenix keeps handing patched bodies; each reforward fails with a DISTINCT
+      // repairable error so the sink guard never trips → attempts are bounded only
+      // by the default budget of 5.
       client.heal.mockResolvedValue(patchedHeal());
-      const reforward = reforwardMock('{"error":{"message":"still bad"}}', 400);
+      const reforward = distinctErrorReforward(400);
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 0 }));
       const service = makeService({
         client: client as unknown as HealingClient,
@@ -146,7 +165,7 @@ describe('AutofixService', () => {
     it('falls back to 3 when AUTOFIX_DEFAULT_MAX_ATTEMPTS is non-numeric', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
-      const reforward = reforwardMock('{"error":{"message":"still bad"}}', 400);
+      const reforward = distinctErrorReforward(400);
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 0 }));
       const service = makeService({
         client: client as unknown as HealingClient,
@@ -485,8 +504,9 @@ describe('AutofixService', () => {
     it('exhausts the budget, reporting each failed retry, and returns the original', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
-      // reforward always returns a repairable 4xx → budget is the only stop.
-      const reforward = reforwardMock('{"error":{"message":"still broken"}}', 400);
+      // Each reforward fails with a DISTINCT repairable 4xx (e1/c1, e2/c2, …) so
+      // the sink guard never trips → the budget is the only stop.
+      const reforward = distinctErrorReforward(400);
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 2 }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
       const originalBody = '{"error":{"message":"first"}}';
@@ -500,14 +520,16 @@ describe('AutofixService', () => {
       expect(reforward).toHaveBeenCalledTimes(2);
 
       // Each failed retry is reported with its >=400 status and the normalized
-      // error of that retry's body.
-      const failedOutcome = {
-        retryStatusCode: 400,
-        error: { message: 'still broken', type: null, param: null, code: null },
-      };
+      // error of that retry's (distinct) body.
       expect(client.reportOutcome).toHaveBeenCalledTimes(2);
-      expect(client.reportOutcome).toHaveBeenNthCalledWith(1, 'heal-1', failedOutcome);
-      expect(client.reportOutcome).toHaveBeenNthCalledWith(2, 'heal-1', failedOutcome);
+      expect(client.reportOutcome).toHaveBeenNthCalledWith(1, 'heal-1', {
+        retryStatusCode: 400,
+        error: { message: 'e1', type: null, param: null, code: 'c1' },
+      });
+      expect(client.reportOutcome).toHaveBeenNthCalledWith(2, 'heal-1', {
+        retryStatusCode: 400,
+        error: { message: 'e2', type: null, param: null, code: 'c2' },
+      });
 
       // Falls back to the rebuilt original error.
       expect(result!.forward.response.status).toBe(400);
@@ -666,7 +688,7 @@ describe('AutofixService', () => {
     it('falls back to the default budget when autofix_max_attempts is undefined', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
-      const reforward = reforwardMock('{"error":{"message":"bad"}}', 400);
+      const reforward = distinctErrorReforward(400);
       // autofix_max_attempts undefined (Number.isInteger(undefined) === false).
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
@@ -680,7 +702,7 @@ describe('AutofixService', () => {
     it('falls back to the default budget when autofix_max_attempts is NaN', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
-      const reforward = reforwardMock('{"error":{"message":"bad"}}', 400);
+      const reforward = distinctErrorReforward(400);
       const { repo } = makeAgentRepo(() => ({
         autofix_enabled: true,
         autofix_max_attempts: Number.NaN,
@@ -690,6 +712,180 @@ describe('AutofixService', () => {
       const result = await service.maybeHeal(makeParams({ reforward }));
       expect(result!.record.attempts).toBe(3);
       expect(reforward).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // maybeHeal — healing-sink guard (M2)
+  // -------------------------------------------------------------------------
+  describe('maybeHeal healing-sink guard', () => {
+    it('stops after one reforward when the retry reproduces the exact same error', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue(patchedHeal());
+      // The retry reproduces the SAME error the original failed with (same
+      // status/code/message → identical fingerprint). The budget is 5, but the
+      // sink guard must break on the SECOND iteration — BEFORE a second
+      // heal/reforward — so only ONE reforward ever happens. The original body
+      // and the retry body match so the fingerprints coincide.
+      const sameError = '{"error":{"message":"same","code":"dup"}}';
+      const reforward = reforwardMock(sameError, 400);
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 5 }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+      const originalBody = sameError;
+
+      const result = await service.maybeHeal(
+        makeParams({ forward: makeForward(originalBody, 400), reforward }),
+      );
+
+      expect(result!.record.outcome).toBe('exhausted');
+      // One patched retry was resent; the guard then stopped without re-healing.
+      expect(result!.record.attempts).toBe(1);
+      expect(reforward).toHaveBeenCalledTimes(1);
+      // Only the original iteration reached the heal service.
+      expect(client.heal).toHaveBeenCalledTimes(1);
+      // The single failed retry was still reported.
+      expect(client.reportOutcome).toHaveBeenCalledTimes(1);
+
+      // Returns the rebuilt ORIGINAL error, still readable.
+      expect(result!.forward.response.status).toBe(400);
+      await expect(result!.forward.response.text()).resolves.toBe(originalBody);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // maybeHeal — graceful degradation (H1): never turn a provider 4xx into a 500
+  // -------------------------------------------------------------------------
+  describe('maybeHeal graceful degradation', () => {
+    it('resolves null (does not throw) when the agent config load rejects', async () => {
+      const { repo, findOne } = makeAgentRepo(() => {
+        throw new Error('db down');
+      });
+      // Silence the expected "autofix config load failed" warning.
+      jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+      const service = makeService({ repo });
+
+      await expect(service.maybeHeal(makeParams({}))).resolves.toBeNull();
+      expect(findOne).toHaveBeenCalledTimes(1);
+    });
+
+    it('degrades to the readable original error (does not throw) when reforward rejects', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue(patchedHeal());
+      // The heal produced a patch, but resending it blows up (network death).
+      const reforward = jest.fn().mockRejectedValue(new Error('socket hang up'));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 3 }));
+      // Silence the expected "autofix loop failed" warning.
+      jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+      const originalBody = '{"error":{"message":"boom"}}';
+
+      const result = await service.maybeHeal(
+        makeParams({ forward: makeForward(originalBody, 400), reforward }),
+      );
+
+      // Never re-throws: outcome is exhausted with a zero-attempt empty chain.
+      expect(result!.record.outcome).toBe('exhausted');
+      expect(result!.record.attempts).toBe(0);
+      expect(result!.record.original_http_status).toBe(400);
+      expect(result!.record.chain).toEqual([]);
+      expect(typeof result!.record.groupId).toBe('string');
+
+      // The returned forward is the rebuilt original — still readable downstream.
+      expect(result!.forward.response.status).toBe(400);
+      await expect(result!.forward.response.text()).resolves.toBe(originalBody);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // maybeHeal — per-agent config cache (M4)
+  // -------------------------------------------------------------------------
+  describe('maybeHeal config cache', () => {
+    it('caches the per-agent config so a second heal for the same agent skips the DB read', async () => {
+      const client = makeHealingClient();
+      // Each maybeHeal needs a fresh failing forward; keep them from healing so
+      // the flow is simple — no_patch returns quickly without a reforward.
+      client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-x' });
+      const { repo, findOne } = makeAgentRepo(() => ({
+        autofix_enabled: true,
+        autofix_max_attempts: 3,
+      }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      // First heal: cold cache → one DB read.
+      await service.maybeHeal(
+        makeParams({ forward: makeForward('{"error":{"message":"a"}}', 400) }),
+      );
+      expect(findOne).toHaveBeenCalledTimes(1);
+
+      // Second heal for the SAME agent/tenant: warm cache → no additional read.
+      await service.maybeHeal(
+        makeParams({ forward: makeForward('{"error":{"message":"b"}}', 400) }),
+      );
+      expect(findOne).toHaveBeenCalledTimes(1);
+
+      // Invalidating the entry forces the next heal to hit the DB again.
+      service.invalidateConfig('tenant-1', 'agent-1');
+      await service.maybeHeal(
+        makeParams({ forward: makeForward('{"error":{"message":"c"}}', 400) }),
+      );
+      expect(findOne).toHaveBeenCalledTimes(2);
+    });
+
+    it('caches per (tenant, agent) key so a different agent still reads the DB', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-x' });
+      const { repo, findOne } = makeAgentRepo(() => ({
+        autofix_enabled: true,
+        autofix_max_attempts: 3,
+      }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      await service.maybeHeal(
+        makeParams({
+          agentId: 'agent-A',
+          forward: makeForward('{"error":{"message":"a"}}', 400),
+        }),
+      );
+      // Different agent under the same tenant is a distinct cache key → new read.
+      await service.maybeHeal(
+        makeParams({
+          agentId: 'agent-B',
+          forward: makeForward('{"error":{"message":"b"}}', 400),
+        }),
+      );
+      expect(findOne).toHaveBeenCalledTimes(2);
+    });
+
+    it('clears the whole cache once it reaches the bound, then re-populates', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-x' });
+      const { repo, findOne } = makeAgentRepo(() => ({
+        autofix_enabled: true,
+        autofix_max_attempts: 3,
+      }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      // Pre-fill the bounded cache to exactly its cap (5000) with dummy entries
+      // so the next real load trips the `size >= CONFIG_CACHE_MAX` branch.
+      const cache = (service as unknown as { configCache: Map<string, unknown> }).configCache;
+      for (let i = 0; i < 5000; i += 1) {
+        cache.set(`filler-tenant:filler-agent-${i}`, {
+          value: { enabled: false, maxAttempts: 0 },
+          expiresAt: Date.now() + 30_000,
+        });
+      }
+      expect(cache.size).toBe(5000);
+
+      // A fresh load with a full cache clears everything, then stores this one.
+      await service.maybeHeal(
+        makeParams({ forward: makeForward('{"error":{"message":"z"}}', 400) }),
+      );
+
+      // DB was still read (nothing for this key survived the clear) and the cache
+      // now holds only the single freshly-loaded entry.
+      expect(findOne).toHaveBeenCalledTimes(1);
+      expect(cache.size).toBe(1);
+      expect(cache.has('tenant-1:agent-1')).toBe(true);
     });
   });
 });

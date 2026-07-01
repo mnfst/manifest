@@ -4,6 +4,7 @@ import { TierController } from './tier.controller';
 import { TierService } from './routing-core/tier.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { Agent } from '../entities/agent.entity';
+import { AutofixService } from './autofix/autofix.service';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 
 describe('TierController', () => {
@@ -19,6 +20,7 @@ describe('TierController', () => {
   let tierService: jest.Mocked<Partial<TierService>>;
   let resolveAgentService: { resolve: jest.Mock; invalidate: jest.Mock };
   let agentRepo: jest.Mocked<Partial<Repository<Agent>>>;
+  let autofixService: { invalidateConfig: jest.Mock };
   let controller: TierController;
 
   beforeEach(() => {
@@ -38,10 +40,12 @@ describe('TierController', () => {
     agentRepo = {
       update: jest.fn().mockResolvedValue(undefined),
     };
+    autofixService = { invalidateConfig: jest.fn() };
     controller = new TierController(
       tierService as unknown as TierService,
       resolveAgentService as unknown as ResolveAgentService,
       agentRepo as unknown as Repository<Agent>,
+      autofixService as unknown as AutofixService,
     );
   });
 
@@ -143,6 +147,7 @@ describe('TierController', () => {
       autofix_max_attempts: 5,
     });
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
+    expect(autofixService.invalidateConfig).toHaveBeenCalledWith('tenant-1', 'agent-1');
   });
 
   it('PATCH autofix updates only the provided field', async () => {

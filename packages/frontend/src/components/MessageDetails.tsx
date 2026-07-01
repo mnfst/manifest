@@ -82,17 +82,18 @@ function AutofixSection(props: {
   onOpenMessage?: (id: string) => void;
 }): JSX.Element {
   const isOriginal = () => props.role === 'original';
+  // An 'original' row only got "repaired" if a successful retry exists (its
+  // sibling). Without one, Auto-fix ran but couldn't fix it — don't claim it did.
+  const bannerText = () => {
+    if (!isOriginal()) return 'Successful retry of a request Manifest auto-fixed.';
+    return props.sibling
+      ? 'This request failed and was automatically repaired, then retried.'
+      : 'This request failed. Auto-fix tried but could not repair it.';
+  };
   return (
     <div class="msg-detail__section">
       <div class="msg-detail__section-title">Auto-fix</div>
-      <div class="msg-detail__fallback-banner">
-        <Show
-          when={isOriginal()}
-          fallback={<>Successful retry of a request Manifest auto-fixed.</>}
-        >
-          This request failed and was automatically repaired, then retried.
-        </Show>
-      </div>
+      <div class="msg-detail__fallback-banner">{bannerText()}</div>
       <Show when={props.operations && props.operations.length > 0}>
         <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
           <For each={props.operations!}>

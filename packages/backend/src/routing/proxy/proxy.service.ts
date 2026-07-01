@@ -143,6 +143,31 @@ export interface ProxyResult {
   autofix?: AutofixRecord;
 }
 
+/** Everything Auto-fix's reforward needs to re-send a healed body to a provider. */
+interface HealedReforwardContext {
+  agentId: string;
+  tenantId: string;
+  apiMode: ProxyApiMode;
+  sessionKey: string;
+  signal?: AbortSignal;
+  stream: boolean;
+  specificityOverride?: ProxyRequestOptions['specificityOverride'];
+  headers?: ProxyRequestOptions['headers'];
+  originalModel: string | undefined;
+  provider: string;
+  apiKey: string;
+  rawApiKey: string;
+  model: string;
+  keyLabel?: string;
+  authType?: AuthType;
+  resourceUrl?: string;
+  providerRegion?: string | null;
+  paramMergeContext: ParamMergeContext | undefined;
+  signatureLookup: SignatureLookup;
+  thinkingLookup: ThinkingBlockLookup;
+  reasoningContentLookup: ReasoningContentLookup;
+}
+
 @Injectable()
 export class ProxyService {
   private readonly logger = new Logger(ProxyService.name);
@@ -319,29 +344,28 @@ export class ProxyService {
       apiMode,
       requestBody: body,
       reforward: (healedBody) =>
-        this.fallbackService.tryForwardToProvider({
-          provider: route.provider,
-          apiKey: credentials.apiKey,
-          model: primaryModel,
-          body: healedBody,
-          chatBody: this.toChatBody(apiMode, healedBody),
-          stream,
-          sessionKey,
-          signal,
+        this.reforwardHealed(healedBody, {
           agentId,
           tenantId,
-          rawApiKey: credentials.rawApiKey,
-          providerKeyLabel: route.keyLabel ?? undefined,
-          authType: route.authType,
           apiMode,
+          sessionKey,
+          signal,
+          stream,
+          specificityOverride,
+          headers,
+          originalModel: typeof body.model === 'string' ? body.model : undefined,
+          provider: route.provider,
+          apiKey: credentials.apiKey,
+          rawApiKey: credentials.rawApiKey,
+          model: primaryModel,
+          keyLabel: route.keyLabel ?? undefined,
+          authType: route.authType,
           resourceUrl: credentials.resourceUrl,
           providerRegion: credentials.providerRegion,
+          paramMergeContext,
           signatureLookup,
           thinkingLookup,
           reasoningContentLookup,
-          // Send exactly Phoenix's healed body — don't re-merge param defaults
-          // that could re-introduce the parameter the provider just rejected.
-          paramMergeContext: undefined,
         }),
     });
     const autofixRecord = autofixAttempt?.record;
@@ -485,6 +509,111 @@ export class ProxyService {
     if (apiMode === 'responses') return toChatCompletionsRequest(body);
     if (apiMode === 'messages') return messagesToChatCompletionsRequest(body);
     return undefined;
+  }
+
+  /**
+   * Re-send an Auto-fix-healed body to a provider. Same model → reuse the
+   * already-resolved route and re-apply the agent's param merge so configured
+   * model params aren't dropped (M3). Model changed (e.g. an unknown-model fix)
+   * → re-resolve so the new model reaches the right provider/key (M5).
+   */
+  private reforwardHealed(
+    healedBody: Record<string, unknown>,
+    ctx: HealedReforwardContext,
+  ): Promise<ForwardResult> {
+    const healedModel = typeof healedBody.model === 'string' ? healedBody.model : undefined;
+    if (healedModel && healedModel !== ctx.originalModel) {
+      return this.forwardResolvedHealed(healedBody, ctx);
+    }
+    return this.fallbackService.tryForwardToProvider({
+      provider: ctx.provider,
+      apiKey: ctx.apiKey,
+      model: ctx.model,
+      body: healedBody,
+      chatBody: this.toChatBody(ctx.apiMode, healedBody),
+      stream: ctx.stream,
+      sessionKey: ctx.sessionKey,
+      signal: ctx.signal,
+      agentId: ctx.agentId,
+      tenantId: ctx.tenantId,
+      rawApiKey: ctx.rawApiKey,
+      providerKeyLabel: ctx.keyLabel,
+      authType: ctx.authType,
+      apiMode: ctx.apiMode,
+      resourceUrl: ctx.resourceUrl,
+      providerRegion: ctx.providerRegion,
+      signatureLookup: ctx.signatureLookup,
+      thinkingLookup: ctx.thinkingLookup,
+      reasoningContentLookup: ctx.reasoningContentLookup,
+      paramMergeContext: ctx.paramMergeContext,
+    });
+  }
+
+  private async forwardResolvedHealed(
+    healedBody: Record<string, unknown>,
+    ctx: HealedReforwardContext,
+  ): Promise<ForwardResult> {
+    const routingBody = this.toChatBody(ctx.apiMode, healedBody) ?? healedBody;
+    const resolved = await this.resolveRouting(
+      ctx.agentId,
+      ctx.tenantId,
+      routingBody,
+      ctx.sessionKey,
+      ctx.specificityOverride,
+      ctx.headers,
+      ctx.apiMode,
+    );
+    const route = resolved.route;
+    if (!route) return this.autofixReforwardError('no route resolved for the healed model');
+    const credentials = await this.resolveCredentials(ctx.agentId, ctx.tenantId, {
+      provider: route.provider,
+      auth_type: route.authType,
+      provider_key_label: route.keyLabel ?? undefined,
+    });
+    if (!credentials) return this.autofixReforwardError('no provider key for the healed model');
+    const explicitModelOverride = resolved.explicit_model_override === true;
+    const scopeKey = modelParamsScopeForRouting({
+      tier: resolved.tier,
+      specificityCategory: resolved.specificity_category,
+      headerTierId: resolved.header_tier_id,
+    });
+    return this.fallbackService.tryForwardToProvider({
+      provider: route.provider,
+      apiKey: credentials.apiKey,
+      model: normalizeProviderModel(route.provider, route.model),
+      body: healedBody,
+      chatBody: this.toChatBody(ctx.apiMode, healedBody),
+      stream: ctx.stream,
+      sessionKey: ctx.sessionKey,
+      signal: ctx.signal,
+      agentId: ctx.agentId,
+      tenantId: ctx.tenantId,
+      rawApiKey: credentials.rawApiKey,
+      providerKeyLabel: route.keyLabel ?? undefined,
+      authType: route.authType,
+      apiMode: ctx.apiMode,
+      resourceUrl: credentials.resourceUrl,
+      providerRegion: credentials.providerRegion,
+      signatureLookup: ctx.signatureLookup,
+      thinkingLookup: ctx.thinkingLookup,
+      reasoningContentLookup: ctx.reasoningContentLookup,
+      paramMergeContext: explicitModelOverride ? undefined : { agentId: ctx.agentId, scopeKey },
+    });
+  }
+
+  /** Synthetic failed forward so a heal that can't be re-routed surfaces the original error. */
+  private autofixReforwardError(reason: string): ForwardResult {
+    return {
+      response: new Response(JSON.stringify({ error: { message: `Auto-fix: ${reason}` } }), {
+        status: 502,
+        headers: { 'content-type': 'application/json' },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+      isResponses: false,
+      isCodeAssist: false,
+    };
   }
 
   private validatePayload(body: ProxyRequestOptions['body']): void {

@@ -198,7 +198,10 @@ describe('MessageDetails Auto-fix section', () => {
     expect(container.querySelector('.msg-detail__autofix-link')).toBeNull();
   });
 
-  it('omits the sibling link when autofix_sibling is null', async () => {
+  it('shows the "could not repair" banner and no link when autofix_sibling is null', async () => {
+    // An `original` row with no retry sibling means Auto-fix ran but never
+    // produced a working request — the banner must not claim it was repaired,
+    // and there is no sibling to link to.
     const noSibling = {
       message: {
         ...originalResponse.message,
@@ -215,7 +218,15 @@ describe('MessageDetails Auto-fix section', () => {
       expect(container.textContent).toContain('Auto-fix');
     });
 
-    // The section renders (with banner + operation) but no link.
+    // The "could not repair" banner, not the "repaired then retried" one.
+    expect(container.textContent).toContain(
+      'This request failed. Auto-fix tried but could not repair it.',
+    );
+    expect(container.textContent).not.toContain(
+      'This request failed and was automatically repaired, then retried.',
+    );
+
+    // The section still renders its operation chips, but there is no link.
     expect(container.textContent).toContain('rename_param: max_tokens → max_output_tokens');
     expect(container.querySelector('.msg-detail__autofix-link')).toBeNull();
   });

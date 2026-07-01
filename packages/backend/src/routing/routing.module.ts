@@ -9,6 +9,7 @@ import { OAuthModule } from './oauth/oauth.module';
 import { CustomProviderModule } from './custom-provider/custom-provider.module';
 import { ResolveModule } from './resolve/resolve.module';
 import { HeaderTiersModule } from './header-tiers/header-tiers.module';
+import { AutofixModule } from './autofix/autofix.module';
 import { ProviderController } from './provider.controller';
 import { TierController } from './tier.controller';
 import { ModelController } from './model.controller';
@@ -50,6 +51,7 @@ import { HeaderTier } from '../entities/header-tier.entity';
     CustomProviderModule,
     ResolveModule,
     HeaderTiersModule,
+    AutofixModule,
   ],
   controllers: [
     ProviderController,
