@@ -143,6 +143,12 @@ const formatLimitAmount = (value: number | null, unit: string | null): string | 
   return unit ? `${formatted} ${unit}` : formatted;
 };
 
+const formatProjectedPercent = (value: number | null | undefined): string | null => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  const rounded = Math.round(Math.max(0, value) * 10) / 10;
+  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`;
+};
+
 const formatLimitResetRelative = (iso: string | null): string => {
   if (!iso) return '-';
   const date = new Date(iso);
@@ -268,7 +274,7 @@ const subscriptionPaceLabel = (pace: SubscriptionLimitPace): string => {
 
 const subscriptionPaceDetail = (pace: SubscriptionLimitPace): string | null => {
   if (pace.projectedPercent === null) return null;
-  return `Projected ${formatLimitPercent(pace.projectedPercent) ?? '-'} by reset`;
+  return `Projected ${formatProjectedPercent(pace.projectedPercent) ?? '-'} by reset`;
 };
 
 const limitAmountLine = (window: SubscriptionUsageWindow): string | null => {
@@ -350,7 +356,7 @@ const SubscriptionLimitDetailRow: Component<{ window: SubscriptionUsageWindow }>
           <SubscriptionLimitGauge usedPercent={usedPercent()} tone={tone()} />
           <div style="flex: 1; min-width: 0;">
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-              <span>{usedLabel() ? `${usedLabel()} used` : 'No meter'}</span>
+              <span>{usedLabel() ? `${usedLabel()} used` : 'Balance only'}</span>
               <Show when={remainingLabel()}>
                 <span>{remainingLabel()} left</span>
               </Show>
