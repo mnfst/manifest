@@ -21,6 +21,14 @@ function scrubForPublic(text: string | null | undefined): string {
   return scrubSecrets(text ?? '').replace(EMAIL_RE, '[email]');
 }
 
+// A `custom:<id>` provider is a single tenant's private endpoint — its errors
+// are tenant-specific and can never become a public page. Rejected here at the
+// valve (the single choke point) no matter what the caller pushes, mirroring the
+// `custom:%` exclusion already applied in discovery.
+function isCustomProvider(provider: string | null | undefined): boolean {
+  return /^custom($|[:/])/i.test(provider ?? '');
+}
+
 @Injectable()
 export class ErrorPagesService {
   constructor(
@@ -42,6 +50,12 @@ export class ErrorPagesService {
    * sent — the public table must never hold an un-vetted row.
    */
   async upsert(dto: UpsertErrorPageDto): Promise<{ ok: true; slug: string }> {
+    if (isCustomProvider(dto.provider)) {
+      throw new BadRequestException(
+        `Refusing to publish "${dto.slug}": custom providers are tenant-specific and cannot be public pages.`,
+      );
+    }
+
     const tenants = Number(dto.stats?.tenants ?? 0);
     if (!Number.isFinite(tenants) || tenants < MIN_TENANTS_FOR_PUBLIC) {
       throw new BadRequestException(
