@@ -67,6 +67,26 @@ export class AgentMessage {
   @Column('integer', { nullable: true })
   error_http_status!: number | null;
 
+  /**
+   * WHO caused a failed row: 'provider' | 'transport' | 'config' | 'policy' |
+   * 'internal'. NULL on successful rows. Separates a provider's own error (a
+   * reliability event) from Manifest's own config/policy/internal rejections
+   * (which are returned as HTTP 200 stubs and are NOT provider failures).
+   * Derived by classifyMessageError() in manifest-shared — the single source of
+   * truth shared with the backfill migration.
+   */
+  @Column('varchar', { nullable: true })
+  error_origin!: string | null;
+
+  /**
+   * WHAT kind of failure it was (normalized): 'rate_limit' | 'auth' |
+   * 'invalid_request' | 'server_error' | 'timeout' | 'network' | 'no_provider'
+   * | 'no_provider_key' | 'limit_exceeded' | 'internal' | … A rate limit is a
+   * *class* of provider error here, not a top-level status. NULL on success.
+   */
+  @Column('varchar', { nullable: true })
+  error_class!: string | null;
+
   @Column('varchar', { nullable: true })
   description!: string | null;
 
@@ -99,6 +119,16 @@ export class AgentMessage {
 
   @Column('integer', { nullable: true })
   fallback_index!: number | null;
+
+  /**
+   * True when this row is a superseded attempt — one that failed but was
+   * recovered by a later attempt (retry / fallback). It is the failed hop, not
+   * the request's terminal outcome, so it must never count as a message. Splits
+   * the "was this handled?" axis out of the legacy `status = 'fallback_error'`
+   * value (which is still written this phase for back-compat).
+   */
+  @Column('boolean', { default: false })
+  superseded!: boolean;
 
   /**
    * DEPRECATED — informational attribution only, written by the proxy

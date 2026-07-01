@@ -4,13 +4,14 @@ import { FallbackIcon, HeartbeatIcon, ModelCell, AgentCell, StatusCell } from '.
 import type { MessageRow } from '../../src/components/message-table-types';
 
 vi.mock('@solidjs/router', () => ({
-  A: (props: any) => <a href={props.href}>{props.children}</a>,
+  A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
 }));
 
 vi.mock('../../src/services/formatters.js', () => ({
   formatCost: (v: number) => `$${v.toFixed(2)}`,
   formatNumber: (v: number) => String(v),
-  formatStatus: (s: string) => s,
+  formatStatus: (s: string) =>
+    ({ ok: 'Success', error: 'Failed', rate_limited: 'Failed', fallback_error: 'Handled' })[s] ?? s,
   formatTime: (t: string) => t,
   formatDuration: (ms: number) => `${ms}ms`,
   formatErrorMessage: (s: string) => s,
@@ -90,21 +91,94 @@ describe('AgentCell', () => {
   });
 });
 
-describe('StatusCell without agentName (global mode)', () => {
-  it('renders plain text for rate_limited when no agentName provided', () => {
-    const row = baseRow({ status: 'rate_limited' });
-    const { container } = render(() => <table><tbody><tr>{StatusCell(row, undefined)}</tr></tbody></table>);
-    // No link, just text
-    expect(container.querySelector('a')).toBeNull();
-    expect(container.textContent).toContain('rate_limited');
+describe('StatusCell merged pill', () => {
+  function renderCell(row: MessageRow) {
+    return render(() => (
+      <table>
+        <tbody>
+          <tr>{StatusCell(row, undefined)}</tr>
+        </tbody>
+      </table>
+    ));
+  }
+
+  function onlyBadge(container: HTMLElement) {
+    const badges = container.querySelectorAll('.status-badge');
+    // Exactly ONE pill per cell — the whole point of the merge.
+    expect(badges.length).toBe(1);
+    return badges[0]!;
+  }
+
+  it('merges a provider error into a single red "Failed: Provider" pill', () => {
+    const { container } = renderCell(
+      baseRow({ status: 'error', error_message: 'boom', error_origin: 'provider' }),
+    );
+    const badge = onlyBadge(container);
+    expect(badge.textContent).toContain('Failed: Provider');
+    expect(badge.className).toContain('status-badge--error');
   });
 
-  it('renders link for rate_limited when agentName is provided', () => {
-    const row = baseRow({ status: 'rate_limited' });
-    const { container } = render(() => <table><tbody><tr>{StatusCell(row, 'my-agent')}</tr></tbody></table>);
+  it('merges a transport error into "Failed: Transport"', () => {
+    const { container } = renderCell(
+      baseRow({ status: 'error', error_message: 'net', error_origin: 'transport' }),
+    );
+    expect(onlyBadge(container).textContent).toContain('Failed: Transport');
+  });
+
+  it('renders a provider rate limit as "Failed: Provider" with no limits link', () => {
+    const { container } = renderCell(
+      baseRow({ status: 'rate_limited', error_message: 'rl', error_origin: 'provider' }),
+    );
+    expect(container.querySelector('a')).toBeNull();
+    expect(onlyBadge(container).textContent).toContain('Failed: Provider');
+  });
+
+  it('merges a handled fallback into an amber "Handled: Provider" pill', () => {
+    const { container } = renderCell(
+      baseRow({ status: 'fallback_error', error_message: 'overloaded', error_origin: 'provider' }),
+    );
+    const badge = onlyBadge(container);
+    expect(badge.textContent).toContain('Handled: Provider');
+    expect(badge.className).toContain('status-badge--fallback_error');
+  });
+
+  it('renders a successful row as a single "Success" pill (no descriptor)', () => {
+    const { container } = renderCell(baseRow({ status: 'ok' }));
+    const badge = onlyBadge(container);
+    expect(badge.textContent!.trim()).toBe('Success');
+    expect(container.querySelector('a')).toBeNull();
+  });
+
+  it("merges a Manifest limit into one red 'Failed: Custom limit' pill linking to its agent's limits", () => {
+    const { container } = renderCell(
+      baseRow({
+        agent_name: 'billing-bot',
+        status: 'error',
+        error_message: 'Usage limit exceeded',
+        error_origin: 'policy',
+        error_class: 'limit_exceeded',
+      }),
+    );
     const link = container.querySelector('a');
     expect(link).not.toBeNull();
-    expect(link!.getAttribute('href')).toContain('/harnesses/my-agent/limits');
+    expect(link!.getAttribute('href')).toContain('/harnesses/billing-bot/limits');
+    expect(link!.textContent).toContain('Failed: Custom limit');
+    expect(link!.className).toContain('status-badge--error');
+    expect(container.querySelectorAll('a').length).toBe(1);
+  });
+
+  it('renders a Manifest limit with no agent as the pill without a link', () => {
+    const { container } = renderCell(
+      baseRow({
+        agent_name: null,
+        status: 'error',
+        error_message: 'Usage limit exceeded',
+        error_origin: 'policy',
+        error_class: 'limit_exceeded',
+      }),
+    );
+    expect(container.querySelector('a')).toBeNull();
+    expect(onlyBadge(container).textContent).toContain('Failed: Custom limit');
   });
 });
 

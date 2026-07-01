@@ -39,6 +39,7 @@ vi.mock('../../src/services/formatters.js', () => ({
   formatCost: (v: number) => `$${v.toFixed(2)}`,
   formatNumber: (v: number) => String(v),
   formatStatus: (s: string) => s,
+  formatErrorOrigin: (o: string | null | undefined) => o ?? null,
   formatTime: (t: string) => t,
 }));
 
@@ -148,7 +149,7 @@ describe('Overview - trend badges and status display', () => {
     expect(trendBadges.length).toBe(0);
   });
 
-  it('renders rate_limited status as a link to the limits page', async () => {
+  it('renders a provider rate_limited row as a plain error, not a limits-page link', async () => {
     const rateLimitedData = {
       ...overviewData,
       recent_activity: [
@@ -170,9 +171,9 @@ describe('Overview - trend badges and status display', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('rate_limited');
     });
-    const link = container.querySelector('.status-badge--rate_limited a');
-    expect(link).not.toBeNull();
-    expect(link?.getAttribute('href')).toContain('/limits');
+    // A provider rate limit is a plain error — it must not link to the Manifest
+    // spend-limits page (that page is for the user's own software limits).
+    expect(container.querySelector('.status-badge--rate_limited a')).toBeNull();
   });
 
   it('renders routing tier badge when routing_tier is set', async () => {

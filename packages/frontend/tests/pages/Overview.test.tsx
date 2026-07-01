@@ -51,6 +51,7 @@ vi.mock('../../src/services/formatters.js', () => ({
   formatCost: (v: number) => `$${v.toFixed(2)}`,
   formatNumber: (v: number) => String(v),
   formatStatus: (s: string) => s,
+  formatErrorOrigin: (o: string | null | undefined) => o ?? null,
   formatTime: (t: string) => t,
   formatErrorMessage: (s: string) => s,
   customProviderColor: vi.fn(() => '#6366f1'),

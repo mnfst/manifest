@@ -13,7 +13,11 @@ import {
   MESSAGE_ROW_SELECT_ALIASES,
   sqlCountMessages,
   ERROR_MESSAGE_STATUSES,
+  MANIFEST_ORIGIN_PREDICATE,
+  DEFAULT_LOG_ORIGIN_PREDICATE,
+  LOG_HIDDEN_ORIGINS,
 } from './query-helpers';
+import { MANIFEST_ERROR_ORIGINS } from 'manifest-shared';
 import { SelectQueryBuilder } from 'typeorm';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 
@@ -359,6 +363,22 @@ describe('selectMessageRowColumns', () => {
     expect(specCall).toEqual(['at.specificity_category', 'specificity_category']);
   });
 
+  it('projects error_origin and error_class so the frontend can render the taxonomy', () => {
+    const { qb, addSelectCalls } = makeMockQb();
+    selectMessageRowColumns(qb, 'cost');
+
+    expect(addSelectCalls.find(([, a]) => a === 'error_origin')).toEqual([
+      'at.error_origin',
+      'error_origin',
+    ]);
+    expect(addSelectCalls.find(([, a]) => a === 'error_class')).toEqual([
+      'at.error_class',
+      'error_class',
+    ]);
+    expect(MESSAGE_ROW_SELECT_ALIASES).toContain('error_origin');
+    expect(MESSAGE_ROW_SELECT_ALIASES).toContain('error_class');
+  });
+
   it('returns the query builder for chaining', () => {
     const { qb } = makeMockQb();
     const result = selectMessageRowColumns(qb, 'cost');
@@ -408,5 +428,21 @@ describe('sqlCountMessages', () => {
     for (const status of ERROR_MESSAGE_STATUSES) {
       expect(sqlCountMessages()).toContain(`'${status}'`);
     }
+  });
+});
+
+describe('origin predicates', () => {
+  it('MANIFEST_ORIGIN_PREDICATE matches every Manifest origin (config/policy/internal)', () => {
+    expect(MANIFEST_ERROR_ORIGINS).toEqual(['config', 'policy', 'internal']);
+    expect(MANIFEST_ORIGIN_PREDICATE).toBe("at.error_origin IN ('config', 'policy', 'internal')");
+  });
+
+  it('hides only setup (config) errors from the log by default; a Manifest limit stays visible', () => {
+    expect(LOG_HIDDEN_ORIGINS).toEqual(['config']);
+    expect(DEFAULT_LOG_ORIGIN_PREDICATE).toBe(
+      "(at.error_origin IS NULL OR at.error_origin NOT IN ('config'))",
+    );
+    // policy (limit_exceeded) must NOT be hidden — operators need to see limit hits.
+    expect(DEFAULT_LOG_ORIGIN_PREDICATE).not.toContain("'policy'");
   });
 });

@@ -130,4 +130,36 @@ describe('MessagesQueryDto', () => {
     const errors = await validate(dto);
     expect(errors).toHaveLength(0);
   });
+
+  it('accepts each known origin filter including the manifest shorthand', async () => {
+    for (const origin of ['provider', 'transport', 'config', 'policy', 'internal', 'manifest']) {
+      const dto = plainToInstance(MessagesQueryDto, { origin });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    }
+  });
+
+  it('rejects an unknown origin value', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { origin: 'provider-ish' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+    expect(flat.join('\n')).toMatch(/origin must be one of/);
+  });
+
+  it('accepts a known error_class value', async () => {
+    for (const error_class of ['rate_limit', 'auth', 'server_error', 'no_provider_key']) {
+      const dto = plainToInstance(MessagesQueryDto, { error_class });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    }
+  });
+
+  it('rejects an unknown error_class value', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { error_class: 'kaboom' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+    expect(flat.join('\n')).toMatch(/error_class must be one of/);
+  });
 });

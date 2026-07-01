@@ -14,6 +14,9 @@ export interface MessageDetailResponse {
     status: string;
     error_message: string | null;
     error_http_status: number | null;
+    error_origin: string | null;
+    error_class: string | null;
+    superseded: boolean;
     description: string | null;
     service_type: string | null;
     input_tokens: number;
@@ -72,6 +75,9 @@ export class MessageDetailsService {
         status: message.status,
         error_message: message.error_message,
         error_http_status: message.error_http_status,
+        error_origin: message.error_origin,
+        error_class: message.error_class,
+        superseded: message.superseded,
         description: message.description,
         service_type: message.service_type,
         input_tokens: message.input_tokens,

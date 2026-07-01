@@ -6,6 +6,7 @@ import {
 } from '../services/api.js';
 import { inferProviderName } from '../services/routing-utils.js';
 import { getModelDisplayName } from '../services/model-display.js';
+import { formatErrorClass, formatErrorOrigin } from '../services/formatters.js';
 import { ModelParamsSection, RequestHeadersSection } from './MessageDetailsSections.jsx';
 import { routingTierLabel } from './message-table-types.js';
 
@@ -91,6 +92,16 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                 <div class="msg-detail__section">
                   <div class="msg-detail__section-title">Error</div>
                   <div class="msg-detail__error-box">{m.error_message}</div>
+                  <div class="msg-detail__meta">
+                    <MetaField label="Origin" value={formatErrorOrigin(m.error_origin)} />
+                    <MetaField label="Type" value={formatErrorClass(m.error_class)} />
+                    <Show when={m.superseded}>
+                      <span class="msg-detail__meta-item">
+                        <span class="msg-detail__meta-label">Attempt</span>
+                        Superseded (recovered by a fallback)
+                      </span>
+                    </Show>
+                  </div>
                 </div>
               </Show>
 
