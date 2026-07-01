@@ -25,8 +25,8 @@ function scrubForPublic(text: string | null | undefined): string {
 // are tenant-specific and can never become a public page. Rejected here at the
 // valve (the single choke point) no matter what the caller pushes, mirroring the
 // `custom:%` exclusion already applied in discovery.
-function isCustomProvider(provider: string | null | undefined): boolean {
-  return /^custom($|[:/])/i.test(provider ?? '');
+function isCustomProvider(provider: string): boolean {
+  return /^custom($|[:/])/i.test(provider);
 }
 
 @Injectable()
