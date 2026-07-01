@@ -106,6 +106,13 @@
   cursor: pointer;
 }
 
+/* Auto-fix: the failed original of a healed pair. Orange (not red) — it failed
+   but was recovered. */
+.status-badge--auto_fixed {
+  background: hsl(25 95% 53% / 0.15);
+  color: hsl(25 95% 44%);
+}
+
 @keyframes msg-highlight-flash {
   0% {
     background: hsl(38 92% 50% / 0.15);

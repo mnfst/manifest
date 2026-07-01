@@ -58,6 +58,10 @@ describe('MessageDetailsService', () => {
     header_tier_color: null,
     specificity_category: null,
     specificity_miscategorized: false,
+    autofix_applied: false,
+    autofix_group_id: null,
+    autofix_role: null,
+    autofix_operations: null,
   };
 
   beforeEach(async () => {
@@ -140,7 +144,36 @@ describe('MessageDetailsService', () => {
       header_tier_id: null,
       header_tier_name: null,
       header_tier_color: null,
+      autofix_applied: false,
+      autofix_role: null,
+      autofix_operations: null,
+      autofix_sibling: null,
     });
+  });
+
+  it('resolves the autofix sibling when the message has a group id', async () => {
+    msgQb.getOne
+      .mockResolvedValueOnce({
+        ...baseMessage,
+        id: 'msg-1',
+        autofix_group_id: 'grp-9',
+        autofix_role: 'original',
+      })
+      .mockResolvedValueOnce({ id: 'msg-retry', autofix_role: 'retry', status: 'ok' });
+    const result = await service.getDetails('msg-1', 'u1');
+    expect(result.message.autofix_sibling).toEqual({
+      id: 'msg-retry',
+      role: 'retry',
+      status: 'ok',
+    });
+  });
+
+  it('returns a null sibling when no paired row exists', async () => {
+    msgQb.getOne
+      .mockResolvedValueOnce({ ...baseMessage, id: 'msg-1', autofix_group_id: 'grp-9' })
+      .mockResolvedValueOnce(null);
+    const result = await service.getDetails('msg-1', 'u1');
+    expect(result.message.autofix_sibling).toBeNull();
   });
 
   it('does not return recording, llm_calls, tool_executions, or agent_logs', async () => {

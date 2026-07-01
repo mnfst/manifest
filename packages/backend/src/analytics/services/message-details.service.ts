@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import type { CallerAttribution } from '../../routing/proxy/caller-classifier';
+import type { PhoenixOperation } from '../../routing/autofix/phoenix.types';
 import type { RequestParamDefaults } from 'manifest-shared';
 
 export interface MessageDetailResponse {
@@ -42,6 +43,11 @@ export interface MessageDetailResponse {
     header_tier_id: string | null;
     header_tier_name: string | null;
     header_tier_color: string | null;
+    autofix_applied: boolean;
+    autofix_role: string | null;
+    autofix_operations: PhoenixOperation[] | null;
+    /** The paired row (failed original ↔ successful retry), for the visual link. */
+    autofix_sibling: { id: string; role: string | null; status: string } | null;
   };
 }
 
@@ -62,6 +68,10 @@ export class MessageDetailsService {
       .andWhere('m.tenant_id = :tenantId', { tenantId })
       .getOne();
     if (!message) throw new NotFoundException('Message not found');
+
+    const autofix_sibling = message.autofix_group_id
+      ? await this.findAutofixSibling(message.id, message.autofix_group_id, tenantId)
+      : null;
 
     return {
       message: {
@@ -100,7 +110,28 @@ export class MessageDetailsService {
         header_tier_id: message.header_tier_id,
         header_tier_name: message.header_tier_name,
         header_tier_color: message.header_tier_color,
+        autofix_applied: message.autofix_applied,
+        autofix_role: message.autofix_role,
+        autofix_operations: (message.autofix_operations as PhoenixOperation[] | null) ?? null,
+        autofix_sibling,
       },
     };
+  }
+
+  /** Resolve the paired Auto-fix row (failed original ↔ successful retry). */
+  private async findAutofixSibling(
+    id: string,
+    groupId: string,
+    tenantId: string,
+  ): Promise<{ id: string; role: string | null; status: string } | null> {
+    const sibling = await this.messageRepo
+      .createQueryBuilder('m')
+      .where('m.autofix_group_id = :groupId', { groupId })
+      .andWhere('m.tenant_id = :tenantId', { tenantId })
+      .andWhere('m.id != :id', { id })
+      .orderBy('m.timestamp', 'DESC')
+      .getOne();
+    if (!sibling) return null;
+    return { id: sibling.id, role: sibling.autofix_role, status: sibling.status };
   }
 }

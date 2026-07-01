@@ -21,6 +21,7 @@ import {
   SetFallbacksDto,
   SetResponseModeDto,
   responseModeFromDto,
+  UpdateAutofixDto,
 } from './dto/routing.dto';
 import { Agent } from '../entities/agent.entity';
 
@@ -151,6 +152,32 @@ export class TierController {
     await this.agentRepo.update(agent.id, { complexity_routing_enabled: newValue });
     this.resolveAgentService.invalidate(agent.tenant_id, agentName);
     return { enabled: newValue };
+  }
+
+  @Get(':agentName/autofix')
+  async getAutofix(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    return { enabled: agent.autofix_enabled, maxAttempts: agent.autofix_max_attempts };
+  }
+
+  @Patch(':agentName/autofix')
+  async updateAutofix(
+    @TenantCtx() ctx: TenantContext,
+    @Param('agentName') agentName: string,
+    @Body() body: UpdateAutofixDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    const update: Partial<Agent> = {};
+    if (body.enabled !== undefined) update.autofix_enabled = body.enabled;
+    if (body.maxAttempts !== undefined) update.autofix_max_attempts = body.maxAttempts;
+    if (Object.keys(update).length > 0) {
+      await this.agentRepo.update(agent.id, update);
+      this.resolveAgentService.invalidate(agent.tenant_id, agentName);
+    }
+    return {
+      enabled: update.autofix_enabled ?? agent.autofix_enabled,
+      maxAttempts: update.autofix_max_attempts ?? agent.autofix_max_attempts,
+    };
   }
 
   private validateTier(tier: string): void {

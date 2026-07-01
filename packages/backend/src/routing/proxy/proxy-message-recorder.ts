@@ -16,6 +16,22 @@ import { CallerAttribution } from './caller-classifier';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
+import type { AutofixRecord } from '../autofix/autofix.types';
+
+/** Auto-fix columns for one row of a healed pair (or an exhausted attempt). */
+function autofixColumns(
+  autofix: AutofixRecord | undefined,
+  role: 'original' | 'retry',
+): Partial<AgentMessage> {
+  if (!autofix) return {};
+  const operations = autofix.chain.find((e) => e.operations)?.operations ?? null;
+  return {
+    autofix_applied: true,
+    autofix_group_id: autofix.groupId,
+    autofix_role: role,
+    autofix_operations: (operations as object | null) ?? null,
+  };
+}
 
 export interface HeaderTierRef {
   headerTierId?: string | null;
@@ -52,6 +68,8 @@ export interface ProviderErrorOpts extends HeaderTierRef {
    * provider request. Persisted to `agent_messages.request_params`.
    */
   requestParams?: RequestParamDefaults | null;
+  /** Auto-fix audit when this error was the terminal outcome after healing. */
+  autofix?: AutofixRecord;
 }
 
 export interface FallbackSuccessOpts extends HeaderTierRef {
@@ -98,6 +116,21 @@ export interface SuccessMessageOpts extends HeaderTierRef {
    * Persisted to agent_messages.tenant_provider_id so per-connection analytics
    * scope by the exact key rather than the non-unique provider/auth/label tuple.
    */
+  tenantProviderId?: string | null;
+  callerAttribution?: CallerAttribution | null;
+  requestHeaders?: Record<string, string> | null;
+  requestParams?: RequestParamDefaults | null;
+  /** Auto-fix audit when a healed request succeeded. */
+  autofix?: AutofixRecord;
+}
+
+export interface AutofixOriginalOpts extends HeaderTierRef {
+  provider?: string;
+  reason?: string;
+  authType?: string;
+  traceId?: string;
+  specificityCategory?: string;
+  providerKeyLabel?: string;
   tenantProviderId?: string | null;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
@@ -188,6 +221,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierId,
       headerTierName,
       headerTierColor,
+      autofix,
     } = opts ?? {};
 
     if (httpStatus === 429) {
@@ -219,6 +253,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         status: messageStatus,
         error_message: scrubSecrets(errorMessage).slice(0, 2000),
         error_http_status: httpStatus,
+        ...autofixColumns(autofix, 'original'),
         model: canonical.model,
         provider: canonical.provider,
         routing_tier: tier ?? null,
@@ -487,6 +522,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierId,
       headerTierName,
       headerTierColor,
+      autofix,
     } = opts ?? {};
 
     const costUsd = computeTokenCost({
@@ -538,6 +574,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
             const updatePayload: Partial<AgentMessage> = {
               status,
+              ...autofixColumns(autofix, 'retry'),
               error_message: errorMessage,
               model: canonicalModel,
               provider: canonicalProvider,
@@ -572,6 +609,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           await messageRepo.insert(
             buildMessageRow(ctx, {
               id: newId,
+              ...autofixColumns(autofix, 'retry'),
               trace_id: traceId ?? null,
               session_key: normalizedSessionKey,
               timestamp: new Date().toISOString(),
@@ -608,6 +646,59 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     if (wrote) {
       this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
     }
+  }
+
+  /**
+   * Record the failed original request(s) of a healed Auto-fix flow as their
+   * own rows (`status='auto_fixed'`, `autofix_role='original'`), linked to the
+   * successful retry row via `autofix.groupId`. Timestamped just before the
+   * retry so they sort adjacently, with the retry directly above.
+   */
+  async recordAutofixOriginals(
+    ctx: IngestionContext,
+    model: string,
+    tier: string,
+    autofix: AutofixRecord,
+    opts?: AutofixOriginalOpts,
+  ): Promise<void> {
+    const failed = autofix.chain.filter((e) => e.error);
+    if (failed.length === 0) return;
+
+    const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
+      ctx.tenantId,
+      opts?.provider,
+      model,
+    );
+    const nowMs = Date.now();
+    const rows = failed.map((entry, i) =>
+      buildMessageRow(ctx, {
+        trace_id: opts?.traceId ?? null,
+        timestamp: new Date(nowMs - (failed.length - i) * 1000).toISOString(),
+        status: 'auto_fixed',
+        error_message: scrubSecrets(entry.error!.message).slice(0, 2000),
+        error_http_status: entry.http_status,
+        model: canonical.model,
+        provider: canonical.provider,
+        routing_tier: tier ?? null,
+        routing_reason: opts?.reason ?? null,
+        auth_type: opts?.authType ?? null,
+        specificity_category: opts?.specificityCategory ?? null,
+        provider_key_label: opts?.providerKeyLabel ?? null,
+        tenant_provider_id: opts?.tenantProviderId ?? null,
+        caller_attribution: opts?.callerAttribution ?? null,
+        request_headers: opts?.requestHeaders ?? null,
+        request_params: opts?.requestParams ?? null,
+        header_tier_id: opts?.headerTierId ?? null,
+        header_tier_name: opts?.headerTierName ?? null,
+        header_tier_color: opts?.headerTierColor ?? null,
+        autofix_applied: true,
+        autofix_group_id: autofix.groupId,
+        autofix_role: 'original',
+        autofix_operations: (entry.operations as object | null) ?? null,
+      }),
+    );
+    await this.messageRepo.insert(rows);
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
   /**

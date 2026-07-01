@@ -393,18 +393,23 @@ describe('selectMessageRowColumns', () => {
 describe('sqlCountMessages', () => {
   it('excludes every error status and counts NULL status as a real message', () => {
     expect(sqlCountMessages()).toBe(
-      "COUNT(*) FILTER (WHERE at.status IS NULL OR at.status NOT IN ('error', 'fallback_error', 'rate_limited'))",
+      "COUNT(*) FILTER (WHERE at.status IS NULL OR at.status NOT IN ('error', 'fallback_error', 'rate_limited', 'auto_fixed'))",
     );
   });
 
   it('honours a custom table alias', () => {
     expect(sqlCountMessages('m')).toBe(
-      "COUNT(*) FILTER (WHERE m.status IS NULL OR m.status NOT IN ('error', 'fallback_error', 'rate_limited'))",
+      "COUNT(*) FILTER (WHERE m.status IS NULL OR m.status NOT IN ('error', 'fallback_error', 'rate_limited', 'auto_fixed'))",
     );
   });
 
   it('derives the excluded list from the shared error-status set', () => {
-    expect(ERROR_MESSAGE_STATUSES).toEqual(['error', 'fallback_error', 'rate_limited']);
+    expect(ERROR_MESSAGE_STATUSES).toEqual([
+      'error',
+      'fallback_error',
+      'rate_limited',
+      'auto_fixed',
+    ]);
     for (const status of ERROR_MESSAGE_STATUSES) {
       expect(sqlCountMessages()).toContain(`'${status}'`);
     }

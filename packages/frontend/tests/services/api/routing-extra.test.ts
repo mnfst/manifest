@@ -115,6 +115,29 @@ describe('routing API client (additional coverage)', () => {
     await expect(routing.copilotPollToken('demo', 'dc-1')).rejects.toThrow(/Poll failed/);
   });
 
+  describe('auto-fix config', () => {
+    it('getAutofix GETs the autofix endpoint', async () => {
+      const fetchMock = setupFetch({ enabled: true, maxAttempts: 3 });
+      const out = await routing.getAutofix('demo');
+      expect(out).toEqual({ enabled: true, maxAttempts: 3 });
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(url).toContain('/api/v1/routing/demo/autofix');
+    });
+
+    it('updateAutofix PATCHes the autofix endpoint with a JSON body', async () => {
+      const fetchMock = setupFetch({ enabled: true, maxAttempts: 4 });
+      const out = await routing.updateAutofix('demo', { enabled: true, maxAttempts: 4 });
+      expect(out).toEqual({ enabled: true, maxAttempts: 4 });
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toContain('/api/v1/routing/demo/autofix');
+      expect((init as RequestInit).method).toBe('PATCH');
+      expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+        enabled: true,
+        maxAttempts: 4,
+      });
+    });
+  });
+
   it('getTierAssignments GETs the tiers list', async () => {
     const fetchMock = setupFetch([]);
     await routing.getTierAssignments('demo');

@@ -3,6 +3,27 @@ import { ProxyMessageDedup } from '../proxy-message-dedup';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../../otlp/interfaces/ingestion-context.interface';
+import type { AutofixRecord } from '../../autofix/autofix.types';
+
+const sampleAutofix: AutofixRecord = {
+  groupId: 'grp-1',
+  outcome: 'healed',
+  attempts: 1,
+  original_http_status: 400,
+  chain: [
+    {
+      attempt: 0,
+      origin: 'original',
+      request: { max_tokens: 5 },
+      http_status: 400,
+      error: { message: 'Unknown parameter' },
+      operations: [{ type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' }],
+      heal_attempt_id: 'heal-1',
+      patch_worked: true,
+    },
+    { attempt: 1, origin: 'autofix', request: { max_output_tokens: 5 }, http_status: 200 },
+  ],
+};
 
 const ctx: IngestionContext = {
   tenantId: 'tenant-1',
@@ -1174,6 +1195,128 @@ describe('ProxyMessageRecorder', () => {
         { requestHeaders: { 'x-e': '5' } },
       );
       expect(updateMock.mock.calls[0][1].request_headers).toEqual({ 'x-e': '5' });
+    });
+  });
+
+  describe('autofix persistence', () => {
+    const operations = [{ type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' }];
+
+    it('recordProviderError tags an exhausted attempt as the original', async () => {
+      await recorder.recordProviderError(ctx, 400, 'Unknown parameter', { autofix: sampleAutofix });
+      const row = insertMock.mock.calls.at(-1)![0];
+      expect(row.autofix_applied).toBe(true);
+      expect(row.autofix_group_id).toBe('grp-1');
+      expect(row.autofix_role).toBe('original');
+      expect(row.autofix_operations).toEqual(operations);
+    });
+
+    it('recordProviderError leaves autofix columns unset when omitted', async () => {
+      await recorder.recordProviderError(ctx, 400, 'boom');
+      const row = insertMock.mock.calls.at(-1)![0];
+      expect(row.autofix_applied).toBeUndefined();
+      expect(row.autofix_group_id).toBeUndefined();
+    });
+
+    it('recordAutofixOriginals writes a linked auto_fixed original row', async () => {
+      await recorder.recordAutofixOriginals(ctx, 'gpt-4o', 'default', sampleAutofix, {
+        provider: 'openai',
+        reason: 'default',
+        authType: 'api_key',
+        traceId: 'trace-af',
+      });
+      const rows = insertMock.mock.calls.at(-1)![0] as Array<Record<string, unknown>>;
+      expect(rows).toHaveLength(1);
+      expect(rows[0].status).toBe('auto_fixed');
+      expect(rows[0].error_http_status).toBe(400);
+      expect(rows[0].error_message).toContain('Unknown parameter');
+      expect(rows[0].autofix_applied).toBe(true);
+      expect(rows[0].autofix_group_id).toBe('grp-1');
+      expect(rows[0].autofix_role).toBe('original');
+      expect(rows[0].autofix_operations).toEqual(operations);
+    });
+
+    it('recordAutofixOriginals is a no-op when the chain has no failed entries', async () => {
+      await recorder.recordAutofixOriginals(ctx, 'gpt-4o', 'default', {
+        ...sampleAutofix,
+        chain: [{ attempt: 1, origin: 'autofix', request: {}, http_status: 200 }],
+      });
+      expect(insertMock).not.toHaveBeenCalled();
+    });
+
+    it('recordSuccessMessage persists the autofix audit on insert and update paths', async () => {
+      const updateMock = jest.fn();
+      const dedupWithLock = {
+        normalizeSessionKey: jest.fn().mockReturnValue(undefined),
+        getSuccessWriteLockKey: jest.fn().mockReturnValue('lock-key'),
+        withSuccessWriteLock: jest
+          .fn()
+          .mockImplementation((_k: string, fn: () => Promise<void>) => fn()),
+        withAgentMessageTransaction: jest
+          .fn()
+          .mockImplementation((_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
+            fn({ insert: insertMock, update: updateMock }),
+          ),
+        findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
+      } as unknown as ProxyMessageDedup;
+      const repo = { insert: insertMock } as never;
+      const pricingCache = { getByModel: getByModelMock } as unknown as ModelPricingCacheService;
+      const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
+      recorder.onModuleDestroy();
+      const passthroughCustomProviders = {
+        canonicalizeAgentMessageKeys: jest
+          .fn()
+          .mockImplementation(
+            async (_agentId: string, provider: string | null, model: string | null) => ({
+              provider: provider ?? null,
+              model: model ?? null,
+            }),
+          ),
+      } as never;
+      const opencodeGoCatalog = {
+        getCostPerRequest: jest.fn().mockReturnValue(null),
+        resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+      } as never;
+      recorder = new ProxyMessageRecorder(
+        repo,
+        pricingCache,
+        dedupWithLock,
+        eventBus,
+        passthroughCustomProviders,
+        opencodeGoCatalog,
+      );
+
+      await recorder.recordSuccessMessage(
+        ctx,
+        'gpt-4o',
+        'standard',
+        'scored',
+        { prompt_tokens: 1, completion_tokens: 1 },
+        { autofix: sampleAutofix },
+      );
+      const inserted = insertMock.mock.calls.at(-1)![0];
+      expect(inserted.autofix_applied).toBe(true);
+      expect(inserted.autofix_role).toBe('retry');
+      expect(inserted.autofix_group_id).toBe('grp-1');
+
+      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
+        id: 'existing-autofix',
+        timestamp: new Date().toISOString(),
+        input_tokens: 0,
+        output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
+        duration_ms: null,
+      });
+      await recorder.recordSuccessMessage(
+        ctx,
+        'gpt-4o',
+        'standard',
+        'scored',
+        { prompt_tokens: 5, completion_tokens: 5 },
+        { autofix: sampleAutofix },
+      );
+      expect(updateMock.mock.calls[0][1].autofix_applied).toBe(true);
+      expect(updateMock.mock.calls[0][1].autofix_role).toBe('retry');
     });
   });
 

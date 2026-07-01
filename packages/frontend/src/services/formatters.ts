@@ -75,6 +75,7 @@ const STATUS_LABELS: Record<string, string> = {
   error: 'Failed',
   rate_limited: 'Rate Limited',
   fallback_error: 'Handled',
+  auto_fixed: 'Auto-fixed',
 };
 
 export function formatStatus(status: string): string {

@@ -31,7 +31,15 @@ export function computeTrend(current: number, previous: number): number {
  * "what is an error" — consumed both by the Messages-log error filter and by
  * every "messages" KPI count below, so the two notions can never drift.
  */
-export const ERROR_MESSAGE_STATUSES = ['error', 'fallback_error', 'rate_limited'] as const;
+// `auto_fixed` is the failed-original row of a healed Auto-fix pair; its paired
+// `ok` retry row is the real success, so the original is excluded here to avoid
+// double-counting one logical request.
+export const ERROR_MESSAGE_STATUSES = [
+  'error',
+  'fallback_error',
+  'rate_limited',
+  'auto_fixed',
+] as const;
 
 /**
  * SQL `COUNT(*)` expression that counts only real (non-error) messages.

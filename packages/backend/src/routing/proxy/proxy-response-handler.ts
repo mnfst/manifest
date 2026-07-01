@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import { Response as ExpressResponse } from 'express';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { RoutingMeta } from './proxy.service';
+import type { AutofixRecord } from '../autofix/autofix.types';
 import { FailedFallback } from './proxy-fallback.service';
 import { ForwardResult } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
@@ -124,6 +125,7 @@ export async function handleProviderError(
   traceId?: string,
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
+  autofix?: AutofixRecord,
 ): Promise<void> {
   if (failedFallbacks && failedFallbacks.length > 0 && !meta.fallbackFromModel) {
     await handleFallbackExhausted(
@@ -161,6 +163,7 @@ export async function handleProviderError(
       headerTierId: meta.header_tier_id,
       headerTierName: meta.header_tier_name,
       headerTierColor: meta.header_tier_color,
+      autofix,
     }),
     'provider error',
   );
@@ -613,6 +616,7 @@ export function recordSuccess(
   startTime?: number,
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
+  autofix?: AutofixRecord,
 ): void {
   if (meta.fallbackFromModel && fallbackSuccessTs) {
     recordSafely(
@@ -655,8 +659,32 @@ export function recordSuccess(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
+        autofix,
       }),
       'success message',
+    );
+  }
+
+  // Healed requests are recorded as two rows: the successful retry above, and
+  // the failed original(s) here (status='auto_fixed'), linked by group id.
+  if (autofix?.outcome === 'healed') {
+    recordSafely(
+      recorder.recordAutofixOriginals(ctx, meta.model, meta.tier, autofix, {
+        provider: meta.provider,
+        reason: meta.reason,
+        authType: meta.auth_type,
+        traceId,
+        callerAttribution,
+        requestHeaders,
+        requestParams: meta.request_params,
+        specificityCategory: meta.specificity_category,
+        providerKeyLabel: meta.provider_key_label,
+        tenantProviderId: meta.tenantProviderId,
+        headerTierId: meta.header_tier_id,
+        headerTierName: meta.header_tier_name,
+        headerTierColor: meta.header_tier_color,
+      }),
+      'autofix originals',
     );
   }
 }

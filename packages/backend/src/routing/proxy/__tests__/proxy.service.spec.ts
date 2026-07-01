@@ -24,6 +24,7 @@ import type { ThinkingBlockCache } from '../thinking-block-cache';
 import type { ReasoningContentCache } from '../reasoning-content-cache';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import type { AutofixService } from '../../autofix/autofix.service';
 import type { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import type { DiscoveredModel } from '../../../model-discovery/model-fetcher';
 
@@ -114,6 +115,7 @@ describe('ProxyService — orchestration', () => {
   let reasoningCache: ReasoningContentCache;
   let modelParamsService: { get: jest.Mock; list: jest.Mock; set: jest.Mock; delete: jest.Mock };
   let providerParamSpecs: { getSpecs: jest.Mock; list: jest.Mock };
+  let autofixService: { maybeHeal: jest.Mock };
   let svc: ProxyService;
   let modelDiscovery: jest.Mocked<Pick<ModelDiscoveryService, 'getModelsForAgent'>>;
 
@@ -180,6 +182,7 @@ describe('ProxyService — orchestration', () => {
       ),
       list: jest.fn().mockResolvedValue(specCatalog),
     };
+    autofixService = { maybeHeal: jest.fn().mockResolvedValue(null) };
 
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
@@ -201,6 +204,7 @@ describe('ProxyService — orchestration', () => {
       reasoningCache,
       modelParamsService as unknown as AgentModelParamsService,
       providerParamSpecs as unknown as ProviderParamSpecService,
+      autofixService as unknown as AutofixService,
     );
   });
 
@@ -258,6 +262,7 @@ describe('ProxyService — orchestration', () => {
         reasoningCache,
         modelParamsService as unknown as AgentModelParamsService,
         providerParamSpecs as unknown as ProviderParamSpecService,
+        autofixService as unknown as AutofixService,
       );
       const messages = Array.from({ length: 1001 }, () => ({ role: 'user', content: 'x' }));
       resolveService.resolve.mockResolvedValue({
@@ -313,6 +318,63 @@ describe('ProxyService — orchestration', () => {
       expect(body.messages[0].content).toBe('');
       expect(routingBody.messages[0].content).toBe('');
       expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toBe(body);
+    });
+  });
+
+  describe('autofix integration', () => {
+    const routableResolve = () =>
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+    const fwd = (status: number) => ({
+      response: okResponse(status),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+
+    it('uses the healed forward and attaches the autofix record when maybeHeal succeeds', async () => {
+      routableResolve();
+      const healed = fwd(200);
+      fallbackService.tryForwardToProvider.mockResolvedValue(fwd(400));
+      const record = { outcome: 'healed', attempts: 1, original_http_status: 400, chain: [] };
+      autofixService.maybeHeal.mockResolvedValue({ forward: healed, record });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(result.forward).toBe(healed);
+      expect(result.autofix).toBe(record);
+    });
+
+    it('re-forwards the patched body without param re-merge when maybeHeal invokes reforward', async () => {
+      routableResolve();
+      const healed = fwd(200);
+      fallbackService.tryForwardToProvider
+        .mockResolvedValueOnce(fwd(400))
+        .mockResolvedValueOnce(healed);
+      autofixService.maybeHeal.mockImplementation(
+        async (params: { reforward: (b: Record<string, unknown>) => Promise<unknown> }) => {
+          const forward = await params.reforward({ model: 'gpt-4o', max_output_tokens: 5 });
+          return {
+            forward,
+            record: { outcome: 'healed', attempts: 1, original_http_status: 400, chain: [] },
+          };
+        },
+      );
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(result.forward).toBe(healed);
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(2);
+      const reforwardOpts = fallbackService.tryForwardToProvider.mock.calls[1][0];
+      expect(reforwardOpts.body).toEqual({ model: 'gpt-4o', max_output_tokens: 5 });
+      expect(reforwardOpts.paramMergeContext).toBeUndefined();
+      expect(reforwardOpts.chatBody).toBeUndefined();
     });
   });
 

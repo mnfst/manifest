@@ -60,6 +60,8 @@ import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
 import { parseMaxMessagesPerRequest } from './message-limit';
 import { OPENAI_MODEL_ID_AUTO, routeForOpenAiModelId } from './openai-model-id';
+import { AutofixService } from '../autofix/autofix.service';
+import type { AutofixRecord } from '../autofix/autofix.types';
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>> & {
   explicit_model_override?: boolean;
@@ -137,6 +139,8 @@ export interface ProxyResult {
   forward: ForwardResult;
   meta: RoutingMeta;
   failedFallbacks?: FailedFallback[];
+  /** Auto-fix audit when a repairable failure was sent to the healing service. */
+  autofix?: AutofixRecord;
 }
 
 @Injectable()
@@ -164,6 +168,7 @@ export class ProxyService {
     private readonly reasoningCache: ReasoningContentCache,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
+    private readonly autofixService: AutofixService,
   ) {
     this.maxMessagesPerRequest = parseMaxMessagesPerRequest(
       this.config.get<string>('MANIFEST_MAX_MESSAGES'),
@@ -175,21 +180,11 @@ export class ProxyService {
       opts;
     const apiMode = opts.apiMode ?? 'chat_completions';
     const routingSource = opts.routingBody ?? body;
-    const chatBody =
-      apiMode === 'responses'
-        ? toChatCompletionsRequest(body)
-        : apiMode === 'messages'
-          ? messagesToChatCompletionsRequest(body)
-          : undefined;
+    const chatBody = this.toChatBody(apiMode, body);
     const forwardingBody = chatBody ?? body;
     let routingBody = forwardingBody;
     if (routingSource !== body) {
-      const routingChatBody =
-        apiMode === 'responses'
-          ? toChatCompletionsRequest(routingSource)
-          : apiMode === 'messages'
-            ? messagesToChatCompletionsRequest(routingSource)
-            : undefined;
+      const routingChatBody = this.toChatBody(apiMode, routingSource);
       routingBody = routingChatBody ?? routingSource;
     }
     this.validatePayload(forwardingBody);
@@ -289,7 +284,7 @@ export class ProxyService {
           specs: primarySpecs,
         });
 
-    const forward = await this.fallbackService.tryForwardToProvider({
+    let forward = await this.fallbackService.tryForwardToProvider({
       provider: route.provider,
       apiKey: credentials.apiKey,
       model: primaryModel,
@@ -311,6 +306,46 @@ export class ProxyService {
       reasoningContentLookup,
       paramMergeContext,
     });
+
+    // Auto-fix runs BEFORE the fallback chain: heal a repairable 4xx and retry
+    // the patched request, so a fixable request isn't sprayed across every
+    // fallback provider. A no-op unless the agent opted in and the forward
+    // failed with a repairable status, so successful traffic is untouched.
+    const autofixAttempt = await this.autofixService.maybeHeal({
+      forward,
+      agentId,
+      tenantId,
+      provider: route.provider,
+      apiMode,
+      requestBody: body,
+      reforward: (healedBody) =>
+        this.fallbackService.tryForwardToProvider({
+          provider: route.provider,
+          apiKey: credentials.apiKey,
+          model: primaryModel,
+          body: healedBody,
+          chatBody: this.toChatBody(apiMode, healedBody),
+          stream,
+          sessionKey,
+          signal,
+          agentId,
+          tenantId,
+          rawApiKey: credentials.rawApiKey,
+          providerKeyLabel: route.keyLabel ?? undefined,
+          authType: route.authType,
+          apiMode,
+          resourceUrl: credentials.resourceUrl,
+          providerRegion: credentials.providerRegion,
+          signatureLookup,
+          thinkingLookup,
+          reasoningContentLookup,
+          // Send exactly Phoenix's healed body — don't re-merge param defaults
+          // that could re-introduce the parameter the provider just rejected.
+          paramMergeContext: undefined,
+        }),
+    });
+    const autofixRecord = autofixAttempt?.record;
+    if (autofixAttempt) forward = autofixAttempt.forward;
 
     if (
       !explicitModelOverride &&
@@ -336,7 +371,7 @@ export class ProxyService {
         paramMergeContext,
         primaryTenantProviderId: credentials.tenantProviderId,
       });
-      if (fallbackResult) return fallbackResult;
+      if (fallbackResult) return { ...fallbackResult, autofix: autofixRecord };
     }
 
     // Stream warm-up: for streaming 200 responses, verify the provider
@@ -365,6 +400,7 @@ export class ProxyService {
             request_params: primaryRequestParams,
             tenantProviderId: credentials.tenantProviderId,
           }),
+          autofix: autofixRecord,
         };
       }
 
@@ -402,7 +438,7 @@ export class ProxyService {
           paramMergeContext,
           primaryTenantProviderId: credentials.tenantProviderId,
         });
-        if (fallbackResult) return fallbackResult;
+        if (fallbackResult) return { ...fallbackResult, autofix: autofixRecord };
       }
 
       // Warmup failed and no fallbacks available: return the synthetic 502
@@ -415,6 +451,7 @@ export class ProxyService {
           request_params: primaryRequestParams,
           tenantProviderId: credentials.tenantProviderId,
         }),
+        autofix: autofixRecord,
       };
     }
 
@@ -426,6 +463,7 @@ export class ProxyService {
         request_params: primaryRequestParams,
         tenantProviderId: credentials.tenantProviderId,
       }),
+      autofix: autofixRecord,
     };
   }
 
@@ -433,6 +471,20 @@ export class ProxyService {
     if ((TIERS as readonly string[]).includes(tier)) {
       this.momentum.recordTier(sessionKey, tier as Tier);
     }
+  }
+
+  /**
+   * Convert a native Responses / Anthropic-Messages body into the internal
+   * chat-completions shape used for routing and forwarding. Returns undefined
+   * for `chat_completions` mode (the body is already in the target shape).
+   */
+  private toChatBody(
+    apiMode: ProxyApiMode,
+    body: Record<string, unknown>,
+  ): Record<string, unknown> | undefined {
+    if (apiMode === 'responses') return toChatCompletionsRequest(body);
+    if (apiMode === 'messages') return messagesToChatCompletionsRequest(body);
+    return undefined;
   }
 
   private validatePayload(body: ProxyRequestOptions['body']): void {
