@@ -51,4 +51,9 @@ export const appConfig = registerAs('app', () => ({
   // When true, /api/v1/public/* endpoints expose aggregate stats without auth.
   // Off by default — only Manifest Cloud's marketing homepage should enable it.
   publicStatsEnabled: process.env['MANIFEST_PUBLIC_STATS'] === 'true',
+  // Shared secret guarding the internal error-page push endpoint
+  // (/api/v1/internal/error-pages). The Peacock CMS sends it in the
+  // `x-internal-secret` header to publish/unpublish curated error pages.
+  // Empty by default — the endpoint rejects all writes until it is set.
+  errorPagePushSecret: process.env['ERROR_PAGE_PUSH_SECRET'] ?? '',
 }));

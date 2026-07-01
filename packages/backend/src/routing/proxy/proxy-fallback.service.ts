@@ -79,7 +79,12 @@ import {
   resolveApiKey,
 } from './oauth-credentials';
 
-const RATE_LIMIT_COOLDOWN_DEFAULT_MS = 60_000;
+// Fallback cooldown applied when an upstream 429 carries no usable Retry-After.
+// Kept short (15s) on purpose: many providers rate-limit on brief RPM/burst
+// windows and omit Retry-After entirely, so a long blackout would sideline a
+// route that recovered seconds later. Explicit Retry-After values are always
+// honored (capped at MAX) regardless of this default.
+const RATE_LIMIT_COOLDOWN_DEFAULT_MS = 15_000;
 const RATE_LIMIT_COOLDOWN_MAX_MS = 5 * 60_000;
 const MAX_RATE_LIMIT_COOLDOWNS = 2_000;
 
@@ -466,12 +471,15 @@ export class ProxyFallbackService {
     if (Number.isFinite(seconds) && seconds > 0) {
       return Math.min(seconds * 1000, RATE_LIMIT_COOLDOWN_MAX_MS);
     }
+    // HTTP-date form (RFC 9110): honor the provider's stated instant the same
+    // way as the numeric-seconds form — respect the actual delta, capped at
+    // MAX, with no artificial floor. A past or nonsensical date carries no
+    // usable duration, so fall back to the short default.
     const retryAt = Date.parse(retryAfter);
     if (Number.isNaN(retryAt)) return RATE_LIMIT_COOLDOWN_DEFAULT_MS;
-    return Math.min(
-      Math.max(retryAt - Date.now(), RATE_LIMIT_COOLDOWN_DEFAULT_MS),
-      RATE_LIMIT_COOLDOWN_MAX_MS,
-    );
+    const deltaMs = retryAt - Date.now();
+    if (deltaMs <= 0) return RATE_LIMIT_COOLDOWN_DEFAULT_MS;
+    return Math.min(deltaMs, RATE_LIMIT_COOLDOWN_MAX_MS);
   }
 
   private rateLimitCooldownKey(opts: ForwardProviderOptions): string | null {
