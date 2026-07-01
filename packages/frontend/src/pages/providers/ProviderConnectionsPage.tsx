@@ -154,7 +154,7 @@ const UsageShimmer: Component<{ width?: number }> = (props) => (
   />
 );
 
-const MAX_LIMIT_ROWS = 4;
+const MAX_LIMIT_ROWS = 3;
 
 interface SubscriptionLimitRow {
   connectionLabel: string | null;
@@ -264,8 +264,8 @@ const LimitUsageGauge: Component<{
       aria-hidden="true"
       style={{
         display: 'inline-flex',
-        width: '30px',
-        height: '30px',
+        width: '24px',
+        height: '24px',
         'border-radius': '999px',
         'align-items': 'center',
         'justify-content': 'center',
@@ -280,14 +280,14 @@ const LimitUsageGauge: Component<{
       <span
         style={{
           display: 'inline-flex',
-          width: '21px',
-          height: '21px',
+          width: '17px',
+          height: '17px',
           'border-radius': '999px',
           'align-items': 'center',
           'justify-content': 'center',
           background: 'hsl(var(--background))',
           color: props.tone.foreground,
-          'font-size': '8px',
+          'font-size': '7px',
           'font-weight': 700,
           'line-height': 1,
         }}
@@ -303,17 +303,17 @@ const SubscriptionLimitMeter: Component<{ row: SubscriptionLimitRow }> = (props)
   const tone = createMemo(() => limitUsageTone(usedPercent()));
   const percentLabel = createMemo(() => formatLimitPercent(usedPercent()));
   const details = createMemo(() => limitWindowDetails(props.row.window));
-  const topMetric = createMemo(() => {
+  const topMetric = createMemo(() => percentLabel() ?? details()[0] ?? 'Available');
+  const accessibilityMetric = createMemo(() => {
     const percent = percentLabel();
-    if (percent) return `${percent} used`;
-    return details()[0] ?? 'Available';
+    return percent ? `${percent} used` : topMetric();
   });
   const detailLine = createMemo(() => {
     const visibleDetails = percentLabel() ? details() : details().slice(1);
     return visibleDetails.join(' | ');
   });
   const accessibilityLabel = createMemo(() =>
-    [props.row.window.label, topMetric(), detailLine(), props.row.connectionLabel]
+    [props.row.window.label, accessibilityMetric(), detailLine(), props.row.connectionLabel]
       .filter(Boolean)
       .join(' | '),
   );
@@ -323,10 +323,10 @@ const SubscriptionLimitMeter: Component<{ row: SubscriptionLimitRow }> = (props)
       aria-label={accessibilityLabel()}
       style={{
         display: 'grid',
-        'grid-template-columns': '30px minmax(0, 1fr)',
-        gap: '8px',
+        'grid-template-columns': '24px minmax(0, 1fr)',
+        gap: '6px',
         'align-items': 'center',
-        'min-width': '260px',
+        'min-width': '238px',
       }}
     >
       <LimitUsageGauge usedPercent={usedPercent()} tone={tone()} />
@@ -336,7 +336,7 @@ const SubscriptionLimitMeter: Component<{ row: SubscriptionLimitRow }> = (props)
             display: 'flex',
             'align-items': 'center',
             'justify-content': 'space-between',
-            gap: '8px',
+            gap: '6px',
             'min-width': 0,
           }}
         >
@@ -356,11 +356,11 @@ const SubscriptionLimitMeter: Component<{ row: SubscriptionLimitRow }> = (props)
             style={{
               display: 'inline-flex',
               'align-items': 'center',
-              padding: '1px 6px',
+              padding: '1px 5px',
               'border-radius': '999px',
               background: tone().background,
               color: tone().foreground,
-              'font-size': '10px',
+              'font-size': '9px',
               'font-weight': 700,
               'white-space': 'nowrap',
             }}
@@ -371,12 +371,12 @@ const SubscriptionLimitMeter: Component<{ row: SubscriptionLimitRow }> = (props)
         <Show when={usedPercent() !== null}>
           <div
             style={{
-              height: '5px',
+              height: '4px',
               width: '100%',
               'border-radius': '999px',
               background: 'hsl(var(--muted))',
               overflow: 'hidden',
-              'margin-top': '5px',
+              'margin-top': '3px',
             }}
           >
             <span
@@ -395,7 +395,7 @@ const SubscriptionLimitMeter: Component<{ row: SubscriptionLimitRow }> = (props)
             style={{
               color: 'hsl(var(--muted-foreground))',
               'font-size': '10px',
-              'line-height': 1.35,
+              'line-height': 1.2,
               'margin-top': '4px',
               overflow: 'hidden',
               'text-overflow': 'ellipsis',
@@ -457,7 +457,7 @@ const SubscriptionLimitsCell: Component<{
             </span>
           }
         >
-          <div style="display: flex; flex-direction: column; gap: 8px; min-width: 270px; max-width: 410px;">
+          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 245px; max-width: 360px;">
             <For each={visibleRows()}>{(row) => <SubscriptionLimitMeter row={row} />}</For>
             <Show when={hiddenCount() > 0}>
               <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
