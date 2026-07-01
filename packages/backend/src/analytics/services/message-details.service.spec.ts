@@ -65,6 +65,7 @@ describe('MessageDetailsService', () => {
     autofix_group_id: null,
     autofix_role: null,
     autofix_operations: null,
+    autofix_phoenix: null,
   };
 
   beforeEach(async () => {
@@ -153,8 +154,19 @@ describe('MessageDetailsService', () => {
       autofix_applied: false,
       autofix_role: null,
       autofix_operations: null,
+      autofix_phoenix: null,
       autofix_sibling: null,
     });
+  });
+
+  it('maps autofix_phoenix ids when the message carries them', async () => {
+    // The "maps all fields" test above covers the null case; here the stored
+    // row has a non-null autofix_phoenix, exercising the `?? null` mapping's
+    // non-null branch.
+    const phoenix = { issueId: 'i', patchId: 'p', healAttemptId: 'h' };
+    msgQb.getOne.mockResolvedValue({ ...baseMessage, autofix_phoenix: phoenix });
+    const result = await service.getDetails('msg-1', 'u1');
+    expect(result.message.autofix_phoenix).toEqual(phoenix);
   });
 
   it('resolves the autofix sibling when the message has a group id', async () => {

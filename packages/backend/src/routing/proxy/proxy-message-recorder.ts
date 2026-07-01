@@ -719,6 +719,14 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         autofix_group_id: autofix.groupId,
         autofix_role: 'original',
         autofix_operations: (entry.operations as object | null) ?? null,
+        autofix_phoenix:
+          entry.issue_id != null || entry.patch_id != null || entry.heal_attempt_id != null
+            ? {
+                issueId: entry.issue_id ?? null,
+                patchId: entry.patch_id ?? null,
+                healAttemptId: entry.heal_attempt_id ?? null,
+              }
+            : null,
       }),
     );
     await this.messageRepo.insert(rows);

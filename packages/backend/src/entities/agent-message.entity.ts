@@ -208,4 +208,10 @@ export class AgentMessage {
   // request_params) so TypeORM's deep-partial insert type stays simple.
   @Column('jsonb', { nullable: true })
   autofix_operations!: object | null;
+
+  // Phoenix's own identifiers for the heal decision behind this row
+  // ({ issueId, patchId, healAttemptId }) — lets a Manifest message be
+  // cross-referenced with the healing service's issue/patch timeline.
+  @Column('jsonb', { nullable: true })
+  autofix_phoenix!: object | null;
 }

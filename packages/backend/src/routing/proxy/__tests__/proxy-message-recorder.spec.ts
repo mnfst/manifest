@@ -1291,6 +1291,60 @@ describe('ProxyMessageRecorder', () => {
       expect(rows[0].autofix_group_id).toBe('grp-1');
       expect(rows[0].autofix_role).toBe('original');
       expect(rows[0].autofix_operations).toEqual(operations);
+      // Persist Phoenix's own identifiers for the heal decision. sampleAutofix's
+      // failed entry carries only heal_attempt_id, so issueId/patchId fall to
+      // null while healAttemptId is preserved (covers the non-null branch).
+      expect(rows[0].autofix_phoenix).toEqual({
+        issueId: null,
+        patchId: null,
+        healAttemptId: 'heal-1',
+      });
+    });
+
+    it('recordAutofixOriginals falls each absent Phoenix id to null while keeping the present one', async () => {
+      // The ternary is entered via patch_id alone, so issueId + healAttemptId
+      // exercise the `?? null` fallback (covers the null side of each field).
+      await recorder.recordAutofixOriginals(ctx, 'gpt-4o', 'default', {
+        ...sampleAutofix,
+        chain: [
+          {
+            attempt: 0,
+            origin: 'original',
+            request: { max_tokens: 5 },
+            http_status: 400,
+            error: { message: 'Unknown parameter' },
+            patch_id: 'patch-xyz',
+          },
+          { attempt: 1, origin: 'autofix', request: { max_output_tokens: 5 }, http_status: 200 },
+        ],
+      });
+      const rows = insertMock.mock.calls.at(-1)![0] as Array<Record<string, unknown>>;
+      expect(rows[0].autofix_phoenix).toEqual({
+        issueId: null,
+        patchId: 'patch-xyz',
+        healAttemptId: null,
+      });
+    });
+
+    it('recordAutofixOriginals sets autofix_phoenix to null when the failed entry has no Phoenix ids', async () => {
+      // A failed chain entry with none of issue_id/patch_id/heal_attempt_id must
+      // leave autofix_phoenix null (covers the `: null` branch of the ternary).
+      await recorder.recordAutofixOriginals(ctx, 'gpt-4o', 'default', {
+        ...sampleAutofix,
+        chain: [
+          {
+            attempt: 0,
+            origin: 'original',
+            request: { max_tokens: 5 },
+            http_status: 400,
+            error: { message: 'Unknown parameter' },
+          },
+          { attempt: 1, origin: 'autofix', request: { max_output_tokens: 5 }, http_status: 200 },
+        ],
+      });
+      const rows = insertMock.mock.calls.at(-1)![0] as Array<Record<string, unknown>>;
+      expect(rows).toHaveLength(1);
+      expect(rows[0].autofix_phoenix).toBeNull();
     });
 
     it('recordAutofixOriginals is a no-op when the chain has no failed entries', async () => {

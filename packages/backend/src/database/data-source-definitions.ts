@@ -133,6 +133,7 @@ import { AddPublicErrorPages1797000000000 } from './migrations/1797000000000-Add
 import { AddErrorClassification1798000000000 } from './migrations/1798000000000-AddErrorClassification';
 import { AddAutofixAgentFlags1799000000000 } from './migrations/1799000000000-AddAutofixAgentFlags';
 import { AddAutofixMessageFields1799000100000 } from './migrations/1799000100000-AddAutofixMessageFields';
+import { AddAutofixPhoenixIds1799000200000 } from './migrations/1799000200000-AddAutofixPhoenixIds';
 
 export const entities = [
   AgentMessage,
@@ -268,4 +269,5 @@ export const migrations = [
   AddErrorClassification1798000000000,
   AddAutofixAgentFlags1799000000000,
   AddAutofixMessageFields1799000100000,
+  AddAutofixPhoenixIds1799000200000,
 ];

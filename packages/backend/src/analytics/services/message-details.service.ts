@@ -49,6 +49,12 @@ export interface MessageDetailResponse {
     autofix_applied: boolean;
     autofix_role: string | null;
     autofix_operations: PhoenixOperation[] | null;
+    /** Phoenix's own identifiers for the heal decision behind this row. */
+    autofix_phoenix: {
+      issueId: string | null;
+      patchId: string | null;
+      healAttemptId: string | null;
+    } | null;
     /** The paired row (failed original ↔ successful retry), for the visual link. */
     autofix_sibling: { id: string; role: string | null; status: string } | null;
   };
@@ -119,6 +125,12 @@ export class MessageDetailsService {
         autofix_applied: message.autofix_applied,
         autofix_role: message.autofix_role,
         autofix_operations: (message.autofix_operations as PhoenixOperation[] | null) ?? null,
+        autofix_phoenix:
+          (message.autofix_phoenix as {
+            issueId: string | null;
+            patchId: string | null;
+            healAttemptId: string | null;
+          } | null) ?? null,
         autofix_sibling,
       },
     };

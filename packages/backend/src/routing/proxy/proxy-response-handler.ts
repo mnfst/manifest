@@ -665,9 +665,11 @@ export function recordSuccess(
     );
   }
 
-  // Healed requests are recorded as two rows: the successful retry above, and
-  // the failed original(s) here (status='auto_fixed'), linked by group id.
-  if (autofix?.outcome === 'healed') {
+  // Record the failed Auto-fix attempt(s) as their own auto_fixed rows whenever
+  // healing ran and produced a failure — the healed case (linked to the retry
+  // above) AND the case where healing exhausted but a fallback model then
+  // succeeded (unlinked; they read "Auto-fix tried but could not repair it").
+  if (autofix && autofix.chain.some((entry) => entry.error)) {
     recordSafely(
       recorder.recordAutofixOriginals(ctx, meta.model, meta.tier, autofix, {
         provider: meta.provider,

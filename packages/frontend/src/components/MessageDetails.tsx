@@ -78,6 +78,7 @@ function MiscategorizeControl(props: {
 function AutofixSection(props: {
   role: string | null;
   operations: AutofixOperation[] | null;
+  phoenix: { issueId: string | null; patchId: string | null; healAttemptId: string | null } | null;
   sibling: { id: string; role: string | null; status: string } | null;
   onOpenMessage?: (id: string) => void;
 }): JSX.Element {
@@ -104,6 +105,24 @@ function AutofixSection(props: {
               </span>
             )}
           </For>
+        </div>
+      </Show>
+      <Show
+        when={
+          props.phoenix &&
+          (props.phoenix.issueId || props.phoenix.patchId || props.phoenix.healAttemptId)
+        }
+      >
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+          <Show when={props.phoenix!.issueId}>
+            <span>Issue {props.phoenix!.issueId!.slice(0, 8)}</span>
+          </Show>
+          <Show when={props.phoenix!.patchId}>
+            <span>Patch {props.phoenix!.patchId!.slice(0, 8)}</span>
+          </Show>
+          <Show when={props.phoenix!.healAttemptId}>
+            <span>Heal-attempt {props.phoenix!.healAttemptId!.slice(0, 8)}</span>
+          </Show>
         </div>
       </Show>
       <Show when={props.sibling && props.onOpenMessage}>
@@ -164,6 +183,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                 <AutofixSection
                   role={m.autofix_role}
                   operations={m.autofix_operations}
+                  phoenix={m.autofix_phoenix}
                   sibling={m.autofix_sibling}
                   onOpenMessage={props.onOpenMessage}
                 />

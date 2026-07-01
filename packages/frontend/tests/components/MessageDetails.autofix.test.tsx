@@ -64,6 +64,7 @@ const baseMessage = {
   autofix_applied: false,
   autofix_role: null,
   autofix_operations: null,
+  autofix_phoenix: null,
   autofix_sibling: null,
 };
 
@@ -277,5 +278,85 @@ describe('MessageDetails Auto-fix section', () => {
     });
     expect(container.textContent).toContain('strip_unsupported_field');
     expect(container.textContent).not.toContain('→');
+  });
+
+  it('renders Phoenix issue/patch/heal ids (first 8 chars) when autofix_phoenix is present', async () => {
+    // Phoenix's own identifiers for the heal decision. Each id renders as a
+    // labelled 8-char slice: "Issue <8>", "Patch <8>", "Heal-attempt <8>".
+    const withPhoenix = {
+      message: {
+        ...originalResponse.message,
+        autofix_applied: true,
+        autofix_role: 'original',
+        autofix_phoenix: {
+          issueId: 'issue-1234abcd',
+          patchId: 'patch-5678efgh',
+          healAttemptId: 'heal-9012ijkl',
+        },
+      },
+    };
+    mockGetMessageDetails.mockResolvedValue(withPhoenix);
+    const onOpenMessage = vi.fn();
+    const { container } = render(() => (
+      <MessageDetails messageId="orig-1" onOpenMessage={onOpenMessage} />
+    ));
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Auto-fix');
+    });
+
+    // 8-char slices of each id, with their labels.
+    expect(container.textContent).toContain('Issue issue-12');
+    expect(container.textContent).toContain('Patch patch-56');
+    expect(container.textContent).toContain('Heal-attempt heal-901');
+  });
+
+  it('renders only the Heal-attempt id when issueId and patchId are absent', async () => {
+    // Exercises the `issueId || patchId || healAttemptId` OR short-circuit past
+    // the first two operands: only healAttemptId is present, so the Issue/Patch
+    // chips are suppressed while the section still shows the heal id.
+    const healOnly = {
+      message: {
+        ...originalResponse.message,
+        autofix_applied: true,
+        autofix_role: 'original',
+        autofix_phoenix: {
+          issueId: null,
+          patchId: null,
+          healAttemptId: 'heal-9012ijkl',
+        },
+      },
+    };
+    mockGetMessageDetails.mockResolvedValue(healOnly);
+    const onOpenMessage = vi.fn();
+    const { container } = render(() => (
+      <MessageDetails messageId="orig-1" onOpenMessage={onOpenMessage} />
+    ));
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Auto-fix');
+    });
+
+    expect(container.textContent).toContain('Heal-attempt heal-901');
+    expect(container.textContent).not.toContain('Issue ');
+    expect(container.textContent).not.toContain('Patch ');
+  });
+
+  it('renders no Phoenix ids when autofix_phoenix is null', async () => {
+    // The original-side panel with autofix_phoenix null (the default) must not
+    // render any Issue/Patch/Heal-attempt labels — covers the absent branch.
+    mockGetMessageDetails.mockResolvedValue(originalResponse);
+    const onOpenMessage = vi.fn();
+    const { container } = render(() => (
+      <MessageDetails messageId="orig-1" onOpenMessage={onOpenMessage} />
+    ));
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Auto-fix');
+    });
+
+    expect(container.textContent).not.toContain('Issue ');
+    expect(container.textContent).not.toContain('Patch ');
+    expect(container.textContent).not.toContain('Heal-attempt');
   });
 });
