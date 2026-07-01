@@ -4,6 +4,7 @@ import {
   buildDevAllowedOrigins,
   buildFrameSrc,
   createCorsOriginHandler,
+  parseFrameAncestors,
 } from './cors-csp-config';
 
 describe('HOSTED_WINGMAN_ORIGIN', () => {
@@ -55,6 +56,53 @@ describe('buildFrameSrc', () => {
 
   it('respects a custom Wingman port in dev', () => {
     expect(buildFrameSrc({ isDev: true, wingmanPort: 38239 })).toContain('http://localhost:38239');
+  });
+});
+
+describe('parseFrameAncestors', () => {
+  it("defaults to 'none' when unset", () => {
+    expect(parseFrameAncestors(undefined)).toEqual(["'none'"]);
+  });
+
+  it("defaults to 'none' for an empty string", () => {
+    expect(parseFrameAncestors('')).toEqual(["'none'"]);
+  });
+
+  it('keeps a single well-formed https origin', () => {
+    expect(parseFrameAncestors('https://app.example.com')).toEqual(['https://app.example.com']);
+  });
+
+  it('keeps multiple valid origins in order and trims whitespace', () => {
+    expect(parseFrameAncestors('https://a.example.com , http://localhost:3000')).toEqual([
+      'https://a.example.com',
+      'http://localhost:3000',
+    ]);
+  });
+
+  it("keeps the 'self' and 'none' CSP keywords", () => {
+    expect(parseFrameAncestors("'self', 'none'")).toEqual(["'self'", "'none'"]);
+  });
+
+  it('keeps a wildcard-subdomain origin', () => {
+    expect(parseFrameAncestors('https://*.example.com')).toEqual(['https://*.example.com']);
+  });
+
+  it('keeps an origin with an explicit port', () => {
+    expect(parseFrameAncestors('https://example.com:8443')).toEqual(['https://example.com:8443']);
+  });
+
+  it('drops the bare wildcard (would allow any site to frame the app)', () => {
+    expect(parseFrameAncestors('*')).toEqual(["'none'"]);
+  });
+
+  it('drops malformed entries (scheme-only, raw CIDR) but keeps valid ones', () => {
+    expect(parseFrameAncestors('https:, 192.168.1.0/24, https://good.example.com')).toEqual([
+      'https://good.example.com',
+    ]);
+  });
+
+  it("falls back to 'none' when every entry is malformed", () => {
+    expect(parseFrameAncestors('https:, not a url, javascript:alert(1)')).toEqual(["'none'"]);
   });
 });
 
