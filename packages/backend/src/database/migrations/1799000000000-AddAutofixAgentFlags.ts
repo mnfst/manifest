@@ -5,8 +5,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * - `autofix_enabled`      — opt-in toggle (default off).
  * - `autofix_max_attempts` — how many patched retries to try (default 3).
  */
-export class AddAutofixAgentFlags1797000000000 implements MigrationInterface {
-  name = 'AddAutofixAgentFlags1797000000000';
+export class AddAutofixAgentFlags1799000000000 implements MigrationInterface {
+  name = 'AddAutofixAgentFlags1799000000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(

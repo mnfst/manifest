@@ -416,6 +416,25 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordProviderError(ctx, 500, 'oops', { model: 'gpt-4o' });
       expect(insertMock.mock.calls[0][0].routing_reason).toBeNull();
     });
+
+    describe('error classification axes', () => {
+      it.each([
+        [500, 'provider', 'server_error'],
+        [401, 'provider', 'auth'],
+        [404, 'provider', 'not_found'],
+        [400, 'provider', 'invalid_request'],
+        [429, 'provider', 'rate_limit'],
+        [503, 'transport', 'network'],
+        [504, 'transport', 'timeout'],
+      ])('classifies HTTP %s as %s/%s (never superseded)', async (http, origin, klass) => {
+        await recorder.recordProviderError(ctx, http as number, 'boom', { model: 'gpt-4o' });
+        expect(insertMock.mock.calls[0][0]).toMatchObject({
+          error_origin: origin,
+          error_class: klass,
+          superseded: false,
+        });
+      });
+    });
   });
 
   describe('recordFailedFallbacks', () => {
@@ -632,6 +651,11 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[0][0]).toMatchObject({
         status: 'fallback_error',
         model: 'gpt-4o',
+        // A recovered primary is a superseded attempt, classified by its cause
+        // (no HTTP status here ⇒ transport/network), not a terminal outcome.
+        superseded: true,
+        error_origin: 'transport',
+        error_class: 'network',
       });
       expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
@@ -998,16 +1022,41 @@ describe('ProxyMessageRecorder', () => {
     });
 
     describe('canned Manifest responses (no_provider / no_provider_key / limit_exceeded / friendly_error)', () => {
-      const cases: Array<{ reason: string; errorMessage: string }> = [
-        { reason: 'no_provider', errorMessage: 'No providers configured for this agent' },
-        { reason: 'no_provider_key', errorMessage: 'Provider API key missing' },
-        { reason: 'limit_exceeded', errorMessage: 'Usage limit exceeded' },
-        { reason: 'friendly_error', errorMessage: 'Manifest internal error' },
+      const cases: Array<{
+        reason: string;
+        errorMessage: string;
+        origin: string;
+        klass: string;
+      }> = [
+        {
+          reason: 'no_provider',
+          errorMessage: 'No providers configured for this agent',
+          origin: 'config',
+          klass: 'no_provider',
+        },
+        {
+          reason: 'no_provider_key',
+          errorMessage: 'Provider API key missing',
+          origin: 'config',
+          klass: 'no_provider_key',
+        },
+        {
+          reason: 'limit_exceeded',
+          errorMessage: 'Usage limit exceeded',
+          origin: 'policy',
+          klass: 'limit_exceeded',
+        },
+        {
+          reason: 'friendly_error',
+          errorMessage: 'Manifest internal error',
+          origin: 'internal',
+          klass: 'internal',
+        },
       ];
 
       it.each(cases)(
-        'inserts status=error and error_message="$errorMessage" when reason=$reason',
-        async ({ reason, errorMessage }) => {
+        'classifies reason=$reason as a Manifest $origin error, not a provider failure',
+        async ({ reason, errorMessage, origin, klass }) => {
           await recorder.recordSuccessMessage(ctx, 'manifest', 'simple', reason, {
             prompt_tokens: 0,
             completion_tokens: 0,
@@ -1018,11 +1067,14 @@ describe('ProxyMessageRecorder', () => {
             error_message: errorMessage,
             routing_reason: reason,
             model: 'manifest',
+            error_origin: origin,
+            error_class: klass,
+            superseded: false,
           });
         },
       );
 
-      it('keeps status=ok and error_message=null for non-canned reasons (e.g. "scored")', async () => {
+      it('keeps status=ok, no error axes for non-canned reasons (e.g. "scored")', async () => {
         await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
           prompt_tokens: 1,
           completion_tokens: 1,
@@ -1032,6 +1084,9 @@ describe('ProxyMessageRecorder', () => {
           status: 'ok',
           error_message: null,
           routing_reason: 'scored',
+          error_origin: null,
+          error_class: null,
+          superseded: false,
         });
       });
 
@@ -1064,6 +1119,9 @@ describe('ProxyMessageRecorder', () => {
           status: 'error',
           error_message: 'No providers configured for this agent',
           routing_reason: 'no_provider',
+          error_origin: 'config',
+          error_class: 'no_provider',
+          superseded: false,
         });
         expect(insertMock).not.toHaveBeenCalled();
       });

@@ -39,6 +39,8 @@ export class MessagesController {
       cursor: query.cursor,
       agent_name: query.agent_name,
       status: query.status,
+      origin: query.origin,
+      error_class: query.error_class,
       routing_tier: query.routing_tier,
       specificity_category: query.specificity_category,
       header_tier_id: query.header_tier_id,

@@ -4,6 +4,7 @@ import { Brackets, In } from 'typeorm';
 import { MessagesQueryService } from './messages-query.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
+import { MANIFEST_ORIGIN_PREDICATE, DEFAULT_LOG_ORIGIN_PREDICATE } from './query-helpers';
 import type { MessageStatusFilter } from '../dto/messages-query.dto';
 
 describe('MessagesQueryService', () => {
@@ -743,6 +744,75 @@ describe('MessagesQueryService', () => {
     const statusCall = andWhereSpy.mock.calls.find(([candidate]) => candidate === clause);
     expect(statusCall).toBeDefined();
     expect(statusCall?.[1]).toEqual(bindings);
+  });
+
+  function runWithOrigin(params: {
+    origin?: 'manifest' | 'provider' | 'transport' | 'config' | 'policy' | 'internal';
+    error_class?: string;
+  }): Promise<jest.Mock> {
+    mockGetRawOne.mockResolvedValueOnce({ total: 0 });
+    mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+    return service
+      .getMessages({ range: '24h', tenantId: 'test-user', limit: 20, ...params })
+      .then(() => andWhereSpy);
+  }
+
+  it('hides only setup (config) errors from the log by default', async () => {
+    const andWhereSpy = await runWithOrigin({});
+    const defaultCall = andWhereSpy.mock.calls.find(
+      ([clause]) => clause === DEFAULT_LOG_ORIGIN_PREDICATE,
+    );
+    expect(defaultCall).toBeDefined();
+    // The opt-in "manifest only" predicate must NOT also be applied.
+    expect(
+      andWhereSpy.mock.calls.find(([clause]) => clause === MANIFEST_ORIGIN_PREDICATE),
+    ).toBeUndefined();
+  });
+
+  it('shows only Manifest-originated errors when origin=manifest', async () => {
+    const andWhereSpy = await runWithOrigin({ origin: 'manifest' });
+    expect(
+      andWhereSpy.mock.calls.find(([clause]) => clause === MANIFEST_ORIGIN_PREDICATE),
+    ).toBeDefined();
+    // The default hide must NOT be applied when an origin is explicitly requested.
+    expect(
+      andWhereSpy.mock.calls.find(([clause]) => clause === DEFAULT_LOG_ORIGIN_PREDICATE),
+    ).toBeUndefined();
+  });
+
+  it('filters to a specific error_origin when one is requested', async () => {
+    const andWhereSpy = await runWithOrigin({ origin: 'provider' });
+    const originCall = andWhereSpy.mock.calls.find(
+      ([clause]) => clause === 'at.error_origin = :originFilter',
+    );
+    expect(originCall).toBeDefined();
+    expect(originCall?.[1]).toEqual({ originFilter: 'provider' });
+  });
+
+  it('filters by error_class when requested', async () => {
+    const andWhereSpy = await runWithOrigin({ error_class: 'rate_limit' });
+    const classCall = andWhereSpy.mock.calls.find(
+      ([clause]) => clause === 'at.error_class = :errorClassFilter',
+    );
+    expect(classCall).toBeDefined();
+    expect(classCall?.[1]).toEqual({ errorClassFilter: 'rate_limit' });
+  });
+
+  it('lets an explicit error_class reach config classes by skipping the default hide', async () => {
+    // Filtering by a config class (e.g. no_provider_key) with no origin must NOT
+    // also apply the config-hiding default, or the row could never be retrieved.
+    const andWhereSpy = await runWithOrigin({ error_class: 'no_provider_key' });
+    expect(
+      andWhereSpy.mock.calls.find(([clause]) => clause === DEFAULT_LOG_ORIGIN_PREDICATE),
+    ).toBeUndefined();
+    expect(
+      andWhereSpy.mock.calls.find(([clause]) => clause === 'at.error_class = :errorClassFilter'),
+    ).toBeDefined();
   });
 
   it('passes specificity_category filter through to the query builder', async () => {

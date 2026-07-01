@@ -15,6 +15,7 @@ vi.mock('../../src/services/formatters.js', () => ({
   formatCost: (v: number) => (v < 0 ? null : `$${v.toFixed(2)}`),
   formatNumber: (v: number) => String(v),
   formatStatus: (s: string) => s,
+  formatErrorOrigin: (o: string | null | undefined) => o ?? null,
   formatTime: (t: string) => t,
   formatDuration: (ms: number) => `${ms}ms`,
   formatErrorMessage: (s: string) => s,
@@ -498,7 +499,7 @@ describe('MessageTable', () => {
       expect(container.querySelector('.status-badge--ok')).not.toBeNull();
     });
 
-    it('renders rate_limited status with link', () => {
+    it('renders rate_limited as a plain failed status with no limits link', () => {
       const { container } = render(() => (
         <MessageTable
           items={[makeRow({ status: 'rate_limited' })]}
@@ -506,9 +507,10 @@ describe('MessageTable', () => {
           agentName="my-agent"
         />
       ));
-      const link = container.querySelector('a');
-      expect(link).not.toBeNull();
-      expect(link!.getAttribute('href')).toContain('/harnesses/my-agent/limits');
+      // A provider rate limit is just an error — it must not link to the
+      // Manifest spend-limits page.
+      expect(container.querySelector('a')).toBeNull();
+      expect(container.textContent).toContain('rate_limited');
     });
 
     it('renders error tooltip for error messages', () => {
@@ -721,11 +723,12 @@ describe('MessageTable', () => {
     });
 
     it('does not expand when an interactive element inside the row is clicked', () => {
-      // A rate_limited row renders an <a> link inside a cell. Clicking it must
-      // NOT toggle the row (the handler bails on button/a/[role=button]).
+      // A Manifest policy-limit row renders an <a> link to the limits page.
+      // Clicking it must NOT toggle the row (the handler bails on
+      // button/a/[role=button]).
       const { container } = render(() => (
         <MessageTable
-          items={[makeRow({ status: 'rate_limited' })]}
+          items={[makeRow({ status: 'error', error_origin: 'policy', agent_name: 'my-agent' })]}
           columns={['status']}
           agentName="my-agent"
           expandable

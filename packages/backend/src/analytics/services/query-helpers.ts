@@ -1,4 +1,5 @@
 import { ObjectLiteral, SelectQueryBuilder } from 'typeorm';
+import { MANIFEST_ERROR_ORIGINS } from 'manifest-shared';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 
 export interface MetricWithTrend {
@@ -58,6 +59,35 @@ export function sqlCountMessages(alias = 'at'): string {
   const list = ERROR_MESSAGE_STATUSES.map((s) => `'${s}'`).join(', ');
   return `COUNT(*) FILTER (WHERE ${alias}.status IS NULL OR ${alias}.status NOT IN (${list}))`;
 }
+
+/** Comma-quoted list of Manifest-originated error origins, e.g. `'config', 'policy', 'internal'`. */
+const MANIFEST_ORIGIN_SQL_LIST = MANIFEST_ERROR_ORIGINS.map((o) => `'${o}'`).join(', ');
+
+/**
+ * SQL predicate matching Manifest-originated errors (config / policy / internal)
+ * — the rows returned to the caller as HTTP 200 stubs (no provider was ever
+ * contacted). Backs the `origin=manifest` filter shorthand. Assumes the query
+ * builder aliases `agent_messages` as `at`.
+ */
+export const MANIFEST_ORIGIN_PREDICATE = `at.error_origin IN (${MANIFEST_ORIGIN_SQL_LIST})`;
+
+/**
+ * Error origins hidden from the Messages log by default: pure setup noise
+ * (`config` — no provider configured / no API key) that isn't a message.
+ * Everything else stays visible — provider & transport failures, Manifest
+ * internal errors, and crucially a Manifest spend/token limit being hit
+ * (`policy` / `limit_exceeded`), so operators can see when their own limits
+ * fire. A Manifest config error remains "not a message"; a Manifest *limit* is.
+ */
+export const LOG_HIDDEN_ORIGINS = ['config'] as const;
+const LOG_HIDDEN_ORIGIN_SQL_LIST = LOG_HIDDEN_ORIGINS.map((o) => `'${o}'`).join(', ');
+
+/**
+ * Default Messages-log origin filter: keep everything except the hidden setup
+ * origins. A NULL origin (every success, and legacy rows predating the column)
+ * is kept. Assumes the query builder aliases `agent_messages` as `at`.
+ */
+export const DEFAULT_LOG_ORIGIN_PREDICATE = `(at.error_origin IS NULL OR at.error_origin NOT IN (${LOG_HIDDEN_ORIGIN_SQL_LIST}))`;
 
 export function downsample(data: number[], targetLen: number): number[] {
   if (data.length <= targetLen) return data;
@@ -255,6 +285,8 @@ export const MESSAGE_ROW_SELECT_ALIASES = [
   'routing_reason',
   'specificity_category',
   'error_message',
+  'error_origin',
+  'error_class',
   'auth_type',
   'fallback_from_model',
   'fallback_index',
@@ -287,6 +319,8 @@ export function selectMessageRowColumns<T extends ObjectLiteral>(
     .addSelect('at.routing_reason', 'routing_reason')
     .addSelect('at.specificity_category', 'specificity_category')
     .addSelect('at.error_message', 'error_message')
+    .addSelect('at.error_origin', 'error_origin')
+    .addSelect('at.error_class', 'error_class')
     .addSelect('at.auth_type', 'auth_type')
     .addSelect('at.fallback_from_model', 'fallback_from_model')
     .addSelect('at.fallback_index', 'fallback_index')

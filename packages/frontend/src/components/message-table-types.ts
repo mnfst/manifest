@@ -18,6 +18,10 @@ export interface MessageRow {
   cost: number | null;
   status: string;
   error_message?: string | null;
+  /** WHO caused a failure: provider | transport | config | policy | internal. */
+  error_origin?: string | null;
+  /** WHAT kind of failure it was (rate_limit, auth, no_provider_key, timeout, …). */
+  error_class?: string | null;
   auth_type?: string | null;
   fallback_from_model?: string | null;
   fallback_index?: number | null;

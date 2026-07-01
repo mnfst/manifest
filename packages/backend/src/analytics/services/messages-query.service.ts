@@ -9,8 +9,10 @@ import {
   formatTimestamp,
   selectMessageRowColumns,
   ERROR_MESSAGE_STATUSES,
+  MANIFEST_ORIGIN_PREDICATE,
+  DEFAULT_LOG_ORIGIN_PREDICATE,
 } from './query-helpers';
-import type { MessageStatusFilter } from '../dto/messages-query.dto';
+import type { MessageOriginFilter, MessageStatusFilter } from '../dto/messages-query.dto';
 import { computeCutoff, sqlCastFloat, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 import { inferProviderFromModel } from '../../common/utils/provider-inference';
 import { TtlCache } from '../../common/utils/ttl-cache';
@@ -72,6 +74,8 @@ interface MessageQueryParams extends MessageFilterParams {
   limit: number;
   cursor?: string;
   status?: MessageStatusFilter;
+  origin?: MessageOriginFilter;
+  error_class?: string;
   routing_tier?: string;
   specificity_category?: string;
   header_tier_id?: string;
@@ -202,6 +206,8 @@ export class MessagesQueryService {
     cost_max?: number;
     agent_name?: string;
     status?: MessageStatusFilter;
+    origin?: MessageOriginFilter;
+    error_class?: string;
     routing_tier?: string;
     specificity_category?: string;
     header_tier_id?: string;
@@ -237,6 +243,24 @@ export class MessagesQueryService {
       qb.andWhere('at.status IN (:...errorStatuses)', { errorStatuses: ERROR_STATUSES });
     } else if (params.status) {
       qb.andWhere('at.status = :statusFilter', { statusFilter: params.status });
+    }
+
+    // Error-origin scope. By default only Manifest *setup* errors (config — no
+    // provider / no key) are hidden as "not a message"; a Manifest *limit* being
+    // hit (policy) stays visible so operators can see it. An explicit request
+    // always wins over the default hide: an origin filter, or an error_class
+    // filter (so config classes like no_provider_key are reachable by class
+    // alone, not only when the caller also knows to pass an origin).
+    if (params.origin === 'manifest') {
+      qb.andWhere(MANIFEST_ORIGIN_PREDICATE);
+    } else if (params.origin) {
+      qb.andWhere('at.error_origin = :originFilter', { originFilter: params.origin });
+    } else if (!params.error_class) {
+      qb.andWhere(DEFAULT_LOG_ORIGIN_PREDICATE);
+    }
+
+    if (params.error_class) {
+      qb.andWhere('at.error_class = :errorClassFilter', { errorClassFilter: params.error_class });
     }
 
     if (params.routing_tier) {
@@ -427,6 +451,8 @@ export class MessagesQueryService {
     cost_min?: number;
     cost_max?: number;
     status?: MessageStatusFilter;
+    origin?: MessageOriginFilter;
+    error_class?: string;
     routing_tier?: string;
     specificity_category?: string;
     header_tier_id?: string;
@@ -440,6 +466,8 @@ export class MessagesQueryService {
       params.cost_min ?? '',
       params.cost_max ?? '',
       params.status ?? '',
+      params.origin ?? '',
+      params.error_class ?? '',
       params.routing_tier ?? '',
       params.specificity_category ?? '',
       params.header_tier_id ?? '',

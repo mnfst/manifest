@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatNumber, formatCost, formatPerRequestCost, formatTrend, formatStatus, formatMetricType, formatErrorMessage, formatRelativeTime, formatTime, formatDuration, formatTimeAgo } from "../../src/services/formatters";
+import { formatNumber, formatCost, formatPerRequestCost, formatTrend, formatStatus, formatMetricType, formatErrorMessage, formatErrorOrigin, formatErrorClass, formatRelativeTime, formatTime, formatDuration, formatTimeAgo } from "../../src/services/formatters";
 
 describe("formatNumber", () => {
   it("formats millions", () => {
@@ -73,7 +73,8 @@ describe("formatStatus", () => {
     expect(formatStatus("ok")).toBe("Success");
     expect(formatStatus("retry")).toBe("Retried");
     expect(formatStatus("error")).toBe("Failed");
-    expect(formatStatus("rate_limited")).toBe("Rate Limited");
+    // A rate limit reads as a plain failure — the Provider pill carries the nuance.
+    expect(formatStatus("rate_limited")).toBe("Failed");
     expect(formatStatus("fallback_error")).toBe("Handled");
   });
   it("handles case insensitive", () => {
@@ -82,6 +83,39 @@ describe("formatStatus", () => {
   });
   it("returns original for unknown status", () => {
     expect(formatStatus("custom")).toBe("custom");
+  });
+});
+
+describe("formatErrorOrigin", () => {
+  it("labels Manifest-side origins distinctly from provider/transport", () => {
+    expect(formatErrorOrigin("provider")).toBe("Provider");
+    expect(formatErrorOrigin("transport")).toBe("Transport");
+    expect(formatErrorOrigin("config")).toBe("Manifest · Setup");
+    expect(formatErrorOrigin("policy")).toBe("Manifest · Limit");
+    expect(formatErrorOrigin("internal")).toBe("Manifest · Internal");
+  });
+  it("returns null for a missing origin", () => {
+    expect(formatErrorOrigin(null)).toBeNull();
+    expect(formatErrorOrigin(undefined)).toBeNull();
+  });
+  it("passes an unknown origin through unchanged", () => {
+    expect(formatErrorOrigin("mystery")).toBe("mystery");
+  });
+});
+
+describe("formatErrorClass", () => {
+  it("labels known classes", () => {
+    expect(formatErrorClass("rate_limit")).toBe("Rate limit");
+    expect(formatErrorClass("no_provider_key")).toBe("Missing API key");
+    expect(formatErrorClass("limit_exceeded")).toBe("Spend limit exceeded");
+    expect(formatErrorClass("server_error")).toBe("Server error");
+  });
+  it("returns null for a missing class", () => {
+    expect(formatErrorClass(null)).toBeNull();
+    expect(formatErrorClass(undefined)).toBeNull();
+  });
+  it("humanizes an unknown class by de-snaking it", () => {
+    expect(formatErrorClass("some_new_thing")).toBe("some new thing");
   });
 });
 

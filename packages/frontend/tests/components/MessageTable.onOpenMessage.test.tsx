@@ -32,6 +32,8 @@ vi.mock('../../src/services/formatters.js', () => ({
   formatTime: (t: string) => t,
   formatDuration: (ms: number) => `${ms}ms`,
   formatErrorMessage: (s: string) => s,
+  formatErrorOrigin: (o: string | null | undefined) => o ?? null,
+  formatErrorClass: (c: string | null | undefined) => c ?? null,
   customProviderColor: () => '#6366f1',
 }));
 

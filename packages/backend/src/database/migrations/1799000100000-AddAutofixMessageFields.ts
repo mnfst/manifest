@@ -9,8 +9,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * - `autofix_role`       — 'original' | 'retry'.
  * - `autofix_operations` — the Phoenix edits that fixed the request.
  */
-export class AddAutofixMessageFields1797000100000 implements MigrationInterface {
-  name = 'AddAutofixMessageFields1797000100000';
+export class AddAutofixMessageFields1799000100000 implements MigrationInterface {
+  name = 'AddAutofixMessageFields1799000100000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
