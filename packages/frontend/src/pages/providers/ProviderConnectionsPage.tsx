@@ -154,16 +154,28 @@ const UsageShimmer: Component<{ width?: number }> = (props) => (
   />
 );
 
-const MAX_LIMIT_ROWS = 5;
+const MAX_LIMIT_ROWS = 4;
 
 interface SubscriptionLimitRow {
   connectionLabel: string | null;
   window: SubscriptionUsageWindow;
 }
 
-const formatLimitPercent = (value: number | null | undefined): string | null => {
+interface LimitUsageTone {
+  color: string;
+  foreground: string;
+  background: string;
+}
+
+const clampLimitPercent = (value: number | null | undefined): number | null => {
   if (typeof value !== 'number' || !Number.isFinite(value)) return null;
-  const rounded = Math.round(value * 10) / 10;
+  const clamped = Math.max(0, Math.min(100, value));
+  return Math.round(clamped * 10) / 10;
+};
+
+const formatLimitPercent = (value: number | null | undefined): string | null => {
+  const rounded = clampLimitPercent(value);
+  if (rounded === null) return null;
   return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`;
 };
 
@@ -191,26 +203,217 @@ const formatResetTime = (iso: string | null): string | null => {
   return `resets in ${days}d${remainingHours ? ` ${remainingHours}h` : ''}`;
 };
 
-const limitWindowDetail = (window: SubscriptionUsageWindow): string => {
+const limitUsageTone = (usedPercent: number | null): LimitUsageTone => {
+  if (usedPercent === null) {
+    return {
+      color: 'hsl(var(--muted-foreground))',
+      foreground: 'hsl(var(--muted-foreground))',
+      background: 'hsl(var(--muted) / 0.65)',
+    };
+  }
+  if (usedPercent >= 85) {
+    return {
+      color: 'hsl(var(--destructive))',
+      foreground: 'hsl(var(--destructive))',
+      background: 'hsl(var(--destructive) / 0.12)',
+    };
+  }
+  if (usedPercent >= 65) {
+    return {
+      color: 'hsl(38 92% 48%)',
+      foreground: 'hsl(35 92% 38%)',
+      background: 'hsl(38 92% 48% / 0.14)',
+    };
+  }
+  return {
+    color: 'hsl(var(--success))',
+    foreground: 'hsl(178 70% 32%)',
+    background: 'hsl(var(--success) / 0.14)',
+  };
+};
+
+const limitWindowDetails = (window: SubscriptionUsageWindow): string[] => {
   const parts: string[] = [];
-  const used = formatLimitPercent(window.used_percent);
   const remaining = formatLimitPercent(window.remaining_percent);
   const current = formatLimitAmount(window.current, window.unit);
   const limit = formatLimitAmount(window.limit, window.unit);
   const reset = formatResetTime(window.resets_at);
 
-  if (used) parts.push(`${used} used`);
   if (current && limit) parts.push(`${current} / ${limit}`);
   else if (current) parts.push(current);
   else if (limit) parts.push(`${limit} limit`);
   if (remaining) parts.push(`${remaining} left`);
   if (reset) parts.push(reset);
-  return parts.join(' | ') || 'Available';
+  return parts;
 };
 
 const connectionLimitMessage = (connection: SubscriptionUsageConnection): string | null => {
   if (connection.status === 'ok') return null;
   return connection.message ?? 'Not available';
+};
+
+const LimitUsageGauge: Component<{
+  usedPercent: number | null;
+  tone: LimitUsageTone;
+}> = (props) => {
+  const value = () => props.usedPercent;
+  const label = () => (value() === null ? '' : Math.round(value() ?? 0).toString());
+
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: 'inline-flex',
+        width: '30px',
+        height: '30px',
+        'border-radius': '999px',
+        'align-items': 'center',
+        'justify-content': 'center',
+        background:
+          value() === null
+            ? 'hsl(var(--muted) / 0.8)'
+            : `conic-gradient(${props.tone.color} ${value()}%, hsl(var(--muted)) 0)`,
+        'box-shadow': `inset 0 0 0 1px ${props.tone.background}`,
+        'flex-shrink': 0,
+      }}
+    >
+      <span
+        style={{
+          display: 'inline-flex',
+          width: '21px',
+          height: '21px',
+          'border-radius': '999px',
+          'align-items': 'center',
+          'justify-content': 'center',
+          background: 'hsl(var(--background))',
+          color: props.tone.foreground,
+          'font-size': '8px',
+          'font-weight': 700,
+          'line-height': 1,
+        }}
+      >
+        {label()}
+      </span>
+    </span>
+  );
+};
+
+const SubscriptionLimitMeter: Component<{ row: SubscriptionLimitRow }> = (props) => {
+  const usedPercent = createMemo(() => clampLimitPercent(props.row.window.used_percent));
+  const tone = createMemo(() => limitUsageTone(usedPercent()));
+  const percentLabel = createMemo(() => formatLimitPercent(usedPercent()));
+  const details = createMemo(() => limitWindowDetails(props.row.window));
+  const topMetric = createMemo(() => {
+    const percent = percentLabel();
+    if (percent) return `${percent} used`;
+    return details()[0] ?? 'Available';
+  });
+  const detailLine = createMemo(() => {
+    const visibleDetails = percentLabel() ? details() : details().slice(1);
+    return visibleDetails.join(' | ');
+  });
+  const accessibilityLabel = createMemo(() =>
+    [props.row.window.label, topMetric(), detailLine(), props.row.connectionLabel]
+      .filter(Boolean)
+      .join(' | '),
+  );
+
+  return (
+    <div
+      aria-label={accessibilityLabel()}
+      style={{
+        display: 'grid',
+        'grid-template-columns': '30px minmax(0, 1fr)',
+        gap: '8px',
+        'align-items': 'center',
+        'min-width': '260px',
+      }}
+    >
+      <LimitUsageGauge usedPercent={usedPercent()} tone={tone()} />
+      <div style={{ 'min-width': 0 }}>
+        <div
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            'justify-content': 'space-between',
+            gap: '8px',
+            'min-width': 0,
+          }}
+        >
+          <span
+            style={{
+              color: 'hsl(var(--foreground))',
+              'font-size': 'var(--font-size-xs)',
+              'font-weight': 650,
+              overflow: 'hidden',
+              'text-overflow': 'ellipsis',
+              'white-space': 'nowrap',
+            }}
+          >
+            {props.row.window.label}
+          </span>
+          <span
+            style={{
+              display: 'inline-flex',
+              'align-items': 'center',
+              padding: '1px 6px',
+              'border-radius': '999px',
+              background: tone().background,
+              color: tone().foreground,
+              'font-size': '10px',
+              'font-weight': 700,
+              'white-space': 'nowrap',
+            }}
+          >
+            {topMetric()}
+          </span>
+        </div>
+        <Show when={usedPercent() !== null}>
+          <div
+            style={{
+              height: '5px',
+              width: '100%',
+              'border-radius': '999px',
+              background: 'hsl(var(--muted))',
+              overflow: 'hidden',
+              'margin-top': '5px',
+            }}
+          >
+            <span
+              style={{
+                display: 'block',
+                height: '100%',
+                width: `${usedPercent() ?? 0}%`,
+                'border-radius': '999px',
+                background: tone().color,
+              }}
+            />
+          </div>
+        </Show>
+        <Show when={props.row.connectionLabel || detailLine()}>
+          <div
+            style={{
+              color: 'hsl(var(--muted-foreground))',
+              'font-size': '10px',
+              'line-height': 1.35,
+              'margin-top': '4px',
+              overflow: 'hidden',
+              'text-overflow': 'ellipsis',
+              'white-space': 'nowrap',
+            }}
+          >
+            <Show when={props.row.connectionLabel}>
+              <span>{props.row.connectionLabel}</span>
+              <Show when={detailLine()}>
+                <span> | </span>
+              </Show>
+            </Show>
+            <span>{detailLine()}</span>
+          </div>
+        </Show>
+      </div>
+    </div>
+  );
 };
 
 const SubscriptionLimitsCell: Component<{
@@ -254,25 +457,11 @@ const SubscriptionLimitsCell: Component<{
             </span>
           }
         >
-          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 210px;">
-            <For each={visibleRows()}>
-              {(row) => (
-                <div style="display: flex; align-items: baseline; gap: 6px; font-size: var(--font-size-xs); white-space: nowrap;">
-                  <span style="font-weight: 600; color: hsl(var(--foreground));">
-                    {row.window.label}
-                  </span>
-                  <Show when={row.connectionLabel}>
-                    <span style="color: hsl(var(--muted-foreground));">{row.connectionLabel}</span>
-                  </Show>
-                  <span style="color: hsl(var(--muted-foreground));">
-                    {limitWindowDetail(row.window)}
-                  </span>
-                </div>
-              )}
-            </For>
+          <div style="display: flex; flex-direction: column; gap: 8px; min-width: 270px; max-width: 410px;">
+            <For each={visibleRows()}>{(row) => <SubscriptionLimitMeter row={row} />}</For>
             <Show when={hiddenCount() > 0}>
               <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                +{hiddenCount()} more
+                +{hiddenCount()} more limits
               </span>
             </Show>
             <Show when={messages().length > 0}>
