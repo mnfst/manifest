@@ -17,7 +17,7 @@ function sseStream(chunks: string[]): ReadableStream<Uint8Array> {
   });
 }
 
-type Forward = Pick<ForwardResult, 'isGoogle' | 'isAnthropic' | 'isChatGpt'>;
+type Forward = Pick<ForwardResult, 'isGoogle' | 'isAnthropic' | 'isChatGpt' | 'isCodeAssist'>;
 const OPENAI: Forward = { isGoogle: false, isAnthropic: false, isChatGpt: false };
 
 function providerClientStub(over: Partial<ProviderClient> = {}): ProviderClient {
@@ -112,6 +112,29 @@ describe('consumeProviderStream', () => {
     );
     expect(convertGoogleStreamChunk).toHaveBeenCalledWith('{"candidates":[]}', 'gemini/x');
     expect(result.content).toBe('G');
+  });
+
+  it('unwraps CodeAssist Google stream payloads before conversion', async () => {
+    const convertGoogleStreamChunk = jest.fn(
+      (_e: string, _m: string): { chunk: string | null } => ({
+        chunk: 'data: {"choices":[{"delta":{"content":"C"}}]}\n\n',
+      }),
+    );
+    const pc = providerClientStub({
+      convertGoogleStreamChunk: convertGoogleStreamChunk as never,
+    });
+    const inner = { candidates: [{ content: { parts: [{ text: 'from-codeassist' }] } }] };
+    const result = await consumeProviderStream(
+      sseStream([`data: ${JSON.stringify({ response: inner, traceId: 'trace-1' })}\n\n`]),
+      { isGoogle: true, isAnthropic: false, isChatGpt: false, isCodeAssist: true },
+      'gemini/x',
+      pc,
+      () => undefined,
+      Date.now(),
+    );
+
+    expect(convertGoogleStreamChunk).toHaveBeenCalledWith(JSON.stringify(inner), 'gemini/x');
+    expect(result.content).toBe('C');
   });
 
   it('skips Google chunks that convert to a null chunk', async () => {
