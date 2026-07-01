@@ -39,6 +39,41 @@ const jsonResponse = (body: unknown, status = 200) =>
     headers: { 'content-type': 'application/json' },
   });
 
+const binaryResponse = (body: Uint8Array, status = 200) =>
+  new Response(Buffer.from(body), {
+    status,
+    headers: { 'content-type': 'application/grpc-web+proto' },
+  });
+
+const varint = (value: number): number[] => {
+  let remaining = value;
+  const bytes: number[] = [];
+  do {
+    let byte = remaining & 0x7f;
+    remaining = Math.floor(remaining / 128);
+    if (remaining !== 0) byte |= 0x80;
+    bytes.push(byte);
+  } while (remaining !== 0);
+  return bytes;
+};
+
+const protobufPayload = (usedPercent: number, resetEpoch: number): Uint8Array => {
+  const percent = Buffer.alloc(4);
+  percent.writeFloatLE(usedPercent, 0);
+  return Uint8Array.from([0x0d, ...percent, 0x10, ...varint(resetEpoch)]);
+};
+
+const grpcFrame = (payload: Uint8Array, flags = 0): Uint8Array => {
+  const frame = new Uint8Array(5 + payload.length);
+  frame[0] = flags;
+  frame[1] = (payload.length >>> 24) & 0xff;
+  frame[2] = (payload.length >>> 16) & 0xff;
+  frame[3] = (payload.length >>> 8) & 0xff;
+  frame[4] = payload.length & 0xff;
+  frame.set(payload, 5);
+  return frame;
+};
+
 const makeProvider = (overrides: Partial<TenantProvider>): TenantProvider =>
   ({
     id: 'provider-1',
@@ -66,6 +101,7 @@ describe('SubscriptionUsageService', () => {
   let openaiOauth: OauthMock;
   let anthropicOauth: OauthMock;
   let geminiOauth: OauthMock;
+  let xaiOauth: OauthMock;
   let fetchMock: jest.Mock<Promise<Response>, [RequestInfo | URL, RequestInit?]>;
   let service: SubscriptionUsageService;
 
@@ -77,6 +113,7 @@ describe('SubscriptionUsageService', () => {
     openaiOauth = { unwrapToken: jest.fn().mockResolvedValue('openai-access') };
     anthropicOauth = { unwrapToken: jest.fn().mockResolvedValue('anthropic-access') };
     geminiOauth = { unwrapToken: jest.fn().mockResolvedValue('gemini-access') };
+    xaiOauth = { unwrapToken: jest.fn().mockResolvedValue('xai-access') };
     fetchMock = jest.fn();
     global.fetch = fetchMock as unknown as typeof fetch;
 
@@ -86,6 +123,7 @@ describe('SubscriptionUsageService', () => {
       openaiOauth as never,
       anthropicOauth as never,
       geminiOauth as never,
+      xaiOauth as never,
     );
   });
 
@@ -93,7 +131,10 @@ describe('SubscriptionUsageService', () => {
     global.fetch = originalFetch;
   });
 
-  it('normalizes Codex, Claude, and Gemini subscription limit windows', async () => {
+  it('normalizes Codex, Claude, Gemini, and Grok subscription limit windows', async () => {
+    const xaiResetEpoch = Math.floor((Date.now() + 6 * 24 * 60 * 60 * 1000) / 1000);
+    const xaiResetIso = new Date(xaiResetEpoch * 1000).toISOString();
+
     providerRepo.find.mockResolvedValue([
       makeProvider({
         id: 'openai-1',
@@ -115,6 +156,13 @@ describe('SubscriptionUsageService', () => {
         label: 'Gemini',
         priority: 2,
         api_key_encrypted: encrypted(oauthBlob('stored-gemini', 'project-123')),
+      }),
+      makeProvider({
+        id: 'xai-1',
+        provider: 'xai',
+        label: 'Grok',
+        priority: 4,
+        api_key_encrypted: encrypted(oauthBlob('stored-xai')),
       }),
     ]);
 
@@ -170,13 +218,25 @@ describe('SubscriptionUsageService', () => {
           ],
         });
       }
+      if (url.includes('grok.com')) {
+        const headers = init?.headers as Record<string, string>;
+        expect(headers.Authorization).toBe('Bearer xai-access');
+        expect(headers['Content-Type']).toBe('application/grpc-web+proto');
+        expect(init?.method).toBe('POST');
+        return binaryResponse(grpcFrame(protobufPayload(42.5, xaiResetEpoch)));
+      }
       throw new Error(`Unexpected URL ${url}`);
     });
 
     const result = await service.getUsage(TENANT_ID);
 
-    expect(result.map((summary) => summary.provider)).toEqual(['anthropic', 'gemini', 'openai']);
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(result.map((summary) => summary.provider)).toEqual([
+      'anthropic',
+      'gemini',
+      'openai',
+      'xai',
+    ]);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(
       expect.any(String),
       'agent-1',
@@ -194,6 +254,12 @@ describe('SubscriptionUsageService', () => {
       'agent-1',
       TENANT_ID,
       'Gemini',
+    );
+    expect(xaiOauth.unwrapToken).toHaveBeenCalledWith(
+      expect.any(String),
+      'agent-1',
+      TENANT_ID,
+      'Grok',
     );
 
     const openai = result.find((summary) => summary.provider === 'openai');
@@ -262,6 +328,19 @@ describe('SubscriptionUsageService', () => {
         remaining_percent: 42,
         resets_at: RESET,
         window_seconds: 86_400,
+      }),
+    ]);
+
+    const xai = result.find((summary) => summary.provider === 'xai');
+    expect(xai?.connections[0].windows).toEqual([
+      expect.objectContaining({
+        id: 'grok-weekly',
+        label: 'Grok weekly',
+        used_percent: 42.5,
+        remaining_percent: 57.5,
+        resets_at: xaiResetIso,
+        window_seconds: 604_800,
+        unit: 'credits',
       }),
     ]);
   });

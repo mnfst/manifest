@@ -8,14 +8,16 @@ import { scrubSecrets } from '../common/utils/secret-scrub';
 import { OpenaiOauthService } from './oauth/openai/openai-oauth.service';
 import { AnthropicOauthService } from './oauth/anthropic/anthropic-oauth.service';
 import { GeminiOauthService } from './oauth/gemini/gemini-oauth.service';
+import { XaiOauthService } from './oauth/xai/xai-oauth.service';
 import { parseOAuthTokenBlob } from './oauth/core';
 
-type SubscriptionUsageProvider = 'openai' | 'anthropic' | 'gemini';
+type SubscriptionUsageProvider = 'openai' | 'anthropic' | 'gemini' | 'xai';
 type SubscriptionConnectionStatus = 'ok' | 'unavailable' | 'error';
 
 const FIVE_HOURS_SECONDS = 5 * 60 * 60;
 const ONE_DAY_SECONDS = 24 * 60 * 60;
 const SEVEN_DAYS_SECONDS = 7 * ONE_DAY_SECONDS;
+const THIRTY_DAYS_SECONDS = 30 * ONE_DAY_SECONDS;
 
 export interface SubscriptionUsageWindow {
   id: string;
@@ -104,7 +106,34 @@ interface GeminiQuotaResponse {
   }>;
 }
 
-const SUPPORTED_PROVIDERS = new Set<SubscriptionUsageProvider>(['openai', 'anthropic', 'gemini']);
+interface GrokWebBillingSnapshot {
+  usedPercent: number;
+  resetsAt: string | null;
+}
+
+interface ProtobufFixed32Field {
+  path: number[];
+  value: number;
+  order: number;
+}
+
+interface ProtobufVarintField {
+  path: number[];
+  value: number;
+}
+
+interface ProtobufScan {
+  fixed32Fields: ProtobufFixed32Field[];
+  varintFields: ProtobufVarintField[];
+  order: number;
+}
+
+const SUPPORTED_PROVIDERS = new Set<SubscriptionUsageProvider>([
+  'openai',
+  'anthropic',
+  'gemini',
+  'xai',
+]);
 const FETCH_TIMEOUT_MS = 12_000;
 
 class SubscriptionUsageFetchError extends Error {
@@ -129,6 +158,7 @@ export class SubscriptionUsageService {
     private readonly openaiOauth: OpenaiOauthService,
     private readonly anthropicOauth: AnthropicOauthService,
     private readonly geminiOauth: GeminiOauthService,
+    private readonly xaiOauth: XaiOauthService,
   ) {}
 
   async getUsage(tenantId: string | null): Promise<SubscriptionUsageSummary[]> {
@@ -215,7 +245,9 @@ export class SubscriptionUsageService {
           ? await this.fetchOpenAIUsage(token)
           : provider === 'anthropic'
             ? await this.fetchAnthropicUsage(token)
-            : await this.fetchGeminiUsage(token, rawCredential);
+            : provider === 'gemini'
+              ? await this.fetchGeminiUsage(token, rawCredential)
+              : await this.fetchXaiUsage(token);
       return {
         ...base,
         status: windows.length > 0 ? 'ok' : 'unavailable',
@@ -261,7 +293,10 @@ export class SubscriptionUsageService {
     if (provider === 'anthropic') {
       return this.anthropicOauth.unwrapToken(rawCredential, agentId, row.tenant_id, row.label);
     }
-    return this.geminiOauth.unwrapToken(rawCredential, agentId, row.tenant_id, row.label);
+    if (provider === 'gemini') {
+      return this.geminiOauth.unwrapToken(rawCredential, agentId, row.tenant_id, row.label);
+    }
+    return this.xaiOauth.unwrapToken(rawCredential, agentId, row.tenant_id, row.label);
   }
 
   private async fetchOpenAIUsage(accessToken: string): Promise<SubscriptionUsageWindow[]> {
@@ -335,7 +370,13 @@ export class SubscriptionUsageService {
 
     const windows: SubscriptionUsageWindow[] = [];
     this.addClaudeWindow(windows, 'claude-5h', 'Claude 5h', payload.five_hour, FIVE_HOURS_SECONDS);
-    this.addClaudeWindow(windows, 'claude-weekly', 'Claude weekly', payload.seven_day, SEVEN_DAYS_SECONDS);
+    this.addClaudeWindow(
+      windows,
+      'claude-weekly',
+      'Claude weekly',
+      payload.seven_day,
+      SEVEN_DAYS_SECONDS,
+    );
     this.addClaudeWindow(
       windows,
       'claude-oauth-apps-weekly',
@@ -428,6 +469,53 @@ export class SubscriptionUsageService {
           unit: 'quota',
         };
       });
+  }
+
+  private async fetchXaiUsage(accessToken: string): Promise<SubscriptionUsageWindow[]> {
+    const data = await this.fetchBytes(
+      'https://grok.com/grok_api_v2.GrokBuildBilling/GetGrokCreditsConfig',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Origin: 'https://grok.com',
+          Referer: 'https://grok.com/?_s=usage',
+          Accept: '*/*',
+          'Content-Type': 'application/grpc-web+proto',
+          'x-grpc-web': '1',
+          'x-user-agent': 'connect-es/2.1.1',
+          'User-Agent': 'Manifest',
+        },
+        body: new Uint8Array([0, 0, 0, 0, 0]),
+      },
+    );
+
+    this.validateGrpcStatusFields(this.grpcWebTrailerFields(data));
+    const snapshot = this.parseGrokWebBilling(data);
+    const usedPercent = clampPercent(snapshot.usedPercent);
+    if (usedPercent === null) return [];
+
+    const resetMs = snapshot.resetsAt ? Date.parse(snapshot.resetsAt) : Number.NaN;
+    const secondsUntilReset = Number.isNaN(resetMs) ? null : (resetMs - Date.now()) / 1000;
+    const period =
+      secondsUntilReset !== null && secondsUntilReset > 3600
+        ? this.grokPeriodFromSeconds(secondsUntilReset)
+        : null;
+    const label = period ? `Grok ${period.label}` : 'Grok credits';
+
+    return [
+      {
+        id: period ? `grok-${period.id}` : 'grok-credits',
+        label,
+        used_percent: usedPercent,
+        remaining_percent: clampPercent(100 - usedPercent),
+        resets_at: snapshot.resetsAt,
+        window_seconds: period?.windowSeconds ?? null,
+        current: null,
+        limit: null,
+        unit: 'credits',
+      },
+    ];
   }
 
   private addOpenAIWindow(
@@ -565,6 +653,30 @@ export class SubscriptionUsageService {
     }
   }
 
+  private async fetchBytes(url: string, init: RequestInit): Promise<Uint8Array> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, { ...init, signal: controller.signal });
+      const grpcStatus = response.headers.get('grpc-status');
+      if (grpcStatus && grpcStatus !== '0') {
+        this.throwGrpcStatus(grpcStatus, response.headers.get('grpc-message') ?? '');
+      }
+      if (!response.ok) {
+        throw new SubscriptionUsageFetchError(response.status, await response.text());
+      }
+      return new Uint8Array(await response.arrayBuffer());
+    } catch (error) {
+      if (error instanceof SubscriptionUsageFetchError) throw error;
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new SubscriptionUsageFetchError(408, 'Request timed out');
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   private groupStatus(
     connections: SubscriptionUsageConnection[],
   ): SubscriptionUsageSummary['status'] {
@@ -620,6 +732,215 @@ export class SubscriptionUsageService {
       .replace(/-/g, ' ')
       .replace(/\b\w/g, (char) => char.toUpperCase());
   }
+
+  private grokPeriodFromSeconds(seconds: number): {
+    id: string;
+    label: string;
+    windowSeconds: number;
+  } | null {
+    const days = Math.round(seconds / ONE_DAY_SECONDS);
+    if (days >= 4 && days <= 12) {
+      return { id: 'weekly', label: 'weekly', windowSeconds: SEVEN_DAYS_SECONDS };
+    }
+    if (days >= 20 && days <= 45) {
+      return { id: 'monthly', label: 'monthly', windowSeconds: THIRTY_DAYS_SECONDS };
+    }
+    return null;
+  }
+
+  private parseGrokWebBilling(data: Uint8Array): GrokWebBillingSnapshot {
+    let payloads = this.grpcWebDataFrames(data);
+    if (payloads.length === 0 && this.looksLikeProtobufPayload(data)) {
+      payloads = [data];
+    }
+    if (payloads.length === 0) {
+      throw new SubscriptionUsageFetchError(502, 'Grok web billing returned no protobuf payload');
+    }
+
+    const scan = payloads.reduce<ProtobufScan>(
+      (merged, payload) => {
+        const next = this.scanProtobuf(payload, 0, [], merged.order);
+        merged.fixed32Fields.push(...next.fixed32Fields);
+        merged.varintFields.push(...next.varintFields);
+        merged.order = next.order;
+        return merged;
+      },
+      { fixed32Fields: [], varintFields: [], order: 0 },
+    );
+
+    const percent = scan.fixed32Fields
+      .filter(
+        (field) =>
+          field.path[field.path.length - 1] === 1 &&
+          Number.isFinite(field.value) &&
+          field.value >= 0 &&
+          field.value <= 100,
+      )
+      .sort((a, b) => a.path.length - b.path.length || a.order - b.order)[0]?.value;
+
+    const nowSeconds = Date.now() / 1000;
+    const resetCandidates = scan.varintFields
+      .filter((field) => field.value >= 1_700_000_000 && field.value <= 2_100_000_000)
+      .filter((field) => field.value > nowSeconds)
+      .sort((a, b) => a.value - b.value);
+    const reset =
+      resetCandidates.find((field) => pathsEqual(field.path, [1, 5, 1])) ?? resetCandidates[0];
+
+    const hasUsagePeriod = scan.varintFields.some(
+      (field) =>
+        pathStartsWith(field.path, [1, 6]) ||
+        (pathsEqual(field.path, [1, 8, 1]) && (field.value === 1 || field.value === 2)),
+    );
+    const noUsageYet = percent === undefined && !!reset && hasUsagePeriod;
+    if (percent === undefined && !noUsageYet) {
+      throw new SubscriptionUsageFetchError(502, 'Could not parse Grok web billing usage');
+    }
+
+    return {
+      usedPercent: percent ?? 0,
+      resetsAt: reset ? new Date(reset.value * 1000).toISOString() : null,
+    };
+  }
+
+  private grpcWebDataFrames(data: Uint8Array): Uint8Array[] {
+    const frames: Uint8Array[] = [];
+    let index = 0;
+    while (index < data.length) {
+      if (index + 5 > data.length) return [];
+      const flags = data[index];
+      const length =
+        data[index + 1] * 2 ** 24 +
+        (data[index + 2] << 16) +
+        (data[index + 3] << 8) +
+        data[index + 4];
+      const start = index + 5;
+      const end = start + length;
+      if (length < 0 || end > data.length) return [];
+      if ((flags & 0x80) === 0) frames.push(data.slice(start, end));
+      index = end;
+    }
+    return frames;
+  }
+
+  private grpcWebTrailerFields(data: Uint8Array): Record<string, string> {
+    const fields: Record<string, string> = {};
+    let index = 0;
+    while (index + 5 <= data.length) {
+      const flags = data[index];
+      const length =
+        data[index + 1] * 2 ** 24 +
+        (data[index + 2] << 16) +
+        (data[index + 3] << 8) +
+        data[index + 4];
+      const start = index + 5;
+      const end = start + length;
+      if (length < 0 || end > data.length) break;
+      if ((flags & 0x80) !== 0) {
+        const text = Buffer.from(data.slice(start, end)).toString('utf8');
+        for (const line of text.split(/\r?\n/)) {
+          const separator = line.indexOf(':');
+          if (separator === -1) continue;
+          fields[line.slice(0, separator).trim().toLowerCase()] = decodeGrpcValue(
+            line.slice(separator + 1).trim(),
+          );
+        }
+      }
+      index = end;
+    }
+    return fields;
+  }
+
+  private validateGrpcStatusFields(fields: Record<string, string>) {
+    const status = fields['grpc-status'];
+    if (!status || status === '0') return;
+    this.throwGrpcStatus(status, fields['grpc-message'] ?? '');
+  }
+
+  private throwGrpcStatus(status: string, message: string): never {
+    const parsed = Number(status);
+    const httpStatus = parsed === 16 ? 401 : parsed === 7 ? 403 : parsed === 4 ? 408 : 502;
+    throw new SubscriptionUsageFetchError(httpStatus, `gRPC ${status}: ${message}`);
+  }
+
+  private looksLikeProtobufPayload(data: Uint8Array): boolean {
+    const first = data[0];
+    if (first === undefined) return false;
+    const fieldNumber = first >> 3;
+    const wireType = first & 0x07;
+    return (
+      fieldNumber > 0 && (wireType === 0 || wireType === 1 || wireType === 2 || wireType === 5)
+    );
+  }
+
+  private scanProtobuf(
+    data: Uint8Array,
+    depth: number,
+    path: number[] = [],
+    order = 0,
+  ): ProtobufScan {
+    const scan: ProtobufScan = { fixed32Fields: [], varintFields: [], order };
+    let index = 0;
+
+    while (index < data.length) {
+      const fieldStart = index;
+      const key = readVarint(data, index);
+      if (!key || key.value === 0) {
+        index = fieldStart + 1;
+        continue;
+      }
+      index = key.index;
+      const fieldNumber = Math.floor(key.value / 8);
+      const wireType = key.value % 8;
+      const fieldPath = [...path, fieldNumber];
+
+      if (wireType === 0) {
+        const value = readVarint(data, index);
+        if (value) {
+          scan.varintFields.push({ path: fieldPath, value: value.value });
+          index = value.index;
+        } else {
+          index = fieldStart + 1;
+        }
+      } else if (wireType === 1) {
+        if (index + 8 > data.length) return scan;
+        index += 8;
+      } else if (wireType === 2) {
+        const length = readVarint(data, index);
+        if (!length || length.value > data.length - length.index) {
+          index = fieldStart + 1;
+          continue;
+        }
+        index = length.index;
+        const end = index + length.value;
+        if (depth < 4) {
+          const nested = this.scanProtobuf(
+            data.slice(index, end),
+            depth + 1,
+            fieldPath,
+            scan.order,
+          );
+          scan.fixed32Fields.push(...nested.fixed32Fields);
+          scan.varintFields.push(...nested.varintFields);
+          scan.order = nested.order;
+        }
+        index = end;
+      } else if (wireType === 5) {
+        if (index + 4 > data.length) return scan;
+        const view = new DataView(data.buffer, data.byteOffset + index, 4);
+        scan.fixed32Fields.push({
+          path: fieldPath,
+          value: view.getFloat32(0, true),
+          order: scan.order,
+        });
+        scan.order += 1;
+        index += 4;
+      } else {
+        index = fieldStart + 1;
+      }
+    }
+
+    return scan;
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -662,4 +983,34 @@ function parseIsoDate(value: string | null): string | null {
   if (!value) return null;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function pathsEqual(a: number[], b: number[]): boolean {
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
+function pathStartsWith(path: number[], prefix: number[]): boolean {
+  return prefix.length <= path.length && prefix.every((value, index) => value === path[index]);
+}
+
+function decodeGrpcValue(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function readVarint(data: Uint8Array, start: number): { value: number; index: number } | null {
+  let value = 0;
+  let shift = 0;
+  let index = start;
+  while (index < data.length && shift < 64) {
+    const byte = data[index];
+    index += 1;
+    value += (byte & 0x7f) * 2 ** shift;
+    if ((byte & 0x80) === 0) return { value, index };
+    shift += 7;
+  }
+  return null;
 }
