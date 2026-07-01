@@ -723,7 +723,7 @@
 
 /* ── Auto-fix Sidebar Card ───────────────────────── */
 .sidebar-autofix {
-  margin: var(--gap-sm) var(--gap-sm) 0;
+  margin: var(--gap-sm);
   padding: 14px;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
