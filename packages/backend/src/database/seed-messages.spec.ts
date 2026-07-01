@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { classifyMessageError } from 'manifest-shared';
 import { getSeedConnections, seedAgentMessages, seedConnectionId } from './seed-messages';
 
 function makeMockRepo() {
@@ -319,41 +320,144 @@ describe('seedAgentMessages', () => {
       const messages = collectInsertedMessages(mockRepo);
 
       const okCount = messages.filter((m) => m.status === 'ok').length;
-      const errorCount = messages.filter((m) => m.status === 'error').length;
+      const failedCount = messages.filter((m) => m.status !== 'ok').length;
 
-      // The vast majority should be 'ok' (threshold > 0.95 means ~5% error)
-      expect(okCount).toBeGreaterThan(errorCount);
+      // The vast majority should be 'ok' (threshold > 0.85 draws a shape for
+      // ~15% of rows, and one drawn shape is itself a recovered success).
+      expect(okCount).toBeGreaterThan(failedCount);
       expect(okCount / messages.length).toBeGreaterThan(0.8);
     });
 
-    it('should include some error messages', async () => {
+    it('should include some failed messages', async () => {
       await seedAgentMessages(mockRepo as never, 'user-1', logger);
       const messages = collectInsertedMessages(mockRepo);
 
-      const errorMsgs = messages.filter((m) => m.status === 'error');
-      expect(errorMsgs.length).toBeGreaterThan(0);
+      const failedMsgs = messages.filter((m) => m.status !== 'ok');
+      expect(failedMsgs.length).toBeGreaterThan(0);
     });
 
-    it('should set error_message only on error status messages', async () => {
+    it('sets error_message on failed rows and leaves ok rows null', async () => {
       await seedAgentMessages(mockRepo as never, 'user-1', logger);
       const messages = collectInsertedMessages(mockRepo);
 
       for (const msg of messages) {
-        if (msg.status === 'error') {
-          expect(msg.error_message).toBe('Rate limit exceeded');
-        } else {
+        if (msg.status === 'ok') {
           expect(msg.error_message).toBeNull();
+        } else {
+          expect(typeof msg.error_message).toBe('string');
+          expect((msg.error_message as string).length).toBeGreaterThan(0);
         }
       }
     });
 
-    it('should only contain ok and error statuses', async () => {
+    it('only contains statuses drawn from the taxonomy shapes', async () => {
       await seedAgentMessages(mockRepo as never, 'user-1', logger);
       const messages = collectInsertedMessages(mockRepo);
 
       for (const msg of messages) {
-        expect(['ok', 'error']).toContain(msg.status);
+        expect(['ok', 'error', 'rate_limited', 'fallback_error']).toContain(msg.status);
       }
+    });
+  });
+
+  describe('error taxonomy', () => {
+    it('stamps error_origin/error_class/superseded via the shared classifier', async () => {
+      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+      const messages = collectInsertedMessages(mockRepo);
+
+      for (const msg of messages) {
+        const expected = classifyMessageError({
+          status: msg.status as string,
+          errorHttpStatus: (msg.error_http_status as number | null) ?? null,
+          routingReason: (msg.routing_reason as string | null) ?? null,
+        });
+        expect(msg.error_origin).toBe(expected.error_origin);
+        expect(msg.error_class).toBe(expected.error_class);
+        expect(msg.superseded).toBe(expected.superseded);
+      }
+    });
+
+    it('leaves ok rows unclassified and never superseded', async () => {
+      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+      const messages = collectInsertedMessages(mockRepo);
+
+      for (const msg of messages.filter((m) => m.status === 'ok')) {
+        expect(msg.error_origin).toBeNull();
+        expect(msg.error_class).toBeNull();
+        expect(msg.superseded).toBe(false);
+      }
+    });
+
+    it('spreads seeded failures across provider, config and transport origins', async () => {
+      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+      const messages = collectInsertedMessages(mockRepo);
+
+      const origins = new Set(
+        messages.filter((m) => m.status !== 'ok').map((m) => m.error_origin as string),
+      );
+      expect(origins.has('provider')).toBe(true);
+      expect(origins.has('config')).toBe(true);
+      expect(origins.has('transport')).toBe(true);
+      // A Manifest software-limit hit (policy) is seeded too, distinct from provider errors.
+      expect(origins.has('policy')).toBe(true);
+    });
+
+    it('marks fallback attempts as superseded and nothing else', async () => {
+      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+      const messages = collectInsertedMessages(mockRepo);
+
+      for (const msg of messages) {
+        expect(msg.superseded).toBe(msg.status === 'fallback_error');
+      }
+    });
+
+    it('surfaces internal (Manifest) errors alongside the other origins', async () => {
+      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+      const messages = collectInsertedMessages(mockRepo);
+      const origins = new Set(messages.map((m) => m.error_origin as string | null));
+      expect(origins.has('internal')).toBe(true);
+    });
+  });
+
+  describe('fallback scenarios', () => {
+    let messages: Array<Record<string, unknown>>;
+
+    beforeEach(async () => {
+      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+      messages = collectInsertedMessages(mockRepo);
+    });
+
+    it('includes HANDLED fallbacks — superseded fallback_error attempts', () => {
+      const handled = messages.filter((m) => m.status === 'fallback_error');
+      expect(handled.length).toBeGreaterThan(0);
+      for (const m of handled) {
+        expect(m.superseded).toBe(true);
+        expect(m.fallback_from_model).toBe('claude-sonnet-4-5-20250929');
+      }
+    });
+
+    it('includes RECOVERED successes — ok rows that fell back to another model', () => {
+      const recovered = messages.filter((m) => m.status === 'ok' && m.fallback_from_model);
+      expect(recovered.length).toBeGreaterThan(0);
+      for (const m of recovered) {
+        expect(m.error_origin).toBeNull();
+        expect(m.superseded).toBe(false);
+      }
+    });
+
+    it('includes NOT-HANDLED fallbacks — failed rows that fell back and still failed', () => {
+      const notHandled = messages.filter(
+        (m) => m.status !== 'ok' && m.status !== 'fallback_error' && m.fallback_from_model,
+      );
+      expect(notHandled.length).toBeGreaterThan(0);
+      // These are terminal failures, not superseded attempts.
+      for (const m of notHandled) expect(m.superseded).toBe(false);
+    });
+
+    it('leaves the vast majority of rows without any fallback context', () => {
+      const withFallback = messages.filter((m) => m.fallback_from_model);
+      expect(withFallback.length).toBeGreaterThan(0);
+      expect(withFallback.length).toBeLessThan(messages.length / 2);
     });
   });
 

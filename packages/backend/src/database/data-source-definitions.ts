@@ -128,6 +128,7 @@ import { AddDashboardCoveringIndex1793200000000 } from './migrations/17932000000
 import { AddCrossTenantErrorTimestampIndex1795100000000 } from './migrations/1795100000000-AddCrossTenantErrorTimestampIndex';
 import { RemoveMessageRecording1795000000000 } from './migrations/1795000000000-RemoveMessageRecording';
 import { AddAutofixWaitlist1796000000000 } from './migrations/1796000000000-AddAutofixWaitlist';
+import { AddErrorClassification1797000000000 } from './migrations/1797000000000-AddErrorClassification';
 
 export const entities = [
   AgentMessage,
@@ -258,4 +259,5 @@ export const migrations = [
   RemoveMessageRecording1795000000000,
   AddCrossTenantErrorTimestampIndex1795100000000,
   AddAutofixWaitlist1796000000000,
+  AddErrorClassification1797000000000,
 ];
