@@ -15,9 +15,13 @@ import {
   getProviders as getAgentProviders,
 } from '../../services/api.js';
 import {
+  getProviderSubscriptionUsage,
   getProviders as getGlobalProviders,
   getProviderUsage,
   mergeUsage,
+  type SubscriptionUsageConnection,
+  type SubscriptionUsageSummary,
+  type SubscriptionUsageWindow,
   type TenantProviderSummary,
 } from '../../services/api/providers.js';
 import { messagePing, routingPing } from '../../services/sse.js';
@@ -149,6 +153,139 @@ const UsageShimmer: Component<{ width?: number }> = (props) => (
     }}
   />
 );
+
+const MAX_LIMIT_ROWS = 5;
+
+interface SubscriptionLimitRow {
+  connectionLabel: string | null;
+  window: SubscriptionUsageWindow;
+}
+
+const formatLimitPercent = (value: number | null | undefined): string | null => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  const rounded = Math.round(value * 10) / 10;
+  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`;
+};
+
+const formatLimitAmount = (value: number | null, unit: string | null): string | null => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  const formatted =
+    Math.abs(value) >= 100 || Number.isInteger(value)
+      ? formatNumber(Math.round(value))
+      : value.toFixed(1);
+  return unit ? `${formatted} ${unit}` : formatted;
+};
+
+const formatResetTime = (iso: string | null): string | null => {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const minutes = Math.max(0, Math.round((date.getTime() - Date.now()) / 60_000));
+  if (minutes === 0) return 'reset now';
+  if (minutes < 60) return `resets in ${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (hours < 24) return `resets in ${hours}h${remainingMinutes ? ` ${remainingMinutes}m` : ''}`;
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
+  return `resets in ${days}d${remainingHours ? ` ${remainingHours}h` : ''}`;
+};
+
+const limitWindowDetail = (window: SubscriptionUsageWindow): string => {
+  const parts: string[] = [];
+  const used = formatLimitPercent(window.used_percent);
+  const remaining = formatLimitPercent(window.remaining_percent);
+  const current = formatLimitAmount(window.current, window.unit);
+  const limit = formatLimitAmount(window.limit, window.unit);
+  const reset = formatResetTime(window.resets_at);
+
+  if (used) parts.push(`${used} used`);
+  if (current && limit) parts.push(`${current} / ${limit}`);
+  else if (current) parts.push(current);
+  else if (limit) parts.push(`${limit} limit`);
+  if (remaining) parts.push(`${remaining} left`);
+  if (reset) parts.push(reset);
+  return parts.join(' | ') || 'Available';
+};
+
+const connectionLimitMessage = (connection: SubscriptionUsageConnection): string | null => {
+  if (connection.status === 'ok') return null;
+  return connection.message ?? 'Not available';
+};
+
+const SubscriptionLimitsCell: Component<{
+  usage: SubscriptionUsageSummary | undefined;
+  loading: boolean;
+}> = (props) => {
+  const rows = createMemo<SubscriptionLimitRow[]>(() => {
+    const usage = props.usage;
+    if (!usage) return [];
+    const showConnectionLabel = usage.connections.length > 1;
+    return usage.connections.flatMap((connection) =>
+      connection.windows.map((window) => ({
+        connectionLabel: showConnectionLabel ? connection.label : null,
+        window,
+      })),
+    );
+  });
+  const messages = createMemo(() =>
+    (props.usage?.connections ?? [])
+      .map(connectionLimitMessage)
+      .filter((message): message is string => !!message),
+  );
+  const visibleRows = createMemo(() => rows().slice(0, MAX_LIMIT_ROWS));
+  const hiddenCount = createMemo(() => Math.max(0, rows().length - MAX_LIMIT_ROWS));
+
+  return (
+    <Show when={!props.loading} fallback={<UsageShimmer width={148} />}>
+      <Show
+        when={props.usage}
+        fallback={
+          <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+            Not available
+          </span>
+        }
+      >
+        <Show
+          when={visibleRows().length > 0}
+          fallback={
+            <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+              {messages()[0] ?? 'Not available'}
+            </span>
+          }
+        >
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 210px;">
+            <For each={visibleRows()}>
+              {(row) => (
+                <div style="display: flex; align-items: baseline; gap: 6px; font-size: var(--font-size-xs); white-space: nowrap;">
+                  <span style="font-weight: 600; color: hsl(var(--foreground));">
+                    {row.window.label}
+                  </span>
+                  <Show when={row.connectionLabel}>
+                    <span style="color: hsl(var(--muted-foreground));">{row.connectionLabel}</span>
+                  </Show>
+                  <span style="color: hsl(var(--muted-foreground));">
+                    {limitWindowDetail(row.window)}
+                  </span>
+                </div>
+              )}
+            </For>
+            <Show when={hiddenCount() > 0}>
+              <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                +{hiddenCount()} more
+              </span>
+            </Show>
+            <Show when={messages().length > 0}>
+              <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                {messages()[0]}
+              </span>
+            </Show>
+          </div>
+        </Show>
+      </Show>
+    </Show>
+  );
+};
 
 const StatusBadge: Component<{ active: boolean }> = (props) => (
   <Show
@@ -313,15 +450,31 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     },
   );
 
+  const [subscriptionUsage, { refetch: refetchSubscriptionUsage }] = createResource(
+    () => (props.kind === 'subscriptions' ? routingPing() : undefined),
+    async () => {
+      try {
+        return (await getProviderSubscriptionUsage()).providers;
+      } catch {
+        return [];
+      }
+    },
+  );
+
   // Distinguish "loading" (shimmer the usage cells) from "loaded-zero" (a real
   // 0). Only the FIRST load shimmers; SSE-driven refetches keep the prior
   // numbers on screen (usage() stays defined) so the table doesn't flicker.
   const usageLoading = () => usage.loading && usage() === undefined;
+  const subscriptionUsageLoading = () =>
+    props.kind === 'subscriptions' &&
+    subscriptionUsage.loading &&
+    subscriptionUsage() === undefined;
 
   // Coordinate a usage refetch alongside config on connect/disconnect/rename.
   const refetchGlobalProviders = () => {
     void refetchConfig();
     void refetchUsage();
+    if (props.kind === 'subscriptions') void refetchSubscriptionUsage();
   };
 
   // Merge config + usage by (provider, auth_type). While usage is still loading
@@ -330,6 +483,12 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const data = () => ({
     providers: mergeUsage(config()?.providers ?? [], usage()),
     model_counts: config()?.model_counts ?? {},
+  });
+
+  const subscriptionUsageByProvider = createMemo(() => {
+    const byProvider = new Map<string, SubscriptionUsageSummary>();
+    for (const summary of subscriptionUsage() ?? []) byProvider.set(summary.provider, summary);
+    return byProvider;
   });
 
   const [agents] = createResource(async () => {
@@ -540,6 +699,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                 <th>Provider</th>
                 <th>Connection</th>
                 <th>Usage (30d)</th>
+                <Show when={props.kind === 'subscriptions'}>
+                  <th>Limits</th>
+                </Show>
                 <Show when={copy().rowMetricHeading}>
                   <th>{copy().rowMetricHeading}</th>
                 </Show>
@@ -667,6 +829,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         </div>
                       </Show>
                     </td>
+                    <Show when={props.kind === 'subscriptions'}>
+                      <td>
+                        <SubscriptionLimitsCell
+                          usage={subscriptionUsageByProvider().get(row.summary.provider)}
+                          loading={subscriptionUsageLoading()}
+                        />
+                      </td>
+                    </Show>
                     <Show when={copy().rowMetricHeading}>
                       <td>
                         <Show when={!usageLoading()} fallback={<UsageShimmer />}>
