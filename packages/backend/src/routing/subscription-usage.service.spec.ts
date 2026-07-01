@@ -223,8 +223,18 @@ describe('SubscriptionUsageService', () => {
     const anthropic = result.find((summary) => summary.provider === 'anthropic');
     expect(anthropic?.connections[0].windows).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: 'claude-5h', used_percent: 33, resets_at: RESET }),
-        expect.objectContaining({ id: 'claude-weekly', used_percent: 44, resets_at: RESET }),
+        expect.objectContaining({
+          id: 'claude-5h',
+          used_percent: 33,
+          resets_at: RESET,
+          window_seconds: 18_000,
+        }),
+        expect.objectContaining({
+          id: 'claude-weekly',
+          used_percent: 44,
+          resets_at: RESET,
+          window_seconds: 604_800,
+        }),
         expect.objectContaining({ id: 'claude-sonnet-weekly', used_percent: 66 }),
         expect.objectContaining({
           id: 'claude-extra-usage',
@@ -243,6 +253,7 @@ describe('SubscriptionUsageService', () => {
         used_percent: 20,
         remaining_percent: 80,
         resets_at: RESET,
+        window_seconds: 86_400,
       }),
       expect.objectContaining({
         id: 'gemini-gemini-2.5-pro',
@@ -250,6 +261,7 @@ describe('SubscriptionUsageService', () => {
         used_percent: 58,
         remaining_percent: 42,
         resets_at: RESET,
+        window_seconds: 86_400,
       }),
     ]);
   });

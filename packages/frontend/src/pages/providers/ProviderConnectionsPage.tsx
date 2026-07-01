@@ -161,6 +161,13 @@ interface SubscriptionLimitRow {
   window: SubscriptionUsageWindow;
 }
 
+interface LimitUsagePace {
+  usedPercent: number | null;
+  projectedPercent: number | null;
+  willRunOut: boolean;
+  exhausted: boolean;
+}
+
 interface LimitUsageTone {
   color: string;
   foreground: string;
@@ -203,22 +210,72 @@ const formatResetTime = (iso: string | null): string | null => {
   return `resets in ${days}d${remainingHours ? ` ${remainingHours}h` : ''}`;
 };
 
-const limitUsageTone = (usedPercent: number | null): LimitUsageTone => {
+const limitUsagePace = (window: SubscriptionUsageWindow): LimitUsagePace => {
+  const usedPercent = clampLimitPercent(window.used_percent);
   if (usedPercent === null) {
+    return {
+      usedPercent: null,
+      projectedPercent: null,
+      willRunOut: false,
+      exhausted: false,
+    };
+  }
+
+  const exhausted = usedPercent >= 99.5;
+  const resetTime = window.resets_at ? new Date(window.resets_at).getTime() : NaN;
+  const windowSeconds = window.window_seconds;
+  if (
+    exhausted ||
+    typeof windowSeconds !== 'number' ||
+    !Number.isFinite(windowSeconds) ||
+    windowSeconds <= 0 ||
+    !Number.isFinite(resetTime)
+  ) {
+    return {
+      usedPercent,
+      projectedPercent: null,
+      willRunOut: false,
+      exhausted,
+    };
+  }
+
+  const remainingSeconds = Math.max(0, (resetTime - Date.now()) / 1000);
+  const elapsedSeconds = Math.max(0, windowSeconds - remainingSeconds);
+  const elapsedRatio = elapsedSeconds / windowSeconds;
+  if (elapsedRatio <= 0 || usedPercent <= 0) {
+    return {
+      usedPercent,
+      projectedPercent: usedPercent <= 0 ? 0 : null,
+      willRunOut: false,
+      exhausted,
+    };
+  }
+
+  const projectedPercent = usedPercent / elapsedRatio;
+  return {
+    usedPercent,
+    projectedPercent,
+    willRunOut: projectedPercent > 100.5,
+    exhausted,
+  };
+};
+
+const limitUsageTone = (pace: LimitUsagePace): LimitUsageTone => {
+  if (pace.usedPercent === null) {
     return {
       color: 'hsl(var(--muted-foreground))',
       foreground: 'hsl(var(--muted-foreground))',
       background: 'hsl(var(--muted) / 0.65)',
     };
   }
-  if (usedPercent >= 85) {
+  if (pace.exhausted) {
     return {
       color: 'hsl(var(--destructive))',
       foreground: 'hsl(var(--destructive))',
       background: 'hsl(var(--destructive) / 0.12)',
     };
   }
-  if (usedPercent >= 65) {
+  if (pace.willRunOut) {
     return {
       color: 'hsl(38 92% 48%)',
       foreground: 'hsl(35 92% 38%)',
@@ -299,8 +356,9 @@ const LimitUsageGauge: Component<{
 };
 
 const SubscriptionLimitMeter: Component<{ row: SubscriptionLimitRow }> = (props) => {
-  const usedPercent = createMemo(() => clampLimitPercent(props.row.window.used_percent));
-  const tone = createMemo(() => limitUsageTone(usedPercent()));
+  const pace = createMemo(() => limitUsagePace(props.row.window));
+  const usedPercent = createMemo(() => pace().usedPercent);
+  const tone = createMemo(() => limitUsageTone(pace()));
   const percentLabel = createMemo(() => formatLimitPercent(usedPercent()));
   const details = createMemo(() => limitWindowDetails(props.row.window));
   const topMetric = createMemo(() => percentLabel() ?? details()[0] ?? 'Available');

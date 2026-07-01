@@ -13,6 +13,10 @@ import { parseOAuthTokenBlob } from './oauth/core';
 type SubscriptionUsageProvider = 'openai' | 'anthropic' | 'gemini';
 type SubscriptionConnectionStatus = 'ok' | 'unavailable' | 'error';
 
+const FIVE_HOURS_SECONDS = 5 * 60 * 60;
+const ONE_DAY_SECONDS = 24 * 60 * 60;
+const SEVEN_DAYS_SECONDS = 7 * ONE_DAY_SECONDS;
+
 export interface SubscriptionUsageWindow {
   id: string;
   label: string;
@@ -330,21 +334,29 @@ export class SubscriptionUsageService {
     );
 
     const windows: SubscriptionUsageWindow[] = [];
-    this.addClaudeWindow(windows, 'claude-5h', 'Claude 5h', payload.five_hour);
-    this.addClaudeWindow(windows, 'claude-weekly', 'Claude weekly', payload.seven_day);
+    this.addClaudeWindow(windows, 'claude-5h', 'Claude 5h', payload.five_hour, FIVE_HOURS_SECONDS);
+    this.addClaudeWindow(windows, 'claude-weekly', 'Claude weekly', payload.seven_day, SEVEN_DAYS_SECONDS);
     this.addClaudeWindow(
       windows,
       'claude-oauth-apps-weekly',
       'OAuth apps weekly',
       payload.seven_day_oauth_apps,
+      SEVEN_DAYS_SECONDS,
     );
     this.addClaudeWindow(
       windows,
       'claude-sonnet-weekly',
       'Sonnet weekly',
       payload.seven_day_sonnet,
+      SEVEN_DAYS_SECONDS,
     );
-    this.addClaudeWindow(windows, 'claude-opus-weekly', 'Opus weekly', payload.seven_day_opus);
+    this.addClaudeWindow(
+      windows,
+      'claude-opus-weekly',
+      'Opus weekly',
+      payload.seven_day_opus,
+      SEVEN_DAYS_SECONDS,
+    );
     this.addClaudeWindow(
       windows,
       'claude-routines-weekly',
@@ -356,8 +368,15 @@ export class SubscriptionUsageService {
         payload.routine ??
         payload.seven_day_cowork ??
         payload.cowork,
+      SEVEN_DAYS_SECONDS,
     );
-    this.addClaudeWindow(windows, 'claude-iguana-necktie', 'Extra weekly', payload.iguana_necktie);
+    this.addClaudeWindow(
+      windows,
+      'claude-iguana-necktie',
+      'Extra weekly',
+      payload.iguana_necktie,
+      SEVEN_DAYS_SECONDS,
+    );
     this.addClaudeExtraUsage(windows, payload.extra_usage);
     return windows;
   }
@@ -403,7 +422,7 @@ export class SubscriptionUsageService {
           used_percent: remainingPercent === null ? null : clampPercent(100 - remainingPercent),
           remaining_percent: remainingPercent,
           resets_at: parseIsoDate(quota.reset),
-          window_seconds: null,
+          window_seconds: ONE_DAY_SECONDS,
           current: null,
           limit: null,
           unit: 'quota',
@@ -485,6 +504,7 @@ export class SubscriptionUsageService {
     id: string,
     label: string,
     raw: unknown,
+    windowSeconds: number,
   ) {
     if (!isRecord(raw)) return;
     const data = raw as ClaudeWindowLike;
@@ -496,7 +516,7 @@ export class SubscriptionUsageService {
       used_percent: usedPercent,
       remaining_percent: clampPercent(100 - usedPercent),
       resets_at: parseIsoDate(stringValue(data.resets_at)),
-      window_seconds: null,
+      window_seconds: windowSeconds,
       current: null,
       limit: null,
       unit: null,
