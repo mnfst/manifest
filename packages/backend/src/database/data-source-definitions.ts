@@ -23,6 +23,7 @@ import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
+import { PublicErrorPage } from '../entities/public-error-page.entity';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
 import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
@@ -128,7 +129,8 @@ import { AddDashboardCoveringIndex1793200000000 } from './migrations/17932000000
 import { AddCrossTenantErrorTimestampIndex1795100000000 } from './migrations/1795100000000-AddCrossTenantErrorTimestampIndex';
 import { RemoveMessageRecording1795000000000 } from './migrations/1795000000000-RemoveMessageRecording';
 import { AddAutofixWaitlist1796000000000 } from './migrations/1796000000000-AddAutofixWaitlist';
-import { AddErrorClassification1797000000000 } from './migrations/1797000000000-AddErrorClassification';
+import { AddPublicErrorPages1797000000000 } from './migrations/1797000000000-AddPublicErrorPages';
+import { AddErrorClassification1798000000000 } from './migrations/1798000000000-AddErrorClassification';
 
 export const entities = [
   AgentMessage,
@@ -151,6 +153,7 @@ export const entities = [
   ReasoningContentCacheEntry,
   AgentEnabledProvider,
   BackfillState,
+  PublicErrorPage,
 ];
 
 export const migrations = [
@@ -259,5 +262,6 @@ export const migrations = [
   RemoveMessageRecording1795000000000,
   AddCrossTenantErrorTimestampIndex1795100000000,
   AddAutofixWaitlist1796000000000,
-  AddErrorClassification1797000000000,
+  AddPublicErrorPages1797000000000,
+  AddErrorClassification1798000000000,
 ];

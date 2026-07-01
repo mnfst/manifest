@@ -75,8 +75,8 @@ const REMAINING_SQL = `SELECT EXISTS (
 // realistic agent_messages volume terminates far below this.
 const MAX_BACKFILL_PASSES = 100_000;
 
-export class AddErrorClassification1797000000000 implements MigrationInterface {
-  name = 'AddErrorClassification1797000000000';
+export class AddErrorClassification1798000000000 implements MigrationInterface {
+  name = 'AddErrorClassification1798000000000';
   transaction = false;
 
   public async up(queryRunner: QueryRunner): Promise<void> {
