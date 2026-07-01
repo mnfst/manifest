@@ -248,13 +248,14 @@ export class MessagesQueryService {
     // Error-origin scope. By default only Manifest *setup* errors (config — no
     // provider / no key) are hidden as "not a message"; a Manifest *limit* being
     // hit (policy) stays visible so operators can see it. An explicit request
-    // always wins over the default hide (origin=manifest surfaces the config
-    // ones too, or filter to a specific origin).
+    // always wins over the default hide: an origin filter, or an error_class
+    // filter (so config classes like no_provider_key are reachable by class
+    // alone, not only when the caller also knows to pass an origin).
     if (params.origin === 'manifest') {
       qb.andWhere(MANIFEST_ORIGIN_PREDICATE);
     } else if (params.origin) {
       qb.andWhere('at.error_origin = :originFilter', { originFilter: params.origin });
-    } else {
+    } else if (!params.error_class) {
       qb.andWhere(DEFAULT_LOG_ORIGIN_PREDICATE);
     }
 

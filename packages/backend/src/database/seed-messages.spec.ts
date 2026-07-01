@@ -432,7 +432,13 @@ describe('seedAgentMessages', () => {
       expect(handled.length).toBeGreaterThan(0);
       for (const m of handled) {
         expect(m.superseded).toBe(true);
-        expect(m.fallback_from_model).toBe('claude-sonnet-4-5-20250929');
+        expect(m.fallback_from_model).toBe('claude-opus-4-6');
+      }
+    });
+
+    it('never seeds a fallback that fell back from the same model it ran on', () => {
+      for (const m of messages.filter((x) => x.fallback_from_model)) {
+        expect(m.fallback_from_model).not.toBe(m.model);
       }
     });
 

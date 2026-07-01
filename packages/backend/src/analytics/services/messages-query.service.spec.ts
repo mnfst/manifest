@@ -803,6 +803,18 @@ describe('MessagesQueryService', () => {
     expect(classCall?.[1]).toEqual({ errorClassFilter: 'rate_limit' });
   });
 
+  it('lets an explicit error_class reach config classes by skipping the default hide', async () => {
+    // Filtering by a config class (e.g. no_provider_key) with no origin must NOT
+    // also apply the config-hiding default, or the row could never be retrieved.
+    const andWhereSpy = await runWithOrigin({ error_class: 'no_provider_key' });
+    expect(
+      andWhereSpy.mock.calls.find(([clause]) => clause === DEFAULT_LOG_ORIGIN_PREDICATE),
+    ).toBeUndefined();
+    expect(
+      andWhereSpy.mock.calls.find(([clause]) => clause === 'at.error_class = :errorClassFilter'),
+    ).toBeDefined();
+  });
+
   it('passes specificity_category filter through to the query builder', async () => {
     mockGetRawOne.mockResolvedValueOnce({ total: 1 });
     mockGetRawMany

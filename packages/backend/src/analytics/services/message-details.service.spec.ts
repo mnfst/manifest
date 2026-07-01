@@ -245,5 +245,6 @@ describe('MessageDetailsService', () => {
 
     expect(result.message.error_origin).toBe('config');
     expect(result.message.error_class).toBe('no_provider_key');
+    expect(result.message.superseded).toBe(false);
   });
 });

@@ -5,9 +5,11 @@ import { AgentMessage } from '../entities/agent-message.entity';
 
 /**
  * The model a fallback chain fell back FROM (a premium model that dropped to a
- * cheaper one). Present in SEED_MODELS so the display name resolves.
+ * cheaper one). Deliberately NOT one of SEED_MODELS, so a seeded row's
+ * fallback_from_model never equals the model it actually ran on (which would
+ * render an impossible "fell back from X to X").
  */
-const SEED_FALLBACK_FROM = 'claude-sonnet-4-5-20250929';
+const SEED_FALLBACK_FROM = 'claude-opus-4-6';
 
 /**
  * Every non-plain-success outcome the seeder draws from, so the demo dashboard
