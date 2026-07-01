@@ -235,6 +235,9 @@ export async function createTestApp(): Promise<INestApplication> {
       new ValidationPipe({
         transform: true,
         whitelist: true,
+        // Mirror the global pipe in main.ts so E2E exercises the real
+        // strict-DTO behavior (unknown fields → 400, not silently stripped).
+        forbidNonWhitelisted: true,
       }),
     );
     await app.init();
