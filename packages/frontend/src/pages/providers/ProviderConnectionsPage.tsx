@@ -15,9 +15,13 @@ import {
   getProviders as getAgentProviders,
 } from '../../services/api.js';
 import {
+  getProviderSubscriptionUsage,
   getProviders as getGlobalProviders,
   getProviderUsage,
   mergeUsage,
+  type SubscriptionUsageConnection,
+  type SubscriptionUsageSummary,
+  type SubscriptionUsageWindow,
   type TenantProviderSummary,
 } from '../../services/api/providers.js';
 import { messagePing, routingPing } from '../../services/sse.js';
@@ -149,6 +153,386 @@ const UsageShimmer: Component<{ width?: number }> = (props) => (
     }}
   />
 );
+
+const MAX_LIMIT_ROWS = 3;
+
+interface SubscriptionLimitRow {
+  connectionLabel: string | null;
+  window: SubscriptionUsageWindow;
+}
+
+interface LimitUsagePace {
+  usedPercent: number | null;
+  projectedPercent: number | null;
+  willRunOut: boolean;
+  exhausted: boolean;
+}
+
+interface LimitUsageTone {
+  color: string;
+  foreground: string;
+  background: string;
+}
+
+const clampLimitPercent = (value: number | null | undefined): number | null => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  const clamped = Math.max(0, Math.min(100, value));
+  return Math.round(clamped * 10) / 10;
+};
+
+const formatLimitPercent = (value: number | null | undefined): string | null => {
+  const rounded = clampLimitPercent(value);
+  if (rounded === null) return null;
+  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`;
+};
+
+const formatLimitAmount = (value: number | null, unit: string | null): string | null => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  const formatted =
+    Math.abs(value) >= 100 || Number.isInteger(value)
+      ? formatNumber(Math.round(value))
+      : value.toFixed(1);
+  return unit ? `${formatted} ${unit}` : formatted;
+};
+
+const formatResetTime = (iso: string | null): string | null => {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const minutes = Math.max(0, Math.round((date.getTime() - Date.now()) / 60_000));
+  if (minutes === 0) return 'reset now';
+  if (minutes < 60) return `resets in ${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (hours < 24) return `resets in ${hours}h${remainingMinutes ? ` ${remainingMinutes}m` : ''}`;
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
+  return `resets in ${days}d${remainingHours ? ` ${remainingHours}h` : ''}`;
+};
+
+const limitUsagePace = (window: SubscriptionUsageWindow): LimitUsagePace => {
+  const usedPercent = clampLimitPercent(window.used_percent);
+  if (usedPercent === null) {
+    return {
+      usedPercent: null,
+      projectedPercent: null,
+      willRunOut: false,
+      exhausted: false,
+    };
+  }
+
+  const exhausted = usedPercent >= 99.5;
+  const resetTime = window.resets_at ? new Date(window.resets_at).getTime() : NaN;
+  const windowSeconds = window.window_seconds;
+  if (
+    exhausted ||
+    typeof windowSeconds !== 'number' ||
+    !Number.isFinite(windowSeconds) ||
+    windowSeconds <= 0 ||
+    !Number.isFinite(resetTime)
+  ) {
+    return {
+      usedPercent,
+      projectedPercent: null,
+      willRunOut: false,
+      exhausted,
+    };
+  }
+
+  const remainingSeconds = Math.max(0, (resetTime - Date.now()) / 1000);
+  const elapsedSeconds = Math.max(0, windowSeconds - remainingSeconds);
+  const elapsedRatio = elapsedSeconds / windowSeconds;
+  if (elapsedRatio <= 0 || usedPercent <= 0) {
+    return {
+      usedPercent,
+      projectedPercent: usedPercent <= 0 ? 0 : null,
+      willRunOut: false,
+      exhausted,
+    };
+  }
+
+  const projectedPercent = usedPercent / elapsedRatio;
+  return {
+    usedPercent,
+    projectedPercent,
+    willRunOut: projectedPercent > 100.5,
+    exhausted,
+  };
+};
+
+const limitUsageTone = (pace: LimitUsagePace): LimitUsageTone => {
+  if (pace.usedPercent === null) {
+    return {
+      color: 'hsl(var(--muted-foreground))',
+      foreground: 'hsl(var(--muted-foreground))',
+      background: 'hsl(var(--muted) / 0.65)',
+    };
+  }
+  if (pace.exhausted) {
+    return {
+      color: 'hsl(var(--destructive))',
+      foreground: 'hsl(var(--destructive))',
+      background: 'hsl(var(--destructive) / 0.12)',
+    };
+  }
+  if (pace.willRunOut) {
+    return {
+      color: 'hsl(38 92% 48%)',
+      foreground: 'hsl(35 92% 38%)',
+      background: 'hsl(38 92% 48% / 0.14)',
+    };
+  }
+  return {
+    color: 'hsl(var(--success))',
+    foreground: 'hsl(178 70% 32%)',
+    background: 'hsl(var(--success) / 0.14)',
+  };
+};
+
+const limitWindowDetails = (window: SubscriptionUsageWindow): string[] => {
+  const parts: string[] = [];
+  const remaining = formatLimitPercent(window.remaining_percent);
+  const current = formatLimitAmount(window.current, window.unit);
+  const limit = formatLimitAmount(window.limit, window.unit);
+  const reset = formatResetTime(window.resets_at);
+
+  if (current && limit) parts.push(`${current} / ${limit}`);
+  else if (current) parts.push(current);
+  else if (limit) parts.push(`${limit} limit`);
+  if (remaining) parts.push(`${remaining} left`);
+  if (reset) parts.push(reset);
+  return parts;
+};
+
+const connectionLimitMessage = (connection: SubscriptionUsageConnection): string | null => {
+  if (connection.status === 'ok') return null;
+  return connection.message ?? 'Not available';
+};
+
+const LimitUsageGauge: Component<{
+  usedPercent: number | null;
+  tone: LimitUsageTone;
+}> = (props) => {
+  const value = () => props.usedPercent;
+  const label = () => (value() === null ? '' : Math.round(value() ?? 0).toString());
+
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: 'inline-flex',
+        width: '24px',
+        height: '24px',
+        'border-radius': '999px',
+        'align-items': 'center',
+        'justify-content': 'center',
+        background:
+          value() === null
+            ? 'hsl(var(--muted) / 0.8)'
+            : `conic-gradient(${props.tone.color} ${value()}%, hsl(var(--muted)) 0)`,
+        'box-shadow': `inset 0 0 0 1px ${props.tone.background}`,
+        'flex-shrink': 0,
+      }}
+    >
+      <span
+        style={{
+          display: 'inline-flex',
+          width: '17px',
+          height: '17px',
+          'border-radius': '999px',
+          'align-items': 'center',
+          'justify-content': 'center',
+          background: 'hsl(var(--background))',
+          color: props.tone.foreground,
+          'font-size': '7px',
+          'font-weight': 700,
+          'line-height': 1,
+        }}
+      >
+        {label()}
+      </span>
+    </span>
+  );
+};
+
+const SubscriptionLimitMeter: Component<{ row: SubscriptionLimitRow }> = (props) => {
+  const pace = createMemo(() => limitUsagePace(props.row.window));
+  const usedPercent = createMemo(() => pace().usedPercent);
+  const tone = createMemo(() => limitUsageTone(pace()));
+  const percentLabel = createMemo(() => formatLimitPercent(usedPercent()));
+  const details = createMemo(() => limitWindowDetails(props.row.window));
+  const topMetric = createMemo(() => percentLabel() ?? details()[0] ?? 'Available');
+  const accessibilityMetric = createMemo(() => {
+    const percent = percentLabel();
+    return percent ? `${percent} used` : topMetric();
+  });
+  const detailLine = createMemo(() => {
+    const visibleDetails = percentLabel() ? details() : details().slice(1);
+    return visibleDetails.join(' | ');
+  });
+  const accessibilityLabel = createMemo(() =>
+    [props.row.window.label, accessibilityMetric(), detailLine(), props.row.connectionLabel]
+      .filter(Boolean)
+      .join(' | '),
+  );
+
+  return (
+    <div
+      aria-label={accessibilityLabel()}
+      style={{
+        display: 'grid',
+        'grid-template-columns': '24px minmax(0, 1fr)',
+        gap: '6px',
+        'align-items': 'center',
+        'min-width': '238px',
+      }}
+    >
+      <LimitUsageGauge usedPercent={usedPercent()} tone={tone()} />
+      <div style={{ 'min-width': 0 }}>
+        <div
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            'justify-content': 'space-between',
+            gap: '6px',
+            'min-width': 0,
+          }}
+        >
+          <span
+            style={{
+              color: 'hsl(var(--foreground))',
+              'font-size': 'var(--font-size-xs)',
+              'font-weight': 650,
+              overflow: 'hidden',
+              'text-overflow': 'ellipsis',
+              'white-space': 'nowrap',
+            }}
+          >
+            {props.row.window.label}
+          </span>
+          <span
+            style={{
+              display: 'inline-flex',
+              'align-items': 'center',
+              padding: '1px 5px',
+              'border-radius': '999px',
+              background: tone().background,
+              color: tone().foreground,
+              'font-size': '9px',
+              'font-weight': 700,
+              'white-space': 'nowrap',
+            }}
+          >
+            {topMetric()}
+          </span>
+        </div>
+        <Show when={usedPercent() !== null}>
+          <div
+            style={{
+              height: '4px',
+              width: '100%',
+              'border-radius': '999px',
+              background: 'hsl(var(--muted))',
+              overflow: 'hidden',
+              'margin-top': '3px',
+            }}
+          >
+            <span
+              style={{
+                display: 'block',
+                height: '100%',
+                width: `${usedPercent() ?? 0}%`,
+                'border-radius': '999px',
+                background: tone().color,
+              }}
+            />
+          </div>
+        </Show>
+        <Show when={props.row.connectionLabel || detailLine()}>
+          <div
+            style={{
+              color: 'hsl(var(--muted-foreground))',
+              'font-size': '10px',
+              'line-height': 1.2,
+              'margin-top': '4px',
+              overflow: 'hidden',
+              'text-overflow': 'ellipsis',
+              'white-space': 'nowrap',
+            }}
+          >
+            <Show when={props.row.connectionLabel}>
+              <span>{props.row.connectionLabel}</span>
+              <Show when={detailLine()}>
+                <span> | </span>
+              </Show>
+            </Show>
+            <span>{detailLine()}</span>
+          </div>
+        </Show>
+      </div>
+    </div>
+  );
+};
+
+const SubscriptionLimitsCell: Component<{
+  usage: SubscriptionUsageSummary | undefined;
+  loading: boolean;
+}> = (props) => {
+  const rows = createMemo<SubscriptionLimitRow[]>(() => {
+    const usage = props.usage;
+    if (!usage) return [];
+    const showConnectionLabel = usage.connections.length > 1;
+    return usage.connections.flatMap((connection) =>
+      connection.windows.map((window) => ({
+        connectionLabel: showConnectionLabel ? connection.label : null,
+        window,
+      })),
+    );
+  });
+  const messages = createMemo(() =>
+    (props.usage?.connections ?? [])
+      .map(connectionLimitMessage)
+      .filter((message): message is string => !!message),
+  );
+  const visibleRows = createMemo(() => rows().slice(0, MAX_LIMIT_ROWS));
+  const hiddenCount = createMemo(() => Math.max(0, rows().length - MAX_LIMIT_ROWS));
+
+  return (
+    <Show when={!props.loading} fallback={<UsageShimmer width={148} />}>
+      <Show
+        when={props.usage}
+        fallback={
+          <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+            Not available
+          </span>
+        }
+      >
+        <Show
+          when={visibleRows().length > 0}
+          fallback={
+            <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+              {messages()[0] ?? 'Not available'}
+            </span>
+          }
+        >
+          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 245px; max-width: 360px;">
+            <For each={visibleRows()}>{(row) => <SubscriptionLimitMeter row={row} />}</For>
+            <Show when={hiddenCount() > 0}>
+              <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                +{hiddenCount()} more limits
+              </span>
+            </Show>
+            <Show when={messages().length > 0}>
+              <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                {messages()[0]}
+              </span>
+            </Show>
+          </div>
+        </Show>
+      </Show>
+    </Show>
+  );
+};
 
 const StatusBadge: Component<{ active: boolean }> = (props) => (
   <Show
@@ -313,15 +697,31 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     },
   );
 
+  const [subscriptionUsage, { refetch: refetchSubscriptionUsage }] = createResource(
+    () => (props.kind === 'subscriptions' ? routingPing() : undefined),
+    async () => {
+      try {
+        return (await getProviderSubscriptionUsage()).providers;
+      } catch {
+        return [];
+      }
+    },
+  );
+
   // Distinguish "loading" (shimmer the usage cells) from "loaded-zero" (a real
   // 0). Only the FIRST load shimmers; SSE-driven refetches keep the prior
   // numbers on screen (usage() stays defined) so the table doesn't flicker.
   const usageLoading = () => usage.loading && usage() === undefined;
+  const subscriptionUsageLoading = () =>
+    props.kind === 'subscriptions' &&
+    subscriptionUsage.loading &&
+    subscriptionUsage() === undefined;
 
   // Coordinate a usage refetch alongside config on connect/disconnect/rename.
   const refetchGlobalProviders = () => {
     void refetchConfig();
     void refetchUsage();
+    if (props.kind === 'subscriptions') void refetchSubscriptionUsage();
   };
 
   // Merge config + usage by (provider, auth_type). While usage is still loading
@@ -330,6 +730,12 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const data = () => ({
     providers: mergeUsage(config()?.providers ?? [], usage()),
     model_counts: config()?.model_counts ?? {},
+  });
+
+  const subscriptionUsageByProvider = createMemo(() => {
+    const byProvider = new Map<string, SubscriptionUsageSummary>();
+    for (const summary of subscriptionUsage() ?? []) byProvider.set(summary.provider, summary);
+    return byProvider;
   });
 
   const [agents] = createResource(async () => {
@@ -540,6 +946,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                 <th>Provider</th>
                 <th>Connection</th>
                 <th>Usage (30d)</th>
+                <Show when={props.kind === 'subscriptions'}>
+                  <th>Limits</th>
+                </Show>
                 <Show when={copy().rowMetricHeading}>
                   <th>{copy().rowMetricHeading}</th>
                 </Show>
@@ -667,6 +1076,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         </div>
                       </Show>
                     </td>
+                    <Show when={props.kind === 'subscriptions'}>
+                      <td>
+                        <SubscriptionLimitsCell
+                          usage={subscriptionUsageByProvider().get(row.summary.provider)}
+                          loading={subscriptionUsageLoading()}
+                        />
+                      </td>
+                    </Show>
                     <Show when={copy().rowMetricHeading}>
                       <td>
                         <Show when={!usageLoading()} fallback={<UsageShimmer />}>

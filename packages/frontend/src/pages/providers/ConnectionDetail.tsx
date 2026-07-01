@@ -30,6 +30,11 @@ import {
 } from '../../services/formatters.js';
 import { getAgents, getCustomProviders as fetchCustomProviders } from '../../services/api.js';
 import {
+  getProviderSubscriptionUsage,
+  type SubscriptionUsageConnection,
+  type SubscriptionUsageWindow,
+} from '../../services/api/providers.js';
+import {
   getProviders as getAgentProviders,
   renameProviderKey,
   disconnectProvider,
@@ -104,6 +109,368 @@ interface AnalyticsResponse {
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
 }
 
+interface SubscriptionLimitPace {
+  usedPercent: number | null;
+  projectedPercent: number | null;
+  willRunOut: boolean;
+  exhausted: boolean;
+}
+
+interface SubscriptionLimitTone {
+  color: string;
+  foreground: string;
+  background: string;
+}
+
+const clampLimitPercent = (value: number | null | undefined): number | null => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  const clamped = Math.max(0, Math.min(100, value));
+  return Math.round(clamped * 10) / 10;
+};
+
+const formatLimitPercent = (value: number | null | undefined): string | null => {
+  const rounded = clampLimitPercent(value);
+  if (rounded === null) return null;
+  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`;
+};
+
+const formatLimitAmount = (value: number | null, unit: string | null): string | null => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  const formatted =
+    Math.abs(value) >= 100 || Number.isInteger(value)
+      ? formatNumber(Math.round(value))
+      : value.toFixed(1);
+  return unit ? `${formatted} ${unit}` : formatted;
+};
+
+const formatProjectedPercent = (value: number | null | undefined): string | null => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  const rounded = Math.round(Math.max(0, value) * 10) / 10;
+  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`;
+};
+
+const formatLimitResetRelative = (iso: string | null): string => {
+  if (!iso) return '-';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '-';
+  const minutes = Math.max(0, Math.round((date.getTime() - Date.now()) / 60_000));
+  if (minutes === 0) return 'now';
+  if (minutes < 60) return `in ${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (hours < 24) return `in ${hours}h${remainingMinutes ? ` ${remainingMinutes}m` : ''}`;
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
+  return `in ${days}d${remainingHours ? ` ${remainingHours}h` : ''}`;
+};
+
+const formatLimitResetAbsolute = (iso: string | null): string | null => {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+};
+
+const formatWindowDuration = (seconds: number | null): string => {
+  if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds <= 0) return '-';
+  if (seconds % 604_800 === 0) return `${seconds / 604_800}w`;
+  if (seconds % 86_400 === 0) return `${seconds / 86_400}d`;
+  if (seconds % 3_600 === 0) return `${seconds / 3_600}h`;
+  if (seconds % 60 === 0) return `${seconds / 60}m`;
+  return `${seconds}s`;
+};
+
+const subscriptionLimitPace = (window: SubscriptionUsageWindow): SubscriptionLimitPace => {
+  const usedPercent = clampLimitPercent(window.used_percent);
+  if (usedPercent === null) {
+    return {
+      usedPercent: null,
+      projectedPercent: null,
+      willRunOut: false,
+      exhausted: false,
+    };
+  }
+
+  const exhausted = usedPercent >= 99.5;
+  const resetTime = window.resets_at ? new Date(window.resets_at).getTime() : NaN;
+  const windowSeconds = window.window_seconds;
+  if (
+    exhausted ||
+    typeof windowSeconds !== 'number' ||
+    !Number.isFinite(windowSeconds) ||
+    windowSeconds <= 0 ||
+    !Number.isFinite(resetTime)
+  ) {
+    return {
+      usedPercent,
+      projectedPercent: null,
+      willRunOut: false,
+      exhausted,
+    };
+  }
+
+  const remainingSeconds = Math.max(0, (resetTime - Date.now()) / 1000);
+  const elapsedSeconds = Math.max(0, windowSeconds - remainingSeconds);
+  const elapsedRatio = elapsedSeconds / windowSeconds;
+  if (elapsedRatio <= 0 || usedPercent <= 0) {
+    return {
+      usedPercent,
+      projectedPercent: usedPercent <= 0 ? 0 : null,
+      willRunOut: false,
+      exhausted,
+    };
+  }
+
+  const projectedPercent = usedPercent / elapsedRatio;
+  return {
+    usedPercent,
+    projectedPercent,
+    willRunOut: projectedPercent > 100.5,
+    exhausted,
+  };
+};
+
+const subscriptionLimitTone = (pace: SubscriptionLimitPace): SubscriptionLimitTone => {
+  if (pace.usedPercent === null) {
+    return {
+      color: 'hsl(var(--muted-foreground))',
+      foreground: 'hsl(var(--muted-foreground))',
+      background: 'hsl(var(--muted) / 0.65)',
+    };
+  }
+  if (pace.exhausted) {
+    return {
+      color: 'hsl(var(--destructive))',
+      foreground: 'hsl(var(--destructive))',
+      background: 'hsl(var(--destructive) / 0.12)',
+    };
+  }
+  if (pace.willRunOut) {
+    return {
+      color: 'hsl(38 92% 48%)',
+      foreground: 'hsl(35 92% 38%)',
+      background: 'hsl(38 92% 48% / 0.14)',
+    };
+  }
+  return {
+    color: 'hsl(var(--success))',
+    foreground: 'hsl(178 70% 32%)',
+    background: 'hsl(var(--success) / 0.14)',
+  };
+};
+
+const subscriptionPaceLabel = (pace: SubscriptionLimitPace): string => {
+  if (pace.usedPercent === null) return 'Balance';
+  if (pace.exhausted) return 'Exhausted';
+  if (pace.willRunOut) return 'At risk';
+  if (pace.projectedPercent === null) return 'Tracked';
+  return 'On track';
+};
+
+const subscriptionPaceDetail = (pace: SubscriptionLimitPace): string | null => {
+  if (pace.projectedPercent === null) return null;
+  return `Projected ${formatProjectedPercent(pace.projectedPercent) ?? '-'} by reset`;
+};
+
+const limitAmountLine = (window: SubscriptionUsageWindow): string | null => {
+  const current = formatLimitAmount(window.current, window.unit);
+  const limit = formatLimitAmount(window.limit, window.unit);
+  if (current && limit) return `${current} / ${limit}`;
+  if (current) return current;
+  if (limit) return `${limit} limit`;
+  return null;
+};
+
+const SubscriptionLimitGauge: Component<{
+  usedPercent: number | null;
+  tone: SubscriptionLimitTone;
+}> = (props) => {
+  const label = () => (props.usedPercent === null ? '' : Math.round(props.usedPercent).toString());
+
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: 'inline-flex',
+        width: '36px',
+        height: '36px',
+        'border-radius': '999px',
+        'align-items': 'center',
+        'justify-content': 'center',
+        background:
+          props.usedPercent === null
+            ? 'hsl(var(--muted) / 0.8)'
+            : `conic-gradient(${props.tone.color} ${props.usedPercent}%, hsl(var(--muted)) 0)`,
+        'box-shadow': `inset 0 0 0 1px ${props.tone.background}`,
+        'flex-shrink': 0,
+      }}
+    >
+      <span
+        style={{
+          display: 'inline-flex',
+          width: '26px',
+          height: '26px',
+          'border-radius': '999px',
+          'align-items': 'center',
+          'justify-content': 'center',
+          background: 'hsl(var(--background))',
+          color: props.tone.foreground,
+          'font-size': '10px',
+          'font-weight': 700,
+          'line-height': 1,
+        }}
+      >
+        {label()}
+      </span>
+    </span>
+  );
+};
+
+const SubscriptionLimitDetailRow: Component<{ window: SubscriptionUsageWindow }> = (props) => {
+  const pace = createMemo(() => subscriptionLimitPace(props.window));
+  const tone = createMemo(() => subscriptionLimitTone(pace()));
+  const usedPercent = createMemo(() => pace().usedPercent);
+  const usedLabel = createMemo(() => formatLimitPercent(usedPercent()));
+  const remainingLabel = createMemo(() => formatLimitPercent(props.window.remaining_percent));
+  const amountLine = createMemo(() => limitAmountLine(props.window));
+  const paceDetail = createMemo(() => subscriptionPaceDetail(pace()));
+  const absoluteReset = createMemo(() => formatLimitResetAbsolute(props.window.resets_at));
+
+  return (
+    <tr>
+      <td style="min-width: 180px;">
+        <div style="font-weight: 600; color: hsl(var(--foreground));">{props.window.label}</div>
+        <Show when={amountLine()}>
+          <div style="margin-top: 2px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+            {amountLine()}
+          </div>
+        </Show>
+      </td>
+      <td style="min-width: 260px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <SubscriptionLimitGauge usedPercent={usedPercent()} tone={tone()} />
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+              <span>{usedLabel() ? `${usedLabel()} used` : 'Balance only'}</span>
+              <Show when={remainingLabel()}>
+                <span>{remainingLabel()} left</span>
+              </Show>
+            </div>
+            <Show when={usedPercent() !== null}>
+              <div style="height: 6px; width: 100%; border-radius: 999px; background: hsl(var(--muted)); overflow: hidden; margin-top: 6px;">
+                <span
+                  style={{
+                    display: 'block',
+                    height: '100%',
+                    width: `${usedPercent() ?? 0}%`,
+                    'border-radius': '999px',
+                    background: tone().color,
+                  }}
+                />
+              </div>
+            </Show>
+          </div>
+        </div>
+      </td>
+      <td style="min-width: 150px;">
+        <span
+          style={{
+            display: 'inline-flex',
+            'align-items': 'center',
+            padding: '2px 8px',
+            'border-radius': '999px',
+            background: tone().background,
+            color: tone().foreground,
+            'font-size': 'var(--font-size-xs)',
+            'font-weight': 700,
+            'white-space': 'nowrap',
+          }}
+        >
+          {subscriptionPaceLabel(pace())}
+        </span>
+        <Show when={paceDetail()}>
+          <div style="margin-top: 4px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); white-space: nowrap;">
+            {paceDetail()}
+          </div>
+        </Show>
+      </td>
+      <td style="white-space: nowrap; color: hsl(var(--muted-foreground));">
+        {formatWindowDuration(props.window.window_seconds)}
+      </td>
+      <td style="white-space: nowrap;">
+        <span style="color: hsl(var(--foreground));">{formatLimitResetRelative(props.window.resets_at)}</span>
+        <Show when={absoluteReset()}>
+          <div style="margin-top: 2px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+            {absoluteReset()}
+          </div>
+        </Show>
+      </td>
+    </tr>
+  );
+};
+
+const SubscriptionLimitsDetailPanel: Component<{
+  connection: SubscriptionUsageConnection | null | undefined;
+  loading: boolean;
+}> = (props) => {
+  const windows = () => props.connection?.windows ?? [];
+
+  return (
+    <div class="panel scroll-panel" style="margin-bottom: 24px;">
+      <div
+        class="panel__title"
+        style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"
+      >
+        <span>Subscription limits</span>
+        <Show when={props.connection?.updated_at}>
+          {(updatedAt) => (
+            <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+              Updated {formatTimeAgo(updatedAt())}
+            </span>
+          )}
+        </Show>
+      </div>
+      <Show
+        when={!props.loading || props.connection}
+        fallback={
+          <div style="height: 96px; margin: 16px; border-radius: var(--radius); background: hsl(var(--muted) / 0.45); animation: skeleton-pulse 1.2s ease-in-out infinite;" />
+        }
+      >
+        <Show
+          when={windows().length > 0}
+          fallback={
+            <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
+              {props.connection?.message ?? 'Usage limits unavailable.'}
+            </div>
+          }
+        >
+          <div class="scroll-panel__body" onScroll={toggleScrollFade}>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Limit</th>
+                  <th>Usage</th>
+                  <th>Pace</th>
+                  <th>Window</th>
+                  <th>Reset</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={windows()}>{(window) => <SubscriptionLimitDetailRow window={window} />}</For>
+              </tbody>
+            </table>
+          </div>
+        </Show>
+      </Show>
+    </div>
+  );
+};
+
 const ConnectionDetail: Component = () => {
   const params = useParams<{ connectionId: string }>();
   const navigate = useNavigate();
@@ -114,6 +481,20 @@ const ConnectionDetail: Component = () => {
   );
 
   const conn = () => (detail.error ? null : (detail()?.connection ?? null));
+  const [subscriptionUsageDetail] = createResource(
+    () => {
+      const c = conn();
+      return c?.auth_type === 'subscription' ? c.id : undefined;
+    },
+    async (connectionId) => {
+      const response = await getProviderSubscriptionUsage();
+      for (const summary of response.providers) {
+        const match = summary.connections.find((connection) => connection.id === connectionId);
+        if (match) return match;
+      }
+      return null;
+    },
+  );
   const provDef = () => PROVIDERS.find((p) => p.id === conn()?.provider);
   const isCustomProvider = () => conn()?.provider?.startsWith('custom:') ?? false;
 
@@ -692,6 +1073,13 @@ const ConnectionDetail: Component = () => {
                     />
                   );
                 })()}
+              </Show>
+
+              <Show when={c.auth_type === 'subscription'}>
+                <SubscriptionLimitsDetailPanel
+                  connection={subscriptionUsageDetail()}
+                  loading={subscriptionUsageDetail.loading}
+                />
               </Show>
 
               {/* Recent Messages (full width) */}

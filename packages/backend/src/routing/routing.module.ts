@@ -16,6 +16,8 @@ import { CopilotController } from './oauth/copilot/copilot.controller';
 import { SpecificityController } from './specificity.controller';
 import { ModelParamsController } from './model-params.controller';
 import { TenantProvidersController } from './tenant-providers.controller';
+import { SubscriptionUsageController } from './subscription-usage.controller';
+import { SubscriptionUsageService } from './subscription-usage.service';
 import { AgentEnabledProvidersController } from './agent-enabled-providers.controller';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -59,9 +61,10 @@ import { HeaderTier } from '../entities/header-tier.entity';
     SpecificityController,
     ModelParamsController,
     TenantProvidersController,
+    SubscriptionUsageController,
     AgentEnabledProvidersController,
   ],
-  providers: [OllamaSyncService],
+  providers: [OllamaSyncService, SubscriptionUsageService],
   exports: [RoutingCoreModule, CustomProviderModule, OAuthModule],
 })
 export class RoutingModule {}
