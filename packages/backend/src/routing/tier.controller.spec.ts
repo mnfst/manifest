@@ -4,6 +4,7 @@ import { TierController } from './tier.controller';
 import { TierService } from './routing-core/tier.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { Agent } from '../entities/agent.entity';
+import { AutofixService } from './autofix/autofix.service';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 
 describe('TierController', () => {
@@ -13,10 +14,13 @@ describe('TierController', () => {
     name: 'demo',
     tenant_id: 'tenant-1',
     complexity_routing_enabled: true,
+    autofix_enabled: false,
+    autofix_max_attempts: 3,
   };
   let tierService: jest.Mocked<Partial<TierService>>;
   let resolveAgentService: { resolve: jest.Mock; invalidate: jest.Mock };
   let agentRepo: jest.Mocked<Partial<Repository<Agent>>>;
+  let autofixService: { invalidateConfig: jest.Mock };
   let controller: TierController;
 
   beforeEach(() => {
@@ -36,10 +40,12 @@ describe('TierController', () => {
     agentRepo = {
       update: jest.fn().mockResolvedValue(undefined),
     };
+    autofixService = { invalidateConfig: jest.fn() };
     controller = new TierController(
       tierService as unknown as TierService,
       resolveAgentService as unknown as ResolveAgentService,
       agentRepo as unknown as Repository<Agent>,
+      autofixService as unknown as AutofixService,
     );
   });
 
@@ -127,6 +133,34 @@ describe('TierController', () => {
       complexity_routing_enabled: false,
     });
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
+  });
+
+  it('GET autofix returns the enabled flag and budget', async () => {
+    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: false, maxAttempts: 3 });
+  });
+
+  it('PATCH autofix updates both fields and invalidates cache', async () => {
+    const out = await controller.updateAutofix(ctx, 'demo', { enabled: true, maxAttempts: 5 });
+    expect(out).toEqual({ enabled: true, maxAttempts: 5 });
+    expect(agentRepo.update).toHaveBeenCalledWith('agent-1', {
+      autofix_enabled: true,
+      autofix_max_attempts: 5,
+    });
+    expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
+    expect(autofixService.invalidateConfig).toHaveBeenCalledWith('tenant-1', 'agent-1');
+  });
+
+  it('PATCH autofix updates only the provided field', async () => {
+    const out = await controller.updateAutofix(ctx, 'demo', { enabled: true });
+    expect(out).toEqual({ enabled: true, maxAttempts: 3 });
+    expect(agentRepo.update).toHaveBeenCalledWith('agent-1', { autofix_enabled: true });
+  });
+
+  it('PATCH autofix with an empty body is a no-op and echoes current values', async () => {
+    const out = await controller.updateAutofix(ctx, 'demo', {});
+    expect(out).toEqual({ enabled: false, maxAttempts: 3 });
+    expect(agentRepo.update).not.toHaveBeenCalled();
+    expect(resolveAgentService.invalidate).not.toHaveBeenCalled();
   });
 
   it('PATCH response-mode sets the mode for a valid tier', async () => {

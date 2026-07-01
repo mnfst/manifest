@@ -10,6 +10,7 @@ import { RoutingMeta } from '../proxy.service';
 import { FailedFallback } from '../proxy-fallback.service';
 import { IngestionContext } from '../../../otlp/interfaces/ingestion-context.interface';
 import { StreamUsage } from '../stream-writer';
+import type { AutofixRecord } from '../../autofix/autofix.types';
 
 const testCtx: IngestionContext = {
   tenantId: 'tenant-1',
@@ -54,6 +55,7 @@ function mockRecorder() {
     recordPrimaryFailure: jest.fn().mockResolvedValue(undefined),
     recordFallbackSuccess: jest.fn().mockResolvedValue(undefined),
     recordSuccessMessage: jest.fn().mockResolvedValue(undefined),
+    recordAutofixOriginals: jest.fn().mockResolvedValue(undefined),
   };
 }
 
@@ -2005,6 +2007,149 @@ describe('proxy-response-handler', () => {
         usage,
         expect.objectContaining({ specificityCategory: 'coding' }),
       );
+    });
+
+    // A healed Auto-fix chain: the failed original attempt is recorded as its
+    // own auto_fixed row, linked to the successful-retry success row above.
+    const healedAutofix: AutofixRecord = {
+      groupId: 'grp-1',
+      outcome: 'healed',
+      attempts: 1,
+      original_http_status: 400,
+      chain: [
+        {
+          attempt: 0,
+          origin: 'original',
+          request: {},
+          http_status: 400,
+          error: { message: 'Unknown parameter' },
+        },
+        { attempt: 1, origin: 'autofix', request: {}, http_status: 200 },
+      ],
+    };
+
+    it('records the failed Auto-fix original(s) when the chain has a failed entry (healed)', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta();
+      const usage: StreamUsage = { prompt_tokens: 100, completion_tokens: 50 };
+
+      recordSuccess(
+        testCtx,
+        meta,
+        usage,
+        undefined,
+        recorder as any,
+        'trace-1',
+        'session-1',
+        undefined,
+        null,
+        undefined,
+        healedAutofix,
+      );
+
+      expect(recorder.recordAutofixOriginals).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        healedAutofix,
+        expect.objectContaining({ provider: 'openai', reason: 'auto', traceId: 'trace-1' }),
+      );
+    });
+
+    it('records the failed Auto-fix attempts even when healing EXHAUSTED but a fallback then succeeded', () => {
+      // Fallback-success path: meta.fallbackFromModel is set (so the
+      // recordFallbackSuccess branch runs), yet the exhausted Auto-fix chain
+      // still carries a failed attempt that must be recorded as its own row.
+      const recorder = mockRecorder();
+      const meta = makeMeta({ fallbackFromModel: 'claude-opus', fallbackIndex: 0 });
+      const exhaustedAutofix: AutofixRecord = {
+        groupId: 'grp-exhausted',
+        outcome: 'exhausted',
+        attempts: 0,
+        original_http_status: 400,
+        chain: [
+          {
+            attempt: 0,
+            origin: 'original',
+            request: {},
+            http_status: 400,
+            error: { message: 'x' },
+          },
+        ],
+      };
+
+      recordSuccess(
+        testCtx,
+        meta,
+        { prompt_tokens: 1, completion_tokens: 1 },
+        '2025-01-01T00:00:00Z',
+        recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        null,
+        undefined,
+        exhaustedAutofix,
+      );
+
+      // The success itself came from the fallback model.
+      expect(recorder.recordFallbackSuccess).toHaveBeenCalled();
+      expect(recorder.recordSuccessMessage).not.toHaveBeenCalled();
+      // …but the failed original Auto-fix attempt is still recorded.
+      expect(recorder.recordAutofixOriginals).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        exhaustedAutofix,
+        expect.any(Object),
+      );
+    });
+
+    it('does not record Auto-fix originals when the chain has no failed entry (H1-degraded)', () => {
+      // An Auto-fix record whose chain is empty (e.g. the H1-degraded case)
+      // must not trigger recordAutofixOriginals — the `.some(e => e.error)`
+      // guard is false.
+      const recorder = mockRecorder();
+      const meta = makeMeta();
+      const emptyChainAutofix: AutofixRecord = {
+        groupId: 'grp-empty',
+        outcome: 'exhausted',
+        attempts: 0,
+        original_http_status: 400,
+        chain: [],
+      };
+
+      recordSuccess(
+        testCtx,
+        meta,
+        { prompt_tokens: 1, completion_tokens: 1 },
+        undefined,
+        recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        null,
+        undefined,
+        emptyChainAutofix,
+      );
+
+      expect(recorder.recordAutofixOriginals).not.toHaveBeenCalled();
+    });
+
+    it('does not record Auto-fix originals when autofix is absent', () => {
+      // Guards the `autofix && …` short-circuit: no autofix record at all.
+      const recorder = mockRecorder();
+      const meta = makeMeta();
+
+      recordSuccess(
+        testCtx,
+        meta,
+        { prompt_tokens: 1, completion_tokens: 1 },
+        undefined,
+        recorder as any,
+      );
+
+      expect(recorder.recordAutofixOriginals).not.toHaveBeenCalled();
     });
   });
 

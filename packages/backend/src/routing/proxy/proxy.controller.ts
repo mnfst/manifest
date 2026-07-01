@@ -164,7 +164,7 @@ export class ProxyController {
       slotAcquired = true;
       routingBody = redactInlineImageDataUrls(body);
       const specificityOverride = req.headers['x-manifest-specificity'] as string | undefined;
-      const { forward, meta, failedFallbacks } = await this.proxyService.proxyRequest({
+      const { forward, meta, failedFallbacks, autofix } = await this.proxyService.proxyRequest({
         agentId: req.ingestionContext.agentId,
         tenantId,
         // Attribution only — the recorder writes it to agent_messages.user_id.
@@ -198,6 +198,7 @@ export class ProxyController {
           traceId,
           callerAttribution,
           requestHeaders,
+          autofix,
         );
         return;
       }
@@ -255,6 +256,7 @@ export class ProxyController {
         startTime,
         callerAttribution,
         requestHeaders,
+        autofix,
       );
     } catch (err: unknown) {
       this.handleProxyError(

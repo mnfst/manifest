@@ -1,8 +1,9 @@
-import { createResource, createSignal, Show, type JSX } from 'solid-js';
+import { createResource, createSignal, For, Show, type JSX } from 'solid-js';
 import {
   getMessageDetails,
   flagMessageMiscategorized,
   clearMessageMiscategorized,
+  type AutofixOperation,
 } from '../services/api.js';
 import { inferProviderName } from '../services/routing-utils.js';
 import { getModelDisplayName } from '../services/model-display.js';
@@ -12,6 +13,8 @@ import { routingTierLabel } from './message-table-types.js';
 
 export interface MessageDetailsProps {
   messageId: string;
+  /** Open a linked message (the Auto-fix sibling) in the same list. */
+  onOpenMessage?: (id: string) => void;
 }
 
 function MetaField(props: { label: string; value: string | null | undefined }): JSX.Element {
@@ -67,6 +70,77 @@ function MiscategorizeControl(props: {
   );
 }
 
+/**
+ * Auto-fix panel. A healed request is two linked rows: this shows which one you
+ * opened (the failed `original` or the successful `retry`), the Phoenix
+ * operations that fixed it, and a link to the paired row.
+ */
+function AutofixSection(props: {
+  role: string | null;
+  operations: AutofixOperation[] | null;
+  phoenix: { issueId: string | null; patchId: string | null; healAttemptId: string | null } | null;
+  sibling: { id: string; role: string | null; status: string } | null;
+  onOpenMessage?: (id: string) => void;
+}): JSX.Element {
+  const isOriginal = () => props.role === 'original';
+  // An 'original' row only got "repaired" if a successful retry exists (its
+  // sibling). Without one, Auto-fix ran but couldn't fix it — don't claim it did.
+  const bannerText = () => {
+    if (!isOriginal()) return 'Successful retry of a request Manifest auto-fixed.';
+    return props.sibling
+      ? 'This request failed and was automatically repaired, then retried.'
+      : 'This request failed. Auto-fix tried but could not repair it.';
+  };
+  return (
+    <div class="msg-detail__section">
+      <div class="msg-detail__section-title">Auto-fix</div>
+      <div class="msg-detail__fallback-banner">{bannerText()}</div>
+      <Show when={props.operations && props.operations.length > 0}>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+          <For each={props.operations!}>
+            {(op) => (
+              <span class="msg-detail__meta-item">
+                {op.type}
+                <Show when={op.from && op.to}>{`: ${op.from} → ${op.to}`}</Show>
+              </span>
+            )}
+          </For>
+        </div>
+      </Show>
+      <Show
+        when={
+          props.phoenix &&
+          (props.phoenix.issueId || props.phoenix.patchId || props.phoenix.healAttemptId)
+        }
+      >
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+          <Show when={props.phoenix!.issueId}>
+            <span>Issue {props.phoenix!.issueId!.slice(0, 8)}</span>
+          </Show>
+          <Show when={props.phoenix!.patchId}>
+            <span>Patch {props.phoenix!.patchId!.slice(0, 8)}</span>
+          </Show>
+          <Show when={props.phoenix!.healAttemptId}>
+            <span>Heal-attempt {props.phoenix!.healAttemptId!.slice(0, 8)}</span>
+          </Show>
+        </div>
+      </Show>
+      <Show when={props.sibling && props.onOpenMessage}>
+        <button
+          type="button"
+          class="msg-detail__autofix-link"
+          style="margin-top: 10px; background: none; border: none; padding: 0; cursor: pointer; color: hsl(25 95% 44%); font-weight: 500;"
+          onClick={() => props.onOpenMessage!(props.sibling!.id)}
+        >
+          {isOriginal()
+            ? '→ View the successful auto-fix retry'
+            : '← View the original failed request'}
+        </button>
+      </Show>
+    </div>
+  );
+}
+
 export default function MessageDetails(props: MessageDetailsProps): JSX.Element {
   const [data] = createResource(() => props.messageId, getMessageDetails);
 
@@ -103,6 +177,16 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                     </Show>
                   </div>
                 </div>
+              </Show>
+
+              <Show when={m.autofix_applied}>
+                <AutofixSection
+                  role={m.autofix_role}
+                  operations={m.autofix_operations}
+                  phoenix={m.autofix_phoenix}
+                  sibling={m.autofix_sibling}
+                  onOpenMessage={props.onOpenMessage}
+                />
               </Show>
 
               <Show when={m.fallback_from_model}>

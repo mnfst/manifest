@@ -97,6 +97,13 @@
   cursor: pointer;
 }
 
+/* Auto-fix: the failed original of a healed pair. Orange (not red) — it failed
+   but was recovered. */
+.status-badge--auto_fixed {
+  background: hsl(25 95% 53% / 0.15);
+  color: hsl(25 95% 44%);
+}
+
 /* When a status badge is itself a link (a Manifest limit → the limits page)
    keep the badge look: inherit the badge colour, no underline until hover. */
 a.status-badge {

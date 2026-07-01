@@ -705,6 +705,40 @@ describe('MessageTable', () => {
       fireEvent.click(btn);
       expect(btn.getAttribute('aria-label')).toBe('Collapse details');
     });
+
+    it('expands the panel when the row body (a non-interactive cell) is clicked', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['date']}
+          agentName="agent-1"
+          expandable
+        />
+      ));
+      expect(container.querySelector('[data-testid="message-details"]')).toBeNull();
+      // Click a plain cell — the click bubbles to the row handler and toggles.
+      const cell = container.querySelector('.msg-row--clickable td') as HTMLElement;
+      fireEvent.click(cell);
+      expect(container.querySelector('[data-testid="message-details"]')).not.toBeNull();
+    });
+
+    it('does not expand when an interactive element inside the row is clicked', () => {
+      // A Manifest policy-limit row renders an <a> link to the limits page.
+      // Clicking it must NOT toggle the row (the handler bails on
+      // button/a/[role=button]).
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ status: 'error', error_origin: 'policy', agent_name: 'my-agent' })]}
+          columns={['status']}
+          agentName="my-agent"
+          expandable
+        />
+      ));
+      const link = container.querySelector('.msg-row--clickable a') as HTMLElement;
+      expect(link).not.toBeNull();
+      fireEvent.click(link);
+      expect(container.querySelector('[data-testid="message-details"]')).toBeNull();
+    });
   });
 
   describe('consistency guarantees', () => {

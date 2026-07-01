@@ -425,6 +425,15 @@ const MessageLog: Component = () => {
     setTimeout(() => el.classList.remove('msg-highlight'), 2000);
   };
 
+  // Jump to a linked message (the Auto-fix sibling of an expanded row).
+  const scrollToMessage = (id: string) => {
+    const el = document.getElementById(`msg-${id}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('msg-highlight');
+    setTimeout(() => el.classList.remove('msg-highlight'), 2000);
+  };
+
   return (
     <div class="container--full">
       <Title>
@@ -679,6 +688,7 @@ const MessageLog: Component = () => {
                   customProviderName={() => undefined}
                   agentPlatformLookup={(name) => agentPlatformMap().get(name)}
                   onFallbackErrorClick={scrollToFallbackSuccess}
+                  onOpenMessage={scrollToMessage}
                   onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                   onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
                   onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}

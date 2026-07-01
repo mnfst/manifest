@@ -1,0 +1,85 @@
+import { ConfigModule } from '@nestjs/config';
+import { Test } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Agent } from '../../../entities/agent.entity';
+import { AutofixModule } from '../autofix.module';
+import { HEALING_CLIENT } from '../healing-client';
+import { HttpHealingClient } from '../http-healing-client';
+import { MockHealingClient } from '../mock-healing-client';
+
+/**
+ * Compile AutofixModule with a global ConfigModule seeded from `configValues`
+ * (a real ConfigService, so the factory reads exactly what the app would) and
+ * the TypeORM Agent repo stubbed, then resolve the HEALING_CLIENT the factory
+ * produced. A global ConfigModule exports ConfigService into AutofixModule's
+ * scope — a root-level provider would be encapsulated out of the imported
+ * module.
+ */
+async function resolveHealingClient(configValues: Record<string, string>) {
+  const moduleRef = await Test.createTestingModule({
+    imports: [
+      ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true, load: [() => configValues] }),
+      AutofixModule,
+    ],
+  })
+    .overrideProvider(getRepositoryToken(Agent))
+    .useValue({})
+    .compile();
+
+  const client = moduleRef.get(HEALING_CLIENT);
+  await moduleRef.close();
+  return client;
+}
+
+describe('AutofixModule HEALING_CLIENT factory', () => {
+  it('provides a MockHealingClient when AUTOFIX_HEALING_URL is unset', async () => {
+    const client = await resolveHealingClient({});
+
+    expect(client).toBeInstanceOf(MockHealingClient);
+  });
+
+  it('provides a MockHealingClient when AUTOFIX_HEALING_URL is blank/whitespace', async () => {
+    // url.trim().length > 0 is false → mock branch.
+    const client = await resolveHealingClient({ AUTOFIX_HEALING_URL: '   ' });
+
+    expect(client).toBeInstanceOf(MockHealingClient);
+  });
+
+  it('provides an HttpHealingClient when AUTOFIX_HEALING_URL is set', async () => {
+    const client = await resolveHealingClient({
+      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+    });
+
+    expect(client).toBeInstanceOf(HttpHealingClient);
+  });
+
+  it('provides an HttpHealingClient with a valid AUTOFIX_TIMEOUT_MS override', async () => {
+    // Exercises the truthy side of the timeout ternary (parsed integer > 0).
+    const client = await resolveHealingClient({
+      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+      AUTOFIX_TIMEOUT_MS: '5000',
+    });
+
+    expect(client).toBeInstanceOf(HttpHealingClient);
+  });
+
+  it('falls back to the default timeout when AUTOFIX_TIMEOUT_MS is invalid', async () => {
+    // Number.parseInt('abc', 10) is NaN → Number.isInteger false → default.
+    const client = await resolveHealingClient({
+      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+      AUTOFIX_TIMEOUT_MS: 'abc',
+    });
+
+    expect(client).toBeInstanceOf(HttpHealingClient);
+  });
+
+  it('falls back to the default timeout when AUTOFIX_TIMEOUT_MS is non-positive', async () => {
+    // parsed = 0 → `parsed > 0` false → default branch.
+    const client = await resolveHealingClient({
+      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+      AUTOFIX_TIMEOUT_MS: '0',
+    });
+
+    expect(client).toBeInstanceOf(HttpHealingClient);
+  });
+});

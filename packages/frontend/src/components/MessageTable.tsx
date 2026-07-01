@@ -15,6 +15,8 @@ export interface MessageTableProps {
   onFeedbackLike?: (id: string) => void;
   onFeedbackDislike?: (id: string) => void;
   onFeedbackClear?: (id: string) => void;
+  /** Open a linked message (Auto-fix sibling) from an expanded row's detail. */
+  onOpenMessage?: (id: string) => void;
   rowIdPrefix?: string;
   showHeaderTooltips?: boolean;
   expandable?: boolean;
@@ -89,7 +91,10 @@ function ExpandableRow(props: {
       <Show when={expanded()}>
         <tr class="msg-detail__row">
           <td colspan={colSpan()} class="msg-detail__cell">
-            <MessageDetails messageId={props.item.id} />
+            <MessageDetails
+              messageId={props.item.id}
+              onOpenMessage={props.tableProps.onOpenMessage}
+            />
           </td>
         </tr>
       </Show>

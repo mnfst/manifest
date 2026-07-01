@@ -1,5 +1,12 @@
 import { fetchJson, fetchMutate } from './core.js';
 
+/** A deterministic edit Phoenix applied to heal a request. */
+export interface AutofixOperation {
+  type: string;
+  from?: string;
+  to?: string;
+}
+
 export interface MessageDetailResponse {
   message: {
     id: string;
@@ -56,6 +63,17 @@ export interface MessageDetailResponse {
       appUrl?: string;
       categories?: string[];
     } | null;
+    autofix_applied: boolean;
+    autofix_role: string | null;
+    autofix_operations: AutofixOperation[] | null;
+    /** Phoenix's own identifiers for the heal decision behind this row. */
+    autofix_phoenix: {
+      issueId: string | null;
+      patchId: string | null;
+      healAttemptId: string | null;
+    } | null;
+    /** The paired row (failed original ↔ successful retry), for the visual link. */
+    autofix_sibling: { id: string; role: string | null; status: string } | null;
   };
 }
 

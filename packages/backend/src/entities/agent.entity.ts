@@ -30,6 +30,15 @@ export class Agent {
   @Column('boolean', { default: false })
   complexity_routing_enabled!: boolean;
 
+  // Auto-fix: when enabled, a request-side 4xx is sent to the healing service
+  // (Phoenix) and the patched request is retried up to `autofix_max_attempts`
+  // times before the fallback chain runs.
+  @Column('boolean', { default: false })
+  autofix_enabled!: boolean;
+
+  @Column('integer', { default: 3 })
+  autofix_max_attempts!: number;
+
   // Reserved Playground agent (the per-tenant "Playground" agent). Hidden
   // from the agent list / switcher / counts and not user-creatable/renamable.
   @Column('boolean', { default: false })

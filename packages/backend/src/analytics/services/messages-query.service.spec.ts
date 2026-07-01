@@ -711,12 +711,12 @@ describe('MessagesQueryService', () => {
     [
       'failed',
       'at.status IN (:...failedStatuses)',
-      { failedStatuses: ['error', 'fallback_error', 'rate_limited'] },
+      { failedStatuses: ['error', 'fallback_error', 'rate_limited', 'auto_fixed'] },
     ],
     [
       'errors',
       'at.status IN (:...errorStatuses)',
-      { errorStatuses: ['error', 'fallback_error', 'rate_limited'] },
+      { errorStatuses: ['error', 'fallback_error', 'rate_limited', 'auto_fixed'] },
     ],
     ['ok', 'at.status = :statusFilter', { statusFilter: 'ok' }],
   ])('passes %s status filter through to the query builder', async (status, clause, bindings) => {
