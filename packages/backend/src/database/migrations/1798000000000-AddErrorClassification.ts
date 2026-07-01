@@ -12,10 +12,12 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * Runs OUTSIDE a transaction (`transaction = false`) so the historical backfill
  * can commit in ~20k-row batches instead of locking the whole hot table under
  * one giant UPDATE, and so the trailing index can be built CONCURRENTLY. The
- * batch predicate (`status <> 'ok' AND error_origin IS NULL`) makes it idempotent
- * and resumable: every pass only touches still-unclassified error rows, and each
- * pass strictly shrinks the remaining set (a non-ok row always resolves to a
- * non-null origin), so the loop terminates.
+ * batch predicate (`status IN (error/rate_limited/fallback_error) AND
+ * error_origin IS NULL`) makes it idempotent and resumable: every pass only
+ * touches still-unclassified error rows, and each pass strictly shrinks the
+ * remaining set (a non-ok row always resolves to a non-null origin), so the loop
+ * terminates. The IN-list rides the existing error partial indexes so the scan
+ * stays cheap on multi-GB tables instead of seq-scanning the whole heap.
  */
 
 // error_origin, mirroring classifyMessageError precedence. `m` is the UPDATE target alias.
@@ -51,10 +53,19 @@ const ERROR_CLASS_CASE = `CASE
   ELSE 'network'
 END`;
 
+// The set of non-ok statuses, spelled as an explicit IN list (identical to
+// `status <> 'ok'` — the proxy only ever writes ok/error/rate_limited/
+// fallback_error) so the batch/remaining scans ride the existing
+// IDX_agent_messages_errors* partial indexes (defined `WHERE status IN (...)`)
+// instead of a full seq scan of the multi-GB heap. Verified on prod: `<> 'ok'`
+// plans a Seq Scan; this plans an Index Scan over just the error rows. Keeps the
+// backfill cheap on large tables (cloud pre-deploy load, self-hosted boot time).
+const NON_OK_STATUSES = `('error', 'fallback_error', 'rate_limited')`;
+
 const BACKFILL_BATCH_SQL = `
 WITH batch AS (
   SELECT id FROM agent_messages
-  WHERE status <> 'ok' AND error_origin IS NULL
+  WHERE status IN ${NON_OK_STATUSES} AND error_origin IS NULL
   LIMIT 20000
 )
 UPDATE agent_messages AS m SET
@@ -68,7 +79,7 @@ WHERE m.id = batch.id`;
 // independent (a plain boolean projection), unlike counting UPDATE ... RETURNING
 // rows — which node-pg does not surface as an empty array on zero matches.
 const REMAINING_SQL = `SELECT EXISTS (
-  SELECT 1 FROM agent_messages WHERE status <> 'ok' AND error_origin IS NULL
+  SELECT 1 FROM agent_messages WHERE status IN ${NON_OK_STATUSES} AND error_origin IS NULL
 ) AS more`;
 
 // Backstop so a driver quirk can never spin forever. 20k rows/pass over any
