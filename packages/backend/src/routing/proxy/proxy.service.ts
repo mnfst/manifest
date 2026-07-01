@@ -318,6 +318,42 @@ export class ProxyService {
       shouldTriggerFallback(forward.response.status) &&
       paramMergeContext
     ) {
+      // Same-provider key rotation: try alternate keys for the same
+      // provider/model before falling back to different models.
+      if (credentials.tenantProviderId) {
+        const altKey = await this.fallbackService.tryAlternateKeys({
+          tenantId,
+          agentId,
+          provider: route.provider,
+          authType: route.authType as AuthType,
+          failedKeyId: credentials.tenantProviderId,
+          model: primaryModel,
+          body,
+          chatBody,
+          stream,
+          sessionKey,
+          signal,
+          apiMode,
+          signatureLookup,
+          thinkingLookup,
+          reasoningContentLookup,
+          paramMergeContext,
+        });
+        if (altKey) {
+          this.logger.log(
+            `Alternate key succeeded: provider=${route.provider} model=${primaryModel} key=${altKey.keyLabel}`,
+          );
+          return {
+            forward: altKey.forward,
+            meta: this.buildBaseMeta(resolved, primaryModel, {
+              request_params: primaryRequestParams,
+              tenantProviderId: altKey.keyId,
+              provider_key_label: altKey.keyLabel,
+            }),
+          };
+        }
+      }
+
       const fallbackResult = await this.tryFallbackChain({
         agentId,
         tenantId,

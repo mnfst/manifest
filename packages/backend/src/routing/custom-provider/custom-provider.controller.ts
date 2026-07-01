@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put } from '@nestjs/common';
 import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { CustomProviderService } from './custom-provider.service';
 import { ProviderService } from '../routing-core/provider.service';
@@ -7,6 +7,9 @@ import {
   CreateCustomProviderDto,
   ProbeCustomProviderDto,
   UpdateCustomProviderDto,
+  AddCustomProviderKeyDto,
+  RenameCustomProviderKeyDto,
+  ReorderCustomProviderKeysDto,
 } from '../dto/custom-provider.dto';
 import { AgentNameParamDto } from '../dto/routing.dto';
 
@@ -35,13 +38,24 @@ export class CustomProviderController {
 
     return providers.map((cp) => {
       const provKey = CustomProviderService.providerKey(cp.id);
-      const up = tenantProviders.find((u) => u.provider === provKey);
+      const matchingProviders = tenantProviders.filter((u) => u.provider === provKey);
+      const primaryKey = matchingProviders.find((u) => u.label === 'Default') ?? matchingProviders[0];
       return {
         id: cp.id,
         name: cp.name,
         base_url: cp.base_url,
         api_kind: cp.api_kind,
-        has_api_key: !!up?.api_key_encrypted,
+        has_api_key: !!primaryKey?.api_key_encrypted,
+        keys: matchingProviders
+          .filter((u) => u.is_active)
+          .sort((a, b) => a.priority - b.priority)
+          .map((u) => ({
+            label: u.label,
+            key_prefix: u.key_prefix,
+            priority: u.priority,
+            is_active: u.is_active,
+            region: u.region,
+          })),
         models: cp.models,
         created_at: cp.created_at,
       };
@@ -127,6 +141,91 @@ export class CustomProviderController {
   ) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     await this.customProviderService.remove(agent.tenant_id, id, ctx.userId);
+    return { ok: true };
+  }
+
+  @Post(':agentName/custom-providers/:id/keys')
+  async addKey(
+    @TenantCtx() ctx: TenantContext,
+    @Param('agentName') agentName: string,
+    @Param('id') id: string,
+    @Body() body: AddCustomProviderKeyDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    const cp = await this.customProviderService.getById(id, agent.tenant_id);
+    if (!cp) {
+      throw new NotFoundException('Custom provider not found');
+    }
+    const provKey = CustomProviderService.providerKey(id);
+    await this.providerService.upsertProvider(
+      null,
+      agent.tenant_id,
+      provKey,
+      body.apiKey,
+      'api_key',
+      undefined,
+      body.label,
+      ctx.userId,
+    );
+    return { ok: true };
+  }
+
+  @Delete(':agentName/custom-providers/:id/keys/:label')
+  async removeKey(
+    @TenantCtx() ctx: TenantContext,
+    @Param('agentName') agentName: string,
+    @Param('id') id: string,
+    @Param('label') label: string,
+  ) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    const provKey = CustomProviderService.providerKey(id);
+    await this.providerService.removeProvider(
+      null,
+      agent.tenant_id,
+      provKey,
+      'api_key',
+      label,
+    );
+    return { ok: true };
+  }
+
+  @Put(':agentName/custom-providers/:id/keys/:label')
+  async renameKey(
+    @TenantCtx() ctx: TenantContext,
+    @Param('agentName') agentName: string,
+    @Param('id') id: string,
+    @Param('label') label: string,
+    @Body() body: RenameCustomProviderKeyDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    const provKey = CustomProviderService.providerKey(id);
+    await this.providerService.renameKey(
+      null as any,
+      agent.tenant_id,
+      provKey,
+      'api_key',
+      label,
+      body.newLabel,
+    );
+    return { ok: true };
+  }
+
+  @Post(':agentName/custom-providers/:id/keys/reorder')
+  async reorderKeys(
+    @TenantCtx() ctx: TenantContext,
+    @Param('agentName') agentName: string,
+    @Param('id') id: string,
+    @Body() body: ReorderCustomProviderKeysDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    const provKey = CustomProviderService.providerKey(id);
+    await this.providerService.reorderKeys(
+      null as any,
+      agent.tenant_id,
+      provKey,
+      'api_key',
+      body.orderedLabels,
+    );
     return { ok: true };
   }
 }

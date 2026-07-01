@@ -399,6 +399,112 @@ const CustomProviderForm: Component<Props> = (props) => {
           </Show>
         </div>
 
+        <Show when={isEdit() && (props.initialData?.keys?.length ?? 0) > 0}>
+          <div class="provider-detail__field">
+            <label class="provider-detail__label">API Keys (pool)</label>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <For each={props.initialData?.keys ?? []}>
+                {(k) => (
+                  <div
+                    class="provider-detail__key-row"
+                    style="gap: 8px; align-items: center;"
+                  >
+                    <span
+                      style="flex: 1; font-size: var(--font-size-sm); font-family: monospace; overflow: hidden; text-overflow: ellipsis;"
+                    >
+                      {k.label}: {k.key_prefix ?? '••••••••'}{'•'.repeat(8)}
+                    </span>
+                    <button
+                      type="button"
+                      class="btn btn--outline btn--sm"
+                      style="font-size: var(--font-size-xs); padding: 2px 8px;"
+                      disabled={busy()}
+                      onClick={async () => {
+                        const newLabel = prompt(`Rename key "${k.label}" to:`, k.label);
+                        if (!newLabel || newLabel === k.label) return;
+                        setBusy(true);
+                        try {
+                          const { renameCustomProviderKey } = await import('../services/api.js');
+                          await renameCustomProviderKey(
+                            props.agentName,
+                            props.initialData!.id,
+                            k.label,
+                            newLabel,
+                          );
+                          toast.success(`Key renamed to "${newLabel}"`);
+                          props.onCreated();
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : 'Rename failed');
+                        } finally {
+                          setBusy(false);
+                        }
+                      }}
+                    >
+                      Rename
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn--outline btn--sm"
+                      style="font-size: var(--font-size-xs); padding: 2px 8px; color: hsl(var(--danger));"
+                      disabled={busy()}
+                      onClick={async () => {
+                        if (!confirm(`Remove key "${k.label}"?`)) return;
+                        setBusy(true);
+                        try {
+                          const { removeCustomProviderKey } = await import('../services/api.js');
+                          await removeCustomProviderKey(
+                            props.agentName,
+                            props.initialData!.id,
+                            k.label,
+                          );
+                          toast.success(`Key "${k.label}" removed`);
+                          props.onCreated();
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : 'Remove failed');
+                        } finally {
+                          setBusy(false);
+                        }
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </For>
+            </div>
+            <Show when={(props.initialData?.keys?.length ?? 0) < 5}>
+              <button
+                type="button"
+                class="btn btn--outline btn--sm"
+                style="margin-top: 8px; align-self: flex-start;"
+                disabled={busy()}
+                onClick={async () => {
+                  const newKey = prompt('Paste new API key:');
+                  if (!newKey?.trim()) return;
+                  const label = prompt('Label for this key (e.g. Backup, Work):');
+                  if (!label?.trim()) return;
+                  setBusy(true);
+                  try {
+                    const { addCustomProviderKey } = await import('../services/api.js');
+                    await addCustomProviderKey(props.agentName, props.initialData!.id, {
+                      apiKey: newKey.trim(),
+                      label: label.trim(),
+                    });
+                    toast.success(`Key "${label.trim()}" added`);
+                    props.onCreated();
+                  } catch (e) {
+                    toast.error(e instanceof Error ? e.message : 'Add failed');
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                + Add another key
+              </button>
+            </Show>
+          </div>
+        </Show>
+
         <div class="provider-detail__field">
           <div id="cp-models-label" class="provider-detail__label custom-provider-models__label">
             Models

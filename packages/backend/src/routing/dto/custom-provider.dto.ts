@@ -134,3 +134,36 @@ export class UpdateCustomProviderDto {
   @Type(() => CustomProviderModelDto)
   models?: CustomProviderModelDto[];
 }
+
+export class AddCustomProviderKeyDto {
+  @IsString()
+  @IsNotEmpty()
+  apiKey!: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(50)
+  @Matches(/^[a-zA-Z0-9 ._-]+$/, {
+    message: 'Label can only contain letters, numbers, spaces, dots, hyphens, and underscores',
+  })
+  label?: string;
+}
+
+export class RenameCustomProviderKeyDto {
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(1)
+  @MaxLength(50)
+  @Matches(/^[a-zA-Z0-9 ._-]+$/, {
+    message: 'Label can only contain letters, numbers, spaces, dots, hyphens, and underscores',
+  })
+  newLabel!: string;
+}
+
+export class ReorderCustomProviderKeysDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  orderedLabels!: string[];
+}
