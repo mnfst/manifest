@@ -259,6 +259,35 @@ describe('provider pages', () => {
     });
   });
 
+  it('renders inactive subscription rows even when they have no usage', async () => {
+    mockGetGlobalProviders.mockResolvedValue({
+      ...globalProvidersResponse,
+      providers: [
+        ...globalProvidersResponse.providers,
+        {
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          connection_count: 1,
+          connections: [connection('sub-old-claude', 'Old Claude', false)],
+          total_models: 0,
+          consumption_tokens: 0,
+          consumption_messages: 0,
+          consumption_cost: 0,
+          last_used_at: null,
+          sparkline_7d: [],
+        },
+      ],
+    });
+
+    render(() => <Subscriptions />);
+
+    await waitFor(() => expect(screen.getByText('Old Claude')).toBeDefined());
+    expect(screen.getAllByText('Inactive').length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByText('Old Claude').closest('tr')!);
+    expect(mockNavigate).toHaveBeenCalledWith('/providers/connections/sub-old-claude');
+  });
+
   it('deep-links the connect modal to a specific provider when added from its row', async () => {
     render(() => <Subscriptions />);
 

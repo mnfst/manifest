@@ -277,6 +277,12 @@ describe('filterNonChatModels', () => {
       expect(result.map((m) => m.id)).toEqual(['mistral-large-latest']);
     });
 
+    it('keeps mistral-vibe-cli models for subscription discovery', () => {
+      const models = [makeModel('mistral-vibe-cli-latest'), makeModel('mistral-large-latest')];
+      const result = filterNonChatModels(models, 'mistral-subscription');
+      expect(result.map((m) => m.id)).toEqual(['mistral-vibe-cli-latest', 'mistral-large-latest']);
+    });
+
     it('filters labs-prefixed models', () => {
       const models = [makeModel('labs-leanstral-2603'), makeModel('mistral-large-latest')];
       const result = filterNonChatModels(models, 'mistral');

@@ -687,6 +687,52 @@ tr:hover .connection-label-cell__edit,
   background: hsl(var(--destructive) / 0.08);
 }
 
+.connection-delete-confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.connection-delete-confirmation__warning {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: hsl(var(--destructive) / 0.06);
+  border: 1px solid hsl(var(--destructive) / 0.22);
+  border-radius: var(--radius);
+}
+
+.connection-delete-confirmation__title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.connection-delete-confirmation__copy {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.connection-delete-confirmation__label {
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.connection-delete-confirmation__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
 .provider-detail__disconnect-icon {
   width: 2rem;
   height: 2rem;

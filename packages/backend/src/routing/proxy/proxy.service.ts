@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ResolveService } from '../resolve/resolve.service';
 import { ModelAliasService, type ModelAliasResolution } from '../model-aliases/model-alias.service';
+import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import {
   ProviderKeyService,
   SYNTHETIC_OLLAMA_PROVIDER_ID,
@@ -58,8 +59,12 @@ import { peekStream, STREAM_WARMUP_MS } from './stream-warmup';
 import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
+import { parseMaxMessagesPerRequest } from './message-limit';
+import { OPENAI_MODEL_ID_AUTO, routeForOpenAiModelId } from './openai-model-id';
 
-type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
+type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>> & {
+  explicit_model_override?: boolean;
+};
 
 interface RoutingDecision {
   resolved: ResolvedRouting;
@@ -76,11 +81,11 @@ interface RoutingDecision {
  */
 const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
-const MAX_MESSAGES_PER_REQUEST = 1000;
 const REASONING_EFFORT_HEADER = 'x-manifest-reasoning-effort';
+const MANIFEST_MODEL_ID_AUTO = 'manifest/auto';
 
 export interface RoutingMeta {
-  tier: TierSlot;
+  tier: TierSlot | 'direct';
   model: string;
   provider: string;
   confidence: number;
@@ -146,10 +151,12 @@ export interface ProxyResult {
 @Injectable()
 export class ProxyService {
   private readonly logger = new Logger(ProxyService.name);
+  private readonly maxMessagesPerRequest: number;
 
   constructor(
     private readonly resolveService: ResolveService,
     private readonly modelAliasService: ModelAliasService,
+    private readonly modelDiscovery: ModelDiscoveryService,
     private readonly providerKeyService: ProviderKeyService,
     private readonly tierService: TierService,
     private readonly openaiOauth: OpenaiOauthService,
@@ -167,7 +174,11 @@ export class ProxyService {
     private readonly reasoningCache: ReasoningContentCache,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
-  ) {}
+  ) {
+    this.maxMessagesPerRequest = parseMaxMessagesPerRequest(
+      this.config.get<string>('MANIFEST_MAX_MESSAGES'),
+    );
+  }
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
     const { agentId, tenantId, body, sessionKey, agentName, signal, specificityOverride, headers } =
@@ -206,6 +217,7 @@ export class ProxyService {
       sessionKey,
       specificityOverride,
       headers,
+      apiMode,
     );
     const resolved = routingDecision.resolved;
     const responseMode = resolved.response_mode ?? DEFAULT_RESPONSE_MODE;
@@ -237,8 +249,10 @@ export class ProxyService {
 
     const signatureLookup = (toolCallId: string) =>
       this.signatureCache.retrieve(sessionKey, toolCallId);
-    const thinkingLookup = (firstToolUseId: string) =>
-      this.thinkingCache.retrieve(sessionKey, firstToolUseId);
+    const thinkingLookup: ThinkingBlockLookup = (firstToolUseId, routeContext) =>
+      routeContext
+        ? this.thinkingCache.retrieve(sessionKey, firstToolUseId, routeContext)
+        : this.thinkingCache.retrieve(sessionKey, firstToolUseId);
     const reasoningContentLookup = (firstToolCallId: string) =>
       this.reasoningCache.retrieve(sessionKey, firstToolCallId);
 
@@ -247,16 +261,19 @@ export class ProxyService {
     // own (provider, auth_type, model) tuple in the model-params service.
     // Pass the agentId here as a thin context bag; the storage is already
     // route-scoped, so no per-provider filter is needed downstream.
+    const explicitModelOverride = resolved.explicit_model_override === true;
     const scopeKey = modelParamsScopeForRouting({
       tier: resolved.tier,
       specificityCategory: resolved.specificity_category,
       headerTierId: resolved.header_tier_id,
     });
+    const effectiveScopeKey = routingDecision.scopeKey ?? scopeKey;
     const paramMergeContext: ParamMergeContext = {
       agentId,
-      scopeKey: routingDecision.scopeKey ?? scopeKey,
+      scopeKey: effectiveScopeKey,
       requestParams: routingDecision.requestParams,
     };
+    const effectiveParamMergeContext = explicitModelOverride ? undefined : paramMergeContext;
 
     // Snapshot of which known param keys are *effectively in play* for the
     // primary attempt. Stored on every `agent_messages` row recorded for
@@ -267,23 +284,27 @@ export class ProxyService {
     // Independent reads — the params row and the provider spec list don't
     // depend on each other, so fetch them concurrently to shave a round-trip
     // off the cold path before forwarding.
-    const [primaryModelParams, primarySpecs] = await Promise.all([
-      routingDecision.requestParams !== undefined
-        ? Promise.resolve(routingDecision.requestParams)
-        : this.modelParamsService.get(
-            agentId,
-            scopeKey,
-            route.provider,
-            route.authType,
-            primaryModel,
-          ),
-      this.providerParamSpecs.getSpecs(route.provider, route.authType, primaryModel),
-    ]);
-    const primaryRequestParams = snapshotRequestParams({
-      body: routingBody as Record<string, unknown>,
-      modelParams: primaryModelParams,
-      specs: primarySpecs,
-    });
+    const [primaryModelParams, primarySpecs] = explicitModelOverride
+      ? ([null, []] as const)
+      : await Promise.all([
+          routingDecision.requestParams !== undefined
+            ? Promise.resolve(routingDecision.requestParams)
+            : this.modelParamsService.get(
+                agentId,
+                effectiveScopeKey,
+                route.provider,
+                route.authType,
+                primaryModel,
+              ),
+          this.providerParamSpecs.getSpecs(route.provider, route.authType, primaryModel),
+        ]);
+    const primaryRequestParams = explicitModelOverride
+      ? null
+      : snapshotRequestParams({
+          body: routingBody as Record<string, unknown>,
+          modelParams: primaryModelParams,
+          specs: primarySpecs,
+        });
 
     const forward = await this.fallbackService.tryForwardToProvider({
       provider: route.provider,
@@ -305,10 +326,15 @@ export class ProxyService {
       signatureLookup,
       thinkingLookup,
       reasoningContentLookup,
-      paramMergeContext,
+      paramMergeContext: effectiveParamMergeContext,
     });
 
-    if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
+    if (
+      !explicitModelOverride &&
+      !forward.response.ok &&
+      shouldTriggerFallback(forward.response.status) &&
+      effectiveParamMergeContext
+    ) {
       const fallbackResult = await this.tryFallbackChain({
         agentId,
         tenantId,
@@ -324,7 +350,7 @@ export class ProxyService {
         thinkingLookup,
         reasoningContentLookup,
         apiMode,
-        paramMergeContext,
+        paramMergeContext: effectiveParamMergeContext,
         primaryTenantProviderId: credentials.tenantProviderId,
       });
       if (fallbackResult) return fallbackResult;
@@ -374,25 +400,27 @@ export class ProxyService {
         isResponses: forward.isResponses,
         isCodeAssist: forward.isCodeAssist,
       };
-      const fallbackResult = await this.tryFallbackChain({
-        agentId,
-        tenantId,
-        resolved,
-        primaryModel,
-        forward: syntheticForward,
-        body,
-        chatBody,
-        stream,
-        sessionKey,
-        signal,
-        signatureLookup,
-        thinkingLookup,
-        reasoningContentLookup,
-        apiMode,
-        paramMergeContext,
-        primaryTenantProviderId: credentials.tenantProviderId,
-      });
-      if (fallbackResult) return fallbackResult;
+      if (!explicitModelOverride && effectiveParamMergeContext) {
+        const fallbackResult = await this.tryFallbackChain({
+          agentId,
+          tenantId,
+          resolved,
+          primaryModel,
+          forward: syntheticForward,
+          body,
+          chatBody,
+          stream,
+          sessionKey,
+          signal,
+          signatureLookup,
+          thinkingLookup,
+          reasoningContentLookup,
+          apiMode,
+          paramMergeContext: effectiveParamMergeContext,
+          primaryTenantProviderId: credentials.tenantProviderId,
+        });
+        if (fallbackResult) return fallbackResult;
+      }
 
       // Warmup failed and no fallbacks available: return the synthetic 502
       // instead of the original forward (whose body was consumed by peekStream).
@@ -430,8 +458,10 @@ export class ProxyService {
       throw new BadRequestException(formatManifestError('M300'));
     }
     sanitizeNullContent(messages as Record<string, unknown>[]);
-    if (messages.length > MAX_MESSAGES_PER_REQUEST) {
-      throw new BadRequestException(formatManifestError('M301', { max: MAX_MESSAGES_PER_REQUEST }));
+    if (messages.length > this.maxMessagesPerRequest) {
+      throw new BadRequestException(
+        formatManifestError('M301', { max: this.maxMessagesPerRequest }),
+      );
     }
   }
 
@@ -442,11 +472,13 @@ export class ProxyService {
     sessionKey: string,
     specificityOverride: ProxyRequestOptions['specificityOverride'],
     headers: ProxyRequestOptions['headers'],
+    apiMode: ProxyApiMode,
   ): Promise<RoutingDecision> {
     const aliasDecision = await this.modelAliasService.resolveModelRequest(
       agentId,
       tenantId,
       body.model,
+      { includeRawDirect: false },
     );
     if (aliasDecision.kind === 'resolved') {
       const requestParams = await this.applyReasoningEffortHeader(aliasDecision, headers);
@@ -457,6 +489,62 @@ export class ProxyService {
       };
     }
 
+    const requestedModel = typeof body.model === 'string' ? body.model.trim() : undefined;
+    const requestedModelKey = requestedModel?.toLowerCase();
+    // Anthropic Messages requests require a provider-native model field; only
+    // OpenAI-compatible surfaces use /v1/models IDs as route overrides.
+    if (
+      apiMode !== 'messages' &&
+      requestedModel &&
+      requestedModelKey !== OPENAI_MODEL_ID_AUTO &&
+      requestedModelKey !== MANIFEST_MODEL_ID_AUTO
+    ) {
+      const models = await this.modelDiscovery.getModelsForAgent(tenantId, agentId);
+      const directRoute = routeForOpenAiModelId(requestedModel, models);
+      if (directRoute) {
+        return {
+          resolved: {
+            tier: 'default' as const,
+            route: directRoute,
+            fallback_routes: null,
+            response_mode: DEFAULT_RESPONSE_MODE,
+            confidence: 1,
+            score: 0,
+            reason: 'default' as const,
+            explicit_model_override: true,
+          },
+        };
+      }
+
+      const rawDirectDecision = await this.modelAliasService.resolveModelRequest(
+        agentId,
+        tenantId,
+        body.model,
+        { includeRawDirect: true },
+      );
+      if (rawDirectDecision.kind === 'resolved') {
+        const requestParams = await this.applyReasoningEffortHeader(rawDirectDecision, headers);
+        return {
+          resolved: rawDirectDecision.resolved,
+          requestParams,
+          scopeKey: rawDirectDecision.scopeKey,
+        };
+      }
+
+      return {
+        resolved: {
+          tier: 'default' as const,
+          route: null,
+          fallback_routes: null,
+          response_mode: DEFAULT_RESPONSE_MODE,
+          confidence: 1,
+          score: 0,
+          reason: 'default' as const,
+          explicit_model_override: true,
+        },
+      };
+    }
+
     const messages = body.messages as ScorerMessage[];
     const scoringMessages = this.filterScoringMessages(messages);
     const scoringTools = Array.isArray(body.tools) ? body.tools : undefined;
@@ -464,9 +552,9 @@ export class ProxyService {
     const recentTiers = this.momentum.getRecentTiers(sessionKey);
     const recentCategories = this.momentum.getRecentCategories(sessionKey);
 
-    const resolved = isHeartbeat
-      ? await this.resolveService.resolveForTier(agentId, tenantId, 'simple')
-      : await this.resolveService.resolve(
+    const baseResolved = await (isHeartbeat
+      ? this.resolveService.resolveForTier(agentId, tenantId, 'simple')
+      : this.resolveService.resolve(
           agentId,
           tenantId,
           scoringMessages,
@@ -477,8 +565,9 @@ export class ProxyService {
           specificityOverride,
           recentCategories,
           headers,
-        );
-    return { resolved };
+        ));
+
+    return { resolved: baseResolved };
   }
 
   private async applyReasoningEffortHeader(
@@ -762,12 +851,14 @@ export class ProxyService {
     model: string,
     overrides: Partial<RoutingMeta> = {},
   ): RoutingMeta {
+    const directOverride =
+      resolved.explicit_model_override === true || resolved.reason === 'direct-model';
     return {
-      tier: resolved.tier,
+      tier: directOverride ? 'direct' : resolved.tier,
       model,
       provider: overrides.provider ?? resolved.route?.provider ?? '',
       confidence: resolved.confidence,
-      reason: resolved.reason,
+      reason: resolved.explicit_model_override === true ? 'direct' : resolved.reason,
       auth_type: resolved.route?.authType,
       specificity_category: resolved.specificity_category,
       provider_key_label: resolved.route?.keyLabel ?? undefined,

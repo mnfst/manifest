@@ -661,7 +661,7 @@ describe('Overview', () => {
           agent_name: 'test-agent',
           model: 'custom:abc-123/my-llama',
           provider: 'custom:abc-123',
-          custom_provider_name: 'Cerebras',
+          custom_provider_name: 'Cohere',
           input_tokens: 100,
           output_tokens: 50,
           total_tokens: 150,
@@ -673,7 +673,7 @@ describe('Overview', () => {
         {
           model: 'custom:abc-123/my-llama',
           provider: 'custom:abc-123',
-          custom_provider_name: 'Cerebras',
+          custom_provider_name: 'Cohere',
           tokens: 30000,
           share_pct: 100,
           estimated_cost: 2.1,
@@ -686,7 +686,7 @@ describe('Overview', () => {
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
-        const img = container.querySelector('img[alt="Cerebras"]');
+        const img = container.querySelector('img[alt="Cohere"]');
         expect(img).not.toBeNull();
       });
     });
@@ -704,7 +704,7 @@ describe('Overview', () => {
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
-        const imgs = container.querySelectorAll('img[alt="Cerebras"]');
+        const imgs = container.querySelectorAll('img[alt="Cohere"]');
         // At least one in recent messages and one in cost by model
         expect(imgs.length).toBeGreaterThanOrEqual(2);
       });

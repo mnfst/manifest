@@ -153,7 +153,14 @@ describe('proxy-response-handler', () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: expect.objectContaining({ type: 'upstream_error', status: 500 }),
+          error: expect.objectContaining({
+            type: 'server_error',
+            code: null,
+            status: 500,
+            source: 'provider',
+            provider: 'openai',
+            model: 'gpt-4o',
+          }),
         }),
       );
     });
@@ -215,9 +222,61 @@ describe('proxy-response-handler', () => {
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           error: expect.objectContaining({
-            type: 'fallback_exhausted',
+            type: 'server_error',
+            code: 'fallback_exhausted',
+            source: 'manifest',
             primary_model: 'gpt-4o',
             attempted_fallbacks: [{ model: 'claude-3-haiku', provider: 'anthropic', status: 429 }],
+          }),
+        }),
+      );
+    });
+
+    it('preserves provider context overflow code when fallback chain is exhausted', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'opencode-go', model: 'opencode-go/kimi-k2.6' });
+      const metaHeaders = buildMetaHeaders(meta);
+      const message =
+        "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.";
+      const failedFallbacks: FailedFallback[] = [
+        {
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          status: 400,
+          errorBody: 'also too long',
+        },
+      ];
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        metaHeaders,
+        400,
+        JSON.stringify({
+          error: {
+            message,
+            type: 'invalid_request_error',
+            code: 'context_length_exceeded',
+          },
+        }),
+        failedFallbacks,
+        recorder as any,
+      );
+
+      expect(res.setHeader).toHaveBeenCalledWith('X-Manifest-Fallback-Exhausted', 'true');
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            message,
+            type: 'invalid_request_error',
+            code: 'context_length_exceeded',
+            source: 'provider',
+            attempted_fallbacks: [
+              { model: 'claude-sonnet-4-6', provider: 'anthropic', status: 400 },
+            ],
           }),
         }),
       );
@@ -321,6 +380,54 @@ describe('proxy-response-handler', () => {
             error: expect.objectContaining({ message: 'Invalid model' }),
           }),
         );
+      } finally {
+        if (originalEnv === undefined) {
+          delete process.env.NODE_ENV;
+        } else {
+          process.env.NODE_ENV = originalEnv;
+        }
+      }
+    });
+
+    it('returns provider context overflow as an OpenAI-compatible error in production', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        const { res } = mockResponse();
+        const recorder = mockRecorder();
+        const meta = makeMeta({ provider: 'opencode-go', model: 'opencode-go/kimi-k2.6' });
+        const message =
+          "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.";
+
+        await handleProviderError(
+          res as any,
+          testCtx,
+          meta,
+          buildMetaHeaders(meta),
+          400,
+          JSON.stringify({
+            error: {
+              message,
+              type: 'invalid_request_error',
+              code: 'context_length_exceeded',
+            },
+          }),
+          undefined,
+          recorder as any,
+        );
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          error: expect.objectContaining({
+            message,
+            type: 'invalid_request_error',
+            code: 'context_length_exceeded',
+            status: 400,
+            source: 'provider',
+            provider: 'opencode-go',
+            model: 'opencode-go/kimi-k2.6',
+          }),
+        });
       } finally {
         if (originalEnv === undefined) {
           delete process.env.NODE_ENV;
@@ -554,7 +661,11 @@ describe('proxy-response-handler', () => {
       const { res } = mockResponse();
       const forward = mockForward({ isAnthropic: true });
       const client = mockProviderClient();
-      const meta = makeMeta();
+      const meta = makeMeta({
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      });
       const thinkingCache = { store: jest.fn() };
       const sessionKey = 'sess-anthro-stream';
 
@@ -580,6 +691,11 @@ describe('proxy-response-handler', () => {
         'sess-anthro-stream',
         'toolu_stream',
         blocks,
+        {
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-sonnet-4-5-20250929',
+        },
       );
     });
 
@@ -1036,6 +1152,33 @@ describe('proxy-response-handler', () => {
         undefined,
       );
     });
+
+    it('does not configure assistant-message reasoning cache callbacks for streams without tool calls', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta({ provider: 'deepseek', model: 'deepseek-chat' });
+      const reasoningCache = { store: jest.fn() };
+      const sessionKey = 'sess-reasoning-stream';
+      const transformer = jest.fn((chunk: string) => `data: ${chunk}\n\n`);
+      client.createReasoningContentStreamTransformer.mockReturnValue(transformer);
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        sessionKey,
+        undefined,
+        'chat_completions',
+        reasoningCache as any,
+      );
+
+      expect(client.createReasoningContentStreamTransformer.mock.calls[0][2]).toBeUndefined();
+      expect(reasoningCache.store).not.toHaveBeenCalled();
+    });
   });
 
   /* ── handleNonStreamResponse ── */
@@ -1131,7 +1274,11 @@ describe('proxy-response-handler', () => {
         usage: { input_tokens: 50, output_tokens: 12, cache_read_input_tokens: 0 },
       };
       const forward = mockForward(body, { isAnthropic: true });
-      const meta = makeMeta();
+      const meta = makeMeta({
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      });
       const thinkingCache = { store: jest.fn() };
 
       const usage = await handleNonStreamResponse(
@@ -1172,7 +1319,11 @@ describe('proxy-response-handler', () => {
         usage: { input_tokens: 1, output_tokens: 1 },
       };
       const forward = mockForward(body, { isAnthropic: true });
-      const meta = makeMeta();
+      const meta = makeMeta({
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      });
       const thinkingCache = { store: jest.fn() };
 
       await handleNonStreamResponse(
@@ -1187,9 +1338,16 @@ describe('proxy-response-handler', () => {
         'messages',
       );
 
-      expect(thinkingCache.store).toHaveBeenCalledWith('sess-x', 'toolu_1', [
-        { type: 'thinking', thinking: 'searching...', signature: 'sig' },
-      ]);
+      expect(thinkingCache.store).toHaveBeenCalledWith(
+        'sess-x',
+        'toolu_1',
+        [{ type: 'thinking', thinking: 'searching...', signature: 'sig' }],
+        {
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-sonnet-4-5-20250929',
+        },
+      );
     });
 
     it('should convert Anthropic response', async () => {
@@ -1197,7 +1355,11 @@ describe('proxy-response-handler', () => {
       const client = mockProviderClient();
       client.convertAnthropicResponse.mockReturnValue({});
       const forward = mockForward({}, { isAnthropic: true });
-      const meta = makeMeta();
+      const meta = makeMeta({
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      });
 
       const usage = await handleNonStreamResponse(
         res as any,
@@ -1226,7 +1388,11 @@ describe('proxy-response-handler', () => {
       });
 
       const forward = mockForward({}, { isAnthropic: true });
-      const meta = makeMeta();
+      const meta = makeMeta({
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        model: 'claude-sonnet-4-5-20250929',
+      });
 
       await handleNonStreamResponse(
         res as any,
@@ -1240,9 +1406,16 @@ describe('proxy-response-handler', () => {
       );
 
       expect(thinkingCache.store).toHaveBeenCalledTimes(1);
-      expect(thinkingCache.store).toHaveBeenCalledWith('sess-anthro', 'toolu_01', [
-        { type: 'thinking', thinking: 'reason', signature: 's' },
-      ]);
+      expect(thinkingCache.store).toHaveBeenCalledWith(
+        'sess-anthro',
+        'toolu_01',
+        [{ type: 'thinking', thinking: 'reason', signature: 's' }],
+        {
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-sonnet-4-5-20250929',
+        },
+      );
 
       // The internal side-channel is stripped before the body reaches the client.
       const sentBody = res.json.mock.calls[0][0];
@@ -1666,6 +1839,43 @@ describe('proxy-response-handler', () => {
         'call_1',
         'I should call the tool.',
       );
+      expect(res.json).toHaveBeenCalledWith(body);
+    });
+
+    it('does not cache reasoning_content from compatible non-stream assistant responses without tool calls', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const reasoningCache = { store: jest.fn() };
+      const sessionKey = 'sess-reasoning-json';
+      const body = {
+        id: 'chatcmpl-1',
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content: 'The answer is 42.',
+              reasoning_content: 'I checked the arithmetic.',
+            },
+          },
+        ],
+      };
+      const forward = mockForward(body);
+      const meta = makeMeta({ provider: 'deepseek', model: 'deepseek-chat' });
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        sessionKey,
+        undefined,
+        'chat_completions',
+        reasoningCache as any,
+      );
+
+      expect(reasoningCache.store).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(body);
     });
 

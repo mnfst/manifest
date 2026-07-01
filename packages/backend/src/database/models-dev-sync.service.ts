@@ -14,6 +14,7 @@ import { GOOGLE_VARIANT_RE } from '../model-prices/model-name-normalizer';
  */
 const PROVIDER_ID_MAP: Readonly<Record<string, string>> = {
   anthropic: 'anthropic',
+  cerebras: 'cerebras',
   openai: 'openai',
   gemini: 'google',
   deepseek: 'deepseek',

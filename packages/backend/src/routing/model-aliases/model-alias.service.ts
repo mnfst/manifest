@@ -32,6 +32,7 @@ import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
+import { openAiModelId } from '../proxy/openai-model-id';
 import {
   CreateModelAliasDto,
   MAX_MODEL_ALIAS_DISPLAY_NAME_LENGTH,
@@ -45,6 +46,7 @@ const REASONING_EFFORT_SUFFIXES = ['minimal', 'none', 'low', 'medium', 'high', '
 
 export type ModelAliasResolution =
   | { kind: 'auto' }
+  | { kind: 'unmatched' }
   | {
       kind: 'resolved';
       resolved: ResolveResponse;
@@ -52,6 +54,10 @@ export type ModelAliasResolution =
       scopeKey?: string;
       acceptsReasoningEffortHeader?: boolean;
     };
+
+interface ResolveModelRequestOptions {
+  includeRawDirect?: boolean;
+}
 
 interface NormalizedAliasInput {
   model_id: string;
@@ -179,6 +185,7 @@ export class ModelAliasService {
     agentId: string,
     tenantId: string,
     requestedModel: unknown,
+    options: ResolveModelRequestOptions = {},
   ): Promise<ModelAliasResolution> {
     if (typeof requestedModel !== 'string' || requestedModel.trim() === '') {
       return { kind: 'auto' };
@@ -203,25 +210,25 @@ export class ModelAliasService {
       };
     }
 
-    const rawDirect = await this.resolveRawDirect(agentId, tenantId, modelId);
-    if (rawDirect === 'ambiguous') {
-      throw new BadRequestException(
-        `Model "${modelId}" matches multiple provider/auth routes. Configure an alias to choose one explicitly.`,
-      );
-    }
-    if (rawDirect) {
-      return {
-        kind: 'resolved',
-        resolved: rawDirect.resolved,
-        requestParams: rawDirect.requestParams,
-        scopeKey: `direct-model:${rawDirect.resolved.route?.provider}:${rawDirect.resolved.route?.authType}:${rawDirect.resolved.route?.model}`,
-        acceptsReasoningEffortHeader: true,
-      };
+    if (options.includeRawDirect !== false) {
+      const rawDirect = await this.resolveRawDirect(agentId, tenantId, modelId);
+      if (rawDirect === 'ambiguous') {
+        throw new BadRequestException(
+          `Model "${modelId}" matches multiple provider/auth routes. Configure an alias to choose one explicitly.`,
+        );
+      }
+      if (rawDirect) {
+        return {
+          kind: 'resolved',
+          resolved: rawDirect.resolved,
+          requestParams: rawDirect.requestParams,
+          scopeKey: `direct-model:${rawDirect.resolved.route?.provider}:${rawDirect.resolved.route?.authType}:${rawDirect.resolved.route?.model}`,
+          acceptsReasoningEffortHeader: true,
+        };
+      }
     }
 
-    throw new NotFoundException(
-      `Model "${modelId}" is not exposed for this agent. Use manifest/auto or configure a model alias.`,
-    );
+    return { kind: 'unmatched' };
   }
 
   private async resolveAlias(
@@ -371,11 +378,8 @@ export class ModelAliasService {
     const provider = model.provider.toLowerCase();
     const modelId = model.id.toLowerCase();
     const ids = new Set<string>();
-    if (modelId.startsWith(`${provider}/`)) {
-      ids.add(modelId);
-    } else {
-      ids.add(`${provider}/${modelId}`);
-    }
+    ids.add(openAiModelId(model).toLowerCase());
+    ids.add(modelId.startsWith(`${provider}/`) ? modelId : `${provider}/${modelId}`);
     ids.add(`${provider}-${authModeSlug(model.authType)}/${modelId}`);
     return [...ids];
   }

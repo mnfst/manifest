@@ -12,6 +12,27 @@ const KNOWN_ERROR_MESSAGES: Record<number, string> = {
   504: 'Upstream provider gateway timeout',
 };
 
+export type OpenAiCompatibleErrorType =
+  | 'invalid_request_error'
+  | 'authentication_error'
+  | 'permission_error'
+  | 'rate_limit_error'
+  | 'server_error';
+
+export interface ClassifiedProviderError {
+  message: string;
+  type: OpenAiCompatibleErrorType;
+  code: 'context_length_exceeded';
+  source: 'provider';
+}
+
+const KNOWN_CONTEXT_ERROR_CODES = new Set(['context_length_exceeded']);
+
+const KNOWN_CONTEXT_ERROR_MESSAGE_PATTERNS = [
+  /\b(?:this (?:model|endpoint)'s )?maximum context length is \d+ tokens\b/i,
+  /\bmaximum context length exceeded\b/i,
+];
+
 function sanitizeSensitivePatterns(msg: string): string {
   return msg
     .replace(/sk-ant-[a-zA-Z0-9_-]{20,}/g, 'sk-ant-***')
@@ -20,21 +41,81 @@ function sanitizeSensitivePatterns(msg: string): string {
     .replace(/Bearer\s+[^\s"]+/gi, 'Bearer ***');
 }
 
-export function sanitizeProviderError(status: number, rawBody: string, nodeEnv?: string): string {
-  const generic = KNOWN_ERROR_MESSAGES[status] ?? `Upstream provider returned HTTP ${status}`;
+function normalizeErrorMessage(message: string): string {
+  return sanitizeSensitivePatterns(message).replace(/\s+/g, ' ').trim().slice(0, 1000);
+}
 
-  // In production, only return generic error messages to avoid leaking provider internals
-  if ((nodeEnv ?? 'production') === 'production') return generic;
-
+function extractProviderMessage(rawBody: string): string | null {
   try {
     const parsed = JSON.parse(rawBody) as Record<string, unknown>;
     const error = parsed.error as Record<string, unknown> | undefined;
     const message = error?.message ?? parsed.message;
-    if (typeof message === 'string' && message.length > 0) {
-      return sanitizeSensitivePatterns(message).slice(0, 500);
-    }
+    return typeof message === 'string' && message.length > 0 ? message : null;
   } catch {
-    // Not JSON — fall through to generic message
+    return null;
+  }
+}
+
+function extractProviderErrorCode(rawBody: string): string | null {
+  try {
+    const parsed = JSON.parse(rawBody) as Record<string, unknown>;
+    const error = parsed.error as Record<string, unknown> | undefined;
+    const code = error?.code ?? parsed.code;
+    return typeof code === 'string' && code.length > 0 ? code : null;
+  } catch {
+    return null;
+  }
+}
+
+function hasKnownContextErrorCode(rawBody: string): boolean {
+  const code = extractProviderErrorCode(rawBody);
+  if (code && KNOWN_CONTEXT_ERROR_CODES.has(code.toLowerCase())) return true;
+  return /\bcontext_length_exceeded\b/i.test(rawBody);
+}
+
+function hasKnownContextErrorMessage(rawBody: string): boolean {
+  const message = extractProviderMessage(rawBody) ?? rawBody;
+  return KNOWN_CONTEXT_ERROR_MESSAGE_PATTERNS.some((pattern) => pattern.test(message));
+}
+
+function isContextLengthError(status: number, rawBody: string): boolean {
+  if (status < 400) return false;
+  return hasKnownContextErrorCode(rawBody) || hasKnownContextErrorMessage(rawBody);
+}
+
+export function openAiErrorTypeForStatus(status: number): OpenAiCompatibleErrorType {
+  if (status === 401) return 'authentication_error';
+  if (status === 403) return 'permission_error';
+  if (status === 429) return 'rate_limit_error';
+  if (status >= 500) return 'server_error';
+  return 'invalid_request_error';
+}
+
+export function classifyProviderError(
+  status: number,
+  rawBody: string,
+): ClassifiedProviderError | null {
+  if (!isContextLengthError(status, rawBody)) return null;
+  const message = extractProviderMessage(rawBody) ?? rawBody;
+  return {
+    message: normalizeErrorMessage(message),
+    type: 'invalid_request_error',
+    code: 'context_length_exceeded',
+    source: 'provider',
+  };
+}
+
+export function sanitizeProviderError(status: number, rawBody: string, nodeEnv?: string): string {
+  const generic = KNOWN_ERROR_MESSAGES[status] ?? `Upstream provider returned HTTP ${status}`;
+  const classified = classifyProviderError(status, rawBody);
+  if (classified) return classified.message;
+
+  // In production, only return generic error messages to avoid leaking provider internals
+  if ((nodeEnv ?? 'production') === 'production') return generic;
+
+  const message = extractProviderMessage(rawBody);
+  if (message) {
+    return normalizeErrorMessage(message).slice(0, 500);
   }
 
   return generic;

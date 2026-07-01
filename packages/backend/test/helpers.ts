@@ -49,6 +49,7 @@ import { PlaygroundModule } from '../src/playground/playground.module';
 import { CommonModule } from '../src/common/common.module';
 import { PublicStatsModule } from '../src/public-stats/public-stats.module';
 import { SetupModule } from '../src/setup/setup.module';
+import { WaitlistModule } from '../src/waitlist/waitlist.module';
 
 export const TEST_USER_ID = 'test-user-001';
 export const TEST_API_KEY = 'test-api-key-001';
@@ -224,6 +225,7 @@ export async function createTestApp(): Promise<INestApplication> {
         PlaygroundModule,
         PublicStatsModule,
         SetupModule,
+        WaitlistModule,
       ],
       providers: [{ provide: APP_GUARD, useClass: MockSessionGuard }],
     }).compile();

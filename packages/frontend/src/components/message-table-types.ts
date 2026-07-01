@@ -27,6 +27,11 @@ export interface MessageRow {
   feedback_rating?: string | null;
 }
 
+export function routingTierLabel(tier: string | null | undefined): string | undefined {
+  if (!tier) return undefined;
+  return tier === 'direct' ? 'DIRECT' : tier;
+}
+
 export type MessageColumnKey =
   | 'date'
   | 'message'

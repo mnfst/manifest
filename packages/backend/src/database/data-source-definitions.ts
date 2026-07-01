@@ -127,8 +127,9 @@ import { AddTenantProviderValueIndex1793000000000 } from './migrations/179300000
 import { DropRedundantTenantAgentNameIndex1793100000000 } from './migrations/1793100000000-DropRedundantTenantAgentNameIndex';
 import { AddDashboardCoveringIndex1793200000000 } from './migrations/1793200000000-AddDashboardCoveringIndex';
 import { AddCrossTenantErrorTimestampIndex1795100000000 } from './migrations/1795100000000-AddCrossTenantErrorTimestampIndex';
-import { RemoveMessageRecording1795000000000 } from './migrations/1795000000000-RemoveMessageRecording';
 import { AddExposedModelRoutes1795200000000 } from './migrations/1795200000000-AddExposedModelRoutes';
+import { AddAutofixWaitlist1796000000000 } from './migrations/1796000000000-AddAutofixWaitlist';
+import { RemoveMessageRecording1795000000000 } from './migrations/1795000000000-RemoveMessageRecording';
 
 export const entities = [
   AgentMessage,
@@ -260,4 +261,5 @@ export const migrations = [
   RemoveMessageRecording1795000000000,
   AddCrossTenantErrorTimestampIndex1795100000000,
   AddExposedModelRoutes1795200000000,
+  AddAutofixWaitlist1796000000000,
 ];

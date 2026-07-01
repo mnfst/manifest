@@ -315,6 +315,19 @@ describe('PayloadBuilderService', () => {
     expect(payload.messages_by_tier).toEqual({ unknown: 5, simple: 10 });
   });
 
+  it('keeps message-only routing tiers in telemetry buckets', async () => {
+    const service = await makeService({
+      tiers: [
+        { bucket: 'direct', count: '3' },
+        { bucket: 'playground', count: '2' },
+      ],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.messages_by_tier).toEqual({ direct: 3, playground: 2 });
+  });
+
   it('collapses unknown routing_tier strings to "other" so a future write path cannot leak verbatim values', async () => {
     // Defense-in-depth: if some caller writes "warp-speed" into routing_tier,
     // the whitelist clamps it to "other" before it leaves the install.

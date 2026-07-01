@@ -26,6 +26,8 @@ import type { ThinkingBlockCache } from '../thinking-block-cache';
 import type { ReasoningContentCache } from '../reasoning-content-cache';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import type { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
+import type { DiscoveredModel } from '../../../model-discovery/model-fetcher';
 
 /**
  * Stream-warmup helper is mocked because the real implementation depends on
@@ -47,6 +49,22 @@ const route = (provider: string, authType: ModelRoute['authType'], model: string
 
 const okResponse = (status = 200) =>
   new Response('{"ok":true}', { status, headers: { 'content-type': 'application/json' } });
+
+function discoveredModel(overrides: Partial<DiscoveredModel> = {}): DiscoveredModel {
+  return {
+    id: 'gpt-4o',
+    displayName: 'GPT-4o',
+    provider: 'openai',
+    contextWindow: 128000,
+    inputPricePerToken: null,
+    outputPricePerToken: null,
+    capabilityReasoning: false,
+    capabilityCode: false,
+    qualityScore: 4,
+    authType: 'api_key',
+    ...overrides,
+  };
+}
 
 const specCatalog: ProviderParamSpecCatalog = [
   {
@@ -102,6 +120,7 @@ describe('ProxyService — orchestration', () => {
   let modelParamsService: { get: jest.Mock; list: jest.Mock; set: jest.Mock; delete: jest.Mock };
   let providerParamSpecs: { getSpecs: jest.Mock; list: jest.Mock };
   let svc: ProxyService;
+  let modelDiscovery: jest.Mocked<Pick<ModelDiscoveryService, 'getModelsForAgent'>>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -126,6 +145,9 @@ describe('ProxyService — orchestration', () => {
           return { reasoning_effort: normalized } as RequestParamDefaults;
         },
       ),
+    };
+    modelDiscovery = {
+      getModelsForAgent: jest.fn().mockResolvedValue([]),
     };
     providerKeyService = {
       getProviderApiKey: jest.fn().mockResolvedValue('decrypted-key'),
@@ -184,6 +206,7 @@ describe('ProxyService — orchestration', () => {
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
       modelAliasService as unknown as ModelAliasService,
+      modelDiscovery as unknown as ModelDiscoveryService,
       providerKeyService as unknown as ProviderKeyService,
       tierService as unknown as TierService,
       openaiOauth as unknown as OpenaiOauthService,
@@ -232,6 +255,47 @@ describe('ProxyService — orchestration', () => {
       await expect(svc.proxyRequest(baseOpts({ body: { messages } as never }))).rejects.toThrow(
         /1000/,
       );
+    });
+
+    it('uses MANIFEST_MAX_MESSAGES when validating oversized payloads', async () => {
+      configService = {
+        get: jest.fn((key: string) => (key === 'MANIFEST_MAX_MESSAGES' ? '1001' : undefined)),
+      } as unknown as ConfigService;
+      svc = new ProxyService(
+        resolveService as unknown as ResolveService,
+        modelAliasService as unknown as ModelAliasService,
+        modelDiscovery as unknown as ModelDiscoveryService,
+        providerKeyService as unknown as ProviderKeyService,
+        tierService as unknown as TierService,
+        openaiOauth as unknown as OpenaiOauthService,
+        minimaxOauth as unknown as MinimaxOauthService,
+        anthropicOauth as unknown as AnthropicOauthService,
+        geminiOauth as unknown as GeminiOauthService,
+        kiroOauth as unknown as KiroOauthService,
+        xaiOauth as unknown as XaiOauthService,
+        momentum as unknown as SessionMomentumService,
+        limitCheck as unknown as LimitCheckService,
+        fallbackService as unknown as ProxyFallbackService,
+        configService,
+        signatureCache,
+        thinkingCache,
+        reasoningCache,
+        modelParamsService as unknown as AgentModelParamsService,
+        providerParamSpecs as unknown as ProviderParamSpecService,
+      );
+      const messages = Array.from({ length: 1001 }, () => ({ role: 'user', content: 'x' }));
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: null,
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+
+      await expect(
+        svc.proxyRequest(baseOpts({ body: { messages } as never })),
+      ).resolves.toBeDefined();
     });
 
     it('replaces null content with empty string', async () => {
@@ -556,6 +620,307 @@ describe('ProxyService — orchestration', () => {
       const result = await svc.proxyRequest(baseOpts());
       const body = await result.forward.response.text();
       expect(body).toContain('M100');
+    });
+  });
+
+  describe('explicit OpenAI-compatible model routing', () => {
+    beforeEach(() => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('anthropic', 'api_key', 'claude-sonnet-4-5'),
+        fallback_routes: [route('gemini', 'api_key', 'gemini-2.5-flash')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+    });
+
+    it('routes a provider-qualified API-key model from the authenticated model list', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
+      ]);
+
+      const result = await svc.proxyRequest(
+        baseOpts({
+          body: {
+            model: 'openai/gpt-4o-mini',
+            messages: [{ role: 'user', content: 'hi' }],
+            temperature: 0.2,
+          },
+        }),
+      );
+
+      expect(modelDiscovery.getModelsForAgent).toHaveBeenCalledWith('tenant-1', 'agent-1');
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(providerKeyService.selectProviderKey).toHaveBeenCalledWith(
+        'tenant-1',
+        'openai',
+        'api_key',
+        undefined,
+        'agent-1',
+      );
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'openai',
+          authType: 'api_key',
+          model: 'gpt-4o-mini',
+          body: expect.objectContaining({ temperature: 0.2 }),
+          paramMergeContext: undefined,
+        }),
+      );
+      expect(modelParamsService.get).not.toHaveBeenCalled();
+      expect(providerParamSpecs.getSpecs).not.toHaveBeenCalled();
+      expect(result.meta).toMatchObject({
+        tier: 'direct',
+        reason: 'direct',
+        provider: 'openai',
+        auth_type: 'api_key',
+        model: 'gpt-4o-mini',
+      });
+      expect(result.meta.request_params).toBeNull();
+    });
+
+    it('falls back to legacy raw direct ids only after canonical lookup misses', async () => {
+      modelAliasService.resolveModelRequest
+        .mockResolvedValueOnce({ kind: 'unmatched' })
+        .mockResolvedValueOnce({
+          kind: 'resolved',
+          resolved: {
+            tier: 'default',
+            route: route('openai', 'api_key', 'gpt-5'),
+            fallback_routes: null,
+            confidence: 1,
+            score: 0,
+            reason: 'direct-model',
+            response_mode: 'buffered',
+          },
+          requestParams: { reasoning_effort: 'high' },
+          scopeKey: 'direct-model:openai:api_key:gpt-5',
+        });
+      modelDiscovery.getModelsForAgent.mockResolvedValue([]);
+
+      const result = await svc.proxyRequest(
+        baseOpts({
+          body: {
+            model: 'openai-api/gpt-5-high',
+            messages: [{ role: 'user', content: 'hi' }],
+          },
+        }),
+      );
+
+      expect(modelAliasService.resolveModelRequest).toHaveBeenNthCalledWith(
+        1,
+        'agent-1',
+        'tenant-1',
+        'openai-api/gpt-5-high',
+        { includeRawDirect: false },
+      );
+      expect(modelDiscovery.getModelsForAgent).toHaveBeenCalledWith('tenant-1', 'agent-1');
+      expect(modelAliasService.resolveModelRequest).toHaveBeenNthCalledWith(
+        2,
+        'agent-1',
+        'tenant-1',
+        'openai-api/gpt-5-high',
+        { includeRawDirect: true },
+      );
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'openai',
+          authType: 'api_key',
+          model: 'gpt-5',
+          paramMergeContext: {
+            agentId: 'agent-1',
+            scopeKey: 'direct-model:openai:api_key:gpt-5',
+            requestParams: { reasoning_effort: 'high' },
+          },
+        }),
+      );
+      expect(result.meta).toMatchObject({
+        tier: 'direct',
+        reason: 'direct-model',
+        provider: 'openai',
+        model: 'gpt-5',
+      });
+    });
+
+    it('routes subscription IDs by removing only the SDK suffix', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-5.5', provider: 'openai', authType: 'subscription' }),
+      ]);
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: {
+            model: 'openai/gpt-5.5-subscription',
+            messages: [{ role: 'user', content: 'hi' }],
+          },
+        }),
+      );
+
+      expect(providerKeyService.selectProviderKey).toHaveBeenCalledWith(
+        'tenant-1',
+        'openai',
+        'subscription',
+        undefined,
+        'agent-1',
+      );
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'openai',
+          authType: 'subscription',
+          model: 'gpt-5.5',
+        }),
+      );
+    });
+
+    it('preserves slash-containing provider-native model IDs', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({
+          id: 'anthropic/claude-sonnet-4.5',
+          provider: 'openrouter',
+          authType: 'api_key',
+        }),
+      ]);
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: {
+            model: 'openrouter/anthropic/claude-sonnet-4.5',
+            messages: [{ role: 'user', content: 'hi' }],
+          },
+        }),
+      );
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'openrouter',
+          authType: 'api_key',
+          model: 'anthropic/claude-sonnet-4.5',
+        }),
+      );
+    });
+
+    it('routes custom model IDs unchanged', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({
+          id: 'custom:provider-1/model-a',
+          provider: 'custom:provider-1',
+          authType: 'api_key',
+        }),
+      ]);
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: {
+            model: 'custom:provider-1/model-a',
+            messages: [{ role: 'user', content: 'hi' }],
+          },
+        }),
+      );
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'custom:provider-1',
+          authType: 'api_key',
+          model: 'custom:provider-1/model-a',
+        }),
+      );
+    });
+
+    it.each(['auto', 'manifest/auto'])('leaves %s on the existing resolver path', async (model) => {
+      await svc.proxyRequest(
+        baseOpts({
+          body: { model, messages: [{ role: 'user', content: 'hi' }] },
+        }),
+      );
+
+      expect(modelDiscovery.getModelsForAgent).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'anthropic',
+          authType: 'api_key',
+          model: 'claude-sonnet-4-5',
+        }),
+      );
+    });
+
+    it('does not silently auto-route unlisted model IDs', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
+      ]);
+
+      const result = await svc.proxyRequest(
+        baseOpts({
+          body: { model: 'gpt-4o-mini', messages: [{ role: 'user', content: 'hi' }] },
+        }),
+      );
+      const body = await result.forward.response.text();
+
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(body).toContain('M101');
+    });
+
+    it('does not treat the Anthropic Messages model field as an SDK routing override', async () => {
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          body: {
+            model: 'claude-haiku-4-5',
+            max_tokens: 32,
+            messages: [{ role: 'user', content: 'hi' }],
+          },
+        }),
+      );
+
+      expect(modelDiscovery.getModelsForAgent).not.toHaveBeenCalled();
+      expect(modelAliasService.resolveModelRequest).toHaveBeenCalledWith(
+        'agent-1',
+        'tenant-1',
+        'claude-haiku-4-5',
+        { includeRawDirect: false },
+      );
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'anthropic',
+          authType: 'api_key',
+          model: 'claude-sonnet-4-5',
+        }),
+      );
+    });
+
+    it('does not trigger Manifest fallbacks for explicit model failures', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
+      ]);
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('upstream broken', { status: 502 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      const result = await svc.proxyRequest(
+        baseOpts({
+          body: { model: 'openai/gpt-4o-mini', messages: [{ role: 'user', content: 'hi' }] },
+        }),
+      );
+
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(502);
+      expect(result.meta).toMatchObject({
+        tier: 'direct',
+        reason: 'direct',
+        provider: 'openai',
+        model: 'gpt-4o-mini',
+      });
+      expect(result.meta.fallbackFromModel).toBeUndefined();
     });
   });
 
@@ -1049,6 +1414,46 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.fallbackFromModel).toBe('gpt-4o');
       expect(result.meta.provider).toBe('anthropic');
       expect(result.meta.primaryProvider).toBe('openai');
+    });
+
+    it('triggers fallback on provider context length errors', async () => {
+      const message =
+        "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.";
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message,
+              code: 'context_length_exceeded',
+            },
+          }),
+          { status: 400, headers: { 'content-type': 'application/json' } },
+        ),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: {
+            response: okResponse(),
+            isGoogle: false,
+            isAnthropic: true,
+            isChatGpt: false,
+          },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+        },
+        failures: [],
+      } as never);
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.tryFallbacks).toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(200);
+      expect(result.meta.fallbackFromModel).toBe('gpt-4o');
+      expect(result.meta.provider).toBe('anthropic');
     });
 
     it('returns the successful fallback auth_type, not the primary auth_type (#1173)', async () => {

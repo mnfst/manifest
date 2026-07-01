@@ -5,6 +5,7 @@ import { SHARED_PROVIDER_BY_ID, type SharedProviderEntry } from 'manifest-shared
 export interface SubscriptionEndpointRegion {
   value: string;
   label: string;
+  baseUrlPlaceholder?: string;
 }
 
 export interface ProviderDef {
@@ -111,6 +112,36 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   qwen: {
     initial: 'Al',
     subtitle: 'Qwen, DeepSeek, Kimi, GLM via Alibaba Cloud',
+    apiKeyEndpointRegions: [
+      { value: 'auto', label: 'Auto-detect' },
+      { value: 'beijing', label: 'China (Beijing)' },
+      { value: 'singapore', label: 'Singapore' },
+      { value: 'us', label: 'United States' },
+      {
+        value: 'workspace-cn-hongkong',
+        label: 'China (Hong Kong)',
+        baseUrlPlaceholder:
+          'https://<workspace-id>.cn-hongkong.maas.aliyuncs.com/compatible-mode/v1',
+      },
+      {
+        value: 'workspace-eu-central-1',
+        label: 'Germany (Frankfurt)',
+        baseUrlPlaceholder:
+          'https://<workspace-id>.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+      },
+      {
+        value: 'workspace-ap-northeast-1',
+        label: 'Japan (Tokyo)',
+        baseUrlPlaceholder:
+          'https://<workspace-id>.ap-northeast-1.maas.aliyuncs.com/compatible-mode/v1',
+      },
+      {
+        value: 'custom',
+        label: 'Custom endpoint',
+        baseUrlPlaceholder:
+          'https://<workspace-id>.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+      },
+    ],
     supportsSubscription: true,
     subscriptionLabel: 'Qwen Token Plan',
     subscriptionAuthMode: 'token',
@@ -157,6 +188,16 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionCredentialKind: 'api-key',
     subscriptionCredentialName: 'ModelArk Coding Plan',
     subscriptionKeyPlaceholder: 'Paste your ModelArk Coding Plan API key',
+    models: [],
+  },
+  cerebras: {
+    initial: 'Cb',
+    subtitle: 'GPT OSS and GLM on Cerebras inference',
+    models: [],
+  },
+  pioneer: {
+    initial: 'P',
+    subtitle: 'OpenAI-compatible inference and fine-tuned Pioneer models',
     models: [],
   },
   deepseek: {
@@ -277,6 +318,12 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   mistral: {
     initial: 'M',
     subtitle: 'Mistral Large, Codestral, Pixtral',
+    supportsSubscription: true,
+    subscriptionLabel: 'Mistral Vibe subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionCredentialName: 'Mistral Vibe',
+    subscriptionKeyPlaceholder: 'Paste your Mistral Vibe API key',
     models: [],
   },
   moonshot: {
@@ -288,6 +335,17 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionCredentialKind: 'api-key',
     subscriptionCredentialName: 'Kimi Code',
     subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
+    models: [],
+  },
+  nous: {
+    initial: 'N',
+    subtitle: 'OpenRouter-backed models via NousResearch Portal',
+    supportsSubscription: true,
+    subscriptionOnly: true,
+    subscriptionLabel: 'NousResearch subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionKeyPlaceholder: 'Paste your NousResearch API key',
     models: [],
   },
   nvidia: {
@@ -409,6 +467,7 @@ const PROVIDER_ORDER = [
   'anthropic',
   'bedrock',
   'byteplus',
+  'cerebras',
   'commandcode',
   'deepseek',
   'fireworks',
@@ -422,6 +481,7 @@ const PROVIDER_ORDER = [
   'minimax',
   'mistral',
   'moonshot',
+  'nous',
   'nvidia',
   'ollama',
   'ollama-cloud',
@@ -429,6 +489,7 @@ const PROVIDER_ORDER = [
   'opencode-go',
   'opencode-zen',
   'openrouter',
+  'pioneer',
   'xai',
   'xiaomi',
   'zai',

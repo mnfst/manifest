@@ -71,6 +71,11 @@ const openaiHeaders = (apiKey: string) => ({
   'Content-Type': 'application/json',
 });
 
+const pioneerHeaders = (apiKey: string) => ({
+  'X-API-Key': apiKey,
+  'Content-Type': 'application/json',
+});
+
 const openaiPath = () => '/v1/chat/completions';
 
 const anthropicHeaders = (apiKey: string, authType?: string): Record<string, string> => {
@@ -118,8 +123,10 @@ const ZAI_SUBSCRIPTION_BASE = getZaiCodingPlanBaseUrl('global');
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
 const OPENCODE_ZEN_BASE = 'https://opencode.ai/zen';
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
+const NOUS_PORTAL_BASE = 'https://inference-api.nousresearch.com';
 const NVIDIA_NIM_BASE = 'https://integrate.api.nvidia.com';
 const FIREWORKS_INFERENCE_BASE = 'https://api.fireworks.ai/inference';
+const PIONEER_BASE = 'https://api.pioneer.ai';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
@@ -191,6 +198,20 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     format: 'openai',
     ...openaiStreamUsage,
   },
+  cerebras: {
+    baseUrl: 'https://api.cerebras.ai',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  pioneer: {
+    baseUrl: PIONEER_BASE,
+    buildHeaders: pioneerHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
   'commandcode-anthropic': {
     baseUrl: COMMAND_CODE_PROVIDER_BASE,
     buildHeaders: anthropicApiKeyHeaders,
@@ -220,6 +241,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   mistral: {
     baseUrl: 'https://api.mistral.ai',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  nous: {
+    baseUrl: NOUS_PORTAL_BASE,
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',

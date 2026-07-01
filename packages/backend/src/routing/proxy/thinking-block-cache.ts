@@ -7,8 +7,29 @@ export interface ThinkingBlock {
   [key: string]: unknown;
 }
 
+/**
+ * Route that produced an Anthropic extended-thinking prelude.
+ *
+ * Anthropic signs thinking blocks for a specific continuation context. We
+ * only replay cached blocks into outbound attempts that resolve to the same
+ * provider/auth/model tuple, so fallback attempts on another route do not
+ * send stale signatures.
+ */
+export interface ThinkingBlockRouteContext {
+  provider: string;
+  authType?: string | null;
+  model: string;
+}
+
+interface NormalizedThinkingBlockRouteContext {
+  provider: string;
+  authType: string;
+  model: string;
+}
+
 interface CachedThinkingBlocks {
   blocks: ThinkingBlock[];
+  routeContext?: NormalizedThinkingBlockRouteContext;
   expiresAt: number;
 }
 
@@ -20,6 +41,30 @@ const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
  * only runs on `store()` — cannot cap a burst. Oldest entries are evicted FIFO.
  */
 export const MAX_CACHE_ENTRIES = 10_000;
+
+function normalizeRouteContext(
+  routeContext?: ThinkingBlockRouteContext | null,
+): NormalizedThinkingBlockRouteContext | undefined {
+  if (!routeContext) return undefined;
+  return {
+    provider: routeContext.provider.trim().toLowerCase(),
+    authType: (routeContext.authType ?? 'api_key').trim().toLowerCase(),
+    model: routeContext.model.trim().toLowerCase(),
+  };
+}
+
+function routeContextMatches(
+  stored: NormalizedThinkingBlockRouteContext | undefined,
+  requested: NormalizedThinkingBlockRouteContext | undefined,
+): boolean {
+  if (!requested) return true;
+  if (!stored) return false;
+  return (
+    stored.provider === requested.provider &&
+    stored.authType === requested.authType &&
+    stored.model === requested.model
+  );
+}
 
 /**
  * In-memory cache for Anthropic extended-thinking content blocks.
@@ -47,11 +92,18 @@ export class ThinkingBlockCache {
   private lastCleanup = Date.now();
 
   /** Store the ordered thinking block sequence for an assistant turn. */
-  store(sessionKey: string, firstToolUseId: string, blocks: ThinkingBlock[]): void {
+  store(
+    sessionKey: string,
+    firstToolUseId: string,
+    blocks: ThinkingBlock[],
+    routeContext?: ThinkingBlockRouteContext,
+  ): void {
     if (blocks.length === 0) return;
     this.maybeCleanup();
+    const normalizedRouteContext = normalizeRouteContext(routeContext);
     this.cache.set(`${sessionKey}:${firstToolUseId}`, {
       blocks,
+      ...(normalizedRouteContext ? { routeContext: normalizedRouteContext } : {}),
       expiresAt: Date.now() + TTL_MS,
     });
     this.evictOverflow();
@@ -67,13 +119,18 @@ export class ThinkingBlockCache {
   }
 
   /** Retrieve the cached thinking blocks, or null if not found/expired. */
-  retrieve(sessionKey: string, firstToolUseId: string): ThinkingBlock[] | null {
+  retrieve(
+    sessionKey: string,
+    firstToolUseId: string,
+    routeContext?: ThinkingBlockRouteContext,
+  ): ThinkingBlock[] | null {
     const entry = this.cache.get(`${sessionKey}:${firstToolUseId}`);
     if (!entry) return null;
     if (Date.now() > entry.expiresAt) {
       this.cache.delete(`${sessionKey}:${firstToolUseId}`);
       return null;
     }
+    if (!routeContextMatches(entry.routeContext, normalizeRouteContext(routeContext))) return null;
     return entry.blocks;
   }
 

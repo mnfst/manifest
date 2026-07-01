@@ -3,14 +3,14 @@ import { createSignal, For, Show, onMount, onCleanup, type JSX } from 'solid-js'
 // Bump this id when there's a new announcement worth re-surfacing to everyone.
 // Keyed on a fixed announcement id (not the app version) so routine patch
 // bumps don't re-trigger the same popup.
-const ANNOUNCEMENT_ID = 'global-providers-v1';
+const ANNOUNCEMENT_ID = 'openai-sdk-models-v1';
 const STORAGE_KEY = `manifest:whatsnew:${ANNOUNCEMENT_ID}`;
 
 const HIGHLIGHTS = [
-  'One unified place to connect and manage every provider across all your harnesses.',
-  'Connect a provider once — it now works across every harness.',
-  'Need isolation? Scope it — disconnect a provider from specific harnesses.',
-  'Track consumption — subscription vs usage-based, per provider and harness.',
+  'List OpenAI-compatible models with GET /v1/models.',
+  'Use any returned model ID in the SDK model field to call that model directly.',
+  'Keep model: auto when you want Manifest routing, params, and fallbacks.',
+  'Direct SDK calls still appear in Messages and provider usage.',
 ] as const;
 
 function hasSeen(): boolean {
@@ -95,9 +95,8 @@ export default function WhatsNewModal(): JSX.Element {
           <div class="whatsnew-modal__body">
             <h2 class="whatsnew-modal__headline">What we just shipped</h2>
             <p class="whatsnew-modal__lead">
-              There&rsquo;s now a single, unified UI to connect and manage your providers across all
-              your harnesses. Your existing connected providers have been migrated to global
-              automatically.
+              OpenAI-compatible clients can now discover the models available through Manifest and
+              opt into an exact provider/model pair when you want to skip routing.
             </p>
             <ul class="whatsnew-modal__list">
               <For each={HIGHLIGHTS as unknown as string[]}>

@@ -21,6 +21,7 @@ describe('ProviderController', () => {
   let mockResolveAgent: Record<string, jest.Mock>;
   let mockTierService: Record<string, jest.Mock>;
   let mockPricingSync: Record<string, jest.Mock>;
+  let mockCacheManager: { clear: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -53,6 +54,9 @@ describe('ProviderController', () => {
     mockPricingSync = {
       getAll: jest.fn().mockReturnValue(new Map([['model-1', {}]])),
     };
+    mockCacheManager = {
+      clear: jest.fn().mockResolvedValue(true),
+    };
 
     controller = new ProviderController(
       mockProviderService as unknown as ProviderService,
@@ -61,6 +65,7 @@ describe('ProviderController', () => {
       mockResolveAgent as unknown as ResolveAgentService,
       mockTierService as unknown as TierService,
       mockPricingSync as unknown as PricingSyncService,
+      mockCacheManager as never,
     );
   });
 
@@ -73,6 +78,93 @@ describe('ProviderController', () => {
           region: 'mars',
         } as never),
       ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('passes a Qwen baseUrl through the region slot for storage', async () => {
+      mockProviderService.upsertProvider.mockResolvedValueOnce({
+        provider: {
+          id: 'p1',
+          provider: 'qwen',
+          auth_type: 'api_key',
+          is_active: true,
+          label: 'Default',
+          priority: 0,
+          region: 'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode',
+        },
+        isNew: false,
+      });
+
+      await controller.upsertProvider(mockCtx, mockAgentName, {
+        provider: 'qwen',
+        authType: 'api_key',
+        apiKey: 'sk-qwen',
+        baseUrl: 'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+      } as never);
+
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        TEST_TENANT_ID,
+        'qwen',
+        'sk-qwen',
+        'api_key',
+        'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+        undefined,
+        'user-1',
+      );
+    });
+
+    it('rejects Qwen requests that send both region and baseUrl', async () => {
+      await expect(
+        controller.upsertProvider(mockCtx, mockAgentName, {
+          provider: 'qwen',
+          authType: 'api_key',
+          region: 'auto',
+          baseUrl: 'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+        } as never),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('rejects baseUrl for non-Qwen providers', async () => {
+      await expect(
+        controller.upsertProvider(mockCtx, mockAgentName, {
+          provider: 'openai',
+          authType: 'api_key',
+          baseUrl: 'https://api.openai.com/v1',
+        } as never),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('accepts snake-case Qwen base_url on connect', async () => {
+      mockProviderService.upsertProvider.mockResolvedValueOnce({
+        provider: {
+          id: 'p1',
+          provider: 'qwen',
+          auth_type: 'api_key',
+          is_active: true,
+          label: 'Default',
+          priority: 0,
+          region: 'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode',
+        },
+        isNew: false,
+      });
+
+      await controller.upsertProvider(mockCtx, mockAgentName, {
+        provider: 'qwen',
+        authType: 'api_key',
+        apiKey: 'sk-qwen',
+        base_url: 'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+      } as never);
+
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        TEST_TENANT_ID,
+        'qwen',
+        'sk-qwen',
+        'api_key',
+        'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode/v1',
+        undefined,
+        'user-1',
+      );
     });
   });
 
@@ -671,6 +763,7 @@ describe('ProviderController', () => {
         undefined,
       );
       expect(result).toEqual({ ok: true, notifications: 3 });
+      expect(mockCacheManager.clear).toHaveBeenCalled();
     });
 
     it('should return zero notifications when none cleared', async () => {

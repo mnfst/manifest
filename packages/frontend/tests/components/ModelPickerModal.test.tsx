@@ -721,7 +721,7 @@ describe('ModelPickerModal', () => {
     expect(container.textContent).toContain('Runs on your machine');
   });
 
-  it('renders the per-request cost instead of "Included in subscription" when present', () => {
+  it('renders the included per-request quota burn rate when present', () => {
     const gatewayProviders: RoutingProvider[] = [
       {
         id: 'p4',
@@ -752,8 +752,7 @@ describe('ModelPickerModal', () => {
         onClose={vi.fn()}
       />
     ));
-    expect(container.textContent).toContain('$0.0136/req');
-    expect(container.textContent).not.toContain('Included in subscription');
+    expect(container.textContent).toContain('Included ($0.0136 quota/req)');
   });
 
   it('filters the list by group name when search matches the group label', () => {

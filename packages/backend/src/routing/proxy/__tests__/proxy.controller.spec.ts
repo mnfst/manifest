@@ -7,6 +7,7 @@ import { ThoughtSignatureCache } from '../thought-signature-cache';
 import { ThinkingBlockCache } from '../thinking-block-cache';
 import { ReasoningContentCache } from '../reasoning-content-cache';
 import { ResponsesSseError } from '../chatgpt-adapter';
+import type { DiscoveredModel } from '../../../model-discovery/model-fetcher';
 
 /**
  * Flush enough microtasks for the recorder's fire-and-forget chain to
@@ -74,6 +75,22 @@ function mockRequest(
   };
 }
 
+function makeDiscoveredModel(overrides: Partial<DiscoveredModel> = {}): DiscoveredModel {
+  return {
+    id: 'gpt-4o',
+    displayName: 'GPT-4o',
+    provider: 'openai',
+    contextWindow: 128000,
+    inputPricePerToken: 0.0000025,
+    outputPricePerToken: 0.00001,
+    capabilityReasoning: false,
+    capabilityCode: false,
+    qualityScore: 4,
+    authType: 'api_key',
+    ...overrides,
+  };
+}
+
 describe('ProxyController', () => {
   let controller: ProxyController;
   let proxyService: { proxyRequest: jest.Mock };
@@ -105,6 +122,7 @@ describe('ProxyController', () => {
     manager: { transaction: jest.Mock };
   };
   let mockPricingCache: { getByModel: jest.Mock };
+  let modelDiscovery: { getModelsForAgent: jest.Mock };
   let recorder: ProxyMessageRecorder;
 
   beforeEach(() => {
@@ -144,6 +162,9 @@ describe('ProxyController', () => {
     };
     mockMessageManager.getRepository.mockReturnValue(mockMessageRepo);
     mockPricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
+    modelDiscovery = {
+      getModelsForAgent: jest.fn().mockResolvedValue([]),
+    };
     const mockCustomProviders = {
       canonicalizeAgentMessageKeys: jest
         .fn()
@@ -174,6 +195,7 @@ describe('ProxyController', () => {
       new ThinkingBlockCache(),
       new ReasoningContentCache(),
       modelAliasService as never,
+      modelDiscovery as never,
     );
   });
 
@@ -181,26 +203,96 @@ describe('ProxyController', () => {
     recorder.onModuleDestroy();
   });
 
-  it('should expose /v1/models with the Manifest auto routes', async () => {
+  it('should expose /v1/models as an OpenAI-compatible list with the Manifest auto routes', async () => {
     await expect(controller.models(mockRequest({}) as never)).resolves.toEqual({
       object: 'list',
       data: [
         {
           id: 'auto',
           object: 'model',
-          type: 'model',
+          created: 0,
+          owned_by: 'manifest',
           display_name: 'Manifest Auto',
         },
         {
           id: 'manifest/auto',
           object: 'model',
-          type: 'model',
+          created: 0,
+          owned_by: 'manifest',
           display_name: 'Manifest Auto',
         },
       ],
-      has_more: false,
-      first_id: 'auto',
-      last_id: 'manifest/auto',
+    });
+    expect(modelAliasService.listEnabled).toHaveBeenCalledWith('agent-1');
+    expect(modelDiscovery.getModelsForAgent).toHaveBeenCalledWith('tenant-1', 'agent-1');
+  });
+
+  it('should include aliases before authenticated agent models using provider-qualified ids', async () => {
+    modelAliasService.listEnabled.mockResolvedValue([
+      { model_id: 'openai-api/gpt-5-high', display_name: 'GPT-5 High' },
+    ]);
+    modelDiscovery.getModelsForAgent.mockResolvedValue([
+      makeDiscoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'api_key' }),
+      makeDiscoveredModel({ id: 'gpt-4o', provider: 'openrouter', authType: 'api_key' }),
+      makeDiscoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'subscription' }),
+      makeDiscoveredModel({
+        id: 'opencode-go/glm-5.1',
+        provider: 'opencode-go',
+        authType: 'subscription',
+      }),
+      makeDiscoveredModel({
+        id: 'custom:provider-1/model-a',
+        provider: 'custom:provider-1',
+        authType: 'api_key',
+      }),
+      makeDiscoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'api_key' }),
+    ]);
+
+    await expect(controller.models(mockRequest({}) as never)).resolves.toEqual({
+      object: 'list',
+      data: [
+        {
+          id: 'auto',
+          object: 'model',
+          created: 0,
+          owned_by: 'manifest',
+          display_name: 'Manifest Auto',
+        },
+        {
+          id: 'manifest/auto',
+          object: 'model',
+          created: 0,
+          owned_by: 'manifest',
+          display_name: 'Manifest Auto',
+        },
+        {
+          id: 'openai-api/gpt-5-high',
+          object: 'model',
+          created: 0,
+          owned_by: 'manifest',
+          display_name: 'GPT-5 High',
+        },
+        { id: 'openai/gpt-4o', object: 'model', created: 0, owned_by: 'openai' },
+        { id: 'openrouter/gpt-4o', object: 'model', created: 0, owned_by: 'openrouter' },
+        {
+          id: 'openai/gpt-4o-subscription',
+          object: 'model',
+          created: 0,
+          owned_by: 'openai',
+        },
+        {
+          id: 'opencode-go/glm-5.1-subscription',
+          object: 'model',
+          created: 0,
+          owned_by: 'opencode-go',
+        },
+        {
+          id: 'custom:provider-1/model-a',
+          object: 'model',
+          created: 0,
+          owned_by: 'custom:provider-1',
+        },
+      ],
     });
     expect(modelAliasService.listEnabled).toHaveBeenCalledWith('agent-1');
   });
@@ -808,11 +900,15 @@ describe('ProxyController', () => {
 
     expect(res.status).toHaveBeenCalledWith(429);
     expect(res.json).toHaveBeenCalledWith({
-      error: {
+      error: expect.objectContaining({
         message: 'Rate limited by upstream provider',
-        type: 'upstream_error',
+        type: 'rate_limit_error',
+        code: null,
         status: 429,
-      },
+        source: 'provider',
+        provider: 'OpenAI',
+        model: 'gpt-4o',
+      }),
     });
   });
 
@@ -860,7 +956,7 @@ describe('ProxyController', () => {
     );
   });
 
-  it('should surface collected Responses SSE failures as upstream errors', async () => {
+  it('should surface collected Responses SSE failures as OpenAI-compatible errors', async () => {
     proxyService.proxyRequest.mockRejectedValue(
       new ResponsesSseError(
         'Model unavailable',
@@ -882,11 +978,13 @@ describe('ProxyController', () => {
 
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({
-      error: {
+      error: expect.objectContaining({
         message: 'Model unavailable',
-        type: 'upstream_error',
+        type: 'invalid_request_error',
+        code: null,
         status: 404,
-      },
+        source: 'provider',
+      }),
     });
   });
 
@@ -1350,11 +1448,13 @@ describe('ProxyController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        error: {
+        error: expect.objectContaining({
           message: 'Bad request to upstream provider',
-          type: 'upstream_error',
+          type: 'invalid_request_error',
+          code: null,
           status: 400,
-        },
+          source: 'provider',
+        }),
       });
     });
 
@@ -1750,11 +1850,13 @@ describe('ProxyController', () => {
 
       expect(res.status).toHaveBeenCalledWith(502);
       expect(res.json).toHaveBeenCalledWith({
-        error: {
+        error: expect.objectContaining({
           message: 'Upstream provider returned bad gateway',
-          type: 'upstream_error',
+          type: 'server_error',
+          code: null,
           status: 502,
-        },
+          source: 'provider',
+        }),
       });
       // Meta headers should still be set
       expect(headers['X-Manifest-Provider']).toBe('OpenAI');
@@ -2679,7 +2781,11 @@ describe('ProxyController', () => {
       expect(headers['X-Manifest-Fallback-Exhausted']).toBe('true');
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: expect.objectContaining({ type: 'fallback_exhausted' }),
+          error: expect.objectContaining({
+            type: 'server_error',
+            code: 'fallback_exhausted',
+            source: 'manifest',
+          }),
         }),
       );
     });
@@ -2728,7 +2834,9 @@ describe('ProxyController', () => {
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           error: expect.objectContaining({
-            type: 'fallback_exhausted',
+            type: 'server_error',
+            code: 'fallback_exhausted',
+            source: 'manifest',
             status: 502,
           }),
         }),
@@ -2945,7 +3053,7 @@ describe('ProxyController', () => {
     );
   });
 
-  it('should return primary error status with fallback_exhausted type and X-Manifest-Fallback-Exhausted header', async () => {
+  it('should return primary error status with fallback_exhausted code and X-Manifest-Fallback-Exhausted header', async () => {
     const mockProviderResp = new Response('primary error', {
       status: 502,
       headers: { 'Content-Type': 'text/plain' },
@@ -2987,7 +3095,9 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Fallback-Exhausted']).toBe('true');
     expect(res.json).toHaveBeenCalledWith({
       error: expect.objectContaining({
-        type: 'fallback_exhausted',
+        type: 'server_error',
+        code: 'fallback_exhausted',
+        source: 'manifest',
         status: 502,
         primary_model: 'gpt-4o',
         primary_provider: 'OpenAI',
@@ -3025,7 +3135,7 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Fallback-Exhausted']).toBeUndefined();
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: expect.objectContaining({ type: 'upstream_error' }),
+        error: expect.objectContaining({ type: 'invalid_request_error', code: null }),
       }),
     );
   });

@@ -22,10 +22,12 @@ import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { ModelAliasService } from '../model-aliases/model-alias.service';
+import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { classifyCaller } from './caller-classifier';
 import { sanitizeRequestHeaders } from './request-headers';
 import {
   buildMetaHeaders,
+  buildOpenAiCompatibleError,
   handleProviderError,
   recordFallbackFailures,
   handleStreamResponse,
@@ -37,11 +39,26 @@ import { sendFriendlyResponse } from './proxy-friendly-response';
 import { formatManifestError } from '../../common/errors/error-codes';
 import type { ProxyApiMode } from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
-import { sanitizeProviderError } from './proxy-error-sanitizer';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
+import { openAiModelId } from './openai-model-id';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
+const MODEL_CREATED_UNKNOWN = 0;
+
+interface OpenAiModelObject {
+  id: string;
+  object: 'model';
+  created: number;
+  owned_by: string;
+  display_name?: string;
+  type?: 'model';
+}
+
+interface OpenAiModelList {
+  object: 'list';
+  data: OpenAiModelObject[];
+}
 
 @Controller('v1')
 @Public()
@@ -61,39 +78,68 @@ export class ProxyController {
     private readonly thinkingCache: ThinkingBlockCache,
     private readonly reasoningCache: ReasoningContentCache,
     private readonly modelAliasService: ModelAliasService,
+    private readonly modelDiscovery: ModelDiscoveryService,
   ) {}
 
   @Get('models')
   async models(
     @Req() req: Request & { ingestionContext: IngestionContext },
-  ): Promise<Record<string, unknown>> {
-    const aliases = await this.modelAliasService.listEnabled(req.ingestionContext.agentId);
-    const data = [
+  ): Promise<OpenAiModelList> {
+    const [aliases, models] = await Promise.all([
+      this.modelAliasService.listEnabled(req.ingestionContext.agentId),
+      this.modelDiscovery.getModelsForAgent(
+        req.ingestionContext.tenantId,
+        req.ingestionContext.agentId,
+      ),
+    ]);
+    const data: OpenAiModelObject[] = [
       {
         id: 'auto',
         object: 'model',
-        type: 'model',
+        created: MODEL_CREATED_UNKNOWN,
+        owned_by: 'manifest',
         display_name: 'Manifest Auto',
       },
       {
         id: 'manifest/auto',
         object: 'model',
-        type: 'model',
+        created: MODEL_CREATED_UNKNOWN,
+        owned_by: 'manifest',
         display_name: 'Manifest Auto',
       },
-      ...aliases.map((alias) => ({
-        id: alias.model_id,
-        object: 'model',
-        type: 'model',
-        display_name: alias.display_name ?? alias.model_id,
-      })),
     ];
+    const seen = new Set(data.map((model) => model.id.toLowerCase()));
+
+    for (const alias of aliases) {
+      const id = alias.model_id;
+      const key = id.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      data.push({
+        id,
+        object: 'model',
+        created: MODEL_CREATED_UNKNOWN,
+        owned_by: 'manifest',
+        display_name: alias.display_name ?? id,
+      });
+    }
+
+    for (const model of models) {
+      const id = openAiModelId(model);
+      const key = id.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      data.push({
+        id,
+        object: 'model',
+        created: MODEL_CREATED_UNKNOWN,
+        owned_by: model.provider,
+      });
+    }
+
     return {
       object: 'list',
       data,
-      has_more: false,
-      first_id: data[0]?.id ?? null,
-      last_id: data[data.length - 1]?.id ?? null,
     };
   }
 
@@ -296,11 +342,7 @@ export class ProxyController {
 
     if (err instanceof ResponsesSseError) {
       res.status(err.status).json({
-        error: {
-          message: sanitizeProviderError(err.status, err.body, process.env.NODE_ENV),
-          type: 'upstream_error',
-          status: err.status,
-        },
+        error: buildOpenAiCompatibleError(err.status, err.body),
       });
       return;
     }

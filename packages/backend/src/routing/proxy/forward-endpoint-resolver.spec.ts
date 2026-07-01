@@ -146,6 +146,19 @@ describe('resolveForwardEndpoint', () => {
     expect(out.customEndpoint).toBeDefined();
   });
 
+  it('builds the qwen endpoint from a stored Alibaba Model Studio base URL', () => {
+    const out = resolveForwardEndpoint({
+      provider: 'qwen',
+      authType: 'api_key',
+      model: 'qwen-max',
+      providerRegion: 'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode',
+    });
+    expect(out.forwardModel).toBe('qwen-max');
+    expect(out.customEndpoint?.baseUrl).toBe(
+      'https://workspace-123.eu-central-1.maas.aliyuncs.com/compatible-mode',
+    );
+  });
+
   it('builds the AWS Bedrock Mantle endpoint for a selected region', () => {
     const out = resolveForwardEndpoint({
       provider: 'bedrock',

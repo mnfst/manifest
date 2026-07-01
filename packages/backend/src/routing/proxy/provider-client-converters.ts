@@ -291,25 +291,31 @@ function sanitizeOpenAiMessages(
     if (!preserveReasoningContent) {
       delete cleaned.reasoning_content;
     }
+    if (endpointKey !== 'openrouter') {
+      delete cleaned.reasoning;
+    }
+    delete cleaned.reasoning_text;
     if (!preserveReasoningDetails) {
       delete cleaned.reasoning_details;
     }
 
     if (
       preserveReasoningContent &&
-      !cleaned.reasoning_content &&
       Array.isArray(cleaned.tool_calls) &&
       cleaned.tool_calls.length > 0 &&
-      reasoningContentLookup
+      !hasNonEmptyReasoningContent(cleaned)
     ) {
       const firstToolCall = cleaned.tool_calls[0];
       const firstToolCallId =
         firstToolCall && typeof firstToolCall === 'object' && !Array.isArray(firstToolCall)
           ? (firstToolCall as Record<string, unknown>).id
           : undefined;
-      if (typeof firstToolCallId === 'string') {
+      if (reasoningContentLookup && typeof firstToolCallId === 'string') {
         const cached = reasoningContentLookup(firstToolCallId);
         if (cached) cleaned.reasoning_content = cached;
+      }
+      if (!hasNonEmptyReasoningContent(cleaned)) {
+        cleaned.reasoning_content = '';
       }
     }
 
@@ -330,6 +336,10 @@ function sanitizeOpenAiMessages(
 
     return cleaned;
   });
+}
+
+function hasNonEmptyReasoningContent(message: Record<string, unknown>): boolean {
+  return typeof message.reasoning_content === 'string' && message.reasoning_content.length > 0;
 }
 
 function normalizeDeepSeekMaxTokens(body: Record<string, unknown>): void {

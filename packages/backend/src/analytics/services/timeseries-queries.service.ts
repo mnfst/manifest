@@ -9,6 +9,7 @@ import {
   selectMessageRowColumns,
   excludePlaygroundAgents,
   scopeToConnection,
+  sqlCountMessages,
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
 } from './query-helpers';
@@ -72,7 +73,7 @@ export class TimeseriesQueriesService {
       .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'input_tokens')
       .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output_tokens')
       .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'cost')
-      .addSelect('COUNT(*)', 'count')
+      .addSelect(sqlCountMessages(), 'count')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, tenantId, agentName);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
@@ -232,10 +233,7 @@ export class TimeseriesQueriesService {
       .createQueryBuilder('at')
       .select('at.agent_id', 'agent_id')
       .addSelect(dateExpr, 'date')
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status IS NULL OR at.status NOT IN ('error', 'fallback_error'))`,
-        'message_count',
-      )
+      .addSelect(sqlCountMessages(), 'message_count')
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .addSelect(
@@ -372,7 +370,7 @@ export class TimeseriesQueriesService {
       .createQueryBuilder('at')
       .select(bucketExpr, bucketAlias)
       .addSelect('at.agent_name', 'agent_name')
-      .addSelect('COUNT(*)', 'messages')
+      .addSelect(sqlCountMessages(), 'messages')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.agent_name IS NOT NULL');
     // Semi-join exclusion (see getPerAgentTimeseries): no double-count, no leak.
@@ -451,7 +449,7 @@ export class TimeseriesQueriesService {
       .select(bucketExpr, bucketAlias)
       .addSelect('at.agent_name', 'agent_name')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
-      .addSelect('COUNT(*)', 'messages')
+      .addSelect(sqlCountMessages(), 'messages')
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.agent_name IS NOT NULL');
@@ -521,7 +519,7 @@ export class TimeseriesQueriesService {
       .leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
       .select(bucketExpr, bucketAlias)
       .addSelect(PROVIDER_SERIES_KEY_EXPR, 'provider')
-      .addSelect('COUNT(*)', 'messages')
+      .addSelect(sqlCountMessages(), 'messages')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
     // Exclude the reserved Playground (is_playground) agent (semi-join, no leak by id-or-name).
@@ -588,7 +586,7 @@ export class TimeseriesQueriesService {
       .createQueryBuilder('at')
       .select(bucketExpr, bucketAlias)
       .addSelect('at.model', 'model')
-      .addSelect('COUNT(*)', 'messages')
+      .addSelect(sqlCountMessages(), 'messages')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL');
     // Exclude the reserved Playground (is_playground) agent (semi-join, no leak by id-or-name).
@@ -655,7 +653,7 @@ export class TimeseriesQueriesService {
       .select(bucketExpr, bucketAlias)
       .addSelect(PROVIDER_SERIES_KEY_EXPR, 'provider')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
-      .addSelect('COUNT(*)', 'messages')
+      .addSelect(sqlCountMessages(), 'messages')
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');

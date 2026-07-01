@@ -172,6 +172,12 @@ describe('ModelAliasService', () => {
     ).rejects.toThrow(NotFoundException);
   });
 
+  it('returns unmatched for unknown model ids so the proxy can try upstream ids', async () => {
+    await expect(
+      service.resolveModelRequest('agent-1', 'tenant-1', 'openai/gpt-5'),
+    ).resolves.toEqual({ kind: 'unmatched' });
+  });
+
   it('resolves direct aliases without calling scorer-backed resolver methods', async () => {
     await service.create('agent-1', 'tenant-1', {
       model_id: 'openai-api/gpt-5-high',
@@ -284,6 +290,33 @@ describe('ModelAliasService', () => {
     if (result.kind === 'resolved') {
       expect(result.resolved.route?.model).toBe('gpt-5');
       expect(result.requestParams).toEqual({ reasoning_effort: 'high' });
+    }
+  });
+
+  it('supports upstream canonical subscription model ids as raw direct routes', async () => {
+    discoveryService.getModelsForAgent.mockResolvedValue([
+      {
+        id: 'gpt-5',
+        displayName: 'GPT-5',
+        provider: 'openai',
+        authType: 'subscription',
+      },
+    ] as never);
+
+    const result = await service.resolveModelRequest(
+      'agent-1',
+      'tenant-1',
+      'openai/gpt-5-subscription',
+    );
+
+    expect(result.kind).toBe('resolved');
+    if (result.kind === 'resolved') {
+      expect(result.resolved.route).toEqual({
+        provider: 'openai',
+        authType: 'subscription',
+        model: 'gpt-5',
+        keyLabel: 'Default',
+      });
     }
   });
 

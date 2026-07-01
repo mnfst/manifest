@@ -1,6 +1,6 @@
 import { Show, type JSX } from 'solid-js';
 import { A } from '@solidjs/router';
-import type { MessageRow, MessageColumnKey } from './message-table-types.js';
+import { routingTierLabel, type MessageRow, type MessageColumnKey } from './message-table-types.js';
 import InfoTooltip from './InfoTooltip.jsx';
 import {
   formatCost,
@@ -286,7 +286,9 @@ export function ModelCell(item: MessageRow): JSX.Element {
             {item.specificity_category.replace(/_/g, ' ')}
           </span>
         ) : item.routing_tier ? (
-          <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>
+          <span class={`tier-badge tier-badge--${item.routing_tier}`}>
+            {routingTierLabel(item.routing_tier)}
+          </span>
         ) : null}
         {item.fallback_from_model && (
           <span

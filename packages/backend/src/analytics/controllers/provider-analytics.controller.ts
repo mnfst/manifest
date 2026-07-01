@@ -10,6 +10,7 @@ import {
   selectMessageRowColumns,
   filterByTenantProviderId,
   excludePlaygroundAgents,
+  sqlCountMessages,
 } from '../services/query-helpers';
 import { computeCutoff } from '../../common/utils/postgres-sql';
 import { sqlCastFloat, sqlSanitizeCost } from '../../common/utils/postgres-sql';
@@ -205,7 +206,7 @@ export class ProviderAnalyticsController {
       .select('at.agent_name', 'agent_name')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
-      .addSelect('COUNT(*)', 'messages')
+      .addSelect(sqlCountMessages(), 'messages')
       .addSelect('MAX(at.timestamp)', 'last_used')
       .addSelect('MAX(a.agent_platform)', 'agent_platform')
       // Join on agent identity, not name: a soft-deleted agent sharing a slug
@@ -229,7 +230,7 @@ export class ProviderAnalyticsController {
       .select('at.model', 'model')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
-      .addSelect('COUNT(*)', 'messages')
+      .addSelect(sqlCountMessages(), 'messages')
       .where('at.tenant_id = :tid', { tid: tenantId })
       .andWhere('at.timestamp >= :cutoff', { cutoff: cutoff30d })
       .andWhere('at.model IS NOT NULL');

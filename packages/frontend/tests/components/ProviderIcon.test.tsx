@@ -7,6 +7,7 @@ const KNOWN_PROVIDERS = [
   'anthropic',
   'bedrock',
   'byteplus',
+  'cerebras',
   'copilot',
   'commandcode',
   'gemini',
@@ -21,6 +22,7 @@ const KNOWN_PROVIDERS = [
   'openrouter',
   'ollama',
   'ollama-cloud',
+  'pioneer',
   'minimax',
   'xiaomi',
   'zai',
@@ -56,6 +58,15 @@ describe('providerIcon', () => {
     const img = container.querySelector('img');
     expect(img).not.toBeNull();
     expect(img!.getAttribute('src')).toBe('/icons/kilocode.svg');
+    expect(img!.getAttribute('width')).toBe('24');
+    expect(img!.getAttribute('height')).toBe('24');
+  });
+
+  it('returns the NousResearch logo image for "nous"', () => {
+    const { container } = render(() => <div>{providerIcon('nous', 24)}</div>);
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute('src')).toBe('/icons/providers/nousresearch.svg');
     expect(img!.getAttribute('width')).toBe('24');
     expect(img!.getAttribute('height')).toBe('24');
   });
@@ -121,6 +132,15 @@ describe('customProviderLogo', () => {
     const img = container.querySelector('img');
     expect(img).not.toBeNull();
     expect(img!.getAttribute('src')).toBe('/icons/cohere.svg');
+  });
+
+  it('resolves Pioneer by base URL when name does not match', () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo('my-provider', 16, 'https://api.pioneer.ai/v1')}</div>
+    ));
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute('src')).toBe('/icons/pioneer.svg');
   });
 
   it('resolves Azure by name', () => {
