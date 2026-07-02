@@ -2372,6 +2372,51 @@ describe('Anthropic Adapter', () => {
       expect(messages[0].content).toEqual([cached[0], toolUse]);
     });
 
+    it('does not replay cached thinking when a redacted thinking echo remains after stripping', () => {
+      const cached = [{ type: 'thinking' as const, thinking: 'cached', signature: 'sigA' }];
+      const redacted = { type: 'redacted_thinking', data: 'opaque' };
+      const toolUse = { type: 'tool_use', id: 'call_1', name: 'web_search', input: { q: 'cats' } };
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [
+            {
+              role: 'assistant',
+              content: [
+                { type: 'thinking', thinking: 'foreign reasoning', signature: '' },
+                redacted,
+                toolUse,
+              ],
+            },
+          ],
+        },
+        { thinkingLookup: () => cached },
+      );
+
+      const messages = result.messages as Array<Record<string, unknown>>;
+      expect(messages[0].content).toEqual([redacted, toolUse]);
+    });
+
+    it('keeps sanitized tool_use turns when no cached thinking is available', () => {
+      const toolUse = { type: 'tool_use', id: 'call_1', name: 'web_search', input: { q: 'cats' } };
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [
+            {
+              role: 'assistant',
+              content: [
+                { type: 'thinking', thinking: 'foreign reasoning', signature: '' },
+                toolUse,
+              ],
+            },
+          ],
+        },
+        { thinkingLookup: () => null },
+      );
+
+      const messages = result.messages as Array<Record<string, unknown>>;
+      expect(messages[0].content).toEqual([toolUse]);
+    });
+
     it('drops assistant turns that only contain unsigned thinking blocks', () => {
       const invalidThinking = { type: 'thinking', thinking: 'foreign reasoning', signature: '' };
       const inbound = {
