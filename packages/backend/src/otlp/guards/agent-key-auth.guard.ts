@@ -231,6 +231,21 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
       throw new UnauthorizedException('Invalid API key');
     }
 
+    // The candidate query left-joins agent + tenant. If either relation fails
+    // to hydrate — e.g. the agent is soft-deleted in the race between the query
+    // above and the dereference below — reading keyRecord.agent.name /
+    // keyRecord.tenant.owner_user_id would throw a TypeError and surface a 500
+    // that leaks an internal error. Treat an unhydrated relation as an invalid
+    // key: remember the rejection (so an identical retry is served from the
+    // negative cache) and return a clean 401.
+    if (!keyRecord.agent || !keyRecord.tenant) {
+      this.rememberInvalid(hashed);
+      this.logger.warn(
+        `Rejected agent key with unhydrated relations (prefix: ${API_KEY_PREFIX}...)`,
+      );
+      throw new UnauthorizedException('Invalid API key');
+    }
+
     if (keyRecord.expires_at && new Date(keyRecord.expires_at) < new Date()) {
       throw new UnauthorizedException('API key expired');
     }

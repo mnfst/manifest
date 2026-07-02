@@ -18,7 +18,9 @@ import {
   buildDevAllowedOrigins,
   buildFrameSrc,
   createCorsOriginHandler,
+  parseFrameAncestors,
 } from './cors-csp-config';
+import { createRateLimitReachedHandler } from './common/middleware/rate-limit-log';
 import { shouldCompress } from './routing/proxy/compression-filter';
 
 export async function bootstrap() {
@@ -57,12 +59,7 @@ export async function bootstrap() {
           fontSrc: ["'self'"],
           objectSrc: ["'none'"],
           frameSrc,
-          frameAncestors: process.env['FRAME_ANCESTORS']
-            ? process.env['FRAME_ANCESTORS']
-                .split(',')
-                .map((v) => v.trim())
-                .filter((v) => v !== '*')
-            : ["'none'"],
+          frameAncestors: parseFrameAncestors(process.env['FRAME_ANCESTORS']),
           // Disable helmet's default `upgrade-insecure-requests`: it breaks
           // HTTP-only LAN deployments (10.x / 192.168.x / 172.16-31.x) where
           // browsers don't treat the origin as trustworthy and rewrite
@@ -115,6 +112,11 @@ export async function bootstrap() {
     new ValidationPipe({
       transform: true,
       whitelist: true,
+      // Reject requests carrying unknown fields with a 400 instead of silently
+      // stripping them. `whitelist` alone drops extras without a signal, which
+      // hides client/API misuse; forbidding them surfaces it and keeps the DTO
+      // contract strict.
+      forbidNonWhitelisted: true,
     }),
   );
 
@@ -156,6 +158,7 @@ export async function bootstrap() {
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many login attempts. Try again later.' },
+    handler: createRateLimitReachedHandler('sign-in'),
   });
   const signupLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -163,6 +166,7 @@ export async function bootstrap() {
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many sign-up attempts. Try again later.' },
+    handler: createRateLimitReachedHandler('sign-up'),
   });
   // forget-password is the worst offender: each request sends an email and
   // can be used for account enumeration via timing differences. Tight cap.
@@ -172,6 +176,7 @@ export async function bootstrap() {
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many password reset requests. Try again later.' },
+    handler: createRateLimitReachedHandler('password-reset'),
   });
   const verifyEmailLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -179,6 +184,7 @@ export async function bootstrap() {
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many verification requests. Try again later.' },
+    handler: createRateLimitReachedHandler('verify-email'),
   });
   expressApp.use('/api/auth/sign-in', loginLimiter);
   expressApp.use('/api/auth/sign-up', signupLimiter);
