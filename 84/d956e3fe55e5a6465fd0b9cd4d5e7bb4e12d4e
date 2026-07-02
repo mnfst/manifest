@@ -1,0 +1,22 @@
+packages/backend/src/billing/plan.service.spec.ts
+  s_6aa2fd791b8a40::t_31d6bef6bedea1 163-177
+  s_6aa2fd791b8a40::t_3bb144b8a1ffa0 1-162,178-239
+packages/backend/src/billing/plan.service.ts
+  s_6aa2fd791b8a40::t_1b0a9bbe4427e5 1-144
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "84d956e3fe55e5a6465fd0b9cd4d5e7bb4e12d4e",
+  "prompts": {},
+  "sessions": {
+    "s_6aa2fd791b8a40": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0be8c650-5b21-41d1-a6f2-2b93fc056b2e",
+        "model": "accounts/fireworks/models/glm-5p2"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
