@@ -1,0 +1,35 @@
+packages/frontend/src/services/api/billing.ts
+  s_6aa2fd791b8a40::t_b34832ca4bb44d 1-10
+packages/frontend/tests/services/api/billing.test.ts
+  s_6aa2fd791b8a40::t_53b77f6c1b8762 1-55
+packages/frontend/src/services/auth-client.ts
+  s_6aa2fd791b8a40::t_3fff6945c580e3 2,20
+  s_6aa2fd791b8a40::t_489e60762123b3 4-12
+  s_6aa2fd791b8a40::t_25472f9e9180e6 13-17
+packages/frontend/tests/services/auth-client.test.ts
+  s_6aa2fd791b8a40::t_ab8bcac25872cc 71-87
+  s_6aa2fd791b8a40::t_c57774d654c0b7 118
+  s_6aa2fd791b8a40::t_bfa43ed53e5aa8 7,12-14,21-22
+  s_6aa2fd791b8a40::t_d757b2d75fdec7 31
+  s_6aa2fd791b8a40::t_0fe96fb2af8e3c 23-24
+packages/frontend/package.json
+  s_6aa2fd791b8a40::t_c17df48092a08c 15
+package-lock.json
+  s_6aa2fd791b8a40::t_7ba7a7179a89ef 14822
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "5784efb656ab7184eb2f2af7fcac381447d2b5f9",
+  "prompts": {},
+  "sessions": {
+    "s_6aa2fd791b8a40": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0be8c650-5b21-41d1-a6f2-2b93fc056b2e",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
