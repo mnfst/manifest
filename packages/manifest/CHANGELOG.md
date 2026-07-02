@@ -1,5 +1,41 @@
 # manifest
 
+## 6.13.0
+
+### Minor Changes
+
+- 1131013: Add Auto-fix early access card in sidebar and waitlist modal
+- 34c0a99: Separate provider errors from Manifest's own errors in the dashboard. Each message now records who caused a failure (provider, transport, or a Manifest setup/limit/internal issue) and what kind, so a provider outage no longer reads the same as a missing API key. The Messages log shows one clear status pill per row (e.g. "Failed: Provider", "Failed: Custom limit"), hides pre-flight setup errors by default, and a new `/api/v1/errors/breakdown` endpoint reports the provider-vs-Manifest split.
+- 2eabbf9: Add an opt-in public API that serves curated cross-tenant error-cluster pages for the marketing site. `GET /api/v1/public/error-pages[/:slug]` returns operator-approved clusters (gated by `MANIFEST_PUBLIC_STATS`), and a secret-guarded `POST/DELETE /api/v1/internal/error-pages` lets the Peacock CMS publish or pull pages. Only clusters seen by at least 10 distinct tenants are eligible, and every public sample is run through secret and email scrubbing before storage, so no single tenant's data or credentials can leak.
+
+### Patch Changes
+
+- 060db8f: Stop a wrong or revoked agent key from hammering the database and flooding the logs. Every request bearing a bad `mnfst_` key used to run a fresh indexed DB lookup and emit a warning, so one misconfigured agent in a retry loop sustained DB load and log noise indefinitely. Rejected keys are now cached for 30s (cleared the moment a key is created or rotated), collapsing a storm to one lookup and one log line per window. Separately, the dashboard live-update stream (`/api/v1/events`) no longer counts against the global rate limiter, so heavy dashboard use can't trip a 429 that severs the stream.
+- 3e0b517: Support Alibaba Cloud Model Studio compatible-mode endpoint URLs for Qwen API-key connections, including workspace-scoped Frankfurt endpoints.
+- 8ef014e: Drop unsigned Anthropic thinking blocks before forwarding native Messages requests to Anthropic.
+- bc292b4: Stop a slow memory climb on long-running servers. The global dashboard response cache used cache-manager's default in-memory store, which has no size limit and only drops entries when their exact URL is requested again. High-cardinality dashboard URLs (filters, cursors, time ranges) piled up for the life of the process. It now uses a bounded LRU store with a hard entry cap plus an active sweep of expired entries. Three proxy session caches (Anthropic thinking blocks, Gemini thought signatures, DeepSeek reasoning content) were also uncapped and now evict their oldest entries once a ceiling is reached.
+- 926b51a: Add Cerebras as a first-class API-key provider. Manifest can now connect Cerebras keys, discover models from `https://api.cerebras.ai/v1/models`, proxy chat completions through the OpenAI-compatible endpoint, and enrich model metadata from models.dev.
+- 75b6518: Public provider stats now include custom-provider usage, grouped under a single "Custom" provider with tenant-scoped endpoint ids scrubbed and rare model names folded into an aggregate bucket
+- 16f0cc9: Restore dropped `reasoning_content` on DeepSeek-compatible tool-call follow-up turns, including fallback requests where clients stripped provider-specific reasoning fields. Manifest now caches streamed and non-streamed assistant tool-call reasoning by session and first `tool_call.id`, and replays only exact DeepSeek-style `reasoning_content` for the same tool-call id. If no exact value is recoverable, Manifest injects an empty `reasoning_content` only as a last resort for DeepSeek-compatible assistant tool-call turns. Other reasoning fields such as `reasoning`, `reasoning_text`, and `reasoning_details` are treated as provider-specific and are not translated across formats. Normal assistant turns without tool calls are not cached or replayed by content fingerprint.
+- ccfe367: Allow inactive subscription connections to be deleted from the provider detail page, including stale duplicate rows left by upgrades.
+- ccb748d: Fix Playground streaming for Gemini subscription responses that use the CodeAssist envelope.
+- fbf8160: Allow self-hosted installs to tune the proxy message-count limit with MANIFEST_MAX_MESSAGES.
+- bd45672: Fix the dashboard "Messages" totals so every view agrees. The Overview card counted failed requests (including agents that have no provider set up yet) while the per-agent and per-provider views did not, so the headline number could sit ~35% above the sum of its parts. Every "messages" metric now counts the same thing: real messages, excluding error and rate-limited rows. The Messages log still lists failed rows so you can see what went wrong.
+- 8df89b7: Show custom and task-specific tiers in the Messages tab Tiers filter when a harness is selected from the global Messages view.
+- 3b5c63d: Add a status filter to the Messages dashboard.
+- 71d4acc: Add Mistral Vibe as a subscription provider with token setup, Vibe key guidance, and subscription-scoped discovery for the Vibe CLI model.
+- 4144e68: Load model parameter specs from the versioned `modelparams` npm package instead of refreshing modelparams.dev at runtime.
+- b0a8f66: Add Nous Portal as a subscription provider.
+- 4c7d19e: OpenCode Go and Zen model discovery now use the models.dev catalog first, and manual refreshes refresh the models.dev cache before OpenCode Go falls back to its docs catalog.
+- 9c36695: Refresh OpenCode Go models from the live OpenCode catalog and clarify per-request subscription values as quota usage instead of extra billing.
+- ae7f564: Replace the Overview News card with a full-width social follow banner.
+- ea9b422: Add Pioneer as a first-class API-key provider. Manifest can now connect Pioneer keys, discover models and pricing from Pioneer APIs, and proxy chat completions through the OpenAI-compatible endpoint using `X-API-Key` authentication.
+- 4aace1b: Return provider context-window errors as OpenAI-compatible `/v1` errors while still letting configured fallbacks try a larger context window.
+- 6b2ff17: Expose authenticated agent models from `/v1/models` using the OpenAI-compatible model list shape.
+- 687c2b7: Prevent Anthropic signed thinking blocks from being replayed into incompatible fallback attempts. Cached thinking is now scoped to the provider, auth type, and model that produced it, so an incompatible fallback omits stale signatures while a later compatible Anthropic attempt can restore them.
+- 2ab748a: Route explicit provider-qualified model IDs from the OpenAI-compatible API.
+- 26be5cc: Stop rolling deploys from dropping requests. During a deploy the old replicas got SIGTERM and closed their socket immediately while the Railway edge was still routing to them, so a chunk of requests failed for the length of the deploy window. The server now drains on SIGTERM: the health probe at /api/v1/health reports 503 so the edge deregisters the replica, and the process keeps serving for SHUTDOWN_DRAIN_MS (default 10s) before closing connections. railway.toml gains overlapSeconds and drainingSeconds so the new deployment overlaps the old one and the drain finishes before SIGKILL.
+
 ## 6.12.0
 
 ### Minor Changes
