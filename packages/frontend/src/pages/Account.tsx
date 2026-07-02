@@ -40,6 +40,8 @@ const Account: Component = () => {
         successUrl: '/account?upgraded=1',
         cancelUrl: '/account',
       });
+    } catch {
+      toast.error('Could not start the upgrade. Please try again.');
     } finally {
       setBillingBusy(false);
     }
@@ -49,6 +51,8 @@ const Account: Component = () => {
     setBillingBusy(true);
     try {
       await authClient.subscription.billingPortal({ returnUrl: '/account' });
+    } catch {
+      toast.error('Could not open the billing portal. Please try again.');
     } finally {
       setBillingBusy(false);
     }

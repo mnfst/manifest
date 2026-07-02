@@ -41,10 +41,11 @@ vi.mock("../../src/services/api/billing.js", () => ({
 }));
 
 const mockToastSuccess = vi.fn();
+const mockToastError = vi.fn();
 vi.mock("../../src/services/toast-store.js", () => ({
   toast: {
     success: (...a: unknown[]) => mockToastSuccess(...a),
-    error: vi.fn(),
+    error: (...a: unknown[]) => mockToastError(...a),
     warning: vi.fn(),
   },
 }));
@@ -233,6 +234,32 @@ describe("Account", () => {
       fireEvent.click(button);
       await waitFor(() => expect(button.disabled).toBe(true));
       resolveUpgrade();
+      await waitFor(() => expect(button.disabled).toBe(false));
+    });
+
+    it("shows an error toast and re-enables the button when the upgrade call rejects", async () => {
+      mockGetBillingStatus.mockResolvedValue(freeStatus);
+      mockUpgrade.mockRejectedValue(new Error("network"));
+      render(() => <Account />);
+      const button = (await screen.findByText(/Upgrade to Pro/)) as HTMLButtonElement;
+      fireEvent.click(button);
+      await waitFor(() =>
+        expect(mockToastError).toHaveBeenCalledWith("Could not start the upgrade. Please try again."),
+      );
+      await waitFor(() => expect(button.disabled).toBe(false));
+    });
+
+    it("shows an error toast when the billing portal call rejects", async () => {
+      mockGetBillingStatus.mockResolvedValue(proStatus);
+      mockBillingPortal.mockRejectedValue(new Error("network"));
+      render(() => <Account />);
+      const button = (await screen.findByText("Manage billing")) as HTMLButtonElement;
+      fireEvent.click(button);
+      await waitFor(() =>
+        expect(mockToastError).toHaveBeenCalledWith(
+          "Could not open the billing portal. Please try again.",
+        ),
+      );
       await waitFor(() => expect(button.disabled).toBe(false));
     });
 
