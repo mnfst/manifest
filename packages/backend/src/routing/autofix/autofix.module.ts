@@ -6,13 +6,17 @@ import { AutofixService } from './autofix.service';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
 import { HttpHealingClient } from './http-healing-client';
 import { MockHealingClient } from './mock-healing-client';
+import { NoopHealingClient } from './noop-healing-client';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
 /**
- * Wires Auto-fix. The active healing client is chosen at boot: an
- * `HttpHealingClient` when `AUTOFIX_HEALING_URL` is set, otherwise the in-process
- * `MockHealingClient` so the loop works without an external Phoenix.
+ * Wires Auto-fix. The active healing client is chosen at boot:
+ * - `HttpHealingClient` when `AUTOFIX_HEALING_URL` is set (the real Phoenix).
+ * - otherwise `NoopHealingClient` in production — inert, so enabling Auto-fix
+ *   without a configured healer never lets the dev mock mutate real traffic.
+ * - otherwise `MockHealingClient` in dev/test, so the heal → resend → confirm
+ *   loop can be exercised locally without an external Phoenix.
  */
 @Module({
   imports: [TypeOrmModule.forFeature([Agent])],
@@ -24,8 +28,11 @@ const DEFAULT_TIMEOUT_MS = 10_000;
         const url = config.get<string>('AUTOFIX_HEALING_URL');
         const parsed = Number.parseInt(config.get<string>('AUTOFIX_TIMEOUT_MS') ?? '', 10);
         const timeoutMs = Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_TIMEOUT_MS;
-        return url && url.trim().length > 0
-          ? new HttpHealingClient(url, timeoutMs)
+        if (url && url.trim().length > 0) {
+          return new HttpHealingClient(url, timeoutMs);
+        }
+        return config.get<string>('NODE_ENV') === 'production'
+          ? new NoopHealingClient()
           : new MockHealingClient();
       },
       inject: [ConfigService],

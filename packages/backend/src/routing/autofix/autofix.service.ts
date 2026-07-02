@@ -39,6 +39,13 @@ const DEFAULT_REPAIRABLE_STATUSES = '400,404,422';
 const CONFIG_CACHE_TTL_MS = 30_000;
 const CONFIG_CACHE_MAX = 5_000;
 
+// Circuit breaker for the healing service. After this many consecutive heal-call
+// transport failures (timeout / unreachable), stop calling Phoenix for the
+// cooldown window so a slow or down healer stops adding latency to every
+// repairable 4xx BEFORE the fallback chain (the next safety net) gets to run.
+const HEAL_FAILURE_THRESHOLD = 3;
+const BREAKER_COOLDOWN_MS = 30_000;
+
 function parseStatuses(raw: string | undefined): Set<number> {
   const source = raw && raw.trim().length > 0 ? raw : DEFAULT_REPAIRABLE_STATUSES;
   const parsed = source
@@ -80,6 +87,10 @@ export class AutofixService {
     string,
     { value: AgentAutofixConfig; expiresAt: number }
   >();
+  // Circuit-breaker state (process-local). `breakerOpenUntil` is an epoch-ms
+  // deadline; while it is in the future, heal calls are skipped.
+  private healFailureStreak = 0;
+  private breakerOpenUntil = 0;
 
   constructor(
     @Inject(HEALING_CLIENT) private readonly client: HealingClient,
@@ -100,12 +111,38 @@ export class AutofixService {
     this.configCache.delete(`${tenantId}:${agentId}`);
   }
 
+  /** A heal call reached the healer (any decision) — clear the failure streak. */
+  private recordHealSuccess(): void {
+    this.healFailureStreak = 0;
+  }
+
+  /**
+   * A heal call failed at the transport layer (timeout / unreachable). Once the
+   * streak crosses the threshold, open the breaker for the cooldown window so
+   * subsequent failures stop adding latency to the request path.
+   */
+  private recordHealFailure(): void {
+    this.healFailureStreak += 1;
+    if (this.healFailureStreak >= HEAL_FAILURE_THRESHOLD) {
+      this.breakerOpenUntil = Date.now() + BREAKER_COOLDOWN_MS;
+      this.healFailureStreak = 0;
+      this.logger.warn(
+        `autofix: healing service unreachable — circuit breaker open for ${BREAKER_COOLDOWN_MS}ms`,
+      );
+    }
+  }
+
   async maybeHeal(params: MaybeHealParams): Promise<AutofixAttempt | null> {
     const { forward } = params;
     // Hot path: successful and non-repairable forwards never enter healing.
     if (forward.response.ok || !this.globalEnabled) return null;
     const status = forward.response.status;
     if (!this.isRepairable(status)) return null;
+
+    // Circuit breaker: while the healing service is tripped, skip healing
+    // entirely and hand the forward back untouched, so a slow/unreachable
+    // Phoenix never delays the fallback chain (the next safety net).
+    if (this.breakerOpenUntil > Date.now()) return null;
 
     let cfg: AgentAutofixConfig;
     try {
@@ -171,12 +208,15 @@ export class AutofixService {
         response: { statusCode: status, error: normalized },
       });
     } catch (err) {
+      this.recordHealFailure();
       this.logger.warn(`heal call failed: ${(err as Error).message}`);
       return {
         forward: originalForward,
         record: { groupId, outcome: 'exhausted', original_http_status: status, chain },
       };
     }
+    // The healer answered (any decision) — it is alive, so clear the streak.
+    this.recordHealSuccess();
 
     entry.phoenix_status = heal.status;
     entry.issue_id = heal.issueId;

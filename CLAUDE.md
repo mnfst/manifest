@@ -392,7 +392,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `MANIFEST_TELEMETRY_DISABLED` — Set `1` to opt out of anonymous telemetry (self-hosted only).
 - `MANIFEST_PUBLIC_STATS` — Set `true` to expose `/api/v1/public/*` aggregate stats without auth (cloud-only marketing use).
 - `OLLAMA_HOST` — Ollama endpoint for the built-in tile. Defaults to `http://localhost:11434` outside Docker and `http://host.docker.internal:11434` inside the bundled `docker/docker-compose.yml`.
-- `AUTOFIX_HEALING_URL` — Base URL of the Phoenix healing service for Auto-fix. Unset → in-process mock client. See [Auto-fix](#auto-fix-self-healing-via-phoenix).
+- `AUTOFIX_HEALING_URL` — Base URL of the Phoenix healing service for Auto-fix. Unset → inert Noop client in production (never mutates traffic), in-process mock in dev/test. See [Auto-fix](#auto-fix-self-healing-via-phoenix).
 - `AUTOFIX_GLOBAL_ENABLED` — Set `false` to disable Auto-fix for all agents (default on). Companions: `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
 
 ## Domain Terminology
@@ -523,8 +523,8 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 **Scope:** non-streaming responses + streaming that fails before the first byte (a repairable 4xx makes `providerResponse.ok=false` before any client bytes are sent). **One attempt only — there is no retry budget.** If the single patched retry still fails, Manifest reports the outcome to Phoenix and hands off to fallback.
 
 **Code:** `packages/backend/src/routing/autofix/`
-- `autofix.service.ts` — `maybeHeal()` gates on (globally enabled + repairable status + agent opted in), then `runHealOnce()` does one heal + one reforward. Any throw degrades to the original provider error (never a Manifest 500). Per-agent config is cached 30s; `invalidateConfig()` is called on toggle.
-- `healing-client.ts` — the `HealingClient` port + `HEALING_CLIENT` DI token. Chosen at boot in `autofix.module.ts`: `HttpHealingClient` when `AUTOFIX_HEALING_URL` is set, else the in-process `MockHealingClient` (so the flow works with no external Phoenix).
+- `autofix.service.ts` — `maybeHeal()` gates on (globally enabled + repairable status + circuit breaker closed + agent opted in), then `runHealOnce()` does one heal + one reforward. Any throw degrades to the original provider error (never a Manifest 500). Per-agent config is cached 30s; `invalidateConfig()` is called on toggle. **Circuit breaker:** after 3 consecutive heal-call transport failures the breaker opens for 30s and `maybeHeal()` skips healing (returns null → straight to fallback), so a slow/down Phoenix stops adding latency to every repairable 4xx; any successful round-trip clears the streak.
+- `healing-client.ts` — the `HealingClient` port + `HEALING_CLIENT` DI token. Chosen at boot in `autofix.module.ts`: `HttpHealingClient` when `AUTOFIX_HEALING_URL` is set; otherwise **`NoopHealingClient` in production** (inert — never mutates traffic) and the in-process **`MockHealingClient` only in dev/test** (so the flow can be exercised without an external Phoenix). This keeps the dev mock's hardcoded catalog off real traffic when a healer isn't wired.
 - `phoenix.types.ts` — the wire contract. `provider-error-normalizer.ts` — turns a raw 4xx body into `{message,type,param,code}`. `autofix.types.ts` — internal `AutofixRecord` / `AutofixChainEntry`.
 - **Hook:** `proxy.service.ts`, after the primary forward and *before* `shouldTriggerFallback`. `ProxyResult.autofix` threads the record to the recorder.
 
@@ -539,7 +539,7 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 
 **Endpoints:** `GET/PATCH /api/v1/routing/:agentName/autofix` → `{ enabled }`.
 
-**Env:** `AUTOFIX_HEALING_URL` (unset → in-process mock), `AUTOFIX_GLOBAL_ENABLED` (`false` disables Auto-fix everywhere; default on), `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
+**Env:** `AUTOFIX_HEALING_URL` (unset → inert Noop in production, in-process mock in dev/test), `AUTOFIX_GLOBAL_ENABLED` (`false` disables Auto-fix everywhere; default on), `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
 
 ## Providers & Models
 

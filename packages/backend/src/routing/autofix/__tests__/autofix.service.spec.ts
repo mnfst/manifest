@@ -509,6 +509,94 @@ describe('AutofixService', () => {
   });
 
   // -------------------------------------------------------------------------
+  // Circuit breaker — shed a slow/down healing service off the request path
+  // -------------------------------------------------------------------------
+  describe('circuit breaker', () => {
+    const enabledRepo = () => makeAgentRepo(() => ({ autofix_enabled: true })).repo;
+
+    it('opens after repeated heal failures and skips further heal calls', async () => {
+      const client = makeHealingClient();
+      client.heal.mockRejectedValue(new Error('phoenix down'));
+      jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+      const service = makeService({
+        client: client as unknown as HealingClient,
+        repo: enabledRepo(),
+      });
+
+      // Three repairable failures trip the breaker (each still returns exhausted).
+      for (let i = 0; i < 3; i++) {
+        const r = await service.maybeHeal(
+          makeParams({ forward: makeForward('{"error":{}}', 400) }),
+        );
+        expect(r!.record.outcome).toBe('exhausted');
+      }
+      expect(client.heal).toHaveBeenCalledTimes(3);
+
+      // Breaker open: the next repairable failure skips healing entirely and
+      // hands the forward back untouched (null → the proxy runs its fallback).
+      const skipped = await service.maybeHeal(
+        makeParams({ forward: makeForward('{"error":{}}', 400) }),
+      );
+      expect(skipped).toBeNull();
+      expect(client.heal).toHaveBeenCalledTimes(3);
+    });
+
+    it('resets the failure streak after a successful heal round-trip', async () => {
+      const client = makeHealingClient();
+      client.heal
+        .mockRejectedValueOnce(new Error('down'))
+        .mockRejectedValueOnce(new Error('down'))
+        .mockResolvedValueOnce({ status: 'no_patch', issueId: 'i' })
+        .mockRejectedValueOnce(new Error('down'))
+        .mockRejectedValueOnce(new Error('down'))
+        .mockRejectedValueOnce(new Error('down'));
+      jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+      const service = makeService({
+        client: client as unknown as HealingClient,
+        repo: enabledRepo(),
+      });
+
+      // fail, fail, success (streak → 0), fail, fail: never reaches 3 in a row.
+      for (let i = 0; i < 5; i++) {
+        await service.maybeHeal(makeParams({ forward: makeForward('{"error":{}}', 400) }));
+      }
+      // Breaker still closed, so a 6th repairable failure reaches the healer.
+      await service.maybeHeal(makeParams({ forward: makeForward('{"error":{}}', 400) }));
+      expect(client.heal).toHaveBeenCalledTimes(6);
+    });
+
+    it('re-attempts healing once the cooldown window elapses', async () => {
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_000);
+      const client = makeHealingClient();
+      client.heal.mockRejectedValue(new Error('down'));
+      jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+      const service = makeService({
+        client: client as unknown as HealingClient,
+        repo: enabledRepo(),
+      });
+
+      // Trip the breaker at t=1000 (open for the 30s cooldown).
+      for (let i = 0; i < 3; i++) {
+        await service.maybeHeal(makeParams({ forward: makeForward('{"error":{}}', 400) }));
+      }
+      expect(client.heal).toHaveBeenCalledTimes(3);
+
+      // Still inside the cooldown → skipped, no heal call.
+      nowSpy.mockReturnValue(20_000);
+      const during = await service.maybeHeal(
+        makeParams({ forward: makeForward('{"error":{}}', 400) }),
+      );
+      expect(during).toBeNull();
+      expect(client.heal).toHaveBeenCalledTimes(3);
+
+      // Past the cooldown → the healer is probed again.
+      nowSpy.mockReturnValue(31_001);
+      await service.maybeHeal(makeParams({ forward: makeForward('{"error":{}}', 400) }));
+      expect(client.heal).toHaveBeenCalledTimes(4);
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // reportOutcome — fire-and-forget error handling
   // -------------------------------------------------------------------------
   describe('reportOutcome fire-and-forget', () => {

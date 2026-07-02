@@ -6,6 +6,7 @@ import { AutofixModule } from '../autofix.module';
 import { HEALING_CLIENT } from '../healing-client';
 import { HttpHealingClient } from '../http-healing-client';
 import { MockHealingClient } from '../mock-healing-client';
+import { NoopHealingClient } from '../noop-healing-client';
 
 /**
  * Compile AutofixModule with a global ConfigModule seeded from `configValues`
@@ -32,8 +33,15 @@ async function resolveHealingClient(configValues: Record<string, string>) {
 }
 
 describe('AutofixModule HEALING_CLIENT factory', () => {
-  it('provides a MockHealingClient when AUTOFIX_HEALING_URL is unset', async () => {
+  it('provides a MockHealingClient when AUTOFIX_HEALING_URL is unset (non-production)', async () => {
     const client = await resolveHealingClient({});
+
+    expect(client).toBeInstanceOf(MockHealingClient);
+  });
+
+  it('provides a MockHealingClient outside production even when NODE_ENV=development', async () => {
+    // Explicit non-production NODE_ENV still exercises the dev/test branch.
+    const client = await resolveHealingClient({ NODE_ENV: 'development' });
 
     expect(client).toBeInstanceOf(MockHealingClient);
   });
@@ -43,6 +51,24 @@ describe('AutofixModule HEALING_CLIENT factory', () => {
     const client = await resolveHealingClient({ AUTOFIX_HEALING_URL: '   ' });
 
     expect(client).toBeInstanceOf(MockHealingClient);
+  });
+
+  it('provides an inert NoopHealingClient in production when AUTOFIX_HEALING_URL is unset', async () => {
+    // The dev-only mock must never mutate real traffic: with no healer wired,
+    // production falls to the inert Noop client, not the Mock.
+    const client = await resolveHealingClient({ NODE_ENV: 'production' });
+
+    expect(client).toBeInstanceOf(NoopHealingClient);
+  });
+
+  it('still provides an HttpHealingClient in production when AUTOFIX_HEALING_URL is set', async () => {
+    // A configured healer takes precedence over the production Noop fallback.
+    const client = await resolveHealingClient({
+      NODE_ENV: 'production',
+      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+    });
+
+    expect(client).toBeInstanceOf(HttpHealingClient);
   });
 
   it('provides an HttpHealingClient when AUTOFIX_HEALING_URL is set', async () => {
