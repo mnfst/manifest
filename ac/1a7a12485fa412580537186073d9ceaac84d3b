@@ -1,0 +1,23 @@
+packages/shared/src/plan-limits.ts
+  s_6aa2fd791b8a40::t_f0303604988da6 1-24
+packages/shared/__tests__/plan-limits.spec.ts
+  s_6aa2fd791b8a40::t_e6429d9c995674 1-15
+packages/shared/src/index.ts
+  s_6aa2fd791b8a40::t_65336fce4eb800 145-146
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "ac1a7a12485fa412580537186073d9ceaac84d3b",
+  "prompts": {},
+  "sessions": {
+    "s_6aa2fd791b8a40": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0be8c650-5b21-41d1-a6f2-2b93fc056b2e",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
