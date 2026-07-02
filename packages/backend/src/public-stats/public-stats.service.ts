@@ -249,6 +249,9 @@ export class PublicStatsService {
         .select('at.model', 'model')
         .addSelect('at.tenant_id', 'tenant_id')
         .where("at.model LIKE 'custom:%'")
+        // NULL tenants would collapse into one phantom Set member and lower
+        // the effective anonymity floor by one.
+        .andWhere('at.tenant_id IS NOT NULL')
         .andWhere('at.timestamp >= :cutoff30d', { cutoff30d })
         .groupBy('at.model')
         .addGroupBy('at.tenant_id')

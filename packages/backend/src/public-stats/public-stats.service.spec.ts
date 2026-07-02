@@ -702,6 +702,8 @@ describe('PublicStatsService', () => {
         expect.objectContaining({ cutoff30d: expect.any(String) }),
       );
       expect(pairsQb.where).toHaveBeenCalledWith("at.model LIKE 'custom:%'");
+      // NULL tenants must not count toward the anonymity floor.
+      expect(pairsQb.andWhere).toHaveBeenCalledWith('at.tenant_id IS NOT NULL');
       expect(pairsQb.andWhere).toHaveBeenCalledWith(
         'at.timestamp >= :cutoff30d',
         expect.objectContaining({ cutoff30d: expect.any(String) }),
