@@ -31,6 +31,7 @@ import { AGENT_LIST_CACHE_TTL_MS, agentListCacheKey } from '../../common/constan
 import { slugify } from '../../common/utils/slugify';
 import { PLAYGROUND_AGENT_SLUG } from '../../common/constants/playground.constants';
 import { ProviderService } from '../../routing/routing-core/provider.service';
+import { PlanService } from '../../billing/plan.service';
 
 @Controller('api/v1')
 export class AgentsController {
@@ -43,6 +44,7 @@ export class AgentsController {
     private readonly apiKeyGenerator: ApiKeyGeneratorService,
     private readonly eventBus: IngestEventBusService,
     private readonly providerService: ProviderService,
+    private readonly planService: PlanService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -77,6 +79,7 @@ export class AgentsController {
 
   @Post('agents')
   async createAgent(@TenantCtx() ctx: TenantContext, @Body() body: CreateAgentDto) {
+    await this.planService.assertCanCreateAgent(ctx);
     const slug = slugify(body.name);
     if (!slug) {
       throw new BadRequestException('Agent name produces an empty slug');
@@ -162,6 +165,7 @@ export class AgentsController {
     @Param('agentName') sourceName: string,
     @Body() body: DuplicateAgentDto,
   ) {
+    await this.planService.assertCanCreateAgent(ctx);
     const slug = slugify(body.name);
     if (!slug) throw new BadRequestException('Agent name produces an empty slug');
     if (slug === PLAYGROUND_AGENT_SLUG) {
