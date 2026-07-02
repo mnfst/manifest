@@ -103,9 +103,9 @@ function reforwardMock(
 
 /**
  * A `reforward` mock that returns a DISTINCT repairable 4xx on every call (the
- * `code`/`message` are incremented per attempt). Each retry therefore produces a
- * new error fingerprint, so the "healing sink" guard never trips and the loop
- * runs to the full budget — the only stop is `maxAttempts`.
+ * `code`/`message` are incremented per attempt). Each retry produces a different
+ * error, exercising the multi-iteration re-heal path; the loop is bounded only
+ * by `maxAttempts`.
  */
 function distinctErrorReforward(
   status = 400,
@@ -145,9 +145,8 @@ describe('AutofixService', () => {
     it('parses a valid AUTOFIX_DEFAULT_MAX_ATTEMPTS override', async () => {
       // A valid > 0 default is used when the agent has no explicit budget.
       const client = makeHealingClient();
-      // Phoenix keeps handing patched bodies; each reforward fails with a DISTINCT
-      // repairable error so the sink guard never trips → attempts are bounded only
-      // by the default budget of 5.
+      // Phoenix keeps handing patched bodies; each reforward fails with a
+      // repairable error, so attempts are bounded only by the default budget of 5.
       client.heal.mockResolvedValue(patchedHeal());
       const reforward = distinctErrorReforward(400);
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 0 }));
@@ -504,8 +503,8 @@ describe('AutofixService', () => {
     it('exhausts the budget, reporting each failed retry, and returns the original', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
-      // Each reforward fails with a DISTINCT repairable 4xx (e1/c1, e2/c2, …) so
-      // the sink guard never trips → the budget is the only stop.
+      // Each reforward fails with a DISTINCT repairable 4xx (e1/c1, e2/c2, …);
+      // the budget is the only stop.
       const reforward = distinctErrorReforward(400);
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 2 }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
@@ -716,20 +715,18 @@ describe('AutofixService', () => {
   });
 
   // -------------------------------------------------------------------------
-  // maybeHeal — healing-sink guard (M2)
+  // maybeHeal — identical-error retries run to the budget
   // -------------------------------------------------------------------------
-  describe('maybeHeal healing-sink guard', () => {
-    it('stops after one reforward when the retry reproduces the exact same error', async () => {
+  describe('maybeHeal identical-error retries', () => {
+    it('keeps re-asking Phoenix up to the budget when the retry reproduces the same error', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
-      // The retry reproduces the SAME error the original failed with (same
-      // status/code/message → identical fingerprint). The budget is 5, but the
-      // sink guard must break on the SECOND iteration — BEFORE a second
-      // heal/reforward — so only ONE reforward ever happens. The original body
-      // and the retry body match so the fingerprints coincide.
+      // The retry reproduces the SAME error every time. With no same-error
+      // short-circuit, the loop keeps re-healing — a fresh heal-attempt each
+      // iteration, every failure reported — until the per-agent budget is spent.
       const sameError = '{"error":{"message":"same","code":"dup"}}';
       const reforward = reforwardMock(sameError, 400);
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 5 }));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 3 }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
       const originalBody = sameError;
 
@@ -738,13 +735,11 @@ describe('AutofixService', () => {
       );
 
       expect(result!.record.outcome).toBe('exhausted');
-      // One patched retry was resent; the guard then stopped without re-healing.
-      expect(result!.record.attempts).toBe(1);
-      expect(reforward).toHaveBeenCalledTimes(1);
-      // Only the original iteration reached the heal service.
-      expect(client.heal).toHaveBeenCalledTimes(1);
-      // The single failed retry was still reported.
-      expect(client.reportOutcome).toHaveBeenCalledTimes(1);
+      // One patched retry per budget slot; every failure went back to Phoenix.
+      expect(result!.record.attempts).toBe(3);
+      expect(reforward).toHaveBeenCalledTimes(3);
+      expect(client.heal).toHaveBeenCalledTimes(3);
+      expect(client.reportOutcome).toHaveBeenCalledTimes(3);
 
       // Returns the rebuilt ORIGINAL error, still readable.
       expect(result!.forward.response.status).toBe(400);

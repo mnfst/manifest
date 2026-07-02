@@ -9,7 +9,7 @@ import type { ProxyApiMode } from '../proxy/proxy-types';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
 import { normalizeProviderError } from './provider-error-normalizer';
 import type { AutofixChainEntry, AutofixOutcome, AutofixRecord } from './autofix.types';
-import type { HealOutcome, HealResponse, PhoenixProviderError } from './phoenix.types';
+import type { HealOutcome, HealResponse } from './phoenix.types';
 
 export interface MaybeHealParams {
   forward: ForwardResult;
@@ -62,11 +62,6 @@ function rebuildForward(base: ForwardResult, body: string, status: number): Forw
     ...base,
     response: new Response(body, { status, headers: headersToObject(base.response.headers) }),
   };
-}
-
-/** Stable identity of a provider error — the dims that decide "same error". */
-function errorFingerprint(status: number, error: PhoenixProviderError): string {
-  return `${status}:${error.code ?? ''}:${error.param ?? ''}:${error.message}`;
 }
 
 /**
@@ -166,16 +161,12 @@ export class AutofixService {
     let attempts = 0;
     let outcome: AutofixOutcome = 'exhausted';
     let healedForward: ForwardResult | null = null;
-    let lastFingerprint: string | null = null;
 
     while (attempts < maxAttempts) {
       const normalized = normalizeProviderError(currentText);
-      const fingerprint = errorFingerprint(currentStatus, normalized);
-      // "Healing sink": the retry produced the exact error we just tried to heal,
-      // so re-healing would loop with the same patch. Stop instead of burning the
-      // whole budget on a fix that isn't making progress.
-      if (fingerprint === lastFingerprint) break;
-      lastFingerprint = fingerprint;
+      // No same-error short-circuit: each iteration re-asks Phoenix and reports
+      // the retry outcome, so a patch that doesn't clear the error yields a fresh
+      // heal-attempt (and Phoenix a fresh failure signal) until the budget is spent.
 
       const entry: AutofixChainEntry = {
         attempt: attempts,
