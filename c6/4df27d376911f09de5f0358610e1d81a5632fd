@@ -1,0 +1,29 @@
+packages/backend/src/app.module.ts
+  s_6aa2fd791b8a40::t_e03e882ac58452 93
+  s_6aa2fd791b8a40::t_2e617ffe5c741e 34
+packages/backend/src/billing/billing.controller.ts
+  s_6aa2fd791b8a40::t_c1107dc9512dda 1-13
+packages/backend/src/analytics/analytics.module.ts
+  s_6aa2fd791b8a40::t_580efb3596b879 55
+  s_6aa2fd791b8a40::t_dc52199b3b4b6b 36
+packages/backend/src/billing/billing.module.ts
+  s_6aa2fd791b8a40::t_9995acbbe58046 1-14
+packages/backend/src/billing/billing.controller.spec.ts
+  s_6aa2fd791b8a40::t_d9b24dd1e6105b 1-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "c64df27d376911f09de5f0358610e1d81a5632fd",
+  "prompts": {},
+  "sessions": {
+    "s_6aa2fd791b8a40": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0be8c650-5b21-41d1-a6f2-2b93fc056b2e",
+        "model": "accounts/fireworks/models/glm-5p2"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
