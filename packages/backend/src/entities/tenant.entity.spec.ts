@@ -31,6 +31,15 @@ describe('Tenant entity', () => {
     expect(t.email).toBeNull();
   });
 
+  it('allows limit_overrides to be set or null', () => {
+    const t = new Tenant();
+    t.limit_overrides = null;
+    expect(t.limit_overrides).toBeNull();
+
+    t.limit_overrides = { agents: 25, requestsPerMonth: 50000 };
+    expect(t.limit_overrides).toEqual({ agents: 25, requestsPerMonth: 50000 });
+  });
+
   describe('TypeORM relation callbacks', () => {
     it('OneToMany callback resolves to Agent with inverse side', () => {
       const relations = getMetadataArgsStorage().relations.filter((r) => r.target === Tenant);

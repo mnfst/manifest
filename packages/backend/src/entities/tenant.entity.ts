@@ -30,6 +30,14 @@ export class Tenant {
   @Column('boolean', { default: true })
   is_active!: boolean;
 
+  /**
+   * Per-tenant plan-limit overrides (support / enterprise escape hatch).
+   * Null = plan defaults apply. When set, the matching fields override the
+   * resolved plan limits. Read by PlanService.getLimits().
+   */
+  @Column('jsonb', { nullable: true })
+  limit_overrides!: { agents?: number; requestsPerMonth?: number } | null;
+
   @OneToMany(() => Agent, (a) => a.tenant, { cascade: true })
   agents!: Agent[];
 
