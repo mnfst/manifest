@@ -398,6 +398,7 @@ export function extractThinkingBlocksFromMessagesResponse(
  * - Default `max_tokens` to 4096 if unset.
  * - Inject the subscription-identity system block for OAuth tokens.
  * - Place a `cache_control` breakpoint on the last system block and last tool.
+ * - Strip unsigned `thinking` blocks that are not replayable to Anthropic.
  * - Replay cached extended-thinking blocks at the head of assistant turns
  *   whose first content block is a `tool_use`.
  */
@@ -456,45 +457,51 @@ export function applyAnthropicMessagesMutations(
   const thinkingRouteContext = options?.thinkingRouteContext;
   if (Array.isArray(body.messages)) {
     let messagesChanged = false;
-    const messages = (body.messages as Array<Record<string, unknown>>).map((m) => {
-      if (m.role !== 'assistant' || !Array.isArray(m.content)) return m;
-      const sanitized = stripUnsignedThinkingBlocks(m.content as ContentBlock[]);
-      const content = sanitized.content;
-      const messageChanged = sanitized.changed;
+    const messages = (body.messages as Array<Record<string, unknown>>)
+      .map((m): Record<string, unknown> | null => {
+        if (m.role !== 'assistant' || !Array.isArray(m.content)) return m;
+        const sanitized = stripUnsignedThinkingBlocks(m.content as ContentBlock[]);
+        const content = sanitized.content;
+        const messageChanged = sanitized.changed;
+        if (messageChanged && content.length === 0) {
+          messagesChanged = true;
+          return null;
+        }
 
-      const firstToolUse = content.find((b) => b.type === 'tool_use');
-      if (!firstToolUse || typeof firstToolUse.id !== 'string' || !thinkingLookup) {
-        if (!messageChanged) return m;
+        const firstToolUse = content.find((b) => b.type === 'tool_use');
+        if (!firstToolUse || typeof firstToolUse.id !== 'string' || !thinkingLookup) {
+          if (!messageChanged) return m;
+          messagesChanged = true;
+          return { ...m, content };
+        }
+        // Native Messages clients may already echo the previous assistant's
+        // signed thinking blocks before the tool_use block. Prepending the
+        // cached copy in that case would duplicate signed blocks and the
+        // upstream would reject the conversation. Only replay when the turn
+        // is missing the thinking prelude. Unsigned `thinking` blocks can be
+        // produced by non-Anthropic upstreams in Anthropic-compatible sessions;
+        // strip them before this check so they do not suppress valid replay or
+        // reach Anthropic with an invalid signature.
+        const alreadyHasThinking = content.some(
+          (b) => b.type === 'thinking' || b.type === 'redacted_thinking',
+        );
+        if (alreadyHasThinking) {
+          if (!messageChanged) return m;
+          messagesChanged = true;
+          return { ...m, content };
+        }
+        const cached = thinkingRouteContext
+          ? thinkingLookup(firstToolUse.id, thinkingRouteContext)
+          : thinkingLookup(firstToolUse.id);
+        if (!cached || cached.length === 0) {
+          if (!messageChanged) return m;
+          messagesChanged = true;
+          return { ...m, content };
+        }
         messagesChanged = true;
-        return { ...m, content };
-      }
-      // Native Messages clients may already echo the previous assistant's
-      // signed thinking blocks before the tool_use block. Prepending the
-      // cached copy in that case would duplicate signed blocks and the
-      // upstream would reject the conversation. Only replay when the turn
-      // is missing the thinking prelude. Unsigned `thinking` blocks can be
-      // produced by non-Anthropic upstreams in Anthropic-compatible sessions;
-      // strip them before this check so they do not suppress valid replay or
-      // reach Anthropic with an invalid signature.
-      const alreadyHasThinking = content.some(
-        (b) => b.type === 'thinking' || b.type === 'redacted_thinking',
-      );
-      if (alreadyHasThinking) {
-        if (!messageChanged) return m;
-        messagesChanged = true;
-        return { ...m, content };
-      }
-      const cached = thinkingRouteContext
-        ? thinkingLookup(firstToolUse.id, thinkingRouteContext)
-        : thinkingLookup(firstToolUse.id);
-      if (!cached || cached.length === 0) {
-        if (!messageChanged) return m;
-        messagesChanged = true;
-        return { ...m, content };
-      }
-      messagesChanged = true;
-      return { ...m, content: [...(cached as ContentBlock[]), ...content] };
-    });
+        return { ...m, content: [...(cached as ContentBlock[]), ...content] };
+      })
+      .filter((m): m is Record<string, unknown> => m !== null);
     if (messagesChanged) result.messages = messages;
   }
 

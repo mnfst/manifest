@@ -2372,6 +2372,25 @@ describe('Anthropic Adapter', () => {
       expect(messages[0].content).toEqual([cached[0], toolUse]);
     });
 
+    it('drops assistant turns that only contain unsigned thinking blocks', () => {
+      const invalidThinking = { type: 'thinking', thinking: 'foreign reasoning', signature: '' };
+      const inbound = {
+        messages: [
+          { role: 'user', content: 'first' },
+          { role: 'assistant', content: [invalidThinking] },
+          { role: 'user', content: 'next' },
+        ],
+      };
+
+      const result = applyAnthropicMessagesMutations(inbound);
+
+      expect(result.messages).toEqual([
+        { role: 'user', content: 'first' },
+        { role: 'user', content: 'next' },
+      ]);
+      expect(inbound.messages[1].content).toEqual([invalidThinking]);
+    });
+
     it('does not touch messages when thinkingLookup returns nothing', () => {
       const inboundMessages = [
         { role: 'user', content: 'hi' },
