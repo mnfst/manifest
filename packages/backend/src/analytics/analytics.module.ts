@@ -33,6 +33,7 @@ import { AgentsController } from './controllers/agents.controller';
 import { AgentAnalyticsController } from './controllers/agent-analytics.controller';
 import { ProviderAnalyticsController } from './controllers/provider-analytics.controller';
 import { ErrorsController } from './controllers/errors.controller';
+import { BillingModule } from '../billing/billing.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { ErrorsController } from './controllers/errors.controller';
     OtlpModule,
     RoutingCoreModule,
     ModelPricesModule,
+    BillingModule,
   ],
   controllers: [
     OverviewController,
