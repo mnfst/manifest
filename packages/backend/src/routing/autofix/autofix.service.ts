@@ -8,7 +8,7 @@ import type { ForwardResult } from '../proxy/provider-client';
 import type { ProxyApiMode } from '../proxy/proxy-types';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
 import { normalizeProviderError } from './provider-error-normalizer';
-import type { AutofixChainEntry, AutofixOutcome, AutofixRecord } from './autofix.types';
+import type { AutofixChainEntry, AutofixRecord } from './autofix.types';
 import type { HealOutcome, HealResponse } from './phoenix.types';
 
 export interface MaybeHealParams {
@@ -33,7 +33,6 @@ export interface AutofixAttempt {
 
 interface AgentAutofixConfig {
   enabled: boolean;
-  maxAttempts: number;
 }
 
 const DEFAULT_REPAIRABLE_STATUSES = '400,404,422';
@@ -66,17 +65,16 @@ function rebuildForward(base: ForwardResult, body: string, status: number): Forw
 
 /**
  * Auto-fix: heal a repairable request-side 4xx by handing the failed request and
- * its provider error to Phoenix, resending the patched body, and looping up to a
- * per-agent budget — all BEFORE the fallback chain runs. A no-op unless the
- * forward already failed with a repairable status AND the agent opted in, so
- * successful traffic is never touched. Any unexpected failure inside the flow
- * degrades to the original provider error — healing never makes a request worse.
+ * its provider error to Phoenix and resending the patched body ONCE — all BEFORE
+ * the fallback chain runs. A no-op unless the forward already failed with a
+ * repairable status AND the agent opted in, so successful traffic is never
+ * touched. Any unexpected failure inside the flow degrades to the original
+ * provider error — healing never makes a request worse.
  */
 @Injectable()
 export class AutofixService {
   private readonly logger = new Logger(AutofixService.name);
   private readonly globalEnabled: boolean;
-  private readonly defaultMaxAttempts: number;
   private readonly repairableStatuses: Set<number>;
   private readonly configCache = new Map<
     string,
@@ -89,8 +87,6 @@ export class AutofixService {
     config: ConfigService,
   ) {
     this.globalEnabled = config.get<string>('AUTOFIX_GLOBAL_ENABLED') !== 'false';
-    const parsedMax = Number.parseInt(config.get<string>('AUTOFIX_DEFAULT_MAX_ATTEMPTS') ?? '', 10);
-    this.defaultMaxAttempts = Number.isInteger(parsedMax) && parsedMax > 0 ? parsedMax : 3;
     this.repairableStatuses = parseStatuses(config.get<string>('AUTOFIX_REPAIRABLE_STATUSES'));
   }
 
@@ -99,7 +95,7 @@ export class AutofixService {
     return this.repairableStatuses.has(status);
   }
 
-  /** Drop a cached per-agent config so a toggle/budget change takes effect now. */
+  /** Drop a cached per-agent config so a toggle change takes effect now. */
   invalidateConfig(tenantId: string, agentId: string): void {
     this.configCache.delete(`${tenantId}:${agentId}`);
   }
@@ -128,126 +124,112 @@ export class AutofixService {
     const originalForward = rebuildForward(forward, originalText, status);
 
     try {
-      return await this.runHealLoop(params, status, originalText, originalForward, cfg.maxAttempts);
+      return await this.runHealOnce(params, status, originalText, originalForward);
     } catch (err) {
-      // Any unexpected failure inside the loop (reforward, network, parsing…)
-      // degrades to the original provider error — never a Manifest 500.
-      this.logger.warn(`autofix loop failed, using original error: ${(err as Error).message}`);
+      // Any unexpected failure (reforward, network, parsing…) degrades to the
+      // original provider error — never a Manifest 500.
+      this.logger.warn(`autofix failed, using original error: ${(err as Error).message}`);
       return {
         forward: originalForward,
-        record: {
-          groupId: uuid(),
-          outcome: 'exhausted',
-          attempts: 0,
-          original_http_status: status,
-          chain: [],
-        },
+        record: { groupId: uuid(), outcome: 'exhausted', original_http_status: status, chain: [] },
       };
     }
   }
 
-  private async runHealLoop(
+  /**
+   * One heal attempt: ask Phoenix, and if it hands out a patch, resend the
+   * patched body exactly once. There is no retry budget — a patch that doesn't
+   * clear the error is reported to Phoenix and then we give up (the fallback
+   * chain is the next safety net).
+   */
+  private async runHealOnce(
     params: MaybeHealParams,
     status: number,
     originalText: string,
     originalForward: ForwardResult,
-    maxAttempts: number,
   ): Promise<AutofixAttempt> {
     const groupId = uuid();
-    const chain: AutofixChainEntry[] = [];
-    let currentBody = params.requestBody;
-    let currentStatus = status;
-    let currentText = originalText;
-    let attempts = 0;
-    let outcome: AutofixOutcome = 'exhausted';
-    let healedForward: ForwardResult | null = null;
+    const normalized = normalizeProviderError(originalText);
 
-    while (attempts < maxAttempts) {
-      const normalized = normalizeProviderError(currentText);
-      // No same-error short-circuit: each iteration re-asks Phoenix and reports
-      // the retry outcome, so a patch that doesn't clear the error yields a fresh
-      // heal-attempt (and Phoenix a fresh failure signal) until the budget is spent.
+    const entry: AutofixChainEntry = {
+      attempt: 0,
+      origin: 'original',
+      request: params.requestBody,
+      http_status: status,
+      error: normalized,
+    };
+    const chain: AutofixChainEntry[] = [entry];
 
-      const entry: AutofixChainEntry = {
-        attempt: attempts,
-        origin: attempts === 0 ? 'original' : 'autofix',
-        request: currentBody,
-        http_status: currentStatus,
-        error: normalized,
-      };
-      chain.push(entry);
-
-      let heal: HealResponse;
-      try {
-        heal = await this.client.heal({
-          // Stable across every retry of one logical request (Phoenix groups the
-          // heal-attempt timeline by it) — reuse the group id we already minted.
-          requestId: groupId,
-          provider: params.provider,
-          api: params.apiMode,
-          url: params.url,
-          request: currentBody,
-          response: { statusCode: currentStatus, error: normalized },
-        });
-      } catch (err) {
-        this.logger.warn(`heal call failed: ${(err as Error).message}`);
-        break;
-      }
-
-      entry.phoenix_status = heal.status;
-      entry.issue_id = heal.issueId;
-      entry.patch_id = heal.patchId ?? null;
-      entry.heal_attempt_id = heal.healAttemptId ?? null;
-      entry.operations = heal.operations ?? null;
-
-      if (heal.status === 'no_patch') {
-        outcome = 'unfixable';
-        break;
-      }
-      if (heal.status === 'resolving') {
-        outcome = 'resolving';
-        break;
-      }
-      if (!heal.healedBody || !heal.healAttemptId) {
-        outcome = 'unfixable';
-        break;
-      }
-
-      const healAttemptId = heal.healAttemptId;
-      currentBody = heal.healedBody;
-      attempts += 1;
-      const next = await params.reforward(currentBody);
-      const ok = next.response.ok;
-      entry.patch_worked = ok;
-
-      if (ok) {
-        // Report the cleared retry so Phoenix can promote the patch.
-        this.reportOutcome(healAttemptId, { retryStatusCode: next.response.status });
-        outcome = 'healed';
-        healedForward = next;
-        chain.push({
-          attempt: attempts,
-          origin: 'autofix',
-          request: currentBody,
-          http_status: next.response.status,
-        });
-        break;
-      }
-
-      currentStatus = next.response.status;
-      currentText = await next.response.text();
-      // Report the new error after retry — Phoenix decides succeeded (different
-      // error) vs failed (same error recurred).
-      this.reportOutcome(healAttemptId, {
-        retryStatusCode: currentStatus,
-        error: normalizeProviderError(currentText),
+    let heal: HealResponse;
+    try {
+      heal = await this.client.heal({
+        requestId: groupId,
+        provider: params.provider,
+        api: params.apiMode,
+        url: params.url,
+        request: params.requestBody,
+        response: { statusCode: status, error: normalized },
       });
-      if (!this.isRepairable(currentStatus)) break;
+    } catch (err) {
+      this.logger.warn(`heal call failed: ${(err as Error).message}`);
+      return {
+        forward: originalForward,
+        record: { groupId, outcome: 'exhausted', original_http_status: status, chain },
+      };
     }
 
+    entry.phoenix_status = heal.status;
+    entry.issue_id = heal.issueId;
+    entry.patch_id = heal.patchId ?? null;
+    entry.heal_attempt_id = heal.healAttemptId ?? null;
+    entry.operations = heal.operations ?? null;
+
+    // Phoenix is still authoring a patch for this novel error — nothing to resend.
+    if (heal.status === 'resolving') {
+      return {
+        forward: originalForward,
+        record: { groupId, outcome: 'resolving', original_http_status: status, chain },
+      };
+    }
+    // No patch available (or a malformed patch response) — give up cleanly.
+    if (heal.status === 'no_patch' || !heal.healedBody || !heal.healAttemptId) {
+      return {
+        forward: originalForward,
+        record: { groupId, outcome: 'unfixable', original_http_status: status, chain },
+      };
+    }
+
+    const healAttemptId = heal.healAttemptId;
+    const healedBody = heal.healedBody;
+    const next = await params.reforward(healedBody);
+    const ok = next.response.ok;
+    entry.patch_worked = ok;
+
+    if (ok) {
+      // Report the cleared retry so Phoenix can promote the patch.
+      this.reportOutcome(healAttemptId, { retryStatusCode: next.response.status });
+      chain.push({
+        attempt: 1,
+        origin: 'autofix',
+        request: healedBody,
+        http_status: next.response.status,
+      });
+      return {
+        forward: next,
+        record: { groupId, outcome: 'healed', original_http_status: status, chain },
+      };
+    }
+
+    // The patch didn't clear the error. Report the retry outcome to Phoenix and
+    // give up — a single attempt, no re-heal.
+    const retryText = await next.response.text();
+    this.reportOutcome(healAttemptId, {
+      retryStatusCode: next.response.status,
+      error: normalizeProviderError(retryText),
+    });
     return {
-      forward: healedForward ?? originalForward,
-      record: { groupId, outcome, attempts, original_http_status: status, chain },
+      forward: originalForward,
+      record: { groupId, outcome: 'unfixable', original_http_status: status, chain },
     };
   }
 
@@ -259,19 +241,9 @@ export class AutofixService {
 
     const agent = await this.agentRepo.findOne({
       where: { id: agentId, tenant_id: tenantId },
-      select: ['autofix_enabled', 'autofix_max_attempts'],
+      select: ['autofix_enabled'],
     });
-    const budget = agent?.autofix_max_attempts;
-    const value: AgentAutofixConfig =
-      agent && agent.autofix_enabled
-        ? {
-            enabled: true,
-            maxAttempts:
-              Number.isInteger(budget) && (budget as number) > 0
-                ? (budget as number)
-                : this.defaultMaxAttempts,
-          }
-        : { enabled: false, maxAttempts: 0 };
+    const value: AgentAutofixConfig = { enabled: Boolean(agent?.autofix_enabled) };
 
     // Only the failure path reaches here; caching keeps a 4xx storm from doing a
     // DB read per failed request. Bounded + short TTL, invalidated on config change.

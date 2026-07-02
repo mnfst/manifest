@@ -2014,7 +2014,6 @@ describe('proxy-response-handler', () => {
     const healedAutofix: AutofixRecord = {
       groupId: 'grp-1',
       outcome: 'healed',
-      attempts: 1,
       original_http_status: 400,
       chain: [
         {
@@ -2065,7 +2064,6 @@ describe('proxy-response-handler', () => {
       const exhaustedAutofix: AutofixRecord = {
         groupId: 'grp-exhausted',
         outcome: 'exhausted',
-        attempts: 0,
         original_http_status: 400,
         chain: [
           {
@@ -2114,7 +2112,6 @@ describe('proxy-response-handler', () => {
       const emptyChainAutofix: AutofixRecord = {
         groupId: 'grp-empty',
         outcome: 'exhausted',
-        attempts: 0,
         original_http_status: 400,
         chain: [],
       };

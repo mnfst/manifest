@@ -180,17 +180,13 @@ export function toggleComplexity(agentName: string) {
 
 export interface AutofixConfig {
   enabled: boolean;
-  maxAttempts: number;
 }
 
 export function getAutofix(agentName: string) {
   return fetchJson<AutofixConfig>(routingPath(agentName, 'autofix'));
 }
 
-export function updateAutofix(
-  agentName: string,
-  body: { enabled?: boolean; maxAttempts?: number },
-) {
+export function updateAutofix(agentName: string, body: { enabled?: boolean }) {
   return fetchMutate<AutofixConfig>(routingPath(agentName, 'autofix'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },

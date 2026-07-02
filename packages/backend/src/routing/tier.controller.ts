@@ -159,7 +159,7 @@ export class TierController {
   @Get(':agentName/autofix')
   async getAutofix(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
-    return { enabled: agent.autofix_enabled, maxAttempts: agent.autofix_max_attempts };
+    return { enabled: agent.autofix_enabled };
   }
 
   @Patch(':agentName/autofix')
@@ -169,18 +169,12 @@ export class TierController {
     @Body() body: UpdateAutofixDto,
   ) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
-    const update: Partial<Agent> = {};
-    if (body.enabled !== undefined) update.autofix_enabled = body.enabled;
-    if (body.maxAttempts !== undefined) update.autofix_max_attempts = body.maxAttempts;
-    if (Object.keys(update).length > 0) {
-      await this.agentRepo.update(agent.id, update);
+    if (body.enabled !== undefined) {
+      await this.agentRepo.update(agent.id, { autofix_enabled: body.enabled });
       this.resolveAgentService.invalidate(agent.tenant_id, agentName);
       this.autofixService.invalidateConfig(agent.tenant_id, agent.id);
     }
-    return {
-      enabled: update.autofix_enabled ?? agent.autofix_enabled,
-      maxAttempts: update.autofix_max_attempts ?? agent.autofix_max_attempts,
-    };
+    return { enabled: body.enabled ?? agent.autofix_enabled };
   }
 
   private validateTier(tier: string): void {

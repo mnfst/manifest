@@ -21,8 +21,8 @@ const mockSetSpecificityResponseMode = vi.fn();
 const mockListModelParams = vi.fn();
 const mockSetModelParams = vi.fn();
 const mockDeleteModelParams = vi.fn();
-const mockGetAutofix = vi.fn(() => Promise.resolve({ enabled: false, maxAttempts: 3 }));
-const mockUpdateAutofix = vi.fn(() => Promise.resolve({ enabled: false, maxAttempts: 3 }));
+const mockGetAutofix = vi.fn(() => Promise.resolve({ enabled: false }));
+const mockUpdateAutofix = vi.fn(() => Promise.resolve({ enabled: false }));
 
 vi.mock('../../src/services/api.js', () => ({
   getTierAssignments: (...args: unknown[]) => mockGetTierAssignments(...args),

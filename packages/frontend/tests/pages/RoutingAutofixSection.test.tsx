@@ -34,114 +34,69 @@ describe('RoutingAutofixSection', () => {
     cleanup();
   });
 
-  it('renders the Auto-fix title and switch, hiding the budget input when disabled', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: false, maxAttempts: 3 });
+  it('renders the Auto-fix title and switch', async () => {
+    mockGetAutofix.mockResolvedValue({ enabled: false });
     const { container } = render(() => <RoutingAutofixSection agentName={() => 'demo'} />);
 
     expect(container.textContent).toContain('Auto-fix');
-    await waitForLoaded(container);
+    const btn = await waitForLoaded(container);
 
     // getAutofix is fetched against the current agent name.
     expect(mockGetAutofix).toHaveBeenCalledWith('demo', expect.anything());
-    // Disabled config → no budget number input.
-    expect(container.querySelector('input[type=number]')).toBeNull();
+    // Disabled config → the switch is not in its "on" state.
+    expect(btn.classList.contains('routing-switch--on')).toBe(false);
   });
 
-  it('toggles Auto-fix on and reveals the budget input after the update resolves', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: false, maxAttempts: 3 });
-    mockUpdateAutofix.mockResolvedValue({ enabled: true, maxAttempts: 3 });
+  it('shows the switch in its on state when Auto-fix is enabled', async () => {
+    mockGetAutofix.mockResolvedValue({ enabled: true });
+    const { container } = render(() => <RoutingAutofixSection agentName={() => 'demo'} />);
+
+    const btn = await waitForLoaded(container);
+    expect(btn.classList.contains('routing-switch--on')).toBe(true);
+  });
+
+  it('disables the switch while the config is still loading', () => {
+    // Never-resolving fetch keeps `config.loading` true.
+    mockGetAutofix.mockReturnValue(new Promise(() => {}));
+    const { container } = render(() => <RoutingAutofixSection agentName={() => 'demo'} />);
+
+    const btn = container.querySelector('.routing-switch') as HTMLButtonElement;
+    expect(btn.hasAttribute('disabled')).toBe(true);
+    // Config unresolved → `config()?.enabled ?? false` falls back to off.
+    expect(btn.classList.contains('routing-switch--on')).toBe(false);
+  });
+
+  it('toggles Auto-fix on when currently disabled', async () => {
+    mockGetAutofix.mockResolvedValue({ enabled: false });
+    mockUpdateAutofix.mockResolvedValue({ enabled: true });
     const { container } = render(() => <RoutingAutofixSection agentName={() => 'demo'} />);
 
     const btn = await waitForLoaded(container);
     fireEvent.click(btn);
 
     expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: true });
+    // After the update resolves, the mutated config flips the switch on.
     await waitFor(() => {
-      const input = container.querySelector('input[type=number]') as HTMLInputElement | null;
-      expect(input).not.toBeNull();
-      expect(input!.value).toBe('3');
+      expect(btn.classList.contains('routing-switch--on')).toBe(true);
     });
   });
 
-  it('persists a valid in-range budget change', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: true, maxAttempts: 3 });
-    mockUpdateAutofix.mockResolvedValue({ enabled: true, maxAttempts: 5 });
-    const { container } = render(() => <RoutingAutofixSection agentName={() => 'demo'} />);
-
-    await waitForLoaded(container);
-    const input = await waitFor(() => {
-      const el = container.querySelector('input[type=number]') as HTMLInputElement | null;
-      expect(el).not.toBeNull();
-      return el!;
-    });
-
-    fireEvent.change(input, { target: { value: '5' } });
-    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { maxAttempts: 5 });
-  });
-
-  it('ignores an out-of-range budget value (too high)', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: true, maxAttempts: 3 });
-    const { container } = render(() => <RoutingAutofixSection agentName={() => 'demo'} />);
-
-    await waitForLoaded(container);
-    const input = await waitFor(() => {
-      const el = container.querySelector('input[type=number]') as HTMLInputElement | null;
-      expect(el).not.toBeNull();
-      return el!;
-    });
-
-    fireEvent.change(input, { target: { value: '11' } });
-    expect(mockUpdateAutofix).not.toHaveBeenCalled();
-  });
-
-  it('ignores an out-of-range budget value (below minimum)', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: true, maxAttempts: 3 });
-    const { container } = render(() => <RoutingAutofixSection agentName={() => 'demo'} />);
-
-    await waitForLoaded(container);
-    const input = await waitFor(() => {
-      const el = container.querySelector('input[type=number]') as HTMLInputElement | null;
-      expect(el).not.toBeNull();
-      return el!;
-    });
-
-    fireEvent.change(input, { target: { value: '0' } });
-    expect(mockUpdateAutofix).not.toHaveBeenCalled();
-  });
-
-  it('ignores a budget change that equals the current value (no-op)', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: true, maxAttempts: 3 });
-    const { container } = render(() => <RoutingAutofixSection agentName={() => 'demo'} />);
-
-    await waitForLoaded(container);
-    const input = await waitFor(() => {
-      const el = container.querySelector('input[type=number]') as HTMLInputElement | null;
-      expect(el).not.toBeNull();
-      return el!;
-    });
-
-    // Current maxAttempts is 3 — re-entering it is a no-op and must not save.
-    fireEvent.change(input, { target: { value: '3' } });
-    expect(mockUpdateAutofix).not.toHaveBeenCalled();
-  });
-
-  it('falls back to a default budget of 3 when maxAttempts is absent', async () => {
-    // enabled with no explicit maxAttempts → the `?? 3` fallback drives the
-    // input's initial value.
+  it('toggles Auto-fix off when currently enabled', async () => {
     mockGetAutofix.mockResolvedValue({ enabled: true });
+    mockUpdateAutofix.mockResolvedValue({ enabled: false });
     const { container } = render(() => <RoutingAutofixSection agentName={() => 'demo'} />);
 
-    await waitForLoaded(container);
-    const input = await waitFor(() => {
-      const el = container.querySelector('input[type=number]') as HTMLInputElement | null;
-      expect(el).not.toBeNull();
-      return el!;
+    const btn = await waitForLoaded(container);
+    fireEvent.click(btn);
+
+    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: false });
+    await waitFor(() => {
+      expect(btn.classList.contains('routing-switch--on')).toBe(false);
     });
-    expect(input.value).toBe('3');
   });
 
   it('surfaces a toast when the update fails', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: false, maxAttempts: 3 });
+    mockGetAutofix.mockResolvedValue({ enabled: false });
     mockUpdateAutofix.mockRejectedValue(new Error('boom'));
     const { container } = render(() => <RoutingAutofixSection agentName={() => 'demo'} />);
 

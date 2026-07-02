@@ -10,9 +10,6 @@ import {
   ArrayMinSize,
   ValidateNested,
   IsBoolean,
-  IsInt,
-  Min,
-  Max,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
@@ -232,17 +229,8 @@ export function responseModeFromDto(body: SetResponseModeDto): ResponseMode | un
   return body.response_mode ?? body.responseMode;
 }
 
-/** Upper bound on Auto-fix retries — a guardrail against runaway heal loops. */
-export const AUTOFIX_MAX_ATTEMPTS_LIMIT = 10;
-
 export class UpdateAutofixDto {
   @IsOptional()
   @IsBoolean()
   enabled?: boolean;
-
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  @Max(AUTOFIX_MAX_ATTEMPTS_LIMIT)
-  maxAttempts?: number;
 }

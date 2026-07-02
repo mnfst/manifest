@@ -8,7 +8,6 @@ import type { AutofixRecord } from '../../autofix/autofix.types';
 const sampleAutofix: AutofixRecord = {
   groupId: 'grp-1',
   outcome: 'healed',
-  attempts: 1,
   original_http_status: 400,
   chain: [
     {

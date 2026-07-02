@@ -11,25 +11,19 @@ describe('AddAutofixAgentFlags1799000000000', () => {
   });
 
   describe('up', () => {
-    it('adds the autofix_enabled and autofix_max_attempts columns to agents', async () => {
+    it('adds the autofix_enabled column to agents', async () => {
       await migration.up(queryRunner as unknown as QueryRunner);
 
       expect(queryRunner.query).toHaveBeenCalledWith(
         expect.stringContaining('ADD COLUMN "autofix_enabled"'),
       );
-      expect(queryRunner.query).toHaveBeenCalledWith(
-        expect.stringContaining('ADD COLUMN "autofix_max_attempts"'),
-      );
     });
   });
 
   describe('down', () => {
-    it('drops both autofix columns', async () => {
+    it('drops the autofix_enabled column', async () => {
       await migration.down(queryRunner as unknown as QueryRunner);
 
-      expect(queryRunner.query).toHaveBeenCalledWith(
-        expect.stringContaining('DROP COLUMN "autofix_max_attempts"'),
-      );
       expect(queryRunner.query).toHaveBeenCalledWith(
         expect.stringContaining('DROP COLUMN "autofix_enabled"'),
       );

@@ -15,7 +15,6 @@ describe('TierController', () => {
     tenant_id: 'tenant-1',
     complexity_routing_enabled: true,
     autofix_enabled: false,
-    autofix_max_attempts: 3,
   };
   let tierService: jest.Mocked<Partial<TierService>>;
   let resolveAgentService: { resolve: jest.Mock; invalidate: jest.Mock };
@@ -135,30 +134,21 @@ describe('TierController', () => {
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
   });
 
-  it('GET autofix returns the enabled flag and budget', async () => {
-    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: false, maxAttempts: 3 });
+  it('GET autofix returns the enabled flag', async () => {
+    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: false });
   });
 
-  it('PATCH autofix updates both fields and invalidates cache', async () => {
-    const out = await controller.updateAutofix(ctx, 'demo', { enabled: true, maxAttempts: 5 });
-    expect(out).toEqual({ enabled: true, maxAttempts: 5 });
-    expect(agentRepo.update).toHaveBeenCalledWith('agent-1', {
-      autofix_enabled: true,
-      autofix_max_attempts: 5,
-    });
+  it('PATCH autofix updates the enabled flag and invalidates cache', async () => {
+    const out = await controller.updateAutofix(ctx, 'demo', { enabled: true });
+    expect(out).toEqual({ enabled: true });
+    expect(agentRepo.update).toHaveBeenCalledWith('agent-1', { autofix_enabled: true });
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
     expect(autofixService.invalidateConfig).toHaveBeenCalledWith('tenant-1', 'agent-1');
   });
 
-  it('PATCH autofix updates only the provided field', async () => {
-    const out = await controller.updateAutofix(ctx, 'demo', { enabled: true });
-    expect(out).toEqual({ enabled: true, maxAttempts: 3 });
-    expect(agentRepo.update).toHaveBeenCalledWith('agent-1', { autofix_enabled: true });
-  });
-
-  it('PATCH autofix with an empty body is a no-op and echoes current values', async () => {
+  it('PATCH autofix with an empty body is a no-op and echoes the current value', async () => {
     const out = await controller.updateAutofix(ctx, 'demo', {});
-    expect(out).toEqual({ enabled: false, maxAttempts: 3 });
+    expect(out).toEqual({ enabled: false });
     expect(agentRepo.update).not.toHaveBeenCalled();
     expect(resolveAgentService.invalidate).not.toHaveBeenCalled();
   });

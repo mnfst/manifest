@@ -6,8 +6,8 @@ import type { PhoenixHealStatus, PhoenixOperation, PhoenixProviderError } from '
  * - `unfixable`  — Phoenix had no patch (`no_patch`) or returned an empty one.
  * - `resolving`  — Phoenix is still authoring a patch (novel error); nothing to
  *                  resend this time. A later request for the same issue may heal.
- * - `exhausted`  — the budget ran out, the healing service was unreachable, or a
- *                  retry produced a non-repairable error.
+ * - `exhausted`  — the healing service was unreachable or the attempt threw
+ *                  before completing.
  */
 export type AutofixOutcome = 'healed' | 'unfixable' | 'resolving' | 'exhausted';
 
@@ -42,8 +42,6 @@ export interface AutofixRecord {
   /** Shared id linking the failed-original and successful-retry rows. */
   groupId: string;
   outcome: AutofixOutcome;
-  /** Number of patched requests resent (0 when Phoenix never handed one out). */
-  attempts: number;
   original_http_status: number;
   chain: AutofixChainEntry[];
 }

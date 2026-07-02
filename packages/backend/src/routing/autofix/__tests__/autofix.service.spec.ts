@@ -89,8 +89,8 @@ const patchedHeal = (over: Partial<HealResponse> = {}): HealResponse => ({
 
 /**
  * A `reforward` mock that returns a FRESH ForwardResult on every call. Reusing a
- * single Response across loop iterations fails: the service reads the retry body
- * (`.text()`), so a shared Response would be "already read" on the next attempt.
+ * single Response fails: the service reads the retry body (`.text()`), so a
+ * shared Response would be "already read" on a later access.
  */
 function reforwardMock(
   body: string,
@@ -99,24 +99,6 @@ function reforwardMock(
   return jest.fn((_healedBody: Record<string, unknown>) =>
     Promise.resolve(makeForward(body, status)),
   );
-}
-
-/**
- * A `reforward` mock that returns a DISTINCT repairable 4xx on every call (the
- * `code`/`message` are incremented per attempt). Each retry produces a different
- * error, exercising the multi-iteration re-heal path; the loop is bounded only
- * by `maxAttempts`.
- */
-function distinctErrorReforward(
-  status = 400,
-): jest.Mock<Promise<ForwardResult>, [Record<string, unknown>]> {
-  let n = 0;
-  return jest.fn((_healedBody: Record<string, unknown>) => {
-    n += 1;
-    return Promise.resolve(
-      makeForward(JSON.stringify({ error: { message: `e${n}`, code: `c${n}` } }), status),
-    );
-  });
 }
 
 /** Yield to the microtask queue so fire-and-forget `.catch` handlers run. */
@@ -140,41 +122,6 @@ describe('AutofixService', () => {
       // proven indirectly via the disabled-agent path (config still loaded).
       expect(service).toBeInstanceOf(AutofixService);
       expect(findOne).not.toHaveBeenCalled();
-    });
-
-    it('parses a valid AUTOFIX_DEFAULT_MAX_ATTEMPTS override', async () => {
-      // A valid > 0 default is used when the agent has no explicit budget.
-      const client = makeHealingClient();
-      // Phoenix keeps handing patched bodies; each reforward fails with a
-      // repairable error, so attempts are bounded only by the default budget of 5.
-      client.heal.mockResolvedValue(patchedHeal());
-      const reforward = distinctErrorReforward(400);
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 0 }));
-      const service = makeService({
-        client: client as unknown as HealingClient,
-        repo,
-        config: makeConfig({ AUTOFIX_DEFAULT_MAX_ATTEMPTS: '5' }),
-      });
-
-      const result = await service.maybeHeal(makeParams({ reforward }));
-      expect(result?.record.attempts).toBe(5);
-      expect(reforward).toHaveBeenCalledTimes(5);
-    });
-
-    it('falls back to 3 when AUTOFIX_DEFAULT_MAX_ATTEMPTS is non-numeric', async () => {
-      const client = makeHealingClient();
-      client.heal.mockResolvedValue(patchedHeal());
-      const reforward = distinctErrorReforward(400);
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 0 }));
-      const service = makeService({
-        client: client as unknown as HealingClient,
-        repo,
-        config: makeConfig({ AUTOFIX_DEFAULT_MAX_ATTEMPTS: 'not-a-number' }),
-      });
-
-      const result = await service.maybeHeal(makeParams({ reforward }));
-      expect(result?.record.attempts).toBe(3);
-      expect(reforward).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -319,29 +266,28 @@ describe('AutofixService', () => {
 
       expect(findOne).toHaveBeenCalledWith({
         where: { id: 'a-9', tenant_id: 't-9' },
-        select: ['autofix_enabled', 'autofix_max_attempts'],
+        select: ['autofix_enabled'],
       });
     });
   });
 
   // -------------------------------------------------------------------------
-  // maybeHeal — happy heal on first patch
+  // maybeHeal — happy heal on the single attempt
   // -------------------------------------------------------------------------
   describe('maybeHeal happy path', () => {
-    it('heals on the first patch, reports the cleared retry, and records the chain', async () => {
+    it('heals on the patched retry, reports the cleared retry, and records the chain', async () => {
       const client = makeHealingClient();
       const heal = patchedHeal();
       client.heal.mockResolvedValue(heal);
       const healedForward = makeForward('{"ok":true}', 200);
       const reforward = jest.fn().mockResolvedValue(healedForward);
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 3 }));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
 
       const result = await service.maybeHeal(makeParams({ reforward }));
 
       expect(result).not.toBeNull();
       expect(result!.record.outcome).toBe('healed');
-      expect(result!.record.attempts).toBe(1);
       expect(result!.record.original_http_status).toBe(400);
 
       // Returned forward is the healed 200.
@@ -388,7 +334,7 @@ describe('AutofixService', () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
       const reforward = jest.fn().mockResolvedValue(makeForward('{"ok":true}', 200));
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 3 }));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
       const requestBody = { model: 'gpt', max_tokens: 5 };
 
@@ -424,7 +370,7 @@ describe('AutofixService', () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-2' });
       const reforward = jest.fn();
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 3 }));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
       const originalBody = '{"error":{"message":"nope"}}';
 
@@ -433,7 +379,6 @@ describe('AutofixService', () => {
       );
 
       expect(result!.record.outcome).toBe('unfixable');
-      expect(result!.record.attempts).toBe(0);
       expect(reforward).not.toHaveBeenCalled();
       expect(client.reportOutcome).not.toHaveBeenCalled();
 
@@ -457,13 +402,12 @@ describe('AutofixService', () => {
         retryAfterMs: 5000,
       });
       const reforward = jest.fn();
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 3 }));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
 
       const result = await service.maybeHeal(makeParams({ reforward }));
 
       expect(result!.record.outcome).toBe('resolving');
-      expect(result!.record.attempts).toBe(0);
       expect(reforward).not.toHaveBeenCalled();
       expect(client.reportOutcome).not.toHaveBeenCalled();
     });
@@ -472,7 +416,7 @@ describe('AutofixService', () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal({ healedBody: null }));
       const reforward = jest.fn();
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 3 }));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
 
       const result = await service.maybeHeal(makeParams({ reforward }));
@@ -486,7 +430,7 @@ describe('AutofixService', () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal({ healAttemptId: null }));
       const reforward = jest.fn();
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 3 }));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
 
       const result = await service.maybeHeal(makeParams({ reforward }));
@@ -497,16 +441,16 @@ describe('AutofixService', () => {
   });
 
   // -------------------------------------------------------------------------
-  // maybeHeal — budget / retry loop
+  // maybeHeal — single attempt (no retry budget)
   // -------------------------------------------------------------------------
-  describe('maybeHeal budget and retry loop', () => {
-    it('exhausts the budget, reporting each failed retry, and returns the original', async () => {
+  describe('maybeHeal single attempt', () => {
+    it('applies the patch once; if the retry still fails, reports it and gives up as unfixable', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
-      // Each reforward fails with a DISTINCT repairable 4xx (e1/c1, e2/c2, …);
-      // the budget is the only stop.
-      const reforward = distinctErrorReforward(400);
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 2 }));
+      // The patched retry still fails with a repairable 400 — Auto-fix does NOT
+      // re-heal; it reports the retry outcome to Phoenix and returns the original.
+      const reforward = reforwardMock('{"error":{"message":"still-broken","code":"dup"}}', 400);
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
       const originalBody = '{"error":{"message":"first"}}';
 
@@ -514,104 +458,25 @@ describe('AutofixService', () => {
         makeParams({ forward: makeForward(originalBody, 400), reforward }),
       );
 
-      expect(result!.record.outcome).toBe('exhausted');
-      expect(result!.record.attempts).toBe(2);
-      expect(reforward).toHaveBeenCalledTimes(2);
-
-      // Each failed retry is reported with its >=400 status and the normalized
-      // error of that retry's (distinct) body.
-      expect(client.reportOutcome).toHaveBeenCalledTimes(2);
-      expect(client.reportOutcome).toHaveBeenNthCalledWith(1, 'heal-1', {
-        retryStatusCode: 400,
-        error: { message: 'e1', type: null, param: null, code: 'c1' },
-      });
-      expect(client.reportOutcome).toHaveBeenNthCalledWith(2, 'heal-1', {
-        retryStatusCode: 400,
-        error: { message: 'e2', type: null, param: null, code: 'c2' },
-      });
-
-      // Falls back to the rebuilt original error.
-      expect(result!.forward.response.status).toBe(400);
-      await expect(result!.forward.response.text()).resolves.toBe(originalBody);
-    });
-
-    it('stops when a retry yields a non-repairable status', async () => {
-      const client = makeHealingClient();
-      client.heal.mockResolvedValue(patchedHeal());
-      // First reforward returns a 500 (non-repairable) → loop breaks after 1 attempt.
-      const reforward = jest.fn().mockResolvedValue(makeForward('server error', 500));
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 5 }));
-      const service = makeService({ client: client as unknown as HealingClient, repo });
-      const originalBody = '{"error":{"message":"first"}}';
-
-      const result = await service.maybeHeal(
-        makeParams({ forward: makeForward(originalBody, 400), reforward }),
-      );
-
-      expect(result!.record.outcome).toBe('exhausted');
-      expect(result!.record.attempts).toBe(1);
+      expect(result!.record.outcome).toBe('unfixable');
+      // Exactly one heal + one reforward — there is no retry budget.
+      expect(client.heal).toHaveBeenCalledTimes(1);
       expect(reforward).toHaveBeenCalledTimes(1);
-      // The non-repairable 500 retry is still reported (with its normalized error)
-      // before the loop breaks.
+      // The single failed retry is reported to Phoenix with its status + error.
       expect(client.reportOutcome).toHaveBeenCalledTimes(1);
       expect(client.reportOutcome).toHaveBeenCalledWith('heal-1', {
-        retryStatusCode: 500,
-        error: { message: 'server error', type: null, param: null, code: null },
+        retryStatusCode: 400,
+        error: { message: 'still-broken', type: null, param: null, code: 'dup' },
       });
 
-      // Returns the rebuilt ORIGINAL error (not the 500 retry).
+      // The original entry is marked with the patch that didn't work; no terminal
+      // success entry is appended.
+      expect(result!.record.chain).toHaveLength(1);
+      expect(result!.record.chain[0].patch_worked).toBe(false);
+
+      // Falls back to the rebuilt original error, still readable.
       expect(result!.forward.response.status).toBe(400);
       await expect(result!.forward.response.text()).resolves.toBe(originalBody);
-    });
-
-    it('reads the retry error body and reheals it on the next loop iteration', async () => {
-      const client = makeHealingClient();
-      // First heal succeeds-as-patch but the retry is a repairable 404; second
-      // heal patches and its retry is a 200.
-      client.heal
-        .mockResolvedValueOnce(patchedHeal({ healAttemptId: 'heal-a' }))
-        .mockResolvedValueOnce(patchedHeal({ healAttemptId: 'heal-b' }));
-      const reforward = jest
-        .fn()
-        .mockResolvedValueOnce(makeForward('{"error":{"message":"retry-404"}}', 404))
-        .mockResolvedValueOnce(makeForward('{"ok":true}', 200));
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 5 }));
-      const service = makeService({ client: client as unknown as HealingClient, repo });
-
-      const result = await service.maybeHeal(makeParams({ reforward }));
-
-      expect(result!.record.outcome).toBe('healed');
-      expect(result!.record.attempts).toBe(2);
-      expect(client.heal).toHaveBeenCalledTimes(2);
-      // The second heal fingerprints on the 404 retry body.
-      const secondHealArg = client.heal.mock.calls[1][0] as {
-        requestId: string;
-        response: { statusCode: number; error: { message: string } };
-      };
-      expect(secondHealArg.response.statusCode).toBe(404);
-      expect(secondHealArg.response.error.message).toBe('retry-404');
-
-      // Every retry of one logical request shares a single, stable requestId.
-      const firstHealArg = client.heal.mock.calls[0][0] as { requestId: string };
-      expect(typeof firstHealArg.requestId).toBe('string');
-      expect(firstHealArg.requestId.length).toBeGreaterThan(0);
-      expect(secondHealArg.requestId).toBe(firstHealArg.requestId);
-
-      // Failed retry → reported with its 4xx status and normalized error;
-      // cleared retry → reported with its 2xx status and no error.
-      expect(client.reportOutcome).toHaveBeenNthCalledWith(1, 'heal-a', {
-        retryStatusCode: 404,
-        error: { message: 'retry-404', type: null, param: null, code: null },
-      });
-      expect(client.reportOutcome).toHaveBeenNthCalledWith(2, 'heal-b', { retryStatusCode: 200 });
-      expect(client.reportOutcome.mock.calls[1][1]).not.toHaveProperty('error');
-
-      // The chain has the original (attempt 0), the second-iteration autofix
-      // request (attempt 1), and the terminal success entry (attempt 2).
-      const chain = result!.record.chain;
-      expect(chain.map((e) => e.attempt)).toEqual([0, 1, 2]);
-      expect(chain[1].origin).toBe('autofix');
-      expect(chain[1].http_status).toBe(404);
     });
   });
 
@@ -619,11 +484,11 @@ describe('AutofixService', () => {
   // maybeHeal — heal transport failure
   // -------------------------------------------------------------------------
   describe('maybeHeal heal transport failure', () => {
-    it('breaks the loop and reports exhausted when heal throws', async () => {
+    it('returns exhausted (no reforward, no report) when the heal call throws', async () => {
       const client = makeHealingClient();
       client.heal.mockRejectedValue(new Error('phoenix down'));
       const reforward = jest.fn();
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 3 }));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       // Silence the expected "heal call failed" warning.
       jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
       const service = makeService({ client: client as unknown as HealingClient, repo });
@@ -634,7 +499,6 @@ describe('AutofixService', () => {
       );
 
       expect(result!.record.outcome).toBe('exhausted');
-      expect(result!.record.attempts).toBe(0);
       expect(reforward).not.toHaveBeenCalled();
       expect(client.reportOutcome).not.toHaveBeenCalled();
 
@@ -653,7 +517,7 @@ describe('AutofixService', () => {
       client.heal.mockResolvedValue(patchedHeal());
       client.reportOutcome.mockRejectedValueOnce(new Error('report exploded'));
       const reforward = jest.fn().mockResolvedValue(makeForward('{"ok":true}', 200));
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 3 }));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       // Silence the expected "reportOutcome ... failed" warning from the .catch handler.
       jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
       const service = makeService({ client: client as unknown as HealingClient, repo });
@@ -665,85 +529,6 @@ describe('AutofixService', () => {
       // Let the fire-and-forget .catch run; must not surface as an unhandled rejection.
       await flushMicrotasks();
       expect(client.reportOutcome).toHaveBeenCalledWith('heal-1', { retryStatusCode: 200 });
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // loadAgentConfig — budget fallback via a happy heal
-  // -------------------------------------------------------------------------
-  describe('loadAgentConfig budget fallback', () => {
-    it('uses the explicit agent budget when it is a positive integer', async () => {
-      const client = makeHealingClient();
-      client.heal.mockResolvedValue(patchedHeal());
-      const reforward = reforwardMock('{"error":{"message":"bad"}}', 400);
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 1 }));
-      const service = makeService({ client: client as unknown as HealingClient, repo });
-
-      const result = await service.maybeHeal(makeParams({ reforward }));
-      expect(result!.record.attempts).toBe(1);
-      expect(reforward).toHaveBeenCalledTimes(1);
-    });
-
-    it('falls back to the default budget when autofix_max_attempts is undefined', async () => {
-      const client = makeHealingClient();
-      client.heal.mockResolvedValue(patchedHeal());
-      const reforward = distinctErrorReforward(400);
-      // autofix_max_attempts undefined (Number.isInteger(undefined) === false).
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
-      const service = makeService({ client: client as unknown as HealingClient, repo });
-
-      const result = await service.maybeHeal(makeParams({ reforward }));
-      // Default is 3 (no AUTOFIX_DEFAULT_MAX_ATTEMPTS set).
-      expect(result!.record.attempts).toBe(3);
-      expect(reforward).toHaveBeenCalledTimes(3);
-    });
-
-    it('falls back to the default budget when autofix_max_attempts is NaN', async () => {
-      const client = makeHealingClient();
-      client.heal.mockResolvedValue(patchedHeal());
-      const reforward = distinctErrorReforward(400);
-      const { repo } = makeAgentRepo(() => ({
-        autofix_enabled: true,
-        autofix_max_attempts: Number.NaN,
-      }));
-      const service = makeService({ client: client as unknown as HealingClient, repo });
-
-      const result = await service.maybeHeal(makeParams({ reforward }));
-      expect(result!.record.attempts).toBe(3);
-      expect(reforward).toHaveBeenCalledTimes(3);
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // maybeHeal — identical-error retries run to the budget
-  // -------------------------------------------------------------------------
-  describe('maybeHeal identical-error retries', () => {
-    it('keeps re-asking Phoenix up to the budget when the retry reproduces the same error', async () => {
-      const client = makeHealingClient();
-      client.heal.mockResolvedValue(patchedHeal());
-      // The retry reproduces the SAME error every time. With no same-error
-      // short-circuit, the loop keeps re-healing — a fresh heal-attempt each
-      // iteration, every failure reported — until the per-agent budget is spent.
-      const sameError = '{"error":{"message":"same","code":"dup"}}';
-      const reforward = reforwardMock(sameError, 400);
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 3 }));
-      const service = makeService({ client: client as unknown as HealingClient, repo });
-      const originalBody = sameError;
-
-      const result = await service.maybeHeal(
-        makeParams({ forward: makeForward(originalBody, 400), reforward }),
-      );
-
-      expect(result!.record.outcome).toBe('exhausted');
-      // One patched retry per budget slot; every failure went back to Phoenix.
-      expect(result!.record.attempts).toBe(3);
-      expect(reforward).toHaveBeenCalledTimes(3);
-      expect(client.heal).toHaveBeenCalledTimes(3);
-      expect(client.reportOutcome).toHaveBeenCalledTimes(3);
-
-      // Returns the rebuilt ORIGINAL error, still readable.
-      expect(result!.forward.response.status).toBe(400);
-      await expect(result!.forward.response.text()).resolves.toBe(originalBody);
     });
   });
 
@@ -768,8 +553,8 @@ describe('AutofixService', () => {
       client.heal.mockResolvedValue(patchedHeal());
       // The heal produced a patch, but resending it blows up (network death).
       const reforward = jest.fn().mockRejectedValue(new Error('socket hang up'));
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true, autofix_max_attempts: 3 }));
-      // Silence the expected "autofix loop failed" warning.
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      // Silence the expected "autofix failed" warning.
       jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
       const service = makeService({ client: client as unknown as HealingClient, repo });
       const originalBody = '{"error":{"message":"boom"}}';
@@ -778,9 +563,8 @@ describe('AutofixService', () => {
         makeParams({ forward: makeForward(originalBody, 400), reforward }),
       );
 
-      // Never re-throws: outcome is exhausted with a zero-attempt empty chain.
+      // Never re-throws: outcome is exhausted with an empty chain.
       expect(result!.record.outcome).toBe('exhausted');
-      expect(result!.record.attempts).toBe(0);
       expect(result!.record.original_http_status).toBe(400);
       expect(result!.record.chain).toEqual([]);
       expect(typeof result!.record.groupId).toBe('string');
@@ -800,10 +584,7 @@ describe('AutofixService', () => {
       // Each maybeHeal needs a fresh failing forward; keep them from healing so
       // the flow is simple — no_patch returns quickly without a reforward.
       client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-x' });
-      const { repo, findOne } = makeAgentRepo(() => ({
-        autofix_enabled: true,
-        autofix_max_attempts: 3,
-      }));
+      const { repo, findOne } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
 
       // First heal: cold cache → one DB read.
@@ -829,10 +610,7 @@ describe('AutofixService', () => {
     it('caches per (tenant, agent) key so a different agent still reads the DB', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-x' });
-      const { repo, findOne } = makeAgentRepo(() => ({
-        autofix_enabled: true,
-        autofix_max_attempts: 3,
-      }));
+      const { repo, findOne } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
 
       await service.maybeHeal(
@@ -854,10 +632,7 @@ describe('AutofixService', () => {
     it('clears the whole cache once it reaches the bound, then re-populates', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-x' });
-      const { repo, findOne } = makeAgentRepo(() => ({
-        autofix_enabled: true,
-        autofix_max_attempts: 3,
-      }));
+      const { repo, findOne } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
 
       // Pre-fill the bounded cache to exactly its cap (5000) with dummy entries
@@ -865,7 +640,7 @@ describe('AutofixService', () => {
       const cache = (service as unknown as { configCache: Map<string, unknown> }).configCache;
       for (let i = 0; i < 5000; i += 1) {
         cache.set(`filler-tenant:filler-agent-${i}`, {
-          value: { enabled: false, maxAttempts: 0 },
+          value: { enabled: false },
           expiresAt: Date.now() + 30_000,
         });
       }
