@@ -1,13 +1,18 @@
-import { createSignal, onMount, type Component } from 'solid-js';
-import { useNavigate } from '@solidjs/router';
+import { createResource, createSignal, onMount, Show, type Component } from 'solid-js';
+import { useNavigate, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import { authClient } from '../services/auth-client.js';
+import { getBillingStatus } from '../services/api/billing.js';
+import { toast } from '../services/toast-store.js';
 
 const Account: Component = () => {
   const navigate = useNavigate();
   const session = authClient.useSession();
   const [copied, setCopied] = createSignal(false);
   const [theme, setTheme] = createSignal<'light' | 'dark' | 'system'>('system');
+  const [billing] = createResource(getBillingStatus);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [billingBusy, setBillingBusy] = createSignal(false);
 
   const userName = () => session()?.data?.user?.name ?? '';
   const userEmail = () => session()?.data?.user?.email ?? '';
@@ -20,7 +25,36 @@ const Account: Component = () => {
     } else {
       setTheme('system');
     }
+
+    if (searchParams['upgraded'] === '1') {
+      toast.success('Welcome to Pro!');
+      setSearchParams({ upgraded: undefined }, { replace: true });
+    }
   });
+
+  const handleUpgrade = async () => {
+    setBillingBusy(true);
+    try {
+      await authClient.subscription.upgrade({
+        plan: 'pro',
+        successUrl: '/account?upgraded=1',
+        cancelUrl: '/account',
+      });
+    } finally {
+      setBillingBusy(false);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    setBillingBusy(true);
+    try {
+      await authClient.subscription.billingPortal({ returnUrl: '/account' });
+    } finally {
+      setBillingBusy(false);
+    }
+  };
+
+  const fmt = (n: number) => n.toLocaleString('en-US');
 
   const applyTheme = (value: 'light' | 'dark' | 'system') => {
     setTheme(value);
@@ -159,6 +193,80 @@ const Account: Component = () => {
             </div>
           </div>
         </div>
+
+        {/* Billing */}
+        <Show when={billing()?.enabled}>
+          <h2 class="settings-section__title" id="billing">
+            Billing
+          </h2>
+
+          <div class="settings-card">
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Current plan</span>
+                <span class="settings-card__label-desc">
+                  {billing()!.plan === 'pro' ? 'Pro' : 'Free'}
+                  {billing()!.plan === 'pro' && billing()!.priceMonthlyUsd != null
+                    ? ` · $${billing()!.priceMonthlyUsd}/mo`
+                    : ''}
+                </span>
+              </div>
+              <div class="settings-card__control">
+                <Show
+                  when={billing()!.plan === 'free'}
+                  fallback={
+                    <button
+                      class="btn btn--ghost btn--sm"
+                      disabled={billingBusy()}
+                      onClick={handleManageBilling}
+                    >
+                      Manage billing
+                    </button>
+                  }
+                >
+                  <button
+                    class="btn btn--primary btn--sm"
+                    disabled={billingBusy()}
+                    onClick={handleUpgrade}
+                  >
+                    Upgrade to Pro
+                    {billing()!.priceMonthlyUsd != null
+                      ? ` · $${billing()!.priceMonthlyUsd}/mo`
+                      : ''}
+                  </button>
+                </Show>
+              </div>
+            </div>
+
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Agents</span>
+                <span class="settings-card__label-desc">
+                  {billing()!.agents.used} / {billing()!.agents.limit ?? 'unlimited'} used
+                </span>
+              </div>
+            </div>
+
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Requests</span>
+                <span class="settings-card__label-desc">
+                  {billing()!.requests.limit != null
+                    ? `${fmt(billing()!.requests.limit!)} per month included`
+                    : 'Unlimited'}
+                </span>
+              </div>
+            </div>
+
+            <Show when={billing()!.plan === 'free'}>
+              <div class="settings-card__footer">
+                <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                  Free: 1 agent, 10,000 requests/mo · Pro: 10 agents, 500,000 requests/mo
+                </span>
+              </div>
+            </Show>
+          </div>
+        </Show>
 
         {/* Appearance */}
         <h2 class="settings-section__title">Appearance</h2>
