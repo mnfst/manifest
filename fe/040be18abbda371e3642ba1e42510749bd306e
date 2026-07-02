@@ -1,0 +1,21 @@
+packages/backend/.env.example
+  s_6aa2fd791b8a40::t_4ad1a86fa876f8 99-112
+.changeset/stripe-billing.md
+  s_6aa2fd791b8a40::t_f89fff00c5f5f8 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "fe040be18abbda371e3642ba1e42510749bd306e",
+  "prompts": {},
+  "sessions": {
+    "s_6aa2fd791b8a40": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0be8c650-5b21-41d1-a6f2-2b93fc056b2e",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
