@@ -1,0 +1,36 @@
+packages/backend/src/billing/billing.config.ts
+  s_6aa2fd791b8a40::t_e0c4019462f17c 1-24
+packages/backend/src/auth/auth.instance.ts
+  s_6aa2fd791b8a40::t_bec6903850496e 2,7
+  s_6aa2fd791b8a40::t_2d2a5a1df0f1d7 63-76
+  s_6aa2fd791b8a40::t_36cba6a9b7d437 84
+packages/backend/src/auth/auth.instance.spec.ts
+  s_6aa2fd791b8a40::t_4f6c45cb7ae907 10-11
+  s_6aa2fd791b8a40::t_3e6cb048e1b16b 448-485
+packages/frontend/package.json
+  s_6aa2fd791b8a40::t_700a994c01ec90 17
+packages/backend/src/billing/billing.config.spec.ts
+  s_6aa2fd791b8a40::t_9edafafbd12e41 1-69
+packages/backend/package.json
+  s_6aa2fd791b8a40::t_a9cfef16148cda 52
+  s_6aa2fd791b8a40::t_04c384744e6e65 36
+  s_6aa2fd791b8a40::t_bc1d5517b8e0e1 33
+package-lock.json
+  s_6aa2fd791b8a40::t_d0f370e58bcca3 987-1002,1045-1080,1554,1571,1588,1605,1622,1639,1656,1673,1690,1707,1724,1741,1758,1775,1792,1809,1841,1858,1875,1892,1909,1926,1943,1960,1977,4064-4065,4078-4079,4092-4093,4106-4107,4120-4121,4134-4135,4148-4149,4162-4163,4176-4177,4190-4191,4204-4205,4218-4219,4232-4233,4246-4247,4260-4261,4274-4275,4286-4287,4298-4299,4312-4313,4326-4327,4340-4341,4354-4355,4368-4369,4382-4383,6008-6124,12200-12201,12868-12887,14075,14731,14743,14759,14791-14794,14824
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "5601f1b6f9097f812e631d94c450080489428653",
+  "prompts": {},
+  "sessions": {
+    "s_6aa2fd791b8a40": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0be8c650-5b21-41d1-a6f2-2b93fc056b2e",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
