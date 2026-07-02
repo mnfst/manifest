@@ -210,6 +210,7 @@ export class ProxyController {
         this.recorder,
         callerAttribution,
         requestHeaders,
+        autofix,
       );
 
       let streamUsage = null;

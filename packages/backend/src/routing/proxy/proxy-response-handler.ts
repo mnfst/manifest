@@ -140,6 +140,7 @@ export async function handleProviderError(
       traceId,
       callerAttribution,
       requestHeaders,
+      autofix,
     );
     return;
   }
@@ -194,6 +195,7 @@ function handleFallbackExhausted(
   traceId?: string,
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
+  autofix?: AutofixRecord,
 ): void {
   const baseTime = Date.now();
   recordSafely(
@@ -234,6 +236,9 @@ function handleFallbackExhausted(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
+        // Auto-fix ran on this primary before the chain exhausted — stamp its
+        // audit onto the single primary-failure row (no separate `auto_fixed`).
+        autofix,
       },
     ),
     'primary failure',
@@ -270,6 +275,7 @@ export function recordFallbackFailures(
   recorder: ProxyMessageRecorder,
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
+  autofix?: AutofixRecord,
 ): string | undefined {
   if (!meta.fallbackFromModel) return undefined;
 
@@ -308,6 +314,10 @@ export function recordFallbackFailures(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
+        // Heal-then-fallback: stamp the Auto-fix audit onto the single primary
+        // row here; `recordAutofixOriginals` is guarded on outcome==='healed'
+        // so it no longer emits a duplicate `auto_fixed` row for this failure.
+        autofix,
       },
     ),
     'primary failure',
@@ -665,11 +675,14 @@ export function recordSuccess(
     );
   }
 
-  // Record the failed Auto-fix attempt(s) as their own auto_fixed rows whenever
-  // healing ran and produced a failure — the healed case (linked to the retry
-  // above) AND the case where healing exhausted but a fallback model then
-  // succeeded (unlinked; they read "Auto-fix tried but could not repair it").
-  if (autofix && autofix.chain.some((entry) => entry.error)) {
+  // Record the failed original as its own `auto_fixed` row ONLY when healing
+  // actually succeeded — that row is linked to the retry above via groupId and
+  // is the sole record of the pre-heal failure. When healing did NOT heal, the
+  // primary failure is already recorded exactly once elsewhere (the terminal
+  // error row, or the `fallback_error` row when a fallback took over), both of
+  // which carry the Auto-fix stamp — so emitting an `auto_fixed` row here too
+  // would double-count the same failure (and under the wrong, fallback model).
+  if (autofix && autofix.outcome === 'healed') {
     recordSafely(
       recorder.recordAutofixOriginals(ctx, meta.model, meta.tier, autofix, {
         provider: meta.provider,

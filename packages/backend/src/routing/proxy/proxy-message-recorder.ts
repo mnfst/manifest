@@ -407,6 +407,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierId?: string | null;
       headerTierName?: string | null;
       headerTierColor?: string | null;
+      /**
+       * Auto-fix audit when this superseded primary was also an Auto-fix
+       * attempt. Stamped onto THIS row (not a separate `auto_fixed` row) so a
+       * heal-then-fallback flow records the primary failure exactly once.
+       */
+      autofix?: AutofixRecord;
     },
   ): Promise<void> {
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
@@ -418,6 +424,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       buildMessageRow(ctx, {
         timestamp,
         status: 'fallback_error',
+        ...autofixColumns(opts?.autofix, 'original'),
         error_message: scrubSecrets(errorBody).slice(0, 2000),
         model: canonical.model,
         provider: canonical.provider,

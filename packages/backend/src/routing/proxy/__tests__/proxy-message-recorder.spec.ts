@@ -698,6 +698,42 @@ describe('ProxyMessageRecorder', () => {
       );
       expect(insertMock.mock.calls[0][0].routing_reason).toBe('header-match');
     });
+
+    it('stamps the Auto-fix audit onto the superseded row when heal-then-fallback ran', async () => {
+      // Heal failed, a fallback then succeeded: the primary failure is recorded
+      // exactly once here (as fallback_error) carrying the Auto-fix stamp — no
+      // separate auto_fixed row is emitted, so the failure is never double-counted.
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'gpt-4o',
+        'Unknown parameter',
+        '2025-01-01T00:00:00.000Z',
+        'api_key',
+        { provider: 'openai', autofix: sampleAutofix },
+      );
+      const row = insertMock.mock.calls[0][0];
+      expect(row.status).toBe('fallback_error');
+      expect(row.autofix_applied).toBe(true);
+      expect(row.autofix_group_id).toBe('grp-1');
+      expect(row.autofix_role).toBe('original');
+      expect(row.autofix_operations).toEqual([
+        { type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' },
+      ]);
+    });
+
+    it('leaves autofix columns unset on a plain primary failure (no autofix)', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'gpt-4o',
+        'upstream error',
+        '2025-01-01T00:00:00.000Z',
+      );
+      const row = insertMock.mock.calls[0][0];
+      expect(row.autofix_applied).toBeUndefined();
+      expect(row.autofix_group_id).toBeUndefined();
+    });
   });
 
   describe('recordSuccessMessage', () => {
