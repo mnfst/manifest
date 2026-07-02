@@ -17,6 +17,17 @@ vi.mock("../../src/services/toast-store.js", () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
 
+const mockGetBillingStatus = vi.fn();
+vi.mock("../../src/services/api/billing.js", () => ({
+  getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
+}));
+
+vi.mock("../../src/components/UpgradePanel.jsx", () => ({
+  UpgradePanel: (props: any) => (
+    <div data-testid="upgrade-panel" data-plan={props.status?.plan ?? ""} />
+  ),
+}));
+
 const mockMarkAgentCreated = vi.fn();
 const mockMarkSetupPending = vi.fn();
 vi.mock("../../src/services/recent-agents.js", () => ({
@@ -61,6 +72,14 @@ describe("AddAgentModal", () => {
     vi.clearAllMocks();
     mockCreateAgent.mockResolvedValue({ agent: { name: "new-agent" }, apiKey: "key-1" });
     mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: "openai" }] });
+    // Billing disabled by default → no paywall, the form renders as before.
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: false,
+      plan: "free",
+      priceMonthlyUsd: null,
+      agents: { used: 0, limit: 1 },
+      requests: { used: null, limit: null, periodEnd: null },
+    });
   });
 
   it("renders nothing when closed", () => {
@@ -323,5 +342,56 @@ describe("AddAgentModal", () => {
     const { container, onClose } = renderOpen();
     fireEvent.click(container.querySelector(".modal-card")!);
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("renders the UpgradePanel instead of the form when at the agent limit", async () => {
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: "free",
+      priceMonthlyUsd: 20,
+      agents: { used: 1, limit: 1 },
+      requests: { used: null, limit: null, periodEnd: null },
+    });
+    const { container } = render(() => <AddAgentModal open={true} onClose={() => {}} />);
+    await vi.waitFor(() => {
+      expect(screen.getByTestId("upgrade-panel")).toBeTruthy();
+    });
+    // The form (name input) must be gone when paywalled.
+    expect(container.querySelector(".modal-card__input")).toBeNull();
+    // Title still shows so the modal stays recognizable.
+    expect(container.textContent).toContain("Connect Harness");
+  });
+
+  it("renders the form when below the agent limit", async () => {
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: "free",
+      priceMonthlyUsd: 20,
+      agents: { used: 0, limit: 1 },
+      requests: { used: null, limit: null, periodEnd: null },
+    });
+    const { container } = render(() => <AddAgentModal open={true} onClose={() => {}} />);
+    await vi.waitFor(() => expect(mockGetBillingStatus).toHaveBeenCalled());
+    expect(container.querySelector(".modal-card__input")).not.toBeNull();
+    expect(screen.queryByTestId("upgrade-panel")).toBeNull();
+  });
+
+  it("renders the form (never the paywall) when billing is disabled even at the limit", async () => {
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: false,
+      plan: "free",
+      priceMonthlyUsd: null,
+      agents: { used: 5, limit: 1 },
+      requests: { used: null, limit: null, periodEnd: null },
+    });
+    const { container } = render(() => <AddAgentModal open={true} onClose={() => {}} />);
+    await vi.waitFor(() => expect(mockGetBillingStatus).toHaveBeenCalled());
+    expect(container.querySelector(".modal-card__input")).not.toBeNull();
+    expect(screen.queryByTestId("upgrade-panel")).toBeNull();
+  });
+
+  it("does not fetch billing status while the modal is closed", () => {
+    render(() => <AddAgentModal open={false} onClose={() => {}} />);
+    expect(mockGetBillingStatus).not.toHaveBeenCalled();
   });
 });

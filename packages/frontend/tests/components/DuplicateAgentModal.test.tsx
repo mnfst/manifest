@@ -25,6 +25,17 @@ vi.mock('@solidjs/router', () => ({
   useNavigate: () => mockNavigate,
 }));
 
+const mockGetBillingStatus = vi.fn();
+vi.mock('../../src/services/api/billing.js', () => ({
+  getBillingStatus: (...a: unknown[]) => mockGetBillingStatus(...a),
+}));
+
+vi.mock('../../src/components/UpgradePanel.jsx', () => ({
+  UpgradePanel: (props: any) => (
+    <div data-testid="upgrade-panel" data-plan={props.status?.plan ?? ''} />
+  ),
+}));
+
 import DuplicateAgentModal from '../../src/components/DuplicateAgentModal';
 
 const q = (sel: string) => document.querySelector(sel);
@@ -53,6 +64,14 @@ describe('DuplicateAgentModal', () => {
         specificityAssignments: 2,
         modelParams: 0,
       },
+    });
+    // Billing disabled by default → no paywall, the duplicate form renders as before.
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: false,
+      plan: 'free',
+      priceMonthlyUsd: null,
+      agents: { used: 0, limit: 1 },
+      requests: { used: null, limit: null, periodEnd: null },
     });
   });
 
@@ -331,5 +350,58 @@ describe('DuplicateAgentModal', () => {
     const input = q('#duplicate-agent-name') as HTMLInputElement;
     fireEvent.input(input, { target: { value: 'my-custom-name' } });
     expect(input.value).toBe('my-custom-name');
+  });
+
+  it('renders the UpgradePanel instead of the form when at the agent limit', async () => {
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: 'free',
+      priceMonthlyUsd: 20,
+      agents: { used: 1, limit: 1 },
+      requests: { used: null, limit: null, periodEnd: null },
+    });
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />);
+    await waitFor(() => {
+      expect(screen.getByTestId('upgrade-panel')).toBeTruthy();
+    });
+    // The duplicate form (name input) must be gone when paywalled.
+    expect(q('#duplicate-agent-name')).toBeNull();
+    // Title still shows so the modal stays recognizable.
+    expect(screen.getByText(/Duplicate "my-agent"/)).toBeDefined();
+  });
+
+  it('renders the form when below the agent limit', async () => {
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: 'free',
+      priceMonthlyUsd: 20,
+      agents: { used: 0, limit: 1 },
+      requests: { used: null, limit: null, periodEnd: null },
+    });
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />);
+    await waitFor(() => {
+      const input = q('#duplicate-agent-name') as HTMLInputElement | null;
+      expect(input).not.toBeNull();
+    });
+    expect(screen.queryByTestId('upgrade-panel')).toBeNull();
+  });
+
+  it('renders the form (never the paywall) when billing is disabled even at the limit', async () => {
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: false,
+      plan: 'free',
+      priceMonthlyUsd: null,
+      agents: { used: 5, limit: 1 },
+      requests: { used: null, limit: null, periodEnd: null },
+    });
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />);
+    await waitFor(() => expect(mockGetBillingStatus).toHaveBeenCalled());
+    expect(q('#duplicate-agent-name')).not.toBeNull();
+    expect(screen.queryByTestId('upgrade-panel')).toBeNull();
+  });
+
+  it('does not fetch billing status while the modal is closed', () => {
+    render(() => <DuplicateAgentModal open={false} sourceName="my-agent" onClose={vi.fn()} />);
+    expect(mockGetBillingStatus).not.toHaveBeenCalled();
   });
 });

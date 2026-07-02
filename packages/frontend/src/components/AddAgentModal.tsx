@@ -1,7 +1,9 @@
-import { createSignal, onCleanup, Show, type Component } from 'solid-js';
+import { createResource, createSignal, onCleanup, Show, type Component } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import AgentTypeSelect from './AgentTypeSelect.jsx';
 import { createAgent, getGlobalProviders } from '../services/api.js';
+import { getBillingStatus } from '../services/api/billing.js';
+import { UpgradePanel } from './UpgradePanel.jsx';
 import { toast } from '../services/toast-store.js';
 import { markAgentCreated, markSetupPending } from '../services/recent-agents.js';
 import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'manifest-shared';
@@ -24,6 +26,17 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     PLATFORMS_BY_CATEGORY['personal'][0] ?? null,
   );
   const [creating, setCreating] = createSignal(false);
+
+  // Load billing status while the modal is open so we can paywall agent creation
+  // once the tenant is at its plan's agent limit. Only fetched when open.
+  const [billing] = createResource(
+    () => props.open,
+    (open) => (open ? getBillingStatus() : undefined),
+  );
+  const atAgentLimit = () => {
+    const b = billing();
+    return !!b?.enabled && b.agents.limit != null && b.agents.used >= b.agents.limit;
+  };
 
   // Tracks whether the user dismissed the modal (overlay click / Escape) while a
   // create request was still in flight. A dismissed create must NOT run its
@@ -127,47 +140,49 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           <h2 class="modal-card__title" id="add-agent-title">
             Connect Harness
           </h2>
-          <p class="modal-card__desc">
-            Name your harness to start tracking its LLM usage, costs, and messages in real time.
-          </p>
+          <Show when={!atAgentLimit()} fallback={<UpgradePanel status={billing()!} />}>
+            <p class="modal-card__desc">
+              Name your harness to start tracking its LLM usage, costs, and messages in real time.
+            </p>
 
-          <div class="agent-type-select-row">
-            <div>
-              <label class="modal-card__field-label">Type</label>
-              <AgentTypeSelect
-                category={category()}
-                platform={platform()}
-                onCategoryChange={handleCategoryChange}
-                onPlatformChange={setPlatform}
-                disabled={creating()}
-              />
+            <div class="agent-type-select-row">
+              <div>
+                <label class="modal-card__field-label">Type</label>
+                <AgentTypeSelect
+                  category={category()}
+                  platform={platform()}
+                  onCategoryChange={handleCategoryChange}
+                  onPlatformChange={setPlatform}
+                  disabled={creating()}
+                />
+              </div>
+              <div style="flex: 1;">
+                <label class="modal-card__field-label" for="agent-name-input">
+                  Harness name
+                </label>
+                <input
+                  ref={(el) => requestAnimationFrame(() => el.focus())}
+                  id="agent-name-input"
+                  class="modal-card__input modal-card__input--lg"
+                  type="text"
+                  placeholder="e.g. My Cool Harness"
+                  value={name()}
+                  onInput={(e) => setName(e.currentTarget.value)}
+                  disabled={creating()}
+                />
+              </div>
             </div>
-            <div style="flex: 1;">
-              <label class="modal-card__field-label" for="agent-name-input">
-                Harness name
-              </label>
-              <input
-                ref={(el) => requestAnimationFrame(() => el.focus())}
-                id="agent-name-input"
-                class="modal-card__input modal-card__input--lg"
-                type="text"
-                placeholder="e.g. My Cool Harness"
-                value={name()}
-                onInput={(e) => setName(e.currentTarget.value)}
-                disabled={creating()}
-              />
-            </div>
-          </div>
 
-          <div class="modal-card__footer">
-            <button
-              class="btn btn--primary btn--sm"
-              onClick={handleCreate}
-              disabled={!name().trim() || creating()}
-            >
-              {creating() ? <span class="spinner" /> : 'Create'}
-            </button>
-          </div>
+            <div class="modal-card__footer">
+              <button
+                class="btn btn--primary btn--sm"
+                onClick={handleCreate}
+                disabled={!name().trim() || creating()}
+              >
+                {creating() ? <span class="spinner" /> : 'Create'}
+              </button>
+            </div>
+          </Show>
         </div>
       </div>
     </Show>
