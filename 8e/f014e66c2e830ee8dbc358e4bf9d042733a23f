@@ -1,0 +1,25 @@
+.changeset/anthropic-thinking-signature.md
+  s_f4b782dd2ef4b5::t_9bce1a23a9e51d 1-5
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_f4b782dd2ef4b5::t_88ba81994b63fa 463
+  s_f4b782dd2ef4b5::t_e6994bf37d5f8f 22-23,114-131,457-459,461-462,464,466-470,475-478,482-486,490-495,498
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_f4b782dd2ef4b5::t_fe504a4f8235d4 2321-2372
+  s_f4b782dd2ef4b5::t_36d8dfb3ef228a 2373-2374
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "8ef014e66c2e830ee8dbc358e4bf9d042733a23f",
+  "prompts": {},
+  "sessions": {
+    "s_f4b782dd2ef4b5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f23be-d756-7d42-bb07-920a63ee2d1a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
