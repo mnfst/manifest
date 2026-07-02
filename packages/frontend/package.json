@@ -14,7 +14,7 @@
   "dependencies": {
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.15.0",
-    "better-auth": "^1.6.11",
+    "better-auth": "1.6.11",
     "dompurify": "^3.4.1",
     "highlight.js": "^11.11.1",
     "manifest-shared": "*",

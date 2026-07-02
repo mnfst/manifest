@@ -7,6 +7,8 @@ const mockBetterAuth = jest.fn().mockReturnValue({
 
 jest.mock('better-auth', () => ({ betterAuth: mockBetterAuth }));
 jest.mock('pg', () => ({ Pool: jest.fn() }));
+const mockStripePlugin = jest.fn().mockReturnValue({ id: 'stripe' });
+jest.mock('@better-auth/stripe', () => ({ stripe: mockStripePlugin }));
 jest.mock('@react-email/render', () => ({
   render: jest
     .fn()
@@ -440,6 +442,44 @@ describe('auth.instance', () => {
 
       const config = mockBetterAuth.mock.calls[0][0];
       expect(config.baseURL).toBe('http://localhost:3001');
+    });
+  });
+
+  describe('plugins', () => {
+    beforeEach(() => {
+      mockStripePlugin.mockClear();
+    });
+
+    it('registers no plugins when billing is disabled', () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      delete process.env['STRIPE_SECRET_KEY'];
+      delete process.env['STRIPE_WEBHOOK_SECRET'];
+      delete process.env['STRIPE_PRO_PRICE_ID'];
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.plugins).toEqual([]);
+      expect(mockStripePlugin).not.toHaveBeenCalled();
+    });
+
+    it('registers the stripe plugin when billing is enabled', () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      process.env['STRIPE_SECRET_KEY'] = 'sk_test_x';
+      process.env['STRIPE_WEBHOOK_SECRET'] = 'whsec_x';
+      process.env['STRIPE_PRO_PRICE_ID'] = 'price_x';
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      expect(config.plugins).toEqual([{ id: 'stripe' }]);
+      expect(mockStripePlugin).toHaveBeenCalledTimes(1);
+      const pluginConfig = mockStripePlugin.mock.calls[0][0];
+      expect(pluginConfig.stripeClient).toBeDefined();
+      expect(pluginConfig.stripeWebhookSecret).toBe('whsec_x');
+      expect(pluginConfig.subscription).toEqual({
+        enabled: true,
+        plans: [{ name: 'pro', priceId: 'price_x' }],
+      });
+      expect(pluginConfig).not.toHaveProperty('createCustomerOnSignUp');
     });
   });
 

@@ -1,8 +1,10 @@
 import { betterAuth } from 'better-auth';
+import { stripe as stripePlugin } from '@better-auth/stripe';
 import { render } from '@react-email/render';
 import { VerifyEmailEmail } from '../notifications/emails/verify-email';
 import { ResetPasswordEmail } from '../notifications/emails/reset-password';
 import { sendEmail } from '../notifications/services/email-providers/send-email';
+import { isBillingEnabled, getStripeClient } from '../billing/billing.config';
 
 const port = process.env['PORT'] ?? '3001';
 const isDev = (process.env['NODE_ENV'] ?? '') !== 'production';
@@ -58,6 +60,20 @@ function buildTrustedOrigins(): string[] {
   return origins;
 }
 
+function buildPlugins() {
+  if (!isBillingEnabled()) return [];
+  return [
+    stripePlugin({
+      stripeClient: getStripeClient(),
+      stripeWebhookSecret: process.env['STRIPE_WEBHOOK_SECRET']!,
+      subscription: {
+        enabled: true,
+        plans: [{ name: 'pro', priceId: process.env['STRIPE_PRO_PRICE_ID']! }],
+      },
+    }),
+  ];
+}
+
 export const auth = betterAuth({
   database,
   baseURL: process.env['BETTER_AUTH_URL'] ?? `http://localhost:${port}`,
@@ -65,6 +81,7 @@ export const auth = betterAuth({
   secret: betterAuthSecret,
   logger: { level: 'debug' },
   telemetry: { enabled: false },
+  plugins: buildPlugins(),
   account: {
     accountLinking: {
       enabled: true,
