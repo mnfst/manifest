@@ -1,0 +1,26 @@
+packages/shared/src/subscription/configs.ts
+  s_eb7c502dd33b5d::t_5edc8592437738 244
+  s_eb7c502dd33b5d::t_7589e63c237ddf 185
+packages/shared/__tests__/subscription.spec.ts
+  s_eb7c502dd33b5d::t_59c7416d579d9e 260,562-566
+  s_eb7c502dd33b5d::t_fdd9dbd5f53557 567-569
+  s_eb7c502dd33b5d::t_894117d3857e95 570
+.changeset/gemini-subscription-cache-metadata.md
+  s_eb7c502dd33b5d::t_59c7416d579d9e 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a46c3dc6ca9af3938c5d0f61730926239efa2c16",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
