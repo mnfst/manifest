@@ -79,7 +79,6 @@ export class AgentsController {
 
   @Post('agents')
   async createAgent(@TenantCtx() ctx: TenantContext, @Body() body: CreateAgentDto) {
-    await this.planService.assertCanCreateAgent(ctx);
     const slug = slugify(body.name);
     if (!slug) {
       throw new BadRequestException('Agent name produces an empty slug');
@@ -88,22 +87,26 @@ export class AgentsController {
       throw new BadRequestException('"Playground" is a reserved agent name');
     }
     const displayName = body.name.trim();
-    let result: { tenantId: string; agentId: string; apiKey: string };
-    try {
-      result = await this.apiKeyGenerator.onboardAgent({
-        tenantId: ctx.tenantId,
-        ownerUserId: ctx.userId,
-        agentName: slug,
-        displayName,
-        agentCategory: body.agent_category,
-        agentPlatform: body.agent_platform,
-      });
-    } catch (error) {
-      if (error instanceof QueryFailedError && /unique|duplicate/i.test(error.message)) {
-        throw new ConflictException(`Agent "${slug}" already exists`);
+    // Hold a per-tenant lock across the cap check AND the insert so two parallel
+    // creates can't both pass a limit of 1 (non-atomic preflight → 2 agents).
+    const result = await this.planService.withAgentCreationLock(ctx, async () => {
+      await this.planService.assertCanCreateAgent(ctx);
+      try {
+        return await this.apiKeyGenerator.onboardAgent({
+          tenantId: ctx.tenantId,
+          ownerUserId: ctx.userId,
+          agentName: slug,
+          displayName,
+          agentCategory: body.agent_category,
+          agentPlatform: body.agent_platform,
+        });
+      } catch (error) {
+        if (error instanceof QueryFailedError && /unique|duplicate/i.test(error.message)) {
+          throw new ConflictException(`Agent "${slug}" already exists`);
+        }
+        throw error;
       }
-      throw error;
-    }
+    });
     // Providers are tenant-global + ON by default: a brand-new agent immediately
     // inherits access to every usable provider the tenant already connected.
     //
@@ -165,25 +168,28 @@ export class AgentsController {
     @Param('agentName') sourceName: string,
     @Body() body: DuplicateAgentDto,
   ) {
-    await this.planService.assertCanCreateAgent(ctx);
     const slug = slugify(body.name);
     if (!slug) throw new BadRequestException('Agent name produces an empty slug');
     if (slug === PLAYGROUND_AGENT_SLUG) {
       throw new BadRequestException('"Playground" is a reserved agent name');
     }
     const displayName = body.name.trim();
-    let result;
-    try {
-      result = await this.duplication.duplicate(ctx.tenantId, sourceName, {
-        name: slug,
-        displayName,
-      });
-    } catch (error) {
-      if (error instanceof QueryFailedError && /unique|duplicate/i.test(error.message)) {
-        throw new ConflictException(`Agent "${slug}" already exists`);
+    // Same per-tenant lock as createAgent: the cap check and the duplicate
+    // insert must be atomic so parallel duplicates can't both pass a limit of 1.
+    const result = await this.planService.withAgentCreationLock(ctx, async () => {
+      await this.planService.assertCanCreateAgent(ctx);
+      try {
+        return await this.duplication.duplicate(ctx.tenantId, sourceName, {
+          name: slug,
+          displayName,
+        });
+      } catch (error) {
+        if (error instanceof QueryFailedError && /unique|duplicate/i.test(error.message)) {
+          throw new ConflictException(`Agent "${slug}" already exists`);
+        }
+        throw error;
       }
-      throw error;
-    }
+    });
     await this.invalidateAgentListCache(ctx.tenantId);
     this.emitAgentEvent(ctx.tenantId, ctx.userId);
     return {

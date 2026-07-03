@@ -49,20 +49,29 @@ const Account: Component = () => {
 
   const handleManageBilling = async () => {
     setBillingBusy(true);
+    // Open the tab synchronously inside the click handler so it keeps the user
+    // activation — a popup blocker would kill a window.open() that ran after the
+    // awaited portal call. We navigate this placeholder once the URL resolves.
+    // Drop `opener` for the same isolation `noopener` would give us.
+    const tab = window.open('about:blank', '_blank');
+    if (tab) tab.opener = null;
     try {
-      // disableRedirect returns the portal URL instead of navigating the
-      // current tab, so we can open it in a new tab and keep the dashboard open.
+      // disableRedirect returns the portal URL instead of navigating the current
+      // tab, so we can send the new tab there and keep the dashboard open.
       const res = await authClient.subscription.billingPortal({
         returnUrl: '/account',
         disableRedirect: true,
       });
       const url = res?.data?.url;
       if (url) {
-        window.open(url, '_blank', 'noopener,noreferrer');
+        if (tab) tab.location.href = url;
+        else window.open(url, '_blank', 'noopener,noreferrer');
       } else {
+        tab?.close();
         toast.error('Could not open the billing portal. Please try again.');
       }
     } catch {
+      tab?.close();
       toast.error('Could not open the billing portal. Please try again.');
     } finally {
       setBillingBusy(false);

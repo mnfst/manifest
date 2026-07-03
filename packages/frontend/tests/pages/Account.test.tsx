@@ -96,6 +96,8 @@ const proStatus = {
 };
 
 describe("Account", () => {
+  let fakeTab: { location: { href: string }; opener: unknown; close: ReturnType<typeof vi.fn> };
+
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
@@ -103,7 +105,8 @@ describe("Account", () => {
     mockGetBillingStatus.mockResolvedValue(disabledStatus);
     mockUpgrade.mockResolvedValue(undefined);
     mockBillingPortal.mockResolvedValue({ data: { url: "https://billing.stripe.com/session" } });
-    vi.spyOn(window, "open").mockImplementation(() => null);
+    fakeTab = { location: { href: "" }, opener: {}, close: vi.fn() };
+    vi.spyOn(window, "open").mockImplementation(() => fakeTab as unknown as Window);
   });
 
   it("renders Account Preferences heading", () => {
@@ -286,8 +289,25 @@ describe("Account", () => {
           "Could not open the billing portal. Please try again.",
         ),
       );
-      expect(window.open).not.toHaveBeenCalled();
+      // Placeholder tab was opened synchronously, then closed when no url came back.
+      expect(fakeTab.close).toHaveBeenCalled();
       await waitFor(() => expect(button.disabled).toBe(false));
+    });
+
+    it("falls back to a direct window.open when the placeholder tab is blocked", async () => {
+      mockGetBillingStatus.mockResolvedValue(proStatus);
+      // Popup blocker: the synchronous placeholder open returns null.
+      (window.open as unknown as ReturnType<typeof vi.fn>).mockReturnValue(null);
+      render(() => <Account />);
+      const button = await screen.findByText("Manage billing");
+      fireEvent.click(button);
+      await waitFor(() =>
+        expect(window.open).toHaveBeenCalledWith(
+          "https://billing.stripe.com/session",
+          "_blank",
+          "noopener,noreferrer",
+        ),
+      );
     });
 
     it("hides the upgrade price when priceMonthlyUsd is null", async () => {
@@ -310,13 +330,12 @@ describe("Account", () => {
         returnUrl: "/account",
         disableRedirect: true,
       });
-      // Portal opens in a new tab rather than navigating away.
+      // A placeholder tab opens synchronously (keeps user activation), then gets
+      // pointed at the portal URL once it resolves. opener is cleared for isolation.
+      expect(window.open).toHaveBeenCalledWith("about:blank", "_blank");
+      expect(fakeTab.opener).toBeNull();
       await waitFor(() =>
-        expect(window.open).toHaveBeenCalledWith(
-          "https://billing.stripe.com/session",
-          "_blank",
-          "noopener,noreferrer",
-        ),
+        expect(fakeTab.location.href).toBe("https://billing.stripe.com/session"),
       );
       await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
     });

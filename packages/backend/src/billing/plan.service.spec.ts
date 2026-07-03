@@ -12,6 +12,8 @@ describe('PlanService', () => {
   let mockTenantFindOne: jest.Mock;
   let mockAgentCount: jest.Mock;
   let mockQuery: jest.Mock;
+  let mockRunnerQuery: jest.Mock;
+  let mockRunnerRelease: jest.Mock;
   const saved = { ...process.env };
   const CTX = { tenantId: 't1', userId: 'u1' };
   const FRESH_CTX = { tenantId: null, userId: 'u1' };
@@ -30,12 +32,19 @@ describe('PlanService', () => {
     mockTenantFindOne = jest.fn().mockResolvedValue(null);
     mockAgentCount = jest.fn().mockResolvedValue(0);
     mockQuery = jest.fn().mockResolvedValue([]);
+    mockRunnerQuery = jest.fn().mockResolvedValue([]);
+    mockRunnerRelease = jest.fn().mockResolvedValue(undefined);
+    const createQueryRunner = jest.fn(() => ({
+      connect: jest.fn().mockResolvedValue(undefined),
+      query: mockRunnerQuery,
+      release: mockRunnerRelease,
+    }));
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PlanService,
         { provide: getRepositoryToken(Tenant), useValue: { findOne: mockTenantFindOne } },
         { provide: getRepositoryToken(Agent), useValue: { count: mockAgentCount } },
-        { provide: DataSource, useValue: { query: mockQuery } },
+        { provide: DataSource, useValue: { query: mockQuery, createQueryRunner } },
       ],
     }).compile();
     service = module.get(PlanService);
@@ -297,6 +306,18 @@ describe('PlanService', () => {
       expect(await service.countRequestsSince('t1', START)).toBe(9);
     });
 
+    it('evicts the oldest entry once the cache exceeds its size cap', async () => {
+      mockQuery.mockResolvedValue([{ n: 1 }]);
+      // One distinct tenant per entry; the (cap + 1)th insert triggers eviction.
+      for (let i = 0; i <= 10_000; i++) {
+        await service.countRequestsSince(`t-${i}`, START);
+      }
+      // The very first tenant should have been evicted → its next read re-queries.
+      const before = mockQuery.mock.calls.length;
+      await service.countRequestsSince('t-0', START);
+      expect(mockQuery.mock.calls.length).toBe(before + 1);
+    });
+
     it('countRequestsThisMonth derives the current UTC month window', async () => {
       mockQuery.mockResolvedValue([{ n: 2 }]);
       expect(await service.countRequestsThisMonth('t1')).toBe(2);
@@ -355,6 +376,85 @@ describe('PlanService', () => {
           used: 10_000,
         });
       }
+    });
+
+    it('fails open (allows the request) when the count query errors', async () => {
+      enableBilling();
+      mockTenantFindOne.mockResolvedValue(TENANT);
+      mockQuery.mockImplementation((sql: string) =>
+        sql.includes('agent_messages')
+          ? Promise.reject(new Error('db down'))
+          : Promise.resolve([{ plan: 'free' }]),
+      );
+      // A COUNT failure must never block: the soft Free-tier gate errs to "allow".
+      await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
+    });
+  });
+
+  describe('envLimit hardening', () => {
+    it('rejects hex and scientific notation, falling back to the plan default', async () => {
+      enableBilling();
+      mockTenantFindOne.mockResolvedValue(TENANT);
+      process.env['PLAN_LIMIT_FREE_AGENTS'] = '0x10';
+      expect((await service.getLimits(CTX)).agents).toBe(1);
+      process.env['PLAN_LIMIT_FREE_AGENTS'] = '1e3';
+      expect((await service.getLimits(CTX)).agents).toBe(1);
+      process.env['PLAN_LIMIT_FREE_AGENTS'] = ' 5 ';
+      expect((await service.getLimits(CTX)).agents).toBe(1);
+    });
+
+    it('accepts a plain digits-only override', async () => {
+      enableBilling();
+      mockTenantFindOne.mockResolvedValue(TENANT);
+      process.env['PLAN_LIMIT_FREE_AGENTS'] = '7';
+      expect((await service.getLimits(CTX)).agents).toBe(7);
+    });
+  });
+
+  describe('withAgentCreationLock', () => {
+    it('runs fn without locking when billing is disabled', async () => {
+      const fn = jest.fn().mockResolvedValue('ok');
+      expect(await service.withAgentCreationLock(CTX, fn)).toBe('ok');
+      expect(mockRunnerQuery).not.toHaveBeenCalled();
+    });
+
+    it('runs fn without locking when there is no tenant yet', async () => {
+      enableBilling();
+      const fn = jest.fn().mockResolvedValue('ok');
+      expect(await service.withAgentCreationLock(FRESH_CTX, fn)).toBe('ok');
+      expect(mockRunnerQuery).not.toHaveBeenCalled();
+    });
+
+    it('acquires and releases the advisory lock around fn, and always releases the runner', async () => {
+      enableBilling();
+      const fn = jest.fn().mockResolvedValue('done');
+      expect(await service.withAgentCreationLock(CTX, fn)).toBe('done');
+      const sqls = mockRunnerQuery.mock.calls.map(([s]) => String(s));
+      expect(sqls.some((s) => s.includes('pg_advisory_lock'))).toBe(true);
+      expect(sqls.some((s) => s.includes('pg_advisory_unlock'))).toBe(true);
+      expect(mockRunnerRelease).toHaveBeenCalledTimes(1);
+    });
+
+    it('releases the lock and runner even when fn throws', async () => {
+      enableBilling();
+      const boom = new Error('insert failed');
+      await expect(service.withAgentCreationLock(CTX, () => Promise.reject(boom))).rejects.toBe(
+        boom,
+      );
+      const sqls = mockRunnerQuery.mock.calls.map(([s]) => String(s));
+      expect(sqls.some((s) => s.includes('pg_advisory_unlock'))).toBe(true);
+      expect(mockRunnerRelease).toHaveBeenCalledTimes(1);
+    });
+
+    it('still releases the runner when the unlock query fails', async () => {
+      enableBilling();
+      mockRunnerQuery.mockImplementation((sql: string) =>
+        sql.includes('unlock') ? Promise.reject(new Error('unlock failed')) : Promise.resolve([]),
+      );
+      await expect(service.withAgentCreationLock(CTX, () => Promise.resolve('ok'))).resolves.toBe(
+        'ok',
+      );
+      expect(mockRunnerRelease).toHaveBeenCalledTimes(1);
     });
   });
 });

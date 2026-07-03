@@ -22,12 +22,16 @@ const providerServiceProvider = () => ({
   useValue: { enableAllProvidersForAgent: jest.fn().mockResolvedValue(undefined) },
 });
 
-// Shared no-op PlanService stub. createAgent/duplicateAgent now call
-// assertCanCreateAgent as their first statement; unit tests run with billing
-// disabled (no Stripe env), so the gate is a no-op that always resolves.
+// Shared no-op PlanService stub. createAgent/duplicateAgent wrap their body in
+// withAgentCreationLock (which the stub runs inline) and call assertCanCreateAgent
+// as the first statement inside it; unit tests run with billing disabled (no
+// Stripe env), so the gate is a no-op that always resolves.
 const planServiceProvider = () => ({
   provide: PlanService,
-  useValue: { assertCanCreateAgent: jest.fn().mockResolvedValue(undefined) },
+  useValue: {
+    assertCanCreateAgent: jest.fn().mockResolvedValue(undefined),
+    withAgentCreationLock: jest.fn(<T>(_ctx: unknown, fn: () => Promise<T>) => fn()),
+  },
 });
 
 describe('AgentsController', () => {

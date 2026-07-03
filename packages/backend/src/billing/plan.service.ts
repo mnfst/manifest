@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
@@ -20,6 +20,10 @@ const MAX_REQUEST_COUNT_CACHE_SIZE = 10_000;
 function envLimit(name: string): number | undefined {
   const raw = process.env[name];
   if (raw === undefined || raw === '') return undefined;
+  // Digits only: plan limits are non-negative integers. `Number()` would also
+  // accept hex (0x10), scientific (1e3), and whitespace-padded values, silently
+  // producing an unexpected limit instead of falling back to the plan default.
+  if (!/^\d+$/.test(raw)) return undefined;
   const n = Number(raw);
   return Number.isFinite(n) ? n : undefined;
 }
@@ -37,6 +41,7 @@ interface RequestCountEntry {
 
 @Injectable()
 export class PlanService {
+  private readonly logger = new Logger(PlanService.name);
   private priceCache: { value: number | null; fetchedAt: number } | null = null;
   private requestCountCache = new Map<string, RequestCountEntry>();
 
@@ -158,8 +163,9 @@ export class PlanService {
       })
       .catch((err: Error) => {
         // On a DB error, drop the pending entry so the next call retries rather
-        // than awaiting a rejected promise forever. Fail open (0) — never block
-        // a paying request path because a COUNT hiccuped.
+        // than awaiting a rejected promise forever, then rethrow. Callers decide
+        // how to handle it: the proxy gate (assertWithinRequestLimit) fails open
+        // so a COUNT hiccup never blocks a request; getBillingStatus surfaces it.
         this.requestCountCache.delete(tenantId);
         throw err;
       });
@@ -192,7 +198,18 @@ export class PlanService {
     if (!isBillingEnabled()) return;
     const limits = await this.getLimits(ctx);
     if (limits.requestsPerMonth === null) return; // Pro / unlimited
-    const used = await this.countRequestsThisMonth(ctx.tenantId);
+    let used: number;
+    try {
+      used = await this.countRequestsThisMonth(ctx.tenantId);
+    } catch (err) {
+      // Fail open: a transient COUNT failure must never block a request. The
+      // limit is a soft Free-tier gate, not a hard financial guard, so erring
+      // toward "allow" is correct. The next request retries the count.
+      this.logger.warn(
+        `Request-limit count failed for tenant ${ctx.tenantId}; allowing request: ${(err as Error).message}`,
+      );
+      return;
+    }
     if (used < limits.requestsPerMonth) return;
     throw new HttpException(
       {
@@ -221,6 +238,36 @@ export class PlanService {
       },
       HttpStatus.PAYMENT_REQUIRED,
     );
+  }
+
+  /**
+   * Run `fn` while holding a per-tenant Postgres advisory lock, so the agent-cap
+   * check and the agent insert can't interleave across parallel requests (a
+   * non-atomic preflight would otherwise let two concurrent creates both pass a
+   * limit of 1 and produce 2 agents). Serializes only same-tenant creates, which
+   * are rare; other tenants proceed in parallel.
+   *
+   * Uses a dedicated QueryRunner so the session-level lock and its unlock run on
+   * the SAME pooled connection (pool churn would otherwise unlock a different
+   * one). Skips the lock entirely when billing is disabled — with no finite cap
+   * there's nothing to protect. The lock key hashes a stable per-tenant string;
+   * a null tenant (brand-new account, no agents yet) can't hit the cap, so it
+   * runs unlocked.
+   */
+  async withAgentCreationLock<T>(ctx: TenantContext, fn: () => Promise<T>): Promise<T> {
+    if (!isBillingEnabled() || !ctx.tenantId) return fn();
+    const lockKey = `agent-create:${ctx.tenantId}`;
+    const runner = this.dataSource.createQueryRunner();
+    await runner.connect();
+    try {
+      await runner.query('SELECT pg_advisory_lock(hashtext($1))', [lockKey]);
+      return await fn();
+    } finally {
+      await runner
+        .query('SELECT pg_advisory_unlock(hashtext($1))', [lockKey])
+        .catch((err: Error) => this.logger.warn(`advisory unlock failed: ${err.message}`));
+      await runner.release();
+    }
   }
 
   async getBillingStatus(ctx: TenantContext): Promise<BillingStatus> {

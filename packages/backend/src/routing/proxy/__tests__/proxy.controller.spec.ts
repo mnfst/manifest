@@ -319,6 +319,22 @@ describe('ProxyController', () => {
     expect(recordSpy).not.toHaveBeenCalled();
   });
 
+  it('routes a non-402 plan-lookup error through the normal proxy error handler', async () => {
+    // A subscription/tenant lookup failure is an ordinary proxy error: it should
+    // be recorded + normalized, not thrown raw (which would 500 the caller).
+    planService.assertWithinRequestLimit.mockRejectedValueOnce(new Error('subscription db down'));
+    const recordSpy = jest.spyOn(recorder, 'recordProviderError');
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    // handleProxyError records the failure and never reaches routing.
+    expect(recordSpy).toHaveBeenCalled();
+    expect(proxyService.proxyRequest).not.toHaveBeenCalled();
+  });
+
   it('should expose /v1/responses and convert chat completions output to Responses format', async () => {
     const responseBody = {
       created: 1234,

@@ -8,6 +8,7 @@ import {
   UseFilters,
   Logger,
   HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { Request, Response as ExpressResponse } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -159,11 +160,30 @@ export class ProxyController {
     res.once('close', () => clientAbort.abort());
     const startTime = Date.now();
 
-    // Plan request-limit gate runs BEFORE the try so a 402 propagates to
-    // ProxyExceptionFilter (which renders the friendly upgrade message / real
-    // 402) instead of the local handleProxyError — the latter would record it
-    // as an agent_messages row that then counts toward the very limit it hit.
-    await this.planService.assertWithinRequestLimit(req.ingestionContext);
+    // Plan request-limit gate. A 402 must reach ProxyExceptionFilter (friendly
+    // upgrade message / real 402) WITHOUT going through handleProxyError, which
+    // would record it as an agent_messages row that counts toward the very limit
+    // it hit — so rethrow the 402 to propagate past this handler. Any other
+    // error (e.g. a plan/subscription lookup failure) is an ordinary proxy error:
+    // route it through handleProxyError for consistent normalization + recording.
+    try {
+      await this.planService.assertWithinRequestLimit(req.ingestionContext);
+    } catch (err: unknown) {
+      if (err instanceof HttpException && err.getStatus() === HttpStatus.PAYMENT_REQUIRED) {
+        throw err;
+      }
+      this.handleProxyError(
+        err,
+        req,
+        res,
+        clientAbort,
+        headersSent,
+        traceId,
+        callerAttribution,
+        requestHeaders,
+      );
+      return;
+    }
 
     try {
       this.rateLimiter.checkLimit(tenantId);
