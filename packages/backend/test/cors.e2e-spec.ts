@@ -7,7 +7,7 @@ import {
   HOSTED_WINGMAN_ORIGIN,
   applyPrivateNetworkAllow,
   buildDevAllowedOrigins,
-  createCorsOriginHandler,
+  buildDevCorsOptions,
 } from '../src/cors-csp-config';
 
 @Controller()
@@ -43,11 +43,7 @@ async function buildDevApp(): Promise<INestApplication> {
     applyPrivateNetworkAllow(req, allowedOrigins, (name, value) => res.setHeader(name, value));
     next();
   });
-  app.enableCors({
-    origin: createCorsOriginHandler(allowedOrigins),
-    credentials: false,
-    allowedHeaders: ['Authorization', 'Content-Type', 'X-API-Key'],
-  });
+  app.enableCors(buildDevCorsOptions(allowedOrigins));
   await app.init();
   return app;
 }
@@ -122,5 +118,13 @@ describe('CORS — development', () => {
       .set('Origin', HOSTED_WINGMAN_ORIGIN)
       .set('Access-Control-Request-Method', 'GET');
     expect(res.headers['access-control-allow-private-network']).toBeUndefined();
+  });
+
+  it('caches the preflight (maxAge) so a reload does not re-run it every few seconds', async () => {
+    const res = await request(app.getHttpServer())
+      .options('/v1/chat/completions')
+      .set('Origin', HOSTED_WINGMAN_ORIGIN)
+      .set('Access-Control-Request-Method', 'POST');
+    expect(res.headers['access-control-max-age']).toBe('7200');
   });
 });

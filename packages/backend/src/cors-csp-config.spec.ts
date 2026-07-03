@@ -1,7 +1,9 @@
 import {
+  DEV_CORS_MAX_AGE_SECONDS,
   HOSTED_WINGMAN_ORIGIN,
   applyPrivateNetworkAllow,
   buildDevAllowedOrigins,
+  buildDevCorsOptions,
   buildFrameSrc,
   createCorsOriginHandler,
   parseFrameAncestors,
@@ -125,6 +127,28 @@ describe('createCorsOriginHandler', () => {
     const cb = jest.fn();
     handler('https://evil.example.com', cb);
     expect(cb).toHaveBeenCalledWith(null, false);
+  });
+});
+
+describe('buildDevCorsOptions', () => {
+  it('caches the preflight via maxAge so reloads stop re-running it', () => {
+    const opts = buildDevCorsOptions([HOSTED_WINGMAN_ORIGIN]);
+    expect(opts.maxAge).toBe(DEV_CORS_MAX_AGE_SECONDS);
+    expect(DEV_CORS_MAX_AGE_SECONDS).toBe(7200);
+  });
+
+  it('keeps credentials off the cross-origin path (bearer keys, never cookies)', () => {
+    expect(buildDevCorsOptions([HOSTED_WINGMAN_ORIGIN]).credentials).toBe(false);
+  });
+
+  it('wires the allow-list origin handler (allows listed, blocks unlisted)', () => {
+    const { origin } = buildDevCorsOptions([HOSTED_WINGMAN_ORIGIN]);
+    const allow = jest.fn();
+    origin(HOSTED_WINGMAN_ORIGIN, allow);
+    expect(allow).toHaveBeenCalledWith(null, true);
+    const block = jest.fn();
+    origin('https://evil.example.com', block);
+    expect(block).toHaveBeenCalledWith(null, false);
   });
 });
 
