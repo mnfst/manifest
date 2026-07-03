@@ -1,0 +1,23 @@
+packages/shared/src/subscription/configs.ts
+  s_eb7c502dd33b5d::t_62aef76e61ad88 115
+packages/shared/__tests__/subscription.spec.ts
+  s_eb7c502dd33b5d::t_36ea530b29cd1d 557
+.changeset/xiaomi-cache-capability.md
+  s_eb7c502dd33b5d::t_d2caaa8b9af97b 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f1a5243938582f4a722ac879ed6e01a3a2aca2c2",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
