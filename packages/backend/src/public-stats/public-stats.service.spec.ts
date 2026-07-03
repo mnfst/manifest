@@ -372,11 +372,24 @@ describe('PublicStatsService', () => {
   });
 
   describe('getProviderDailyTokens', () => {
-    function setupProviderQuery(rows: unknown) {
+    // Mocks the two parallel queries: aggregated daily rows, then the distinct
+    // (custom model, tenant) pairs backing the k-anonymity floor.
+    function setupProviderQuery(rows: unknown, customPairs: unknown = []) {
       const qb = mockQueryBuilder(rows);
       qb.addGroupBy = jest.fn().mockReturnValue(qb);
-      mockRepo.createQueryBuilder.mockReturnValueOnce(qb);
-      return qb;
+      const pairsQb = mockQueryBuilder(customPairs);
+      pairsQb.addGroupBy = jest.fn().mockReturnValue(pairsQb);
+      mockRepo.createQueryBuilder.mockReturnValueOnce(qb).mockReturnValueOnce(pairsQb);
+      return { qb, pairsQb };
+    }
+
+    // Distinct (raw model, tenant) pairs for `count` tenants, as the pairs
+    // query would return them.
+    function tenantPairs(model: string, count: number, tenantPrefix = 't') {
+      return Array.from({ length: count }, (_, i) => ({
+        model,
+        tenant_id: `${tenantPrefix}${i}`,
+      }));
     }
 
     it('groups tokens by provider and model with daily breakdown', async () => {
@@ -466,21 +479,181 @@ describe('PublicStatsService', () => {
       expect(result).toEqual([]);
     });
 
-    it('excludes custom models', async () => {
-      setupProviderQuery([
+    it('groups custom models under the Custom provider with scrubbed names', async () => {
+      setupProviderQuery(
+        [
+          {
+            model: 'custom:abc/llama-3-70b',
+            date: '2026-04-06',
+            tokens: '1000',
+            auth_type: 'api_key',
+            cost: null,
+          },
+          // A second tenant-scoped endpoint serving the same model merges into
+          // the same scrubbed row.
+          {
+            model: 'custom:def/llama-3-70b',
+            date: '2026-04-07',
+            tokens: '500',
+            auth_type: 'api_key',
+            cost: null,
+          },
+        ],
+        tenantPairs('custom:abc/llama-3-70b', 10),
+      );
+
+      const result = await service.getProviderDailyTokens();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].provider).toBe('Custom');
+      expect(result[0].total_tokens).toBe(1500);
+      expect(result[0].models).toEqual([
         {
-          model: 'custom:abc/gpt-4o',
-          date: '2026-04-07',
-          tokens: '1000',
-          auth_type: null,
-          cost: null,
+          model: 'llama-3-70b',
+          auth_type: 'api_key',
+          total_tokens: 1500,
+          total_cost: null,
+          daily: [
+            { date: '2026-04-06', tokens: 1000 },
+            { date: '2026-04-07', tokens: 500 },
+          ],
         },
       ]);
+      // The pricing cache is never consulted for custom models.
+      expect(mockPricingCache.getByModel).not.toHaveBeenCalled();
+    });
+
+    it('folds custom models below the tenant floor into one bucket row', async () => {
+      setupProviderQuery(
+        [
+          {
+            model: 'custom:abc/my-fine-tune',
+            date: '2026-04-07',
+            tokens: '1000',
+            auth_type: 'api_key',
+            cost: null,
+          },
+          {
+            model: 'custom:def/other-tune',
+            date: '2026-04-07',
+            tokens: '200',
+            auth_type: 'api_key',
+            cost: null,
+          },
+        ],
+        [...tenantPairs('custom:abc/my-fine-tune', 9), ...tenantPairs('custom:def/other-tune', 2)],
+      );
+
+      const result = await service.getProviderDailyTokens();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].provider).toBe('Custom');
+      // Neither name reaches 10 tenants, so both collapse into the bucket and
+      // the provider total still counts every token.
+      expect(result[0].models).toHaveLength(1);
+      expect(result[0].models[0].model).toBe('other-custom-models');
+      expect(result[0].models[0].total_tokens).toBe(1200);
+    });
+
+    it('counts distinct tenants per scrubbed name, not per raw ref', async () => {
+      // The same 5 tenants route the same model through two custom endpoints:
+      // 10 pairs, but only 5 distinct tenants — below the floor.
+      setupProviderQuery(
+        [
+          {
+            model: 'custom:abc/shared-model',
+            date: '2026-04-07',
+            tokens: '100',
+            auth_type: 'api_key',
+            cost: null,
+          },
+        ],
+        [
+          ...tenantPairs('custom:abc/shared-model', 5),
+          ...tenantPairs('custom:def/shared-model', 5),
+        ],
+      );
+
+      const result = await service.getProviderDailyTokens();
+
+      expect(result[0].models[0].model).toBe('other-custom-models');
+    });
+
+    it('never exposes a custom ref without a model segment', async () => {
+      setupProviderQuery(
+        [
+          {
+            model: 'custom:abc-uuid-only',
+            date: '2026-04-07',
+            tokens: '100',
+            auth_type: 'api_key',
+            cost: null,
+          },
+        ],
+        tenantPairs('custom:abc-uuid-only', 15),
+      );
+
+      const result = await service.getProviderDailyTokens();
+
+      expect(result[0].models[0].model).toBe('other-custom-models');
+    });
+
+    it('keeps a custom model separate from a catalog model with the same name', async () => {
+      setupProviderQuery(
+        [
+          { model: 'gpt-4o', date: '2026-04-07', tokens: '700', auth_type: 'api_key', cost: null },
+          {
+            model: 'custom:abc/gpt-4o',
+            date: '2026-04-07',
+            tokens: '300',
+            auth_type: 'api_key',
+            cost: null,
+          },
+        ],
+        tenantPairs('custom:abc/gpt-4o', 12),
+      );
       mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
 
       const result = await service.getProviderDailyTokens();
 
-      expect(result).toEqual([]);
+      expect(result).toHaveLength(2);
+      const openai = result.find((p) => p.provider === 'OpenAI');
+      const custom = result.find((p) => p.provider === 'Custom');
+      expect(openai!.models).toEqual([
+        expect.objectContaining({ model: 'gpt-4o', total_tokens: 700 }),
+      ]);
+      expect(custom!.models).toEqual([
+        expect.objectContaining({ model: 'gpt-4o', total_tokens: 300 }),
+      ]);
+    });
+
+    it('breaks the Custom provider down by auth type', async () => {
+      setupProviderQuery(
+        [
+          {
+            model: 'custom:abc/llama-3-70b',
+            date: '2026-04-07',
+            tokens: '900',
+            auth_type: 'api_key',
+            cost: null,
+          },
+          {
+            model: 'custom:abc/llama-3-70b',
+            date: '2026-04-07',
+            tokens: '400',
+            auth_type: 'local',
+            cost: null,
+          },
+        ],
+        tenantPairs('custom:abc/llama-3-70b', 10),
+      );
+
+      const result = await service.getProviderDailyTokens();
+
+      expect(result[0].auth_types).toEqual([
+        { auth_type: 'api_key', total_tokens: 900, model_count: 1 },
+        { auth_type: 'local', total_tokens: 400, model_count: 1 },
+      ]);
     });
 
     it('excludes Unknown provider models', async () => {
@@ -519,14 +692,19 @@ describe('PublicStatsService', () => {
       expect(dates).toEqual(['2026-04-05', '2026-04-06', '2026-04-07']);
     });
 
-    it('applies 30-day cutoff', async () => {
-      const qb = mockQueryBuilder([]);
-      qb.addGroupBy = jest.fn().mockReturnValue(qb);
-      mockRepo.createQueryBuilder.mockReturnValueOnce(qb);
+    it('applies 30-day cutoff to both queries', async () => {
+      const { qb, pairsQb } = setupProviderQuery([]);
 
       await service.getProviderDailyTokens();
 
       expect(qb.andWhere).toHaveBeenCalledWith(
+        'at.timestamp >= :cutoff30d',
+        expect.objectContaining({ cutoff30d: expect.any(String) }),
+      );
+      expect(pairsQb.where).toHaveBeenCalledWith("at.model LIKE 'custom:%'");
+      // NULL tenants must not count toward the anonymity floor.
+      expect(pairsQb.andWhere).toHaveBeenCalledWith('at.tenant_id IS NOT NULL');
+      expect(pairsQb.andWhere).toHaveBeenCalledWith(
         'at.timestamp >= :cutoff30d',
         expect.objectContaining({ cutoff30d: expect.any(String) }),
       );

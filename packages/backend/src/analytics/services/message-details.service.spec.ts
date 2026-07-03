@@ -31,6 +31,9 @@ describe('MessageDetailsService', () => {
     status: 'ok',
     error_message: null,
     error_http_status: null,
+    error_origin: null,
+    error_class: null,
+    superseded: false,
     description: 'test desc',
     service_type: 'agent',
     input_tokens: 100,
@@ -112,6 +115,9 @@ describe('MessageDetailsService', () => {
       status: 'ok',
       error_message: null,
       error_http_status: null,
+      error_origin: null,
+      error_class: null,
+      superseded: false,
       description: 'test desc',
       service_type: 'agent',
       input_tokens: 100,
@@ -208,6 +214,9 @@ describe('MessageDetailsService', () => {
       status: 'error',
       error_message: '401 Unauthorized: invalid API key',
       error_http_status: 401,
+      error_origin: 'provider',
+      error_class: 'auth',
+      superseded: false,
     };
     msgQb.getOne.mockResolvedValue(errorMsg);
 
@@ -216,5 +225,26 @@ describe('MessageDetailsService', () => {
     expect(result.message.status).toBe('error');
     expect(result.message.error_message).toBe('401 Unauthorized: invalid API key');
     expect(result.message.error_http_status).toBe(401);
+    expect(result.message.error_origin).toBe('provider');
+    expect(result.message.error_class).toBe('auth');
+    expect(result.message.superseded).toBe(false);
+  });
+
+  it('surfaces the origin/class/superseded axes for a Manifest config error', async () => {
+    msgQb.getOne.mockResolvedValue({
+      ...baseMessage,
+      status: 'error',
+      error_message: 'Provider API key missing',
+      routing_reason: 'no_provider_key',
+      error_origin: 'config',
+      error_class: 'no_provider_key',
+      superseded: false,
+    });
+
+    const result = await service.getDetails('msg-1', 'u1');
+
+    expect(result.message.error_origin).toBe('config');
+    expect(result.message.error_class).toBe('no_provider_key');
+    expect(result.message.superseded).toBe(false);
   });
 });

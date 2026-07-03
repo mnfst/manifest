@@ -8,6 +8,12 @@ export interface MessageDetailResponse {
     model: string | null;
     status: string;
     error_message: string | null;
+    /** WHO caused a failure: provider | transport | config | policy | internal. Null on success. */
+    error_origin: string | null;
+    /** WHAT kind of failure (rate_limit, auth, no_provider_key, timeout, …). Null on success. */
+    error_class: string | null;
+    /** True when this row is a recovered (retried / fell-back-away-from) attempt, not the outcome. */
+    superseded: boolean;
     description: string | null;
     service_type: string | null;
     input_tokens: number;

@@ -111,15 +111,14 @@ describe('RedirectPkceOauthBaseService — backendUrl validation', () => {
       expect(readPendingBackendUrl(svc, state)).toBe('http://127.0.0.1:8080');
     });
 
-    it('rejects http://[::1]:port (current isAllowedRedirectOrigin compares to "::1", not "[::1]")', async () => {
-      // The URL parser returns hostname='[::1]' for IPv6 literals, and the
-      // check uses === '::1'. This documents the current behaviour: the
-      // IPv6 loopback path is effectively dead code today. A future patch
-      // that strips the brackets should flip this test.
+    it('stores a valid http://[::1] (IPv6 loopback) backendUrl verbatim', async () => {
+      // The URL parser returns hostname='[::1]' for IPv6 literals;
+      // isAllowedRedirectOrigin now strips the brackets before comparing, so
+      // IPv6 loopback is accepted the same as localhost / 127.0.0.1.
       const svc = buildSvc();
       const url = await svc.generateAuthorizationUrl('a', 'u', 'http://[::1]:3001');
       const state = new URL(url).searchParams.get('state')!;
-      expect(readPendingBackendUrl(svc, state)).toBe('');
+      expect(readPendingBackendUrl(svc, state)).toBe('http://[::1]:3001');
     });
 
     it('accepts loopback hosts on non-standard ports', async () => {

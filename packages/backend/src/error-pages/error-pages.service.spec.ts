@@ -111,6 +111,13 @@ describe('ErrorPagesService', () => {
       expect(mockRepo.save).not.toHaveBeenCalled();
     });
 
+    it('rejects a custom: provider even above the floor (never a public page)', async () => {
+      const dto = makeDto({ provider: 'custom:1aee1812', stats: makeStats({ tenants: 500 }) });
+      await expect(service.upsert(dto)).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.upsert(dto)).rejects.toThrow('custom providers are tenant-specific');
+      expect(mockRepo.save).not.toHaveBeenCalled();
+    });
+
     it('accepts exactly the floor (10 tenants)', async () => {
       const dto = makeDto({ stats: makeStats({ tenants: MIN_TENANTS_FOR_PUBLIC }) });
       mockRepo.findOne.mockResolvedValue(null);

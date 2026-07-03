@@ -24,6 +24,26 @@ export { SPECIFICITY_CATEGORIES } from './specificity';
 export type { SpecificityCategory } from './specificity';
 export { AUTH_TYPES } from './auth-types';
 export type { AuthType } from './auth-types';
+export {
+  ERROR_ORIGINS,
+  ERROR_CLASSES,
+  MANIFEST_ERROR_ORIGINS,
+  OK_STATUS,
+  RATE_LIMITED_STATUS,
+  SUPERSEDED_STATUS,
+  TRANSPORT_NETWORK_HTTP_STATUS,
+  TRANSPORT_TIMEOUT_HTTP_STATUS,
+  classifyHttpErrorClass,
+  classifyMessageError,
+  isManifestErrorOrigin,
+} from './error-taxonomy';
+export type {
+  ErrorOrigin,
+  ErrorClass,
+  ManifestErrorOrigin,
+  MessageErrorSignals,
+  MessageErrorClassification,
+} from './error-taxonomy';
 export { DEFAULT_RESPONSE_MODE, RESPONSE_MODES, isResponseMode } from './response-mode';
 export type { ResponseMode } from './response-mode';
 export { DEFAULT_OUTPUT_MODALITY, OUTPUT_MODALITIES, isOutputModality } from './output-modality';
