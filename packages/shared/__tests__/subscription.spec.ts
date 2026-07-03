@@ -554,7 +554,7 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('xiaomi');
     expect(caps).toMatchObject({
       maxContextWindow: 1048576,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
