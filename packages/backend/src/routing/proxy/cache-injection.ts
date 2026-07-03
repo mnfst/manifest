@@ -1,6 +1,6 @@
 /**
  * Cache control injection utilities for providers that support
- * prompt caching via the OpenAI-compatible format (e.g. OpenRouter).
+ * prompt caching via the OpenAI-compatible format.
  */
 
 const CACHE_CONTROL = { type: 'ephemeral' } as const;
@@ -64,4 +64,8 @@ export function injectOpenRouterCacheControl(
   if (tools && tools.length > 0) {
     tools[tools.length - 1].cache_control = CACHE_CONTROL;
   }
+}
+
+export function injectOpenAiMessageCacheControl(body: Record<string, unknown>): void {
+  injectOpenRouterCacheControl(body, 'message');
 }
