@@ -2,9 +2,11 @@
   s_eb7c502dd33b5d::t_48b8638a3305a1 1-5
 packages/backend/src/routing/proxy/provider-client.ts
   s_eb7c502dd33b5d::t_eb04eae98ffec7 83,543-544,548-549
+  s_eb7c502dd33b5d::t_e840211077892c 550
 packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
   s_eb7c502dd33b5d::t_0b624a7502eb22 183-184,186-187,190,259-315
   s_aecd2bb6cf8858::t_b278c499a4d6a0 182,185,188-189,191
+  s_eb7c502dd33b5d::t_e840211077892c 316-324
 ---
 {
   "schema_version": "authorship/3.0.0",
