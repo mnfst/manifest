@@ -2273,7 +2273,7 @@ describe('ProviderClient', () => {
     });
   });
 
-  describe('OpenRouter Anthropic cache injection', () => {
+  describe('OpenRouter prompt cache injection', () => {
     it('injects cache_control for anthropic/ models on openrouter', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -2295,6 +2295,67 @@ describe('ProviderClient', () => {
       const sysMsg = sentBody.messages[0];
       expect(Array.isArray(sysMsg.content)).toBe(true);
       expect(sysMsg.content[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('injects cache_control for direct-routed anthropic models on openrouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithSystem = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Hi' },
+        ],
+      };
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: '~anthropic/claude-sonnet-4-20250514',
+        body: bodyWithSystem,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[0].content[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('injects message cache_control for google models on openrouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithUserReference = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Large reference block' },
+        ],
+      };
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: 'google/gemini-2.5-pro',
+        body: bodyWithUserReference,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[0].content).toBe('You are helpful.');
+      expect(sentBody.messages[1].content[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('injects message cache_control for qwen models on openrouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithUserReference = {
+        messages: [{ role: 'user', content: 'Large reference block' }],
+      };
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: 'qwen/qwen3-coder-plus',
+        body: bodyWithUserReference,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[0].content[0].cache_control).toEqual({ type: 'ephemeral' });
     });
 
     it('does not inject cache_control for non-anthropic models on openrouter', async () => {
