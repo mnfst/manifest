@@ -545,6 +545,9 @@ export class ProviderClient {
     if (endpointKey === 'moonshot') {
       applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
     }
+    if (endpointKey === 'fireworks') {
+      applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
+    }
     if (endpointKey === 'qwen' || endpointKey === 'qwen-subscription') {
       injectOpenAiMessageCacheControl(requestBody);
     }
