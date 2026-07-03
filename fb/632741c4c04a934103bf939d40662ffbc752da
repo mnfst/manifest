@@ -1,0 +1,30 @@
+packages/backend/src/routing/proxy/cache-injection.ts
+  s_eb7c502dd33b5d::t_254d037c0b3fe3 8-32,35,37-40,44-52,58
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_eb7c502dd33b5d::t_254d037c0b3fe3 2276,2300-2359
+  s_eb7c502dd33b5d::t_73c250974c3ef3 2360
+packages/backend/src/routing/proxy/provider-client.ts
+  s_eb7c502dd33b5d::t_254d037c0b3fe3 93-99,543-545
+.changeset/openrouter-prompt-cache.md
+  s_eb7c502dd33b5d::t_254d037c0b3fe3 1-5
+packages/backend/src/routing/proxy/cache-injection.spec.ts
+  s_eb7c502dd33b5d::t_fc690e2f8d8a6f 169-183
+  s_eb7c502dd33b5d::t_b959d34b12052d 154-168
+  s_eb7c502dd33b5d::t_254d037c0b3fe3 124-153
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "fb632741c4c04a934103bf939d40662ffbc752da",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
