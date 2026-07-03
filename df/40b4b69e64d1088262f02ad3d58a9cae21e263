@@ -1,0 +1,37 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_eb7c502dd33b5d::t_4a592bdc727909 68,70,79,518
+  s_eb7c502dd33b5d::t_35a9dfa0f49918 1,69,71-78,80-81,188,381,517,519
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_eb7c502dd33b5d::t_fbd0094a055ec4 673-683,704,709,748,836,868
+  s_eb7c502dd33b5d::t_f7138b37a8d6ca 705-707,744-745
+  s_eb7c502dd33b5d::t_8651f58ae33556 708,710-713,746-747,749-754,830-835,837-842,844,867,869-878
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_eb7c502dd33b5d::t_35a9dfa0f49918 115-166
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_eb7c502dd33b5d::t_35a9dfa0f49918 644
+packages/shared/__tests__/subscription.spec.ts
+  s_eb7c502dd33b5d::t_964b221c7816ba 539
+packages/shared/src/subscription/configs.ts
+  s_eb7c502dd33b5d::t_964b221c7816ba 60
+  s_eb7c502dd33b5d::t_5edc8592437738 95
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_eb7c502dd33b5d::t_35a9dfa0f49918 52-53
+.changeset/mistral-prompt-cache-key.md
+  s_eb7c502dd33b5d::t_35a9dfa0f49918 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "df40b4b69e64d1088262f02ad3d58a9cae21e263",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
