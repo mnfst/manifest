@@ -109,6 +109,7 @@ const OPENAI_ONLY_FIELDS = new Set([
  * Nested message fields may still need target-aware cleanup.
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
+const OLLAMA_ENDPOINTS = new Set(['ollama', 'ollama-cloud']);
 const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
 const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
@@ -387,6 +388,7 @@ export function sanitizeOpenAiBody(
       continue;
     }
     if (OPENAI_ONLY_FIELDS.has(key)) continue;
+    if (key === 'thinking' && OLLAMA_ENDPOINTS.has(endpointKey.toLowerCase())) continue;
     if (key === 'max_completion_tokens') {
       // Preserve max_completion_tokens for endpoints that require it; otherwise
       // downconvert to max_tokens for OpenAI-compatible providers that only know
