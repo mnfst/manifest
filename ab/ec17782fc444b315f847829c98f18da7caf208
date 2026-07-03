@@ -1,0 +1,23 @@
+packages/shared/src/subscription/configs.ts
+  s_eb7c502dd33b5d::t_6522f80dcb1414 60
+.changeset/openai-subscription-cache-metadata.md
+  s_eb7c502dd33b5d::t_6522f80dcb1414 1-5
+packages/shared/__tests__/subscription.spec.ts
+  s_eb7c502dd33b5d::t_6522f80dcb1414 480-488
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "abec17782fc444b315f847829c98f18da7caf208",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
