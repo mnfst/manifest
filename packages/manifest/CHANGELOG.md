@@ -1,5 +1,22 @@
 # manifest
 
+## 6.13.3
+
+### Patch Changes
+
+- 4e3fdde: Report Claude Opus 4.8 with a 1M context window for Anthropic subscription routing.
+- a0f5549: Preserve Responses reasoning summaries when Copilot responses-only models are used through Chat Completions.
+- aafa8d4: Record DeepSeek prompt cache hits from `prompt_cache_hit_tokens`.
+- 6ce3a9d: Send Fireworks prompt cache keys from Manifest sessions.
+- 4c9335e: Mark MiniMax Coding Plan subscriptions as prompt-cache capable.
+- ff48cfb: Send Moonshot prompt cache keys and record Kimi cached tokens.
+- 884170d: Preserve author-prefixed Ollama model IDs when proxying requests.
+- a4fd8aa: Stop forwarding Anthropic-style thinking params to Ollama endpoints.
+- d329f57: Send Qwen cache-control markers and mark Qwen subscriptions cacheable.
+- 09d904a: Remove the proxy message-count limit so long agent sessions are bounded by request body limits instead.
+- f1a5243: Mark Xiaomi MiMo Token Plan subscriptions as prompt-cache capable.
+- 0cc5520: Mark Z.ai Coding Plan subscriptions as prompt-cache capable.
+
 ## 6.13.2
 
 ### Patch Changes
