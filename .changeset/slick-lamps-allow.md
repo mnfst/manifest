@@ -2,4 +2,4 @@
 'manifest': minor
 ---
 
-Add support for ClinePass subscribtion
+Add support for ClinePass subscription
