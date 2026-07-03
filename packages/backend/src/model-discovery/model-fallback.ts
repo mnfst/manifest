@@ -8,6 +8,7 @@ import {
   getSubscriptionKnownModelsMatch,
   getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
+  type SubscriptionCapabilities,
 } from 'manifest-shared';
 import { normalizeAnthropicShortModelId } from '../common/utils/anthropic-model-id';
 import { GOOGLE_VARIANT_RE } from '../model-prices/model-name-normalizer';
@@ -147,6 +148,41 @@ function providerPrefixedModelId(prefix: string, modelId: string): string | null
   return `${prefix}-${modelId}`;
 }
 
+function resolveSubscriptionContextWindow(
+  modelId: string,
+  contextWindow: number,
+  capabilities: Readonly<SubscriptionCapabilities> | null,
+): number {
+  let modelContextWindow: number | undefined;
+  let matchLength = -1;
+  const normalizedModelId = modelId.toLowerCase();
+  for (const [configuredModelId, configuredContextWindow] of Object.entries(
+    capabilities?.modelContextWindows ?? {},
+  )) {
+    const normalizedConfiguredModelId = configuredModelId.toLowerCase();
+    if (
+      normalizedModelId !== normalizedConfiguredModelId &&
+      !normalizedModelId.startsWith(`${normalizedConfiguredModelId}-`)
+    ) {
+      continue;
+    }
+    if (
+      typeof configuredContextWindow === 'number' &&
+      Number.isFinite(configuredContextWindow) &&
+      configuredContextWindow > 0 &&
+      normalizedConfiguredModelId.length > matchLength
+    ) {
+      modelContextWindow = configuredContextWindow;
+      matchLength = normalizedConfiguredModelId.length;
+    }
+  }
+  if (modelContextWindow) return modelContextWindow;
+  if (capabilities?.maxContextWindow && contextWindow > capabilities.maxContextWindow) {
+    return capabilities.maxContextWindow;
+  }
+  return contextWindow;
+}
+
 /**
  * Build a fallback model list from models.dev cache.
  * Uses native provider model IDs — no prefix stripping or variant matching needed.
@@ -273,10 +309,11 @@ export function buildSubscriptionFallbackModels(
       if (seen.has(modelId)) continue;
       seen.add(modelId);
 
-      let contextWindow = entry.contextWindow ?? DEFAULT_CONTEXT_WINDOW;
-      if (capabilities?.maxContextWindow && contextWindow > capabilities.maxContextWindow) {
-        contextWindow = capabilities.maxContextWindow;
-      }
+      const contextWindow = resolveSubscriptionContextWindow(
+        modelId,
+        entry.contextWindow ?? DEFAULT_CONTEXT_WINDOW,
+        capabilities,
+      );
 
       models.push({
         id: modelId,
@@ -308,7 +345,7 @@ export function buildSubscriptionFallbackModels(
       id: modelId,
       displayName: modelId,
       provider: providerId,
-      contextWindow: defaultCtx,
+      contextWindow: resolveSubscriptionContextWindow(modelId, defaultCtx, capabilities),
       inputPricePerToken: 0,
       outputPricePerToken: 0,
       capabilityReasoning: false,
@@ -350,7 +387,7 @@ export function supplementWithKnownModels(
       id: modelId,
       displayName: modelId,
       provider: providerId,
-      contextWindow: defaultCtx,
+      contextWindow: resolveSubscriptionContextWindow(modelId, defaultCtx, capabilities),
       inputPricePerToken: 0,
       outputPricePerToken: 0,
       capabilityReasoning: false,

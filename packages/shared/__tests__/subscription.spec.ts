@@ -475,6 +475,7 @@ describe('getSubscriptionCapabilities', () => {
       supportsPromptCaching: true,
       supportsBatching: false,
     });
+    expect(caps?.modelContextWindows?.['claude-opus-4-8']).toBe(1000000);
   });
 
   it('returns capabilities for OpenAI subscription', () => {
