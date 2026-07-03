@@ -477,6 +477,15 @@ describe('getSubscriptionCapabilities', () => {
     });
   });
 
+  it('returns capabilities for OpenAI subscription', () => {
+    const caps = getSubscriptionCapabilities('openai');
+    expect(caps).toMatchObject({
+      maxContextWindow: 200000,
+      supportsPromptCaching: true,
+      supportsBatching: false,
+    });
+  });
+
   it('returns capabilities for all supported providers', () => {
     for (const id of SUPPORTED_SUBSCRIPTION_PROVIDER_IDS) {
       const caps = getSubscriptionCapabilities(id);
