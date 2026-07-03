@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
-import type { RequestParamDefaults } from 'manifest-shared';
+import { classifyMessageError, type RequestParamDefaults } from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
@@ -121,7 +121,7 @@ function buildMessageRow(
   ctx: IngestionContext,
   overrides: Partial<AgentMessage>,
 ): Partial<AgentMessage> {
-  return {
+  const row: Partial<AgentMessage> = {
     id: uuid(),
     tenant_id: ctx.tenantId,
     agent_id: ctx.agentId,
@@ -135,6 +135,26 @@ function buildMessageRow(
     cache_creation_tokens: 0,
     ...overrides,
   };
+  // Stamp the orthogonal error axes from this row's own signals so every insert
+  // site is classified identically (and identically to the backfill migration).
+  return { ...row, ...classifyRow(row) };
+}
+
+/**
+ * Derive `{ error_origin, error_class, superseded }` for a row from the same
+ * signals the backfill reads, via the shared classifyMessageError source of
+ * truth. A row with no explicit status is a success ('ok').
+ */
+function classifyRow(row: Partial<AgentMessage>): {
+  error_origin: string | null;
+  error_class: string | null;
+  superseded: boolean;
+} {
+  return classifyMessageError({
+    status: row.status ?? 'ok',
+    errorHttpStatus: row.error_http_status,
+    routingReason: row.routing_reason,
+  });
 }
 
 @Injectable()
@@ -562,6 +582,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               header_tier_color: headerTierColor ?? null,
             };
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
+            // This update path bypasses buildMessageRow, so classify inline —
+            // a canned Manifest stub (status 'error' + no_provider_key etc.)
+            // must still be stamped as a config/policy/internal origin.
+            Object.assign(updatePayload, classifyRow(updatePayload));
 
             await messageRepo.update({ id: existing.id }, updatePayload);
             wrote = true;

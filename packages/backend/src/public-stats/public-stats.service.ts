@@ -88,6 +88,27 @@ function isCustomModel(model: string): boolean {
   return model.startsWith('custom:');
 }
 
+// All custom-provider traffic is published under this single synthetic
+// provider so the public site can show one aggregate "Custom" entry instead
+// of one page per (tenant-scoped, unpublishable) custom endpoint.
+export const CUSTOM_PROVIDER_LABEL = 'Custom';
+// Custom model names are user-supplied strings. Publish one only when this
+// many distinct tenants used it in the window — the same k-anonymity idea as
+// the error-pages publishing floor — and fold everything below into a single
+// bucket row so provider totals stay exact.
+export const MIN_TENANTS_PER_CUSTOM_MODEL = 10;
+export const OTHER_CUSTOM_MODELS = 'other-custom-models';
+// "custom:<provider-id>/<model>" -> "<model>". The provider id is a
+// tenant-scoped UUID and must never appear in public output.
+const CUSTOM_MODEL_REF_RE = /^custom:[^/]+\//;
+
+function scrubCustomModel(model: string): string {
+  const scrubbed = model.replace(CUSTOM_MODEL_REF_RE, '');
+  // A ref without a "/<model>" part falls through unchanged; never let the
+  // raw provider id out.
+  return isCustomModel(scrubbed) ? OTHER_CUSTOM_MODELS : scrubbed;
+}
+
 @Injectable()
 export class PublicStatsService {
   constructor(
@@ -195,27 +216,63 @@ export class PublicStatsService {
     const cutoff30d = computeCutoff('30 days');
     const dateBucket = sqlDateBucket('at.timestamp');
 
-    const rows: {
-      model: string;
-      date: string;
-      tokens: string;
-      auth_type: string | null;
-      cost: string | null;
-    }[] = await this.messageRepo
-      .createQueryBuilder('at')
-      .select('at.model', 'model')
-      .addSelect(dateBucket, 'date')
-      .addSelect('at.auth_type', 'auth_type')
-      .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
-      .addSelect('SUM(at.cost_usd)', 'cost')
-      .where('at.model IS NOT NULL')
-      .andWhere('at.timestamp >= :cutoff30d', { cutoff30d })
-      .groupBy('at.model')
-      .addGroupBy('date')
-      .addGroupBy('at.auth_type')
-      .orderBy('date', 'ASC')
-      .limit(MAX_PROVIDER_DAILY_ROWS)
-      .getRawMany();
+    const [rows, customPairs]: [
+      {
+        model: string;
+        date: string;
+        tokens: string;
+        auth_type: string | null;
+        cost: string | null;
+      }[],
+      { model: string; tenant_id: string }[],
+    ] = await Promise.all([
+      this.messageRepo
+        .createQueryBuilder('at')
+        .select('at.model', 'model')
+        .addSelect(dateBucket, 'date')
+        .addSelect('at.auth_type', 'auth_type')
+        .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
+        .addSelect('SUM(at.cost_usd)', 'cost')
+        .where('at.model IS NOT NULL')
+        .andWhere('at.timestamp >= :cutoff30d', { cutoff30d })
+        .groupBy('at.model')
+        .addGroupBy('date')
+        .addGroupBy('at.auth_type')
+        .orderBy('date', 'ASC')
+        .limit(MAX_PROVIDER_DAILY_ROWS)
+        .getRawMany(),
+      // Distinct (model, tenant) pairs for custom traffic, so the k-anonymity
+      // floor counts real tenants per scrubbed name (summing per-raw-name
+      // counts would overcount a tenant with several custom endpoints).
+      this.messageRepo
+        .createQueryBuilder('at')
+        .select('at.model', 'model')
+        .addSelect('at.tenant_id', 'tenant_id')
+        .where("at.model LIKE 'custom:%'")
+        // NULL tenants would collapse into one phantom Set member and lower
+        // the effective anonymity floor by one.
+        .andWhere('at.tenant_id IS NOT NULL')
+        .andWhere('at.timestamp >= :cutoff30d', { cutoff30d })
+        .groupBy('at.model')
+        .addGroupBy('at.tenant_id')
+        .limit(MAX_PROVIDER_DAILY_ROWS)
+        .getRawMany(),
+    ]);
+
+    const customTenantsByModel = new Map<string, Set<string>>();
+    for (const pair of customPairs) {
+      const scrubbed = scrubCustomModel(pair.model);
+      let tenants = customTenantsByModel.get(scrubbed);
+      if (!tenants) {
+        tenants = new Set();
+        customTenantsByModel.set(scrubbed, tenants);
+      }
+      tenants.add(pair.tenant_id);
+    }
+    const publishableCustomModels = new Set<string>();
+    for (const [name, tenants] of customTenantsByModel) {
+      if (tenants.size >= MIN_TENANTS_PER_CUSTOM_MODEL) publishableCustomModels.add(name);
+    }
 
     const modelMap = new Map<
       string,
@@ -230,13 +287,21 @@ export class PublicStatsService {
     >();
 
     for (const r of rows) {
-      const modelName = r.model;
-      if (isCustomModel(modelName)) continue;
-      const pricing = this.pricingCache.getByModel(modelName);
-      const provider = pricing?.provider || 'Unknown';
-      if (EXCLUDED_PROVIDERS.has(provider)) continue;
+      let modelName = r.model;
+      let provider: string;
+      if (isCustomModel(modelName)) {
+        provider = CUSTOM_PROVIDER_LABEL;
+        const scrubbed = scrubCustomModel(modelName);
+        modelName = publishableCustomModels.has(scrubbed) ? scrubbed : OTHER_CUSTOM_MODELS;
+      } else {
+        const pricing = this.pricingCache.getByModel(modelName);
+        provider = pricing?.provider || 'Unknown';
+        if (EXCLUDED_PROVIDERS.has(provider)) continue;
+      }
 
-      const key = `${modelName}:${r.auth_type ?? ''}`;
+      // Provider is part of the key: a scrubbed custom name can collide with
+      // a real catalog model, and those must stay separate entries.
+      const key = `${provider}:${modelName}:${r.auth_type ?? ''}`;
       let entry = modelMap.get(key);
       if (!entry) {
         entry = {

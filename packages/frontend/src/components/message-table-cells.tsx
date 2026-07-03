@@ -354,54 +354,96 @@ export function AgentCell(
   );
 }
 
+/**
+ * Compact origin descriptor for the merged status pill (e.g. "Failed: Provider",
+ * "Handled: Provider", "Failed: Custom limit"). Keyed off error_origin so the
+ * whole failure reads as one badge; the class detail lives in the hover tooltip
+ * and the details drawer.
+ */
+const ERROR_DESCRIPTORS: Record<string, string> = {
+  provider: 'Provider',
+  transport: 'Transport',
+  config: 'Setup',
+  policy: 'Custom limit',
+  internal: 'Manifest error',
+};
+
+/**
+ * The single merged status pill for a row. Combines the status word
+ * (Success / Failed / Handled) with the origin descriptor into ONE badge —
+ * "Failed: Provider", "Handled: Provider", "Failed: Custom limit" — rather than
+ * a stacked status + origin pair. A Manifest software limit (policy) additionally
+ * links to its agent's limits page.
+ */
+function describeStatusPill(item: MessageRow): {
+  label: string;
+  cls: string;
+  superseded: boolean;
+  limitAgent: string | null;
+} {
+  const descriptor = item.error_origin ? (ERROR_DESCRIPTORS[item.error_origin] ?? null) : null;
+  const statusWord = formatStatus(item.status);
+  return {
+    label: descriptor ? `${statusWord}: ${descriptor}` : statusWord,
+    cls: `status-badge status-badge--${item.status}`,
+    superseded: item.status === 'fallback_error',
+    limitAgent: item.error_origin === 'policy' ? item.agent_name : null,
+  };
+}
+
 export function StatusCell(
   item: MessageRow,
-  agentName: string | undefined,
+  // The Manifest-limit link keys off the row's own agent_name, and provider rate
+  // limits don't link anywhere, so the page-level agent is unused here.
+  _agentName: string | undefined,
   onFallbackErrorClick?: (model: string) => void,
 ): JSX.Element {
+  const pill = describeStatusPill(item);
+
+  // A Manifest software limit is one red pill linking to its agent's limits page.
+  if (pill.limitAgent) {
+    return (
+      <td>
+        <A
+          class={pill.cls}
+          href={`/harnesses/${encodeURIComponent(pill.limitAgent)}/limits`}
+          title="Manifest usage limit reached — open your limits"
+        >
+          {pill.label}
+        </A>
+      </td>
+    );
+  }
+
+  const badge = (
+    <span
+      class={pill.cls}
+      onClick={
+        pill.superseded && item.model && onFallbackErrorClick
+          ? () => onFallbackErrorClick(item.model!)
+          : undefined
+      }
+    >
+      {pill.superseded && <FallbackIcon />}
+      {pill.label}
+    </span>
+  );
+
+  // No error body (a success, or an error we couldn't capture) → plain badge.
+  if (!item.error_message) return <td>{badge}</td>;
+
+  // Error with a body → hover tooltip carrying the full message.
   return (
     <td>
-      <Show
-        when={item.error_message}
-        fallback={
-          <span class={`status-badge status-badge--${item.status}`}>
-            {item.status === 'fallback_error' && <FallbackIcon />}
-            {item.status === 'rate_limited' ? (
-              agentName ? (
-                <A href={`/harnesses/${encodeURIComponent(agentName)}/limits`}>
-                  {formatStatus(item.status)}
-                </A>
-              ) : (
-                formatStatus(item.status)
-              )
-            ) : (
-              formatStatus(item.status)
-            )}
-          </span>
-        }
+      <span
+        class="status-badge-tooltip"
+        tabindex="0"
+        role="note"
+        aria-label={formatErrorMessage(item.error_message)}
       >
-        <span
-          class="status-badge-tooltip"
-          tabindex="0"
-          role="note"
-          aria-label={formatErrorMessage(item.error_message!)}
-        >
-          <span
-            class={`status-badge status-badge--${item.status}`}
-            onClick={
-              item.status === 'fallback_error' && item.model && onFallbackErrorClick
-                ? () => onFallbackErrorClick(item.model!)
-                : undefined
-            }
-          >
-            {item.status === 'fallback_error' && <FallbackIcon />}
-            {formatStatus(item.status)}
-          </span>
-          <span class="status-badge-tooltip__bubble">
-            {formatErrorMessage(item.error_message!)}
-          </span>
-        </span>
-      </Show>
+        {badge}
+        <span class="status-badge-tooltip__bubble">{formatErrorMessage(item.error_message)}</span>
+      </span>
     </td>
   );
 }

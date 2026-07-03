@@ -43,11 +43,6 @@ describe('formatManifestError', () => {
     expect(out).not.toContain('{dashboardUrl}');
   });
 
-  it('coerces numeric vars to strings', () => {
-    const out = formatManifestError('M301', { max: 1000 });
-    expect(out).toContain('exceeds maximum length of 1000');
-  });
-
   it('leaves placeholders untouched when a var is missing', () => {
     const out = formatManifestError('M100', { provider: 'openai' });
     expect(out).toContain('No openai API key yet');

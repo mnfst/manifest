@@ -19,6 +19,7 @@ import { AgentLifecycleService } from './services/agent-lifecycle.service';
 import { TimeseriesQueriesService } from './services/timeseries-queries.service';
 import { MessagesQueryService } from './services/messages-query.service';
 import { MessageDetailsService } from './services/message-details.service';
+import { ErrorBreakdownService } from './services/error-breakdown.service';
 import { MessageFeedbackService } from './services/message-feedback.service';
 import { SpecificityFeedbackService } from './services/specificity-feedback.service';
 import { AgentAnalyticsService } from './services/agent-analytics.service';
@@ -31,6 +32,7 @@ import { MessagesController } from './controllers/messages.controller';
 import { AgentsController } from './controllers/agents.controller';
 import { AgentAnalyticsController } from './controllers/agent-analytics.controller';
 import { ProviderAnalyticsController } from './controllers/provider-analytics.controller';
+import { ErrorsController } from './controllers/errors.controller';
 
 @Module({
   imports: [
@@ -59,6 +61,7 @@ import { ProviderAnalyticsController } from './controllers/provider-analytics.co
     AgentAnalyticsController,
     ProviderAnalyticsController,
     ProviderUsageController,
+    ErrorsController,
   ],
   providers: [
     AggregationService,
@@ -67,6 +70,7 @@ import { ProviderAnalyticsController } from './controllers/provider-analytics.co
     TimeseriesQueriesService,
     MessagesQueryService,
     MessageDetailsService,
+    ErrorBreakdownService,
     MessageFeedbackService,
     SpecificityFeedbackService,
     AgentAnalyticsService,

@@ -88,6 +88,34 @@ describe('provider-client-converters', () => {
       expect(result).toHaveProperty('metadata');
     });
 
+    it('should strip Anthropic-style thinking params for Ollama endpoints', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        thinking: { type: 'enabled' },
+        max_tokens: 4096,
+        temperature: 0.5,
+      };
+
+      for (const endpointKey of ['ollama', 'ollama-cloud', 'Ollama']) {
+        const result = sanitizeOpenAiBody(body, endpointKey, 'qwen3.5:9b-q4_K_M');
+
+        expect(result).not.toHaveProperty('thinking');
+        expect(result).toHaveProperty('max_tokens', 4096);
+        expect(result).toHaveProperty('temperature', 0.5);
+      }
+    });
+
+    it('should keep thinking params for compatible OpenAI-format providers', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        thinking: { type: 'enabled' },
+      };
+
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-v4-flash');
+
+      expect(result).toHaveProperty('thinking', { type: 'enabled' });
+    });
+
     /* ── DeepSeek max_tokens normalization ── */
 
     it('should cap max_tokens at 8192 for deepseek provider', () => {

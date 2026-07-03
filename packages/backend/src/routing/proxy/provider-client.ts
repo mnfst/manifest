@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
 import { XAI_RESPONSES_ONLY_RE } from '../../common/constants/xai-models';
@@ -5,8 +6,9 @@ import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './prov
 import { validatePublicUrl } from '../../common/utils/url-validation';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { resolveSubscriptionEndpointKey } from './provider-hooks';
-import { injectOpenRouterCacheControl } from './cache-injection';
+import { injectOpenAiMessageCacheControl, injectOpenRouterCacheControl } from './cache-injection';
 import {
+  applyAnthropicAutomaticCacheControl,
   applyAnthropicMessagesMutations,
   toGoogleRequest,
   toAnthropicRequest,
@@ -56,6 +58,45 @@ const QWEN_TOKEN_PLAN_RESPONSES_RE = /^qwen3\.7-max$/i;
 const COPILOT_CHAT_COMPLETIONS_ENDPOINT = '/chat/completions';
 const COPILOT_RESPONSES_ENDPOINTS = new Set(['/responses', 'ws:/responses']);
 
+function shouldApplyAnthropicAutomaticCacheControl(
+  endpointKey: string,
+  authType: string | undefined,
+): boolean {
+  return endpointKey === 'anthropic' && authType === 'subscription';
+}
+
+function buildPromptCacheKey(sessionKey: string): string {
+  const digest = createHash('sha256').update(sessionKey).digest('hex').slice(0, 32);
+  return `manifest-${digest}`;
+}
+
+function applyXaiResponsesPromptCacheKey(
+  body: Record<string, unknown>,
+  sessionKey: string | undefined,
+): void {
+  if (typeof body.prompt_cache_key === 'string' && body.prompt_cache_key) return;
+  const trimmedSessionKey = sessionKey?.trim();
+  if (!trimmedSessionKey) return;
+  body.prompt_cache_key = trimmedSessionKey;
+}
+
+function applyHashedPromptCacheKey(
+  body: Record<string, unknown>,
+  sessionKey: string | undefined,
+): void {
+  if (typeof body.prompt_cache_key === 'string' && body.prompt_cache_key) return;
+  const trimmedSessionKey = sessionKey?.trim();
+  if (!trimmedSessionKey) return;
+  body.prompt_cache_key = buildPromptCacheKey(trimmedSessionKey);
+}
+
+function openRouterCacheMode(model: string): 'anthropic' | 'message' | null {
+  const normalized = model.toLowerCase().replace(/^~/, '');
+  if (normalized.startsWith('anthropic/')) return 'anthropic';
+  if (normalized.startsWith('google/') || normalized.startsWith('qwen/')) return 'message';
+  return null;
+}
+
 /**
  * Strip vendor prefix from model name (e.g. "anthropic/claude-sonnet-4" → "claude-sonnet-4").
  * Models synced from OpenRouter use vendor prefixes, but native APIs expect bare names.
@@ -66,8 +107,8 @@ function stripModelPrefix(model: string, endpointKey: string): string {
   if (endpointKey === 'commandcode' || endpointKey === 'commandcode-anthropic') {
     return model.startsWith('commandcode/') ? model.slice('commandcode/'.length) : model;
   }
-  // Custom providers, Fireworks, Groq, Kilo, Nous, NVIDIA NIM, Pioneer, and ClinePass: model IDs from these APIs
-  // contain legitimate slash segments (e.g. "accounts/fireworks/models/deepseek-v3p1",
+  // Custom providers, Fireworks, Groq, Kilo, Nous, NVIDIA NIM, Ollama, Pioneer, and ClinePass: model IDs from these APIs contain
+  // legitimate slash segments (e.g. "accounts/fireworks/models/deepseek-v3p1",
   // "MiniMaxAI/MiniMax-2.7", "meta-llama/llama-guard-4-12b", "anthropic/claude-sonnet-4.5",
   // "cline-pass/deepseek-v4-flash"). Stripping would mangle the name the upstream API expects.
   if (
@@ -77,8 +118,10 @@ function stripModelPrefix(model: string, endpointKey: string): string {
     endpointKey === 'kilo' ||
     endpointKey === 'nous' ||
     endpointKey === 'nvidia' ||
-    endpointKey === 'pioneer' ||
     endpointKey === 'cline-pass'
+    endpointKey === 'ollama' ||
+    endpointKey === 'ollama-cloud' ||
+    endpointKey === 'pioneer'
   )
     return model;
   return stripVendorPrefix(model);
@@ -163,6 +206,7 @@ export class ProviderClient {
       thinkingRouteContext: opts.thinkingRouteContext,
       reasoningContentLookup: opts.reasoningContentLookup,
       providerResource: opts.providerResource,
+      sessionKey: opts.sessionKey,
     });
 
     // The Codex backend only serves prompt-cache hits with session affinity
@@ -355,6 +399,7 @@ export class ProviderClient {
     thinkingRouteContext?: ForwardOptions['thinkingRouteContext'];
     reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
     providerResource?: string;
+    sessionKey?: string;
   }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // For non-chat_completions inbound modes ('responses', 'messages'), the
@@ -421,6 +466,9 @@ export class ProviderClient {
             });
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
+      if (shouldApplyAnthropicAutomaticCacheControl(endpointKey, authType)) {
+        applyAnthropicAutomaticCacheControl(requestBody);
+      }
       return {
         url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
         headers: endpoint.buildHeaders(apiKey, authType),
@@ -453,11 +501,16 @@ export class ProviderClient {
                 endpointKey === 'openai-responses' ||
                 endpointKey === 'copilot-responses' ||
                 endpointKey === 'xai-responses',
-              // Only OpenAI's /responses endpoints are known to accept
-              // prompt_cache_key; other Responses-shaped backends may 400.
+              // OpenAI and xAI /responses endpoints accept prompt_cache_key.
+              // Other Responses-shaped backends may 400 on unknown params.
               forwardPromptCacheKey:
-                endpointKey === 'openai-subscription' || endpointKey === 'openai-responses',
+                endpointKey === 'openai-subscription' ||
+                endpointKey === 'openai-responses' ||
+                endpointKey === 'xai-responses',
             });
+      if (endpointKey === 'xai-responses') {
+        applyXaiResponsesPromptCacheKey(requestBody, ctx.sessionKey);
+      }
       // Force upstream streaming for copilot-responses so the SSE collector in
       // handleNonStreamResponse stays the single source of truth. Without this,
       // an explicit `stream: false` from the caller could hand us a plain JSON
@@ -487,8 +540,21 @@ export class ProviderClient {
       sanitized.stream_options = { ...existing, include_usage: true };
     }
     const requestBody = { ...sanitized, model: bareModel, stream };
-    if (endpointKey === 'openrouter' && ctx.model.startsWith('anthropic/')) {
-      injectOpenRouterCacheControl(requestBody);
+    if (endpointKey === 'mistral') {
+      applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
+    }
+    if (endpointKey === 'moonshot') {
+      applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
+    }
+    if (endpointKey === 'fireworks') {
+      applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
+    }
+    if (endpointKey === 'qwen' || endpointKey === 'qwen-subscription') {
+      injectOpenAiMessageCacheControl(requestBody);
+    }
+    if (endpointKey === 'openrouter') {
+      const cacheMode = openRouterCacheMode(ctx.model);
+      if (cacheMode) injectOpenRouterCacheControl(requestBody, cacheMode);
     }
     return {
       url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,

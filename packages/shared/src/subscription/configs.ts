@@ -22,7 +22,10 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     knownModelsExclude: Object.freeze(['-fast']),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
-      supportsPromptCaching: false,
+      modelContextWindows: Object.freeze({
+        'claude-opus-4-8': 1000000,
+      }),
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
@@ -57,7 +60,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
@@ -79,7 +82,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       // MiniMax-M3's 1M window (MSA); M2.x models keep their own lower
       // per-model contexts from the pricing cache — this is only the cap.
       maxContextWindow: 1000000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
@@ -92,7 +95,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
@@ -112,7 +115,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 1048576,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
@@ -124,7 +127,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionTokenPrefix: 'sk-sp-',
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 991000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
@@ -137,7 +140,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 262144,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
@@ -182,7 +185,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     ]),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 1000000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
@@ -203,7 +206,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionCapabilities: Object.freeze({
       // Z.ai advertises "200K" as 200 * 1024 = 204800, not 200000 like other providers.
       maxContextWindow: 204800,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
@@ -241,7 +244,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 1000000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
@@ -252,7 +255,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     // Model list is fetched dynamically from xAI's OpenAI-compatible /v1/models endpoint.
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 128000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),

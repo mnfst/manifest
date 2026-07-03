@@ -112,6 +112,217 @@ describe('ProviderClient', () => {
       );
     });
 
+    it('adds stable Mistral prompt cache affinity without leaking identifiers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'mistral',
+        apiKey: 'sk-mi',
+        model: 'mistral-large-latest',
+        body,
+        sessionKey: 'session-1',
+        stream: false,
+      });
+      await client.forward({
+        provider: 'mistral',
+        apiKey: 'sk-mi',
+        model: 'mistral-large-latest',
+        body,
+        sessionKey: 'session-1',
+        stream: false,
+      });
+      await client.forward({
+        provider: 'mistral',
+        apiKey: 'sk-mi',
+        model: 'mistral-large-latest',
+        body,
+        sessionKey: 'session-2',
+        stream: false,
+      });
+
+      const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body);
+      const thirdBody = JSON.parse(mockFetch.mock.calls[2][1].body);
+      expect(firstBody.prompt_cache_key).toMatch(/^manifest-[a-f0-9]{32}$/);
+      expect(secondBody.prompt_cache_key).toBe(firstBody.prompt_cache_key);
+      expect(thirdBody.prompt_cache_key).not.toBe(firstBody.prompt_cache_key);
+      expect(firstBody.prompt_cache_key).not.toContain('sk-mi');
+      expect(firstBody.prompt_cache_key).not.toContain('session-1');
+    });
+
+    it('keeps caller-supplied Mistral prompt cache keys', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'mistral',
+        apiKey: 'sk-mi',
+        model: 'mistral-large-latest',
+        body: { ...body, prompt_cache_key: 'caller-conversation' },
+        sessionKey: 'session-1',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toBe('caller-conversation');
+    });
+
+    it('omits Mistral prompt_cache_key when no session is available', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'mistral',
+        apiKey: 'sk-mi',
+        model: 'mistral-large-latest',
+        body,
+        stream: false,
+      });
+      await client.forward({
+        provider: 'mistral',
+        apiKey: 'sk-mi',
+        model: 'mistral-large-latest',
+        body,
+        sessionKey: '   ',
+        stream: false,
+      });
+
+      const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body);
+      expect(firstBody.prompt_cache_key).toBeUndefined();
+      expect(secondBody.prompt_cache_key).toBeUndefined();
+    });
+
+    it('adds stable Moonshot prompt cache affinity without leaking identifiers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-kimi',
+        model: 'kimi-k2-latest',
+        body,
+        sessionKey: 'session-1',
+        stream: false,
+      });
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-kimi',
+        model: 'kimi-k2-latest',
+        body,
+        sessionKey: 'session-1',
+        stream: false,
+      });
+
+      const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body);
+      expect(firstBody.prompt_cache_key).toMatch(/^manifest-[a-f0-9]{32}$/);
+      expect(secondBody.prompt_cache_key).toBe(firstBody.prompt_cache_key);
+      expect(firstBody.prompt_cache_key).not.toContain('sk-kimi');
+      expect(firstBody.prompt_cache_key).not.toContain('session-1');
+    });
+
+    it('keeps caller-supplied Moonshot prompt cache keys', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-kimi',
+        model: 'kimi-k2-latest',
+        body: { ...body, prompt_cache_key: 'caller-conversation' },
+        sessionKey: 'session-1',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toBe('caller-conversation');
+    });
+
+    it('omits Moonshot prompt_cache_key when no session is available', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-kimi',
+        model: 'kimi-k2-latest',
+        body,
+        stream: false,
+      });
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-kimi',
+        model: 'kimi-k2-latest',
+        body,
+        sessionKey: '   ',
+        stream: false,
+      });
+
+      const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body);
+      expect(firstBody.prompt_cache_key).toBeUndefined();
+      expect(secondBody.prompt_cache_key).toBeUndefined();
+    });
+
+    it('adds stable Fireworks prompt cache affinity without leaking identifiers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-key',
+        model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
+        body,
+        sessionKey: 'session-1',
+        stream: false,
+      });
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-key',
+        model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
+        body,
+        sessionKey: 'session-1',
+        stream: false,
+      });
+
+      const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body);
+      expect(firstBody.prompt_cache_key).toMatch(/^manifest-[a-f0-9]{32}$/);
+      expect(secondBody.prompt_cache_key).toBe(firstBody.prompt_cache_key);
+      expect(firstBody.prompt_cache_key).not.toContain('fw-key');
+      expect(firstBody.prompt_cache_key).not.toContain('session-1');
+    });
+
+    it('keeps caller-supplied Fireworks prompt cache keys', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-key',
+        model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
+        body: { ...body, prompt_cache_key: 'caller-conversation' },
+        sessionKey: 'session-1',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toBe('caller-conversation');
+    });
+
+    it('omits Fireworks prompt_cache_key when no session is available', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-key',
+        model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
+        body,
+        stream: false,
+      });
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-key',
+        model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
+        body,
+        sessionKey: '   ',
+        stream: false,
+      });
+
+      const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body);
+      expect(firstBody.prompt_cache_key).toBeUndefined();
+      expect(secondBody.prompt_cache_key).toBeUndefined();
+    });
+
     it('builds Bedrock Mantle chat completions requests with bearer API-key auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -818,7 +1029,7 @@ describe('ProviderClient', () => {
       expect(sentBody.stream).toBeUndefined();
     });
 
-    it('injects cache_control breakpoints for subscription auth', async () => {
+    it('injects automatic and block-level cache_control for subscription auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       const bodyWithSystem = {
@@ -839,7 +1050,7 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.cache_control).toBeUndefined();
+      expect(sentBody.cache_control).toEqual({ type: 'ephemeral' });
       const system = sentBody.system as Array<{ text?: string; cache_control?: unknown }>;
       // First system block is the subscription identity prompt
       expect(system[0].text).toContain('Claude agent');
@@ -1887,6 +2098,7 @@ describe('ProviderClient', () => {
       );
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('minimax-m2.7');
+      expect(sentBody.cache_control).toBeUndefined();
       expect(result.isAnthropic).toBe(true);
     });
 
@@ -2195,7 +2407,7 @@ describe('ProviderClient', () => {
     });
   });
 
-  describe('OpenRouter Anthropic cache injection', () => {
+  describe('OpenRouter prompt cache injection', () => {
     it('injects cache_control for anthropic/ models on openrouter', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -2219,6 +2431,67 @@ describe('ProviderClient', () => {
       expect(sysMsg.content[0].cache_control).toEqual({ type: 'ephemeral' });
     });
 
+    it('injects cache_control for direct-routed anthropic models on openrouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithSystem = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Hi' },
+        ],
+      };
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: '~anthropic/claude-sonnet-4-20250514',
+        body: bodyWithSystem,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[0].content[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('injects message cache_control for google models on openrouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithUserReference = {
+        messages: [
+          { role: 'system', content: 'You are helpful.' },
+          { role: 'user', content: 'Large reference block' },
+        ],
+      };
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: 'google/gemini-2.5-pro',
+        body: bodyWithUserReference,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[0].content).toBe('You are helpful.');
+      expect(sentBody.messages[1].content[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('injects message cache_control for qwen models on openrouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const bodyWithUserReference = {
+        messages: [{ role: 'user', content: 'Large reference block' }],
+      };
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: 'qwen/qwen3-coder-plus',
+        body: bodyWithUserReference,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[0].content[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
     it('does not inject cache_control for non-anthropic models on openrouter', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -2238,6 +2511,50 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(typeof sentBody.messages[0].content).toBe('string');
+    });
+  });
+
+  describe('Qwen prompt cache injection', () => {
+    it('injects cache_control for native Qwen requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'qwen',
+        apiKey: 'sk-qwen',
+        model: 'qwen3-coder-plus',
+        body: {
+          messages: [
+            { role: 'system', content: 'You are helpful.' },
+            { role: 'user', content: 'Large reference block' },
+          ],
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[0].content).toBe('You are helpful.');
+      expect(sentBody.messages[1].content[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('injects cache_control for Qwen Token Plan chat-completions requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'qwen',
+        authType: 'subscription',
+        apiKey: 'sk-sp-qwen',
+        model: 'qwen3-coder-plus',
+        body: {
+          messages: [{ role: 'user', content: 'Large reference block' }],
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(mockFetch.mock.calls[0][0]).toBe(
+        'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions',
+      );
+      expect(sentBody.messages[0].content[0].cache_control).toEqual({ type: 'ephemeral' });
     });
   });
 
@@ -2304,6 +2621,81 @@ describe('ProviderClient', () => {
       expect(mockFetch).toHaveBeenCalledWith('https://api.x.ai/v1/responses', expect.any(Object));
       expect(sentBody.max_output_tokens).toBe(1536);
       expect(sentBody.max_tokens).toBeUndefined();
+    });
+
+    it('adds prompt_cache_key to xAI Responses requests from the Manifest session', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.20-multi-agent',
+        body,
+        sessionKey: 'session-xai',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toBe('session-xai');
+    });
+
+    it('keeps caller-supplied prompt_cache_key for xAI Responses requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.20-multi-agent',
+        body: { ...body, prompt_cache_key: 'caller-conversation' },
+        sessionKey: 'session-xai',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toBe('caller-conversation');
+    });
+
+    it('omits prompt_cache_key for xAI Responses requests without a session', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.20-multi-agent',
+        body,
+        stream: false,
+      });
+      await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.20-multi-agent',
+        body,
+        sessionKey: '   ',
+        stream: false,
+      });
+
+      const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body);
+      expect(firstBody.prompt_cache_key).toBeUndefined();
+      expect(secondBody.prompt_cache_key).toBeUndefined();
+    });
+
+    it('adds prompt_cache_key for native xAI Responses requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.3',
+        apiMode: 'responses',
+        body: { input: 'Hello' },
+        sessionKey: 'native-session',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toBe('native-session');
+      expect(sentBody.input).toBe('Hello');
     });
 
     it('leaves regular xAI models on /v1/chat/completions for Chat Completions requests', async () => {
@@ -2677,6 +3069,36 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('anthropic/claude-sonnet-4');
+    });
+
+    it('preserves Ollama author-prefixed model names', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'ollama',
+        apiKey: '',
+        model: 'mdq100/qwen3.5-flash:35b',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('mdq100/qwen3.5-flash:35b');
+    });
+
+    it('preserves Ollama Cloud author-prefixed model names', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'ollama-cloud',
+        apiKey: 'ollama-key',
+        model: 'mdq100/qwen3.5-flash:35b',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('mdq100/qwen3.5-flash:35b');
     });
 
     it('preserves slash in Groq model names (e.g. meta-llama/...)', async () => {
@@ -3303,6 +3725,34 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('does not forward Anthropic-style thinking params to Ollama endpoints', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      for (const provider of ['ollama', 'ollama-cloud']) {
+        mockFetch.mockClear();
+        await client.forward({
+          provider,
+          apiKey: provider === 'ollama-cloud' ? 'ollama-key' : '',
+          model: 'qwen3.5:9b-q4_K_M',
+          body: {
+            messages: [{ role: 'user', content: 'Hello' }],
+            thinking: { type: 'enabled' },
+            max_tokens: 4096,
+          },
+          stream: false,
+        });
+
+        const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(sentBody).not.toHaveProperty('thinking');
+        expect(sentBody).toEqual(
+          expect.objectContaining({
+            model: 'qwen3.5:9b-q4_K_M',
+            max_tokens: 4096,
+          }),
+        );
+      }
     });
 
     it('injects stream_options.include_usage for Groq streaming requests', async () => {

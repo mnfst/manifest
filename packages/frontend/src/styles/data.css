@@ -91,19 +91,21 @@
   color: hsl(var(--destructive));
 }
 
-.status-badge--rate_limited a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.status-badge--rate_limited a:hover {
-  text-decoration: underline;
-}
-
 .status-badge--fallback_error {
   background: hsl(38 92% 50% / 0.15);
   color: hsl(38 92% 40%);
   cursor: pointer;
+}
+
+/* When a status badge is itself a link (a Manifest limit → the limits page)
+   keep the badge look: inherit the badge colour, no underline until hover. */
+a.status-badge {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+a.status-badge:hover {
+  text-decoration: underline;
 }
 
 @keyframes msg-highlight-flash {

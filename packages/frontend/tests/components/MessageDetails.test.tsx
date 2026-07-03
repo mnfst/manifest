@@ -103,6 +103,43 @@ describe('MessageDetails', () => {
     });
   });
 
+  it('surfaces a Manifest config error as origin/type, not a provider fault', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'error',
+        error_message: 'Provider API key missing',
+        routing_reason: 'no_provider_key',
+        error_origin: 'config',
+        error_class: 'no_provider_key',
+        superseded: false,
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Origin');
+      expect(container.textContent).toContain('Manifest · Setup');
+      expect(container.textContent).toContain('Missing API key');
+    });
+  });
+
+  it('flags a superseded (recovered-by-fallback) attempt', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'fallback_error',
+        error_message: 'Overloaded',
+        error_origin: 'provider',
+        error_class: 'server_error',
+        superseded: true,
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Superseded');
+    });
+  });
+
   it('shows message summary', async () => {
     const summaryResponse = {
       message: { ...detailsResponse.message, error_message: null },

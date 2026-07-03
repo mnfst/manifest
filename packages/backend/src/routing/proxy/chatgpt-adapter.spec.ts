@@ -276,6 +276,52 @@ describe('chatgpt-adapter', () => {
       ]);
     });
 
+    it('surfaces reasoning summary output as Chat Completions reasoning_content', () => {
+      const out = fromResponsesResponse(
+        {
+          output: [
+            {
+              type: 'reasoning',
+              summary: [{ type: 'summary_text', text: 'Checked the constraints.' }],
+            },
+            { type: 'message', content: [{ type: 'output_text', text: 'Done.' }] },
+          ],
+        },
+        'gpt-5.5',
+      );
+      const choices = out.choices as Array<Record<string, unknown>>;
+      const message = choices[0].message as Record<string, unknown>;
+
+      expect(message.content).toBe('Done.');
+      expect(message.reasoning_content).toBe('Checked the constraints.');
+    });
+
+    it('joins reasoning summary and content text while ignoring malformed parts', () => {
+      const out = fromResponsesResponse(
+        {
+          output: [
+            {
+              type: 'reasoning',
+              summary: [
+                { type: 'summary_text', text: 'Summary text.' },
+                { type: 'summary_text' },
+                'invalid',
+              ],
+              content: [{ type: 'reasoning_text', text: 'Reasoning text.' }],
+            },
+            { type: 'reasoning', summary: 'invalid' },
+            { type: 'message', content: [{ type: 'output_text', text: 'Done.' }] },
+          ],
+        },
+        'gpt-5.5',
+      );
+      const choices = out.choices as Array<Record<string, unknown>>;
+      const message = choices[0].message as Record<string, unknown>;
+
+      expect(message.content).toBe('Done.');
+      expect(message.reasoning_content).toBe('Summary text.\n\nReasoning text.');
+    });
+
     it('defaults missing usage fields to zero', () => {
       const out = fromResponsesResponse({ output: [] }, 'gpt-5');
       expect(out.usage).toEqual({
@@ -316,6 +362,39 @@ describe('chatgpt-adapter', () => {
         delta: { content: 'hi' },
         finish_reason: null,
       });
+    });
+
+    it('converts reasoning summary deltas into a Chat Completion reasoning_content delta', () => {
+      const chunk =
+        'event: response.reasoning_summary_text.delta\ndata: {"delta":"Checked constraints."}';
+      const parsed = parseFrame(transformResponsesStreamChunk(chunk, 'gpt-5.5'));
+      expect(parsed.choices[0]).toEqual({
+        index: 0,
+        delta: { reasoning_content: 'Checked constraints.' },
+        finish_reason: null,
+      });
+    });
+
+    it('converts alternate reasoning delta event names', () => {
+      const summaryChunk = 'event: response.reasoning_summary.delta\ndata: {"delta":"Summary."}';
+      const emptyChunk = 'event: response.reasoning_summary.delta\ndata: {"delta":{}}';
+      const summary = parseFrame(transformResponsesStreamChunk(summaryChunk, 'gpt-5.5'));
+      const empty = parseFrame(transformResponsesStreamChunk(emptyChunk, 'gpt-5.5'));
+
+      expect(summary.choices[0].delta).toEqual({ reasoning_content: 'Summary.' });
+      expect(empty.choices[0].delta).toEqual({ reasoning_content: '' });
+    });
+
+    it('does not expose raw reasoning text deltas as summaries', () => {
+      const chunk = 'event: response.reasoning_text.delta\ndata: {"delta":"Private chain."}';
+
+      expect(transformResponsesStreamChunk(chunk, 'gpt-5.5')).toBeNull();
+    });
+
+    it('returns null for malformed reasoning delta payloads', () => {
+      const chunk = 'event: response.reasoning_summary.delta\ndata: {';
+
+      expect(transformResponsesStreamChunk(chunk, 'gpt-5.5')).toBeNull();
     });
 
     it('converts function_call_arguments.delta into a tool_calls.arguments delta', () => {
@@ -383,6 +462,99 @@ describe('chatgpt-adapter', () => {
       expect((choices[0].message as Record<string, unknown>).content).toBe('Hello world');
       expect(choices[0].finish_reason).toBe('stop');
       expect(out.usage).toMatchObject({ prompt_tokens: 1, completion_tokens: 2 });
+    });
+
+    it('collects reasoning summary deltas into non-streaming reasoning_content', () => {
+      const sse = [
+        'event: response.reasoning_summary_text.delta\ndata: {"delta":"I checked "}',
+        'event: response.reasoning_summary_text.delta\ndata: {"delta":"the constraints."}',
+        'event: response.output_text.delta\ndata: {"delta":"Done."}',
+        'event: response.completed\ndata: {"response":{"usage":{"input_tokens":1,"output_tokens":2,"total_tokens":3}}}',
+      ].join('\n\n');
+      const out = collectChatGptSseResponse(sse, 'gpt-5.5');
+      const choices = out.choices as Array<Record<string, unknown>>;
+      const message = choices[0].message as Record<string, unknown>;
+
+      expect(message.content).toBe('Done.');
+      expect(message.reasoning_content).toBe('I checked the constraints.');
+    });
+
+    it('uses completed reasoning output as the authoritative non-streaming summary', () => {
+      const sse = [
+        'event: response.reasoning_summary_text.delta\ndata: {"delta":"Partial"}',
+        'event: response.output_text.delta\ndata: {"delta":"Done."}',
+        'event: response.completed\ndata: {"response":{"output":[{"type":"reasoning","summary":[{"type":"summary_text","text":"Complete summary."}]},{"type":"message"}]}}',
+      ].join('\n\n');
+      const out = collectChatGptSseResponse(sse, 'gpt-5.5');
+      const choices = out.choices as Array<Record<string, unknown>>;
+      const message = choices[0].message as Record<string, unknown>;
+
+      expect(message.reasoning_content).toBe('Complete summary.');
+    });
+
+    it('clears partial reasoning when completed output has no reasoning item', () => {
+      const sse = [
+        'event: response.reasoning_summary_text.delta\ndata: {"delta":"Partial"}',
+        'event: response.output_text.delta\ndata: {"delta":"Done."}',
+        'event: response.completed\ndata: {"response":{"output":[{"type":"message"}]}}',
+      ].join('\n\n');
+      const out = collectChatGptSseResponse(sse, 'gpt-5.5');
+      const choices = out.choices as Array<Record<string, unknown>>;
+      const message = choices[0].message as Record<string, unknown>;
+
+      expect(message.reasoning_content).toBeUndefined();
+    });
+
+    it('uses incomplete reasoning output as the authoritative non-streaming summary', () => {
+      const sse = [
+        'event: response.reasoning_summary_text.delta\ndata: {"delta":"Partial"}',
+        'event: response.output_text.delta\ndata: {"delta":"Done."}',
+        'event: response.incomplete\ndata: {"response":{"incomplete_details":{"reason":"max_output_tokens"},"output":[{"type":"reasoning","summary":[{"type":"summary_text","text":"Incomplete summary."}]}]}}',
+      ].join('\n\n');
+      const out = collectChatGptSseResponse(sse, 'gpt-5.5');
+      const choices = out.choices as Array<Record<string, unknown>>;
+      const message = choices[0].message as Record<string, unknown>;
+
+      expect(message.reasoning_content).toBe('Incomplete summary.');
+      expect(choices[0].finish_reason).toBe('length');
+    });
+
+    it('clears partial reasoning when incomplete output has no reasoning item', () => {
+      const sse = [
+        'event: response.reasoning_summary_text.delta\ndata: {"delta":"Partial"}',
+        'event: response.output_text.delta\ndata: {"delta":"Done."}',
+        'event: response.incomplete\ndata: {"response":{"incomplete_details":{"reason":"max_output_tokens"},"output":[{"type":"message"}]}}',
+      ].join('\n\n');
+      const out = collectChatGptSseResponse(sse, 'gpt-5.5');
+      const choices = out.choices as Array<Record<string, unknown>>;
+      const message = choices[0].message as Record<string, unknown>;
+
+      expect(message.reasoning_content).toBeUndefined();
+      expect(choices[0].finish_reason).toBe('length');
+    });
+
+    it('tolerates a completed terminal event without a response object', () => {
+      const sse = [
+        'event: response.output_text.delta\ndata: {"delta":"Done."}',
+        'event: response.completed\ndata: {"response":null}',
+      ].join('\n\n');
+      const out = collectChatGptSseResponse(sse, 'gpt-5.5');
+      const choices = out.choices as Array<Record<string, unknown>>;
+
+      expect((choices[0].message as Record<string, unknown>).content).toBe('Done.');
+      expect(choices[0].finish_reason).toBe('stop');
+    });
+
+    it('tolerates an incomplete terminal event without a response object', () => {
+      const sse = [
+        'event: response.output_text.delta\ndata: {"delta":"Done."}',
+        'event: response.incomplete\ndata: {"response":null}',
+      ].join('\n\n');
+      const out = collectChatGptSseResponse(sse, 'gpt-5.5');
+      const choices = out.choices as Array<Record<string, unknown>>;
+
+      expect((choices[0].message as Record<string, unknown>).content).toBe('Done.');
+      expect(choices[0].finish_reason).toBe('length');
     });
 
     it('reconstructs tool calls across multiple deltas and reports finish_reason=tool_calls', () => {
