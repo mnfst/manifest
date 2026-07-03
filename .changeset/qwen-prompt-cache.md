@@ -1,6 +1,5 @@
 ---
-'manifest-backend': patch
-'manifest-shared': patch
+'manifest': patch
 ---
 
 Send Qwen cache-control markers and mark Qwen subscriptions cacheable.
