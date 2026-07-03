@@ -91,8 +91,8 @@ const proStatus = {
   enabled: true,
   plan: "pro" as const,
   priceMonthlyUsd: 20,
-  agents: { used: 3, limit: 10 },
-  requests: { used: 5000, limit: 500_000, periodEnd: "2026-08-01T00:00:00.000Z" },
+  agents: { used: 3, limit: null },
+  requests: { used: null, limit: null, periodEnd: null },
 };
 
 describe("Account", () => {
@@ -102,7 +102,8 @@ describe("Account", () => {
     for (const key of Object.keys(searchParamsState)) delete searchParamsState[key];
     mockGetBillingStatus.mockResolvedValue(disabledStatus);
     mockUpgrade.mockResolvedValue(undefined);
-    mockBillingPortal.mockResolvedValue(undefined);
+    mockBillingPortal.mockResolvedValue({ data: { url: "https://billing.stripe.com/session" } });
+    vi.spyOn(window, "open").mockImplementation(() => null);
   });
 
   it("renders Account Preferences heading", () => {
@@ -202,11 +203,22 @@ describe("Account", () => {
       expect(container.querySelector("#billing")).not.toBeNull();
       expect(screen.getByText("Current plan")).toBeDefined();
       expect(screen.getByText("Free")).toBeDefined();
-      expect(screen.getByText("4 / 1 used")).toBeDefined();
-      expect(screen.getByText("10,000 per month included")).toBeDefined();
+      expect(screen.getByText("4 / 1")).toBeDefined();
+      expect(screen.getByText("120 / 10,000")).toBeDefined();
+      expect(screen.getByText(/Resets/)).toBeDefined();
       expect(
-        screen.getByText("Free: 1 agent, 10,000 requests/mo · Pro: 10 agents, 500,000 requests/mo"),
+        screen.getByText("Free: 1 agent, 10,000 requests/mo · Pro: unlimited agents and requests"),
       ).toBeDefined();
+    });
+
+    it("falls back to the included label when a limited plan has no usage count yet", async () => {
+      mockGetBillingStatus.mockResolvedValue({
+        ...freeStatus,
+        requests: { used: null, limit: 10_000, periodEnd: null },
+      });
+      render(() => <Account />);
+      await screen.findByText("Billing");
+      expect(screen.getByText("10,000")).toBeDefined();
     });
 
     it("calls subscription.upgrade with checkout URLs when Upgrade to Pro is clicked", async () => {
@@ -263,6 +275,21 @@ describe("Account", () => {
       await waitFor(() => expect(button.disabled).toBe(false));
     });
 
+    it("shows an error toast when the portal returns no url", async () => {
+      mockGetBillingStatus.mockResolvedValue(proStatus);
+      mockBillingPortal.mockResolvedValue({ data: null });
+      render(() => <Account />);
+      const button = (await screen.findByText("Manage billing")) as HTMLButtonElement;
+      fireEvent.click(button);
+      await waitFor(() =>
+        expect(mockToastError).toHaveBeenCalledWith(
+          "Could not open the billing portal. Please try again.",
+        ),
+      );
+      expect(window.open).not.toHaveBeenCalled();
+      await waitFor(() => expect(button.disabled).toBe(false));
+    });
+
     it("hides the upgrade price when priceMonthlyUsd is null", async () => {
       mockGetBillingStatus.mockResolvedValue({ ...freeStatus, priceMonthlyUsd: null });
       render(() => <Account />);
@@ -275,11 +302,22 @@ describe("Account", () => {
       render(() => <Account />);
       const button = await screen.findByText("Manage billing");
       expect(screen.getByText("Pro · $20/mo")).toBeDefined();
-      expect(screen.getByText("3 / 10 used")).toBeDefined();
-      expect(screen.getByText("500,000 per month included")).toBeDefined();
+      expect(screen.getByText("3 / unlimited")).toBeDefined();
+      expect(screen.getByText("Unlimited")).toBeDefined();
       expect(screen.queryByText(/Free: 1 agent/)).toBeNull();
       fireEvent.click(button);
-      expect(mockBillingPortal).toHaveBeenCalledWith({ returnUrl: "/account" });
+      expect(mockBillingPortal).toHaveBeenCalledWith({
+        returnUrl: "/account",
+        disableRedirect: true,
+      });
+      // Portal opens in a new tab rather than navigating away.
+      await waitFor(() =>
+        expect(window.open).toHaveBeenCalledWith(
+          "https://billing.stripe.com/session",
+          "_blank",
+          "noopener,noreferrer",
+        ),
+      );
       await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
     });
 
@@ -293,7 +331,7 @@ describe("Account", () => {
       render(() => <Account />);
       await screen.findByText("Manage billing");
       expect(screen.getByText("Pro")).toBeDefined();
-      expect(screen.getByText("3 / unlimited used")).toBeDefined();
+      expect(screen.getByText("3 / unlimited")).toBeDefined();
       expect(screen.getByText("Unlimited")).toBeDefined();
     });
 

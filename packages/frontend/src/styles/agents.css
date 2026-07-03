@@ -272,6 +272,77 @@
   background: hsl(var(--muted) / 0.3);
 }
 
+/* Billing: three stats on one line, divided, with the action in the footer. */
+.billing-stats {
+  display: flex;
+  align-items: stretch;
+}
+
+.billing-stat {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--gap-lg);
+  border-right: 1px solid hsl(var(--border));
+}
+
+.billing-stat:last-child {
+  border-right: none;
+}
+
+.billing-stat__label {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
+.billing-stat__value {
+  font-size: var(--font-size-md, 1rem);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.billing-stat__meta {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
+.billing-footer {
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gap-md);
+  padding: var(--gap-md) var(--gap-lg);
+  border-top: 1px solid hsl(var(--border));
+}
+
+.billing-footer__note {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.billing-footer .btn {
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .billing-stats {
+    flex-direction: column;
+  }
+  .billing-stat {
+    border-right: none;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .billing-stat:last-child {
+    border-bottom: none;
+  }
+}
+
 .settings-card__body {
   padding: var(--gap-md) var(--gap-lg);
 }

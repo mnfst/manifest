@@ -50,7 +50,18 @@ const Account: Component = () => {
   const handleManageBilling = async () => {
     setBillingBusy(true);
     try {
-      await authClient.subscription.billingPortal({ returnUrl: '/account' });
+      // disableRedirect returns the portal URL instead of navigating the
+      // current tab, so we can open it in a new tab and keep the dashboard open.
+      const res = await authClient.subscription.billingPortal({
+        returnUrl: '/account',
+        disableRedirect: true,
+      });
+      const url = res?.data?.url;
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      } else {
+        toast.error('Could not open the billing portal. Please try again.');
+      }
     } catch {
       toast.error('Could not open the billing portal. Please try again.');
     } finally {
@@ -205,70 +216,73 @@ const Account: Component = () => {
           </h2>
 
           <div class="settings-card">
-            <div class="settings-card__row">
-              <div class="settings-card__label">
-                <span class="settings-card__label-title">Current plan</span>
-                <span class="settings-card__label-desc">
+            <div class="billing-stats">
+              <div class="billing-stat">
+                <span class="billing-stat__label">Current plan</span>
+                <span class="billing-stat__value">
                   {billing()!.plan === 'pro' ? 'Pro' : 'Free'}
                   {billing()!.plan === 'pro' && billing()!.priceMonthlyUsd != null
                     ? ` · $${billing()!.priceMonthlyUsd}/mo`
                     : ''}
                 </span>
               </div>
-              <div class="settings-card__control">
-                <Show
-                  when={billing()!.plan === 'free'}
-                  fallback={
-                    <button
-                      class="btn btn--ghost btn--sm"
-                      disabled={billingBusy()}
-                      onClick={handleManageBilling}
-                    >
-                      Manage billing
-                    </button>
-                  }
-                >
-                  <button
-                    class="btn btn--primary btn--sm"
-                    disabled={billingBusy()}
-                    onClick={handleUpgrade}
-                  >
-                    Upgrade to Pro
-                    {billing()!.priceMonthlyUsd != null
-                      ? ` · $${billing()!.priceMonthlyUsd}/mo`
-                      : ''}
-                  </button>
+
+              <div class="billing-stat">
+                <span class="billing-stat__label">Agents</span>
+                <span class="billing-stat__value">
+                  {billing()!.agents.used} / {billing()!.agents.limit ?? 'unlimited'}
+                </span>
+              </div>
+
+              <div class="billing-stat">
+                <span class="billing-stat__label">Requests</span>
+                <span class="billing-stat__value">
+                  {billing()!.requests.limit != null
+                    ? billing()!.requests.used != null
+                      ? `${fmt(billing()!.requests.used!)} / ${fmt(billing()!.requests.limit!)}`
+                      : fmt(billing()!.requests.limit!)
+                    : 'Unlimited'}
+                </span>
+                <Show when={billing()!.requests.limit != null && billing()!.requests.periodEnd}>
+                  <span class="billing-stat__meta">
+                    Resets{' '}
+                    {new Date(billing()!.requests.periodEnd!).toLocaleDateString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </span>
                 </Show>
               </div>
             </div>
 
-            <div class="settings-card__row">
-              <div class="settings-card__label">
-                <span class="settings-card__label-title">Agents</span>
-                <span class="settings-card__label-desc">
-                  {billing()!.agents.used} / {billing()!.agents.limit ?? 'unlimited'} used
-                </span>
-              </div>
+            <div class="settings-card__footer billing-footer">
+              <span class="billing-footer__note">
+                {billing()!.plan === 'free'
+                  ? 'Free: 1 agent, 10,000 requests/mo · Pro: unlimited agents and requests'
+                  : 'Update your payment method, view invoices, or cancel anytime.'}
+              </span>
+              <Show
+                when={billing()!.plan === 'free'}
+                fallback={
+                  <button
+                    class="btn btn--outline btn--sm"
+                    disabled={billingBusy()}
+                    onClick={handleManageBilling}
+                  >
+                    {billingBusy() ? <span class="spinner" /> : 'Manage billing'}
+                  </button>
+                }
+              >
+                <button
+                  class="btn btn--primary btn--sm"
+                  disabled={billingBusy()}
+                  onClick={handleUpgrade}
+                >
+                  Upgrade to Pro
+                  {billing()!.priceMonthlyUsd != null ? ` · $${billing()!.priceMonthlyUsd}/mo` : ''}
+                </button>
+              </Show>
             </div>
-
-            <div class="settings-card__row">
-              <div class="settings-card__label">
-                <span class="settings-card__label-title">Requests</span>
-                <span class="settings-card__label-desc">
-                  {billing()!.requests.limit != null
-                    ? `${fmt(billing()!.requests.limit!)} per month included`
-                    : 'Unlimited'}
-                </span>
-              </div>
-            </div>
-
-            <Show when={billing()!.plan === 'free'}>
-              <div class="settings-card__footer">
-                <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                  Free: 1 agent, 10,000 requests/mo · Pro: 10 agents, 500,000 requests/mo
-                </span>
-              </div>
-            </Show>
           </div>
         </Show>
 
