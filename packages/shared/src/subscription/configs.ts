@@ -22,7 +22,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     knownModelsExclude: Object.freeze(['-fast']),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),

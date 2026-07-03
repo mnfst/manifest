@@ -1,4 +1,5 @@
 import {
+  applyAnthropicAutomaticCacheControl,
   applyAnthropicMessagesMutations,
   extractThinkingBlocksFromMessagesResponse,
   toAnthropicRequest,
@@ -2232,6 +2233,43 @@ describe('Anthropic Adapter', () => {
       expect(system[0].cache_control).toBeUndefined();
       const tools = result.tools as Array<Record<string, unknown>>;
       expect(tools[0].cache_control).toBeUndefined();
+    });
+
+    it('adds top-level automatic cache_control when a breakpoint slot is available', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'hi' }],
+        system: [{ type: 'text', text: 'instructions', cache_control: { type: 'ephemeral' } }],
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      };
+
+      applyAnthropicAutomaticCacheControl(body);
+
+      expect((body as Record<string, unknown>).cache_control).toEqual({ type: 'ephemeral' });
+      expect(countCacheControls(body)).toBe(2);
+    });
+
+    it('does not add top-level automatic cache_control when the body is already at the Anthropic cap', () => {
+      const cache = { type: 'ephemeral' };
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'cached 1', cache_control: cache },
+              { type: 'text', text: 'cached 2', cache_control: cache },
+            ],
+          },
+        ],
+        system: [
+          { type: 'text', text: 'cached 3', cache_control: cache },
+          { type: 'text', text: 'cached 4', cache_control: cache },
+        ],
+      };
+
+      applyAnthropicAutomaticCacheControl(body);
+
+      expect((body as Record<string, unknown>).cache_control).toBeUndefined();
+      expect(countCacheControls(body)).toBe(4);
     });
 
     it('defaults max_tokens to 4096 when not provided', () => {
