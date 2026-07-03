@@ -217,6 +217,30 @@ describe('issue #1871: cache_control round-trip through /v1/messages', () => {
         cache_creation_input_tokens: 0,
         cache_read_input_tokens: 40,
       });
+    });
+
+    it('carries DeepSeek prompt_cache_hit_tokens through the messages conversion', () => {
+      const deepSeekChatResponse = {
+        id: 'cc_deepseek',
+        model: 'deepseek-chat',
+        choices: [{ message: { content: 'pong' }, finish_reason: 'stop' }],
+        usage: {
+          prompt_tokens: 100,
+          completion_tokens: 5,
+          prompt_cache_hit_tokens: 40,
+          prompt_cache_miss_tokens: 60,
+        },
+      };
+      const messagesResponse = chatCompletionsResponseToMessages(
+        deepSeekChatResponse,
+        'deepseek-chat',
+      );
+      expect(messagesResponse.usage).toEqual({
+        input_tokens: 60,
+        output_tokens: 5,
+        cache_creation_input_tokens: 0,
+        cache_read_input_tokens: 40,
+      });
 
       const streamUsage = parseUsageObject(messagesResponse.usage);
       expect(streamUsage).toEqual({
