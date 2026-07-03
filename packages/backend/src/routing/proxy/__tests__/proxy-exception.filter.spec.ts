@@ -264,4 +264,52 @@ describe('ProxyExceptionFilter', () => {
       expect(res.status).toHaveBeenCalledWith(401);
     });
   });
+
+  describe('plan request-limit block (402 PLAN_LIMIT_REQUESTS)', () => {
+    const blockExc = () =>
+      new HttpException(
+        { statusCode: 402, code: 'PLAN_LIMIT_REQUESTS', limit: 10_000, used: 10_000 },
+        402,
+      );
+
+    it('renders the friendly M204 upgrade message for a non-streaming chat client (HTTP 200)', () => {
+      const { host, res } = chatHost();
+      filter.catch(blockExc(), host);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      const payload = res.json.mock.calls[0][0];
+      const content = payload.choices[0].message.content as string;
+      expect(content).toContain('M204');
+      expect(content).toContain('10000 requests');
+      expect(content).toContain('http://localhost:3001/account#billing');
+    });
+
+    it('returns a real 402 with insufficient_quota + code for an SDK/tool client', () => {
+      const { host, res } = createMockHost({}, { accept: 'application/json' });
+      filter.catch(blockExc(), host);
+
+      expect(res.status).toHaveBeenCalledWith(402);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            type: 'insufficient_quota',
+            code: 'PLAN_LIMIT_REQUESTS',
+            message: expect.stringContaining('Upgrade to Pro'),
+          }),
+          limit: 10_000,
+          used: 10_000,
+        }),
+      );
+    });
+
+    it('ignores a 402 without the PLAN_LIMIT_REQUESTS code (falls through)', () => {
+      const { host, res } = createMockHost({}, { accept: 'application/json' });
+      filter.catch(new HttpException({ statusCode: 402, code: 'SOMETHING_ELSE' }, 402), host);
+
+      // Falls through to the generic tool envelope, not the billing branch.
+      expect(res.status).toHaveBeenCalledWith(402);
+      const payload = res.json.mock.calls[0][0];
+      expect(payload.error.type).not.toBe('insufficient_quota');
+    });
+  });
 });

@@ -111,11 +111,11 @@ describe('PlanService', () => {
       expect((await service.getLimits(CTX)).agents).toBe(50);
     });
 
-    it('returns pro defaults for pro tenants', async () => {
+    it('returns pro defaults (unlimited) for pro tenants', async () => {
       enableBilling();
       mockTenantFindOne.mockResolvedValue(TENANT);
       mockQuery.mockResolvedValue([{ plan: 'pro' }]);
-      expect(await service.getLimits(CTX)).toEqual({ agents: 10, requestsPerMonth: 500_000 });
+      expect(await service.getLimits(CTX)).toEqual({ agents: null, requestsPerMonth: null });
     });
   });
 
@@ -188,13 +188,20 @@ describe('PlanService', () => {
       enableBilling();
       mockTenantFindOne.mockResolvedValue(TENANT);
       mockAgentCount.mockResolvedValue(1);
+      mockQuery.mockImplementation((sql: string) =>
+        sql.includes('agent_messages')
+          ? Promise.resolve([{ n: 42 }])
+          : Promise.resolve([{ plan: 'free' }]),
+      );
       const status = await service.getBillingStatus(CTX);
       expect(status).toMatchObject({
         enabled: true,
         plan: 'free',
         agents: { used: 1, limit: 1 },
-        requests: { used: null, limit: 10_000, periodEnd: null },
+        requests: { used: 42, limit: 10_000 },
       });
+      // periodEnd is the 1st of next month at midnight UTC.
+      expect(status.requests.periodEnd).toMatch(/^\d{4}-\d{2}-01T00:00:00\.000Z$/);
     });
   });
 
@@ -234,6 +241,120 @@ describe('PlanService', () => {
       mockTenantFindOne.mockResolvedValue({ id: 't1', limit_overrides: null });
 
       expect((await service.getBillingStatus('u1' as never)).priceMonthlyUsd).toBeNull();
+    });
+  });
+
+  describe('countRequestsSince', () => {
+    const START = Date.UTC(2026, 6, 1); // 2026-07-01 UTC
+
+    it('returns 0 for a null tenantId without querying', async () => {
+      expect(await service.countRequestsSince(null, START)).toBe(0);
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
+
+    it('counts via SQL and passes the tenant + month-start params', async () => {
+      mockQuery.mockResolvedValue([{ n: 7 }]);
+      expect(await service.countRequestsSince('t1', START)).toBe(7);
+      const [, params] = mockQuery.mock.calls[0];
+      expect(params[0]).toBe('t1');
+      expect(params[1]).toBe(new Date(START).toISOString());
+    });
+
+    it('caches within the TTL — a second call does not re-query', async () => {
+      mockQuery.mockResolvedValue([{ n: 3 }]);
+      await service.countRequestsSince('t1', START);
+      await service.countRequestsSince('t1', START);
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+    });
+
+    it('coalesces concurrent misses into a single query (single-flight)', async () => {
+      let resolve!: (v: Array<{ n: number }>) => void;
+      mockQuery.mockReturnValue(new Promise((r) => (resolve = r)));
+      const a = service.countRequestsSince('t1', START);
+      const b = service.countRequestsSince('t1', START);
+      resolve([{ n: 5 }]);
+      expect(await a).toBe(5);
+      expect(await b).toBe(5);
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-queries when the month rolls over (different window)', async () => {
+      mockQuery.mockResolvedValue([{ n: 1 }]);
+      await service.countRequestsSince('t1', START);
+      await service.countRequestsSince('t1', Date.UTC(2026, 7, 1)); // August
+      expect(mockQuery).toHaveBeenCalledTimes(2);
+    });
+
+    it('defaults a missing row to 0', async () => {
+      mockQuery.mockResolvedValue([]);
+      expect(await service.countRequestsSince('t1', START)).toBe(0);
+    });
+
+    it('drops the pending entry and rethrows on a DB error (so the next call retries)', async () => {
+      mockQuery.mockRejectedValueOnce(new Error('boom'));
+      await expect(service.countRequestsSince('t1', START)).rejects.toThrow('boom');
+      mockQuery.mockResolvedValueOnce([{ n: 9 }]);
+      expect(await service.countRequestsSince('t1', START)).toBe(9);
+    });
+
+    it('countRequestsThisMonth derives the current UTC month window', async () => {
+      mockQuery.mockResolvedValue([{ n: 2 }]);
+      expect(await service.countRequestsThisMonth('t1')).toBe(2);
+      const monthStart = new Date(mockQuery.mock.calls[0][1][1]);
+      expect(monthStart.getUTCDate()).toBe(1);
+      expect(monthStart.getUTCHours()).toBe(0);
+    });
+  });
+
+  describe('assertWithinRequestLimit', () => {
+    // Route subscription lookups vs the request COUNT to the right mock result.
+    function routeQuery(plan: string, count: number) {
+      mockQuery.mockImplementation((sql: string) =>
+        sql.includes('agent_messages')
+          ? Promise.resolve([{ n: count }])
+          : Promise.resolve([{ plan }]),
+      );
+    }
+
+    it('allows when billing is disabled without counting', async () => {
+      await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
+
+    it('allows an unlimited (pro) tenant without counting requests', async () => {
+      enableBilling();
+      mockTenantFindOne.mockResolvedValue(TENANT);
+      mockQuery.mockResolvedValue([{ plan: 'pro' }]); // getPlan → pro → limit null
+      await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
+      // Only the subscription lookup ran; no agent_messages COUNT.
+      expect(mockQuery.mock.calls.every(([sql]) => !String(sql).includes('agent_messages'))).toBe(
+        true,
+      );
+    });
+
+    it('allows a free tenant below the request limit', async () => {
+      enableBilling();
+      mockTenantFindOne.mockResolvedValue(TENANT);
+      routeQuery('free', 9_999);
+      await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
+    });
+
+    it('throws 402 PLAN_LIMIT_REQUESTS for a free tenant at the limit', async () => {
+      enableBilling();
+      mockTenantFindOne.mockResolvedValue(TENANT);
+      routeQuery('free', 10_000);
+      try {
+        await service.assertWithinRequestLimit(CTX);
+        fail('expected HttpException');
+      } catch (e) {
+        const err = e as HttpException;
+        expect(err.getStatus()).toBe(402);
+        expect(err.getResponse()).toMatchObject({
+          code: 'PLAN_LIMIT_REQUESTS',
+          limit: 10_000,
+          used: 10_000,
+        });
+      }
     });
   });
 });

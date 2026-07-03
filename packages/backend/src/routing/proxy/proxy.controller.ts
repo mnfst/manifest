@@ -40,6 +40,7 @@ import type { ProxyApiMode } from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
 import { openAiModelId } from './openai-model-id';
+import { PlanService } from '../../billing/plan.service';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
@@ -75,6 +76,7 @@ export class ProxyController {
     private readonly thinkingCache: ThinkingBlockCache,
     private readonly reasoningCache: ReasoningContentCache,
     private readonly modelDiscovery: ModelDiscoveryService,
+    private readonly planService: PlanService,
   ) {}
 
   @Get('models')
@@ -156,6 +158,12 @@ export class ProxyController {
     const clientAbort = new AbortController();
     res.once('close', () => clientAbort.abort());
     const startTime = Date.now();
+
+    // Plan request-limit gate runs BEFORE the try so a 402 propagates to
+    // ProxyExceptionFilter (which renders the friendly upgrade message / real
+    // 402) instead of the local handleProxyError — the latter would record it
+    // as an agent_messages row that then counts toward the very limit it hit.
+    await this.planService.assertWithinRequestLimit(req.ingestionContext);
 
     try {
       this.rateLimiter.checkLimit(tenantId);

@@ -65,6 +65,33 @@ export class ProxyExceptionFilter implements ExceptionFilter {
       return;
     }
 
+    // Plan request-limit block (402). Chat clients get the friendly M204
+    // upgrade message with a link to the billing UI; SDKs/tools get a real 402
+    // with `insufficient_quota` (the type OpenAI SDKs map to billing) plus the
+    // machine code and limit/used for programmatic handling.
+    const billingResponse = exception.getResponse();
+    if (
+      status === 402 &&
+      typeof billingResponse === 'object' &&
+      billingResponse !== null &&
+      (billingResponse as { code?: string }).code === 'PLAN_LIMIT_REQUESTS'
+    ) {
+      const { limit, used } = billingResponse as { limit?: number; used?: number };
+      const upgradeUrl = `${getDashboardUrl(this.config)}/account#billing`;
+      const content = formatManifestError('M204', { threshold: limit ?? 0, upgradeUrl });
+      const isStream = (req.body as Record<string, unknown>)?.stream === true;
+      if (isChatRenderingClient(req)) {
+        sendFriendlyResponse(res, content, isStream);
+      } else {
+        res.status(402).json({
+          error: { message: content, type: 'insufficient_quota', code: 'PLAN_LIMIT_REQUESTS' },
+          limit,
+          used,
+        });
+      }
+      return;
+    }
+
     const isStream = (req.body as Record<string, unknown>)?.stream === true;
     const isChatClient = isChatRenderingClient(req);
 

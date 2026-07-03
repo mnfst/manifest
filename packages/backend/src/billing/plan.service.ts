@@ -9,6 +9,13 @@ import type { TenantContext } from '../common/decorators/tenant-context.decorato
 import { getStripeClient, isBillingEnabled } from './billing.config';
 
 const PRICE_CACHE_TTL_MS = 60 * 60 * 1000;
+// Short TTL keeps the hot proxy path O(1) between refreshes. Staleness is
+// bounded to this window: a tenant can slip at most ~TTL worth of requests past
+// the cap before the next refresh blocks them (per process — multiple pods
+// multiply that). Acceptable for a Free-tier gate; it only ever errs toward
+// letting a few extra requests through, never toward false blocks.
+const REQUEST_COUNT_CACHE_TTL_MS = 30 * 1000;
+const MAX_REQUEST_COUNT_CACHE_SIZE = 10_000;
 
 function envLimit(name: string): number | undefined {
   const raw = process.env[name];
@@ -17,9 +24,21 @@ function envLimit(name: string): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+/** Cached monthly request count for one tenant. Keyed by the UTC month it
+ * covers so a month rollover invalidates naturally instead of serving last
+ * month's total under this month's periodEnd. `pending` coalesces concurrent
+ * misses (single-flight) so a burst can't stampede the DB with COUNT(*). */
+interface RequestCountEntry {
+  monthStartMs: number;
+  count?: number;
+  fetchedAt?: number;
+  pending?: Promise<number>;
+}
+
 @Injectable()
 export class PlanService {
   private priceCache: { value: number | null; fetchedAt: number } | null = null;
+  private requestCountCache = new Map<string, RequestCountEntry>();
 
   constructor(
     @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
@@ -86,6 +105,106 @@ export class PlanService {
     });
   }
 
+  /** Start of the current calendar month in UTC (epoch ms). */
+  private monthStartMsUtc(now: Date): number {
+    return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
+  }
+
+  /** Start of next calendar month in UTC — the moment the request quota resets. */
+  private nextMonthStartUtc(now: Date): Date {
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  }
+
+  /**
+   * Routed requests recorded for the tenant since `monthStartMs`, cached per
+   * tenant+month with single-flight coalescing. "Routed request" = one
+   * non-superseded `agent_messages` row that does not belong to the tenant's
+   * Playground agent:
+   *  - `superseded = false` drops intermediate fallback attempts, which the
+   *    recorder flags as rows that "must never count as a message" — otherwise
+   *    a single fallback-heavy request would count 2-3×.
+   *  - excluding Playground keeps the dashboard test tool from consuming (or
+   *    being blocked by) the production request quota.
+   */
+  async countRequestsSince(tenantId: string | null, monthStartMs: number): Promise<number> {
+    if (!tenantId) return 0;
+
+    const cached = this.requestCountCache.get(tenantId);
+    if (cached && cached.monthStartMs === monthStartMs) {
+      if (cached.pending) return cached.pending;
+      if (cached.count !== undefined && cached.fetchedAt !== undefined) {
+        if (Date.now() - cached.fetchedAt < REQUEST_COUNT_CACHE_TTL_MS) return cached.count;
+      }
+    }
+
+    const pending = this.dataSource
+      .query(
+        `SELECT COUNT(*)::int AS n
+           FROM agent_messages m
+          WHERE m.tenant_id = $1
+            AND m.timestamp >= $2
+            AND m.superseded = false
+            AND NOT EXISTS (
+              SELECT 1 FROM agents pa
+               WHERE pa.id = m.agent_id AND pa.is_playground = true
+            )`,
+        [tenantId, new Date(monthStartMs).toISOString()],
+      )
+      .then((rows: Array<{ n: number }>) => {
+        const count = rows[0]?.n ?? 0;
+        this.requestCountCache.set(tenantId, { monthStartMs, count, fetchedAt: Date.now() });
+        this.evictRequestCountCache();
+        return count;
+      })
+      .catch((err: Error) => {
+        // On a DB error, drop the pending entry so the next call retries rather
+        // than awaiting a rejected promise forever. Fail open (0) — never block
+        // a paying request path because a COUNT hiccuped.
+        this.requestCountCache.delete(tenantId);
+        throw err;
+      });
+
+    this.requestCountCache.set(tenantId, { monthStartMs, pending });
+    return pending;
+  }
+
+  /** Routed requests for the tenant so far this calendar month (UTC), cached. */
+  async countRequestsThisMonth(tenantId: string | null): Promise<number> {
+    return this.countRequestsSince(tenantId, this.monthStartMsUtc(new Date()));
+  }
+
+  private evictRequestCountCache(): void {
+    while (this.requestCountCache.size > MAX_REQUEST_COUNT_CACHE_SIZE) {
+      const firstKey = this.requestCountCache.keys().next().value;
+      if (firstKey === undefined) break;
+      this.requestCountCache.delete(firstKey);
+    }
+  }
+
+  /**
+   * Block a routed request when the tenant is at/over its monthly request cap.
+   * Called on the /v1/* proxy admission path BEFORE the request is recorded, so
+   * a blocked request never becomes an `agent_messages` row (which would count
+   * toward the very limit it hit). Only structured data is thrown; the friendly
+   * copy + upgrade link is built in ProxyExceptionFilter.
+   */
+  async assertWithinRequestLimit(ctx: TenantContext): Promise<void> {
+    if (!isBillingEnabled()) return;
+    const limits = await this.getLimits(ctx);
+    if (limits.requestsPerMonth === null) return; // Pro / unlimited
+    const used = await this.countRequestsThisMonth(ctx.tenantId);
+    if (used < limits.requestsPerMonth) return;
+    throw new HttpException(
+      {
+        statusCode: HttpStatus.PAYMENT_REQUIRED,
+        code: 'PLAN_LIMIT_REQUESTS',
+        limit: limits.requestsPerMonth,
+        used,
+      },
+      HttpStatus.PAYMENT_REQUIRED,
+    );
+  }
+
   /** Keep existing, block new: only ever called at creation time. */
   async assertCanCreateAgent(ctx: TenantContext): Promise<void> {
     const limits = await this.getLimits(ctx);
@@ -116,13 +235,21 @@ export class PlanService {
     }
     const plan = await this.getPlan(ctx);
     const limits = await this.getLimits(ctx);
-    const used = await this.countAgents(ctx.tenantId);
+    const agentsUsed = await this.countAgents(ctx.tenantId);
+    // One `now` drives both the count window and the reset date so they can't
+    // disagree across a midnight-UTC boundary.
+    const now = new Date();
+    const requestsUsed = await this.countRequestsSince(ctx.tenantId, this.monthStartMsUtc(now));
     return {
       enabled: true,
       plan,
       priceMonthlyUsd: await this.getProPriceUsd(),
-      agents: { used, limit: limits.agents },
-      requests: { used: null, limit: limits.requestsPerMonth, periodEnd: null },
+      agents: { used: agentsUsed, limit: limits.agents },
+      requests: {
+        used: requestsUsed,
+        limit: limits.requestsPerMonth,
+        periodEnd: this.nextMonthStartUtc(now).toISOString(),
+      },
     };
   }
 

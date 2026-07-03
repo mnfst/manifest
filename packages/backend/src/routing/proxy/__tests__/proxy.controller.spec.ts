@@ -122,10 +122,12 @@ describe('ProxyController', () => {
   let mockPricingCache: { getByModel: jest.Mock };
   let modelDiscovery: { getModelsForAgent: jest.Mock };
   let recorder: ProxyMessageRecorder;
+  let planService: { assertWithinRequestLimit: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
     proxyService = { proxyRequest: jest.fn() };
+    planService = { assertWithinRequestLimit: jest.fn().mockResolvedValue(undefined) };
     rateLimiter = {
       checkLimit: jest.fn(),
       checkIpLimit: jest.fn(),
@@ -188,6 +190,7 @@ describe('ProxyController', () => {
       new ThinkingBlockCache(),
       new ReasoningContentCache(),
       modelDiscovery as never,
+      planService as never,
     );
   });
 
@@ -291,6 +294,29 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     expect(headers['X-Manifest-Confidence']).toBe('0.9');
     expect(headers['X-Manifest-Reason']).toBe('scored');
+  });
+
+  it('enforces the plan request limit before routing — a block propagates and is not recorded', async () => {
+    const block = new HttpException(
+      { statusCode: 402, code: 'PLAN_LIMIT_REQUESTS', limit: 10_000, used: 10_000 },
+      402,
+    );
+    planService.assertWithinRequestLimit.mockRejectedValueOnce(block);
+    const recordSpy = jest.spyOn(recorder, 'recordProviderError');
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    // The gate runs BEFORE the try/catch, so the 402 propagates to
+    // ProxyExceptionFilter instead of the local handleProxyError.
+    await expect(controller.chatCompletions(req as never, res as never)).rejects.toBe(block);
+
+    // Gate ran before rate limiting / routing, and nothing was recorded (which
+    // would have counted the blocked request toward its own limit).
+    expect(planService.assertWithinRequestLimit).toHaveBeenCalledWith(req.ingestionContext);
+    expect(rateLimiter.checkLimit).not.toHaveBeenCalled();
+    expect(proxyService.proxyRequest).not.toHaveBeenCalled();
+    expect(recordSpy).not.toHaveBeenCalled();
   });
 
   it('should expose /v1/responses and convert chat completions output to Responses format', async () => {

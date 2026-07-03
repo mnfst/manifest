@@ -50,6 +50,12 @@ export const MANIFEST_ERRORS = {
     title: 'Concurrency limit exceeded',
     template: 'Too many concurrent requests. Give it a moment.',
   },
+  M204: {
+    title: 'Monthly request limit reached',
+    template:
+      "You've used all {threshold} requests included this month on the Free plan. " +
+      'Upgrade to Pro for unlimited requests: {upgradeUrl}',
+  },
   M300: {
     title: 'Missing messages array',
     template: '`messages` array is required.',
