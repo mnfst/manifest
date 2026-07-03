@@ -76,6 +76,10 @@ vi.mock("../../src/services/recent-agents.js", () => ({
 
 vi.mock("manifest-shared", () => ({
   AGENT_CATEGORIES: ["personal", "app", "coding"],
+  PLAN_LIMITS: {
+    free: { agents: 1, requestsPerMonth: 10_000 },
+    pro: { agents: null, requestsPerMonth: null },
+  },
   PLATFORM_ICONS: {},
   PLATFORMS_BY_CATEGORY: {
     personal: ["openclaw", "hermes", "other"],

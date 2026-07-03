@@ -122,7 +122,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
       >
         <div
           class="modal-card"
-          style="max-width: 520px;"
+          style={atAgentLimit() ? 'max-width: 860px;' : 'max-width: 520px;'}
           role="dialog"
           aria-modal="true"
           aria-labelledby="duplicate-agent-title"

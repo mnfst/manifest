@@ -130,7 +130,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       <div class="modal-overlay" onClick={dismiss}>
         <div
           class="modal-card"
-          style="max-width: 540px;"
+          style={atAgentLimit() ? 'max-width: 860px;' : 'max-width: 540px;'}
           role="dialog"
           aria-modal="true"
           aria-labelledby="add-agent-title"
