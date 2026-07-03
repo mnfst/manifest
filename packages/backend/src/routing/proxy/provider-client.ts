@@ -7,6 +7,7 @@ import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { resolveSubscriptionEndpointKey } from './provider-hooks';
 import { injectOpenRouterCacheControl } from './cache-injection';
 import {
+  applyAnthropicAutomaticCacheControl,
   applyAnthropicMessagesMutations,
   toGoogleRequest,
   toAnthropicRequest,
@@ -55,6 +56,13 @@ const PROVIDER_TIMEOUT_MS =
 const QWEN_TOKEN_PLAN_RESPONSES_RE = /^qwen3\.7-max$/i;
 const COPILOT_CHAT_COMPLETIONS_ENDPOINT = '/chat/completions';
 const COPILOT_RESPONSES_ENDPOINTS = new Set(['/responses', 'ws:/responses']);
+
+function shouldApplyAnthropicAutomaticCacheControl(
+  endpointKey: string,
+  authType: string | undefined,
+): boolean {
+  return endpointKey === 'anthropic' && authType === 'subscription';
+}
 
 /**
  * Strip vendor prefix from model name (e.g. "anthropic/claude-sonnet-4" → "claude-sonnet-4").
@@ -420,6 +428,9 @@ export class ProviderClient {
             });
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
+      if (shouldApplyAnthropicAutomaticCacheControl(endpointKey, authType)) {
+        applyAnthropicAutomaticCacheControl(requestBody);
+      }
       return {
         url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
         headers: endpoint.buildHeaders(apiKey, authType),

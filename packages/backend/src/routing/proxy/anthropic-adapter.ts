@@ -100,6 +100,12 @@ function tryAddCacheControl(
   budget.remaining -= 1;
 }
 
+export function applyAnthropicAutomaticCacheControl(body: Record<string, unknown>): void {
+  if (body.cache_control !== undefined) return;
+  if (countCacheControlBlocks(body) >= MAX_CACHE_CONTROL_BLOCKS) return;
+  body.cache_control = CACHE;
+}
+
 function isClaudeSonnetModel(model: string | undefined): boolean {
   if (!model) return false;
   return bareAnthropicModel(model).replace(/\./g, '-').startsWith('claude-sonnet-');

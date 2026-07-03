@@ -5,6 +5,7 @@ import {
   type GoogleStreamChunkResult,
 } from './google-adapter';
 import {
+  applyAnthropicAutomaticCacheControl,
   applyAnthropicMessagesMutations,
   extractThinkingBlocksFromMessagesResponse,
   toAnthropicRequest,
@@ -74,6 +75,7 @@ export function createAnthropicTransformer(
 
 // Re-export adapter functions used by ProviderClient.forward()
 export {
+  applyAnthropicAutomaticCacheControl,
   applyAnthropicMessagesMutations,
   extractThinkingBlocksFromMessagesResponse,
   toGoogleRequest,

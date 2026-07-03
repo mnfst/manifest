@@ -818,7 +818,7 @@ describe('ProviderClient', () => {
       expect(sentBody.stream).toBeUndefined();
     });
 
-    it('injects cache_control breakpoints for subscription auth', async () => {
+    it('injects automatic and block-level cache_control for subscription auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       const bodyWithSystem = {
@@ -839,7 +839,7 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.cache_control).toBeUndefined();
+      expect(sentBody.cache_control).toEqual({ type: 'ephemeral' });
       const system = sentBody.system as Array<{ text?: string; cache_control?: unknown }>;
       // First system block is the subscription identity prompt
       expect(system[0].text).toContain('Claude agent');
@@ -1887,6 +1887,7 @@ describe('ProviderClient', () => {
       );
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('minimax-m2.7');
+      expect(sentBody.cache_control).toBeUndefined();
       expect(result.isAnthropic).toBe(true);
     });
 

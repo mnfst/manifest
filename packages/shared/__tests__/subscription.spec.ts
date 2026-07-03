@@ -472,7 +472,7 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('anthropic');
     expect(caps).toMatchObject({
       maxContextWindow: 200000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
