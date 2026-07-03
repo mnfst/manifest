@@ -79,6 +79,38 @@ export function createCorsOriginHandler(allowedOrigins: string[]): CorsOriginHan
   };
 }
 
+// Preflight cache lifetime (seconds) for the dev CORS path. Without a
+// max-age the browser re-runs the preflight — including the Private Network
+// Access preflight — roughly every 5s, so every dashboard reload re-issues
+// one. Each round trip is another chance for a transient dev-proxy or
+// backend-restart blip to surface as a spurious CORS error in the Wingman
+// drawer. Caching the preflight collapses those repeats. 7200s (2h) is the
+// ceiling Chrome honors; scoped to dev because production never enables CORS.
+export const DEV_CORS_MAX_AGE_SECONDS = 7200;
+
+export interface DevCorsOptions {
+  origin: CorsOriginHandler;
+  credentials: false;
+  maxAge: number;
+}
+
+// The exact `enableCors()` options main.ts uses in dev, kept here so the
+// e2e/unit tests exercise the real shape rather than a hand-rolled copy.
+// `credentials: false` is deliberate — Wingman uses bearer keys, never
+// cookies, so keeping credentials off the cross-origin path means a
+// misconfigured allow-list can't leak session cookies. `allowedHeaders` is
+// intentionally omitted so the cors middleware reflects the request's
+// `Access-Control-Request-Headers` (Wingman replays real SDK fingerprints
+// like the `X-Stainless-*` family; a fixed allow-list would fail those
+// preflights).
+export function buildDevCorsOptions(allowedOrigins: string[]): DevCorsOptions {
+  return {
+    origin: createCorsOriginHandler(allowedOrigins),
+    credentials: false,
+    maxAge: DEV_CORS_MAX_AGE_SECONDS,
+  };
+}
+
 // Chrome's Private Network Access blocks public HTTPS origins (e.g. the
 // hosted Wingman SPA at https://wingman.manifest.build) from reaching
 // loopback addresses unless the server echoes back
