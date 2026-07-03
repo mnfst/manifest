@@ -1,5 +1,5 @@
 ---
-'manifest-shared': patch
+'manifest': patch
 ---
 
 Mark MiniMax Coding Plan subscriptions as prompt-cache capable.
