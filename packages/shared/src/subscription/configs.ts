@@ -137,7 +137,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 262144,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),

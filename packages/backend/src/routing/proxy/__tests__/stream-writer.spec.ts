@@ -1010,6 +1010,21 @@ describe('parseUsageObject', () => {
     });
   });
 
+  it('maps Moonshot top-level cached_tokens to cache reads', () => {
+    expect(
+      parseUsageObject({
+        prompt_tokens: 100,
+        completion_tokens: 5,
+        cached_tokens: 40,
+      }),
+    ).toEqual({
+      prompt_tokens: 100,
+      completion_tokens: 5,
+      cache_read_tokens: 40,
+      cache_creation_tokens: undefined,
+    });
+  });
+
   it('preserves provider-reported OpenAI-compatible usage cost', () => {
     expect(
       parseUsageObject({
