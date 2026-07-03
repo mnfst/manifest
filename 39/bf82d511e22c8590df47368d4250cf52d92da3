@@ -1,0 +1,34 @@
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_eb7c502dd33b5d::t_6f0bed64d73efd 2310-2359
+packages/shared/__tests__/subscription.spec.ts
+  s_eb7c502dd33b5d::t_2cd5ad2ee8412e 557
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_eb7c502dd33b5d::t_6f0bed64d73efd 644
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_eb7c502dd33b5d::t_6f0bed64d73efd 52-53
+.changeset/xai-responses-prompt-cache.md
+  s_eb7c502dd33b5d::t_6f0bed64d73efd 1-5
+packages/shared/src/subscription/configs.ts
+  s_eb7c502dd33b5d::t_5edc8592437738 255
+packages/backend/src/routing/proxy/provider-client.ts
+  s_eb7c502dd33b5d::t_6f0bed64d73efd 67-74,181,374,476-477,479-481,483-485
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_eb7c502dd33b5d::t_51c0e26a776ef3 673-683,704-707,709,744-745,748,836,868
+  s_eb7c502dd33b5d::t_a59bfc0fda7837 708,710-713,746-747,749-754,830-835,837-842,844,867,869-878
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "39bf82d511e22c8590df47368d4250cf52d92da3",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
