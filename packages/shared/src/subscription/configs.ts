@@ -203,7 +203,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionCapabilities: Object.freeze({
       // Z.ai advertises "200K" as 200 * 1024 = 204800, not 200000 like other providers.
       maxContextWindow: 204800,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
