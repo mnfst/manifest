@@ -1160,7 +1160,7 @@ export class ProviderModelFetcherService {
     return known.map((id) => ({
       id,
       displayName: id,
-      provider: 'cline',
+      provider: 'cline-pass',
       contextWindow: DEFAULT_CONTEXT_WINDOW,
       inputPricePerToken: null,
       outputPricePerToken: null,

@@ -36,6 +36,7 @@ export const getRoutingProviderApiKeyUrl = (providerId: string): string | undefi
  */
 export const SUBSCRIPTION_PROVIDER_KEY_URLS: Record<string, string> = {
   byteplus: 'https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey',
+  'cline-pass': 'https://app.cline.bot/settings/api-keys',
   commandcode: 'https://commandcode.ai/studio',
   nous: 'https://portal.nousresearch.com',
   qwen: 'https://home.qwencloud.com/api-keys',

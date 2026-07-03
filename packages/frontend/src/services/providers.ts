@@ -205,6 +205,7 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionKeyPlaceholder: 'Paste your ClinePass API key',
     subscriptionSignInUrl: 'https://app.cline.bot',
     subscriptionSignInLabel: 'Sign in to ClinePass',
+    subscriptionOnly: true,
     models: [],
   },
   pioneer: {
