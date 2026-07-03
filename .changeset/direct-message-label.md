@@ -1,7 +1,5 @@
 ---
-'manifest-backend': patch
-'manifest-frontend': patch
-'manifest-shared': patch
+'manifest': patch
 ---
 
 Show explicit SDK model overrides as Direct in Messages.
