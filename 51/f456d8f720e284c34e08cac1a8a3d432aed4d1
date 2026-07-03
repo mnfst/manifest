@@ -1,0 +1,26 @@
+packages/backend/src/billing/plan.service.ts
+  s_96720600e6b97f::t_481d28380b5b17 283-287,296,300
+  s_96720600e6b97f::t_842519fdd99ac0 198-220
+  s_96720600e6b97f::t_13d75e71819bda 52-53
+  s_96720600e6b97f::t_e1675e5e91fc25 19-23
+  s_96720600e6b97f::t_55a8760733047e 238-240
+  s_96720600e6b97f::t_4282711a073a81 197
+packages/backend/src/billing/plan.service.spec.ts
+  s_96720600e6b97f::t_9137d5b73faba1 392-419
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "51f456d8f720e284c34e08cac1a8a3d432aed4d1",
+  "prompts": {},
+  "sessions": {
+    "s_96720600e6b97f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "826baa50-1f65-4fac-9c23-e0a1ad72d203",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
