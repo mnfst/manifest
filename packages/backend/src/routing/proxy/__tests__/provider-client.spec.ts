@@ -256,6 +256,73 @@ describe('ProviderClient', () => {
       expect(secondBody.prompt_cache_key).toBeUndefined();
     });
 
+    it('adds stable Fireworks prompt cache affinity without leaking identifiers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-key',
+        model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
+        body,
+        sessionKey: 'session-1',
+        stream: false,
+      });
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-key',
+        model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
+        body,
+        sessionKey: 'session-1',
+        stream: false,
+      });
+
+      const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body);
+      expect(firstBody.prompt_cache_key).toMatch(/^manifest-[a-f0-9]{32}$/);
+      expect(secondBody.prompt_cache_key).toBe(firstBody.prompt_cache_key);
+      expect(firstBody.prompt_cache_key).not.toContain('fw-key');
+      expect(firstBody.prompt_cache_key).not.toContain('session-1');
+    });
+
+    it('keeps caller-supplied Fireworks prompt cache keys', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-key',
+        model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
+        body: { ...body, prompt_cache_key: 'caller-conversation' },
+        sessionKey: 'session-1',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toBe('caller-conversation');
+    });
+
+    it('omits Fireworks prompt_cache_key when no session is available', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-key',
+        model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
+        body,
+        stream: false,
+      });
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-key',
+        model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
+        body,
+        sessionKey: '   ',
+        stream: false,
+      });
+
+      const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body);
+      expect(firstBody.prompt_cache_key).toBeUndefined();
+      expect(secondBody.prompt_cache_key).toBeUndefined();
+    });
+
     it('builds Bedrock Mantle chat completions requests with bearer API-key auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
