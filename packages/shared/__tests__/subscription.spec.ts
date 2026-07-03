@@ -554,7 +554,7 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('xai');
     expect(caps).toMatchObject({
       maxContextWindow: 128000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });

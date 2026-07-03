@@ -252,7 +252,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     // Model list is fetched dynamically from xAI's OpenAI-compatible /v1/models endpoint.
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 128000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
