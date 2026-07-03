@@ -1,0 +1,41 @@
+packages/frontend/src/components/UpgradePanel.tsx
+  s_700be27a56f92d::t_c281bcdf91e1df 1-2,7-8,13,17,22-23,29,37,81-112,131
+  s_700be27a56f92d::t_af636836efebcc 11-12
+  s_700be27a56f92d::t_d233a6f8541f20 133-143
+  s_700be27a56f92d::t_88b5914074a55f 9-10,14-16,18-21,24-28,30-36,39-46,72-76,80,113-130
+packages/frontend/src/components/DuplicateAgentModal.tsx
+  s_700be27a56f92d::t_04493fe496bf6d 125
+packages/frontend/src/components/AddAgentModal.tsx
+  s_700be27a56f92d::t_3d61f6fd64894a 133
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_700be27a56f92d::t_dda5ab7090d66c 102-105
+packages/frontend/tests/components/UpgradePanel.test.tsx
+  s_700be27a56f92d::t_4366c7a1b320ea 21-22,26,38,41-42,44-45,48-49,51,53-58,61-63,66-73,77-78,134,136,140-141
+  s_700be27a56f92d::t_8c87dbd05dcc4b 40,43,50,52,59-60,64-65,76,79,82,87-88,138
+  s_700be27a56f92d::t_ad31620d1446b5 144-152,155-160
+packages/frontend/src/styles/modals.css
+  s_700be27a56f92d::t_f4cf780b5811f5 451-454
+  s_700be27a56f92d::t_e75427c09d328b 359,379-385,390-450,455-486,493-498
+  s_700be27a56f92d::t_a09488032a3a44 367-378
+  s_700be27a56f92d::t_90b1ea7e80d286 386-389
+  s_700be27a56f92d::t_fb85e5a45a28bf 360-366
+  s_700be27a56f92d::t_6b37a5b6b10b24 487-492
+packages/frontend/tests/pages/Workspace-validation.test.tsx
+  s_700be27a56f92d::t_1e43dd7c6dd36f 79-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "366efc68d1e6958e70570184fe75a78b94587918",
+  "prompts": {},
+  "sessions": {
+    "s_700be27a56f92d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e4967351-5782-4cee-b326-136aaccd2add",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
