@@ -1,0 +1,23 @@
+.changeset/zai-cache-capability.md
+  s_eb7c502dd33b5d::t_6991b51a392fa3 1-5
+packages/shared/src/subscription/configs.ts
+  s_eb7c502dd33b5d::t_9286b2b9469fe6 206
+packages/shared/__tests__/subscription.spec.ts
+  s_eb7c502dd33b5d::t_fe03ff915df977 521
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0cc552013bb7703660b8e9e2fe672b39e4451585",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
