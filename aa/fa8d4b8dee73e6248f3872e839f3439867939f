@@ -2,12 +2,17 @@
   s_eb7c502dd33b5d::t_e15f22ba75cf9e 1-5
 packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
   s_eb7c502dd33b5d::t_71911a5b9d3a05 279-280
+  s_eb7c502dd33b5d::t_4a33a91f9ad029 281-282
+  s_eb7c502dd33b5d::t_bd3024defc55df 283-285
 packages/backend/src/routing/proxy/stream-writer.ts
   s_eb7c502dd33b5d::t_78cce3213f670d 21-24,39-40
+  s_eb7c502dd33b5d::t_4a33a91f9ad029 41-42
+  s_eb7c502dd33b5d::t_bd3024defc55df 43-45
 packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
   s_eb7c502dd33b5d::t_ec501b454a964c 1028-1043
 packages/backend/src/routing/proxy/__tests__/anthropic-cache-control-roundtrip.spec.ts
   s_eb7c502dd33b5d::t_a81bf9d6d7f014 221-252
+  s_eb7c502dd33b5d::t_4a33a91f9ad029 220
 ---
 {
   "schema_version": "authorship/3.0.0",
