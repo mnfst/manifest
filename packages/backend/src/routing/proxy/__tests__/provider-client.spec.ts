@@ -2893,6 +2893,36 @@ describe('ProviderClient', () => {
       expect(sentBody.model).toBe('anthropic/claude-sonnet-4');
     });
 
+    it('preserves Ollama author-prefixed model names', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'ollama',
+        apiKey: '',
+        model: 'mdq100/qwen3.5-flash:35b',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('mdq100/qwen3.5-flash:35b');
+    });
+
+    it('preserves Ollama Cloud author-prefixed model names', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'ollama-cloud',
+        apiKey: 'ollama-key',
+        model: 'mdq100/qwen3.5-flash:35b',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('mdq100/qwen3.5-flash:35b');
+    });
+
     it('preserves slash in Groq model names (e.g. meta-llama/...)', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
