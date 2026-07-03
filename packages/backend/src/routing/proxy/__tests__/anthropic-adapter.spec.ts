@@ -2248,6 +2248,19 @@ describe('Anthropic Adapter', () => {
       expect(countCacheControls(body)).toBe(2);
     });
 
+    it('keeps caller-supplied top-level automatic cache_control', () => {
+      const existing = { type: 'ephemeral' };
+      const body = {
+        cache_control: existing,
+        messages: [{ role: 'user', content: 'hi' }],
+      };
+
+      applyAnthropicAutomaticCacheControl(body);
+
+      expect(body.cache_control).toBe(existing);
+      expect(countCacheControls(body)).toBe(1);
+    });
+
     it('does not add top-level automatic cache_control when the body is already at the Anthropic cap', () => {
       const cache = { type: 'ephemeral' };
       const body = {
