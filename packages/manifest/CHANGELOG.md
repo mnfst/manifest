@@ -1,5 +1,13 @@
 # manifest
 
+## 6.13.1
+
+### Patch Changes
+
+- fef144a: Show explicit SDK model overrides as Direct in Messages.
+- 5572692: Update the shipped modal for OpenAI-compatible model discovery and direct model calls.
+- f8a5a5d: Lead README, Docker docs, and app meta tags with connecting agents to any provider instead of cost savings.
+
 ## 6.13.0
 
 ### Minor Changes
