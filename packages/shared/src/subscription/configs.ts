@@ -182,7 +182,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     ]),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 1000000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
@@ -241,7 +241,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 1000000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),

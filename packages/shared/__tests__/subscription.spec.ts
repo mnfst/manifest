@@ -257,7 +257,7 @@ describe('getSubscriptionProviderConfig', () => {
     );
     expect(config?.subscriptionCapabilities).toMatchObject({
       maxContextWindow: 1000000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
@@ -555,6 +555,15 @@ describe('getSubscriptionCapabilities', () => {
     expect(caps).toMatchObject({
       maxContextWindow: 128000,
       supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for Gemini subscription', () => {
+    const caps = getSubscriptionCapabilities('gemini');
+    expect(caps).toMatchObject({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
