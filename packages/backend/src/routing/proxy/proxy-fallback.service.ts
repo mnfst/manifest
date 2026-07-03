@@ -641,6 +641,7 @@ export class ProxyFallbackService {
       customEndpoint,
       authType,
       apiMode: opts.apiMode,
+      sessionKey: opts.sessionKey,
       signatureLookup,
       thinkingLookup,
       ...(thinkingLookup

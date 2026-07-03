@@ -2307,6 +2307,81 @@ describe('ProviderClient', () => {
       expect(sentBody.max_tokens).toBeUndefined();
     });
 
+    it('adds prompt_cache_key to xAI Responses requests from the Manifest session', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.20-multi-agent',
+        body,
+        sessionKey: 'session-xai',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toBe('session-xai');
+    });
+
+    it('keeps caller-supplied prompt_cache_key for xAI Responses requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.20-multi-agent',
+        body: { ...body, prompt_cache_key: 'caller-conversation' },
+        sessionKey: 'session-xai',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toBe('caller-conversation');
+    });
+
+    it('omits prompt_cache_key for xAI Responses requests without a session', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.20-multi-agent',
+        body,
+        stream: false,
+      });
+      await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.20-multi-agent',
+        body,
+        sessionKey: '   ',
+        stream: false,
+      });
+
+      const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body);
+      expect(firstBody.prompt_cache_key).toBeUndefined();
+      expect(secondBody.prompt_cache_key).toBeUndefined();
+    });
+
+    it('adds prompt_cache_key for native xAI Responses requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.3',
+        apiMode: 'responses',
+        body: { input: 'Hello' },
+        sessionKey: 'native-session',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toBe('native-session');
+      expect(sentBody.input).toBe('Hello');
+    });
+
     it('leaves regular xAI models on /v1/chat/completions for Chat Completions requests', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

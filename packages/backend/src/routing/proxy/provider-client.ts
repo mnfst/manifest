@@ -64,6 +64,16 @@ function shouldApplyAnthropicAutomaticCacheControl(
   return endpointKey === 'anthropic' && authType === 'subscription';
 }
 
+function applyXaiResponsesPromptCacheKey(
+  body: Record<string, unknown>,
+  sessionKey: string | undefined,
+): void {
+  if (typeof body.prompt_cache_key === 'string' && body.prompt_cache_key) return;
+  const trimmedSessionKey = sessionKey?.trim();
+  if (!trimmedSessionKey) return;
+  body.prompt_cache_key = trimmedSessionKey;
+}
+
 /**
  * Strip vendor prefix from model name (e.g. "anthropic/claude-sonnet-4" → "claude-sonnet-4").
  * Models synced from OpenRouter use vendor prefixes, but native APIs expect bare names.
@@ -170,6 +180,7 @@ export class ProviderClient {
       thinkingRouteContext: opts.thinkingRouteContext,
       reasoningContentLookup: opts.reasoningContentLookup,
       providerResource: opts.providerResource,
+      sessionKey: opts.sessionKey,
     });
 
     // The Codex backend only serves prompt-cache hits with session affinity
@@ -362,6 +373,7 @@ export class ProviderClient {
     thinkingRouteContext?: ForwardOptions['thinkingRouteContext'];
     reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
     providerResource?: string;
+    sessionKey?: string;
   }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // For non-chat_completions inbound modes ('responses', 'messages'), the
@@ -463,11 +475,16 @@ export class ProviderClient {
                 endpointKey === 'openai-responses' ||
                 endpointKey === 'copilot-responses' ||
                 endpointKey === 'xai-responses',
-              // Only OpenAI's /responses endpoints are known to accept
-              // prompt_cache_key; other Responses-shaped backends may 400.
+              // OpenAI and xAI /responses endpoints accept prompt_cache_key.
+              // Other Responses-shaped backends may 400 on unknown params.
               forwardPromptCacheKey:
-                endpointKey === 'openai-subscription' || endpointKey === 'openai-responses',
+                endpointKey === 'openai-subscription' ||
+                endpointKey === 'openai-responses' ||
+                endpointKey === 'xai-responses',
             });
+      if (endpointKey === 'xai-responses') {
+        applyXaiResponsesPromptCacheKey(requestBody, ctx.sessionKey);
+      }
       // Force upstream streaming for copilot-responses so the SSE collector in
       // handleNonStreamResponse stays the single source of truth. Without this,
       // an explicit `stream: false` from the caller could hand us a plain JSON
