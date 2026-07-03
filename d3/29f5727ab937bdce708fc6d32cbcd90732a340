@@ -1,0 +1,42 @@
+packages/shared/__tests__/subscription.spec.ts
+  s_eb7c502dd33b5d::t_0f444e5f44309d 539
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_eb7c502dd33b5d::t_e61eacc75656ef 2383-2426
+.changeset/qwen-prompt-cache.md
+  s_eb7c502dd33b5d::t_0149b12be5b786 1-6
+packages/backend/src/routing/proxy/provider-client.ts
+  s_eb7c502dd33b5d::t_12f853e0c410ea 9,543-544
+  s_aecd2bb6cf8858::t_12db1515c1e0a2 545
+packages/backend/src/routing/proxy/cache-injection.ts
+  s_eb7c502dd33b5d::t_b1b485c8b649f0 3,68-70
+  s_aecd2bb6cf8858::t_b6a3448a22127f 71
+packages/backend/src/routing/proxy/cache-injection.spec.ts
+  s_eb7c502dd33b5d::t_c1f029ca7084c2 1,184-196
+  s_aecd2bb6cf8858::t_4af75e179dfa3a 197-198
+packages/shared/src/subscription/configs.ts
+  s_eb7c502dd33b5d::t_c81a67f7f3ff0c 127
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "d329f5727ab937bdce708fc6d32cbcd90732a340",
+  "prompts": {},
+  "sessions": {
+    "s_aecd2bb6cf8858": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f27c0-b99d-7d73-8f72-76c628b768df",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
