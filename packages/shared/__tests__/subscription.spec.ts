@@ -527,7 +527,7 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('zai');
     expect(caps).toMatchObject({
       maxContextWindow: 204800,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
