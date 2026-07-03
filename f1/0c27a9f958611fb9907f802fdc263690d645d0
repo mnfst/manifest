@@ -1,0 +1,32 @@
+.changeset/fireworks-prompt-cache-key.md
+  s_eb7c502dd33b5d::t_48b8638a3305a1 1-5
+packages/backend/src/routing/proxy/provider-client.ts
+  s_eb7c502dd33b5d::t_eb04eae98ffec7 83,541-544
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_eb7c502dd33b5d::t_0b624a7502eb22 183-184,186-187,190,192-248
+  s_aecd2bb6cf8858::t_b278c499a4d6a0 182,185,188-189,191
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f10c27a9f958611fb9907f802fdc263690d645d0",
+  "prompts": {},
+  "sessions": {
+    "s_aecd2bb6cf8858": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f27c0-b99d-7d73-8f72-76c628b768df",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
