@@ -1,0 +1,36 @@
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_eb7c502dd33b5d::t_d83b84a44f8332 103-108
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_eb7c502dd33b5d::t_f9cfc3fbb06040 8,78
+.changeset/anthropic-subscription-cache.md
+  s_eb7c502dd33b5d::t_63dae6a46c26b0 1-6
+packages/shared/__tests__/subscription.spec.ts
+  s_eb7c502dd33b5d::t_6f97298a963b3a 475
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_eb7c502dd33b5d::t_ecac91065e6b02 2,2238-2246,2248-2270,2272-2273
+  s_eb7c502dd33b5d::t_3e0c7bc83b9916 2247,2271
+  s_eb7c502dd33b5d::t_8ea7451a6172d3 2274
+packages/shared/src/subscription/configs.ts
+  s_eb7c502dd33b5d::t_4e41554707e0be 25
+packages/backend/src/routing/proxy/provider-client.ts
+  s_eb7c502dd33b5d::t_8208cf723e750c 10,60-66,431-433
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_eb7c502dd33b5d::t_f872aea92fdcdf 1890
+  s_eb7c502dd33b5d::t_05770ffefe2498 821,842
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "7ca120b112a92ae52d638ebbc01a03b8e7b272f2",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
