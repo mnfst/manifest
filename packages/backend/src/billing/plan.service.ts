@@ -16,6 +16,11 @@ const PRICE_CACHE_TTL_MS = 60 * 60 * 1000;
 // letting a few extra requests through, never toward false blocks.
 const REQUEST_COUNT_CACHE_TTL_MS = 30 * 1000;
 const MAX_REQUEST_COUNT_CACHE_SIZE = 10_000;
+// Throttle the "count failed → failing open" warning: a sustained DB outage
+// hits this on every proxied request, which would flood logs and add avoidable
+// pressure to the hot path. One line per window, with a suppressed-count tail so
+// the true rate stays visible.
+const COUNT_FAILURE_WARN_WINDOW_MS = 60 * 1000;
 
 function envLimit(name: string): number | undefined {
   const raw = process.env[name];
@@ -44,6 +49,8 @@ export class PlanService {
   private readonly logger = new Logger(PlanService.name);
   private priceCache: { value: number | null; fetchedAt: number } | null = null;
   private requestCountCache = new Map<string, RequestCountEntry>();
+  private lastCountFailureWarnAtMs = 0;
+  private suppressedCountFailureWarns = 0;
 
   constructor(
     @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
@@ -188,6 +195,30 @@ export class PlanService {
   }
 
   /**
+   * Log the fail-open warning at most once per {@link COUNT_FAILURE_WARN_WINDOW_MS},
+   * carrying a count of how many were suppressed since the last emit. Keeps a
+   * DB outage from turning every proxied request into a log line while still
+   * surfacing the true failure rate.
+   */
+  private warnCountFailureThrottled(tenantId: string | null, err: Error): void {
+    const now = Date.now();
+    if (now - this.lastCountFailureWarnAtMs < COUNT_FAILURE_WARN_WINDOW_MS) {
+      this.suppressedCountFailureWarns++;
+      return;
+    }
+    const suppressed = this.suppressedCountFailureWarns;
+    this.suppressedCountFailureWarns = 0;
+    this.lastCountFailureWarnAtMs = now;
+    const tail =
+      suppressed > 0
+        ? ` (${suppressed} more suppressed in the last ${COUNT_FAILURE_WARN_WINDOW_MS / 1000}s)`
+        : '';
+    this.logger.warn(
+      `Request-limit count failed for tenant ${tenantId}; allowing request: ${err.message}${tail}`,
+    );
+  }
+
+  /**
    * Block a routed request when the tenant is at/over its monthly request cap.
    * Called on the /v1/* proxy admission path BEFORE the request is recorded, so
    * a blocked request never becomes an `agent_messages` row (which would count
@@ -204,10 +235,9 @@ export class PlanService {
     } catch (err) {
       // Fail open: a transient COUNT failure must never block a request. The
       // limit is a soft Free-tier gate, not a hard financial guard, so erring
-      // toward "allow" is correct. The next request retries the count.
-      this.logger.warn(
-        `Request-limit count failed for tenant ${ctx.tenantId}; allowing request: ${(err as Error).message}`,
-      );
+      // toward "allow" is correct. The next request retries the count. Warn is
+      // throttled so a sustained outage can't flood the log / hot path.
+      this.warnCountFailureThrottled(ctx.tenantId, err as Error);
       return;
     }
     if (used < limits.requestsPerMonth) return;
@@ -250,8 +280,11 @@ export class PlanService {
    * Uses a dedicated QueryRunner so the session-level lock and its unlock run on
    * the SAME pooled connection (pool churn would otherwise unlock a different
    * one). Skips the lock entirely when billing is disabled — with no finite cap
-   * there's nothing to protect. The lock key hashes a stable per-tenant string;
-   * a null tenant (brand-new account, no agents yet) can't hit the cap, so it
+   * there's nothing to protect. The lock key is a 64-bit `hashtextextended` of a
+   * stable per-tenant string: the single-arg `pg_advisory_lock(bigint)` then
+   * uses the full int8 key space, so unrelated tenants don't collide (32-bit
+   * `hashtext` would serialize ~1-in-2^32 tenant pairs against each other). A
+   * null tenant (brand-new account, no agents yet) can't hit the cap, so it
    * runs unlocked.
    */
   async withAgentCreationLock<T>(ctx: TenantContext, fn: () => Promise<T>): Promise<T> {
@@ -260,11 +293,11 @@ export class PlanService {
     const runner = this.dataSource.createQueryRunner();
     await runner.connect();
     try {
-      await runner.query('SELECT pg_advisory_lock(hashtext($1))', [lockKey]);
+      await runner.query('SELECT pg_advisory_lock(hashtextextended($1, 0))', [lockKey]);
       return await fn();
     } finally {
       await runner
-        .query('SELECT pg_advisory_unlock(hashtext($1))', [lockKey])
+        .query('SELECT pg_advisory_unlock(hashtextextended($1, 0))', [lockKey])
         .catch((err: Error) => this.logger.warn(`advisory unlock failed: ${err.message}`));
       await runner.release();
     }

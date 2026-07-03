@@ -389,6 +389,34 @@ describe('PlanService', () => {
       // A COUNT failure must never block: the soft Free-tier gate errs to "allow".
       await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
     });
+
+    it('throttles the fail-open warning and reports the suppressed count', async () => {
+      enableBilling();
+      mockTenantFindOne.mockResolvedValue(TENANT);
+      mockQuery.mockImplementation((sql: string) =>
+        sql.includes('agent_messages')
+          ? Promise.reject(new Error('db down'))
+          : Promise.resolve([{ plan: 'free' }]),
+      );
+      const warn = jest
+        .spyOn((service as unknown as { logger: { warn: jest.Mock } }).logger, 'warn')
+        .mockImplementation(() => undefined);
+      const nowSpy = jest.spyOn(Date, 'now');
+      try {
+        nowSpy.mockReturnValue(1_000_000);
+        await service.assertWithinRequestLimit(CTX); // first failure → warns once
+        await service.assertWithinRequestLimit(CTX); // within window → suppressed
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(String(warn.mock.calls[0][0])).not.toContain('suppressed');
+
+        nowSpy.mockReturnValue(1_000_000 + 61_000);
+        await service.assertWithinRequestLimit(CTX); // window elapsed → warns with tail
+        expect(warn).toHaveBeenCalledTimes(2);
+        expect(String(warn.mock.calls[1][0])).toContain('1 more suppressed');
+      } finally {
+        nowSpy.mockRestore();
+      }
+    });
   });
 
   describe('envLimit hardening', () => {
