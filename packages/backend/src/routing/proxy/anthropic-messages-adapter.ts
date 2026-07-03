@@ -276,6 +276,8 @@ function toAnthropicUsage(usage: unknown): JsonRecord {
   const cacheRead =
     typeof u.cache_read_tokens === 'number'
       ? u.cache_read_tokens
+      : typeof u.cached_tokens === 'number'
+        ? u.cached_tokens
       : typeof promptDetails?.cached_tokens === 'number'
         ? promptDetails.cached_tokens
         : 0;

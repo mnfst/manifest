@@ -80,7 +80,7 @@ function applyXaiResponsesPromptCacheKey(
   body.prompt_cache_key = trimmedSessionKey;
 }
 
-function applyMistralPromptCacheKey(
+function applyHashedPromptCacheKey(
   body: Record<string, unknown>,
   sessionKey: string | undefined,
 ): void {
@@ -540,7 +540,10 @@ export class ProviderClient {
     }
     const requestBody = { ...sanitized, model: bareModel, stream };
     if (endpointKey === 'mistral') {
-      applyMistralPromptCacheKey(requestBody, ctx.sessionKey);
+      applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
+    }
+    if (endpointKey === 'moonshot') {
+      applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
     }
     if (endpointKey === 'qwen' || endpointKey === 'qwen-subscription') {
       injectOpenAiMessageCacheControl(requestBody);

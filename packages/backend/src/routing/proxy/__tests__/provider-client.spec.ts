@@ -189,6 +189,73 @@ describe('ProviderClient', () => {
       expect(secondBody.prompt_cache_key).toBeUndefined();
     });
 
+    it('adds stable Moonshot prompt cache affinity without leaking identifiers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-kimi',
+        model: 'kimi-k2-latest',
+        body,
+        sessionKey: 'session-1',
+        stream: false,
+      });
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-kimi',
+        model: 'kimi-k2-latest',
+        body,
+        sessionKey: 'session-1',
+        stream: false,
+      });
+
+      const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body);
+      expect(firstBody.prompt_cache_key).toMatch(/^manifest-[a-f0-9]{32}$/);
+      expect(secondBody.prompt_cache_key).toBe(firstBody.prompt_cache_key);
+      expect(firstBody.prompt_cache_key).not.toContain('sk-kimi');
+      expect(firstBody.prompt_cache_key).not.toContain('session-1');
+    });
+
+    it('keeps caller-supplied Moonshot prompt cache keys', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-kimi',
+        model: 'kimi-k2-latest',
+        body: { ...body, prompt_cache_key: 'caller-conversation' },
+        sessionKey: 'session-1',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toBe('caller-conversation');
+    });
+
+    it('omits Moonshot prompt_cache_key when no session is available', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-kimi',
+        model: 'kimi-k2-latest',
+        body,
+        stream: false,
+      });
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-kimi',
+        model: 'kimi-k2-latest',
+        body,
+        sessionKey: '   ',
+        stream: false,
+      });
+
+      const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body);
+      expect(firstBody.prompt_cache_key).toBeUndefined();
+      expect(secondBody.prompt_cache_key).toBeUndefined();
+    });
+
     it('builds Bedrock Mantle chat completions requests with bearer API-key auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

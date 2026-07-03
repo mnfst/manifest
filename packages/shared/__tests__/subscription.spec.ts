@@ -527,7 +527,7 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('moonshot');
     expect(caps).toMatchObject({
       maxContextWindow: 262144,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
