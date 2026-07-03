@@ -38,6 +38,7 @@
     "test": "turbo test",
     "start": "node packages/backend/dist/main.js",
     "check:api-prefix": "node scripts/check-api-prefix.js",
+    "check:changesets": "node scripts/check-changesets.js",
     "railway:http-logs": "node scripts/railway-http-logs.js",
     "test:scripts": "node --test scripts/*.test.js",
     "lint": "eslint packages/shared/src packages/backend/src packages/frontend/src",
