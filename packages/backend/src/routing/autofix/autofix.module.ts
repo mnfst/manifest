@@ -29,7 +29,10 @@ const DEFAULT_TIMEOUT_MS = 10_000;
         const parsed = Number.parseInt(config.get<string>('AUTOFIX_TIMEOUT_MS') ?? '', 10);
         const timeoutMs = Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_TIMEOUT_MS;
         if (url && url.trim().length > 0) {
-          return new HttpHealingClient(url, timeoutMs);
+          // Phoenix guards /api/heal* and fails closed in production; send the key
+          // when configured (omit it for a keyless dev/test Phoenix).
+          const apiKey = config.get<string>('AUTOFIX_HEALING_API_KEY')?.trim() || undefined;
+          return new HttpHealingClient(url, timeoutMs, apiKey);
         }
         return config.get<string>('NODE_ENV') === 'production'
           ? new NoopHealingClient()

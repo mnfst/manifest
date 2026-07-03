@@ -393,6 +393,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `MANIFEST_PUBLIC_STATS` — Set `true` to expose `/api/v1/public/*` aggregate stats without auth (cloud-only marketing use).
 - `OLLAMA_HOST` — Ollama endpoint for the built-in tile. Defaults to `http://localhost:11434` outside Docker and `http://host.docker.internal:11434` inside the bundled `docker/docker-compose.yml`.
 - `AUTOFIX_HEALING_URL` — Base URL of the Phoenix healing service for Auto-fix. Unset → inert Noop client in production (never mutates traffic), in-process mock in dev/test. See [Auto-fix](#auto-fix-self-healing-via-phoenix).
+- `AUTOFIX_HEALING_API_KEY` — Sent as `x-api-key` on every call to Phoenix. Phoenix guards `/api/heal*` and fails closed in production, so this is required when `AUTOFIX_HEALING_URL` points at a production Phoenix; omit it for a keyless dev/test Phoenix.
 - `AUTOFIX_GLOBAL_ENABLED` — Set `false` to disable Auto-fix for all agents (default on). Companions: `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
 
 ## Domain Terminology
@@ -529,9 +530,9 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 - **Hook:** `proxy.service.ts`, after the primary forward and *before* `shouldTriggerFallback`. `ProxyResult.autofix` threads the record to the recorder.
 
 **Phoenix = [`mnfst/phoenix`](https://github.com/mnfst/phoenix)** (separate repo). Contract (v2):
-- `POST /api/heal` — body `{requestId, provider, api, url?, request, response:{statusCode, error:{message,type?,param?,code?}}}`. **The provider error is nested under `response`** (a flat `providerError` is rejected), and `api` is the proxy `apiMode` verbatim (`chat_completions` | `responses` | `messages`). The response is discriminated on `status`: `patched` / `pending_confirmation` (both carry `healedBody` + `healAttemptId` → apply the patch and resend) | `resolving` (Phoenix is still authoring a fix — nothing to resend) | `no_patch`. Also returns `issueId`, `patchId?`, `operations?`.
+- `POST /api/heal` — body `{traceId, provider, api, url?, request, response:{statusCode, error:{message,type?,param?,code?}}}`. **`traceId` is required** (Phoenix rejects a body without it) and **the provider error is nested under `response`** (a flat `providerError` is rejected), and `api` is the proxy `apiMode` verbatim (`chat_completions` | `responses` | `messages`). The response is discriminated on `status`: `patched` / `pending_confirmation` (both carry `healedBody` + `healAttemptId` → apply the patch and resend) | `resolving` (Phoenix is still authoring a fix — nothing to resend) | `no_patch`. Also returns `issueId`, `patchId?`, `operations?`.
 - `PATCH /api/heal-attempts/{healAttemptId}` — report the retry outcome `{retryStatusCode, error?}` (`error` required when ≥400). Fire-and-forget; Phoenix decides succeeded/failed. Only possible when a patch handed out a `healAttemptId` — `no_patch`/`resolving` carry none, so those outcomes are **not** reported.
-- `requestId` is stable across the logical request (Manifest reuses the internal `groupId`).
+- `traceId` is stable across the logical request (Manifest reuses the internal `groupId`).
 
 **Recording — a healed request is TWO linked `agent_messages` rows:** the failed original (`status='auto_fixed'`, orange badge, `autofix_role='original'`, carries the error + `autofix_operations` + `autofix_phoenix` ids) and the successful retry (`status='ok'`, `autofix_role='retry'`), sharing `autofix_group_id`. `auto_fixed` is in `ERROR_MESSAGE_STATUSES` (excluded from KPI counts — the retry is the counted success). Columns on `agent_messages`: `autofix_applied` (bool), `autofix_group_id` (varchar, indexed), `autofix_role`, `autofix_operations` (jsonb), `autofix_phoenix` (jsonb `{issueId,patchId,healAttemptId}`). The message-detail panel links the two rows and shows the operations + Phoenix ids.
 
@@ -539,7 +540,7 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 
 **Endpoints:** `GET/PATCH /api/v1/routing/:agentName/autofix` → `{ enabled }`.
 
-**Env:** `AUTOFIX_HEALING_URL` (unset → inert Noop in production, in-process mock in dev/test), `AUTOFIX_GLOBAL_ENABLED` (`false` disables Auto-fix everywhere; default on), `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
+**Env:** `AUTOFIX_HEALING_URL` (unset → inert Noop in production, in-process mock in dev/test), `AUTOFIX_HEALING_API_KEY` (sent as `x-api-key`; required for a production Phoenix, which fails closed without it), `AUTOFIX_GLOBAL_ENABLED` (`false` disables Auto-fix everywhere; default on), `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
 
 ## Providers & Models
 

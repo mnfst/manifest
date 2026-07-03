@@ -7,6 +7,7 @@ import type { HealRequest, PhoenixProviderError } from '../phoenix.types';
  */
 function makeRequest(error: PhoenixProviderError, request: Record<string, unknown>): HealRequest {
   return {
+    traceId: 'trace-1',
     provider: 'openai',
     api: 'responses',
     request,

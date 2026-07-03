@@ -157,19 +157,20 @@ are the source of truth):
   delays the client.
 
 `provider` + `api` (`chat_completions|responses|messages` — exactly Manifest's
-`apiMode`) are the fingerprint dimensions. `requestId` is the stable per-logical-request
-id (Manifest reuses the message-link group id) so Phoenix can group the heal-attempt
-timeline across retries. The provider error is normalised to
-`{ message, type, param, code }` by `provider-error-normalizer.ts`.
+`apiMode`) are the fingerprint dimensions. `traceId` (**required**) is the stable
+per-logical-request id — Manifest reuses the message-link group id and sends it as
+Phoenix's `traceId` so Phoenix can group the heal-attempt timeline across retries.
+The provider error is normalised to `{ message, type, param, code }` by
+`provider-error-normalizer.ts`.
 
 `POST /api/heal` request (Manifest → Phoenix):
 
 ```jsonc
 {
-  "requestId": "…",                        // stable per logical request (group id)
+  "traceId": "…",                          // REQUIRED — stable per logical request (group id)
   "provider": "openai",
   "api": "responses",                      // | "chat_completions" | "messages"
-  "url": "https://api.openai.com/v1/responses",   // optional, not fingerprinted
+  "url": "https://api.openai.com/v1/responses",   // optional, must be an absolute URL
   "request":  { /* FULL failed request body */ },
   "response": { "statusCode": 400, "error": { "message": "…", "type": "…", "param": "…", "code": "…" } }
 }
@@ -294,6 +295,7 @@ invalidate the agent cache on write (same as `toggleComplexity`).
 | Var | Default | Purpose |
 |---|---|---|
 | `AUTOFIX_HEALING_URL` | *(unset → mock)* | External healing service endpoint |
+| `AUTOFIX_HEALING_API_KEY` | *(unset)* | Sent as `x-api-key` to Phoenix (Phoenix fails closed in production without a key; omit for a keyless dev/test Phoenix) |
 | `AUTOFIX_DEFAULT_MAX_ATTEMPTS` | `3` | Fallback budget when an agent has none set |
 | `AUTOFIX_TIMEOUT_MS` | `10000` | Per heal round-trip timeout |
 | `AUTOFIX_REPAIRABLE_STATUSES` | `400,404,422` | Allow-list of healable statuses |

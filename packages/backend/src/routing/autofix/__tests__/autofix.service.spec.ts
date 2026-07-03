@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Agent } from '../../../entities/agent.entity';
 import type { ForwardResult } from '../../proxy/provider-client';
 import { AutofixService, type MaybeHealParams } from '../autofix.service';
-import type { HealingClient } from '../healing-client';
+import { HealContractError, type HealingClient } from '../healing-client';
 import type { HealResponse } from '../phoenix.types';
 
 // ---------------------------------------------------------------------------
@@ -354,7 +354,7 @@ describe('AutofixService', () => {
       expect(arg.api).toBe('chat_completions');
       expect(arg.url).toBe('u');
       expect(arg.request).toEqual(requestBody);
-      expect(typeof arg.requestId).toBe('string');
+      expect(typeof arg.traceId).toBe('string');
       expect(arg.response).toEqual({
         statusCode: 400,
         error: { message: 'boom', type: null, param: null, code: null },
@@ -505,6 +505,35 @@ describe('AutofixService', () => {
       // Returns the rebuilt original error.
       expect(result!.forward.response.status).toBe(400);
       await expect(result!.forward.response.text()).resolves.toBe(originalBody);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // maybeHeal — heal contract error (4xx from Phoenix: bad contract / auth)
+  // -------------------------------------------------------------------------
+  describe('maybeHeal heal contract error', () => {
+    it('returns exhausted and does NOT trip the breaker on a HealContractError', async () => {
+      const client = makeHealingClient();
+      // Phoenix is up but rejects every call (e.g. a missing API key → 401).
+      client.heal.mockRejectedValue(new HealContractError(401, 'unauthorized'));
+      const errorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+      const service = makeService({
+        client: client as unknown as HealingClient,
+        repo: makeAgentRepo(() => ({ autofix_enabled: true })).repo,
+      });
+
+      // Four consecutive contract errors: a transport failure would open the
+      // breaker after three and skip the fourth. A contract error must not — the
+      // healer is reachable, so every call still reaches it.
+      for (let i = 0; i < 4; i++) {
+        const r = await service.maybeHeal(
+          makeParams({ forward: makeForward('{"error":{}}', 400) }),
+        );
+        expect(r!.record.outcome).toBe('exhausted');
+      }
+      expect(client.heal).toHaveBeenCalledTimes(4);
+      // Surfaced loudly (error level), not swallowed as a routine warning.
+      expect(errorSpy).toHaveBeenCalled();
     });
   });
 

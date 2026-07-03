@@ -20,3 +20,21 @@ export interface HealingClient {
 
 /** DI token for the active HealingClient implementation. */
 export const HEALING_CLIENT = Symbol('HEALING_CLIENT');
+
+/**
+ * Thrown by a HealingClient when the healer is REACHABLE but rejected the heal
+ * request with a 4xx — a contract mismatch, a malformed payload, or a missing/
+ * invalid API key. It is deliberately distinct from a transport failure (timeout,
+ * unreachable, 5xx): the service treats a contract error as a bug to surface, not
+ * an outage, so it never trips the circuit breaker (shedding heal calls would
+ * only hide the real problem). Carries the HTTP status for logging.
+ */
+export class HealContractError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'HealContractError';
+  }
+}

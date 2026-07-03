@@ -79,6 +79,16 @@ describe('AutofixModule HEALING_CLIENT factory', () => {
     expect(client).toBeInstanceOf(HttpHealingClient);
   });
 
+  it('provides an HttpHealingClient and reads AUTOFIX_HEALING_API_KEY when set', async () => {
+    // Exercises the api-key branch of the factory (trimmed, non-empty → forwarded).
+    const client = await resolveHealingClient({
+      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+      AUTOFIX_HEALING_API_KEY: 'secret',
+    });
+
+    expect(client).toBeInstanceOf(HttpHealingClient);
+  });
+
   it('provides an HttpHealingClient with a valid AUTOFIX_TIMEOUT_MS override', async () => {
     // Exercises the truthy side of the timeout ternary (parsed integer > 0).
     const client = await resolveHealingClient({

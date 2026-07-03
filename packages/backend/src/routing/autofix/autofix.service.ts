@@ -6,7 +6,7 @@ import { v4 as uuid } from 'uuid';
 import { Agent } from '../../entities/agent.entity';
 import type { ForwardResult } from '../proxy/provider-client';
 import type { ProxyApiMode } from '../proxy/proxy-types';
-import { HEALING_CLIENT, type HealingClient } from './healing-client';
+import { HEALING_CLIENT, HealContractError, type HealingClient } from './healing-client';
 import { normalizeProviderError } from './provider-error-normalizer';
 import type { AutofixChainEntry, AutofixRecord } from './autofix.types';
 import type { HealOutcome, HealResponse } from './phoenix.types';
@@ -200,7 +200,7 @@ export class AutofixService {
     let heal: HealResponse;
     try {
       heal = await this.client.heal({
-        requestId: groupId,
+        traceId: groupId,
         provider: params.provider,
         api: params.apiMode,
         url: params.url,
@@ -208,8 +208,18 @@ export class AutofixService {
         response: { statusCode: status, error: normalized },
       });
     } catch (err) {
-      this.recordHealFailure();
-      this.logger.warn(`heal call failed: ${(err as Error).message}`);
+      if (err instanceof HealContractError) {
+        // Phoenix is reachable but rejected the request (4xx) — a contract or
+        // API-key bug on our side, not an outage. Don't trip the breaker (that
+        // would just mask it); surface it loudly so it gets fixed.
+        this.logger.error(
+          `autofix: Phoenix rejected the heal request (HTTP ${err.status}) — check the ` +
+            `wire contract and AUTOFIX_HEALING_API_KEY: ${err.message}`,
+        );
+      } else {
+        this.recordHealFailure();
+        this.logger.warn(`heal call failed: ${(err as Error).message}`);
+      }
       return {
         forward: originalForward,
         record: { groupId, outcome: 'exhausted', original_http_status: status, chain },

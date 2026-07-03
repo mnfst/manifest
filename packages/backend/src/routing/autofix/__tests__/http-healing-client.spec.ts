@@ -1,3 +1,4 @@
+import { HealContractError } from '../healing-client';
 import { HttpHealingClient } from '../http-healing-client';
 import type { HealOutcome, HealRequest, HealResponse } from '../phoenix.types';
 
@@ -12,6 +13,7 @@ function fakeResponse(ok: boolean, status: number, body: unknown): Response {
 
 function makeHealRequest(): HealRequest {
   return {
+    traceId: 'trace-1',
     provider: 'openai',
     api: 'responses',
     request: { max_tokens: 100 },
@@ -48,13 +50,38 @@ describe('HttpHealingClient', () => {
       expect(init.body).toBe(JSON.stringify(input));
     });
 
-    it('throws when fetch resolves non-ok (500)', async () => {
+    it('throws a plain Error (a transport failure the breaker counts) on a 5xx', async () => {
       fetchSpy.mockResolvedValue(fakeResponse(false, 500, {}));
       const client = new HttpHealingClient('http://x', 1000);
 
-      await expect(client.heal(makeHealRequest())).rejects.toThrow(
-        'Phoenix /api/heal responded 500',
-      );
+      const err = await client.heal(makeHealRequest()).catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(Error);
+      expect(err).not.toBeInstanceOf(HealContractError);
+      expect((err as Error).message).toBe('Phoenix /api/heal responded 500');
+    });
+
+    it('throws a HealContractError carrying the status on a 4xx (contract/auth error)', async () => {
+      // 401 = Phoenix is up but rejected us (missing/invalid key). The service
+      // must be able to tell this apart from an outage so it never trips the breaker.
+      fetchSpy.mockResolvedValue(fakeResponse(false, 401, {}));
+      const client = new HttpHealingClient('http://x', 1000, 'secret');
+
+      const err = await client.heal(makeHealRequest()).catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(HealContractError);
+      expect((err as HealContractError).status).toBe(401);
+    });
+
+    it('sends the x-api-key header when an API key is configured', async () => {
+      fetchSpy.mockResolvedValue(fakeResponse(true, 200, { status: 'no_patch', issueId: 'i' }));
+      const client = new HttpHealingClient('http://x', 1000, 'secret-key');
+
+      await client.heal(makeHealRequest());
+
+      const [, init] = fetchSpy.mock.calls[0];
+      expect(init.headers).toEqual({
+        'content-type': 'application/json',
+        'x-api-key': 'secret-key',
+      });
     });
 
     it('strips a trailing slash from baseUrl so the heal URL has no double slash', async () => {
@@ -88,6 +115,25 @@ describe('HttpHealingClient', () => {
       expect(init.method).toBe('PATCH');
       expect(init.headers).toEqual({ 'content-type': 'application/json' });
       expect(init.body).toBe(JSON.stringify(outcome));
+    });
+
+    it('sends the x-api-key header on the PATCH when an API key is configured', async () => {
+      fetchSpy.mockResolvedValue(
+        fakeResponse(true, 200, {
+          healAttemptId: 'h',
+          status: 'succeeded',
+          issueStatus: 'unverified',
+        }),
+      );
+      const client = new HttpHealingClient('http://x', 1000, 'secret-key');
+
+      await client.reportOutcome('h', outcome);
+
+      const [, init] = fetchSpy.mock.calls[0];
+      expect(init.headers).toEqual({
+        'content-type': 'application/json',
+        'x-api-key': 'secret-key',
+      });
     });
 
     it('returns null on a non-ok response', async () => {

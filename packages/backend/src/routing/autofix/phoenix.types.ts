@@ -22,7 +22,12 @@ export interface PhoenixProviderResponse {
 
 /** POST /api/heal request body. `provider` + `api` are the fingerprint dims. */
 export interface HealRequest {
-  requestId?: string;
+  /**
+   * Correlates every heal within one logical request's retry chain — Phoenix's
+   * `traceId` (Manifest reuses the message-link group id). REQUIRED: Phoenix
+   * rejects a heal request without it (`400`).
+   */
+  traceId: string;
   provider: string;
   api: ProxyApiMode;
   url?: string;
