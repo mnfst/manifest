@@ -1,0 +1,35 @@
+.changeset/xai-responses-prompt-cache.md
+  s_eb7c502dd33b5d::t_6f0bed64d73efd 1-5
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_eb7c502dd33b5d::t_cc264b7bc07486 673-683,704-713,744-754,830-842,844,867-877
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_eb7c502dd33b5d::t_6f0bed64d73efd 52-53
+packages/shared/__tests__/subscription.spec.ts
+  s_eb7c502dd33b5d::t_2cd5ad2ee8412e 557
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_eb7c502dd33b5d::t_85ba68d0c4e708 2342-2366
+  s_eb7c502dd33b5d::t_6f0bed64d73efd 2310-2341,2367-2384
+packages/shared/src/subscription/configs.ts
+  s_eb7c502dd33b5d::t_5edc8592437738 255
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_eb7c502dd33b5d::t_6f0bed64d73efd 644
+packages/backend/src/routing/proxy/provider-client.ts
+  s_eb7c502dd33b5d::t_cd7ef88e194372 72-74
+  s_eb7c502dd33b5d::t_6f0bed64d73efd 67-71,75-76,183,376,478-479,481-483,485-487
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "22a15a4b6317e12099feb86dd5c967b4888f4ccf",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
