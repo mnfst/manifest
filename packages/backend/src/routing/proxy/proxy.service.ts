@@ -343,6 +343,9 @@ export class ProxyService {
       provider: route.provider,
       apiMode,
       requestBody: body,
+      // Report the resolved provider model to Phoenix (the body may carry the
+      // `auto` routing alias, which Phoenix's model-keyed catalog can't map).
+      resolvedModel: primaryModel,
       reforward: (healedBody) =>
         this.reforwardHealed(healedBody, {
           agentId,

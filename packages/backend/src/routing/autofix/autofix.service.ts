@@ -19,6 +19,14 @@ export interface MaybeHealParams {
   apiMode: ProxyApiMode;
   /** The request body that was actually forwarded and failed. */
   requestBody: Record<string, unknown>;
+  /**
+   * The resolved provider model (e.g. `gpt-5.1`) the request was routed to.
+   * `requestBody.model` may be a routing alias (`auto`) Phoenix can't map to its
+   * model-keyed catalog; this concrete model is reported to Phoenix instead so
+   * its resolver can identify the model. The reforward still goes through the
+   * agent's routing. Omit when the body already carries the concrete model.
+   */
+  resolvedModel?: string;
   /** Optional endpoint URL, forwarded to Phoenix as readability context. */
   url?: string;
   /** Re-send a patched body to the provider and return the fresh forward. */
@@ -197,6 +205,18 @@ export class AutofixService {
     };
     const chain: AutofixChainEntry[] = [entry];
 
+    // The agent's body may carry a routing alias as its model (e.g. `auto`), but
+    // Phoenix fingerprints and resolves against the concrete provider model.
+    // Report the resolved model to Phoenix so its model-keyed catalog resolver
+    // can identify the model; the reforward below still routes via the alias.
+    const routingModel = params.requestBody.model;
+    const phoenixRequest =
+      typeof params.resolvedModel === 'string' &&
+      params.resolvedModel.length > 0 &&
+      params.resolvedModel !== routingModel
+        ? { ...params.requestBody, model: params.resolvedModel }
+        : params.requestBody;
+
     let heal: HealResponse;
     try {
       heal = await this.client.heal({
@@ -204,7 +224,7 @@ export class AutofixService {
         provider: params.provider,
         api: params.apiMode,
         url: params.url,
-        request: params.requestBody,
+        request: phoenixRequest,
         response: { statusCode: status, error: normalized },
       });
     } catch (err) {
@@ -255,7 +275,17 @@ export class AutofixService {
     // allow-list. Keep it that way so a new Phoenix status never silently no-ops.
     const healAttemptId = heal.healAttemptId;
     const healedBody = heal.healedBody;
-    const next = await params.reforward(healedBody);
+    // Phoenix echoes back the model we sent it (the resolved provider model). The
+    // reforward must go through the agent's routing, so restore the original
+    // routing alias — unless Phoenix itself changed the model (a model-fix patch),
+    // which `reforwardHealed` intentionally re-resolves.
+    const bodyToReforward =
+      typeof routingModel === 'string' &&
+      healedBody.model === phoenixRequest.model &&
+      phoenixRequest.model !== routingModel
+        ? { ...healedBody, model: routingModel }
+        : healedBody;
+    const next = await params.reforward(bodyToReforward);
     const ok = next.response.ok;
     entry.patch_worked = ok;
 
@@ -265,7 +295,7 @@ export class AutofixService {
       chain.push({
         attempt: 1,
         origin: 'autofix',
-        request: healedBody,
+        request: bodyToReforward,
         http_status: next.response.status,
       });
       return {
