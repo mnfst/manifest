@@ -101,7 +101,7 @@ describe('HttpHealingClient', () => {
       const confirmResponse = {
         healAttemptId: 'heal/1',
         status: 'succeeded',
-        issueStatus: 'confirmed',
+        issueStatus: 'verified',
       };
       fetchSpy.mockResolvedValue(fakeResponse(true, 200, confirmResponse));
       const client = new HttpHealingClient('http://x', 1000);

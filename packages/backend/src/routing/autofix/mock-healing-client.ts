@@ -29,8 +29,10 @@ export class MockHealingClient implements HealingClient {
       healedBody[rename] = healedBody[param];
       delete healedBody[param];
       this.logger.debug(`mock heal: rename_param ${param} -> ${rename}`);
+      // A freshly served patch is `unverified` in Phoenix (only an already-verified
+      // issue answers `patched`); the mock is stateless, so it always serves unverified.
       return Promise.resolve({
-        status: 'patched',
+        status: 'unverified',
         issueId,
         patchId: uuid(),
         healAttemptId: uuid(),
@@ -50,7 +52,9 @@ export class MockHealingClient implements HealingClient {
     return Promise.resolve({
       healAttemptId,
       status: succeeded ? 'succeeded' : 'failed',
-      issueStatus: succeeded ? 'pending_confirmation' : 'resolving',
+      // Reporting an outcome is evidence-only in Phoenix — it never moves the
+      // issue's status — so a served patch stays `unverified` either way.
+      issueStatus: 'unverified',
     });
   }
 }

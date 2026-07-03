@@ -249,6 +249,10 @@ export class AutofixService {
       };
     }
 
+    // A patch to apply: reached on `patched` (already verified) or `unverified`
+    // (a fresh patch) — and any future patch-bearing status — because the guard
+    // above keys off the presence of healedBody + healAttemptId, not a status
+    // allow-list. Keep it that way so a new Phoenix status never silently no-ops.
     const healAttemptId = heal.healAttemptId;
     const healedBody = heal.healedBody;
     const next = await params.reforward(healedBody);

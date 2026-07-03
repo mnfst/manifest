@@ -38,7 +38,9 @@ describe('MockHealingClient', () => {
 
       const res = await client.heal(input);
 
-      expect(res.status).toBe('patched');
+      // A freshly served patch is `unverified` (Phoenix only answers `patched`
+      // for an already-verified issue); the loop still applies it.
+      expect(res.status).toBe('unverified');
       expect(res.operations).toEqual([
         { type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' },
       ]);
@@ -102,17 +104,17 @@ describe('MockHealingClient', () => {
   });
 
   describe('reportOutcome', () => {
-    it('reports succeeded/pending_confirmation for a 2xx retry status', async () => {
+    it('reports succeeded (issue stays unverified) for a 2xx retry status', async () => {
       const res = await client.reportOutcome('heal-123', { retryStatusCode: 200 });
 
       expect(res).toEqual({
         healAttemptId: 'heal-123',
         status: 'succeeded',
-        issueStatus: 'pending_confirmation',
+        issueStatus: 'unverified',
       });
     });
 
-    it('reports failed/resolving for a >=400 retry status', async () => {
+    it('reports failed (issue stays unverified) for a >=400 retry status', async () => {
       const res = await client.reportOutcome('heal-456', {
         retryStatusCode: 400,
         error: { message: 'still bad' },
@@ -121,7 +123,7 @@ describe('MockHealingClient', () => {
       expect(res).toEqual({
         healAttemptId: 'heal-456',
         status: 'failed',
-        issueStatus: 'resolving',
+        issueStatus: 'unverified',
       });
     });
   });

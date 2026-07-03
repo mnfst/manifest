@@ -147,8 +147,9 @@ are the source of truth):
 
 - **`POST /api/heal`** — send the full failed request + the normalised provider
   error; get back a decision discriminated on `status`:
-  `patched` / `pending_confirmation` (a `healedBody` to resend, plus a
-  `healAttemptId`) · `resolving` (Phoenix is authoring a patch; nothing to resend
+  `patched` / `unverified` (both carry a `healedBody` to resend, plus a
+  `healAttemptId`; `patched` = the issue is already verified, `unverified` = a
+  fresh patch) · `resolving` (Phoenix is authoring a patch; nothing to resend
   this round) · `no_patch`.
 - **`PATCH /api/heal-attempts/{healAttemptId}`** — after resending the `healedBody`,
   report the retry outcome `{ retryStatusCode, error? }` (`error` required on ≥400).
@@ -180,10 +181,10 @@ The provider error is normalised to `{ message, type, param, code }` by
 
 ```jsonc
 {
-  "status": "patched",                     // | pending_confirmation | resolving | no_patch
+  "status": "patched",                     // | unverified | resolving | no_patch
   "issueId": "…",
   "patchId": "…",                          // nullable
-  "healAttemptId": "…",                    // present on patched / pending_confirmation
+  "healAttemptId": "…",                    // present on patched / unverified
   "operations": [{ "type": "rename_param", "from": "max_tokens", "to": "max_output_tokens" }],
   "healedBody": { /* FULL body to resend */ },
   "retryAfterMs": 2000                     // present only on resolving

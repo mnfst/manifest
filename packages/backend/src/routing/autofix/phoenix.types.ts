@@ -1,10 +1,11 @@
 import type { ProxyApiMode } from '../proxy/proxy-types';
 
 /**
- * Wire contract for the Phoenix healing service (mnfst/phoenix). Mirrors the
- * MVP OpenAPI draft: POST /api/heal returns a discriminated heal decision, and
- * PATCH /api/heal-attempts/{healAttemptId} reports the post-retry outcome.
- * Keep these shapes in lockstep with Phoenix — the HttpHealingClient maps 1:1.
+ * Wire contract for the Phoenix healing service (mnfst/phoenix). Mirrors
+ * Phoenix's `phoenix-openapi.yaml` (the source of truth): POST /api/heal returns
+ * a discriminated heal decision, and PATCH /api/heal-attempts/{healAttemptId}
+ * reports the post-retry outcome. Keep these shapes in lockstep with Phoenix —
+ * the HttpHealingClient maps 1:1.
  */
 
 /** Normalised provider error — the four fields Phoenix fingerprints on. */
@@ -37,7 +38,14 @@ export interface HealRequest {
   responseSizeBytes?: number;
 }
 
-export type PhoenixHealStatus = 'patched' | 'pending_confirmation' | 'resolving' | 'no_patch';
+/**
+ * Heal decision from `POST /api/heal`. Both `patched` (the issue is already
+ * verified) and `unverified` (a freshly served patch, not yet confirmed) carry a
+ * `healedBody` + `healAttemptId` to resend — the client keys off their presence,
+ * not an allow-list, so a future patch-bearing status still applies. `resolving`
+ * means Phoenix is still authoring a fix (nothing to resend); `no_patch` is terminal.
+ */
+export type PhoenixHealStatus = 'patched' | 'unverified' | 'resolving' | 'no_patch';
 
 /** One deterministic edit from the Phoenix catalog (MVP #1: rename_param). */
 export interface PhoenixOperation {
@@ -70,14 +78,15 @@ export interface HealOutcome {
 
 export type PhoenixIssueStatus =
   | 'resolving'
-  | 'pending_confirmation'
-  | 'confirmed'
-  | 'rejected'
-  | 'not_found';
+  | 'unverified'
+  | 'verified'
+  | 'ineffective'
+  | 'no_fix_found';
 
 /** PATCH /api/heal-attempts/{healAttemptId} response body. */
 export interface ConfirmResponse {
   healAttemptId: string;
-  status: 'succeeded' | 'failed';
+  /** `expired` when the attempt was swept (no outcome reported in time) before this call. */
+  status: 'succeeded' | 'failed' | 'expired';
   issueStatus: PhoenixIssueStatus;
 }

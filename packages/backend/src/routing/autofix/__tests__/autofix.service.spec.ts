@@ -509,6 +509,28 @@ describe('AutofixService', () => {
   });
 
   // -------------------------------------------------------------------------
+  // maybeHeal — a fresh `unverified` patch applies exactly like `patched`
+  // -------------------------------------------------------------------------
+  describe('maybeHeal unverified status', () => {
+    it('applies an unverified patch (fresh, not yet confirmed) and heals', async () => {
+      const client = makeHealingClient();
+      // The common real-Phoenix answer for a novel resolvable error: a served
+      // patch that is not yet verified. It must apply just like `patched`.
+      client.heal.mockResolvedValue(patchedHeal({ status: 'unverified' }));
+      const reforward = jest.fn().mockResolvedValue(makeForward('{"ok":true}', 200));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      const result = await service.maybeHeal(makeParams({ reforward }));
+
+      expect(result!.record.outcome).toBe('healed');
+      expect(reforward).toHaveBeenCalledTimes(1);
+      // Phoenix's real status is recorded verbatim on the chain.
+      expect(result!.record.chain[0].phoenix_status).toBe('unverified');
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // maybeHeal — heal contract error (4xx from Phoenix: bad contract / auth)
   // -------------------------------------------------------------------------
   describe('maybeHeal heal contract error', () => {
