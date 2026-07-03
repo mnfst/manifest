@@ -1,5 +1,5 @@
 ---
-'manifest-shared': patch
+'manifest': patch
 ---
 
 Mark Z.ai Coding Plan subscriptions as prompt-cache capable.
