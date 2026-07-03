@@ -44,8 +44,12 @@ export interface HealRequest {
  * `healedBody` + `healAttemptId` to resend — the client keys off their presence,
  * not an allow-list, so a future patch-bearing status still applies. `resolving`
  * means Phoenix is still authoring a fix (nothing to resend); `no_patch` is terminal.
+ *
+ * Declared as a runtime array so `phoenix-contract.spec.ts` can assert it stays
+ * in lockstep with the OpenAPI `HealResult.status` enum.
  */
-export type PhoenixHealStatus = 'patched' | 'unverified' | 'resolving' | 'no_patch';
+export const HEAL_STATUSES = ['patched', 'unverified', 'resolving', 'no_patch'] as const;
+export type PhoenixHealStatus = (typeof HEAL_STATUSES)[number];
 
 /** One deterministic edit from the Phoenix catalog (MVP #1: rename_param). */
 export interface PhoenixOperation {
@@ -76,17 +80,24 @@ export interface HealOutcome {
   error?: PhoenixProviderError;
 }
 
-export type PhoenixIssueStatus =
-  | 'resolving'
-  | 'unverified'
-  | 'verified'
-  | 'ineffective'
-  | 'no_fix_found';
+/** Issue lifecycle states — kept in lockstep with the OpenAPI `IssueView.status` enum. */
+export const ISSUE_STATUSES = [
+  'resolving',
+  'unverified',
+  'verified',
+  'ineffective',
+  'no_fix_found',
+] as const;
+export type PhoenixIssueStatus = (typeof ISSUE_STATUSES)[number];
+
+/** Adjudicated attempt outcome — kept in lockstep with the OpenAPI `OutcomeResult.status` enum. */
+export const OUTCOME_STATUSES = ['succeeded', 'failed', 'expired'] as const;
+export type OutcomeStatus = (typeof OUTCOME_STATUSES)[number];
 
 /** PATCH /api/heal-attempts/{healAttemptId} response body. */
 export interface ConfirmResponse {
   healAttemptId: string;
   /** `expired` when the attempt was swept (no outcome reported in time) before this call. */
-  status: 'succeeded' | 'failed' | 'expired';
+  status: OutcomeStatus;
   issueStatus: PhoenixIssueStatus;
 }

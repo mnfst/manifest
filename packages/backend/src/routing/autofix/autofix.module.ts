@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Agent } from '../../entities/agent.entity';
 import { AutofixService } from './autofix.service';
+import { AutofixHealthProbe } from './autofix-health-probe';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
 import { HttpHealingClient } from './http-healing-client';
 import { MockHealingClient } from './mock-healing-client';
@@ -22,6 +23,7 @@ const DEFAULT_TIMEOUT_MS = 10_000;
   imports: [TypeOrmModule.forFeature([Agent])],
   providers: [
     AutofixService,
+    AutofixHealthProbe,
     {
       provide: HEALING_CLIENT,
       useFactory: (config: ConfigService): HealingClient => {
