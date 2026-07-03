@@ -1,0 +1,29 @@
+packages/backend/src/model-discovery/model-fallback.ts
+  s_aecd2bb6cf8858::t_c3d7509e3fbd0d 11,151-169,296-300,332,374
+packages/shared/src/subscription/types.ts
+  s_aecd2bb6cf8858::t_c3d7509e3fbd0d 3
+packages/shared/__tests__/subscription.spec.ts
+  s_aecd2bb6cf8858::t_c3d7509e3fbd0d 478
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_aecd2bb6cf8858::t_c3d7509e3fbd0d 311-331
+.changeset/anthropic-opus-context.md
+  s_aecd2bb6cf8858::t_c3d7509e3fbd0d 1-5
+packages/shared/src/subscription/configs.ts
+  s_aecd2bb6cf8858::t_c3d7509e3fbd0d 25-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "cd1c77135ee4ecd1eea930eec79ae16222b1997d",
+  "prompts": {},
+  "sessions": {
+    "s_aecd2bb6cf8858": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f27c0-b99d-7d73-8f72-76c628b768df",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
