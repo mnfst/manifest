@@ -22,6 +22,9 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     knownModelsExclude: Object.freeze(['-fast']),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
+      modelContextWindows: Object.freeze({
+        'claude-opus-4-8': 1000000,
+      }),
       supportsPromptCaching: true,
       supportsBatching: false,
     }),
