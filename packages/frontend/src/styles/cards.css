@@ -161,6 +161,14 @@
   gap: var(--gap-sm);
 }
 
+.chart-card__subvalue {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+  color: hsl(var(--muted-foreground));
+}
+
 .chart-card__controls {
   margin-left: auto;
   display: flex;

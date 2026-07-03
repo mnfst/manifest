@@ -100,6 +100,7 @@ describe('analytics chart surface components', () => {
         messagesTrendPct={10}
         tokensValue={1234}
         tokensTrendPct={5}
+        tokenBreakdown={{ fresh_input: 700, cache_read: 400, cache_creation: 100 }}
         costValue={4.56}
         costTrendPct={-2}
         costInfoTooltip="API key cost only"
@@ -123,6 +124,7 @@ describe('analytics chart surface components', () => {
     expect(screen.getByText('Cost')).toBeDefined();
     expect(screen.getByText('Messages')).toBeDefined();
     expect(screen.getByText('Token usage')).toBeDefined();
+    expect(screen.getByText('Fresh 700 / Cache read 400 / write 100')).toBeDefined();
     expect(screen.getByTestId('info-tooltip')).toBeDefined();
     await buildLazyChart();
 
@@ -296,7 +298,11 @@ describe('analytics chart surface components', () => {
     // Token axis uses formatLegendTokens (mocked to String()).
     expect(capturedChartOpts.axes[1].values({}, [1234])).toEqual(['1234']);
     expect(
-      capturedChartOpts.cursor.move({ posToIdx: () => 0, data: [[1700000000]], valToPos: () => 5 }, 7, 3),
+      capturedChartOpts.cursor.move(
+        { posToIdx: () => 0, data: [[1700000000]], valToPos: () => 5 },
+        7,
+        3,
+      ),
     ).toEqual([5, 3]);
   });
 
@@ -348,9 +354,7 @@ describe('analytics chart surface components', () => {
     // Series are rendered in reverse agent order; each must get the default
     // color for its ORIGINAL index, so colors don't all collapse onto index 0.
     // reversed = ['anthropic'(idx1), 'openai'(idx0)] → AGENT_COLORS[1], [0].
-    const strokes = capturedChartOpts.series
-      .slice(1)
-      .map((s: { stroke: string }) => s.stroke);
+    const strokes = capturedChartOpts.series.slice(1).map((s: { stroke: string }) => s.stroke);
     expect(strokes).toEqual([AGENT_COLORS[1], AGENT_COLORS[0]]);
     // A real per-series distinction: the two strokes differ.
     expect(strokes[0]).not.toBe(strokes[1]);
@@ -376,9 +380,7 @@ describe('analytics chart surface components', () => {
 
     buildCapturedChart();
     // reversed order: anthropic (no map → AGENT_COLORS[1]), openai (mapped).
-    const strokes = capturedChartOpts.series
-      .slice(1)
-      .map((s: { stroke: string }) => s.stroke);
+    const strokes = capturedChartOpts.series.slice(1).map((s: { stroke: string }) => s.stroke);
     expect(strokes).toEqual([AGENT_COLORS[1], '#abcdef']);
   });
 });

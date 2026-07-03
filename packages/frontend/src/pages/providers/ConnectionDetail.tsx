@@ -98,7 +98,17 @@ interface DetailResponse {
 interface AnalyticsResponse {
   summary: {
     messages: { value: number; trend_pct: number };
-    tokens: { value: number; trend_pct: number };
+    tokens: {
+      value: number;
+      trend_pct: number;
+      sub_values?: {
+        input: number;
+        output: number;
+        fresh_input?: number;
+        cache_read?: number;
+        cache_creation?: number;
+      };
+    };
   };
   token_usage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
@@ -681,6 +691,7 @@ const ConnectionDetail: Component = () => {
                       messagesTrendPct={analytics()!.summary.messages.trend_pct}
                       tokensValue={analytics()!.summary.tokens.value}
                       tokensTrendPct={analytics()!.summary.tokens.trend_pct}
+                      tokenBreakdown={analytics()!.summary.tokens.sub_values}
                       costValue={isByok() ? (totalCost() ?? 0) : undefined}
                       range={chartRange()}
                       agentTimeseries={filteredAgentTimeseries() ?? undefined}

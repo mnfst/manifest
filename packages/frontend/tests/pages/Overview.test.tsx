@@ -154,7 +154,17 @@ import Overview from '../../src/pages/Overview';
 
 const overviewData = {
   summary: {
-    tokens_today: { value: 50000, trend_pct: 12, sub_values: { input: 30000, output: 20000 } },
+    tokens_today: {
+      value: 50000,
+      trend_pct: 12,
+      sub_values: {
+        input: 30000,
+        output: 20000,
+        fresh_input: 15000,
+        cache_read: 12000,
+        cache_creation: 3000,
+      },
+    },
     cost_today: { value: 3.5, trend_pct: -5 },
     messages: { value: 42, trend_pct: 8 },
     services_hit: { total: 3, healthy: 3, issues: 0 },
@@ -263,6 +273,7 @@ describe('Overview', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('$3.50');
       expect(container.textContent).toContain('50000');
+      expect(container.textContent).toContain('Fresh 15000 / Cache read 12000 / write 3000');
       expect(container.textContent).toContain('42');
     });
   });

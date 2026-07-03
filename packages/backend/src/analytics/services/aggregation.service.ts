@@ -15,6 +15,14 @@ import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql'
 
 export { MetricWithTrend };
 
+interface TokenBreakdown {
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheCreation: number;
+  freshInput: number;
+}
+
 interface RangeWindow {
   cutoff: string;
   prevCutoff: string;
@@ -85,6 +93,8 @@ export class AggregationService {
       .select(sqlCountMessages(), 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'inp')
       .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'out')
+      .addSelect('COALESCE(SUM(at.cache_read_tokens), 0)', 'cache_read')
+      .addSelect('COALESCE(SUM(at.cache_creation_tokens), 0)', 'cache_creation')
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(currentQb, tenantId, agentName);
@@ -112,6 +122,9 @@ export class AggregationService {
 
     const inputTotal = Number(cur?.inp ?? 0);
     const outputTotal = Number(cur?.out ?? 0);
+    const cacheReadTotal = Number(cur?.cache_read ?? 0);
+    const cacheCreationTotal = Number(cur?.cache_creation ?? 0);
+    const freshInputTotal = Math.max(0, inputTotal - cacheReadTotal - cacheCreationTotal);
     const curTokens = inputTotal + outputTotal;
     const prevTokens = Number(prev?.tokens ?? 0);
     const curCost = Number(cur?.cost ?? 0);
@@ -124,10 +137,19 @@ export class AggregationService {
         tokens_today: {
           value: curTokens,
           trend_pct: computeTrend(curTokens, prevTokens),
-          sub_values: { input: inputTotal, output: outputTotal },
+          sub_values: {
+            input: inputTotal,
+            output: outputTotal,
+            cache_read: cacheReadTotal,
+            cache_creation: cacheCreationTotal,
+            fresh_input: freshInputTotal,
+          },
         } as MetricWithTrend,
         input_tokens: inputTotal,
         output_tokens: outputTotal,
+        cache_read_tokens: cacheReadTotal,
+        cache_creation_tokens: cacheCreationTotal,
+        fresh_input_tokens: freshInputTotal,
       },
       cost: { value: curCost, trend_pct: computeTrend(curCost, prevCost) } as MetricWithTrend,
       messages: { value: curMsgs, trend_pct: computeTrend(curMsgs, prevMsgs) } as MetricWithTrend,
@@ -176,29 +198,70 @@ export class AggregationService {
    * DB) so the current totals can be sourced from the timeseries buckets.
    */
   static buildSummary(
-    current: { input: number; output: number; cost: number; messages: number },
+    current: {
+      input: number;
+      output: number;
+      cost: number;
+      messages: number;
+      cacheRead?: number;
+      cacheCreation?: number;
+    },
     previous: { tokens: number; cost: number; messages: number },
   ): {
-    tokens: { tokens_today: MetricWithTrend; input_tokens: number; output_tokens: number };
+    tokens: {
+      tokens_today: MetricWithTrend;
+      input_tokens: number;
+      output_tokens: number;
+      cache_read_tokens: number;
+      cache_creation_tokens: number;
+      fresh_input_tokens: number;
+    };
     cost: MetricWithTrend;
     messages: MetricWithTrend;
   } {
     const curTokens = current.input + current.output;
+    const tokenBreakdown = this.computeTokenBreakdown(current);
     return {
       tokens: {
         tokens_today: {
           value: curTokens,
           trend_pct: computeTrend(curTokens, previous.tokens),
-          sub_values: { input: current.input, output: current.output },
+          sub_values: {
+            input: tokenBreakdown.input,
+            output: tokenBreakdown.output,
+            cache_read: tokenBreakdown.cacheRead,
+            cache_creation: tokenBreakdown.cacheCreation,
+            fresh_input: tokenBreakdown.freshInput,
+          },
         },
         input_tokens: current.input,
         output_tokens: current.output,
+        cache_read_tokens: tokenBreakdown.cacheRead,
+        cache_creation_tokens: tokenBreakdown.cacheCreation,
+        fresh_input_tokens: tokenBreakdown.freshInput,
       },
       cost: { value: current.cost, trend_pct: computeTrend(current.cost, previous.cost) },
       messages: {
         value: current.messages,
         trend_pct: computeTrend(current.messages, previous.messages),
       },
+    };
+  }
+
+  private static computeTokenBreakdown(current: {
+    input: number;
+    output: number;
+    cacheRead?: number;
+    cacheCreation?: number;
+  }): TokenBreakdown {
+    const cacheRead = current.cacheRead ?? 0;
+    const cacheCreation = current.cacheCreation ?? 0;
+    return {
+      input: current.input,
+      output: current.output,
+      cacheRead,
+      cacheCreation,
+      freshInput: Math.max(0, current.input - cacheRead - cacheCreation),
     };
   }
 

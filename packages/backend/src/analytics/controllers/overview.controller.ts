@@ -15,19 +15,35 @@ import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.enti
 
 /** Sum the timeseries buckets into current-window totals for the summary cards. */
 function sumTimeseries(tsData: {
-  tokenUsage: { input_tokens: number; output_tokens: number }[];
+  tokenUsage: {
+    input_tokens: number;
+    output_tokens: number;
+    cache_read_tokens?: number;
+    cache_creation_tokens?: number;
+  }[];
   costUsage: { cost: number }[];
   messageUsage: { count: number }[];
-}): { input: number; output: number; cost: number; messages: number } {
+}): {
+  input: number;
+  output: number;
+  cost: number;
+  messages: number;
+  cacheRead: number;
+  cacheCreation: number;
+} {
   let input = 0;
   let output = 0;
+  let cacheRead = 0;
+  let cacheCreation = 0;
   for (const b of tsData.tokenUsage) {
     input += b.input_tokens;
     output += b.output_tokens;
+    cacheRead += b.cache_read_tokens ?? 0;
+    cacheCreation += b.cache_creation_tokens ?? 0;
   }
   const cost = tsData.costUsage.reduce((sum, b) => sum + b.cost, 0);
   const messages = tsData.messageUsage.reduce((sum, b) => sum + b.count, 0);
-  return { input, output, cost, messages };
+  return { input, output, cost, messages, cacheRead, cacheCreation };
 }
 
 @Controller('api/v1')
