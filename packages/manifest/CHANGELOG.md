@@ -1,5 +1,16 @@
 # manifest
 
+## 6.13.2
+
+### Patch Changes
+
+- 7ca120b: Enable prompt caching support metadata for Anthropic subscriptions and send first-party subscription requests with Anthropic automatic cache control.
+- a46c3dc: Mark Gemini subscriptions as supporting prompt caching in shared provider metadata.
+- dc3c4a9: Send stable prompt cache keys to Mistral when callers do not provide one.
+- abec177: Mark OpenAI subscriptions as supporting prompt caching in shared provider metadata.
+- fb63274: Add OpenRouter prompt cache breakpoints for Gemini and Qwen model families.
+- 22a15a4: Send prompt cache keys to xAI Responses requests from Manifest session affinity.
+
 ## 6.13.1
 
 ### Patch Changes
