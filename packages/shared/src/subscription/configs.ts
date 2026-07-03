@@ -79,7 +79,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       // MiniMax-M3's 1M window (MSA); M2.x models keep their own lower
       // per-model contexts from the pricing cache — this is only the cap.
       maxContextWindow: 1000000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),
