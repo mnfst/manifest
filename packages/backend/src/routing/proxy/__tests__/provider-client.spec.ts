@@ -2380,6 +2380,50 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Qwen prompt cache injection', () => {
+    it('injects cache_control for native Qwen requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'qwen',
+        apiKey: 'sk-qwen',
+        model: 'qwen3-coder-plus',
+        body: {
+          messages: [
+            { role: 'system', content: 'You are helpful.' },
+            { role: 'user', content: 'Large reference block' },
+          ],
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages[0].content).toBe('You are helpful.');
+      expect(sentBody.messages[1].content[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('injects cache_control for Qwen Token Plan chat-completions requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'qwen',
+        authType: 'subscription',
+        apiKey: 'sk-sp-qwen',
+        model: 'qwen3-coder-plus',
+        body: {
+          messages: [{ role: 'user', content: 'Large reference block' }],
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(mockFetch.mock.calls[0][0]).toBe(
+        'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions',
+      );
+      expect(sentBody.messages[0].content[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+  });
+
   describe('resolveEndpoint - xAI Responses-only routing', () => {
     const multiAgentModels = ['grok-4.20-multi-agent', 'grok-4.20-multi-agent-0309'];
 

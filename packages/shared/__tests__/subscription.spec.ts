@@ -536,7 +536,7 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('qwen');
     expect(caps).toMatchObject({
       maxContextWindow: 991000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });

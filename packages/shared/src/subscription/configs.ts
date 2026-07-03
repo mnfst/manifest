@@ -124,7 +124,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionTokenPrefix: 'sk-sp-',
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 991000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     }),
   }),

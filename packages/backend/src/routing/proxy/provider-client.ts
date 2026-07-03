@@ -6,7 +6,7 @@ import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './prov
 import { validatePublicUrl } from '../../common/utils/url-validation';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { resolveSubscriptionEndpointKey } from './provider-hooks';
-import { injectOpenRouterCacheControl } from './cache-injection';
+import { injectOpenAiMessageCacheControl, injectOpenRouterCacheControl } from './cache-injection';
 import {
   applyAnthropicAutomaticCacheControl,
   applyAnthropicMessagesMutations,
@@ -539,6 +539,9 @@ export class ProviderClient {
     const requestBody = { ...sanitized, model: bareModel, stream };
     if (endpointKey === 'mistral') {
       applyMistralPromptCacheKey(requestBody, ctx.sessionKey);
+    }
+    if (endpointKey === 'qwen' || endpointKey === 'qwen-subscription') {
+      injectOpenAiMessageCacheControl(requestBody);
     }
     if (endpointKey === 'openrouter') {
       const cacheMode = openRouterCacheMode(ctx.model);

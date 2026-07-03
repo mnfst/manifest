@@ -1,4 +1,4 @@
-import { injectOpenRouterCacheControl } from './cache-injection';
+import { injectOpenAiMessageCacheControl, injectOpenRouterCacheControl } from './cache-injection';
 
 const EPHEMERAL = { type: 'ephemeral' } as const;
 
@@ -179,6 +179,21 @@ describe('injectOpenRouterCacheControl', () => {
     expect(body.messages).toEqual([
       { role: 'system', content: { type: 'text', text: 'not an array' } },
       { role: 'user', content: [null, ['nested']] },
+    ]);
+  });
+
+  it('exposes message-mode injection for OpenAI-compatible providers', () => {
+    const body = {
+      messages: [
+        { role: 'system', content: 'Static instructions' },
+        { role: 'user', content: 'Large reference block' },
+      ],
+    };
+    injectOpenAiMessageCacheControl(body);
+
+    expect(body.messages[0].content).toBe('Static instructions');
+    expect(body.messages[1].content).toEqual([
+      { type: 'text', text: 'Large reference block', cache_control: EPHEMERAL },
     ]);
   });
 });
