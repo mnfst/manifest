@@ -1,0 +1,35 @@
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_eb7c502dd33b5d::t_35a9dfa0f49918 644
+.changeset/mistral-prompt-cache-key.md
+  s_eb7c502dd33b5d::t_35a9dfa0f49918 1-5
+packages/shared/__tests__/subscription.spec.ts
+  s_eb7c502dd33b5d::t_964b221c7816ba 539
+packages/shared/src/subscription/configs.ts
+  s_eb7c502dd33b5d::t_5edc8592437738 95
+  s_eb7c502dd33b5d::t_964b221c7816ba 60
+packages/backend/src/routing/proxy/provider-client.ts
+  s_eb7c502dd33b5d::t_35a9dfa0f49918 1,68-87,194,387,523-525
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_eb7c502dd33b5d::t_fbd0094a055ec4 673-683,704-707,709,744-745,748,836,868
+  s_eb7c502dd33b5d::t_f7138b37a8d6ca 708,710-713,746-747,749-754,830-835,837-842,844,867,869-878
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_eb7c502dd33b5d::t_35a9dfa0f49918 115-166
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_eb7c502dd33b5d::t_35a9dfa0f49918 52-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "855fe472385e0b6f184764427723c215c2129227",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
