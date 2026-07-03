@@ -3519,6 +3519,34 @@ describe('ProviderClient', () => {
       expect(sentBody.stream_options).toEqual({ include_usage: true });
     });
 
+    it('does not forward Anthropic-style thinking params to Ollama endpoints', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      for (const provider of ['ollama', 'ollama-cloud']) {
+        mockFetch.mockClear();
+        await client.forward({
+          provider,
+          apiKey: provider === 'ollama-cloud' ? 'ollama-key' : '',
+          model: 'qwen3.5:9b-q4_K_M',
+          body: {
+            messages: [{ role: 'user', content: 'Hello' }],
+            thinking: { type: 'enabled' },
+            max_tokens: 4096,
+          },
+          stream: false,
+        });
+
+        const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(sentBody).not.toHaveProperty('thinking');
+        expect(sentBody).toEqual(
+          expect.objectContaining({
+            model: 'qwen3.5:9b-q4_K_M',
+            max_tokens: 4096,
+          }),
+        );
+      }
+    });
+
     it('injects stream_options.include_usage for Groq streaming requests', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward({
