@@ -1,0 +1,40 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_eb7c502dd33b5d::t_1f27ef7e74b5e1 542-543
+  s_eb7c502dd33b5d::t_b34237f5be5cbd 83,541,544
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_eb7c502dd33b5d::t_12396e02b9493d 40-41
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_eb7c502dd33b5d::t_62344bd654c541 279-280
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_eb7c502dd33b5d::t_b9b745f3055183 1013-1027
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_eb7c502dd33b5d::t_de894216cf70db 183-184,186-187,190,192-248
+  s_eb7c502dd33b5d::t_5c6bf0d2c20e30 182
+  s_eb7c502dd33b5d::t_4896f36f8bd96e 185
+  s_eb7c502dd33b5d::t_06ce64d37a5d3c 188-189
+  s_eb7c502dd33b5d::t_e2e759647a7c8a 191
+packages/backend/src/routing/proxy/__tests__/anthropic-cache-control-roundtrip.spec.ts
+  s_eb7c502dd33b5d::t_78d58f0f3b0569 198-228
+packages/shared/src/subscription/configs.ts
+  s_eb7c502dd33b5d::t_565eb75c59d49f 140
+packages/shared/__tests__/subscription.spec.ts
+  s_eb7c502dd33b5d::t_290640aa960c4a 530
+.changeset/moonshot-prompt-cache-key.md
+  s_eb7c502dd33b5d::t_6d05909c63e479 1-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "ff48cfbd256640cef0857745c3c481def832b245",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
