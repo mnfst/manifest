@@ -90,6 +90,13 @@ function applyMistralPromptCacheKey(
   body.prompt_cache_key = buildPromptCacheKey(trimmedSessionKey);
 }
 
+function openRouterCacheMode(model: string): 'anthropic' | 'message' | null {
+  const normalized = model.toLowerCase().replace(/^~/, '');
+  if (normalized.startsWith('anthropic/')) return 'anthropic';
+  if (normalized.startsWith('google/') || normalized.startsWith('qwen/')) return 'message';
+  return null;
+}
+
 /**
  * Strip vendor prefix from model name (e.g. "anthropic/claude-sonnet-4" → "claude-sonnet-4").
  * Models synced from OpenRouter use vendor prefixes, but native APIs expect bare names.
@@ -533,8 +540,9 @@ export class ProviderClient {
     if (endpointKey === 'mistral') {
       applyMistralPromptCacheKey(requestBody, ctx.sessionKey);
     }
-    if (endpointKey === 'openrouter' && ctx.model.startsWith('anthropic/')) {
-      injectOpenRouterCacheControl(requestBody);
+    if (endpointKey === 'openrouter') {
+      const cacheMode = openRouterCacheMode(ctx.model);
+      if (cacheMode) injectOpenRouterCacheControl(requestBody, cacheMode);
     }
     return {
       url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
