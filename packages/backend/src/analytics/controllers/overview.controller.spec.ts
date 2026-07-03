@@ -129,6 +129,24 @@ describe('OverviewController', () => {
     expect(result.summary.messages.trend_pct).toBe(11); // (50-45)/45
   });
 
+  it('defaults missing cache bucket totals to zero in the summary', async () => {
+    ts.getTimeseries.mockResolvedValueOnce({
+      tokenUsage: [{ input_tokens: 20, output_tokens: 5 }],
+      costUsage: [],
+      messageUsage: [],
+    });
+
+    const result = await controller.getOverview({ range: '24h' }, ctx as never);
+
+    expect(result.summary.tokens_today.sub_values).toEqual({
+      input: 20,
+      output: 5,
+      cache_read: 0,
+      cache_creation: 0,
+      fresh_input: 20,
+    });
+  });
+
   it('returns overview with daily timeseries for 7d range', async () => {
     const result = await controller.getOverview({ range: '7d' }, ctx as never);
 

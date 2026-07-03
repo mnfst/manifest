@@ -83,6 +83,18 @@ describe('AgentAnalyticsService', () => {
       expect(result.trend_pct).toBe(0);
     });
 
+    it('defaults cache totals to zero when aggregate rows omit cache fields', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ input: 100, output: 50, messages: 1 })
+        .mockResolvedValueOnce({ total: 0 });
+
+      const result = await service.getUsage('24h', scope);
+
+      expect(result.cache_read_tokens).toBe(0);
+      expect(result.cache_creation_tokens).toBe(0);
+      expect(result.fresh_input_tokens).toBe(100);
+    });
+
     it('passes tenant and agent params to queries', async () => {
       mockGetRawOne
         .mockResolvedValueOnce({
