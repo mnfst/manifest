@@ -122,9 +122,15 @@ export class AggregationService {
 
     const inputTotal = Number(cur?.inp ?? 0);
     const outputTotal = Number(cur?.out ?? 0);
-    const cacheReadTotal = Number(cur?.cache_read ?? 0);
-    const cacheCreationTotal = Number(cur?.cache_creation ?? 0);
-    const freshInputTotal = Math.max(0, inputTotal - cacheReadTotal - cacheCreationTotal);
+    const tokenBreakdown = AggregationService.computeTokenBreakdown({
+      input: inputTotal,
+      output: outputTotal,
+      cacheRead: Number(cur?.cache_read ?? 0),
+      cacheCreation: Number(cur?.cache_creation ?? 0),
+    });
+    const cacheReadTotal = tokenBreakdown.cacheRead;
+    const cacheCreationTotal = tokenBreakdown.cacheCreation;
+    const freshInputTotal = tokenBreakdown.freshInput;
     const curTokens = inputTotal + outputTotal;
     const prevTokens = Number(prev?.tokens ?? 0);
     const curCost = Number(cur?.cost ?? 0);
