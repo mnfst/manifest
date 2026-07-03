@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
 import { XAI_RESPONSES_ONLY_RE } from '../../common/constants/xai-models';
@@ -64,6 +65,11 @@ function shouldApplyAnthropicAutomaticCacheControl(
   return endpointKey === 'anthropic' && authType === 'subscription';
 }
 
+function buildPromptCacheKey(sessionKey: string): string {
+  const digest = createHash('sha256').update(sessionKey).digest('hex').slice(0, 32);
+  return `manifest-${digest}`;
+}
+
 function applyXaiResponsesPromptCacheKey(
   body: Record<string, unknown>,
   sessionKey: string | undefined,
@@ -72,6 +78,16 @@ function applyXaiResponsesPromptCacheKey(
   const trimmedSessionKey = sessionKey?.trim();
   if (!trimmedSessionKey) return;
   body.prompt_cache_key = trimmedSessionKey;
+}
+
+function applyMistralPromptCacheKey(
+  body: Record<string, unknown>,
+  sessionKey: string | undefined,
+): void {
+  if (typeof body.prompt_cache_key === 'string' && body.prompt_cache_key) return;
+  const trimmedSessionKey = sessionKey?.trim();
+  if (!trimmedSessionKey) return;
+  body.prompt_cache_key = buildPromptCacheKey(trimmedSessionKey);
 }
 
 /**
@@ -514,6 +530,9 @@ export class ProviderClient {
       sanitized.stream_options = { ...existing, include_usage: true };
     }
     const requestBody = { ...sanitized, model: bareModel, stream };
+    if (endpointKey === 'mistral') {
+      applyMistralPromptCacheKey(requestBody, ctx.sessionKey);
+    }
     if (endpointKey === 'openrouter' && ctx.model.startsWith('anthropic/')) {
       injectOpenRouterCacheControl(requestBody);
     }

@@ -545,7 +545,7 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('mistral');
     expect(caps).toMatchObject({
       maxContextWindow: 200000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
