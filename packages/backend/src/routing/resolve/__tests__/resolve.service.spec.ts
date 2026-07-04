@@ -49,7 +49,11 @@ describe('ResolveService', () => {
   let providerKeyService: jest.Mocked<
     Pick<
       ProviderKeyService,
-      'isModelAvailable' | 'hasActiveProvider' | 'getAuthType' | 'getDefaultKeyLabel'
+      | 'isModelAvailable'
+      | 'isRouteAvailable'
+      | 'hasActiveProvider'
+      | 'getAuthType'
+      | 'getDefaultKeyLabel'
     >
   >;
   let specificityService: jest.Mocked<Pick<SpecificityService, 'getActiveAssignments'>>;
@@ -68,6 +72,7 @@ describe('ResolveService', () => {
     tierService = { getTiers: jest.fn().mockResolvedValue([]) };
     providerKeyService = {
       isModelAvailable: jest.fn().mockResolvedValue(true),
+      isRouteAvailable: jest.fn().mockResolvedValue(true),
       hasActiveProvider: jest.fn().mockResolvedValue(true),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       // Default to undefined so resolved routes carry no `keyLabel` unless a
@@ -222,6 +227,7 @@ describe('ResolveService', () => {
       } as unknown as HeaderTier;
       headerTierService.list.mockResolvedValue([tier]);
       providerKeyService.isModelAvailable.mockResolvedValue(false);
+      providerKeyService.isRouteAvailable.mockResolvedValue(false);
 
       const result = await svc.resolve(
         'agent-1',
@@ -236,6 +242,79 @@ describe('ResolveService', () => {
         { 'x-tier': 'gold' },
       );
       expect(result.reason).not.toBe('header-match');
+    });
+
+    it('validates the override with the route-aware check, not the name-only one', async () => {
+      // Regression: a pinned override whose model id exists on two connections
+      // (openai api_key + subscription) must stay available — the name-only
+      // isModelAvailable lookup reports ambiguous ids as unavailable (#2210).
+      const pinned = route('openai', 'subscription', 'gpt-5.5');
+      const tier = {
+        id: 'h1',
+        name: 'Premium',
+        header_key: 'x-tier',
+        header_value: 'gold',
+        enabled: true,
+        badge_color: 'red',
+        override_route: pinned,
+        fallback_routes: null,
+      } as unknown as HeaderTier;
+      headerTierService.list.mockResolvedValue([tier]);
+      providerKeyService.isModelAvailable.mockResolvedValue(false);
+      providerKeyService.isRouteAvailable.mockResolvedValue(true);
+
+      const result = await svc.resolve(
+        'agent-1',
+        'user-1',
+        messages,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-tier': 'gold' },
+      );
+      expect(result.reason).toBe('header-match');
+      expect(result.route).toEqual(pinned);
+      expect(providerKeyService.isRouteAvailable).toHaveBeenCalledWith('user-1', pinned, 'agent-1');
+    });
+
+    it('promotes the first available fallback when the override is unavailable', async () => {
+      const primary = route('openai', 'subscription', 'gpt-5.5');
+      const deadFallback = route('gemini', 'api_key', 'gemini-pro-latest');
+      const liveFallback = route('minimax', 'subscription', 'MiniMax-M3');
+      const lastFallback = route('xai', 'subscription', 'grok-4.3');
+      const tier = {
+        id: 'h1',
+        name: 'Premium',
+        header_key: 'x-tier',
+        header_value: 'gold',
+        enabled: true,
+        badge_color: 'red',
+        override_route: primary,
+        fallback_routes: [deadFallback, liveFallback, lastFallback],
+      } as unknown as HeaderTier;
+      headerTierService.list.mockResolvedValue([tier]);
+      providerKeyService.isRouteAvailable.mockImplementation(
+        async (_tenantId: string, r: ModelRoute) => r === liveFallback || r === lastFallback,
+      );
+
+      const result = await svc.resolve(
+        'agent-1',
+        'user-1',
+        messages,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-tier': 'gold' },
+      );
+      expect(result.reason).toBe('header-match');
+      expect(result.route).toEqual(liveFallback);
+      expect(result.fallback_routes).toEqual([lastFallback]);
     });
 
     it('matches when the header value is provided as an array', async () => {
@@ -506,6 +585,7 @@ describe('ResolveService', () => {
       ]);
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.9 } as never);
       providerKeyService.isModelAvailable.mockResolvedValue(false);
+      providerKeyService.isRouteAvailable.mockResolvedValue(false);
       tierService.getTiers.mockResolvedValue([
         {
           tier: 'standard',
@@ -734,6 +814,7 @@ describe('ResolveService', () => {
         } as unknown as TierAssignment,
       ]);
       providerKeyService.isModelAvailable.mockResolvedValue(false);
+      providerKeyService.isRouteAvailable.mockResolvedValue(false);
 
       const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.tier).toBe('standard');
@@ -760,6 +841,7 @@ describe('ResolveService', () => {
         } as unknown as TierAssignment,
       ]);
       providerKeyService.isModelAvailable.mockResolvedValue(false);
+      providerKeyService.isRouteAvailable.mockResolvedValue(false);
 
       const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.route).toEqual(route('anthropic', 'api_key', 'fallback-1'));
