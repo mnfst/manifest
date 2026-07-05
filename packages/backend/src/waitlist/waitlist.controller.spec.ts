@@ -1,5 +1,5 @@
 import { WaitlistController } from './waitlist.controller';
-import { WaitlistPhoneHomeService } from './waitlist-phone-home.service';
+import { WaitlistSyncService } from './waitlist-sync.service';
 import { Repository } from 'typeorm';
 import { Tenant } from '../entities/tenant.entity';
 import { AutofixWaitlistSignup } from '../entities/autofix-waitlist-signup.entity';
@@ -8,7 +8,7 @@ describe('WaitlistController', () => {
   let controller: WaitlistController;
   let tenantRepo: jest.Mocked<Pick<Repository<Tenant>, 'findOne' | 'update'>>;
   let signupRepo: jest.Mocked<Pick<Repository<AutofixWaitlistSignup>, 'upsert'>>;
-  let phoneHome: jest.Mocked<WaitlistPhoneHomeService>;
+  let waitlistSync: jest.Mocked<WaitlistSyncService>;
 
   beforeEach(() => {
     tenantRepo = {
@@ -18,13 +18,13 @@ describe('WaitlistController', () => {
     signupRepo = {
       upsert: jest.fn().mockResolvedValue(undefined),
     };
-    phoneHome = {
-      reportSignup: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<WaitlistPhoneHomeService>;
+    waitlistSync = {
+      syncClaim: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<WaitlistSyncService>;
     controller = new WaitlistController(
       tenantRepo as unknown as Repository<Tenant>,
       signupRepo as unknown as Repository<AutofixWaitlistSignup>,
-      phoneHome,
+      waitlistSync,
     );
   });
 
@@ -66,16 +66,16 @@ describe('WaitlistController', () => {
       expect(result.joinedAt).toBeTruthy();
     });
 
-    it('calls phoneHome.reportSignup with the tenant email', async () => {
+    it('calls waitlistSync.syncClaim with the tenant email', async () => {
       tenantRepo.findOne.mockResolvedValue({ email: 'user@example.com' } as Tenant);
       await controller.join({ tenantId: 't1', userId: 'u1' });
-      expect(phoneHome.reportSignup).toHaveBeenCalledWith('user@example.com');
+      expect(waitlistSync.syncClaim).toHaveBeenCalledWith('user@example.com');
     });
 
-    it('calls phoneHome.reportSignup with empty string when tenant has no email', async () => {
+    it('calls waitlistSync.syncClaim with empty string when tenant has no email', async () => {
       tenantRepo.findOne.mockResolvedValue({ email: null } as Tenant);
       await controller.join({ tenantId: 't1', userId: 'u1' });
-      expect(phoneHome.reportSignup).toHaveBeenCalledWith('');
+      expect(waitlistSync.syncClaim).toHaveBeenCalledWith('');
     });
 
     it('returns not joined when tenantId is null', async () => {
@@ -84,9 +84,9 @@ describe('WaitlistController', () => {
       expect(result.joined).toBe(false);
     });
 
-    it('does not fail when phoneHome.reportSignup rejects', async () => {
+    it('does not fail when waitlistSync.syncClaim rejects', async () => {
       tenantRepo.findOne.mockResolvedValue({ email: 'user@example.com' } as Tenant);
-      phoneHome.reportSignup.mockRejectedValue(new Error('boom'));
+      waitlistSync.syncClaim.mockRejectedValue(new Error('boom'));
       const result = await controller.join({ tenantId: 't1', userId: 'u1' });
       expect(result.joined).toBe(true);
     });

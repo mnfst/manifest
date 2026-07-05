@@ -2,4 +2,4 @@
 "manifest": patch
 ---
 
-Self-hosted waitlist claims now phone home to the cloud instance
+Self-hosted waitlist claims now sync to the cloud instance

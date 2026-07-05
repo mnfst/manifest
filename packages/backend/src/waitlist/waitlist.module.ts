@@ -3,11 +3,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Tenant } from '../entities/tenant.entity';
 import { AutofixWaitlistSignup } from '../entities/autofix-waitlist-signup.entity';
 import { WaitlistController } from './waitlist.controller';
-import { WaitlistPhoneHomeService } from './waitlist-phone-home.service';
+import { WaitlistSyncService } from './waitlist-sync.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Tenant, AutofixWaitlistSignup])],
   controllers: [WaitlistController],
-  providers: [WaitlistPhoneHomeService],
+  providers: [WaitlistSyncService],
 })
 export class WaitlistModule {}

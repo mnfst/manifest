@@ -5,7 +5,7 @@ import { Tenant } from '../entities/tenant.entity';
 import { AutofixWaitlistSignup } from '../entities/autofix-waitlist-signup.entity';
 import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { Public } from '../common/decorators/public.decorator';
-import { WaitlistPhoneHomeService } from './waitlist-phone-home.service';
+import { WaitlistSyncService } from './waitlist-sync.service';
 import { WaitlistSignupDto } from './dto/waitlist-signup.dto';
 
 @Controller('api/v1/waitlist')
@@ -15,7 +15,7 @@ export class WaitlistController {
     private readonly tenantRepo: Repository<Tenant>,
     @InjectRepository(AutofixWaitlistSignup)
     private readonly signupRepo: Repository<AutofixWaitlistSignup>,
-    private readonly phoneHome: WaitlistPhoneHomeService,
+    private readonly waitlistSync: WaitlistSyncService,
   ) {}
 
   @Get('autofix')
@@ -46,7 +46,7 @@ export class WaitlistController {
       where: { id: ctx.tenantId },
       select: ['email'],
     });
-    this.phoneHome.reportSignup(tenant?.email ?? '').catch(() => {});
+    this.waitlistSync.syncClaim(tenant?.email ?? '').catch(() => {});
 
     return { joined: true, joinedAt: now };
   }
