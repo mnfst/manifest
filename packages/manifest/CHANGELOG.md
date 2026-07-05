@@ -1,5 +1,29 @@
 # manifest
 
+## 6.13.4
+
+### Patch Changes
+
+- b2b95f0: Preserve route metadata on streamed provider errors so message logs keep model and provider fields.
+- 3dd41a1: fix: Gemini adapter — strip unsupported schema keywords, merge parallel tool responses, and inject missing thought signatures
+
+  The Gemini adapter now strips additional JSON Schema keywords that Google's
+  `function_declarations` parameter schema rejects (`propertyNames`,
+  `uniqueItems`, `multipleOf`, `contains`/`minContains`/`maxContains`,
+  `prefixItems`, `additionalItems`, `readOnly`, `writeOnly`, `deprecated`,
+  and `$comment`/`$anchor`/`$dynamicRef`/`$dynamicAnchor`/`$vocabulary`).
+
+  It merges consecutive parallel tool responses into a single Gemini user turn,
+  matching Google's requirement that N functionCall parts be answered by exactly
+  N functionResponse parts in one turn.
+
+  When a functionCall part has no `thought_signature` from the client or cache
+  (e.g. after a fallback from another model), the adapter now injects the
+  documented dummy signature so Gemini 3.x does not reject the request with
+  "Function call is missing a thought_signature".
+
+- 3b2bbd9: Self-hosted waitlist claims now sync to the cloud instance
+
 ## 6.13.3
 
 ### Patch Changes
