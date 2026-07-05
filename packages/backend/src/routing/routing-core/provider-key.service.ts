@@ -358,17 +358,21 @@ export class ProviderKeyService {
     }
     const providerNames = expandProviderNames([route.provider]);
     const discovered = await this.discoveryService.getModelsForAgent(tenantId, agentId);
-    const matched = discovered.some(
+    const connectionModels = discovered.filter(
       (m) =>
-        m.id === route.model &&
         providerNames.has(m.provider.toLowerCase()) &&
         (!route.authType || !m.authType || m.authType === route.authType),
     );
-    if (matched) return true;
+    if (connectionModels.some((m) => m.id === route.model)) return true;
+    if (connectionModels.length > 0) return false;
 
-    // Discovery can be cold or partial for a connection; fall back to "an
-    // active, usable record for the pinned provider exists" — the same
-    // leniency isModelAvailable's tail applies to inferred providers.
+    // Qwen/Alibaba model IDs must come from native discovery. The provider has
+    // region-specific routable names, so an active key alone is not enough.
+    if (providerNames.has('qwen') || providerNames.has('alibaba')) return false;
+
+    // Discovery can be cold for a connection; fall back to "an active, usable
+    // record for the pinned provider exists" only when discovery returned no
+    // model evidence for that pinned provider/authType.
     const records = (
       await this.filterProvidersForAgent(
         await this.providerRepo.find({

@@ -574,6 +574,22 @@ describe('ProviderKeyService', () => {
       ).toBe(false);
     });
 
+    it('does not accept an active provider record when discovery has other models for the pin', async () => {
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('openai', 'gpt-4o', 'api_key'),
+      ]);
+      providerRepo.find.mockResolvedValue([
+        { provider: 'openai', auth_type: 'api_key', is_active: true } as TenantProvider,
+      ]);
+      expect(
+        await svc.isRouteAvailable('tenant-1', {
+          provider: 'openai',
+          authType: 'api_key',
+          model: 'retired-model',
+        }),
+      ).toBe(false);
+    });
+
     it('falls back to an active provider record when discovery is cold', async () => {
       discoveryService.getModelsForAgent.mockResolvedValue([]);
       providerRepo.find.mockResolvedValue([
@@ -598,6 +614,20 @@ describe('ProviderKeyService', () => {
           provider: 'openai',
           authType: 'subscription',
           model: 'gpt-5.5',
+        }),
+      ).toBe(false);
+    });
+
+    it('requires native discovery for pinned Qwen routes', async () => {
+      discoveryService.getModelsForAgent.mockResolvedValue([]);
+      providerRepo.find.mockResolvedValue([
+        { provider: 'qwen', auth_type: 'api_key', is_active: true } as TenantProvider,
+      ]);
+      expect(
+        await svc.isRouteAvailable('tenant-1', {
+          provider: 'qwen',
+          authType: 'api_key',
+          model: 'qwen-max',
         }),
       ).toBe(false);
     });
