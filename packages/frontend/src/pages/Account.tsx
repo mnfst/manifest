@@ -10,7 +10,7 @@ const Account: Component = () => {
   const session = authClient.useSession();
   const [copied, setCopied] = createSignal(false);
   const [theme, setTheme] = createSignal<'light' | 'dark' | 'system'>('system');
-  const [billing] = createResource(getBillingStatus);
+  const [billing] = createResource(() => getBillingStatus());
   const [searchParams, setSearchParams] = useSearchParams();
   const [billingBusy, setBillingBusy] = createSignal(false);
 
