@@ -294,6 +294,30 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  'cline-pass': Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'ClinePass subscription',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your ClinePass API key',
+    knownModels: Object.freeze([
+      'cline-pass/glm-5.2',
+      'cline-pass/kimi-k2.7-code',
+      'cline-pass/kimi-k2.6',
+      'cline-pass/deepseek-v4-pro',
+      'cline-pass/deepseek-v4-flash',
+      'cline-pass/mimo-v2.5',
+      'cline-pass/mimo-v2.5-pro',
+      'cline-pass/minimax-m3',
+      'cline-pass/qwen3.7-max',
+      'cline-pass/qwen3.7-plus',
+    ]),
+    knownModelsMatch: 'exact' as const,
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 200000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
 });
 
 export const SUPPORTED_SUBSCRIPTION_PROVIDER_IDS: readonly string[] = Object.freeze(

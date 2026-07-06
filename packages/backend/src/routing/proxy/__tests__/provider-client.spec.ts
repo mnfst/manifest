@@ -3160,6 +3160,22 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('openai/gpt-oss-120b');
     });
+
+    it('preserves ClinePass provider-prefixed model names', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'cline-pass',
+        apiKey: 'cp-token',
+        model: 'cline-pass/deepseek-v4-flash',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('cline-pass/deepseek-v4-flash');
+    });
   });
 
   describe('Body sanitization for non-OpenAI providers', () => {

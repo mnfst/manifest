@@ -93,6 +93,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'ModelArk Coding Plan API key',
   },
   {
+    id: 'cline-pass',
+    displayName: 'ClinePass',
+    aliases: ['cline'],
+    openRouterPrefixes: [],
+    requiresApiKey: false,
+    localOnly: false,
+    color: '#9D4EDD',
+    keyPrefix: 'sk_',
+    minKeyLength: 20,
+    keyPlaceholder: 'sk_...',
+  },
+  {
     id: 'cerebras',
     displayName: 'Cerebras',
     aliases: [],

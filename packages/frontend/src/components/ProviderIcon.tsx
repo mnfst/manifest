@@ -294,6 +294,19 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── ClinePass ─────────────────────────────────── */
+    case 'cline-pass':
+      return (
+        <img
+          src="/icons/providers/cline-pass.png"
+          alt=""
+          width={size}
+          height={size}
+          style={{ ...s, display: 'block', 'object-fit': 'contain', 'border-radius': '4px' }}
+          aria-hidden="true"
+        />
+      );
+
     /* ── Fireworks AI ─────────────────────────────── */
     case 'fireworks':
       return (
