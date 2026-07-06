@@ -1,17 +1,23 @@
 import { WaitlistController } from './waitlist.controller';
 import { Repository } from 'typeorm';
 import { Tenant } from '../entities/tenant.entity';
+import type { AutofixService } from '../routing/autofix/autofix.service';
 
 describe('WaitlistController', () => {
   let controller: WaitlistController;
   let tenantRepo: jest.Mocked<Pick<Repository<Tenant>, 'findOne' | 'update'>>;
+  let autofixService: { invalidateAccess: jest.Mock };
 
   beforeEach(() => {
     tenantRepo = {
       findOne: jest.fn(),
       update: jest.fn().mockResolvedValue(undefined),
     };
-    controller = new WaitlistController(tenantRepo as unknown as Repository<Tenant>);
+    autofixService = { invalidateAccess: jest.fn() };
+    controller = new WaitlistController(
+      tenantRepo as unknown as Repository<Tenant>,
+      autofixService as unknown as AutofixService,
+    );
   });
 
   describe('getStatus', () => {
@@ -42,18 +48,21 @@ describe('WaitlistController', () => {
   });
 
   describe('join', () => {
-    it('sets autofix_waitlist_at and returns joined status', async () => {
+    it('sets autofix_waitlist_at, grants early access, and returns joined status', async () => {
       const result = await controller.join({ tenantId: 't1', userId: 'u1' });
       expect(tenantRepo.update).toHaveBeenCalledWith('t1', {
         autofix_waitlist_at: expect.any(String),
       });
+      // Joining drops the cached access decision so the toggle shows immediately.
+      expect(autofixService.invalidateAccess).toHaveBeenCalledWith('t1');
       expect(result.joined).toBe(true);
       expect(result.joinedAt).toBeTruthy();
     });
 
-    it('returns not joined when tenantId is null', async () => {
+    it('returns not joined (and grants nothing) when tenantId is null', async () => {
       const result = await controller.join({ tenantId: null, userId: 'u1' });
       expect(tenantRepo.update).not.toHaveBeenCalled();
+      expect(autofixService.invalidateAccess).not.toHaveBeenCalled();
       expect(result.joined).toBe(false);
     });
   });

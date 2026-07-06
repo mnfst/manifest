@@ -117,17 +117,21 @@ describe('routing API client (additional coverage)', () => {
 
   describe('auto-fix config', () => {
     it('getAutofix GETs the autofix endpoint', async () => {
-      const fetchMock = setupFetch({ enabled: true });
+      // The config now carries the early-access `available` flag alongside
+      // `enabled`; the client returns whatever the server sends verbatim.
+      const fetchMock = setupFetch({ enabled: true, available: true });
       const out = await routing.getAutofix('demo');
-      expect(out).toEqual({ enabled: true });
+      expect(out).toEqual({ enabled: true, available: true });
       const url = fetchMock.mock.calls[0][0] as string;
       expect(url).toContain('/api/v1/routing/demo/autofix');
     });
 
     it('updateAutofix PATCHes the autofix endpoint with a JSON body', async () => {
-      const fetchMock = setupFetch({ enabled: true });
+      // Server echoes the full config back (here with early access NOT granted)
+      // — the client passes `available` through untouched, only sending `enabled`.
+      const fetchMock = setupFetch({ enabled: true, available: false });
       const out = await routing.updateAutofix('demo', { enabled: true });
-      expect(out).toEqual({ enabled: true });
+      expect(out).toEqual({ enabled: true, available: false });
       const [url, init] = fetchMock.mock.calls[0];
       expect(url).toContain('/api/v1/routing/demo/autofix');
       expect((init as RequestInit).method).toBe('PATCH');

@@ -159,7 +159,12 @@ export class TierController {
   @Get(':agentName/autofix')
   async getAutofix(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
-    return { enabled: this.autofixService.resolveEnabled(agent.autofix_enabled) };
+    // `available` gates the toggle's visibility in the UI (early-access rollout);
+    // `enabled` is the agent's effective setting once it is available.
+    return {
+      enabled: this.autofixService.resolveEnabled(agent.autofix_enabled),
+      available: await this.autofixService.hasAccess(ctx.tenantId),
+    };
   }
 
   @Patch(':agentName/autofix')
@@ -169,13 +174,19 @@ export class TierController {
     @Body() body: UpdateAutofixDto,
   ) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
-    if (body.enabled !== undefined) {
+    const available = await this.autofixService.hasAccess(ctx.tenantId);
+    // Only tenants with early access can change the flag; others have no toggle.
+    const applied = available && body.enabled !== undefined;
+    if (applied) {
       await this.agentRepo.update(agent.id, { autofix_enabled: body.enabled });
       this.resolveAgentService.invalidate(agent.tenant_id, agentName);
       this.autofixService.invalidateConfig(agent.tenant_id, agent.id);
     }
     return {
-      enabled: body.enabled ?? this.autofixService.resolveEnabled(agent.autofix_enabled),
+      enabled: applied
+        ? (body.enabled as boolean)
+        : this.autofixService.resolveEnabled(agent.autofix_enabled),
+      available,
     };
   }
 

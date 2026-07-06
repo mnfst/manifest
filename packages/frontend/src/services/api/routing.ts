@@ -180,6 +180,10 @@ export function toggleComplexity(agentName: string) {
 
 export interface AutofixConfig {
   enabled: boolean;
+  /** Whether this tenant has Auto-fix early access (waitlist / GA). The toggle
+   *  is only shown when true; the rest of the time the "Get early access" card
+   *  in the sidebar is the entry point. */
+  available: boolean;
 }
 
 export function getAutofix(agentName: string) {

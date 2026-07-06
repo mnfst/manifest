@@ -17,7 +17,9 @@ vi.mock('../../src/services/toast-store.js', () => ({
 import SettingsAutofixSection from '../../src/pages/SettingsAutofixSection';
 
 /** Wait for the initial `getAutofix` resource to settle so the switch's
- *  `disabled={... || config.loading}` binding flips to enabled. */
+ *  `disabled={... || config.loading}` binding flips to enabled. Only reachable
+ *  when the fetched config has `available: true` — otherwise the section is
+ *  hidden entirely and there is no switch to find. */
 async function waitForLoaded(container: HTMLElement): Promise<HTMLButtonElement> {
   return await waitFor(() => {
     const btn = container.querySelector('.settings-switch') as HTMLButtonElement | null;
@@ -36,11 +38,13 @@ describe('SettingsAutofixSection', () => {
   });
 
   it('renders the Auto-fix title and switch', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: false });
+    mockGetAutofix.mockResolvedValue({ enabled: false, available: true });
     const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
 
-    expect(container.textContent).toContain('Auto-fix');
+    // The whole section is gated behind `available()`, so nothing renders until
+    // the config resolves with early access granted.
     const btn = await waitForLoaded(container);
+    expect(container.textContent).toContain('Auto-fix');
 
     // Exposed as an accessible switch, fetched against the current agent name.
     expect(btn.getAttribute('role')).toBe('switch');
@@ -51,7 +55,7 @@ describe('SettingsAutofixSection', () => {
   });
 
   it('shows the switch in its on state when Auto-fix is enabled', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: true });
+    mockGetAutofix.mockResolvedValue({ enabled: true, available: true });
     const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
 
     const btn = await waitForLoaded(container);
@@ -59,20 +63,45 @@ describe('SettingsAutofixSection', () => {
     expect(btn.getAttribute('aria-checked')).toBe('true');
   });
 
-  it('disables the switch while the config is still loading', () => {
-    // Never-resolving fetch keeps `config.loading` true.
+  it('defaults the switch to off when the fetched config omits enabled', async () => {
+    // `available: true` reveals the section, but an absent `enabled` must fall
+    // back to off via the `config()?.enabled ?? false` guard, not render "on".
+    mockGetAutofix.mockResolvedValue({ available: true });
+    const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
+
+    const btn = await waitForLoaded(container);
+    expect(btn.classList.contains('settings-switch--on')).toBe(false);
+    expect(btn.getAttribute('aria-checked')).toBe('false');
+  });
+
+  it('renders nothing while the config is still loading', () => {
+    // Never-resolving fetch keeps `config.loading` true, so `available()` stays
+    // false (no resolved config yet) and the section never mounts.
     mockGetAutofix.mockReturnValue(new Promise(() => {}));
     const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
 
-    const btn = container.querySelector('.settings-switch') as HTMLButtonElement;
-    expect(btn.hasAttribute('disabled')).toBe(true);
-    // Config unresolved → `config()?.enabled ?? false` falls back to off.
-    expect(btn.classList.contains('settings-switch--on')).toBe(false);
+    expect(container.querySelector('.settings-switch')).toBeNull();
+    expect(container.textContent).not.toContain('Auto-fix');
+  });
+
+  it('renders nothing when Auto-fix early access is not available', async () => {
+    mockGetAutofix.mockResolvedValue({ enabled: false, available: false });
+    const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
+
+    // Config resolves, but `available: false` keeps the whole section hidden —
+    // the "Get early access" card in the sidebar is the entry point instead.
+    await waitFor(() => expect(mockGetAutofix).toHaveBeenCalledTimes(1));
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(container.querySelector('.settings-switch')).toBeNull();
+    expect(container.querySelector('[role="switch"]')).toBeNull();
+    expect(container.textContent).not.toContain('Auto-fix');
+    expect(mockUpdateAutofix).not.toHaveBeenCalled();
   });
 
   it('toggles Auto-fix on when currently disabled', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: false });
-    mockUpdateAutofix.mockResolvedValue({ enabled: true });
+    mockGetAutofix.mockResolvedValue({ enabled: false, available: true });
+    mockUpdateAutofix.mockResolvedValue({ enabled: true, available: true });
     const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
 
     const btn = await waitForLoaded(container);
@@ -86,8 +115,8 @@ describe('SettingsAutofixSection', () => {
   });
 
   it('toggles Auto-fix off when currently enabled', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: true });
-    mockUpdateAutofix.mockResolvedValue({ enabled: false });
+    mockGetAutofix.mockResolvedValue({ enabled: true, available: true });
+    mockUpdateAutofix.mockResolvedValue({ enabled: false, available: true });
     const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
 
     const btn = await waitForLoaded(container);
@@ -100,7 +129,7 @@ describe('SettingsAutofixSection', () => {
   });
 
   it('ignores clicks while a save is already in flight', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: false });
+    mockGetAutofix.mockResolvedValue({ enabled: false, available: true });
     // Keep the first update pending so `busy()` stays true for the second click.
     mockUpdateAutofix.mockReturnValue(new Promise(() => {}));
     const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
@@ -112,28 +141,46 @@ describe('SettingsAutofixSection', () => {
     expect(mockUpdateAutofix).toHaveBeenCalledTimes(1);
   });
 
-  it('disables the switch when the initial read fails', async () => {
+  it('renders nothing when the initial read fails', async () => {
     mockGetAutofix.mockRejectedValue(new Error('read failed'));
     const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
 
-    // A failed read leaves the switch disabled (no known current state to write).
-    const btn = await waitFor(() => {
-      const el = container.querySelector('.settings-switch') as HTMLButtonElement | null;
-      expect(el).not.toBeNull();
-      expect(el!.hasAttribute('disabled')).toBe(true);
-      return el!;
-    });
-    // Clicking a disabled switch must not attempt a write.
-    fireEvent.click(btn);
+    // A failed read makes `available()` short-circuit to false via its
+    // `config.error` guard, so the heading and switch stay hidden entirely.
+    await waitFor(() => expect(mockGetAutofix).toHaveBeenCalledTimes(1));
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(container.querySelector('.settings-switch')).toBeNull();
+    expect(container.textContent).not.toContain('Auto-fix');
+    // Nothing renders, so no write is ever attempted.
     expect(mockUpdateAutofix).not.toHaveBeenCalled();
+  });
+
+  it('hides the section when a later refetch fails', async () => {
+    const [name, setName] = createSignal('a');
+    mockGetAutofix.mockResolvedValueOnce({ enabled: true, available: true });
+    mockGetAutofix.mockRejectedValueOnce(new Error('refetch failed'));
+    const { container } = render(() => <SettingsAutofixSection agentName={name} />);
+
+    // First load renders the switch in its on state.
+    const btn = await waitForLoaded(container);
+    expect(btn.classList.contains('settings-switch--on')).toBe(true);
+
+    // Switching harness refetches for 'b', which rejects. `available()` flips to
+    // false via its `config.error` guard and tears the section back down.
+    setName('b');
+    await waitFor(() => {
+      expect(container.querySelector('.settings-switch')).toBeNull();
+    });
+    expect(container.textContent).not.toContain('Auto-fix');
   });
 
   it('does not apply a stale save after the harness switches mid-request', async () => {
     const [name, setName] = createSignal('a');
-    mockGetAutofix.mockResolvedValue({ enabled: false });
-    let resolveUpdate: (v: { enabled: boolean }) => void = () => {};
+    mockGetAutofix.mockResolvedValue({ enabled: false, available: true });
+    let resolveUpdate: (v: { enabled: boolean; available: boolean }) => void = () => {};
     mockUpdateAutofix.mockReturnValue(
-      new Promise<{ enabled: boolean }>((r) => {
+      new Promise<{ enabled: boolean; available: boolean }>((r) => {
         resolveUpdate = r;
       }),
     );
@@ -150,7 +197,7 @@ describe('SettingsAutofixSection', () => {
     // Resolve the stale 'a' update as ON, then let the toggle chain settle (the
     // save's finally re-enables the switch). The guard must drop the stale
     // response so the current 'b' harness stays OFF.
-    resolveUpdate({ enabled: true });
+    resolveUpdate({ enabled: true, available: true });
     await waitFor(() => {
       const el = container.querySelector('.settings-switch') as HTMLButtonElement;
       expect(el.hasAttribute('disabled')).toBe(false);
@@ -159,7 +206,7 @@ describe('SettingsAutofixSection', () => {
   });
 
   it('surfaces a toast when the update fails', async () => {
-    mockGetAutofix.mockResolvedValue({ enabled: false });
+    mockGetAutofix.mockResolvedValue({ enabled: false, available: true });
     mockUpdateAutofix.mockRejectedValue(new Error('boom'));
     const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
 

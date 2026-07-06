@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { Agent } from '../../entities/agent.entity';
+import { Tenant } from '../../entities/tenant.entity';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import type { ForwardResult } from '../proxy/provider-client';
 import type { ProxyApiMode } from '../proxy/proxy-types';
@@ -64,6 +65,20 @@ function parseStatuses(raw: string | undefined): Set<number> {
   return new Set(parsed.length > 0 ? parsed : DEFAULT_REPAIRABLE_STATUSES.split(',').map(Number));
 }
 
+/** The three Auto-fix rollout phases, most→least restrictive. */
+type AutofixRollout = 'selected' | 'waitlist' | 'everyone';
+
+/**
+ * Parse `AUTOFIX_ROLLOUT`:
+ * - `selected` (default) — only tenants WE hand-picked (`autofix_access_granted_at`).
+ * - `waitlist` — granted tenants **plus** anyone who joined the waitlist.
+ * - `everyone` — general availability, no gate.
+ */
+function parseRollout(raw: string | undefined): AutofixRollout {
+  const v = raw?.trim().toLowerCase();
+  return v === 'waitlist' || v === 'everyone' ? v : 'selected';
+}
+
 function headersToObject(headers: Headers): Record<string, string> {
   const out: Record<string, string> = {};
   headers.forEach((value, key) => {
@@ -91,6 +106,10 @@ function rebuildForward(base: ForwardResult, body: string, status: number): Forw
 export class AutofixService {
   private readonly logger = new Logger(AutofixService.name);
   private readonly globalEnabled: boolean;
+  // Which rollout phase this deployment is in (AUTOFIX_ROLLOUT). Governs how
+  // `hasAccess` decides: `selected` (hand-picked only) → `waitlist` (+ opt-ins)
+  // → `everyone` (GA). Default `selected` — the most restrictive.
+  private readonly rollout: AutofixRollout;
   // Effective default when an agent has no explicit choice (autofix_enabled NULL):
   // ON in cloud, OFF in self-hosted. Computed once at boot.
   private readonly defaultAgentEnabled: boolean;
@@ -99,6 +118,9 @@ export class AutofixService {
     string,
     { value: AgentAutofixConfig; expiresAt: number }
   >();
+  // Per-tenant early-access decision, cached like the config so a 4xx storm from
+  // a non-access tenant never does a DB read per failed request.
+  private readonly accessCache = new Map<string, { value: boolean; expiresAt: number }>();
   // Circuit-breaker state (process-local). `breakerOpenUntil` is an epoch-ms
   // deadline; while it is in the future, heal calls are skipped.
   private healFailureStreak = 0;
@@ -107,11 +129,52 @@ export class AutofixService {
   constructor(
     @Inject(HEALING_CLIENT) private readonly client: HealingClient,
     @InjectRepository(Agent) private readonly agentRepo: Repository<Agent>,
+    @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
     config: ConfigService,
   ) {
     this.globalEnabled = config.get<string>('AUTOFIX_GLOBAL_ENABLED') !== 'false';
+    this.rollout = parseRollout(config.get<string>('AUTOFIX_ROLLOUT'));
     this.defaultAgentEnabled = !isSelfHosted();
     this.repairableStatuses = parseStatuses(config.get<string>('AUTOFIX_REPAIRABLE_STATUSES'));
+  }
+
+  /**
+   * Whether a tenant may use Auto-fix at all, per the current rollout phase
+   * (`AUTOFIX_ROLLOUT`):
+   * - `selected` (default) → only tenants WE granted (`autofix_access_granted_at`).
+   * - `waitlist` → granted tenants **plus** anyone who joined (`autofix_waitlist_at`).
+   * - `everyone` → all tenants.
+   *
+   * This gate sits ABOVE the per-agent default (`resolveEnabled`): a non-access
+   * tenant never heals, even when the cloud mode default would turn Auto-fix on.
+   * Cached to avoid a per-4xx DB read.
+   */
+  async hasAccess(tenantId: string | null): Promise<boolean> {
+    // No tenant context → no agent, so nothing to heal; deny in every phase.
+    if (!tenantId) return false;
+    // Phase 3 — general availability: everyone, no DB read.
+    if (this.rollout === 'everyone') return true;
+    const now = Date.now();
+    const cached = this.accessCache.get(tenantId);
+    if (cached && cached.expiresAt > now) return cached.value;
+
+    const tenant = await this.tenantRepo.findOne({
+      where: { id: tenantId },
+      select: ['autofix_access_granted_at', 'autofix_waitlist_at'],
+    });
+    // Phase 1 (`selected`): only hand-picked (granted) tenants.
+    // Phase 2 (`waitlist`): granted OR opted in via the waitlist.
+    const granted = tenant?.autofix_access_granted_at != null;
+    const joined = tenant?.autofix_waitlist_at != null;
+    const value = granted || (this.rollout === 'waitlist' && joined);
+    if (this.accessCache.size >= CONFIG_CACHE_MAX) this.accessCache.clear();
+    this.accessCache.set(tenantId, { value, expiresAt: now + CONFIG_CACHE_TTL_MS });
+    return value;
+  }
+
+  /** Drop a tenant's cached access so a fresh waitlist join takes effect now. */
+  invalidateAccess(tenantId: string): void {
+    this.accessCache.delete(tenantId);
   }
 
   /**
@@ -168,11 +231,15 @@ export class AutofixService {
 
     let cfg: AgentAutofixConfig;
     try {
+      // Limited-rollout gate: only early-access (waitlist) tenants heal for now.
+      // Sits above the per-agent default so a cloud tenant that hasn't joined
+      // never heals, even though the mode default would enable it.
+      if (!(await this.hasAccess(params.tenantId))) return null;
       cfg = await this.loadAgentConfig(params.agentId, params.tenantId);
     } catch (err) {
-      // A config-load failure (DB hiccup) must never turn a recoverable provider
+      // A gate-load failure (DB hiccup) must never turn a recoverable provider
       // error into a crash — skip healing; the forward is still intact.
-      this.logger.warn(`autofix config load failed, skipping: ${(err as Error).message}`);
+      this.logger.warn(`autofix gate load failed, skipping: ${(err as Error).message}`);
       return null;
     }
     if (!cfg.enabled) return null;

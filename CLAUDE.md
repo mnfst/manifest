@@ -395,6 +395,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `AUTOFIX_HEALING_URL` — Base URL of the Phoenix healing service for Auto-fix. Unset → inert Noop client in production (never mutates traffic), in-process mock in dev/test. See [Auto-fix](#auto-fix-self-healing-via-phoenix).
 - `AUTOFIX_HEALING_API_KEY` — Sent as `x-api-key` on every call to Phoenix. Phoenix guards `/api/heal*` and fails closed in production, so this is required when `AUTOFIX_HEALING_URL` points at a production Phoenix; omit it for a keyless dev/test Phoenix.
 - `AUTOFIX_GLOBAL_ENABLED` — Set `false` to disable Auto-fix for all agents (default on). Companions: `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
+- `AUTOFIX_ROLLOUT` — Three-phase early-access gate: `selected` (default — only tenants we hand-picked via `tenants.autofix_access_granted_at`), `waitlist` (+ anyone who joined `tenants.autofix_waitlist_at`), or `everyone` (GA). See [Auto-fix](#auto-fix-self-healing-via-phoenix).
 
 ## Domain Terminology
 
@@ -519,9 +520,16 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 
 ## Auto-fix (self-healing via Phoenix)
 
-**Auto-fix** repairs a failing request before the fallback chain runs. When an agent request fails with a **repairable request-side 4xx** (default allow-list `400,404,422` — never 401/403/429/5xx), Manifest hands the failed request + normalized provider error to an external healing service (**Phoenix**), gets back a patched request, and resends it **once**. It runs **before** `shouldTriggerFallback`, so the fallback chain is the safety net if healing doesn't clear the error. Toggled **per agent** (`agents.autofix_enabled`), open to every agent — not gated by the routing cohort.
+**Auto-fix** repairs a failing request before the fallback chain runs. When an agent request fails with a **repairable request-side 4xx** (default allow-list `400,404,422` — never 401/403/429/5xx), Manifest hands the failed request + normalized provider error to an external healing service (**Phoenix**), gets back a patched request, and resends it **once**. It runs **before** `shouldTriggerFallback`, so the fallback chain is the safety net if healing doesn't clear the error. Toggled **per agent** (`agents.autofix_enabled`) and gated to **early-access tenants** (the waitlist gate below) — not tied to the routing cohort.
 
 **Per-agent default is deployment-mode-dependent.** `agents.autofix_enabled` is **nullable**: `NULL` means "no explicit choice — inherit the mode default", which is **ON in cloud, OFF in self-hosted** (resolved by `AutofixService.resolveEnabled()` via `isSelfHosted()`, computed once at boot). An explicit `true`/`false` (the user flipping the Settings toggle) always wins. The `GET/PATCH …/autofix` endpoints return the *resolved* effective value, so the UI shows the right default state without persisting one. Migration `1799000300000` drops the old blanket `false` default and resets pre-feature `false` rows to `NULL` so they inherit the mode default.
+
+**Three-phase early-access gate.** A per-**tenant** gate sits ABOVE the per-agent default, driven by `AUTOFIX_ROLLOUT` (`selected` → `waitlist` → `everyone`):
+- **`selected`** (default, most restrictive) — only tenants **we hand-picked**: `tenants.autofix_access_granted_at != null` (set it manually, e.g. `UPDATE tenants SET autofix_access_granted_at = now() WHERE id = (SELECT t.id FROM tenants t JOIN "user" u ON u.id = t.owner_user_id WHERE u.email = '…')`).
+- **`waitlist`** — granted tenants **plus** anyone who joined the waitlist (`tenants.autofix_waitlist_at`, set via `POST /api/v1/waitlist/autofix` — the "Get early access" card).
+- **`everyone`** — general availability, no gate.
+
+`AutofixService.hasAccess(tenantId)` (cached 30s; invalidated on waitlist join) computes `granted || (rollout==='waitlist' && joined)`, short-circuiting to `true` under `everyone`. `maybeHeal` requires it, so a non-access tenant **never heals even when the cloud default would enable it**; `GET/PATCH …/autofix` return `available` so the Settings toggle shows only to access tenants (everyone else keeps the "Get early access" card). Advance the rollout by bumping `AUTOFIX_ROLLOUT`; at `everyone`, retire the gate.
 
 **Scope:** non-streaming responses + streaming that fails before the first byte (a repairable 4xx makes `providerResponse.ok=false` before any client bytes are sent). **One attempt only — there is no retry budget.** If the single patched retry still fails, Manifest reports the outcome to Phoenix and hands off to fallback.
 
@@ -544,7 +552,7 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 
 **Endpoints:** `GET/PATCH /api/v1/routing/:agentName/autofix` → `{ enabled }`.
 
-**Env:** `AUTOFIX_HEALING_URL` (unset → inert Noop in production, in-process mock in dev/test), `AUTOFIX_HEALING_API_KEY` (sent as `x-api-key`; required for a production Phoenix, which fails closed without it), `AUTOFIX_GLOBAL_ENABLED` (`false` disables Auto-fix everywhere; default on), `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
+**Env:** `AUTOFIX_HEALING_URL` (unset → inert Noop in production, in-process mock in dev/test), `AUTOFIX_HEALING_API_KEY` (sent as `x-api-key`; required for a production Phoenix, which fails closed without it), `AUTOFIX_GLOBAL_ENABLED` (`false` disables Auto-fix everywhere; default on), `AUTOFIX_ROLLOUT` (`selected` [default] / `waitlist` / `everyone` — the early-access phase), `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
 
 ## Providers & Models
 

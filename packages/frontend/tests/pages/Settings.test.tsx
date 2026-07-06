@@ -20,8 +20,8 @@ const mockDeleteAgent = vi.fn();
 const mockRenameAgent = vi.fn();
 const mockRotateAgentKey = vi.fn();
 const mockUpdateAgent = vi.fn();
-const mockGetAutofix = vi.fn(() => Promise.resolve({ enabled: false }));
-const mockUpdateAutofix = vi.fn(() => Promise.resolve({ enabled: false }));
+const mockGetAutofix = vi.fn(() => Promise.resolve({ enabled: false, available: true }));
+const mockUpdateAutofix = vi.fn(() => Promise.resolve({ enabled: false, available: true }));
 vi.mock("../../src/services/api.js", () => ({
   getAgentKey: (...args: unknown[]) => mockGetAgentKey(...args),
   getAgentInfo: (...args: unknown[]) => mockGetAgentInfo(...args),
