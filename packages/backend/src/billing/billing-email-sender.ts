@@ -24,8 +24,14 @@ export function getBillingEmailFrom(explicit?: string | null): string {
   );
 }
 
+function normalizeAppUrl(appUrl: string): string {
+  return appUrl.replace(/\/+$/, '') || 'https://app.manifest.build';
+}
+
 export function getBillingAppUrl(explicit?: string | null): string {
-  return explicit || process.env['BETTER_AUTH_URL'] || 'https://app.manifest.build';
+  return normalizeAppUrl(
+    explicit || process.env['BETTER_AUTH_URL'] || 'https://app.manifest.build',
+  );
 }
 
 export function subscriptionEmailSubject(kind: SubscriptionPlanEmailProps['kind'], plan: string) {

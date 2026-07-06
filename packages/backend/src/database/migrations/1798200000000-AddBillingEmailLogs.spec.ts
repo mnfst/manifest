@@ -17,7 +17,9 @@ describe('AddBillingEmailLogs1798200000000', () => {
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS "billing_email_logs"');
     expect(sql).toContain('"dedupe_key" varchar NOT NULL');
     expect(sql).toContain('CREATE UNIQUE INDEX IF NOT EXISTS "IDX_billing_email_logs_dedupe_key"');
-    expect(sql).toContain('CREATE INDEX IF NOT EXISTS "IDX_billing_email_logs_tenant_period"');
+    expect(sql).toContain(
+      'CREATE INDEX IF NOT EXISTS "IDX_billing_email_logs_tenant_period" ON "billing_email_logs" ("tenant_id", "period_start") WHERE "tenant_id" IS NOT NULL',
+    );
   });
 
   it('drops indexes before dropping the table', async () => {

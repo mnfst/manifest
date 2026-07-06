@@ -56,6 +56,7 @@ describe('subscription webhook billing emails', () => {
   it('sends a deduped subscription confirmation email', async () => {
     const query = jest
       .fn()
+      .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ email: 'owner@example.com', name: 'Ada' }] })
       .mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
 
@@ -63,8 +64,10 @@ describe('subscription webhook billing emails', () => {
       true,
     );
 
-    expect(query.mock.calls[1][0]).toContain('ON CONFLICT (dedupe_key) DO NOTHING');
-    expect(query.mock.calls[1][1][1]).toBe('billing:subscription_confirmed:sub_123:confirm');
+    expect(query.mock.calls[0][0]).toContain('SELECT id FROM billing_email_logs');
+    expect(query.mock.calls[0][1][0]).toBe('billing:subscription_confirmed:sub_123:confirm');
+    expect(query.mock.calls[2][0]).toContain('ON CONFLICT (dedupe_key) DO NOTHING');
+    expect(query.mock.calls[2][1][1]).toBe('billing:subscription_confirmed:sub_123:confirm');
     expect(sendSubscriptionPlanEmail).toHaveBeenCalledWith(
       'owner@example.com',
       expect.objectContaining({ kind: 'subscription_confirmed', planName: 'Pro' }),
@@ -73,21 +76,50 @@ describe('subscription webhook billing emails', () => {
   });
 
   it('does not send when the lifecycle dedupe key already exists', async () => {
-    const query = jest
-      .fn()
-      .mockResolvedValueOnce({ rows: [{ email: 'owner@example.com', name: 'Ada' }] })
-      .mockResolvedValueOnce({ rows: [] });
+    const query = jest.fn().mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
 
     await expect(sendSubscriptionConfirmedEmail({ query }, event(), subscription())).resolves.toBe(
       false,
     );
 
+    expect(query).toHaveBeenCalledTimes(1);
     expect(sendSubscriptionPlanEmail).not.toHaveBeenCalled();
+  });
+
+  it('does not write the lifecycle dedupe log when sending fails', async () => {
+    (sendSubscriptionPlanEmail as jest.Mock).mockResolvedValueOnce(false);
+    const query = jest
+      .fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ email: 'owner@example.com', name: 'Ada' }] });
+
+    await expect(sendSubscriptionConfirmedEmail({ query }, event(), subscription())).resolves.toBe(
+      false,
+    );
+
+    expect(sendSubscriptionPlanEmail).toHaveBeenCalledTimes(1);
+    expect(query).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns false when lifecycle email handling throws', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation();
+    const query = jest.fn().mockRejectedValue(new Error('db down'));
+
+    await expect(sendSubscriptionConfirmedEmail({ query }, event(), subscription())).resolves.toBe(
+      false,
+    );
+
+    expect(warn).toHaveBeenCalledWith(
+      '[BillingEmail] Failed to send subscription_confirmed:',
+      expect.any(Error),
+    );
+    warn.mockRestore();
   });
 
   it('sends a plan-changed email only when the plan changed', async () => {
     const query = jest
       .fn()
+      .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ email: 'owner@example.com', name: 'Ada' }] })
       .mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
 
@@ -112,6 +144,7 @@ describe('subscription webhook billing emails', () => {
   it('dedupes cancel and delete events by subscription id', async () => {
     const query = jest
       .fn()
+      .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ email: 'owner@example.com', name: 'Ada' }] })
       .mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
 
@@ -119,7 +152,7 @@ describe('subscription webhook billing emails', () => {
       true,
     );
 
-    expect(query.mock.calls[1][1][1]).toBe('billing:cancellation_confirmed:sub_123:cancel');
+    expect(query.mock.calls[2][1][1]).toBe('billing:cancellation_confirmed:sub_123:cancel');
     expect(sendSubscriptionPlanEmail).toHaveBeenCalledWith(
       'owner@example.com',
       expect.objectContaining({ kind: 'cancellation_confirmed' }),

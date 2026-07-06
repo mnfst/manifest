@@ -1,80 +1,38 @@
 import type Stripe from 'stripe';
 import type { Subscription } from '@better-auth/stripe';
-import { v4 as uuid } from 'uuid';
 import {
   formatPlanName,
   getBillingAppUrl,
   getBillingEmailFrom,
   sendSubscriptionPlanEmail,
 } from './billing-email-sender';
-
-type QueryResult<T> = T[] | { rows: T[] };
-type Queryable = {
-  query<T = unknown>(sql: string, params?: unknown[]): Promise<QueryResult<T>>;
-};
+import {
+  BillingEmailLogQueryable,
+  hasBillingEmailLog,
+  tryInsertBillingEmailLog,
+} from './billing-email-log.service';
 
 interface BillingUserRecipient {
   email: string | null;
   name: string | null;
 }
 
-interface BillingEmailLogParams {
-  dedupeKey: string;
-  kind: string;
-  userId?: string | null;
-  stripeSubscriptionId?: string | null;
-  periodStart?: string | null;
-  periodEnd?: string | null;
-  metadata?: Record<string, unknown> | null;
-}
-
-function rowsFrom<T>(result: QueryResult<T>): T[] {
-  return Array.isArray(result) ? result : result.rows;
-}
-
-async function queryRows<T>(db: Queryable, sql: string, params: unknown[] = []): Promise<T[]> {
-  return rowsFrom(await db.query<T>(sql, params));
-}
-
-async function tryInsertBillingEmailLog(
-  db: Queryable,
-  params: BillingEmailLogParams,
-): Promise<boolean> {
-  const rows = await queryRows<{ id: string }>(
-    db,
-    `INSERT INTO billing_email_logs
-       (id, dedupe_key, kind, user_id, stripe_subscription_id, period_start, period_end, metadata)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-     ON CONFLICT (dedupe_key) DO NOTHING
-     RETURNING id`,
-    [
-      uuid(),
-      params.dedupeKey,
-      params.kind,
-      params.userId ?? null,
-      params.stripeSubscriptionId ?? null,
-      params.periodStart ?? null,
-      params.periodEnd ?? null,
-      params.metadata ?? null,
-    ],
-  );
-  return rows.length > 0;
-}
-
 async function resolveBillingUser(
-  db: Queryable,
+  db: BillingEmailLogQueryable,
   userId: string,
 ): Promise<BillingUserRecipient | null> {
-  const rows = await queryRows<BillingUserRecipient>(
-    db,
+  const result = await db.query(
     `SELECT email, NULLIF(name, '') AS name FROM "user" WHERE id = $1`,
     [userId],
   );
+  const rows = Array.isArray(result)
+    ? (result as BillingUserRecipient[])
+    : ((result as { rows?: BillingUserRecipient[] }).rows ?? []);
   return rows[0] ?? null;
 }
 
 async function sendLifecycleEmail(
-  db: Queryable,
+  db: BillingEmailLogQueryable,
   params: {
     kind: 'subscription_confirmed' | 'plan_changed' | 'cancellation_confirmed';
     eventId: string;
@@ -85,7 +43,6 @@ async function sendLifecycleEmail(
 ): Promise<boolean> {
   try {
     const userId = params.subscription.referenceId;
-    const recipient = await resolveBillingUser(db, userId);
     const subscriptionId = params.subscription.stripeSubscriptionId ?? params.subscription.id;
     const dedupeAction =
       params.kind === 'subscription_confirmed'
@@ -93,8 +50,30 @@ async function sendLifecycleEmail(
         : params.kind === 'cancellation_confirmed'
           ? 'cancel'
           : params.eventId;
-    const inserted = await tryInsertBillingEmailLog(db, {
-      dedupeKey: `billing:${params.kind}:${subscriptionId}:${dedupeAction}`,
+    const dedupeKey = `billing:${params.kind}:${subscriptionId}:${dedupeAction}`;
+    if (await hasBillingEmailLog(db, dedupeKey)) return false;
+
+    const recipient = await resolveBillingUser(db, userId);
+    if (!recipient?.email) return false;
+
+    const appUrl = getBillingAppUrl();
+    const sent = await sendSubscriptionPlanEmail(
+      recipient.email,
+      {
+        kind: params.kind,
+        userName: recipient.name,
+        planName: formatPlanName(params.subscription.plan),
+        previousPlanName: params.previousPlanName,
+        periodEnd: params.periodEnd ?? null,
+        appUrl,
+        manageBillingUrl: `${appUrl}/account`,
+      },
+      getBillingEmailFrom(),
+    );
+    if (!sent) return false;
+
+    await tryInsertBillingEmailLog(db, {
+      dedupeKey,
       kind: params.kind,
       userId,
       stripeSubscriptionId: subscriptionId,
@@ -105,21 +84,6 @@ async function sendLifecycleEmail(
         previousPlan: params.previousPlanName ?? null,
       },
     });
-    if (!inserted || !recipient?.email) return inserted;
-
-    await sendSubscriptionPlanEmail(
-      recipient.email,
-      {
-        kind: params.kind,
-        userName: recipient.name,
-        planName: formatPlanName(params.subscription.plan),
-        previousPlanName: params.previousPlanName,
-        periodEnd: params.periodEnd ?? null,
-        appUrl: getBillingAppUrl(),
-        manageBillingUrl: `${getBillingAppUrl()}/account`,
-      },
-      getBillingEmailFrom(),
-    );
     return true;
   } catch (err) {
     console.warn(`[BillingEmail] Failed to send ${params.kind}:`, err);
@@ -147,7 +111,7 @@ export function previousPlanFromEvent(
 }
 
 export async function sendSubscriptionConfirmedEmail(
-  db: Queryable,
+  db: BillingEmailLogQueryable,
   event: Stripe.Event,
   subscription: Subscription,
 ): Promise<boolean> {
@@ -160,7 +124,7 @@ export async function sendSubscriptionConfirmedEmail(
 }
 
 export async function sendPlanChangedEmail(
-  db: Queryable,
+  db: BillingEmailLogQueryable,
   event: Stripe.Event,
   subscription: Subscription,
   previousPlan: string | null,
@@ -176,7 +140,7 @@ export async function sendPlanChangedEmail(
 }
 
 export async function sendSubscriptionCanceledEmail(
-  db: Queryable,
+  db: BillingEmailLogQueryable,
   event: Stripe.Event,
   subscription: Subscription,
 ): Promise<boolean> {

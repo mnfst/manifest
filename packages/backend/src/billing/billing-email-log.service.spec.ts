@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { BillingEmailLogService } from './billing-email-log.service';
+import { BillingEmailLogService, hasBillingEmailLog } from './billing-email-log.service';
 
 describe('BillingEmailLogService', () => {
   it('returns true when a dedupe key is inserted', async () => {
@@ -42,5 +42,23 @@ describe('BillingEmailLogService', () => {
         kind: 'subscription_confirmed',
       }),
     ).resolves.toBe(false);
+  });
+
+  it('checks whether a dedupe key exists', async () => {
+    const query = jest.fn().mockResolvedValue({ rows: [{ id: 'log-1' }] });
+    const service = new BillingEmailLogService({ query } as unknown as DataSource);
+
+    await expect(service.hasDedupeKey('billing:subscription_confirmed:sub_1')).resolves.toBe(true);
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('SELECT id FROM billing_email_logs'),
+      ['billing:subscription_confirmed:sub_1'],
+    );
+  });
+
+  it('treats unexpected query results as empty rows', async () => {
+    const query = jest.fn().mockResolvedValue({});
+
+    await expect(hasBillingEmailLog({ query }, 'missing')).resolves.toBe(false);
   });
 });

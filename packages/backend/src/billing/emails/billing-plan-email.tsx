@@ -43,7 +43,7 @@ function greeting(name?: string | null): string {
 }
 
 function formatCount(value: number): string {
-  return Math.round(value).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  return Math.round(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
 }
 
 function formatDate(raw?: string | null): string | null {
@@ -56,6 +56,10 @@ function formatDate(raw?: string | null): string | null {
     year: 'numeric',
     timeZone: 'UTC',
   });
+}
+
+function accountUrl(appUrl: string): string {
+  return `${appUrl.replace(/\/+$/, '')}/account`;
 }
 
 function subscriptionCopy(props: SubscriptionPlanEmailProps): {
@@ -201,7 +205,7 @@ export function PlanUsageEmail(props: PlanUsageEmailProps) {
             </Section>
 
             <Section style={buttonContainer}>
-              <Button style={button} href={`${props.appUrl}/account`}>
+              <Button style={button} href={accountUrl(props.appUrl)}>
                 Review plan
               </Button>
             </Section>

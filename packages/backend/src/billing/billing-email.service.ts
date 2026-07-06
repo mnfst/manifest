@@ -1,25 +1,25 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ManifestRuntimeService } from '../common/services/manifest-runtime.service';
 import type { PlanUsageEmailProps, SubscriptionPlanEmailProps } from './emails/billing-plan-email';
-import { sendPlanUsageEmail, sendSubscriptionPlanEmail } from './billing-email-sender';
+import {
+  getBillingAppUrl,
+  sendPlanUsageEmail,
+  sendSubscriptionPlanEmail,
+} from './billing-email-sender';
 
 @Injectable()
 export class BillingEmailService {
   private readonly logger = new Logger(BillingEmailService.name);
   private readonly fromEmail: string;
 
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly runtime: ManifestRuntimeService,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     this.fromEmail =
       this.configService.get<string>('app.emailFrom') ||
       this.configService.get<string>('app.notificationFromEmail', 'noreply@manifest.build');
   }
 
   getAppUrl(): string {
-    return this.runtime.getAuthBaseUrl();
+    return getBillingAppUrl(this.configService.get<string>('app.betterAuthUrl', ''));
   }
 
   async sendSubscriptionPlanEmail(

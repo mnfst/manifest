@@ -54,33 +54,36 @@ export class BillingUsageEmailService implements OnModuleInit, OnModuleDestroy {
     const periodEnd = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
     ).toISOString();
-    const used = await this.countRequestsSince(tenantId, monthStartMs);
+    const used = await this.planService.countRequestsSince(tenantId, monthStartMs);
     const kind = this.resolveMilestoneKind(used, limit);
     if (!kind) return false;
 
-    const recipient = await this.resolveRecipient(tenantId);
-    const inserted = await this.logs.tryInsert({
-      dedupeKey: `billing-usage:${tenantId}:${periodStart}:${kind}`,
-      kind,
-      tenantId,
-      userId: recipient?.user_id ?? null,
-      periodStart,
-      periodEnd,
-      metadata: { used, limit },
-    });
-    if (!inserted) return false;
+    const dedupeKey = `billing-usage:${tenantId}:${periodStart}:${kind}`;
+    if (await this.logs.hasDedupeKey(dedupeKey)) return false;
 
+    const recipient = await this.resolveRecipient(tenantId);
     if (!recipient?.email) {
       this.logger.warn(`No billing email recipient found for tenant ${tenantId}`);
-      return true;
+      return false;
     }
 
-    await this.emails.sendPlanUsageEmail(recipient.email, {
+    const sent = await this.emails.sendPlanUsageEmail(recipient.email, {
       kind,
       userName: recipient.name,
       used,
       limit,
       periodEnd,
+    });
+    if (!sent) return false;
+
+    await this.logs.tryInsert({
+      dedupeKey,
+      kind,
+      tenantId,
+      userId: recipient.user_id,
+      periodStart,
+      periodEnd,
+      metadata: { used, limit },
     });
     return true;
   }
@@ -92,22 +95,6 @@ export class BillingUsageEmailService implements OnModuleInit, OnModuleDestroy {
     if (used >= limit) return 'requests_limit_reached';
     if (used >= Math.ceil(limit * REQUEST_WARNING_RATIO)) return 'requests_warning';
     return null;
-  }
-
-  private async countRequestsSince(tenantId: string, monthStartMs: number): Promise<number> {
-    const rows: Array<{ n: number }> = await this.dataSource.query(
-      `SELECT COUNT(*)::int AS n
-         FROM agent_messages m
-        WHERE m.tenant_id = $1
-          AND m.timestamp >= $2
-          AND m.superseded = false
-          AND NOT EXISTS (
-            SELECT 1 FROM agents pa
-             WHERE pa.id = m.agent_id AND pa.is_playground = true
-          )`,
-      [tenantId, new Date(monthStartMs).toISOString()],
-    );
-    return rows[0]?.n ?? 0;
   }
 
   private async resolveRecipient(tenantId: string): Promise<BillingRecipient | null> {
