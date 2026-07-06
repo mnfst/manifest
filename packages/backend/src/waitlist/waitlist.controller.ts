@@ -7,7 +7,7 @@ import { WaitlistClaim } from '../entities/waitlist-claim.entity';
 import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { WaitlistSyncService } from './waitlist-sync.service';
-import { WaitlistSignupDto } from './dto/waitlist-signup.dto';
+import { WaitlistClaimDto } from './dto/waitlist-claim.dto';
 
 @Controller('api/v1/waitlist')
 export class WaitlistController {
@@ -55,7 +55,7 @@ export class WaitlistController {
   @Public()
   @Post('autofix/claim')
   @HttpCode(HttpStatus.OK)
-  async receiveClaim(@Body() dto: WaitlistSignupDto): Promise<{ ok: boolean }> {
+  async receiveClaim(@Body() dto: WaitlistClaimDto): Promise<{ ok: boolean }> {
     await this.claimRepo.upsert(
       { email: dto.email, source: 'self-hosted', claimed_at: new Date().toISOString() },
       { conflictPaths: ['email'] },

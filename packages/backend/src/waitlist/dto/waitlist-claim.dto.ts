@@ -1,6 +1,6 @@
 import { IsEmail } from 'class-validator';
 
-export class WaitlistSignupDto {
+export class WaitlistClaimDto {
   @IsEmail()
   email!: string;
 }
