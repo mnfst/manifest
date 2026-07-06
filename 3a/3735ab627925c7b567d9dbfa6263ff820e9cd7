@@ -1,0 +1,58 @@
+packages/backend/src/billing/billing.module.ts
+  s_756ad5e3766555::t_649ea84def6282 7-9,14
+packages/backend/src/billing/billing-email.service.ts
+  s_756ad5e3766555::t_b67a6d0f2b8fa1 4
+  s_756ad5e3766555::t_649ea84def6282 1-3,5-58
+packages/backend/src/billing/subscription-webhook-emails.ts
+  s_756ad5e3766555::t_649ea84def6282 1-2,4-50,52-54,56-192
+  s_756ad5e3766555::t_b67a6d0f2b8fa1 3,51,55
+packages/backend/src/billing/billing-email-log.service.spec.ts
+  s_756ad5e3766555::t_8daf135fc37f23 1-43
+  s_756ad5e3766555::t_045f246199e8a8 44-46
+packages/backend/src/database/migrations/1798200000000-AddBillingEmailLogs.spec.ts
+  s_756ad5e3766555::t_649ea84def6282 1-36
+.changeset/subscription-plan-emails.md
+  s_756ad5e3766555::t_649ea84def6282 1-5
+packages/backend/src/billing/emails/billing-plan-email.tsx
+  s_756ad5e3766555::t_649ea84def6282 1-347
+  s_756ad5e3766555::t_6fd78fba79c437 348-352
+packages/backend/src/database/migrations/1798200000000-AddBillingEmailLogs.ts
+  s_756ad5e3766555::t_649ea84def6282 1-40
+packages/backend/src/billing/emails/billing-plan-email.spec.ts
+  s_756ad5e3766555::t_8daf135fc37f23 1-37
+packages/backend/src/database/data-source-definitions.ts
+  s_756ad5e3766555::t_649ea84def6282 135,270
+packages/backend/src/billing/billing-email-log.service.ts
+  s_756ad5e3766555::t_649ea84def6282 1-41
+packages/backend/src/billing/billing-usage-email.service.ts
+  s_756ad5e3766555::t_649ea84def6282 1-123
+  s_756ad5e3766555::t_7be0ff250a4758 124-125
+packages/backend/src/billing/billing-usage-email.service.spec.ts
+  s_756ad5e3766555::t_8daf135fc37f23 1-112
+packages/backend/src/billing/subscription-webhook-emails.spec.ts
+  s_756ad5e3766555::t_8daf135fc37f23 1-129
+packages/backend/src/auth/auth.instance.ts
+  s_756ad5e3766555::t_42bdc5dc37882f 72-73,80
+  s_756ad5e3766555::t_4a203ba84239f5 2,173
+  s_756ad5e3766555::t_649ea84def6282 9-14,81-96
+packages/backend/src/auth/auth.instance.spec.ts
+  s_756ad5e3766555::t_ce8a11159a14a8 478,482-486
+packages/backend/src/billing/billing-email-sender.ts
+  s_756ad5e3766555::t_649ea84def6282 1-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3a3735ab627925c7b567d9dbfa6263ff820e9cd7",
+  "prompts": {},
+  "sessions": {
+    "s_756ad5e3766555": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3669-ce33-7072-8b32-c8a68e50a701",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
