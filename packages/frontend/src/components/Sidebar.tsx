@@ -2,6 +2,7 @@ import { A, useLocation } from '@solidjs/router';
 import { Show, For, createSignal, createResource, type Component } from 'solid-js';
 import { useAgentName } from '../services/routing.js';
 import { getAgents } from '../services/api.js';
+import { getBillingStatus } from '../services/api/billing.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { agentPing } from '../services/sse.js';
 import { platformIcon } from 'manifest-shared';
@@ -41,6 +42,10 @@ const Sidebar: Component<SidebarProps> = (props) => {
   // Local providers only exist on self-hosted installs — a cloud backend
   // can't reach the user's localhost, so the Local entry is hidden there.
   const [selfHosted] = createResource(checkIsSelfHosted);
+  const [billing] = createResource(async () => {
+    try { return await getBillingStatus(); } catch { return null; }
+  });
+  const showUpgrade = () => billing()?.enabled && billing()?.plan === 'free';
 
   // Harness list for the in-nav switcher. Refetches whenever the agent SSE ping
   // fires (create/delete/rename). Uses the DEFAULT getAgents() — playground agents
@@ -213,33 +218,46 @@ const Sidebar: Component<SidebarProps> = (props) => {
 
       <div class="sidebar__spacer" />
 
-      <div class="sidebar-autofix">
-        <div class="sidebar-autofix__header">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8" />
-            <path d="M12.28 8.82 12 9.1l-.28-.28c-1.09-1.1-2.81-1.1-3.91 0a2.794 2.794 0 0 0 0 3.95L11.99 17l4.18-4.23a2.794 2.794 0 0 0 0-3.95 2.73 2.73 0 0 0-3.91 0Z" />
+      <Show
+        when={showUpgrade()}
+        fallback={
+          <div class="sidebar-autofix">
+            <div class="sidebar-autofix__header">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8" />
+                <path d="M12.28 8.82 12 9.1l-.28-.28c-1.09-1.1-2.81-1.1-3.91 0a2.794 2.794 0 0 0 0 3.95L11.99 17l4.18-4.23a2.794 2.794 0 0 0 0-3.95 2.73 2.73 0 0 0-3.91 0Z" />
+              </svg>
+              <span class="sidebar-autofix__title">Discover Auto-fix</span>
+            </div>
+            <p class="sidebar-autofix__desc">
+              Failing requests are automatically fixed before reaching the model.
+            </p>
+            <a
+              class="sidebar-autofix__btn"
+              href="https://manifest.build/autofix/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Learn more
+            </a>
+          </div>
+        }
+      >
+        <A href="/upgrade" class="sidebar-upgrade" onClick={handleNav}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2m0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8" />
+            <path d="m8 12 1.41 1.41L11 11.83V17h2v-5.17l1.59 1.59L16 12l-4-4z" />
           </svg>
-          <span class="sidebar-autofix__title">Auto-fix</span>
-          <span class="sidebar-autofix__new-badge">New</span>
-        </div>
-        <p class="sidebar-autofix__desc">
-          Failing requests are automatically fixed before reaching the model.
-        </p>
-        <button
-          type="button"
-          class="sidebar-autofix__btn"
-          onClick={() => setAutofixModalOpen(true)}
-        >
-          Get early access
-        </button>
-      </div>
+          Upgrade plan
+        </A>
+      </Show>
 
       {/* Create-harness modal, opened by the HARNESSES section + button */}
       <AddAgentModal open={addModalOpen()} onClose={() => setAddModalOpen(false)} />
