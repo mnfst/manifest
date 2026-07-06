@@ -22,7 +22,14 @@ const GuestGuard: ParentComponent = (props) => {
 
   createEffect(() => {
     const s = session();
+    const step = Array.isArray(searchParams.step)
+      ? searchParams.step[0]
+      : searchParams.step;
     if (!s.isPending && s.data) {
+      if (step === 'plan') {
+        if (setupChecked()) setReady(true);
+        return;
+      }
       navigate(getAuthDestination(searchParams), { replace: true });
     }
     if (setupChecked() && !s.isPending && !s.data) {

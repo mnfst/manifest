@@ -1,23 +1,45 @@
 import { useLocation, useNavigate } from '@solidjs/router';
-import { Show, createEffect, type ParentComponent } from 'solid-js';
+import { Show, createEffect, createSignal, type ParentComponent } from 'solid-js';
 import { authClient } from '../services/auth-client.js';
 import { buildLoginRedirect } from '../services/auth-redirects.js';
+import { hasPlanBeenChosen, markPlanChosen } from '../services/plan-selection.js';
+import { getBillingStatus } from '../services/api/billing.js';
 
 const AuthGuard: ParentComponent = (props) => {
   const session = authClient.useSession();
   const navigate = useNavigate();
   const location = useLocation();
+  const [planChecked, setPlanChecked] = createSignal(false);
 
   createEffect(() => {
     const s = session();
     if (s.isPending) return;
-    if (s.data) return;
-    navigate(buildLoginRedirect(location.pathname, location.search), { replace: true });
+    if (!s.data) {
+      navigate(buildLoginRedirect(location.pathname, location.search), { replace: true });
+      return;
+    }
+    if (planChecked()) return;
+    if (hasPlanBeenChosen()) {
+      setPlanChecked(true);
+      return;
+    }
+    getBillingStatus()
+      .then((status) => {
+        if (status?.enabled && status.plan !== 'pro') {
+          navigate('/register?step=plan', { replace: true });
+        } else {
+          markPlanChosen();
+          setPlanChecked(true);
+        }
+      })
+      .catch(() => {
+        setPlanChecked(true);
+      });
   });
 
   return (
     <Show
-      when={!session().isPending && session().data}
+      when={!session().isPending && session().data && planChecked()}
       fallback={
         <div class="auth-layout">
           <div class="auth-card" style="text-align: center;">

@@ -77,19 +77,33 @@ export class PlanService {
 
   /** Resolve the tenant's plan from better-auth's webhook-synced subscription table. */
   async getPlan(ctx: TenantContext): Promise<Plan> {
-    if (!isBillingEnabled()) return 'free';
+    const sub = await this.getSubscriptionDetails(ctx);
+    return sub?.plan === 'pro' ? 'pro' : 'free';
+  }
+
+  private async getSubscriptionDetails(
+    ctx: TenantContext,
+  ): Promise<{
+    plan: string;
+    cancelAtPeriodEnd: boolean;
+    periodEnd: string | null;
+  } | null> {
+    if (!isBillingEnabled()) return null;
     const ownerId = await this.resolveOwnerUserId(ctx);
-    if (!ownerId) return 'free';
-    // Raw SQL is intentional: the subscription table is owned by better-auth
-    // (no TypeORM entity), camelCase quoted columns.
-    const rows: Array<{ plan: string }> = await this.dataSource.query(
-      `SELECT "plan" FROM "subscription"
+    if (!ownerId) return null;
+    const rows: Array<{
+      plan: string;
+      cancelAtPeriodEnd: boolean;
+      periodEnd: string | null;
+    }> = await this.dataSource.query(
+      `SELECT "plan", "cancelAtPeriodEnd", "periodEnd"
+       FROM "subscription"
        WHERE "referenceId" = $1 AND "status" IN ('active', 'trialing')
        ORDER BY "periodEnd" DESC NULLS LAST
        LIMIT 1`,
       [ownerId],
     );
-    return rows[0]?.plan === 'pro' ? 'pro' : 'free';
+    return rows[0] ?? null;
   }
 
   /** Resolution order: per-tenant override > instance env > plan defaults. */
@@ -248,12 +262,13 @@ export class PlanService {
         plan: 'free',
         priceMonthlyUsd: null,
         requests: { used: null, limit: null, periodEnd: null },
+        cancelAtPeriodEnd: false,
+        subscriptionPeriodEnd: null,
       };
     }
-    const plan = await this.getPlan(ctx);
+    const sub = await this.getSubscriptionDetails(ctx);
+    const plan: Plan = sub?.plan === 'pro' ? 'pro' : 'free';
     const limits = await this.getLimits(ctx);
-    // One `now` drives both the count window and the reset date so they can't
-    // disagree across a midnight-UTC boundary.
     const now = new Date();
     const requestsUsed = await this.countRequestsSince(ctx.tenantId, this.monthStartMsUtc(now));
     return {
@@ -265,6 +280,8 @@ export class PlanService {
         limit: limits.requestsPerMonth,
         periodEnd: this.nextMonthStartUtc(now).toISOString(),
       },
+      cancelAtPeriodEnd: sub?.cancelAtPeriodEnd ?? false,
+      subscriptionPeriodEnd: sub?.periodEnd ?? null,
     };
   }
 

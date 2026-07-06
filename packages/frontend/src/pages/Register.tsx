@@ -1,11 +1,14 @@
-import { A, useLocation } from '@solidjs/router';
+import { A, useLocation, useNavigate, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
-import { type Component, createSignal, createUniqueId, onCleanup, onMount, Show } from 'solid-js';
+import { type Component, createEffect, createSignal, createUniqueId, onCleanup, onMount, Show } from 'solid-js';
 import SocialButtons from '../components/SocialButtons.jsx';
+import PlanPicker, { type PlanId } from '../components/PlanPicker.jsx';
 import { authClient } from '../services/auth-client.js';
 import { appendSearch } from '../services/auth-redirects.js';
 import { getLastAuthMethod, setLastAuthMethod } from '../services/last-auth-method.js';
 import { checkSocialProviders } from '../services/setup-status.js';
+import { getBillingStatus } from '../services/api/billing.js';
+import { markPlanChosen } from '../services/plan-selection.js';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -20,7 +23,12 @@ const Register: Component = () => {
   const [resendCooldown, setResendCooldown] = createSignal(0);
   const [socialProviders, setSocialProviders] = createSignal<string[]>([]);
   const [lastAuthMethod] = createSignal(getLastAuthMethod());
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [proPrice, setProPrice] = createSignal<string | null>(null);
+  const [planBusy, setPlanBusy] = createSignal(false);
   const location = useLocation();
+  const showPlan = () => searchParams.step === 'plan';
   const nameId = createUniqueId();
   const emailId = createUniqueId();
   const passwordId = createUniqueId();
@@ -28,6 +36,18 @@ const Register: Component = () => {
 
   onMount(async () => {
     setSocialProviders(await checkSocialProviders());
+  });
+
+  createEffect(() => {
+    if (!showPlan()) return;
+    getBillingStatus({ cache: false }).then((status) => {
+      if (status?.plan === 'pro') {
+        markPlanChosen();
+        navigate('/', { replace: true });
+      } else if (status?.priceMonthlyUsd != null) {
+        setProPrice(`$${status.priceMonthlyUsd}`);
+      }
+    }).catch(() => {});
   });
 
   let cooldownInterval: ReturnType<typeof setInterval> | undefined;
@@ -76,12 +96,47 @@ const Register: Component = () => {
     setLastAuthMethod('email');
 
     if (data?.token) {
-      window.location.href = '/upgrade';
+      try {
+        const status = await getBillingStatus();
+        if (status?.enabled) {
+          if (status.priceMonthlyUsd != null) {
+            setProPrice(`$${status.priceMonthlyUsd}`);
+          }
+          navigate('/register?step=plan', { replace: true });
+          return;
+        }
+      } catch {
+        /* billing unavailable — skip plan step */
+      }
+      window.location.href = '/';
       return;
     }
 
     setEmailSent(true);
     startCooldown();
+  };
+
+  const handlePlanSelect = async (plan: PlanId) => {
+    if (plan === 'free') {
+      markPlanChosen();
+      window.location.href = '/';
+      return;
+    }
+    if (plan === 'enterprise') {
+      return;
+    }
+    markPlanChosen();
+    setPlanBusy(true);
+    try {
+      const origin = window.location.origin;
+      await authClient.subscription.upgrade({
+        plan: 'pro',
+        successUrl: `${origin}/account?upgraded=1`,
+        cancelUrl: `${origin}/register`,
+      });
+    } catch {
+      setPlanBusy(false);
+    }
   };
 
   const handleResend = async () => {
@@ -108,148 +163,176 @@ const Register: Component = () => {
         content="Create a Manifest account to start monitoring your AI harnesses."
       />
       <Show
-        when={emailSent()}
+        when={!emailSent()}
         fallback={
           <>
             <div class="auth-header">
-              <h1 class="auth-header__title">Create an account</h1>
-              <p class="auth-header__subtitle">Monitor your AI harnesses' costs and usage</p>
+              <h1 class="auth-header__title">Check your email</h1>
+              <p class="auth-header__subtitle">
+                We sent a verification link to <strong>{email()}</strong>
+              </p>
             </div>
 
-            <SocialButtons enabledProviders={socialProviders()} lastUsed={lastAuthMethod()} />
-
-            <Show when={socialProviders().length > 0}>
-              <div class="auth-divider">
-                <span class="auth-divider__text">or</span>
-              </div>
-            </Show>
-
-            <form class="auth-form" onSubmit={handleSubmit}>
-              <Show when={alreadyExists()}>
-                <div id={errorId} class="auth-form__error" role="alert">
-                  An account with this email already exists.{' '}
-                  <A href={appendSearch('/login', location.search)} class="auth-form__error-link">
-                    Sign in
-                  </A>{' '}
-                  or{' '}
-                  <A href="/reset-password" class="auth-form__error-link">
-                    reset your password
-                  </A>
-                  .
-                </div>
-              </Show>
-              <Show when={error() && !alreadyExists()}>
-                <div id={errorId} class="auth-form__error" role="alert">
+            <div class="auth-form">
+              {error() && (
+                <div class="auth-form__error" role="alert">
                   {error()}
                 </div>
-              </Show>
-              <label class="auth-form__label" for={nameId}>
-                Name
-                <input
-                  ref={(el) => requestAnimationFrame(() => el.focus())}
-                  id={nameId}
-                  class="auth-form__input"
-                  type="text"
-                  autocomplete="name"
-                  placeholder="Your name"
-                  value={name()}
-                  onInput={(e) => setName(e.currentTarget.value)}
-                  required
-                  aria-describedby={error() ? errorId : undefined}
-                />
-              </label>
-              <label class="auth-form__label" for={emailId}>
-                Email
-                <input
-                  id={emailId}
-                  class="auth-form__input"
-                  type="email"
-                  autocomplete="email"
-                  placeholder="you@example.com"
-                  value={email()}
-                  onInput={(e) => setEmail(e.currentTarget.value)}
-                  required
-                  aria-describedby={error() ? errorId : undefined}
-                />
-              </label>
-              <label class="auth-form__label" for={passwordId}>
-                Password
-                <input
-                  id={passwordId}
-                  class="auth-form__input"
-                  type="password"
-                  autocomplete="new-password"
-                  placeholder="Create a password"
-                  value={password()}
-                  onInput={(e) => setPassword(e.currentTarget.value)}
-                  required
-                  minLength={8}
-                  aria-describedby={error() ? errorId : undefined}
-                />
-              </label>
-              <button class="auth-form__submit" type="submit" disabled={loading()}>
-                {loading() ? <span class="spinner" /> : 'Create account'}
+              )}
+              <div class="auth-form__success">
+                Click the link in your email to verify your account and get started.
+              </div>
+              <button
+                class="auth-form__link-btn"
+                onClick={handleResend}
+                disabled={resendCooldown() > 0}
+              >
+                {resendCooldown() > 0
+                  ? `Resend in ${resendCooldown()}s`
+                  : 'Resend verification email'}
               </button>
-            </form>
-            <p class="auth-terms">
-              By signing up, you agree to our{' '}
-              <a
-                href="https://manifest.build/terms"
-                class="auth-terms__link"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Terms
-              </a>{' '}
-              and{' '}
-              <a
-                href="https://manifest.build/privacy"
-                class="auth-terms__link"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Privacy Policy
-              </a>
-            </p>
+            </div>
+
             <div class="auth-footer">
-              <span>Already have an account? </span>
               <A href={appendSearch('/login', location.search)} class="auth-footer__link">
-                Sign in
+                Back to sign in
               </A>
             </div>
           </>
         }
       >
-        <div class="auth-header">
-          <h1 class="auth-header__title">Check your email</h1>
-          <p class="auth-header__subtitle">
-            We sent a verification link to <strong>{email()}</strong>
-          </p>
-        </div>
+        <Show
+          when={showPlan()}
+          fallback={
+            <>
+              <div class="auth-header">
+                <h1 class="auth-header__title">Create an account</h1>
+                <p class="auth-header__subtitle">Monitor your AI harnesses' costs and usage</p>
+              </div>
 
-        <div class="auth-form">
-          {error() && (
-            <div class="auth-form__error" role="alert">
-              {error()}
-            </div>
-          )}
-          <div class="auth-form__success">
-            Click the link in your email to verify your account and get started.
+              <SocialButtons enabledProviders={socialProviders()} lastUsed={lastAuthMethod()} />
+
+              <Show when={socialProviders().length > 0}>
+                <div class="auth-divider">
+                  <span class="auth-divider__text">or</span>
+                </div>
+              </Show>
+
+              <form class="auth-form" onSubmit={handleSubmit}>
+                <Show when={alreadyExists()}>
+                  <div id={errorId} class="auth-form__error" role="alert">
+                    An account with this email already exists.{' '}
+                    <A
+                      href={appendSearch('/login', location.search)}
+                      class="auth-form__error-link"
+                    >
+                      Sign in
+                    </A>{' '}
+                    or{' '}
+                    <A href="/reset-password" class="auth-form__error-link">
+                      reset your password
+                    </A>
+                    .
+                  </div>
+                </Show>
+                <Show when={error() && !alreadyExists()}>
+                  <div id={errorId} class="auth-form__error" role="alert">
+                    {error()}
+                  </div>
+                </Show>
+                <label class="auth-form__label" for={nameId}>
+                  Name
+                  <input
+                    ref={(el) => requestAnimationFrame(() => el.focus())}
+                    id={nameId}
+                    class="auth-form__input"
+                    type="text"
+                    autocomplete="name"
+                    placeholder="Your name"
+                    value={name()}
+                    onInput={(e) => setName(e.currentTarget.value)}
+                    required
+                    aria-describedby={error() ? errorId : undefined}
+                  />
+                </label>
+                <label class="auth-form__label" for={emailId}>
+                  Email
+                  <input
+                    id={emailId}
+                    class="auth-form__input"
+                    type="email"
+                    autocomplete="email"
+                    placeholder="you@example.com"
+                    value={email()}
+                    onInput={(e) => setEmail(e.currentTarget.value)}
+                    required
+                    aria-describedby={error() ? errorId : undefined}
+                  />
+                </label>
+                <label class="auth-form__label" for={passwordId}>
+                  Password
+                  <input
+                    id={passwordId}
+                    class="auth-form__input"
+                    type="password"
+                    autocomplete="new-password"
+                    placeholder="Create a password"
+                    value={password()}
+                    onInput={(e) => setPassword(e.currentTarget.value)}
+                    required
+                    minLength={8}
+                    aria-describedby={error() ? errorId : undefined}
+                  />
+                </label>
+                <button class="auth-form__submit" type="submit" disabled={loading()}>
+                  {loading() ? <span class="spinner" /> : 'Create account'}
+                </button>
+              </form>
+              <p class="auth-terms">
+                By signing up, you agree to our{' '}
+                <a
+                  href="https://manifest.build/terms"
+                  class="auth-terms__link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Terms
+                </a>{' '}
+                and{' '}
+                <a
+                  href="https://manifest.build/privacy"
+                  class="auth-terms__link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Privacy Policy
+                </a>
+              </p>
+              <div class="auth-footer">
+                <span>Already have an account? </span>
+                <A href={appendSearch('/login', location.search)} class="auth-footer__link">
+                  Sign in
+                </A>
+              </div>
+            </>
+          }
+        >
+          <div class="auth-header">
+            <h1 class="auth-header__title">Create an account</h1>
+            <p class="auth-header__subtitle">Monitor your AI harnesses' costs and usage</p>
           </div>
-          <button
-            class="auth-form__link-btn"
-            onClick={handleResend}
-            disabled={resendCooldown() > 0}
-          >
-            {resendCooldown() > 0 ? `Resend in ${resendCooldown()}s` : 'Resend verification email'}
-          </button>
-        </div>
 
-        <div class="auth-footer">
-          <A href={appendSearch('/login', location.search)} class="auth-footer__link">
-            Back to sign in
-          </A>
-        </div>
+          <div class="plan-picker__section-header">
+            <h2 class="plan-picker__section-title">Choose your plan</h2>
+            <p class="plan-picker__section-subtitle">You can change your plan anytime</p>
+          </div>
+
+          <PlanPicker
+            proPrice={proPrice()}
+            onSelect={handlePlanSelect}
+            busy={planBusy()}
+          />
+        </Show>
       </Show>
     </>
   );

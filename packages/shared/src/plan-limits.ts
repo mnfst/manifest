@@ -20,4 +20,6 @@ export interface BillingStatus {
   plan: Plan;
   priceMonthlyUsd: number | null;
   requests: { used: number | null; limit: number | null; periodEnd: string | null };
+  cancelAtPeriodEnd: boolean;
+  subscriptionPeriodEnd: string | null;
 }

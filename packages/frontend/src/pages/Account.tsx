@@ -235,6 +235,16 @@ const Account: Component = () => {
                     ? ` · $${billing()!.priceMonthlyUsd}/mo`
                     : ''}
                 </span>
+                <Show when={billing()!.cancelAtPeriodEnd && billing()!.subscriptionPeriodEnd}>
+                  <span class="billing-stat__cancel">
+                    You'll keep Pro access until{' '}
+                    {new Date(billing()!.subscriptionPeriodEnd!).toLocaleDateString(undefined, {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </Show>
               </div>
 
               <div class="billing-stat">
@@ -262,18 +272,27 @@ const Account: Component = () => {
               <span class="billing-footer__note">
                 {billing()!.plan === 'free'
                   ? 'Free: 10,000 requests/mo · Pro: unlimited requests'
-                  : 'Update your payment method, view invoices, or cancel anytime.'}
+                  : 'Update your payment method and view invoices.'}
               </span>
               <Show
                 when={billing()!.plan === 'free'}
                 fallback={
-                  <button
-                    class="btn btn--outline btn--sm"
-                    disabled={billingBusy()}
-                    onClick={handleManageBilling}
-                  >
-                    {billingBusy() ? <span class="spinner" /> : 'Manage billing'}
-                  </button>
+                  <div class="billing-footer__actions">
+                    <button
+                      class="btn btn--outline btn--sm"
+                      disabled={billingBusy()}
+                      onClick={handleManageBilling}
+                    >
+                      {billingBusy() ? <span class="spinner" /> : 'Manage subscription'}
+                    </button>
+                    <button
+                      class="btn btn--outline btn--sm"
+                      disabled={billingBusy()}
+                      onClick={handleManageBilling}
+                    >
+                      {billingBusy() ? <span class="spinner" /> : 'View invoices'}
+                    </button>
+                  </div>
                 }
               >
                 <button

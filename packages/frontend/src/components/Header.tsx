@@ -5,6 +5,7 @@ import { authClient } from '../services/auth-client.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
+import { clearPlanChosen } from '../services/plan-selection.js';
 import {
   connectionBreadcrumbName,
   connectionBreadcrumbProviderId,
@@ -97,6 +98,7 @@ const Header: Component<HeaderProps> = (props) => {
   };
 
   const handleLogout = async () => {
+    clearPlanChosen();
     await authClient.signOut();
     navigate('/login', { replace: true });
   };
