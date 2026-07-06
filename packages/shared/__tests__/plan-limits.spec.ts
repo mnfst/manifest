@@ -8,8 +8,8 @@ describe('plan-limits', () => {
   });
 
   it('pins the launch values', () => {
-    expect(PLAN_LIMITS.free).toEqual({ agents: 1, requestsPerMonth: 10_000 });
-    expect(PLAN_LIMITS.pro).toEqual({ agents: null, requestsPerMonth: null });
-    expect(UNLIMITED_PLAN_LIMITS).toEqual({ agents: null, requestsPerMonth: null });
+    expect(PLAN_LIMITS.free).toEqual({ requestsPerMonth: 10_000 });
+    expect(PLAN_LIMITS.pro).toEqual({ requestsPerMonth: null });
+    expect(UNLIMITED_PLAN_LIMITS).toEqual({ requestsPerMonth: null });
   });
 });

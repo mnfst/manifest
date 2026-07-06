@@ -1,5 +1,5 @@
 ---
-"manifest": minor
+'manifest': minor
 ---
 
-Add Stripe billing (cloud only). Free plan: 1 agent, 10,000 routed requests/month. Pro ($19/mo): unlimited agents and requests. Both limits are enforced on Free; over-limit requests return a 402 with an upgrade prompt. Self-hosted stays unlimited.
+Add Stripe billing (cloud only). Free plan: 10,000 routed requests/month. Pro ($19/mo): unlimited requests. Free request limits are enforced on the proxy; over-limit requests return a 402 with an upgrade prompt. Self-hosted stays unlimited.

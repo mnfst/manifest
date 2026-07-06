@@ -237,13 +237,6 @@ const Account: Component = () => {
               </div>
 
               <div class="billing-stat">
-                <span class="billing-stat__label">Agents</span>
-                <span class="billing-stat__value">
-                  {billing()!.agents.used} / {billing()!.agents.limit ?? 'unlimited'}
-                </span>
-              </div>
-
-              <div class="billing-stat">
                 <span class="billing-stat__label">Requests</span>
                 <span class="billing-stat__value">
                   {billing()!.requests.limit != null
@@ -267,7 +260,7 @@ const Account: Component = () => {
             <div class="settings-card__footer billing-footer">
               <span class="billing-footer__note">
                 {billing()!.plan === 'free'
-                  ? 'Free: 1 agent, 10,000 requests/mo · Pro: unlimited agents and requests'
+                  ? 'Free: 10,000 requests/mo · Pro: unlimited requests'
                   : 'Update your payment method, view invoices, or cancel anytime.'}
               </span>
               <Show

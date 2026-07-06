@@ -36,8 +36,8 @@ describe('Tenant entity', () => {
     t.limit_overrides = null;
     expect(t.limit_overrides).toBeNull();
 
-    t.limit_overrides = { agents: 25, requestsPerMonth: 50000 };
-    expect(t.limit_overrides).toEqual({ agents: 25, requestsPerMonth: 50000 });
+    t.limit_overrides = { requestsPerMonth: 50000 };
+    expect(t.limit_overrides).toEqual({ requestsPerMonth: 50000 });
   });
 
   describe('TypeORM relation callbacks', () => {

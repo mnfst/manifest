@@ -1,9 +1,8 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, IsNull, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
 import type { BillingStatus, Plan, PlanLimits } from 'manifest-shared';
-import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { getStripeClient, isBillingEnabled } from './billing.config';
@@ -54,7 +53,6 @@ export class PlanService {
 
   constructor(
     @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
-    @InjectRepository(Agent) private readonly agentRepo: Repository<Agent>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -103,18 +101,9 @@ export class PlanService {
     const tenant = await this.findTenant(ctx);
     const overrides = tenant?.limit_overrides;
     return {
-      agents: overrides?.agents ?? envLimit(`${prefix}_AGENTS`) ?? defaults.agents,
       requestsPerMonth:
         overrides?.requestsPerMonth ?? envLimit(`${prefix}_REQUESTS`) ?? defaults.requestsPerMonth,
     };
-  }
-
-  /** Live agents of the tenant; the reserved Playground agent never counts. */
-  async countAgents(tenantId: string | null): Promise<number> {
-    if (!tenantId) return 0;
-    return this.agentRepo.count({
-      where: { tenant_id: tenantId, deleted_at: IsNull(), is_playground: false },
-    });
   }
 
   /** Start of the current calendar month in UTC (epoch ms). */
@@ -252,70 +241,17 @@ export class PlanService {
     );
   }
 
-  /** Keep existing, block new: only ever called at creation time. */
-  async assertCanCreateAgent(ctx: TenantContext): Promise<void> {
-    const limits = await this.getLimits(ctx);
-    if (limits.agents === null) return;
-    const used = await this.countAgents(ctx.tenantId);
-    if (used < limits.agents) return;
-    throw new HttpException(
-      {
-        statusCode: HttpStatus.PAYMENT_REQUIRED,
-        code: 'PLAN_LIMIT_AGENTS',
-        message: `Your plan includes ${limits.agents} agent${limits.agents === 1 ? '' : 's'}. Upgrade to create more.`,
-        limit: limits.agents,
-        used,
-      },
-      HttpStatus.PAYMENT_REQUIRED,
-    );
-  }
-
-  /**
-   * Run `fn` while holding a per-tenant Postgres advisory lock, so the agent-cap
-   * check and the agent insert can't interleave across parallel requests (a
-   * non-atomic preflight would otherwise let two concurrent creates both pass a
-   * limit of 1 and produce 2 agents). Serializes only same-tenant creates, which
-   * are rare; other tenants proceed in parallel.
-   *
-   * Uses a dedicated QueryRunner so the session-level lock and its unlock run on
-   * the SAME pooled connection (pool churn would otherwise unlock a different
-   * one). Skips the lock entirely when billing is disabled — with no finite cap
-   * there's nothing to protect. The lock key is a 64-bit `hashtextextended` of a
-   * stable per-tenant string: the single-arg `pg_advisory_lock(bigint)` then
-   * uses the full int8 key space, so unrelated tenants don't collide (32-bit
-   * `hashtext` would serialize ~1-in-2^32 tenant pairs against each other). A
-   * null tenant (brand-new account, no agents yet) can't hit the cap, so it
-   * runs unlocked.
-   */
-  async withAgentCreationLock<T>(ctx: TenantContext, fn: () => Promise<T>): Promise<T> {
-    if (!isBillingEnabled() || !ctx.tenantId) return fn();
-    const lockKey = `agent-create:${ctx.tenantId}`;
-    const runner = this.dataSource.createQueryRunner();
-    await runner.connect();
-    try {
-      await runner.query('SELECT pg_advisory_lock(hashtextextended($1, 0))', [lockKey]);
-      return await fn();
-    } finally {
-      await runner
-        .query('SELECT pg_advisory_unlock(hashtextextended($1, 0))', [lockKey])
-        .catch((err: Error) => this.logger.warn(`advisory unlock failed: ${err.message}`));
-      await runner.release();
-    }
-  }
-
   async getBillingStatus(ctx: TenantContext): Promise<BillingStatus> {
     if (!isBillingEnabled()) {
       return {
         enabled: false,
         plan: 'free',
         priceMonthlyUsd: null,
-        agents: { used: 0, limit: null },
         requests: { used: null, limit: null, periodEnd: null },
       };
     }
     const plan = await this.getPlan(ctx);
     const limits = await this.getLimits(ctx);
-    const agentsUsed = await this.countAgents(ctx.tenantId);
     // One `now` drives both the count window and the reset date so they can't
     // disagree across a midnight-UTC boundary.
     const now = new Date();
@@ -324,7 +260,6 @@ export class PlanService {
       enabled: true,
       plan,
       priceMonthlyUsd: await this.getProPriceUsd(),
-      agents: { used: agentsUsed, limit: limits.agents },
       requests: {
         used: requestsUsed,
         limit: limits.requestsPerMonth,

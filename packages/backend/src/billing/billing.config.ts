@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 import { isSelfHosted } from '../common/utils/detect-self-hosted';
 
 /**
- * Billing (Stripe plans + agent limits) is active only in cloud mode with
+ * Billing (Stripe plans + request limits) is active only in cloud mode with
  * full Stripe configuration. Self-hosted installs are always unlimited.
  */
 export function isBillingEnabled(): boolean {

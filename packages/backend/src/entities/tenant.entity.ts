@@ -36,7 +36,7 @@ export class Tenant {
    * resolved plan limits. Read by PlanService.getLimits().
    */
   @Column('jsonb', { nullable: true })
-  limit_overrides!: { agents?: number; requestsPerMonth?: number } | null;
+  limit_overrides!: { requestsPerMonth?: number } | null;
 
   @OneToMany(() => Agent, (a) => a.tenant, { cascade: true })
   agents!: Agent[];

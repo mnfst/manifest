@@ -6,8 +6,6 @@ import {
   type DuplicateAgentPreview,
 } from '../services/api.js';
 import { markAgentCreated } from '../services/recent-agents.js';
-import { getBillingStatus } from '../services/api/billing.js';
-import { UpgradePanel } from './UpgradePanel.jsx';
 import { toast } from '../services/toast-store.js';
 
 interface Props {
@@ -23,17 +21,6 @@ const DuplicateAgentModal: Component<Props> = (props) => {
   const [submitting, setSubmitting] = createSignal(false);
   const [nameTouched, setNameTouched] = createSignal(false);
   let cancelledInFlight = false;
-
-  // Paywall duplication once the tenant is at its plan's agent limit — a
-  // duplicate creates a brand-new agent, so it counts against the same cap.
-  const [billing] = createResource(
-    () => props.open,
-    (open) => (open ? getBillingStatus() : undefined),
-  );
-  const atAgentLimit = () => {
-    const b = billing();
-    return !!b?.enabled && b.agents.limit != null && b.agents.used >= b.agents.limit;
-  };
 
   const [preview] = createResource<DuplicateAgentPreview | null, { open: boolean; source: string }>(
     () => ({ open: props.open, source: props.sourceName }),
@@ -122,7 +109,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
       >
         <div
           class="modal-card"
-          style={atAgentLimit() ? 'max-width: 860px;' : 'max-width: 520px;'}
+          style="max-width: 520px;"
           role="dialog"
           aria-modal="true"
           aria-labelledby="duplicate-agent-title"
@@ -132,85 +119,81 @@ const DuplicateAgentModal: Component<Props> = (props) => {
           <h2 class="modal-card__title" id="duplicate-agent-title">
             Duplicate "{props.sourceName}"
           </h2>
-          <Show when={!atAgentLimit()} fallback={<UpgradePanel status={billing()!} />}>
-            <p class="modal-card__desc">
-              Creates a new harness with the same providers, routing, and tier configuration. A
-              fresh API key is generated. Telemetry and message history stay with the original.
-            </p>
+          <p class="modal-card__desc">
+            Creates a new harness with the same providers, routing, and tier configuration. A fresh
+            API key is generated. Telemetry and message history stay with the original.
+          </p>
 
-            <label class="modal-card__field-label" for="duplicate-agent-name">
-              New harness name
-            </label>
-            <input
-              ref={(el) =>
-                requestAnimationFrame(() => {
-                  el.focus();
-                  el.select();
-                })
-              }
-              id="duplicate-agent-name"
-              class="modal-card__input modal-card__input--lg"
-              type="text"
-              placeholder={preview()?.suggested_name ?? `${props.sourceName}-copy`}
-              value={name()}
-              onInput={(e) => handleNameInput(e.currentTarget.value)}
-              disabled={submitting()}
-            />
+          <label class="modal-card__field-label" for="duplicate-agent-name">
+            New harness name
+          </label>
+          <input
+            ref={(el) =>
+              requestAnimationFrame(() => {
+                el.focus();
+                el.select();
+              })
+            }
+            id="duplicate-agent-name"
+            class="modal-card__input modal-card__input--lg"
+            type="text"
+            placeholder={preview()?.suggested_name ?? `${props.sourceName}-copy`}
+            value={name()}
+            onInput={(e) => handleNameInput(e.currentTarget.value)}
+            disabled={submitting()}
+          />
 
-            <div class="duplicate-agent__section">
-              <div class="duplicate-agent__section-header">
-                What is copied
-                <Show when={preview()}>
-                  <span class="duplicate-agent__badge">{totalCopied()}</span>
-                </Show>
-              </div>
-              <Show
-                when={preview()}
-                fallback={
-                  <div class="skeleton skeleton--rect" style="width: 100%; height: 80px;" />
-                }
-              >
-                <ul class="duplicate-agent__list">
-                  <li>
-                    <strong>{preview()!.copied.providers}</strong> provider credential
-                    {preview()!.copied.providers === 1 ? '' : 's'} (encrypted API keys &amp;
-                    subscriptions)
-                  </li>
-                  <li>
-                    <strong>{preview()!.copied.tierAssignments}</strong> tier override
-                    {preview()!.copied.tierAssignments === 1 ? '' : 's'}
-                  </li>
-                  <li>
-                    <strong>{preview()!.copied.specificityAssignments}</strong> specificity override
-                    {preview()!.copied.specificityAssignments === 1 ? '' : 's'}
-                  </li>
-                </ul>
+          <div class="duplicate-agent__section">
+            <div class="duplicate-agent__section-header">
+              What is copied
+              <Show when={preview()}>
+                <span class="duplicate-agent__badge">{totalCopied()}</span>
               </Show>
             </div>
-
-            <div class="duplicate-agent__section">
-              <div class="duplicate-agent__section-header">What is not copied</div>
+            <Show
+              when={preview()}
+              fallback={<div class="skeleton skeleton--rect" style="width: 100%; height: 80px;" />}
+            >
               <ul class="duplicate-agent__list">
-                <li>Messages</li>
-                <li>Logs</li>
-                <li>Notification rules</li>
+                <li>
+                  <strong>{preview()!.copied.providers}</strong> provider credential
+                  {preview()!.copied.providers === 1 ? '' : 's'} (encrypted API keys &amp;
+                  subscriptions)
+                </li>
+                <li>
+                  <strong>{preview()!.copied.tierAssignments}</strong> tier override
+                  {preview()!.copied.tierAssignments === 1 ? '' : 's'}
+                </li>
+                <li>
+                  <strong>{preview()!.copied.specificityAssignments}</strong> specificity override
+                  {preview()!.copied.specificityAssignments === 1 ? '' : 's'}
+                </li>
               </ul>
-            </div>
+            </Show>
+          </div>
 
-            <div class="modal-card__footer">
-              <button class="btn btn--ghost btn--sm" onClick={requestClose} type="button">
-                Cancel
-              </button>
-              <button
-                class="btn btn--primary btn--sm"
-                onClick={handleDuplicate}
-                disabled={!name().trim() || submitting()}
-                type="button"
-              >
-                {submitting() ? <span class="spinner" /> : 'Duplicate harness'}
-              </button>
-            </div>
-          </Show>
+          <div class="duplicate-agent__section">
+            <div class="duplicate-agent__section-header">What is not copied</div>
+            <ul class="duplicate-agent__list">
+              <li>Messages</li>
+              <li>Logs</li>
+              <li>Notification rules</li>
+            </ul>
+          </div>
+
+          <div class="modal-card__footer">
+            <button class="btn btn--ghost btn--sm" onClick={requestClose} type="button">
+              Cancel
+            </button>
+            <button
+              class="btn btn--primary btn--sm"
+              onClick={handleDuplicate}
+              disabled={!name().trim() || submitting()}
+              type="button"
+            >
+              {submitting() ? <span class="spinner" /> : 'Duplicate harness'}
+            </button>
+          </div>
         </div>
       </div>
     </Show>

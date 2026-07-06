@@ -25,17 +25,6 @@ vi.mock('@solidjs/router', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-const mockGetBillingStatus = vi.fn();
-vi.mock('../../src/services/api/billing.js', () => ({
-  getBillingStatus: (...a: unknown[]) => mockGetBillingStatus(...a),
-}));
-
-vi.mock('../../src/components/UpgradePanel.jsx', () => ({
-  UpgradePanel: (props: any) => (
-    <div data-testid="upgrade-panel" data-plan={props.status?.plan ?? ''} />
-  ),
-}));
-
 import DuplicateAgentModal from '../../src/components/DuplicateAgentModal';
 
 const q = (sel: string) => document.querySelector(sel);
@@ -65,27 +54,15 @@ describe('DuplicateAgentModal', () => {
         modelParams: 0,
       },
     });
-    // Billing disabled by default → no paywall, the duplicate form renders as before.
-    mockGetBillingStatus.mockResolvedValue({
-      enabled: false,
-      plan: 'free',
-      priceMonthlyUsd: null,
-      agents: { used: 0, limit: 1 },
-      requests: { used: null, limit: null, periodEnd: null },
-    });
   });
 
   it('does not render when closed', () => {
-    render(() => (
-      <DuplicateAgentModal open={false} sourceName="my-agent" onClose={vi.fn()} />
-    ));
+    render(() => <DuplicateAgentModal open={false} sourceName="my-agent" onClose={vi.fn()} />);
     expect(q('.modal-overlay')).toBeNull();
   });
 
   it('renders the source agent name in the title and prefills the suggested name', async () => {
-    render(() => (
-      <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />
-    ));
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />);
 
     expect(screen.getByText(/Duplicate "my-agent"/)).toBeDefined();
 
@@ -96,9 +73,7 @@ describe('DuplicateAgentModal', () => {
   });
 
   it('shows copied and not-copied sections without an accordion', async () => {
-    render(() => (
-      <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />
-    ));
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />);
 
     await waitFor(() => {
       const allItems = qa('.duplicate-agent__list li');
@@ -114,8 +89,8 @@ describe('DuplicateAgentModal', () => {
 
     // "What is not copied" items are always visible (no accordion)
     const headers = qa('.duplicate-agent__section-header').map((h) => h.textContent?.trim());
-    expect(headers.some((h) => h?.includes("What is copied"))).toBe(true);
-    expect(headers.some((h) => h?.includes("What is not copied"))).toBe(true);
+    expect(headers.some((h) => h?.includes('What is copied'))).toBe(true);
+    expect(headers.some((h) => h?.includes('What is not copied'))).toBe(true);
     expect(list.some((t) => t === 'Messages')).toBe(true);
     expect(list.some((t) => t === 'Logs')).toBe(true);
     expect(list.some((t) => t === 'Notification rules')).toBe(true);
@@ -126,9 +101,7 @@ describe('DuplicateAgentModal', () => {
 
   it('calls duplicateAgent, shows toast, and navigates on success', async () => {
     const onClose = vi.fn();
-    render(() => (
-      <DuplicateAgentModal open={true} sourceName="my-agent" onClose={onClose} />
-    ));
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={onClose} />);
 
     await waitFor(() => {
       const input = q('#duplicate-agent-name') as HTMLInputElement | null;
@@ -155,12 +128,16 @@ describe('DuplicateAgentModal', () => {
 
   it('disables the Duplicate button when name is empty', async () => {
     mockGetDuplicatePreview.mockResolvedValueOnce({
-      copied: { providers: 0, customProviders: 0, tierAssignments: 0, specificityAssignments: 0, modelParams: 0 },
+      copied: {
+        providers: 0,
+        customProviders: 0,
+        tierAssignments: 0,
+        specificityAssignments: 0,
+        modelParams: 0,
+      },
       suggested_name: '',
     });
-    render(() => (
-      <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />
-    ));
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />);
 
     await waitFor(() => {
       const btn = Array.from(document.querySelectorAll('button')).find(
@@ -172,9 +149,7 @@ describe('DuplicateAgentModal', () => {
 
   it('closes when Cancel is clicked', () => {
     const onClose = vi.fn();
-    render(() => (
-      <DuplicateAgentModal open={true} sourceName="my-agent" onClose={onClose} />
-    ));
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={onClose} />);
 
     const cancelBtn = Array.from(document.querySelectorAll('button')).find(
       (b) => b.textContent?.trim() === 'Cancel',
@@ -185,9 +160,7 @@ describe('DuplicateAgentModal', () => {
 
   it('closes on Escape keypress', async () => {
     const onClose = vi.fn();
-    render(() => (
-      <DuplicateAgentModal open={true} sourceName="my-agent" onClose={onClose} />
-    ));
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={onClose} />);
 
     await waitFor(() => {
       expect(q('#duplicate-agent-name')).toBeDefined();
@@ -198,9 +171,7 @@ describe('DuplicateAgentModal', () => {
   });
 
   it('submits on Enter keypress', async () => {
-    render(() => (
-      <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />
-    ));
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />);
 
     await waitFor(() => {
       const input = q('#duplicate-agent-name') as HTMLInputElement | null;
@@ -218,9 +189,7 @@ describe('DuplicateAgentModal', () => {
   it('swallows errors silently (toast already shown by fetchMutate)', async () => {
     mockDuplicateAgent.mockRejectedValueOnce(new Error('boom'));
     const onClose = vi.fn();
-    render(() => (
-      <DuplicateAgentModal open={true} sourceName="my-agent" onClose={onClose} />
-    ));
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={onClose} />);
 
     await waitFor(() => {
       const input = q('#duplicate-agent-name') as HTMLInputElement | null;
@@ -243,9 +212,7 @@ describe('DuplicateAgentModal', () => {
 
   it('closes when the overlay backdrop is clicked', async () => {
     const onClose = vi.fn();
-    render(() => (
-      <DuplicateAgentModal open={true} sourceName="my-agent" onClose={onClose} />
-    ));
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={onClose} />);
     await waitFor(() => {
       expect(q('.modal-overlay')).toBeDefined();
     });
@@ -256,9 +223,7 @@ describe('DuplicateAgentModal', () => {
 
   it('does not close when a click inside the modal card bubbles to the overlay', async () => {
     const onClose = vi.fn();
-    render(() => (
-      <DuplicateAgentModal open={true} sourceName="my-agent" onClose={onClose} />
-    ));
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={onClose} />);
     await waitFor(() => {
       expect(q('.modal-card')).toBeDefined();
     });
@@ -325,7 +290,13 @@ describe('DuplicateAgentModal', () => {
     resolveDuplicate({
       agent: { id: 'new-id', name: 'my-agent-copy', display_name: 'my-agent-copy' },
       apiKey: 'mnfst_xyz',
-      copied: { providers: 0, customProviders: 0, tierAssignments: 0, specificityAssignments: 0, modelParams: 0 },
+      copied: {
+        providers: 0,
+        customProviders: 0,
+        tierAssignments: 0,
+        specificityAssignments: 0,
+        modelParams: 0,
+      },
     });
 
     await waitFor(() => {
@@ -338,9 +309,7 @@ describe('DuplicateAgentModal', () => {
   });
 
   it('keeps user-typed name when they edit it', async () => {
-    render(() => (
-      <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />
-    ));
+    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />);
 
     await waitFor(() => {
       const input = q('#duplicate-agent-name') as HTMLInputElement | null;
@@ -350,58 +319,5 @@ describe('DuplicateAgentModal', () => {
     const input = q('#duplicate-agent-name') as HTMLInputElement;
     fireEvent.input(input, { target: { value: 'my-custom-name' } });
     expect(input.value).toBe('my-custom-name');
-  });
-
-  it('renders the UpgradePanel instead of the form when at the agent limit', async () => {
-    mockGetBillingStatus.mockResolvedValue({
-      enabled: true,
-      plan: 'free',
-      priceMonthlyUsd: 20,
-      agents: { used: 1, limit: 1 },
-      requests: { used: null, limit: null, periodEnd: null },
-    });
-    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />);
-    await waitFor(() => {
-      expect(screen.getByTestId('upgrade-panel')).toBeTruthy();
-    });
-    // The duplicate form (name input) must be gone when paywalled.
-    expect(q('#duplicate-agent-name')).toBeNull();
-    // Title still shows so the modal stays recognizable.
-    expect(screen.getByText(/Duplicate "my-agent"/)).toBeDefined();
-  });
-
-  it('renders the form when below the agent limit', async () => {
-    mockGetBillingStatus.mockResolvedValue({
-      enabled: true,
-      plan: 'free',
-      priceMonthlyUsd: 20,
-      agents: { used: 0, limit: 1 },
-      requests: { used: null, limit: null, periodEnd: null },
-    });
-    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />);
-    await waitFor(() => {
-      const input = q('#duplicate-agent-name') as HTMLInputElement | null;
-      expect(input).not.toBeNull();
-    });
-    expect(screen.queryByTestId('upgrade-panel')).toBeNull();
-  });
-
-  it('renders the form (never the paywall) when billing is disabled even at the limit', async () => {
-    mockGetBillingStatus.mockResolvedValue({
-      enabled: false,
-      plan: 'free',
-      priceMonthlyUsd: null,
-      agents: { used: 5, limit: 1 },
-      requests: { used: null, limit: null, periodEnd: null },
-    });
-    render(() => <DuplicateAgentModal open={true} sourceName="my-agent" onClose={vi.fn()} />);
-    await waitFor(() => expect(mockGetBillingStatus).toHaveBeenCalled());
-    expect(q('#duplicate-agent-name')).not.toBeNull();
-    expect(screen.queryByTestId('upgrade-panel')).toBeNull();
-  });
-
-  it('does not fetch billing status while the modal is closed', () => {
-    render(() => <DuplicateAgentModal open={false} sourceName="my-agent" onClose={vi.fn()} />);
-    expect(mockGetBillingStatus).not.toHaveBeenCalled();
   });
 });

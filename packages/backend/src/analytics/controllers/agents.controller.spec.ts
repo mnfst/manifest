@@ -12,7 +12,6 @@ import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { ProviderService } from '../../routing/routing-core/provider.service';
-import { PlanService } from '../../billing/plan.service';
 
 // Shared no-op ProviderService stub. createAgent now auto-enables every usable
 // provider on the new agent (symmetric global-providers auto-connect), so every
@@ -20,18 +19,6 @@ import { PlanService } from '../../billing/plan.service';
 const providerServiceProvider = () => ({
   provide: ProviderService,
   useValue: { enableAllProvidersForAgent: jest.fn().mockResolvedValue(undefined) },
-});
-
-// Shared no-op PlanService stub. createAgent/duplicateAgent wrap their body in
-// withAgentCreationLock (which the stub runs inline) and call assertCanCreateAgent
-// as the first statement inside it; unit tests run with billing disabled (no
-// Stripe env), so the gate is a no-op that always resolves.
-const planServiceProvider = () => ({
-  provide: PlanService,
-  useValue: {
-    assertCanCreateAgent: jest.fn().mockResolvedValue(undefined),
-    withAgentCreationLock: jest.fn(<T>(_ctx: unknown, fn: () => Promise<T>) => fn()),
-  },
 });
 
 describe('AgentsController', () => {
@@ -138,7 +125,6 @@ describe('AgentsController', () => {
           useValue: { emit: jest.fn() },
         },
         providerServiceProvider(),
-        planServiceProvider(),
       ],
     }).compile();
 
@@ -317,7 +303,6 @@ describe('AgentsController', () => {
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
         },
         providerServiceProvider(),
-        planServiceProvider(),
       ],
     }).compile();
 
@@ -376,7 +361,6 @@ describe('AgentsController', () => {
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
         },
         providerServiceProvider(),
-        planServiceProvider(),
       ],
     }).compile();
 
@@ -434,7 +418,6 @@ describe('AgentsController', () => {
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
         },
         providerServiceProvider(),
-        planServiceProvider(),
       ],
     }).compile();
 
@@ -489,7 +472,6 @@ describe('AgentsController', () => {
           provide: ProviderService,
           useValue: { enableAllProvidersForAgent: jest.fn().mockRejectedValue(enableErr) },
         },
-        planServiceProvider(),
       ],
     }).compile();
 
@@ -548,7 +530,6 @@ describe('AgentsController', () => {
             enableAllProvidersForAgent: jest.fn().mockRejectedValue(new Error('enable boom')),
           },
         },
-        planServiceProvider(),
       ],
     }).compile();
 
@@ -588,7 +569,6 @@ describe('AgentsController', () => {
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
         },
         providerServiceProvider(),
-        planServiceProvider(),
       ],
     }).compile();
 
@@ -629,7 +609,6 @@ describe('AgentsController', () => {
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
         },
         providerServiceProvider(),
-        planServiceProvider(),
       ],
     }).compile();
 
@@ -751,7 +730,6 @@ describe('AgentsController', () => {
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
         },
         providerServiceProvider(),
-        planServiceProvider(),
       ],
     }).compile();
 
