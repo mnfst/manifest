@@ -131,7 +131,7 @@ const Register: Component = () => {
       const origin = window.location.origin;
       await authClient.subscription.upgrade({
         plan: 'pro',
-        successUrl: `${origin}/account?upgraded=1`,
+        successUrl: `${origin}/overview?upgraded=1`,
         cancelUrl: `${origin}/register`,
       });
     } catch {

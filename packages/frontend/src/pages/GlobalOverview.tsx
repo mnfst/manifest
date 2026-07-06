@@ -1,6 +1,6 @@
 import { Title } from '@solidjs/meta';
 import { toggleScrollFade } from '../services/scroll-fade.js';
-import { A, useNavigate } from '@solidjs/router';
+import { A, useNavigate, useSearchParams } from '@solidjs/router';
 import {
   createResource,
   createSignal,
@@ -12,6 +12,8 @@ import {
   type Component,
 } from 'solid-js';
 import AddAgentModal from '../components/AddAgentModal.jsx';
+import UpgradeSuccessModal from '../components/UpgradeSuccessModal.jsx';
+import { markPlanChosen } from '../services/plan-selection.js';
 import {
   getAgents,
   getGlobalProviders,
@@ -137,6 +139,16 @@ function loadRange(): string {
 
 const GlobalOverview: Component = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isUpgraded = searchParams.upgraded === '1';
+  if (isUpgraded) markPlanChosen();
+  const [upgradeModalOpen, setUpgradeModalOpen] = createSignal(isUpgraded);
+
+  const closeUpgradeModal = () => {
+    setUpgradeModalOpen(false);
+    window.history.replaceState(null, '', '/overview');
+  };
+
   preloadModelDisplayNames();
 
   // ── Range state (persisted in localStorage) ──────────────────────────
@@ -438,6 +450,7 @@ const GlobalOverview: Component = () => {
 
       {/* Add Harness Modal */}
       <AddAgentModal open={addAgentOpen()} onClose={dismissAddAgent} />
+      <UpgradeSuccessModal open={upgradeModalOpen()} onClose={closeUpgradeModal} />
 
       <SocialFollowBanner />
 

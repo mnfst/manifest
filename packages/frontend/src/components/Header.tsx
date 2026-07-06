@@ -1,11 +1,12 @@
 import { A, useLocation, useNavigate } from '@solidjs/router';
-import { Show, createSignal, createEffect, onCleanup, onMount, type Component } from 'solid-js';
+import { Show, createSignal, createEffect, createResource, onCleanup, onMount, type Component } from 'solid-js';
 import { useAgentName } from '../services/routing.js';
 import { authClient } from '../services/auth-client.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { clearPlanChosen } from '../services/plan-selection.js';
+import { getBillingStatus } from '../services/api/billing.js';
 import {
   connectionBreadcrumbName,
   connectionBreadcrumbProviderId,
@@ -42,6 +43,10 @@ const Header: Component<HeaderProps> = (props) => {
   const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   const session = authClient.useSession();
   const navigate = useNavigate();
+  const [billing] = createResource(async () => {
+    try { return await getBillingStatus(); } catch { return null; }
+  });
+  const isPro = () => billing()?.enabled && billing()?.plan === 'pro';
 
   onMount(() => {
     checkIsSelfHosted().then(setIsSelfHosted);
@@ -358,7 +363,12 @@ const Header: Component<HeaderProps> = (props) => {
           <Show when={menuOpen()}>
             <div class="header__dropdown" role="menu">
               <div class="header__dropdown-header">
-                <span class="header__dropdown-name">{effectiveName()}</span>
+                <span class="header__dropdown-name">
+                  {effectiveName()}
+                  <Show when={isPro()}>
+                    <span class="header__pro-badge">PRO</span>
+                  </Show>
+                </span>
                 <span class="header__dropdown-email">{user()?.email ?? ''}</span>
               </div>
               <div class="header__dropdown-divider" />
