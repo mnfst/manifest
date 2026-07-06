@@ -1,0 +1,58 @@
+.changeset/subscription-plan-emails.md
+  s_756ad5e3766555::t_34736402957685 2
+packages/backend/src/database/migrations/1798200000000-AddBillingEmailLogs.spec.ts
+  s_756ad5e3766555::t_f145aacb2eade6 20-22
+packages/backend/src/billing/subscription-webhook-emails.ts
+  s_756ad5e3766555::t_6b2168b420d359 9-13,21,24,28-30,35,53-54,56-60,68-69,73-83
+  s_756ad5e3766555::t_c0c07882902d6a 84-86,114,127,143
+packages/backend/src/billing/subscription-webhook-emails.spec.ts
+  s_756ad5e3766555::t_0134b2df7e02ca 59,67-70,79-90,93-94,100-102,122,147,155
+  s_756ad5e3766555::t_95095f245e9d7b 104-116
+  s_756ad5e3766555::t_f2ed3877b36417 103
+packages/backend/src/billing/emails/billing-plan-email.spec.ts
+  s_756ad5e3766555::t_64dbfa8242b6e1 20-50
+  s_756ad5e3766555::t_59cf787110dd33 68-82
+packages/backend/src/billing/billing-email-sender.ts
+  s_756ad5e3766555::t_44452b5c31845a 27-30,32-33
+  s_756ad5e3766555::t_6bb2a7e9794158 34
+packages/backend/src/billing/billing-usage-email.service.spec.ts
+  s_756ad5e3766555::t_4b7f92885ef2a1 17-18,26-27,35,37,56-58,70-78,124,135,147,151,153-161,165,169
+  s_756ad5e3766555::t_d6d97e5e7df070 144,149,152
+  s_756ad5e3766555::t_be313a8c6bb62d 86-96,98-103,106,108-117,119-122,140-143,145
+  s_756ad5e3766555::t_87a606819483aa 97,104-105,107,118
+  s_756ad5e3766555::t_e813b5f0a20985 30
+  s_756ad5e3766555::t_92f26f684d4588 79-80
+  s_756ad5e3766555::t_7a65922f0d8cab 146
+  s_756ad5e3766555::t_778c95af971930 148
+  s_756ad5e3766555::t_ed5a8fd904b427 150
+packages/backend/src/billing/billing-email-log.service.spec.ts
+  s_756ad5e3766555::t_686343300b050f 2,46-63
+packages/backend/src/billing/billing-email.service.ts
+  s_756ad5e3766555::t_279fe4bcca4fc5 4
+  s_756ad5e3766555::t_dd54ca6f6227ff 5-8,15,22
+packages/backend/src/billing/billing-usage-email.service.ts
+  s_756ad5e3766555::t_3d45b95671aa2b 57,61-62,64,67,70,77-87
+packages/backend/src/billing/emails/billing-plan-email.tsx
+  s_756ad5e3766555::t_68bde6ed0cc13d 46,61-64,208
+packages/backend/src/billing/billing-email-log.service.ts
+  s_756ad5e3766555::t_5ec18ed08389fc 5,7-8,26-32,34,36-73,78-81,83
+  s_756ad5e3766555::t_78e4526c18edf6 6,20-25
+  s_756ad5e3766555::t_01d911eceded75 33
+  s_756ad5e3766555::t_47c3b9b835f88c 35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "bd398460ee93d0b04b7f91a2e99b93c2993dbb16",
+  "prompts": {},
+  "sessions": {
+    "s_756ad5e3766555": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3669-ce33-7072-8b32-c8a68e50a701",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
