@@ -12,14 +12,22 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
   const [config, { mutate }] = createResource(() => props.agentName(), getAutofix);
   const [saving, setSaving] = createSignal(false);
 
-  const enabled = () => config()?.enabled ?? false;
-  const busy = () => saving() || config.loading;
+  // Guard the errored read: accessing an errored SolidJS resource re-throws, so
+  // short-circuit to off (the switch stays disabled via busy() below).
+  const enabled = () => (config.error ? false : (config()?.enabled ?? false));
+  // Also disabled after a failed read: without a known current state a click
+  // would blindly write a value the user never saw.
+  const busy = () => saving() || config.loading || Boolean(config.error);
 
   const toggle = async () => {
     if (busy()) return;
+    // Pin the agent this click targets. If the user switches harnesses before
+    // the save resolves, don't mutate the (now different) agent's resource.
+    const agentName = props.agentName();
     setSaving(true);
     try {
-      mutate(await updateAutofix(props.agentName(), { enabled: !enabled() }));
+      const next = await updateAutofix(agentName, { enabled: !enabled() });
+      if (props.agentName() === agentName) mutate(next);
     } catch {
       toast.error('Failed to update Auto-fix');
     } finally {

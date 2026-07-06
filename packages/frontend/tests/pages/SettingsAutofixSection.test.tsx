@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, waitFor, cleanup } from '@solidjs/testing-library';
+import { createSignal } from 'solid-js';
 
 const mockGetAutofix = vi.fn();
 const mockUpdateAutofix = vi.fn();
@@ -109,6 +110,52 @@ describe('SettingsAutofixSection', () => {
     fireEvent.click(btn);
 
     expect(mockUpdateAutofix).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables the switch when the initial read fails', async () => {
+    mockGetAutofix.mockRejectedValue(new Error('read failed'));
+    const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
+
+    // A failed read leaves the switch disabled (no known current state to write).
+    const btn = await waitFor(() => {
+      const el = container.querySelector('.settings-switch') as HTMLButtonElement | null;
+      expect(el).not.toBeNull();
+      expect(el!.hasAttribute('disabled')).toBe(true);
+      return el!;
+    });
+    // Clicking a disabled switch must not attempt a write.
+    fireEvent.click(btn);
+    expect(mockUpdateAutofix).not.toHaveBeenCalled();
+  });
+
+  it('does not apply a stale save after the harness switches mid-request', async () => {
+    const [name, setName] = createSignal('a');
+    mockGetAutofix.mockResolvedValue({ enabled: false });
+    let resolveUpdate: (v: { enabled: boolean }) => void = () => {};
+    mockUpdateAutofix.mockReturnValue(
+      new Promise<{ enabled: boolean }>((r) => {
+        resolveUpdate = r;
+      }),
+    );
+    const { container } = render(() => <SettingsAutofixSection agentName={name} />);
+
+    const btn = await waitForLoaded(container);
+    fireEvent.click(btn); // targets 'a'
+    expect(mockUpdateAutofix).toHaveBeenCalledWith('a', { enabled: true });
+
+    // Switch harness before the save resolves; the resource refetches for 'b'.
+    setName('b');
+    await waitFor(() => expect(mockGetAutofix).toHaveBeenCalledWith('b', expect.anything()));
+
+    // Resolve the stale 'a' update as ON, then let the toggle chain settle (the
+    // save's finally re-enables the switch). The guard must drop the stale
+    // response so the current 'b' harness stays OFF.
+    resolveUpdate({ enabled: true });
+    await waitFor(() => {
+      const el = container.querySelector('.settings-switch') as HTMLButtonElement;
+      expect(el.hasAttribute('disabled')).toBe(false);
+    });
+    expect(btn.classList.contains('settings-switch--on')).toBe(false);
   });
 
   it('surfaces a toast when the update fails', async () => {
