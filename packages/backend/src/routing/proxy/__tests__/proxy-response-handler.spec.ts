@@ -1570,6 +1570,63 @@ describe('proxy-response-handler', () => {
       expect(res.json).toHaveBeenCalledWith(response);
     });
 
+    it('unwraps Anthropic synthetic structured-output tool calls for Responses clients', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const schema = { type: 'object', properties: { title: { type: 'string' } } };
+      client.convertAnthropicResponse.mockReturnValue({
+        model: 'claude-sonnet-4',
+        choices: [
+          {
+            message: {
+              content: null,
+              tool_calls: [
+                {
+                  id: 'toolu_1',
+                  type: 'function',
+                  function: { name: 'patient_summary', arguments: '{"title":"ok"}' },
+                },
+              ],
+            },
+          },
+        ],
+      });
+      const forward = mockForward({}, { isAnthropic: true }) as ReturnType<typeof mockForward> & {
+        structuredOutputToolName?: string;
+        responsesTextFormat?: Record<string, unknown>;
+      };
+      forward.structuredOutputToolName = 'patient_summary';
+      forward.responsesTextFormat = {
+        type: 'json_schema',
+        name: 'patient_summary',
+        schema,
+        strict: true,
+      };
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        makeMeta({ model: 'claude-sonnet-4' }),
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      const responseBody = res.json.mock.calls[0][0];
+      expect(responseBody.output).toEqual([
+        expect.objectContaining({
+          type: 'message',
+          content: [{ type: 'output_text', text: '{"title":"ok"}', annotations: [] }],
+        }),
+      ]);
+      expect(responseBody.text).toEqual({
+        format: { type: 'json_schema', name: 'patient_summary', schema, strict: true },
+      });
+    });
+
     it('converts a chat_completions response into Anthropic Messages when apiMode=messages', async () => {
       const { res } = mockResponse();
       const client = mockProviderClient();

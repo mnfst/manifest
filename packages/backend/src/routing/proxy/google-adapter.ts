@@ -112,6 +112,18 @@ function sanitizeSchema(schema: unknown, isPropertiesMap = false): unknown {
     // (e.g. "title", "default"), not JSON Schema keywords — keep them all.
     // Their values are sub-schemas, so recurse normally (not as properties map).
     if (!isPropertiesMap && UNSUPPORTED_SCHEMA_FIELDS.has(key)) continue;
+    if (key === 'type' && Array.isArray(value)) {
+      const types = value.filter((item): item is string => typeof item === 'string');
+      const nonNullTypes = types.filter((item) => item !== 'null');
+      if (nonNullTypes.length > 0) {
+        // Gemini doesn't accept JSON Schema type arrays. Preserve the common
+        // nullable-union case with its OpenAPI-style `nullable` flag; if a
+        // schema lists multiple concrete types, keep the first as best-effort.
+        result.type = nonNullTypes[0];
+      }
+      if (types.includes('null')) result.nullable = true;
+      continue;
+    }
     result[key] = sanitizeSchema(value, key === 'properties');
   }
   return result;
@@ -273,6 +285,32 @@ function convertTools(tools?: Record<string, unknown>[]): Record<string, unknown
   return [{ functionDeclarations: declarations }];
 }
 
+function applyResponseFormatToGenerationConfig(
+  genConfig: Record<string, unknown>,
+  responseFormat: unknown,
+): void {
+  if (!isRecord(responseFormat)) return;
+
+  if (responseFormat.type === 'json_object') {
+    genConfig.responseMimeType = 'application/json';
+    delete genConfig.responseSchema;
+    return;
+  }
+  if (responseFormat.type !== 'json_schema') return;
+
+  genConfig.responseMimeType = 'application/json';
+  const jsonSchema = isRecord(responseFormat.json_schema) ? responseFormat.json_schema : null;
+  if (!jsonSchema || jsonSchema.schema === undefined) {
+    delete genConfig.responseSchema;
+    return;
+  }
+
+  // Gemini rejects several OpenAI-compatible JSON Schema keywords. In
+  // particular, dropping `additionalProperties: false` means strict mode is
+  // best-effort here, not identical to OpenAI's constrained output.
+  genConfig.responseSchema = sanitizeSchema(jsonSchema.schema);
+}
+
 /** Extracted thought_signature entries from a Gemini response. */
 export interface ExtractedSignature {
   toolCallId: string;
@@ -339,6 +377,7 @@ export function toGoogleRequest(
   if (body.max_tokens !== undefined) genConfig.maxOutputTokens = body.max_tokens;
   if (body.temperature !== undefined) genConfig.temperature = body.temperature;
   if (body.top_p !== undefined) genConfig.topP = body.top_p;
+  applyResponseFormatToGenerationConfig(genConfig, body.response_format);
   if (Object.keys(genConfig).length > 0) result.generationConfig = genConfig;
 
   return result;

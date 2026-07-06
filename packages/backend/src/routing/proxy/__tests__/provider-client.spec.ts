@@ -726,6 +726,113 @@ describe('ProviderClient', () => {
       expect(sent.tools[0]).toMatchObject({ name: 'lookup', input_schema: { type: 'object' } });
     });
 
+    it('returns structured-output metadata for Responses requests routed to Anthropic', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const schema = { type: 'object', properties: { title: { type: 'string' } } };
+
+      const result = await client.forward({
+        provider: 'anthropic',
+        apiKey: 'sk-ant-test',
+        model: 'claude-sonnet-4-5-20250929',
+        body: {
+          input: 'Return JSON.',
+          text: {
+            format: {
+              type: 'json_schema',
+              name: 'patient_summary',
+              description: 'Patient summary',
+              schema,
+              strict: true,
+            },
+          },
+        },
+        chatBody: {
+          messages: [{ role: 'user', content: 'Return JSON.' }],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              name: 'patient_summary',
+              description: 'Patient summary',
+              schema,
+              strict: true,
+            },
+          },
+        },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sent.tool_choice).toBeUndefined();
+      expect(sent.output_config).toEqual({
+        format: { type: 'json_schema', schema },
+      });
+      expect(result.structuredOutputToolName).toBeUndefined();
+      expect(result.responsesTextFormat).toEqual({
+        type: 'json_schema',
+        name: 'patient_summary',
+        description: 'Patient summary',
+        schema,
+        strict: true,
+      });
+    });
+
+    it('returns json_object text metadata for Responses requests routed to Anthropic', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'anthropic',
+        apiKey: 'sk-ant-test',
+        model: 'claude-sonnet-4-5-20250929',
+        body: {
+          input: 'Return JSON.',
+          text: { format: { type: 'json_object' } },
+        },
+        chatBody: {
+          messages: [{ role: 'user', content: 'Return JSON.' }],
+          response_format: { type: 'json_object' },
+        },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sent.tool_choice).toBeUndefined();
+      expect(sent.output_config).toEqual({
+        format: {
+          type: 'json_schema',
+          schema: { type: 'object' },
+        },
+      });
+      expect(result.structuredOutputToolName).toBeUndefined();
+      expect(result.responsesTextFormat).toEqual({ type: 'json_object' });
+    });
+
+    it('does not attach structured metadata for text Responses formats routed to Anthropic', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'anthropic',
+        apiKey: 'sk-ant-test',
+        model: 'claude-sonnet-4-5-20250929',
+        body: {
+          input: 'Return text.',
+          text: { format: { type: 'text' } },
+        },
+        chatBody: {
+          messages: [{ role: 'user', content: 'Return text.' }],
+          response_format: { type: 'text' },
+        },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sent.tool_choice).toBeUndefined();
+      expect(result.structuredOutputToolName).toBeUndefined();
+      expect(result.responsesTextFormat).toBeUndefined();
+    });
+
     it('forwards Responses image inputs to Anthropic image content blocks', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

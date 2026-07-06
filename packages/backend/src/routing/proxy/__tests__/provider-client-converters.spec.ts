@@ -51,6 +51,27 @@ describe('provider-client-converters', () => {
       expect(result).toHaveProperty('temperature', 0.5);
     });
 
+    it('should preserve response_format for OpenAI-wire providers', () => {
+      const responseFormat = {
+        type: 'json_schema',
+        json_schema: {
+          name: 'summary',
+          schema: { type: 'object', properties: { text: { type: 'string' } } },
+          strict: true,
+        },
+      };
+      const result = sanitizeOpenAiBody(
+        {
+          messages: [{ role: 'user', content: 'Hi' }],
+          response_format: responseFormat,
+        },
+        'mistral',
+        'mistral-large',
+      );
+
+      expect(result.response_format).toBe(responseFormat);
+    });
+
     it('should convert max_completion_tokens to max_tokens for non-passthrough providers', () => {
       const body = {
         messages: [],

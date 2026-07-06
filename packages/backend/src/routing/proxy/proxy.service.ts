@@ -350,6 +350,8 @@ export class ProxyService {
           isChatGpt: forward.isChatGpt,
           isResponses: forward.isResponses,
           isCodeAssist: forward.isCodeAssist,
+          structuredOutputToolName: forward.structuredOutputToolName,
+          responsesTextFormat: forward.responsesTextFormat,
         };
         this.recordTierIfScoring(sessionKey, resolved.tier);
         this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
@@ -376,6 +378,8 @@ export class ProxyService {
         isChatGpt: forward.isChatGpt,
         isResponses: forward.isResponses,
         isCodeAssist: forward.isCodeAssist,
+        structuredOutputToolName: forward.structuredOutputToolName,
+        responsesTextFormat: forward.responsesTextFormat,
       };
       if (!explicitModelOverride && paramMergeContext) {
         const fallbackResult = await this.tryFallbackChain({
