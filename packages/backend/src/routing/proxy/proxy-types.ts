@@ -49,6 +49,8 @@ export interface ForwardOptions {
   body: Record<string, unknown>;
   chatBody?: Record<string, unknown>;
   apiMode?: ProxyApiMode;
+  /** Stable Manifest conversation/session key for provider prompt-cache affinity. */
+  sessionKey?: string;
   stream: boolean;
   signal?: AbortSignal;
   extraHeaders?: Record<string, string>;

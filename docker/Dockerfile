@@ -63,7 +63,7 @@ FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:f16acace4aa70086d4a2caad
 WORKDIR /app
 
 LABEL org.opencontainers.image.title="Manifest" \
-      org.opencontainers.image.description="Open-source AI model router. Save up to 70% on LLM costs." \
+      org.opencontainers.image.description="Open-source AI model router. Plug your agents into any provider and send each query to the right model." \
       org.opencontainers.image.url="https://manifest.build" \
       org.opencontainers.image.documentation="https://manifest.build/docs" \
       org.opencontainers.image.source="https://github.com/mnfst/manifest" \

@@ -1,8 +1,40 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { defineConfig } from 'vite';
+import { defineConfig, type ProxyOptions } from 'vite';
 import solidPlugin from 'vite-plugin-solid';
 import { codecovVitePlugin } from '@codecov/vite-plugin';
+
+// Dial the backend on 127.0.0.1, not `localhost`. The dev backend binds
+// 127.0.0.1 (IPv4), but on dual-stack machines `localhost` can resolve to
+// ::1 (IPv6) first, so proxied requests intermittently hit a port nothing is
+// listening on. A failed proxy hop returns no CORS headers, which the hosted
+// Wingman SPA (cross-origin, public HTTPS → loopback) then reports as a
+// spurious "CORS error".
+const backendTarget = `http://127.0.0.1:${process.env.VITE_BACKEND_PORT || '3001'}`;
+
+// `nest --watch` restarts the backend on every save, and http-proxy reuses
+// keep-alive sockets that die across a restart. Without this handler Vite
+// answers the blip with a bare 502 carrying no CORS headers, so the
+// cross-origin Wingman drawer surfaces "backend momentarily unreachable" as a
+// misleading CORS failure. Echo the request Origin back on the error response
+// so the failure reads as an honest 502 the moment it happens.
+const configureDevProxy: NonNullable<ProxyOptions['configure']> = (proxy) => {
+  proxy.on('error', (err, req, res) => {
+    // Websocket upgrades hand back a raw socket with no `writeHead`; only
+    // real HTTP responses can carry a status line + headers.
+    if (!('writeHead' in res) || res.headersSent) return;
+    const origin = req.headers.origin;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (origin) {
+      headers['Access-Control-Allow-Origin'] = origin;
+      headers['Vary'] = 'Origin';
+    }
+    res.writeHead(502, headers);
+    res.end(JSON.stringify({ error: 'dev proxy: backend unreachable', detail: err.message }));
+  });
+};
+
+const devProxyRoute: ProxyOptions = { target: backendTarget, configure: configureDevProxy };
 
 const manifestVersion = (() => {
   try {
@@ -48,9 +80,9 @@ export default defineConfig(({ command }) => ({
     // Vite's CORS at all.
     cors: false,
     proxy: {
-      '/api': `http://localhost:${process.env.VITE_BACKEND_PORT || '3001'}`,
-      '/otlp': `http://localhost:${process.env.VITE_BACKEND_PORT || '3001'}`,
-      '/v1': `http://localhost:${process.env.VITE_BACKEND_PORT || '3001'}`,
+      '/api': devProxyRoute,
+      '/otlp': devProxyRoute,
+      '/v1': devProxyRoute,
     },
   },
   build: {

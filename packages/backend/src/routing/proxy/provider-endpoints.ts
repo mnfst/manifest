@@ -197,6 +197,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     format: 'openai',
     ...openaiStreamUsage,
   },
+  'cline-pass': {
+    baseUrl: 'https://api.cline.bot',
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/api/v1/chat/completions',
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
   pioneer: {
     baseUrl: PIONEER_BASE,
     buildHeaders: pioneerHeaders,

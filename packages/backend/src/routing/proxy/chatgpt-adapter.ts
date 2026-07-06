@@ -131,6 +131,51 @@ export function toResponsesRequest(
   return request;
 }
 
+function textFromReasoningParts(parts: unknown): string {
+  if (!Array.isArray(parts)) return '';
+  return parts
+    .filter(isObjectRecord)
+    .map((part) => (typeof part.text === 'string' ? part.text : ''))
+    .filter(Boolean)
+    .join('\n\n');
+}
+
+function reasoningContentFromItem(item: Record<string, unknown>): string {
+  return [textFromReasoningParts(item.summary), textFromReasoningParts(item.content)]
+    .filter(Boolean)
+    .join('\n\n');
+}
+
+function responseOutputItems(
+  response: Record<string, unknown> | undefined,
+): Record<string, unknown>[] {
+  const output = Array.isArray(response?.output) ? response.output : [];
+  return output.filter(isObjectRecord);
+}
+
+function hasResponseOutput(response: Record<string, unknown> | undefined): boolean {
+  return Array.isArray(response?.output);
+}
+
+function reasoningContentFromOutput(output: Record<string, unknown>[]): string {
+  return output
+    .filter((item) => item.type === 'reasoning')
+    .map(reasoningContentFromItem)
+    .filter(Boolean)
+    .join('\n\n');
+}
+
+function isReasoningDeltaEvent(eventType: string): boolean {
+  return (
+    eventType === 'response.reasoning_summary.delta' ||
+    eventType === 'response.reasoning_summary_text.delta'
+  );
+}
+
+function reasoningDeltaText(data: Record<string, unknown>): string {
+  return typeof data.delta === 'string' ? data.delta : '';
+}
+
 /* ── Non-streaming response conversion ── */
 
 export function fromResponsesResponse(
@@ -139,10 +184,17 @@ export function fromResponsesResponse(
 ): Record<string, unknown> {
   const output = (data.output ?? []) as Record<string, unknown>[];
   let text = '';
+  const reasoningParts: string[] = [];
   const toolCalls: { id: string; type: string; function: { name: string; arguments: string } }[] =
     [];
 
   for (const item of output) {
+    if (item.type === 'reasoning') {
+      const reasoning = reasoningContentFromItem(item);
+      if (reasoning) reasoningParts.push(reasoning);
+      continue;
+    }
+
     if (item.type === 'message') {
       const content = item.content as { type?: string; text?: string }[] | undefined;
       if (!content) continue;
@@ -171,6 +223,8 @@ export function fromResponsesResponse(
     role: 'assistant',
     content: text || null,
   };
+  const reasoningContent = reasoningParts.join('\n\n');
+  if (reasoningContent) message.reasoning_content = reasoningContent;
 
   if (toolCalls.length > 0) {
     message.tool_calls = toolCalls;
@@ -226,6 +280,15 @@ export function transformResponsesStreamChunk(chunk: string, model: string): str
     if (!data) return null;
     const delta = typeof data.delta === 'string' ? data.delta : '';
     return formatSSE({ delta: { content: delta }, finish_reason: null }, model);
+  }
+
+  if (isReasoningDeltaEvent(eventType)) {
+    const data = safeParse(dataStr);
+    if (!data) return null;
+    return formatSSE(
+      { delta: { reasoning_content: reasoningDeltaText(data) }, finish_reason: null },
+      model,
+    );
   }
 
   if (eventType === 'response.function_call_arguments.delta') {
@@ -289,9 +352,7 @@ export function transformResponsesStreamChunk(chunk: string, model: string): str
 function handleCompletedEvent(dataStr: string, model: string): string {
   const data = safeParse(dataStr);
   const response = isObjectRecord(data?.response) ? data.response : undefined;
-  const responseOutput = Array.isArray(response?.output)
-    ? (response.output as Array<{ type?: string }>)
-    : [];
+  const responseOutput = responseOutputItems(response);
   const hasFunctionCalls = responseOutput.some((item) => item.type === 'function_call');
   const finish = formatSSE(
     { delta: {}, finish_reason: hasFunctionCalls ? 'tool_calls' : 'stop' },
@@ -383,6 +444,7 @@ export function collectChatGptSseResponse(sseText: string, model: string): Recor
   let usage: Record<string, unknown> | undefined;
   let hasFunctionCalls = false;
   let finishReasonOverride: string | undefined;
+  let reasoningContent = '';
 
   const events = sseText.split('\n\n');
   for (const event of events) {
@@ -402,6 +464,8 @@ export function collectChatGptSseResponse(sseText: string, model: string): Recor
       throw buildResponsesSseError(data);
     } else if (eventType === 'response.output_text.delta') {
       text += typeof data.delta === 'string' ? data.delta : '';
+    } else if (isReasoningDeltaEvent(eventType)) {
+      reasoningContent += reasoningDeltaText(data);
     } else if (eventType === 'response.output_item.added') {
       const item = isObjectRecord(data.item) ? data.item : undefined;
       if (item?.type === 'function_call') {
@@ -421,19 +485,24 @@ export function collectChatGptSseResponse(sseText: string, model: string): Recor
     } else if (eventType === 'response.completed') {
       const response = isObjectRecord(data.response) ? data.response : undefined;
       usage = extractResponseUsage(response) ?? usage;
-      const output = Array.isArray(response?.output)
-        ? (response.output as Array<{ type?: string }>)
-        : [];
+      const output = responseOutputItems(response);
       hasFunctionCalls = output.some((item) => item.type === 'function_call');
+      if (hasResponseOutput(response)) {
+        reasoningContent = reasoningContentFromOutput(output);
+      }
     } else if (eventType === 'response.incomplete') {
       const response = isObjectRecord(data.response) ? data.response : undefined;
       usage = extractResponseUsage(response) ?? usage;
       finishReasonOverride = incompleteFinishReason(response);
+      if (hasResponseOutput(response)) {
+        reasoningContent = reasoningContentFromOutput(responseOutputItems(response));
+      }
     }
   }
 
   const toolCalls = [...toolCallMap.values()];
   const message: Record<string, unknown> = { role: 'assistant', content: text || null };
+  if (reasoningContent) message.reasoning_content = reasoningContent;
   if (toolCalls.length > 0) message.tool_calls = toolCalls;
 
   return {

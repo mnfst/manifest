@@ -537,6 +537,21 @@ describe('PROVIDERS', () => {
     expect(byteplus.models).toEqual([]);
   });
 
+  it('ClinePass is subscription-only with API-key token paste flow', () => {
+    const clinePass = PROVIDERS.find((p) => p.id === 'cline-pass')!;
+    expect(clinePass).toBeDefined();
+    expect(clinePass.name).toBe('ClinePass');
+    expect(clinePass.supportsSubscription).toBe(true);
+    expect(clinePass.subscriptionOnly).toBe(true);
+    expect(clinePass.subscriptionAuthMode).toBe('token');
+    expect(clinePass.subscriptionCredentialKind).toBe('api-key');
+    expect(clinePass.subscriptionLabel).toBe('ClinePass subscription');
+    expect(clinePass.subscriptionKeyPlaceholder).toBe('Paste your ClinePass API key');
+    expect(clinePass.subscriptionSignInUrl).toBe('https://app.cline.bot');
+    expect(clinePass.subscriptionSignInLabel).toBe('Sign in to ClinePass');
+    expect(clinePass.models).toEqual([]);
+  });
+
   it('Cerebras is an API-key provider with dynamic models', () => {
     const cerebras = PROVIDERS.find((p) => p.id === 'cerebras')!;
     expect(cerebras).toBeDefined();
@@ -887,6 +902,21 @@ describe('PROVIDERS', () => {
     });
   });
 
+  it('ClinePass subscription key is validated with generic token length', () => {
+    const clinePass = PROVIDERS.find((p) => p.id === 'cline-pass')!;
+    expect(validateSubscriptionKey(clinePass, '')).toEqual({
+      valid: false,
+      error: 'Token is required',
+    });
+    expect(validateSubscriptionKey(clinePass, 'short')).toEqual({
+      valid: false,
+      error: 'Token is too short (minimum 10 characters)',
+    });
+    expect(validateSubscriptionKey(clinePass, 'cp-valid-token-1234')).toEqual({
+      valid: true,
+    });
+  });
+
   it('Nous subscription key is validated with generic token length', () => {
     const nous = PROVIDERS.find((p) => p.id === 'nous')!;
     expect(validateSubscriptionKey(nous, '')).toEqual({
@@ -984,6 +1014,12 @@ describe('getRoutingProviderApiKeyUrl', () => {
     expect(getRoutingProviderApiKeyUrl('openai')).toBe('https://platform.openai.com/api-keys');
   });
 
+  it('returns the ClinePass API-key settings URL', () => {
+    expect(getRoutingProviderApiKeyUrl('cline-pass')).toBe(
+      'https://app.cline.bot/settings/api-keys',
+    );
+  });
+
   it('returns undefined for an unknown provider', () => {
     expect(getRoutingProviderApiKeyUrl('unknown')).toBeUndefined();
   });
@@ -994,6 +1030,12 @@ describe('getRoutingProviderApiKeyUrl', () => {
 describe('getSubscriptionProviderKeyUrl', () => {
   it('returns the Ollama settings page URL for ollama-cloud', () => {
     expect(getSubscriptionProviderKeyUrl('ollama-cloud')).toBe('https://ollama.com/settings/keys');
+  });
+
+  it('returns the ClinePass API-key settings URL', () => {
+    expect(getSubscriptionProviderKeyUrl('cline-pass')).toBe(
+      'https://app.cline.bot/settings/api-keys',
+    );
   });
 
   it('returns undefined for subscription providers whose token comes from elsewhere (e.g. anthropic setup-token via CLI)', () => {

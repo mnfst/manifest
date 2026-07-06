@@ -1,5 +1,6 @@
 export interface SubscriptionCapabilities {
   maxContextWindow: number;
+  modelContextWindows?: Readonly<Record<string, number>>;
   supportsPromptCaching: boolean;
   supportsBatching: boolean;
 }

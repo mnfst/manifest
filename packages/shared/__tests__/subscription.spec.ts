@@ -257,7 +257,7 @@ describe('getSubscriptionProviderConfig', () => {
     );
     expect(config?.subscriptionCapabilities).toMatchObject({
       maxContextWindow: 1000000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
@@ -472,7 +472,26 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('anthropic');
     expect(caps).toMatchObject({
       maxContextWindow: 200000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
+      supportsBatching: false,
+    });
+    expect(caps?.modelContextWindows?.['claude-opus-4-8']).toBe(1000000);
+  });
+
+  it('returns capabilities for OpenAI subscription', () => {
+    const caps = getSubscriptionCapabilities('openai');
+    expect(caps).toMatchObject({
+      maxContextWindow: 200000,
+      supportsPromptCaching: true,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for MiniMax Coding Plan', () => {
+    const caps = getSubscriptionCapabilities('minimax');
+    expect(caps).toMatchObject({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
@@ -509,7 +528,7 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('zai');
     expect(caps).toMatchObject({
       maxContextWindow: 204800,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
@@ -518,7 +537,7 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('moonshot');
     expect(caps).toMatchObject({
       maxContextWindow: 262144,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
@@ -527,7 +546,7 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('qwen');
     expect(caps).toMatchObject({
       maxContextWindow: 991000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
@@ -536,7 +555,7 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('mistral');
     expect(caps).toMatchObject({
       maxContextWindow: 200000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
@@ -545,7 +564,7 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('xiaomi');
     expect(caps).toMatchObject({
       maxContextWindow: 1048576,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });
@@ -554,7 +573,16 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('xai');
     expect(caps).toMatchObject({
       maxContextWindow: 128000,
-      supportsPromptCaching: false,
+      supportsPromptCaching: true,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for Gemini subscription', () => {
+    const caps = getSubscriptionCapabilities('gemini');
+    expect(caps).toMatchObject({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: true,
       supportsBatching: false,
     });
   });

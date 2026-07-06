@@ -1,9 +1,12 @@
 import {
+  DEV_CORS_MAX_AGE_SECONDS,
   HOSTED_WINGMAN_ORIGIN,
   applyPrivateNetworkAllow,
   buildDevAllowedOrigins,
+  buildDevCorsOptions,
   buildFrameSrc,
   createCorsOriginHandler,
+  parseFrameAncestors,
 } from './cors-csp-config';
 
 describe('HOSTED_WINGMAN_ORIGIN', () => {
@@ -58,6 +61,53 @@ describe('buildFrameSrc', () => {
   });
 });
 
+describe('parseFrameAncestors', () => {
+  it("defaults to 'none' when unset", () => {
+    expect(parseFrameAncestors(undefined)).toEqual(["'none'"]);
+  });
+
+  it("defaults to 'none' for an empty string", () => {
+    expect(parseFrameAncestors('')).toEqual(["'none'"]);
+  });
+
+  it('keeps a single well-formed https origin', () => {
+    expect(parseFrameAncestors('https://app.example.com')).toEqual(['https://app.example.com']);
+  });
+
+  it('keeps multiple valid origins in order and trims whitespace', () => {
+    expect(parseFrameAncestors('https://a.example.com , http://localhost:3000')).toEqual([
+      'https://a.example.com',
+      'http://localhost:3000',
+    ]);
+  });
+
+  it("keeps the 'self' and 'none' CSP keywords", () => {
+    expect(parseFrameAncestors("'self', 'none'")).toEqual(["'self'", "'none'"]);
+  });
+
+  it('keeps a wildcard-subdomain origin', () => {
+    expect(parseFrameAncestors('https://*.example.com')).toEqual(['https://*.example.com']);
+  });
+
+  it('keeps an origin with an explicit port', () => {
+    expect(parseFrameAncestors('https://example.com:8443')).toEqual(['https://example.com:8443']);
+  });
+
+  it('drops the bare wildcard (would allow any site to frame the app)', () => {
+    expect(parseFrameAncestors('*')).toEqual(["'none'"]);
+  });
+
+  it('drops malformed entries (scheme-only, raw CIDR) but keeps valid ones', () => {
+    expect(parseFrameAncestors('https:, 192.168.1.0/24, https://good.example.com')).toEqual([
+      'https://good.example.com',
+    ]);
+  });
+
+  it("falls back to 'none' when every entry is malformed", () => {
+    expect(parseFrameAncestors('https:, not a url, javascript:alert(1)')).toEqual(["'none'"]);
+  });
+});
+
 describe('createCorsOriginHandler', () => {
   const handler = createCorsOriginHandler([HOSTED_WINGMAN_ORIGIN, 'http://localhost:3000']);
 
@@ -77,6 +127,28 @@ describe('createCorsOriginHandler', () => {
     const cb = jest.fn();
     handler('https://evil.example.com', cb);
     expect(cb).toHaveBeenCalledWith(null, false);
+  });
+});
+
+describe('buildDevCorsOptions', () => {
+  it('caches the preflight via maxAge so reloads stop re-running it', () => {
+    const opts = buildDevCorsOptions([HOSTED_WINGMAN_ORIGIN]);
+    expect(opts.maxAge).toBe(DEV_CORS_MAX_AGE_SECONDS);
+    expect(DEV_CORS_MAX_AGE_SECONDS).toBe(7200);
+  });
+
+  it('keeps credentials off the cross-origin path (bearer keys, never cookies)', () => {
+    expect(buildDevCorsOptions([HOSTED_WINGMAN_ORIGIN]).credentials).toBe(false);
+  });
+
+  it('wires the allow-list origin handler (allows listed, blocks unlisted)', () => {
+    const { origin } = buildDevCorsOptions([HOSTED_WINGMAN_ORIGIN]);
+    const allow = jest.fn();
+    origin(HOSTED_WINGMAN_ORIGIN, allow);
+    expect(allow).toHaveBeenCalledWith(null, true);
+    const block = jest.fn();
+    origin('https://evil.example.com', block);
+    expect(block).toHaveBeenCalledWith(null, false);
   });
 });
 

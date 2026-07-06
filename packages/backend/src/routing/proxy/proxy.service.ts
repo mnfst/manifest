@@ -58,7 +58,6 @@ import { peekStream, STREAM_WARMUP_MS } from './stream-warmup';
 import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
-import { parseMaxMessagesPerRequest } from './message-limit';
 import { OPENAI_MODEL_ID_AUTO, routeForOpenAiModelId } from './openai-model-id';
 import { AutofixService } from '../autofix/autofix.service';
 import type { AutofixRecord } from '../autofix/autofix.types';
@@ -171,7 +170,6 @@ interface HealedReforwardContext {
 @Injectable()
 export class ProxyService {
   private readonly logger = new Logger(ProxyService.name);
-  private readonly maxMessagesPerRequest: number;
 
   constructor(
     private readonly resolveService: ResolveService,
@@ -194,11 +192,7 @@ export class ProxyService {
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly autofixService: AutofixService,
-  ) {
-    this.maxMessagesPerRequest = parseMaxMessagesPerRequest(
-      this.config.get<string>('MANIFEST_MAX_MESSAGES'),
-    );
-  }
+  ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
     const { agentId, tenantId, body, sessionKey, agentName, signal, specificityOverride, headers } =
@@ -418,6 +412,8 @@ export class ProxyService {
           isChatGpt: forward.isChatGpt,
           isResponses: forward.isResponses,
           isCodeAssist: forward.isCodeAssist,
+          structuredOutputToolName: forward.structuredOutputToolName,
+          responsesTextFormat: forward.responsesTextFormat,
         };
         this.recordTierIfScoring(sessionKey, resolved.tier);
         this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
@@ -445,6 +441,8 @@ export class ProxyService {
         isChatGpt: forward.isChatGpt,
         isResponses: forward.isResponses,
         isCodeAssist: forward.isCodeAssist,
+        structuredOutputToolName: forward.structuredOutputToolName,
+        responsesTextFormat: forward.responsesTextFormat,
       };
       if (!explicitModelOverride && paramMergeContext) {
         const fallbackResult = await this.tryFallbackChain({
@@ -625,11 +623,6 @@ export class ProxyService {
       throw new BadRequestException(formatManifestError('M300'));
     }
     sanitizeNullContent(messages as Record<string, unknown>[]);
-    if (messages.length > this.maxMessagesPerRequest) {
-      throw new BadRequestException(
-        formatManifestError('M301', { max: this.maxMessagesPerRequest }),
-      );
-    }
   }
 
   private async resolveRouting(

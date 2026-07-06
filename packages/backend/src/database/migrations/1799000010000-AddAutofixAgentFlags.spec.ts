@@ -1,12 +1,12 @@
 import { QueryRunner } from 'typeorm';
-import { AddAutofixAgentFlags1799000000000 } from './1799000000000-AddAutofixAgentFlags';
+import { AddAutofixAgentFlags1799000010000 } from './1799000010000-AddAutofixAgentFlags';
 
-describe('AddAutofixAgentFlags1799000000000', () => {
-  let migration: AddAutofixAgentFlags1799000000000;
+describe('AddAutofixAgentFlags1799000010000', () => {
+  let migration: AddAutofixAgentFlags1799000010000;
   let queryRunner: jest.Mocked<Pick<QueryRunner, 'query'>>;
 
   beforeEach(() => {
-    migration = new AddAutofixAgentFlags1799000000000();
+    migration = new AddAutofixAgentFlags1799000010000();
     queryRunner = { query: jest.fn().mockResolvedValue(undefined) };
   });
 
@@ -31,6 +31,6 @@ describe('AddAutofixAgentFlags1799000000000', () => {
   });
 
   it('exposes a stable migration name', () => {
-    expect(migration.name).toBe('AddAutofixAgentFlags1799000000000');
+    expect(migration.name).toBe('AddAutofixAgentFlags1799000010000');
   });
 });

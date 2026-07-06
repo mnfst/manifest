@@ -38,6 +38,7 @@ import { ReasoningContentCacheEntry } from '../src/entities/reasoning-content-ca
 import { AgentEnabledProvider } from '../src/entities/agent-enabled-provider.entity';
 import { BackfillState } from '../src/entities/backfill-state.entity';
 import { PublicErrorPage } from '../src/entities/public-error-page.entity';
+import { WaitlistClaim } from '../src/entities/waitlist-claim.entity';
 import { HealthModule } from '../src/health/health.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
 import { OtlpModule } from '../src/otlp/otlp.module';
@@ -79,6 +80,7 @@ const entities = [
   AgentEnabledProvider,
   BackfillState,
   PublicErrorPage,
+  WaitlistClaim,
 ];
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
 const OPENROUTER_MODELS_FIXTURE = {
@@ -235,6 +237,9 @@ export async function createTestApp(): Promise<INestApplication> {
       new ValidationPipe({
         transform: true,
         whitelist: true,
+        // Mirror the global pipe in main.ts so E2E exercises the real
+        // strict-DTO behavior (unknown fields → 400, not silently stripped).
+        forbidNonWhitelisted: true,
       }),
     );
     await app.init();

@@ -30,6 +30,19 @@ beforeAll(async () => {
     ['ps-msg-3', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 150, 75, 'claude-opus-4-6', 'ok'],
   );
 
+  // Custom-endpoint traffic: two tenant-scoped provider refs from one tenant,
+  // exercising the Custom grouping + k-anonymity fold on real SQL.
+  await ds.query(
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+    ['ps-msg-4', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 400, 200, 'custom:d0c5ce41-0000-4000-8000-000000000001/private-model', 'ok'],
+  );
+  await ds.query(
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+    ['ps-msg-5', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 200, 100, 'custom:d0c5ce41-0000-4000-8000-000000000002/other-private-model', 'ok'],
+  );
+
   // Tag the seeded agent so the agent-tokens endpoint has a recognised
   // (category, platform) pair to aggregate the seeded messages under.
   await ds.query(
@@ -79,6 +92,30 @@ describe('GET /api/v1/public/free-models', () => {
     expect(Array.isArray(res.body.models)).toBe(true);
     expect(res.body).toHaveProperty('total_models');
     expect(res.body).toHaveProperty('cached_at');
+  });
+});
+
+describe('GET /api/v1/public/provider-tokens', () => {
+  it('groups custom-endpoint traffic under one Custom provider without leaking refs', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/public/provider-tokens')
+      .expect(200);
+
+    expect(Array.isArray(res.body.providers)).toBe(true);
+    const custom = res.body.providers.find(
+      (p: { provider: string }) => p.provider === 'Custom',
+    );
+    expect(custom).toBeDefined();
+    // A single tenant sits below the k-anonymity floor, so both seeded model
+    // names fold into the aggregate bucket while the totals stay exact.
+    expect(custom.models).toEqual([
+      expect.objectContaining({ model: 'other-custom-models', total_tokens: 900 }),
+    ]);
+    expect(custom.total_tokens).toBe(900);
+    // The tenant-scoped provider refs must never appear anywhere in the payload.
+    const payload = JSON.stringify(res.body);
+    expect(payload).not.toContain('d0c5ce41');
+    expect(payload).not.toContain('private-model');
   });
 });
 

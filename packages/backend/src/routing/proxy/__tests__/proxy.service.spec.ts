@@ -231,52 +231,30 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
-    it('throws when messages exceeds the max', async () => {
-      const messages = Array.from({ length: 1001 }, () => ({ role: 'user', content: 'x' }));
-      await expect(svc.proxyRequest(baseOpts({ body: { messages } as never }))).rejects.toThrow(
-        /1000/,
-      );
-    });
-
-    it('uses MANIFEST_MAX_MESSAGES when validating oversized payloads', async () => {
-      configService = {
-        get: jest.fn((key: string) => (key === 'MANIFEST_MAX_MESSAGES' ? '1001' : undefined)),
-      } as unknown as ConfigService;
-      svc = new ProxyService(
-        resolveService as unknown as ResolveService,
-        modelDiscovery as unknown as ModelDiscoveryService,
-        providerKeyService as unknown as ProviderKeyService,
-        tierService as unknown as TierService,
-        openaiOauth as unknown as OpenaiOauthService,
-        minimaxOauth as unknown as MinimaxOauthService,
-        anthropicOauth as unknown as AnthropicOauthService,
-        geminiOauth as unknown as GeminiOauthService,
-        kiroOauth as unknown as KiroOauthService,
-        xaiOauth as unknown as XaiOauthService,
-        momentum as unknown as SessionMomentumService,
-        limitCheck as unknown as LimitCheckService,
-        fallbackService as unknown as ProxyFallbackService,
-        configService,
-        signatureCache,
-        thinkingCache,
-        reasoningCache,
-        modelParamsService as unknown as AgentModelParamsService,
-        providerParamSpecs as unknown as ProviderParamSpecService,
-        autofixService as unknown as AutofixService,
-      );
-      const messages = Array.from({ length: 1001 }, () => ({ role: 'user', content: 'x' }));
+    it('forwards long message arrays unchanged', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
-        route: null,
+        route: route('openai', 'api_key', 'gpt-4o'),
         fallback_routes: null,
         confidence: 0.9,
         score: 5,
         reason: 'scored',
       });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const messages = Array.from({ length: 1001 }, (_, index) => ({
+        role: 'user',
+        content: `message-${index}`,
+      }));
+      const body = { messages };
 
-      await expect(
-        svc.proxyRequest(baseOpts({ body: { messages } as never })),
-      ).resolves.toBeDefined();
+      await expect(svc.proxyRequest(baseOpts({ body } as never))).resolves.toBeDefined();
+      expect(body.messages).toHaveLength(1001);
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toBe(body);
     });
 
     it('replaces null content with empty string', async () => {
