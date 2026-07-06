@@ -35,10 +35,11 @@ const Account: Component = () => {
   const handleUpgrade = async () => {
     setBillingBusy(true);
     try {
+      const origin = window.location.origin;
       await authClient.subscription.upgrade({
         plan: 'pro',
-        successUrl: '/account?upgraded=1',
-        cancelUrl: '/account',
+        successUrl: `${origin}/account?upgraded=1`,
+        cancelUrl: `${origin}/account`,
       });
     } catch {
       toast.error('Could not start the upgrade. Please try again.');
@@ -59,7 +60,7 @@ const Account: Component = () => {
       // disableRedirect returns the portal URL instead of navigating the current
       // tab, so we can send the new tab there and keep the dashboard open.
       const res = await authClient.subscription.billingPortal({
-        returnUrl: '/account',
+        returnUrl: `${window.location.origin}/account`,
         disableRedirect: true,
       });
       const url = res?.data?.url;

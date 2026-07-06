@@ -226,8 +226,8 @@ describe('Account', () => {
       fireEvent.click(button);
       expect(mockUpgrade).toHaveBeenCalledWith({
         plan: 'pro',
-        successUrl: '/account?upgraded=1',
-        cancelUrl: '/account',
+        successUrl: `${window.location.origin}/account?upgraded=1`,
+        cancelUrl: `${window.location.origin}/account`,
       });
       await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
     });
@@ -322,7 +322,7 @@ describe('Account', () => {
       expect(screen.queryByText(/Free: 10,000 requests/)).toBeNull();
       fireEvent.click(button);
       expect(mockBillingPortal).toHaveBeenCalledWith({
-        returnUrl: '/account',
+        returnUrl: `${window.location.origin}/account`,
         disableRedirect: true,
       });
       // A placeholder tab opens synchronously (keeps user activation), then gets

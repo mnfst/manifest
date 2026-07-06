@@ -73,11 +73,21 @@ describe('Upgrade', () => {
     await screen.findByText('Free');
 
     expect(mockGetBillingStatus).toHaveBeenCalledWith({ cache: false });
+    expect(screen.getByText('Choose your Manifest plan')).toBeDefined();
+    expect(screen.getByText('$0')).toBeDefined();
+    expect(screen.getByText('$20')).toBeDefined();
     expect(screen.getAllByText('Unlimited agents').length).toBe(2);
     expect(screen.getByText('10,000 routed requests / month')).toBeDefined();
     expect(screen.getByText('1,250 used this month')).toBeDefined();
+    expect(screen.getByText('All providers, no restrictions')).toBeDefined();
+    expect(screen.getByText('Subscription providers')).toBeDefined();
     expect(screen.getByText('Unlimited routed requests')).toBeDefined();
-    expect(screen.getByText('Upgrade to Pro - $20/mo')).toBeDefined();
+    expect(screen.getByText('30-day dashboard retention')).toBeDefined();
+    expect(screen.getByText('Budget alerts and notifications')).toBeDefined();
+    expect(screen.getByText('Enterprise')).toBeDefined();
+    expect(screen.getByText("Let's Talk")).toBeDefined();
+    expect(screen.getByText('Talk to sales')).toBeDefined();
+    expect(screen.getByText('Upgrade to Pro')).toBeDefined();
   });
 
   it('shows the request-limit entry message', async () => {
@@ -101,13 +111,13 @@ describe('Upgrade', () => {
     window.history.pushState({}, '', '/upgrade?reason=requests');
     render(() => <Upgrade />);
 
-    const button = await screen.findByText('Upgrade to Pro - $20/mo');
+    const button = await screen.findByText('Upgrade to Pro');
     fireEvent.click(button);
 
     expect(mockUpgrade).toHaveBeenCalledWith({
       plan: 'pro',
-      successUrl: '/account?upgraded=1',
-      cancelUrl: '/upgrade?reason=requests',
+      successUrl: `${window.location.origin}/account?upgraded=1`,
+      cancelUrl: `${window.location.origin}/upgrade?reason=requests`,
     });
     await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
   });
@@ -116,7 +126,7 @@ describe('Upgrade', () => {
     mockUpgrade.mockRejectedValue(new Error('stripe down'));
     render(() => <Upgrade />);
 
-    fireEvent.click(await screen.findByText('Upgrade to Pro - $20/mo'));
+    fireEvent.click(await screen.findByText('Upgrade to Pro'));
 
     await waitFor(() =>
       expect(mockToastError).toHaveBeenCalledWith('Could not start the upgrade. Please try again.'),
@@ -128,7 +138,7 @@ describe('Upgrade', () => {
     render(() => <Upgrade />);
 
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true }));
-    expect(screen.queryByText('Upgrade to Pro - $20/mo')).toBeNull();
+    expect(screen.queryByText('$20')).toBeNull();
   });
 
   it('shows an already-upgraded state for Pro users', async () => {
@@ -138,7 +148,7 @@ describe('Upgrade', () => {
     await screen.findByText("You're already on Pro");
     expect(screen.getByText('Account')).toBeDefined();
     expect(screen.getByText('Dashboard')).toBeDefined();
-    expect(screen.queryByText('Upgrade to Pro - $20/mo')).toBeNull();
+    expect(screen.queryByText('$20')).toBeNull();
   });
 
   it('shows a loading state while billing status is pending', () => {

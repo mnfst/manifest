@@ -158,10 +158,18 @@
   overflow-y: auto;
 }
 
+.account-modal--standalone {
+  top: 0;
+}
+
 .account-modal__inner {
   max-width: 680px;
   margin-inline: auto;
   padding: var(--gap-xl) var(--gap-lg);
+}
+
+.account-modal__inner--upgrade {
+  max-width: 1080px;
 }
 
 .account-back-btn {
@@ -340,6 +348,151 @@
   }
   .billing-stat:last-child {
     border-bottom: none;
+  }
+}
+
+.upgrade-page-header {
+  border-bottom: none;
+  padding-bottom: var(--gap-xl);
+}
+
+.upgrade-page-header__copy {
+  max-width: 680px;
+}
+
+.upgrade-page-header__copy p {
+  margin: var(--gap-sm) 0 0;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+.upgrade-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gap-lg);
+  align-items: stretch;
+}
+
+.upgrade-plan-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+
+.upgrade-plan-card--pro {
+  border-color: hsl(var(--primary) / 0.5);
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.12);
+}
+
+.upgrade-plan-card__badge {
+  position: absolute;
+  top: var(--gap-md);
+  right: var(--gap-md);
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.upgrade-plan-card__body {
+  flex: 1;
+  padding: var(--gap-lg);
+}
+
+.upgrade-plan-card__header h2 {
+  margin: 0;
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+.upgrade-plan-card__price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-height: 42px;
+  margin-top: var(--gap-md);
+}
+
+.upgrade-plan-card__amount {
+  color: hsl(var(--foreground));
+  font-size: 2rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.upgrade-plan-card__amount--custom {
+  font-size: 1.35rem;
+}
+
+.upgrade-plan-card__period {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+}
+
+.upgrade-plan-card__desc {
+  min-height: 60px;
+  margin: var(--gap-md) 0 0;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.upgrade-plan-card__usage {
+  margin: var(--gap-sm) 0 0;
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.upgrade-plan-card__features {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: var(--gap-lg) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.upgrade-plan-card__features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+}
+
+.upgrade-plan-card__features i {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: hsl(var(--primary));
+  font-size: 16px;
+}
+
+.upgrade-plan-card__footer {
+  justify-content: stretch;
+  padding: var(--gap-md) var(--gap-lg);
+  border-top: 1px solid hsl(var(--border));
+}
+
+.upgrade-plan-card__footer .btn {
+  width: 100%;
+}
+
+@media (max-width: 920px) {
+  .upgrade-plan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .upgrade-plan-card__desc {
+    min-height: 0;
   }
 }
 
