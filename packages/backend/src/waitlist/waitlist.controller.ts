@@ -1,6 +1,7 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Request } from 'express';
 import { Tenant } from '../entities/tenant.entity';
 import { AutofixWaitlistSignup } from '../entities/autofix-waitlist-signup.entity';
 import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
@@ -35,18 +36,18 @@ export class WaitlistController {
 
   @Post('autofix')
   @HttpCode(HttpStatus.OK)
-  async join(@TenantCtx() ctx: TenantContext): Promise<{ joined: boolean; joinedAt: string }> {
+  async join(
+    @TenantCtx() ctx: TenantContext,
+    @Req() req: Request & { user?: { email?: string } },
+  ): Promise<{ joined: boolean; joinedAt: string }> {
     if (!ctx.tenantId) {
       return { joined: false, joinedAt: '' };
     }
     const now = new Date().toISOString();
     await this.tenantRepo.update(ctx.tenantId, { autofix_waitlist_at: now });
 
-    const tenant = await this.tenantRepo.findOne({
-      where: { id: ctx.tenantId },
-      select: ['email'],
-    });
-    this.waitlistSync.syncClaim(tenant?.email ?? '').catch(() => {});
+    const email = req.user?.email ?? '';
+    this.waitlistSync.syncClaim(email).catch(() => {});
 
     return { joined: true, joinedAt: now };
   }

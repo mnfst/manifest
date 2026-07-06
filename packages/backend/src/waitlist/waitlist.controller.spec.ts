@@ -1,8 +1,15 @@
 import { WaitlistController } from './waitlist.controller';
 import { WaitlistSyncService } from './waitlist-sync.service';
 import { Repository } from 'typeorm';
+import { Request } from 'express';
 import { Tenant } from '../entities/tenant.entity';
 import { AutofixWaitlistSignup } from '../entities/autofix-waitlist-signup.entity';
+
+type ReqWithUser = Request & { user?: { email?: string } };
+
+function fakeReq(email?: string): ReqWithUser {
+  return { user: email !== undefined ? { email } : undefined } as ReqWithUser;
+}
 
 describe('WaitlistController', () => {
   let controller: WaitlistController;
@@ -57,8 +64,10 @@ describe('WaitlistController', () => {
 
   describe('join', () => {
     it('sets autofix_waitlist_at and returns joined status', async () => {
-      tenantRepo.findOne.mockResolvedValue({ email: 'user@example.com' } as Tenant);
-      const result = await controller.join({ tenantId: 't1', userId: 'u1' });
+      const result = await controller.join(
+        { tenantId: 't1', userId: 'u1' },
+        fakeReq('user@example.com'),
+      );
       expect(tenantRepo.update).toHaveBeenCalledWith('t1', {
         autofix_waitlist_at: expect.any(String),
       });
@@ -66,28 +75,31 @@ describe('WaitlistController', () => {
       expect(result.joinedAt).toBeTruthy();
     });
 
-    it('calls waitlistSync.syncClaim with the tenant email', async () => {
-      tenantRepo.findOne.mockResolvedValue({ email: 'user@example.com' } as Tenant);
-      await controller.join({ tenantId: 't1', userId: 'u1' });
+    it('calls waitlistSync.syncClaim with the user email from session', async () => {
+      await controller.join({ tenantId: 't1', userId: 'u1' }, fakeReq('user@example.com'));
       expect(waitlistSync.syncClaim).toHaveBeenCalledWith('user@example.com');
     });
 
-    it('calls waitlistSync.syncClaim with empty string when tenant has no email', async () => {
-      tenantRepo.findOne.mockResolvedValue({ email: null } as Tenant);
-      await controller.join({ tenantId: 't1', userId: 'u1' });
+    it('calls waitlistSync.syncClaim with empty string when user has no email', async () => {
+      await controller.join({ tenantId: 't1', userId: 'u1' }, fakeReq());
       expect(waitlistSync.syncClaim).toHaveBeenCalledWith('');
     });
 
     it('returns not joined when tenantId is null', async () => {
-      const result = await controller.join({ tenantId: null, userId: 'u1' });
+      const result = await controller.join(
+        { tenantId: null, userId: 'u1' },
+        fakeReq('user@example.com'),
+      );
       expect(tenantRepo.update).not.toHaveBeenCalled();
       expect(result.joined).toBe(false);
     });
 
     it('does not fail when waitlistSync.syncClaim rejects', async () => {
-      tenantRepo.findOne.mockResolvedValue({ email: 'user@example.com' } as Tenant);
       waitlistSync.syncClaim.mockRejectedValue(new Error('boom'));
-      const result = await controller.join({ tenantId: 't1', userId: 'u1' });
+      const result = await controller.join(
+        { tenantId: 't1', userId: 'u1' },
+        fakeReq('user@example.com'),
+      );
       expect(result.joined).toBe(true);
     });
   });
