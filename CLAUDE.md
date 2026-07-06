@@ -1,12 +1,12 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-06-15
+Last updated: 2026-07-06
 
 ## What Manifest Is
 
 Manifest is a smart model router for **AI agents**. It sits between an agent and its LLM providers, scores each request, and routes it to the cheapest model that can handle it. The dashboard tracks costs, tokens, and messages across any agent that speaks OpenAI-compatible HTTP.
 
-**Supported agents** (configured in `packages/shared/src/agent-type.ts`): OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL, and a generic `other` slot. OpenClaw remains the deepest integration, but no new code or copy should frame Manifest as OpenClaw-only. When adding examples, prefer "AI agent" as the noun and pick OpenClaw as the worked example rather than the sole target. Manifest is consumed as a generic OpenAI-compatible HTTP endpoint — there are no first-party OpenClaw plugins in this repo anymore.
+**Supported agent platforms** are defined in `AGENT_PLATFORMS` in `packages/shared/src/agent-type.ts` — read that file for the current list rather than duplicating it here, since it grows regularly. OpenClaw remains the deepest integration, but no new code or copy should frame Manifest as OpenClaw-only. When adding examples, prefer "AI agent" as the noun and pick OpenClaw as the worked example rather than the sole target. Manifest is consumed as a generic OpenAI-compatible HTTP endpoint — there are no first-party OpenClaw plugins in this repo anymore.
 
 Wingman — the gateway tester for sending requests against a Manifest backend while impersonating any of the supported agents (useful for routing/header-classifier reproductions) — lives in its own repo at [`mnfst/wingman`](https://github.com/mnfst/wingman) and is hosted at [`wingman.manifest.build`](https://wingman.manifest.build). The dashboard embeds it as an iframe drawer **in dev mode only** — it is dead-code-eliminated from production / self-hosted bundles via `__DEV_MODE__`, and the backend never enables CORS in production. The dev-mode allow-list + CSP `frame-src` is wired in `packages/backend/src/cors-csp-config.ts`.
 
@@ -83,34 +83,38 @@ packages/
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
 │   │   │   └── seed-messages.ts             # Demo agent message seed data
-│   │   ├── entities/                        # TypeORM entities (20 files)
+│   │   ├── entities/                        # TypeORM entities (22 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
-│   │   │   └── ...                          # agent-message, tenant-provider, tier-assignment, header-tier, specificity-assignment, playground-run/column, reasoning-content-cache-entry, etc.
+│   │   │   └── ...                          # agent-message, tenant-provider, tier-assignment, header-tier, specificity-assignment, playground-run/column, reasoning-content-cache-entry, email-provider-config, notification-rule/log, install-metadata, backfill-state, public-error-page, autofix-waitlist-signup, etc.
 │   │   ├── common/
 │   │   │   ├── guards/api-key.guard.ts      # X-API-Key header auth (timing-safe)
-│   │   │   ├── decorators/public.decorator.ts
-│   │   │   ├── dto/                         # create-agent, range-query, rename-agent DTOs
+│   │   │   ├── decorators/                  # public.decorator, tenant-context.decorator
+│   │   │   ├── dto/                         # create-agent, range-query, rename-agent, duplicate-agent DTOs
 │   │   │   ├── filters/spa-fallback.filter.ts
-│   │   │   ├── interceptors/               # agent-cache, user-cache
+│   │   │   ├── interceptors/               # agent-cache, agent-list-cache, user-cache
+│   │   │   ├── middleware/                  # body-parser-limits, http-error-logger, rate-limit-log
+│   │   │   ├── cache/                       # dashboard-cache.factory
+│   │   │   ├── errors/                      # error-codes
 │   │   │   ├── constants/                   # api-key, cache, ollama, providers, openai-models, xai-models, subscription-clients
 │   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache
-│   │   │   └── utils/                       # crypto, hash, range, period, slugify, url-validation, provider-inference, postgres-sql, cost-calculator, detect-self-hosted, frontend-path, og-rewrite, secret-scrub, ttl-cache, local-ip, etc.
+│   │   │   └── utils/                       # crypto, hash, range, period, slugify, url-validation, provider-inference, postgres-sql, cost-calculator, detect-self-hosted, frontend-path, og-rewrite, secret-scrub, ttl-cache, ttl-fifo-cache, db-retry, local-ip, etc.
 │   │   ├── health/                          # @Public() health check
 │   │   ├── analytics/                       # Dashboard analytics
-│   │   │   ├── controllers/                 # overview, tokens, costs, messages, agents
+│   │   │   ├── controllers/                 # overview, tokens, costs, messages, agents, errors, provider-analytics, provider-usage
 │   │   │   └── services/                    # aggregation + timeseries-queries + query-helpers
 │   │   ├── otlp/                            # Agent key auth + onboarding
 │   │   │   ├── guards/agent-key-auth.guard.ts # Bearer token auth (agent API keys)
+│   │   │   ├── otlp-deprecated.controller.ts # 410/404 responses for pre-routing-only OTLP paths
 │   │   │   └── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
 │   │   ├── routing/                         # LLM routing (providers, tiers, proxy, scorer)
 │   │   │   ├── proxy/                       # OpenAI-compatible proxy (anthropic/google adapters)
 │   │   │   ├── routing-core/               # Tier, provider, specificity services + cache
 │   │   │   ├── resolve/                     # Scoring-based tier + specificity resolution
 │   │   │   ├── custom-provider/             # Custom provider CRUD
-│   │   │   ├── header-tiers/               # Header-based tier overrides
-│   │   │   ├── oauth/                       # OAuth flows (Gemini, OpenAI, Kiro, MiniMax)
+│   │   │   ├── header-tiers/               # Header-based tier overrides + seen-headers
+│   │   │   ├── oauth/                       # OAuth flows — one subdir per provider (anthropic, copilot, gemini, kiro, minimax, openai, xai)
 │   │   │   └── specificity.controller.ts   # Specificity routing CRUD endpoints
 │   │   ├── scoring/                         # Request complexity scoring engine
 │   │   │   ├── keywords.ts                 # Keyword lists for all dimensions (complexity + specificity)
@@ -125,6 +129,8 @@ packages/
 │   │   ├── public-stats/                    # Public aggregate usage endpoints (opt-in)
 │   │   ├── free-models/                     # Free LLM model catalog
 │   │   ├── model-discovery/                 # Per-provider model fetching + fallback
+│   │   ├── error-pages/                     # Curated error-page content (public read + CMS-pushed internal write)
+│   │   ├── waitlist/                        # Feature waitlist signups (e.g. Autofix)
 │   │   └── telemetry/                       # Anonymous self-hosted telemetry
 │   └── test/                                # E2E tests (supertest)
 ├── frontend/
@@ -142,15 +148,15 @@ packages/
 │   │   │   ├── Login.tsx, Register.tsx       # Auth pages
 │   │   │   ├── ResetPassword.tsx            # Password reset flow
 │   │   │   ├── Workspace.tsx                # Agent grid + create agent
-│   │   │   ├── Overview.tsx                 # Agent dashboard
+│   │   │   ├── GlobalOverview.tsx, Overview.tsx, AgentOverview.tsx # Dashboard variants
 │   │   │   ├── MessageLog.tsx               # Paginated messages
 │   │   │   ├── Account.tsx                  # User profile (session data)
 │   │   │   ├── Settings.tsx                 # Agent settings
-│   │   │   ├── Routing.tsx                  # LLM routing config
+│   │   │   ├── Routing.tsx + RoutingPanels/RoutingTierCard/RoutingDefaultTierSection/RoutingHeaderTiersSection/RoutingSpecificitySection/RoutingActions.tsx # LLM routing config, split by surface
 │   │   │   ├── Limits.tsx                   # Alert rule management (token/cost thresholds)
 │   │   │   ├── ModelPrices.tsx              # Model pricing table
 │   │   │   ├── Playground.tsx               # Prompt playground
-│   │   │   ├── ConnectProvider.tsx          # Provider connection flow
+│   │   │   ├── ConnectProvider.tsx, AgentProviders.tsx, providers/       # Provider connection flows (BYOK, local, subscriptions)
 │   │   │   ├── FreeModels.tsx               # Free model catalog
 │   │   │   ├── Setup.tsx                    # First-run setup wizard
 │   │   │   ├── Help.tsx                     # Help page
@@ -206,11 +212,10 @@ cd packages/frontend && npx vite
 
 Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test only). This creates:
 
-- **Admin user**: `admin@manifest.build` / `manifest` (email verification email is skipped if Mailgun is not configured — user is created but unverified)
+- **Admin user**: `admin@manifest.build` / `manifest` (email verification is skipped unless an `EMAIL_PROVIDER` is configured — user is created but unverified)
 - **Tenant**: `seed-tenant-001` linked to the admin user
-- **Agent**: `demo-agent` with OTLP key `dev-otlp-key-001`
+- **Agent**: `demo-agent` with OTLP key `mnfst_dev-otlp-key-001`
 - **API key**: `dev-api-key-manifest-001`
-- **Security events**: 12 sample events for the security dashboard
 - **Agent messages**: Sample telemetry messages for the demo agent
 
 Seeding is idempotent — it checks for existing records before inserting.
@@ -336,21 +341,25 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | PATCH | `/api/v1/agents/:agentName` | Session/API Key | Rename agent |
 | GET | `/api/v1/messages` | Session/API Key | Paginated message log |
 | GET/PATCH/DELETE | `/api/v1/messages/:id/*` | Session/API Key | Message details, feedback, miscategorized flag |
-| GET | `/api/v1/security` | Session/API Key | Security score + events |
+| GET | `/api/v1/errors/breakdown` | Session/API Key | Error rate breakdown analytics |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
 | GET | `/api/v1/free-models` | Session/API Key | Free LLM model catalog |
 | GET | `/api/v1/savings/*` | Session/API Key | Savings analytics (summary, timeseries, baseline candidates) |
 | GET | `/api/v1/agent/:agentName/usage` | Session/API Key | Per-agent token usage |
 | GET | `/api/v1/agent/:agentName/costs` | Session/API Key | Per-agent cost data |
 | GET/POST/PATCH/DELETE | `/api/v1/notifications/*` | Session/API Key | Notification rules CRUD + email provider config |
-| GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*` | Session/API Key | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, etc.) |
+| GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*` | Session/API Key | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, seen-headers, etc.) |
 | POST | `/api/v1/routing/ollama/sync` | Session/API Key | Sync Ollama models |
-| GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows (Gemini, OpenAI, Kiro, MiniMax) |
+| GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows — see `routing/oauth/` for the current provider list |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
 | POST | `/api/v1/routing/subscription-providers` | Bearer (mnfst_*) | Subscription provider config |
 | GET | `/api/v1/setup/status` | Public | First-run setup status |
 | POST | `/api/v1/setup/admin` | Public | Create initial admin user |
 | GET | `/api/v1/public/*` | Public (opt-in) | Aggregate public stats (controlled by `MANIFEST_PUBLIC_STATS`) |
+| GET | `/api/v1/public/error-pages*` | Public | Curated error-page content (published by the Peacock CMS) |
+| GET/POST/DELETE | `/api/v1/internal/error-pages/*` | Shared secret (`x-internal-secret`) | CMS push endpoint for publishing/unpublishing error pages |
+| GET/POST | `/api/v1/waitlist/autofix` | Session/API Key | Autofix feature waitlist signup |
+| POST | `/api/v1/waitlist/autofix/claim` | Public | Claim a waitlist invite |
 | GET | `/v1/models` | Bearer (mnfst_*) | Available model list (proxy) |
 | POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
 | POST | `/v1/responses` | Bearer (mnfst_*) | LLM proxy (OpenAI Responses API) |
@@ -375,7 +384,10 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `API_KEY` — Secret for programmatic API access (X-API-Key header).
 - `THROTTLE_TTL` — Rate limit window in ms. Default: `60000`
 - `THROTTLE_LIMIT` — Max requests per window. Default: `100`
-- `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `20`
+- `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `30`
+- `DB_TUNE_SESSION` — Set `false` to skip applying PgBouncer-safe planner defaults (jit off, larger work_mem) at boot via `ALTER ROLE`. Default: `true` (on).
+- `RUN_MIGRATIONS_ON_BOOT` — Set `false` on multi-replica deploys where a pre-deploy step migrates once over a direct connection, so replicas don't migrate concurrently over PgBouncer. Default: `true`.
+- `SHUTDOWN_DRAIN_MS` — Graceful-shutdown drain window (ms) before a production instance stops accepting traffic after SIGTERM, giving the platform edge time to deregister it. Default: `10000`. `0` disables it.
 - `PROVIDER_TIMEOUT_MS` — Per-attempt timeout (ms) for upstream provider requests. Default: `180000`
 - `STREAM_WARMUP_MS` — Timeout (ms) to wait for the first chunk of a streaming response before trying a fallback. Default: `15000`
 - `EMAIL_PROVIDER` — Unified email provider: `resend` (recommended), `mailgun`, or `sendgrid`. Used for Better Auth transactional emails and threshold alerts.
@@ -390,6 +402,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `MANIFEST_MODE` — `selfhosted` or `cloud` (default: `cloud`; auto-detected as `selfhosted` inside Docker via `/.dockerenv` or Podman via `/run/.containerenv`). Self-hosted mode enables loopback auth shortcuts and allows custom-provider URLs with `http://` / private IPs. `local` is accepted as a legacy alias for `selfhosted`.
 - `MANIFEST_TELEMETRY_DISABLED` — Set `1` to opt out of anonymous telemetry (self-hosted only).
 - `MANIFEST_PUBLIC_STATS` — Set `true` to expose `/api/v1/public/*` aggregate stats without auth (cloud-only marketing use).
+- `ERROR_PAGE_PUSH_SECRET` — Shared secret guarding `/api/v1/internal/error-pages` (the Peacock CMS push endpoint). Empty by default, which rejects all writes.
 - `OLLAMA_HOST` — Ollama endpoint for the built-in tile. Defaults to `http://localhost:11434` outside Docker and `http://host.docker.internal:11434` inside the bundled `docker/docker-compose.yml`.
 
 ## Domain Terminology
@@ -517,15 +530,15 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 
 ### Provider Registry (Single Source of Truth)
 
-All provider definitions live in `common/constants/providers.ts` (`PROVIDER_REGISTRY`). This is the **only** place to define provider IDs, display names, aliases, and OpenRouter prefix mappings. Never hardcode provider names elsewhere — always import from the registry.
+All provider definitions live in `SHARED_PROVIDERS` in `packages/shared/src/providers.ts`. This is the **only** place to define provider IDs, display names, aliases, and OpenRouter prefix mappings — both the backend (re-exported as `PROVIDER_REGISTRY` in `common/constants/providers.ts`) and the frontend (`PROVIDERS` in `services/providers.ts`) consume this one list. Never hardcode provider names elsewhere — always import from the registry.
 
-The registry exports derived maps used throughout the codebase:
+The backend re-export also exposes derived maps used throughout the codebase:
 - `PROVIDER_BY_ID` — lookup by canonical ID (e.g. `anthropic`, `gemini`)
 - `PROVIDER_BY_ID_OR_ALIAS` — lookup by ID or alias (e.g. `google` → gemini entry)
 - `OPENROUTER_PREFIX_TO_PROVIDER` — OpenRouter vendor prefix → display name (e.g. `openai` → `OpenAI`)
 - `expandProviderNames()` — expands a set of names to include aliases
 
-**Do NOT duplicate the provider list here.** Read `PROVIDER_REGISTRY` in `common/constants/providers.ts` for the current list of supported providers, their IDs, aliases, and OpenRouter prefix mappings.
+**Do NOT duplicate the provider list here.** Read `SHARED_PROVIDERS` in `packages/shared/src/providers.ts` for the current list of supported providers, their IDs, aliases, and OpenRouter prefix mappings.
 
 ### Adding a New Specificity Category
 
@@ -541,10 +554,10 @@ The `specificity_assignments` table and UI components handle new categories auto
 
 ### Adding a New Provider
 
-1. Add entry to `PROVIDER_REGISTRY` in `common/constants/providers.ts`
+1. Add entry to `SHARED_PROVIDERS` in `packages/shared/src/providers.ts`
 2. Add `FetcherConfig` in `model-discovery/provider-model-fetcher.service.ts`
 3. Add `ProviderEndpoint` in `routing/proxy/provider-endpoints.ts`
-4. Add `ProviderDef` in `frontend/src/services/providers.ts`
+4. The frontend picks up shared fields automatically; add UI-only overlay fields in `frontend/src/services/providers.ts` only if needed
 
 ### Model Discovery
 
@@ -667,5 +680,3 @@ This applies to:
 ### E2E Test Entities
 
 When adding new TypeORM entities to `database.module.ts`, also add them to the E2E test helper (`packages/backend/test/helpers.ts`) entities array. Missing entities cause `EntityMetadataNotFoundError` in services that depend on them.
-
-**Known gap (code bug):** `ReasoningContentCacheEntry` is registered in `database.module.ts` but is absent from the `entities` array in `packages/backend/test/helpers.ts`. Add it there to avoid E2E failures in services that touch that entity.
