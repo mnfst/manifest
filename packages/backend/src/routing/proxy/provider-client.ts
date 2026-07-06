@@ -47,6 +47,17 @@ export interface ForwardResult {
    * passing the inner body to the standard Google converters.
    */
   isCodeAssist?: boolean;
+  /** Internal: Anthropic synthetic tool used to emulate Responses structured output. */
+  structuredOutputToolName?: string;
+  /** Internal: original Responses text.format metadata for synthesized Responses bodies. */
+  responsesTextFormat?: Record<string, unknown>;
+}
+
+interface BuiltProviderRequest {
+  url: string;
+  headers: Record<string, string>;
+  requestBody: Record<string, unknown>;
+  structuredOutputToolName?: string;
 }
 
 const parsedProviderTimeout = Number.parseInt(process.env.PROVIDER_TIMEOUT_MS ?? '', 10);
@@ -63,6 +74,49 @@ function shouldApplyAnthropicAutomaticCacheControl(
   authType: string | undefined,
 ): boolean {
   return endpointKey === 'anthropic' && authType === 'subscription';
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function responsesTextFormat(
+  body: Record<string, unknown>,
+  apiMode: ForwardOptions['apiMode'],
+): Record<string, unknown> | undefined {
+  if (apiMode !== 'responses' || !isRecord(body.text) || !isRecord(body.text.format)) {
+    return undefined;
+  }
+
+  const format = body.text.format;
+  if (format.type === 'json_object') return { type: 'json_object' };
+  if (format.type !== 'json_schema') return undefined;
+
+  const out: Record<string, unknown> = { type: 'json_schema' };
+  if (format.name !== undefined) out.name = format.name;
+  if (format.schema !== undefined) out.schema = format.schema;
+  if (format.strict !== undefined) out.strict = format.strict;
+  if (typeof format.description === 'string' && format.description) {
+    out.description = format.description;
+  }
+  return out;
+}
+
+function isStructuredResponseFormat(responseFormat: unknown): boolean {
+  return (
+    isRecord(responseFormat) &&
+    (responseFormat.type === 'json_object' || responseFormat.type === 'json_schema')
+  );
+}
+
+function structuredOutputToolName(
+  requestSource: Record<string, unknown>,
+  requestBody: Record<string, unknown>,
+): string | undefined {
+  if (!isStructuredResponseFormat(requestSource.response_format)) return undefined;
+  const toolChoice = requestBody.tool_choice;
+  if (!isRecord(toolChoice) || toolChoice.type !== 'tool') return undefined;
+  return typeof toolChoice.name === 'string' ? toolChoice.name : undefined;
 }
 
 function buildPromptCacheKey(sessionKey: string): string {
@@ -167,6 +221,7 @@ export class ProviderClient {
     const isResponses = opts.apiMode === 'responses' && endpoint.format === 'chatgpt';
     const isChatGpt = endpoint.format === 'chatgpt' && !isResponses;
     const isCodeAssist = !!endpoint.codeAssistEnvelope;
+    const textFormat = responsesTextFormat(body, opts.apiMode);
 
     const bareModel = stripModelPrefix(model, endpointKey);
     if (endpoint.format === 'kiro') {
@@ -186,9 +241,10 @@ export class ProviderClient {
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
+        responsesTextFormat: textFormat,
       };
     }
-    const { url, headers, requestBody } = this.buildRequest({
+    const { url, headers, requestBody, structuredOutputToolName } = this.buildRequest({
       endpoint,
       endpointKey,
       provider,
@@ -240,6 +296,8 @@ export class ProviderClient {
       isChatGpt,
       isResponses,
       isCodeAssist,
+      structuredOutputToolName,
+      responsesTextFormat: textFormat,
     });
     if (affinity) this.codexAffinity.capture(affinity.storeKey, result.response);
     return result;
@@ -399,7 +457,7 @@ export class ProviderClient {
     reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
     providerResource?: string;
     sessionKey?: string;
-  }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
+  }): BuiltProviderRequest {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // For non-chat_completions inbound modes ('responses', 'messages'), the
     // routing layer pre-translated the request into chat_completions form
@@ -463,6 +521,10 @@ export class ProviderClient {
               thinkingLookup: ctx.thinkingLookup,
               thinkingRouteContext,
             });
+      const syntheticToolName =
+        ctx.apiMode === 'responses'
+          ? structuredOutputToolName(requestSource, requestBody)
+          : undefined;
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
       if (shouldApplyAnthropicAutomaticCacheControl(endpointKey, authType)) {
@@ -472,6 +534,7 @@ export class ProviderClient {
         url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
         headers: endpoint.buildHeaders(apiKey, authType),
         requestBody,
+        structuredOutputToolName: syntheticToolName,
       };
     }
 
@@ -574,6 +637,8 @@ export class ProviderClient {
       isChatGpt: boolean;
       isResponses?: boolean;
       isCodeAssist?: boolean;
+      structuredOutputToolName?: string;
+      responsesTextFormat?: Record<string, unknown>;
     },
   ): Promise<ForwardResult> {
     let fetchSignal: AbortSignal;

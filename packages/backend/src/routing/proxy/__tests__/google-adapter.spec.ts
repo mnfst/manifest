@@ -119,6 +119,136 @@ describe('Google Adapter', () => {
       });
     });
 
+    it('maps OpenAI json_schema response_format to sanitized Gemini response schema', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Return structured data' }],
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'patient_summary',
+            schema: {
+              type: 'object',
+              properties: {
+                title: { type: 'string', default: 'ignored' },
+                metadata: {
+                  type: 'object',
+                  properties: { source: { type: 'string' } },
+                  additionalProperties: false,
+                },
+              },
+              required: ['title'],
+              additionalProperties: false,
+              oneOf: [{ required: ['title'] }],
+              $ref: '#/$defs/PatientSummary',
+            },
+          },
+        },
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      expect(result.generationConfig).toEqual({
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'object',
+          properties: {
+            title: { type: 'string' },
+            metadata: {
+              type: 'object',
+              properties: { source: { type: 'string' } },
+            },
+          },
+          required: ['title'],
+        },
+      });
+    });
+
+    it('maps OpenAI json_object response_format to Gemini JSON mime type only', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Return JSON' }],
+        generationConfig: {
+          responseSchema: { type: 'object', properties: { stale: { type: 'string' } } },
+        },
+        response_format: { type: 'json_object' },
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      expect(result.generationConfig).toEqual({ responseMimeType: 'application/json' });
+    });
+
+    it('ignores unsupported OpenAI response_format types', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Return text' }],
+        generationConfig: {
+          temperature: 0.2,
+          responseSchema: { type: 'object', properties: { kept: { type: 'string' } } },
+        },
+        response_format: { type: 'text' },
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      expect(result.generationConfig).toEqual({
+        temperature: 0.2,
+        responseSchema: { type: 'object', properties: { kept: { type: 'string' } } },
+      });
+    });
+
+    it('drops stale responseSchema when json_schema metadata is malformed', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Return structured data' }],
+        generationConfig: {
+          responseSchema: { type: 'object', properties: { stale: { type: 'string' } } },
+        },
+        response_format: { type: 'json_schema', json_schema: 'not-an-object' },
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      expect(result.generationConfig).toEqual({ responseMimeType: 'application/json' });
+    });
+
+    it('drops stale responseSchema when json_schema response_format has no schema', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Return structured data' }],
+        generationConfig: {
+          responseSchema: { type: 'object', properties: { stale: { type: 'string' } } },
+        },
+        response_format: { type: 'json_schema', json_schema: { name: 'missing_schema' } },
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      expect(result.generationConfig).toEqual({ responseMimeType: 'application/json' });
+    });
+
+    it('normalizes nullable JSON Schema type arrays for Gemini response schemas', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Return structured data' }],
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'nullable_payload',
+            schema: {
+              type: 'object',
+              properties: {
+                title: { type: ['string', 'null'] },
+                score: { type: ['number', 'null'] },
+              },
+            },
+          },
+        },
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      expect(result.generationConfig).toEqual({
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', nullable: true },
+            score: { type: 'number', nullable: true },
+          },
+        },
+      });
+    });
+
     it('converts tools to functionDeclarations', () => {
       const body = {
         messages: [{ role: 'user', content: 'Search for cats' }],

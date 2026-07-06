@@ -292,6 +292,33 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
   return out.length > 0 ? out : undefined;
 }
 
+function toAnthropicOutputConfig(
+  responseFormat: unknown,
+  outputConfig: unknown,
+): Record<string, unknown> | undefined {
+  const out: Record<string, unknown> = isObjectRecord(outputConfig) ? { ...outputConfig } : {};
+  if (!isObjectRecord(responseFormat)) return Object.keys(out).length > 0 ? out : undefined;
+
+  if (responseFormat.type === 'json_object') {
+    // Anthropic has no `json_object` shorthand; use native JSON output with
+    // an unconstrained object schema instead of forcing tool use.
+    out.format = {
+      type: 'json_schema',
+      schema: { type: 'object' },
+    };
+    return out;
+  } else if (responseFormat.type === 'json_schema') {
+    const jsonSchema = isObjectRecord(responseFormat.json_schema) ? responseFormat.json_schema : {};
+    out.format = {
+      type: 'json_schema',
+      schema: jsonSchema.schema ?? { type: 'object' },
+    };
+    return out;
+  } else {
+    return Object.keys(out).length > 0 ? out : undefined;
+  }
+}
+
 /* ── Request conversion ── */
 
 export interface AnthropicRequestOptions {
@@ -338,10 +365,18 @@ export function toAnthropicRequest(
   // bypass translation entirely via applyAnthropicMessagesMutations, so
   // server tools never reach this code path and the OpenAI function-shape
   // assumption is safe.
-  const tools = convertTools(body.tools as Array<Record<string, unknown>> | undefined);
-  if (tools) {
+  const tools = convertTools(body.tools as Array<Record<string, unknown>> | undefined) ?? [];
+  if (tools.length > 0) {
     tools[tools.length - 1].cache_control = CACHE;
     result.tools = tools;
+  }
+
+  const outputConfig = toAnthropicOutputConfig(body.response_format, body.output_config);
+  if (outputConfig) {
+    result.output_config = normalizeOutputConfigForModel(
+      outputConfig,
+      options?.targetModel ?? _model,
+    );
   }
 
   if (body.temperature !== undefined) result.temperature = body.temperature;

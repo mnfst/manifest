@@ -231,6 +231,133 @@ describe('Anthropic Adapter', () => {
       expect(tools[1].cache_control).toEqual({ type: 'ephemeral' });
     });
 
+    it('maps json_schema response_format to native Anthropic output_config', () => {
+      const schema = {
+        type: 'object',
+        properties: { summary: { type: 'string' } },
+        required: ['summary'],
+        additionalProperties: false,
+      };
+      const body = {
+        messages: [{ role: 'user', content: 'Summarize the visit.' }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'lookup_patient',
+              parameters: { type: 'object', properties: { id: { type: 'string' } } },
+            },
+          },
+        ],
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'patient_summary',
+            description: 'Patient summary payload',
+            schema,
+            strict: true,
+          },
+        },
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+
+      expect(result.tool_choice).toBeUndefined();
+      expect(result.output_config).toEqual({
+        format: { type: 'json_schema', schema },
+      });
+      expect(result.tools).toEqual([
+        {
+          name: 'lookup_patient',
+          input_schema: { type: 'object', properties: { id: { type: 'string' } } },
+          cache_control: { type: 'ephemeral' },
+        },
+      ]);
+    });
+
+    it('uses default schema details when json_schema response_format is incomplete', () => {
+      const result = toAnthropicRequest(
+        {
+          messages: [{ role: 'user', content: 'Return structured data.' }],
+          response_format: { type: 'json_schema' },
+        },
+        'claude-sonnet-4-20250514',
+      );
+
+      expect(result.tool_choice).toBeUndefined();
+      expect(result.tools).toBeUndefined();
+      expect(result.output_config).toEqual({
+        format: { type: 'json_schema', schema: { type: 'object' } },
+      });
+    });
+
+    it('maps json_object response_format to native Anthropic object output', () => {
+      const result = toAnthropicRequest(
+        {
+          messages: [{ role: 'user', content: 'Return JSON.' }],
+          tools: [
+            {
+              type: 'function',
+              function: {
+                name: 'structured_output',
+                parameters: { type: 'object' },
+              },
+            },
+          ],
+          response_format: { type: 'json_object' },
+        },
+        'claude-sonnet-4-20250514',
+      );
+
+      expect(result.tool_choice).toBeUndefined();
+      expect(result.output_config).toEqual({
+        format: {
+          type: 'json_schema',
+          schema: { type: 'object' },
+        },
+      });
+      expect(result.tools).toEqual([
+        {
+          name: 'structured_output',
+          input_schema: { type: 'object' },
+          cache_control: { type: 'ephemeral' },
+        },
+      ]);
+    });
+
+    it('does not add output_config for unsupported response_format types', () => {
+      const result = toAnthropicRequest(
+        {
+          messages: [{ role: 'user', content: 'Return text.' }],
+          response_format: { type: 'text' },
+        },
+        'claude-sonnet-4-20250514',
+      );
+
+      expect(result.tool_choice).toBeUndefined();
+      expect(result.tools).toBeUndefined();
+      expect(result.output_config).toBeUndefined();
+    });
+
+    it('preserves thinking when native structured output is requested', () => {
+      const result = toAnthropicRequest(
+        {
+          messages: [{ role: 'user', content: 'Return JSON.' }],
+          thinking: { type: 'enabled', budget_tokens: 1024 },
+          response_format: { type: 'json_object' },
+        },
+        'claude-sonnet-4-20250514',
+      );
+
+      expect(result.tool_choice).toBeUndefined();
+      expect(result.output_config).toEqual({
+        format: {
+          type: 'json_schema',
+          schema: { type: 'object' },
+        },
+      });
+      expect(result.thinking).toEqual({ type: 'enabled', budget_tokens: 1024 });
+    });
+
     it('converts tool_calls in assistant messages to tool_use blocks', () => {
       const body = {
         messages: [
