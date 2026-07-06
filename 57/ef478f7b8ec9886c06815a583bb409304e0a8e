@@ -4,6 +4,7 @@ packages/backend/src/billing/billing-usage-email.service.spec.ts
 packages/frontend/src/services/api/billing.ts
   s_756ad5e3766555::t_31965066ab6029 2,6,14-22
   s_ccf960d0f5824b::t_7ac8136b4897dd 23
+  s_756ad5e3766555::t_9fc3fd7c44e88a 1
 packages/shared/src/index.ts
   s_756ad5e3766555::t_867259c8e42afd 146
 packages/backend/src/billing/billing.controller.ts
@@ -23,12 +24,14 @@ packages/frontend/tests/pages/Account.test.tsx
   s_756ad5e3766555::t_a85935b03c7e17 39-40,42,47,55,60,74,78,80,86,88,89,94,96,100,108,110-112,115,117,120,122-123,126,128-129,132,134-136,139,141,144,146,149,151,154,156,159,161,164,166-167,170,172-173,176-177,179-180,183,185,187,190-191,194,197-198,201-203,206,209-212,213,215,218,222-237,239-255,256,263,266,270,280,294,302,377,381,389,393
   s_756ad5e3766555::t_e347c0235dc4e2 238
   s_756ad5e3766555::t_ad62616e7e3871 1-2,12,17,25,28,262,273,296,301,303,308,310,312,316,322,326,330,338,343,347-349,354,358,361,364-365,366,375,388,390,394,396,398
+  s_756ad5e3766555::t_b8ee7e1c882a13 216
 packages/backend/src/database/migrations/1798300000000-AddBillingEmailPreferences.ts
   s_756ad5e3766555::t_31d71d983b9cf9 1-21
 packages/backend/src/database/migrations/1798300000000-AddBillingEmailPreferences.spec.ts
   s_756ad5e3766555::t_f6b0721d0c8af2 1-40
 packages/frontend/tests/services/api/billing.test.ts
   s_756ad5e3766555::t_ee321614e7e63a 7,9,14,17-18,24,32,48,58,75-87
+  s_756ad5e3766555::t_bde2059d1d1b35 64,74
 packages/backend/src/entities/tenant.entity.spec.ts
   s_756ad5e3766555::t_1088f13e2cbc3e 43-51
 packages/frontend/src/styles/agents.css
@@ -45,6 +48,7 @@ packages/backend/src/billing/billing.controller.spec.ts
 packages/frontend/src/pages/Account.tsx
   s_756ad5e3766555::t_b2e02dc30a4f76 1-8,12,23-24,30-34,116-131,179,320-350
   s_756ad5e3766555::t_910117b354bf7f 351-357
+  s_756ad5e3766555::t_ea3a74f1b9b495 20
 packages/backend/src/entities/tenant.entity.ts
   s_756ad5e3766555::t_bf082453aa94da 4,42-43
   s_ccf960d0f5824b::t_a90584d8d8cf14 44
