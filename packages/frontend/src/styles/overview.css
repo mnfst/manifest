@@ -171,11 +171,15 @@
   text-align: center;
 }
 
-.overview-social-banner__links {
-  display: flex;
-  align-items: stretch;
-  flex: 0 0 auto;
-  border-left: 1px solid hsl(var(--border));
+.overview-social-banner__read-more {
+  margin-left: 0.3em;
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.overview-social-banner__read-more:hover {
+  opacity: 0.8;
 }
 
 @media (max-width: 768px) {

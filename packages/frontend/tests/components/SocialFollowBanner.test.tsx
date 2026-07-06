@@ -10,36 +10,30 @@ describe('SocialFollowBanner', () => {
     window.localStorage.clear();
   });
 
-  it('renders the compact follow message and community links', () => {
+  it('renders the paid plans announcement with a read-more link', () => {
     const { container } = render(() => <SocialFollowBanner />);
 
     expect(container.querySelector('.overview-social-banner')).not.toBeNull();
     expect(
-      screen.getByText(
-        'Follow Manifest to stay informed about the latest models and available features',
-      ),
+      screen.getByText(/Introducing Self-healing requests and paid plans for Manifest Cloud/),
     ).toBeDefined();
 
-    const x = screen.getByLabelText('Manifest on X') as HTMLAnchorElement;
-    const linkedIn = screen.getByLabelText('Manifest on LinkedIn') as HTMLAnchorElement;
-    const youtube = screen.getByLabelText('Manifest on YouTube') as HTMLAnchorElement;
-
-    expect(x.getAttribute('href')).toBe('https://x.com/Manifestforai');
-    expect(linkedIn.getAttribute('href')).toBe(
-      'https://www.linkedin.com/company/manifest-for-agents/',
+    const readMore = screen.getByText('Read more') as HTMLAnchorElement;
+    expect(readMore.getAttribute('href')).toBe(
+      'https://manifest.build/blog/introducing-paid-plans/',
     );
-    expect(youtube.getAttribute('href')).toBe('https://www.youtube.com/@Manifest-for-AI');
-    expect(x.getAttribute('target')).toBe('_blank');
-    expect(linkedIn.getAttribute('rel')).toBe('noopener noreferrer');
+    expect(readMore.getAttribute('target')).toBe('_blank');
+    expect(readMore.getAttribute('rel')).toBe('noopener noreferrer');
+
     expect(container.querySelector('.overview-social-banner__inner')?.lastElementChild).toBe(
-      screen.getByLabelText('Dismiss social follow banner'),
+      screen.getByLabelText('Dismiss banner'),
     );
   });
 
   it('dismisses and persists the hidden state', async () => {
     const { container, unmount } = render(() => <SocialFollowBanner />);
 
-    await fireEvent.click(screen.getByLabelText('Dismiss social follow banner'));
+    await fireEvent.click(screen.getByLabelText('Dismiss banner'));
 
     expect(container.querySelector('.overview-social-banner')).toBeNull();
     expect(window.localStorage.getItem(SOCIAL_FOLLOW_DISMISSED_KEY)).toBe('true');
@@ -56,7 +50,7 @@ describe('SocialFollowBanner', () => {
 
     const { container } = render(() => <SocialFollowBanner />);
 
-    await fireEvent.click(screen.getByLabelText('Dismiss social follow banner'));
+    await fireEvent.click(screen.getByLabelText('Dismiss banner'));
 
     expect(container.querySelector('.overview-social-banner')).toBeNull();
   });
