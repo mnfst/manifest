@@ -338,6 +338,17 @@
   flex-shrink: 0;
 }
 
+.account-email-toggle--disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.account-email-footer {
+  justify-content: flex-start;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
 @media (max-width: 640px) {
   .billing-stats {
     flex-direction: column;

@@ -28,7 +28,14 @@ describe('BillingUsageEmailService', () => {
     tryInsert = jest.fn().mockResolvedValue(true);
     sendPlanUsageEmail = jest.fn().mockResolvedValue(true);
     dataSourceQuery = jest.fn(() => {
-      return Promise.resolve([{ email: 'owner@example.com', name: 'Ada', user_id: 'u1' }]);
+      return Promise.resolve([
+        {
+          email: 'owner@example.com',
+          name: 'Ada',
+          user_id: 'u1',
+          billing_email_preferences: null,
+        },
+      ]);
     });
     service = new BillingUsageEmailService(
       { all: jest.fn() } as unknown as IngestEventBusService,
@@ -150,6 +157,22 @@ describe('BillingUsageEmailService', () => {
     expect(sendPlanUsageEmail).not.toHaveBeenCalled();
     expect(tryInsert).not.toHaveBeenCalled();
     warn.mockRestore();
+  });
+
+  it('does not send or write the dedupe log when usage alerts are disabled', async () => {
+    dataSourceQuery.mockResolvedValueOnce([
+      {
+        email: 'owner@example.com',
+        name: 'Ada',
+        user_id: 'u1',
+        billing_email_preferences: { usageAlerts: false },
+      },
+    ]);
+
+    await expect(service.checkTenantUsage('t1')).resolves.toBe(false);
+
+    expect(sendPlanUsageEmail).not.toHaveBeenCalled();
+    expect(tryInsert).not.toHaveBeenCalled();
   });
 
   it('does not write the dedupe log when sending fails', async () => {

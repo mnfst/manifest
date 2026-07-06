@@ -36,8 +36,10 @@ vi.mock('../../src/services/auth-client.js', () => ({
 }));
 
 const mockGetBillingStatus = vi.fn();
+const mockUpdateBillingEmailPreferences = vi.fn();
 vi.mock('../../src/services/api/billing.js', () => ({
   getBillingStatus: (...a: unknown[]) => mockGetBillingStatus(...a),
+  updateBillingEmailPreferences: (...a: unknown[]) => mockUpdateBillingEmailPreferences(...a),
 }));
 
 const mockToastSuccess = vi.fn();
@@ -75,6 +77,7 @@ const disabledStatus = {
   enabled: false,
   plan: 'free' as const,
   priceMonthlyUsd: null,
+  emailPreferences: { usageAlerts: true },
   requests: { used: 0, limit: 10_000, periodEnd: null },
 };
 
@@ -82,6 +85,7 @@ const freeStatus = {
   enabled: true,
   plan: 'free' as const,
   priceMonthlyUsd: 20,
+  emailPreferences: { usageAlerts: true },
   requests: { used: 120, limit: 10_000, periodEnd: '2026-08-01T00:00:00.000Z' },
 };
 
@@ -89,6 +93,7 @@ const proStatus = {
   enabled: true,
   plan: 'pro' as const,
   priceMonthlyUsd: 20,
+  emailPreferences: { usageAlerts: true },
   requests: { used: null, limit: null, periodEnd: null },
 };
 
@@ -100,6 +105,7 @@ describe('Account', () => {
     localStorage.clear();
     for (const key of Object.keys(searchParamsState)) delete searchParamsState[key];
     mockGetBillingStatus.mockResolvedValue(disabledStatus);
+    mockUpdateBillingEmailPreferences.mockResolvedValue({ usageAlerts: true });
     mockUpgrade.mockResolvedValue(undefined);
     mockBillingPortal.mockResolvedValue({ data: { url: 'https://billing.stripe.com/session' } });
     fakeTab = { location: { href: '' }, opener: {}, close: vi.fn() };
@@ -193,6 +199,7 @@ describe('Account', () => {
       const { container } = render(() => <Account />);
       await waitFor(() => expect(mockGetBillingStatus).toHaveBeenCalled());
       expect(screen.queryByText('Billing')).toBeNull();
+      expect(screen.queryByText('Email preferences')).toBeNull();
       expect(container.querySelector('#billing')).toBeNull();
     });
 
@@ -205,9 +212,47 @@ describe('Account', () => {
       expect(screen.getByText('Free')).toBeDefined();
       expect(screen.getByText('120 / 10,000')).toBeDefined();
       expect(screen.getByText(/Resets/)).toBeDefined();
+      expect(screen.getByText('Email preferences')).toBeDefined();
+      expect(
+        (screen.getByLabelText('Receive usage alert emails') as HTMLInputElement).checked,
+      ).toBe(true);
       expect(screen.getByText('Free: 10,000 requests/mo · Pro: unlimited requests')).toBeDefined();
     });
 
+    it('saves usage alert email preferences', async () => {
+      mockGetBillingStatus
+        .mockResolvedValueOnce(freeStatus)
+        .mockResolvedValue({ ...freeStatus, emailPreferences: { usageAlerts: false } });
+      mockUpdateBillingEmailPreferences.mockResolvedValue({ usageAlerts: false });
+      render(() => <Account />);
+      const checkbox = (await screen.findByLabelText(
+        'Receive usage alert emails',
+      )) as HTMLInputElement;
+
+      fireEvent.click(checkbox);
+
+      await waitFor(() =>
+        expect(mockUpdateBillingEmailPreferences).toHaveBeenCalledWith({ usageAlerts: false }),
+      );
+      await waitFor(() => expect(mockToastSuccess).toHaveBeenCalledWith('Email preferences saved'));
+      await waitFor(() => expect(checkbox.checked).toBe(false));
+    });
+
+    it('restores the usage alert toggle when saving fails', async () => {
+      mockGetBillingStatus.mockResolvedValue(freeStatus);
+      mockUpdateBillingEmailPreferences.mockRejectedValue(new Error('network'));
+      render(() => <Account />);
+      const checkbox = (await screen.findByLabelText(
+        'Receive usage alert emails',
+      )) as HTMLInputElement;
+
+      fireEvent.click(checkbox);
+
+      await waitFor(() =>
+        expect(mockUpdateBillingEmailPreferences).toHaveBeenCalledWith({ usageAlerts: false }),
+      );
+      await waitFor(() => expect(checkbox.checked).toBe(true));
+    });
     it('falls back to the included label when a limited plan has no usage count yet', async () => {
       mockGetBillingStatus.mockResolvedValue({
         ...freeStatus,

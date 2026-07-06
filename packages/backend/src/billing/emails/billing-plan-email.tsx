@@ -62,6 +62,10 @@ function accountUrl(appUrl: string): string {
   return `${appUrl.replace(/\/+$/, '')}/account`;
 }
 
+function emailPreferencesUrl(appUrl: string): string {
+  return `${accountUrl(appUrl)}#email-preferences`;
+}
+
 function subscriptionCopy(props: SubscriptionPlanEmailProps): {
   preview: string;
   badge: string;
@@ -155,7 +159,7 @@ export function SubscriptionPlanEmail(props: SubscriptionPlanEmailProps) {
             </Text>
           </Section>
 
-          <Footer />
+          <Footer preferencesUrl={emailPreferencesUrl(props.appUrl)} />
         </Container>
       </Body>
     </Html>
@@ -211,19 +215,23 @@ export function PlanUsageEmail(props: PlanUsageEmailProps) {
             </Section>
           </Section>
 
-          <Footer />
+          <Footer preferencesUrl={emailPreferencesUrl(props.appUrl)} />
         </Container>
       </Body>
     </Html>
   );
 }
 
-function Footer() {
+function Footer(props: { preferencesUrl: string }) {
   return (
     <>
       <Hr style={divider} />
       <Section style={footer}>
         <Text style={footerMuted}>
+          <Link href={props.preferencesUrl} style={footerLink}>
+            Manage email preferences
+          </Link>
+          {' · '}
           (c) 2026 MNFST Inc.{' '}
           <Link href="https://manifest.build" style={footerLink}>
             manifest.build

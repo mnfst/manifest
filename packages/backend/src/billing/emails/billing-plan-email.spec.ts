@@ -15,6 +15,7 @@ describe('billing plan emails', () => {
 
     expect(html).not.toMatch(/<img src=x/);
     expect(html).toContain('&lt;img src=x');
+    expect(html).toContain('href="https://app.manifest.build/account#email-preferences"');
   });
 
   it('renders plan-change subscription copy', () => {
@@ -78,6 +79,7 @@ describe('billing plan emails', () => {
     );
 
     expect(html).toContain('href="https://app.manifest.build/account"');
+    expect(html).toContain('href="https://app.manifest.build/account#email-preferences"');
     expect(html).not.toContain('https://app.manifest.build//account');
   });
 });

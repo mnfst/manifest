@@ -15,9 +15,14 @@ export const PLAN_LIMITS: Readonly<Record<Plan, PlanLimits>> = {
 
 export const UNLIMITED_PLAN_LIMITS: PlanLimits = { requestsPerMonth: null };
 
+export interface BillingEmailPreferences {
+  usageAlerts: boolean;
+}
+
 export interface BillingStatus {
   enabled: boolean;
   plan: Plan;
   priceMonthlyUsd: number | null;
+  emailPreferences: BillingEmailPreferences;
   requests: { used: number | null; limit: number | null; periodEnd: string | null };
 }

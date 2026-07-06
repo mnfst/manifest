@@ -143,4 +143,4 @@ export type {
   PlaygroundHistoryRunDetail,
 } from './playground';
 export { PLANS, PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from './plan-limits';
-export type { Plan, PlanLimits, BillingStatus } from './plan-limits';
+export type { Plan, PlanLimits, BillingEmailPreferences, BillingStatus } from './plan-limits';

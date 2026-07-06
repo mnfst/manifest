@@ -9,6 +9,7 @@ import * as billingConfig from './billing.config';
 describe('PlanService', () => {
   let service: PlanService;
   let mockTenantFindOne: jest.Mock;
+  let mockTenantUpdate: jest.Mock;
   let mockQuery: jest.Mock;
   const saved = { ...process.env };
   const CTX = { tenantId: 't1', userId: 'u1' };
@@ -26,11 +27,15 @@ describe('PlanService', () => {
     process.env = { ...saved };
     jest.restoreAllMocks();
     mockTenantFindOne = jest.fn().mockResolvedValue(null);
+    mockTenantUpdate = jest.fn().mockResolvedValue({ affected: 1 });
     mockQuery = jest.fn().mockResolvedValue([]);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PlanService,
-        { provide: getRepositoryToken(Tenant), useValue: { findOne: mockTenantFindOne } },
+        {
+          provide: getRepositoryToken(Tenant),
+          useValue: { findOne: mockTenantFindOne, update: mockTenantUpdate },
+        },
         { provide: DataSource, useValue: { query: mockQuery } },
       ],
     }).compile();
@@ -137,10 +142,52 @@ describe('PlanService', () => {
       expect(status).toMatchObject({
         enabled: true,
         plan: 'free',
+        emailPreferences: { usageAlerts: true },
         requests: { used: 42, limit: 10_000 },
       });
       // periodEnd is the 1st of next month at midnight UTC.
       expect(status.requests.periodEnd).toMatch(/^\d{4}-\d{2}-01T00:00:00\.000Z$/);
+    });
+  });
+
+  describe('billing email preferences', () => {
+    it('defaults usage alerts on when no tenant preference is stored', async () => {
+      mockTenantFindOne.mockResolvedValue(TENANT);
+
+      await expect(service.getBillingEmailPreferences(CTX)).resolves.toEqual({
+        usageAlerts: true,
+      });
+    });
+
+    it('reads stored usage alert opt-outs', async () => {
+      mockTenantFindOne.mockResolvedValue({
+        ...TENANT,
+        billing_email_preferences: { usageAlerts: false },
+      });
+
+      await expect(service.getBillingEmailPreferences(CTX)).resolves.toEqual({
+        usageAlerts: false,
+      });
+    });
+
+    it('updates tenant billing email preferences', async () => {
+      await expect(
+        service.updateBillingEmailPreferences(CTX, { usageAlerts: false }),
+      ).resolves.toEqual({
+        usageAlerts: false,
+      });
+
+      expect(mockTenantUpdate).toHaveBeenCalledWith(
+        { id: 't1' },
+        { billing_email_preferences: { usageAlerts: false } },
+      );
+    });
+
+    it('rejects updates before a workspace exists', async () => {
+      await expect(
+        service.updateBillingEmailPreferences(FRESH_CTX, { usageAlerts: false }),
+      ).rejects.toThrow('A workspace is required');
+      expect(mockTenantUpdate).not.toHaveBeenCalled();
     });
   });
 

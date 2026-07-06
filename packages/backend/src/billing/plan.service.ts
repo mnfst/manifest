@@ -1,11 +1,15 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
-import type { BillingStatus, Plan, PlanLimits } from 'manifest-shared';
+import type { BillingEmailPreferences, BillingStatus, Plan, PlanLimits } from 'manifest-shared';
 import { Tenant } from '../entities/tenant.entity';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { getStripeClient, isBillingEnabled } from './billing.config';
+import {
+  DEFAULT_BILLING_EMAIL_PREFERENCES,
+  normalizeBillingEmailPreferences,
+} from './billing-email-preferences';
 
 const PRICE_CACHE_TTL_MS = 60 * 60 * 1000;
 // Short TTL keeps the hot proxy path O(1) between refreshes. Staleness is
@@ -242,11 +246,16 @@ export class PlanService {
   }
 
   async getBillingStatus(ctx: TenantContext): Promise<BillingStatus> {
-    if (!isBillingEnabled()) {
+    const billingEnabled = isBillingEnabled();
+    const emailPreferences = billingEnabled
+      ? await this.getBillingEmailPreferences(ctx)
+      : DEFAULT_BILLING_EMAIL_PREFERENCES;
+    if (!billingEnabled) {
       return {
         enabled: false,
         plan: 'free',
         priceMonthlyUsd: null,
+        emailPreferences,
         requests: { used: null, limit: null, periodEnd: null },
       };
     }
@@ -260,12 +269,31 @@ export class PlanService {
       enabled: true,
       plan,
       priceMonthlyUsd: await this.getProPriceUsd(),
+      emailPreferences,
       requests: {
         used: requestsUsed,
         limit: limits.requestsPerMonth,
         periodEnd: this.nextMonthStartUtc(now).toISOString(),
       },
     };
+  }
+
+  async getBillingEmailPreferences(ctx: TenantContext): Promise<BillingEmailPreferences> {
+    if (!ctx.tenantId) return DEFAULT_BILLING_EMAIL_PREFERENCES;
+    const tenant = await this.findTenant(ctx);
+    return normalizeBillingEmailPreferences(tenant?.billing_email_preferences);
+  }
+
+  async updateBillingEmailPreferences(
+    ctx: TenantContext,
+    preferences: BillingEmailPreferences,
+  ): Promise<BillingEmailPreferences> {
+    if (!ctx.tenantId) {
+      throw new BadRequestException('A workspace is required to update billing email preferences.');
+    }
+    const normalized = normalizeBillingEmailPreferences(preferences);
+    await this.tenantRepo.update({ id: ctx.tenantId }, { billing_email_preferences: normalized });
+    return normalized;
   }
 
   /** Display price for the Pro plan, cached; never lets a Stripe outage break the endpoint. */

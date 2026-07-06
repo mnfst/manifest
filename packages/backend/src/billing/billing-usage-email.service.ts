@@ -6,6 +6,7 @@ import { isBillingEnabled } from './billing.config';
 import { PlanService } from './plan.service';
 import { BillingEmailLogService } from './billing-email-log.service';
 import { BillingEmailService } from './billing-email.service';
+import { normalizeBillingEmailPreferences } from './billing-email-preferences';
 
 const REQUEST_WARNING_RATIO = 0.8;
 
@@ -13,6 +14,7 @@ interface BillingRecipient {
   email: string | null;
   name: string | null;
   user_id: string | null;
+  billing_email_preferences: unknown;
 }
 
 @Injectable()
@@ -66,6 +68,9 @@ export class BillingUsageEmailService implements OnModuleInit, OnModuleDestroy {
       this.logger.warn(`No billing email recipient found for tenant ${tenantId}`);
       return false;
     }
+    if (!normalizeBillingEmailPreferences(recipient.billing_email_preferences).usageAlerts) {
+      return false;
+    }
 
     const sent = await this.emails.sendPlanUsageEmail(recipient.email, {
       kind,
@@ -101,7 +106,8 @@ export class BillingUsageEmailService implements OnModuleInit, OnModuleDestroy {
     const rows: BillingRecipient[] = await this.dataSource.query(
       `SELECT COALESCE(u.email, t.email) AS email,
               COALESCE(NULLIF(u.name, ''), NULLIF(t.organization_name, '')) AS name,
-              t.owner_user_id AS user_id
+              t.owner_user_id AS user_id,
+              t.billing_email_preferences AS billing_email_preferences
          FROM tenants t
          LEFT JOIN "user" u ON u.id = t.owner_user_id
         WHERE t.id = $1`,

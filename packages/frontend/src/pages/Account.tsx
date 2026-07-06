@@ -1,8 +1,15 @@
-import { createResource, createSignal, onMount, Show, type Component } from 'solid-js';
+import {
+  createEffect,
+  createResource,
+  createSignal,
+  onMount,
+  Show,
+  type Component,
+} from 'solid-js';
 import { useNavigate, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import { authClient } from '../services/auth-client.js';
-import { getBillingStatus } from '../services/api/billing.js';
+import { getBillingStatus, updateBillingEmailPreferences } from '../services/api/billing.js';
 import { toast } from '../services/toast-store.js';
 
 const Account: Component = () => {
@@ -10,13 +17,20 @@ const Account: Component = () => {
   const session = authClient.useSession();
   const [copied, setCopied] = createSignal(false);
   const [theme, setTheme] = createSignal<'light' | 'dark' | 'system'>('system');
-  const [billing] = createResource(() => getBillingStatus());
+  const [billing, { refetch: refetchBilling }] = createResource(() => getBillingStatus());
   const [searchParams, setSearchParams] = useSearchParams();
   const [billingBusy, setBillingBusy] = createSignal(false);
+  const [emailPrefsBusy, setEmailPrefsBusy] = createSignal(false);
+  const [usageAlertsEnabled, setUsageAlertsEnabled] = createSignal(true);
 
   const userName = () => session()?.data?.user?.name ?? '';
   const userEmail = () => session()?.data?.user?.email ?? '';
   const userId = () => session()?.data?.user?.id ?? '';
+
+  createEffect(() => {
+    const prefs = billing()?.emailPreferences;
+    if (prefs) setUsageAlertsEnabled(prefs.usageAlerts);
+  });
 
   onMount(() => {
     const stored = localStorage.getItem('theme');
@@ -99,6 +113,22 @@ const Account: Component = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleUsageAlertsChange = async (enabled: boolean) => {
+    const previous = usageAlertsEnabled();
+    setUsageAlertsEnabled(enabled);
+    setEmailPrefsBusy(true);
+    try {
+      const saved = await updateBillingEmailPreferences({ usageAlerts: enabled });
+      setUsageAlertsEnabled(saved.usageAlerts);
+      await refetchBilling();
+      toast.success('Email preferences saved');
+    } catch {
+      setUsageAlertsEnabled(previous);
+    } finally {
+      setEmailPrefsBusy(false);
+    }
+  };
+
   return (
     <div class="account-modal">
       <Title>Account Preferences - Manifest</Title>
@@ -146,9 +176,7 @@ const Account: Component = () => {
           <div class="settings-card__row">
             <div class="settings-card__label">
               <span class="settings-card__label-title">Email</span>
-              <span class="settings-card__label-desc">
-                Used for account notifications and limit alerts.
-              </span>
+              <span class="settings-card__label-desc">Used for account notifications.</span>
             </div>
             <div class="settings-card__control">
               <input
@@ -285,6 +313,44 @@ const Account: Component = () => {
                   {billing()!.priceMonthlyUsd != null ? ` · $${billing()!.priceMonthlyUsd}/mo` : ''}
                 </button>
               </Show>
+            </div>
+          </div>
+        </Show>
+
+        {/* Email Preferences */}
+        <Show when={billing()?.enabled}>
+          <h2 class="settings-section__title" id="email-preferences">
+            Email preferences
+          </h2>
+
+          <div class="settings-card">
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Usage alert emails</span>
+                <span class="settings-card__label-desc">
+                  Receive emails at 80% usage and when the monthly request limit is reached.
+                </span>
+              </div>
+              <div class="settings-card__control settings-card__control--end">
+                <label
+                  class="notification-toggle account-email-toggle"
+                  classList={{ 'account-email-toggle--disabled': emailPrefsBusy() }}
+                  title="Usage alert emails"
+                >
+                  <input
+                    type="checkbox"
+                    checked={usageAlertsEnabled()}
+                    disabled={emailPrefsBusy()}
+                    onChange={(e) => void handleUsageAlertsChange(e.currentTarget.checked)}
+                  />
+                  <span class="notification-toggle__slider" aria-hidden="true" />
+                  <span class="sr-only">Receive usage alert emails</span>
+                </label>
+              </div>
+            </div>
+            <div class="settings-card__footer account-email-footer">
+              Plan confirmations, plan changes, and cancellation confirmations remain on as billing
+              lifecycle emails.
             </div>
           </div>
         </Show>
