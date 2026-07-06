@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('autofix_waitlist_signups')
-export class AutofixWaitlistSignup {
+@Entity('waitlist_claims')
+export class WaitlistClaim {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
@@ -12,5 +12,5 @@ export class AutofixWaitlistSignup {
   source!: string;
 
   @Column('timestamp with time zone', { default: () => 'now()' })
-  signed_up_at!: string;
+  claimed_at!: string;
 }

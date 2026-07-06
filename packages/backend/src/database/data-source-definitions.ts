@@ -24,7 +24,8 @@ import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { PublicErrorPage } from '../entities/public-error-page.entity';
-import { AutofixWaitlistSignup } from '../entities/autofix-waitlist-signup.entity';
+import { WaitlistClaim } from '../entities/waitlist-claim.entity';
+import { RenameWaitlistClaimsTable1800000000000 } from './migrations/1800000000000-RenameWaitlistClaimsTable';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
 import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
@@ -156,7 +157,7 @@ export const entities = [
   AgentEnabledProvider,
   BackfillState,
   PublicErrorPage,
-  AutofixWaitlistSignup,
+  WaitlistClaim,
 ];
 
 export const migrations = [
@@ -268,4 +269,5 @@ export const migrations = [
   AddPublicErrorPages1797000000000,
   AddErrorClassification1798000000000,
   AddAutofixWaitlistSignups1799000000000,
+  RenameWaitlistClaimsTable1800000000000,
 ];
