@@ -1,0 +1,44 @@
+.changeset/structured-output-responses.md
+  s_0554affd089e95::t_900e1d84d0b2fd 1-4
+packages/backend/src/routing/proxy/__tests__/google-adapter.spec.ts
+  s_0554affd089e95::t_fb552b5e722494 178-190
+  s_0554affd089e95::t_0dd3631bbd1854 122-177
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_0554affd089e95::t_cd07827092031d 234-308
+  s_0554affd089e95::t_fc5fd8394e745e 309-354
+packages/backend/src/routing/proxy/__tests__/responses-adapter.spec.ts
+  s_0554affd089e95::t_ce523a2a289577 92-147
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_0554affd089e95::t_d2984bfd7df6ea 36-40,45,301-350,397-406
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_0554affd089e95::t_185192312a386a 54-74
+packages/backend/src/routing/proxy/google-adapter.ts
+  s_0554affd089e95::t_466f94e053fa5f 276-301,368
+packages/backend/src/routing/proxy/responses-adapter.ts
+  s_0554affd089e95::t_770332fa953fa8 113-114,121-137
+  s_74238b73c97dad::t_8b80aa287e90ed 138-139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "090ab248e139a8b7fb8e9f311369effcc64bd764",
+  "prompts": {},
+  "sessions": {
+    "s_0554affd089e95": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3665-b81a-7ce2-826c-ac10a5483490",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_74238b73c97dad": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f332a-27dd-7b72-b744-40938a5f8c13",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
