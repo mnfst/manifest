@@ -215,6 +215,13 @@ Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test onl
 
 Seeding is idempotent — it checks for existing records before inserting.
 
+**Dev-login shortcut:** when running under the Vite dev server the login page shows a
+prominent one-click **⚡ Sign in as dev** button that submits the seeded
+`admin@manifest.build` / `manifest` credentials — no copy-paste. It's gated by
+`import.meta.env.DEV`, so Vite strips the button and the credential literals from
+production builds, and no password ever rides in a URL. See
+`packages/frontend/src/pages/Login.tsx`.
+
 **Minimal `.env` for development:**
 
 ```env
