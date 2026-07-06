@@ -118,7 +118,7 @@ function stripModelPrefix(model: string, endpointKey: string): string {
     endpointKey === 'kilo' ||
     endpointKey === 'nous' ||
     endpointKey === 'nvidia' ||
-    endpointKey === 'cline-pass'
+    endpointKey === 'cline-pass' ||
     endpointKey === 'ollama' ||
     endpointKey === 'ollama-cloud' ||
     endpointKey === 'pioneer'

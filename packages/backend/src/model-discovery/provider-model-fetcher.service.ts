@@ -24,7 +24,7 @@ import {
   KIRO_MODELS_TARGET,
   parseKiroModels,
 } from '../routing/proxy/kiro-adapter';
-import { getSubscriptionKnownModels } from 'manifest-shared';
+import { getSubscriptionCapabilities, getSubscriptionKnownModels } from 'manifest-shared';
 
 const FETCH_TIMEOUT_MS = 5000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
@@ -1157,11 +1157,13 @@ export class ProviderModelFetcherService {
 
   private fetchClinePassKnownModels(): DiscoveredModel[] {
     const known = getSubscriptionKnownModels('cline-pass') ?? [];
+    const contextWindow =
+      getSubscriptionCapabilities('cline-pass')?.maxContextWindow ?? DEFAULT_CONTEXT_WINDOW;
     return known.map((id) => ({
       id,
       displayName: id,
       provider: 'cline-pass',
-      contextWindow: DEFAULT_CONTEXT_WINDOW,
+      contextWindow,
       inputPricePerToken: null,
       outputPricePerToken: null,
       capabilityReasoning: true,

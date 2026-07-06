@@ -2620,6 +2620,26 @@ describe('ProviderModelFetcherService', () => {
     });
   });
 
+  describe('cline-pass provider', () => {
+    it('returns known subscription models with configured context windows', async () => {
+      const result = await service.fetch('cline-pass', 'cp-token', 'subscription');
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'cline-pass/deepseek-v4-flash',
+            provider: 'cline-pass',
+            contextWindow: 200000,
+            capabilityReasoning: true,
+            capabilityCode: true,
+          }),
+        ]),
+      );
+      expect(result.every((model) => model.contextWindow === 200000)).toBe(true);
+    });
+  });
+
   describe('opencode-zen provider', () => {
     it('fetches the OpenAI-compatible /v1/models catalog with Bearer auth and namespaces every model id', async () => {
       fetchSpy.mockResolvedValue({
