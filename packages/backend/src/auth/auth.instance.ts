@@ -1,10 +1,17 @@
 import { betterAuth } from 'better-auth';
+import type { Auth } from 'better-auth';
 import { stripe as stripePlugin } from '@better-auth/stripe';
 import { render } from '@react-email/render';
 import { VerifyEmailEmail } from '../notifications/emails/verify-email';
 import { ResetPasswordEmail } from '../notifications/emails/reset-password';
 import { sendEmail } from '../notifications/services/email-providers/send-email';
 import { isBillingEnabled, getStripeClient } from '../billing/billing.config';
+import {
+  previousPlanFromEvent,
+  sendPlanChangedEmail,
+  sendSubscriptionCanceledEmail,
+  sendSubscriptionConfirmedEmail,
+} from '../billing/subscription-webhook-emails';
 
 const port = process.env['PORT'] ?? '3001';
 const isDev = (process.env['NODE_ENV'] ?? '') !== 'production';
@@ -62,13 +69,31 @@ function buildTrustedOrigins(): string[] {
 
 function buildPlugins() {
   if (!isBillingEnabled()) return [];
+  const plans = [{ name: 'pro', priceId: process.env['STRIPE_PRO_PRICE_ID']! }];
+  const priceToPlan = new Map(plans.map((plan) => [plan.priceId, plan.name]));
   return [
     stripePlugin({
       stripeClient: getStripeClient(),
       stripeWebhookSecret: process.env['STRIPE_WEBHOOK_SECRET']!,
       subscription: {
         enabled: true,
-        plans: [{ name: 'pro', priceId: process.env['STRIPE_PRO_PRICE_ID']! }],
+        plans,
+        onSubscriptionComplete: async ({ event, subscription }) => {
+          await sendSubscriptionConfirmedEmail(database, event, subscription);
+        },
+        onSubscriptionCreated: async ({ event, subscription }) => {
+          await sendSubscriptionConfirmedEmail(database, event, subscription);
+        },
+        onSubscriptionUpdate: async ({ event, subscription }) => {
+          const previousPlan = previousPlanFromEvent(event, priceToPlan);
+          await sendPlanChangedEmail(database, event, subscription, previousPlan);
+        },
+        onSubscriptionCancel: async ({ event, subscription }) => {
+          if (event) await sendSubscriptionCanceledEmail(database, event, subscription);
+        },
+        onSubscriptionDeleted: async ({ event, subscription }) => {
+          await sendSubscriptionCanceledEmail(database, event, subscription);
+        },
       },
     }),
   ];
@@ -145,7 +170,7 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins: buildTrustedOrigins(),
-});
+}) as unknown as Auth;
 
 export type AuthSession = typeof auth.$Infer.Session;
 export type AuthUser = typeof auth.$Infer.Session.user;

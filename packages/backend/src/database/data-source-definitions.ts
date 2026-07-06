@@ -134,6 +134,7 @@ import { AddAutofixWaitlist1796000000000 } from './migrations/1796000000000-AddA
 import { AddPublicErrorPages1797000000000 } from './migrations/1797000000000-AddPublicErrorPages';
 import { AddErrorClassification1798000000000 } from './migrations/1798000000000-AddErrorClassification';
 import { AddTenantLimitOverrides1798100000000 } from './migrations/1798100000000-AddTenantLimitOverrides';
+import { AddBillingEmailLogs1798200000000 } from './migrations/1798200000000-AddBillingEmailLogs';
 import { AddAutofixWaitlistSignups1799000000000 } from './migrations/1799000000000-AddAutofixWaitlistSignups';
 
 export const entities = [
@@ -270,6 +271,7 @@ export const migrations = [
   AddPublicErrorPages1797000000000,
   AddErrorClassification1798000000000,
   AddTenantLimitOverrides1798100000000,
+  AddBillingEmailLogs1798200000000,
   AddAutofixWaitlistSignups1799000000000,
   RenameWaitlistClaimsTable1800000000000,
 ];
