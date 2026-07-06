@@ -1,0 +1,22 @@
+packages/frontend/tests/pages/Login-validation.test.tsx
+  s_113fbd5b068697::t_8d5b2377795421 11
+packages/frontend/tests/components/AuthGuard-failure.test.tsx
+  s_113fbd5b068697::t_8d5b2377795421 8
+  s_113fbd5b068697::t_8121dcf5a4adf6 35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "99c6299b2e50cdbf26abb51834ec38742be37883",
+  "prompts": {},
+  "sessions": {
+    "s_113fbd5b068697": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3741-67b3-7720-a268-e245d73b7ee7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
