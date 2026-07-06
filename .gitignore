@@ -8,6 +8,10 @@ build/
 !docker/.env.example
 .DS_Store
 Thumbs.db
+
+# Local dev artifacts (playwright snapshots, /serve port pin)
+.playwright-mcp/
+.serve-ports
 *.tmp
 *.swp
 .vscode/
