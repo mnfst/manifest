@@ -1,5 +1,11 @@
 # manifest
 
+## 6.13.5
+
+### Patch Changes
+
+- 46a09a8: Fix waitlist sync reading email from session instead of empty tenant field, rename table to waitlist_claims
+
 ## 6.13.4
 
 ### Patch Changes
