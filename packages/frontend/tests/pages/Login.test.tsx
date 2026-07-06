@@ -74,6 +74,15 @@ describe("Login", () => {
     expect(getLastAuthMethod()).toBe("email");
   });
 
+  it("dev-only button surfaces an error when sign-in fails", async () => {
+    mockSignInEmail.mockResolvedValue({ error: {} });
+    const { container } = render(() => <Login />);
+    fireEvent.click(screen.getByRole("button", { name: /sign in as dev/i }));
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Dev sign-in failed");
+    });
+  });
+
   it("has link to register", () => {
     render(() => <Login />);
     expect(screen.getByText("Sign up")).toBeDefined();
