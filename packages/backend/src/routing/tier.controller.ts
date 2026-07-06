@@ -159,7 +159,7 @@ export class TierController {
   @Get(':agentName/autofix')
   async getAutofix(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
-    return { enabled: agent.autofix_enabled };
+    return { enabled: this.autofixService.resolveEnabled(agent.autofix_enabled) };
   }
 
   @Patch(':agentName/autofix')
@@ -174,7 +174,9 @@ export class TierController {
       this.resolveAgentService.invalidate(agent.tenant_id, agentName);
       this.autofixService.invalidateConfig(agent.tenant_id, agent.id);
     }
-    return { enabled: body.enabled ?? agent.autofix_enabled };
+    return {
+      enabled: body.enabled ?? this.autofixService.resolveEnabled(agent.autofix_enabled),
+    };
   }
 
   private validateTier(tier: string): void {
