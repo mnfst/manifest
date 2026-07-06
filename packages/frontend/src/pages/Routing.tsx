@@ -19,7 +19,6 @@ import SetupModal from '../components/SetupModal.jsx';
 import { isRecentlyCreated, isSetupPending, clearSetupPending } from '../services/recent-agents.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import RoutingDefaultTierSection from './RoutingDefaultTierSection.js';
-import RoutingAutofixSection from './RoutingAutofixSection.js';
 import RoutingSpecificitySection from './RoutingSpecificitySection.js';
 import RoutingHeaderTiersSection from './RoutingHeaderTiersSection.js';
 import RoutingTierCard from './RoutingTierCard.js';
@@ -824,8 +823,6 @@ const Routing: Component = () => {
               }}
             </RoutingTabs>
           </Show>
-
-          <RoutingAutofixSection agentName={agentName} />
 
           <RoutingFooter
             hasOverrides={hasOverrides}

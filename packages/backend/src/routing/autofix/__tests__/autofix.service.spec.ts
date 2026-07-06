@@ -126,6 +126,66 @@ describe('AutofixService', () => {
   });
 
   // -------------------------------------------------------------------------
+  // resolveEnabled — deployment-mode default when autofix_enabled is NULL
+  // -------------------------------------------------------------------------
+  describe('resolveEnabled (deployment-mode default)', () => {
+    let savedMode: string | undefined;
+    beforeEach(() => {
+      savedMode = process.env.MANIFEST_MODE;
+    });
+    afterEach(() => {
+      if (savedMode === undefined) delete process.env.MANIFEST_MODE;
+      else process.env.MANIFEST_MODE = savedMode;
+    });
+
+    it('an explicit true/false overrides the mode default', () => {
+      process.env.MANIFEST_MODE = 'selfhosted';
+      const service = makeService({});
+      expect(service.resolveEnabled(true)).toBe(true);
+      expect(service.resolveEnabled(false)).toBe(false);
+    });
+
+    it('a NULL/undefined flag inherits ON in cloud mode', () => {
+      process.env.MANIFEST_MODE = 'cloud';
+      const service = makeService({});
+      expect(service.resolveEnabled(null)).toBe(true);
+      expect(service.resolveEnabled(undefined)).toBe(true);
+    });
+
+    it('a NULL flag inherits OFF in self-hosted mode', () => {
+      process.env.MANIFEST_MODE = 'selfhosted';
+      const service = makeService({});
+      expect(service.resolveEnabled(null)).toBe(false);
+    });
+
+    it('heals an unset agent in cloud (NULL → default ON)', async () => {
+      process.env.MANIFEST_MODE = 'cloud';
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue(patchedHeal());
+      const reforward = jest.fn().mockResolvedValue(makeForward('{"ok":true}', 200));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: null }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      const result = await service.maybeHeal(makeParams({ reforward }));
+
+      expect(result!.record.outcome).toBe('healed');
+      expect(client.heal).toHaveBeenCalled();
+    });
+
+    it('skips an unset agent in self-hosted (NULL → default OFF)', async () => {
+      process.env.MANIFEST_MODE = 'selfhosted';
+      const client = makeHealingClient();
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: null }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      const result = await service.maybeHeal(makeParams({}));
+
+      expect(result).toBeNull();
+      expect(client.heal).not.toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // isRepairable / parseStatuses
   // -------------------------------------------------------------------------
   describe('isRepairable', () => {

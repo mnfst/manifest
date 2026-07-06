@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { Agent } from '../../entities/agent.entity';
+import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import type { ForwardResult } from '../proxy/provider-client';
 import type { ProxyApiMode } from '../proxy/proxy-types';
 import { HEALING_CLIENT, HealContractError, type HealingClient } from './healing-client';
@@ -90,6 +91,9 @@ function rebuildForward(base: ForwardResult, body: string, status: number): Forw
 export class AutofixService {
   private readonly logger = new Logger(AutofixService.name);
   private readonly globalEnabled: boolean;
+  // Effective default when an agent has no explicit choice (autofix_enabled NULL):
+  // ON in cloud, OFF in self-hosted. Computed once at boot.
+  private readonly defaultAgentEnabled: boolean;
   private readonly repairableStatuses: Set<number>;
   private readonly configCache = new Map<
     string,
@@ -106,7 +110,17 @@ export class AutofixService {
     config: ConfigService,
   ) {
     this.globalEnabled = config.get<string>('AUTOFIX_GLOBAL_ENABLED') !== 'false';
+    this.defaultAgentEnabled = !isSelfHosted();
     this.repairableStatuses = parseStatuses(config.get<string>('AUTOFIX_REPAIRABLE_STATUSES'));
+  }
+
+  /**
+   * Resolve an agent's stored Auto-fix flag to an effective on/off value. A
+   * NULL/undefined flag means "no explicit choice" and inherits the
+   * deployment-mode default: ON in cloud, OFF in self-hosted.
+   */
+  resolveEnabled(stored: boolean | null | undefined): boolean {
+    return stored ?? this.defaultAgentEnabled;
   }
 
   /** Whether a status is one Auto-fix will try to heal. */
@@ -327,7 +341,11 @@ export class AutofixService {
       where: { id: agentId, tenant_id: tenantId },
       select: ['autofix_enabled'],
     });
-    const value: AgentAutofixConfig = { enabled: Boolean(agent?.autofix_enabled) };
+    // Unknown agent → off. Known agent → its explicit flag, or the mode default
+    // when unset (NULL).
+    const value: AgentAutofixConfig = {
+      enabled: agent ? this.resolveEnabled(agent.autofix_enabled) : false,
+    };
 
     // Only the failure path reaches here; caching keeps a 4xx storm from doing a
     // DB read per failed request. Bounded + short TTL, invalidated on config change.

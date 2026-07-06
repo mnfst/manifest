@@ -134,6 +134,7 @@ import { AddErrorClassification1798000000000 } from './migrations/1798000000000-
 import { AddAutofixAgentFlags1799000000000 } from './migrations/1799000000000-AddAutofixAgentFlags';
 import { AddAutofixMessageFields1799000100000 } from './migrations/1799000100000-AddAutofixMessageFields';
 import { AddAutofixPhoenixIds1799000200000 } from './migrations/1799000200000-AddAutofixPhoenixIds';
+import { MakeAutofixEnabledNullable1799000300000 } from './migrations/1799000300000-MakeAutofixEnabledNullable';
 
 export const entities = [
   AgentMessage,
@@ -270,4 +271,5 @@ export const migrations = [
   AddAutofixAgentFlags1799000000000,
   AddAutofixMessageFields1799000100000,
   AddAutofixPhoenixIds1799000200000,
+  MakeAutofixEnabledNullable1799000300000,
 ];

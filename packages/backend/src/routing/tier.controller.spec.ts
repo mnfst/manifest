@@ -19,7 +19,7 @@ describe('TierController', () => {
   let tierService: jest.Mocked<Partial<TierService>>;
   let resolveAgentService: { resolve: jest.Mock; invalidate: jest.Mock };
   let agentRepo: jest.Mocked<Partial<Repository<Agent>>>;
-  let autofixService: { invalidateConfig: jest.Mock };
+  let autofixService: { invalidateConfig: jest.Mock; resolveEnabled: jest.Mock };
   let controller: TierController;
 
   beforeEach(() => {
@@ -39,7 +39,11 @@ describe('TierController', () => {
     agentRepo = {
       update: jest.fn().mockResolvedValue(undefined),
     };
-    autofixService = { invalidateConfig: jest.fn() };
+    autofixService = {
+      invalidateConfig: jest.fn(),
+      // Mirror the real resolver: explicit flag wins, NULL inherits a default.
+      resolveEnabled: jest.fn((stored: boolean | null) => stored ?? false),
+    };
     controller = new TierController(
       tierService as unknown as TierService,
       resolveAgentService as unknown as ResolveAgentService,
@@ -136,6 +140,15 @@ describe('TierController', () => {
 
   it('GET autofix returns the enabled flag', async () => {
     expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: false });
+  });
+
+  it('GET autofix resolves the mode default via the service when the flag is unset (null)', async () => {
+    // A NULL stored flag is handed to the service, which resolves the
+    // deployment-mode default (here stubbed to ON).
+    resolveAgentService.resolve.mockResolvedValueOnce({ ...agent, autofix_enabled: null });
+    autofixService.resolveEnabled.mockReturnValueOnce(true);
+    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: true });
+    expect(autofixService.resolveEnabled).toHaveBeenCalledWith(null);
   });
 
   it('PATCH autofix updates the enabled flag and invalidates cache', async () => {
