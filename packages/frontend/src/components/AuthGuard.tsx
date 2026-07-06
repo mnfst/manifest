@@ -1,16 +1,18 @@
-import { useNavigate } from '@solidjs/router';
+import { useLocation, useNavigate } from '@solidjs/router';
 import { Show, createEffect, type ParentComponent } from 'solid-js';
 import { authClient } from '../services/auth-client.js';
+import { buildLoginRedirect } from '../services/auth-redirects.js';
 
 const AuthGuard: ParentComponent = (props) => {
   const session = authClient.useSession();
   const navigate = useNavigate();
+  const location = useLocation();
 
   createEffect(() => {
     const s = session();
     if (s.isPending) return;
     if (s.data) return;
-    navigate('/login', { replace: true });
+    navigate(buildLoginRedirect(location.pathname, location.search), { replace: true });
   });
 
   return (

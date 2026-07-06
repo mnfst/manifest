@@ -1,8 +1,9 @@
-import { A } from '@solidjs/router';
+import { A, useLocation } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import { type Component, createSignal, createUniqueId, onCleanup, onMount, Show } from 'solid-js';
 import SocialButtons from '../components/SocialButtons.jsx';
 import { authClient } from '../services/auth-client.js';
+import { appendSearch } from '../services/auth-redirects.js';
 import { getLastAuthMethod, setLastAuthMethod } from '../services/last-auth-method.js';
 import { checkSocialProviders } from '../services/setup-status.js';
 
@@ -19,6 +20,7 @@ const Register: Component = () => {
   const [resendCooldown, setResendCooldown] = createSignal(0);
   const [socialProviders, setSocialProviders] = createSignal<string[]>([]);
   const [lastAuthMethod] = createSignal(getLastAuthMethod());
+  const location = useLocation();
   const nameId = createUniqueId();
   const emailId = createUniqueId();
   const passwordId = createUniqueId();
@@ -58,6 +60,7 @@ const Register: Component = () => {
       name: name(),
       email: email(),
       password: password(),
+      callbackURL: '/upgrade',
     });
 
     setLoading(false);
@@ -73,7 +76,7 @@ const Register: Component = () => {
     setLastAuthMethod('email');
 
     if (data?.token) {
-      window.location.href = '/';
+      window.location.href = '/upgrade';
       return;
     }
 
@@ -86,7 +89,7 @@ const Register: Component = () => {
 
     const { error: resendError } = await authClient.sendVerificationEmail({
       email: email(),
-      callbackURL: '/',
+      callbackURL: '/upgrade',
     });
 
     if (resendError) {
@@ -125,7 +128,7 @@ const Register: Component = () => {
               <Show when={alreadyExists()}>
                 <div id={errorId} class="auth-form__error" role="alert">
                   An account with this email already exists.{' '}
-                  <A href="/login" class="auth-form__error-link">
+                  <A href={appendSearch('/login', location.search)} class="auth-form__error-link">
                     Sign in
                   </A>{' '}
                   or{' '}
@@ -210,7 +213,7 @@ const Register: Component = () => {
             </p>
             <div class="auth-footer">
               <span>Already have an account? </span>
-              <A href="/login" class="auth-footer__link">
+              <A href={appendSearch('/login', location.search)} class="auth-footer__link">
                 Sign in
               </A>
             </div>
@@ -243,7 +246,7 @@ const Register: Component = () => {
         </div>
 
         <div class="auth-footer">
-          <A href="/login" class="auth-footer__link">
+          <A href={appendSearch('/login', location.search)} class="auth-footer__link">
             Back to sign in
           </A>
         </div>

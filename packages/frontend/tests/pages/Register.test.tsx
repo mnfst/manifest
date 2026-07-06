@@ -1,286 +1,368 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@solidjs/testing-library";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@solidjs/testing-library';
 
 const mockSignUpEmail = vi.fn().mockResolvedValue({});
 const mockSendVerificationEmail = vi.fn().mockResolvedValue({});
+let mockLocationSearch = '';
 
-vi.mock("@solidjs/router", () => ({
-  A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
+vi.mock('@solidjs/router', () => ({
+  A: (props: any) => (
+    <a href={props.href} class={props.class}>
+      {props.children}
+    </a>
+  ),
+  useLocation: () => ({ search: mockLocationSearch }),
+  useSearchParams: () => [{}],
 }));
 
-vi.mock("@solidjs/meta", () => ({
+vi.mock('@solidjs/meta', () => ({
   Title: (props: any) => <title>{props.children}</title>,
   Meta: () => null,
 }));
 
-vi.mock("../../src/services/auth-client.js", () => ({
+vi.mock('../../src/services/auth-client.js', () => ({
   authClient: {
     signUp: { email: (...args: unknown[]) => mockSignUpEmail(...args) },
     sendVerificationEmail: (...args: unknown[]) => mockSendVerificationEmail(...args),
   },
 }));
 
-vi.mock("../../src/services/toast-store.js", () => ({
+vi.mock('../../src/services/toast-store.js', () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
 
-vi.mock("../../src/services/setup-status.js", () => ({
+vi.mock('../../src/services/setup-status.js', () => ({
   checkSocialProviders: vi.fn().mockResolvedValue([]),
 }));
 
-import Register from "../../src/pages/Register";
-import { getLastAuthMethod } from "../../src/services/last-auth-method";
+import Register from '../../src/pages/Register';
+import { getLastAuthMethod } from '../../src/services/last-auth-method';
 
-describe("Register", () => {
+describe('Register', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSignUpEmail.mockResolvedValue({});
+    mockLocationSearch = '';
     localStorage.clear();
   });
 
-  it("renders create account heading", () => {
+  it('renders create account heading', () => {
     render(() => <Register />);
-    expect(screen.getByText("Create an account")).toBeDefined();
+    expect(screen.getByText('Create an account')).toBeDefined();
   });
 
-  it("renders name, email, and password inputs", () => {
+  it('renders name, email, and password inputs', () => {
     render(() => <Register />);
-    expect(screen.getByPlaceholderText("Your name")).toBeDefined();
-    expect(screen.getByPlaceholderText("you@example.com")).toBeDefined();
-    expect(screen.getByPlaceholderText("Create a password")).toBeDefined();
+    expect(screen.getByPlaceholderText('Your name')).toBeDefined();
+    expect(screen.getByPlaceholderText('you@example.com')).toBeDefined();
+    expect(screen.getByPlaceholderText('Create a password')).toBeDefined();
   });
 
-  it("renders create account button", () => {
+  it('renders create account button', () => {
     render(() => <Register />);
-    expect(screen.getByText("Create account")).toBeDefined();
+    expect(screen.getByText('Create account')).toBeDefined();
   });
 
-  it("has link to sign in", () => {
+  it('has link to sign in', () => {
     render(() => <Register />);
-    expect(screen.getByText("Sign in")).toBeDefined();
+    expect(screen.getByText('Sign in')).toBeDefined();
   });
 
-  it("shows terms and privacy links", () => {
-    render(() => <Register />);
-    expect(screen.getByText("Terms")).toBeDefined();
-    expect(screen.getByText("Privacy Policy")).toBeDefined();
+  it('preserves the query string on sign-in links', () => {
+    mockLocationSearch = '?plan=pro';
+    const { container } = render(() => <Register />);
+    expect(container.querySelector('a[href="/login?plan=pro"]')).not.toBeNull();
   });
 
-  it("submits registration form", async () => {
+  it('shows terms and privacy links', () => {
+    render(() => <Register />);
+    expect(screen.getByText('Terms')).toBeDefined();
+    expect(screen.getByText('Privacy Policy')).toBeDefined();
+  });
+
+  it('submits registration form', async () => {
     mockSignUpEmail.mockResolvedValue({ error: null });
     const { container } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
-    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "test@test.com" } });
-    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass123" } });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'test@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass123' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
       expect(mockSignUpEmail).toHaveBeenCalled();
     });
   });
 
-  it("shows email verification after successful signup", async () => {
+  it('passes the upgrade callback to signup', async () => {
     mockSignUpEmail.mockResolvedValue({ error: null });
     const { container } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
-    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "test@test.com" } });
-    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass123" } });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'test@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass123' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Check your email");
+      expect(mockSignUpEmail).toHaveBeenCalledWith({
+        name: 'Test',
+        email: 'test@test.com',
+        password: 'pass123',
+        callbackURL: '/upgrade',
+      });
     });
   });
 
-  it("shows error on failed registration", async () => {
-    mockSignUpEmail.mockResolvedValue({ error: { message: "Something went wrong" } });
+  it('shows email verification after successful signup', async () => {
+    mockSignUpEmail.mockResolvedValue({ error: null });
     const { container } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
-    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "exists@test.com" } });
-    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass123" } });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'test@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass123' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Something went wrong");
+      expect(container.textContent).toContain('Check your email');
+    });
+  });
+
+  it('shows error on failed registration', async () => {
+    mockSignUpEmail.mockResolvedValue({ error: { message: 'Something went wrong' } });
+    const { container } = render(() => <Register />);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'exists@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass123' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Something went wrong');
     });
     // Should NOT show the "already exists" variant
-    expect(container.textContent).not.toContain("An account with this email already exists");
+    expect(container.textContent).not.toContain('An account with this email already exists');
   });
 
-  it("shows already-exists error with sign-in and reset links", async () => {
+  it('shows already-exists error with sign-in and reset links', async () => {
     mockSignUpEmail.mockResolvedValue({
-      error: { code: "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL", message: "User already exists" },
+      error: { code: 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL', message: 'User already exists' },
     });
     const { container } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
-    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "exists@test.com" } });
-    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass123" } });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'exists@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass123' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("An account with this email already exists");
+      expect(container.textContent).toContain('An account with this email already exists');
     });
     expect(container.querySelector('a[href="/login"]')).not.toBeNull();
     expect(container.querySelector('a[href="/reset-password"]')).not.toBeNull();
   });
 
-  it("redirects to home when signup returns a token", async () => {
-    const locationSpy = vi.spyOn(window, "location", "get").mockReturnValue({
+  it('redirects to upgrade when signup returns a token', async () => {
+    const locationSpy = vi.spyOn(window, 'location', 'get').mockReturnValue({
       ...window.location,
-      href: "",
+      href: '',
     });
     const hrefSetter = vi.fn();
-    Object.defineProperty(window.location, "href", { set: hrefSetter, configurable: true });
+    Object.defineProperty(window.location, 'href', { set: hrefSetter, configurable: true });
 
     mockSignUpEmail.mockResolvedValue({
-      data: { token: "tok", user: { id: "u1" } },
+      data: { token: 'tok', user: { id: 'u1' } },
       error: null,
     });
     const { container } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
-    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "new@test.com" } });
-    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass12345" } });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'new@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass12345' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(hrefSetter).toHaveBeenCalledWith("/");
+      expect(hrefSetter).toHaveBeenCalledWith('/upgrade');
     });
 
     locationSpy.mockRestore();
   });
 
-  it("shows loading state during submission", async () => {
+  it('shows loading state during submission', async () => {
     mockSignUpEmail.mockReturnValue(new Promise(() => {}));
     const { container } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
-    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "t@t.com" } });
-    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass123" } });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 't@t.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass123' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
       const btn = container.querySelector('button[type="submit"]') as HTMLButtonElement;
-      expect(btn.querySelector(".spinner")).not.toBeNull();
+      expect(btn.querySelector('.spinner')).not.toBeNull();
     });
   });
 
-  it("shows resend button after successful signup", async () => {
+  it('shows resend button after successful signup', async () => {
     mockSignUpEmail.mockResolvedValue({ error: null });
     const { container } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
-    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "test@test.com" } });
-    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass12345" } });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'test@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass12345' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Click the link in your email");
+      expect(container.textContent).toContain('Click the link in your email');
     });
     // Resend button should be present (with cooldown since startCooldown was called)
-    const resendBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Resend in"),
+    const resendBtn = Array.from(container.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Resend in'),
     );
     expect(resendBtn).not.toBeUndefined();
   });
 
-  it("calls sendVerificationEmail on resend click after cooldown", async () => {
+  it('calls sendVerificationEmail on resend click after cooldown', async () => {
     vi.useFakeTimers();
     mockSignUpEmail.mockResolvedValue({ error: null });
     mockSendVerificationEmail.mockResolvedValue({ error: null });
     const { container } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
-    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "test@test.com" } });
-    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass12345" } });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'test@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass12345' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Check your email");
+      expect(container.textContent).toContain('Check your email');
     });
     // Fast-forward past cooldown
     vi.advanceTimersByTime(61000);
-    const resendBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Resend verification email"),
+    const resendBtn = Array.from(container.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Resend verification email'),
     );
     if (resendBtn) {
       fireEvent.click(resendBtn);
       await vi.waitFor(() => {
-        expect(mockSendVerificationEmail).toHaveBeenCalledWith({ email: "test@test.com", callbackURL: "/" });
+        expect(mockSendVerificationEmail).toHaveBeenCalledWith({
+          email: 'test@test.com',
+          callbackURL: '/upgrade',
+        });
       });
     }
     vi.useRealTimers();
   });
 
-  it("shows error when resend fails", async () => {
+  it('shows error when resend fails', async () => {
     vi.useFakeTimers();
     mockSignUpEmail.mockResolvedValue({ error: null });
-    mockSendVerificationEmail.mockResolvedValue({ error: { message: "Too many requests" } });
+    mockSendVerificationEmail.mockResolvedValue({ error: { message: 'Too many requests' } });
     const { container } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
-    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "test@test.com" } });
-    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass12345" } });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'test@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass12345' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Check your email");
+      expect(container.textContent).toContain('Check your email');
     });
     vi.advanceTimersByTime(61000);
-    const resendBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Resend verification email"),
+    const resendBtn = Array.from(container.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Resend verification email'),
     );
     if (resendBtn) {
       fireEvent.click(resendBtn);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain("Too many requests");
+        expect(container.textContent).toContain('Too many requests');
       });
     }
     vi.useRealTimers();
   });
 
-  it("stores email as last auth method on successful signup", async () => {
+  it('stores email as last auth method on successful signup', async () => {
     mockSignUpEmail.mockResolvedValue({ error: null });
     const { container } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
     fireEvent.input(container.querySelector('input[type="email"]')!, {
-      target: { value: "test@test.com" },
+      target: { value: 'test@test.com' },
     });
     fireEvent.input(container.querySelector('input[type="password"]')!, {
-      target: { value: "pass12345" },
+      target: { value: 'pass12345' },
     });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(getLastAuthMethod()).toBe("email");
+      expect(getLastAuthMethod()).toBe('email');
     });
   });
 
-  it("does not store last auth method when signup fails", async () => {
-    mockSignUpEmail.mockResolvedValue({ error: { message: "boom" } });
+  it('does not store last auth method when signup fails', async () => {
+    mockSignUpEmail.mockResolvedValue({ error: { message: 'boom' } });
     const { container } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
     fireEvent.input(container.querySelector('input[type="email"]')!, {
-      target: { value: "t@t.com" },
+      target: { value: 't@t.com' },
     });
     fireEvent.input(container.querySelector('input[type="password"]')!, {
-      target: { value: "pass12345" },
+      target: { value: 'pass12345' },
     });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("boom");
+      expect(container.textContent).toContain('boom');
     });
     expect(getLastAuthMethod()).toBeNull();
   });
 
-  it("shows back to sign in link on verification screen", async () => {
+  it('shows back to sign in link on verification screen', async () => {
     mockSignUpEmail.mockResolvedValue({ error: null });
     const { container } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
-    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "test@test.com" } });
-    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass12345" } });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'test@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass12345' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
       const link = container.querySelector('a[href="/login"]');
       expect(link).not.toBeNull();
     });
   });
 
-  it("clears the cooldown interval on unmount", async () => {
-    const clearIntervalSpy = vi.spyOn(globalThis, "clearInterval");
+  it('clears the cooldown interval on unmount', async () => {
+    const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
     mockSignUpEmail.mockResolvedValue({ error: null });
     const { container, unmount } = render(() => <Register />);
-    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
-    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "test@test.com" } });
-    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass12345" } });
-    fireEvent.submit(container.querySelector("form")!);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'test@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass12345' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Resend in");
+      expect(container.textContent).toContain('Resend in');
     });
     unmount();
     expect(clearIntervalSpy).toHaveBeenCalled();

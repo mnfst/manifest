@@ -50,4 +50,19 @@ describe('billing API client', () => {
     expect(fetchJson).toHaveBeenCalledWith('/billing/status');
     expect(result).toBe(status);
   });
+
+  it('passes through fetch options for fresh billing reads', async () => {
+    const status: BillingStatus = {
+      enabled: true,
+      plan: 'free',
+      priceMonthlyUsd: 20,
+      requests: { used: 500, limit: 10_000, periodEnd: null },
+    };
+    fetchJsonMock.mockResolvedValue(status);
+
+    const result = await getBillingStatus({ cache: false });
+
+    expect(fetchJson).toHaveBeenCalledWith('/billing/status', undefined, { cache: false });
+    expect(result).toBe(status);
+  });
 });

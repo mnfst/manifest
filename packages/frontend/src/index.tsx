@@ -7,6 +7,7 @@ import AuthLayout from './layouts/AuthLayout.jsx';
 import Workspace from './pages/Workspace.jsx';
 import RootRedirect from './components/RootRedirect.jsx';
 import AgentGuard from './components/AgentGuard.jsx';
+import AuthGuard from './components/AuthGuard.jsx';
 import GuestGuard from './components/GuestGuard.jsx';
 import NotFound from './pages/NotFound.jsx';
 import ToastContainer from './components/ToastContainer.jsx';
@@ -28,6 +29,7 @@ const Routing = lazyReload(() => import('./pages/Routing.jsx'));
 const Playground = lazyReload(() => import('./pages/Playground.jsx'));
 const Limits = lazyReload(() => import('./pages/Limits.jsx'));
 const Account = lazyReload(() => import('./pages/Account.jsx'));
+const Upgrade = lazyReload(() => import('./pages/Upgrade.jsx'));
 const Login = lazyReload(() => import('./pages/Login.jsx'));
 const Register = lazyReload(() => import('./pages/Register.jsx'));
 const ResetPassword = lazyReload(() => import('./pages/ResetPassword.jsx'));
@@ -118,6 +120,9 @@ render(
 
           <Route path="/connect-provider" component={ConnectProvider} />
           <Route path="/account" component={Account} />
+        </Route>
+        <Route path="/upgrade" component={AuthGuard}>
+          <Route path="/" component={Upgrade} />
         </Route>
         <Route path="/" component={GuestLayout}>
           <Route path="/login" component={Login} />
