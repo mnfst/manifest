@@ -31,7 +31,26 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - name: Check for releasable changesets
+        id: releasable
+        run: |
+          # Skip the version-PR step only when we can PROVE nothing will be
+          # released. A changeset that targets only ignored packages
+          # (manifest-backend / -frontend / -shared) makes `changeset version` a
+          # no-op; changesets/action would then push an empty branch and fail
+          # with "No commits between main and changeset-release/main", aborting
+          # this job before the publish steps below ever run. Skipping (not
+          # failing) keeps the job green so Detect version bump can still fire.
+          skip=false
+          if npx changeset status --output=release-plan.json 2>/dev/null; then
+            if [ "$(jq '.releases | length' release-plan.json)" = "0" ]; then
+              skip=true
+            fi
+          fi
+          rm -f release-plan.json
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
       - uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
+        if: steps.releasable.outputs.skip != 'true'
         id: changesets
         with:
           createGithubReleases: false

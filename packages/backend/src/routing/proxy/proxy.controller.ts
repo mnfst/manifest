@@ -15,7 +15,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../../common/decorators/public.decorator';
 import { AgentKeyAuthGuard } from '../../otlp/guards/agent-key-auth.guard';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
-import { ProxyService } from './proxy.service';
+import { ProxyService, type RoutingMeta } from './proxy.service';
 import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProviderClient } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
@@ -155,6 +155,7 @@ export class ProxyController {
     let routingBody = body;
     let headersSent = false;
     let slotAcquired = false;
+    let currentMeta: RoutingMeta | undefined;
 
     const clientAbort = new AbortController();
     res.once('close', () => clientAbort.abort());
@@ -206,6 +207,7 @@ export class ProxyController {
         headers: req.headers,
         apiMode,
       });
+      currentMeta = meta;
 
       this.trackFirstProxyRequest(tenantId);
 
@@ -294,6 +296,7 @@ export class ProxyController {
         traceId,
         callerAttribution,
         requestHeaders,
+        currentMeta,
       );
     } finally {
       if (slotAcquired) this.rateLimiter.releaseSlot(tenantId);
@@ -309,6 +312,7 @@ export class ProxyController {
     traceId: string | undefined,
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
+    meta?: RoutingMeta,
   ): void {
     if (clientAbort.signal.aborted) {
       if (!res.writableEnded) res.end();
@@ -327,6 +331,24 @@ export class ProxyController {
 
     this.recorder
       .recordProviderError(req.ingestionContext, status, providerErrorBody, {
+        ...(meta
+          ? {
+              model: meta.model,
+              provider: meta.provider,
+              tier: meta.tier,
+              fallbackFromModel: meta.fallbackFromModel,
+              fallbackIndex: meta.fallbackIndex,
+              authType: meta.auth_type,
+              reason: meta.reason,
+              specificityCategory: meta.specificity_category,
+              providerKeyLabel: meta.provider_key_label,
+              tenantProviderId: meta.tenantProviderId,
+              requestParams: meta.request_params,
+              headerTierId: meta.header_tier_id,
+              headerTierName: meta.header_tier_name,
+              headerTierColor: meta.header_tier_color,
+            }
+          : {}),
         traceId,
         callerAttribution,
         requestHeaders,
@@ -340,7 +362,11 @@ export class ProxyController {
 
     if (err instanceof ResponsesSseError) {
       res.status(err.status).json({
-        error: buildOpenAiCompatibleError(err.status, err.body),
+        error: buildOpenAiCompatibleError(
+          err.status,
+          err.body,
+          meta ? { provider: meta.provider, model: meta.model } : {},
+        ),
       });
       return;
     }

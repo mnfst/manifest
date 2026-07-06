@@ -17,9 +17,9 @@
 
 ## What is Manifest?
 
-Manifest is a smart model router for **AI agents** like OpenClaw, Hermes, or anything speaking the OpenAI-compatible HTTP API. It sits between your agent and your LLM providers, scores each request, and routes it to the cheapest model that can handle it. Simple questions go to fast, cheap models. Hard problems go to expensive ones. You save money without thinking about it.
+Manifest is a smart model router for **AI agents** like OpenClaw, Hermes, or anything speaking the OpenAI-compatible HTTP API. It sits between your agents and your providers (API keys, subscriptions, or local models) and sends each request to the right one. Simple questions go to fast, cheap models. Hard problems go to the powerful ones. One endpoint for every provider, and a smaller bill as a bonus.
 
-- Route requests to the right model: cut costs up to 70%
+- One endpoint, every provider: send each request to the right model
 - Automatic fallbacks: if a model fails, the next one picks up
 - Set limits: don't exceed your budget
 - Self-hosted: your requests, your providers, your data

@@ -16,8 +16,8 @@ import {
 import {
   applyPrivateNetworkAllow,
   buildDevAllowedOrigins,
+  buildDevCorsOptions,
   buildFrameSrc,
-  createCorsOriginHandler,
   parseFrameAncestors,
 } from './cors-csp-config';
 import { createRateLimitReachedHandler } from './common/middleware/rate-limit-log';
@@ -82,13 +82,8 @@ export async function bootstrap() {
   // dashboard is same-origin and the Wingman drawer is dead-code-
   // eliminated, so there are no legitimate cross-origin callers.
   //
-  // `credentials: false` is deliberate — Wingman uses bearer keys, never
-  // cookies, and keeping credentials off the cross-origin path means a
-  // misconfigured allow-list can't leak session cookies. We omit
-  // `allowedHeaders` on purpose so the cors middleware reflects the
-  // request's `Access-Control-Request-Headers`: Wingman replays real SDK
-  // fingerprints (e.g. the OpenAI/Stainless `X-Stainless-*` family), and a
-  // fixed allow-list silently fails those preflights.
+  // See `buildDevCorsOptions` for the rationale behind `credentials: false`,
+  // the omitted `allowedHeaders`, and the preflight `maxAge`.
   if (isDev) {
     const configuredOrigin = process.env['CORS_ORIGIN'] || 'http://localhost:3000';
     const allowedOrigins = buildDevAllowedOrigins({
@@ -102,10 +97,7 @@ export async function bootstrap() {
       applyPrivateNetworkAllow(req, allowedOrigins, (name, value) => res.setHeader(name, value));
       next();
     });
-    app.enableCors({
-      origin: createCorsOriginHandler(allowedOrigins),
-      credentials: false,
-    });
+    app.enableCors(buildDevCorsOptions(allowedOrigins));
   }
 
   app.useGlobalPipes(

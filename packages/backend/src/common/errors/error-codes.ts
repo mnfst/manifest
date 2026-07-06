@@ -60,10 +60,6 @@ export const MANIFEST_ERRORS = {
     title: 'Missing messages array',
     template: '`messages` array is required.',
   },
-  M301: {
-    title: 'Messages array too long',
-    template: '`messages` array exceeds maximum length of {max}.',
-  },
   M500: {
     title: 'Internal server error',
     template: 'Something broke on our end. Try again in a moment.',

@@ -19,7 +19,8 @@ interface ContentBlock {
   content?: unknown;
   cache_control?: { type: string };
   // Extended-thinking fields. Only populated on `thinking` /
-  // `redacted_thinking` blocks. We never inspect them beyond pass-through.
+  // `redacted_thinking` blocks. Anthropic `thinking` blocks must carry a
+  // non-empty signature to be replayed to Anthropic.
   thinking?: string;
   signature?: string;
   data?: string;
@@ -99,6 +100,12 @@ function tryAddCacheControl(
   budget.remaining -= 1;
 }
 
+export function applyAnthropicAutomaticCacheControl(body: Record<string, unknown>): void {
+  if (body.cache_control !== undefined) return;
+  if (countCacheControlBlocks(body) >= MAX_CACHE_CONTROL_BLOCKS) return;
+  body.cache_control = CACHE;
+}
+
 function isClaudeSonnetModel(model: string | undefined): boolean {
   if (!model) return false;
   return bareAnthropicModel(model).replace(/\./g, '-').startsWith('claude-sonnet-');
@@ -108,6 +115,24 @@ function normalizeOutputConfigForModel(outputConfig: unknown, model: string | un
   if (!isObjectRecord(outputConfig)) return outputConfig;
   if (outputConfig.effort !== 'xhigh' || !isClaudeSonnetModel(model)) return outputConfig;
   return { ...outputConfig, effort: 'high' };
+}
+
+function hasReplayableThinkingSignature(block: ContentBlock): boolean {
+  return typeof block.signature === 'string' && block.signature.trim().length > 0;
+}
+
+function stripUnsignedThinkingBlocks(content: ContentBlock[]): {
+  content: ContentBlock[];
+  changed: boolean;
+} {
+  let changed = false;
+  const filtered = content.filter((block) => {
+    if (block.type !== 'thinking') return true;
+    if (hasReplayableThinkingSignature(block)) return true;
+    changed = true;
+    return false;
+  });
+  return changed ? { content: filtered, changed } : { content, changed: false };
 }
 
 /* ── Request helpers ── */
@@ -267,6 +292,33 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
   return out.length > 0 ? out : undefined;
 }
 
+function toAnthropicOutputConfig(
+  responseFormat: unknown,
+  outputConfig: unknown,
+): Record<string, unknown> | undefined {
+  const out: Record<string, unknown> = isObjectRecord(outputConfig) ? { ...outputConfig } : {};
+  if (!isObjectRecord(responseFormat)) return Object.keys(out).length > 0 ? out : undefined;
+
+  if (responseFormat.type === 'json_object') {
+    // Anthropic has no `json_object` shorthand; use native JSON output with
+    // an unconstrained object schema instead of forcing tool use.
+    out.format = {
+      type: 'json_schema',
+      schema: { type: 'object' },
+    };
+    return out;
+  } else if (responseFormat.type === 'json_schema') {
+    const jsonSchema = isObjectRecord(responseFormat.json_schema) ? responseFormat.json_schema : {};
+    out.format = {
+      type: 'json_schema',
+      schema: jsonSchema.schema ?? { type: 'object' },
+    };
+    return out;
+  } else {
+    return Object.keys(out).length > 0 ? out : undefined;
+  }
+}
+
 /* ── Request conversion ── */
 
 export interface AnthropicRequestOptions {
@@ -313,10 +365,18 @@ export function toAnthropicRequest(
   // bypass translation entirely via applyAnthropicMessagesMutations, so
   // server tools never reach this code path and the OpenAI function-shape
   // assumption is safe.
-  const tools = convertTools(body.tools as Array<Record<string, unknown>> | undefined);
-  if (tools) {
+  const tools = convertTools(body.tools as Array<Record<string, unknown>> | undefined) ?? [];
+  if (tools.length > 0) {
     tools[tools.length - 1].cache_control = CACHE;
     result.tools = tools;
+  }
+
+  const outputConfig = toAnthropicOutputConfig(body.response_format, body.output_config);
+  if (outputConfig) {
+    result.output_config = normalizeOutputConfigForModel(
+      outputConfig,
+      options?.targetModel ?? _model,
+    );
   }
 
   if (body.temperature !== undefined) result.temperature = body.temperature;
@@ -379,6 +439,7 @@ export function extractThinkingBlocksFromMessagesResponse(
  * - Default `max_tokens` to 4096 if unset.
  * - Inject the subscription-identity system block for OAuth tokens.
  * - Place a `cache_control` breakpoint on the last system block and last tool.
+ * - Strip unsigned `thinking` blocks that are not replayable to Anthropic.
  * - Replay cached extended-thinking blocks at the head of assistant turns
  *   whose first content block is a `tool_use`.
  */
@@ -435,27 +496,54 @@ export function applyAnthropicMessagesMutations(
 
   const thinkingLookup = options?.thinkingLookup;
   const thinkingRouteContext = options?.thinkingRouteContext;
-  if (thinkingLookup && Array.isArray(body.messages)) {
-    result.messages = (body.messages as Array<Record<string, unknown>>).map((m) => {
-      if (m.role !== 'assistant' || !Array.isArray(m.content)) return m;
-      const content = m.content as ContentBlock[];
-      const firstToolUse = content.find((b) => b.type === 'tool_use');
-      if (!firstToolUse || typeof firstToolUse.id !== 'string') return m;
-      // Native Messages clients may already echo the previous assistant's
-      // signed thinking blocks before the tool_use block. Prepending the
-      // cached copy in that case would duplicate signed blocks and the
-      // upstream would reject the conversation. Only replay when the turn
-      // is missing the thinking prelude.
-      const alreadyHasThinking = content.some(
-        (b) => b.type === 'thinking' || b.type === 'redacted_thinking',
-      );
-      if (alreadyHasThinking) return m;
-      const cached = thinkingRouteContext
-        ? thinkingLookup(firstToolUse.id, thinkingRouteContext)
-        : thinkingLookup(firstToolUse.id);
-      if (!cached || cached.length === 0) return m;
-      return { ...m, content: [...(cached as ContentBlock[]), ...content] };
-    });
+  if (Array.isArray(body.messages)) {
+    let messagesChanged = false;
+    const messages = (body.messages as Array<Record<string, unknown>>)
+      .map((m): Record<string, unknown> | null => {
+        if (m.role !== 'assistant' || !Array.isArray(m.content)) return m;
+        const sanitized = stripUnsignedThinkingBlocks(m.content as ContentBlock[]);
+        const content = sanitized.content;
+        const messageChanged = sanitized.changed;
+        if (messageChanged && content.length === 0) {
+          messagesChanged = true;
+          return null;
+        }
+
+        const firstToolUse = content.find((b) => b.type === 'tool_use');
+        if (!firstToolUse || typeof firstToolUse.id !== 'string' || !thinkingLookup) {
+          if (!messageChanged) return m;
+          messagesChanged = true;
+          return { ...m, content };
+        }
+        // Native Messages clients may already echo the previous assistant's
+        // signed thinking blocks before the tool_use block. Prepending the
+        // cached copy in that case would duplicate signed blocks and the
+        // upstream would reject the conversation. Only replay when the turn
+        // is missing the thinking prelude. Unsigned `thinking` blocks can be
+        // produced by non-Anthropic upstreams in Anthropic-compatible sessions;
+        // strip them before this check so they do not suppress valid replay or
+        // reach Anthropic with an invalid signature.
+        const alreadyHasThinking = content.some(
+          (b) => b.type === 'thinking' || b.type === 'redacted_thinking',
+        );
+        if (alreadyHasThinking) {
+          if (!messageChanged) return m;
+          messagesChanged = true;
+          return { ...m, content };
+        }
+        const cached = thinkingRouteContext
+          ? thinkingLookup(firstToolUse.id, thinkingRouteContext)
+          : thinkingLookup(firstToolUse.id);
+        if (!cached || cached.length === 0) {
+          if (!messageChanged) return m;
+          messagesChanged = true;
+          return { ...m, content };
+        }
+        messagesChanged = true;
+        return { ...m, content: [...(cached as ContentBlock[]), ...content] };
+      })
+      .filter((m): m is Record<string, unknown> => m !== null);
+    if (messagesChanged) result.messages = messages;
   }
 
   return result;

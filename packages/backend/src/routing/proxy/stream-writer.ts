@@ -18,11 +18,10 @@ export interface StreamUsage {
  * or Anthropic-native (`input_tokens`/`output_tokens`) shape and normalise it
  * to a `StreamUsage`. Returns null when neither shape is present.
  *
- * OpenAI-compatible providers expose cached prompt tokens under the nested
- * `prompt_tokens_details.cached_tokens` field, not the top-level
- * `cache_read_tokens` key — DeepSeek, Z.AI, MiniMax, Mistral, etc. all use the
- * nested form. Falling back to the nested key keeps the cache column populated
- * for those providers.
+ * OpenAI-compatible providers expose cached prompt tokens under provider-specific
+ * usage fields, not always the top-level `cache_read_tokens` key. Falling back
+ * to those keys keeps the cache column populated for providers such as DeepSeek,
+ * Z.AI, MiniMax, and Mistral.
  */
 export function parseUsageObject(usage: unknown): StreamUsage | null {
   if (!usage || typeof usage !== 'object') return null;
@@ -37,9 +36,13 @@ export function parseUsageObject(usage: unknown): StreamUsage | null {
     const cacheRead =
       typeof u.cache_read_tokens === 'number'
         ? u.cache_read_tokens
-        : typeof promptDetails?.cached_tokens === 'number'
-          ? promptDetails.cached_tokens
-          : undefined;
+        : typeof u.prompt_cache_hit_tokens === 'number'
+          ? u.prompt_cache_hit_tokens
+          : typeof u.cached_tokens === 'number'
+            ? u.cached_tokens
+            : typeof promptDetails?.cached_tokens === 'number'
+              ? promptDetails.cached_tokens
+              : undefined;
     return {
       prompt_tokens: u.prompt_tokens,
       completion_tokens: typeof u.completion_tokens === 'number' ? u.completion_tokens : 0,

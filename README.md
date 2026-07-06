@@ -6,7 +6,7 @@
   </picture>
 </p>
 <p align="center">
-Reduce your AI costs 
+Plug your AI agents into any provider
 </p>
 
 ![manifest-gh](https://github.com/user-attachments/assets/7dd74fc2-f7d6-4558-a95a-014ed754a125)
@@ -35,7 +35,7 @@ Reduce your AI costs
 
 ## What is Manifest?
 
-Manifest is a smart model router for agents and AI applications that redirects each query to the right model, saving up to 70% in AI costs.
+Manifest is a smart model router for AI agents and apps. Connect your API keys, subscriptions, and local models to one OpenAI-compatible endpoint, and each query goes to the right model. No single-provider lock-in.
 
 - 🔀 Routing based on complexity, specificity and custom HTTP headers
 - 🎛️ Mix your providers: API keys, Subscriptions, Local models, Custom providers

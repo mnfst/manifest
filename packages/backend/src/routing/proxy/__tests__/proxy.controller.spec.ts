@@ -575,6 +575,85 @@ describe('ProxyController', () => {
     expect(res.json).toHaveBeenCalledWith(collectedBody);
   });
 
+  it('should record route metadata when collected SSE response fails after routing', async () => {
+    const sseText = 'event: error\ndata: {"error":{"message":"too large"}}\n\n';
+    const errorBody = JSON.stringify({
+      error: {
+        message: 'Your input exceeds the context window of this model.',
+        code: 'context_length_exceeded',
+        type: 'invalid_request_error',
+      },
+    });
+    const mockProviderResp = new Response(sseText, {
+      status: 200,
+      headers: { 'Content-Type': 'text/event-stream' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+      },
+      meta: {
+        tier: 'standard',
+        model: 'gpt-5.3-codex',
+        provider: 'openai',
+        confidence: 0.8,
+        reason: 'scored',
+        auth_type: 'subscription',
+        provider_key_label: 'Work',
+        tenantProviderId: 'tenant-provider-1',
+        request_params: { reasoning_effort: 'medium' },
+        header_tier_id: 'header-tier-1',
+        header_tier_name: 'Premium',
+        header_tier_color: 'indigo',
+      },
+    });
+    (providerClient as Record<string, jest.Mock>).collectChatGptSseResponse = jest
+      .fn()
+      .mockImplementation(() => {
+        throw new ResponsesSseError(
+          'Your input exceeds the context window of this model.',
+          400,
+          errorBody,
+        );
+      });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await flushRecorderMicrotasks();
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'error',
+        error_http_status: 400,
+        error_message: errorBody,
+        model: 'gpt-5.3-codex',
+        provider: 'openai',
+        routing_tier: 'standard',
+        routing_reason: 'scored',
+        auth_type: 'subscription',
+        provider_key_label: 'Work',
+        tenant_provider_id: 'tenant-provider-1',
+        request_params: { reasoning_effort: 'medium' },
+        header_tier_id: 'header-tier-1',
+        header_tier_name: 'Premium',
+        header_tier_color: 'indigo',
+      }),
+    );
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: expect.objectContaining({
+        provider: 'openai',
+        model: 'gpt-5.3-codex',
+      }),
+    });
+  });
+
   it('should not record success message for non-fallback responses (OTLP pipeline records them)', async () => {
     const responseBody = {
       choices: [{ message: { content: 'hello' } }],

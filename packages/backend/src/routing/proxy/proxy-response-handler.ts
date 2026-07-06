@@ -355,7 +355,12 @@ export async function handleStreamResponse(
   // shape, and likewise owns stream termination via `finalize` (which emits
   // the trailing `[DONE]` that pipeStream then skips).
   const responsesTransformer =
-    apiMode === 'responses' ? createResponsesStreamTransformer(meta.model) : null;
+    apiMode === 'responses'
+      ? createResponsesStreamTransformer(meta.model, {
+          structuredOutputToolName: forward.structuredOutputToolName,
+          textFormat: forward.responsesTextFormat,
+        })
+      : null;
   const streamTransformer = messagesTransformer ?? responsesTransformer;
   const finalize = streamTransformer ? () => streamTransformer.finalize() : undefined;
   const toClientChunk = streamTransformer
@@ -566,7 +571,10 @@ export async function handleNonStreamResponse(
   }
 
   if (apiMode === 'responses' && !forward.isResponses) {
-    responseBody = fromChatCompletionResponse(responseBody as Record<string, unknown>, meta.model);
+    responseBody = fromChatCompletionResponse(responseBody as Record<string, unknown>, meta.model, {
+      structuredOutputToolName: forward.structuredOutputToolName,
+      textFormat: forward.responsesTextFormat,
+    });
   } else if (apiMode === 'messages' && !forward.isAnthropic) {
     // Anthropic upstreams already returned a Messages-shaped body via the
     // passthrough branch above. Skip the round-trip translation that would
