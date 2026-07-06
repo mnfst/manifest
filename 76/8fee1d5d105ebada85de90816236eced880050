@@ -1,0 +1,181 @@
+packages/backend/src/database/data-source-definitions.ts
+  s_315e89ea4959c2::t_aab3a08c725c16 27-28,137,161,273-274
+.changeset/slick-lamps-allow.md
+  s_315e89ea4959c2::t_d3ab326dba35a8 2,5
+.changeset/structured-output-responses.md
+  s_315e89ea4959c2::t_438e2201eabc51 4
+.github/workflows/ci.yml
+  s_315e89ea4959c2::t_0b69c8e4dfbdd0 141-142
+.github/workflows/release.yml
+  s_315e89ea4959c2::t_99d815256437b2 34-51,53
+CLAUDE.md
+  s_315e89ea4959c2::t_97be2de973b87c 598
+README.md
+  s_315e89ea4959c2::t_d3b445006e0462 9,38
+docker/DOCKER_README.md
+  s_315e89ea4959c2::t_44c86784743e66 20,22
+docker/Dockerfile
+  s_315e89ea4959c2::t_f0655dab123b09 66
+package-lock.json
+  s_315e89ea4959c2::t_446525a2976ee2 15000
+package.json
+  s_315e89ea4959c2::t_c79c70a4f938a8 41
+packages/backend/src/cors-csp-config.spec.ts
+  s_315e89ea4959c2::t_93ba6bb010a676 2,6,133-154
+packages/backend/src/cors-csp-config.ts
+  s_315e89ea4959c2::t_3db0709c6b35f5 82-113
+packages/backend/src/database/migrations/1799000000000-AddAutofixWaitlistSignups.spec.ts
+  s_315e89ea4959c2::t_b93843d1dc31b6 1-39
+packages/backend/src/database/migrations/1799000000000-AddAutofixWaitlistSignups.ts
+  s_315e89ea4959c2::t_ac87b3941c4fa2 1-27
+packages/backend/src/database/migrations/1800000000000-RenameWaitlistClaimsTable.spec.ts
+  s_315e89ea4959c2::t_918a9fdc5fecd2 1-62
+packages/backend/src/database/migrations/1800000000000-RenameWaitlistClaimsTable.ts
+  s_315e89ea4959c2::t_cae3689812ca56 1-35
+packages/backend/src/entities/waitlist-claim.entity.ts
+  s_315e89ea4959c2::t_63140f6b7a2f39 1,3-6,8-15
+packages/backend/src/main.ts
+  s_315e89ea4959c2::t_0178e61d652e4a 19,85-86,100
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_315e89ea4959c2::t_1551c0264da42b 27,32,36
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_315e89ea4959c2::t_d64e36d108dcbd 311-352
+packages/backend/src/model-discovery/model-fallback.ts
+  s_315e89ea4959c2::t_5c34f9a8d48ff7 11,151-185,312-316,348,390
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_315e89ea4959c2::t_45a6b3bf65cc3b 2045-2062,2623-2642
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_315e89ea4959c2::t_112af144ce6333 27,836-837,1157-1173
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_315e89ea4959c2::t_49125a98e20292 2,234-360,2365-2414,2499-2616
+packages/backend/src/routing/proxy/__tests__/anthropic-cache-control-roundtrip.spec.ts
+  s_315e89ea4959c2::t_eecd9076cdc8fb 198-252
+packages/backend/src/routing/proxy/__tests__/google-adapter.spec.ts
+  s_315e89ea4959c2::t_a8ee99385a5b52 122-251,336-389,1268-1291,1311,2193-2198,2204
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_315e89ea4959c2::t_f550a9523412e4 54-74,112-139
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_315e89ea4959c2::t_9b117784ba1a3d 115-325,729-835,1139,1160,2208,2517,2541-2601,2624-2667,2733-2807,3181-3210,3270-3285,3853-3880
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_315e89ea4959c2::t_68589978bfead1 152,686
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_315e89ea4959c2::t_4e8e9728b7f479 673-683,704-713,744-754,830-842,844,867-877
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_315e89ea4959c2::t_e6c9d3dcbf49ad 1573-1629
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_315e89ea4959c2::t_11d6f465caef76 578-656
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_315e89ea4959c2::t_3a00c9f207c685 230,233,239-249,251-253
+packages/backend/src/routing/proxy/__tests__/responses-adapter.spec.ts
+  s_315e89ea4959c2::t_0a36229c81ac8a 92-147,462-580,954-999
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_315e89ea4959c2::t_7b0ea8fc85bb0d 1013-1043
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_315e89ea4959c2::t_17a64e7e34f174 22-23,103-108,120-137,295-321,368-369,374-381,442,499-546
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_315e89ea4959c2::t_253a183a9e9e0c 279-285
+packages/backend/src/routing/proxy/cache-injection.spec.ts
+  s_315e89ea4959c2::t_6525c9140ce838 1,124-198
+packages/backend/src/routing/proxy/cache-injection.ts
+  s_315e89ea4959c2::t_646772add8b8b8 3,8-32,35,37-40,44-52,58,68-71
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_315e89ea4959c2::t_dd69f167a714fd 279-324,367-399,467-559
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_315e89ea4959c2::t_f4eba5d0d22ad4 134-178,187,192-197,226-227,285-293,355,447,467-468,488,490-492,497-499,505
+packages/backend/src/routing/proxy/google-adapter.ts
+  s_315e89ea4959c2::t_f1ad9610692aaf 53,55-61,90-97,115-126,235-243,288-313,342-363,380
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_315e89ea4959c2::t_af8241fa9cff63 8,78,112,391
+packages/backend/src/routing/proxy/provider-client.ts
+  s_315e89ea4959c2::t_9215da3e0c0030 1,9,11,50-60,72-153,164,166-167,175-177,225,245,248,265,300-301,460-461,525-528,531-533,538,567-568,570-572,574-576,606-620,641-642
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_315e89ea4959c2::t_8aa68326086d2a 200-206
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_315e89ea4959c2::t_71aca475e7bc72 644
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_315e89ea4959c2::t_dea43b0565e110 358-363,574-577
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_315e89ea4959c2::t_541ac3d35cb5cb 52-53
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_315e89ea4959c2::t_d48a2eb783813d 18,158,210,299,315,334-351,365-369
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_315e89ea4959c2::t_9c0a45a114fbec 165,353-354,381-382
+packages/backend/src/routing/proxy/responses-adapter.ts
+  s_315e89ea4959c2::t_50f5bc3514f8ae 8-12,118-119,126-144,289-326,331-335,337,339,345,352,383,580-584,592-594,616-619,630-632,648,692-730,749-754,805-808
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_315e89ea4959c2::t_1455042f2d9e60 21-24,39-45
+packages/backend/src/routing/resolve/__tests__/resolve.service.edge.spec.ts
+  s_315e89ea4959c2::t_6a7a4d73afb893 83-87,105,248,266
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_315e89ea4959c2::t_c20f08cb0de19b 52-56,75,230,247-319,588,817,844
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_315e89ea4959c2::t_e218c421796e4d 241-250,253,255-271,275-276,278,282,288,348-350,403
+packages/backend/src/routing/routing-core/__tests__/provider-key.service.spec.ts
+  s_315e89ea4959c2::t_00cacd53aa8311 25-27,44-47,543-664
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_315e89ea4959c2::t_dfd723fa6a9ef0 4,344-390
+packages/backend/src/waitlist/dto/waitlist-claim.dto.spec.ts
+  s_315e89ea4959c2::t_46f70b5bc279d7 1-3,5-9,12-16,19-22
+packages/backend/src/waitlist/dto/waitlist-claim.dto.ts
+  s_315e89ea4959c2::t_2b412d018b6a23 1-6
+packages/backend/src/waitlist/waitlist-sync.service.spec.ts
+  s_315e89ea4959c2::t_f23753e9f0b764 1-57
+packages/backend/src/waitlist/waitlist-sync.service.ts
+  s_315e89ea4959c2::t_33618612083410 1-2,4-26
+packages/backend/src/waitlist/waitlist.controller.spec.ts
+  s_315e89ea4959c2::t_87ab153f61d7e9 2,4,6-12,17-18,25-35,67-70,78-87,89-92,96-125
+packages/backend/src/waitlist/waitlist.controller.ts
+  s_315e89ea4959c2::t_eec0a4397abee5 1,4,6,8-10,17-19,39-42,48-51,54-64
+packages/backend/src/waitlist/waitlist.module.ts
+  s_315e89ea4959c2::t_ab84d0eccc1d42 4,6,9,11
+packages/backend/test/cors.e2e-spec.ts
+  s_315e89ea4959c2::t_3967d18795fc76 10,46,122-129
+packages/backend/test/helpers.ts
+  s_315e89ea4959c2::t_f2165d38df4686 41,83
+packages/frontend/index.html
+  s_315e89ea4959c2::t_6128da4140f163 15,20,29
+packages/frontend/src/components/ProviderIcon.tsx
+  s_315e89ea4959c2::t_e28b4a980a4917 297-309
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_315e89ea4959c2::t_cc5a3163921c12 5,39
+packages/frontend/src/services/providers.ts
+  s_315e89ea4959c2::t_76895b34976872 198-210,484
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_315e89ea4959c2::t_80a1820f6d1740 74-82
+packages/frontend/tests/services/providers.test.ts
+  s_315e89ea4959c2::t_19c6bde0b613b9 540-554,905-919,1017-1022,1035-1040
+packages/frontend/vite.config.ts
+  s_315e89ea4959c2::t_7bfb14f9ea074a 3,7-38,83-85
+packages/manifest/CHANGELOG.md
+  s_315e89ea4959c2::t_252de4c7875129 3-104
+packages/manifest/package.json
+  s_315e89ea4959c2::t_66596d967d0dc0 3
+packages/shared/__tests__/subscription.spec.ts
+  s_315e89ea4959c2::t_03996ed1a9e5bd 260,475-494,531,540,549,558,567,576-585
+packages/shared/src/providers.ts
+  s_315e89ea4959c2::t_381dbec4d8980e 95-106
+packages/shared/src/subscription/configs.ts
+  s_315e89ea4959c2::t_8ea9312c8d7d51 25-28,63,85,98,118,130,143,188,209,247,258,297-320
+packages/shared/src/subscription/types.ts
+  s_315e89ea4959c2::t_2b5c52c8403867 3
+scripts/check-changesets.js
+  s_315e89ea4959c2::t_de727dab6b9966 1-77
+scripts/check-changesets.test.js
+  s_315e89ea4959c2::t_8f126040e2b547 1-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "768fee1d5d105ebada85de90816236eced880050",
+  "prompts": {},
+  "sessions": {
+    "s_315e89ea4959c2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f372b-27ec-7573-a4f9-34e6401af1ed",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
