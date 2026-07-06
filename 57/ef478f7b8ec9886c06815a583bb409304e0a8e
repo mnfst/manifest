@@ -1,0 +1,82 @@
+packages/backend/src/billing/billing-usage-email.service.spec.ts
+  s_756ad5e3766555::t_72d1ec4706f992 31-38,162-175
+  s_756ad5e3766555::t_e5798ca2185452 176-177
+packages/frontend/src/services/api/billing.ts
+  s_756ad5e3766555::t_31965066ab6029 2,6,14-22
+  s_ccf960d0f5824b::t_7ac8136b4897dd 23
+packages/shared/src/index.ts
+  s_756ad5e3766555::t_867259c8e42afd 146
+packages/backend/src/billing/billing.controller.ts
+  s_756ad5e3766555::t_20459db32b6f2d 1,4,14-20
+  s_ccf960d0f5824b::t_1dae4e4827ee90 21
+packages/backend/src/billing/billing-usage-email.service.ts
+  s_756ad5e3766555::t_156dc0f220b5bd 9,17,71-73,109-110
+packages/backend/src/billing/emails/billing-plan-email.tsx
+  s_756ad5e3766555::t_d53036b6c2c7b4 65-68,162,218,225,231-234
+packages/backend/src/billing/plan.service.spec.ts
+  s_756ad5e3766555::t_e8d33f1a547b27 12,30,35-38,145,153-191
+  s_756ad5e3766555::t_a15a4d5c74d212 192-193
+packages/shared/src/plan-limits.ts
+  s_756ad5e3766555::t_95496d0ed4dd68 18-21,26
+packages/frontend/tests/pages/Account.test.tsx
+  s_756ad5e3766555::t_7b1f9a824b8e14 217
+  s_756ad5e3766555::t_a85935b03c7e17 39-40,42,47,55,60,74,78,80,86,88,89,94,96,100,108,110-112,115,117,120,122-123,126,128-129,132,134-136,139,141,144,146,149,151,154,156,159,161,164,166-167,170,172-173,176-177,179-180,183,185,187,190-191,194,197-198,201-203,206,209-212,213,215,218,222-237,239-255,256,263,266,270,280,294,302,377,381,389,393
+  s_756ad5e3766555::t_e347c0235dc4e2 238
+  s_756ad5e3766555::t_ad62616e7e3871 1-2,12,17,25,28,262,273,296,301,303,308,310,312,316,322,326,330,338,343,347-349,354,358,361,364-365,366,375,388,390,394,396,398
+packages/backend/src/database/migrations/1798300000000-AddBillingEmailPreferences.ts
+  s_756ad5e3766555::t_31d71d983b9cf9 1-21
+packages/backend/src/database/migrations/1798300000000-AddBillingEmailPreferences.spec.ts
+  s_756ad5e3766555::t_f6b0721d0c8af2 1-40
+packages/frontend/tests/services/api/billing.test.ts
+  s_756ad5e3766555::t_ee321614e7e63a 7,9,14,17-18,24,32,48,58,75-87
+packages/backend/src/entities/tenant.entity.spec.ts
+  s_756ad5e3766555::t_1088f13e2cbc3e 43-51
+packages/frontend/src/styles/agents.css
+  s_756ad5e3766555::t_ce22f51dc264c3 341-351
+.changeset/subscription-plan-emails.md
+  s_756ad5e3766555::t_34ac6079f08391 5
+packages/backend/src/billing/billing-email-preferences.ts
+  s_756ad5e3766555::t_22b0af16c48367 1-15
+packages/backend/src/billing/emails/billing-plan-email.spec.ts
+  s_756ad5e3766555::t_203060230e74c4 18,82
+packages/backend/src/billing/billing.controller.spec.ts
+  s_756ad5e3766555::t_624b0004f22734 8,13-18,21,32-41
+  s_756ad5e3766555::t_5bf4d4b5ddf5c1 42
+packages/frontend/src/pages/Account.tsx
+  s_756ad5e3766555::t_b2e02dc30a4f76 1-8,12,23-24,30-34,116-131,179,320-350
+  s_756ad5e3766555::t_910117b354bf7f 351-357
+packages/backend/src/entities/tenant.entity.ts
+  s_756ad5e3766555::t_bf082453aa94da 4,42-43
+  s_ccf960d0f5824b::t_a90584d8d8cf14 44
+packages/backend/src/billing/plan.service.ts
+  s_756ad5e3766555::t_ec5b0066b59a68 249-253
+  s_756ad5e3766555::t_ef348b0b33d1b5 1,5,9-12,258,272,281-298
+packages/backend/src/billing/dto/update-billing-email-preferences.dto.ts
+  s_756ad5e3766555::t_a86d975f1f0e76 1-6
+packages/backend/src/database/data-source-definitions.ts
+  s_756ad5e3766555::t_717e8d392945b2 138,276
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "57ef478f7b8ec9886c06815a583bb409304e0a8e",
+  "prompts": {},
+  "sessions": {
+    "s_756ad5e3766555": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3669-ce33-7072-8b32-c8a68e50a701",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_ccf960d0f5824b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f379b-4369-7a30-9155-591d02c06976",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
