@@ -281,7 +281,7 @@ describe('ProxyExceptionFilter', () => {
       const content = payload.choices[0].message.content as string;
       expect(content).toContain('M204');
       expect(content).toContain('10000 requests');
-      expect(content).toContain('http://localhost:3001/account#billing');
+      expect(content).toContain('http://localhost:3001/upgrade?reason=requests');
     });
 
     it('returns a real 402 with insufficient_quota + code for an SDK/tool client', () => {
@@ -300,6 +300,8 @@ describe('ProxyExceptionFilter', () => {
           used: 10_000,
         }),
       );
+      const payload = res.json.mock.calls[0][0];
+      expect(payload.error.message).toContain('http://localhost:3001/upgrade?reason=requests');
     });
 
     it('ignores a 402 without the PLAN_LIMIT_REQUESTS code (falls through)', () => {
