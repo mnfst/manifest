@@ -156,11 +156,11 @@ describe('MessageTable onOpenMessage passthrough', () => {
 
     // The real MessageDetails resource resolves and renders the Auto-fix link.
     const link = await vi.waitFor(() => {
-      const el = container.querySelector('.msg-detail__autofix-link');
+      const el = container.querySelector('.error-autofix-row__autofix-btn');
       expect(el).not.toBeNull();
       return el as HTMLButtonElement;
     });
-    expect(link.textContent).toBe('→ View the successful auto-fix retry');
+    expect(link.textContent).toContain('View autofix retry');
 
     // Clicking the sibling link calls the table's onOpenMessage with the id.
     fireEvent.click(link);

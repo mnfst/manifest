@@ -1228,7 +1228,7 @@ describe('MessageLog', () => {
 
     // Wait for the real MessageDetails to render the Auto-fix link, then click it.
     const link = await vi.waitFor(() => {
-      const el = container.querySelector('.msg-detail__autofix-link');
+      const el = container.querySelector('.error-autofix-row__autofix-btn');
       expect(el).not.toBeNull();
       return el as HTMLButtonElement;
     });
@@ -1292,7 +1292,7 @@ describe('MessageLog', () => {
     const chevron = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
     fireEvent.click(chevron);
     const link = await vi.waitFor(() => {
-      const el = container.querySelector('.msg-detail__autofix-link');
+      const el = container.querySelector('.error-autofix-row__autofix-btn');
       expect(el).not.toBeNull();
       return el as HTMLButtonElement;
     });

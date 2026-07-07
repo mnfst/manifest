@@ -123,7 +123,7 @@ describe('MessageTable', () => {
         />
       ));
       const headers = container.querySelectorAll('th');
-      expect(headers.length).toBe(7);
+      expect(headers.length).toBe(9);
       expect(headers[0]!.textContent).toContain('Status');
       expect(headers[1]!.textContent).toContain('Trigger');
       expect(headers[2]!.textContent).toContain('Date');
@@ -131,6 +131,8 @@ describe('MessageTable', () => {
       expect(headers[4]!.textContent).toContain('Message');
       expect(headers[5]!.textContent).toContain('Cost');
       expect(headers[6]!.textContent).toContain('Tokens');
+      expect(headers[7]!.textContent).toContain('Cache');
+      expect(headers[8]!.textContent).toContain('Latency');
     });
 
     it('renders detailed column headers with tooltips', () => {
