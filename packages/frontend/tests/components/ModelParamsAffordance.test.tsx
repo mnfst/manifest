@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, fireEvent, screen, waitFor, configure } from '@solidjs/testing-library';
 import type { ProviderParamSpec } from 'manifest-shared';
 
 vi.mock('solid-js/web', async (importOriginal) => {
@@ -46,6 +46,14 @@ describe('ModelParamsAffordance', () => {
   beforeEach(() => {
     mockGetSpecs.mockReset();
     mockGetSpecs.mockResolvedValue(specs);
+    // These assertions wait on a lazily-loaded resource (getModelParamSpecs) and a
+    // reactive `Show` gate; the default 1s waitFor budget can be exceeded under CI
+    // CPU contention, so give it headroom to avoid load-based flakes.
+    configure({ asyncUtilTimeout: 5000 });
+  });
+
+  afterEach(() => {
+    configure({ asyncUtilTimeout: 1000 });
   });
 
   it('renders the button for non-local routes', () => {
