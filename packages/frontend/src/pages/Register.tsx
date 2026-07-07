@@ -102,7 +102,7 @@ const Register: Component = () => {
           if (status.priceMonthlyUsd != null) {
             setProPrice(`$${status.priceMonthlyUsd}`);
           }
-          navigate('/register?step=plan', { replace: true });
+          window.location.href = '/register?step=plan';
           return;
         }
       } catch {
