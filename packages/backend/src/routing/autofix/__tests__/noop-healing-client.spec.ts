@@ -6,6 +6,7 @@ describe('NoopHealingClient', () => {
 
   const sampleRequest: HealRequest = {
     traceId: 'trace-1',
+    tenantId: 'tenant-1',
     provider: 'anthropic',
     api: 'chat_completions',
     request: { model: 'gpt', max_tokens: 100 },

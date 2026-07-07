@@ -65,6 +65,7 @@ describe('Phoenix wire contract (vendored OpenAPI)', () => {
     // Mirrors the heal() call in AutofixService.runHealOnce — keep them aligned.
     const valid = {
       traceId: 'trace-abc',
+      tenantId: 'tenant-abc',
       provider: 'openai',
       api: 'chat_completions',
       url: 'https://api.openai.com/v1/chat/completions',

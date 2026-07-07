@@ -29,6 +29,14 @@ export interface HealRequest {
    * rejects a heal request without it (`400`).
    */
   traceId: string;
+  /**
+   * The Manifest tenant this request belongs to (`Tenant.id`). Attributes the
+   * failure to a customer so Phoenix can report affected tenants per issue and
+   * browse a tenant's failures. Always available on the proxy heal path (the
+   * agent key resolves a tenant), so we always send it; Phoenix treats it as an
+   * optional, opaque label.
+   */
+  tenantId: string;
   provider: string;
   api: ProxyApiMode;
   url?: string;

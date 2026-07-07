@@ -308,6 +308,7 @@ export class AutofixService {
     try {
       heal = await this.client.heal({
         traceId: groupId,
+        tenantId: params.tenantId,
         provider: params.provider,
         api: params.apiMode,
         url: params.url,
