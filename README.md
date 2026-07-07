@@ -12,6 +12,13 @@ Plug your AI agents into any provider
 ![manifest-gh](https://github.com/user-attachments/assets/7dd74fc2-f7d6-4558-a95a-014ed754a125)
 
 <p align="center">
+  <a href="https://render.com/deploy?repo=https://github.com/mnfst/manifest" target="_blank" rel="nofollow"><img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" height="40" /></a>
+  <a href="https://railway.com/deploy/wild-wild" target="_blank" rel="nofollow"><img src="https://railway.com/button.svg" alt="Deploy on Railway" height="40" /></a>
+  <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/quickcreate?stackName=manifest&amp;templateURL=https%3A%2F%2Fmnfst-manifest-deploy-templates.s3.us-east-1.amazonaws.com%2Fmanifest.yaml" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-AWS-232F3E?style=for-the-badge&amp;logo=amazonwebservices&amp;logoColor=white" alt="Deploy on AWS" height="40" /></a>
+  <a href="https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fmnfst%2Fmanifest&amp;cloudshell_workspace=deploy%2Fgcp&amp;cloudshell_tutorial=TUTORIAL.md&amp;cloudshell_image=gcr.io/ds-artifacts-cloudshell/deploystack_custom_image&amp;shellonly=true" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-GCP-4285F4?style=for-the-badge&amp;logo=googlecloud&amp;logoColor=white" alt="Deploy on GCP" height="40" /></a>
+</p>
+
+<p align="center">
   <span><img src="https://img.shields.io/badge/status-beta-yellow" alt="beta" /></span>
   &nbsp;
   <a href="https://github.com/mnfst/manifest/stargazers"><img src="https://img.shields.io/github/stars/mnfst/manifest?style=flat" alt="GitHub stars" /></a>
@@ -57,6 +64,15 @@ bash <(curl -sSL https://raw.githubusercontent.com/mnfst/manifest/main/docker/in
 ```
 
 Open [http://localhost:2099](http://localhost:2099) and sign up — the first account you create becomes the admin. Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
+
+Managed deployment options:
+
+| Platform | What it provisions |
+| --- | --- |
+| [Railway](https://railway.com/deploy/wild-wild) | Manifest plus PostgreSQL from the public Railway template. |
+| [Render](https://render.com/deploy?repo=https://github.com/mnfst/manifest) | Manifest web service plus Render PostgreSQL from [render.yaml](render.yaml). |
+| [AWS](deploy/aws/TUTORIAL.md) | ECS Fargate, Application Load Balancer, RDS PostgreSQL, and Secrets Manager via CloudFormation. |
+| [GCP](deploy/gcp/TUTORIAL.md) | Cloud Run, Cloud SQL for PostgreSQL, and Secret Manager via the Cloud Shell tutorial. |
 
 > The legacy `manifest` npm package is deprecated and no longer published.
 
