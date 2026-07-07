@@ -329,5 +329,7 @@ export function selectMessageRowColumns<T extends ObjectLiteral>(
     .addSelect('at.header_tier_name', 'header_tier_name')
     .addSelect('at.header_tier_color', 'header_tier_color')
     .addSelect('at.provider_key_label', 'provider_key_label')
-    .addSelect('cp.name', 'custom_provider_name');
+    .addSelect('cp.name', 'custom_provider_name')
+    .addSelect('at.autofix_applied', 'autofix_applied')
+    .addSelect('at.autofix_role', 'autofix_role');
 }

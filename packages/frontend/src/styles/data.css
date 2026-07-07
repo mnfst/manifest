@@ -104,6 +104,60 @@
   color: hsl(25 95% 44%);
 }
 
+/* ── Trigger badges (Trigger column) ─────────────────────────────────── */
+
+.trigger-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-heading);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  color: hsl(var(--foreground));
+}
+
+.trigger-badge[role='button'] {
+  cursor: pointer;
+}
+
+/* Auto-fix icon: white sparkle inside a multi-shape gradient square */
+.autofix-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background:
+    radial-gradient(ellipse 220% 200% at 95% 0%, rgba(73, 207, 202, 0.9) 0%, transparent 50%),
+    radial-gradient(ellipse 120% 110% at 5% 15%, rgba(66, 80, 255, 0.85) 0%, transparent 45%),
+    radial-gradient(ellipse 200% 180% at 55% 105%, rgba(255, 60, 140, 0.6) 0%, transparent 55%),
+    radial-gradient(ellipse 130% 110% at 30% 50%, rgba(90, 70, 255, 0.55) 0%, transparent 45%);
+  background-color: #4535c9;
+  color: #fff;
+}
+
+/* Fallback icon: gradient square with warm accent */
+.fallback-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background:
+    radial-gradient(ellipse 220% 200% at 95% 0%, rgba(73, 207, 202, 0.9) 0%, transparent 50%),
+    radial-gradient(ellipse 120% 110% at 5% 15%, rgba(66, 80, 255, 0.85) 0%, transparent 45%),
+    radial-gradient(ellipse 200% 180% at 55% 105%, rgba(255, 60, 140, 0.6) 0%, transparent 55%),
+    radial-gradient(ellipse 130% 110% at 30% 50%, rgba(90, 70, 255, 0.55) 0%, transparent 45%),
+    radial-gradient(ellipse 150% 130% at 50% 40%, rgba(241, 198, 157, 0.55) 0%, transparent 45%);
+  background-color: #4535c9;
+  color: #fff;
+}
+
 /* When a status badge is itself a link (a Manifest limit → the limits page)
    keep the badge look: inherit the badge colour, no underline until hover. */
 a.status-badge {
@@ -206,6 +260,39 @@ a.status-badge:hover {
 .tier-badge--playground {
   background: hsl(var(--primary) / 0.1);
   color: hsl(var(--primary));
+}
+
+/* ── Tier badge tooltip (hover explanation for direct / default) ───── */
+.tier-badge-tooltip {
+  position: relative;
+  display: inline-flex;
+}
+
+.tier-badge-tooltip__bubble {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 240px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: 1.4;
+  white-space: normal;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.tier-badge-tooltip:hover .tier-badge-tooltip__bubble {
+  display: block;
 }
 
 /* Custom header-triggered tier badge — color comes from tier-color-* classes. */

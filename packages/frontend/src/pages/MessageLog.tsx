@@ -13,7 +13,6 @@ import {
   type Component,
 } from 'solid-js';
 import ErrorState from '../components/ErrorState.jsx';
-import FeedbackModal from '../components/FeedbackModal.jsx';
 import MessageTable from '../components/MessageTable.jsx';
 import Pagination from '../components/Pagination.jsx';
 import Select from '../components/Select.jsx';
@@ -28,8 +27,6 @@ import {
   getMessageFilterOptions,
   getRoutingStatus,
   listHeaderTiers,
-  setMessageFeedback,
-  clearMessageFeedback,
 } from '../services/api.js';
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
@@ -37,7 +34,6 @@ import { PROVIDERS, SPECIFICITY_STAGES } from '../services/providers.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { platformIcon } from 'manifest-shared';
 import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
-import { checkIsSelfHosted } from '../services/setup-status.js';
 import { messagePing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/routing.css';
@@ -83,14 +79,8 @@ const MessageLog: Component = () => {
   const navigate = useNavigate();
 
   preloadModelDisplayNames();
-  const [isSelfHosted, setIsSelfHosted] = createSignal(false);
-  onMount(() => {
-    checkIsSelfHosted().then(setIsSelfHosted);
-  });
   const columns = () => {
-    const base = isSelfHosted()
-      ? DETAILED_COLUMNS.filter((c) => c !== 'feedback')
-      : DETAILED_COLUMNS;
+    const base = DETAILED_COLUMNS;
     if (params.agentName) return base;
     // Global Messages spans every harness, so show which harness each row belongs to.
     const at = base.indexOf('model');
@@ -159,53 +149,6 @@ const MessageLog: Component = () => {
   const [setupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
   );
-
-  const [feedbackModalOpen, setFeedbackModalOpen] = createSignal(false);
-  const [feedbackMessageId, setFeedbackMessageId] = createSignal('');
-  const [feedbackOverrides, setFeedbackOverrides] = createSignal<Record<string, string | null>>({});
-
-  const handleFeedbackLike = (id: string) => {
-    setFeedbackOverrides((prev) => ({ ...prev, [id]: 'like' }));
-    setMessageFeedback(id, { rating: 'like' }).catch(() => {
-      setFeedbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    });
-  };
-
-  const handleFeedbackDislike = (id: string) => {
-    setFeedbackOverrides((prev) => ({ ...prev, [id]: 'dislike' }));
-    setFeedbackMessageId(id);
-    setFeedbackModalOpen(true);
-    setMessageFeedback(id, { rating: 'dislike' }).catch(() => {
-      setFeedbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    });
-  };
-
-  const handleFeedbackClear = (id: string) => {
-    setFeedbackOverrides((prev) => ({ ...prev, [id]: null }));
-    clearMessageFeedback(id).catch(() => {
-      setFeedbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    });
-  };
-
-  const handleFeedbackSubmit = (tags: string[], details: string) => {
-    const id = feedbackMessageId();
-    if (id) {
-      setMessageFeedback(id, { rating: 'dislike', tags, details });
-    }
-    setFeedbackModalOpen(false);
-  };
 
   const [routingStatus] = createResource(
     () => params.agentName,
@@ -314,12 +257,7 @@ const MessageLog: Component = () => {
   );
 
   const displayedItems = createMemo<MessageRow[]>(() => {
-    const items = data()?.items ?? [];
-    if (isSelfHosted()) return items;
-    const overrides = feedbackOverrides();
-    return items.map((item) =>
-      item.id in overrides ? { ...item, feedback_rating: overrides[item.id] ?? undefined } : item,
-    );
+    return data()?.items ?? [];
   });
 
   createEffect(
@@ -413,27 +351,26 @@ const MessageLog: Component = () => {
     { label: 'Failed', value: 'failed' },
   ];
 
-  // Smooth-scroll a message row into view and flash the highlight. Shared by the
-  // fallback-success jump and the Auto-fix sibling jump so the scroll target,
-  // highlight class, and 2s cleanup only live in one place.
-  const scrollToAndHighlight = (id: string) => {
-    const el = document.getElementById(`msg-${id}`);
+  const scrollToFallbackSuccess = (model: string) => {
+    const items = data()?.items;
+    if (!items) return;
+    const success = items.find((i) => i.fallback_from_model === model && i.status === 'ok');
+    if (!success) return;
+    const el = document.getElementById(`msg-${success.id}`);
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el.classList.add('msg-highlight');
     setTimeout(() => el.classList.remove('msg-highlight'), 2000);
   };
 
-  const scrollToFallbackSuccess = (model: string) => {
-    const items = data()?.items;
-    if (!items) return;
-    const success = items.find((i) => i.fallback_from_model === model && i.status === 'ok');
-    if (!success) return;
-    scrollToAndHighlight(success.id);
-  };
-
   // Jump to a linked message (the Auto-fix sibling of an expanded row).
-  const scrollToMessage = (id: string) => scrollToAndHighlight(id);
+  const scrollToMessage = (id: string) => {
+    const el = document.getElementById(`msg-${id}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('msg-highlight');
+    setTimeout(() => el.classList.remove('msg-highlight'), 2000);
+  };
 
   return (
     <div class="container--full">
@@ -690,9 +627,6 @@ const MessageLog: Component = () => {
                   agentPlatformLookup={(name) => agentPlatformMap().get(name)}
                   onFallbackErrorClick={scrollToFallbackSuccess}
                   onOpenMessage={scrollToMessage}
-                  onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
-                  onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
-                  onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
                   rowIdPrefix="msg-"
                   showHeaderTooltips
                   expandable
@@ -719,14 +653,6 @@ const MessageLog: Component = () => {
           agentPlatform={agentPlatform()}
           agentCategory={agentCategory()}
           onClose={() => setSetupOpen(false)}
-        />
-      </Show>
-
-      <Show when={!isSelfHosted()}>
-        <FeedbackModal
-          open={feedbackModalOpen()}
-          onClose={() => setFeedbackModalOpen(false)}
-          onSubmit={handleFeedbackSubmit}
         />
       </Show>
     </div>
