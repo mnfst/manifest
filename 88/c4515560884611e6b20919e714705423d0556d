@@ -1,0 +1,22 @@
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_e8a327dcc169c3::t_6411e01b425eae 525
+  s_e8a327dcc169c3::t_d78cdd07df1c50 203
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_e8a327dcc169c3::t_232bb43936ad24 350-378
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "88c4515560884611e6b20919e714705423d0556d",
+  "prompts": {},
+  "sessions": {
+    "s_e8a327dcc169c3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8cd49272-33d1-4254-abcb-7379e17f26ca",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

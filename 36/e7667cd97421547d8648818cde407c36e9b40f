@@ -1,0 +1,32 @@
+packages/frontend/src/components/ActionMenu.tsx
+  s_8f7bd68edeeec2::t_bb360acaf0855b 7-8,13-16,21-24,36-47,50-51,57,59,62,66-67,77,81,84-87,92
+  s_8f7bd68edeeec2::t_f0526533dd8ef4 52-56
+packages/frontend/tests/components/ActionMenu.test.tsx
+  s_8f7bd68edeeec2::t_867ac09f579ab2 59-103,108
+packages/frontend/src/styles/action-menu.css
+  s_8f7bd68edeeec2::t_86c1ff27b40ebc 3-7,14,23-24,29-33,36,39,41-43,48,52-54,56,62,68-69,71,75-114,117-119
+packages/frontend/src/pages/Workspace.tsx
+  s_8f7bd68edeeec2::t_2111e4fc0ec279 1,5
+  s_8f7bd68edeeec2::t_96bdc955deac14 213-231
+  s_8f7bd68edeeec2::t_37a660612b420b 31-46,48-64
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_8f7bd68edeeec2::t_78e58efc67b041 487,490-492,496-503,507,516,522,524,531,537,540
+packages/frontend/src/styles/agents.css
+  s_8f7bd68edeeec2::t_28e66db004a968 39-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "36e7667cd97421547d8648818cde407c36e9b40f",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

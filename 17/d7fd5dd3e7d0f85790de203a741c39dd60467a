@@ -1,0 +1,39 @@
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_a7d7f6ffbf0781::t_dd97b605a09c1d 283-284,289-302
+  s_a7d7f6ffbf0781::t_f6e7aad61e6391 285-288
+packages/shared/src/subscription/types.ts
+  s_a7d7f6ffbf0781::t_18bf91d2b9bf72 25-32
+.changeset/anthropic-fast-model-catalog.md
+  s_a7d7f6ffbf0781::t_e6cbf2155222e9 1-5
+packages/shared/src/subscription/configs.ts
+  s_a7d7f6ffbf0781::t_a3b361d2e7017f 14-17
+packages/shared/src/subscription/index.ts
+  s_a7d7f6ffbf0781::t_061500d7d610aa 8
+packages/shared/src/subscription/helpers.ts
+  s_a7d7f6ffbf0781::t_b59419039bef09 39-43
+packages/backend/src/model-discovery/model-fallback.ts
+  s_a7d7f6ffbf0781::t_c5d261fd98d877 256-258
+  s_a7d7f6ffbf0781::t_63c7afbaa2566b 236-238
+  s_a7d7f6ffbf0781::t_c1df7274dedd85 9
+packages/shared/__tests__/subscription.spec.ts
+  s_a7d7f6ffbf0781::t_d6e3cfff20a620 8
+  s_a7d7f6ffbf0781::t_ea1b9bf4678987 418-431
+packages/shared/src/index.ts
+  s_a7d7f6ffbf0781::t_2947555383e054 111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "17d7fd5dd3e7d0f85790de203a741c39dd60467a",
+  "prompts": {},
+  "sessions": {
+    "s_a7d7f6ffbf0781": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a31f807-8a4f-42e8-af85-a4cfa7d196e0",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

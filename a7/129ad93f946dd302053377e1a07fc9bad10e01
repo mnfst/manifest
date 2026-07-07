@@ -1,0 +1,19 @@
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_dcd815852e7fcd::t_a97e1cb9c0c94a 1370,1426,1659
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "a7129ad93f946dd302053377e1a07fc9bad10e01",
+  "prompts": {},
+  "sessions": {
+    "s_dcd815852e7fcd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ecb07-1a57-7052-b468-2f5d5d1eb3ba",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

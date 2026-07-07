@@ -1,0 +1,19 @@
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_f4b782dd2ef4b5::t_325039afc332fd 2375-2419
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "4cb76590b45b7e10dd42a8241115d7d105169f15",
+  "prompts": {},
+  "sessions": {
+    "s_f4b782dd2ef4b5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f23be-d756-7d42-bb07-920a63ee2d1a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

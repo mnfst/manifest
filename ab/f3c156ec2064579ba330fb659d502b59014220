@@ -1,0 +1,23 @@
+.changeset/last-auth-method-hint.md
+  b8be0324a8a3ea25 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "abf3c156ec2064579ba330fb659d502b59014220",
+  "prompts": {
+    "b8be0324a8a3ea25": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "98a93dbf-757f-4087-ac55-3437d49886b8",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 7,
+      "total_deletions": 0,
+      "accepted_lines": 7,
+      "overriden_lines": 0
+    }
+  }
+}

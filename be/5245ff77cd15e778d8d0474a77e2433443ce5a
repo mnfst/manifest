@@ -1,0 +1,19 @@
+docs/superpowers/plans/2026-06-05-global-provider-connections.md
+  s_feb7f7e060c1a0::t_d31f8d84cc6793 1-486
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "be5245ff77cd15e778d8d0474a77e2433443ce5a",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

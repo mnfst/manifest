@@ -1,0 +1,21 @@
+packages/backend/src/database/migrations/1791000000000-LiftProvidersToUserLevel.spec.ts
+  s_92a09cacaa2362::t_7c2d5eecc4648d 13,15-19,29,32,45,47
+packages/backend/src/database/migrations/1791000000000-LiftProvidersToUserLevel.ts
+  s_92a09cacaa2362::t_2164a27bc1089e 7,9-12,14-29,32-33,35-39,43,45,48-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "70a39991bf39c65001bd140ea0aa89fdb9c39f45",
+  "prompts": {},
+  "sessions": {
+    "s_92a09cacaa2362": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7d589c94-160b-444b-90b4-89f654b51aa0",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

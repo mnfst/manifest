@@ -1,0 +1,27 @@
+packages/frontend/src/pages/Upgrade.tsx
+  s_113fbd5b068697::t_ef02e88ea368ec 3,10-34,52,54,67-68,71-72,82,85-93,129-133,135-137,139-156,158,163-169,171-173,175-187,189,191,195,198-233
+packages/frontend/src/pages/Account.tsx
+  s_113fbd5b068697::t_0ae4e47a9d92b5 38,41-42,63
+packages/frontend/tests/pages/Upgrade.test.tsx
+  s_113fbd5b068697::t_477995b3608551 76-78,82-83,85-90,114,119-120,129,141,151
+packages/frontend/tests/pages/Account.test.tsx
+  s_113fbd5b068697::t_ac2b70a7d37803 229-230,325
+packages/frontend/src/styles/agents.css
+  s_113fbd5b068697::t_36ca09bae214df 161-164,171-174,354-498
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "5353b3a270bbfe61c99129c5df95c7737dafa9a7",
+  "prompts": {},
+  "sessions": {
+    "s_113fbd5b068697": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3741-67b3-7720-a268-e245d73b7ee7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

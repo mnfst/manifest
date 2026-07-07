@@ -1,0 +1,54 @@
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_8f7bd68edeeec2::t_221000dd55bc3c 68-166
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_8f7bd68edeeec2::t_4f508e720562f2 188-206
+  s_8f7bd68edeeec2::t_fce4aa42631e85 11,16
+packages/backend/src/analytics/analytics.module.ts
+  s_8f7bd68edeeec2::t_e05e02ccff654b 63,73-74
+  s_8f7bd68edeeec2::t_aa8a3d9c9e201f 38-40
+packages/backend/src/analytics/controllers/provider-analytics.controller.spec.ts
+  s_8f7bd68edeeec2::t_a2c39cf8a995cc 296-299
+  s_8f7bd68edeeec2::t_14b7730a7be50f 352-355
+  s_8f7bd68edeeec2::t_92a96e811aadd8 1-12,20-236,241-295,300-343,345-351,356-380,385-390
+  s_8f7bd68edeeec2::t_f0816213b60b5a 381-384
+  s_8f7bd68edeeec2::t_4680d3db5eca85 237-240
+  s_8f7bd68edeeec2::t_3b1a136a78d49a 13-19
+packages/backend/src/analytics/controllers/rate-limits.controller.spec.ts
+  s_8f7bd68edeeec2::t_f3f7ed6c7e6821 1-73
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_8f7bd68edeeec2::t_2f12246b63e75c 42-43,59-60
+  s_8f7bd68edeeec2::t_86175c88a0919d 300,302-303
+  s_8f7bd68edeeec2::t_127b6b620930f6 335,337-338
+  s_8f7bd68edeeec2::t_d31463e8361ce4 282-299,301,304-334,336,339-370,372,375-577,579,583-587
+  s_8f7bd68edeeec2::t_ea3028126bcb69 371,373-374
+  s_8f7bd68edeeec2::t_b7026b91f49230 578,580-582
+  s_8f7bd68edeeec2::t_19541ec0e5e443 602-633
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_8f7bd68edeeec2::t_4760c77ea7d0ee 52-59,71-72,74-82
+  s_8f7bd68edeeec2::t_3d8ce3ac332e48 126-127,134-135
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_8f7bd68edeeec2::t_5c2c1d5f0fa48e 436-446,448-489,491-558
+packages/backend/src/analytics/controllers/provider-analytics.controller.ts
+  s_8f7bd68edeeec2::t_c6830e77efbc3d 204-205
+packages/backend/src/analytics/controllers/overview.controller.spec.ts
+  s_8f7bd68edeeec2::t_21f0afd02b3c11 37-45
+  s_8f7bd68edeeec2::t_a20c0298eaa5f3 227-317
+packages/backend/test/provider-analytics.e2e-spec.ts
+  s_8f7bd68edeeec2::t_7665ff12255663 1-171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "33d5b43bb3dcbe9121f5036e2516628b3b22e70d",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

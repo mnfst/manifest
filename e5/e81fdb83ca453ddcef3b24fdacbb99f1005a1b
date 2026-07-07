@@ -1,0 +1,25 @@
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  8ad8df53c7ee7fde 351-382
+packages/frontend/src/components/ModelPickerModal.tsx
+  8ad8df53c7ee7fde 122-128,130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "e5e81fdb83ca453ddcef3b24fdacbb99f1005a1b",
+  "prompts": {
+    "8ad8df53c7ee7fde": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1630f45f-d729-462e-955c-37237a3e9a1d",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 40,
+      "total_deletions": 6,
+      "accepted_lines": 40,
+      "overriden_lines": 0
+    }
+  }
+}

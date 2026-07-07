@@ -1,0 +1,81 @@
+packages/backend/src/routing/oauth/xai/xai-oauth.service.ts
+  s_6fb27bb484ff37::t_3b511cc2745fad 4,21,59,63-66,73,131-133,142-144,148
+  s_6fb27bb484ff37::t_4fb823f1e21e4c 35-38
+packages/backend/src/routing/global-providers.controller.ts
+  s_6fb27bb484ff37::t_e6560ce0cd690a 6,9,25,99-126
+packages/frontend/src/services/api/routing.ts
+  s_6fb27bb484ff37::t_9287c309445c14 199-204,209-218
+packages/backend/src/routing/oauth/openai-oauth.controller.ts
+  s_6fb27bb484ff37::t_1b0552c1a3cad5 57-61,81-84,100-113
+  s_6fb27bb484ff37::t_3c55110068b8b3 24,45,48,50,74,77,80
+packages/backend/src/routing/oauth/xai/xai-oauth.controller.ts
+  s_6fb27bb484ff37::t_f3a279f1b02c6a 24,41,44,46,84,87,90
+  s_6fb27bb484ff37::t_124d798a527dbb 50-54,91-94,110-118
+packages/backend/src/routing/oauth/minimax-oauth.service.ts
+  s_6fb27bb484ff37::t_87640a39104e75 40-43
+  s_6fb27bb484ff37::t_ce1685e866b68d 4,47,102,106-109,150,171,225-227,236-238,242
+packages/backend/src/routing/oauth/minimax-oauth.controller.ts
+  s_6fb27bb484ff37::t_faad6cd519c77d 8,20,23,32,61,64,67
+  s_6fb27bb484ff37::t_c12ce7ffc911bf 35-39,68-81
+packages/backend/src/database/migrations/1790500000002-AllowGlobalOAuthPendingFlows.ts
+  s_6fb27bb484ff37::t_f0f0228b9a7450 1-7,9-14,16-18
+packages/frontend/src/components/CopilotDeviceLogin.tsx
+  s_6fb27bb484ff37::t_396bdb2ec5a192 68
+  s_6fb27bb484ff37::t_9753ff3c4b8b66 6,9,30,84,128-131,146-149
+packages/backend/src/routing/oauth/gemini-oauth.controller.ts
+  s_6fb27bb484ff37::t_bd1d8de918fe76 58-62,83-86,102-115
+  s_6fb27bb484ff37::t_9374b1cc254370 25,47,50,52,76,79,82
+packages/backend/src/routing/oauth/oauth-scope.ts
+  s_6fb27bb484ff37::t_d44fb8f5cbe61e 1-28
+packages/frontend/src/components/ProviderSelectContent.tsx
+  s_6fb27bb484ff37::t_ee78add9d782a5 488
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_6fb27bb484ff37::t_d9cf85ba583a3f 2,44-60,90-94,100,125,128-129,174-176,185-187,191,289-298
+packages/backend/src/routing/global-providers.controller.spec.ts
+  s_6fb27bb484ff37::t_0d75f106f9e8bd 5,16-17,24,34-35,42-51,57,163-205
+packages/backend/src/routing/oauth/kiro-oauth.service.ts
+  s_6fb27bb484ff37::t_0a9cef99b01c36 82-85
+  s_6fb27bb484ff37::t_9257d87965ea48 4,32,110-117,130,152,209-211,220-222,226
+packages/frontend/src/components/OAuthDetailView.tsx
+  s_6fb27bb484ff37::t_ec10d16b73d04a 14,17,59,135,215,233,260-270
+packages/backend/src/routing/oauth/kiro-oauth.controller.ts
+  s_6fb27bb484ff37::t_88d0ae0604d16a 26-29,58-66
+  s_6fb27bb484ff37::t_3e4544d2786eac 8,19-24,51,54,57
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_6fb27bb484ff37::t_00aa273eb88533 30-40,171-176,252-270,827-871,1307-1313,1315,1319
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  s_6fb27bb484ff37::t_59bbc8bfbb9c1b 13,16,20,41,98-99,143,161,188-198,285
+  s_6fb27bb484ff37::t_5510eee4ac5498 71-77
+packages/backend/src/routing/oauth/core/oauth-pending-flow.store.ts
+  s_6fb27bb484ff37::t_1e4ec493fd3e9f 8,21,44,64,72,85,94
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_6fb27bb484ff37::t_e0d57926063640 431,451,471
+packages/frontend/src/services/api/oauth.ts
+  s_6fb27bb484ff37::t_347363176e605a 4,20-21,24-36,55-60,68-69,77-86,95-100,108-112,119-121,123-124,137-138,140,145-156,159-163,166-171,179-180,191-196,209,211-215,251-255,257-261,267,273
+packages/frontend/src/components/AnthropicOAuthDetailView.tsx
+  s_6fb27bb484ff37::t_bab3a96454b8e5 17,20,39,76-79,90-93,133,160,178,205-215
+packages/backend/src/routing/oauth/core/oauth-pending-flow.store.spec.ts
+  s_6fb27bb484ff37::t_aa3b1b98b33476 33-35,48-68,133-154
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_6fb27bb484ff37::t_3617b6a9a7102b 64-67
+  s_6fb27bb484ff37::t_e3419707f3b0cb 16,76,121,125-128,137,195-196,199-200,209-211,216
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.ts
+  s_6fb27bb484ff37::t_30065c366b6e89 41-44,64-69,93-97,110-123
+  s_6fb27bb484ff37::t_2f3b733a5d2136 17,35-40,53,57,62,87-92,103,106,109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "2a1b2376530867b66a1d176b68f28de1d7f13a24",
+  "prompts": {},
+  "sessions": {
+    "s_6fb27bb484ff37": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e96c4-f119-7221-b42c-7e85de9a9089",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+packages/backend/src/routing/oauth/xai/xai-oauth.controller.ts
+  s_0dc1825d457013::t_75e4a557dfe467 90,108
+packages/backend/test/agent-provider-access.e2e-spec.ts
+  s_0dc1825d457013::t_b0efed8f4e8b09 1,3,7,14-17,19-24,27-29,32-41,47-53,58-66,70,72-73,75-77,80,82,85-86,91,105,112,114,116-119,122,126,133-135,138-141,148-149,152,155-156,181,184-186
+  s_0dc1825d457013::t_fa1db33129f666 89,159,162-163
+  s_0dc1825d457013::t_6e04f956fe0ae7 92,98,104
+  s_0dc1825d457013::t_80772a55f8a583 164,173-174
+  s_0dc1825d457013::t_0d6d2853aec0e0 170
+packages/backend/src/routing/oauth/xai/xai-oauth.controller.spec.ts
+  s_0dc1825d457013::t_aa667c1be655aa 1-223,229-309
+  s_0dc1825d457013::t_c1ec45231d4038 224-228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "82bbca066db4293e1f4cd45b19322e99049fc279",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

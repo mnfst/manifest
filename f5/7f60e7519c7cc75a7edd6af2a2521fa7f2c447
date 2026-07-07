@@ -1,0 +1,26 @@
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_6940438b8004cb::t_7280e770f8d3df 134-170,172-175,184,189-194,223-224,282-290,352,444,464-465,485
+  s_6940438b8004cb::t_b9f6bbc6238976 171
+  s_6940438b8004cb::t_21145dc6d31501 487,492-493,499
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_6940438b8004cb::t_95bdde2c49aa02 279-298,341-351,419-445
+  s_6940438b8004cb::t_1dd132343fec1a 446
+.changeset/copilot-chat-reasoning-summary.md
+  s_6940438b8004cb::t_e88b002dd6f1d9 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f57f60e7519c7cc75a7edd6af2a2521fa7f2c447",
+  "prompts": {},
+  "sessions": {
+    "s_6940438b8004cb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f27c0-2313-70f0-b277-16165d3dc93e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

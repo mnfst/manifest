@@ -1,0 +1,46 @@
+packages/backend/src/routing/dto/custom-provider.dto.ts
+  s_b6f44f365c1482::t_e7da06374f5a6a 86-90
+packages/frontend/src/components/CustomProviderForm.tsx
+  s_b6f44f365c1482::t_0f643251c1fb8d 91,97
+packages/frontend/src/services/api/routing.ts
+  s_b6f44f365c1482::t_b925014b3f6ef4 437,443,450-451
+packages/frontend/tests/services/api/routing-extra.test.ts
+  s_b6f44f365c1482::t_baedce2c3a2710 302-314
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  s_b6f44f365c1482::t_ed640f71b6bdd4 16,26,69,397-454,545-567,716-745
+packages/frontend/tests/services/api-extra.test.ts
+  s_b6f44f365c1482::t_948aa08e488555 128,132-146
+  s_b6f44f365c1482::t_50c0e2bb5c7dcd 129-131
+packages/backend/src/routing/custom-provider/custom-provider.controller.ts
+  s_b6f44f365c1482::t_34cad9b4bb4c37 59
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_b6f44f365c1482::t_6e84d12425aa8e 172-184,983-1004,1006-1015
+packages/frontend/tests/components/CustomProviderForm.test.tsx
+  s_b6f44f365c1482::t_69935807eae090 554,580
+  s_b6f44f365c1482::t_8ce7a16bfb71d9 494,521-553,555-579,581-588,1282
+packages/backend/src/database/models-dev-sync.service.ts
+  s_b6f44f365c1482::t_7e67b2f5c45b0d 3,101-104,131-132,135-149,168-169,191-204,206-209,299-308,328-348
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_b6f44f365c1482::t_99c0ca81de0911 6-7,18-22,30,78-80,216,277,367-368,416-418,420,428-431,433-444,449,451-452,457-462
+  s_b6f44f365c1482::t_6fb9e58a6c976f 419,432,445-448,450,453-456
+packages/backend/src/routing/custom-provider.controller.spec.ts
+  s_b6f44f365c1482::t_90d22ced95d716 264,279-293
+.changeset/modelsdev-custom-provider-prices.md
+  s_b6f44f365c1482::t_b40326d9b5183e 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "713b0704946469cfde9025e4383f37bcb29fbe22",
+  "prompts": {},
+  "sessions": {
+    "s_b6f44f365c1482": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6308-418b-77e3-b7ac-c9a36cd1f55e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

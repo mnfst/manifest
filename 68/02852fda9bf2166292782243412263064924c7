@@ -1,0 +1,129 @@
+packages/backend/src/routing/proxy/proxy-types.ts
+  d71bed364de619b3 27
+  s_706915655668dc::t_b82c35146c61b0 60-65,71-77
+  s_eb8e865dd3defa::t_8f51866a1fa0ba 19-26,58-59
+  s_c44af2c7b9a4e7::t_9ee39b37cfcc30 80-81
+.changeset/proxy-inline-image-body-limit.md
+  s_c44af2c7b9a4e7::t_45a247ae789bb7 1,3-5
+  s_c44af2c7b9a4e7::t_8b2df1a59206d6 2
+packages/backend/src/common/middleware/body-parser-limits.spec.ts
+  s_c44af2c7b9a4e7::t_e1e1c17a5710c7 2,7,27-33,40-43,63-118
+  s_c44af2c7b9a4e7::t_949547881f80d7 16-17
+  s_c44af2c7b9a4e7::t_551dca2ca46c96 3-6,8-15,19-20,22-26,34-39,44-62,119-121
+  s_c44af2c7b9a4e7::t_59a6358e2fe58c 1,18,21
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_d55d26a37e6be3::t_60051721bf4601 728
+  35731f73fad91a4a 546-563,565,567-568,570-577,579-586,594-595,601-602,604-611,613-616,624-649,654-656
+  s_eb8e865dd3defa::t_9727674e0dabb8 1342,1355,1367
+  s_22a8fe3f5b9216::t_fa87efa3ce2a4a 15
+  s_706915655668dc::t_f095923a8f9c6b 126
+  s_ba10c1ee330272::t_1f4212ed62ff42 97
+  s_22a8fe3f5b9216::t_8c41b429bd8a51 168
+  s_d55d26a37e6be3::t_30daaa7149a1e7 26,49-53,65-67,98,155-156,158-160,180,545,564,566,589,619
+  s_706915655668dc::t_6ae37dc6676b6e 80
+  s_eb8e865dd3defa::t_dbd7be1a540b31 24,96,145-147,178
+  s_95f25ebeb4cb65::t_41d4b48b8af608 419-427,452-470,473-490,493-504
+  s_62913d1505b1f0::t_d59f73034e9d8c 405-412,414-418,428-444,446-451
+  s_e8a327dcc169c3::t_232bb43936ad24 596-600,603,612,617-618,620-623,1395-1398
+  s_ba10c1ee330272::t_e85d56792680f8 149-154,161,179
+  s_c44af2c7b9a4e7::t_dd06aacff1fbeb 330-381
+  s_d55d26a37e6be3::t_44280c3066cc6a 725-727
+  s_ba10c1ee330272::t_53a47368c71590 699-702
+  s_706915655668dc::t_d6fa58e716403a 16
+  s_d55d26a37e6be3::t_7b69f14bf5069e 3-8,54-64,157
+  s_22a8fe3f5b9216::t_2d4aff886a91fd 125
+  s_c44af2c7b9a4e7::t_7717430e517533 229-253
+  s_78479c0eb45b50::t_bd4244ab8f3267 650-651
+  s_09999a699a56bd::t_71ef69c8f24f36 18,82,128,171
+  s_ba10c1ee330272::t_01e02b3478e4cb 25
+  s_08163a568629ac::t_1ae4c301d33ea7 17,81,127,170
+  s_ba10c1ee330272::t_6552f220ea7bbf 569,578,587-588,590-593
+  s_706915655668dc::t_4bd776c7562e73 169
+  s_22a8fe3f5b9216::t_85d95eeac94132 79
+  s_62913d1505b1f0::t_eb99949b353cc7 413,445
+  s_ba10c1ee330272::t_fd25031144c712 714
+packages/backend/src/routing/proxy/inline-image-redaction.ts
+  s_c44af2c7b9a4e7::t_497cbdc43fac06 2-3,5-6,13,16-17,19,23,35-36,38,40-43,48-59
+  s_c44af2c7b9a4e7::t_70970714926248 1,4,7-12,14-15,18,20-22,24-34,37,39,44-47
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_5edd42bfd9f340::t_5304d752787c5d 3,67-83
+  d71bed364de619b3 101-108
+  s_c44af2c7b9a4e7::t_c2b0336f6bbcbb 121,137
+  s_eb8e865dd3defa::t_010549b2723246 23,63,203,217
+  s_c44af2c7b9a4e7::t_887cd889e727e6 42,145,232
+packages/backend/src/main.ts
+  8687f30dfa1974d4 1,3,5-7,23,25,31,33,73,76,95,108,111-122,147-148,204-208,236-237
+  s_c44af2c7b9a4e7::t_56ec726d0a6cfe 11-15
+  s_c44af2c7b9a4e7::t_b43e04494a5ad0 195-203
+  babf3cebabcbc9b0 4,81
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_ba10c1ee330272::t_c0a04a97e40263 159
+  s_d55d26a37e6be3::t_60051721bf4601 121
+  s_ba10c1ee330272::t_74eec958e9d496 649-651,653,655,657-658,660,672
+  s_d55d26a37e6be3::t_a845580d074ce7 120,122-123
+  s_62913d1505b1f0::t_bf5469c0de2864 485-486,501-502,504-507
+  s_ba10c1ee330272::t_1be7ac0fb8f5f7 233-236,259
+  s_d55d26a37e6be3::t_b0981600a86a90 28,30-31,33-34,53,160,237-242,260
+  s_62913d1505b1f0::t_f40991aabc6db3 272-274,463
+  d71bed364de619b3 58,168-173
+  s_706915655668dc::t_3b1da7f4f04b49 149
+  s_706915655668dc::t_953b985b1b7441 480
+  s_e8a327dcc169c3::t_6411e01b425eae 659
+  s_eb8e865dd3defa::t_c426b8ed884b75 47,51,158,229-230,282,300,365,523
+  s_62913d1505b1f0::t_4e89a96c2b1325 448-452,454
+  9d450aa19c243865 729-730,733-734
+  s_08163a568629ac::t_a1fd3222b7cc5e 13,150,481
+  s_62913d1505b1f0::t_9fb188a81a4fee 275,483
+  s_c44af2c7b9a4e7::t_4e18c6ba598d1b 167,175-181
+  35731f73fad91a4a 35,232,243,267-268,283,293-294,302,358-359,367,525,585
+  s_706915655668dc::t_f07ddf143ccb52 12
+  s_95f25ebeb4cb65::t_44fd3e635b9749 487-488,492-500,503
+  s_22a8fe3f5b9216::t_9ce876efc7513f 479
+  s_22a8fe3f5b9216::t_2b37d65770ba04 11
+  s_09999a699a56bd::t_01d1f90075a2dd 14,151,482
+  s_95f25ebeb4cb65::t_ae067d145c5310 41
+  s_ba10c1ee330272::t_b0f52e7d73d5a3 52
+  s_d55d26a37e6be3::t_ea8ca3a101612e 614,656,662,664-667,673
+  s_22a8fe3f5b9216::t_9dca05f986c3ba 148
+  s_eb8e865dd3defa::t_f1d1804106a429 586
+  s_ba10c1ee330272::t_b0a8380026281e 593-594,613
+  s_c44af2c7b9a4e7::t_284ed3c0540942 174,182-183
+packages/backend/src/common/middleware/body-parser-limits.ts
+  s_c44af2c7b9a4e7::t_c073a4d764f6e3 1-30,43-119
+  s_c44af2c7b9a4e7::t_b9d34ae7423239 31-42
+packages/backend/src/routing/proxy/__tests__/inline-image-redaction.spec.ts
+  s_c44af2c7b9a4e7::t_651062917b66ad 3-11,57
+  s_c44af2c7b9a4e7::t_80086739d260f6 1-2,12-56,58-86,105
+  s_c44af2c7b9a4e7::t_c3ed38b3fee022 87-104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "6802852fda9bf2166292782243412263064924c7",
+  "prompts": {
+    "35731f73fad91a4a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "69cd6dd8-f498-435e-a221-a7ed5154b467",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 96,
+      "overriden_lines": 0
+    },
+    "d71bed364de619b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e0f3390-4f98-46d3-a40d-1adf2ff0c86e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 16,
+      "overriden_lines": 0
+    }
+  }
+}

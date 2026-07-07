@@ -1,0 +1,12 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "2509a8ca06101fb05045a189009a11ad3b0a86b4",
+  "prompts": {},
+  "humans": {
+    "h_ea64bf97c4e382": {
+      "author": "Guillaume Gay"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+packages/frontend/src/components/WhatsNewModal.tsx
+  s_1f8038a6cb8fc5::t_02d427cabdd1db 74
+  s_1f8038a6cb8fc5::t_247d1e58a7fb61 36-37,42
+  s_1f8038a6cb8fc5::t_0ef7075a958ba8 50-53
+packages/frontend/tests/components/WhatsNewModal.test.tsx
+  s_1f8038a6cb8fc5::t_6c9afb715615d6 98-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "7fd987ec7356a21405916c673f01727dadae3123",
+  "prompts": {},
+  "sessions": {
+    "s_1f8038a6cb8fc5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0ccf5ef5-9291-4b9e-b836-ef54b097c5ef",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

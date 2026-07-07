@@ -1,0 +1,23 @@
+packages/frontend/tests/components/ModelParamsDialog.test.tsx
+  s_b7f6407d49a731::t_25c336a81c4a88 294
+  s_b7f6407d49a731::t_c1ccdabdc13b00 274
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_b7f6407d49a731::t_19f03dae499d49 429
+  s_b7f6407d49a731::t_31513ca60070a4 196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "790a854da394dfe9a57a06c6d27c3df4c9fa0368",
+  "prompts": {},
+  "sessions": {
+    "s_b7f6407d49a731": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bf32ef61-2af7-4fe9-9144-6dbc3b91370a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

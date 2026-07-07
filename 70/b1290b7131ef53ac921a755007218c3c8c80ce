@@ -1,0 +1,29 @@
+packages/frontend/src/services/api/core.ts
+  s_89c92a86451d28::t_3a97542ab27b53 2,6-16,20,28-37,39-40,44
+  s_89c92a86451d28::t_19a8c71758be51 86-91
+packages/frontend/src/services/api/cache.ts
+  s_89c92a86451d28::t_c08288222d9d89 1-163
+packages/frontend/tests/services/api/cache.test.ts
+  s_89c92a86451d28::t_206cb85bdf5a98 1-254
+packages/frontend/tests/services/api/core.test.ts
+  s_89c92a86451d28::t_8505c7a2c2d063 159-208
+  s_89c92a86451d28::t_ee96e7e2cc9699 3
+  s_89c92a86451d28::t_a80fccdb1d6ef9 37-39
+  s_89c92a86451d28::t_ebffd391dbc2ae 255-292
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "70b1290b7131ef53ac921a755007218c3c8c80ce",
+  "prompts": {},
+  "sessions": {
+    "s_89c92a86451d28": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3d2b8245-fbae-4bc5-bb17-611a4e313195",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_a7d7f6ffbf0781::t_16aaeabc34f24d 683-687,689-691
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_a7d7f6ffbf0781::t_a847446aff0a70 416-417
+  s_a7d7f6ffbf0781::t_ad6efb95129cb1 76-134
+  s_a7d7f6ffbf0781::t_1b659b7a0bd398 306-312
+  s_a7d7f6ffbf0781::t_9d1e1b98748f12 491-493
+  s_a7d7f6ffbf0781::t_57d5ff4260289d 372-374
+  s_a7d7f6ffbf0781::t_b32fe16118132f 6,8-11
+packages/backend/src/common/constants/subscription-clients.ts
+  s_a7d7f6ffbf0781::t_fccf5dfb2ff202 14-20
+  s_a7d7f6ffbf0781::t_954fb48ae54762 27-29
+.changeset/anthropic-subscription-billing-header.md
+  s_a7d7f6ffbf0781::t_62c5e6313b31d2 1-5
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_a7d7f6ffbf0781::t_89a2301a4bd852 2128-2131,2140-2142
+  s_a7d7f6ffbf0781::t_a7119a3bb42a26 2330-2333,2357-2359
+  s_a7d7f6ffbf0781::t_6a0c8d2c3a9e9f 3
+  s_a7d7f6ffbf0781::t_bc066924e4c4a3 607-611,614,622-624
+  s_a7d7f6ffbf0781::t_50fbe2b2dbcb75 2314-2329,2334-2356,2360-2373
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "75b39451b953eda80637c41be26b6f69b9e2bd11",
+  "prompts": {},
+  "sessions": {
+    "s_a7d7f6ffbf0781": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a31f807-8a4f-42e8-af85-a4cfa7d196e0",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

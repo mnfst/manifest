@@ -1,0 +1,36 @@
+packages/backend/src/main.ts
+  s_d55d26a37e6be3::t_16a8431a20d524 185-188,192-194
+  s_d55d26a37e6be3::t_93693691afcda8 183-184,189-191
+packages/backend/src/routing/__tests__/model-parameters-webhook.controller.spec.ts
+  s_d55d26a37e6be3::t_8f8503392b17db 1-91,93-115
+.changeset/quiet-pens-shake.md
+  s_d55d26a37e6be3::t_96ef0fc6b3aaa8 1-5
+packages/backend/src/routing/model-parameters-webhook.controller.ts
+  s_d55d26a37e6be3::t_4251690e4b804c 69-71
+  s_d55d26a37e6be3::t_7f76d2fdcc9bc0 6,33
+  s_d55d26a37e6be3::t_62c9a31eb659cc 1-5,7-32,34-68,72-104
+packages/backend/src/config/app.config.spec.ts
+  s_d55d26a37e6be3::t_09289e6b2b138f 42-47
+docs/model-parameters-schema.md
+  s_d55d26a37e6be3::t_59f47599f4708a 14-26
+packages/backend/src/config/app.config.ts
+  s_d55d26a37e6be3::t_45ff009dface3f 21
+packages/backend/src/routing/routing.module.ts
+  s_d55d26a37e6be3::t_dea94488a97f1f 17,41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "596c51e6431c7ff5989acd1dec918358272b6d62",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

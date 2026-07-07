@@ -1,0 +1,53 @@
+packages/backend/src/common/utils/postgres-sql.ts
+  s_0f26b79708a7d8::t_36ad89763198b2 82-90,96-112
+packages/backend/src/common/utils/period.util.spec.ts
+  s_0f26b79708a7d8::t_a4f28821ef9ea2 3-6,14,17-21,24,27-30,33,35-37,39,42,45-48,60,64-66,91,93-97,100,102-113,117,119-123,127,129,131,134-135,147
+  s_0f26b79708a7d8::t_106361da0d000d 67-81
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_52ab4cc32a131f::t_db20c48d79bc1a 941
+  s_52ab4cc32a131f::t_08c692782d51f7 967
+  s_52ab4cc32a131f::t_43324988641298 919-923
+  s_52ab4cc32a131f::t_d93cfc164539b2 950
+  s_52ab4cc32a131f::t_2e423e70690f8e 894
+  s_52ab4cc32a131f::t_b930a83df9cc10 976
+  s_52ab4cc32a131f::t_6fa7ab493b3710 993,997-1000
+  s_52ab4cc32a131f::t_0ac5564d6e4b23 358
+packages/backend/src/common/utils/period.util.ts
+  s_0f26b79708a7d8::t_180dab888b3c47 44-46,53,56,59,61,65,68,71
+  s_0f26b79708a7d8::t_30879e8b979fc2 1,8-15,22,25,28-30,34,37,41
+packages/frontend/tests/components/ProviderKeyForm.test.tsx
+  s_52ab4cc32a131f::t_8f2ce4c239e2b9 454-493
+packages/backend/src/common/utils/postgres-sql.spec.ts
+  s_0f26b79708a7d8::t_235fccf9492d1b 12
+  s_0f26b79708a7d8::t_8b1de2b6add028 117-146
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_52ab4cc32a131f::t_82f4c7dcbe968e 527-543
+  s_52ab4cc32a131f::t_8f42d53e74575b 203-206,214
+  s_52ab4cc32a131f::t_b267fe365cdfa5 7
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_52ab4cc32a131f::t_980ad95ecb1b0c 479-532
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "57ff01abede05e96edc803cb7532ad6da195fbb6",
+  "prompts": {},
+  "sessions": {
+    "s_0f26b79708a7d8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7c1832c-75cd-4d4c-b526-6374e99b0e66",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_52ab4cc32a131f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dfa97fe3-829e-4009-86fd-4697e20c2f8a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

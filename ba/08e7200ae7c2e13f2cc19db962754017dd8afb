@@ -1,0 +1,25 @@
+packages/frontend/src/components/ProviderSelectContent.tsx
+  s_2a22c521aed263::t_aab9c04e79a785 80-82
+packages/frontend/tests/components/ProviderSelectContent-copilot-accounts.test.tsx
+  s_2a22c521aed263::t_b4123c32f899cb 1-86
+.changeset/calm-copilot-accounts.md
+  s_2a22c521aed263::t_2ef0bf7ef93d55 1-5
+packages/frontend/tests/components/CopilotDeviceLogin.test.tsx
+  s_2a22c521aed263::t_63cf0780c9d1cb 268-369
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "ba08e7200ae7c2e13f2cc19db962754017dd8afb",
+  "prompts": {},
+  "sessions": {
+    "s_2a22c521aed263": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4988-c505-73d0-a41e-f15bc309f083",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

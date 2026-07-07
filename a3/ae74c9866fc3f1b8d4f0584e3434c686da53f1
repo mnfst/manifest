@@ -1,0 +1,30 @@
+packages/backend/src/playground/playground-agent.service.ts
+  s_8f7bd68edeeec2::t_ed7cc37b991047 80-97
+  s_8f7bd68edeeec2::t_d95f2bf95e59a1 6
+  s_8f7bd68edeeec2::t_c53bfd82e453fc 34-37
+packages/backend/src/playground/playground-agent.service.spec.ts
+  s_8f7bd68edeeec2::t_32ae1ea7187e1a 5,26-40,50,68-79,84-85,98-99,114-128,130-149,151-158,161-168,170-179,183-256,260,310,355,375,391,409
+packages/backend/src/routing/agent-provider-access.controller.ts
+  s_8f7bd68edeeec2::t_c7711ea858fadb 33-34,36
+packages/backend/src/routing/agent-provider-access.controller.spec.ts
+  s_8f7bd68edeeec2::t_0bb72b0079cb84 76-118
+  s_8f7bd68edeeec2::t_5b78860372c72c 531,598-737
+  s_8f7bd68edeeec2::t_8b1b0f3c2781de 532-597
+  s_8f7bd68edeeec2::t_7309f179bc8ac5 180-199
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "a3ae74c9866fc3f1b8d4f0584e3434c686da53f1",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+.changeset/lazy-agent-overview-charts.md
+  s_aa29868f4df607::t_482e464a01e07a 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "46c88c2e1e9aabb157df3c9198bd15a50181b328",
+  "prompts": {},
+  "sessions": {
+    "s_aa29868f4df607": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ed532-900f-7172-9b3a-ef587e88f582",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

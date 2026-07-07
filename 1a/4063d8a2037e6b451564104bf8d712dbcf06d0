@@ -1,0 +1,24 @@
+packages/frontend/src/pages/Routing.tsx
+  s_246fec8f7b89e2::t_77d64de5f49960 1-6,8,260,264-275
+  s_246fec8f7b89e2::t_d6af641fb8c4c8 259
+packages/frontend/tests/pages/Routing.test.tsx
+  s_246fec8f7b89e2::t_1382e8950f188d 57,62,614,618-620,622-623,626,629,631
+.changeset/routing-pricing-toast.md
+  s_246fec8f7b89e2::t_c4d56bf4f6bda1 1,3-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1a4063d8a2037e6b451564104bf8d712dbcf06d0",
+  "prompts": {},
+  "sessions": {
+    "s_246fec8f7b89e2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e687b-db06-7ac2-80d8-688a902e4de2",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

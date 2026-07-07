@@ -1,0 +1,47 @@
+.changeset/calm-models-wave.md
+  s_cedb6b5244c8ac::t_85f4c59712764b 1-5
+packages/frontend/tests/components/SetupStepProviders.test.tsx
+  s_cedb6b5244c8ac::t_85f4c59712764b 30,34
+packages/frontend/tests/components/OpenClawSetup.test.tsx
+  s_cedb6b5244c8ac::t_85f4c59712764b 21,23
+CLAUDE.md
+  s_cedb6b5244c8ac::t_85f4c59712764b 48
+packages/frontend/tests/components/OpenCodeSetup.test.tsx
+  s_cedb6b5244c8ac::t_85f4c59712764b 31
+packages/frontend/tests/services/framework-snippets.test.ts
+  s_cedb6b5244c8ac::t_85f4c59712764b 330
+packages/frontend/tests/components/RoutingInstructionModal.test.tsx
+  s_cedb6b5244c8ac::t_85f4c59712764b 94,213,231
+CONTRIBUTING.md
+  s_cedb6b5244c8ac::t_85f4c59712764b 139
+packages/frontend/src/components/OpenCodeSetup.tsx
+  s_cedb6b5244c8ac::t_85f4c59712764b 29
+packages/frontend/src/services/framework-snippets.ts
+  s_cedb6b5244c8ac::t_85f4c59712764b 334,379
+packages/frontend/src/components/RoutingInstructionModal.tsx
+  s_cedb6b5244c8ac::t_85f4c59712764b 35,140
+packages/frontend/src/components/SetupStepProviders.tsx
+  s_cedb6b5244c8ac::t_85f4c59712764b 15,20
+packages/manifest/CHANGELOG.md
+  s_cedb6b5244c8ac::t_15f10f43b86178 63
+packages/frontend/tests/components/SetupStepAddProvider.test.tsx
+  s_cedb6b5244c8ac::t_85f4c59712764b 90,109,124,363
+packages/frontend/src/components/OpenClawSetup.tsx
+  s_cedb6b5244c8ac::t_85f4c59712764b 74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "a3b8805d9b0aa505cc3fee03778d8eb3ef367a99",
+  "prompts": {},
+  "sessions": {
+    "s_cedb6b5244c8ac": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4ed0-ee09-76b1-b268-ebd8f72d1207",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

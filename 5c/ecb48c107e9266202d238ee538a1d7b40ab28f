@@ -1,0 +1,41 @@
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_86d7e63ca9a9e5::t_0ab0bd6bbfe8bc 320-330,576-585
+packages/shared/src/index.ts
+  s_86d7e63ca9a9e5::t_fe833f9792455b 110
+README.md
+  s_86d7e63ca9a9e5::t_cbff68cad2d514 77
+packages/shared/src/subscription/helpers.ts
+  s_86d7e63ca9a9e5::t_d545b2bf37fb3a 34-41
+docs/providers/subscription-based-providers.md
+  s_86d7e63ca9a9e5::t_d545b2bf37fb3a 18,68
+packages/backend/src/model-discovery/model-fallback.ts
+  s_86d7e63ca9a9e5::t_d545b2bf37fb3a 8,35-38,300,342
+.changeset/kimi-k27-code-label.md
+  s_86d7e63ca9a9e5::t_d545b2bf37fb3a 1-5
+packages/shared/src/subscription/configs.ts
+  s_86d7e63ca9a9e5::t_d545b2bf37fb3a 123-124,126-128
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_86d7e63ca9a9e5::t_d545b2bf37fb3a 714-715
+packages/shared/src/subscription/types.ts
+  s_86d7e63ca9a9e5::t_d545b2bf37fb3a 15-16
+packages/shared/src/subscription/index.ts
+  s_86d7e63ca9a9e5::t_0ab0bd6bbfe8bc 7
+packages/shared/__tests__/subscription.spec.ts
+  s_86d7e63ca9a9e5::t_0ab0bd6bbfe8bc 7,342-345
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "5cecb48c107e9266202d238ee538a1d7b40ab28f",
+  "prompts": {},
+  "sessions": {
+    "s_86d7e63ca9a9e5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ecb7f-17dd-7700-b563-8598c817ff5e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

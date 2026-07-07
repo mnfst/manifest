@@ -1,0 +1,21 @@
+packages/backend/src/database/migrations/1791000000000-LiftProvidersToUserLevel.spec.ts
+  s_492c4473e887cf::t_a7fa2bc1b7cfc1 13,27-34
+packages/backend/src/database/migrations/1791000000000-LiftProvidersToUserLevel.ts
+  s_492c4473e887cf::t_fbd95bca8c82c8 38-42,44-45,48-106,109-113,115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "0f488adb47ed780425d1a5210b46b853981551ba",
+  "prompts": {},
+  "sessions": {
+    "s_492c4473e887cf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91b0-14ef-7382-8783-f119a091c223",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

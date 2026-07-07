@@ -1,0 +1,58 @@
+packages/frontend/tests/services/api/specificity.test.ts
+  s_f4f52f0c569773::t_ab4299fb2cf61f 59-62
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 67
+packages/frontend/tests/pages/RoutingDefaultTierSection.test.tsx
+  s_f4f52f0c569773::t_df0710872e57f3 86-87,132
+packages/frontend/src/services/api/header-tiers.ts
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 2,17,76,79,86
+packages/frontend/tests/services/api/routing-extra.test.ts
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 141
+  s_f4f52f0c569773::t_ab4299fb2cf61f 133-136
+packages/frontend/tests/pages/RoutingSpecificitySection.test.tsx
+  s_f4f52f0c569773::t_df0710872e57f3 117-118,153,156,204,210
+packages/backend/src/routing/dto/routing.dto.ts
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 212,215,220
+  s_f4f52f0c569773::t_c57c975d54f3ba 15,209,211,216,219
+packages/backend/src/routing/header-tiers/header-tier.controller.ts
+  s_f4f52f0c569773::t_c57c975d54f3ba 26,130-131,135,137,140
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 138
+packages/frontend/tests/pages/RoutingHeaderTiersSection.test.tsx
+  s_f4f52f0c569773::t_31dbfb2a1a56cd 8-9,14,19,28,41-42,51-55,74,79,89-90,92,94,97-98,100,102,109,117,122-123,135,145,160-161,164-169,174-182,185,187,197,205,207
+packages/frontend/tests/services/header-tiers-api.test.ts
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 149
+  s_f4f52f0c569773::t_ab4299fb2cf61f 141-144
+packages/backend/src/routing/dto/routing.dto.spec.ts
+  s_f4f52f0c569773::t_31dbfb2a1a56cd 8,10,212-214,225,228
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 217-218,221,232
+packages/frontend/src/services/api/specificity.ts
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 2,13,65,68,75
+packages/frontend/src/components/OutputControls.tsx
+  s_f4f52f0c569773::t_ab4299fb2cf61f 2,5-6,11,17,20-21,24,33-35,41,45
+packages/backend/src/routing/specificity.controller.ts
+  s_f4f52f0c569773::t_c57c975d54f3ba 19-20,89-90,94,97,100
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 98
+packages/backend/src/routing/tier.controller.ts
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 92
+  s_f4f52f0c569773::t_c57c975d54f3ba 23-24,83-84,88,91,94
+packages/backend/src/routing/proxy/proxy-friendly-response.ts
+  s_f4f52f0c569773::t_bed3e53652dee3 49
+  s_f4f52f0c569773::t_ba3d23a77886cf 5,22,55
+packages/frontend/src/services/api/routing.ts
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 5,10,196,239,245
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "2736e2470b90e7e65beaa24b3d1fc2c5c040d5a1",
+  "prompts": {},
+  "sessions": {
+    "s_f4f52f0c569773": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62e5-f1d2-72b3-9a00-29065795def7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,151 @@
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.routes.spec.ts
+  s_09999a699a56bd::t_2c58ffeaf82159 11,42,79-81,115
+packages/backend/src/routing/model.controller.ts
+  s_6ab7cca8c7f789::t_7b4d638658fa57 108-114,116-117,123
+  s_6ab7cca8c7f789::t_f8bf9f93ed53ca 13
+  s_6ab7cca8c7f789::t_ae3b95dc18ef9d 9
+  s_6ab7cca8c7f789::t_c224be7435d511 35
+  s_6ab7cca8c7f789::t_794514eb8a80f8 125-130,137
+packages/backend/src/routing/oauth/xai/xai-oauth.service.ts
+  s_09999a699a56bd::t_29a13d1ab15525 228
+  s_09999a699a56bd::t_5e44f605052fd9 1-227,229-305
+packages/shared/__tests__/provider-inference.spec.ts
+  s_6ab7cca8c7f789::t_055d3bbdcc6c72 4
+  s_6ab7cca8c7f789::t_f3f41cf96f6c09 90-120
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_09999a699a56bd::t_f83704afcf9d7a 33,85,231,510,539-540
+packages/frontend/src/services/providers.ts
+  s_09999a699a56bd::t_f5a8ff8b2ea875 262-263
+  s_09999a699a56bd::t_9e08cd9c181e1b 264
+packages/frontend/src/services/api/routing.ts
+  s_6ab7cca8c7f789::t_2ed761ff863c99 294-295
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_09999a699a56bd::t_5dfdd59cdb8ce9 36,47,57,74
+  s_09999a699a56bd::t_9b47c2ebfe89db 35,37,40,56,58,61
+  s_09999a699a56bd::t_b33031c2338f6c 78-89
+packages/backend/src/routing/oauth/oauth.module.ts
+  s_09999a699a56bd::t_08e0a81a4cda5b 13-14,28,36,48
+packages/frontend/tests/services/providers.test.ts
+  s_09999a699a56bd::t_62df529df5e391 401,405-407
+  s_09999a699a56bd::t_debaa1f37eb6f5 402-404,408-411
+packages/shared/src/index.ts
+  s_6ab7cca8c7f789::t_db5c95b46edf02 86-91
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_09999a699a56bd::t_01d1f90075a2dd 11,135,445
+packages/frontend/src/services/oauth-popup.ts
+  s_09999a699a56bd::t_8df543b0a85eb4 10,66
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_09999a699a56bd::t_e0d6107ee13daf 293-316
+packages/frontend/tests/components/ProviderSelectModal-commandonly.test.tsx
+  s_09999a699a56bd::t_37fc7a3905ce1c 8,12,19,25
+  s_09999a699a56bd::t_4a2e224cf71933 7,9,18,20,23
+packages/frontend/src/components/HeaderTierCard.tsx
+  s_6ab7cca8c7f789::t_9523634dc57093 20
+  s_6ab7cca8c7f789::t_658c6c296be5ae 391-394
+packages/frontend/tests/services/formatters.test.ts
+  s_6ab7cca8c7f789::t_4f7b48b403df85 42-58
+  s_6ab7cca8c7f789::t_1bdfa96009d0b3 2
+packages/frontend/tests/components/OAuthDetailView.test.tsx
+  s_09999a699a56bd::t_a2b7aa8cf84ac9 70-75
+  s_09999a699a56bd::t_6282725bd345ab 256-294
+  s_09999a699a56bd::t_011ea692dcefad 10,20-22
+packages/frontend/src/services/formatters.ts
+  s_6ab7cca8c7f789::t_e2f81f08f980da 30-41
+packages/shared/src/subscription/configs.ts
+  s_09999a699a56bd::t_c8df7ee26bee27 155
+  s_09999a699a56bd::t_6287aca5da4b27 152-154,156-162
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_6ab7cca8c7f789::t_071cb33f47ce36 43-44
+  s_6ab7cca8c7f789::t_d94b1f81dbf951 722-756
+packages/frontend/src/components/OAuthDetailView.tsx
+  s_09999a699a56bd::t_ada364c49ae623 49-52,264
+  s_09999a699a56bd::t_377630a0c8f25a 113-119,121-122
+  s_09999a699a56bd::t_40f34f5be263b5 240-241
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_6ab7cca8c7f789::t_73ad9474405c80 363-396
+  s_6ab7cca8c7f789::t_071cb33f47ce36 54-55
+packages/backend/src/routing/oauth/xai/xai-oauth.controller.ts
+  s_09999a699a56bd::t_ce3af179732ad3 1-126
+packages/frontend/tests/services/oauth-popup.test.ts
+  s_09999a699a56bd::t_1467f6103dd66a 118-141
+packages/shared/src/provider-params-spec.ts
+  s_6ab7cca8c7f789::t_ab8ce116a6d0d4 121-123
+  s_6ab7cca8c7f789::t_66dd2d336a90b9 2
+packages/frontend/tests/components/ProviderSelectModal-subscription.test.tsx
+  s_09999a699a56bd::t_b28ac80d6ba059 7,9,18,20,23
+  s_09999a699a56bd::t_5fc693b98ee422 8,12,19,25
+packages/frontend/tests/components/ProviderSelectModal-opencode-go.test.tsx
+  s_09999a699a56bd::t_0f2d6ff6d087cb 8,12,19,25
+  s_09999a699a56bd::t_f3bb81400e4800 7,9,18,20,23
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_6ab7cca8c7f789::t_071cb33f47ce36 70-71
+  s_6ab7cca8c7f789::t_12dd808fe46d94 635-676
+packages/frontend/src/pages/RoutingTierCard.tsx
+  s_6ab7cca8c7f789::t_22681d9e7f8d8c 13
+  s_6ab7cca8c7f789::t_6be8ac7389e6fb 583-586
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_6ab7cca8c7f789::t_f3ede011b9f79f 12
+  s_6ab7cca8c7f789::t_80f38f2e5f722c 573-576
+packages/frontend/src/services/api/oauth.ts
+  s_09999a699a56bd::t_b35714e42ff5e1 25-30,39-46,56-60
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_09999a699a56bd::t_71ef69c8f24f36 18,78,114,157
+packages/backend/src/routing/oauth/xai/xai-oauth.service.spec.ts
+  s_09999a699a56bd::t_452f8f7b6e77c2 1-79,82-121,124-163,169-204
+  s_09999a699a56bd::t_1de479300bd12c 80-81,122-123,164-168
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_09999a699a56bd::t_b321a5cb0c23cb 82
+  s_13de6fdca9a587::t_5e97b899e0e00e 78-81,83,86-87
+packages/backend/src/routing/oauth/core/callback-page.ts
+  s_09999a699a56bd::t_d1118c40132f1e 21
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_09999a699a56bd::t_60e7d523551980 14,51,90-92,139
+  s_09999a699a56bd::t_40555b8ac2eba2 1021,1047,1066,1087,1107,1128,1149,1168,1176-1197,1214,1232,1241
+packages/backend/src/routing/model.controller.spec.ts
+  s_6ab7cca8c7f789::t_c288fd7422ae3a 80-82,93
+  s_6ab7cca8c7f789::t_417e2021da260a 6
+  s_6ab7cca8c7f789::t_f3553396ed17f4 285-328
+  s_6ab7cca8c7f789::t_99013d854d17f5 43
+  s_6ab7cca8c7f789::t_d1e19437b489d1 364-383
+  s_6ab7cca8c7f789::t_4ab2e503c78a46 384-399
+packages/frontend/tests/services/api/oauth.test.ts
+  s_09999a699a56bd::t_fc45807a91f70e 38-57,66-70
+packages/shared/__tests__/subscription.spec.ts
+  s_09999a699a56bd::t_4fc6be20df64b2 23,123-127,129-136,187,244-247,317-320
+  s_09999a699a56bd::t_019c239aea9251 128
+packages/shared/src/provider-inference.ts
+  s_6ab7cca8c7f789::t_feb57c726f5dca 54-60,65-71,73
+  s_6ab7cca8c7f789::t_7206685605ec0b 61-64,72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6258fc0d0fa7c1d1f6e4a876e4f726b99ae523f0",
+  "prompts": {},
+  "sessions": {
+    "s_09999a699a56bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62f9-3832-7463-870d-e7082abaed01",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_13de6fdca9a587": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b4825e9-21d8-4a2c-ac61-a32f2f414366",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6ab7cca8c7f789": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0671ec04-600b-40a9-a9e4-01ac7992d4fa",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

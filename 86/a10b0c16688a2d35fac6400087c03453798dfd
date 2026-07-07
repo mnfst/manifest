@@ -1,0 +1,43 @@
+packages/backend/src/routing/provider-response.ts
+  s_6fb27bb484ff37::t_01395882d9826b 1-18
+packages/backend/src/routing/provider-region-validation.spec.ts
+  s_6fb27bb484ff37::t_a9c89a41fc93da 13-18
+packages/backend/src/routing/dto/routing.dto.spec.ts
+  s_6fb27bb484ff37::t_8144794a60c54e 8,137-153
+packages/frontend/tests/pages/GlobalProviders.test.tsx
+  s_6fb27bb484ff37::t_e17dab714229e7 9-10,55-56,98-99,140-151,168-194
+  s_6fb27bb484ff37::t_332d449fbf17cf 152-167,195-197
+  s_6fb27bb484ff37::t_20c4c161b61236 112-120,215-247
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_6fb27bb484ff37::t_5553766e01da62 154-156,159-160
+packages/backend/src/routing/dto/routing.dto.ts
+  s_6fb27bb484ff37::t_9736db647217c4 116-126
+packages/backend/src/routing/global-providers.controller.spec.ts
+  s_6fb27bb484ff37::t_0771a9f513113d 114-116,118
+packages/backend/src/routing/provider.controller.ts
+  s_6fb27bb484ff37::t_7f4263de13ee72 20,63
+packages/backend/src/routing/provider-region-validation.ts
+  s_6fb27bb484ff37::t_e91e5887c8150c 17
+packages/backend/src/routing/global-providers.controller.ts
+  s_6fb27bb484ff37::t_d54e29b226adc7 9,15,28,54,60,65,67
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_6fb27bb484ff37::t_de1ad7911cb01e 695-697
+packages/frontend/src/pages/GlobalProviders.tsx
+  s_6fb27bb484ff37::t_de163e46808252 94-95,118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "86a10b0c16688a2d35fac6400087c03453798dfd",
+  "prompts": {},
+  "sessions": {
+    "s_6fb27bb484ff37": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e96c4-f119-7221-b42c-7e85de9a9089",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

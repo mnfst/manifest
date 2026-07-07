@@ -1,0 +1,62 @@
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_ba491a06ca7aa1::t_80ec3ace0de14b 272-301,336-338,661-667,679-680
+packages/backend/src/routing/model.controller.ts
+  s_ba491a06ca7aa1::t_4ea06bd65f2c35 86
+packages/backend/src/model-discovery/model-discovery.service.boundary.spec.ts
+  s_ba491a06ca7aa1::t_def36fd8f9f3c6 87-91,105
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_ba491a06ca7aa1::t_ff28e4f456d395 498-512,3104-3133,3136-3180
+  s_ba491a06ca7aa1::t_efd6faaf78a95c 481,490
+  s_ba491a06ca7aa1::t_ab59dd64d4bfeb 480,482-489,491-495
+  s_ba491a06ca7aa1::t_cc127bd859b2d8 3134-3135
+  s_ba491a06ca7aa1::t_8664f07ac7ff40 496-497,571-573
+  s_ba491a06ca7aa1::t_6e64406795b7ee 98-102,116
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_ba491a06ca7aa1::t_1c021a89a69e16 2140-2166
+  s_ba491a06ca7aa1::t_c1935cc340e513 2167-2168
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_ba491a06ca7aa1::t_064d82ac6b86c9 622-641
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_ba491a06ca7aa1::t_88ccd2cc230d08 254
+  s_ba491a06ca7aa1::t_2fc257cea9fc7f 205-206
+  s_ba491a06ca7aa1::t_e732717ef3261f 49-57,68,184-187,193-199,202-203,224-226,228-230,232,324-330,338,345-352
+  s_ba491a06ca7aa1::t_badf581cc3ce68 66-67,69-70,108-111
+  s_ba491a06ca7aa1::t_02e5d75f8bfa5b 252
+  s_ba491a06ca7aa1::t_7f62e02e16a5d8 391
+  s_ba491a06ca7aa1::t_9096433ba38977 200-201,204,207-212,227
+  s_ba491a06ca7aa1::t_086d6c26b515a9 213
+  s_ba491a06ca7aa1::t_9526986aef6997 353-354
+packages/shared/src/subscription/configs.ts
+  s_ba491a06ca7aa1::t_12e3fe2e035f11 190-191
+packages/backend/src/database/models-dev-sync.service.ts
+  s_ba491a06ca7aa1::t_1f8f0163cc64d5 31-32
+.changeset/opencode-go-cache-refresh.md
+  s_ba491a06ca7aa1::t_7f069545296fb0 1-4
+  s_ba491a06ca7aa1::t_067b63312f7538 5
+packages/backend/src/model-discovery/opencode-go-catalog.service.ts
+  s_ba491a06ca7aa1::t_7764809608a95a 82-99,101-102
+packages/backend/src/routing/model.controller.spec.ts
+  s_ba491a06ca7aa1::t_de67ad0122c8b9 166,170-172
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_ba491a06ca7aa1::t_6be8cc8a3c8b42 696-699,715,734,884,886-888
+packages/backend/src/model-discovery/opencode-go-catalog.service.spec.ts
+  s_ba491a06ca7aa1::t_16974395eaf1d8 249-283
+packages/backend/src/model-discovery/model-fallback.ts
+  s_ba491a06ca7aa1::t_cbddc77f25d3d6 169,173,175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.1",
+  "base_commit_sha": "5c0fc9843b8f6a2d3ea10aec4d02f85de84b86eb",
+  "prompts": {},
+  "sessions": {
+    "s_ba491a06ca7aa1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019efef8-9846-7b60-96a8-86eff405e8dc",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

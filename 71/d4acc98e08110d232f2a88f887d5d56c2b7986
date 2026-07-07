@@ -1,0 +1,56 @@
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_4c34b7e0ae2628::t_2a51c1f1defba9 8-13,64-74,492
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_4c34b7e0ae2628::t_026c2720403d20 688-711
+packages/frontend/tests/services/providers.test.ts
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 540-550,663-669,852-855,871-881
+  s_4c34b7e0ae2628::t_428f43f1bc6d2c 867-870
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 43
+packages/shared/src/subscription/configs.ts
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 86-98
+packages/shared/__tests__/subscription.spec.ts
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 20,100-111,290,351-354,434-437,535-538,541-542
+  s_8d7abb4142b62c::t_224f719c59e111 539-540,543
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_4c34b7e0ae2628::t_a63880ab495cb5 2581,2590,2603
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 31,2580,2582-2589,2591-2602
+  s_8d7abb4142b62c::t_1bb924197dc246 2604
+packages/frontend/src/services/providers.ts
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 316-321
+.changeset/mistral-vibe-subscription.md
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 1-5
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_4c34b7e0ae2628::t_325f79676167e1 280-285
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_4c34b7e0ae2628::t_ca033dab43913d 328-352
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_4c34b7e0ae2628::t_692fd9b1b27e7f 303-306
+  s_4c34b7e0ae2628::t_a63880ab495cb5 216,596
+  s_4c34b7e0ae2628::t_45c04ee17f8ddb 255-257,593,749-750
+  s_8d7abb4142b62c::t_8306963b8efca7 307,594-595,597
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "71d4acc98e08110d232f2a88f887d5d56c2b7986",
+  "prompts": {},
+  "sessions": {
+    "s_4c34b7e0ae2628": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f1228-ea11-7741-954d-9e29115cd4a5",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_8d7abb4142b62c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f120a-9765-72e1-bb87-22a45d71fc0c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

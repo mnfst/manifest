@@ -1,0 +1,85 @@
+packages/backend/src/billing/billing-usage-email.service.spec.ts
+  s_756ad5e3766555::t_72d1ec4706f992 31-38,162-175
+  s_756ad5e3766555::t_e5798ca2185452 176-177
+packages/frontend/src/services/api/billing.ts
+  s_756ad5e3766555::t_31965066ab6029 1-2,6,11-19
+  s_ccf960d0f5824b::t_7ac8136b4897dd 20
+packages/shared/src/index.ts
+  s_756ad5e3766555::t_867259c8e42afd 146
+packages/backend/src/billing/billing.controller.ts
+  s_756ad5e3766555::t_20459db32b6f2d 1,4,14-20
+  s_ccf960d0f5824b::t_1dae4e4827ee90 21
+packages/backend/src/billing/billing-usage-email.service.ts
+  s_756ad5e3766555::t_156dc0f220b5bd 9,17,71-73,109-110
+packages/backend/src/billing/emails/billing-plan-email.tsx
+  s_756ad5e3766555::t_d53036b6c2c7b4 65-68,162,218,225,231-234
+packages/backend/src/billing/plan.service.spec.ts
+  s_756ad5e3766555::t_e8d33f1a547b27 13,34,47-50,214,223-261
+  s_756ad5e3766555::t_a15a4d5c74d212 262-263
+packages/shared/src/plan-limits.ts
+  s_756ad5e3766555::t_95496d0ed4dd68 21-24,29
+packages/frontend/tests/pages/Account.test.tsx
+  s_756ad5e3766555::t_7b1f9a824b8e14 221
+  s_756ad5e3766555::t_a85935b03c7e17 39-40,42,47,55,60,74,78,80,87,89,91,96,98,103,111,113-115,118,120,123,125-126,129,131-132,135,137-139,142,144,147,149,152,154,157,159,162,164,167,169-170,173,175-176,179-180,182-183,186,188,190,193-194,197,200-201,204-206,209,212-217,219,222,228-243,245-261,263,270,273,277,287,301,309,385,389,398,403
+  s_756ad5e3766555::t_e347c0235dc4e2 244
+  s_756ad5e3766555::t_ad62616e7e3871 1-2,12,17,25,28,223-224,262,269,280-282,303,308,310,315,317,319,323,329,333,337,345,350,354-356,361,365,368,371-374,378,383,397,399-400,404,406,408
+packages/backend/src/database/migrations/1798300000000-AddBillingEmailPreferences.ts
+  s_756ad5e3766555::t_31d71d983b9cf9 1-21
+packages/backend/src/database/migrations/1798300000000-AddBillingEmailPreferences.spec.ts
+  s_756ad5e3766555::t_f6b0721d0c8af2 1-40
+packages/frontend/tests/services/api/billing.test.ts
+  s_756ad5e3766555::t_ee321614e7e63a 7,9,14,17-18,24,32,49,60-73
+packages/backend/src/entities/tenant.entity.spec.ts
+  s_756ad5e3766555::t_1088f13e2cbc3e 43-51
+packages/frontend/src/styles/agents.css
+  s_756ad5e3766555::t_ce22f51dc264c3 333-343
+.changeset/subscription-plan-emails.md
+  s_756ad5e3766555::t_34ac6079f08391 5
+packages/backend/src/billing/billing-email-preferences.ts
+  s_756ad5e3766555::t_22b0af16c48367 1-15
+packages/backend/src/billing/emails/billing-plan-email.spec.ts
+  s_756ad5e3766555::t_203060230e74c4 18,82
+packages/backend/src/billing/billing.controller.spec.ts
+  s_756ad5e3766555::t_624b0004f22734 8,13-18,21,32-41
+  s_756ad5e3766555::t_5bf4d4b5ddf5c1 42
+packages/frontend/tests/components/UpgradePanel.test.tsx
+  s_756ad5e3766555::t_a3552216eb2b11 27
+  s_756ad5e3766555::t_a95dbca226f0f4 1-3,6,15,19,21,25,33,41,43-45,49,51-55,58,60-64,69-70,72-74,77-82,85,89,91,94,96,99-100,106,110,113,115,119,121,125-126,128,130,133,139,141-142,144,147,149-155,158,160,162-163
+packages/frontend/src/pages/Account.tsx
+  s_756ad5e3766555::t_b2e02dc30a4f76 1-8,12,20,23-24,30-34,115-130,178,326-356
+  s_756ad5e3766555::t_910117b354bf7f 357-363
+packages/backend/src/entities/tenant.entity.ts
+  s_756ad5e3766555::t_bf082453aa94da 4,42-43
+  s_ccf960d0f5824b::t_a90584d8d8cf14 44
+packages/backend/src/billing/plan.service.ts
+  s_756ad5e3766555::t_ec5b0066b59a68 311-315
+  s_756ad5e3766555::t_ef348b0b33d1b5 1,5,10-13,320,336,346-363
+packages/backend/src/billing/dto/update-billing-email-preferences.dto.ts
+  s_756ad5e3766555::t_a86d975f1f0e76 1-6
+packages/backend/src/database/data-source-definitions.ts
+  s_756ad5e3766555::t_717e8d392945b2 136,272
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "398689e0f15921baa03e7e2d73f03d704de9cdb1",
+  "prompts": {},
+  "sessions": {
+    "s_756ad5e3766555": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3669-ce33-7072-8b32-c8a68e50a701",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_ccf960d0f5824b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f379b-4369-7a30-9155-591d02c06976",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

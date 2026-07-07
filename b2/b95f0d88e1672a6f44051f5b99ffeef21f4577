@@ -1,0 +1,24 @@
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_13365c38bde6f3::t_5af41eaac6e6b5 17,155,182,271,287,306-323,337-341
+.changeset/route-error-metadata.md
+  s_13365c38bde6f3::t_608ff0ed9b0d1a 2
+  s_13365c38bde6f3::t_00d8e939b03bea 1,3-5
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_13365c38bde6f3::t_c71e072dcbfc2c 536-614
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b2b95f0d88e1672a6f44051f5b99ffeef21f4577",
+  "prompts": {},
+  "sessions": {
+    "s_13365c38bde6f3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3108-18c9-7650-a215-8fe37245ee78",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

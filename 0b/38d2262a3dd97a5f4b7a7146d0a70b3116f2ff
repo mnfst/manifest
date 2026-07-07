@@ -1,0 +1,21 @@
+packages/frontend/src/pages/AgentDetail.tsx
+  s_94f03a4c63c684::t_93d382571bd2b6 12,81
+packages/frontend/src/index.tsx
+  s_94f03a4c63c684::t_951bd3911972cf 74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "0b38d2262a3dd97a5f4b7a7146d0a70b3116f2ff",
+  "prompts": {},
+  "sessions": {
+    "s_94f03a4c63c684": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ea748-d864-70b0-b189-94cc801698c5",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

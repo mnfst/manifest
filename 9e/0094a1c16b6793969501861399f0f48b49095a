@@ -1,0 +1,83 @@
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_0dc1825d457013::t_38eb0965c555af 151,163
+packages/backend/src/routing/oauth/minimax-oauth.controller.ts
+  s_0dc1825d457013::t_1aef373cb941b2 69
+packages/backend/src/routing/resolve/resolve.controller.ts
+  s_0dc1825d457013::t_00cc87f6b58f48 45,48
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_0dc1825d457013::t_79a35ee538ba08 502
+  s_0dc1825d457013::t_7cc5dbcc6a8c4c 419
+  s_0dc1825d457013::t_d6422b74a9f21c 653,659
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_0dc1825d457013::t_dbc75a17ce5b82 190,204
+packages/backend/src/routing/routing.module.ts
+  s_0dc1825d457013::t_845910c18ac150 2,18-19,22-27,31-38,57-58
+packages/backend/src/routing/oauth/gemini-oauth.controller.ts
+  s_0dc1825d457013::t_221b90480bef71 82
+  s_0dc1825d457013::t_d3ca96e710541d 100
+packages/backend/src/routing/oauth/xai/xai-oauth.service.ts
+  s_0dc1825d457013::t_7eac967ce75266 125,137
+packages/backend/src/routing/oauth/kiro-oauth.controller.ts
+  s_0dc1825d457013::t_c5f208131225d5 57
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.ts
+  s_0dc1825d457013::t_d4ee009801a40a 102
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_0dc1825d457013::t_f066a011750d23 307,315,320
+  s_0dc1825d457013::t_113f4cbee2a561 331,338,342
+packages/backend/src/routing/oauth/minimax-oauth.service.ts
+  s_0dc1825d457013::t_6dc782725d00bc 219,231
+packages/backend/src/routing/provider.controller.ts
+  s_0dc1825d457013::t_fdf92ae609ba18 46-48
+  s_0dc1825d457013::t_b00538dd5bd4c3 54
+  s_0dc1825d457013::t_4557eebd697e34 186
+  s_0dc1825d457013::t_6ae9e9065deebe 227
+  s_0dc1825d457013::t_e77772c0d39776 240
+  s_0dc1825d457013::t_246b22b3cf38a4 7,14-15,18
+  s_0dc1825d457013::t_50568c051e6fa8 141-151
+  s_0dc1825d457013::t_6ba908a57c1369 161
+  s_0dc1825d457013::t_076b76075943e0 80
+  s_0dc1825d457013::t_dc2303f6c9c896 210
+packages/backend/src/routing/copilot.controller.ts
+  s_0dc1825d457013::t_9b2264259eb82a 34,46
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_0dc1825d457013::t_cd55a0c987c989 66-67
+packages/backend/src/routing/model.controller.ts
+  s_0dc1825d457013::t_9fef62d42c090b 91
+  s_0dc1825d457013::t_49d899b2fb1134 60-61
+  s_0dc1825d457013::t_719163db171ce4 73,78
+packages/backend/src/routing/custom-provider/custom-provider.controller.ts
+  s_0dc1825d457013::t_a2b3775f581439 27
+  s_0dc1825d457013::t_3bd119392ec29b 98
+  s_0dc1825d457013::t_fe888809979c09 120
+  s_0dc1825d457013::t_3f5025f0888b79 73
+packages/backend/src/playground/playground.service.ts
+  s_0dc1825d457013::t_c8039a82a47939 125
+  s_0dc1825d457013::t_c15f998243cb0b 79,88
+packages/backend/src/routing/oauth/openai-oauth.controller.ts
+  s_0dc1825d457013::t_71ffaa27a86110 98
+  s_0dc1825d457013::t_10a4c57b0e5aa6 80
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_0dc1825d457013::t_ba9e2e2f8b96c8 208,212,220,227,235,271,278
+packages/backend/src/routing/oauth/kiro-oauth.service.ts
+  s_0dc1825d457013::t_b00e19bc58756f 200,212
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_0dc1825d457013::t_65ae315eecb5f6 434,461,468
+  s_0dc1825d457013::t_de8a46c580adb8 176
+  s_0dc1825d457013::t_1d84d3e3f3dce4 394,408,411
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "9e0094a1c16b6793969501861399f0f48b49095a",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_8f7bd68edeeec2::t_ff45ea7d1ea886 51-58
+  s_8f7bd68edeeec2::t_8dbf0404b405d1 100,147,234,242
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_8f7bd68edeeec2::t_14472c71cd0f77 250-252
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "f0beaa906b023bf4757a8ac37955f20c85b29f09",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

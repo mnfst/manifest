@@ -1,0 +1,24 @@
+packages/backend/src/routing/oauth/xai/xai-oauth.controller.spec.ts
+  s_0dc1825d457013::t_c1ec45231d4038 224-228
+  s_0dc1825d457013::t_aa667c1be655aa 1-223,229-309
+packages/backend/test/agent-provider-access.e2e-spec.ts
+  s_0dc1825d457013::t_b0efed8f4e8b09 1-186
+packages/backend/src/routing/oauth/xai/xai-oauth.controller.ts
+  s_0dc1825d457013::t_75e4a557dfe467 90,108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "0c6fdb21c6ddca7b855e90dc20ddd77bfb1782ad",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_dcd815852e7fcd::t_94b6b6ff2fd06c 636-642,644-660
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "b577de07f54dc87a46abfb88ea2220fca2ccb3fa",
+  "prompts": {},
+  "sessions": {
+    "s_dcd815852e7fcd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ecb07-1a57-7052-b468-2f5d5d1eb3ba",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,71 @@
+packages/backend/src/routing/proxy/__tests__/rate-limit-tracker.service.spec.ts
+  s_8f7bd68edeeec2::t_a3a9615f1fd906 309-378,380-383
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_8f7bd68edeeec2::t_498aa50b4612ce 33-36
+  s_8f7bd68edeeec2::t_63e355ecc8355b 211-247
+packages/backend/src/analytics/controllers/provider-analytics.controller.spec.ts
+  s_8f7bd68edeeec2::t_a0ba8f102c1e0e 369-437
+  s_8f7bd68edeeec2::t_d124cb988a8bab 141
+  s_8f7bd68edeeec2::t_0739d734a4413d 156
+  s_8f7bd68edeeec2::t_bfc242ca9f6703 93-94,102,112
+  s_8f7bd68edeeec2::t_099fa172915ce2 128
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_8f7bd68edeeec2::t_044828350cfa27 598-608
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_8f7bd68edeeec2::t_04debd91ec640c 185-264
+  s_8f7bd68edeeec2::t_dc1330551ad986 7-8
+packages/backend/src/database/migrations/1791500000000-AddProviderRateLimits.ts
+  s_8f7bd68edeeec2::t_60a007c42c4ea7 25-28,30,35
+packages/backend/src/analytics/controllers/provider-analytics.controller.ts
+  s_8f7bd68edeeec2::t_4662caef45f1bb 252-254
+  s_8f7bd68edeeec2::t_b8d8da6c12495a 209
+  s_8f7bd68edeeec2::t_ef3ff5613005e3 12
+  s_8f7bd68edeeec2::t_736a195a637bcc 224-225
+  s_8f7bd68edeeec2::t_3a6c9ebab66ae7 229,239-241
+  s_8f7bd68edeeec2::t_2ba3797b4418ad 226
+  s_8f7bd68edeeec2::t_d7b9ae42e0e1ac 185-190,192-200
+  s_8f7bd68edeeec2::t_20ab9636b3e593 44-54,63
+packages/backend/test/provider-analytics.e2e-spec.ts
+  s_8f7bd68edeeec2::t_6362febd10b168 15-16
+  s_8f7bd68edeeec2::t_ecbda0172c190f 40-41,47-48
+  s_8f7bd68edeeec2::t_5834c7a036abb7 113-124
+  s_8f7bd68edeeec2::t_bad5f0f58e5e3d 179-208
+  s_8f7bd68edeeec2::t_00ca20cb681021 52-83,93-94
+  s_8f7bd68edeeec2::t_2ba3797b4418ad 84-92
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_8f7bd68edeeec2::t_2ba3797b4418ad 319-326
+  s_8f7bd68edeeec2::t_98ff3fddcb8dc7 168
+packages/backend/src/analytics/services/query-helpers.ts
+  s_8f7bd68edeeec2::t_68f24d2c251b86 73-104
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_8f7bd68edeeec2::t_bbf96b41b4059d 44,62
+  s_8f7bd68edeeec2::t_7d90809d2d3ea7 7
+packages/backend/src/routing/proxy/rate-limit-tracker.service.ts
+  s_8f7bd68edeeec2::t_614feceaefb678 27-29,40-67,203-205,222,227,229,231,239-241,246-253,257-258,260-261,263,266-267,272
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_8f7bd68edeeec2::t_e0a78a7f99e86e 64-67
+  s_8f7bd68edeeec2::t_c0a6c385aba988 457-484
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_8f7bd68edeeec2::t_d71cd3dd31d07f 683-712,714-738,740-741
+  s_8f7bd68edeeec2::t_2b7ebe84f7f35b 713,739
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_8f7bd68edeeec2::t_f96d248d2a1c54 136,145
+  s_8f7bd68edeeec2::t_b3933f12d7bc1f 6-11
+  s_8f7bd68edeeec2::t_0eb5585f51c610 64,79,89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "35cfd9f24351463aabe7cfa45c10d94f20979bb3",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

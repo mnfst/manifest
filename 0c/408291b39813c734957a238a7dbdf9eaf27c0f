@@ -1,0 +1,27 @@
+packages/backend/src/database/migrations/1791500000000-AddProviderRateLimits.ts
+  s_8f7bd68edeeec2::t_dbb564d09290e7 1-34
+packages/backend/test/helpers.ts
+  s_8f7bd68edeeec2::t_091b3584917815 85
+  s_8f7bd68edeeec2::t_a79de28cf58a2d 42
+packages/backend/src/database/database.module.ts
+  s_8f7bd68edeeec2::t_1074e956540b67 120
+  s_8f7bd68edeeec2::t_5ef9fa1f2c9e72 146
+  s_8f7bd68edeeec2::t_0c9d79c8549b78 28
+  s_8f7bd68edeeec2::t_982b54fea7b11b 239
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "0c408291b39813c734957a238a7dbdf9eaf27c0f",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

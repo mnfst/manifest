@@ -1,0 +1,36 @@
+packages/shared/src/index.ts
+  s_6ab7cca8c7f789::t_db5c95b46edf02 86-91
+packages/shared/src/provider-inference.ts
+  s_6ab7cca8c7f789::t_7206685605ec0b 61-64,72
+  s_6ab7cca8c7f789::t_feb57c726f5dca 54-60,65-71,73
+packages/shared/__tests__/provider-inference.spec.ts
+  s_6ab7cca8c7f789::t_f3f41cf96f6c09 90-120
+  s_6ab7cca8c7f789::t_055d3bbdcc6c72 4
+packages/shared/src/provider-params-spec.ts
+  s_6ab7cca8c7f789::t_66dd2d336a90b9 2
+  s_6ab7cca8c7f789::t_ab8ce116a6d0d4 121-123
+packages/backend/src/routing/model.controller.spec.ts
+  s_6ab7cca8c7f789::t_d1e19437b489d1 314-333
+  s_6ab7cca8c7f789::t_4ab2e503c78a46 334-349
+packages/backend/src/routing/model.controller.ts
+  s_6ab7cca8c7f789::t_7b4d638658fa57 106-112,114-115,121
+  s_6ab7cca8c7f789::t_f8bf9f93ed53ca 12
+.changeset/gateway-model-capabilities.md
+  s_6ab7cca8c7f789::t_ac3ab665443e41 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "8061e86ed24a0e0678596729a0e9501224c3c516",
+  "prompts": {},
+  "sessions": {
+    "s_6ab7cca8c7f789": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0671ec04-600b-40a9-a9e4-01ac7992d4fa",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

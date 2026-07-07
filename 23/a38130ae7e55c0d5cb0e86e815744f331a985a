@@ -1,0 +1,35 @@
+packages/wingman/src/services/response-shape.ts
+  s_21712ae965afee::t_91c2ba071e4559 1-59
+packages/wingman/src/App.tsx
+  s_21712ae965afee::t_503f50672141a0 310
+  s_21712ae965afee::t_e93769c0d6a57c 18
+  s_21712ae965afee::t_683f57771b4654 255
+  s_21712ae965afee::t_d5940bb30baeb8 236
+packages/wingman/src/components/AssistantMessage.tsx
+  s_21712ae965afee::t_71d44b4b7d9946 3
+.changeset/wingman-anthropic-sdk-profile.md
+  s_21712ae965afee::t_704c2a1dd08838 1-4
+packages/wingman/src/services/gist.ts
+  s_21712ae965afee::t_3d95970975c751 2
+packages/wingman/src/profiles.ts
+  s_21712ae965afee::t_c17356d6f89ad0 81-112
+  s_21712ae965afee::t_74a72199015970 12-17
+  s_21712ae965afee::t_fb4f1b7b6ca9ae 52-57,63-65
+  s_21712ae965afee::t_d0975a61f88ab3 193-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "23a38130ae7e55c0d5cb0e86e815744f331a985a",
+  "prompts": {},
+  "sessions": {
+    "s_21712ae965afee": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "87749cca-9d25-4b20-8a11-9623a50b919a",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_a7d7f6ffbf0781::t_eaf0990167737f 1373
+  s_a7d7f6ffbf0781::t_dc8c506b032e9e 1671-1673,1675
+  s_a7d7f6ffbf0781::t_c9f1329c4fb0d6 2253,2255
+  s_a7d7f6ffbf0781::t_f35d69fdc4e13b 1873,1875
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "ee4823ebb328cbd5d27122d92115564993643672",
+  "prompts": {},
+  "sessions": {
+    "s_a7d7f6ffbf0781": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a31f807-8a4f-42e8-af85-a4cfa7d196e0",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

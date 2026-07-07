@@ -1,0 +1,28 @@
+packages/frontend/src/components/RecordedMessageModal.tsx
+  s_c4ecb81b28dd6c::t_4865c5d277d53a 118
+packages/shared/src/chat-message.ts
+  s_c4ecb81b28dd6c::t_b6779ab8d848cb 22-27,42,56-114,118-139,145-162,168-171,178-179
+packages/shared/__tests__/chat-message.spec.ts
+  s_c4ecb81b28dd6c::t_7729298fb2c3b7 1-99
+packages/frontend/tests/components/RecordedMessageModal.test.tsx
+  s_c4ecb81b28dd6c::t_5b41d19fd4d163 151-191
+.changeset/tender-keys-smile.md
+  s_c4ecb81b28dd6c::t_bc77194b166a9a 1,3-5
+  s_c4ecb81b28dd6c::t_b288bb6341585b 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "e04269e7c3796a2226857a51513897dee7bc3baa",
+  "prompts": {},
+  "sessions": {
+    "s_c4ecb81b28dd6c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4bd9-a109-7d32-a9be-232b5509171e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

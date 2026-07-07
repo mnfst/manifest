@@ -1,0 +1,21 @@
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_d55d26a37e6be3::t_ce06062a4767e1 1935,1937,1939,1972-1973,1976-1977
+packages/frontend/tests/components/AnthropicOAuthDetailView.test.tsx
+  s_d55d26a37e6be3::t_4131b0fb1927cb 237
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "9ef4a52890ae7405dc6d4c1f757de335b3375c0b",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

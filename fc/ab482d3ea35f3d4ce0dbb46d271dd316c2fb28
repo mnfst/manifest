@@ -1,0 +1,26 @@
+packages/backend/src/routing/oauth/kiro-oauth.service.spec.ts
+  s_dcd815852e7fcd::t_cd1d915127cbb9 5-9,192-196
+packages/backend/src/routing/kiro-oauth.controller.spec.ts
+  s_dcd815852e7fcd::t_665f820129c7c7 45
+packages/backend/src/routing/oauth/kiro-oauth.controller.ts
+  s_dcd815852e7fcd::t_f3be2d8d48e38d 28-36,39-42
+  s_dcd815852e7fcd::t_f945d675f05900 5
+packages/backend/src/routing/oauth/kiro-oidc.ts
+  s_dcd815852e7fcd::t_53cdd3f4ed4ac5 71-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "fcab482d3ea35f3d4ce0dbb46d271dd316c2fb28",
+  "prompts": {},
+  "sessions": {
+    "s_dcd815852e7fcd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ecb07-1a57-7052-b468-2f5d5d1eb3ba",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

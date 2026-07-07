@@ -1,0 +1,21 @@
+packages/backend/src/routing/proxy/forward-endpoint-resolver.spec.ts
+  s_50a4936ae75e59::t_3a7a9fdbfdfdfa 1-168
+packages/backend/src/routing/proxy/forward-endpoint-resolver.ts
+  s_50a4936ae75e59::t_3a7a9fdbfdfdfa 1-149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "b74d72743f5afd73bbba192b48dd508e534bb8b8",
+  "prompts": {},
+  "sessions": {
+    "s_50a4936ae75e59": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e92d4-a358-75d3-8736-05447bfd74dc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

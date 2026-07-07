@@ -1,0 +1,61 @@
+.changeset/global-dashboard-overview.md
+  s_0dc1825d457013::t_d8403bb21d97bc 1-5
+packages/frontend/src/pages/Settings.tsx
+  s_0dc1825d457013::t_3c0f8be5a7c3d4 140
+packages/frontend/src/components/RootRedirect.tsx
+  s_0dc1825d457013::t_52879ff08447cc 1-6
+packages/frontend/src/components/message-table-cells.tsx
+  s_0dc1825d457013::t_555ff182fb0a47 349-352,355,366-372
+  s_0dc1825d457013::t_e2d6d6282d0e52 135
+  s_0dc1825d457013::t_09b25fa9657002 497-498
+  s_0dc1825d457013::t_05ac543145ae9b 455
+packages/frontend/tests/components/MessageTable.test.tsx
+  s_0dc1825d457013::t_7cedcd7306468d 986-1033
+packages/frontend/src/components/message-table-types.ts
+  s_0dc1825d457013::t_b4639401981075 41-42
+packages/frontend/src/index.tsx
+  s_0dc1825d457013::t_6599705010b0b1 8,19
+  s_0dc1825d457013::t_ece4da830f6410 62-65
+packages/frontend/src/components/MessageTable.tsx
+  s_0dc1825d457013::t_805b6e97612a98 9
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_0dc1825d457013::t_5c7d7c1e497446 247,250-253
+  s_0dc1825d457013::t_9c354998e5aa1d 145,148,151,153-165,173-180,182-192
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_0dc1825d457013::t_3cb660ec8f42ab 1-2,4-194
+packages/frontend/tests/components/App.test.tsx
+  s_0dc1825d457013::t_1265bce2ef6f75 94-111
+packages/frontend/tests/components/message-table-cells.test.tsx
+  s_0dc1825d457013::t_cd2d518bb70ac0 3
+  s_0dc1825d457013::t_7486725c6892b5 88-119
+packages/frontend/src/App.tsx
+  s_0dc1825d457013::t_12fc5e71ab9579 39-43
+packages/frontend/tests/pages/GlobalOverview.test.tsx
+  s_0dc1825d457013::t_9739278709a9e0 44-45,47-52,55-56,58
+  s_0dc1825d457013::t_63e9bfcce52fcb 204-215
+  s_0dc1825d457013::t_91a68f4a9c3d72 70-75
+  s_0dc1825d457013::t_2ccf547e229e56 46,53-54,57
+  s_0dc1825d457013::t_fc34bf7667694a 1-43,59-69,76-203,216-284
+packages/frontend/src/components/Sidebar.tsx
+  s_0dc1825d457013::t_10454a37ee8895 37,39-56
+packages/frontend/src/components/Header.tsx
+  s_0dc1825d457013::t_1f8abef723416b 137
+packages/frontend/tests/components/RootRedirect.test.tsx
+  s_0dc1825d457013::t_b18f5250c61196 1-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "869eb2b8d5d47b91e761837d9ba24579e0d26dea",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

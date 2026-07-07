@@ -1,0 +1,9 @@
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  ai_agent 680-682
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "322ebd277b257077a4716e4e12490acf3762cfad",
+  "prompts": {}
+}

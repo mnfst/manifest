@@ -1,0 +1,23 @@
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_0ba3fdda389d59::t_a9adb5256c2769 264-267,489-492
+packages/frontend/src/styles/routing-modal.css
+  s_0ba3fdda389d59::t_e5d05e5fbbf01b 110,115-119,132
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_0ba3fdda389d59::t_3b27cffa96f34f 424-425,436,441
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "52b665d7555df35f0610632c3db75ceaf8e58f9e",
+  "prompts": {},
+  "sessions": {
+    "s_0ba3fdda389d59": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4ec4-2f8f-71c1-840b-0b4d2fc754d6",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

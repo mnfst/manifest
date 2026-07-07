@@ -1,0 +1,21 @@
+packages/frontend/src/styles/agent-chart-tooltip.css
+  s_e1b70d41b01e6a::t_fa0e264407913f 1-87
+packages/frontend/src/components/MultiAgentTokenChart.tsx
+  s_e1b70d41b01e6a::t_198c0c4466845c 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "e81e26b64803205d879fdf006f252457996b12c4",
+  "prompts": {},
+  "sessions": {
+    "s_e1b70d41b01e6a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a171d69c-205a-4893-b9d9-91fdec7c91ca",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+packages/shared/src/plan-limits.ts
+  s_700be27a56f92d::t_446889968e7851 7
+  s_700be27a56f92d::t_7ec6bf52cdf328 13-16
+packages/shared/__tests__/plan-limits.spec.ts
+  s_700be27a56f92d::t_6e3ee1e84d1f3a 12
+.changeset/stripe-billing.md
+  s_700be27a56f92d::t_6d8f6144d46419 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "55ab886ee8388a5126c100c30887b86c38cf7f93",
+  "prompts": {},
+  "sessions": {
+    "s_700be27a56f92d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e4967351-5782-4cee-b326-136aaccd2add",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

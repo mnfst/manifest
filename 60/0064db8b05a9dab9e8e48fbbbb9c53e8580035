@@ -1,0 +1,72 @@
+packages/frontend/tests/components/ProviderDetailView.test.tsx
+  s_13de6fdca9a587::t_1ef1840625e069 373-374,380-382
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_13de6fdca9a587::t_4d924028260c41 487
+packages/shared/src/subscription/types.ts
+  s_13de6fdca9a587::t_f21b18990d3af1 12
+packages/shared/src/subscription/configs.ts
+  s_13de6fdca9a587::t_ba80cb5b74a684 75
+packages/backend/src/routing/oauth/kiro-oauth.service.spec.ts
+  s_13de6fdca9a587::t_4006156260bd51 385-394
+  s_13de6fdca9a587::t_ffb9127dfe1ae6 132-140
+  s_13de6fdca9a587::t_8ba1dfed4e35b9 1,5,7-39,41-61,65-69,74-75,78-116,120-123,125-130,142-154,157-169,171-185,188-197,200-206,208-225,227-235,238-244,246-248,250,259-293,295-303,306-384
+  s_13de6fdca9a587::t_b9c8b37c920975 252-254,256
+packages/frontend/src/services/api/oauth.ts
+  s_13de6fdca9a587::t_2b820c046a4549 173-208
+  s_13de6fdca9a587::t_2f746c3619f2b0 64-68,71-79
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_13de6fdca9a587::t_fe530bc2a3f7dc 182,185,187,189-191
+packages/backend/src/routing/oauth/kiro-oidc.ts
+  s_13de6fdca9a587::t_00bfcf93533761 1-120
+packages/frontend/src/services/providers.ts
+  s_13de6fdca9a587::t_8165b84aa216ff 147
+  s_13de6fdca9a587::t_02f21ad76f2b6d 34,78
+packages/backend/src/routing/oauth/kiro-oauth.controller.ts
+  s_13de6fdca9a587::t_819b4623f228f2 1,6-7,14,17-18,24,26,30-61
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  s_13de6fdca9a587::t_22fa46da25b5ad 60
+  s_13de6fdca9a587::t_851ec4727fbaa3 14
+  s_13de6fdca9a587::t_850aeed37da358 253-257
+  s_13de6fdca9a587::t_ec65fea1f537a4 197
+  s_13de6fdca9a587::t_d2b8e330f7a28e 121
+  s_13de6fdca9a587::t_e28140e426d6df 290-292,294-316
+  s_13de6fdca9a587::t_b4c0c6c9c1c134 139
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_13de6fdca9a587::t_5e97b899e0e00e 78-82
+packages/backend/src/routing/oauth/kiro-oidc.spec.ts
+  s_13de6fdca9a587::t_e8c298c4e92aab 1-109
+packages/backend/src/routing/kiro-oauth.controller.spec.ts
+  s_13de6fdca9a587::t_6f36ac67528384 5,11,15-16,23-27,30-45,48-50,52-54,56-63,65-68,71-97,100-114,116,119
+packages/frontend/tests/services/api/oauth.test.ts
+  s_13de6fdca9a587::t_fd7dd2a5dcdeea 108,110-114,116-121,123-130,132-134,136,138-193
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_13de6fdca9a587::t_7fccd94501babd 56-61
+packages/backend/src/routing/oauth/kiro-oauth.service.ts
+  s_13de6fdca9a587::t_f0734c8e7cd2d0 2-3,7-56,59-76,80-83,87,89-99,101-113,116-128,133-192,194,196-197,201,203,205-206,210,214,219,222,225,229-334
+  s_13de6fdca9a587::t_496ba01d43315d 129-132
+packages/frontend/tests/services/providers.test.ts
+  s_13de6fdca9a587::t_91f09667d3e1d8 433
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_13de6fdca9a587::t_83b28882c14b44 5-38
+  s_13de6fdca9a587::t_9ceb3afe0fdbda 456-518
+  s_13de6fdca9a587::t_7eea34507893b3 300-312,325-337
+  s_13de6fdca9a587::t_f6d0baf6cae10b 313-324
+.changeset/kiro-device-flow.md
+  s_13de6fdca9a587::t_acd0967c97116a 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "600064db8b05a9dab9e8e48fbbbb9c53e8580035",
+  "prompts": {},
+  "sessions": {
+    "s_13de6fdca9a587": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b4825e9-21d8-4a2c-ac61-a32f2f414366",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

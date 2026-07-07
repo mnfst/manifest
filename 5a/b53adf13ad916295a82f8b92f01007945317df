@@ -1,0 +1,27 @@
+packages/frontend/tests/services/scroll-fade.test.ts
+  s_e1b70d41b01e6a::t_7d9fefb55a70e9 1-32
+packages/frontend/src/services/scroll-fade.ts
+  s_e1b70d41b01e6a::t_1bb29a895d679b 1-9
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_e1b70d41b01e6a::t_5e06e5516f26b8 575,621,683
+  s_e1b70d41b01e6a::t_cd077c543cfbbc 2
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_e1b70d41b01e6a::t_5e06e5516f26b8 823,913,1010,1138
+  s_e1b70d41b01e6a::t_cd077c543cfbbc 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "5ab53adf13ad916295a82f8b92f01007945317df",
+  "prompts": {},
+  "sessions": {
+    "s_e1b70d41b01e6a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a171d69c-205a-4893-b9d9-91fdec7c91ca",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

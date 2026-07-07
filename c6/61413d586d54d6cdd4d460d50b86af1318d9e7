@@ -1,0 +1,395 @@
+packages/frontend/tests/components/OAuthDetailView.test.tsx
+  s_cdc27bf280c8e2::t_a5cc5556a9142e 162-405
+packages/frontend/tests/pages/Register.test.tsx
+  b8be0324a8a3ea25 32
+packages/frontend/tests/services/providers.test.ts
+  s_22a8fe3f5b9216::t_756a22343b426c 317,321-323
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_2b8a13cc762528::t_459fff3ab90ec0 161-162,165,173-184,189,195,208,216
+  s_2b8a13cc762528::t_a77762df95cec8 164,166-172,185-188,190-194,196-207,209-215,217-218
+packages/backend/src/routing/proxy/__tests__/google-adapter.spec.ts
+  s_a644ec79b78c58::t_1470dd84ef4233 152-214
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.config.ts
+  s_22a8fe3f5b9216::t_e6540700a080f1 1-20
+.changeset/add-nanobot-platform.md
+  s_6ea530aa44f956::t_99352ad19b8e93 1-5
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_2b8a13cc762528::t_ee82c7a71f52d0 1017,1032,1044-1046
+  s_2b8a13cc762528::t_3dbb879e3bf56d 1048-1097
+  s_2b8a13cc762528::t_38364fccaf11d8 954-1016,1018-1031,1033-1043,1047,1098-1099
+packages/backend/src/routing/openai-oauth.controller.spec.ts
+  s_cdc27bf280c8e2::t_617821d7ac8ff5 1
+  s_cdc27bf280c8e2::t_d0ce3cdb6e1888 29,145,150-152,155,157-176,183-184,189,191-225,242,244,251,253,258-260,262,269,271
+  s_cdc27bf280c8e2::t_1f32ba2fd0266c 228-237
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_22a8fe3f5b9216::t_8cbdde21cbaefa 1-163,173-256,273
+  s_22a8fe3f5b9216::t_1e0b14c82e7c62 164-172
+  s_22a8fe3f5b9216::t_d8da05ecfd9cd1 257-272
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_22a8fe3f5b9216::t_603d38b3574b08 92
+  s_22a8fe3f5b9216::t_4f8eed2dc271b9 202
+  s_22a8fe3f5b9216::t_606534cc7529c9 430,442-444
+  s_22a8fe3f5b9216::t_8a9836241182b7 44
+packages/backend/src/routing/oauth/core/callback-page.ts
+  s_22a8fe3f5b9216::t_50d369eaef310f 1-26
+packages/backend/src/routing/oauth/core/callback-page.spec.ts
+  s_22a8fe3f5b9216::t_179ee59c48c18c 1-29
+.changeset/refactor-oauth-local-disconnect.md
+  s_cdc27bf280c8e2::t_4041999b77001e 1-5
+packages/backend/src/routing/proxy/provider-client.ts
+  s_2b8a13cc762528::t_3579c99c867c8e 260-272,279-285,289
+  s_2b8a13cc762528::t_491d3a829bf985 273-278
+  s_2b8a13cc762528::t_df60261e7870e3 177-181
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  s_21712ae965afee::t_2b20f55fe863e9 429-434,448-449,451
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_22a8fe3f5b9216::t_8c41b429bd8a51 99
+  s_22a8fe3f5b9216::t_fa87efa3ce2a4a 10
+  s_22a8fe3f5b9216::t_2d4aff886a91fd 75
+  s_22a8fe3f5b9216::t_85d95eeac94132 45
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_21712ae965afee::t_c56aa612dae3f5 272-281
+  s_21712ae965afee::t_8493387a43118f 270,282-287,291
+.changeset/strip-haiku-adaptive-thinking.md
+  s_556110b1ffa8da::t_7b7fe16daac47e 5
+  s_556110b1ffa8da::t_41f3a8cbdb1274 1-4
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_2b8a13cc762528::t_bd2f87bca1f03a 114-128
+  s_2b8a13cc762528::t_5da37bc3ae969d 302,304,312-318,325-332
+packages/frontend/tests/components/SetupStepAddProvider.test.tsx
+  s_6ea530aa44f956::t_e0c555ee9c401b 55-66
+  s_6ea530aa44f956::t_5670e9f2d1f5f5 307-323
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.ts
+  s_22a8fe3f5b9216::t_11a93dc80e9b55 4
+  s_22a8fe3f5b9216::t_dd21dbf27c4990 71-84
+  s_cdc27bf280c8e2::t_4041999b77001e 87-88,90-91,97-103
+  s_cdc27bf280c8e2::t_1f32ba2fd0266c 16,89,95
+  s_22a8fe3f5b9216::t_f1be019e9a3763 1-3,5-15,17-70,85-86,92-94,96,104-105
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_22a8fe3f5b9216::t_9ce876efc7513f 397
+  s_22a8fe3f5b9216::t_9dca05f986c3ba 111
+  s_22a8fe3f5b9216::t_2b37d65770ba04 8
+packages/shared/__tests__/agent-type.spec.ts
+  s_6ea530aa44f956::t_2e33b1dd8e2bc3 17
+  s_6ea530aa44f956::t_06d3ae79208744 119
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_556110b1ffa8da::t_7a14231bba2252 135
+  s_556110b1ffa8da::t_0c8af53f589cc5 127-134,136-161
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_2b8a13cc762528::t_cee225133f4f5a 78-79,86-87
+  s_2b8a13cc762528::t_d589cf47e6b0f7 80-85
+  s_2b8a13cc762528::t_28fda3efc10e74 24-33,37
+packages/backend/src/routing/openai-oauth.service.spec.ts
+  s_22a8fe3f5b9216::t_558ca1528dfade 389-390,397-398
+  s_22a8fe3f5b9216::t_1a4abb463dd817 144-145
+  s_22a8fe3f5b9216::t_6b0526d466380c 86-87
+packages/backend/src/routing/oauth/core/pkce.spec.ts
+  s_22a8fe3f5b9216::t_a09246f228730b 1-33
+packages/backend/src/routing/oauth/query-params.ts
+  s_cdc27bf280c8e2::t_1f32ba2fd0266c 1-12
+packages/backend/src/routing/oauth/core/pkce.ts
+  s_22a8fe3f5b9216::t_b2cd32625e8a03 1-18
+packages/backend/src/routing/oauth/minimax-oauth.controller.ts
+  s_cdc27bf280c8e2::t_4041999b77001e 6,14,55-58,60-64,66-73
+  s_cdc27bf280c8e2::t_1f32ba2fd0266c 7,59,65
+packages/backend/src/routing/oauth/core/pending-store.spec.ts
+  s_22a8fe3f5b9216::t_489916a0645639 1-69,85
+  s_22a8fe3f5b9216::t_aeccb3245779ab 70-84
+packages/frontend/src/App.tsx
+  s_bb6d20e442790c::t_5c3f0add69a5d0 31-33,35
+  s_bb6d20e442790c::t_46f28fa7c8c57f 45-49
+  s_bb6d20e442790c::t_d95609324cf50c 2-9,27,34,36-37,50-59,62
+  s_bb6d20e442790c::t_f1c516b1181388 60
+packages/frontend/src/services/framework-snippets.ts
+  s_6ea530aa44f956::t_f82285c21ae8cb 355,359-363,365-366,373-376
+  s_38570e892fce3e::t_05a2ca5b0d88e6 356-358,364
+  s_38570e892fce3e::t_3e1caeaae0ae4e 367-371
+packages/frontend/src/styles/modals.css
+  s_bb6d20e442790c::t_0d1713626221ec 75-82,90,357-445
+packages/frontend/tests/services/api/oauth.test.ts
+  s_cdc27bf280c8e2::t_b344f636b50b29 41
+  s_cdc27bf280c8e2::t_f3459bfa52043e 45-49
+  s_cdc27bf280c8e2::t_37a6dfcda28f5e 91-106,143-151
+  s_22a8fe3f5b9216::t_40c65b145faf2f 90,107-142,152-153
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_a644ec79b78c58::t_194207d0940bde 185-198
+packages/frontend/src/components/SetupStepAddProvider.tsx
+  s_6ea530aa44f956::t_a8b1129f2736b1 50-51
+  s_6ea530aa44f956::t_457362c938cb05 168-173,175-191,208-223,234-235
+  s_6ea530aa44f956::t_4733032a225797 70-72
+  s_6ea530aa44f956::t_4e0ec8248332f2 5
+  s_6ea530aa44f956::t_a1411dfd165592 174
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_556110b1ffa8da::t_52af5f30e681e6 41,43,53
+  s_556110b1ffa8da::t_6a34d06a7586c5 35-40,42,44-52,54-56,228-230
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.spec.ts
+  s_22a8fe3f5b9216::t_b9d9084ff1248f 13
+  s_22a8fe3f5b9216::t_ea821d62d0a9fe 85-104
+  s_22a8fe3f5b9216::t_4e98a24464433f 1-12,14-18,20-84,105-107,109-110,112,131-134,136-137,148-149
+  s_cdc27bf280c8e2::t_8afec59584f9aa 19,108,111,113-130,135
+  s_cdc27bf280c8e2::t_1f32ba2fd0266c 138-147
+packages/backend/src/routing/oauth/core/index.ts
+  s_22a8fe3f5b9216::t_b26f27e802442e 1-9
+packages/frontend/src/components/Header.tsx
+  s_bb6d20e442790c::t_ce41b7d0485dfd 227-229
+  s_bb6d20e442790c::t_9c037e06b8ef01 16-22,223-226,230-238
+packages/backend/src/routing/proxy/google-adapter.ts
+  s_a644ec79b78c58::t_320424e79c0537 53-56
+packages/frontend/tests/components/AnthropicOAuthDetailView.test.tsx
+  s_22a8fe3f5b9216::t_3a07ba9f36a3c5 8,18
+  s_22a8fe3f5b9216::t_2f23ef5ed182f5 71-72,77-78,80-81,107,109,119-120,123,125-126,128,132-136,138-139,144,147,150-159,161-162,165-169,173-177,179-180,183-185,187,192,194-195,198-200,202,204,206-210,213-215,217-222,225,228,232,237-241,244-245,247-252,255,258,263,268,271-273,276,279-280,282-283,286,288,292,294-295,301-302,305-308,310,313,317
+  s_22a8fe3f5b9216::t_4b3f89c54ef087 226-227,229-231,233-236,242
+  s_22a8fe3f5b9216::t_559aac1f504625 79,82,118,127,143,145-146,149,160,182,191,197,216,246,256-257,259,261-262,265,270
+  s_22a8fe3f5b9216::t_eca4c86ba7fd15 1-7,9-17,19-70,73-75,83-97,99,103-106,116-117,121-122,124,129-131,137,141-142,148,163-164,170-172,178,181,186,188-190,193,196,201,203,205,211-212,223-224,314-316,318-320
+  s_22a8fe3f5b9216::t_cb1adc077f12d9 76
+  s_22a8fe3f5b9216::t_efbe8c1134f2c1 243,253-254,260,264,266-267,269,274-275,281,284-285,287,289-290,293,296,311-312
+  s_22a8fe3f5b9216::t_8d5eb5f3f6da33 98,100-102,108,110-115
+  s_cdc27bf280c8e2::t_8afec59584f9aa 277-278,291,297-300,303-304,309,406-461
+packages/frontend/src/styles/agent-type-select.css
+  s_bb6d20e442790c::t_f56f030fdcbf09 49-52,147,152,156-200
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_21712ae965afee::t_31951ec3da726e 1-250
+packages/backend/src/routing/oauth/core/oauth-blob.spec.ts
+  s_22a8fe3f5b9216::t_311b806aa80a94 2-50
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_22a8fe3f5b9216::t_6e1ecb7f8a5dd8 58
+  s_22a8fe3f5b9216::t_a2ba216f156538 928,939-940
+  s_22a8fe3f5b9216::t_90287677ed17b5 995,1020
+  s_cdc27bf280c8e2::t_1163df23ae1ff7 37,53,122-123,1043,1059,1651,1674,1676,1681-1682
+  s_22a8fe3f5b9216::t_3bbb20ff708b5c 42
+  s_22a8fe3f5b9216::t_b9efd1c4946d33 1090-1093,1095
+  s_cdc27bf280c8e2::t_0c8d5ea51368a6 1875,1899,1903,1926,1928-1929
+  s_22a8fe3f5b9216::t_d1bac40bb86bba 39-41,55-57
+  s_22a8fe3f5b9216::t_7f5999e87123e9 1165
+  s_22a8fe3f5b9216::t_05e926b5723396 957,968,971-979,989,992,997,1000-1009,1019,1021,1024-1030,1033,1039,1054,1057
+packages/backend/src/routing/oauth/core/oauth-blob.ts
+  s_22a8fe3f5b9216::t_d8dc70f277ff30 1-42
+packages/backend/src/routing/proxy/__tests__/anthropic-cache-control-roundtrip.spec.ts
+  s_21712ae965afee::t_0c963db8bd3c2f 170-201
+  s_21712ae965afee::t_346b26b948f5fc 1-169,202-203
+packages/backend/src/routing/oauth/oauth.module.ts
+  s_22a8fe3f5b9216::t_911ac4ff96fdf9 9-10,14-26
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.routes.spec.ts
+  s_22a8fe3f5b9216::t_64c560e561f959 8
+  s_22a8fe3f5b9216::t_f85af9a550095a 60-63
+  s_22a8fe3f5b9216::t_3f7b507f661036 34
+  s_22a8fe3f5b9216::t_969ade00cee0d6 81
+.changeset/last-auth-method-hint.md
+  b8be0324a8a3ea25 1-5
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  s_cdc27bf280c8e2::t_4041999b77001e 16,20,22,36-38,41-42,57-98,122,137-140
+packages/frontend/src/services/providers.ts
+  s_22a8fe3f5b9216::t_b21e16db748d2c 104
+  s_22a8fe3f5b9216::t_a209aa44461667 34-45,78
+packages/backend/src/routing/minimax-oauth.controller.spec.ts
+  s_cdc27bf280c8e2::t_1f32ba2fd0266c 127-137
+  s_cdc27bf280c8e2::t_8afec59584f9aa 5,11,23-27,92-125
+packages/frontend/tests/components/App.test.tsx
+  s_bb6d20e442790c::t_b21642eb3c9589 2-6,9,13-26,30-34,49,77-81,85-115
+packages/shared/src/agent-type.ts
+  s_6ea530aa44f956::t_a56e222805e263 7-8,10,21,29
+  s_6ea530aa44f956::t_231c77fddf2e30 50
+packages/frontend/src/services/api/oauth.ts
+  s_22a8fe3f5b9216::t_8d5c8681c094e5 54,64-86,96-98
+  s_22a8fe3f5b9216::t_40a95fc46172e6 87-90
+  s_cdc27bf280c8e2::t_4041999b77001e 55-63,91-95
+  s_cdc27bf280c8e2::t_3cff73da999b98 33-37
+.changeset/anthropic-oauth.md
+  s_22a8fe3f5b9216::t_aa829d1fa2cea5 1-13
+packages/frontend/src/styles/theme.css
+  s_bb6d20e442790c::t_b6698a47430883 1273,1294
+  s_bb6d20e442790c::t_c6dda6925352ad 1185-1217,1266,1276,1278-1281,1301-1303,1305-1307,1313-1315,1318-1319,1322-1323,1338-1342,1345-1359,1364-1382,1386-1427,1431-1439,1447-1448
+  s_bb6d20e442790c::t_b78b998ae591c2 1343-1344,1383-1385
+  s_bb6d20e442790c::t_fe44d518c5d93d 1451-1455
+  s_bb6d20e442790c::t_26851bddaeb589 869-873,1222-1265,1267-1272,1277,1282-1293,1295-1299,1304,1308-1312,1316-1317,1320-1321,1324-1325,1440-1443
+  s_bb6d20e442790c::t_87267d8b100d77 1274
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_2b8a13cc762528::t_843748897c9952 209-222
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_22a8fe3f5b9216::t_a310221391a7be 81
+  s_22a8fe3f5b9216::t_ac595995e1cdf3 462-470
+  s_22a8fe3f5b9216::t_c07f64093b01a5 383-395
+  s_22a8fe3f5b9216::t_498cea1436476b 23
+packages/frontend/tests/components/Header.test.tsx
+  s_2f5f56e8ff714e::t_0bf0dcd11eb02f 134
+  s_2f5f56e8ff714e::t_53bcf17111f9ba 121-133,135-143
+packages/frontend/src/components/Sidebar.tsx
+  s_bb6d20e442790c::t_83aed474aa0be3 5-10,23-33
+packages/frontend/tests/services/framework-snippets.test.ts
+  s_38570e892fce3e::t_29b579b7ec815d 308
+  s_38570e892fce3e::t_2533dd463a3a4c 312-315
+  s_6ea530aa44f956::t_15d40003277d1a 297-307,309-311,318-325
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_2b8a13cc762528::t_851efacb39fe5d 192-205
+packages/frontend/src/components/SetupModal.tsx
+  s_bb6d20e442790c::t_1c8ce4d7df1575 46,63-65
+packages/backend/src/routing/proxy/__tests__/proxy-message-dedup.spec.ts
+  s_21712ae965afee::t_9b2299808489cf 412-415,420
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_22a8fe3f5b9216::t_484665440d4941 890,913,929,947,997,1017,1032
+  s_22a8fe3f5b9216::t_a438e31fc22975 22
+  s_22a8fe3f5b9216::t_740ccaf800de65 48-51
+  s_22a8fe3f5b9216::t_0061fe684d88af 11
+  s_22a8fe3f5b9216::t_09c1dfb5779fd2 69
+  s_22a8fe3f5b9216::t_bb0ea57d8c87ba 953-955,958-991,1000,1003
+  s_22a8fe3f5b9216::t_8bc2485965da41 1039
+packages/frontend/tests/components/NanobotSetup.test.tsx
+  s_6ea530aa44f956::t_ef35a5b0f779e4 1-20,22-25,28-29,31-34,37-38,42-109
+  s_38570e892fce3e::t_5dc0a09b6cd18c 21,26-27,30,35-36,39-41
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_2b8a13cc762528::t_f10639b9bc4f17 776-828
+packages/backend/src/routing/proxy/proxy-message-dedup.ts
+  s_21712ae965afee::t_8456db7b40e869 89-92,95
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_a644ec79b78c58::t_00c047cf9e2c5b 113-116,118
+packages/backend/src/routing/oauth/openai-oauth.service.ts
+  s_22a8fe3f5b9216::t_04f92404495d59 7-16,18-19,33,57-60,84,117,122,124-125,166-167,175,207,256,295
+packages/frontend/src/styles/routing-providers.css
+  s_22a8fe3f5b9216::t_891302c8940ebd 513-529,531-533,536,540-541,543,547-548,553-559
+  s_22a8fe3f5b9216::t_b521195d489a12 530,534-535,537-539,542,544-546,549-552,560-561
+packages/frontend/src/components/AnthropicOAuthDetailView.tsx
+  s_22a8fe3f5b9216::t_204a2306cdfc61 224
+  s_22a8fe3f5b9216::t_e3f2d0e3573e6d 104-105,107,109,130-132,134-138
+  s_22a8fe3f5b9216::t_63f218097ae1db 42-45,100,110-118,120-121,124-129,133,225,227-230,236-237
+  s_22a8fe3f5b9216::t_5e017f2c10ce2b 49-50,64-65,72,78,96-97,101-103,106,108,119,122-123,207-217,219-221,223,231-235,238-258
+  s_22a8fe3f5b9216::t_12be46492e994b 222,259
+  s_22a8fe3f5b9216::t_d00afdc8d68260 11-15,18-41,46-48,63,76-77,79-95,98-99,139-141,143-156,204-206,260-384
+  s_22a8fe3f5b9216::t_f3dfb1a938f534 16
+  s_cdc27bf280c8e2::t_4041999b77001e 142,160
+  s_22a8fe3f5b9216::t_31adb250f1ea10 218
+  s_22a8fe3f5b9216::t_4facd017581125 226
+  s_22a8fe3f5b9216::t_bc77f9a63dc8da 66-71,73-75
+packages/backend/src/routing/oauth/core/pending-store.ts
+  s_22a8fe3f5b9216::t_de3c1ace915391 68
+  s_22a8fe3f5b9216::t_dd166c29cbdb2d 62-67,69-72
+  s_22a8fe3f5b9216::t_ceae890726e711 37-38,40-41
+  s_22a8fe3f5b9216::t_2ab2d002d49b17 16
+  s_22a8fe3f5b9216::t_1f8418da9a0cfc 1-15,17-22,24-27,29-30,32-36,42-44,46-49,51-54,56-61,73-74,77-79
+  s_22a8fe3f5b9216::t_0bb7d1a33edac3 23,28,31,39,45,50,55,75-76
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_2f5f56e8ff714e::t_f2b5c4e2b083a3 2,112-123,125-128
+  s_2f5f56e8ff714e::t_8fb76fb71f2e98 124
+packages/frontend/src/styles/wizard.css
+  s_bb6d20e442790c::t_ed7ef6b83d777b 818-888
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_22a8fe3f5b9216::t_5e4501b07a2de2 218-220
+  s_22a8fe3f5b9216::t_d32584e43d4f5c 210-217,221-223
+  s_22a8fe3f5b9216::t_2b94e835ea3201 22
+  s_22a8fe3f5b9216::t_321ef364c6e226 1-21,23-209,224
+packages/backend/src/routing/oauth/openai-oauth.types.ts
+  s_22a8fe3f5b9216::t_ec11c11fe9347e 1-14
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_cdc27bf280c8e2::t_8afec59584f9aa 9-312
+packages/backend/src/routing/oauth/openai-oauth.controller.ts
+  s_cdc27bf280c8e2::t_9f5f172f2d4527 86
+  s_cdc27bf280c8e2::t_1f32ba2fd0266c 23,72,78
+  s_cdc27bf280c8e2::t_0eef045a3bab63 67,70-71,73-74,80-83,85,88,96-101,103
+packages/frontend/src/components/AgentTypeSelect.tsx
+  s_bb6d20e442790c::t_c264fe4bc7811b 80-82
+packages/frontend/src/components/OAuthDetailView.tsx
+  s_cdc27bf280c8e2::t_8193ba876b06fa 117,132-135
+packages/frontend/src/components/NanobotSetup.tsx
+  s_6ea530aa44f956::t_e0e3cc3df79e95 1-54,58-80
+  s_38570e892fce3e::t_772184ed6dfbc6 55-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "c661413d586d54d6cdd4d460d50b86af1318d9e7",
+  "prompts": {
+    "b8be0324a8a3ea25": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "98a93dbf-757f-4087-ac55-3437d49886b8",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 8,
+      "overriden_lines": 0
+    }
+  },
+  "sessions": {
+    "s_21712ae965afee": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "87749cca-9d25-4b20-8a11-9623a50b919a",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_22a8fe3f5b9216": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a8764602-5a55-4b34-bd2e-c4e8f3f0da86",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": null
+    },
+    "s_2b8a13cc762528": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "87ebabab-1004-406c-9785-ecb2709bfa8c",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_2f5f56e8ff714e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3262-73f6-7cb2-b699-c31104e586ab",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_38570e892fce3e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "67454911-921e-4286-b03f-2de491ab5921",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_556110b1ffa8da": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e31a6-bffa-72d1-b399-d8091c4154bf",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6ea530aa44f956": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "511781cd-ffc6-442e-bd0d-e7ae98228adc",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_a644ec79b78c58": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1e2f585-6069-4c04-a5a6-a1dee7d38852",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_bb6d20e442790c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e259e-1987-7933-b90c-1d97896d0479",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_cdc27bf280c8e2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e313a-7377-72b1-81ba-273fd9baf6a2",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

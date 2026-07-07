@@ -1,0 +1,27 @@
+packages/backend/src/routing/routing.module.ts
+  s_feb7f7e060c1a0::t_fcb1485197abc5 41
+  s_feb7f7e060c1a0::t_7b8ea89c9f3f0b 17
+packages/backend/src/routing/global-providers.controller.spec.ts
+  ai_agent 47,81,83-84,87,89-90
+  s_feb7f7e060c1a0::t_5c845c009e03b4 72-73,88
+  s_feb7f7e060c1a0::t_935c4eaae11037 11,14,21-23,26,29,31-33,35-38
+  s_feb7f7e060c1a0::t_96012eaac077bb 1-10,12-13,15-20,24-25,27-28,30,34,39-46,48-71,74-80,82,85-86,91-127
+packages/backend/src/routing/global-providers.controller.ts
+  s_feb7f7e060c1a0::t_957e3d7a8215c3 1-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "9f018c8ac7c10bf17c87424c38350d4331f97d23",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

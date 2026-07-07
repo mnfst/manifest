@@ -1,0 +1,30 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_1241a188afa721::t_647c8c6a34b329 2112,2114-2119,2121-2129,2136-2143,2147-2148,2154,2157,2169-2172,2178-2183,2195-2200
+  s_1241a188afa721::t_e77325ac6ce04a 2202-2203
+packages/shared/src/subscription/configs.ts
+  s_1241a188afa721::t_ad1e345d7b6cf8 190-191
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_1241a188afa721::t_ad1e345d7b6cf8 56
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_1241a188afa721::t_f1ce9cc5d12a3a 3104,3120-3131,3137-3143,3148,3150,3195-3202,3211-3217,3246,3253
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_1241a188afa721::t_ad1e345d7b6cf8 44,735,885-932
+.changeset/opencode-go-quota-label.md
+  s_1241a188afa721::t_ad1e345d7b6cf8 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "5b57510033ff6bd130c99f5cfe6d33bab0ad3142",
+  "prompts": {},
+  "sessions": {
+    "s_1241a188afa721": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f0409-edbf-77a1-ba27-d99616ae1728",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

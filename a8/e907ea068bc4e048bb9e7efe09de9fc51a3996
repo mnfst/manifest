@@ -1,0 +1,147 @@
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_22a8fe3f5b9216::t_bb0ea57d8c87ba 773-793,796-811,820,823
+  s_22a8fe3f5b9216::t_09c1dfb5779fd2 69
+  s_22a8fe3f5b9216::t_a438e31fc22975 22
+  s_22a8fe3f5b9216::t_740ccaf800de65 48-51
+  s_22a8fe3f5b9216::t_8bc2485965da41 859
+  s_22a8fe3f5b9216::t_484665440d4941 710,733,749,767,817,837,852
+  s_22a8fe3f5b9216::t_0061fe684d88af 11
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.config.ts
+  s_22a8fe3f5b9216::t_e6540700a080f1 1-20
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_22a8fe3f5b9216::t_fa87efa3ce2a4a 10
+  s_22a8fe3f5b9216::t_8c41b429bd8a51 99
+  s_22a8fe3f5b9216::t_2d4aff886a91fd 75
+  s_22a8fe3f5b9216::t_85d95eeac94132 45
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_22a8fe3f5b9216::t_d32584e43d4f5c 207-214,218-220
+  s_22a8fe3f5b9216::t_5e4501b07a2de2 215-217
+  s_22a8fe3f5b9216::t_321ef364c6e226 1-21,23-206,221
+  s_22a8fe3f5b9216::t_2b94e835ea3201 22
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.routes.spec.ts
+  s_22a8fe3f5b9216::t_f85af9a550095a 60-63
+  s_22a8fe3f5b9216::t_3f7b507f661036 34
+  s_22a8fe3f5b9216::t_64c560e561f959 8
+  s_22a8fe3f5b9216::t_969ade00cee0d6 81
+packages/backend/src/routing/oauth/core/oauth-blob.ts
+  s_22a8fe3f5b9216::t_d8dc70f277ff30 1-42
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_22a8fe3f5b9216::t_603d38b3574b08 57
+  s_22a8fe3f5b9216::t_606534cc7529c9 357,369-371
+  s_22a8fe3f5b9216::t_8a9836241182b7 10
+  s_22a8fe3f5b9216::t_4f8eed2dc271b9 166
+packages/frontend/src/components/AnthropicOAuthDetailView.tsx
+  s_22a8fe3f5b9216::t_204a2306cdfc61 156
+  s_22a8fe3f5b9216::t_bc77f9a63dc8da 39-44,46-48
+  s_22a8fe3f5b9216::t_f3dfb1a938f534 7
+  s_22a8fe3f5b9216::t_5e017f2c10ce2b 34-35,37-38,45,51,69-70,74-76,79,81,92,95-96,139-149,151-153,155,163-167,170-190
+  s_22a8fe3f5b9216::t_d00afdc8d68260 2-6,8-26,31-33,36,49-50,52-68,71-72,113-138,192-213
+  s_22a8fe3f5b9216::t_e3f2d0e3573e6d 77-78,80,82,103-106,108-112
+  s_22a8fe3f5b9216::t_31adb250f1ea10 150
+  s_22a8fe3f5b9216::t_12be46492e994b 154,191
+  s_22a8fe3f5b9216::t_4facd017581125 158
+  s_22a8fe3f5b9216::t_63f218097ae1db 27-30,73,83-91,93-94,97-102,107,157,159-162,168-169
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_22a8fe3f5b9216::t_d8da05ecfd9cd1 257-272
+  s_22a8fe3f5b9216::t_8cbdde21cbaefa 1-163,173-256,273
+  s_22a8fe3f5b9216::t_1e0b14c82e7c62 164-172
+packages/backend/src/routing/oauth/core/pending-store.spec.ts
+  s_22a8fe3f5b9216::t_489916a0645639 1-69,85
+  s_22a8fe3f5b9216::t_aeccb3245779ab 70-84
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_22a8fe3f5b9216::t_2b37d65770ba04 8
+  s_22a8fe3f5b9216::t_9ce876efc7513f 343
+  s_22a8fe3f5b9216::t_9dca05f986c3ba 100
+packages/backend/src/routing/oauth/openai-oauth.types.ts
+  s_22a8fe3f5b9216::t_ec11c11fe9347e 1-14
+packages/backend/src/routing/oauth/core/index.ts
+  s_22a8fe3f5b9216::t_b26f27e802442e 1-9
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_22a8fe3f5b9216::t_ac595995e1cdf3 453-461
+  s_22a8fe3f5b9216::t_498cea1436476b 23
+  s_22a8fe3f5b9216::t_c07f64093b01a5 380-395
+  s_22a8fe3f5b9216::t_a310221391a7be 81
+.changeset/anthropic-oauth.md
+  s_22a8fe3f5b9216::t_aa829d1fa2cea5 1-13
+packages/backend/src/routing/oauth/core/callback-page.ts
+  s_22a8fe3f5b9216::t_50d369eaef310f 1-26
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_22a8fe3f5b9216::t_05e926b5723396 953,964,967-975,985,988,993,996-1005,1015,1017,1020-1026,1029,1035,1039-1040,1051,1054
+  s_22a8fe3f5b9216::t_a2ba216f156538 924,935-936
+  s_22a8fe3f5b9216::t_d1bac40bb86bba 38-40,53-55
+  s_22a8fe3f5b9216::t_345795381fa3f2 1057-1065
+  s_22a8fe3f5b9216::t_6e1ecb7f8a5dd8 56
+  s_22a8fe3f5b9216::t_7f5999e87123e9 1171
+  s_22a8fe3f5b9216::t_3bbb20ff708b5c 41
+  s_22a8fe3f5b9216::t_b9efd1c4946d33 1096-1099,1101
+  s_22a8fe3f5b9216::t_90287677ed17b5 991,1016
+packages/backend/src/routing/oauth/openai-oauth.service.ts
+  s_22a8fe3f5b9216::t_04f92404495d59 7-16,18-19,33,57-60,84,121,163-164,172,204,253,292
+packages/frontend/tests/services/api/oauth.test.ts
+  s_22a8fe3f5b9216::t_40c65b145faf2f 82-121
+packages/frontend/tests/services/providers.test.ts
+  s_22a8fe3f5b9216::t_756a22343b426c 281,285-287
+packages/backend/src/routing/openai-oauth.service.spec.ts
+  s_22a8fe3f5b9216::t_6b0526d466380c 85-86
+  s_22a8fe3f5b9216::t_558ca1528dfade 386-387,394-395
+  s_22a8fe3f5b9216::t_1a4abb463dd817 141-142
+packages/backend/src/routing/oauth/core/pkce.ts
+  s_22a8fe3f5b9216::t_b2cd32625e8a03 1-18
+packages/backend/src/routing/oauth/core/pkce.spec.ts
+  s_22a8fe3f5b9216::t_a09246f228730b 1-33
+packages/backend/src/routing/oauth/core/pending-store.ts
+  s_22a8fe3f5b9216::t_de3c1ace915391 68
+  s_22a8fe3f5b9216::t_1f8418da9a0cfc 1-15,17-22,24-27,29-30,32-36,42-44,46-49,51-54,56-61,73-74,77-79
+  s_22a8fe3f5b9216::t_2ab2d002d49b17 16
+  s_22a8fe3f5b9216::t_ceae890726e711 37-38,40-41
+  s_22a8fe3f5b9216::t_dd166c29cbdb2d 62-67,69-72
+  s_22a8fe3f5b9216::t_0bb7d1a33edac3 23,28,31,39,45,50,55,75-76
+packages/frontend/src/services/api/oauth.ts
+  s_22a8fe3f5b9216::t_40a95fc46172e6 76-79
+  s_22a8fe3f5b9216::t_8d5c8681c094e5 52-75,80-85
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.ts
+  s_22a8fe3f5b9216::t_f1be019e9a3763 1-3,5-69,84-94
+  s_22a8fe3f5b9216::t_11a93dc80e9b55 4
+  s_22a8fe3f5b9216::t_dd21dbf27c4990 70-83
+packages/backend/src/routing/oauth/core/oauth-blob.spec.ts
+  s_22a8fe3f5b9216::t_311b806aa80a94 2-50
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.spec.ts
+  s_22a8fe3f5b9216::t_ea821d62d0a9fe 85-104
+  s_22a8fe3f5b9216::t_4e98a24464433f 1-12,14-84,105-121
+  s_22a8fe3f5b9216::t_b9d9084ff1248f 13
+packages/frontend/src/services/providers.ts
+  s_22a8fe3f5b9216::t_b21e16db748d2c 88
+  s_22a8fe3f5b9216::t_a209aa44461667 34,67
+packages/backend/src/routing/oauth/core/callback-page.spec.ts
+  s_22a8fe3f5b9216::t_179ee59c48c18c 1-29
+packages/backend/src/routing/oauth/oauth.module.ts
+  s_22a8fe3f5b9216::t_911ac4ff96fdf9 9-10,14-26
+packages/frontend/src/styles/routing-providers.css
+  s_22a8fe3f5b9216::t_891302c8940ebd 463-479,481-483,486,490-491,493,497-498,503-509
+  s_22a8fe3f5b9216::t_b521195d489a12 480,484-485,487-489,492,494-496,499-502,510-511
+packages/frontend/tests/components/AnthropicOAuthDetailView.test.tsx
+  s_22a8fe3f5b9216::t_3a07ba9f36a3c5 8,17
+  s_22a8fe3f5b9216::t_559aac1f504625 76,79,115,124,140,142-143,146,157,179,188,194,213,243,253-254,256,258-259,262,267
+  s_22a8fe3f5b9216::t_2f23ef5ed182f5 68-69,74-75,77-78,104,106,116-117,120,122-123,125,129-133,135-137,141,144,147-156,158-159,162-166,170-174,176-177,180-182,184,189,191-192,195-197,199,201,203-207,210-212,214-219,222,225,229,234-238,241-242,244-249,252,255,260,265,268-270,273-277,279-280,283,285,288-290,292-293,295-308,311,315
+  s_22a8fe3f5b9216::t_4b3f89c54ef087 223-224,226-228,230-233,239
+  s_22a8fe3f5b9216::t_cb1adc077f12d9 73
+  s_22a8fe3f5b9216::t_eca4c86ba7fd15 1-7,9-16,18-67,70-72,80-94,96,100-103,113-114,118-119,121,126-128,134,138-139,145,160-161,167-169,175,178,183,185-187,190,193,198,200,202,208-209,220-221,312-314,316-318
+  s_22a8fe3f5b9216::t_efbe8c1134f2c1 240,250-251,257,261,263-264,266,271-272,278,281-282,284,286-287,291,294,309-310
+  s_22a8fe3f5b9216::t_8d5eb5f3f6da33 95,97-99,105,107-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "a8e907ea068bc4e048bb9e7efe09de9fc51a3996",
+  "prompts": {},
+  "sessions": {
+    "s_22a8fe3f5b9216": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a8764602-5a55-4b34-bd2e-c4e8f3f0da86",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": null
+    }
+  }
+}

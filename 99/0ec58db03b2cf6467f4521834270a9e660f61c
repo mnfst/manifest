@@ -1,0 +1,31 @@
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_ae5e1685f8ef90::t_60921b18ac3254 82-120,127-128,130-140,324-325,341-342
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_ae5e1685f8ef90::t_0d5f08717afe6d 40-45,416-459
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_ae5e1685f8ef90::t_6061ef29687d60 26-31,50-51,113,140,147,154,161,168,181,194,201,208,215,222,264,290,297,304,317,348
+packages/backend/src/routing/proxy/provider-client.ts
+  s_ae5e1685f8ef90::t_bd20821ed33351 75-79,366
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_ae5e1685f8ef90::t_7580d08de875e0 2596,2598
+.changeset/stream-usage-endpoint-capability.md
+  s_ae5e1685f8ef90::t_574626fe44013c 1-5
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_ae5e1685f8ef90::t_fcf9eb7060d6fc 142-152,560-591,670-692
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "990ec58db03b2cf6467f4521834270a9e660f61c",
+  "prompts": {},
+  "sessions": {
+    "s_ae5e1685f8ef90": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6ea6-7e01-7e22-99fa-e3a4a83d75f3",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

@@ -1,0 +1,87 @@
+packages/shared/__tests__/providers.spec.ts
+  s_deb3c492fe6670::t_e95105df11fc0a 166,171-172
+packages/shared/src/index.ts
+  s_deb3c492fe6670::t_e8a3605df19fb5 91
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_deb3c492fe6670::t_7ed302ef35e508 234
+packages/backend/src/routing/bedrock-region.spec.ts
+  s_deb3c492fe6670::t_e69cd9deea9eb8 43-48
+  s_deb3c492fe6670::t_4283c899bd1970 9,52,56
+  s_deb3c492fe6670::t_8f4bb04bef71bd 40-42
+  s_deb3c492fe6670::t_af34d603e62709 61
+packages/shared/src/provider-inference.ts
+  s_deb3c492fe6670::t_e8a3605df19fb5 46-49,108-113
+packages/backend/src/routing/__tests__/bedrock-fixtures.ts
+  s_deb3c492fe6670::t_4283c899bd1970 1-6
+packages/shared/__tests__/provider-inference.spec.ts
+  s_deb3c492fe6670::t_e8a3605df19fb5 174-184
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_deb3c492fe6670::t_7ed302ef35e508 57-61
+packages/frontend/src/pages/Playground.tsx
+  s_deb3c492fe6670::t_f8d2a7ab39781e 97
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_f4fce638aee360::t_09be41ad59b5f9 135-137
+  s_deb3c492fe6670::t_af34d603e62709 133-134,138-141
+  s_deb3c492fe6670::t_4283c899bd1970 12,92-97,106-111,124
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_deb3c492fe6670::t_7ed302ef35e508 364-375,384
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_deb3c492fe6670::t_ebb105bf4f2373 186-196,244-245,394-401,642
+  s_deb3c492fe6670::t_71b3c81b8b9feb 197-231,402-428
+  s_deb3c492fe6670::t_8f4bb04bef71bd 459-462
+  s_deb3c492fe6670::t_874336421c18c4 232-243,306-307,429-433
+packages/backend/src/routing/bedrock-region.ts
+  s_deb3c492fe6670::t_e69cd9deea9eb8 53-56,58-61
+  s_deb3c492fe6670::t_8f4bb04bef71bd 57
+  s_deb3c492fe6670::t_af34d603e62709 28-29,73-74,77
+packages/backend/src/routing/model.controller.spec.ts
+  s_deb3c492fe6670::t_849983edddcebb 421-454
+packages/shared/src/providers.ts
+  s_deb3c492fe6670::t_af34d603e62709 79-81
+packages/backend/src/database/models-dev-sync.service.ts
+  s_deb3c492fe6670::t_876caf35e8f95c 102-107,259-263,279-288,340-341,371-376,383-386,388-397
+  s_deb3c492fe6670::t_f50b128518b520 377-382
+  s_deb3c492fe6670::t_874336421c18c4 387
+  s_deb3c492fe6670::t_ebb105bf4f2373 23
+  s_deb3c492fe6670::t_8f4bb04bef71bd 202-203,205,229-230,253,330-339
+packages/frontend/tests/components/ProviderKeyForm.test.tsx
+  s_deb3c492fe6670::t_33e32710f28320 343,354,370
+packages/backend/src/routing/model.controller.ts
+  s_deb3c492fe6670::t_984c84d8e90265 48
+  s_deb3c492fe6670::t_94dd864757e193 25-47,49-53,175-177
+packages/frontend/src/services/provider-utils.ts
+  s_deb3c492fe6670::t_e8a3605df19fb5 1,97-99,101
+  s_deb3c492fe6670::t_a61710075acc16 96,100,102-103
+  s_deb3c492fe6670::t_104abfedb4c5b3 130-139
+packages/backend/src/model-discovery/model-fallback.ts
+  s_deb3c492fe6670::t_f8d2a7ab39781e 99-102
+packages/frontend/tests/services/providers.test.ts
+  s_deb3c492fe6670::t_6617389996a138 400
+  s_deb3c492fe6670::t_cdfeb79d0be4dc 396-399,401
+  s_deb3c492fe6670::t_4dc8f1e5625817 128,136,138-139,141-142
+  s_f4fce638aee360::t_11a1f4f4fa27b2 137,140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "9b11655ad89f42662a1e0489b282ffa0e9582f82",
+  "prompts": {},
+  "sessions": {
+    "s_deb3c492fe6670": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ecb0d-bd28-7a11-a199-fed345d687cc",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_f4fce638aee360": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ebcbe-f27d-7bf3-b1b4-8bee8d699c3e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_c20606c4fedbca::t_c450b7c9c0c304 103,114-115
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_c20606c4fedbca::t_c450b7c9c0c304 2835-2864
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_c20606c4fedbca::t_c450b7c9c0c304 2045-2062
+.changeset/ollama-author-models.md
+  s_c20606c4fedbca::t_c450b7c9c0c304 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "86cb0b9fd7c3c7c58b667abce2e59b6bee15ff88",
+  "prompts": {},
+  "sessions": {
+    "s_c20606c4fedbca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f27c1-467e-79d1-9f25-876aa8ad21f3",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

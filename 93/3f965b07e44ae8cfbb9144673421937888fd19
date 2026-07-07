@@ -1,0 +1,26 @@
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_8f7bd68edeeec2::t_63e4726c5380cd 163-167
+  s_8f7bd68edeeec2::t_6e0150d9cb1da0 177,179,187-201
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_8f7bd68edeeec2::t_dae6eb0373762d 438,473,509,544,579,612
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_8f7bd68edeeec2::t_1c850c508e9639 606
+packages/backend/src/analytics/services/query-helpers.ts
+  s_8f7bd68edeeec2::t_aff263fb2e227e 54-55,57-67,70-73,76,92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "933f965b07e44ae8cfbb9144673421937888fd19",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

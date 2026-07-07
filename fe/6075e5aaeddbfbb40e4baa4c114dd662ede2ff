@@ -1,0 +1,59 @@
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_eb8e865dd3defa::t_9727674e0dabb8 1078,1091,1103
+  s_eb8e865dd3defa::t_dbd7be1a540b31 21,86,122-124,152
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_eb8e865dd3defa::t_010549b2723246 22,59,175,189
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_eb8e865dd3defa::t_5a5e0ed8d2b6ea 8,167
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_eb8e865dd3defa::t_8f51866a1fa0ba 19-26,58-59
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_eb8e865dd3defa::t_2a0086b691858f 154-156,166,169
+  s_eb8e865dd3defa::t_8c65cb7b40df29 152-153,208
+  s_eb8e865dd3defa::t_99bac438a7ddf2 81,143,146-147,151,170-171,175-207,209-224,237-242,317-323,329-334,377,390
+  s_eb8e865dd3defa::t_3a6665835be0c2 324-328
+packages/backend/src/routing/proxy/provider-client.ts
+  s_eb8e865dd3defa::t_fe3358c48a429c 22,126,207,297-302,367
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_eb8e865dd3defa::t_fc48bb42c33b3f 1542-1624
+  s_eb8e865dd3defa::t_496fb885c653c9 491
+  s_eb8e865dd3defa::t_527b519ef9ffa9 956-996
+packages/backend/src/routing/proxy/reasoning-content-cache.ts
+  s_eb8e865dd3defa::t_c9dac4e22aa889 1-60
+packages/backend/src/routing/proxy/proxy.module.ts
+  s_eb8e865dd3defa::t_853667abcbaa97 27,55
+packages/backend/src/routing/proxy/__tests__/reasoning-content-cache.spec.ts
+  s_eb8e865dd3defa::t_48a8be5a332b20 1-100
+.changeset/reasoning-content-reinject.md
+  s_eb8e865dd3defa::t_54df987ca69a2d 1-7
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_eb8e865dd3defa::t_00228d84a56af9 29,35,282,370-376,378-388,395-403,407-422,434,484-486
+  s_eb8e865dd3defa::t_e029514ae19cff 377,404-406
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_eb8e865dd3defa::t_97287183057df6 184-194,206-216,331-405
+  s_eb8e865dd3defa::t_29878e4bf5bff3 943-1000
+  s_eb8e865dd3defa::t_c0efe9ebac43e2 1-4
+  s_eb8e865dd3defa::t_f997db092eed0c 173-183
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_eb8e865dd3defa::t_c426b8ed884b75 32,36,123,192-193,246,264,325,444
+  s_eb8e865dd3defa::t_f1d1804106a429 494
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_eb8e865dd3defa::t_f6f6a28291760b 131
+  s_eb8e865dd3defa::t_31d97524d4aa58 51,247,293,332,344,444
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "fe6075e5aaeddbfbb40e4baa4c114dd662ede2ff",
+  "prompts": {},
+  "sessions": {
+    "s_eb8e865dd3defa": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4e62-3eee-7e41-9377-791894f0845c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

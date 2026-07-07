@@ -1,0 +1,76 @@
+packages/backend/src/routing/proxy/__tests__/reasoning-content-cache.spec.ts
+  s_d38951c1e24d4f::t_11c6d03cd1eea7 117-118,137-138
+  s_d38951c1e24d4f::t_b88cd1f31b565c 5-9,11,93-116,119-136,139-158,163-185
+  s_d38951c1e24d4f::t_785f96874e7d9a 1-2,10,159-162
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_5edd42bfd9f340::t_513464ed64ba2c 176-192
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_5edd42bfd9f340::t_5304d752787c5d 3,64-80
+packages/frontend/tests/components/ClaudeCodeSetup.test.tsx
+  s_5edd42bfd9f340::t_afefb25bf01a81 27,30,33,97
+packages/shared/src/index.ts
+  s_f532f74d9a54e0::t_d54923d2089dde 53
+packages/shared/src/provider-params-spec.ts
+  s_f532f74d9a54e0::t_d54923d2089dde 96-97,103-104,112,115
+  s_f532f74d9a54e0::t_cf00ea0653de6f 2
+  s_f532f74d9a54e0::t_d7c2e32e74f353 98-102,121-129
+packages/frontend/tests/services/framework-snippets.test.ts
+  s_5edd42bfd9f340::t_f9261927c38944 286
+packages/frontend/src/services/framework-snippets.ts
+  s_5edd42bfd9f340::t_3db04033ccbee9 342-345,350
+packages/backend/src/routing/proxy/reasoning-content-cache.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 1-6,24,26,30-35,40,43,45,59-133,140-143,156-189,203-216,218-219
+  s_d38951c1e24d4f::t_b65998c33629b4 155,190-202
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_f532f74d9a54e0::t_1556d8d03cfaee 125-157
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_d38951c1e24d4f::t_f70e986fbf76bd 14,51,104,113-114,126,293-337
+  s_d38951c1e24d4f::t_eff1700d6cfb0c 105-112
+packages/frontend/src/components/ClaudeCodeSetup.tsx
+  s_5edd42bfd9f340::t_d102f25f0a8534 56-57
+packages/backend/src/database/database.module.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 26,111,135,221,269
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_f532f74d9a54e0::t_d54923d2089dde 11
+  s_f532f74d9a54e0::t_c913195cf0aa3b 107-114
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_f532f74d9a54e0::t_e12e521bd11a1d 17,136-138,140
+  s_f532f74d9a54e0::t_7a00f20e2cbb28 139,141-143
+  s_f532f74d9a54e0::t_d54923d2089dde 85-98,131-135
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_d38951c1e24d4f::t_545266fa55944d 39,84,353,360,432-451
+packages/backend/src/routing/proxy/proxy.module.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 6,33-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "6da38b2bb5c0abce58043903907ed1212b47c58e",
+  "prompts": {},
+  "sessions": {
+    "s_5edd42bfd9f340": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5f67-537c-7192-8922-1b0f3fcf4f7d",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_d38951c1e24d4f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e53ba-e26a-7292-9bca-d3db12884877",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_f532f74d9a54e0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5edb-77d7-70f0-bf2e-fe0a4ede59eb",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

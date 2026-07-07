@@ -1,0 +1,40 @@
+.changeset/agent-tabbed-shell.md
+  s_0dc1825d457013::t_f82e6fe657a45d 1-4
+packages/frontend/src/index.tsx
+  s_0dc1825d457013::t_8928c48d056a9f 20-23
+  s_0dc1825d457013::t_93957d7c05f083 70-73,75-83
+packages/frontend/src/pages/AgentDetail.tsx
+  s_0dc1825d457013::t_1791b5a4842cb0 1,3-4,6-9,12-33,35-43,53-79,81-100
+  s_0dc1825d457013::t_00a684d8d6a865 5
+  s_0dc1825d457013::t_09358e8658439f 44-48,50-52
+packages/frontend/src/pages/AgentLimitsRedirect.tsx
+  s_0dc1825d457013::t_8501c24b9a5067 1-14
+packages/frontend/tests/pages/AgentRedirects.test.tsx
+  s_0dc1825d457013::t_1adb41ec639ee2 1-42
+packages/frontend/src/pages/AgentOverview.tsx
+  s_0dc1825d457013::t_b556574b8ac99c 1-9
+packages/frontend/tests/pages/AgentOverview.test.tsx
+  s_0dc1825d457013::t_e03eac13942003 1-5,8-12,14-17,19-20,26-30,32,34-38,40-42
+  s_0dc1825d457013::t_0692b94f883dff 6-7,13,18,21-25,31,33,39
+packages/frontend/tests/pages/AgentDetail.test.tsx
+  s_0dc1825d457013::t_27e6f5c06114f7 1-52,54,57-66,68-70,72-145,147-150,152-153,155-167,169-172,174-185,191-192
+  s_0dc1825d457013::t_6a3e245441ba45 168,186-189
+packages/frontend/src/pages/AgentMessagesRedirect.tsx
+  s_0dc1825d457013::t_cff23fb467cd9c 1-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "6a396aeaa045b40b8fda14a6c8a661883ce84457",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_492c4473e887cf::t_81207037481b33 23,34,133-134,137,143
+  s_492c4473e887cf::t_bc86d8bc92c79e 132,135-136
+  s_492c4473e887cf::t_1ac769b42c475d 223,226,236,239,250,264-265
+  s_492c4473e887cf::t_46e65a65982d05 325,505,509,647,652
+  s_492c4473e887cf::t_9cd0cbd2b47e5e 1170,1172,1191,1196,1207,1210,1224,1228,1244,1248
+packages/frontend/tests/pages/Workspace-validation.test.tsx
+  s_492c4473e887cf::t_18bb2f97c61cd7 12
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_492c4473e887cf::t_cfc2c210083f95 139,245-258,267,273,279,281,284
+  s_492c4473e887cf::t_35169706db6092 77-81,91-94,145,147,182,184,276,287
+packages/frontend/tests/components/Header.test.tsx
+  s_492c4473e887cf::t_e8e09edafd73b9 299,302
+packages/frontend/tests/pages/Playground.test.tsx
+  s_492c4473e887cf::t_c3c40d8c377caa 897-898
+  s_492c4473e887cf::t_f9b63cbd951433 9,19,373,896
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_492c4473e887cf::t_916ef7be72ab6c 236,239,282,286
+packages/frontend/tests/pages/RoutingPanels.test.tsx
+  s_492c4473e887cf::t_2a9c4ef397a1b0 163
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_492c4473e887cf::t_f9b63cbd951433 137,139
+  s_492c4473e887cf::t_725ae6cf597ff9 8
+packages/frontend/tests/pages/Routing.test.tsx
+  s_492c4473e887cf::t_1438db2f6912ea 1200
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_492c4473e887cf::t_cfaf4ef0e9ccc6 1126,1130,1136,1175,1219,1222,1225,1229,1233,1237,1345,1348,1351,1355,1359,1363,1392-1397,1439,1447,1512-1516
+packages/frontend/tests/components/TokenChart.test.tsx
+  s_492c4473e887cf::t_f4410de9864784 249,251,254,256
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "01dd0105ec016a65e97ff668b584f04878eccc6d",
+  "prompts": {},
+  "sessions": {
+    "s_492c4473e887cf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91b0-14ef-7382-8783-f119a091c223",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

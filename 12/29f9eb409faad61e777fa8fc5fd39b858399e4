@@ -1,0 +1,19 @@
+packages/frontend/src/styles/routing.css
+  s_f4a445ef85efba::t_fbb713df4b8362 604-621,630-685,1560-1582,1593-1596
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "1229f9eb409faad61e777fa8fc5fd39b858399e4",
+  "prompts": {},
+  "sessions": {
+    "s_f4a445ef85efba": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e503c-0b2a-7bb1-817f-f3bdff6ef2aa",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

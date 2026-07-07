@@ -1,0 +1,93 @@
+packages/backend/src/database/database.module.ts
+  s_d55d26a37e6be3::t_8ab8c9e888f91c 108,215
+  s_d55d26a37e6be3::t_e27e15b082eb24 107,214
+  s_d55d26a37e6be3::t_144ddaf66663dd 106,213
+packages/backend/src/database/migrations/1789500000000-AddProviderParamSpecGroups.spec.ts
+  s_d55d26a37e6be3::t_ca9a524f62f135 1-40
+packages/backend/src/database/migrations/1789700000000-AddOpenAiProviderParamSpecs.spec.ts
+  s_d55d26a37e6be3::t_f044cf40361683 1-60
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_d55d26a37e6be3::t_4a1998144ee903 353,355-359,366-371,373-375
+  s_d55d26a37e6be3::t_4e83af3d88c9fd 2-7,45-47,145-147,169-171,193,209,224,237,272,275,300,311,322,360-365,372,393-396,401-405,436,456
+  s_d55d26a37e6be3::t_b35af578f9fcf9 435,438-439,444-449
+  s_d55d26a37e6be3::t_9f96f9aa60a137 266
+  s_d55d26a37e6be3::t_6d5aee1d449678 37-44,48,50-56,68-76,80-97
+  s_d55d26a37e6be3::t_99ee77e80a7343 130,141-144,150-168,172,174,179,194,210,225,313
+  s_d55d26a37e6be3::t_1826ebadce277f 390-392,397-400,406-412,437,440-441,443,451-455
+packages/frontend/tests/components/ModelParamsDialog.test.tsx
+  s_d55d26a37e6be3::t_7321934bbe61b7 386
+  s_d55d26a37e6be3::t_1620c23a44f3ae 342,347
+  s_d55d26a37e6be3::t_cde6a351325dc4 385
+  s_d55d26a37e6be3::t_8ea597243abd46 47-56,365-381
+  s_d55d26a37e6be3::t_6dd00230e5bdde 58-72,338-341,343-346,348-364,387-391
+  s_d55d26a37e6be3::t_77cbc30a85a7cf 33-42,382-384
+packages/backend/src/database/migrations/1789600000000-AddProviderParamDependencies.ts
+  s_d55d26a37e6be3::t_444717805ab643 1-2,4-24,29,31-38,43-49
+  s_d55d26a37e6be3::t_8d0618ddaf91bc 3,25-28,30,39-42
+packages/backend/src/database/migrations/1789700000000-AddOpenAiProviderParamSpecs.ts
+  s_d55d26a37e6be3::t_c8a4ea14051614 1-142,144-227
+packages/shared/__tests__/request-params.spec.ts
+  s_d55d26a37e6be3::t_7d75d75ee6a3a4 1,19
+  s_d55d26a37e6be3::t_66827d0986a292 108-137,148-150,153-160
+  s_d55d26a37e6be3::t_a9f3bfd51c6c74 138-147,151-152
+  s_d55d26a37e6be3::t_0c504fcb89419d 16-18,25,50-54,75-79,83-105
+  s_d55d26a37e6be3::t_f8c8f0a760b703 20-24
+packages/shared/__tests__/request-params-snapshot.spec.ts
+  s_d55d26a37e6be3::t_caff300b043271 14-15,36-52,104-119,130-131
+  s_d55d26a37e6be3::t_10047477d017bb 16-25,122,129
+  s_d55d26a37e6be3::t_c177eee6d9fdb9 26-35,84,120-121,123-128,132
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_d55d26a37e6be3::t_9ed265070ac74e 20-22,101-114,117-121,219-239
+  s_d55d26a37e6be3::t_000af70b4c40ac 9,123-124,128-156
+packages/shared/src/request-params.ts
+  s_d55d26a37e6be3::t_eec424eae5f8ee 1-5,24,44
+  s_d55d26a37e6be3::t_9a04cd5c3ad9ee 10,26,28-38,40-41
+packages/shared/src/request-params-snapshot.ts
+  s_d55d26a37e6be3::t_fa22171a4c5f46 1-5,74-75
+  s_d55d26a37e6be3::t_1a6371892cf7e0 47,49-61,64-65,68-72,76-83,85
+packages/backend/src/routing/__tests__/model-params.controller.spec.ts
+  s_d55d26a37e6be3::t_0869362242b7b7 172-187,204
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_d55d26a37e6be3::t_564569412ecb9d 3,5,37-46,202-212,215-225,227-236,238-241
+  s_d55d26a37e6be3::t_4ed8e9c94ebdb6 23-32,226,237
+  s_d55d26a37e6be3::t_4dc33d74a60837 48-62,86,154-155,159-165
+packages/backend/src/entities/provider-param-spec.entity.ts
+  s_d55d26a37e6be3::t_e09452bc789949 23-28,53-57
+  s_d55d26a37e6be3::t_54e7829459a0ed 58-60
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_d55d26a37e6be3::t_b85fda78e1bdc0 101-173
+  s_d55d26a37e6be3::t_3f22c79eb0e0c9 174-225
+packages/shared/src/index.ts
+  s_d55d26a37e6be3::t_4903d192e00a8f 48-49,51,53-54
+  s_d55d26a37e6be3::t_5c376ae3bc3c7e 50,52,57-58
+packages/backend/src/database/migrations/1789500000000-AddProviderParamSpecGroups.ts
+  s_d55d26a37e6be3::t_134134f465f498 1-191
+packages/backend/src/database/migrations/1789600000000-AddProviderParamDependencies.spec.ts
+  s_d55d26a37e6be3::t_329e18f1ddb75d 12,18-19
+  s_d55d26a37e6be3::t_1d79d09d0a176c 1-11,13-17,20-33
+packages/frontend/src/styles/routing.css
+  s_d55d26a37e6be3::t_ddc39ed9619d0a 573-577
+  s_d55d26a37e6be3::t_f1d6bd9aafc9d1 578-600
+  s_d55d26a37e6be3::t_e4fe83e2d12df2 657,659-660,665,675,694-696,709,714,722-724,731
+packages/frontend/src/components/Select.tsx
+  s_d55d26a37e6be3::t_a59d93f9b8e3ce 15,51-54
+packages/shared/src/provider-params-spec.ts
+  s_d55d26a37e6be3::t_b225b4cef34203 18-29,48-49,83-159
+  s_d55d26a37e6be3::t_71530f1e173f55 31,37-47,80-82,160-161,173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.9",
+  "base_commit_sha": "a62a4cca0ea96b0ebf6176ba0dfb95a0497d6c71",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+packages/frontend/src/pages/providers/Local.tsx
+  s_cd68a57c9c12bc::t_7f7a13c4d43b57 1-2,4,6-21
+packages/frontend/src/components/Sidebar.tsx
+  s_cd68a57c9c12bc::t_0564f7e271b917 39-41
+  s_cd68a57c9c12bc::t_09471b0791f3b6 5
+  s_cd68a57c9c12bc::t_d6b0dc86b6d2dc 111-120
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_cd68a57c9c12bc::t_60616769a25f4b 106,111-121
+  s_cd68a57c9c12bc::t_7d5d72ed9c3d36 142,148-150,154,156-158
+  s_cd68a57c9c12bc::t_1dd76e53e89f36 91
+  s_cd68a57c9c12bc::t_44b2b9d57d8426 42-49
+  s_cd68a57c9c12bc::t_c85eaafbf82e64 204,207-210
+packages/frontend/tests/pages/ProviderPages.test.tsx
+  s_cd68a57c9c12bc::t_8b8c047d0f65fb 14-21
+  s_cd68a57c9c12bc::t_5655e3216d099d 131
+  s_cd68a57c9c12bc::t_89b95d04eb8acd 222-233
+packages/frontend/node_modules
+  s_cd68a57c9c12bc::t_a10badd1b9be8d 1
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_cd68a57c9c12bc::t_19c5a038b96c57 501
+  s_cd68a57c9c12bc::t_77b88987a312fa 224-231
+  s_cd68a57c9c12bc::t_76f991df0bfefe 532-559
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_cd68a57c9c12bc::t_943c79227622c9 16
+  s_cd68a57c9c12bc::t_34574deeceee93 168-171
+  s_cd68a57c9c12bc::t_77de7a30dc1b18 670
+  s_cd68a57c9c12bc::t_7e304aee796b2f 796-799
+  s_cd68a57c9c12bc::t_9df08c0453da0d 800-836,838-857
+  s_cd68a57c9c12bc::t_ccd02b6cc68a81 859
+.changeset/hide-local-in-cloud.md
+  s_cd68a57c9c12bc::t_472f71f83b3e1f 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "c312bc23d4ce7929d55af4f67a09a1fbd7af564b",
+  "prompts": {},
+  "sessions": {
+    "s_cd68a57c9c12bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ccc1e29-2639-470b-b21e-8a27c2c4ce1a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

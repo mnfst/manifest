@@ -1,0 +1,41 @@
+packages/frontend/src/components/UpgradePanel.tsx
+  s_6aa2fd791b8a40::t_e173b38009fff1 1-62
+packages/frontend/src/components/DuplicateAgentModal.tsx
+  s_6aa2fd791b8a40::t_1b4a8f549f02fe 135
+  s_6aa2fd791b8a40::t_d3a537a6a318fd 9-10
+  s_6aa2fd791b8a40::t_9f4ffd57c0c3b3 136-187,190-192,194-196,198-212
+  s_6aa2fd791b8a40::t_f90b1f2b4462cd 213
+  s_6aa2fd791b8a40::t_ae5dc83d359cef 27-37
+packages/frontend/src/components/AddAgentModal.tsx
+  s_6aa2fd791b8a40::t_3b610c56a0d6c9 143-146,148
+  s_6aa2fd791b8a40::t_9f4ffd57c0c3b3 149-173,176-183
+  s_6aa2fd791b8a40::t_14c144c17c8450 184-185
+  s_6aa2fd791b8a40::t_16da30103f4a98 1,5-6
+  s_6aa2fd791b8a40::t_571c22cf160759 30-40
+packages/frontend/tests/components/AddAgentModal.test.tsx
+  s_6aa2fd791b8a40::t_f9547618a016c5 20-30
+  s_6aa2fd791b8a40::t_a45890d274cae3 346-396
+  s_6aa2fd791b8a40::t_1310bfa1bfe1a6 75-82
+packages/frontend/tests/components/UpgradePanel.test.tsx
+  s_6aa2fd791b8a40::t_8d8d122ed5cbb7 1-126
+packages/frontend/tests/components/DuplicateAgentModal.test.tsx
+  s_6aa2fd791b8a40::t_26317c90a2a745 28-38
+  s_6aa2fd791b8a40::t_662569a223c391 354-406
+  s_6aa2fd791b8a40::t_32d643e4ebf6be 68-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "513c6de52ab18644bb281f7b68539c4bbaf9244d",
+  "prompts": {},
+  "sessions": {
+    "s_6aa2fd791b8a40": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0be8c650-5b21-41d1-a6f2-2b93fc056b2e",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

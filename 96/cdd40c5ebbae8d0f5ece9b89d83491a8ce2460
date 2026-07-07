@@ -1,0 +1,39 @@
+packages/backend/src/routing/proxy/proxy.module.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 6,33-38
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_d38951c1e24d4f::t_545266fa55944d 39,84,353,360,432-451
+packages/backend/src/routing/proxy/__tests__/reasoning-content-cache.spec.ts
+  s_d38951c1e24d4f::t_11c6d03cd1eea7 117-118,137-138
+  s_d38951c1e24d4f::t_785f96874e7d9a 1-2,10,159-162
+  s_d38951c1e24d4f::t_b88cd1f31b565c 5-9,11,93-116,119-136,139-158,163-185
+.changeset/shared-reasoning-content-cache.md
+  s_d38951c1e24d4f::t_b88cd1f31b565c 1-5
+packages/backend/src/entities/reasoning-content-cache-entry.entity.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 1-28
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_d38951c1e24d4f::t_eff1700d6cfb0c 105-112
+  s_d38951c1e24d4f::t_f70e986fbf76bd 14,51,104,113-114,126,293-337
+packages/backend/src/database/migrations/1790100000000-AddReasoningContentCache.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 1-28
+packages/backend/src/routing/proxy/reasoning-content-cache.ts
+  s_d38951c1e24d4f::t_b65998c33629b4 155,190-202
+  s_d38951c1e24d4f::t_def8bcd5a531b0 1-6,24,26,30-35,40,43,45,59-133,140-143,156-189,203-216,218-219
+packages/backend/src/database/database.module.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 26,110,134,219,267
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "96cdd40c5ebbae8d0f5ece9b89d83491a8ce2460",
+  "prompts": {},
+  "sessions": {
+    "s_d38951c1e24d4f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e53ba-e26a-7292-9bca-d3db12884877",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

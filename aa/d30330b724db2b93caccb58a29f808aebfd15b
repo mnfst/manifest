@@ -1,0 +1,23 @@
+packages/backend/src/routing/proxy/__tests__/responses-adapter.spec.ts
+  s_cd637dff1eaa5f::t_b919eeaca0eab6 223-227,229-265
+.changeset/responses-non-message-input.md
+  s_cd637dff1eaa5f::t_57e9a1aed7c4ef 1,3-5
+packages/backend/src/routing/proxy/responses-adapter.ts
+  s_cd637dff1eaa5f::t_79a6ac2f8bd4c2 202,219-220,227-228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "aad30330b724db2b93caccb58a29f808aebfd15b",
+  "prompts": {},
+  "sessions": {
+    "s_cd637dff1eaa5f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8dcf-c85f-7dd0-9c4e-576acfcaaf22",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

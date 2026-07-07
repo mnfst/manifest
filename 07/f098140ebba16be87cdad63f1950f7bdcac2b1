@@ -1,0 +1,36 @@
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_8f7bd68edeeec2::t_2e2a825da64cd2 65
+  s_8f7bd68edeeec2::t_25a16db0fd3c49 334-345
+  s_8f7bd68edeeec2::t_eb40049bbd1e9c 30-41
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_8f7bd68edeeec2::t_55e6ed3040d14e 168
+  s_8f7bd68edeeec2::t_72949bf4cb4036 178-183
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_8f7bd68edeeec2::t_7fd9ecaa009108 13
+packages/frontend/tests/services/api/agents.test.ts
+  s_8f7bd68edeeec2::t_e5421392b04f80 34-41
+packages/frontend/src/services/api/agents.ts
+  s_8f7bd68edeeec2::t_c227ca94215286 3-6
+packages/frontend/src/pages/MessageLog.tsx
+  s_8f7bd68edeeec2::t_b61fad08860572 83-85
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_8f7bd68edeeec2::t_41164f4bfaf07c 147,155-162
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_8f7bd68edeeec2::t_b8df3a29ff45c5 1309-1317
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "07f098140ebba16be87cdad63f1950f7bdcac2b1",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+.changeset/calm-copilot-accounts.md
+  s_2a22c521aed263::t_2ef0bf7ef93d55 1-5
+packages/frontend/tests/components/CopilotDeviceLogin.test.tsx
+  s_2a22c521aed263::t_63cf0780c9d1cb 268-369
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "207596ba42a1227c825e6293e85f934cb8e81777",
+  "prompts": {},
+  "sessions": {
+    "s_2a22c521aed263": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4988-c505-73d0-a41e-f15bc309f083",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

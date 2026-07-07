@@ -1,0 +1,65 @@
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_8f7bd68edeeec2::t_f21e22e02920b4 66,82-85,96
+  s_8f7bd68edeeec2::t_1bc8a58e8d8633 144,154-155
+  s_8f7bd68edeeec2::t_a2717e3e020ad6 11
+packages/backend/test/provider-analytics.e2e-spec.ts
+  s_8f7bd68edeeec2::t_339f31209d8f95 215-271
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_8f7bd68edeeec2::t_cb8cbb4399d7a1 7-12
+  s_8f7bd68edeeec2::t_ee6b6395426c40 380,400-401
+  s_8f7bd68edeeec2::t_53cb47b1b859f1 50,69-71
+  s_8f7bd68edeeec2::t_6891582a76a039 300,321-324
+  s_8f7bd68edeeec2::t_30f2d606edae08 342,361-362
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_8f7bd68edeeec2::t_79b4ad0298bd1e 238-244,246,253,255-264
+  s_8f7bd68edeeec2::t_a4c275a1a3a4bb 303-311
+  s_8f7bd68edeeec2::t_ba2507a366a8be 326
+  s_8f7bd68edeeec2::t_800e2bc60d8994 501
+  s_8f7bd68edeeec2::t_c38b7702931591 486
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_8f7bd68edeeec2::t_fba9d001144414 240-258,260-274
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_8f7bd68edeeec2::t_0226e069c46b54 197-200,210
+  s_8f7bd68edeeec2::t_9d2d63de9d2edd 224,228,236,240,250,254
+  s_8f7bd68edeeec2::t_9c5cb0aaab0112 408-412,415-428,430,432-436
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_8f7bd68edeeec2::t_50a05793dadc35 536-537,553,556,564,571-580,585,587,589-616
+  s_8f7bd68edeeec2::t_905abca629fa1a 636,646
+  s_8f7bd68edeeec2::t_37f19be8019ef0 848-885
+  s_8f7bd68edeeec2::t_e16fc9604f21d9 581-584,586,588
+packages/backend/src/analytics/controllers/provider-analytics.controller.spec.ts
+  s_8f7bd68edeeec2::t_c0c35edd5e847f 103,114,131,145,161-186
+  s_8f7bd68edeeec2::t_95c20850128d9b 201,215,228-261
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_8f7bd68edeeec2::t_b00f0e2ff49f88 548-580
+  s_8f7bd68edeeec2::t_8ed54db15f7004 478-496
+packages/backend/src/analytics/controllers/provider-analytics.controller.ts
+  s_8f7bd68edeeec2::t_c04efe3b70cf7e 41,59,70
+  s_8f7bd68edeeec2::t_9cdf50ff2a8e7b 90,103,113,126,136,149
+packages/frontend/src/components/ProviderSelectContent.tsx
+  s_8f7bd68edeeec2::t_99d1d0cf715db2 1
+  s_8f7bd68edeeec2::t_c7684cfc0fd48c 43-47
+  s_8f7bd68edeeec2::t_20809c9a723118 56-70
+packages/frontend/tests/components/ProviderSelectContent-deeplink.test.tsx
+  s_8f7bd68edeeec2::t_04830a77893c1a 7-16,32-40
+  s_8f7bd68edeeec2::t_144c0adbd858fb 142-197
+packages/frontend/src/services/api/analytics.ts
+  s_8f7bd68edeeec2::t_78495b72d1c8aa 13,20
+  s_8f7bd68edeeec2::t_9cb602cb35f063 34,40,48,54,62,68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "32d31cfeec4608dc365cf9ad909467fe653c60e8",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

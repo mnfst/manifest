@@ -1,0 +1,64 @@
+packages/shared/src/index.ts
+  s_d55d26a37e6be3::t_484370f00b3e84 50
+packages/backend/src/analytics/services/agent-duplication.service.ts
+  s_d55d26a37e6be3::t_c06205b9ab8927 236-263
+packages/shared/src/provider-params-spec.ts
+  s_d55d26a37e6be3::t_454867961bd949 158-168,374-382
+packages/backend/src/analytics/services/agent-duplication.service.spec.ts
+  s_d55d26a37e6be3::t_97ea41b5389789 81-96,285,298
+packages/backend/src/entities/agent-model-params.entity.ts
+  s_d55d26a37e6be3::t_98f031d325e4cc 2,43
+packages/backend/src/routing/__tests__/model-params.controller.spec.ts
+  s_d55d26a37e6be3::t_7eff453836464a 199-215
+packages/frontend/tests/components/ModelParamsDialog.test.tsx
+  s_d55d26a37e6be3::t_64c39b7a5d6f1b 95-107,251-267,324-338
+  s_d55d26a37e6be3::t_81e155702333de 9-17,199,202
+  s_d55d26a37e6be3::t_2c19a7913edb54 177-198,200-201,203-205
+packages/backend/src/routing/dto/__tests__/model-params.dto.spec.ts
+  s_d55d26a37e6be3::t_b7ad09a64d9a71 38-48
+  s_d55d26a37e6be3::t_f537cc9cc89c3d 49-65
+packages/frontend/src/styles/routing.css
+  s_d55d26a37e6be3::t_659c397b90dc77 743-746
+packages/backend/src/database/migrations/1789200000000-ScopeAgentModelParams.ts
+  s_d55d26a37e6be3::t_aad61357a0dc45 68-73,162-167
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_d55d26a37e6be3::t_b3c17d35d37b64 223-234
+  s_d55d26a37e6be3::t_e08a3ac22f277e 12,212-222
+packages/backend/src/database/migrations/1789200000000-ScopeAgentModelParams.spec.ts
+  s_d55d26a37e6be3::t_7b2bb7a565fe2a 1-20
+packages/backend/src/routing/dto/model-params.dto.ts
+  s_d55d26a37e6be3::t_8c63cd97620442 15-16,73-74,78-79
+  s_ba10c1ee330272::t_d6606c122cd1d9 91
+  s_d55d26a37e6be3::t_dbbcc4dcd6c72d 84
+  s_d55d26a37e6be3::t_7214df1d7b72f5 88-90
+  s_d55d26a37e6be3::t_0cd28ce49cd68b 1-9,17-27,47-50,52,72,76-77,80-82,85-87
+packages/backend/src/routing/model-params.controller.ts
+  s_d55d26a37e6be3::t_0d993a554e3b42 3,5,150-154
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_d55d26a37e6be3::t_0cfa9863c1077e 132,134-136,142,296
+  s_d55d26a37e6be3::t_5ed8e195923f43 70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "e6d6fbeddcdc040cbbe12ea75844a9aac531630c",
+  "prompts": {},
+  "sessions": {
+    "s_ba10c1ee330272": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c9a5343-e4c0-42d8-bba9-ef88ea021798",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

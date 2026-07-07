@@ -1,0 +1,47 @@
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_700be27a56f92d::t_98dc9d5177311c 322-337
+packages/backend/src/billing/plan.service.ts
+  s_700be27a56f92d::t_7550c04a4112e1 23-26
+  s_700be27a56f92d::t_bf1b5bb5fa4ece 166-168
+  s_700be27a56f92d::t_bd12c9e2d26216 201-212
+  s_700be27a56f92d::t_383dd7e1134552 243-272
+  s_700be27a56f92d::t_69ccbe704358fc 1
+  s_700be27a56f92d::t_24a9af56c475fc 44
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_700be27a56f92d::t_628ca41edc5869 90-107,109
+  s_700be27a56f92d::t_a41700bcc3dfbd 177-190,192
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_700be27a56f92d::t_9b83e05435bcae 163-186
+  s_700be27a56f92d::t_44d24fb2cf9887 11
+packages/backend/src/billing/plan.service.spec.ts
+  s_700be27a56f92d::t_59bc11443acff9 309-320
+  s_700be27a56f92d::t_4d7ea36a8e2f22 380-458
+  s_700be27a56f92d::t_2e4eeb946cdd49 15-16
+  s_700be27a56f92d::t_ba2d57d75c67bb 35-41,47
+packages/frontend/src/pages/Account.tsx
+  s_700be27a56f92d::t_a87455c2fa8dc2 52-57,59-60,67-68,70,74
+packages/frontend/tests/pages/Account.test.tsx
+  s_700be27a56f92d::t_58bd82bf84458c 108-109
+  s_700be27a56f92d::t_df51b00709c375 297-312
+  s_700be27a56f92d::t_7d17969918b52e 333-336,338
+  s_700be27a56f92d::t_68cf47ec66d58b 99-100
+  s_700be27a56f92d::t_929c5b9fdde824 292-293
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_700be27a56f92d::t_8a670fcd5f472e 25-28,31-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3f656d14b99b4290f58c1fb77cea9ecc0b9492eb",
+  "prompts": {},
+  "sessions": {
+    "s_700be27a56f92d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e4967351-5782-4cee-b326-136aaccd2add",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

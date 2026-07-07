@@ -1,0 +1,19 @@
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_8848cc650c1e25::t_e5ef3315d02359 357-359,476-483,513-515
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "e37c2195c0d7900c0f2e0a931073694bc4f88c46",
+  "prompts": {},
+  "sessions": {
+    "s_8848cc650c1e25": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019eb083-5d24-7631-8f62-a692435c1128",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+packages/frontend/tests/pages/GlobalProviders.test.tsx
+  s_6fb27bb484ff37::t_5c219527e7c304 2,158-169
+packages/frontend/src/pages/providers/GlobalProviderCategory.tsx
+  s_6fb27bb484ff37::t_1579fa96cba06b 205,211-216
+  s_6fb27bb484ff37::t_8cbcc89305bc8b 1-9,138,140-142,185-202,204,206-210,303,332,371,382,575
+  s_6fb27bb484ff37::t_0ab055314014ae 203
+packages/frontend/src/styles/global-providers.css
+  s_6fb27bb484ff37::t_5f79db4ae1a86c 36-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "09e67706e4dc264d367b75e170322123f3051069",
+  "prompts": {},
+  "sessions": {
+    "s_6fb27bb484ff37": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e96c4-f119-7221-b42c-7e85de9a9089",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

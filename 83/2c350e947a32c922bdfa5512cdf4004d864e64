@@ -1,0 +1,19 @@
+.github/dependabot.yml
+  s_2351d28ef04d06::t_975fd1c9fac2db 29-32,35-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "832c350e947a32c922bdfa5512cdf4004d864e64",
+  "prompts": {},
+  "sessions": {
+    "s_2351d28ef04d06": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f127c-75cc-7171-b057-147381de38dd",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

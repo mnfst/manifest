@@ -1,0 +1,23 @@
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_ab0d78c12ffc4a::t_e3de2fee46c19c 165
+.changeset/remove-message-count-limit.md
+  s_ab0d78c12ffc4a::t_a634e4116648cc 1-5
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_ab0d78c12ffc4a::t_0f8f37ad86b2e9 230,233,239-249,251-253
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "09d904aab4d8bc6064010b46fc4a20837f4bc622",
+  "prompts": {},
+  "sessions": {
+    "s_ab0d78c12ffc4a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f27d0-fac0-7eb3-ac66-54fe6d951a83",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

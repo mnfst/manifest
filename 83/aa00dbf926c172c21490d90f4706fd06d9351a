@@ -1,0 +1,44 @@
+packages/backend/src/analytics/services/agent-duplication.service.spec.ts
+  s_d55d26a37e6be3::t_97ea41b5389789 81-96,285,298
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_d55d26a37e6be3::t_0cfa9863c1077e 131,133-135,141,295
+packages/backend/src/database/migrations/1789200000000-ScopeAgentModelParams.ts
+  s_d55d26a37e6be3::t_aad61357a0dc45 68-73,162-167
+packages/backend/src/routing/model-params.controller.ts
+  s_d55d26a37e6be3::t_0d993a554e3b42 3,5,150-154
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_d55d26a37e6be3::t_b3c17d35d37b64 223-234
+  s_d55d26a37e6be3::t_e08a3ac22f277e 12,212-222
+packages/shared/src/index.ts
+  s_d55d26a37e6be3::t_484370f00b3e84 50
+packages/backend/src/routing/__tests__/model-params.controller.spec.ts
+  s_d55d26a37e6be3::t_7eff453836464a 199-215
+packages/shared/src/provider-params-spec.ts
+  s_d55d26a37e6be3::t_454867961bd949 158-168,374-382
+packages/backend/src/entities/agent-model-params.entity.ts
+  s_d55d26a37e6be3::t_98f031d325e4cc 2,43
+packages/frontend/src/styles/routing.css
+  s_d55d26a37e6be3::t_659c397b90dc77 743-746
+packages/frontend/tests/components/ModelParamsDialog.test.tsx
+  s_d55d26a37e6be3::t_64c39b7a5d6f1b 86-98,213-229,286-300
+packages/backend/src/database/migrations/1789200000000-ScopeAgentModelParams.spec.ts
+  s_d55d26a37e6be3::t_7b2bb7a565fe2a 1-16,18-20
+packages/backend/src/analytics/services/agent-duplication.service.ts
+  s_d55d26a37e6be3::t_c06205b9ab8927 236-263
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "83aa00dbf926c172c21490d90f4706fd06d9351a",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

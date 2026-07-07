@@ -1,0 +1,23 @@
+packages/backend/src/database/migrations/1791000000000-LiftProvidersToUserLevel.ts
+  s_0dc1825d457013::t_bcb573acba3a0c 20-35
+  s_0dc1825d457013::t_f2fccca7918839 296-301
+packages/backend/src/database/migrations/1791000000000-LiftProvidersToUserLevel.spec.ts
+  s_0dc1825d457013::t_c1702e3171a18e 125-132
+  s_0dc1825d457013::t_ee3db038a97e03 52-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "e8d6925c81c38cc44e4698b97462fb6d5df6510c",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

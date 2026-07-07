@@ -1,0 +1,23 @@
+.changeset/messages-custom-tier-filter.md
+  s_d77713678d634c::t_d7c97c7f766260 1-5
+packages/frontend/src/pages/MessageLog.tsx
+  s_d77713678d634c::t_568a90ae4a9894 203-206,208-209,213-214
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_d77713678d634c::t_71709df8faf6f2 42,900,910-911,1254-1255,1460-1486
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "8df89b71ad8ccbfc4520e2878eb9521a7dddb224",
+  "prompts": {},
+  "sessions": {
+    "s_d77713678d634c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f11f5-c895-7e40-a0f8-16b606502de8",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

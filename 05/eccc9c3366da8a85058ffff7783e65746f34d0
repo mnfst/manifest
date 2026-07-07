@@ -1,0 +1,23 @@
+packages/backend/src/routing/proxy/__tests__/chatgpt-stream.spec.ts
+  s_d55d26a37e6be3::t_053a5e4761f73c 18,24
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_d55d26a37e6be3::t_757a99d1fd1743 269
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_d55d26a37e6be3::t_200ab48d3152a3 358,363
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "05eccc9c3366da8a85058ffff7783e65746f34d0",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

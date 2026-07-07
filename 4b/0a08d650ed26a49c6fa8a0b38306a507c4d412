@@ -1,0 +1,23 @@
+.changeset/request-limit-upgrade-url.md
+  s_113fbd5b068697::t_564f366bb4f79b 1-5
+packages/backend/src/routing/proxy/__tests__/proxy-exception.filter.spec.ts
+  s_113fbd5b068697::t_f80b0eae26156a 284,303-304
+packages/backend/src/routing/proxy/proxy-exception.filter.ts
+  s_113fbd5b068697::t_0af186bcb72961 80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "4b0a08d650ed26a49c6fa8a0b38306a507c4d412",
+  "prompts": {},
+  "sessions": {
+    "s_113fbd5b068697": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3741-67b3-7720-a268-e245d73b7ee7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+packages/frontend/src/pages/Account.tsx
+  s_113fbd5b068697::t_18a6f2b8dbc154 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "ba2f4758ca72e6f7c3d4b2e525e52b946dab71e0",
+  "prompts": {},
+  "sessions": {
+    "s_113fbd5b068697": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3741-67b3-7720-a268-e245d73b7ee7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

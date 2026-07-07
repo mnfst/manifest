@@ -1,0 +1,30 @@
+packages/backend/test/billing-agent-limit.e2e-spec.ts
+  s_6aa2fd791b8a40::t_f91bac0fea81cc 1-96
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_6aa2fd791b8a40::t_4d8e12069000e6 15,25-30
+  s_6aa2fd791b8a40::t_b30cdb07ed6d6e 488
+  s_6aa2fd791b8a40::t_3cc4c730b7821b 547
+  s_6aa2fd791b8a40::t_b0fcde3b3a7914 137,316,375,433,587,628,750
+  s_6aa2fd791b8a40::t_142f9f7117ff29 31-32
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_6aa2fd791b8a40::t_a58f959ed274a7 34
+  s_6aa2fd791b8a40::t_85ccd2ffe69091 82
+  s_6aa2fd791b8a40::t_489b65b6e5271b 47
+  s_6aa2fd791b8a40::t_93ae1b30afc184 168
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "f760ba79ff9e96de5c6a8073f9b35b7775a13a6c",
+  "prompts": {},
+  "sessions": {
+    "s_6aa2fd791b8a40": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0be8c650-5b21-41d1-a6f2-2b93fc056b2e",
+        "model": "accounts/fireworks/models/glm-5p2"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

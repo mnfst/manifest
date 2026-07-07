@@ -1,0 +1,21 @@
+packages/frontend/tests/pages/Overview-limits.test.tsx
+  s_cd68a57c9c12bc::t_2fb82faf898165 65-67,69-72,75,81
+  s_cd68a57c9c12bc::t_c5f7708ff456ad 207-208
+  s_cd68a57c9c12bc::t_8b249d09f01931 1-2,4-5,9-13,16,22,27,31,38,45,47,51-53,56-64,68,73-74,76-80,82-83,85,87-94,99,105,114-116,119-129,134,138,141,154,156,160,163-175,180,184,187,190-195,200,202,206,212-213,217,221-222,226,230
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "822845f3ba7705fc5646289983ce3cf35fbc7349",
+  "prompts": {},
+  "sessions": {
+    "s_cd68a57c9c12bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ccc1e29-2639-470b-b21e-8a27c2c4ce1a",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

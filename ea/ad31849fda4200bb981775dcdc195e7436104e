@@ -1,0 +1,21 @@
+packages/backend/src/routing/oauth/codeassist-client.service.ts
+  s_efa1e76f9c84e4::t_c19318bde1fc54 96,103
+packages/backend/src/routing/oauth/codeassist-client.service.spec.ts
+  s_efa1e76f9c84e4::t_761959e9ef3077 122,154,183,201,220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "eaad31849fda4200bb981775dcdc195e7436104e",
+  "prompts": {},
+  "sessions": {
+    "s_efa1e76f9c84e4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62e3-187c-7972-baac-225825eb7633",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

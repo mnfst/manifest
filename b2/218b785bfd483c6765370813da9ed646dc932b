@@ -1,0 +1,83 @@
+packages/backend/src/routing/proxy/__tests__/google-adapter.spec.ts
+  s_0554affd089e95::t_0dd3631bbd1854 122-177
+  s_0554affd089e95::t_37294f44bb3ef5 221-251
+  s_0554affd089e95::t_60bb14c473c030 178-207
+  s_0554affd089e95::t_fb552b5e722494 208-220
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_0554affd089e95::t_f6c9217065a552 1573-1629
+.changeset/structured-output-responses.md
+  s_0554affd089e95::t_900e1d84d0b2fd 1-4
+packages/backend/src/routing/proxy/responses-adapter.ts
+  s_74238b73c97dad::t_8b80aa287e90ed 143-144
+  s_0554affd089e95::t_f02da1c45971f3 692-730,749-754
+  s_0554affd089e95::t_770332fa953fa8 118-119,126-142
+  s_0554affd089e95::t_cd78e15758c649 805-808
+  s_0554affd089e95::t_cdc3ef85f8319d 8-12
+  s_0554affd089e95::t_10933327691a40 289-326,331-335,337,339,345,352,383
+  s_0554affd089e95::t_addcf7d03e28d9 580-584,592-594,616-619,630-632,648
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_0554affd089e95::t_cd07827092031d 235-263,268-276,294-310,318-319,322-324
+  s_0554affd089e95::t_2f91b5876b8f09 234,264-267,286-290,293,311-314,316-317,320-321,327,338,341,351-354,356-358
+  s_0554affd089e95::t_e6ddfcf8f9ff37 277-285,291-292
+  s_0554affd089e95::t_6252ba4e0d959c 315,355
+  s_0554affd089e95::t_fc5fd8394e745e 325-326,328-337,339-340
+  s_0554affd089e95::t_9cbd8d00b612c8 342-350,359-360
+packages/backend/src/routing/proxy/google-adapter.ts
+  s_0554affd089e95::t_466f94e053fa5f 288-313,380
+  s_0554affd089e95::t_322fa20e33e1da 115-126
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_0554affd089e95::t_f5f2dbce5d5d8b 295,297-299,303-306,308-309,312-316,318,374-379
+  s_0554affd089e95::t_ba6a2ee86b6bf1 300
+  s_0554affd089e95::t_d2984bfd7df6ea 296,301-302,310-311,317,319-321,368-369,380
+  s_0554affd089e95::t_3f9c64913c18a9 307
+  s_0554affd089e95::t_a9691560daa5c1 381
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_0554affd089e95::t_c82c0708fd9363 358-363,574-577
+packages/backend/src/routing/proxy/provider-client.ts
+  s_0554affd089e95::t_657c4a44d0b066 79-121
+  s_0554affd089e95::t_4ae700aca6379d 460,524-527,537
+  s_0554affd089e95::t_26c09f672d3074 640-641
+  s_0554affd089e95::t_bced3cccc0440e 224,244,247,299-300
+  s_0554affd089e95::t_edc4c15dc3c859 50-60
+packages/backend/src/routing/proxy/__tests__/responses-adapter.spec.ts
+  s_0554affd089e95::t_620c22b3beee8a 463-494,554-560,572-578
+  s_0554affd089e95::t_d7a442fb0570d9 495-531
+  s_0554affd089e95::t_67f721de8fa5a9 979,981-999
+  s_0554affd089e95::t_ce523a2a289577 92-147
+  s_0554affd089e95::t_0bbbca34a91770 462,532-553,561-571,579-580,954-978
+  s_0554affd089e95::t_a1bdbb8b88664a 980
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_0554affd089e95::t_185192312a386a 54-74
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_0554affd089e95::t_76b6228dc93db6 353-354,381-382
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_0554affd089e95::t_c06b4576faf885 729-765,771-779
+  s_0554affd089e95::t_eeaca5003717c1 766-770,799-803,805-807
+  s_0554affd089e95::t_7be5d7dcd9f995 811-835
+  s_0554affd089e95::t_0da7b97f80db75 804
+  s_0554affd089e95::t_1329b2af85ad4b 780-798,808-810
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b2218b785bfd483c6765370813da9ed646dc932b",
+  "prompts": {},
+  "sessions": {
+    "s_0554affd089e95": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3665-b81a-7ce2-826c-ac10a5483490",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_74238b73c97dad": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f332a-27dd-7b72-b744-40938a5f8c13",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

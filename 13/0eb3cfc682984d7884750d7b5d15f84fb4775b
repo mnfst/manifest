@@ -1,0 +1,23 @@
+.changeset/remove-recorded-only-filter.md
+  s_10309d23d3b409::t_c54f11d622f6dc 1-5
+packages/frontend/src/pages/MessageLog.tsx
+  s_10309d23d3b409::t_c54f11d622f6dc 157,205
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_10309d23d3b409::t_c54f11d622f6dc 242-243,1028
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "130eb3cfc682984d7884750d7b5d15f84fb4775b",
+  "prompts": {},
+  "sessions": {
+    "s_10309d23d3b409": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4ecc-bb6e-7922-9996-87f2683aafd5",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+packages/backend/src/routing/oauth/openai-oauth.service.spec.ts
+  s_5c4d3b9ef34c67::t_999f6e9c169e89 135-137
+packages/backend/src/routing/openai-oauth.service.spec.ts
+  s_5c4d3b9ef34c67::t_999f6e9c169e89 131-133
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "feabb707a1ee9a2f495d20ea86e8b17605731c04",
+  "prompts": {},
+  "sessions": {
+    "s_5c4d3b9ef34c67": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5e14-cdfe-7f72-ada2-f3aad08837ec",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_0634a66e772d8b::t_8a1d077d53723f 261,278-282
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_0634a66e772d8b::t_b3cecee139e2f7 116
+.changeset/fix-anthropic-oauth-verifier-fallback.md
+  s_0634a66e772d8b::t_6a7cfd2401b683 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.9",
+  "base_commit_sha": "0421e0ae1d7cbd64f12eda2e61ddf49fa78cba05",
+  "prompts": {},
+  "sessions": {
+    "s_0634a66e772d8b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3bb6-a1ac-7ec0-8ce9-65582e1d6175",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

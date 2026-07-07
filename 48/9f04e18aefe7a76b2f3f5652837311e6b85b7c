@@ -1,0 +1,19 @@
+packages/backend/src/routing/proxy/reasoning-format.ts
+  s_d0475581f851a5::t_e83454575bd285 95,100,129-138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "489f04e18aefe7a76b2f3f5652837311e6b85b7c",
+  "prompts": {},
+  "sessions": {
+    "s_d0475581f851a5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e92d4-257b-7741-8a46-1a5b3158c8a2",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

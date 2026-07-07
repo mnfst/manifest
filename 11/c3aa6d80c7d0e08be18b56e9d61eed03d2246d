@@ -1,0 +1,23 @@
+packages/shared/src/provider-params-spec.ts
+  s_a4cb783200a54c::t_7afda06779e47d 100-109,118,123
+.changeset/opencode-go-mps-model-normalization.md
+  s_a4cb783200a54c::t_cf587f246538cb 1-5
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_a4cb783200a54c::t_248b306d7348b2 97-112,152-166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "11c3aa6d80c7d0e08be18b56e9d61eed03d2246d",
+  "prompts": {},
+  "sessions": {
+    "s_a4cb783200a54c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5f31-ea20-72b3-93bc-eba66d3fa25d",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+packages/frontend/public/icons/providers/codex.svg
+  s_4e77446899d740::t_8c43cf54bf62cd 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "af070f1ca9bd6b579f7f2a1b8cabcadf0aea65ff",
+  "prompts": {},
+  "sessions": {
+    "s_4e77446899d740": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f03b4ac3-4fdb-4fbc-8a00-a376336aa8b6",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

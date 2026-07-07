@@ -1,0 +1,25 @@
+.changeset/fix-duplicate-agent-provider-labels.md
+  s_ae5e80feefbc8e::t_77c404e044a738 1-5
+packages/backend/src/analytics/services/agent-duplication.service.spec.ts
+  s_ae5e80feefbc8e::t_14b4619482ed6f 233-234,337-338
+packages/backend/src/analytics/services/agent-duplication.service.ts
+  s_ae5e80feefbc8e::t_14b4619482ed6f 181-182
+packages/backend/test/agent-duplication.e2e-spec.ts
+  s_ae5e80feefbc8e::t_14b4619482ed6f 31-32,144-145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "492cf463f6d5e37b4dd7a42425bb877db377f05a",
+  "prompts": {},
+  "sessions": {
+    "s_ae5e80feefbc8e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4992-0708-7c71-8e12-fd7ddcf4d4af",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

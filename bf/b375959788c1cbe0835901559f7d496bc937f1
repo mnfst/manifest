@@ -1,0 +1,29 @@
+packages/frontend/src/components/GlobalOverviewSkeleton.tsx
+  s_8f7bd68edeeec2::t_0cf8d348ac21ee 1-98
+packages/frontend/src/styles/analytics-overview.css
+  s_8f7bd68edeeec2::t_06e958d2e103e9 1-318
+packages/frontend/tests/components/AnalyticsChartSurfaces.test.tsx
+  s_8f7bd68edeeec2::t_570bc53c66c0b9 1-352
+packages/frontend/src/components/ProviderChartCard.tsx
+  s_8f7bd68edeeec2::t_0cf8d348ac21ee 1-145
+packages/frontend/src/components/MultiAgentTokenChart.tsx
+  s_8f7bd68edeeec2::t_48582afc5528b7 184-186
+  s_8f7bd68edeeec2::t_694b71109ee859 4
+  s_8f7bd68edeeec2::t_0cf8d348ac21ee 1-3,5-183,187-302
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "bfb375959788c1cbe0835901559f7d496bc937f1",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

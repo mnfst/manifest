@@ -1,0 +1,31 @@
+packages/backend/src/model-discovery/model-fallback.ts
+  s_efa1e76f9c84e4::t_a5141afb2dd97e 271-273,279-280,310,321-322
+  s_efa1e76f9c84e4::t_bfa0f46e9e7cdb 317-318
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_efa1e76f9c84e4::t_ed983cabc32c08 1685-1693,1724,1787-1790,2128-2136,2170,2230-2231
+.changeset/slick-carrots-swim.md
+  s_efa1e76f9c84e4::t_bfa0f46e9e7cdb 8-10
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_efa1e76f9c84e4::t_deb097c3363aeb 513-534
+  s_efa1e76f9c84e4::t_ee28300602c2b9 313-322,355,418,422-424,449,452,457-460
+packages/shared/__tests__/subscription.spec.ts
+  s_efa1e76f9c84e4::t_a5141afb2dd97e 131-139,218-221,243-244
+packages/shared/src/subscription/configs.ts
+  s_efa1e76f9c84e4::t_a5141afb2dd97e 110-123
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "1c7cc01083e6d0a49c9bedc8744d93f6129fb5d3",
+  "prompts": {},
+  "sessions": {
+    "s_efa1e76f9c84e4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62e3-187c-7972-baac-225825eb7633",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

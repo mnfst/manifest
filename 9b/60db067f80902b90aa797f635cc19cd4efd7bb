@@ -1,0 +1,21 @@
+packages/backend/src/entities/user-provider.entity.ts
+  s_feb7f7e060c1a0::t_18a8612c8df7c7 14-15
+packages/backend/src/entities/user-provider.entity.spec.ts
+  s_feb7f7e060c1a0::t_7d3b18e8a3d7b6 1,5-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "9b60db067f80902b90aa797f635cc19cd4efd7bb",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

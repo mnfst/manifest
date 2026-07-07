@@ -1,0 +1,41 @@
+.changeset/copilot-chat-reasoning-summary.md
+  s_6940438b8004cb::t_e88b002dd6f1d9 1-5
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_6940438b8004cb::t_cd19fe0e57278e 149-151,154-157,171,490-492,497-499
+  s_6940438b8004cb::t_7280e770f8d3df 134-148,152-153,158,160-170,173-178,187,192-197,226-227,285-291
+  s_6940438b8004cb::t_b9f6bbc6238976 172
+  s_6940438b8004cb::t_ec56d01701e80c 292-293,355,447,467-468,505
+  s_6940438b8004cb::t_21145dc6d31501 488
+  s_eb7c502dd33b5d::t_70cdec715af48b 159
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_6940438b8004cb::t_3e4f819072c8c6 299-324,376-379,381,383-384,506-518,557
+  s_6940438b8004cb::t_71504bd6bbd968 394-399,533-556
+  s_6940438b8004cb::t_1dd132343fec1a 559
+  s_6940438b8004cb::t_95bdde2c49aa02 279-298,367-375,386,467-492,558
+  s_eb7c502dd33b5d::t_98b4b194dcf188 387
+  s_6940438b8004cb::t_c93b1a58743263 380,382,385,388-393,493-505,519-532
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a0f55493fabc866906feeea00eb0d7168e1c42fb",
+  "prompts": {},
+  "sessions": {
+    "s_6940438b8004cb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f27c0-2313-70f0-b277-16165d3dc93e",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_afb0d5c7f699a4::t_7ad059387b817f 84,88-94
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_afb0d5c7f699a4::t_af2fdda901ac1a 1893-1907
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d7e13fb0412fe5a90833140126dcc669f154c114",
+  "prompts": {},
+  "sessions": {
+    "s_afb0d5c7f699a4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6333-6c3c-7ba3-9641-6099564b83b9",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

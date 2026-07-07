@@ -1,0 +1,21 @@
+packages/frontend/tests/services/api/analytics.test.ts
+  s_cd68a57c9c12bc::t_5b5b0085d9d556 138
+packages/frontend/src/services/api/analytics.ts
+  s_cd68a57c9c12bc::t_b3d87ee6636135 129-138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "afd4dbf8e92f74300afa5457ab1ceb6a286b6aa7",
+  "prompts": {},
+  "sessions": {
+    "s_cd68a57c9c12bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ccc1e29-2639-470b-b21e-8a27c2c4ce1a",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

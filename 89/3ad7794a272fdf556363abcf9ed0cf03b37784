@@ -1,0 +1,51 @@
+packages/backend/src/analytics/services/agent-duplication.service.spec.ts
+  s_8f7bd68edeeec2::t_9f38043ff5c9ac 383-413,417-425
+  s_8f7bd68edeeec2::t_ae9fc47c3132f8 414-416
+packages/backend/src/common/services/tenant-cache.service.ts
+  s_8f7bd68edeeec2::t_07b11105331fdf 25-29
+packages/backend/src/playground/playground-agent.service.spec.ts
+  s_8f7bd68edeeec2::t_c2d4bba5b93bae 294
+  s_8f7bd68edeeec2::t_073f7484091383 93
+  s_8f7bd68edeeec2::t_dfb582050bb5ca 224
+  s_8f7bd68edeeec2::t_d188415575858a 266
+  s_8f7bd68edeeec2::t_3f455f1f623c1d 192
+  s_8f7bd68edeeec2::t_65f97bddd9b10e 138-177
+  s_8f7bd68edeeec2::t_219858debae196 47
+packages/backend/src/database/migrations/1791400000000-SeedPlaygroundAgents.spec.ts
+  s_8f7bd68edeeec2::t_f60d40c7c09d8c 1-25,27-32,34-71,76-95
+  s_8f7bd68edeeec2::t_ae9fc47c3132f8 26,33,72-75
+packages/backend/src/database/migrations/1791400000000-SeedPlaygroundAgents.ts
+  s_8f7bd68edeeec2::t_25703247280ee5 17-18,20
+packages/backend/src/common/services/tenant-cache.service.spec.ts
+  s_8f7bd68edeeec2::t_f2db6502289292 38-57
+packages/backend/src/routing/provider.controller.ts
+  s_8f7bd68edeeec2::t_fdb3543757fc71 107-111
+packages/backend/src/routing/provider.controller.spec.ts
+  s_8f7bd68edeeec2::t_4437ea78d4e2de 689-704
+packages/backend/test/seed-playground-agents-migrations.e2e-spec.ts
+  s_8f7bd68edeeec2::t_7753db2587fbc7 82-84
+packages/backend/src/routing/custom-provider/custom-provider.controller.ts
+  s_8f7bd68edeeec2::t_61b65441b1231b 74-76
+packages/backend/src/analytics/services/agent-duplication.service.ts
+  s_8f7bd68edeeec2::t_ae9fc47c3132f8 46-57
+packages/backend/src/routing/custom-provider.controller.spec.ts
+  s_8f7bd68edeeec2::t_803884fef108fa 187-202
+packages/backend/src/playground/playground-agent.service.ts
+  s_8f7bd68edeeec2::t_74f8fe573aeaaf 37-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "893ad7794a272fdf556363abcf9ed0cf03b37784",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

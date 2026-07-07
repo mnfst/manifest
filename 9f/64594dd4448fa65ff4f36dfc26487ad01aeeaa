@@ -1,0 +1,21 @@
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_f9d8598e4f12cd::t_f408ddb6ec4581 6
+.changeset/minimax-key-url.md
+  s_f9d8598e4f12cd::t_cbd014068c1f54 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "9f64594dd4448fa65ff4f36dfc26487ad01aeeaa",
+  "prompts": {},
+  "sessions": {
+    "s_f9d8598e4f12cd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "547251c4-ce1b-4df4-b83b-ced70e70bb91",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

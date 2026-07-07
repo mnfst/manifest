@@ -1,0 +1,43 @@
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_2b8a13cc762528::t_a77762df95cec8 164,166-172,185-188,190-194,196-207,209-215,217-218
+  s_2b8a13cc762528::t_459fff3ab90ec0 161-162,165,173-184,189,195,208,216
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_2b8a13cc762528::t_843748897c9952 209-222
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_2b8a13cc762528::t_f10639b9bc4f17 673-725
+packages/backend/src/routing/proxy/provider-client.ts
+  s_2b8a13cc762528::t_3579c99c867c8e 243-255,262-268,272
+  s_2b8a13cc762528::t_491d3a829bf985 256-261
+  s_2b8a13cc762528::t_df60261e7870e3 176-180
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_2b8a13cc762528::t_28fda3efc10e74 24-33,37
+  s_2b8a13cc762528::t_cee225133f4f5a 78-79,86-87
+  s_2b8a13cc762528::t_d589cf47e6b0f7 80-85
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_2b8a13cc762528::t_bd2f87bca1f03a 105-119
+  s_2b8a13cc762528::t_5da37bc3ae969d 260,262,270-276,283-290
+.changeset/copilot-codex-routing.md
+  s_2b8a13cc762528::t_cfc20536342bd6 1-5
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_2b8a13cc762528::t_851efacb39fe5d 192-205
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_2b8a13cc762528::t_3dbb879e3bf56d 957-1006
+  s_2b8a13cc762528::t_38364fccaf11d8 863-925,927-940,942-952,956,1007-1008
+  s_2b8a13cc762528::t_ee82c7a71f52d0 926,941,953-955
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "c1fe19a95f99ab706bd235b006cfbd3fd8f66329",
+  "prompts": {},
+  "sessions": {
+    "s_2b8a13cc762528": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "87ebabab-1004-406c-9785-ecb2709bfa8c",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,75 @@
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_feb7f7e060c1a0::t_53caaf4a78d1dc 653,659
+  s_feb7f7e060c1a0::t_d6a49a1fa3aac9 502
+  s_feb7f7e060c1a0::t_2ae21b26e41fdd 279,285
+  s_feb7f7e060c1a0::t_af07ec06853b90 354
+  s_feb7f7e060c1a0::t_6df28d1280cb30 210
+  s_feb7f7e060c1a0::t_8b4fa803c04f8e 510
+  s_feb7f7e060c1a0::t_361ff2b924e6d5 422,427
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_feb7f7e060c1a0::t_9aefaa834935e1 66-68
+  s_feb7f7e060c1a0::t_319dcac96f9a0b 69
+packages/backend/src/analytics/controllers/overview.controller.spec.ts
+  s_feb7f7e060c1a0::t_c43ed28baea394 153-155
+packages/backend/src/routing/model.controller.ts
+  s_feb7f7e060c1a0::t_4931db5aaed23a 94
+packages/backend/src/routing/header-tiers/header-tier.controller.ts
+  s_feb7f7e060c1a0::t_da4f66b7b92212 195
+  s_feb7f7e060c1a0::t_633a1a03de28c9 223
+packages/backend/src/routing/custom-provider/custom-provider.service.edge-cases.spec.ts
+  s_feb7f7e060c1a0::t_9499958ea1c91b 98,107-108,110-111
+packages/backend/src/playground/playground.service.spec.ts
+  s_feb7f7e060c1a0::t_4ab32c372de1e7 462,465,479-481
+  s_feb7f7e060c1a0::t_bb6188a2a850d3 549-550,552
+  s_feb7f7e060c1a0::t_eb2a4cd56fa4aa 514-516
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_feb7f7e060c1a0::t_501cd30bcf2231 179-189,192-193
+  s_feb7f7e060c1a0::t_e8f4e8f2a5be7a 164
+  s_feb7f7e060c1a0::t_5e95f6a200791d 329-333
+  s_feb7f7e060c1a0::t_9c62c3bd56902c 135,140,145
+packages/backend/src/routing/header-tiers/header-tier.controller.spec.ts
+  s_feb7f7e060c1a0::t_0a9cd7914f62d3 156-160,162
+  s_feb7f7e060c1a0::t_5dc4ceb81c49c2 113
+  s_feb7f7e060c1a0::t_e72e1a5929ebe4 137
+packages/backend/src/routing/header-tiers/__tests__/header-tier.service.spec.ts
+  s_feb7f7e060c1a0::t_495f1768ed34b1 442,448-450
+  s_feb7f7e060c1a0::t_59945b0ffdb765 503
+  s_feb7f7e060c1a0::t_94b31bc13a6335 484,487-488,493
+  s_feb7f7e060c1a0::t_ac76ef3fcbb25f 388-393,395
+  s_feb7f7e060c1a0::t_eac366f3dfb4f2 431,433-435
+  s_feb7f7e060c1a0::t_f8bf7f2d2c5a52 558
+  s_feb7f7e060c1a0::t_10cacf5e6ad8fa 408
+  s_feb7f7e060c1a0::t_fd1b298b03d776 548
+  s_feb7f7e060c1a0::t_27ebd288b7568a 528
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  s_feb7f7e060c1a0::t_b3306ea3ea36d7 52,57
+  s_feb7f7e060c1a0::t_01b7eba87bc7e2 272-273,276-278,282,288,290-291
+  s_feb7f7e060c1a0::t_f7d611f7905f2d 88
+packages/backend/src/routing/custom-provider/custom-provider.controller.ts
+  s_feb7f7e060c1a0::t_c2719ce8c5c098 24-26
+  s_feb7f7e060c1a0::t_0f4908752d8caa 28-29
+  s_feb7f7e060c1a0::t_03e13b04d0f3a7 75
+  s_feb7f7e060c1a0::t_207a6ab002f259 100
+packages/backend/src/playground/playground.service.ts
+  s_feb7f7e060c1a0::t_283412505d4336 79,87-88
+packages/backend/src/routing/header-tiers/header-tier.service.ts
+  s_feb7f7e060c1a0::t_e31c246c6d8aa8 199,214
+  s_feb7f7e060c1a0::t_424acb6e468c35 242,248
+  s_feb7f7e060c1a0::t_b9dd5789ccec5a 282,287
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "5baed8a0902239e562f0c095d333f190018cf4e0",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

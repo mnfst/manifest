@@ -1,0 +1,31 @@
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_cd68a57c9c12bc::t_bd94d2421a976d 5
+  s_cd68a57c9c12bc::t_f83018c3050ddc 10
+  s_cd68a57c9c12bc::t_23814fafc991a4 1336-1357
+  s_cd68a57c9c12bc::t_a1892319de5daa 139
+packages/frontend/tests/pages/AgentRedirects.test.tsx
+  s_cd68a57c9c12bc::t_c005bb4a47e728 36-40,44-58
+packages/frontend/src/pages/MessageLog.tsx
+  s_cd68a57c9c12bc::t_75398a23103e5b 2
+  s_cd68a57c9c12bc::t_43d380a7810c44 77-83
+packages/frontend/src/pages/AgentMessagesRedirect.tsx
+  s_cd68a57c9c12bc::t_4b7b1b0677226f 1,5-7,9-16
+.changeset/agent-messages-filter-redirect.md
+  s_cd68a57c9c12bc::t_15f6ad5801161b 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "64c79eda318e754d8d9214689bc01d9a1b67612d",
+  "prompts": {},
+  "sessions": {
+    "s_cd68a57c9c12bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ccc1e29-2639-470b-b21e-8a27c2c4ce1a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_d85415c3ab0e4e::t_266ca398fab060 32-36,126-131,186-191,345-348,350,353-354,358-361,364-365,367-370,372,374-375,377-382
+  s_d85415c3ab0e4e::t_4c283dee6be90e 371,373
+.changeset/tier-fallback-before-auto.md
+  s_d85415c3ab0e4e::t_c623d19d69d6ef 1-5
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_d85415c3ab0e4e::t_c60f14cde6aa45 709,728-729,732,744-747,753-757
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "6154127b28cd23cbb0deb816a9b79308d8b031db",
+  "prompts": {},
+  "sessions": {
+    "s_d85415c3ab0e4e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ea896-a848-7163-929c-498afa893cb7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

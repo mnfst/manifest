@@ -1,0 +1,19 @@
+docs/superpowers/specs/2026-06-10-dashboard-fixes-design.md
+  s_cd68a57c9c12bc::t_dfac0fb104bf29 1-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "7c4fa42ba550d2685aa889cf3f5b32f3cc2389b5",
+  "prompts": {},
+  "sessions": {
+    "s_cd68a57c9c12bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ccc1e29-2639-470b-b21e-8a27c2c4ce1a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

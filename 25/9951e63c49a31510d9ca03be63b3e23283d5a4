@@ -1,0 +1,45 @@
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_0cd87d2f4d2dd2::t_8bc0936111f3e1 2-6,125,149,163,172-175,183-188,212-261,273,277-278,280
+  s_0cd87d2f4d2dd2::t_412f5e6834f8f8 182,279,281
+packages/backend/src/routing/proxy/__tests__/chatgpt-stream.spec.ts
+  s_0cd87d2f4d2dd2::t_f47e55b4e7e183 94
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_0cd87d2f4d2dd2::t_8f1f4cde92d208 140,142-143,147,149,161,221-235,748-753,755-766
+  s_0cd87d2f4d2dd2::t_02290fd615e23c 797
+  s_0cd87d2f4d2dd2::t_b0b0a7c782dcee 494,503
+  s_0cd87d2f4d2dd2::t_b0ee58603ca4e9 8,84,86,88,92,94,98,101,104-105,108,111-112,115-116,120,123,127,130,134,137,141,144,148,151,154-158,162,165
+  s_0cd87d2f4d2dd2::t_e7df19adf6cc05 106-107,109-110,754
+  s_0cd87d2f4d2dd2::t_f0592e234e822d 91,93
+packages/backend/src/routing/proxy/sse-parser.ts
+  s_0cd87d2f4d2dd2::t_c1577ee5a13cb3 50-53,55,74
+  s_0cd87d2f4d2dd2::t_32b47517898c25 9,66,70-71
+  s_0cd87d2f4d2dd2::t_d86323d7bb7871 1-8,10-48,56-65,67-69,72-73,76-80
+  s_0cd87d2f4d2dd2::t_5d3fc641c2f878 49,54,75
+.changeset/sse-comment-parser.md
+  s_0cd87d2f4d2dd2::t_9bda599b7adeba 1-5
+packages/backend/src/playground/playground-stream.ts
+  s_0cd87d2f4d2dd2::t_5d7b60237271de 2-3,15,95,116-117,122,124
+  s_0cd87d2f4d2dd2::t_b0bf2105bde970 125
+packages/backend/package.json
+  s_0cd87d2f4d2dd2::t_6eabd95a44318a 38
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_0cd87d2f4d2dd2::t_8eca805400937e 2108-2109
+packages/backend/src/playground/playground-stream.spec.ts
+  s_0cd87d2f4d2dd2::t_87f0d44a61a850 81,242
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "259951e63c49a31510d9ca03be63b3e23283d5a4",
+  "prompts": {},
+  "sessions": {
+    "s_0cd87d2f4d2dd2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6ea4-e8d6-7d00-a928-82c8785f7475",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

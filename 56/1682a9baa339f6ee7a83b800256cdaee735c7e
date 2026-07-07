@@ -1,0 +1,31 @@
+packages/frontend/src/styles/filter-select.css
+  s_e1b70d41b01e6a::t_fb74ca62811b3e 1-139
+packages/frontend/src/components/FilterSelect.tsx
+  s_e1b70d41b01e6a::t_88fca6b20d9d20 1-133
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_e1b70d41b01e6a::t_4c9aec52137aa6 22,492-500
+packages/frontend/tests/components/FilterSelect.test.tsx
+  s_e1b70d41b01e6a::t_a93e62e6e4d003 1-133
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_e1b70d41b01e6a::t_fcabf9d5e07574 34
+  s_e1b70d41b01e6a::t_bdd65c5300e340 406-428
+packages/frontend/src/pages/Overview.tsx
+  s_e1b70d41b01e6a::t_a4638462af63ff 320-329
+  s_e1b70d41b01e6a::t_f18d0d0af7629b 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "561682a9baa339f6ee7a83b800256cdaee735c7e",
+  "prompts": {},
+  "sessions": {
+    "s_e1b70d41b01e6a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a171d69c-205a-4893-b9d9-91fdec7c91ca",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

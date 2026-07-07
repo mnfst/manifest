@@ -1,0 +1,25 @@
+packages/backend/src/routing/provider.controller.spec.ts
+  s_9b4dc789cf1eb2::t_b4baea8d49d8ba 122-128
+  s_9b4dc789cf1eb2::t_dec8386b9f8bfd 119-121
+packages/frontend/tests/components/ProviderKeyForm.test.tsx
+  s_9b4dc789cf1eb2::t_b4baea8d49d8ba 1237-1295
+packages/backend/src/routing/qwen-region.spec.ts
+  s_9b4dc789cf1eb2::t_4adb601f6cf626 92,96
+  s_9b4dc789cf1eb2::t_b4baea8d49d8ba 72-91,93-95,97-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "81d7f5e600b926b941785eb77a1684cf0b8990bf",
+  "prompts": {},
+  "sessions": {
+    "s_9b4dc789cf1eb2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f03c1-d475-7db1-a710-fbc453c3d6c2",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

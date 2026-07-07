@@ -1,0 +1,23 @@
+packages/frontend/tests/components/Header.test.tsx
+  s_2f5f56e8ff714e::t_53bcf17111f9ba 121-133,135-143
+  s_2f5f56e8ff714e::t_0bf0dcd11eb02f 134
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_2f5f56e8ff714e::t_8fb76fb71f2e98 124
+  s_2f5f56e8ff714e::t_f2b5c4e2b083a3 2,112-123,125-128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "47f9d88ab29ca768f9bf3e534eac96dc3bb20b84",
+  "prompts": {},
+  "sessions": {
+    "s_2f5f56e8ff714e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3262-73f6-7cb2-b699-c31104e586ab",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_492c4473e887cf::t_45d0283791f9f2 271,275
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_492c4473e887cf::t_45d0283791f9f2 84,89,95
+packages/backend/src/routing/oauth/kiro-oauth.service.ts
+  s_492c4473e887cf::t_45d0283791f9f2 231,235
+packages/backend/src/routing/oauth/xai/xai-oauth.service.ts
+  s_492c4473e887cf::t_45d0283791f9f2 186,190
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_492c4473e887cf::t_45d0283791f9f2 948,955,960,966,970,982,993,1000,1005,1010,1017
+packages/backend/src/routing/oauth/core/oauth-refresh-coordinator.ts
+  s_492c4473e887cf::t_45d0283791f9f2 26-27,59,81-84,86-87
+packages/backend/src/routing/oauth/minimax-oauth.service.ts
+  s_492c4473e887cf::t_45d0283791f9f2 292,296
+packages/backend/src/routing/oauth/core/oauth-refresh-coordinator.spec.ts
+  s_492c4473e887cf::t_45d0283791f9f2 36,48-49,53
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_492c4473e887cf::t_45d0283791f9f2 220,224
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "fe5175a74d7b0ddd3a34e9549b0dcf5e65057abe",
+  "prompts": {},
+  "sessions": {
+    "s_492c4473e887cf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91b0-14ef-7382-8783-f119a091c223",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

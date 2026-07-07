@@ -1,0 +1,37 @@
+packages/frontend/src/styles/agents.css
+  s_700be27a56f92d::t_a5f46f3e85edd8 275-314,317-319,322-323,331-345
+  s_700be27a56f92d::t_c40c07859ab529 315-316,320-321,324-330
+packages/frontend/src/pages/Account.tsx
+  s_700be27a56f92d::t_f2fb599567b0d5 258-259
+  s_700be27a56f92d::t_aa35e064f33c97 241,248-249
+  s_700be27a56f92d::t_aa48341e3e15e4 219-222,230-233,237-239,242-243,246-247,250-254,260-283
+  s_700be27a56f92d::t_45145171093cc3 53-64
+  s_700be27a56f92d::t_4ba2c04dd83107 284-285
+packages/frontend/tests/pages/Account.test.tsx
+  s_700be27a56f92d::t_2a9e48c821d3ef 206-207,221,305,334
+  s_700be27a56f92d::t_4abf0ca71dd04a 94-95
+  s_700be27a56f92d::t_ac6a9ac00f3db0 309-320
+  s_700be27a56f92d::t_c2547971aa98e1 105-106
+  s_700be27a56f92d::t_168b822946d7cf 306
+  s_700be27a56f92d::t_462e8aba3d536f 208
+  s_700be27a56f92d::t_67211389051c24 214-220,222-223,291
+  s_700be27a56f92d::t_2b5e0a264e2e9c 210
+  s_700be27a56f92d::t_f95bc02649d4e3 278-289
+  s_700be27a56f92d::t_c3deb94470f7a4 290,292
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "1d4cc3243b5a7f698778de0d8f3b1f9be3f2160f",
+  "prompts": {},
+  "sessions": {
+    "s_700be27a56f92d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e4967351-5782-4cee-b326-136aaccd2add",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

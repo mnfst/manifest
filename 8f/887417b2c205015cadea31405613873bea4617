@@ -1,0 +1,31 @@
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_c1e2284966bb9e::t_c9b28530c871d0 88-95
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_c1e2284966bb9e::t_d0a8d7e60fc629 233
+  s_c1e2284966bb9e::t_7c875b57cd7d86 74-112,164-232,234-242
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_c1e2284966bb9e::t_05c465e0b18c48 1041-1060
+docs/model-parameters-schema.md
+  s_c1e2284966bb9e::t_1ef8d71e51ecb6 10-15
+.changeset/providerless-modelparams-lookup.md
+  s_c1e2284966bb9e::t_1ed7164c245487 1-5
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_c1e2284966bb9e::t_120f0c3d474c84 13,28,30-33,56-60,70,101,135-137,186-285
+  s_c1e2284966bb9e::t_74bf2909771089 316-327
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "8f887417b2c205015cadea31405613873bea4617",
+  "prompts": {},
+  "sessions": {
+    "s_c1e2284966bb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8ea9-2adb-7c30-ba7d-9e546f4ae53c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,84 @@
+packages/backend/src/routing/oauth/gemini/gemini-oauth.controller.ts
+  s_b7f6407d49a731::t_9b2b3de1aa7f73 16,19-24
+  s_a80493f83bbf63::t_48dc0f34611938 17-18
+packages/backend/src/routing/oauth/copilot/copilot.controller.ts
+  s_a80493f83bbf63::t_8667748952cfc0 4-7
+  s_a80493f83bbf63::t_48dc0f34611938 2-3,8
+packages/backend/src/routing/oauth/gemini/codeassist-client.service.ts
+  s_a80493f83bbf63::t_158caae63cf1bb 23
+packages/backend/src/routing/oauth/copilot/copilot.controller.spec.ts
+  s_a80493f83bbf63::t_8667748952cfc0 2-5
+  s_a80493f83bbf63::t_48dc0f34611938 6
+packages/backend/src/routing/oauth/openai/openai-oauth.controller.security.spec.ts
+  s_b7f6407d49a731::t_9b2b3de1aa7f73 6-8
+packages/backend/src/routing/oauth/openai/openai-oauth.service.coverage.spec.ts
+  s_b7f6407d49a731::t_9b2b3de1aa7f73 3-4
+packages/backend/src/routing/oauth/minimax/minimax-oauth.controller.ts
+  s_a80493f83bbf63::t_48dc0f34611938 2-3
+  s_a80493f83bbf63::t_158caae63cf1bb 5-7
+packages/backend/src/routing/oauth/gemini/gemini-oauth.controller.spec.ts
+  s_a80493f83bbf63::t_8667748952cfc0 3-7
+packages/backend/src/routing/oauth/openai/openai-oauth.controller.ts
+  s_a80493f83bbf63::t_48dc0f34611938 17-18
+  s_b7f6407d49a731::t_9b2b3de1aa7f73 1-16,19-146
+packages/backend/src/routing/oauth/gemini/gemini-oauth.service.spec.ts
+  s_b7f6407d49a731::t_9b2b3de1aa7f73 3-4
+packages/backend/src/routing/oauth/kiro/kiro-oidc.spec.ts
+  s_a80493f83bbf63::t_158caae63cf1bb 1-109
+packages/backend/src/routing/oauth/openai/openai-oauth.types.ts
+  s_b7f6407d49a731::t_9b2b3de1aa7f73 12
+packages/backend/src/routing/oauth/minimax/minimax-oauth.service.coverage.spec.ts
+  s_a80493f83bbf63::t_158caae63cf1bb 3-4
+packages/backend/src/routing/oauth/minimax/minimax-oauth-helpers.ts
+  s_a80493f83bbf63::t_158caae63cf1bb 1,3-91
+  s_a80493f83bbf63::t_48dc0f34611938 2
+packages/backend/src/routing/oauth/kiro/kiro-oauth.service.spec.ts
+  s_a80493f83bbf63::t_158caae63cf1bb 3-4
+packages/backend/src/routing/oauth/core/redirect-pkce-oauth.base.ts
+  s_a80493f83bbf63::t_78ab716367e55a 19-21,26-27
+  s_a80493f83bbf63::t_158caae63cf1bb 1-18,22-25,28-439
+packages/backend/src/routing/oauth/core/redirect-pkce-oauth.base.callback.spec.ts
+  s_a80493f83bbf63::t_158caae63cf1bb 1-250
+packages/backend/src/routing/oauth/kiro/kiro-oauth.service.ts
+  s_a80493f83bbf63::t_158caae63cf1bb 4-7
+packages/backend/src/routing/oauth/openai/openai-oauth.service.ts
+  s_a80493f83bbf63::t_158caae63cf1bb 5
+  s_b7f6407d49a731::t_9b2b3de1aa7f73 3-4,6-7
+packages/backend/src/routing/oauth/minimax/minimax-oauth.service.ts
+  s_a80493f83bbf63::t_158caae63cf1bb 4-8
+packages/backend/src/routing/oauth/core/redirect-pkce-oauth.base.spec.ts
+  s_a80493f83bbf63::t_158caae63cf1bb 11-12
+packages/backend/src/routing/oauth/openai/openai-oauth.controller.spec.ts
+  s_a80493f83bbf63::t_8667748952cfc0 3-7
+packages/backend/src/routing/oauth/gemini/gemini-oauth.service.ts
+  s_b7f6407d49a731::t_9b2b3de1aa7f73 3-6
+packages/backend/src/routing/oauth/kiro/kiro-oauth.controller.ts
+  s_a80493f83bbf63::t_158caae63cf1bb 5-7
+  s_a80493f83bbf63::t_48dc0f34611938 2-3
+packages/backend/src/routing/oauth/kiro/kiro-oauth.controller.spec.ts
+  s_a80493f83bbf63::t_8667748952cfc0 2-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "50822a1a4d0d461d3309fe028471957e5236eed9",
+  "prompts": {},
+  "sessions": {
+    "s_a80493f83bbf63": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fcb05659-c1fc-4792-9efa-9575759418f2",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_b7f6407d49a731": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bf32ef61-2af7-4fe9-9144-6dbc3b91370a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+packages/backend/test/proxy-fallback-auth.e2e-spec.ts
+  s_fb57e57464ebc6::t_b2b3f3c5355a34 22,138,146,148,198-202,246-262
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "2e17cb401b71fcec5ff98619caf44a458c361c0e",
+  "prompts": {},
+  "sessions": {
+    "s_fb57e57464ebc6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4bd8-889e-7cf3-8f02-0d45a1a1d725",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

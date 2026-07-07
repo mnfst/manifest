@@ -1,0 +1,49 @@
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_700be27a56f92d::t_50ba45bbc37d98 299-319
+  s_700be27a56f92d::t_046638978078fb 193
+  s_700be27a56f92d::t_71c526350bfb0e 125,130
+  s_700be27a56f92d::t_d8fe90c6d75c44 320-321
+packages/backend/src/billing/plan.service.spec.ts
+  s_700be27a56f92d::t_e767acb3794329 114,118
+  s_700be27a56f92d::t_ec80e2f8e6c6cb 246-359
+  s_700be27a56f92d::t_a2d9275f52b83b 191-195,201,203-204
+packages/backend/src/routing/proxy/proxy-exception.filter.ts
+  s_700be27a56f92d::t_7269858f978454 68-94
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_700be27a56f92d::t_d8f293dc0eef58 134
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_700be27a56f92d::t_8b2193cf92bc43 162-166
+  s_700be27a56f92d::t_0c59f32c582065 79
+  s_700be27a56f92d::t_52877be0a9f42e 43
+  s_700be27a56f92d::t_236496ffa1a58a 167
+packages/backend/src/common/errors/error-codes.ts
+  s_700be27a56f92d::t_baf1ac6582e501 53-58
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_700be27a56f92d::t_5108da69d9db42 1-110
+packages/backend/src/billing/plan.service.ts
+  s_700be27a56f92d::t_581e3f3d8df39e 108-207
+  s_700be27a56f92d::t_2048cacb0c84b6 238-242,247-252
+  s_700be27a56f92d::t_9184386d6893b5 12-18,27-37,41
+packages/backend/src/routing/proxy/proxy.module.ts
+  s_700be27a56f92d::t_ca17980825b4eb 43
+  s_700be27a56f92d::t_55bc5b2a92acfb 15
+packages/backend/src/routing/proxy/__tests__/proxy-exception.filter.spec.ts
+  s_700be27a56f92d::t_7f9acd81ae46e4 275-276
+  s_700be27a56f92d::t_0c77f4a99129bf 267-274,277-314
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "59e7345373086ccc93ee735c0e7631231844e5e5",
+  "prompts": {},
+  "sessions": {
+    "s_700be27a56f92d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e4967351-5782-4cee-b326-136aaccd2add",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,41 @@
+packages/frontend/src/components/AnthropicOAuthDetailView.tsx
+  s_cdc27bf280c8e2::t_4041999b77001e 142,160
+packages/frontend/src/services/api/oauth.ts
+  s_cdc27bf280c8e2::t_4041999b77001e 55-63,91-95
+.changeset/refactor-oauth-local-disconnect.md
+  s_cdc27bf280c8e2::t_4041999b77001e 1-5
+packages/backend/src/routing/minimax-oauth.controller.spec.ts
+  s_cdc27bf280c8e2::t_8afec59584f9aa 5,11,23-27,92-125
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_cdc27bf280c8e2::t_8afec59584f9aa 9,19-24,169,257-258,268,270,283-285,301-302,312
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_cdc27bf280c8e2::t_1163df23ae1ff7 37,53,122-123,1043,1059,1651,1674,1676,1681-1682
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  s_cdc27bf280c8e2::t_4041999b77001e 16,122,140
+packages/backend/src/routing/oauth/minimax-oauth.controller.ts
+  s_cdc27bf280c8e2::t_4041999b77001e 6,13,54-72
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.ts
+  s_cdc27bf280c8e2::t_4041999b77001e 86-90,95-102
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.spec.ts
+  s_cdc27bf280c8e2::t_8afec59584f9aa 19,108,111,113-130,135
+packages/frontend/tests/components/AnthropicOAuthDetailView.test.tsx
+  s_cdc27bf280c8e2::t_8afec59584f9aa 277-278,291,297-300,303-304,309,406-407,417,419,432-434,450-451,461
+packages/frontend/tests/services/api/oauth.test.ts
+  s_cdc27bf280c8e2::t_37a6dfcda28f5e 91-106,143-151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "504a7affc6aced8c800cb5a0c6786d1e537d20ee",
+  "prompts": {},
+  "sessions": {
+    "s_cdc27bf280c8e2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e313a-7377-72b1-81ba-273fd9baf6a2",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

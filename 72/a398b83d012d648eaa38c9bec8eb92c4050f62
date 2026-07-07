@@ -1,0 +1,60 @@
+packages/frontend/tests/components/ModelCapabilityBadges.test.tsx
+  s_3bdee6c975de1f::t_a12d2fe41a83c1 4-6,33-34,38-39,44-50
+  s_3bdee6c975de1f::t_c4128c71a34bba 35-37,40-43
+packages/frontend/src/services/api/routing.ts
+  s_3bdee6c975de1f::t_f77b299ea774a4 4,11,301-302
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_3bdee6c975de1f::t_c1cf6379355488 8,20,57-60,106,112,316,318-332,351
+  s_3bdee6c975de1f::t_55c181239c5737 317,631-645
+  s_3bdee6c975de1f::t_46754064700fdf 533-541,628-630,646-651,656-669,671-674,676-685,687
+packages/backend/src/database/models-dev-sync.service.ts
+  s_3bdee6c975de1f::t_943c9c35521768 3,5-8,54-55,396,408-409
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_3bdee6c975de1f::t_ce38f224ebcab0 1093,1097,1111-1113,1115-1117,1142-1145,1149-1173
+packages/backend/src/routing/model.controller.spec.ts
+  s_3bdee6c975de1f::t_fa52724065fa8a 275,277,345,348,361-362,368-369
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_3bdee6c975de1f::t_b7d44a128ea918 297-298,605-608,674-676
+packages/backend/src/routing/model.controller.ts
+  s_3bdee6c975de1f::t_59ec34046611c4 15,116-117,124-127,145-146
+packages/frontend/src/styles/routing-modal.css
+  s_3bdee6c975de1f::t_6b215e636511de 2,5-11,172-173,175-184,272,275,287,313,329-339,345-353,478-485,487-489,492-520
+  s_3bdee6c975de1f::t_cd9fa5e1ecb88f 3-4,174,185-194,273
+  s_3bdee6c975de1f::t_9feefae5fc6c42 319
+  s_3bdee6c975de1f::t_4c343ddd4b77c8 340-344
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_3bdee6c975de1f::t_f531f2ebe87843 430-431,480-481
+packages/backend/src/model-discovery/model-fallback.ts
+  s_3bdee6c975de1f::t_b98d111ce053c5 151-152,168-169
+.changeset/model-selector-modalities.md
+  s_3bdee6c975de1f::t_3e0f473fb6914d 1,3-5
+  s_3bdee6c975de1f::t_0ce487b616f766 2
+packages/shared/src/provider-params-spec.ts
+  s_3bdee6c975de1f::t_2f6021668fadde 6-10
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_3bdee6c975de1f::t_d9f8ed41a5d19b 2,6-8,34-38,54-71,82-83,102-108
+packages/frontend/src/components/ModelCapabilityBadges.tsx
+  s_3bdee6c975de1f::t_8eca8df6ecc1de 108-119,121-162
+  s_3bdee6c975de1f::t_cae75be844dfc3 2,20,34-43
+  s_3bdee6c975de1f::t_c4128c71a34bba 120
+packages/shared/src/index.ts
+  s_3bdee6c975de1f::t_18ef1cf7755126 53,63
+packages/backend/src/model-discovery/model-fetcher.ts
+  s_3bdee6c975de1f::t_265771b30968b2 9,21-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "72a398b83d012d648eaa38c9bec8eb92c4050f62",
+  "prompts": {},
+  "sessions": {
+    "s_3bdee6c975de1f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e738d-961d-7df0-a2bf-950f34ab0a61",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

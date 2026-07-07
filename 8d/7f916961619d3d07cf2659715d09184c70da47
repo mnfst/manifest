@@ -1,0 +1,39 @@
+packages/frontend/src/components/WhatsNewModal.tsx
+  s_1f8038a6cb8fc5::t_9edf58e3c5e6d4 89
+  s_1f8038a6cb8fc5::t_bd6113c82f2fd8 12-13
+  s_1f8038a6cb8fc5::t_9948fab8c7dbc8 122-140
+  s_1f8038a6cb8fc5::t_6bf88ed7420a4c 47
+  s_1f8038a6cb8fc5::t_5e2b40c03e7e06 1-9,14-46,48-65,87-88,90,94-121,141-149
+  s_1f8038a6cb8fc5::t_9872585e9693d0 91-93
+  s_1f8038a6cb8fc5::t_46774629559b24 66-86
+  s_1f8038a6cb8fc5::t_9f5da0ae00d66e 10-11
+packages/frontend/src/styles/whatsnew.css
+  s_1f8038a6cb8fc5::t_f2f39f4350b0f6 3,7-13
+  s_1f8038a6cb8fc5::t_26ee7a1461ba4f 1-2,4-6,14-57,61,80
+  s_1f8038a6cb8fc5::t_7bea97052c6449 58-60,62-79
+.changeset/whats-new-global-providers.md
+  s_1f8038a6cb8fc5::t_e02d9e8586d5b4 1-5
+packages/frontend/src/App.tsx
+  s_1f8038a6cb8fc5::t_820bf74274711a 16
+  s_1f8038a6cb8fc5::t_cc9bf8a665cd56 88
+packages/frontend/tests/components/WhatsNewModal.test.tsx
+  s_1f8038a6cb8fc5::t_bec5f77de9d158 1-104
+packages/frontend/src/styles/theme.css
+  s_1f8038a6cb8fc5::t_a13a391184c59a 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "8d7f916961619d3d07cf2659715d09184c70da47",
+  "prompts": {},
+  "sessions": {
+    "s_1f8038a6cb8fc5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0ccf5ef5-9291-4b9e-b836-ef54b097c5ef",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

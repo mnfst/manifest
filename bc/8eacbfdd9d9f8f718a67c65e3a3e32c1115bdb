@@ -1,0 +1,19 @@
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_e1b70d41b01e6a::t_5b4e376e1e995a 50-54,311-312,318,391,394,410-412,423-425,469-471
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "bc8eacbfdd9d9f8f718a67c65e3a3e32c1115bdb",
+  "prompts": {},
+  "sessions": {
+    "s_e1b70d41b01e6a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a171d69c-205a-4893-b9d9-91fdec7c91ca",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

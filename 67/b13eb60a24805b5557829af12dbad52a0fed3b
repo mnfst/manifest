@@ -1,0 +1,25 @@
+packages/frontend/src/styles/agent-type-select.css
+  d71bed364de619b3 141,145
+packages/frontend/src/styles/controls.css
+  d71bed364de619b3 405
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "67b13eb60a24805b5557829af12dbad52a0fed3b",
+  "prompts": {
+    "d71bed364de619b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e0f3390-4f98-46d3-a40d-1adf2ff0c86e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 0,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    }
+  }
+}

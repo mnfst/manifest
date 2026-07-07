@@ -1,0 +1,32 @@
+packages/backend/src/analytics/services/agent-duplication.service.spec.ts
+  s_8f7bd68edeeec2::t_d08fc096ac1f7d 60,78-79,134,137,213-217,230,232-236,239,241,244,253-267,286-288,298-300,314,336,338,357-358,361-382,387-389,423-425,431,469,473-477,480-484,493-495,498,501-502,533-537,546-547,553-556,559,561-567,574,576-582,596-605,607-640,649-653,717,722,725-726,728,730,732,736,740-742,744-746,748
+  s_8f7bd68edeeec2::t_6df9bb5bb95668 485-487,512-514,516,519,521-523,538-543
+packages/backend/test/agent-duplication-migrations.e2e-spec.ts
+  s_8f7bd68edeeec2::t_db68c4754102c9 1-2
+  s_8f7bd68edeeec2::t_93e9e3238afb4e 3-30,33-52,55,57-111
+  s_8f7bd68edeeec2::t_51224880de0cd9 31-32
+  s_8f7bd68edeeec2::t_775793f00a0ab1 53-54,56
+packages/backend/test/agent-duplication.e2e-spec.ts
+  s_8f7bd68edeeec2::t_861b95fd26d15e 11,24-27,45-51,104-105,123,132-133,155-157,159-165,167-168,221-222,239,256-261,270,279-281,284-294,296-297,299-300
+packages/backend/src/analytics/services/agent-duplication.service.ts
+  s_8f7bd68edeeec2::t_49c45ea193a0b9 3,9
+  s_8f7bd68edeeec2::t_656d98f5a44edb 173-181,183-222
+  s_8f7bd68edeeec2::t_d53b9da6cb9e3f 305
+  s_8f7bd68edeeec2::t_66b21cedadc9da 73-77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "434cecf1af65cf28799f06287839c53eb9cc6cd5",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

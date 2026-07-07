@@ -1,0 +1,72 @@
+package.json
+  s_f4fce638aee360::t_a9d5813459cc6c 39
+packages/backend/src/routing/provider.controller.spec.ts
+  s_f4fce638aee360::t_e49eae649cdd4a 536-577,587
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_f4fce638aee360::t_a1e18904424a22 69,118-122,142,222-232,641
+.changeset/bedrock-provider.md
+  s_f4fce638aee360::t_b803c488227acd 1,5-7
+scripts/smoke-bedrock-provider.mjs
+  s_f4fce638aee360::t_a9d5813459cc6c 1-89,91-118,120-196,198-304
+packages/shared/src/providers.ts
+  s_f4fce638aee360::t_3544c3e471a310 74
+  s_f4fce638aee360::t_f183511027a181 72-73,75-82
+packages/backend/src/routing/bedrock-region.ts
+  s_f4fce638aee360::t_ecc6fb9ee17d9b 1-26,34-74
+  s_f4fce638aee360::t_e2af8d985eef99 27-33
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_f4fce638aee360::t_77688a939d9e57 79-81
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_f4fce638aee360::t_878c5ee886aa23 3
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_f4fce638aee360::t_dd1ca51edecc4f 22,53-56,58-76
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_f4fce638aee360::t_b34e3a397537b2 8
+packages/frontend/tests/components/ProviderKeyForm.test.tsx
+  s_f4fce638aee360::t_faa592d730ec7d 338-357,359-374
+packages/frontend/src/services/providers.ts
+  s_f4fce638aee360::t_48e7e0d7ef8c61 46-47,95,130-150,411
+packages/backend/src/routing/proxy/forward-endpoint-resolver.spec.ts
+  s_f4fce638aee360::t_da76edd4043af9 149-159
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_f4fce638aee360::t_6b7635c215d724 15-17,652-656,758-763
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_f4fce638aee360::t_63d95eb238e756 114-142
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_f4fce638aee360::t_6726c7f2e1bb7a 21-25,350-360
+packages/frontend/src/components/ProviderIcon.tsx
+  s_f4fce638aee360::t_1d905d6ffff8aa 41-58
+packages/backend/src/routing/proxy/forward-endpoint-resolver.ts
+  s_f4fce638aee360::t_5e04e99e1b6e0f 23,119-120
+packages/backend/src/routing/provider.controller.ts
+  s_f4fce638aee360::t_0019d3c313e313 32,110-113,120
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_f4fce638aee360::t_16e8f4a268e130 73-74,81-93
+  s_f4fce638aee360::t_09be41ad59b5f9 72,75-80,94-120
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_f4fce638aee360::t_feae420d80d817 11,151-156
+packages/backend/src/routing/bedrock-region.spec.ts
+  s_f4fce638aee360::t_7b0e6b29f2843c 1-59
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_f4fce638aee360::t_f36a99e2bda72b 16-20,145-146
+packages/shared/__tests__/providers.spec.ts
+  s_f4fce638aee360::t_1c501aa828c349 95-104,166-171
+packages/frontend/tests/services/providers.test.ts
+  s_f4fce638aee360::t_11a1f4f4fa27b2 128-144,444-454
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "c8f10ce8c3c0aaba7fb8883addcbf51641ad5302",
+  "prompts": {},
+  "sessions": {
+    "s_f4fce638aee360": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ebcbe-f27d-7bf3-b1b4-8bee8d699c3e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

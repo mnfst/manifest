@@ -1,0 +1,32 @@
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_dcd815852e7fcd::t_5b445d0e5cf8ff 543-547,553,555-561,622,634,640,651,655,670
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  s_dcd815852e7fcd::t_440b2ccc3e3549 417-420,423-426
+  s_dcd815852e7fcd::t_0d02879166b7a7 23,43-80
+packages/frontend/src/components/Select.tsx
+  s_dcd815852e7fcd::t_04880f76014c85 156
+  s_dcd815852e7fcd::t_615f8287ec527c 2,17-18,23,25-58,60-61,69-70,79-82,86-87,91-92,96-123,130-132
+  s_dcd815852e7fcd::t_77de9d1732f08e 59
+packages/frontend/tests/components/Select.test.tsx
+  s_dcd815852e7fcd::t_e7d147bf5f3aea 96-99,102-112,114-115,117,122-126
+packages/frontend/src/styles/custom-select.css
+  s_dcd815852e7fcd::t_66fbc43281cdcc 62-72
+packages/frontend/src/styles/routing-providers.css
+  s_dcd815852e7fcd::t_9dbfda04da2061 436-445
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "03fdc77010e324c98043af4a83329533b43b53d1",
+  "prompts": {},
+  "sessions": {
+    "s_dcd815852e7fcd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ecb07-1a57-7052-b468-2f5d5d1eb3ba",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

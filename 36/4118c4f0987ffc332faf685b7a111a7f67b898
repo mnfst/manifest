@@ -1,0 +1,35 @@
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_92a09cacaa2362::t_d4ba7c14e028ec 521-526
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_92a09cacaa2362::t_15c36ace5b8c2e 246-252
+  s_92a09cacaa2362::t_af5eac204f7205 187-191
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_92a09cacaa2362::t_b8e899a7743b7e 190
+  s_92a09cacaa2362::t_2176e1fe28d780 350-413
+  s_92a09cacaa2362::t_f854bbfa77aa96 240
+  s_92a09cacaa2362::t_58d2fc722d37fc 92
+  s_92a09cacaa2362::t_78217b6d8f01fd 304
+  s_92a09cacaa2362::t_0f94ad800798f3 428
+  s_92a09cacaa2362::t_02202ff9c8519e 128
+  s_92a09cacaa2362::t_2b7bea74f7cf25 162
+  s_92a09cacaa2362::t_6f594489a1c388 215
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  s_92a09cacaa2362::t_bc6a82e13a9116 499-518,520
+  s_92a09cacaa2362::t_f6834c8df5d87d 296,298-306
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "364118c4f0987ffc332faf685b7a111a7f67b898",
+  "prompts": {},
+  "sessions": {
+    "s_92a09cacaa2362": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7d589c94-160b-444b-90b4-89f654b51aa0",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

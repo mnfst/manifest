@@ -1,0 +1,20 @@
+packages/backend/src/analytics/services/messages-query.service.cost-filter.spec.ts
+  s_cd68a57c9c12bc::t_7561a591fd53d2 6
+  s_cd68a57c9c12bc::t_a92aad31668733 82-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "bab23e71641e925e6383bebd3e5c01f61b98e675",
+  "prompts": {},
+  "sessions": {
+    "s_cd68a57c9c12bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ccc1e29-2639-470b-b21e-8a27c2c4ce1a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

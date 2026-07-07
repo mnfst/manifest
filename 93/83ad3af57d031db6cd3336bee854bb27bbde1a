@@ -1,0 +1,37 @@
+packages/frontend/src/components/FrameworkSnippets.tsx
+  d71bed364de619b3 146-152
+packages/frontend/src/services/framework-snippets.ts
+  d71bed364de619b3 15,27,162-207,433-436,452-453
+packages/frontend/src/components/SetupStepAddProvider.tsx
+  d71bed364de619b3 20
+packages/frontend/tests/services/framework-snippets.test.ts
+  d71bed364de619b3 45-46,49,51-57,62-65,68,70-73
+packages/frontend/tests/components/SetupStepAddProvider.test.tsx
+  d71bed364de619b3 191,193
+packages/frontend/tests/components/FrameworkSnippets.test.tsx
+  d71bed364de619b3 116,119,121-124,186,190-207,214,221,230,232,239,246,253,261,326
+packages/shared/src/agent-type.ts
+  d71bed364de619b3 8,25,34,41
+packages/shared/__tests__/agent-type.spec.ts
+  d71bed364de619b3 18,67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "9383ad3af57d031db6cd3336bee854bb27bbde1a",
+  "prompts": {
+    "d71bed364de619b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e0f3390-4f98-46d3-a40d-1adf2ff0c86e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 130,
+      "total_deletions": 37,
+      "accepted_lines": 123,
+      "overriden_lines": 0
+    }
+  }
+}

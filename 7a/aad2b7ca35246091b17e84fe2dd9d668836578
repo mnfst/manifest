@@ -1,0 +1,19 @@
+docs/superpowers/plans/2026-06-10-dashboard-fixes.md
+  s_cd68a57c9c12bc::t_d5e82e7f1ae905 1-204
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "7aaad2b7ca35246091b17e84fe2dd9d668836578",
+  "prompts": {},
+  "sessions": {
+    "s_cd68a57c9c12bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ccc1e29-2639-470b-b21e-8a27c2c4ce1a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

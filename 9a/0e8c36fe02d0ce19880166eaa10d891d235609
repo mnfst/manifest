@@ -1,0 +1,31 @@
+packages/frontend/src/pages/RoutingActions.tsx
+  42a3cee9fc1605ad 98-99,106-114
+.changeset/fix-fallback-same-provider.md
+  42a3cee9fc1605ad 1-5
+packages/frontend/tests/pages/Routing.test.tsx
+  42a3cee9fc1605ad 188-198,632-661,681-686
+packages/frontend/src/pages/Routing.tsx
+  42a3cee9fc1605ad 139-140,143-150,153
+packages/frontend/tests/pages/RoutingActions.test.ts
+  42a3cee9fc1605ad 186-195,204-238
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "9a0e8c36fe02d0ce19880166eaa10d891d235609",
+  "prompts": {
+    "42a3cee9fc1605ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8831ae9b-cf11-4feb-a5e7-e3ddce83739b",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 2064,
+      "total_deletions": 70,
+      "accepted_lines": 1993,
+      "overriden_lines": 2
+    }
+  }
+}

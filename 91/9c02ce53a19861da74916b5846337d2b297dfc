@@ -1,0 +1,144 @@
+packages/shared/src/index.ts
+  s_d55d26a37e6be3::t_50bbecfdcf0472 36
+  s_d55d26a37e6be3::t_0fb2bc17eae2c9 46-50
+  s_d55d26a37e6be3::t_2b78ed709a65e1 35
+packages/frontend/src/services/api/routing.ts
+  s_d55d26a37e6be3::t_bce2300a7b6cb9 174-176
+  s_d55d26a37e6be3::t_10d72085005f88 180
+packages/backend/src/routing/model-params.controller.ts
+  s_d55d26a37e6be3::t_b15738c07b0032 2-6,45-47,56-61,110-111,120
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_d55d26a37e6be3::t_cfe41e9b3e94a8 147,207,215,224
+  s_d55d26a37e6be3::t_7489a8583923f5 168
+packages/backend/src/routing/__tests__/model-params.controller.spec.ts
+  s_d55d26a37e6be3::t_84539d3a797e5c 50,61,73,83,93,99,160,164,191
+  s_d55d26a37e6be3::t_48d94da7a3bf0e 103-109,111-141
+packages/backend/src/database/migrations/1789200000000-FlattenAgentModelParamsThinking.spec.ts
+  s_d55d26a37e6be3::t_626c49e232d652 1-32
+packages/backend/src/routing/dto/__tests__/model-params.dto.spec.ts
+  s_d55d26a37e6be3::t_efa73b8196dc5a 19
+  s_d55d26a37e6be3::t_f3cd2b6c6a612a 12,17,20,24,31,39
+packages/shared/src/thinking-defaults.ts
+  s_d55d26a37e6be3::t_8b7d8ea28b08b2 1-2,12-13,15-23
+  s_d55d26a37e6be3::t_f26fbd33b298f2 5-6
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_d55d26a37e6be3::t_892bfbf985f80a 270,281
+packages/backend/src/analytics/services/agent-duplication.service.spec.ts
+  s_d55d26a37e6be3::t_6071845fb298bc 269,281,331
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_d55d26a37e6be3::t_10f788a01edf42 138-141,154
+  s_d55d26a37e6be3::t_ab01a22fce0559 55-56,231
+  s_d55d26a37e6be3::t_f317c86f45280e 3,34,36,38,90,270,277
+  s_d55d26a37e6be3::t_d74a4319a7ec15 74-75,156,204
+  s_d55d26a37e6be3::t_9c12b7ffea4fed 63-73,76-77,136,142-153,155,157-177,181-182,184-203,205-214,217,220-221
+  s_d55d26a37e6be3::t_94a61d26bb7431 272
+  s_d55d26a37e6be3::t_b905b5f519ce26 2,4,14-17,29-32,50-54,57-62,79,94-135,137,178-180,183,215-216,218-219,222-230,232-258,274,320
+packages/frontend/src/components/ModelParamsAffordance.tsx
+  s_d55d26a37e6be3::t_832b7185b3a936 73-76
+  s_d55d26a37e6be3::t_1f409312e332db 45-46
+  s_d55d26a37e6be3::t_953df0e73bdd69 58-59,114-115
+packages/frontend/src/styles/routing.css
+  s_d55d26a37e6be3::t_ee328219c23447 613-614,616-617,621-622,624,627-631,633,635-644,647-650,657-660,663-666,669-671,674-675,678-692,694,697-699,720-721
+  s_d55d26a37e6be3::t_60d91d5e99dfab 608-612,615,618-620,625-626,700-719,722-725
+  s_d55d26a37e6be3::t_16baeef4ca9012 623,632,634,645-646,651-656,661-662,667-668,672-673,676-677,693,695-696,774,779-780
+.changeset/auth-aware-provider-params.md
+  s_d55d26a37e6be3::t_7ddfc0ccbe5e0b 1-5
+packages/backend/src/entities/agent-model-params.entity.ts
+  s_d55d26a37e6be3::t_88359df2fa79e8 2
+  s_d55d26a37e6be3::t_e90ebb551cf7f4 41
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_d55d26a37e6be3::t_32702aed391022 491-499
+  s_d55d26a37e6be3::t_6ea17b3e321d8b 86,211-212,539-548
+  s_d55d26a37e6be3::t_e5e30923dfe2d0 198
+packages/backend/src/database/migrations/1789200000000-FlattenAgentModelParamsThinking.ts
+  s_d55d26a37e6be3::t_1d36f4bacdbf5d 1-32
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_d55d26a37e6be3::t_9d303232b6aae3 1323
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_d55d26a37e6be3::t_fea4904d519761 72-74,90-92
+packages/shared/__tests__/request-params-snapshot.spec.ts
+  s_d55d26a37e6be3::t_ec8f59fabd9921 10-23,37-38,40,47,49-50,52,58-59,61-62,64,67,69,72-73,75
+packages/frontend/tests/pages/Routing.test.tsx
+  s_d55d26a37e6be3::t_ac45f32ed091a5 300,302,315,347,353,418,1205,1211,1218,1230,1243,1249,1272
+packages/backend/src/entities/agent-message.entity.ts
+  s_d55d26a37e6be3::t_2c7f25dba02976 117
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_d55d26a37e6be3::t_1bb57434e61d62 1192
+packages/shared/__tests__/thinking-defaults.spec.ts
+  s_d55d26a37e6be3::t_ebe2761c0aa855 5,9,12-16
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_d55d26a37e6be3::t_d5cf98c6864928 8-11,61-65,76-77,81-83,85-87,91-92,95-116,121-123,145,164,176-177,179
+  s_d55d26a37e6be3::t_c42f0180acf5d6 13,16-57,78,136,138-140,142
+  s_d55d26a37e6be3::t_81f6339aafd3d0 14-15,58-59,84,134-135,137,141,154-158
+  s_d55d26a37e6be3::t_c4f4f28767a133 118-120,130-133,146-150,152-153,159,168-172
+packages/shared/src/request-params-snapshot.ts
+  s_d55d26a37e6be3::t_0b1b1da4aca0e7 1-2,9-10,13-15,22-23,37-40,46-47,49-50,54-56,58,60
+  s_d55d26a37e6be3::t_62851e8817ca6a 3,48,51
+packages/frontend/src/components/MessageDetailsSections.tsx
+  s_d55d26a37e6be3::t_64aa75c29f6954 6
+packages/backend/src/routing/dto/model-params.dto.ts
+  s_d55d26a37e6be3::t_d47fbae9c342e1 1,6-8,10-12,15,30
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_d55d26a37e6be3::t_b1ca1ee5976ccb 5,100,104,107-108
+  s_d55d26a37e6be3::t_e94c5d7d0c4519 37-50
+  s_d55d26a37e6be3::t_52091b4cf4478c 156,192-194
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_d55d26a37e6be3::t_68917fbe6b7c0e 438,481,483-485
+  s_d55d26a37e6be3::t_6d1268332068fa 337,403,409-411,458,470,478
+packages/frontend/tests/components/ModelParamsDialog.test.tsx
+  s_d55d26a37e6be3::t_6e944d318cec33 1,28-31
+  s_d55d26a37e6be3::t_4a250ab30ef26b 197
+  s_d55d26a37e6be3::t_dc4468f46a9f61 3,11-13,17,19-20,25-27,32,48,71,92,148-191,195-196,198-200,232-247
+  s_d55d26a37e6be3::t_d05a5777d914f9 192,194
+  s_d55d26a37e6be3::t_1049f52823648b 201,212-217,220-229
+  s_d55d26a37e6be3::t_aa7e03a384d15a 193
+  s_d55d26a37e6be3::t_b09e7898b6cc5d 202-211,218-219,230-231
+packages/frontend/tests/components/ModelParamsAffordance.test.tsx
+  s_d55d26a37e6be3::t_cc68803eab897b 71,108,121
+  s_d55d26a37e6be3::t_4a6175f9840651 19,97
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_d55d26a37e6be3::t_cc4bff12b762db 1208,1281
+packages/frontend/tests/services/api/model-params.test.ts
+  s_d55d26a37e6be3::t_ed83e664226472 40,49
+packages/backend/src/routing/routing-core/agent-model-params.service.ts
+  s_d55d26a37e6be3::t_ebd727e98d1e50 59
+packages/frontend/tests/components/MessageDetails.test.tsx
+  s_d55d26a37e6be3::t_ba4266a92e7a87 872,888,893,921,944,975,997
+packages/shared/src/request-params.ts
+  s_d55d26a37e6be3::t_787116d7e73368 1,6,10-13,18,22-29
+  s_d55d26a37e6be3::t_0b1bbd23ae3fbc 3,5,7
+  s_d55d26a37e6be3::t_c77ee3fb5d2818 4
+  s_d55d26a37e6be3::t_58f4f2f59e7d05 21
+packages/shared/__tests__/request-params.spec.ts
+  s_d55d26a37e6be3::t_bdac888c657805 2,70-86
+  s_d55d26a37e6be3::t_4a3430c9e233dd 4-23,28-29,34-35,39-44,47,52-69,91-92,94
+packages/frontend/src/services/api/messages.ts
+  s_d55d26a37e6be3::t_56e8f52f4c1811 76
+  s_d55d26a37e6be3::t_5a275180ca075e 73-75
+packages/backend/src/analytics/services/message-details.service.ts
+  s_d55d26a37e6be3::t_99a51af17dbeee 171
+packages/shared/src/provider-params-spec.ts
+  s_d55d26a37e6be3::t_bfc1b8d6d35f8b 111
+  s_d55d26a37e6be3::t_6094a27e672827 39-41,51-57,69,79-82
+  s_d55d26a37e6be3::t_a059484655a0a7 42-50,58-68,70-78
+  s_d55d26a37e6be3::t_2574a6def4544e 2,24,127-128,130
+  s_d55d26a37e6be3::t_98716471cdee9c 1,9-10,12-16,19-20,23,25-29,33-36,38,83-92,94-95,98,101-102,104-110,112-113,117-119,125-126,129,132
+packages/backend/src/routing/routing-core/__tests__/agent-model-params.service.spec.ts
+  s_d55d26a37e6be3::t_be360db9be6c3f 98,105,120,137,142
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.9",
+  "base_commit_sha": "919c02ce53a19861da74916b5846337d2b297dfc",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

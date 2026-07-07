@@ -1,0 +1,27 @@
+packages/frontend/src/components/ClaudeCodeSetup.tsx
+  d71bed364de619b3 117-119,135
+packages/frontend/tests/services/framework-snippets.test.ts
+  d71bed364de619b3 297,302-312
+packages/frontend/src/services/framework-snippets.ts
+  d71bed364de619b3 349-351,355-360
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "5fb59423d016984c16394fa8530a0356a986b3a9",
+  "prompts": {
+    "d71bed364de619b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e0f3390-4f98-46d3-a40d-1adf2ff0c86e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 25,
+      "total_deletions": 14,
+      "accepted_lines": 25,
+      "overriden_lines": 0
+    }
+  }
+}

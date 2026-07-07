@@ -1,0 +1,25 @@
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_dcd815852e7fcd::t_13617513ab0249 674-679
+packages/frontend/src/components/Select.tsx
+  s_dcd815852e7fcd::t_afa2db6b4828b4 19,140
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  s_dcd815852e7fcd::t_2ddad4a7021927 425
+packages/frontend/tests/components/Select.test.tsx
+  s_dcd815852e7fcd::t_9171dfd093ace3 128-130,134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "fb8eaf8ba6abdf1d23db4238852a6f6b44248c23",
+  "prompts": {},
+  "sessions": {
+    "s_dcd815852e7fcd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ecb07-1a57-7052-b468-2f5d5d1eb3ba",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

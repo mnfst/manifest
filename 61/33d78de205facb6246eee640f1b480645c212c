@@ -1,0 +1,138 @@
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_f4fce638aee360::t_d019614e32f0da 221-249
+.changeset/bedrock-provider.md
+  s_f4fce638aee360::t_adfc676bf82ae0 2
+  s_f4fce638aee360::t_b803c488227acd 1,3-4
+  s_f4fce638aee360::t_88c0a01afd8068 5
+packages/shared/src/index.ts
+  s_f4fce638aee360::t_cd46ce84ac97b1 93
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_f4fce638aee360::t_3859dda000f93b 114,120,126
+  s_f4fce638aee360::t_63d95eb238e756 115-119,121-125,127-136,138-142
+  s_f4fce638aee360::t_e251719936bab4 137
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_f4fce638aee360::t_6b7635c215d724 652-653,755-761
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_f4fce638aee360::t_f36a99e2bda72b 16-20,145-146
+  s_f4fce638aee360::t_fa72932a74af4c 4,247-249,490-493,510,525,533,535,564-566,577
+  s_f4fce638aee360::t_bd2297336c84ec 507-508
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_f4fce638aee360::t_878c5ee886aa23 3
+packages/shared/src/provider-inference.ts
+  s_6ab7cca8c7f789::t_feb57c726f5dca 111
+  s_f4fce638aee360::t_df09642a1a352a 1-2,38-44,87-110
+  s_b7725a7fe88438::t_49e00ab73af673 45
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_f4fce638aee360::t_3859dda000f93b 53,57,65,69,76
+  s_f4fce638aee360::t_dd1ca51edecc4f 22,54-56,58-64,66-68,70-75
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_f4fce638aee360::t_1e91fe0095d83f 257-284
+  s_f4fce638aee360::t_c43562af5c2550 231-256
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_f4fce638aee360::t_6726c7f2e1bb7a 21-25,350-360
+packages/backend/src/routing/provider.controller.spec.ts
+  s_f4fce638aee360::t_563e4afb1c3584 543,552,561,564
+  s_f4fce638aee360::t_e49eae649cdd4a 536-542,544-551,553-560,562-563,565-577,587
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_f4fce638aee360::t_b34e3a397537b2 8
+packages/backend/src/routing/model.controller.ts
+  s_f4fce638aee360::t_338d9ce4bf5907 13,109-112
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_f4fce638aee360::t_a1e18904424a22 69,118-122,142,223,225,227-232,641
+  s_f4fce638aee360::t_3859dda000f93b 222,224,226
+packages/backend/src/routing/bedrock-region.spec.ts
+  s_f4fce638aee360::t_ee6ae7e2045d05 4,7,25,27-28,33-36,40-42,44-45,49-53
+  s_f4fce638aee360::t_7b0e6b29f2843c 1-3,5-6,8-24,26,29-32,37-39,43,46-48,54-60
+packages/backend/src/routing/provider.controller.ts
+  s_f4fce638aee360::t_0019d3c313e313 32,110-113,120
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_f4fce638aee360::t_09be41ad59b5f9 72,75-80,94-97,107-109,111-129
+  s_f4fce638aee360::t_563e4afb1c3584 98-106,110
+  s_f4fce638aee360::t_16e8f4a268e130 73-74,81-93
+packages/shared/src/providers.ts
+  s_f4fce638aee360::t_3544c3e471a310 74
+  s_f4fce638aee360::t_f183511027a181 72-73,75-82
+packages/frontend/tests/services/providers.test.ts
+  s_f4fce638aee360::t_b5f06231b1dc63 452-455
+  s_f4fce638aee360::t_11a1f4f4fa27b2 128-144,444-451,456-458
+packages/frontend/tests/components/ProviderKeyForm.test.tsx
+  s_f4fce638aee360::t_faa592d730ec7d 338-345,347-360,362-371,373-374
+  s_f4fce638aee360::t_b5f06231b1dc63 346,361,372
+packages/frontend/src/services/providers.ts
+  s_f4fce638aee360::t_48e7e0d7ef8c61 46-47,95,130-149,410
+packages/shared/__tests__/provider-inference.spec.ts
+  s_f4fce638aee360::t_9f4f779e2c33f9 4,147-184
+  s_6ab7cca8c7f789::t_f3f41cf96f6c09 185-187
+packages/backend/src/routing/proxy/forward-endpoint-resolver.ts
+  s_f4fce638aee360::t_5e04e99e1b6e0f 23,119-120
+packages/backend/src/routing/bedrock-region.ts
+  s_f4fce638aee360::t_adfc676bf82ae0 1,23-28,31
+  s_f4fce638aee360::t_b2227fc32a19d1 35-39,42,44,47,51
+  s_f4fce638aee360::t_ecc6fb9ee17d9b 2-22,29-30,32-34,40-41,43,45-46,48-50,52-76
+packages/backend/src/model-discovery/model-fallback.ts
+  s_f4fce638aee360::t_868a517805d93e 87-92,144-147
+packages/frontend/src/components/ProviderIcon.tsx
+  s_f4fce638aee360::t_1d905d6ffff8aa 41-58
+packages/backend/src/model-prices/model-pricing-cache.service.ts
+  s_f4fce638aee360::t_62777de6f9233b 13,131-132,142
+  s_f4fce638aee360::t_e04719d2dc11cc 133-141,324-337
+  8687f30dfa1974d4 338
+packages/backend/src/model-prices/model-pricing-cache.service.spec.ts
+  s_f4fce638aee360::t_17cca42e4cbfae 225-240
+  s_f4fce638aee360::t_3bf53d9f9ee7d7 241-254
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_c1e2284966bb9e::t_120f0c3d474c84 374-375
+  s_f4fce638aee360::t_26aa473975bf21 37,358-363,372-373
+  s_f4fce638aee360::t_b5e6204e77fb5c 13,146-155,163-168,218-222,285-315
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_f4fce638aee360::t_df4ed055de3e46 177-183
+packages/backend/src/routing/proxy/forward-endpoint-resolver.spec.ts
+  s_f4fce638aee360::t_3859dda000f93b 149,153-154,156-157
+  s_f4fce638aee360::t_da76edd4043af9 150-152,155,158-159
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_f4fce638aee360::t_77688a939d9e57 79-81
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_f4fce638aee360::t_feae420d80d817 11,151-156
+packages/shared/__tests__/providers.spec.ts
+  s_f4fce638aee360::t_1c501aa828c349 95-104,166-171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "6133d78de205facb6246eee640f1b480645c212c",
+  "prompts": {},
+  "sessions": {
+    "s_6ab7cca8c7f789": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0671ec04-600b-40a9-a9e4-01ac7992d4fa",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_b7725a7fe88438": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c13dd4a-d38d-4cb4-8e12-9573513608d3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_c1e2284966bb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8ea9-2adb-7c30-ba7d-9e546f4ae53c",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_f4fce638aee360": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ebcbe-f27d-7bf3-b1b4-8bee8d699c3e",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

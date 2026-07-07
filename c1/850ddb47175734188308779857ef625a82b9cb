@@ -1,0 +1,19 @@
+.changeset/calm-copilot-accounts.md
+  s_2a22c521aed263::t_2ef0bf7ef93d55 1,3-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "c1850ddb47175734188308779857ef625a82b9cb",
+  "prompts": {},
+  "sessions": {
+    "s_2a22c521aed263": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4988-c505-73d0-a41e-f15bc309f083",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

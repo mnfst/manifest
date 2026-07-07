@@ -1,0 +1,27 @@
+packages/shared/src/providers.ts
+  s_5f7ad005e66480::t_2d5e9bea0362b8 219-220
+packages/shared/__tests__/providers.spec.ts
+  s_5f7ad005e66480::t_2d5e9bea0362b8 181-182
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_5f7ad005e66480::t_2d5e9bea0362b8 20
+packages/frontend/tests/services/providers.test.ts
+  s_5f7ad005e66480::t_2d5e9bea0362b8 148,159,161,604-606
+.changeset/xiaomi-basic-api-key.md
+  s_5f7ad005e66480::t_f8d730528b8ef0 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "ca62d7b323058bf2a50462e76b0a4bb99d83a8a9",
+  "prompts": {},
+  "sessions": {
+    "s_5f7ad005e66480": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019eccb2-f670-7843-b61e-e9e5b98206db",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

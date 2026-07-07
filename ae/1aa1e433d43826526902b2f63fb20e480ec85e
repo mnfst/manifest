@@ -1,0 +1,34 @@
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_26eda0454ebd4d::t_7528be7dcae5aa 4
+  s_26eda0454ebd4d::t_c25e78c8bb4f55 345-386
+  s_26eda0454ebd4d::t_22a7c5a1a60719 344
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_26eda0454ebd4d::t_8eeacec6391410 403
+  s_26eda0454ebd4d::t_72050cea0c452d 348-350
+  s_26eda0454ebd4d::t_283b84323a9170 241-250,253,255-271,275-276,278,282,288
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_26eda0454ebd4d::t_fd13e34b87ee04 230,247-315,317-319
+  s_26eda0454ebd4d::t_17d35eb24b3a76 52-56,75,316,588,817,844
+packages/backend/src/routing/routing-core/__tests__/provider-key.service.spec.ts
+  s_26eda0454ebd4d::t_c0f71d2ad9321d 25-27
+  s_26eda0454ebd4d::t_4b8b8d7d56acb3 44-47
+  s_26eda0454ebd4d::t_3725a96b0c8689 543-634
+packages/backend/src/routing/resolve/__tests__/resolve.service.edge.spec.ts
+  s_26eda0454ebd4d::t_e656fd32ca6cb8 83-87,105,248,266
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "ae1aa1e433d43826526902b2f63fb20e480ec85e",
+  "prompts": {},
+  "sessions": {
+    "s_26eda0454ebd4d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "35971fe0-4ebb-497d-bc10-e2b7d77365b4",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

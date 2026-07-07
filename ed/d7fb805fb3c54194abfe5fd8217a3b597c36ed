@@ -1,0 +1,1055 @@
+packages/backend/src/routing/tier.controller.ts
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 92
+  s_f4f52f0c569773::t_c57c975d54f3ba 23-25,83-91,94
+packages/frontend/tests/components/ClaudeCodeSetup.test.tsx
+  s_5edd42bfd9f340::t_afefb25bf01a81 27,30,33,97
+packages/shared/src/request-params-snapshot.ts
+  s_78479c0eb45b50::t_f943efe5bc1c41 44-46
+packages/backend/src/routing/proxy/proxy-friendly-response.ts
+  s_f4f52f0c569773::t_ba3d23a77886cf 5,22,55
+  s_f4f52f0c569773::t_bed3e53652dee3 49
+packages/backend/src/model-discovery/opencode-go-catalog.service.ts
+  s_d84e1018f6416e::t_e3e0d380b9b048 49-55
+  s_d84e1018f6416e::t_abe2ac8cc14607 218
+  s_d84e1018f6416e::t_4e52d87dd72df7 44,57-69
+  s_d84e1018f6416e::t_e55e0f2583bf39 1
+  s_d84e1018f6416e::t_081b4afd6eeb84 10-15,26-35,40-41,48,104,114-128,155,157,175,181-212,217,221-233
+  s_d84e1018f6416e::t_cf7bba450e2941 76-85,87
+  s_d84e1018f6416e::t_785ea912aa7d6c 130-144
+packages/backend/src/routing/oauth/codeassist-client.service.spec.ts
+  s_efa1e76f9c84e4::t_761959e9ef3077 122,154,183,201,220
+  s_706915655668dc::t_db5117fc8460f7 1-32,37-76,113-121,123-153,155-182,184-200,202-219,221-236
+  s_efa1e76f9c84e4::t_f84aad7cb14a59 33-36,77-110
+packages/frontend/tests/pages/RoutingHeaderTiersSection.test.tsx
+  s_86e5cc3972b9a1::t_e5fac3b283c612 18,20-24,88,93,208,211,215,219,223-224,227,231,234,238-239,242,246-247,250,254-256,259,263,265-271,275-276,280,282,286,294,297,303,310,314,317,319,325-326,328,331,339,342,348,352-363,365-367,369-372,375-381
+  s_f4f52f0c569773::t_31dbfb2a1a56cd 8-9,14,19,28,41-42,51-55,74,79,89-92,94,97-100,102,109,117,122-123,135,145,160-161,164-169,174-182,185,187,197,205-207
+  s_86e5cc3972b9a1::t_cc71b9c11bcd6f 96,101,103,383-397
+packages/backend/src/database/migrations/1790100000000-AddReasoningContentCache.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 1-28
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_5f213b95d994a0::t_ffcdd927b8a48e 12
+  s_706915655668dc::t_af68c72d189bc2 318
+  s_eb8e865dd3defa::t_e029514ae19cff 384,411-413
+  s_f19d20e93e5627::t_674807439d93fe 351
+  s_5f213b95d994a0::t_8c1b06012a9693 499-502
+  s_5f213b95d994a0::t_ce17a198d510a0 31-34
+  s_5f213b95d994a0::t_43d4af452b51b5 463-474
+  s_efa1e76f9c84e4::t_ce9be532b25d35 41,316
+  s_5f213b95d994a0::t_20def7ee18c742 9-11,13-15
+  s_eb8e865dd3defa::t_00228d84a56af9 29,35,288,377-383,385-393,397,399-410,414-427,440-441,492-494
+  s_5f213b95d994a0::t_2ef98bd6887710 344-349
+  s_f4f52f0c569773::t_fbb7f80d411ab8 290
+  s_706915655668dc::t_9b95b07d5d06c6 39-40,42
+  s_706915655668dc::t_b122c6a516ae41 451-452
+  s_5f213b95d994a0::t_e4d3c1542cb8df 343,350,352
+packages/backend/src/routing/oauth/xai/xai-oauth.service.ts
+  s_09999a699a56bd::t_29a13d1ab15525 228
+  s_09999a699a56bd::t_5e44f605052fd9 1-227,229-305
+packages/backend/src/routing/oauth/xai/xai-oauth.service.spec.ts
+  s_09999a699a56bd::t_452f8f7b6e77c2 1-79,82-121,124-163,169-204
+  s_09999a699a56bd::t_1de479300bd12c 80-81,122-123,164-168
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_13de6fdca9a587::t_5e97b899e0e00e 78-81,83-87
+  s_706915655668dc::t_e816bd58b323aa 143-155
+  s_09999a699a56bd::t_b321a5cb0c23cb 82
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_efa1e76f9c84e4::t_ed983cabc32c08 1704-1712,1743,1806-1809,2147-2155,2189,2249-2250
+  s_706915655668dc::t_858adc9bbcf7c5 1754,1757-1759,1761-1763
+  s_08163a568629ac::t_e64af7d3b09257 183-184,186,188,192-200
+  s_706915655668dc::t_9112376f69d103 1755-1756,1760
+  s_706915655668dc::t_cbe4718db6aea6 1669,1671-1673
+  s_706915655668dc::t_b7d92d8c6f61cb 2125-2146,2156-2188,2190-2248,2251
+  s_13de6fdca9a587::t_fe530bc2a3f7dc 182,185,187,189-191
+  s_706915655668dc::t_4e6e9c6f1e4fc8 1916
+  s_706915655668dc::t_f1848b40ef77d3 1668,1670,1674-1703,1713-1742,1744-1753,1764-1805,1810-1811
+  s_706915655668dc::t_657818585dcb67 2301
+packages/frontend/tests/services/formatters.test.ts
+  s_6ab7cca8c7f789::t_4f7b48b403df85 42-58
+  s_6ab7cca8c7f789::t_1bdfa96009d0b3 2
+packages/frontend/tests/components/InfoTooltip.test.tsx
+  s_b6f44f365c1482::t_87429f63ee886a 38-40,42-48
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.routes.spec.ts
+  s_d84e1018f6416e::t_46c6e340a6b74a 65
+packages/frontend/tests/components/MessageTable.test.tsx
+  s_d84e1018f6416e::t_c45929ca7559d0 235,238,245-260
+packages/backend/src/entities/custom-provider.entity.ts
+  s_b6f44f365c1482::t_ecce329c88aaf2 10
+packages/frontend/src/components/RecordedMessageModal.tsx
+  s_c4ecb81b28dd6c::t_4865c5d277d53a 115
+packages/backend/src/routing/specificity.controller.ts
+  s_f4f52f0c569773::t_c57c975d54f3ba 19-21,89-97,100
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 98
+packages/frontend/tests/pages/FreeModels.test.tsx
+  s_afb0d5c7f699a4::t_0f77cf28daff2e 29,81-85,87-94,181,235-242
+  s_afb0d5c7f699a4::t_4e65c4f164b1eb 86
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_efa1e76f9c84e4::t_deb097c3363aeb 513-534
+  s_706915655668dc::t_92c0633f02c714 289-312,323-354,356-417,419-421,425-448,450-451,453-456,461-468
+  s_efa1e76f9c84e4::t_ee28300602c2b9 313-322,355,418,422-424,449,452,457-460
+packages/shared/__tests__/subscription.spec.ts
+  s_706915655668dc::t_bc00a7cb9e7a74 253-263,266-278
+  s_09999a699a56bd::t_019c239aea9251 128
+  s_706915655668dc::t_26472d58264025 137-145,155-162
+  s_706915655668dc::t_3999597e840766 22
+  s_09999a699a56bd::t_4fc6be20df64b2 23,123-127,129-136,187,244-247,317-320
+  s_706915655668dc::t_df9a1c0aaea22d 233-234,239-243
+  s_efa1e76f9c84e4::t_a5141afb2dd97e 146-154,235-238,264-265
+  s_706915655668dc::t_2b44c1dd53fd95 7
+  s_706915655668dc::t_b61e1d0d605378 186
+packages/backend/src/entities/reasoning-content-cache-entry.entity.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 1-28
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_f4f52f0c569773::t_fbb7f80d411ab8 11,27,45-58
+  s_f19d20e93e5627::t_3b616139513018 711-725
+  s_5f213b95d994a0::t_9871c0d14cbce3 4
+  s_5f213b95d994a0::t_bf435eaa3ccd9c 680-710,726-857
+packages/backend/src/routing/kiro-oauth.controller.spec.ts
+  s_08163a568629ac::t_a284fa96126098 1-4,6-10,12-14,17-22,28-29,46-47,51,69-70,98-99,115,120-122
+  s_13de6fdca9a587::t_6f36ac67528384 5,11,15-16,23-27,30-45,48-50,52-68,71-97,100-114,116-119
+packages/frontend/tests/pages/Overview.test.tsx
+  s_d84e1018f6416e::t_3f289a8fa6ce75 724,728,740-753
+packages/frontend/src/components/ProviderIcon.tsx
+  s_08163a568629ac::t_41975c1adcbdda 143-168
+  s_afb0d5c7f699a4::t_6a00d813762907 281-291
+packages/backend/src/routing/custom-provider.controller.spec.ts
+  s_b6f44f365c1482::t_90d22ced95d716 264,279-293
+packages/backend/test/agent-duplication.e2e-spec.ts
+  s_ae5e80feefbc8e::t_14b4619482ed6f 31-32,144-145
+packages/backend/src/routing/oauth/kiro-oauth.service.ts
+  s_13de6fdca9a587::t_d9098213ce0839 165-169
+  s_13de6fdca9a587::t_496ba01d43315d 133-136
+  s_08163a568629ac::t_24424512ef2722 1,4-6,57-58,81-83,88-90,92,104,118-119,202,204,207-209,211,213,216-218,220-222,224-227,229-230,232-233,235-237,346
+  s_13de6fdca9a587::t_a68e4f613de75b 77-80
+  s_13de6fdca9a587::t_f0734c8e7cd2d0 2-3,7-56,59-76,84-87,91,93-103,105-117,120-132,137-164,170-201,203,205-206,210,212,214-215,219,223,228,231,234,238-343
+packages/backend/src/routing/proxy/__tests__/reasoning-content-cache.spec.ts
+  s_eb8e865dd3defa::t_48a8be5a332b20 3-4,12-92,188-204
+  s_d38951c1e24d4f::t_11c6d03cd1eea7 117-118,137-138
+  s_d38951c1e24d4f::t_785f96874e7d9a 1-2,10,159-162
+  s_d38951c1e24d4f::t_b88cd1f31b565c 5-9,11,93-116,119-136,139-158,163-185
+packages/shared/__tests__/chat-message.spec.ts
+  s_c4ecb81b28dd6c::t_7729298fb2c3b7 1-3,6-8,10-101,199,305
+  s_c4ecb81b28dd6c::t_5e1e94db6c2440 4,9,102-116,118-129,131-140,142-158,160-196,198
+  s_c4ecb81b28dd6c::t_61e861eeb25468 117,130,141,159
+  s_83cad2da441eaf::t_8ca9b84d38d0df 197,200-303
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_6ab7cca8c7f789::t_12dd808fe46d94 635-676
+  s_6ab7cca8c7f789::t_071cb33f47ce36 70-71
+  s_86e5cc3972b9a1::t_c44b1858944fad 97
+packages/shared/__tests__/provider-inference.spec.ts
+  s_6ab7cca8c7f789::t_f3f41cf96f6c09 90-120
+  s_b7725a7fe88438::t_500520a9531dab 78-89
+  s_6ab7cca8c7f789::t_055d3bbdcc6c72 4
+  s_b7725a7fe88438::t_965023b4fb707d 1-3,5-6
+packages/frontend/tests/pages/RoutingSpecificitySection.test.tsx
+  s_86e5cc3972b9a1::t_7117d7adf51514 54,160-163,207-208,211
+  s_f4f52f0c569773::t_df0710872e57f3 117-118,127,134-142,145,148-149,152-153,156,204,210
+packages/frontend/src/components/ProviderSelectContent.tsx
+  s_2a22c521aed263::t_aab9c04e79a785 81-83
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_f532f74d9a54e0::t_1556d8d03cfaee 125-157
+packages/frontend/src/services/formatters.ts
+  s_6ab7cca8c7f789::t_e2f81f08f980da 30-41
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_08163a568629ac::t_47e655097366c5 14-19,566-567,635-643,659-683
+  s_576e1fed5899c6::t_e2652b1b20238b 151
+  s_08163a568629ac::t_602b0b994a9fce 644-658
+  s_706915655668dc::t_87ba87d4366740 561-565
+  s_afb0d5c7f699a4::t_7d4b94fc31d538 101-110,149-150,445-448
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  s_13de6fdca9a587::t_851ec4727fbaa3 14
+  s_13de6fdca9a587::t_b4c0c6c9c1c134 149
+  s_13de6fdca9a587::t_e28140e426d6df 311-313,315-337
+  s_13de6fdca9a587::t_d2b8e330f7a28e 131
+  s_13de6fdca9a587::t_22fa46da25b5ad 62
+  s_13de6fdca9a587::t_ec65fea1f537a4 207
+  s_13de6fdca9a587::t_850aeed37da358 265-269
+packages/frontend/src/components/OAuthDetailView.tsx
+  s_09999a699a56bd::t_04fee3e59cfd32 138
+  s_09999a699a56bd::t_54bf04a9321d51 319,324-325
+  s_09999a699a56bd::t_4aea22ffe8b2dc 23-42,60-62,65,74,92,127-131,169,171-175
+  s_09999a699a56bd::t_ada364c49ae623 72,75,323
+  s_706915655668dc::t_703cbe4725fc24 181
+  s_09999a699a56bd::t_377630a0c8f25a 148-154,156-157
+  s_09999a699a56bd::t_ca2242a2827491 71,73,287-317
+  s_706915655668dc::t_441f5848943559 107-120,126
+packages/backend/test/proxy-fallback-auth.e2e-spec.ts
+  s_fb57e57464ebc6::t_b2b3f3c5355a34 22,138,146,148,198-202,246-262
+packages/shared/src/provider-params-spec.ts
+  s_6ab7cca8c7f789::t_66dd2d336a90b9 2
+  s_f532f74d9a54e0::t_d7c2e32e74f353 99-103,143-151
+  s_b7725a7fe88438::t_258986960ba715 106-120,124-125,132-134,138-139
+  s_6ab7cca8c7f789::t_ab8ce116a6d0d4 121-123
+  s_b7725a7fe88438::t_36d34c42248211 161-168
+  s_f532f74d9a54e0::t_d54923d2089dde 97-98,104-105,137
+  s_f532f74d9a54e0::t_cf00ea0653de6f 3
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_eb8e865dd3defa::t_f997db092eed0c 173-183
+  s_eb8e865dd3defa::t_c0efe9ebac43e2 1-4
+  s_eb8e865dd3defa::t_97287183057df6 184-194,206-216,331-405
+  s_eb8e865dd3defa::t_29878e4bf5bff3 943-1000
+packages/backend/src/routing/proxy/google-adapter.ts
+  s_dea4686cd6becf::t_2b2365b55120ac 106-113,260-262
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_13de6fdca9a587::t_83b28882c14b44 5-38
+  s_13de6fdca9a587::t_f6d0baf6cae10b 301-312
+  s_13de6fdca9a587::t_9ceb3afe0fdbda 523-587,589
+  s_2a22c521aed263::t_a327350ae12cc2 588
+  s_13de6fdca9a587::t_7eea34507893b3 288-300,313-325
+packages/frontend/tests/components/AnthropicOAuthDetailView.test.tsx
+  s_f4324a4d768783::t_869f4a96c03082 241-259
+packages/frontend/src/styles/routing.css
+  s_f4a445ef85efba::t_fbb713df4b8362 747
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_5f213b95d994a0::t_aa439bf8a38815 211-219
+  s_5f213b95d994a0::t_7b2ae816a530ef 339-347
+  s_5f213b95d994a0::t_f54de4bf9d9b9f 271-338,348-356
+  s_5f213b95d994a0::t_8d523c24ebbb10 243-270
+packages/frontend/tests/services/oauth-popup.test.ts
+  s_09999a699a56bd::t_1467f6103dd66a 118-141
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_106d832de14e33::t_41bcf4d92bf6b9 11-15,17,262-325
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_afb0d5c7f699a4::t_6d41e340f1696f 11
+  s_08163a568629ac::t_863842069f4a07 5,32
+packages/frontend/tests/pages/Routing.test.tsx
+  s_86e5cc3972b9a1::t_55d98f9ebe730e 299-314,364-366,383,417-428,503,510
+  s_86e5cc3972b9a1::t_eb113efd95c33b 549-553
+  s_86e5cc3972b9a1::t_d6be56d3092f42 690-830
+packages/shared/__tests__/request-params-snapshot.spec.ts
+  s_78479c0eb45b50::t_a493bdb099cd59 105
+  s_78479c0eb45b50::t_f943efe5bc1c41 91,98-104,106-107
+packages/backend/src/routing/oauth/gemini-oauth.service.spec.ts
+  s_706915655668dc::t_3d4b8ecaedf94f 1-32,34-36,38,40-41,43-188,191,193-213,216-392
+  s_7a1890cd54acba::t_4a3e99c1df8ca9 33,37,39,42,189-190,192,214-215
+packages/frontend/src/services/framework-snippets.ts
+  s_5edd42bfd9f340::t_3db04033ccbee9 342-345,350
+packages/frontend/tests/components/CopilotDeviceLogin.test.tsx
+  s_2a22c521aed263::t_63cf0780c9d1cb 268-369
+packages/frontend/src/components/InfoTooltip.tsx
+  s_b6f44f365c1482::t_c753ab69e0b333 2,10-34,39-40,42,46-48,51,59-62,80-95
+packages/backend/src/routing/gemini-oauth.controller.spec.ts
+  s_7a1890cd54acba::t_4e61ddf7167e39 162-164
+  s_706915655668dc::t_8236e9cd06605a 1-28,30-148,150-153,157-161,165,167,169-178,180,182-185,187,189-194,196,198-201,205,207-208,231-234,236,238-318
+  s_7a1890cd54acba::t_26e3e2494ac5c4 29,149,154-156,166,168,179,181,186,188,195,197,202-204,206,209-230,235,237
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_576e1fed5899c6::t_f6ffa3ec9269c8 175-177
+  s_576e1fed5899c6::t_593a42a9cc28ac 1441-1488,1506-1525
+  s_08163a568629ac::t_e5622500d50a8c 1223-1269
+  s_576e1fed5899c6::t_549013cb1f1975 140-174,178-182
+  s_afb0d5c7f699a4::t_af2fdda901ac1a 1893-1907
+  s_ca6b27a16a0985::t_6b200ae35bd147 1489-1505
+  s_5f213b95d994a0::t_d8fa0343114df3 314-404
+  s_706915655668dc::t_dea0117b6973c6 2836-2928
+packages/frontend/src/components/HeaderTierCard.tsx
+  s_6ab7cca8c7f789::t_658c6c296be5ae 391-394
+  s_6ab7cca8c7f789::t_9523634dc57093 20
+packages/frontend/src/services/api/specificity.ts
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 2,12-13,65-75
+packages/backend/src/model-discovery/model-fallback.ts
+  s_efa1e76f9c84e4::t_bfa0f46e9e7cdb 317-318
+  s_706915655668dc::t_c27ec3725873a0 231
+  s_706915655668dc::t_7015de22ae9e67 6-10
+  s_706915655668dc::t_ec6f8ee0fff619 243-248
+  s_efa1e76f9c84e4::t_a5141afb2dd97e 271-273,279-280,310,321-322
+packages/frontend/tests/components/FallbackList.test.tsx
+  s_86e5cc3972b9a1::t_d89355ec163662 155-212
+packages/shared/src/subscription/index.ts
+  s_706915655668dc::t_6b25ff5aa2871d 7
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_eb8e865dd3defa::t_8f51866a1fa0ba 19-26,58-59
+  s_706915655668dc::t_b82c35146c61b0 60-65
+packages/frontend/tests/pages/RoutingDefaultTierSection.test.tsx
+  s_86e5cc3972b9a1::t_42f00a20cceaff 135-138
+  s_f4f52f0c569773::t_df0710872e57f3 86-87,94,99,101,105,107-108,111-117,120-121,125-132
+packages/backend/src/common/constants/xai-models.ts
+  s_576e1fed5899c6::t_ef434b1e88ca66 1-7
+packages/backend/src/routing/oauth/kiro-oidc.spec.ts
+  s_13de6fdca9a587::t_e8c298c4e92aab 1-109
+packages/frontend/tests/components/ModelParamsDialog.test.tsx
+  s_dfe6b7409de205::t_33633a3fa9f2c1 206-218
+  s_f4a445ef85efba::t_da02aedf2d9f06 281-298
+  s_78479c0eb45b50::t_2bf88fad355d65 174-190
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_afb0d5c7f699a4::t_53cfec70259561 15
+  s_08163a568629ac::t_28ef8b15e08983 11
+packages/backend/src/routing/proxy/__tests__/google-adapter.spec.ts
+  s_dea4686cd6becf::t_38c3a4a015520b 71-121
+packages/frontend/tests/components/ProviderSelectModal-subscription.test.tsx
+  s_09999a699a56bd::t_5fc693b98ee422 8,12,19,25
+  s_09999a699a56bd::t_b28ac80d6ba059 7,9,18,20,23
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_b6f44f365c1482::t_6fb9e58a6c976f 419,432,456-457,459,465,468-470,472
+  s_b6f44f365c1482::t_ecce329c88aaf2 439-449,452,455,458,460-463,471
+  s_b6f44f365c1482::t_99c0ca81de0911 6-7,18-22,30,78-80,216,277,367-368,416-418,420,428-431,433-438,450-451,453-454,464,466-467,473-478
+packages/frontend/tests/services/providers.test.ts
+  s_09999a699a56bd::t_62df529df5e391 415,419-421
+  s_08163a568629ac::t_6f72725a072b7e 456,464-465,470
+  s_09999a699a56bd::t_debaa1f37eb6f5 416-418,422-425
+  s_08163a568629ac::t_e801f578764811 457-461,463,466-469,471-474
+  s_13de6fdca9a587::t_91f09667d3e1d8 462
+  s_afb0d5c7f699a4::t_3eb6ccaef5a273 95-108,432
+  s_afb0d5c7f699a4::t_e58bc72937f6ee 433
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_706915655668dc::t_f07ddf143ccb52 9
+  s_eb8e865dd3defa::t_f1d1804106a429 529
+  s_706915655668dc::t_3b1da7f4f04b49 133
+  s_eb8e865dd3defa::t_c426b8ed884b75 44,48,142,181-182,188,200,212-213,266,284,307,332,347,469
+  s_706915655668dc::t_953b985b1b7441 443
+  s_09999a699a56bd::t_01d1f90075a2dd 11,135,445
+  s_08163a568629ac::t_a1fd3222b7cc5e 10,134,444
+packages/frontend/tests/components/OutputControls.test.tsx
+  s_86e5cc3972b9a1::t_735f25a1235fa3 1-42,53-65
+  s_86e5cc3972b9a1::t_7c48dc6ed3fe71 44-52
+packages/backend/src/routing/dto/routing.dto.spec.ts
+  s_f4f52f0c569773::t_31dbfb2a1a56cd 8,10,211-214,225-228
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 217-221,232
+packages/frontend/src/services/api/routing.ts
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 5-7,10,195-196,239-245
+  s_6ab7cca8c7f789::t_2ed761ff863c99 294-295
+  s_b6f44f365c1482::t_b925014b3f6ef4 440,446,453-454
+  s_b6f44f365c1482::t_ecce329c88aaf2 355
+packages/frontend/tests/components/RoutingModals.test.tsx
+  s_86e5cc3972b9a1::t_7c893be36d4287 18,26-28,51,62,77,88,98,107,117,127,134,138-140,149-151,160-162,174-177,179-180,186-188,193,196-198,203,208,240,249,251-265,267,270-284,287,289,293,296,298-299,302-303,308,312,315-316,319-321,326,329,331,333,336,339-340,352,357,359-387
+packages/backend/src/analytics/services/agent-duplication.service.ts
+  s_ae5e80feefbc8e::t_14b4619482ed6f 181-182
+packages/shared/src/providers.ts
+  s_afb0d5c7f699a4::t_3350d3fe4b6fdd 189
+  s_77ef0f3692fcda::t_4f349eae34b1c9 109
+  s_08163a568629ac::t_b98e0d1760972b 143,146-148
+  s_afb0d5c7f699a4::t_e095966d75806b 187-188,190-197
+  s_08163a568629ac::t_24ea1b359869ca 139-142,144-145,149
+packages/backend/src/routing/oauth/gemini-oauth.controller.ts
+  s_706915655668dc::t_fca102306a8659 1-147
+packages/frontend/tests/components/ProviderSelectModal-opencode-go.test.tsx
+  s_09999a699a56bd::t_0f2d6ff6d087cb 8,12,19,25
+  s_09999a699a56bd::t_f3bb81400e4800 7,9,18,20,23
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_576e1fed5899c6::t_ef434b1e88ca66 308,311,314,317
+packages/frontend/tests/components/RecordedMessageModal.test.tsx
+  s_c4ecb81b28dd6c::t_5b41d19fd4d163 150-190
+packages/frontend/tests/components/ProviderDetailView.test.tsx
+  s_13de6fdca9a587::t_1ef1840625e069 373-374,380-382
+  s_08163a568629ac::t_b90c3baf94bc76 132-135,375-379
+  s_08163a568629ac::t_39ecc98df7dda2 33-62
+  s_08163a568629ac::t_88d68a87511608 68,79,87,98,106,117
+  s_706915655668dc::t_b51e6afc339d81 307-328,370-372,383-385
+  s_08163a568629ac::t_c150f5e5ec49c2 67,69-78,80-86,88-97,99-101,105,107-116,118-120,329-369
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_eb8e865dd3defa::t_010549b2723246 23,26-27,60,196,209-210
+  s_5edd42bfd9f340::t_5304d752787c5d 3,64-80
+packages/frontend/src/components/CustomProviderForm.tsx
+  s_b6f44f365c1482::t_0f643251c1fb8d 102,108
+  s_b6f44f365c1482::t_24dd6407705d59 133,403-421
+  s_b6f44f365c1482::t_58d46978cf94a6 116-120
+  s_b6f44f365c1482::t_ecce329c88aaf2 14,34,37-44,53,65,121-123,148-150
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_6ab7cca8c7f789::t_80f38f2e5f722c 573-576
+  s_6ab7cca8c7f789::t_f3ede011b9f79f 12
+packages/frontend/src/components/ClaudeCodeSetup.tsx
+  s_5edd42bfd9f340::t_d102f25f0a8534 56-57
+packages/backend/src/routing/oauth/codeassist-envelope.spec.ts
+  s_706915655668dc::t_27de9094a437a5 2-37,45-88
+  s_efa1e76f9c84e4::t_e4d6151fe82e7e 38-44
+packages/backend/src/routing/oauth/gemini-oauth.service.ts
+  s_706915655668dc::t_f37c9d9c181fee 32
+  s_706915655668dc::t_75f57d6f0ae527 14-24
+  s_706915655668dc::t_1d936beedf562d 5,7
+  s_706915655668dc::t_527a9c791170e0 1-4,6,8-13,25-31,33-57,69
+  s_706915655668dc::t_340061b1e636a0 58-68
+packages/backend/src/routing/model.controller.ts
+  s_6ab7cca8c7f789::t_ae3b95dc18ef9d 9
+  s_6ab7cca8c7f789::t_7b4d638658fa57 108-123
+  s_6ab7cca8c7f789::t_794514eb8a80f8 125-137
+  s_6ab7cca8c7f789::t_f8bf9f93ed53ca 13
+  s_6ab7cca8c7f789::t_c224be7435d511 35
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_10309d23d3b409::t_c54f11d622f6dc 248-249,1053
+  s_d84e1018f6416e::t_a56a539457e86f 671,675,683-702
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_d84e1018f6416e::t_452e7440e2d1a6 59
+  s_d84e1018f6416e::t_0768ee39a873b9 1454
+  s_33fd1fcf4f4b98::t_8b1f142c02d2a2 1563
+  s_d84e1018f6416e::t_4c806f55816eb7 1642-1672
+  s_d84e1018f6416e::t_160d5c7f5c4025 1612
+  s_d84e1018f6416e::t_71bf659ba28631 1104
+  s_d84e1018f6416e::t_c037b00823a408 1506-1546,1552-1562,1564-1611,1613-1641,1673-1687
+  s_d84e1018f6416e::t_8ec5f3ec3791a9 1547-1551
+  s_33fd1fcf4f4b98::t_bcdc12ba2eabf8 1329-1332
+  s_d84e1018f6416e::t_6449dc7151f19b 674
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_08163a568629ac::t_234ad63b753b93 13,50,87-89,138
+  s_706915655668dc::t_0e515feff5f097 12
+  s_d38951c1e24d4f::t_eff1700d6cfb0c 121-128
+  s_08163a568629ac::t_692c3977b7f0d7 1132
+  s_d38951c1e24d4f::t_f70e986fbf76bd 17,57,120,129-130,145,312-356
+  s_706915655668dc::t_8c9bf792360365 49
+  s_09999a699a56bd::t_40555b8ac2eba2 1021,1047,1066,1087,1107,1128,1149,1168,1176-1197,1214,1232,1241
+  s_706915655668dc::t_4a751882c3d6b9 1243-1362
+  s_78479c0eb45b50::t_bd4244ab8f3267 264,288
+  s_706915655668dc::t_0bc46bda172bcc 137
+  s_706915655668dc::t_67af50c3b8396c 1019,1045,1064,1085,1105,1126,1166,1212,1230
+  s_706915655668dc::t_32167aa035bd41 84-86,93
+  s_09999a699a56bd::t_60e7d523551980 14,51,90-92,139
+  s_08163a568629ac::t_6b5aeaf598e728 1020,1046,1065,1086,1106,1127,1135-1148,1150-1153,1167,1175,1213,1231,1240
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_08163a568629ac::t_3f4cf7d4723b5e 11,25,282-286
+  s_afb0d5c7f699a4::t_f01946b29bf0e6 91,180-181
+  s_576e1fed5899c6::t_ef434b1e88ca66 156-161
+  s_706915655668dc::t_7814b9cf7d7454 216-228,230,232
+  s_706915655668dc::t_87677190e423f1 17-24,35-41
+  s_706915655668dc::t_3fb340b752cdc5 229,231
+packages/frontend/src/services/providers.ts
+  s_09999a699a56bd::t_f5a8ff8b2ea875 267-268
+  s_13de6fdca9a587::t_8165b84aa216ff 147
+  s_afb0d5c7f699a4::t_83df407d8959d0 199-203,318
+  s_09999a699a56bd::t_9e08cd9c181e1b 269
+  s_706915655668dc::t_a8d7349c7621b4 137-139
+  s_08163a568629ac::t_48482aaf1fc81f 312
+  s_08163a568629ac::t_3276e8dce0f7a2 142-146,148-149
+  s_08163a568629ac::t_0ff90676a95135 330
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_6ab7cca8c7f789::t_071cb33f47ce36 54-55
+  s_86e5cc3972b9a1::t_c46de0d54f5f04 77
+  s_6ab7cca8c7f789::t_73ad9474405c80 363-396
+packages/frontend/src/pages/FreeModels.tsx
+  s_afb0d5c7f699a4::t_a031a7b9495df2 77
+packages/backend/src/routing/proxy/__tests__/kiro-adapter.spec.ts
+  s_08163a568629ac::t_9dddd399d89bf1 33-38,40-48,50-58,60-66,100-108,112,222-249,265-266,268-275,280-292,294,300,302,309-334,360-380
+  s_08163a568629ac::t_0187987342a086 1-31,109-111,113-221,250-264,335-359,381-439
+  s_08163a568629ac::t_602b0b994a9fce 32,39,49,59,67-99,267,276-279,301
+  s_08163a568629ac::t_e4bea9cdcbc9f5 293,295-299,303-308
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_5f213b95d994a0::t_e7888b37b65795 184-189
+  s_5f213b95d994a0::t_96d0c276e678e7 250
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.routes.spec.ts
+  s_706915655668dc::t_1c580a25dda342 9
+  s_706915655668dc::t_e26628d1183b76 40
+  s_08163a568629ac::t_7c026c7783cdea 10,41,76-78,82,114
+  s_09999a699a56bd::t_2c58ffeaf82159 11,42,79-81,115
+  s_706915655668dc::t_b1a4acf03d0d75 113
+  s_706915655668dc::t_7ad17e830ac286 72-75
+packages/backend/src/routing/oauth/openai-oauth.service.spec.ts
+  s_efa1e76f9c84e4::t_a46528297e2a27 173-177,185,191-196,198,202-206
+  s_706915655668dc::t_d0a1547e6e6a53 267-281
+  s_efa1e76f9c84e4::t_3e20f4ad6cafdc 178-184,199-201
+  s_efa1e76f9c84e4::t_7abf361513dc6f 186-190,197
+packages/backend/src/routing/proxy/provider-hooks.ts
+  s_706915655668dc::t_63a10f55f35cd0 19-22
+packages/shared/src/provider-inference.ts
+  s_b7725a7fe88438::t_49e00ab73af673 26-44
+  s_08163a568629ac::t_b63825703f754a 19
+  s_6ab7cca8c7f789::t_7206685605ec0b 61-64,72
+  s_6ab7cca8c7f789::t_feb57c726f5dca 54-60,65-71,73
+packages/frontend/src/styles/routing-providers.css
+  s_b6f44f365c1482::t_b736ffbc99c52a 734-766
+packages/backend/src/routing/proxy/proxy.module.ts
+  s_eb8e865dd3defa::t_853667abcbaa97 28,61
+  s_d38951c1e24d4f::t_def8bcd5a531b0 6,33-38
+packages/frontend/src/services/oauth-popup.ts
+  s_09999a699a56bd::t_8df543b0a85eb4 10,66
+packages/backend/src/routing/dto/routing.dto.ts
+  s_f4f52f0c569773::t_c57c975d54f3ba 15,208-211,216-219
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 212-215,220
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_706915655668dc::t_0b4e142fbf9b8a 1-176,178-181,191-211,213-235,239-243,250,252,254-310,322-377,379-414
+  s_706915655668dc::t_b9bfc666b57f8f 177,182-186
+  s_706915655668dc::t_5c0ac3af01644a 246-249,251
+  s_706915655668dc::t_e03e479b916f1a 311-321
+  s_706915655668dc::t_443d5d5973e42f 212,236-238
+  s_706915655668dc::t_bc41e04d0c8acd 253
+  s_efa1e76f9c84e4::t_0a8a22765b1742 378
+packages/backend/src/common/utils/cost-calculator.spec.ts
+  s_d84e1018f6416e::t_f77d566b700c5a 216-280
+packages/frontend/tests/services/api-extra.test.ts
+  s_b6f44f365c1482::t_50c0e2bb5c7dcd 129-131
+  s_b6f44f365c1482::t_948aa08e488555 128,132-146
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_f532f74d9a54e0::t_d54923d2089dde 11
+  s_f532f74d9a54e0::t_c913195cf0aa3b 107-114
+docs/model-parameters-schema.md
+  s_78479c0eb45b50::t_f943efe5bc1c41 150,153-154
+packages/shared/src/subscription/configs.ts
+  s_09999a699a56bd::t_6287aca5da4b27 152-154,156-162
+  s_706915655668dc::t_18a5ba84e5ad36 145
+  s_09999a699a56bd::t_c8df7ee26bee27 155
+  s_13de6fdca9a587::t_ba80cb5b74a684 75
+  s_efa1e76f9c84e4::t_a5141afb2dd97e 131-144
+  s_08163a568629ac::t_1c60cd57e1ebc3 72-74,76-89
+  s_706915655668dc::t_3b284ddd36a079 127-130,146-151
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_eb8e865dd3defa::t_fc48bb42c33b3f 1542-1624
+  s_706915655668dc::t_ad6656095b3f21 2148-2210,2212,2214-2215,2217,2219-2302
+  s_efa1e76f9c84e4::t_12126e32e8d42a 2211,2213,2216,2218
+  s_5f213b95d994a0::t_94e2ca19137605 498,500,508,514
+  s_eb8e865dd3defa::t_496fb885c653c9 491
+  s_5f213b95d994a0::t_79d8d190807296 583-584,586-601,608-609,646-648,650,656-669,676-677
+  s_eb8e865dd3defa::t_527b519ef9ffa9 956-996
+  s_5f213b95d994a0::t_0075a85970c820 33,37,43-44,46
+  s_f19d20e93e5627::t_3aa1f98b86c918 479
+  s_5f213b95d994a0::t_cee326bc7db3cc 582,585
+  s_5f213b95d994a0::t_bbbdc9035df9eb 602-604,606-607,645,649,651-655,670-675
+  s_f19d20e93e5627::t_2a36221d183acc 605,610-637,639
+  s_f19d20e93e5627::t_80cb8cbd4f4992 638,640-642
+  s_5f213b95d994a0::t_7e06ceae8cf116 1063-1152
+packages/backend/src/routing/oauth/kiro-oidc.ts
+  s_13de6fdca9a587::t_00bfcf93533761 1-120
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_09999a699a56bd::t_e0d6107ee13daf 294-317
+  s_08163a568629ac::t_602b0b994a9fce 572-582
+  s_afb0d5c7f699a4::t_01322d7fa5075c 27,720-763
+  s_706915655668dc::t_a04ce012408669 1137-1145
+  s_08163a568629ac::t_bb716f5feb24b8 489-571
+packages/frontend/tests/services/api/routing-extra.test.ts
+  s_f4f52f0c569773::t_ab4299fb2cf61f 133-136
+  s_86e5cc3972b9a1::t_fd220f4c4e0593 137-140,142-144
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 141
+  s_b6f44f365c1482::t_baedce2c3a2710 302-314
+packages/backend/src/routing/header-tiers/header-tier.controller.ts
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 138
+  s_f4f52f0c569773::t_c57c975d54f3ba 26,130-137,140
+packages/backend/src/database/models-dev-sync.service.ts
+  s_b6f44f365c1482::t_ecce329c88aaf2 207-236
+  s_b6f44f365c1482::t_7e67b2f5c45b0d 3,102-105,107-118,120-122,132-133,136-150,158,169-170,192-205,237-240,330-339,359-379
+  s_afb0d5c7f699a4::t_535589547b5b35 20
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_f4a445ef85efba::t_80e234a133dafb 277
+  s_dfe6b7409de205::t_23c2154dc899da 407
+packages/frontend/tests/services/framework-snippets.test.ts
+  s_5edd42bfd9f340::t_f9261927c38944 286
+packages/shared/src/subscription/types.ts
+  s_706915655668dc::t_452bec6dbe2e0b 15-24
+packages/backend/src/routing/proxy/reasoning-content-cache.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 1-6,24,26,30-35,40,43,45,59-133,140-143,156-189,203-216,218-219
+  s_d38951c1e24d4f::t_b65998c33629b4 155,190-202
+  s_eb8e865dd3defa::t_c9dac4e22aa889 7-23,25,27-29,36-39,41-42,44,46-58,134-139,145-154,217,220
+packages/backend/src/routing/proxy/provider-client.ts
+  s_5f213b95d994a0::t_0fd82a0ebc003d 10
+  s_706915655668dc::t_936bf459ba95c3 391
+  s_706915655668dc::t_1fd10e44bca668 253
+  s_706915655668dc::t_a69445c577f6b6 162
+  s_eb8e865dd3defa::t_fe3358c48a429c 23,161,252,357-362,428
+  s_706915655668dc::t_74a62c737ce8a2 267-271,273-276,280,284
+  s_706915655668dc::t_752f34c186076b 277-279
+  s_ca6b27a16a0985::t_12e283c760da98 338-340
+  s_706915655668dc::t_74b7792459e428 39-44
+  s_706915655668dc::t_d87085f8de542e 187
+  s_576e1fed5899c6::t_ef434b1e88ca66 3,212-214,219-222
+  s_706915655668dc::t_a7b696c1bdc5ce 126
+  s_5f213b95d994a0::t_336a4c2506f226 290-310
+  s_08163a568629ac::t_08e161d6fd75a4 27,129-147
+  s_afb0d5c7f699a4::t_7ad059387b817f 84-86,88-94
+packages/backend/src/model-discovery/opencode-go-catalog.service.spec.ts
+  s_d84e1018f6416e::t_d2472e065d188e 243-268
+  s_d84e1018f6416e::t_2dab353a8f2039 221-242
+  s_d84e1018f6416e::t_30e0d8e6b19175 113-207,269-279
+  s_d84e1018f6416e::t_a48e6943163ba7 208-220
+  s_d84e1018f6416e::t_3f053ec0bb901d 9,24-46
+packages/backend/src/routing/oauth/core/callback-page.ts
+  s_09999a699a56bd::t_d1118c40132f1e 21
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_f4f52f0c569773::t_fbb7f80d411ab8 105,107-109
+  s_f19d20e93e5627::t_771db46bd62033 74,171,188-190
+  s_5f213b95d994a0::t_cc02e73bd884b0 63
+  s_5f213b95d994a0::t_e316bb60c41cb3 154-170,172-187,191-228
+  s_5f213b95d994a0::t_69440357ae26c1 46-55,60-62,64-70,72,75
+packages/shared/__tests__/providers.spec.ts
+  s_afb0d5c7f699a4::t_4ebed0347e47ad 63-68,91-95
+packages/backend/src/routing/oauth/openai-oauth.service.ts
+  s_706915655668dc::t_2d44fa954a1c8c 1,6-7,15,17-19,21-30
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_5f213b95d994a0::t_515d6e5c9ae233 2131-2150
+  s_5f213b95d994a0::t_7e132a0c4dd9bc 3
+  s_5f213b95d994a0::t_f7d0da1b5e05c8 2228-2285
+  s_5f213b95d994a0::t_800c835ccafa23 2067-2077
+  s_2b8a13cc762528::t_e527fc7526743d 2
+  s_5f213b95d994a0::t_514b8886b3d8d5 1971-2066,2078-2130,2151-2227
+packages/shared/src/request-params.ts
+  s_78479c0eb45b50::t_f943efe5bc1c41 17-19,37,41-42,44-45
+packages/backend/src/routing/dto/custom-provider.dto.ts
+  s_b6f44f365c1482::t_d1062b09b31e8a 22-23,78,132
+  s_b6f44f365c1482::t_ecce329c88aaf2 16,47-50
+  s_b6f44f365c1482::t_e7da06374f5a6a 91-94
+packages/backend/src/common/utils/provider-inference.spec.ts
+  s_08163a568629ac::t_6a644c50cccff0 70-74
+packages/frontend/tests/services/api/specificity.test.ts
+  s_86e5cc3972b9a1::t_674f964b084175 63-66,68-70
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 67
+  s_f4f52f0c569773::t_ab4299fb2cf61f 59-62
+packages/shared/src/chat-message.ts
+  s_c4ecb81b28dd6c::t_b6779ab8d848cb 22-211
+packages/backend/src/routing/oauth/kiro-oauth.controller.ts
+  s_13de6fdca9a587::t_819b4623f228f2 1,6-7,14,17-18,24,26,30-61
+  s_08163a568629ac::t_6f6a417123f824 2-5,8-13,15-16,19-23,25,27-29,63
+packages/shared/__tests__/request-params.spec.ts
+  s_78479c0eb45b50::t_f943efe5bc1c41 82,85,87-96,104-112
+  s_78479c0eb45b50::t_a493bdb099cd59 97-103
+packages/frontend/tests/services/api/oauth.test.ts
+  s_09999a699a56bd::t_fc45807a91f70e 38-57,66-70
+  s_13de6fdca9a587::t_fd7dd2a5dcdeea 136,138-142,144-149,151-158,160-162,164,166-221
+  s_08163a568629ac::t_b90c3baf94bc76 137,143,150,159,163,165
+  s_706915655668dc::t_d917dcd8ea9753 271-354
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_706915655668dc::t_04ac275729dbdd 8
+  s_afb0d5c7f699a4::t_fcc66b98d95d52 65,67,108,192-202
+  s_706915655668dc::t_2730b145046c7c 427,448-480
+  s_576e1fed5899c6::t_1a21216bc198d4 260-270
+  s_706915655668dc::t_2cb4f9afb62635 428-447
+  s_08163a568629ac::t_a101462e71c152 111,345-353
+packages/frontend/src/services/api/header-tiers.ts
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 2,16-17,76-86
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  s_5f213b95d994a0::t_ef01cb20e2e44b 233-237
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_106d832de14e33::t_7677b1183c3ebf 478-481,486-488,626,640-642,644
+packages/backend/src/routing/oauth/codeassist-envelope.ts
+  s_efa1e76f9c84e4::t_be2167763f21a5 20-32,35-37,41-42,47-48
+  s_706915655668dc::t_191b4fec78886a 1-18,33-34,38,44-46,49-51
+  s_efa1e76f9c84e4::t_b2fc748f68e3e4 19
+  s_efa1e76f9c84e4::t_592f2c059cb4d9 39-40,43
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  s_b6f44f365c1482::t_c2b64d6186b42c 780-813
+  s_b6f44f365c1482::t_d0f966fc992d2d 26-27
+  s_b6f44f365c1482::t_952494afd3d3ea 427-457
+  s_b6f44f365c1482::t_ed640f71b6bdd4 16,70,398-426,458-486,577-599,748-777
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_eb8e865dd3defa::t_3a6665835be0c2 324-328
+  s_5f213b95d994a0::t_58ada6927d26f3 9
+  s_5f213b95d994a0::t_0bea7f1781a6da 8
+  s_5f213b95d994a0::t_e93e3a06301817 73
+  s_eb8e865dd3defa::t_99bac438a7ddf2 81,143,146-147,151,170-171,175-207,209-224,237-242,317-323,329-334,377,390
+  s_eb8e865dd3defa::t_2a0086b691858f 154-156,166,169
+  s_eb8e865dd3defa::t_8c65cb7b40df29 152-153,208
+  s_5f213b95d994a0::t_97b6d5bb9d3e9d 71-72,74-78
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_b7725a7fe88438::t_2d86cca9d60db4 99-115
+  s_b7725a7fe88438::t_74e003a18793df 218-228
+  s_f532f74d9a54e0::t_7a00f20e2cbb28 180,182-184
+  s_f532f74d9a54e0::t_e12e521bd11a1d 17,177-179,181
+  s_b7725a7fe88438::t_653b058d449089 148-171
+  s_f532f74d9a54e0::t_d54923d2089dde 85-98,172-176
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_b6f44f365c1482::t_6e84d12425aa8e 172-184,1005-1037
+  s_afb0d5c7f699a4::t_62e64d4062801a 185-197,231-233,318-324,505
+  s_b6f44f365c1482::t_fb8d1ecce7e7f4 1040-1067
+packages/shared/src/subscription/helpers.ts
+  s_706915655668dc::t_ef1e6e206e4791 27-31
+packages/frontend/src/pages/RoutingTierCard.tsx
+  s_6ab7cca8c7f789::t_22681d9e7f8d8c 13
+  s_6ab7cca8c7f789::t_6be8ac7389e6fb 583-586
+packages/frontend/tests/components/OAuthDetailView.test.tsx
+  s_09999a699a56bd::t_a2b7aa8cf84ac9 70-75
+  s_09999a699a56bd::t_f1153b17988174 275,285-287,303,317-387
+  s_09999a699a56bd::t_6282725bd345ab 276-284,288-302,304-316
+  s_09999a699a56bd::t_011ea692dcefad 10,20-22
+packages/frontend/src/components/message-table-cells.tsx
+  s_d84e1018f6416e::t_0347830b6d35d7 177-182,186,190-194
+packages/frontend/tests/components/ProviderSelectModal-commandonly.test.tsx
+  s_09999a699a56bd::t_4a2e224cf71933 7,9,18,20,23
+  s_09999a699a56bd::t_37fc7a3905ce1c 8,12,19,25
+packages/backend/src/database/database.module.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 26,100-102,108-111,131,135,210-212,218-221,267,269
+packages/frontend/tests/components/ProviderSelectContent-copilot-accounts.test.tsx
+  s_2a22c521aed263::t_b4123c32f899cb 1-86
+packages/backend/src/common/utils/cost-calculator.ts
+  s_d84e1018f6416e::t_f04b03e767fb56 9-13,16-21,28-31,37-42
+packages/backend/src/routing/custom-provider/custom-provider.controller.ts
+  s_b6f44f365c1482::t_34cad9b4bb4c37 59
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_09999a699a56bd::t_9b47c2ebfe89db 35,37,40,56,58,61
+  s_09999a699a56bd::t_5dfdd59cdb8ce9 36,47,57,74
+  s_13de6fdca9a587::t_7fccd94501babd 64-69
+  s_09999a699a56bd::t_b33031c2338f6c 78-89
+packages/backend/src/routing/oauth/oauth.module.ts
+  s_08163a568629ac::t_36ec266ddbdff5 11-12,27,35,47
+  s_09999a699a56bd::t_08e0a81a4cda5b 13-14,28,36,48
+  s_706915655668dc::t_382f6af95d54d0 16-18,22-26,29,38-39
+packages/backend/src/common/constants/providers.spec.ts
+  s_08163a568629ac::t_42b9745647e086 101-105,107,109
+  s_77ef0f3692fcda::t_b685cdbe1c03d3 97
+  s_08163a568629ac::t_e44549a8c03bc1 100,106,108
+packages/backend/src/routing/proxy/kiro-adapter.ts
+  s_08163a568629ac::t_574d1ef047c633 347,357,362,403
+  s_08163a568629ac::t_e4bea9cdcbc9f5 241-244
+  s_08163a568629ac::t_602b0b994a9fce 217-224,230-239
+  s_08163a568629ac::t_f68c4cdd27a1c0 1-216,225-229,240,245-346,348-356,358-361,363-402,404-487
+packages/backend/src/routing/model.controller.spec.ts
+  s_6ab7cca8c7f789::t_99013d854d17f5 43
+  s_6ab7cca8c7f789::t_417e2021da260a 6
+  s_6ab7cca8c7f789::t_f3553396ed17f4 285-328
+  s_6ab7cca8c7f789::t_d1e19437b489d1 364-383
+  s_6ab7cca8c7f789::t_4ab2e503c78a46 384-399
+  s_6ab7cca8c7f789::t_c288fd7422ae3a 80-82,91-93
+packages/backend/src/routing/oauth/kiro-oauth.service.spec.ts
+  s_13de6fdca9a587::t_8ba1dfed4e35b9 1,5,7-39,41-61,65-69,74-75,78-116,120-123,125-130,142-154,157-169,171-185,188-197,200-206,208-216,218-219,221-225,243-251,254-260,262-266,275-309,311-319,322-400
+  s_13de6fdca9a587::t_ffb9127dfe1ae6 132-140
+  s_13de6fdca9a587::t_b9c8b37c920975 268-272
+  s_13de6fdca9a587::t_4006156260bd51 401-410
+  s_13de6fdca9a587::t_6d00f9c3169436 217,220,227-239
+  s_08163a568629ac::t_df544046186c74 2-4,6,40,62-64,70-73,76-77,117-119,155-156,170,186-187,198-199,207,320-321,411-412
+  s_08163a568629ac::t_dc3583b9f88c6c 124,131,141,226,252-253,261,267,273-274,310
+packages/backend/src/routing/dto/custom-provider.dto.spec.ts
+  s_b6f44f365c1482::t_8001335830b80d 9,20-23,115-134,181-183
+packages/backend/src/routing/oauth/codeassist-client.service.ts
+  s_efa1e76f9c84e4::t_c19318bde1fc54 96,103
+  s_efa1e76f9c84e4::t_ac91dc20a72689 27-28,83-84,91-95,97-102,104-108,130-147
+  s_706915655668dc::t_f1ff0639bd568c 1-26,29-82,85-90,109-129,149
+packages/frontend/tests/services/header-tiers-api.test.ts
+  s_86e5cc3972b9a1::t_c9b8a0c444f25e 140,145-148,150
+  s_f4f52f0c569773::t_ab4299fb2cf61f 141-144
+  s_f4f52f0c569773::t_3c0c818a7dc8bd 149
+packages/frontend/src/services/api/oauth.ts
+  s_706915655668dc::t_43381a12744300 143-164
+  s_13de6fdca9a587::t_2f746c3619f2b0 87-91,94-102
+  s_08163a568629ac::t_eb917bb26586e1 92-93,103-106
+  s_706915655668dc::t_03dd678da54b3b 165-200
+  s_09999a699a56bd::t_b35714e42ff5e1 25-30,39-46,56-60
+  s_13de6fdca9a587::t_2b820c046a4549 201-236
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_08163a568629ac::t_1c7f136e03f8e5 32,84,230,509,535-536
+  s_eb8e865dd3defa::t_31d97524d4aa58 56,259,305,344,356,485
+  s_706915655668dc::t_e8aa9fea92fedf 30
+  s_706915655668dc::t_6f48977ced2fe8 229
+  s_d38951c1e24d4f::t_545266fa55944d 43,91,363,370,442-461
+  s_706915655668dc::t_8440cbf5041d49 465-470,486
+  s_706915655668dc::t_0df4552a664a30 508,526-533
+  s_09999a699a56bd::t_f83704afcf9d7a 33,85,231,510,539-540
+  s_706915655668dc::t_d7d5d85bf92c87 83
+  s_eb8e865dd3defa::t_f6f6a28291760b 140
+packages/frontend/tests/components/CustomProviderForm.test.tsx
+  s_b6f44f365c1482::t_69935807eae090 554,580
+  s_b6f44f365c1482::t_25f2eeb9a889ea 621-623
+  s_b6f44f365c1482::t_8ce7a16bfb71d9 494,521-553,555-579,581-588,1346
+  s_b6f44f365c1482::t_31ba9258471faf 619-620,624-631
+  s_b6f44f365c1482::t_b90c961e525644 589-618,632-652
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_d84e1018f6416e::t_e9af0a84f9f4a8 25
+  s_d84e1018f6416e::t_3cd07439dd3834 24
+  s_d84e1018f6416e::t_eb909a66797b39 630-632,634,638,643
+  s_d84e1018f6416e::t_80abbef05c32d5 155
+  s_d84e1018f6416e::t_128a62f662281e 414,483,485,493
+  s_d84e1018f6416e::t_8be8ec4a7ca2e5 629,640-642
+  s_d84e1018f6416e::t_bfd71710e88aca 625-628,633,635-637,639
+packages/backend/src/analytics/services/agent-duplication.service.spec.ts
+  s_ae5e80feefbc8e::t_14b4619482ed6f 233-234,337-338
+packages/shared/src/index.ts
+  s_f532f74d9a54e0::t_d54923d2089dde 53
+  s_6ab7cca8c7f789::t_db5c95b46edf02 86-91
+  s_706915655668dc::t_e550ed89ef742f 108
+packages/frontend/src/components/OutputControls.tsx
+  s_f4f52f0c569773::t_ab4299fb2cf61f 2-45
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_6ab7cca8c7f789::t_d94b1f81dbf951 722-754
+  s_6ab7cca8c7f789::t_071cb33f47ce36 43-44
+  s_86e5cc3972b9a1::t_44f30032964dc6 251-268
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_706915655668dc::t_6ae37dc6676b6e 76
+  s_09999a699a56bd::t_71ef69c8f24f36 18,78,114,157
+  s_eb8e865dd3defa::t_dbd7be1a540b31 24,92,131-133,164
+  s_706915655668dc::t_4bd776c7562e73 155
+  s_706915655668dc::t_d6fa58e716403a 16
+  s_706915655668dc::t_f095923a8f9c6b 112
+  s_08163a568629ac::t_1ae4c301d33ea7 17,77,113,156
+  s_eb8e865dd3defa::t_9727674e0dabb8 1150,1163,1175
+  s_78479c0eb45b50::t_bd4244ab8f3267 459-460
+packages/backend/src/routing/oauth/xai/xai-oauth.controller.ts
+  s_09999a699a56bd::t_ce3af179732ad3 1-126
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_5edd42bfd9f340::t_513464ed64ba2c 180-196
+  s_eb8e865dd3defa::t_5a5e0ed8d2b6ea 8,158-162,171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "edd7fb805fb3c54194abfe5fd8217a3b597c36ed",
+  "prompts": {},
+  "sessions": {
+    "s_08163a568629ac": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62f6-97ca-7fd0-975e-8ec464dc372f",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_09999a699a56bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62f9-3832-7463-870d-e7082abaed01",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_10309d23d3b409": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4ecc-bb6e-7922-9996-87f2683aafd5",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_106d832de14e33": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4995-890f-7591-b016-4686b2839754",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_13de6fdca9a587": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b4825e9-21d8-4a2c-ac61-a32f2f414366",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_2a22c521aed263": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4988-c505-73d0-a41e-f15bc309f083",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_2b8a13cc762528": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "87ebabab-1004-406c-9785-ecb2709bfa8c",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_33fd1fcf4f4b98": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7a6fb0e2-3817-4ae6-91c2-135e27b18dbe",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_576e1fed5899c6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4fbe-d392-70c1-9812-f4e265698ed7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_5edd42bfd9f340": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5f67-537c-7192-8922-1b0f3fcf4f7d",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_5f213b95d994a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "00ae8a9e-c449-4c4a-9e3c-e8de2e6889b7",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6ab7cca8c7f789": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0671ec04-600b-40a9-a9e4-01ac7992d4fa",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_706915655668dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6270679-6fa5-4c36-aef1-ae57b393f96b",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_77ef0f3692fcda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62f8-5540-78d3-b9cb-f87ca9890fd7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_78479c0eb45b50": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4a60-55f5-7851-b8df-075ccedfd69b",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_7a1890cd54acba": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4fd6-f7c2-7482-82e7-cebff0a608b9",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_83cad2da441eaf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4eaf-60b8-7483-83d7-cad29fe2128f",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_86e5cc3972b9a1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5e17-06ab-7923-8ce9-160f2a19b4d0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_ae5e80feefbc8e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4992-0708-7c71-8e12-fd7ddcf4d4af",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_afb0d5c7f699a4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6333-6c3c-7ba3-9641-6099564b83b9",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_b6f44f365c1482": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6308-418b-77e3-b7ac-c9a36cd1f55e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_b7725a7fe88438": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c13dd4a-d38d-4cb4-8e12-9573513608d3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_c4ecb81b28dd6c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4bd9-a109-7d32-a9be-232b5509171e",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_ca6b27a16a0985": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e58ca-944a-7cc2-a081-fdeb1c576447",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_d38951c1e24d4f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e53ba-e26a-7292-9bca-d3db12884877",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_d84e1018f6416e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "648aca91-1560-4e10-8a1b-a8ad3e04a4ed",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_dea4686cd6becf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e49ef-09f4-7b02-a04b-9bfa54d19a8d",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_dfe6b7409de205": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5139-e13e-7e50-a777-c685cdaffc2a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_eb8e865dd3defa": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4e62-3eee-7e41-9377-791894f0845c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_efa1e76f9c84e4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62e3-187c-7972-baac-225825eb7633",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_f19d20e93e5627": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4e4f-2d10-73d0-a39c-51511d4a7ec0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_f4324a4d768783": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e49ce-f37f-7610-adcb-d27b445a02f6",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_f4a445ef85efba": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e503c-0b2a-7bb1-817f-f3bdff6ef2aa",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_f4f52f0c569773": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62e5-f1d2-72b3-9a00-29065795def7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_f532f74d9a54e0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5edb-77d7-70f0-bf2e-fe0a4ede59eb",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_fb57e57464ebc6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4bd8-889e-7cf3-8f02-0d45a1a1d725",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

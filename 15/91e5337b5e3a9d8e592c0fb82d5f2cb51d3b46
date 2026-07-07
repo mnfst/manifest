@@ -1,0 +1,24 @@
+.changeset/provider-disconnect-agent-name.md
+  s_e4357f73b92457::t_9edcbeba37a77f 1-5
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_e4357f73b92457::t_b9fc276d93adad 43,50-54,761-764,770-778,788-791,798-799,805,815,826,841,852,867,878
+  s_e4357f73b92457::t_4e7eb7eadf28d2 769
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_e4357f73b92457::t_4a6227678b5f75 25-27,32-43,46,55,499-510,531-532
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "1591e5337b5e3a9d8e592c0fb82d5f2cb51d3b46",
+  "prompts": {},
+  "sessions": {
+    "s_e4357f73b92457": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ed56e-2956-73b2-b3b1-493741f7a20b",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

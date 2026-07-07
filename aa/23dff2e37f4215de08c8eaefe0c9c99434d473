@@ -1,0 +1,23 @@
+packages/frontend/src/pages/providers/Subscriptions.tsx
+  s_492c4473e887cf::t_de32242fe37cef 16
+packages/frontend/src/pages/providers/Byok.tsx
+  s_492c4473e887cf::t_de32242fe37cef 22
+packages/frontend/src/pages/providers/Local.tsx
+  s_492c4473e887cf::t_de32242fe37cef 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "aa23dff2e37f4215de08c8eaefe0c9c99434d473",
+  "prompts": {},
+  "sessions": {
+    "s_492c4473e887cf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91b0-14ef-7382-8783-f119a091c223",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

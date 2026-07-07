@@ -1,0 +1,50 @@
+packages/frontend/src/services/routing-params.ts
+  s_feb7f7e060c1a0::t_75650598bcbe30 20-25
+packages/frontend/src/components/ProviderSelectContent.tsx
+  s_feb7f7e060c1a0::t_a268f04eb34b5f 468,471,475
+  s_feb7f7e060c1a0::t_677da0e232aba6 251
+  s_feb7f7e060c1a0::t_5bc3969d5390f5 275
+  s_feb7f7e060c1a0::t_272500f98ee617 72
+  s_feb7f7e060c1a0::t_6e37f9ef505ce6 136-139
+  s_feb7f7e060c1a0::t_1869a6f9f8f8dc 46
+  s_feb7f7e060c1a0::t_a1fc682f1d837b 32
+  s_feb7f7e060c1a0::t_4e65295921d2dc 56
+  s_feb7f7e060c1a0::t_edd5c5b87b5c61 505
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_feb7f7e060c1a0::t_33c9457186a323 201,206-221
+  s_feb7f7e060c1a0::t_2f42cf323a6283 95,97-105
+  s_feb7f7e060c1a0::t_7f9a5376f07e35 73-77
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_feb7f7e060c1a0::t_1b02bdfb650070 2378-2422
+  s_feb7f7e060c1a0::t_a401ec14bf812d 346,359-360
+packages/frontend/tests/components/ProviderSelectContent-deeplink.test.tsx
+  s_feb7f7e060c1a0::t_510e82d8b4f5b5 123-220
+  s_feb7f7e060c1a0::t_51fe2d6638443e 60,73-76
+packages/frontend/src/components/ProviderSelectModal.tsx
+  s_feb7f7e060c1a0::t_d4e8875a8005e3 12
+  s_feb7f7e060c1a0::t_a9faaa993a5657 41
+packages/frontend/tests/components/ProviderDetailView.test.tsx
+  s_feb7f7e060c1a0::t_6e3e78dff588df 396-467
+  s_feb7f7e060c1a0::t_499b0b92fa1108 386,389-390
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "610046abc98a5465e559388325227304fa4898e8",
+  "prompts": {},
+  "humans": {
+    "h_ea64bf97c4e382": {
+      "author": "Guillaume Gay"
+    }
+  },
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

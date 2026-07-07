@@ -1,0 +1,53 @@
+packages/backend/src/routing/copilot.controller.spec.ts
+  s_feb7f7e060c1a0::t_54555d6bb1ef5a 99-100
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 128
+packages/backend/src/routing/oauth/xai/xai-oauth.service.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 132,143
+packages/backend/src/routing/model.controller.spec.ts
+  s_feb7f7e060c1a0::t_4e3215841f734c 240-241
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 171,192,196,208
+packages/backend/src/routing/minimax-oauth.controller.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 107,122
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.controller.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 134,149
+packages/backend/src/routing/oauth/gemini-oauth.service.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 200,253
+packages/backend/src/routing/oauth/kiro-oauth.service.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 300,315
+packages/backend/src/routing/oauth/openai-oauth.controller.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 160,177,196
+packages/backend/src/routing/oauth/minimax-oauth.service.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 258
+packages/backend/src/routing/oauth/openai-oauth.service.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 156
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 232,254
+packages/backend/src/routing/oauth/core/oauth-refresh-coordinator.spec.ts
+  s_feb7f7e060c1a0::t_3dbf0708f318e5 36,48-49,53
+packages/backend/src/routing/provider.controller.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 144,312,556-559,578,608,646,695,727,751
+packages/backend/src/routing/gemini-oauth.controller.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 169,177,194,213,236
+packages/backend/src/routing/openai-oauth.controller.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 177,187,222,251,270
+packages/backend/src/routing/kiro-oauth.controller.spec.ts
+  s_feb7f7e060c1a0::t_7acb19e58d6b7e 109
+packages/backend/src/routing/custom-provider.controller.spec.ts
+  s_feb7f7e060c1a0::t_2a69c835b86e12 237
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "3a8717543bc6df2b3328d788198bbc493c8158e8",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

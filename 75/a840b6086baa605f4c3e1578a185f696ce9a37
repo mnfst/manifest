@@ -1,0 +1,26 @@
+packages/frontend/src/pages/Routing.tsx
+  s_0dc1825d457013::t_9cda59406fdac5 62-70
+  s_0dc1825d457013::t_e05079b4ea7b7d 768-783
+  s_0dc1825d457013::t_50a999e085aff4 17-19
+packages/frontend/tests/pages/Routing.test.tsx
+  s_0dc1825d457013::t_26167179940146 72-85,89-101
+  s_0dc1825d457013::t_5cabd97a94131a 86-88
+  s_0dc1825d457013::t_f0b69eda19478a 631-633
+  s_0dc1825d457013::t_0b51c92f16a083 1819-1862
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "75a840b6086baa605f4c3e1578a185f696ce9a37",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

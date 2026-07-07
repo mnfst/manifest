@@ -1,0 +1,32 @@
+packages/shared/src/agent-type.ts
+  s_e76f79f8c67b57::t_e5ed1ded90e8cd 49
+packages/frontend/src/components/SetupStepAddProvider.tsx
+  s_e76f79f8c67b57::t_a16473e3229885 2
+  s_e76f79f8c67b57::t_49052765d83f6b 12
+  s_e76f79f8c67b57::t_9dbdcb313777e8 1
+  s_e76f79f8c67b57::t_81101f2314d1ec 30-31
+  s_e76f79f8c67b57::t_593550de2850b8 131-150
+packages/frontend/public/icons/craft.svg
+  s_e76f79f8c67b57::t_232caa6ee99751 1-11
+packages/frontend/tests/components/CraftAgentSetup.test.tsx
+  s_e76f79f8c67b57::t_aaef179fa671e5 21,25,28
+  s_e76f79f8c67b57::t_0d417f86161b16 23-24
+packages/frontend/src/components/CraftAgentSetup.tsx
+  s_e76f79f8c67b57::t_60ab58f7bc0838 51-53,68,70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "849efbe3528a45f5e041192e945756704f1ca2f0",
+  "prompts": {},
+  "sessions": {
+    "s_e76f79f8c67b57": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "08088a1a-4036-4f1e-95c3-4303a712198a",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

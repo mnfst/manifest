@@ -1,0 +1,44 @@
+packages/frontend/tests/components/MessageTable.test.tsx
+  s_8d7abb4142b62c::t_050f3542d8590b 441-453
+packages/frontend/src/components/message-table-cells.tsx
+  s_8d7abb4142b62c::t_78cde7b8d143aa 3,289-291
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_8d7abb4142b62c::t_4e3042127ecaaa 615-616
+  s_8d7abb4142b62c::t_b6ca3aa4cd8b61 446-447
+packages/backend/src/telemetry/payload-builder.service.ts
+  s_8d7abb4142b62c::t_8317e999db4c5e 4,11
+packages/backend/src/analytics/dto/messages-query.dto.spec.ts
+  s_8d7abb4142b62c::t_bf2eaf14d96a53 86-87
+packages/frontend/tests/components/MessageDetails.test.tsx
+  s_8d7abb4142b62c::t_714bb9870512df 216-232
+packages/backend/src/telemetry/payload-builder.service.spec.ts
+  s_8d7abb4142b62c::t_19b08866324c93 318-330
+.changeset/direct-message-label.md
+  s_8d7abb4142b62c::t_32dfb2282e0801 1-7
+packages/frontend/src/components/MessageDetails.tsx
+  s_8d7abb4142b62c::t_24540e02378923 10,128,137-140
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_8d7abb4142b62c::t_628c94b32a08e7 79,756,758,762
+packages/shared/src/tiers.ts
+  s_8d7abb4142b62c::t_8755951cb645af 28-30,35,40
+packages/frontend/src/components/message-table-types.ts
+  s_8d7abb4142b62c::t_0217e32f3381cc 30-34
+packages/frontend/src/styles/data.css
+  s_8d7abb4142b62c::t_68fb260d05bfde 185-188
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "fef144ac17771c3f0a915cc8e7633ba62720a392",
+  "prompts": {},
+  "sessions": {
+    "s_8d7abb4142b62c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f120a-9765-72e1-bb87-22a45d71fc0c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

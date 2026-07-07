@@ -1,0 +1,27 @@
+.changeset/deepseek-cache-usage.md
+  s_eb7c502dd33b5d::t_e15f22ba75cf9e 1-5
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_eb7c502dd33b5d::t_71911a5b9d3a05 279-280
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_eb7c502dd33b5d::t_78cce3213f670d 21-24,39-40
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_eb7c502dd33b5d::t_ec501b454a964c 1013-1028
+packages/backend/src/routing/proxy/__tests__/anthropic-cache-control-roundtrip.spec.ts
+  s_eb7c502dd33b5d::t_a81bf9d6d7f014 198-229
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "1568db0e8470d767b8fa1310c8a4487054186501",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

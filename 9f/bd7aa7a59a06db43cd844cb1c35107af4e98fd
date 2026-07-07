@@ -1,0 +1,22 @@
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_74238b73c97dad::t_ec0b718d034165 74-82
+packages/frontend/tests/services/providers.test.ts
+  s_74238b73c97dad::t_2f467ddd3e0224 540-554,905-919,1017-1022,1035-1039
+  s_74238b73c97dad::t_2ed6b7975c6f11 1040
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9fbd7aa7a59a06db43cd844cb1c35107af4e98fd",
+  "prompts": {},
+  "sessions": {
+    "s_74238b73c97dad": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f332a-27dd-7b72-b744-40938a5f8c13",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

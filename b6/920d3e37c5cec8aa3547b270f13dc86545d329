@@ -1,0 +1,47 @@
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_5f213b95d994a0::t_0bea7f1781a6da 8
+  s_5f213b95d994a0::t_97b6d5bb9d3e9d 70-76
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_5f213b95d994a0::t_e7888b37b65795 134-139
+  s_5f213b95d994a0::t_96d0c276e678e7 194
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  s_5f213b95d994a0::t_ef01cb20e2e44b 233-237
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_5f213b95d994a0::t_f54de4bf9d9b9f 218-294
+  s_5f213b95d994a0::t_aa439bf8a38815 189-197
+packages/backend/src/routing/proxy/provider-client.ts
+  s_5f213b95d994a0::t_0fd82a0ebc003d 9
+  s_5f213b95d994a0::t_336a4c2506f226 224-244
+.changeset/anthropic-messages-passthrough.md
+  s_5f213b95d994a0::t_0f4b284bad858e 1-18
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_5f213b95d994a0::t_d8fa0343114df3 271-361
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_5f213b95d994a0::t_800c835ccafa23 2031-2041
+  s_2b8a13cc762528::t_e527fc7526743d 2
+  s_5f213b95d994a0::t_514b8886b3d8d5 1935-2030,2042-2072,2074-2118,2120-2137,2139-2171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "b6920d3e37c5cec8aa3547b270f13dc86545d329",
+  "prompts": {},
+  "sessions": {
+    "s_2b8a13cc762528": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "87ebabab-1004-406c-9785-ecb2709bfa8c",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_5f213b95d994a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "00ae8a9e-c449-4c4a-9e3c-e8de2e6889b7",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

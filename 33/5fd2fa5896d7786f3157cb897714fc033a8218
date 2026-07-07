@@ -1,0 +1,25 @@
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  6906fc24fe414afc 1558-1582,1584-1633
+packages/backend/src/model-discovery/model-discovery.service.ts
+  6906fc24fe414afc 208,212-214,217,220-222,233-256
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "335fd2fa5896d7786f3157cb897714fc033a8218",
+  "prompts": {
+    "6906fc24fe414afc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b52314ad-9d75-450b-b517-73872d757e6b",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "messages": [],
+      "total_additions": 16411,
+      "total_deletions": 5,
+      "accepted_lines": 16405,
+      "overriden_lines": 1
+    }
+  }
+}

@@ -1,0 +1,19 @@
+packages/shared/__tests__/subscription.spec.ts
+  s_86d7e63ca9a9e5::t_f0b449d7943379 346-347
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "6fa9d38b93e8f2d254ebab55687cbacf7b362e66",
+  "prompts": {},
+  "sessions": {
+    "s_86d7e63ca9a9e5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ecb7f-17dd-7700-b563-8598c817ff5e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

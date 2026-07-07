@@ -1,0 +1,19 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_418d68f0ea64c2::t_5e4f249e01fc8d 430-434
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ba8ed1cc1ed30befb6a7435fa709752ff40e73a5",
+  "prompts": {},
+  "sessions": {
+    "s_418d68f0ea64c2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e847c-1046-7f90-a372-8ff943ee7015",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

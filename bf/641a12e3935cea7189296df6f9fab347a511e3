@@ -1,0 +1,19 @@
+packages/frontend/tests/services/framework-snippets.test.ts
+  s_5edd42bfd9f340::t_f9261927c38944 286
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "bf641a12e3935cea7189296df6f9fab347a511e3",
+  "prompts": {},
+  "sessions": {
+    "s_5edd42bfd9f340": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5f67-537c-7192-8922-1b0f3fcf4f7d",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

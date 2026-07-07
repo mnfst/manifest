@@ -1,0 +1,25 @@
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_a616f5b9538b05::t_0300c11481bbc4 91-118
+.changeset/ollama-thinking-param.md
+  s_a616f5b9538b05::t_99f4c708396aad 1-5
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_a616f5b9538b05::t_3d429c9a66cea4 112,391
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_a616f5b9538b05::t_23786b7366585f 3522-3549
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a4fd8aa58c113c3afd43e2529ad3a442fe1ced34",
+  "prompts": {},
+  "sessions": {
+    "s_a616f5b9538b05": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f27c8-cb93-7c82-a7fd-521330d617c8",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

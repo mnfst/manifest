@@ -1,0 +1,52 @@
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_8f7bd68edeeec2::t_96b3461fddf348 620-622,627-628
+  s_8f7bd68edeeec2::t_6ab83b5725745c 631-647
+  s_8f7bd68edeeec2::t_4f5473f9116d0a 724,734,736
+  s_8f7bd68edeeec2::t_769d4284f715cc 168-169,173-174
+  s_8f7bd68edeeec2::t_b2105be131fd86 352-365
+  s_8f7bd68edeeec2::t_dbd69d6e2bc69a 772-773
+  s_8f7bd68edeeec2::t_63f8c60d2b1fbb 578,580
+  s_8f7bd68edeeec2::t_c18b0eb1dbf888 112,114,116-120,130,132,134,136-140
+  s_8f7bd68edeeec2::t_c4b3ecc5280c6d 710-713,715-718
+  s_8f7bd68edeeec2::t_214d52bbd039bd 92-93,95-97
+  s_8f7bd68edeeec2::t_ed445fbc66a739 781
+  s_8f7bd68edeeec2::t_5f9667b446ab4b 98-99
+  s_8f7bd68edeeec2::t_ba30f27e903198 798-839,841-842,844-851,868-896
+  s_8f7bd68edeeec2::t_8669d795e72053 840
+  s_8f7bd68edeeec2::t_ca458d04e4917a 3
+  s_8f7bd68edeeec2::t_86e35466387f70 864-866
+  s_8f7bd68edeeec2::t_2c35c0fb7b44ae 455-459
+  s_8f7bd68edeeec2::t_4c0e53b34f010c 181,190
+  s_8f7bd68edeeec2::t_750c2c42892b99 494-495
+  s_8f7bd68edeeec2::t_1428eb4db17707 843,852-863,867
+  s_8f7bd68edeeec2::t_1fb65c6817c281 585-619,623-626,629-630,648-650
+  s_8f7bd68edeeec2::t_fefeaba14595a2 1-2,4-31,33-91,94,100-111,113,115,121-129,131,133,135,141-167,170-172,175-180,182-189,191-327,366-454,460-493,496-547,550-556,559-562,566-577,579,581-584,651-709,714,719-723,725-733,735,737-771,774-780,782-797,897
+  s_8f7bd68edeeec2::t_e7f2caaf5f5cbf 557-558,563-565
+  s_8f7bd68edeeec2::t_be55fe4ad202e3 548-549
+  s_8f7bd68edeeec2::t_89adee9f58cb74 32
+  s_8f7bd68edeeec2::t_db903f797e2b63 328-351
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_8f7bd68edeeec2::t_c4a4479018e4ba 881
+  s_8f7bd68edeeec2::t_8551ef8cea27de 1,3-378,381-880,882-909
+  s_8f7bd68edeeec2::t_f2c3247b3f958e 379-380
+  s_8f7bd68edeeec2::t_3dcaf8b3a68e6e 2
+packages/frontend/src/index.tsx
+  s_8f7bd68edeeec2::t_065b5ad18f3914 78
+  s_8f7bd68edeeec2::t_fe50f5085a2400 42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "caf6fd9c0c41f74fbf9811263081b7ac4933f735",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

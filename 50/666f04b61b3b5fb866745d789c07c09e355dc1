@@ -1,0 +1,101 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_08163a568629ac::t_08e161d6fd75a4 27,123-141
+packages/shared/src/subscription/types.ts
+  s_08163a568629ac::t_bcc6eafd58552c 12
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_08163a568629ac::t_1c7f136e03f8e5 32,83,228,506,531-532
+packages/backend/src/routing/oauth/kiro-oauth.service.ts
+  s_08163a568629ac::t_24424512ef2722 1-70
+packages/frontend/src/services/api/oauth.ts
+  s_08163a568629ac::t_eb917bb26586e1 64-77
+packages/shared/src/provider-inference.ts
+  s_08163a568629ac::t_b63825703f754a 19
+packages/backend/src/routing/oauth/kiro-oauth.service.spec.ts
+  s_08163a568629ac::t_df544046186c74 1-33,35-106
+  s_08163a568629ac::t_44bd6d9cd40068 34
+packages/shared/src/subscription/configs.ts
+  s_08163a568629ac::t_1c60cd57e1ebc3 72-74,76-89
+  s_08163a568629ac::t_ec3198fdbe40fe 75
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_08163a568629ac::t_3f4cf7d4723b5e 11,25,275-279
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_08163a568629ac::t_e64af7d3b09257 22-35,39,197-234
+packages/shared/src/providers.ts
+  s_08163a568629ac::t_24ea1b359869ca 139-142,144-145,149
+  s_08163a568629ac::t_b98e0d1760972b 143,146-148
+packages/backend/src/routing/oauth/kiro-oauth.controller.ts
+  s_08163a568629ac::t_6f6a417123f824 1-27
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_08163a568629ac::t_234ad63b753b93 13,49,85-88,133
+  s_08163a568629ac::t_6b5aeaf598e728 1014,1039,1057,1077,1096,1116,1123-1134,1136-1140,1154,1161,1177,1194,1202
+  s_08163a568629ac::t_692c3977b7f0d7 1120
+packages/backend/src/common/constants/providers.spec.ts
+  s_08163a568629ac::t_42b9745647e086 88,101-105,107,109
+  s_08163a568629ac::t_e44549a8c03bc1 100,106,108
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_08163a568629ac::t_4b92511dd32fea 15,94-108
+packages/backend/src/routing/proxy/kiro-adapter.ts
+  s_08163a568629ac::t_f68c4cdd27a1c0 1-35,37-136,138-162,165-325,327-335,337-340,342-352,354-366,368-381,383-397,399-466
+  s_08163a568629ac::t_574d1ef047c633 326,336,341,382
+packages/backend/src/common/utils/provider-inference.spec.ts
+  s_08163a568629ac::t_6a644c50cccff0 70-74
+packages/backend/src/routing/oauth/kiro-cli-token.ts
+  s_08163a568629ac::t_c0a93bbacf91b3 1-87,92-95,97,101-150
+  s_08163a568629ac::t_1570c9ada4a324 88-91,96,98-100
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_08163a568629ac::t_a1fd3222b7cc5e 10,133,442
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_08163a568629ac::t_47e655097366c5 14-19,549-550,618-662
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_08163a568629ac::t_e5622500d50a8c 1223-1269
+packages/frontend/src/services/providers.ts
+  s_08163a568629ac::t_29928ff62f004f 34,78,147
+  s_08163a568629ac::t_3276e8dce0f7a2 142-146,148-151
+  s_08163a568629ac::t_48482aaf1fc81f 304
+packages/backend/src/routing/oauth/oauth.module.ts
+  s_08163a568629ac::t_36ec266ddbdff5 11-12,20-23,25-26,32,43
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_08163a568629ac::t_863842069f4a07 5,31
+packages/backend/src/routing/kiro-oauth.controller.spec.ts
+  s_08163a568629ac::t_a284fa96126098 1-56
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_08163a568629ac::t_1ae4c301d33ea7 17,76,111,153
+packages/frontend/tests/services/providers.test.ts
+  s_08163a568629ac::t_6f72725a072b7e 427,433,435-436,441
+  s_08163a568629ac::t_e801f578764811 428-432,434,437-440,442-445
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_08163a568629ac::t_bb716f5feb24b8 464-546
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_08163a568629ac::t_a101462e71c152 109,328-336
+packages/frontend/src/components/CliOAuthDetailView.tsx
+  s_08163a568629ac::t_7eb6700adc9b34 1-115
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_08163a568629ac::t_28ef8b15e08983 11
+packages/frontend/src/components/ProviderIcon.tsx
+  s_08163a568629ac::t_41975c1adcbdda 143-168
+.changeset/kiro-subscription-provider.md
+  s_08163a568629ac::t_94190e799626ff 1-5
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_08163a568629ac::t_e0a8f350fb08ac 26,86,123,443-458,506-507
+packages/backend/src/routing/proxy/__tests__/kiro-adapter.spec.ts
+  s_08163a568629ac::t_0187987342a086 1-31,76-78,80-188,217-231,290-314,336-394
+  s_08163a568629ac::t_9dddd399d89bf1 32-75,79,189-216,232-289,315-335
+packages/backend/src/routing/oauth/kiro-cli-token.spec.ts
+  s_08163a568629ac::t_2291a2e4116aee 1-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "50666f04b61b3b5fb866745d789c07c09e355dc1",
+  "prompts": {},
+  "sessions": {
+    "s_08163a568629ac": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62f6-97ca-7fd0-975e-8ec464dc372f",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

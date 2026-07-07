@@ -1,0 +1,30 @@
+packages/backend/test/proxy-fallback-auth.e2e-spec.ts
+  s_feb7f7e060c1a0::t_4ceafa7e1a5b52 53,80,114
+  s_feb7f7e060c1a0::t_61518112bc4ab1 254-256
+  s_feb7f7e060c1a0::t_0025bbd23e24d4 13
+  s_feb7f7e060c1a0::t_52e5995fee332a 209-211
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_feb7f7e060c1a0::t_ae4cc448768ddc 56,87
+  s_feb7f7e060c1a0::t_6df5cbb722c9ea 17
+  s_feb7f7e060c1a0::t_94f14acacddada 207-209
+  s_feb7f7e060c1a0::t_aae92af6030844 159-161
+packages/backend/test/routing-flow.e2e-spec.ts
+  s_feb7f7e060c1a0::t_32ddf2bb974b9a 135-136,139-140
+  s_feb7f7e060c1a0::t_2e578c6029397d 408-409
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "09e0dcc1e38864169642c05cb2ce87e58cbf817c",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

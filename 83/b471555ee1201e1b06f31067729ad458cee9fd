@@ -1,0 +1,53 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_a123bcf9f30dcc::t_a0a45e265b6d7e 53,196-200
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_a123bcf9f30dcc::t_a0a45e265b6d7e 34
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_a123bcf9f30dcc::t_3f1ce6ba6ea9f8 637-638,652-653,661-662
+  s_a123bcf9f30dcc::t_c9b5da885bdbe9 639-651,654-660
+packages/frontend/tests/services/providers.test.ts
+  s_a123bcf9f30dcc::t_3081b97968d259 232-254
+  s_a123bcf9f30dcc::t_a786910e55e3e3 429,435-437
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_a123bcf9f30dcc::t_a9acdc6871578a 133-134,510-511,513-517,531-535,537-540,553,582
+packages/frontend/src/services/provider-utils.ts
+  s_a123bcf9f30dcc::t_a0a45e265b6d7e 36-40,75-76,78
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_a123bcf9f30dcc::t_79bbdbbc42e286 1606-1639
+  s_a123bcf9f30dcc::t_d5999fb49bda09 2202-2247
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_a123bcf9f30dcc::t_a0a45e265b6d7e 103,247-258
+packages/frontend/src/services/providers.ts
+  s_a123bcf9f30dcc::t_a0a45e265b6d7e 102-108
+packages/shared/__tests__/subscription.spec.ts
+  s_a123bcf9f30dcc::t_3d5b72ad481e6f 18,76-87,218,260-274,335-338,396-399
+packages/shared/src/subscription/configs.ts
+  s_a123bcf9f30dcc::t_a0a45e265b6d7e 60-85
+packages/backend/src/routing/proxy/provider-hooks.ts
+  s_a123bcf9f30dcc::t_a0a45e265b6d7e 19
+.changeset/qwen-token-plan-subscription.md
+  s_a123bcf9f30dcc::t_0f2f14c7a99bc0 1,3-5
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_a123bcf9f30dcc::t_b3ff816d994fd2 1229-1301,1305-1308
+  s_a123bcf9f30dcc::t_210716b18596ba 1302-1304
+  s_a123bcf9f30dcc::t_87f567276829f5 2898-2908
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_a123bcf9f30dcc::t_3fae590f60d0eb 27-28,176,541-545,640
+  s_a123bcf9f30dcc::t_a0a45e265b6d7e 639
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "83b471555ee1201e1b06f31067729ad458cee9fd",
+  "prompts": {},
+  "sessions": {
+    "s_a123bcf9f30dcc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8880-bf7c-7a73-b4d0-65fea76723b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

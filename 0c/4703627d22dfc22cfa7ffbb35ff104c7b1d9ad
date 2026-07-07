@@ -1,0 +1,33 @@
+packages/frontend/tests/components/OAuthDetailView.test.tsx
+  s_cdc27bf280c8e2::t_a5cc5556a9142e 162-163,173,175,202-203,213,215,335-336,344,349-351,364-365,371,376-378,394-395,405
+packages/backend/src/routing/openai-oauth.controller.spec.ts
+  s_cdc27bf280c8e2::t_d0ce3cdb6e1888 29,145,150-152,155,157-176,183-218,223,225,230,232,239,241,246-248,250,257,259
+packages/frontend/src/services/api/oauth.ts
+  s_cdc27bf280c8e2::t_3cff73da999b98 33-37
+packages/frontend/tests/services/api/oauth.test.ts
+  s_cdc27bf280c8e2::t_f3459bfa52043e 45-49
+  s_cdc27bf280c8e2::t_b344f636b50b29 41
+packages/backend/src/routing/oauth/openai-oauth.controller.ts
+  s_cdc27bf280c8e2::t_0eef045a3bab63 66,69-73,78-82,84,87,95-100,102
+  s_cdc27bf280c8e2::t_9f5f172f2d4527 85
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_cdc27bf280c8e2::t_0c8d5ea51368a6 1883,1907,1911,1934,1936-1937
+packages/frontend/src/components/OAuthDetailView.tsx
+  s_cdc27bf280c8e2::t_8193ba876b06fa 117,135
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "0c4703627d22dfc22cfa7ffbb35ff104c7b1d9ad",
+  "prompts": {},
+  "sessions": {
+    "s_cdc27bf280c8e2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e313a-7377-72b1-81ba-273fd9baf6a2",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

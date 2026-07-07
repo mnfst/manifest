@@ -1,0 +1,322 @@
+packages/backend/src/routing/proxy/proxy.controller.ts
+  d71bed364de619b3 74-81
+packages/backend/src/common/constants/subscription-clients.ts
+  82a2eaa980e436e6 1-21
+packages/shared/src/index.ts
+  35731f73fad91a4a 31-38
+packages/backend/src/routing/routing-core/tier.service.ts
+  s_97fc54a80bf173::t_c600bbb587da01 289-300
+  s_97fc54a80bf173::t_3563d298eb432d 337-342
+packages/frontend/src/styles/wizard.css
+  d71bed364de619b3 661
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  d71bed364de619b3 519-524,582-587,628-718,1148-1179
+packages/frontend/public/icons/providers/claude-code.svg
+  d71bed364de619b3 1
+packages/frontend/tests/services/framework-snippets.test.ts
+  d71bed364de619b3 45-46,49,51-57,62-65,68,70-73,277-296,422-443
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  d71bed364de619b3 16-19,100,103,149,171,217-220,228,236,250,254,280-282,284-288,295-306,308-311,324-332,335-343,346-347,401-405
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  d71bed364de619b3 197-209
+packages/frontend/src/components/ClaudeCodeSetup.tsx
+  d71bed364de619b3 1-79
+packages/backend/src/routing/routing-core/specificity.service.ts
+  s_97fc54a80bf173::t_90bbe2274c2f95 226-229
+  s_97fc54a80bf173::t_dc37b7e6e4ca55 254-259
+packages/frontend/src/styles/controls.css
+  d71bed364de619b3 405
+packages/backend/src/routing/routing-core/__tests__/specificity.service.spec.ts
+  s_97fc54a80bf173::t_c793272a4df6a7 377,385-413
+packages/shared/__tests__/thinking-defaults.spec.ts
+  35731f73fad91a4a 1-94
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  23b4a1fefec6f521 1388-1392,1405-1408,1412-1440,1446-1451,1472,1474-1479,1499,1515-1520,1536,1551,1553-1558,1577,1583,1585,1592,1594-1599,1615,1621-1623,1625,1631,1633-1638,1660,1666-1668,1670,1678-1683,1701,1791-1798,1800,1809,1812,1816,1828,1830-1833,1837-1838,1840-1841,1843,1848-1853,1878
+packages/shared/__tests__/agent-type.spec.ts
+  d71bed364de619b3 17,19,27-30,34,38,42-45,56-82,90-97,102,104,107,113,115
+packages/backend/src/entities/specificity-assignment.entity.ts
+  35731f73fad91a4a 2,32-34
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  2d9a0877828cbf38 2222,2241-2355
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  35731f73fad91a4a 123-223
+packages/shared/src/resolve-response.ts
+  35731f73fad91a4a 3,21-26
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  8ad8df53c7ee7fde 520-551
+packages/backend/src/model-discovery/model-discovery.service.ts
+  2d9a0877828cbf38 361-387,403
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_b970ffa4b91350::t_2ea5939861de7f 578-584
+  s_b970ffa4b91350::t_0470990e06d5d0 569-577
+packages/frontend/src/styles/agents.css
+  d71bed364de619b3 189,468,476
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  35731f73fad91a4a 808-821
+packages/backend/src/routing/proxy/proxy.service.ts
+  35731f73fad91a4a 15,183-208,224,242,265-270,300,308-313,320-322,375,381,398,417,464
+  d71bed364de619b3 35,63,75-91,131-136
+packages/backend/src/routing/proxy/stream-writer.ts
+  d71bed364de619b3 134,237-255
+packages/frontend/src/pages/Routing.tsx
+  s_b970ffa4b91350::t_668f39cb38ce72 445-455
+  42a3cee9fc1605ad 143-144,147-154,157
+  s_b970ffa4b91350::t_07575d42cfe7d1 481
+  s_b970ffa4b91350::t_fef6749988a7da 63
+packages/frontend/src/components/SetupStepAddProvider.tsx
+  d71bed364de619b3 5,9,21,47-49,61-63,148-163,174-175
+packages/backend/src/routing/header-tiers/__tests__/header-tier.service.spec.ts
+  s_97fc54a80bf173::t_49c7b35b25d406 432,438-468
+packages/backend/src/routing/proxy/__tests__/responses-adapter.spec.ts
+  10e68cf0887d634e 195-229
+  712c3ceac6595ca1 351-572
+packages/frontend/src/styles/agent-type-select.css
+  d71bed364de619b3 141,145
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  35731f73fad91a4a 4-38,111,141-146,178-183,204,226,271,309,321-328
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  d71bed364de619b3 255-302
+packages/frontend/src/styles/routing.css
+  35731f73fad91a4a 561-607
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  d71bed364de619b3 1-492
+packages/backend/src/database/migrations/1785000000000-AddParamDefaultsColumns.spec.ts
+  35731f73fad91a4a 1-31
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  23b4a1fefec6f521 95-97,120-121,134-135,140-153,160-164,168,222-229,231-232
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  d71bed364de619b3 1-592
+packages/frontend/src/pages/RoutingSpecificitySection.tsx
+  s_b970ffa4b91350::t_e65d43164ca627 157
+  s_b970ffa4b91350::t_04c836f1834464 15
+  s_b970ffa4b91350::t_79770d4383c505 254-255
+packages/backend/src/routing/proxy/provider-client.ts
+  d71bed364de619b3 201-206,246-247,252,254
+packages/frontend/tests/pages/RoutingActions.test.ts
+  42a3cee9fc1605ad 280-323
+packages/backend/src/routing/oauth/minimax-oauth.service.ts
+  23b4a1fefec6f521 16,127,141
+packages/backend/src/routing/header-tiers/header-tier.service.ts
+  s_97fc54a80bf173::t_dfbe49f7e3fd0e 222-225
+  s_97fc54a80bf173::t_a8b7baac80c42b 250-255
+packages/backend/src/database/database.module.ts
+  35731f73fad91a4a 91-94,184
+packages/frontend/src/styles/modals.css
+  d71bed364de619b3 80
+packages/backend/src/entities/tier-assignment.entity.ts
+  35731f73fad91a4a 2,29-30
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  82a2eaa980e436e6 1345
+packages/frontend/src/services/framework-snippets.ts
+  d71bed364de619b3 15,27,162-219,338-354,462-465,481-482
+packages/frontend/tests/pages/Routing.test.tsx
+  42a3cee9fc1605ad 192-202,872-885,888,890,892-897,901,921-926
+  s_b970ffa4b91350::t_d4ff4d12ece6c5 699-702,733-736,739,742,744-747
+  s_b970ffa4b91350::t_ec87232b65ff89 703-726
+  s_b970ffa4b91350::t_082718de531421 324-328,330-344,355-359,363-368,371
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  82a2eaa980e436e6 4-10,342,346-347,446-447
+CLAUDE.md
+  d71bed364de619b3 342-343
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  82a2eaa980e436e6 3-8,77-78,185-186
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  d71bed364de619b3 112-148
+packages/backend/src/model-discovery/known-model-prices.ts
+  2d9a0877828cbf38 2,4-17
+packages/frontend/tests/components/SetupStepAddProvider.test.tsx
+  d71bed364de619b3 49,52,55-63,200,202
+packages/backend/src/routing/oauth/minimax-oauth-helpers.spec.ts
+  23b4a1fefec6f521 15,116-152
+packages/backend/src/routing/proxy/proxy-types.ts
+  d71bed364de619b3 19
+packages/backend/src/routing/resolve/resolve.service.ts
+  35731f73fad91a4a 113,124,148,183,186-190,194,264,270
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  2d9a0877828cbf38 1441-1500
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  d71bed364de619b3 235-270
+packages/backend/src/routing/routing-core/__tests__/tier.service.spec.ts
+  s_97fc54a80bf173::t_46e6bafcfd4312 571,582-620
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  d71bed364de619b3 193-260
+packages/frontend/tests/pages/RoutingSpecificitySection.test.tsx
+  s_b970ffa4b91350::t_91784c956fce21 272,274-276
+packages/frontend/tests/pages/RoutingHeaderTiersSection.test.tsx
+  s_b970ffa4b91350::t_b482b12bd5d230 242-305
+  s_b970ffa4b91350::t_90ecbb081eecf4 52-63
+packages/shared/__tests__/request-params.spec.ts
+  35731f73fad91a4a 1-37
+packages/shared/src/request-params.ts
+  35731f73fad91a4a 1-29
+packages/shared/src/agent-type.ts
+  d71bed364de619b3 7,9,20,26,28,37-38,44,46
+packages/frontend/src/components/HeaderTierCard.tsx
+  s_b970ffa4b91350::t_b36bcd6c1aacfa 110-112,114
+  s_b970ffa4b91350::t_ab44a2754cb95f 6
+  s_b970ffa4b91350::t_12ddb1e1e277fe 116,118
+  s_b970ffa4b91350::t_2e729f7c909e77 331
+  s_b970ffa4b91350::t_d96591ee9f73cb 115
+  s_b970ffa4b91350::t_905163ed2e6d1d 35
+  s_b970ffa4b91350::t_8750b6c852f050 22
+packages/shared/src/thinking-defaults.ts
+  35731f73fad91a4a 1-91
+packages/frontend/src/pages/RoutingHeaderTiersSection.tsx
+  s_b970ffa4b91350::t_dc3c29b4df4151 53-54,59-62
+  s_b970ffa4b91350::t_fd16dd077d80bc 36,50-52,55-58,63-66
+  s_b970ffa4b91350::t_a375d9667830a9 29
+  s_b970ffa4b91350::t_72e2d8a376e8cd 168-170
+  s_b970ffa4b91350::t_3039ea094abda6 16
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  35731f73fad91a4a 289-422
+packages/frontend/tests/components/FrameworkSnippets.test.tsx
+  d71bed364de619b3 116,119,121-124,186,190-207,214,221,230,232,239,246,253,261,326
+packages/frontend/src/components/FrameworkSnippets.tsx
+  d71bed364de619b3 146-152
+packages/backend/src/routing/oauth/minimax-oauth-helpers.ts
+  23b4a1fefec6f521 37-59
+packages/backend/src/routing/oauth/minimax-oauth.service.spec.ts
+  23b4a1fefec6f521 126-147
+packages/backend/src/routing/proxy/responses-adapter.ts
+  10e68cf0887d634e 139-156,160-165,168-177
+  712c3ceac6595ca1 311-317,325-376,382-388,398-422
+packages/backend/src/routing/dto/resolve-response.ts
+  35731f73fad91a4a 2-7,32-36
+packages/backend/src/database/migrations/1785000000000-AddParamDefaultsColumns.ts
+  35731f73fad91a4a 1-23
+packages/frontend/src/pages/RoutingActions.tsx
+  s_97fc54a80bf173::t_17450e62d8a52a 219
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "cce8b455ed66169157c992c7706fd4a84061f677",
+  "prompts": {
+    "10e68cf0887d634e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5c1ab8bf-ba04-4d24-9b91-5a272accc0a4",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 69,
+      "overriden_lines": 0
+    },
+    "23b4a1fefec6f521": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a1b3d8cc-a8a6-4757-8817-476ebe6cabb6",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 250,
+      "overriden_lines": 0
+    },
+    "2d9a0877828cbf38": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6959824a-a408-4272-be14-2cd8f7c33357",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 278,
+      "overriden_lines": 0
+    },
+    "35731f73fad91a4a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "69cd6dd8-f498-435e-a221-a7ed5154b467",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 705,
+      "overriden_lines": 0
+    },
+    "42a3cee9fc1605ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8831ae9b-cf11-4feb-a5e7-e3ddce83739b",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 91,
+      "overriden_lines": 0
+    },
+    "712c3ceac6595ca1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "75602166-ce05-4a1c-919b-8aec468575dd",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 313,
+      "overriden_lines": 0
+    },
+    "82a2eaa980e436e6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4cdc99d2-cccc-4439-a7ac-c9d715ebc159",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 44,
+      "overriden_lines": 0
+    },
+    "8ad8df53c7ee7fde": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1630f45f-d729-462e-955c-37237a3e9a1d",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 43,
+      "overriden_lines": 0
+    },
+    "d71bed364de619b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e0f3390-4f98-46d3-a40d-1adf2ff0c86e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1837,
+      "overriden_lines": 0
+    }
+  },
+  "sessions": {
+    "s_97fc54a80bf173": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce1ea4f7-3d3e-46a0-a3ca-e6effc678199",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_b970ffa4b91350": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "08aba76f-94e6-4d75-86fc-c6884c5ba244",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

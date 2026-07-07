@@ -1,0 +1,21 @@
+packages/frontend/src/pages/MessageLog.tsx
+  s_0f26b79708a7d8::t_388e24c46d1a71 184-193,195-196
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_0f26b79708a7d8::t_388e24c46d1a71 655-672
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "2ecf8fd16fa1fd0557400ed700e0d8edbe1482bf",
+  "prompts": {},
+  "sessions": {
+    "s_0f26b79708a7d8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7c1832c-75cd-4d4c-b526-6374e99b0e66",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

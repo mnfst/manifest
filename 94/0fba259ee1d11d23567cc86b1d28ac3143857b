@@ -1,0 +1,24 @@
+packages/backend/src/routing/agent-provider-access.controller.spec.ts
+  s_0dc1825d457013::t_1e0f6693271a3d 118,123-124,137-249
+packages/backend/src/routing/agent-provider-access.controller.ts
+  s_0dc1825d457013::t_b80bc7360e44b7 64-78,84-92,95
+packages/backend/test/agent-provider-access.e2e-spec.ts
+  s_0dc1825d457013::t_80772a55f8a583 259-278,289-291
+  s_0dc1825d457013::t_0d6d2853aec0e0 279-288
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "940fba259ee1d11d23567cc86b1d28ac3143857b",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_d55d26a37e6be3::t_ff40e9d4539c32 71,73-76,139-152
+  s_d55d26a37e6be3::t_42e51c44ea7db8 1-2,4,7-8,10,12-16,22-45,47-70,72,77,90-138,153-266
+docs/model-parameters-schema.md
+  s_d55d26a37e6be3::t_a472bed9abb8fd 10-12,58
+  s_d55d26a37e6be3::t_89baed356648db 13-14
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_d55d26a37e6be3::t_e54d54cf928f83 83,85-86
+  s_d55d26a37e6be3::t_429c8eba1b341d 5-15,34-82,87-107
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_d55d26a37e6be3::t_a472bed9abb8fd 51-53,99,101,306,340
+packages/shared/src/request-params-snapshot.ts
+  s_d55d26a37e6be3::t_a472bed9abb8fd 49
+packages/shared/src/model-parameters-schema.ts
+  s_d55d26a37e6be3::t_6f8a3691de805d 271-272
+  s_d55d26a37e6be3::t_264206a36b8aca 269
+packages/shared/src/provider-params-spec.ts
+  s_d55d26a37e6be3::t_8c6bf9d3d112df 226
+  s_d55d26a37e6be3::t_a472bed9abb8fd 56
+.changeset/late-ads-argue.md
+  s_d55d26a37e6be3::t_a472bed9abb8fd 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "217bd15a6f469c249a932d6460f26cd42c386dbb",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,55 @@
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_62913d1505b1f0::t_7c388daa15e1ec 393,401-402
+packages/backend/src/routing/oauth/minimax-oauth.service.ts
+  s_62913d1505b1f0::t_c03236d59cb393 267,287-288
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_62913d1505b1f0::t_9fb188a81a4fee 263,455
+packages/backend/src/routing/openai-oauth.service.spec.ts
+  s_62913d1505b1f0::t_4c18b36d53895c 283
+  s_62913d1505b1f0::t_917bea1be12cb9 292-293
+.changeset/oauth-refresh-key-label.md
+  s_62913d1505b1f0::t_cb10813b4a2d6e 2
+  s_62913d1505b1f0::t_0cd97041e6f4d5 1,3-5
+packages/backend/src/routing/oauth/xai/xai-oauth.service.ts
+  s_62913d1505b1f0::t_c03236d59cb393 173-178,190-191
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_62913d1505b1f0::t_90844951308ea4 274,298,1209,1213,1300-1305,1347,1391,1463
+packages/backend/src/routing/oauth/openai-oauth.service.spec.ts
+  s_62913d1505b1f0::t_7c388daa15e1ec 251,259-260
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_62913d1505b1f0::t_750a16ca7b2644 35,286,366,583-588,592-597,601-606,610-615,619-624,628-633,651,656,661,666,671,681,686
+  s_62913d1505b1f0::t_9d93be5e0c31d2 575
+  s_62913d1505b1f0::t_03f874b81a915f 255
+packages/backend/src/routing/oauth/xai/xai-oauth.service.spec.ts
+  s_62913d1505b1f0::t_7c388daa15e1ec 171,184-185
+packages/backend/src/routing/oauth/kiro-oauth.service.ts
+  s_62913d1505b1f0::t_c03236d59cb393 219-224,236-237
+packages/backend/src/routing/oauth/gemini-oauth.service.spec.ts
+  s_62913d1505b1f0::t_7c388daa15e1ec 336-337,346,354-355
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_62913d1505b1f0::t_c03236d59cb393 243-248,257,264,274-275
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_62913d1505b1f0::t_c03236d59cb393 199-204,224-225
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_62913d1505b1f0::t_eb99949b353cc7 322,345
+packages/backend/src/routing/oauth/minimax-oauth.service.spec.ts
+  s_62913d1505b1f0::t_393bd618fb62a6 314,317
+packages/backend/src/routing/oauth/kiro-oauth.service.spec.ts
+  s_62913d1505b1f0::t_393bd618fb62a6 357,360
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c78f6fb20e23c742a5a1388fa890e35d44afed62",
+  "prompts": {},
+  "sessions": {
+    "s_62913d1505b1f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e87db-0b95-7600-86fe-0d72261561ea",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

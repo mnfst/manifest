@@ -1,0 +1,23 @@
+.changeset/opencode-go-cache-refresh.md
+  s_ba491a06ca7aa1::t_1ba412c82fcd3b 5
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_ba491a06ca7aa1::t_b979723454946c 3142-3177
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_ba491a06ca7aa1::t_d5be80e4d78365 55-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.1",
+  "base_commit_sha": "f224aad8bbf0925078e6348997efd197f53b2fce",
+  "prompts": {},
+  "sessions": {
+    "s_ba491a06ca7aa1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019efef8-9846-7b60-96a8-86eff405e8dc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

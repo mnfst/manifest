@@ -1,0 +1,68 @@
+packages/frontend/tests/components/ModelParamsAffordance.test.tsx
+  s_d8edee5e37c79f::t_5a9d593a4f6a23 60
+  s_d8edee5e37c79f::t_d3f4a727fb4437 62
+  s_d8edee5e37c79f::t_48e5315a509c33 45,65
+  s_ba10c1ee330272::t_e362be17b916db 72-73
+  s_d8edee5e37c79f::t_63db65863e26f5 163
+  s_d8edee5e37c79f::t_eadf96b5bd58c2 2,43,47,49-54,56-59,61,63-64,66-67,69-71,133-134
+  s_d8edee5e37c79f::t_91846bf1a4bbd5 48,55
+  s_d8edee5e37c79f::t_64a0f200ffb301 68
+  s_d8edee5e37c79f::t_30f4613f51b189 74-98
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_d8edee5e37c79f::t_f56cc0512c2ae9 299-300
+  s_d8edee5e37c79f::t_f35dd2a7e7c24b 1260-1262
+packages/frontend/src/styles/routing.css
+  s_d8edee5e37c79f::t_e29771d8b7a5c8 588-605,620,644-645
+  s_d8edee5e37c79f::t_b6b8c906c4d9f2 616-619,621-625
+  s_d8edee5e37c79f::t_bb752f67b3e603 626-630
+  s_d8edee5e37c79f::t_4b81e001a5b134 615,646-647,669-670
+  s_d8edee5e37c79f::t_226fe9f26316d0 631-643,648-668
+  s_d8edee5e37c79f::t_716b01051d1bb8 1365,1379-1381
+  s_d8edee5e37c79f::t_9976c18d55f019 1366-1378
+packages/frontend/tests/components/ModelParamsDialog.test.tsx
+  s_d8edee5e37c79f::t_48e5315a509c33 137,149
+  s_d8edee5e37c79f::t_3ac3a2c1c1745a 132,153
+  s_d8edee5e37c79f::t_d3f4a727fb4437 146
+  s_d8edee5e37c79f::t_7cb8b7434a3f09 145,147,162-164
+  s_d8edee5e37c79f::t_6dd023dc385bda 133-136,138-144,148,167-169
+  s_d8edee5e37c79f::t_63db65863e26f5 150-152,154-161,165-166
+packages/frontend/tests/components/FallbackList.test.tsx
+  s_d8edee5e37c79f::t_7d24001bcb2dad 1131,1145-1153
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_d8edee5e37c79f::t_ebd7f7b6f72dd2 421
+  s_d8edee5e37c79f::t_c3c9fbdecc8f5d 366-367
+  s_d8edee5e37c79f::t_26a9c7daf5ed62 388-395,397-398,413
+  s_d8edee5e37c79f::t_221ae1b0a28887 412,414-420,422-424,426-427,431,433-443
+  s_d8edee5e37c79f::t_6a88647be200ca 203-206,233-240,368
+  s_d8edee5e37c79f::t_d3f4a727fb4437 396
+  s_d8edee5e37c79f::t_53cfde12da81f7 19,95,378-387,400-410,425,428-430,432
+packages/frontend/src/components/ModelParamsAffordance.tsx
+  s_d8edee5e37c79f::t_30f4613f51b189 46
+  s_d8edee5e37c79f::t_48e5315a509c33 34-35,54
+  s_d8edee5e37c79f::t_e6a5189886ee09 44-45,47-48,50-53,55-56,58,103
+  s_d8edee5e37c79f::t_64a0f200ffb301 49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "f46b7368c106f2a4a1caf087f959807550a60842",
+  "prompts": {},
+  "sessions": {
+    "s_ba10c1ee330272": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c9a5343-e4c0-42d8-bba9-ef88ea021798",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_d8edee5e37c79f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e49f0-aebc-7452-89e6-d4edb5e65c7c",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

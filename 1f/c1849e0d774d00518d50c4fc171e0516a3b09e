@@ -1,0 +1,53 @@
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_eb7c502dd33b5d::t_075510fee03935 101-111,694
+packages/frontend/src/styles/cards.css
+  s_eb7c502dd33b5d::t_b89c358d42f262 164-171
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_eb7c502dd33b5d::t_2d93a67b36248d 18-23,26-33,36-37,41-42,46
+.changeset/cache-usage-breakdown.md
+  s_eb7c502dd33b5d::t_5a0885a893ac85 1-6
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_eb7c502dd33b5d::t_1fd3279bd93f04 152-159,165-171,174-176,190-192,323,328-334,337-339
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_eb7c502dd33b5d::t_4d521bade7f28a 30-31,77-78,96-97,109-110,731-732
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_eb7c502dd33b5d::t_caed75bb4b4719 347-364,375-376,384-392,401-402,422-423,434-435
+packages/frontend/tests/components/AnalyticsChartSurfaces.test.tsx
+  s_eb7c502dd33b5d::t_f21fb30831e305 103,127
+  s_eb7c502dd33b5d::t_16684ae60a201c 301-305,357,383
+packages/backend/src/analytics/services/agent-analytics.service.spec.ts
+  s_eb7c502dd33b5d::t_310d228561b7e2 48-54,64-65,72-78,88-94
+packages/frontend/src/components/ProviderChartCard.tsx
+  s_eb7c502dd33b5d::t_c245a7d268c752 11-16,42,61-64,111-117
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_eb7c502dd33b5d::t_893091d93fe51e 90-100,579
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_eb7c502dd33b5d::t_ef1772a9d932b6 18-25,96-97,125-127,140-146,150-152,201-208,211-218,223,229-235,239-241,251-265
+  s_eb7c502dd33b5d::t_683f135daa811b 266-267
+packages/frontend/src/pages/Overview.tsx
+  s_eb7c502dd33b5d::t_b803f494da7798 50-56,448
+packages/backend/src/analytics/controllers/overview.controller.spec.ts
+  s_eb7c502dd33b5d::t_0d7af088519e71 24-31
+  s_eb7c502dd33b5d::t_08930b2a0392c8 3,86
+  s_eb7c502dd33b5d::t_432a4c0be6a617 117-123
+packages/backend/src/analytics/services/agent-analytics.service.ts
+  s_eb7c502dd33b5d::t_ccbc57565c2626 20-21,52,71-72,83-84
+packages/frontend/tests/pages/Overview.test.tsx
+  s_eb7c502dd33b5d::t_469abf5a0996b8 157-167,276
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "1fc1849e0d774d00518d50c4fc171e0516a3b09e",
+  "prompts": {},
+  "sessions": {
+    "s_eb7c502dd33b5d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f2757-8a87-74e0-b084-a30b4b8441b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

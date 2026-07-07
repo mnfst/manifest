@@ -1,0 +1,26 @@
+packages/backend/src/playground/playground.service.spec.ts
+  s_95f25ebeb4cb65::t_57db2f89c436a3 342,395,414,446-455,457-497,503-508,510,512-533,535-545,551-558
+  s_95f25ebeb4cb65::t_dcd15f344af1e4 7-12,23-29,144-158,164,173-178,194,203-208,225-230
+  s_95f25ebeb4cb65::t_31206510bbe339 195,415,456,498-502,509,511,534,546-550
+packages/backend/src/playground/playground.service.ts
+  s_95f25ebeb4cb65::t_51842c51e1a4b8 13,117-125
+  s_95f25ebeb4cb65::t_5786a26b4c82ac 12,14-16,19-24,44-49,69-71,84-86,93-116,126-129,159,169-203
+packages/backend/src/playground/playground.module.ts
+  s_95f25ebeb4cb65::t_5786a26b4c82ac 11,23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "f0d1bc13fec0bcb347b494c6b2d305d9fb482762",
+  "prompts": {},
+  "sessions": {
+    "s_95f25ebeb4cb65": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8f11-4357-7cc0-8a27-d1dc33e233e3",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

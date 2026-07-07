@@ -1,0 +1,25 @@
+packages/frontend/src/components/message-table-cells.tsx
+  s_d84e1018f6416e::t_0347830b6d35d7 162-167,171,175-179
+packages/frontend/tests/pages/Overview.test.tsx
+  s_d84e1018f6416e::t_3f289a8fa6ce75 724,728,740-753
+packages/frontend/tests/components/MessageTable.test.tsx
+  s_d84e1018f6416e::t_c45929ca7559d0 235,238,245-260
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_d84e1018f6416e::t_a56a539457e86f 653,657,665-684
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "049ba280eeacf28609e38ef5e7f67acfc3a75e98",
+  "prompts": {},
+  "sessions": {
+    "s_d84e1018f6416e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "648aca91-1560-4e10-8a1b-a8ad3e04a4ed",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

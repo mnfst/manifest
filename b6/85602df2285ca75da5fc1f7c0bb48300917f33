@@ -1,0 +1,21 @@
+packages/backend/src/database/migrations/1789300000000-AddProviderParamCapabilities.ts
+  s_d55d26a37e6be3::t_7a68fadc9bdaa5 92-123,195-204,233-236,360-373,384-392,400-408,412-419,421
+packages/backend/src/database/migrations/1789300000000-AddProviderParamCapabilities.spec.ts
+  s_d55d26a37e6be3::t_777c44ff5bafc4 1-19,21-29,31-32,34-35,37-38,40-49,51-52,54-55,57-58,60-96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "b685602df2285ca75da5fc1f7c0bb48300917f33",
+  "prompts": {},
+  "sessions": {
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

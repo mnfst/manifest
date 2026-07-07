@@ -1,0 +1,107 @@
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_1bf5a50a7e4e24::t_393b34430de444 208,212,223,231,241,278,286
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_1bf5a50a7e4e24::t_613064aa2c02ab 184,204,241,264,285,461-464,485,489-493,499
+  s_1bf5a50a7e4e24::t_cae251ea1339f9 5,49-50,86-101,570,586,701
+  s_1bf5a50a7e4e24::t_12d95eeeb8eb86 577
+packages/backend/src/routing/routing-core/__tests__/tier.service.spec.ts
+  s_1bf5a50a7e4e24::t_5e017f7dbdbf7b 419,434,488,503
+  s_1bf5a50a7e4e24::t_fb90bbd31dc0ed 453,473,536,641
+packages/backend/src/routing/oauth/xai/xai-oauth.service.ts
+  s_1bf5a50a7e4e24::t_1a0f8d77c65e7b 186,190
+packages/backend/src/routing/agent-provider-access.controller.ts
+  s_1bf5a50a7e4e24::t_fa1699ae6d1dde 141-156,158
+  s_1bf5a50a7e4e24::t_36885ed6eb8173 12,125-134,136-139
+packages/backend/src/routing/model.controller.ts
+  s_1bf5a50a7e4e24::t_917da722d02302 91
+packages/backend/src/routing/specificity.controller.ts
+  s_1bf5a50a7e4e24::t_034bc85c36d8c7 112-118
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_1bf5a50a7e4e24::t_e04dd2bfcc4e75 216,225-226,228-229,234,300,317,350-351,358,373-377,383,393-397,400,404
+packages/backend/src/database/migrations/1791000000000-LiftProvidersToUserLevel.spec.ts
+  s_1bf5a50a7e4e24::t_8aa66c07d49341 84-86
+  s_1bf5a50a7e4e24::t_a2c79411dcc17b 45-46,64,77-83,87-92
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_1bf5a50a7e4e24::t_1a0f8d77c65e7b 271,275
+packages/backend/src/routing/oauth/minimax-oauth.service.ts
+  s_1bf5a50a7e4e24::t_1a0f8d77c65e7b 292,296
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_1bf5a50a7e4e24::t_393b34430de444 438,466,474
+packages/backend/src/playground/playground.service.spec.ts
+  s_1bf5a50a7e4e24::t_375eb9d8d2912e 510-515,552
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_1bf5a50a7e4e24::t_6a939f18f37396 274-275
+packages/backend/src/routing/oauth/kiro-oauth.service.ts
+  s_1bf5a50a7e4e24::t_1a0f8d77c65e7b 231,235
+packages/backend/src/routing/routing-core/specificity.service.ts
+  s_1bf5a50a7e4e24::t_034bc85c36d8c7 89,205,212,260,265
+packages/backend/src/routing/agent-provider-access.controller.spec.ts
+  s_1bf5a50a7e4e24::t_27dcf5c9066314 149-151,190-192
+  s_1bf5a50a7e4e24::t_75e8424d90ee74 298-300,334-336
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_1bf5a50a7e4e24::t_1a0f8d77c65e7b 220,224
+packages/backend/src/analytics/controllers/overview.controller.spec.ts
+  s_1bf5a50a7e4e24::t_da1cc23d312fb4 9-10,47,55,66,149-152,162-176
+packages/backend/src/routing/routing-core/tier.service.ts
+  s_1bf5a50a7e4e24::t_034bc85c36d8c7 119,279,286,336,341
+packages/backend/src/routing/tier.controller.ts
+  s_1bf5a50a7e4e24::t_034bc85c36d8c7 124
+packages/backend/src/routing/oauth/core/oauth-refresh-coordinator.ts
+  s_1bf5a50a7e4e24::t_88859a68afe321 26,59,85
+  s_1bf5a50a7e4e24::t_fb90bbd31dc0ed 84
+packages/backend/src/routing/header-tiers/header-tier.service.ts
+  s_1bf5a50a7e4e24::t_034bc85c36d8c7 199,214,242,248,282,287
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_1bf5a50a7e4e24::t_b23d513db5ff3b 1167,1229,1355
+  s_1bf5a50a7e4e24::t_603e7a5e1ba9dc 1118,1128,1214,1221,1340,1347,1384-1389,1431,1439,1504-1508
+packages/backend/src/routing/routing-core/__tests__/routing-invalidation.service.spec.ts
+  s_1bf5a50a7e4e24::t_e88e079beb38fb 51,63,70,86,102,119,136,143,150,160-163
+packages/backend/src/routing/header-tiers/__tests__/header-tier.service.spec.ts
+  s_1bf5a50a7e4e24::t_fb90bbd31dc0ed 388-395,408,445-447,523,543
+  s_1bf5a50a7e4e24::t_5e017f7dbdbf7b 431,439,481,488,498,553,638
+packages/backend/src/database/migrations/1791000000000-LiftProvidersToUserLevel.ts
+  s_1bf5a50a7e4e24::t_4ae5e28314285c 191,197-198,200-255,257-274,277
+packages/backend/src/routing/routing-core/__tests__/specificity.service.spec.ts
+  s_1bf5a50a7e4e24::t_5e017f7dbdbf7b 256,270,298,309
+  s_1bf5a50a7e4e24::t_fb90bbd31dc0ed 286,332
+packages/backend/src/routing/header-tiers/header-tier.controller.ts
+  s_1bf5a50a7e4e24::t_034bc85c36d8c7 195,223
+packages/backend/src/routing/routing-core/routing-invalidation.service.ts
+  s_1bf5a50a7e4e24::t_15b3c1afb9feca 36,60,69,71
+packages/backend/src/model-discovery/model-discovery.module.ts
+  s_1bf5a50a7e4e24::t_0b08a375865f9c 4,13-16
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_1bf5a50a7e4e24::t_0b08a375865f9c 6,85-87,264,345,349-352,356,358,361,365,370,373-374,377-388,391,424-427,433,464-480
+packages/backend/src/playground/playground.service.ts
+  s_1bf5a50a7e4e24::t_393b34430de444 79-83,91-99,140
+packages/backend/src/routing/routing-core/tier-auto-assign.service.ts
+  s_1bf5a50a7e4e24::t_9b88dd5f8c5164 63-64
+packages/backend/src/analytics/analytics.module.ts
+  s_1bf5a50a7e4e24::t_fa05e676bd5d0a 11,50
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_1bf5a50a7e4e24::t_fa05e676bd5d0a 14-16,28-29,71,73-76
+packages/backend/src/routing/oauth/core/oauth-refresh-coordinator.spec.ts
+  s_1bf5a50a7e4e24::t_55121b0315f3cb 48-49,53
+packages/backend/src/routing/routing-core/__tests__/tier-auto-assign.service.spec.ts
+  s_1bf5a50a7e4e24::t_55121b0315f3cb 49,70,95,127,151,161,177,187
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_1bf5a50a7e4e24::t_44fa3436bae174 742-743,752-753,760,762,768-769,772-773,781,783,792,798,800,810-811,815
+packages/backend/src/routing/model.controller.spec.ts
+  s_1bf5a50a7e4e24::t_8aa66c07d49341 240
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "79adb971dbfdf5782d8b0e5a3496f4093bce5e43",
+  "prompts": {},
+  "sessions": {
+    "s_1bf5a50a7e4e24": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ea70d-736f-7373-b8a5-602325074a7e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_e26e0be28416e0::t_ed328ee92323d4 954-956,959,975-984,999
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_e26e0be28416e0::t_8713e2d91d53cc 421-423,990-993
+packages/frontend/tests/pages/ProviderPages.test.tsx
+  s_e26e0be28416e0::t_49c30c9ee3391e 262-290
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_e26e0be28416e0::t_46b160c5e71ea2 1485,1503,1507-1538
+.changeset/delete-inactive-subscriptions.md
+  s_e26e0be28416e0::t_18eac74d243009 1-5
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_e26e0be28416e0::t_0a4a62092a078f 589-616
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_e26e0be28416e0::t_69bee11ecff25a 384
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.1",
+  "base_commit_sha": "20cbdebabcb228c716495f8c03e962ac0989df7e",
+  "prompts": {},
+  "sessions": {
+    "s_e26e0be28416e0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f02a8-b6b2-7782-93f9-ab4f6b4fe45a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

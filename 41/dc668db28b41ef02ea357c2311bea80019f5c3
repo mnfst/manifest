@@ -1,0 +1,19 @@
+packages/backend/src/notifications/services/notification-rules.service.consumption.spec.ts
+  s_4ebc4b4acf3bc6::t_557c5a5840f62a 204-205
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "41dc668db28b41ef02ea357c2311bea80019f5c3",
+  "prompts": {},
+  "sessions": {
+    "s_4ebc4b4acf3bc6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019eb0a1-8602-7dc1-8ee5-d9865b9b9443",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

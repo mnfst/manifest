@@ -1,0 +1,32 @@
+packages/shared/src/subscription/configs.ts
+  s_aecd2bb6cf8858::t_c3d7509e3fbd0d 25-27
+packages/shared/__tests__/subscription.spec.ts
+  s_aecd2bb6cf8858::t_c3d7509e3fbd0d 478
+packages/shared/src/subscription/types.ts
+  s_aecd2bb6cf8858::t_c3d7509e3fbd0d 3
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_aecd2bb6cf8858::t_981d0e270ad056 332-352
+  s_aecd2bb6cf8858::t_c3d7509e3fbd0d 311-331
+packages/backend/src/model-discovery/model-fallback.ts
+  s_aecd2bb6cf8858::t_0249e1b11afce4 157,172-173,176
+  s_aecd2bb6cf8858::t_981d0e270ad056 156,158-171,174-175,177,179
+  s_aecd2bb6cf8858::t_c3d7509e3fbd0d 11,151-155,178,180-185,312-316,348,390
+.changeset/anthropic-opus-context.md
+  s_aecd2bb6cf8858::t_c3d7509e3fbd0d 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "4e3fdde2bcb848ea0b67ef53dd1032b8ea448954",
+  "prompts": {},
+  "sessions": {
+    "s_aecd2bb6cf8858": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f27c0-b99d-7d73-8f72-76c628b768df",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

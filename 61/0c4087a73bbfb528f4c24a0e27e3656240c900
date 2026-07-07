@@ -1,0 +1,21 @@
+packages/shared/__tests__/chat-message.spec.ts
+  s_83cad2da441eaf::t_8ca9b84d38d0df 197,200-303
+.changeset/message-log-assistant-response.md
+  s_83cad2da441eaf::t_bde6646a1e82f6 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "610c4087a73bbfb528f4c24a0e27e3656240c900",
+  "prompts": {},
+  "sessions": {
+    "s_83cad2da441eaf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4eaf-60b8-7483-83d7-cad29fe2128f",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}

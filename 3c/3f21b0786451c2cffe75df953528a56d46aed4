@@ -1,0 +1,25 @@
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_8f7bd68edeeec2::t_6bee57c21449f0 560,568
+  s_8f7bd68edeeec2::t_4e5f7170d04e1e 339-343,355,357-359
+  s_8f7bd68edeeec2::t_c414e18938c20e 323-325,330,336
+  s_8f7bd68edeeec2::t_ef63b559e857b7 153-155
+  s_8f7bd68edeeec2::t_547ec9bf62015c 255-258,260,263-273
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_8f7bd68edeeec2::t_316e1697e3dff2 756-757,763-764,767-770,773-774,778-794
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "3c3f21b0786451c2cffe75df953528a56d46aed4",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

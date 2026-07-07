@@ -1,0 +1,102 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_593505829f2976::t_215661532a4d4e 44,662-665
+  s_2351d28ef04d06::t_0f24263baf8656 666
+packages/backend/src/routing/proxy/provider-client.ts
+  s_593505829f2976::t_eac4ab6385e92b 69,78
+packages/shared/__tests__/providers.spec.ts
+  s_593505829f2976::t_bb6d43e35b9f99 115-124,196-204
+  s_2351d28ef04d06::t_567badc3556f5f 205
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_593505829f2976::t_014e583214e3d8 33,744-784
+  s_2351d28ef04d06::t_a831f2e09006cf 785-786
+.changeset/messages-status-filter.md
+  s_593505829f2976::t_177d866e69309d 1-5
+.changeset/nous-subscription.md
+  s_593505829f2976::t_d1d0081e1fc735 1-5
+.changeset/real-v1-models-list.md
+  s_593505829f2976::t_47ab5d189e345b 1-5
+packages/backend/src/analytics/controllers/messages.controller.spec.ts
+  s_593505829f2976::t_1867b318a4d8cd 101,120
+packages/backend/src/analytics/dto/messages-query.dto.spec.ts
+  s_593505829f2976::t_8a62ec921e0fa6 60
+packages/backend/src/analytics/dto/messages-query.dto.ts
+  s_593505829f2976::t_8315c3192e6f13 12
+packages/backend/src/analytics/services/messages-query.service.spec.ts
+  s_593505829f2976::t_344bd4df9b8a27 710-714
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_593505829f2976::t_538f82ed9b8744 10,227-229
+packages/backend/src/common/utils/cost-calculator.spec.ts
+  s_593505829f2976::t_c37633e39858d5 43-56
+packages/backend/src/common/utils/cost-calculator.ts
+  s_593505829f2976::t_e3fc4b92fdd25c 24-29,36-37,48-50
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_593505829f2976::t_31668d0d6aa018 296-322
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_593505829f2976::t_66fd56317397bf 77,161,200-205,349-359,694
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_593505829f2976::t_6b54e3cf5e7ce2 208-228,717-740
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_593505829f2976::t_554e1ea23a5e27 10,78-93,123,158-160,190,198-199,205-253
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_593505829f2976::t_e1ab9b21b4030f 97,121-123,133
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_593505829f2976::t_7642d7c30ca8ec 1013-1045
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_593505829f2976::t_c54e7c11d21b69 119,241-247
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_593505829f2976::t_60542249067e9e 423,501
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_593505829f2976::t_3e18f45d1d3922 24-25,46-71,90,94-122,125
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_593505829f2976::t_a9ea180720ae36 13,30,49,84,91-105
+packages/backend/test/proxy.e2e-spec.ts
+  s_593505829f2976::t_0aad0b0591617d 94-114
+packages/frontend/public/icons/providers/nousresearch.svg
+  s_593505829f2976::t_8569808ee8524a 1-21
+packages/frontend/src/components/ProviderIcon.tsx
+  s_593505829f2976::t_3cbbbd098224ea 334-346
+packages/frontend/src/pages/MessageLog.tsx
+  s_593505829f2976::t_5b10301e17f3c9 70-78,82,153-155,247-251,254-268,275,295,338,362,410-415,439-440,446-448,464-469,650
+packages/frontend/src/services/api/messages.ts
+  s_593505829f2976::t_8a714035be0ebc 66
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_593505829f2976::t_4771df3886d893 39
+packages/frontend/src/services/providers.ts
+  s_593505829f2976::t_7c487d5952e09f 334-344,478
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_593505829f2976::t_cac84902a390df 65-73
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_593505829f2976::t_380c50939c0fe3 8,17-19,21,201-208,508-538,1305,1324,1329,1344,1365,1388,1511
+packages/frontend/tests/services/providers.test.ts
+  s_593505829f2976::t_2bb0c3e8d5b69c 649-661,694-698,868-882
+packages/shared/__tests__/subscription.spec.ts
+  s_593505829f2976::t_dea810fbb09c4f 23,160-169,280,327-330,541-549
+packages/shared/src/providers.ts
+  s_593505829f2976::t_00dfa77241f9ce 258-269
+packages/shared/src/subscription/configs.ts
+  s_593505829f2976::t_26028d1ce8a4bc 131-142
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "35f2bee169395e75c2ac42b150852210a13b58ee",
+  "prompts": {},
+  "sessions": {
+    "s_2351d28ef04d06": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f127c-75cc-7171-b057-147381de38dd",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_593505829f2976": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f122a-52d9-7130-b575-459b0cc72d21",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

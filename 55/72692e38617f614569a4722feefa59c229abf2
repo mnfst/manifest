@@ -1,0 +1,23 @@
+.changeset/openai-sdk-shipped-modal.md
+  s_8d7abb4142b62c::t_4915f00f91162a 1-5
+packages/frontend/tests/components/WhatsNewModal.test.tsx
+  s_8d7abb4142b62c::t_a74722d04f783e 6-7,32-37,40-43
+packages/frontend/src/components/WhatsNewModal.tsx
+  s_8d7abb4142b62c::t_e9da1cc91228c9 6,10-13,98-99
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "5572692e38617f614569a4722feefa59c229abf2",
+  "prompts": {},
+  "sessions": {
+    "s_8d7abb4142b62c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f120a-9765-72e1-bb87-22a45d71fc0c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
