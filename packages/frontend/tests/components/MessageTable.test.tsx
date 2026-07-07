@@ -551,7 +551,9 @@ describe('MessageTable', () => {
       expect(container.textContent).not.toContain('rate_limited');
     });
 
-    it('renders error tooltip for error messages', () => {
+    it('renders a plain Failed badge for an error row (no status-cell tooltip)', () => {
+      // The status-cell hover tooltip was removed — error detail now lives in the
+      // expanded accordion, so the status cell is just the binary Failed pill.
       const { container } = render(() => (
         <MessageTable
           items={[makeRow({ status: 'error', error_message: 'timeout' })]}
@@ -559,9 +561,10 @@ describe('MessageTable', () => {
           agentName="agent-1"
         />
       ));
-      const tooltip = container.querySelector('.status-badge-tooltip');
-      expect(tooltip).not.toBeNull();
-      expect(tooltip!.getAttribute('aria-label')).toBe('timeout');
+      expect(container.querySelector('.status-badge-tooltip')).toBeNull();
+      const badge = container.querySelector('.status-badge--error');
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toContain('Failed');
     });
 
     it('renders a fallback_error row as a plain "Failed" pill (no status SVG)', () => {
@@ -809,11 +812,10 @@ describe('MessageTable', () => {
         />
       ));
 
-      const compactTooltip = compact.querySelector('.status-badge-tooltip');
-      const detailedTooltip = detailed.querySelector('.status-badge-tooltip');
-      expect(compactTooltip!.getAttribute('aria-label')).toBe(
-        detailedTooltip!.getAttribute('aria-label'),
-      );
+      const compactBadge = compact.querySelector('.status-badge--error');
+      const detailedBadge = detailed.querySelector('.status-badge--error');
+      expect(compactBadge).not.toBeNull();
+      expect(compactBadge!.textContent).toBe(detailedBadge!.textContent);
     });
 
     it('supports custom column subsets for future pages', () => {

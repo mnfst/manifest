@@ -4,9 +4,7 @@ import { routingTierLabel, type MessageRow, type MessageColumnKey } from './mess
 import InfoTooltip from './InfoTooltip.jsx';
 import {
   formatCost,
-  formatErrorMessage,
   formatNumber,
-  formatStatus,
   formatTime,
   formatDuration,
   customProviderColor,

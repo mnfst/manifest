@@ -27,9 +27,9 @@ import {
   getOverviewAgentUsage,
   getOverviewProviderUsage,
 } from '../services/api/analytics.js';
-import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
+import { formatNumber, formatCost } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
-import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
+import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import ProviderChartCard from '../components/ProviderChartCard.jsx';
@@ -41,7 +41,11 @@ import { authLabel, authBadgeFor } from '../components/AuthBadge.jsx';
 import { platformIcon } from 'manifest-shared';
 import GlobalOverviewSkeleton from '../components/GlobalOverviewSkeleton.jsx';
 import MessageTable from '../components/MessageTable.jsx';
-import { COMPACT_COLUMNS, type MessageColumnKey } from '../components/message-table-types.js';
+import {
+  COMPACT_COLUMNS,
+  type MessageColumnKey,
+  type MessageRow,
+} from '../components/message-table-types.js';
 import { agentPing, messagePing, routingPing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
@@ -74,19 +78,6 @@ interface CostByModelRow {
   custom_provider_name?: string | null;
 }
 
-interface RecentActivityRow {
-  timestamp: string;
-  agent_name: string;
-  model: string;
-  total_tokens: number;
-  status?: string;
-  provider?: string;
-  auth_type?: string;
-  description?: string;
-  first_message?: string;
-  cost_usd?: number;
-}
-
 interface OverviewResponse {
   summary: {
     tokens_today: { value: number; trend_pct: number };
@@ -96,7 +87,7 @@ interface OverviewResponse {
   token_usage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
   cost_by_model: CostByModelRow[];
-  recent_activity: RecentActivityRow[];
+  recent_activity: MessageRow[];
   has_data: boolean;
   has_providers: boolean;
 }

@@ -538,8 +538,10 @@ describe('MessageLog', () => {
     });
   });
 
-  describe('error tooltip', () => {
-    it('shows tooltip when error_message is present on a failed row', async () => {
+  describe('status cell', () => {
+    it('renders a failed row as a Failed badge with no hover tooltip', async () => {
+      // The status-cell hover tooltip was removed — error detail is shown in the
+      // expanded accordion now, so the cell is just the binary Failed pill.
       const dataWithError = {
         ...messagesData,
         items: [
@@ -553,6 +555,7 @@ describe('MessageLog', () => {
             total_tokens: 0,
             cost: 0,
             status: 'error',
+            error_origin: 'provider',
             error_message: '401 Unauthorized: invalid API key',
           },
         ],
@@ -560,48 +563,11 @@ describe('MessageLog', () => {
       mockGetMessages.mockResolvedValue(dataWithError);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        const tooltip = container.querySelector('.status-badge-tooltip');
-        expect(tooltip).not.toBeNull();
-        const bubble = container.querySelector('.status-badge-tooltip__bubble');
-        expect(bubble).not.toBeNull();
-        expect(bubble!.textContent).toBe('401 Unauthorized: invalid API key');
+        const badge = container.querySelector('.status-badge--error');
+        expect(badge).not.toBeNull();
+        expect(badge!.textContent).toContain('Failed');
       });
-    });
-
-    it('does not show tooltip when error_message is absent', async () => {
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain('msg-1234');
-        const tooltip = container.querySelector('.status-badge-tooltip');
-        expect(tooltip).toBeNull();
-      });
-    });
-
-    it('sets aria-label on the tooltip wrapper', async () => {
-      const dataWithError = {
-        ...messagesData,
-        items: [
-          {
-            id: 'msg-err99999',
-            timestamp: '2026-02-18T10:00:00Z',
-            agent_name: 'test-agent',
-            model: 'gpt-4o',
-            input_tokens: 0,
-            output_tokens: 0,
-            total_tokens: 0,
-            cost: 0,
-            status: 'error',
-            error_message: 'timeout',
-          },
-        ],
-      };
-      mockGetMessages.mockResolvedValue(dataWithError);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        const tooltip = container.querySelector('.status-badge-tooltip');
-        expect(tooltip?.getAttribute('aria-label')).toBe('timeout');
-      });
+      expect(container.querySelector('.status-badge-tooltip')).toBeNull();
     });
   });
 
