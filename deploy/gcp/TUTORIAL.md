@@ -52,7 +52,7 @@ curl -sSf "$(terraform output -raw health_check_url)"
 deploystack uninstall
 ```
 
-If you deployed with `database_deletion_protection=true`, set it back to `false` and apply before uninstalling.
+Cloud SQL deletion protection is enabled by default. Set `database_deletion_protection=false` and apply before uninstalling.
 
 ## You're done
 

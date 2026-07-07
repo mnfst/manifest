@@ -3,7 +3,7 @@ locals {
   name_prefix     = "${var.service_name}-${local.suffix}"
   database_name   = "manifest"
   database_user   = "manifest"
-  service_account = substr("${var.service_name}-${local.suffix}", 0, 30)
+  service_account = "${substr(var.service_name, 0, 23)}-${local.suffix}"
   database_url    = "postgresql://${local.database_user}:${urlencode(random_password.database.result)}@/${local.database_name}?host=${urlencode("/cloudsql/${google_sql_database_instance.manifest.connection_name}")}"
   managed_secret_ids = {
     database_url            = "${local.name_prefix}-database-url"
@@ -240,6 +240,8 @@ resource "google_cloud_run_v2_service" "manifest" {
   }
 
   depends_on = [
+    google_sql_database.manifest,
+    google_sql_user.manifest,
     google_project_iam_member.cloudsql_client,
     google_secret_manager_secret_iam_member.managed,
     google_secret_manager_secret_version.managed,

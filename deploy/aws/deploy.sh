@@ -21,15 +21,27 @@ if [[ -z "$REGION" ]]; then
   exit 1
 fi
 
+if [[ ! "$DESIRED_COUNT" =~ ^[0-9]+$ ]]; then
+  echo "DESIRED_COUNT must be an integer from 1 to 10." >&2
+  exit 1
+fi
+
+desired_count_number=$((10#$DESIRED_COUNT))
+if ((desired_count_number < 1 || desired_count_number > 10)); then
+  echo "DESIRED_COUNT must be an integer from 1 to 10." >&2
+  exit 1
+fi
+
 aws cloudformation deploy \
   --region "$REGION" \
   --stack-name "$STACK_NAME" \
   --template-file "$TEMPLATE_FILE" \
   --capabilities CAPABILITY_IAM \
+  --no-fail-on-empty-changeset \
   --parameter-overrides \
     ServiceName="$SERVICE_NAME" \
     ImageUrl="$IMAGE_URL" \
-    DesiredCount="$DESIRED_COUNT" \
+    DesiredCount="$desired_count_number" \
     DatabaseInstanceClass="$DATABASE_INSTANCE_CLASS" \
     DatabaseDeletionProtection="$DATABASE_DELETION_PROTECTION"
 

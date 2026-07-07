@@ -1,5 +1,9 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Deploy Manifest on AWS with ECS Fargate, RDS PostgreSQL, an Application Load Balancer, and Secrets Manager.
+Description: >-
+  Deploy Manifest on AWS with ECS Fargate, RDS PostgreSQL, an
+  Application Load Balancer, and Secrets Manager. The load balancer is
+  HTTP-only by default; configure TLS with your own domain and ACM
+  certificate before sending production auth traffic through it.
 
 Parameters:
   ServiceName:

@@ -15,8 +15,8 @@ variable "service_name" {
   default     = "manifest"
 
   validation {
-    condition     = can(regex("^[a-z][a-z0-9-]{0,39}$", var.service_name))
-    error_message = "service_name must start with a letter and contain at most 40 lowercase letters, numbers, or hyphens."
+    condition     = can(regex("^[a-z]([a-z0-9-]{0,38}[a-z0-9])?$", var.service_name))
+    error_message = "service_name must be 1-40 characters, start with a letter, end with a letter or number, and contain only lowercase letters, numbers, or hyphens."
   }
 }
 
@@ -41,5 +41,5 @@ variable "max_instances" {
 variable "database_deletion_protection" {
   description = "Protect the Cloud SQL instance from terraform destroy."
   type        = bool
-  default     = false
+  default     = true
 }

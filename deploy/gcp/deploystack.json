@@ -44,7 +44,7 @@
       "name": "database_deletion_protection",
       "prompt": "Enable Cloud SQL deletion protection",
       "type": "boolean",
-      "default": false
+      "default": true
     }
   ]
 }

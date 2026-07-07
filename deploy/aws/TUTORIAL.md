@@ -10,6 +10,8 @@ This walkthrough deploys Manifest on AWS with ECS Fargate, RDS PostgreSQL, Secre
 
 This stack creates paid resources, including an Application Load Balancer, ECS Fargate tasks, and RDS PostgreSQL.
 
+The default template exposes Manifest over HTTP on the generated load balancer DNS name. Configure TLS with your own domain and ACM certificate before using the deployment for production authentication traffic.
+
 ## Open AWS CloudShell
 
 Open [AWS CloudShell](https://console.aws.amazon.com/cloudshell/home), choose the region you want to deploy into, then run:
