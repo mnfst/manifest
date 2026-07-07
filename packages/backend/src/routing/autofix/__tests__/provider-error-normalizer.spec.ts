@@ -69,6 +69,20 @@ describe('normalizeProviderError', () => {
     expect(result.message).toContain('Bearer [REDACTED]');
   });
 
+  it('scrubs secrets out of type, param and code (not just message)', () => {
+    const secret = `sk-ant-${'a'.repeat(24)}`;
+    const raw = JSON.stringify({
+      error: { message: 'm', type: `t ${secret}`, param: `p ${secret}`, code: `c ${secret}` },
+    });
+
+    const result = normalizeProviderError(raw);
+
+    for (const field of [result.type, result.param, result.code]) {
+      expect(field).not.toContain(secret);
+      expect(field).toContain('[REDACTED]');
+    }
+  });
+
   it('truncates a very long message to 2000 characters', () => {
     const longMessage = 'x'.repeat(5000);
     const raw = JSON.stringify({ error: { message: longMessage } });

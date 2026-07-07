@@ -66,7 +66,7 @@ describe('AutofixHealthProbe', () => {
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('ECONNREFUSED'));
   });
 
-  it('sends x-api-key when AUTOFIX_HEALING_API_KEY is set', async () => {
+  it('never sends x-api-key to the public health endpoint, even when a key is set', async () => {
     fetchSpy.mockResolvedValue(fakeResponse(true, 200));
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
 
@@ -75,16 +75,9 @@ describe('AutofixHealthProbe', () => {
       AUTOFIX_HEALING_API_KEY: 'secret',
     }).probe();
 
-    expect(fetchSpy.mock.calls[0][1].headers).toEqual({ 'x-api-key': 'secret' });
-  });
-
-  it('omits the header when no api key is configured', async () => {
-    fetchSpy.mockResolvedValue(fakeResponse(true, 200));
-    jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
-
-    await makeProbe({ AUTOFIX_HEALING_URL: 'http://phoenix.local' }).probe();
-
-    expect(fetchSpy.mock.calls[0][1].headers).toEqual({});
+    // /api/health is public in the Phoenix contract; the probe must not attach
+    // the key (a wrong/misconfigured URL would otherwise leak it).
+    expect(fetchSpy.mock.calls[0][1].headers).toBeUndefined();
   });
 
   it('onApplicationBootstrap fires the probe without awaiting it', () => {

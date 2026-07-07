@@ -2,6 +2,24 @@
 
 **Status:** Backend + frontend implemented, green, verified live · **Last updated:** 2026-07-01
 
+> **⚠️ This spec describes the original aspirational design and has diverged from
+> what shipped. Where they disagree, the code is the source of truth.** Known
+> divergences:
+>
+> - **No multi-attempt loop, no budget.** Healing is a **single attempt**
+>   (`runHealOnce` — one heal, one reforward). There is no retry budget, so
+>   `autofix_max_attempts`, the `maxAttempts` endpoint field, and the
+>   `AUTOFIX_DEFAULT_MAX_ATTEMPTS` env var referenced below **do not exist**.
+> - **`agents.autofix_enabled` is nullable** (`boolean | null`, not
+>   `default: false`). `NULL` inherits the deployment-mode default (ON in cloud,
+>   OFF in self-hosted); an explicit `true`/`false` wins.
+> - **Production default client is `NoopHealingClient`** (inert), not the mock —
+>   the mock runs only in dev/test. See §4.
+> - **`agent_messages` also has `autofix_phoenix`** (jsonb — the Phoenix
+>   `{issueId, patchId, healAttemptId}`), in addition to the columns listed in §5.2.
+> - A per-**tenant** early-access gate (`AUTOFIX_ROLLOUT` + `autofix_access_granted_at`
+>   / `autofix_waitlist_at`) sits above the per-agent toggle.
+
 > **Implementation status.** Full stack built against the real **Phoenix**
 > contract (§4) and passing: backend unit suite green (6900 tests), frontend suite
 > green (3877 tests), every new `routing/autofix/*` file + the new UI at 100%
@@ -10,7 +28,7 @@
 > real Phoenix.
 >
 > **Verified live** (`/serve`, cloud mode): migrations applied, the Routing-page
-> Auto-fix toggle persists to the DB and reveals the budget input, and the real
+> Auto-fix toggle persists to the DB, and the real
 > `AutofixService` + mock Phoenix heal the MVP `max_tokens` case end-to-end
 > (400 → `rename_param` → resend `max_output_tokens` → 200 healed, chain recorded).
 >
@@ -20,8 +38,8 @@
 
 > Manifest intercepts a request that failed with a *repairable* error, ships the
 > failed request + full provider response to an external **healing service**, gets a
-> patched request back, re-sends it, and loops up to a per-agent budget — **before**
-> the normal fallback chain runs. The full chain of attempts is recorded on the
+> patched request back, and re-sends it **once** — **before**
+> the normal fallback chain runs. The attempt is recorded on the
 > message so you can see the first error, every request Auto-fix sent, what changed,
 > and the final result.
 
@@ -132,12 +150,16 @@ interface HealingClient {
 }
 ```
 
-Two implementations, selected by config:
+Three implementations, selected by config at boot:
 
-- **`MockHealingClient`** (default when `AUTOFIX_HEALING_URL` is unset) — in-process,
-  deterministic. Enough to demo the loop: unknown-model → remap to a configured known
-  model, strip params the error names as unknown, coerce obvious format issues.
-- **`HttpHealingClient`** — POSTs to `AUTOFIX_HEALING_URL`, maps response → `HealResult`.
+- **`HttpHealingClient`** — used whenever `AUTOFIX_HEALING_URL` is set. POSTs to that
+  URL, maps response → `HealResult`.
+- **`NoopHealingClient`** — the **production default when `AUTOFIX_HEALING_URL` is
+  unset**. Inert: never heals, never mutates traffic. Keeps the dev mock off real
+  traffic when no healer is wired.
+- **`MockHealingClient`** — the **dev/test default when `AUTOFIX_HEALING_URL` is
+  unset**. In-process, deterministic (implements the MVP `max_tokens` rename) so the
+  heal → resend → confirm flow can be exercised without an external Phoenix.
 
 ### Phoenix contract (implemented)
 
@@ -205,11 +227,13 @@ whole budget.
 
 ## 5. Data model changes
 
-### 5.1 `agents` (toggle + budget) — mirrors `complexity_routing_enabled`
+### 5.1 `agents` (toggle) — mirrors `complexity_routing_enabled`
 
 ```ts
-@Column('boolean', { default: false }) autofix_enabled!: boolean;
-@Column('integer', { default: 3 })     autofix_max_attempts!: number;
+// Nullable: NULL inherits the mode default (ON in cloud, OFF in self-hosted);
+// an explicit true/false wins. There is no max-attempts column — healing is a
+// single attempt.
+@Column('boolean', { nullable: true }) autofix_enabled!: boolean | null;
 ```
 
 ### 5.2 `agent_messages` — two linked rows per healed request
@@ -224,6 +248,7 @@ whole budget.
 @Column('varchar', { nullable: true })  autofix_group_id!: string | null; // links original ↔ retry (indexed)
 @Column('varchar', { nullable: true })  autofix_role!: string | null;     // 'original' | 'retry'
 @Column('jsonb',   { nullable: true })  autofix_operations!: object | null; // the Phoenix edits that fixed it
+@Column('jsonb',   { nullable: true })  autofix_phoenix!: object | null;    // Phoenix ids {issueId, patchId, healAttemptId}
 ```
 
 | Row | `status` | `autofix_role` | Notes |

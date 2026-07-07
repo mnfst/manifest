@@ -21,7 +21,10 @@ export class HttpHealingClient implements HealingClient {
     private readonly timeoutMs: number,
     private readonly apiKey?: string,
   ) {
-    this.baseUrl = baseUrl.replace(/\/+$/, '');
+    // Trim before stripping trailing slashes so a value like `"…/ "` (slash +
+    // stray whitespace, common in env files) still normalises to a clean base —
+    // otherwise the slash survives and every `/api/heal` call hits a bad path.
+    this.baseUrl = baseUrl.trim().replace(/\/+$/, '');
   }
 
   /**

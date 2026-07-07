@@ -138,9 +138,9 @@ describe('AutofixService', () => {
     it('defaults globalEnabled to true when AUTOFIX_GLOBAL_ENABLED is unset', () => {
       const { findOne } = makeAgentRepo();
       const service = makeService({ config: makeConfig() });
-      // globalEnabled true means a repairable error is not short-circuited;
-      // proven indirectly via the disabled-agent path (config still loaded).
-      expect(service).toBeInstanceOf(AutofixService);
+      // Directly assert the parsed default (only `'false'` disables), and that
+      // construction never touches the DB.
+      expect((service as unknown as { globalEnabled: boolean }).globalEnabled).toBe(true);
       expect(findOne).not.toHaveBeenCalled();
     });
   });
@@ -257,6 +257,16 @@ describe('AutofixService', () => {
       expect(service.isRepairable(399)).toBe(false);
       // Default 400 is NOT present because a non-empty valid set replaced defaults.
       expect(service.isRepairable(400)).toBe(false);
+    });
+
+    it('rejects a numeric-prefixed token (404abc) that parseInt would misread as 404', () => {
+      // Old code used bare parseInt, which accepts '404abc' as 404; the digits-only
+      // filter drops it, so only the clean 422 survives.
+      const service = makeService({
+        config: makeConfig({ AUTOFIX_REPAIRABLE_STATUSES: '404abc,422' }),
+      });
+      expect(service.isRepairable(404)).toBe(false);
+      expect(service.isRepairable(422)).toBe(true);
     });
   });
 
@@ -993,13 +1003,13 @@ describe('AutofixService', () => {
       expect(findOne).toHaveBeenCalledTimes(1);
     });
 
-    it('degrades to the readable original error (does not throw) when reforward rejects', async () => {
+    it('degrades to the readable original error and preserves the audit chain when reforward rejects', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
       // The heal produced a patch, but resending it blows up (network death).
       const reforward = jest.fn().mockRejectedValue(new Error('socket hang up'));
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
-      // Silence the expected "autofix failed" warning.
+      // Silence the expected "autofix reforward failed" warning.
       jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
       const service = makeService({ client: client as unknown as HealingClient, repo });
       const originalBody = '{"error":{"message":"boom"}}';
@@ -1008,15 +1018,49 @@ describe('AutofixService', () => {
         makeParams({ forward: makeForward(originalBody, 400), reforward }),
       );
 
-      // Never re-throws: outcome is exhausted with an empty chain.
-      expect(result!.record.outcome).toBe('exhausted');
+      // Never re-throws: degrades to 'unfixable' but KEEPS the audit chain — the
+      // original entry with the Phoenix ids already stamped, now patch_worked=false.
+      expect(result!.record.outcome).toBe('unfixable');
       expect(result!.record.original_http_status).toBe(400);
-      expect(result!.record.chain).toEqual([]);
+      expect(result!.record.chain).toHaveLength(1);
+      expect(result!.record.chain[0].origin).toBe('original');
+      expect(result!.record.chain[0].issue_id).toBe('issue-1');
+      expect(result!.record.chain[0].patch_worked).toBe(false);
       expect(typeof result!.record.groupId).toBe('string');
+
+      // A reforward (provider) failure is not a Phoenix failure — no outcome report.
+      expect(client.reportOutcome).not.toHaveBeenCalled();
 
       // The returned forward is the rebuilt original — still readable downstream.
       expect(result!.forward.response.status).toBe(400);
       await expect(result!.forward.response.text()).resolves.toBe(originalBody);
+    });
+
+    it('degrades via the outer backstop (exhausted, empty chain) on an unexpected throw', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue(patchedHeal());
+      // The patch retry fails (non-ok) AND reading its body throws — an unexpected
+      // path caught only by maybeHeal's outer backstop, which must still degrade
+      // cleanly (never a 500) rather than surface the throw.
+      const badRetry = {
+        response: {
+          ok: false,
+          status: 400,
+          text: () => Promise.reject(new Error('body already consumed')),
+        },
+      } as unknown as ForwardResult;
+      const reforward = jest.fn().mockResolvedValue(badRetry);
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      const result = await service.maybeHeal(
+        makeParams({ forward: makeForward('{"error":{"message":"boom"}}', 400), reforward }),
+      );
+
+      expect(result!.record.outcome).toBe('exhausted');
+      expect(result!.record.chain).toEqual([]);
+      expect(result!.forward.response.status).toBe(400);
     });
   });
 

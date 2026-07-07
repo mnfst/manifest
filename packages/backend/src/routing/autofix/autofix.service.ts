@@ -60,8 +60,12 @@ function parseStatuses(raw: string | undefined): Set<number> {
   const source = raw && raw.trim().length > 0 ? raw : DEFAULT_REPAIRABLE_STATUSES;
   const parsed = source
     .split(',')
-    .map((s) => Number.parseInt(s.trim(), 10))
-    .filter((n) => Number.isInteger(n) && n >= 400 && n < 500);
+    .map((s) => s.trim())
+    // Digits-only: reject malformed tokens like `'404abc'` (which `parseInt` would
+    // silently accept as `404`) so a typo can't quietly enable/disable a status.
+    .filter((s) => /^\d+$/.test(s))
+    .map((s) => Number.parseInt(s, 10))
+    .filter((n) => n >= 400 && n < 500);
   return new Set(parsed.length > 0 ? parsed : DEFAULT_REPAIRABLE_STATUSES.split(',').map(Number));
 }
 
@@ -252,7 +256,9 @@ export class AutofixService {
     try {
       return await this.runHealOnce(params, status, originalText, originalForward);
     } catch (err) {
-      // Any unexpected failure (reforward, network, parsing…) degrades to the
+      // Defensive backstop: the common reforward failure is handled inside
+      // runHealOnce (which preserves the chain), so this only fires on a truly
+      // unexpected throw (e.g. reading the failed retry body). Degrade to the
       // original provider error — never a Manifest 500.
       this.logger.warn(`autofix failed, using original error: ${(err as Error).message}`);
       return {
@@ -366,7 +372,22 @@ export class AutofixService {
       phoenixRequest.model !== routingModel
         ? { ...healedBody, model: routingModel }
         : healedBody;
-    const next = await params.reforward(bodyToReforward);
+    let next: ForwardResult;
+    try {
+      next = await params.reforward(bodyToReforward);
+    } catch (err) {
+      // The patched resend threw (a provider transport error, NOT a Phoenix
+      // failure — so it must not trip the heal breaker). Preserve the audit chain
+      // (the original error plus the Phoenix issue/patch ids already stamped on
+      // `entry`) instead of dropping it, and degrade to the original provider
+      // error; the fallback chain is the next safety net.
+      this.logger.warn(`autofix reforward failed, using original error: ${(err as Error).message}`);
+      entry.patch_worked = false;
+      return {
+        forward: originalForward,
+        record: { groupId, outcome: 'unfixable', original_http_status: status, chain },
+      };
+    }
     const ok = next.response.ok;
     entry.patch_worked = ok;
 

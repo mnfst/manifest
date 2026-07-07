@@ -175,6 +175,26 @@ describe('SettingsAutofixSection', () => {
     expect(container.textContent).not.toContain('Auto-fix');
   });
 
+  it('shows the switch off (not the previous agent state) while a harness switch is loading', async () => {
+    const [name, setName] = createSignal('a');
+    mockGetAutofix.mockResolvedValueOnce({ enabled: true, available: true });
+    // The second agent's read never resolves → config.loading stays true, but
+    // Solid keeps the previous (available: true) value so the section stays
+    // mounted. Without the loading gate the switch would show 'a's ON state.
+    mockGetAutofix.mockReturnValueOnce(new Promise(() => {}));
+    const { container } = render(() => <SettingsAutofixSection agentName={name} />);
+
+    const btn = await waitForLoaded(container);
+    expect(btn.classList.contains('settings-switch--on')).toBe(true);
+
+    setName('b');
+    await waitFor(() => {
+      const el = container.querySelector('.settings-switch') as HTMLButtonElement;
+      expect(el.hasAttribute('disabled')).toBe(true);
+    });
+    expect(btn.classList.contains('settings-switch--on')).toBe(false);
+  });
+
   it('does not apply a stale save after the harness switches mid-request', async () => {
     const [name, setName] = createSignal('a');
     mockGetAutofix.mockResolvedValue({ enabled: false, available: true });
@@ -205,7 +225,7 @@ describe('SettingsAutofixSection', () => {
     expect(btn.classList.contains('settings-switch--on')).toBe(false);
   });
 
-  it('surfaces a toast when the update fails', async () => {
+  it('raises no toast of its own on update failure and re-enables the switch', async () => {
     mockGetAutofix.mockResolvedValue({ enabled: false, available: true });
     mockUpdateAutofix.mockRejectedValue(new Error('boom'));
     const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
@@ -213,8 +233,14 @@ describe('SettingsAutofixSection', () => {
     const btn = await waitForLoaded(container);
     fireEvent.click(btn);
 
+    // The rejected save must not crash the component and must re-enable the switch
+    // (spinner reset in `finally`). It raises no generic toast of its own — the
+    // real `updateAutofix` (via `fetchMutate`) already surfaces the backend error,
+    // so a second toast here would be a duplicate.
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('Failed to update Auto-fix');
+      expect(btn.hasAttribute('disabled')).toBe(false);
     });
+    expect(mockToastError).not.toHaveBeenCalled();
+    expect(btn.classList.contains('settings-switch--on')).toBe(false);
   });
 });

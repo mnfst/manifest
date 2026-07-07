@@ -101,6 +101,20 @@ describe('MockHealingClient', () => {
       // undefined, so the patched branch is skipped.
       expect(res.status).toBe('no_patch');
     });
+
+    it('returns no_patch for a prototype-chain param name (e.g. toString)', async () => {
+      // `toString` is inherited on every object; the own-property checks must stop
+      // it from resolving to `Object.prototype.toString` in the catalog or request.
+      const input = makeRequest(
+        { message: 'unknown param', code: 'unknown_parameter', param: 'toString' },
+        { model: 'x' },
+      );
+
+      const res = await client.heal(input);
+
+      expect(res.status).toBe('no_patch');
+      expect(res.healedBody).toBeUndefined();
+    });
   });
 
   describe('reportOutcome', () => {

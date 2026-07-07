@@ -27,6 +27,10 @@ describe('AddAutofixMessageFields1799000100000', () => {
       expect(queryRunner.query).toHaveBeenCalledWith(
         expect.stringContaining('CREATE INDEX "IDX_agent_messages_autofix_group"'),
       );
+      // Partial index: excludes the NULL-group_id majority (normal messages).
+      expect(queryRunner.query).toHaveBeenCalledWith(
+        expect.stringMatching(/CREATE INDEX .*WHERE "autofix_group_id" IS NOT NULL/s),
+      );
     });
   });
 

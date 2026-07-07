@@ -29,8 +29,12 @@ const DEFAULT_TIMEOUT_MS = 10_000;
       provide: HEALING_CLIENT,
       useFactory: (config: ConfigService): HealingClient => {
         const url = config.get<string>('AUTOFIX_HEALING_URL');
-        const parsed = Number.parseInt(config.get<string>('AUTOFIX_TIMEOUT_MS') ?? '', 10);
-        const timeoutMs = Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_TIMEOUT_MS;
+        // Digits-only: `Number.parseInt` stops at the first non-digit, so a typo'd
+        // `AUTOFIX_TIMEOUT_MS` like `'5abc'` would silently override the timeout with
+        // `5`. Require a clean positive integer or fall back to the default.
+        const rawTimeout = config.get<string>('AUTOFIX_TIMEOUT_MS')?.trim() ?? '';
+        const parsed = /^\d+$/.test(rawTimeout) ? Number.parseInt(rawTimeout, 10) : NaN;
+        const timeoutMs = parsed > 0 ? parsed : DEFAULT_TIMEOUT_MS;
         if (url && url.trim().length > 0) {
           // Phoenix guards /api/heal* and fails closed in production; send the key
           // when configured (omit it for a keyless dev/test Phoenix).

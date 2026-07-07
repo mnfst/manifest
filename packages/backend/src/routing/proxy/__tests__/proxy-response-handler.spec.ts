@@ -2197,6 +2197,32 @@ describe('proxy-response-handler', () => {
       );
     });
 
+    it('does NOT record a separate auto_fixed original when healed but a fallback took over', () => {
+      // Edge: heal succeeded (outcome 'healed') but a later stream fallback took
+      // the request, so meta.fallbackFromModel is set and meta.model is now the
+      // fallback route. A standalone auto_fixed row here would be mis-attributed
+      // under the fallback model — the fallback path already carries the stamp.
+      const recorder = mockRecorder();
+      const meta = makeMeta({ fallbackFromModel: 'claude-opus', fallbackIndex: 0 });
+
+      recordSuccess(
+        testCtx,
+        meta,
+        { prompt_tokens: 1, completion_tokens: 1 },
+        '2025-01-01T00:00:00Z',
+        recorder as any,
+        'trace-1',
+        'session-1',
+        undefined,
+        null,
+        undefined,
+        healedAutofix,
+      );
+
+      expect(recorder.recordFallbackSuccess).toHaveBeenCalled();
+      expect(recorder.recordAutofixOriginals).not.toHaveBeenCalled();
+    });
+
     it('does NOT record a separate auto_fixed original when healing EXHAUSTED but a fallback then succeeded', () => {
       // Fallback-success path: meta.fallbackFromModel is set (so the
       // recordFallbackSuccess branch runs) and the Auto-fix chain carries a

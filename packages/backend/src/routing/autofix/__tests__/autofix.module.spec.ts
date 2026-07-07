@@ -121,4 +121,16 @@ describe('AutofixModule HEALING_CLIENT factory', () => {
 
     expect(client).toBeInstanceOf(HttpHealingClient);
   });
+
+  it('rejects a numeric-prefixed AUTOFIX_TIMEOUT_MS (5abc) and uses the default', async () => {
+    // `Number.parseInt('5abc')` would silently yield 5; the digits-only guard
+    // rejects it, so the client keeps the 10s default instead of a 5ms timeout.
+    const client = await resolveHealingClient({
+      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+      AUTOFIX_TIMEOUT_MS: '5abc',
+    });
+
+    expect(client).toBeInstanceOf(HttpHealingClient);
+    expect((client as unknown as { timeoutMs: number }).timeoutMs).toBe(10_000);
+  });
 });

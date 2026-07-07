@@ -26,11 +26,12 @@ export class AutofixHealthProbe implements OnApplicationBootstrap {
     const url = this.config.get<string>('AUTOFIX_HEALING_URL')?.trim();
     if (!url) return; // No external healer wired — nothing to probe.
 
-    const apiKey = this.config.get<string>('AUTOFIX_HEALING_API_KEY')?.trim();
     const target = `${url.replace(/\/+$/, '')}/api/health`;
     try {
+      // `/api/health` is public in the Phoenix contract (`security: []`), so send
+      // no `x-api-key` here — the key belongs only on guarded `/api/heal*` calls,
+      // and shipping it to a wrong/misconfigured URL would leak the credential.
       const res = await fetch(target, {
-        headers: apiKey ? { 'x-api-key': apiKey } : {},
         signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
       });
       if (!res.ok) {
@@ -44,7 +45,7 @@ export class AutofixHealthProbe implements OnApplicationBootstrap {
     } catch (err) {
       this.logger.warn(
         `Auto-fix: Phoenix health probe ${target} failed (${(err as Error).message}) — ` +
-          `check AUTOFIX_HEALING_URL / AUTOFIX_HEALING_API_KEY.`,
+          `check AUTOFIX_HEALING_URL.`,
       );
     }
   }

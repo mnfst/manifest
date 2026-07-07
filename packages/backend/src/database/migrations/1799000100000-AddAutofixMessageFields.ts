@@ -23,8 +23,11 @@ export class AddAutofixMessageFields1799000100000 implements MigrationInterface 
       `ALTER TABLE "agent_messages" ADD COLUMN "autofix_role" character varying`,
     );
     await queryRunner.query(`ALTER TABLE "agent_messages" ADD COLUMN "autofix_operations" jsonb`);
+    // Partial index: only Auto-fix rows carry a non-NULL `autofix_group_id`, and
+    // the sole reader is the sibling lookup (original ↔ retry). Excluding the NULL
+    // majority keeps the index tiny and off the write path for normal messages.
     await queryRunner.query(
-      `CREATE INDEX "IDX_agent_messages_autofix_group" ON "agent_messages" ("tenant_id", "autofix_group_id")`,
+      `CREATE INDEX "IDX_agent_messages_autofix_group" ON "agent_messages" ("tenant_id", "autofix_group_id") WHERE "autofix_group_id" IS NOT NULL`,
     );
   }
 

@@ -99,5 +99,12 @@ export interface ConfirmResponse {
   healAttemptId: string;
   /** `expired` when the attempt was swept (no outcome reported in time) before this call. */
   status: OutcomeStatus;
-  issueStatus: PhoenixIssueStatus;
+  /**
+   * The issue's status after this outcome. Typed as a plain string to match the
+   * vendored OpenAPI (`OutcomeResult.issueStatus: { type: string }`) rather than
+   * narrowing to {@link PhoenixIssueStatus} — Phoenix does not guarantee the enum
+   * on this field, so callers must not assume exhaustiveness. Reporting is
+   * fire-and-forget, so this value is not consumed today.
+   */
+  issueStatus: string;
 }

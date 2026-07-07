@@ -8,6 +8,17 @@ function coerceString(value: unknown): string | null {
 }
 
 /**
+ * Like {@link coerceString} but scrubs secrets from the result. Every string
+ * lifted off the upstream error body (`type`/`param`/`code`, not just `message`)
+ * is shipped to Phoenix, so a provider that echoes a key in any of them must not
+ * leak it.
+ */
+function coerceScrubbed(value: unknown): string | null {
+  const raw = coerceString(value);
+  return raw === null ? null : scrubSecrets(raw);
+}
+
+/**
  * Turn a raw upstream error body (the text of a 4xx provider response) into the
  * normalised `{ message, type, param, code }` shape Phoenix fingerprints on.
  *
@@ -35,8 +46,8 @@ export function normalizeProviderError(rawBody: string): PhoenixProviderError {
 
   return {
     message,
-    type: coerceString(errorObj?.type),
-    param: coerceString(errorObj?.param),
-    code: coerceString(errorObj?.code),
+    type: coerceScrubbed(errorObj?.type),
+    param: coerceScrubbed(errorObj?.param),
+    code: coerceScrubbed(errorObj?.code),
   };
 }

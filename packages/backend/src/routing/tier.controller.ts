@@ -176,7 +176,10 @@ export class TierController {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     const available = await this.autofixService.hasAccess(ctx.tenantId);
     // Only tenants with early access can change the flag; others have no toggle.
-    const applied = available && body.enabled !== undefined;
+    // Require an explicit boolean: `@IsOptional()` lets `{"enabled": null}` through,
+    // and a bare presence check would then reset the stored flag to null and echo
+    // back `enabled: null` (off-contract). Undefined/null → no write, read-back.
+    const applied = available && typeof body.enabled === 'boolean';
     if (applied) {
       await this.agentRepo.update(agent.id, { autofix_enabled: body.enabled });
       this.resolveAgentService.invalidate(agent.tenant_id, agentName);

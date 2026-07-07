@@ -22,9 +22,13 @@ export class MockHealingClient implements HealingClient {
   heal(input: HealRequest): Promise<HealResponse> {
     const issueId = uuid();
     const { code, param } = input.response.error;
-    const rename = param ? MOCK_RENAME_CATALOG[param] : undefined;
+    // `param` comes from an untrusted provider error. Use own-property checks so a
+    // prototype name (`toString`, `constructor`, …) can't resolve to an inherited
+    // member of the catalog or the request and trigger a bogus rename.
+    const rename =
+      param && Object.hasOwn(MOCK_RENAME_CATALOG, param) ? MOCK_RENAME_CATALOG[param] : undefined;
 
-    if (code === 'unknown_parameter' && param && rename && param in input.request) {
+    if (code === 'unknown_parameter' && param && rename && Object.hasOwn(input.request, param)) {
       const healedBody: Record<string, unknown> = { ...input.request };
       healedBody[rename] = healedBody[param];
       delete healedBody[param];

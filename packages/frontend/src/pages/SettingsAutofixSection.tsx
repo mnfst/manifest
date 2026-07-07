@@ -1,6 +1,5 @@
 import { createResource, createSignal, Show, type Component } from 'solid-js';
 import { getAutofix, updateAutofix } from '../services/api.js';
-import { toast } from '../services/toast-store.js';
 
 /**
  * Per-agent Auto-fix toggle on the Settings page. Fetches its own status and
@@ -13,8 +12,11 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
   const [saving, setSaving] = createSignal(false);
 
   // Guard the errored read: accessing an errored SolidJS resource re-throws, so
-  // short-circuit to off (the switch stays disabled via busy() below).
-  const enabled = () => (config.error ? false : (config()?.enabled ?? false));
+  // short-circuit to off (the switch stays disabled via busy() below). Also gate
+  // on `config.loading`: Solid keeps the previous agent's value during a refetch,
+  // so without this the switch would briefly show the prior agent's state when
+  // you switch harnesses.
+  const enabled = () => (!config.loading && !config.error ? (config()?.enabled ?? false) : false);
   // Also disabled after a failed read: without a known current state a click
   // would blindly write a value the user never saw.
   const busy = () => saving() || config.loading || Boolean(config.error);
@@ -33,7 +35,8 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
       const next = await updateAutofix(agentName, { enabled: !enabled() });
       if (props.agentName() === agentName) mutate(next);
     } catch {
-      toast.error('Failed to update Auto-fix');
+      // `updateAutofix` (via `fetchMutate`) already surfaces the backend error as a
+      // toast, so don't raise a second generic one here — just stop the spinner.
     } finally {
       setSaving(false);
     }

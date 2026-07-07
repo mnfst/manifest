@@ -690,7 +690,11 @@ export function recordSuccess(
   // error row, or the `fallback_error` row when a fallback took over), both of
   // which carry the Auto-fix stamp — so emitting an `auto_fixed` row here too
   // would double-count the same failure (and under the wrong, fallback model).
-  if (autofix && autofix.outcome === 'healed') {
+  // `!meta.fallbackFromModel`: if a fallback took over after the heal, `meta.model`
+  // here is the fallback route, and the fallback path already stamps the pre-heal
+  // failure with the Auto-fix audit — so recording a standalone `auto_fixed` row
+  // now would double-count it under the wrong model.
+  if (autofix && autofix.outcome === 'healed' && !meta.fallbackFromModel) {
     recordSafely(
       recorder.recordAutofixOriginals(ctx, meta.model, meta.tier, autofix, {
         provider: meta.provider,

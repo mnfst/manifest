@@ -413,26 +413,27 @@ const MessageLog: Component = () => {
     { label: 'Failed', value: 'failed' },
   ];
 
-  const scrollToFallbackSuccess = (model: string) => {
-    const items = data()?.items;
-    if (!items) return;
-    const success = items.find((i) => i.fallback_from_model === model && i.status === 'ok');
-    if (!success) return;
-    const el = document.getElementById(`msg-${success.id}`);
-    if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    el.classList.add('msg-highlight');
-    setTimeout(() => el.classList.remove('msg-highlight'), 2000);
-  };
-
-  // Jump to a linked message (the Auto-fix sibling of an expanded row).
-  const scrollToMessage = (id: string) => {
+  // Smooth-scroll a message row into view and flash the highlight. Shared by the
+  // fallback-success jump and the Auto-fix sibling jump so the scroll target,
+  // highlight class, and 2s cleanup only live in one place.
+  const scrollToAndHighlight = (id: string) => {
     const el = document.getElementById(`msg-${id}`);
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el.classList.add('msg-highlight');
     setTimeout(() => el.classList.remove('msg-highlight'), 2000);
   };
+
+  const scrollToFallbackSuccess = (model: string) => {
+    const items = data()?.items;
+    if (!items) return;
+    const success = items.find((i) => i.fallback_from_model === model && i.status === 'ok');
+    if (!success) return;
+    scrollToAndHighlight(success.id);
+  };
+
+  // Jump to a linked message (the Auto-fix sibling of an expanded row).
+  const scrollToMessage = (id: string) => scrollToAndHighlight(id);
 
   return (
     <div class="container--full">

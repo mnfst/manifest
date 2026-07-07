@@ -177,6 +177,17 @@ describe('TierController', () => {
     expect(resolveAgentService.invalidate).not.toHaveBeenCalled();
   });
 
+  it('PATCH autofix treats a null enabled as a no-op (never resets the flag to null)', async () => {
+    // @IsOptional() lets `{"enabled": null}` past validation; the controller must
+    // not write null (which would wipe the stored flag) nor echo `enabled: null`.
+    const out = await controller.updateAutofix(ctx, 'demo', {
+      enabled: null as unknown as boolean,
+    });
+    expect(out).toEqual({ enabled: false, available: true });
+    expect(agentRepo.update).not.toHaveBeenCalled();
+    expect(resolveAgentService.invalidate).not.toHaveBeenCalled();
+  });
+
   it('PATCH autofix does not write when the tenant lacks early access', async () => {
     autofixService.hasAccess.mockResolvedValueOnce(false);
     const out = await controller.updateAutofix(ctx, 'demo', { enabled: true });
