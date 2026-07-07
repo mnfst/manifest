@@ -45,6 +45,7 @@ import '../../styles/analytics-overview.css';
 import { getModelDisplayName } from '../../services/model-display.js';
 import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import '../../styles/routing.css';
+import ConnectionDetailSkeleton from '../../components/ConnectionDetailSkeleton.jsx';
 
 const AUTH_TYPE_LABELS: Record<string, string> = {
   subscription: 'Subscriptions',
@@ -523,7 +524,7 @@ const ConnectionDetail: Component = () => {
         when={!notFound() && !hasError() && detail() && conn()}
         fallback={
           <Show when={!notFound() && !hasError()}>
-            <div style="width: 100%; height: 300px; border-radius: var(--radius); background: hsl(var(--muted) / 0.45); animation: skeleton-pulse 1.2s ease-in-out infinite;" />
+            <ConnectionDetailSkeleton />
           </Show>
         }
       >
