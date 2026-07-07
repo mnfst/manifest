@@ -124,6 +124,7 @@ const Overview: Component = () => {
   const [setupCompleted, setSetupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
   );
+
   const [data, { refetch }] = createResource(
     () => ({ range: range(), agentName: params.agentName, _ping: messagePing() }),
     (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,
