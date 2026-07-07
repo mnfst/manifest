@@ -14,6 +14,7 @@ function fakeResponse(ok: boolean, status: number, body: unknown): Response {
 function makeHealRequest(): HealRequest {
   return {
     traceId: 'trace-1',
+    tenantId: 'tenant-1',
     provider: 'openai',
     api: 'responses',
     request: { max_tokens: 100 },

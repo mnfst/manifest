@@ -317,6 +317,13 @@ components:
             same value on every heal of that request's retry chain (not the
             provider's per-call request id) — it groups the attempts into one
             trace.
+        tenantId:
+          type: string
+          minLength: 1
+          description: >
+            Opaque id of the gateway tenant this request belongs to (Manifest's
+            Tenant.id). Optional on the wire; recorded so a failure can be
+            attributed to a tenant. Manifest always sends it on the proxy path.
         provider: { type: string, minLength: 1, example: openai }
         api:
           type: string

@@ -591,6 +591,7 @@ describe('AutofixService', () => {
       expect(arg.url).toBe('u');
       expect(arg.request).toEqual(requestBody);
       expect(typeof arg.traceId).toBe('string');
+      expect(arg.tenantId).toBe('tenant-1');
       expect(arg.response).toEqual({
         statusCode: 400,
         error: { message: 'boom', type: null, param: null, code: null },
