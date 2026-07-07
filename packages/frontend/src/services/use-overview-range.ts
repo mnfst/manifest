@@ -34,8 +34,7 @@ export function useOverviewColumns() {
   onMount(() => {
     checkIsSelfHosted().then(setIsSelfHosted);
   });
-  const columns = () =>
-    isSelfHosted() ? COMPACT_COLUMNS.filter((c) => c !== 'feedback') : COMPACT_COLUMNS;
+  const columns = () => COMPACT_COLUMNS;
 
   return { isSelfHosted, columns };
 }

@@ -14,7 +14,6 @@ import FilterSelect from '../components/FilterSelect.jsx';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import CostByModelTable from '../components/CostByModelTable.jsx';
 import ErrorState from '../components/ErrorState.jsx';
-import FeedbackModal from '../components/FeedbackModal.jsx';
 import MessageTable from '../components/MessageTable.jsx';
 import OverviewSkeleton from '../components/OverviewSkeleton.jsx';
 import Select from '../components/Select.jsx';
@@ -23,7 +22,7 @@ import { type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import { PROVIDERS } from '../services/providers.js';
-import { getOverview, setMessageFeedback, clearMessageFeedback } from '../services/api.js';
+import { getOverview } from '../services/api.js';
 import {
   getPerProviderTimeseries,
   getPerProviderMessageTimeseries,
@@ -125,59 +124,6 @@ const Overview: Component = () => {
   const [setupCompleted, setSetupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
   );
-  const [feedbackModalOpen, setFeedbackModalOpen] = createSignal(false);
-  const [feedbackMessageId, setFeedbackMessageId] = createSignal('');
-  const [feedbackOverrides, setFeedbackOverrides] = createSignal<Record<string, string | null>>({});
-
-  const applyFeedbackOverrides = (items: MessageRow[]): MessageRow[] => {
-    const overrides = feedbackOverrides();
-    return items.map((item) =>
-      item.id in overrides ? { ...item, feedback_rating: overrides[item.id] ?? undefined } : item,
-    );
-  };
-
-  const handleFeedbackLike = (id: string) => {
-    setFeedbackOverrides((prev) => ({ ...prev, [id]: 'like' }));
-    setMessageFeedback(id, { rating: 'like' }).catch(() => {
-      setFeedbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    });
-  };
-
-  const handleFeedbackDislike = (id: string) => {
-    setFeedbackOverrides((prev) => ({ ...prev, [id]: 'dislike' }));
-    setFeedbackMessageId(id);
-    setFeedbackModalOpen(true);
-    setMessageFeedback(id, { rating: 'dislike' }).catch(() => {
-      setFeedbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    });
-  };
-
-  const handleFeedbackClear = (id: string) => {
-    setFeedbackOverrides((prev) => ({ ...prev, [id]: null }));
-    clearMessageFeedback(id).catch(() => {
-      setFeedbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    });
-  };
-
-  const handleFeedbackSubmit = (tags: string[], details: string) => {
-    const id = feedbackMessageId();
-    if (id) {
-      setMessageFeedback(id, { rating: 'dislike', tags, details });
-    }
-    setFeedbackModalOpen(false);
-  };
 
   const [data, { refetch }] = createResource(
     () => ({ range: range(), agentName: params.agentName, _ping: messagePing() }),
@@ -461,17 +407,10 @@ const Overview: Component = () => {
                       </A>
                     </div>
                     <MessageTable
-                      items={
-                        isSelfHosted()
-                          ? (d().recent_activity?.slice(0, 5) ?? [])
-                          : applyFeedbackOverrides(d().recent_activity?.slice(0, 5) ?? [])
-                      }
+                      items={d().recent_activity?.slice(0, 5) ?? []}
                       columns={columns()}
                       agentName={params.agentName}
                       customProviderName={() => undefined}
-                      onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
-                      onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
-                      onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
                     />
                   </div>
 
@@ -505,14 +444,6 @@ const Overview: Component = () => {
           });
         }}
       />
-
-      <Show when={!isSelfHosted()}>
-        <FeedbackModal
-          open={feedbackModalOpen()}
-          onClose={() => setFeedbackModalOpen(false)}
-          onSubmit={handleFeedbackSubmit}
-        />
-      </Show>
     </div>
   );
 };

@@ -243,6 +243,11 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
           };
           const isAutofixOriginal = m.autofix_applied && m.autofix_role === 'original';
           const isAutofixRetry = m.autofix_applied && m.autofix_role === 'retry';
+          const isFallbackError = m.status === 'fallback_error';
+          const isFallbackTrigger = !!m.fallback_from_model && !isFallbackError;
+          const hasTrigger = isAutofixRetry || isFallbackTrigger;
+          const hasNextAction = isAutofixOriginal || isFallbackError;
+          const isTripleLayout = hasTrigger && hasNextAction && !!m.error_message;
           return (
             <>
               {/* ── Message section — always first ─────────────────── */}
@@ -288,229 +293,342 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                 </div>
               </div>
 
-              {/* ── Error + Auto-fix side by side (original row) ─── */}
-              <Show when={m.error_message && isAutofixOriginal}>
-                <div class="error-autofix-row">
-                  <div class="error-autofix-row__error">
-                    <div class="error-autofix-row__title">Error</div>
-                    <div class="msg-detail__error-inline">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="15" y1="9" x2="9" y2="15" />
-                        <line x1="9" y1="9" x2="15" y2="15" />
-                      </svg>
-                      <span>{m.error_message}</span>
-                    </div>
-                    <table class="error-autofix-row__meta-table">
-                      <tbody>
-                        <Show when={formatErrorOrigin(m.error_origin)}>
-                          <tr>
-                            <td class="error-autofix-row__meta-label">Origin</td>
-                            <td class="error-autofix-row__meta-value">
-                              <strong>{formatErrorOrigin(m.error_origin)}</strong>
-                              <span class="error-autofix-row__meta-hint">
-                                {m.error_origin === 'provider' &&
-                                  'The LLM provider rejected the request.'}
-                                {m.error_origin === 'transport' && 'Network or connection failure.'}
-                                {m.error_origin === 'config' && 'Manifest configuration issue.'}
-                                {m.error_origin === 'policy' &&
-                                  'A Manifest usage limit was reached.'}
-                                {m.error_origin === 'internal' && 'An unexpected Manifest error.'}
-                              </span>
-                            </td>
-                          </tr>
-                        </Show>
-                        <Show when={formatErrorClass(m.error_class)}>
-                          <tr>
-                            <td class="error-autofix-row__meta-label">Type</td>
-                            <td class="error-autofix-row__meta-value">
-                              <strong>{formatErrorClass(m.error_class)}</strong>
-                              <span class="error-autofix-row__meta-hint">
-                                {m.error_class === 'invalid_request' &&
-                                  'The request is malformed — wrong parameter, unsupported value, or missing field.'}
-                                {m.error_class === 'rate_limit' &&
-                                  'Too many requests — the provider is throttling.'}
-                                {m.error_class === 'auth' &&
-                                  'Authentication failed — invalid or expired API key.'}
-                                {m.error_class === 'timeout' &&
-                                  'The request timed out before the provider responded.'}
-                                {m.error_class === 'server_error' &&
-                                  'The provider experienced an internal error.'}
-                                {m.error_class === 'no_provider_key' &&
-                                  'No API key is configured for this provider.'}
-                              </span>
-                            </td>
-                          </tr>
-                        </Show>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="error-autofix-row__arrow">
-                    <svg
-                      class="error-autofix-row__arrow-right"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
+              {/* ── Error + trigger/action blocks ─────────────────── */}
+              <Show when={m.error_message || hasTrigger}>
+                {(() => {
+                  /* Reusable blocks */
+                  const errorBlock = (
+                    <div
+                      class={
+                        hasNextAction || hasTrigger
+                          ? 'error-autofix-row__error'
+                          : 'error-autofix-row__error error-autofix-row__error--full'
+                      }
                     >
-                      <path d="M6 13h6v4l6-5-6-5v4H6z" />
-                    </svg>
-                    <svg
-                      class="error-autofix-row__arrow-down"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path d="M13 12V6h-2v6H7l5 6 5-6z" />
-                    </svg>
-                  </div>
-                  <div class="error-autofix-row__autofix">
-                    <div class="error-autofix-row__autofix-title">
-                      <span class="autofix-icon">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="12"
-                          height="12"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
-                        </svg>
-                      </span>
-                      <span class="autofix-card__title">auto-fix</span>
-                    </div>
-                    <p class="error-autofix-row__autofix-text">
-                      Auto-fix was attempted after this error.
-                    </p>
-                    <Show when={m.autofix_sibling && props.onOpenMessage}>
-                      <button
-                        type="button"
-                        class="error-autofix-row__autofix-btn"
-                        onClick={() => props.onOpenMessage!(m.autofix_sibling!.id)}
-                      >
+                      <div class="error-autofix-row__title">Error</div>
+                      <div class="msg-detail__error-inline">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="14"
                           height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="15" y1="9" x2="9" y2="15" />
+                          <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
+                        <span>{m.error_message}</span>
+                      </div>
+                      <table class="error-autofix-row__meta-table">
+                        <tbody>
+                          <Show when={formatErrorOrigin(m.error_origin)}>
+                            <tr>
+                              <td class="error-autofix-row__meta-label">Origin</td>
+                              <td class="error-autofix-row__meta-value">
+                                <strong>{formatErrorOrigin(m.error_origin)}</strong>
+                                <span class="error-autofix-row__meta-hint">
+                                  {m.error_origin === 'provider' &&
+                                    'The LLM provider rejected the request.'}
+                                  {m.error_origin === 'transport' &&
+                                    'Network or connection failure.'}
+                                  {m.error_origin === 'config' && 'Manifest configuration issue.'}
+                                  {m.error_origin === 'policy' &&
+                                    'A Manifest usage limit was reached.'}
+                                  {m.error_origin === 'internal' && 'An unexpected Manifest error.'}
+                                </span>
+                              </td>
+                            </tr>
+                          </Show>
+                          <Show when={formatErrorClass(m.error_class)}>
+                            <tr>
+                              <td class="error-autofix-row__meta-label">Type</td>
+                              <td class="error-autofix-row__meta-value">
+                                <strong>{formatErrorClass(m.error_class)}</strong>
+                                <span class="error-autofix-row__meta-hint">
+                                  {m.error_class === 'invalid_request' &&
+                                    'The request is malformed — wrong parameter, unsupported value, or missing field.'}
+                                  {m.error_class === 'rate_limit' &&
+                                    'Too many requests — the provider is throttling.'}
+                                  {m.error_class === 'auth' &&
+                                    'Authentication failed — invalid or expired API key.'}
+                                  {m.error_class === 'timeout' &&
+                                    'The request timed out before the provider responded.'}
+                                  {m.error_class === 'server_error' &&
+                                    'The provider experienced an internal error.'}
+                                  {m.error_class === 'no_provider_key' &&
+                                    'No API key is configured for this provider.'}
+                                </span>
+                              </td>
+                            </tr>
+                          </Show>
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+
+                  const arrowBlock = (
+                    <div class="error-autofix-row__arrow">
+                      <svg
+                        class="error-autofix-row__arrow-right"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path d="M6 13h6v4l6-5-6-5v4H6z" />
+                      </svg>
+                      <svg
+                        class="error-autofix-row__arrow-down"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path d="M13 12V6h-2v6H7l5 6 5-6z" />
+                      </svg>
+                    </div>
+                  );
+
+                  const autofixTriggerCard = (
+                    <div class="error-autofix-row__autofix">
+                      <div class="error-autofix-row__autofix-title">
+                        <span class="autofix-icon">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="12"
+                            height="12"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
+                          </svg>
+                        </span>
+                        <span class="autofix-card__title">auto-fix</span>
+                      </div>
+                      <p class="error-autofix-row__autofix-text" style="font-size: 12px;">
+                        This request was triggered by an auto-fix.
+                      </p>
+                    </div>
+                  );
+
+                  const fallbackTriggerCard = (
+                    <div class="error-autofix-row__autofix">
+                      <div class="error-autofix-row__autofix-title">
+                        <span class="fallback-icon">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="12"
+                            height="12"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path d="m7.84 13.75 1.33-1.49-2.53-2.25h8.37c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H6.63l2.53-2.25-1.33-1.49-5.34 4.75 5.34 4.75Z" />
+                          </svg>
+                        </span>
+                        <span class="autofix-card__title">fallback</span>
+                      </div>
+                      <p class="error-autofix-row__autofix-text" style="font-size: 12px;">
+                        <strong>Attempt #{((m.fallback_index as number) ?? 0) + 1}:</strong> this
+                        request was triggered by a fallback from{' '}
+                        <strong>
+                          {m.fallback_from_model
+                            ? getModelDisplayName(m.fallback_from_model)
+                            : 'unknown'}
+                        </strong>
+                        .
+                      </p>
+                    </div>
+                  );
+
+                  const autofixNextCard = (
+                    <div class="error-autofix-row__autofix">
+                      <div class="error-autofix-row__autofix-title">
+                        <span class="autofix-icon">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="12"
+                            height="12"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
+                          </svg>
+                        </span>
+                        <span class="autofix-card__title">auto-fix</span>
+                      </div>
+                      <p class="error-autofix-row__autofix-text">
+                        Auto-fix was attempted after this error.
+                      </p>
+                    </div>
+                  );
+
+                  const fallbackNextCard = (
+                    <div class="error-autofix-row__autofix">
+                      <div class="error-autofix-row__autofix-title">
+                        <span class="fallback-icon">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="12"
+                            height="12"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path d="m7.84 13.75 1.33-1.49-2.53-2.25h8.37c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H6.63l2.53-2.25-1.33-1.49-5.34 4.75 5.34 4.75Z" />
+                          </svg>
+                        </span>
+                        <span class="autofix-card__title">fallback</span>
+                      </div>
+                      <p class="error-autofix-row__autofix-text">
+                        A fallback was triggered after this error.
+                      </p>
+                    </div>
+                  );
+
+                  /* Cases 4-7: Triple layout — trigger | error | next action */
+                  if (isTripleLayout) {
+                    const triggerCard = isAutofixRetry ? autofixTriggerCard : fallbackTriggerCard;
+                    const nextCard = isAutofixOriginal ? autofixNextCard : fallbackNextCard;
+                    const arrowBlock2 = (
+                      <div class="error-autofix-row__arrow">
+                        <svg
+                          class="error-autofix-row__arrow-right"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20"
+                          height="20"
                           fill="currentColor"
                           viewBox="0 0 24 24"
                           aria-hidden="true"
-                          style="flex-shrink: 0;"
                         >
-                          <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
+                          <path d="M6 13h6v4l6-5-6-5v4H6z" />
                         </svg>
-                        View autofix retry
-                      </button>
-                    </Show>
-                  </div>
-                </div>
-              </Show>
+                        <svg
+                          class="error-autofix-row__arrow-down"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20"
+                          height="20"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path d="M13 12V6h-2v6H7l5 6 5-6z" />
+                        </svg>
+                      </div>
+                    );
+                    return (
+                      <div class="error-autofix-row error-autofix-row--triple">
+                        {triggerCard}
+                        {arrowBlock}
+                        {errorBlock}
+                        {arrowBlock2}
+                        {nextCard}
+                      </div>
+                    );
+                  }
 
-              {/* ── Error only (no autofix) ────────────────────────── */}
-              <Show when={m.error_message && !isAutofixOriginal}>
-                <div class="msg-detail__section">
-                  <div class="msg-detail__section-title">Error</div>
-                  <div class="msg-detail__error-inline">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="15" y1="9" x2="9" y2="15" />
-                      <line x1="9" y1="9" x2="15" y2="15" />
-                    </svg>
-                    <span>{m.error_message}</span>
-                  </div>
-                  <table class="error-autofix-row__meta-table">
-                    <tbody>
-                      <Show when={formatErrorOrigin(m.error_origin)}>
-                        <tr>
-                          <td class="error-autofix-row__meta-label">Origin</td>
-                          <td class="error-autofix-row__meta-value">
-                            <strong>{formatErrorOrigin(m.error_origin)}</strong>
-                            <span class="error-autofix-row__meta-hint">
-                              {m.error_origin === 'provider' &&
-                                'The LLM provider rejected the request.'}
-                              {m.error_origin === 'transport' && 'Network or connection failure.'}
-                              {m.error_origin === 'config' && 'Manifest configuration issue.'}
-                              {m.error_origin === 'policy' && 'A Manifest usage limit was reached.'}
-                              {m.error_origin === 'internal' && 'An unexpected Manifest error.'}
+                  /* Case 2: Error + autofix (no trigger) */
+                  if (m.error_message && isAutofixOriginal) {
+                    return (
+                      <div class="error-autofix-row">
+                        {errorBlock}
+                        {arrowBlock}
+                        {autofixNextCard}
+                      </div>
+                    );
+                  }
+
+                  /* Case 3: Error + fallback (no trigger) */
+                  if (m.error_message && isFallbackError) {
+                    return (
+                      <div class="error-autofix-row">
+                        {errorBlock}
+                        {arrowBlock}
+                        {fallbackNextCard}
+                      </div>
+                    );
+                  }
+
+                  /* Cases 8-9: Trigger + error, nothing after → 50/50 */
+                  if (m.error_message && hasTrigger && !hasNextAction) {
+                    const triggerCard = isAutofixRetry ? autofixTriggerCard : fallbackTriggerCard;
+                    return (
+                      <div class="error-autofix-row">
+                        {triggerCard}
+                        {arrowBlock}
+                        {errorBlock}
+                      </div>
+                    );
+                  }
+
+                  /* Error only → full width */
+                  if (m.error_message) {
+                    return (
+                      <div class="error-autofix-row error-autofix-row--solo">{errorBlock}</div>
+                    );
+                  }
+
+                  /* ── No error: trigger-only cards (autofix retry success, fallback success) */
+                  if (isAutofixRetry && !m.error_message) {
+                    return (
+                      <AutofixSection
+                        role={m.autofix_role}
+                        operations={m.autofix_operations}
+                        phoenix={m.autofix_phoenix}
+                        sibling={m.autofix_sibling}
+                        onOpenMessage={props.onOpenMessage}
+                      />
+                    );
+                  }
+
+                  if (isFallbackTrigger && !m.error_message) {
+                    return (
+                      <div class="autofix-card-row">
+                        <div class="autofix-card" style="border-color: hsl(222 47% 50% / 0.3);">
+                          <div class="autofix-card__branding">
+                            <span class="fallback-icon">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="12"
+                                height="12"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <path d="m7.84 13.75 1.33-1.49-2.53-2.25h8.37c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H6.63l2.53-2.25-1.33-1.49-5.34 4.75 5.34 4.75Z" />
+                              </svg>
                             </span>
-                          </td>
-                        </tr>
-                      </Show>
-                      <Show when={formatErrorClass(m.error_class)}>
-                        <tr>
-                          <td class="error-autofix-row__meta-label">Type</td>
-                          <td class="error-autofix-row__meta-value">
-                            <strong>{formatErrorClass(m.error_class)}</strong>
-                            <span class="error-autofix-row__meta-hint">
-                              {m.error_class === 'invalid_request' &&
-                                'The request is malformed — wrong parameter, unsupported value, or missing field.'}
-                              {m.error_class === 'rate_limit' &&
-                                'Too many requests — the provider is throttling.'}
-                              {m.error_class === 'auth' &&
-                                'Authentication failed — invalid or expired API key.'}
-                              {m.error_class === 'timeout' &&
-                                'The request timed out before the provider responded.'}
-                              {m.error_class === 'server_error' &&
-                                'The provider experienced an internal error.'}
-                              {m.error_class === 'no_provider_key' &&
-                                'No API key is configured for this provider.'}
-                            </span>
-                          </td>
-                        </tr>
-                      </Show>
-                    </tbody>
-                  </table>
-                </div>
-              </Show>
+                            <span class="autofix-card__title">fallback</span>
+                          </div>
+                          <p class="autofix-card__phrase" style="font-size: 12px;">
+                            <strong>Attempt #{((m.fallback_index as number) ?? 0) + 1}:</strong>{' '}
+                            this request was triggered by a fallback from{' '}
+                            <strong>
+                              {m.fallback_from_model
+                                ? getModelDisplayName(m.fallback_from_model)
+                                : 'unknown'}
+                            </strong>
+                            .
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
 
-              {/* ── Auto-fix full card (on the retry row) ──────────── */}
-              <Show when={isAutofixRetry}>
-                <AutofixSection
-                  role={m.autofix_role}
-                  operations={m.autofix_operations}
-                  phoenix={m.autofix_phoenix}
-                  sibling={m.autofix_sibling}
-                  onOpenMessage={props.onOpenMessage}
-                />
-              </Show>
-
-              {/* ── Fallback hint ──────────────────────────────────── */}
-              <Show when={m.fallback_from_model}>
-                <div class="msg-detail__fallback-banner">
-                  Fallback from <strong>{m.fallback_from_model}</strong>
-                  <Show when={m.fallback_index != null}>
-                    {' '}
-                    (attempt #{(m.fallback_index as number) + 1})
-                  </Show>
-                </div>
+                  return null;
+                })()}
               </Show>
 
               {/* Model Parameters renders above Request Headers — params

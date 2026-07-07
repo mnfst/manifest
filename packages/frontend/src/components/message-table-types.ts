@@ -60,6 +60,8 @@ export const COMPACT_COLUMNS: MessageColumnKey[] = [
   'message',
   'cost',
   'totalTokens',
+  'cache',
+  'duration',
 ];
 
 export const DETAILED_COLUMNS: MessageColumnKey[] = [
