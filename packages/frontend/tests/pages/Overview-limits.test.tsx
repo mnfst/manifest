@@ -169,11 +169,15 @@ describe('Overview - trend badges and status display', () => {
     mockGetOverview.mockResolvedValue(rateLimitedData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('rate_limited');
+      // Binary status: a provider rate limit is just a "Failed" pill now.
+      const badge = container.querySelector('.status-badge--error');
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toContain('Failed');
     });
+    expect(container.textContent).not.toContain('rate_limited');
     // A provider rate limit is a plain error — it must not link to the Manifest
     // spend-limits page (that page is for the user's own software limits).
-    expect(container.querySelector('.status-badge--rate_limited a')).toBeNull();
+    expect(container.querySelector('.status-badge--error a')).toBeNull();
   });
 
   it('renders routing tier badge when routing_tier is set', async () => {

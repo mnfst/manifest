@@ -8,7 +8,6 @@ import {
   For,
   on,
   onCleanup,
-  onMount,
   Show,
   type Component,
 } from 'solid-js';
@@ -351,18 +350,6 @@ const MessageLog: Component = () => {
     { label: 'Failed', value: 'failed' },
   ];
 
-  const scrollToFallbackSuccess = (model: string) => {
-    const items = data()?.items;
-    if (!items) return;
-    const success = items.find((i) => i.fallback_from_model === model && i.status === 'ok');
-    if (!success) return;
-    const el = document.getElementById(`msg-${success.id}`);
-    if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    el.classList.add('msg-highlight');
-    setTimeout(() => el.classList.remove('msg-highlight'), 2000);
-  };
-
   // Jump to a linked message (the Auto-fix sibling of an expanded row).
   const scrollToMessage = (id: string) => {
     const el = document.getElementById(`msg-${id}`);
@@ -625,7 +612,6 @@ const MessageLog: Component = () => {
                   agentName={params.agentName}
                   customProviderName={() => undefined}
                   agentPlatformLookup={(name) => agentPlatformMap().get(name)}
-                  onFallbackErrorClick={scrollToFallbackSuccess}
                   onOpenMessage={scrollToMessage}
                   rowIdPrefix="msg-"
                   showHeaderTooltips

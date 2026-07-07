@@ -296,6 +296,8 @@ export const MESSAGE_ROW_SELECT_ALIASES = [
   'header_tier_color',
   'provider_key_label',
   'custom_provider_name',
+  'autofix_applied',
+  'autofix_role',
 ] as const;
 
 export function selectMessageRowColumns<T extends ObjectLiteral>(

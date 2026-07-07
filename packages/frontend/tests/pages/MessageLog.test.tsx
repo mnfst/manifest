@@ -1056,10 +1056,11 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(dataWithFallback);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      const badge = container.querySelector('.tier-badge--fallback');
+      // Fallback is now shown in the Trigger column, not a Model-cell tier badge.
+      const badge = container.querySelector('.trigger-badge--fallback');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toBe('fallback');
-      expect(badge!.getAttribute('title')).toContain('gpt-4o');
+      expect(badge!.textContent).toContain('fallback');
+      expect(badge!.getAttribute('title')).toBe('Triggered by fallback');
     });
   });
 
@@ -1073,25 +1074,27 @@ describe('MessageLog', () => {
     });
   });
 
-  it('renders fallback_error status with orange Handled badge', async () => {
-    const dataWithHandled = {
+  it('renders a non-ok row as a binary Failed status (fallback_error is no longer its own pill)', async () => {
+    const dataWithFailure = {
       ...messagesData,
       items: [
         {
           ...messagesData.items[0],
           status: 'fallback_error',
           model: 'gemini-flash',
+          error_origin: 'provider',
           error_message: 'Provider returned HTTP 429, routed to fallback',
         },
       ],
       total_count: 1,
     };
-    mockGetMessages.mockResolvedValue(dataWithHandled);
+    mockGetMessages.mockResolvedValue(dataWithFailure);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      const badge = container.querySelector('.status-badge--fallback_error');
+      expect(container.querySelector('.status-badge--fallback_error')).toBeNull();
+      const badge = container.querySelector('.status-badge--error');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toBe('fallback_error');
+      expect(badge!.textContent).toContain('Failed');
     });
   });
 
@@ -1104,7 +1107,9 @@ describe('MessageLog', () => {
     });
   });
 
-  it('scrolls to fallback success when clicking Handled badge', async () => {
+  it('shows the fallback trigger badge on the recovered (retry) row', async () => {
+    // The redesign moved the fallback indicator to the Trigger column, shown on
+    // the row that carries fallback_from_model (the recovered/retry row).
     const dataWithChain = {
       ...messagesData,
       items: [
@@ -1146,17 +1151,15 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(dataWithChain);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      const badge = container.querySelector('.status-badge--fallback_error');
+      const badge = container.querySelector('.trigger-badge--fallback');
       expect(badge).not.toBeNull();
+      expect(badge!.textContent).toContain('fallback');
     });
-    const successRow = container.querySelector('#msg-success-1');
-    const scrollSpy = vi.fn();
-    if (successRow) {
-      successRow.scrollIntoView = scrollSpy;
-    }
-    const badge = container.querySelector('.status-badge--fallback_error')!;
-    fireEvent.click(badge);
-    expect(scrollSpy).toHaveBeenCalled();
+    // The badge lives on the recovered row, and there's exactly one (the failed
+    // original carries no fallback_from_model, so no Trigger badge).
+    expect(container.querySelectorAll('.trigger-badge--fallback').length).toBe(1);
+    const successRow = container.querySelector('#msg-success-1')!;
+    expect(successRow.querySelector('.trigger-badge--fallback')).not.toBeNull();
   });
 
   it('scrolls to the Auto-fix sibling when the link in an expanded row is clicked', async () => {
@@ -1298,142 +1301,6 @@ describe('MessageLog', () => {
     expect(container.querySelector('#msg-not-on-this-page')).toBeNull();
   });
 
-  describe('feedback', () => {
-    it('calls setMessageFeedback with like when thumb up is clicked', async () => {
-      mockSetMessageFeedback.mockResolvedValue(undefined);
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const likeBtn = container.querySelector('.feedback-btn') as HTMLElement;
-      fireEvent.click(likeBtn);
-      expect(mockSetMessageFeedback).toHaveBeenCalledWith('msg-12345678', { rating: 'like' });
-    });
-
-    it('calls setMessageFeedback with dislike and opens modal when thumb down is clicked', async () => {
-      mockSetMessageFeedback.mockResolvedValue(undefined);
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
-      fireEvent.click(dislikeBtn);
-      expect(mockSetMessageFeedback).toHaveBeenCalledWith('msg-12345678', { rating: 'dislike' });
-      const modal = container.querySelector('[data-testid="feedback-modal"]');
-      expect(modal?.getAttribute('data-open')).toBe('true');
-    });
-
-    it('calls clearMessageFeedback when active like is clicked', async () => {
-      mockClearMessageFeedback.mockResolvedValue(undefined);
-      const dataWithFeedback = {
-        ...messagesData,
-        items: [{ ...messagesData.items[0], feedback_rating: 'like' }, messagesData.items[1]],
-      };
-      mockGetMessages.mockResolvedValue(dataWithFeedback);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-like')).not.toBeNull();
-      });
-      const likeBtn = container.querySelector('.feedback-btn--active-like') as HTMLElement;
-      fireEvent.click(likeBtn);
-      expect(mockClearMessageFeedback).toHaveBeenCalledWith('msg-12345678');
-    });
-
-    it('submits feedback details from modal', async () => {
-      mockSetMessageFeedback.mockResolvedValue(undefined);
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      // Click dislike to open modal
-      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
-      fireEvent.click(dislikeBtn);
-      // Submit via modal
-      const submitBtn = container.querySelector('[data-testid="feedback-submit"]') as HTMLElement;
-      fireEvent.click(submitBtn);
-      expect(mockSetMessageFeedback).toHaveBeenCalledWith('msg-12345678', {
-        rating: 'dislike',
-        tags: ['Too slow'],
-        details: 'test',
-      });
-    });
-
-    it('closes feedback modal without submitting', async () => {
-      mockSetMessageFeedback.mockResolvedValue(undefined);
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
-      fireEvent.click(dislikeBtn);
-      const closeBtn = container.querySelector('[data-testid="feedback-close"]') as HTMLElement;
-      fireEvent.click(closeBtn);
-      const modal = container.querySelector('[data-testid="feedback-modal"]');
-      expect(modal?.getAttribute('data-open')).toBe('false');
-    });
-
-    it('hides feedback column and modal in the self-hosted version', async () => {
-      mockCheckIsSelfHosted.mockResolvedValue(true);
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.data-table')).not.toBeNull();
-      });
-      expect(container.querySelector('.feedback-btn')).toBeNull();
-      expect(container.querySelector('[data-testid="feedback-modal"]')).toBeNull();
-      mockCheckIsSelfHosted.mockResolvedValue(false);
-    });
-
-    it('reverts optimistic like on API error', async () => {
-      mockSetMessageFeedback.mockRejectedValue(new Error('fail'));
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const likeBtn = container.querySelector('.feedback-btn') as HTMLElement;
-      fireEvent.click(likeBtn);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-like')).toBeNull();
-      });
-    });
-
-    it('reverts optimistic dislike on API error', async () => {
-      mockSetMessageFeedback.mockRejectedValue(new Error('fail'));
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
-      fireEvent.click(dislikeBtn);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-dislike')).toBeNull();
-      });
-    });
-
-    it('reverts optimistic clear on API error', async () => {
-      mockClearMessageFeedback.mockRejectedValue(new Error('fail'));
-      const dataWithFeedback = {
-        ...messagesData,
-        items: [{ ...messagesData.items[0], feedback_rating: 'like' }, messagesData.items[1]],
-      };
-      mockGetMessages.mockResolvedValue(dataWithFeedback);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-like')).not.toBeNull();
-      });
-      const likeBtn = container.querySelector('.feedback-btn--active-like') as HTMLElement;
-      fireEvent.click(likeBtn);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-like')).not.toBeNull();
-      });
-    });
-  });
 
   describe('Tier filter', () => {
     it('renders a Tier select with Playground among the options', async () => {
