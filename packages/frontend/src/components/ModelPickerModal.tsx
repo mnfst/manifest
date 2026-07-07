@@ -76,12 +76,14 @@ const unavailableCapabilityLabel = (capability: ModelCapability): string => {
 };
 
 const ModelPickerModal: Component<Props> = (props) => {
+  const isUsable = (p: { is_active: boolean; has_api_key: boolean; cached_model_count?: number }) =>
+    p.is_active && (p.has_api_key || (p.cached_model_count ?? 0) > 0);
   const hasSubscription = () =>
-    (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'subscription');
+    (props.connectedProviders ?? []).some((p) => isUsable(p) && p.auth_type === 'subscription');
   const hasApiKey = () =>
-    (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'api_key');
+    (props.connectedProviders ?? []).some((p) => isUsable(p) && p.auth_type === 'api_key');
   const hasLocal = () =>
-    (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'local');
+    (props.connectedProviders ?? []).some((p) => isUsable(p) && p.auth_type === 'local');
   // Show the tab strip whenever the user has models in more than one auth
   // category — otherwise the picker is single-category and the tabs add
   // noise. Local counts as its own category alongside subscription/api_key.
@@ -443,7 +445,7 @@ const ModelPickerModal: Component<Props> = (props) => {
                   >
                     <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
                   </svg>
-                  API Keys
+                  Usage-based
                 </button>
               </Show>
               <Show when={hasLocal()}>

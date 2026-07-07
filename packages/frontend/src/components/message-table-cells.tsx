@@ -436,23 +436,7 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
 
   const badge = <span class={pill.cls}>{pill.label}</span>;
 
-  // No error body (a success, or an error we couldn't capture) → plain badge.
-  if (!item.error_message) return <td>{badge}</td>;
-
-  // Error with a body → hover tooltip carrying the full message.
-  return (
-    <td>
-      <span
-        class="status-badge-tooltip"
-        tabindex="0"
-        role="note"
-        aria-label={formatErrorMessage(item.error_message)}
-      >
-        {badge}
-        <span class="status-badge-tooltip__bubble">{formatErrorMessage(item.error_message)}</span>
-      </span>
-    </td>
-  );
+  return <td>{badge}</td>;
 }
 
 export interface CellRenderContext {

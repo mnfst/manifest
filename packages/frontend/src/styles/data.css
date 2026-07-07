@@ -190,25 +190,25 @@ a.status-badge:hover {
 }
 .status-badge-tooltip__bubble {
   display: none;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  right: 0;
+  position: fixed;
   padding: 8px 12px;
   background: hsl(var(--popover));
   color: hsl(var(--popover-foreground));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
-  font-size: var(--tooltip-font-size);
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
   font-weight: 400;
   line-height: 1.5;
   white-space: normal;
   width: max-content;
   max-width: 320px;
   box-shadow: 0 2px 8px hsl(var(--foreground) / 0.08);
-  z-index: 50;
+  z-index: 9999;
   pointer-events: none;
 }
-.status-badge-tooltip:hover .status-badge-tooltip__bubble,
+/* Tooltip display is handled by JS (onMouseEnter/onMouseLeave)
+   to ensure correct position: fixed placement before showing. */
 .status-badge-tooltip:focus .status-badge-tooltip__bubble {
   display: block;
 }
