@@ -124,7 +124,7 @@ function AutofixSection(props: {
 
   return (
     <div class="autofix-card-row">
-      <div class="autofix-card">
+      <div class="autofix-card autofix-card--autofix">
         <div class="autofix-card__branding">
           <span class="autofix-icon">
             <svg
@@ -400,7 +400,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                   );
 
                   const autofixTriggerCard = (
-                    <div class="error-autofix-row__autofix">
+                    <div class="error-autofix-row__autofix error-autofix-row__autofix--autofix">
                       <div class="error-autofix-row__autofix-title">
                         <span class="autofix-icon">
                           <svg
@@ -423,7 +423,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                   );
 
                   const fallbackTriggerCard = (
-                    <div class="error-autofix-row__autofix">
+                    <div class="error-autofix-row__autofix error-autofix-row__autofix--fallback">
                       <div class="error-autofix-row__autofix-title">
                         <span class="fallback-icon">
                           <svg
@@ -453,7 +453,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                   );
 
                   const autofixNextCard = (
-                    <div class="error-autofix-row__autofix">
+                    <div class="error-autofix-row__autofix error-autofix-row__autofix--autofix">
                       <div class="error-autofix-row__autofix-title">
                         <span class="autofix-icon">
                           <svg
@@ -472,11 +472,31 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                       <p class="error-autofix-row__autofix-text">
                         Auto-fix was attempted after this error.
                       </p>
+                      <Show when={m.autofix_sibling && props.onOpenMessage}>
+                        <button
+                          type="button"
+                          class="error-autofix-row__autofix-btn"
+                          onClick={() => props.onOpenMessage!(m.autofix_sibling!.id)}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                            style="flex-shrink: 0;"
+                          >
+                            <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
+                          </svg>
+                          View autofix retry
+                        </button>
+                      </Show>
                     </div>
                   );
 
                   const fallbackNextCard = (
-                    <div class="error-autofix-row__autofix">
+                    <div class="error-autofix-row__autofix error-autofix-row__autofix--fallback">
                       <div class="error-autofix-row__autofix-title">
                         <span class="fallback-icon">
                           <svg
@@ -596,7 +616,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                   if (isFallbackTrigger && !m.error_message) {
                     return (
                       <div class="autofix-card-row">
-                        <div class="autofix-card" style="border-color: hsl(222 47% 50% / 0.3);">
+                        <div class="autofix-card autofix-card--fallback">
                           <div class="autofix-card__branding">
                             <span class="fallback-icon">
                               <svg
