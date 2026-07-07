@@ -1,0 +1,19 @@
+README.md
+  s_13970442bff737::t_6d2287c79bcfd1 12-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "cbf37849138f6a5e6cafdb6b1dc04433b2fda1a0",
+  "prompts": {},
+  "sessions": {
+    "s_13970442bff737": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ec58cd23-1fb2-42e0-ba0c-ede3d11390b4",
+        "model": "deepseek/deepseek-v4-flash"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
