@@ -245,6 +245,11 @@ export class PlanService {
     return this.countRequestsSince(tenantId, this.monthStartMsUtc(new Date()));
   }
 
+  /** Drop the cached request count so the next countRequestsSince() hits the DB. */
+  invalidateRequestCountCache(tenantId: string): void {
+    this.requestCountCache.delete(tenantId);
+  }
+
   private evictRequestCountCache(): void {
     while (this.requestCountCache.size > MAX_REQUEST_COUNT_CACHE_SIZE) {
       const firstKey = this.requestCountCache.keys().next().value;

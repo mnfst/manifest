@@ -50,6 +50,7 @@ export class BillingUsageEmailService implements OnModuleInit, OnModuleDestroy {
     const limit = limits.requestsPerMonth;
     if (limit === null || limit <= 0) return false;
 
+    this.planService.invalidateRequestCountCache(tenantId);
     const now = new Date();
     const monthStartMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
     const periodStart = new Date(monthStartMs).toISOString();
