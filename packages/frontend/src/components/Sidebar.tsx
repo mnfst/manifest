@@ -273,6 +273,13 @@ const Sidebar: Component<SidebarProps> = (props) => {
               style={{ width: `${Math.min(100, ((billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1)) * 100)}%` }}
             />
           </div>
+          <Show when={(billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.8}>
+            <p class="sidebar-usage__alert">
+              {(billing()!.requests.used ?? 0) >= (billing()!.requests.limit ?? 1)
+                ? "You've reached your monthly limit. Requests are being blocked."
+                : "You're limited to 10,000 requests this month. Upgrade for unlimited."}
+            </p>
+          </Show>
         </div>
         <A href="/upgrade" class="sidebar-upgrade" onClick={handleNav}>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
