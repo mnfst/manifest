@@ -65,14 +65,15 @@ bash <(curl -sSL https://raw.githubusercontent.com/mnfst/manifest/main/docker/in
 
 Open [http://localhost:2099](http://localhost:2099) and sign up — the first account you create becomes the admin. Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
 
-Managed deployment options:
+### Deploy with one click
 
-| Platform | What it provisions |
+| Platform | Notes |
 | --- | --- |
-| [Railway](https://railway.com/deploy/wild-wild) | Manifest plus PostgreSQL from the public Railway template. |
-| [Render](https://render.com/deploy?repo=https://github.com/mnfst/manifest) | Manifest web service plus Render PostgreSQL from [render.yaml](render.yaml). |
-| [AWS](deploy/aws/TUTORIAL.md) | ECS Fargate, Application Load Balancer, RDS PostgreSQL, and Secrets Manager via CloudFormation. |
-| [GCP](deploy/gcp/TUTORIAL.md) | Cloud Run, Cloud SQL for PostgreSQL, and Secret Manager via the Cloud Shell tutorial. |
+| [Railway](https://railway.com/deploy/wild-wild) | Best path. Template includes Manifest and PostgreSQL. |
+| [Render](https://render.com/deploy?repo=https://github.com/mnfst/manifest) | Blueprint includes Manifest and Render PostgreSQL. |
+| [DigitalOcean](deploy/digitalocean/TUTORIAL.md) | App Platform button includes Manifest and a Dev PostgreSQL database. |
+| [AWS](deploy/aws/TUTORIAL.md) | CloudFormation quick-create for ECS, RDS, and Secrets Manager. |
+| [GCP](deploy/gcp/TUTORIAL.md) | Cloud Shell guided deploy for Cloud Run, Cloud SQL, and Secret Manager. |
 
 > The legacy `manifest` npm package is deprecated and no longer published.
 
