@@ -1,0 +1,21 @@
+deploy/koyeb/TUTORIAL.md
+  s_d4dd3ac37be356::t_dbe5ebe97b1fbb 30-36
+README.md
+  s_d4dd3ac37be356::t_ead6ee85688b21 68,70,72-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "5b65580c2c300396f4a45e1c05fa7877a9be232c",
+  "prompts": {},
+  "sessions": {
+    "s_d4dd3ac37be356": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bb6-aeb4-70e1-bc09-0180cc699731",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
