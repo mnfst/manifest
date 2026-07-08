@@ -1,0 +1,88 @@
+packages/frontend/src/services/billing-display.ts
+  s_2a27f10736f8cc::t_13cfe01a506d06 1-7,9-12,15-31
+  s_2a27f10736f8cc::t_d6bfd04e8cbe7a 8,13-14
+packages/frontend/tests/services/api/billing.test.ts
+  s_2a27f10736f8cc::t_5c17e22351dab0 28,43,58
+packages/backend/src/billing/plan.service.ts
+  s_2a27f10736f8cc::t_814813c4bcf202 2,4-5,10-14,27,51-64,68,72-73,75,83-90,92-118,123,126-129,136-147,249-266,276,306,312-313,318-319,325-326,331,337,341-364,366-369
+  s_2a27f10736f8cc::t_17dd0c1f711fb0 365
+packages/shared/src/index.ts
+  s_2a27f10736f8cc::t_fcc2de98f53104 145-146
+  s_2a27f10736f8cc::t_a8e50cf475edb8 147-151
+packages/frontend/src/pages/Register.tsx
+  s_2a27f10736f8cc::t_824be3354276e4 20,52-57
+  s_2a27f10736f8cc::t_027dee6e3fe31a 3-11,58-61,113,234,336
+packages/frontend/src/pages/Account.tsx
+  s_2a27f10736f8cc::t_98d409a534ab00 7-10,24,239-240,279,309
+.changeset/stripe-billing.md
+  s_2a27f10736f8cc::t_4424aa47f81b2c 5
+packages/frontend/src/components/Sidebar.tsx
+  s_2a27f10736f8cc::t_bb8bcc14eff007 299
+  s_2a27f10736f8cc::t_85faefeecc4086 6,47-51,54-55
+  s_2a27f10736f8cc::t_ee53449171a180 266-269,271-273,275-277,284-291,304-311
+packages/frontend/tests/pages/Upgrade.test.tsx
+  s_2a27f10736f8cc::t_a559d53258dbaf 80
+  s_2a27f10736f8cc::t_9f2edc38a60ef4 3,81,97-99
+  s_2a27f10736f8cc::t_ade9157328a877 44,51,58,77,83,85,105,121,150
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_2a27f10736f8cc::t_8a3141eda3f1c4 206-208
+  s_2a27f10736f8cc::t_9cad415ec93852 32,122,209-219,223,290,520,614
+  s_2a27f10736f8cc::t_2d7e165fb93dc6 156-167
+  s_2a27f10736f8cc::t_afccb9d30bda40 171
+packages/frontend/src/pages/Upgrade.tsx
+  s_2a27f10736f8cc::t_5124c56f9725db 3-4,52,72-81,88,94-96,127-133,135-164,166-218,220-272,278-282,285-286,327-336
+  s_2a27f10736f8cc::t_52e64a2be4d137 13,32,134
+packages/frontend/tests/pages/Account.test.tsx
+  s_2a27f10736f8cc::t_e4bed6680619d8 3,209-211
+  s_2a27f10736f8cc::t_34563cee36e59b 207,221
+  s_2a27f10736f8cc::t_a559d53258dbaf 270,284,301,322,325,328-330,351
+  s_2a27f10736f8cc::t_695164d1d23364 78,85,92,312-316,347
+packages/backend/src/billing/plan.service.spec.ts
+  s_2a27f10736f8cc::t_648a636f620b37 42,44,46-48,53,55,97,103,106-113,128,144-148,155-156,160,168,174-180,184-187,271,282,318,324-331,337
+  s_2a27f10736f8cc::t_fdfd49a101f642 153-154,166,183
+  s_2a27f10736f8cc::t_d0cd1212ad44f0 292
+  s_2a27f10736f8cc::t_80c3e7403f1091 4,77-79,91,134,298,307-308,364,366,368
+  s_2a27f10736f8cc::t_a46816fdd816a6 27
+packages/frontend/src/styles/custom-select.css
+  s_2a27f10736f8cc::t_bc885c2129cff1 74-76,94-113
+  s_2a27f10736f8cc::t_bf2b9b6337393c 114
+packages/frontend/src/components/PlanPicker.tsx
+  s_2a27f10736f8cc::t_b4490c2a8f5ffa 2,8,75-76
+  s_2a27f10736f8cc::t_5124c56f9725db 129,135-144
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_2a27f10736f8cc::t_a559d53258dbaf 46
+  s_2a27f10736f8cc::t_1271aeeea2c5bd 19,67-70,266-273
+  s_2a27f10736f8cc::t_e70cf256d540f9 101,105-107
+packages/frontend/src/components/Select.tsx
+  s_2a27f10736f8cc::t_a0784f75244b7f 9-10,111-114,116,120,127-132
+packages/shared/src/plan-limits.ts
+  s_2a27f10736f8cc::t_4d33fba0a7a80d 9-10,12,20-25,29
+packages/shared/__tests__/plan-limits.spec.ts
+  s_2a27f10736f8cc::t_a4beffe0b6ae89 1-6,16-17
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_2a27f10736f8cc::t_5ffa513c8a247d 23,85-86
+  s_2a27f10736f8cc::t_204535508c09a3 621-628
+  s_2a27f10736f8cc::t_a559d53258dbaf 43
+  s_2a27f10736f8cc::t_4ddb7fb6dccb06 760-788
+  s_2a27f10736f8cc::t_8798c13b5c59f0 163,167-169
+  s_2a27f10736f8cc::t_11811573cbe27c 87-88
+packages/frontend/tests/services/billing-display.test.ts
+  s_2a27f10736f8cc::t_3d0bcac6d0d24f 1-41
+  s_2a27f10736f8cc::t_e5d12b6ed49acf 42-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a0b79d15dea2a80f4dce4383ba2588deff058159",
+  "prompts": {},
+  "sessions": {
+    "s_2a27f10736f8cc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4184-a356-7bb3-bfee-194b1c5b90fc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
