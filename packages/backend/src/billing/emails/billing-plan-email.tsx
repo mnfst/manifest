@@ -190,9 +190,6 @@ export function PlanUsageEmail(props: PlanUsageEmailProps) {
           </Section>
 
           <Section style={card}>
-            <Text style={{ ...badge, color: accent, backgroundColor: accentBg }}>
-              {isLimit ? 'Requests blocked' : 'Usage warning'}
-            </Text>
             <Text style={heading}>{title}</Text>
             <Text style={paragraph}>
               {greeting(props.userName)} your workspace has used{' '}
@@ -200,16 +197,20 @@ export function PlanUsageEmail(props: PlanUsageEmailProps) {
               <strong>{formatCount(props.limit)}</strong> included requests this month.
             </Text>
 
-            <Section style={{ ...notice, backgroundColor: accentBg, borderColor: accent }}>
-              <Text style={{ ...noticeText, color: accent }}>
-                {isLimit
-                  ? `New routed requests are blocked until the limit resets${reset ? ` on ${reset}` : ''}.`
-                  : `Requests are still running. The limit resets${reset ? ` on ${reset}` : ' at the start of next month'}.`}
-              </Text>
-            </Section>
+            <Text style={paragraph}>
+              {isLimit
+                ? `New routed requests are blocked until the limit resets${reset ? ` on ${reset}` : ''}.`
+                : `Requests are still running. The limit resets${reset ? ` on ${reset}` : ' at the start of next month'}.`}
+            </Text>
+
+            <Text style={paragraph}>
+              {isLimit
+                ? 'Upgrade to Pro for unlimited requests, or wait for the limit to reset.'
+                : `If you reach ${formatCount(props.limit)}, new requests will stop being routed until the next period. To avoid interruptions, stay within your limit or upgrade to Pro for unlimited requests.`}
+            </Text>
 
             <Section style={buttonContainer}>
-              <Button style={button} href={accountUrl(props.appUrl)}>
+              <Button style={button} href={`${props.appUrl.replace(/\/+$/, '')}/upgrade`}>
                 Review plan
               </Button>
             </Section>
@@ -266,13 +267,11 @@ const container: React.CSSProperties = {
 };
 
 const logoSection: React.CSSProperties = {
-  textAlign: 'center' as const,
+  textAlign: 'left' as const,
   paddingBottom: '32px',
 };
 
-const logoImg: React.CSSProperties = {
-  margin: '0 auto',
-};
+const logoImg: React.CSSProperties = {};
 
 const card: React.CSSProperties = {
   backgroundColor: brandCardBg,
@@ -306,17 +305,17 @@ const paragraph: React.CSSProperties = {
 };
 
 const buttonContainer: React.CSSProperties = {
-  textAlign: 'center' as const,
+  textAlign: 'left' as const,
   margin: '28px 0 0',
 };
 
 const button: React.CSSProperties = {
   backgroundColor: brandPrimary,
   color: brandPrimaryFg,
-  fontSize: '14px',
+  fontSize: '13px',
   fontWeight: 600,
-  padding: '14px 28px',
-  borderRadius: '8px',
+  padding: '8px 16px',
+  borderRadius: '6px',
   textDecoration: 'none',
   display: 'inline-block',
   lineHeight: '1',
