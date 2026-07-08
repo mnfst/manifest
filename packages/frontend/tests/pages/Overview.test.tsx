@@ -583,8 +583,10 @@ describe('Overview', () => {
     });
   });
 
-  describe('error tooltip', () => {
-    it('shows tooltip when error_message is present on a failed row', async () => {
+  describe('status cell', () => {
+    it('renders a failed row as a Failed badge with no hover tooltip', async () => {
+      // The status-cell hover tooltip was removed — error detail is shown in the
+      // expanded accordion now, so the cell is just the binary Failed pill.
       const dataWithError = {
         ...overviewData,
         recent_activity: [
@@ -598,6 +600,7 @@ describe('Overview', () => {
             total_tokens: 0,
             cost: 0,
             status: 'error',
+            error_origin: 'provider',
             error_message: '401 Unauthorized: invalid API key',
           },
         ],
@@ -605,48 +608,11 @@ describe('Overview', () => {
       mockGetOverview.mockResolvedValue(dataWithError);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
-        const tooltip = container.querySelector('.status-badge-tooltip');
-        expect(tooltip).not.toBeNull();
-        const bubble = container.querySelector('.status-badge-tooltip__bubble');
-        expect(bubble).not.toBeNull();
-        expect(bubble!.textContent).toBe('401 Unauthorized: invalid API key');
+        const badge = container.querySelector('.status-badge--error');
+        expect(badge).not.toBeNull();
+        expect(badge!.textContent).toContain('Failed');
       });
-    });
-
-    it('does not show tooltip when error_message is absent', async () => {
-      mockGetOverview.mockResolvedValue(overviewData);
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain('msg-1234');
-        const tooltip = container.querySelector('.status-badge-tooltip');
-        expect(tooltip).toBeNull();
-      });
-    });
-
-    it('sets aria-label on the tooltip wrapper', async () => {
-      const dataWithError = {
-        ...overviewData,
-        recent_activity: [
-          {
-            id: 'msg-err99999',
-            timestamp: '2026-02-18T10:00:00Z',
-            agent_name: 'test-agent',
-            model: 'gpt-4o',
-            input_tokens: 0,
-            output_tokens: 0,
-            total_tokens: 0,
-            cost: 0,
-            status: 'error',
-            error_message: 'timeout',
-          },
-        ],
-      };
-      mockGetOverview.mockResolvedValue(dataWithError);
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        const tooltip = container.querySelector('.status-badge-tooltip');
-        expect(tooltip?.getAttribute('aria-label')).toBe('timeout');
-      });
+      expect(container.querySelector('.status-badge-tooltip')).toBeNull();
     });
   });
 
@@ -1146,9 +1112,10 @@ describe('Overview', () => {
     mockGetOverview.mockResolvedValue(dataWithFallback);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      const badge = container.querySelector('.tier-badge--fallback');
+      // Fallback is now surfaced in the Trigger column, not a Model-cell badge.
+      const badge = container.querySelector('.trigger-badge--fallback');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toBe('fallback');
+      expect(badge!.textContent).toContain('fallback');
     });
   });
 
@@ -1162,144 +1129,28 @@ describe('Overview', () => {
     });
   });
 
-  it('renders fallback_error status with Handled badge in recent activity', async () => {
-    const dataWithHandled = {
+  it('renders a non-ok recent-activity row as a binary Failed status', async () => {
+    const dataWithFailure = {
       ...overviewData,
       recent_activity: [
         {
           ...overviewData.recent_activity[0],
           status: 'fallback_error',
           model: 'gemini-flash',
+          error_origin: 'provider',
           error_message: 'Provider returned HTTP 429, routed to fallback',
         },
       ],
     };
-    mockGetOverview.mockResolvedValue(dataWithHandled);
+    mockGetOverview.mockResolvedValue(dataWithFailure);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      const badge = container.querySelector('.status-badge--fallback_error');
+      // Status is now binary: any non-ok row is "Failed" (with an origin
+      // descriptor); fallback_error is no longer its own pill.
+      expect(container.querySelector('.status-badge--fallback_error')).toBeNull();
+      const badge = container.querySelector('.status-badge--error');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toBe('fallback_error');
-    });
-  });
-
-  describe('feedback', () => {
-    it('calls setMessageFeedback with like when thumb up is clicked', async () => {
-      mockSetMessageFeedback.mockResolvedValue(undefined);
-      mockGetOverview.mockResolvedValue(overviewData);
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const likeBtn = container.querySelector('.feedback-btn') as HTMLElement;
-      fireEvent.click(likeBtn);
-      expect(mockSetMessageFeedback).toHaveBeenCalledWith('msg-12345678', { rating: 'like' });
-    });
-
-    it('calls setMessageFeedback with dislike and opens modal', async () => {
-      mockSetMessageFeedback.mockResolvedValue(undefined);
-      mockGetOverview.mockResolvedValue(overviewData);
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
-      fireEvent.click(dislikeBtn);
-      expect(mockSetMessageFeedback).toHaveBeenCalledWith('msg-12345678', { rating: 'dislike' });
-      const modal = container.querySelector('[data-testid="feedback-modal"]');
-      expect(modal?.getAttribute('data-open')).toBe('true');
-    });
-
-    it('calls clearMessageFeedback when active like is clicked', async () => {
-      mockClearMessageFeedback.mockResolvedValue(undefined);
-      const dataWithFeedback = {
-        ...overviewData,
-        recent_activity: [{ ...overviewData.recent_activity[0], feedback_rating: 'like' }],
-      };
-      mockGetOverview.mockResolvedValue(dataWithFeedback);
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-like')).not.toBeNull();
-      });
-      const likeBtn = container.querySelector('.feedback-btn--active-like') as HTMLElement;
-      fireEvent.click(likeBtn);
-      expect(mockClearMessageFeedback).toHaveBeenCalledWith('msg-12345678');
-    });
-
-    it('submits feedback details from modal', async () => {
-      mockSetMessageFeedback.mockResolvedValue(undefined);
-      mockGetOverview.mockResolvedValue(overviewData);
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
-      fireEvent.click(dislikeBtn);
-      const submitBtn = container.querySelector('[data-testid="feedback-submit"]') as HTMLElement;
-      fireEvent.click(submitBtn);
-      expect(mockSetMessageFeedback).toHaveBeenCalledWith('msg-12345678', {
-        rating: 'dislike',
-        tags: ['Too slow'],
-        details: 'test',
-      });
-    });
-
-    it('hides feedback column and modal in the self-hosted version', async () => {
-      mockCheckIsSelfHosted.mockResolvedValue(true);
-      mockGetOverview.mockResolvedValue(overviewData);
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.data-table')).not.toBeNull();
-      });
-      expect(container.querySelector('.feedback-btn')).toBeNull();
-      expect(container.querySelector('[data-testid="feedback-modal"]')).toBeNull();
-      mockCheckIsSelfHosted.mockResolvedValue(false);
-    });
-
-    it('reverts optimistic like on API error', async () => {
-      mockSetMessageFeedback.mockRejectedValue(new Error('fail'));
-      mockGetOverview.mockResolvedValue(overviewData);
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const likeBtn = container.querySelector('.feedback-btn') as HTMLElement;
-      fireEvent.click(likeBtn);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-like')).toBeNull();
-      });
-    });
-
-    it('reverts optimistic dislike on API error', async () => {
-      mockSetMessageFeedback.mockRejectedValue(new Error('fail'));
-      mockGetOverview.mockResolvedValue(overviewData);
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
-      fireEvent.click(dislikeBtn);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-dislike')).toBeNull();
-      });
-    });
-
-    it('reverts optimistic clear on API error', async () => {
-      mockClearMessageFeedback.mockRejectedValue(new Error('fail'));
-      const dataWithFeedback = {
-        ...overviewData,
-        recent_activity: [{ ...overviewData.recent_activity[0], feedback_rating: 'like' }],
-      };
-      mockGetOverview.mockResolvedValue(dataWithFeedback);
-      const { container } = render(() => <Overview />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-like')).not.toBeNull();
-      });
-      const likeBtn = container.querySelector('.feedback-btn--active-like') as HTMLElement;
-      fireEvent.click(likeBtn);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-like')).not.toBeNull();
-      });
+      expect(badge!.textContent).toContain('Failed');
     });
   });
 });

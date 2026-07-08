@@ -12,9 +12,9 @@ export interface MessageTableProps {
     name: string,
   ) => { platform: string | null; category: string | null } | undefined;
   onFallbackErrorClick?: (model: string) => void;
-  onFeedbackLike?: (id: string) => void;
-  onFeedbackDislike?: (id: string) => void;
-  onFeedbackClear?: (id: string) => void;
+  onTriggerClick?: (id: string) => void;
+  /** Open a linked message (Auto-fix sibling) from an expanded row's detail. */
+  onOpenMessage?: (id: string) => void;
   rowIdPrefix?: string;
   showHeaderTooltips?: boolean;
   expandable?: boolean;
@@ -52,9 +52,7 @@ function ExpandableRow(props: {
     customProviderName: props.tableProps.customProviderName,
     agentPlatformLookup: props.tableProps.agentPlatformLookup,
     onFallbackErrorClick: props.tableProps.onFallbackErrorClick,
-    onFeedbackLike: props.tableProps.onFeedbackLike,
-    onFeedbackDislike: props.tableProps.onFeedbackDislike,
-    onFeedbackClear: props.tableProps.onFeedbackClear,
+    onTriggerClick: props.tableProps.onTriggerClick,
   };
 
   const handleRowClick = (e: MouseEvent) => {
@@ -89,7 +87,10 @@ function ExpandableRow(props: {
       <Show when={expanded()}>
         <tr class="msg-detail__row">
           <td colspan={colSpan()} class="msg-detail__cell">
-            <MessageDetails messageId={props.item.id} />
+            <MessageDetails
+              messageId={props.item.id}
+              onOpenMessage={props.tableProps.onOpenMessage}
+            />
           </td>
         </tr>
       </Show>
@@ -108,9 +109,7 @@ function PlainRow(props: {
     customProviderName: props.tableProps.customProviderName,
     agentPlatformLookup: props.tableProps.agentPlatformLookup,
     onFallbackErrorClick: props.tableProps.onFallbackErrorClick,
-    onFeedbackLike: props.tableProps.onFeedbackLike,
-    onFeedbackDislike: props.tableProps.onFeedbackDislike,
-    onFeedbackClear: props.tableProps.onFeedbackClear,
+    onTriggerClick: props.tableProps.onTriggerClick,
   };
   return (
     <tr id={props.rowId}>

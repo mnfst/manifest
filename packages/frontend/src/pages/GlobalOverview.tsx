@@ -27,9 +27,9 @@ import {
   getOverviewAgentUsage,
   getOverviewProviderUsage,
 } from '../services/api/analytics.js';
-import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
+import { formatNumber, formatCost } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
-import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
+import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import ProviderChartCard from '../components/ProviderChartCard.jsx';
@@ -40,6 +40,12 @@ import Select from '../components/Select.jsx';
 import { authLabel, authBadgeFor } from '../components/AuthBadge.jsx';
 import { platformIcon } from 'manifest-shared';
 import GlobalOverviewSkeleton from '../components/GlobalOverviewSkeleton.jsx';
+import MessageTable from '../components/MessageTable.jsx';
+import {
+  COMPACT_COLUMNS,
+  type MessageColumnKey,
+  type MessageRow,
+} from '../components/message-table-types.js';
 import { agentPing, messagePing, routingPing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
@@ -72,19 +78,6 @@ interface CostByModelRow {
   custom_provider_name?: string | null;
 }
 
-interface RecentActivityRow {
-  timestamp: string;
-  agent_name: string;
-  model: string;
-  total_tokens: number;
-  status?: string;
-  provider?: string;
-  auth_type?: string;
-  description?: string;
-  first_message?: string;
-  cost_usd?: number;
-}
-
 interface OverviewResponse {
   summary: {
     tokens_today: { value: number; trend_pct: number };
@@ -94,7 +87,7 @@ interface OverviewResponse {
   token_usage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
   cost_by_model: CostByModelRow[];
-  recent_activity: RecentActivityRow[];
+  recent_activity: MessageRow[];
   has_data: boolean;
   has_providers: boolean;
 }
@@ -868,89 +861,23 @@ const GlobalOverview: Component = () => {
             </A>
           </div>
           <div class="scroll-panel__body" onScroll={toggleScrollFade}>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Harness</th>
-                  <th>Model</th>
-                  <th>Message</th>
-                  <th style="text-align: right;">Cost</th>
-                  <th style="text-align: right;">Tokens</th>
-                </tr>
-              </thead>
-              <tbody>
-                <For each={overview()?.recent_activity ?? []}>
-                  {(row) => (
-                    <tr>
-                      <td style="white-space: nowrap; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                        {formatTimeAgo(row.timestamp) ?? '—'}
-                      </td>
-                      <td>
-                        {(() => {
-                          const s = (row.status ?? 'ok').toLowerCase();
-                          if (s === 'ok' || s === 'success')
-                            return (
-                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success) / 0.1); color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500;">
-                                Success
-                              </span>
-                            );
-                          if (s === 'retry')
-                            return (
-                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(38 92% 50% / 0.15); color: hsl(38 92% 40%); font-size: var(--font-size-xs); font-weight: 500;">
-                                Retried
-                              </span>
-                            );
-                          return (
-                            <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--destructive) / 0.1); color: hsl(var(--destructive)); font-size: var(--font-size-xs); font-weight: 500;">
-                              Failed
-                            </span>
-                          );
-                        })()}
-                      </td>
-                      <td>
-                        <span style="font-weight: 500; color: hsl(var(--foreground));">
-                          {row.agent_name}
-                        </span>
-                      </td>
-                      <td>
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                          <Show when={row.provider}>
-                            <span style="position: relative; flex-shrink: 0; display: flex; align-items: center; width: 14px; height: 14px;">
-                              {providerIcon(row.provider!, 16)}
-                              {authBadgeFor(row.auth_type ?? null, 12)}
-                            </span>
-                          </Show>
-                          <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
-                            {row.model ? getModelDisplayName(row.model) : '—'}
-                          </span>
-                        </div>
-                      </td>
-                      <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
-                        {row.description || row.first_message || '—'}
-                      </td>
-                      <td style="text-align: right; font-variant-numeric: tabular-nums; color: hsl(var(--muted-foreground));">
-                        {formatCost(Number(row.cost_usd ?? 0)) ?? '—'}
-                      </td>
-                      <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                        {formatNumber(Number(row.total_tokens ?? 0))}
-                      </td>
-                    </tr>
-                  )}
-                </For>
-                <Show when={(overview()?.recent_activity ?? []).length === 0}>
-                  <tr>
-                    <td
-                      colspan="7"
-                      style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
-                    >
-                      No messages yet
-                    </td>
-                  </tr>
-                </Show>
-              </tbody>
-            </table>
+            {(() => {
+              const cols = (): MessageColumnKey[] => {
+                const at = COMPACT_COLUMNS.indexOf('model');
+                return [
+                  ...COMPACT_COLUMNS.slice(0, at),
+                  'agent' as const,
+                  ...COMPACT_COLUMNS.slice(at),
+                ];
+              };
+              return (
+                <MessageTable
+                  items={overview()?.recent_activity ?? []}
+                  columns={cols()}
+                  customProviderName={() => undefined}
+                />
+              );
+            })()}
           </div>
         </div>
 

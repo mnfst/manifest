@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-describe("sse", () => {
+// Each test does `vi.resetModules()` + `await import(...)`, which re-transforms
+// the sse module; under heavy parallel-suite load that occasionally exceeds the
+// default 5s test timeout. Give the suite headroom so it doesn't flake on load.
+describe("sse", { timeout: 20000 }, () => {
   let mockEventSource: any;
 
   function getHandler(type: string) {

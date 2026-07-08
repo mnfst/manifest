@@ -21,6 +21,8 @@ const mockSetSpecificityResponseMode = vi.fn();
 const mockListModelParams = vi.fn();
 const mockSetModelParams = vi.fn();
 const mockDeleteModelParams = vi.fn();
+const mockGetAutofix = vi.fn(() => Promise.resolve({ enabled: false }));
+const mockUpdateAutofix = vi.fn(() => Promise.resolve({ enabled: false }));
 
 vi.mock('../../src/services/api.js', () => ({
   getTierAssignments: (...args: unknown[]) => mockGetTierAssignments(...args),
@@ -44,6 +46,8 @@ vi.mock('../../src/services/api.js', () => ({
   listModelParams: (...args: unknown[]) => mockListModelParams(...args),
   setModelParams: (...args: unknown[]) => mockSetModelParams(...args),
   deleteModelParams: (...args: unknown[]) => mockDeleteModelParams(...args),
+  getAutofix: (...args: unknown[]) => mockGetAutofix(...args),
+  updateAutofix: (...args: unknown[]) => mockUpdateAutofix(...args),
   modelParamsKey: (scope: string, provider: string, authType: string, model: string) =>
     `${scope}::${provider.toLowerCase()}::${model}::${authType}`,
   // Re-export types only — no runtime impact

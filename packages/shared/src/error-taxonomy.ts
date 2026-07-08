@@ -34,6 +34,10 @@ export const OK_STATUS = 'ok';
 export const RATE_LIMITED_STATUS = 'rate_limited';
 /** A row that failed but was recovered by a later attempt (retry / fallback). */
 export const SUPERSEDED_STATUS = 'fallback_error';
+/** The failed original of a healed Auto-fix flow — recovered by the retry row. */
+export const AUTOFIX_ORIGINAL_STATUS = 'auto_fixed';
+/** Every status whose row is a recovered (superseded) attempt, not a terminal failure. */
+export const SUPERSEDED_STATUSES: readonly string[] = [SUPERSEDED_STATUS, AUTOFIX_ORIGINAL_STATUS];
 
 export const ERROR_ORIGINS = ['provider', 'transport', 'config', 'policy', 'internal'] as const;
 export type ErrorOrigin = (typeof ERROR_ORIGINS)[number];
@@ -125,7 +129,10 @@ export function classifyMessageError(signals: MessageErrorSignals): MessageError
     return { error_origin: null, error_class: null, superseded: false };
   }
 
-  const superseded = signals.status === SUPERSEDED_STATUS;
+  // `auto_fixed` (the failed original of a healed request) is a recovered attempt
+  // just like `fallback_error`, so it's superseded too — otherwise it would count
+  // as a live fault against the provider.
+  const superseded = SUPERSEDED_STATUSES.includes(signals.status);
 
   const manifest = signals.routingReason
     ? MANIFEST_REASON_TO_CLASSIFICATION[signals.routingReason]

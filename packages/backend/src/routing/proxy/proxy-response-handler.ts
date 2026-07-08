@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import { Response as ExpressResponse } from 'express';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { RoutingMeta } from './proxy.service';
+import type { AutofixRecord } from '../autofix/autofix.types';
 import { FailedFallback } from './proxy-fallback.service';
 import { ForwardResult } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
@@ -124,6 +125,7 @@ export async function handleProviderError(
   traceId?: string,
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
+  autofix?: AutofixRecord,
 ): Promise<void> {
   if (failedFallbacks && failedFallbacks.length > 0 && !meta.fallbackFromModel) {
     await handleFallbackExhausted(
@@ -138,6 +140,7 @@ export async function handleProviderError(
       traceId,
       callerAttribution,
       requestHeaders,
+      autofix,
     );
     return;
   }
@@ -161,6 +164,7 @@ export async function handleProviderError(
       headerTierId: meta.header_tier_id,
       headerTierName: meta.header_tier_name,
       headerTierColor: meta.header_tier_color,
+      autofix,
     }),
     'provider error',
   );
@@ -191,6 +195,7 @@ function handleFallbackExhausted(
   traceId?: string,
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
+  autofix?: AutofixRecord,
 ): void {
   const baseTime = Date.now();
   recordSafely(
@@ -231,6 +236,9 @@ function handleFallbackExhausted(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
+        // Auto-fix ran on this primary before the chain exhausted — stamp its
+        // audit onto the single primary-failure row (no separate `auto_fixed`).
+        autofix,
       },
     ),
     'primary failure',
@@ -267,6 +275,7 @@ export function recordFallbackFailures(
   recorder: ProxyMessageRecorder,
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
+  autofix?: AutofixRecord,
 ): string | undefined {
   if (!meta.fallbackFromModel) return undefined;
 
@@ -305,6 +314,10 @@ export function recordFallbackFailures(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
+        // Heal-then-fallback: stamp the Auto-fix audit onto the single primary
+        // row here; `recordAutofixOriginals` is guarded on outcome==='healed'
+        // so it no longer emits a duplicate `auto_fixed` row for this failure.
+        autofix,
       },
     ),
     'primary failure',
@@ -621,6 +634,7 @@ export function recordSuccess(
   startTime?: number,
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
+  autofix?: AutofixRecord,
 ): void {
   if (meta.fallbackFromModel && fallbackSuccessTs) {
     recordSafely(
@@ -663,8 +677,41 @@ export function recordSuccess(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
+        autofix,
       }),
       'success message',
+    );
+  }
+
+  // Record the failed original as its own `auto_fixed` row ONLY when healing
+  // actually succeeded — that row is linked to the retry above via groupId and
+  // is the sole record of the pre-heal failure. When healing did NOT heal, the
+  // primary failure is already recorded exactly once elsewhere (the terminal
+  // error row, or the `fallback_error` row when a fallback took over), both of
+  // which carry the Auto-fix stamp — so emitting an `auto_fixed` row here too
+  // would double-count the same failure (and under the wrong, fallback model).
+  // `!meta.fallbackFromModel`: if a fallback took over after the heal, `meta.model`
+  // here is the fallback route, and the fallback path already stamps the pre-heal
+  // failure with the Auto-fix audit — so recording a standalone `auto_fixed` row
+  // now would double-count it under the wrong model.
+  if (autofix && autofix.outcome === 'healed' && !meta.fallbackFromModel) {
+    recordSafely(
+      recorder.recordAutofixOriginals(ctx, meta.model, meta.tier, autofix, {
+        provider: meta.provider,
+        reason: meta.reason,
+        authType: meta.auth_type,
+        traceId,
+        callerAttribution,
+        requestHeaders,
+        requestParams: meta.request_params,
+        specificityCategory: meta.specificity_category,
+        providerKeyLabel: meta.provider_key_label,
+        tenantProviderId: meta.tenantProviderId,
+        headerTierId: meta.header_tier_id,
+        headerTierName: meta.header_tier_name,
+        headerTierColor: meta.header_tier_color,
+      }),
+      'autofix originals',
     );
   }
 }

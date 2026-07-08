@@ -21,8 +21,10 @@ import {
   SetFallbacksDto,
   SetResponseModeDto,
   responseModeFromDto,
+  UpdateAutofixDto,
 } from './dto/routing.dto';
 import { Agent } from '../entities/agent.entity';
+import { AutofixService } from './autofix/autofix.service';
 
 @Controller('api/v1/routing')
 export class TierController {
@@ -31,6 +33,7 @@ export class TierController {
     private readonly resolveAgentService: ResolveAgentService,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
+    private readonly autofixService: AutofixService,
   ) {}
 
   @Get(':agentName/tiers')
@@ -151,6 +154,43 @@ export class TierController {
     await this.agentRepo.update(agent.id, { complexity_routing_enabled: newValue });
     this.resolveAgentService.invalidate(agent.tenant_id, agentName);
     return { enabled: newValue };
+  }
+
+  @Get(':agentName/autofix')
+  async getAutofix(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    // `available` gates the toggle's visibility in the UI (early-access rollout);
+    // `enabled` is the agent's effective setting once it is available.
+    return {
+      enabled: this.autofixService.resolveEnabled(agent.autofix_enabled),
+      available: await this.autofixService.hasAccess(ctx.tenantId),
+    };
+  }
+
+  @Patch(':agentName/autofix')
+  async updateAutofix(
+    @TenantCtx() ctx: TenantContext,
+    @Param('agentName') agentName: string,
+    @Body() body: UpdateAutofixDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    const available = await this.autofixService.hasAccess(ctx.tenantId);
+    // Only tenants with early access can change the flag; others have no toggle.
+    // Require an explicit boolean: `@IsOptional()` lets `{"enabled": null}` through,
+    // and a bare presence check would then reset the stored flag to null and echo
+    // back `enabled: null` (off-contract). Undefined/null → no write, read-back.
+    const applied = available && typeof body.enabled === 'boolean';
+    if (applied) {
+      await this.agentRepo.update(agent.id, { autofix_enabled: body.enabled });
+      this.resolveAgentService.invalidate(agent.tenant_id, agentName);
+      this.autofixService.invalidateConfig(agent.tenant_id, agent.id);
+    }
+    return {
+      enabled: applied
+        ? (body.enabled as boolean)
+        : this.autofixService.resolveEnabled(agent.autofix_enabled),
+      available,
+    };
   }
 
   private validateTier(tier: string): void {

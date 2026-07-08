@@ -18,6 +18,9 @@ import type { CallerAttribution } from '../routing/proxy/caller-classifier';
 // ON DELETE SET NULL against the same column. tenant_provider_id leads so one
 // index serves both the connection-detail reads and the parent-delete cleanup.
 @Index(['tenant_provider_id', 'tenant_id', 'timestamp'])
+// Resolve the sibling row (failed original ↔ successful retry) of a healed
+// request by shared group id within the tenant.
+@Index(['tenant_id', 'autofix_group_id'])
 export class AgentMessage {
   @PrimaryColumn('varchar')
   id!: string;
@@ -182,4 +185,33 @@ export class AgentMessage {
   // it). NULL for pre-upgrade history, local/Ollama, and blind-proxy paths.
   @Column('varchar', { nullable: true })
   tenant_provider_id!: string | null;
+
+  // Auto-fix (self-healing) audit. A healed request is recorded as TWO rows:
+  // the failed original (status='auto_fixed') and the successful retry
+  // (status='ok'), both sharing `autofix_group_id`. `autofix_role` distinguishes
+  // them; `autofix_operations` holds the Phoenix edits that fixed it.
+  @Column('boolean', { default: false })
+  autofix_applied!: boolean;
+
+  // Links the failed original row and the successful retry row of one healed
+  // request (same value on both). NULL for non-autofix rows.
+  @Column('varchar', { nullable: true })
+  autofix_group_id!: string | null;
+
+  // 'original' (the failed request that was auto-fixed) or 'retry' (the
+  // successful re-send). NULL for non-autofix rows.
+  @Column('varchar', { nullable: true })
+  autofix_role!: string | null;
+
+  // The deterministic edits Phoenix applied to heal the request (e.g.
+  // rename_param max_tokens -> max_output_tokens). Typed `object` (like
+  // request_params) so TypeORM's deep-partial insert type stays simple.
+  @Column('jsonb', { nullable: true })
+  autofix_operations!: object | null;
+
+  // Phoenix's own identifiers for the heal decision behind this row
+  // ({ issueId, patchId, healAttemptId }) — lets a Manifest message be
+  // cross-referenced with the healing service's issue/patch timeline.
+  @Column('jsonb', { nullable: true })
+  autofix_phoenix!: object | null;
 }

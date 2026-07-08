@@ -83,7 +83,15 @@ vi.mock('../../src/components/InfoTooltip.jsx', () => ({
 }));
 
 vi.mock('../../src/components/MessageDetails.jsx', () => ({
-  default: (props: any) => <div data-testid="message-details" data-id={props.messageId} />,
+  // Reads `onOpenMessage` so the lazy prop getter that threads it through
+  // MessageTable is exercised.
+  default: (props: any) => (
+    <div
+      data-testid="message-details"
+      data-id={props.messageId}
+      data-has-open={props.onOpenMessage ? 'yes' : 'no'}
+    />
+  ),
 }));
 
 import MessageTable from '../../src/components/MessageTable';
@@ -115,14 +123,16 @@ describe('MessageTable', () => {
         />
       ));
       const headers = container.querySelectorAll('th');
-      expect(headers.length).toBe(7);
-      expect(headers[0]!.textContent).toBe('');
-      expect(headers[1]!.textContent).toContain('Date');
-      expect(headers[2]!.textContent).toContain('Status');
+      expect(headers.length).toBe(9);
+      expect(headers[0]!.textContent).toContain('Status');
+      expect(headers[1]!.textContent).toContain('Trigger');
+      expect(headers[2]!.textContent).toContain('Date');
       expect(headers[3]!.textContent).toContain('Model');
       expect(headers[4]!.textContent).toContain('Message');
       expect(headers[5]!.textContent).toContain('Cost');
       expect(headers[6]!.textContent).toContain('Tokens');
+      expect(headers[7]!.textContent).toContain('Cache');
+      expect(headers[8]!.textContent).toContain('Latency');
     });
 
     it('renders detailed column headers with tooltips', () => {
@@ -136,9 +146,9 @@ describe('MessageTable', () => {
       ));
       const headers = container.querySelectorAll('th');
       expect(headers.length).toBe(11);
-      expect(headers[0]!.textContent).toBe('');
-      expect(headers[1]!.textContent).toContain('Date');
-      expect(headers[2]!.textContent).toContain('Status');
+      expect(headers[0]!.textContent).toContain('Status');
+      expect(headers[1]!.textContent).toContain('Trigger');
+      expect(headers[2]!.textContent).toContain('Date');
       expect(headers[3]!.textContent).toContain('Model');
       expect(headers[4]!.textContent).toContain('Message');
       expect(headers[6]!.textContent).toContain('Total Tokens');
@@ -473,7 +483,7 @@ describe('MessageTable', () => {
       expect(container.querySelector('.tier-badge--fast')).toBeNull();
     });
 
-    it('renders fallback badge', () => {
+    it('no longer renders a fallback badge in the model column (moved to Trigger)', () => {
       const { container } = render(() => (
         <MessageTable
           items={[makeRow({ fallback_from_model: 'claude-opus-4-6' })]}
@@ -481,9 +491,36 @@ describe('MessageTable', () => {
           agentName="agent-1"
         />
       ));
-      const badge = container.querySelector('.tier-badge--fallback');
+      expect(container.querySelector('.tier-badge--fallback')).toBeNull();
+    });
+  });
+
+  describe('trigger column', () => {
+    it('renders an auto-fix badge for a healed retry row', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ autofix_role: 'retry' })]}
+          columns={['trigger']}
+          agentName="agent-1"
+        />
+      ));
+      expect(container.querySelector('.trigger-badge--autofix')).not.toBeNull();
+    });
+
+    it('renders a fallback badge and fires onTriggerClick with the row id', () => {
+      const handler = vi.fn();
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ id: 'row-77', fallback_from_model: 'gpt-4o' })]}
+          columns={['trigger']}
+          agentName="agent-1"
+          onTriggerClick={handler}
+        />
+      ));
+      const badge = container.querySelector('.trigger-badge--fallback') as HTMLElement;
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toBe('fallback');
+      fireEvent.click(badge);
+      expect(handler).toHaveBeenCalledWith('row-77');
     });
   });
 
@@ -499,21 +536,24 @@ describe('MessageTable', () => {
       expect(container.querySelector('.status-badge--ok')).not.toBeNull();
     });
 
-    it('renders rate_limited as a plain failed status with no limits link', () => {
+    it('renders rate_limited as a plain "Failed" status with no limits link', () => {
       const { container } = render(() => (
         <MessageTable
-          items={[makeRow({ status: 'rate_limited' })]}
+          items={[makeRow({ status: 'rate_limited', error_origin: 'provider' })]}
           columns={['status']}
           agentName="my-agent"
         />
       ));
-      // A provider rate limit is just an error — it must not link to the
-      // Manifest spend-limits page.
+      // A provider rate limit is just a failure — it must not link to the
+      // Manifest spend-limits page, and shows the binary Failed pill.
       expect(container.querySelector('a')).toBeNull();
-      expect(container.textContent).toContain('rate_limited');
+      expect(container.querySelector('.status-badge--error')!.textContent).toContain('Failed');
+      expect(container.textContent).not.toContain('rate_limited');
     });
 
-    it('renders error tooltip for error messages', () => {
+    it('renders a plain Failed badge for an error row (no status-cell tooltip)', () => {
+      // The status-cell hover tooltip was removed — error detail now lives in the
+      // expanded accordion, so the status cell is just the binary Failed pill.
       const { container } = render(() => (
         <MessageTable
           items={[makeRow({ status: 'error', error_message: 'timeout' })]}
@@ -521,58 +561,26 @@ describe('MessageTable', () => {
           agentName="agent-1"
         />
       ));
-      const tooltip = container.querySelector('.status-badge-tooltip');
-      expect(tooltip).not.toBeNull();
-      expect(tooltip!.getAttribute('aria-label')).toBe('timeout');
-    });
-
-    it('renders fallback_error with SVG icon', () => {
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ status: 'fallback_error', error_message: 'rate limited' })]}
-          columns={['status']}
-          agentName="agent-1"
-        />
-      ));
-      const badge = container.querySelector('.status-badge--fallback_error');
+      expect(container.querySelector('.status-badge-tooltip')).toBeNull();
+      const badge = container.querySelector('.status-badge--error');
       expect(badge).not.toBeNull();
-      expect(badge!.querySelector('svg')).not.toBeNull();
+      expect(badge!.textContent).toContain('Failed');
     });
 
-    it('renders separate SVG icons for multiple fallback_error rows', () => {
+    it('renders a fallback_error row as a plain "Failed" pill (no status SVG)', () => {
+      // fallback_error is no longer a distinct status — it's just a failure, and
+      // the fallback itself is surfaced in the Trigger column, not here.
       const { container } = render(() => (
         <MessageTable
-          items={[
-            makeRow({ id: 'row-1', status: 'fallback_error', error_message: 'err 1' }),
-            makeRow({ id: 'row-2', status: 'fallback_error', error_message: 'err 2' }),
-          ]}
+          items={[makeRow({ status: 'fallback_error', error_origin: 'provider' })]}
           columns={['status']}
           agentName="agent-1"
         />
       ));
-      const badges = container.querySelectorAll('.status-badge--fallback_error');
-      expect(badges.length).toBe(2);
-      const svg1 = badges[0]!.querySelector('svg');
-      const svg2 = badges[1]!.querySelector('svg');
-      expect(svg1).not.toBeNull();
-      expect(svg2).not.toBeNull();
-      // Each row has its own SVG node (not the same DOM element)
-      expect(svg1).not.toBe(svg2);
-    });
-
-    it('calls onFallbackErrorClick when fallback_error badge is clicked', () => {
-      const handler = vi.fn();
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ status: 'fallback_error', error_message: 'err', model: 'gpt-4o' })]}
-          columns={['status']}
-          agentName="agent-1"
-          onFallbackErrorClick={handler}
-        />
-      ));
-      const badge = container.querySelector('.status-badge--fallback_error') as HTMLElement;
-      fireEvent.click(badge);
-      expect(handler).toHaveBeenCalledWith('gpt-4o');
+      expect(container.querySelector('.status-badge--fallback_error')).toBeNull();
+      const badge = container.querySelector('.status-badge--error');
+      expect(badge).not.toBeNull();
+      expect(badge!.textContent).toContain('Failed: Provider');
     });
   });
 
@@ -691,6 +699,22 @@ describe('MessageTable', () => {
       expect(details!.getAttribute('data-id')).toBe('specific-msg-id');
     });
 
+    it('threads onOpenMessage through to the expanded MessageDetails', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['date']}
+          agentName="agent-1"
+          expandable
+          onOpenMessage={vi.fn()}
+        />
+      ));
+      const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
+      fireEvent.click(btn);
+      const details = container.querySelector('[data-testid="message-details"]');
+      expect(details!.getAttribute('data-has-open')).toBe('yes');
+    });
+
     it('sets aria-label on chevron button', () => {
       const { container } = render(() => (
         <MessageTable
@@ -704,6 +728,40 @@ describe('MessageTable', () => {
       expect(btn.getAttribute('aria-label')).toBe('Expand details');
       fireEvent.click(btn);
       expect(btn.getAttribute('aria-label')).toBe('Collapse details');
+    });
+
+    it('expands the panel when the row body (a non-interactive cell) is clicked', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['date']}
+          agentName="agent-1"
+          expandable
+        />
+      ));
+      expect(container.querySelector('[data-testid="message-details"]')).toBeNull();
+      // Click a plain cell — the click bubbles to the row handler and toggles.
+      const cell = container.querySelector('.msg-row--clickable td') as HTMLElement;
+      fireEvent.click(cell);
+      expect(container.querySelector('[data-testid="message-details"]')).not.toBeNull();
+    });
+
+    it('does not expand when an interactive element inside the row is clicked', () => {
+      // A Manifest policy-limit row renders an <a> link to the limits page.
+      // Clicking it must NOT toggle the row (the handler bails on
+      // button/a/[role=button]).
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ status: 'error', error_origin: 'policy', agent_name: 'my-agent' })]}
+          columns={['status']}
+          agentName="my-agent"
+          expandable
+        />
+      ));
+      const link = container.querySelector('.msg-row--clickable a') as HTMLElement;
+      expect(link).not.toBeNull();
+      fireEvent.click(link);
+      expect(container.querySelector('[data-testid="message-details"]')).toBeNull();
     });
   });
 
@@ -754,11 +812,10 @@ describe('MessageTable', () => {
         />
       ));
 
-      const compactTooltip = compact.querySelector('.status-badge-tooltip');
-      const detailedTooltip = detailed.querySelector('.status-badge-tooltip');
-      expect(compactTooltip!.getAttribute('aria-label')).toBe(
-        detailedTooltip!.getAttribute('aria-label'),
-      );
+      const compactBadge = compact.querySelector('.status-badge--error');
+      const detailedBadge = detailed.querySelector('.status-badge--error');
+      expect(compactBadge).not.toBeNull();
+      expect(compactBadge!.textContent).toBe(detailedBadge!.textContent);
     });
 
     it('supports custom column subsets for future pages', () => {
@@ -776,129 +833,6 @@ describe('MessageTable', () => {
       expect(headers[2]!.textContent).toContain('Tokens');
       expect(headers[3]!.textContent).toContain('Latency');
       expect(headers[4]!.textContent).toContain('Status');
-    });
-  });
-
-  describe('feedback column', () => {
-    it('renders feedback buttons', () => {
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['feedback']}
-          agentName="agent-1"
-          onFeedbackLike={vi.fn()}
-          onFeedbackDislike={vi.fn()}
-          onFeedbackClear={vi.fn()}
-        />
-      ));
-      const buttons = container.querySelectorAll('.feedback-btn');
-      expect(buttons.length).toBe(2);
-    });
-
-    it('calls onFeedbackLike when thumb up is clicked', () => {
-      const handler = vi.fn();
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ id: 'msg-like-test' })]}
-          columns={['feedback']}
-          agentName="agent-1"
-          onFeedbackLike={handler}
-          onFeedbackDislike={vi.fn()}
-          onFeedbackClear={vi.fn()}
-        />
-      ));
-      const likeBtn = container.querySelectorAll('.feedback-btn')[0] as HTMLElement;
-      fireEvent.click(likeBtn);
-      expect(handler).toHaveBeenCalledWith('msg-like-test');
-    });
-
-    it('calls onFeedbackDislike when thumb down is clicked', () => {
-      const handler = vi.fn();
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ id: 'msg-dislike-test' })]}
-          columns={['feedback']}
-          agentName="agent-1"
-          onFeedbackLike={vi.fn()}
-          onFeedbackDislike={handler}
-          onFeedbackClear={vi.fn()}
-        />
-      ));
-      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
-      fireEvent.click(dislikeBtn);
-      expect(handler).toHaveBeenCalledWith('msg-dislike-test');
-    });
-
-    it('calls onFeedbackClear when active like is clicked again', () => {
-      const handler = vi.fn();
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ id: 'msg-clear-test', feedback_rating: 'like' })]}
-          columns={['feedback']}
-          agentName="agent-1"
-          onFeedbackLike={vi.fn()}
-          onFeedbackDislike={vi.fn()}
-          onFeedbackClear={handler}
-        />
-      ));
-      const likeBtn = container.querySelector('.feedback-btn--active-like') as HTMLElement;
-      expect(likeBtn).not.toBeNull();
-      fireEvent.click(likeBtn);
-      expect(handler).toHaveBeenCalledWith('msg-clear-test');
-    });
-
-    it('calls onFeedbackClear when active dislike is clicked again', () => {
-      const handler = vi.fn();
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ id: 'msg-clear-test', feedback_rating: 'dislike' })]}
-          columns={['feedback']}
-          agentName="agent-1"
-          onFeedbackLike={vi.fn()}
-          onFeedbackDislike={vi.fn()}
-          onFeedbackClear={handler}
-        />
-      ));
-      const dislikeBtn = container.querySelector('.feedback-btn--active-dislike') as HTMLElement;
-      expect(dislikeBtn).not.toBeNull();
-      fireEvent.click(dislikeBtn);
-      expect(handler).toHaveBeenCalledWith('msg-clear-test');
-    });
-
-    it('shows active-like class when feedback_rating is like', () => {
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ feedback_rating: 'like' })]}
-          columns={['feedback']}
-          agentName="agent-1"
-        />
-      ));
-      expect(container.querySelector('.feedback-btn--active-like')).not.toBeNull();
-      expect(container.querySelector('.feedback-btn--active-dislike')).toBeNull();
-    });
-
-    it('shows active-dislike class when feedback_rating is dislike', () => {
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ feedback_rating: 'dislike' })]}
-          columns={['feedback']}
-          agentName="agent-1"
-        />
-      ));
-      expect(container.querySelector('.feedback-btn--active-dislike')).not.toBeNull();
-      expect(container.querySelector('.feedback-btn--active-like')).toBeNull();
-    });
-
-    it('shows no active class when no feedback', () => {
-      const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['feedback']}
-          agentName="agent-1"
-        />
-      ));
-      expect(container.querySelector('.feedback-btn--active-like')).toBeNull();
-      expect(container.querySelector('.feedback-btn--active-dislike')).toBeNull();
     });
   });
 

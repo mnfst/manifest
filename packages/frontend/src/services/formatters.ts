@@ -78,6 +78,7 @@ const STATUS_LABELS: Record<string, string> = {
   // column stays the simple Success/Failed it was before.
   rate_limited: 'Failed',
   fallback_error: 'Handled',
+  auto_fixed: 'Auto-fixed',
 };
 
 export function formatStatus(status: string): string {

@@ -134,6 +134,11 @@ import { AddAutofixWaitlist1796000000000 } from './migrations/1796000000000-AddA
 import { AddPublicErrorPages1797000000000 } from './migrations/1797000000000-AddPublicErrorPages';
 import { AddErrorClassification1798000000000 } from './migrations/1798000000000-AddErrorClassification';
 import { AddAutofixWaitlistSignups1799000000000 } from './migrations/1799000000000-AddAutofixWaitlistSignups';
+import { AddAutofixAgentFlags1799000010000 } from './migrations/1799000010000-AddAutofixAgentFlags';
+import { AddAutofixMessageFields1799000100000 } from './migrations/1799000100000-AddAutofixMessageFields';
+import { AddAutofixPhoenixIds1799000200000 } from './migrations/1799000200000-AddAutofixPhoenixIds';
+import { MakeAutofixEnabledNullable1799000300000 } from './migrations/1799000300000-MakeAutofixEnabledNullable';
+import { AddAutofixAccessGrant1799000400000 } from './migrations/1799000400000-AddAutofixAccessGrant';
 
 export const entities = [
   AgentMessage,
@@ -269,5 +274,10 @@ export const migrations = [
   AddPublicErrorPages1797000000000,
   AddErrorClassification1798000000000,
   AddAutofixWaitlistSignups1799000000000,
+  AddAutofixAgentFlags1799000010000,
+  AddAutofixMessageFields1799000100000,
+  AddAutofixPhoenixIds1799000200000,
+  MakeAutofixEnabledNullable1799000300000,
+  AddAutofixAccessGrant1799000400000,
   RenameWaitlistClaimsTable1800000000000,
 ];
