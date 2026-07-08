@@ -1,0 +1,19 @@
+packages/backend/src/billing/emails/billing-plan-email.spec.ts
+  s_2a27f10736f8cc::t_7996fb5f2f9f8c 82,84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "c0ab0f4127b17922174146ae32b715adef74dd14",
+  "prompts": {},
+  "sessions": {
+    "s_2a27f10736f8cc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4184-a356-7bb3-bfee-194b1c5b90fc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
