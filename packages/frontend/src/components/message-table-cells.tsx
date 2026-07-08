@@ -391,6 +391,19 @@ const ERROR_DESCRIPTORS: Record<string, string> = {
   internal: 'Manifest error',
 };
 
+function isPlanLimitBlock(item: MessageRow): boolean {
+  return (
+    item.error_origin === 'policy' &&
+    item.error_class === 'limit_exceeded' &&
+    item.error_http_status === 402
+  );
+}
+
+function statusErrorDescriptor(item: MessageRow): string | null {
+  if (isPlanLimitBlock(item)) return 'Plan limit';
+  return item.error_origin ? (ERROR_DESCRIPTORS[item.error_origin] ?? null) : null;
+}
+
 /**
  * Two-state status pill: Success or Failed (with optional origin descriptor).
  * Everything that isn't `ok` is a failure — `fallback_error`, `auto_fixed`,
@@ -405,7 +418,7 @@ function describeStatusPill(item: MessageRow): {
   if (isSuccess) {
     return { label: 'Success', cls: 'status-badge status-badge--ok', limitAgent: null };
   }
-  const descriptor = item.error_origin ? (ERROR_DESCRIPTORS[item.error_origin] ?? null) : null;
+  const descriptor = statusErrorDescriptor(item);
   const label = descriptor ? `Failed: ${descriptor}` : 'Failed';
   return {
     label,
@@ -419,12 +432,21 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
 
   // A Manifest software limit is one red pill linking to its agent's limits page.
   if (pill.limitAgent) {
+    const planLimit = isPlanLimitBlock(item);
     return (
       <td>
         <A
           class={pill.cls}
-          href={`/harnesses/${encodeURIComponent(pill.limitAgent)}/limits`}
-          title="Manifest usage limit reached — open your limits"
+          href={
+            planLimit
+              ? '/upgrade?reason=requests'
+              : `/harnesses/${encodeURIComponent(pill.limitAgent)}/limits`
+          }
+          title={
+            planLimit
+              ? 'Free plan request limit reached - upgrade to Pro'
+              : 'Manifest usage limit reached - open your limits'
+          }
         >
           {pill.label}
         </A>
