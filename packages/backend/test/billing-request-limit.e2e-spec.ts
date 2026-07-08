@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
 import { createTestApp, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
+import { PlanService } from '../src/billing/plan.service';
 
 // Enforces the monthly routed-request cap on the /v1/* proxy. Billing env must
 // be set BEFORE the app is created so isBillingEnabled() resolves true. We drive
@@ -20,6 +21,26 @@ const BILLING_ENV_VARS = [
   'STRIPE_PRO_PRICE_ID',
   'PLAN_LIMIT_FREE_REQUESTS',
 ];
+
+async function waitForManifestBlockCount(tenantId: string, minimum: number): Promise<number> {
+  const deadline = Date.now() + 1000;
+  let count = 0;
+  do {
+    const rows = await ds.query(
+      `SELECT COUNT(*)::int AS n
+         FROM agent_messages
+        WHERE tenant_id = $1
+          AND error_origin = 'policy'
+          AND error_class = 'limit_exceeded'
+          AND error_http_status = 402`,
+      [tenantId],
+    );
+    count = rows[0].n;
+    if (count >= minimum) return count;
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  } while (Date.now() < deadline);
+  return count;
+}
 
 beforeAll(async () => {
   for (const key of BILLING_ENV_VARS) envSnapshots[key] = process.env[key];
@@ -72,11 +93,27 @@ describe('request limit gate (/v1 proxy)', () => {
     expect(res.body.limit).toBe(0);
   });
 
-  it('does not record the blocked request as a message (no quota feedback loop)', async () => {
+  it('records the blocked request as a visible Manifest failure without counting it toward quota', async () => {
+    const tenantRows = await ds.query(`SELECT id FROM tenants WHERE owner_user_id = $1 LIMIT 1`, [
+      TEST_USER_ID,
+    ]);
+    const tenantId = tenantRows[0].id;
+    const monthStartMs = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1);
+    const planService = app.get(PlanService);
+    planService.invalidateRequestCountCache(tenantId);
+    const billableBefore = await planService.countRequestsSince(tenantId, monthStartMs);
     const before = await ds.query(
-      `SELECT COUNT(*)::int AS n FROM agent_messages WHERE tenant_id = (
-         SELECT id FROM tenants WHERE owner_user_id = $1 LIMIT 1)`,
-      [TEST_USER_ID],
+      `SELECT COUNT(*)::int AS n FROM agent_messages WHERE tenant_id = $1`,
+      [tenantId],
+    );
+    const manifestBlocksBefore = await ds.query(
+      `SELECT COUNT(*)::int AS n
+         FROM agent_messages
+        WHERE tenant_id = $1
+          AND error_origin = 'policy'
+          AND error_class = 'limit_exceeded'
+          AND error_http_status = 402`,
+      [tenantId],
     );
     await request(app.getHttpServer())
       .post('/v1/chat/completions')
@@ -84,12 +121,40 @@ describe('request limit gate (/v1 proxy)', () => {
       .set('Accept', 'application/json')
       .send({ model: 'auto', messages: [{ role: 'user', content: 'again' }] })
       .expect(402);
-    const after = await ds.query(
-      `SELECT COUNT(*)::int AS n FROM agent_messages WHERE tenant_id = (
-         SELECT id FROM tenants WHERE owner_user_id = $1 LIMIT 1)`,
-      [TEST_USER_ID],
+    const manifestBlocksAfter = await waitForManifestBlockCount(
+      tenantId,
+      manifestBlocksBefore[0].n + 1,
     );
-    expect(after[0].n).toBe(before[0].n);
+    const after = await ds.query(
+      `SELECT COUNT(*)::int AS n FROM agent_messages WHERE tenant_id = $1`,
+      [tenantId],
+    );
+    const latestBlock = await ds.query(
+      `SELECT status, error_origin, error_class, error_http_status, routing_reason
+         FROM agent_messages
+        WHERE tenant_id = $1
+          AND error_origin = 'policy'
+          AND error_class = 'limit_exceeded'
+          AND error_http_status = 402
+        ORDER BY timestamp DESC
+        LIMIT 1`,
+      [tenantId],
+    );
+    planService.invalidateRequestCountCache(tenantId);
+    const billableAfter = await planService.countRequestsSince(tenantId, monthStartMs);
+
+    expect(after[0].n).toBe(before[0].n + 1);
+    expect(manifestBlocksAfter).toBe(manifestBlocksBefore[0].n + 1);
+    expect(latestBlock[0]).toEqual(
+      expect.objectContaining({
+        status: 'error',
+        error_origin: 'policy',
+        error_class: 'limit_exceeded',
+        error_http_status: 402,
+        routing_reason: 'limit_exceeded',
+      }),
+    );
+    expect(billableAfter).toBe(billableBefore);
   });
 
   it('allows requests once the tenant is on an active pro subscription (unlimited)', async () => {
