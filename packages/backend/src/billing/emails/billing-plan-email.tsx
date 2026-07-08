@@ -70,22 +70,29 @@ function subscriptionCopy(props: SubscriptionPlanEmailProps): {
   preview: string;
   badge: string;
   heading: string;
-  body: React.ReactNode;
+  body: React.ReactNode | 'multi';
+  paragraphs?: React.ReactNode[];
+  features?: string[];
   cta: string;
+  ctaSecondary?: string;
 } {
   if (props.kind === 'plan_changed') {
-    const from = props.previousPlanName ? ` from ${props.previousPlanName}` : '';
     return {
       preview: `Your Manifest plan changed to ${props.planName}`,
-      badge: 'Plan changed',
-      heading: `Your plan is now ${props.planName}`,
+      badge: '',
+      heading: `Your plan is now Manifest ${props.planName}`,
       body: (
         <>
-          {greeting(props.userName)} your Manifest plan changed{from} to{' '}
-          <strong>{props.planName}</strong>. Your workspace limits now use the new plan.
+          {greeting(props.userName)} your plan has been updated to{' '}
+          <strong>{props.planName}</strong>. Here's what you now have access to:
         </>
       ),
-      cta: 'Review billing',
+      features: [
+        'Unlimited routed requests',
+        '365 days dashboard retention',
+        'Basic support (platform issues, billing, licence activation)',
+      ],
+      cta: 'Open Manifest',
     };
   }
 
@@ -95,28 +102,43 @@ function subscriptionCopy(props: SubscriptionPlanEmailProps): {
       preview: end
         ? `Your Manifest ${props.planName} plan is scheduled to end on ${end}`
         : `Your Manifest ${props.planName} plan is scheduled to end`,
-      badge: 'Cancellation scheduled',
+      badge: '',
       heading: `${props.planName} cancellation confirmed`,
-      body: (
+      body: 'multi',
+      paragraphs: [
         <>
-          {greeting(props.userName)} your <strong>{props.planName}</strong> plan is scheduled to end
-          {end ? ` on ${end}` : ''}. You can keep using the plan until then.
-        </>
-      ),
+          {greeting(props.userName)} we're sorry to see you go. Your{' '}
+          <strong>{props.planName}</strong> cancellation has been confirmed. You'll keep full access
+          to {props.planName} features{end ? ` until ${end}` : ''}.
+        </>,
+        <>
+          After that date, your workspace will switch back to the Free plan with 10,000 routed
+          requests per month and 7-day dashboard retention.
+        </>,
+        <>
+          If there's anything we can do, or if you'd like to discuss your needs, we're here to help.
+        </>,
+      ],
       cta: 'Manage billing',
+      ctaSecondary: 'Talk to sales',
     };
   }
 
   return {
     preview: `Your Manifest ${props.planName} plan is active`,
-    badge: 'Plan active',
-    heading: `Welcome to ${props.planName}`,
+    badge: '',
+    heading: `Welcome to Manifest ${props.planName}`,
     body: (
       <>
-        {greeting(props.userName)} your <strong>{props.planName}</strong> plan is active. Your
-        workspace now has the limits included with this plan.
+        {greeting(props.userName)} your <strong>{props.planName}</strong> plan is active. The whole
+        team warmly thanks you for your trust. Here's what you now have access to:
       </>
     ),
+    features: [
+      'Unlimited routed requests',
+      '365 days dashboard retention',
+      'Basic support (platform issues, billing, licence activation)',
+    ],
     cta: 'Open Manifest',
   };
 }
@@ -138,9 +160,24 @@ export function SubscriptionPlanEmail(props: SubscriptionPlanEmailProps) {
           </Section>
 
           <Section style={card}>
-            <Text style={{ ...badge, color: accent, backgroundColor: accentBg }}>{copy.badge}</Text>
             <Text style={heading}>{copy.heading}</Text>
-            <Text style={paragraph}>{copy.body}</Text>
+            {copy.paragraphs ? (
+              copy.paragraphs.map((p, i) => (
+                <Text key={i} style={paragraph}>{p}</Text>
+              ))
+            ) : (
+              <Text style={paragraph}>{copy.body}</Text>
+            )}
+
+            {copy.features && copy.features.length > 0 && (
+              <Section style={{ margin: '0 0 24px' }}>
+                {copy.features.map((feature) => (
+                  <Text key={feature} style={featureItem}>
+                    <span style={{ color: '#2632EF' }}>✓</span> {feature}
+                  </Text>
+                ))}
+              </Section>
+            )}
 
             <Section style={buttonContainer}>
               <Button
@@ -151,6 +188,14 @@ export function SubscriptionPlanEmail(props: SubscriptionPlanEmailProps) {
               >
                 {copy.cta}
               </Button>
+              {copy.ctaSecondary && (
+                <Button
+                  style={buttonSecondary}
+                  href="https://manifest.build/pricing"
+                >
+                  {copy.ctaSecondary}
+                </Button>
+              )}
             </Section>
 
             <Text style={hint}>
@@ -205,7 +250,7 @@ export function PlanUsageEmail(props: PlanUsageEmailProps) {
 
             <Text style={paragraph}>
               {isLimit
-                ? 'Upgrade to Pro for unlimited requests, or wait for the limit to reset.'
+                ? 'Upgrade to Pro for unlimited requests.'
                 : `If you reach ${formatCount(props.limit)}, new requests will stop being routed until the next period. To avoid interruptions, stay within your limit or upgrade to Pro for unlimited requests.`}
             </Text>
 
@@ -319,6 +364,28 @@ const button: React.CSSProperties = {
   textDecoration: 'none',
   display: 'inline-block',
   lineHeight: '1',
+};
+
+const buttonSecondary: React.CSSProperties = {
+  backgroundColor: 'transparent',
+  color: brandFg,
+  fontSize: '13px',
+  fontWeight: 600,
+  padding: '8px 16px',
+  borderRadius: '6px',
+  border: `1px solid ${brandBorder}`,
+  textDecoration: 'none',
+  display: 'inline-block',
+  lineHeight: '1',
+  marginLeft: '8px',
+};
+
+const featureItem: React.CSSProperties = {
+  fontSize: '14px',
+  lineHeight: '1.5',
+  color: brandFg,
+  margin: '0 0 6px',
+  padding: '0',
 };
 
 const hint: React.CSSProperties = {
