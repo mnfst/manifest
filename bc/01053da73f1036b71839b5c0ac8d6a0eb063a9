@@ -1,0 +1,21 @@
+deploy/heroku/TUTORIAL.md
+  s_d4dd3ac37be356::t_dbe5ebe97b1fbb 7-11
+README.md
+  s_d4dd3ac37be356::t_ead6ee85688b21 68,70,72-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "bc01053da73f1036b71839b5c0ac8d6a0eb063a9",
+  "prompts": {},
+  "sessions": {
+    "s_d4dd3ac37be356": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bb6-aeb4-70e1-bc09-0180cc699731",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
