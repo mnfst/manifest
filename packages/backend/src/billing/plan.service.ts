@@ -1,7 +1,7 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
+import { MANIFEST_ERROR_ORIGINS, PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
 import type {
   BillingEmailPreferences,
   BillingPrice,
@@ -31,6 +31,9 @@ const BILLING_PRICE_UNAVAILABLE: BillingPrice = Object.freeze({
 // letting a few extra requests through, never toward false blocks.
 const REQUEST_COUNT_CACHE_TTL_MS = 30 * 1000;
 const MAX_REQUEST_COUNT_CACHE_SIZE = 10_000;
+const MANIFEST_ERROR_ORIGIN_SQL_LIST = MANIFEST_ERROR_ORIGINS.map((origin) => `'${origin}'`).join(
+  ', ',
+);
 // Throttle the "count failed → failing open" warning: a sustained DB outage
 // hits this on every proxied request, which would flood logs and add avoidable
 // pressure to the hot path. One line per window, with a suppressed-count tail so
@@ -188,6 +191,8 @@ export class PlanService {
    *  - `superseded = false` drops intermediate fallback attempts, which the
    *    recorder flags as rows that "must never count as a message" — otherwise
    *    a single fallback-heavy request would count 2-3×.
+   *  - excluding Manifest-origin rows keeps our own config/policy/internal
+   *    short-circuits visible in Messages without consuming request quota.
    *  - excluding Playground keeps the dashboard test tool from consuming (or
    *    being blocked by) the production request quota.
    */
@@ -209,6 +214,7 @@ export class PlanService {
           WHERE m.tenant_id = $1
             AND m.timestamp >= $2
             AND m.superseded = false
+            AND (m.error_origin IS NULL OR m.error_origin NOT IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST}))
             AND NOT EXISTS (
               SELECT 1 FROM agents pa
                WHERE pa.id = m.agent_id AND pa.is_playground = true

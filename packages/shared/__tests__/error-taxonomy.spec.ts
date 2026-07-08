@@ -61,6 +61,7 @@ describe('classifyMessageError', () => {
     ['no_provider', 'config', 'no_provider'],
     ['no_provider_key', 'config', 'no_provider_key'],
     ['limit_exceeded', 'policy', 'limit_exceeded'],
+    ['manifest_rate_limited', 'policy', 'rate_limit'],
     ['friendly_error', 'internal', 'internal'],
   ])('maps the Manifest reason %s to %s/%s', (reason, origin, klass) => {
     expect(classifyMessageError({ status: 'error', routingReason: reason })).toEqual({

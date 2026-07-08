@@ -101,6 +101,22 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   autofix?: AutofixRecord;
 }
 
+export type ManifestBlockedRequestReason =
+  | 'limit_exceeded'
+  | 'manifest_rate_limited'
+  | 'friendly_error';
+
+export interface ManifestBlockedRequestOpts {
+  httpStatus: number;
+  errorMessage: string;
+  reason: ManifestBlockedRequestReason;
+  model?: string;
+  traceId?: string;
+  sessionKey?: string;
+  callerAttribution?: CallerAttribution | null;
+  requestHeaders?: Record<string, string> | null;
+}
+
 export interface FallbackSuccessOpts extends HeaderTierRef {
   traceId?: string;
   provider?: string;
@@ -246,6 +262,23 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     clearInterval(this.cooldownCleanupTimer);
   }
 
+  private shouldSkipRateLimitRecord(ctx: IngestionContext, scope?: string): boolean {
+    const key = scope
+      ? `${scope}:${ctx.tenantId}:${ctx.agentId}`
+      : `${ctx.tenantId}:${ctx.agentId}`;
+    const now = Date.now();
+    const lastRecorded = this.rateLimitCooldown.get(key) ?? 0;
+    if (now - lastRecorded < this.RATE_LIMIT_COOLDOWN_MS) return true;
+    this.rateLimitCooldown.set(key, now);
+
+    if (this.rateLimitCooldown.size > this.MAX_COOLDOWN_ENTRIES) {
+      for (const [k, v] of this.rateLimitCooldown) {
+        if (now - v >= this.RATE_LIMIT_COOLDOWN_MS) this.rateLimitCooldown.delete(k);
+      }
+    }
+    return false;
+  }
+
   async recordProviderError(
     ctx: IngestionContext,
     httpStatus: number,
@@ -273,19 +306,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       autofix,
     } = opts ?? {};
 
-    if (httpStatus === 429) {
-      const key = `${ctx.tenantId}:${ctx.agentId}`;
-      const now = Date.now();
-      const lastRecorded = this.rateLimitCooldown.get(key) ?? 0;
-      if (now - lastRecorded < this.RATE_LIMIT_COOLDOWN_MS) return;
-      this.rateLimitCooldown.set(key, now);
-
-      if (this.rateLimitCooldown.size > this.MAX_COOLDOWN_ENTRIES) {
-        for (const [k, v] of this.rateLimitCooldown) {
-          if (now - v >= this.RATE_LIMIT_COOLDOWN_MS) this.rateLimitCooldown.delete(k);
-        }
-      }
-    }
+    if (httpStatus === 429 && this.shouldSkipRateLimitRecord(ctx)) return;
 
     const messageStatus = httpStatus === 429 ? 'rate_limited' : 'error';
 
@@ -319,6 +340,58 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         header_tier_id: headerTierId ?? null,
         header_tier_name: headerTierName ?? null,
         header_tier_color: headerTierColor ?? null,
+      }),
+    );
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
+  }
+
+  async recordManifestBlockedRequest(
+    ctx: IngestionContext,
+    opts: ManifestBlockedRequestOpts,
+  ): Promise<void> {
+    const {
+      httpStatus,
+      errorMessage,
+      reason,
+      model,
+      traceId,
+      sessionKey,
+      callerAttribution,
+      requestHeaders,
+    } = opts;
+
+    if (httpStatus === 429 && this.shouldSkipRateLimitRecord(ctx, 'manifest')) return;
+
+    const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
+      ctx.tenantId,
+      null,
+      model ?? null,
+    );
+
+    await this.messageRepo.insert(
+      buildMessageRow(ctx, {
+        trace_id: traceId ?? null,
+        session_key: sessionKey ?? null,
+        timestamp: new Date().toISOString(),
+        status: httpStatus === 429 ? 'rate_limited' : 'error',
+        error_message: scrubSecrets(errorMessage).slice(0, 2000),
+        error_http_status: httpStatus,
+        model: canonical.model,
+        provider: canonical.provider,
+        routing_tier: null,
+        routing_reason: reason,
+        fallback_from_model: null,
+        fallback_index: null,
+        auth_type: null,
+        specificity_category: null,
+        provider_key_label: null,
+        tenant_provider_id: null,
+        caller_attribution: callerAttribution ?? null,
+        request_headers: requestHeaders ?? null,
+        request_params: null,
+        header_tier_id: null,
+        header_tier_name: null,
+        header_tier_color: null,
       }),
     );
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);

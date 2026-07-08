@@ -436,6 +436,76 @@ describe('ProxyMessageRecorder', () => {
     });
   });
 
+  describe('recordManifestBlockedRequest', () => {
+    it('records plan-limit blocks as Manifest policy rows', async () => {
+      await recorder.recordManifestBlockedRequest(ctx, {
+        httpStatus: 402,
+        errorMessage: 'Free plan request limit reached',
+        reason: 'limit_exceeded',
+        model: 'auto',
+        traceId: 'trace-1',
+        sessionKey: 'session-1',
+      });
+
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        tenant_id: 'tenant-1',
+        agent_id: 'agent-1',
+        agent_name: 'test-agent',
+        trace_id: 'trace-1',
+        session_key: 'session-1',
+        status: 'error',
+        error_message: 'Free plan request limit reached',
+        error_http_status: 402,
+        routing_reason: 'limit_exceeded',
+        error_origin: 'policy',
+        error_class: 'limit_exceeded',
+        superseded: false,
+        model: 'auto',
+        provider: null,
+      });
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
+    });
+
+    it('records local proxy rate limits as Manifest policy rate-limit rows', async () => {
+      await recorder.recordManifestBlockedRequest(ctx, {
+        httpStatus: 429,
+        errorMessage: 'Too many requests',
+        reason: 'manifest_rate_limited',
+      });
+
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'rate_limited',
+        error_message: 'Too many requests',
+        error_http_status: 429,
+        routing_reason: 'manifest_rate_limited',
+        error_origin: 'policy',
+        error_class: 'rate_limit',
+        superseded: false,
+      });
+    });
+
+    it('deduplicates repeated local proxy rate limits during cooldown', async () => {
+      await recorder.recordManifestBlockedRequest(ctx, {
+        httpStatus: 429,
+        errorMessage: 'Too many requests',
+        reason: 'manifest_rate_limited',
+      });
+      insertMock.mockClear();
+      emitMock.mockClear();
+
+      await recorder.recordManifestBlockedRequest(ctx, {
+        httpStatus: 429,
+        errorMessage: 'Too many requests again',
+        reason: 'manifest_rate_limited',
+      });
+
+      expect(insertMock).not.toHaveBeenCalled();
+      expect(emitMock).not.toHaveBeenCalled();
+    });
+  });
+
   describe('recordFailedFallbacks', () => {
     it('records all failures and emits SSE event once', async () => {
       const failures = [

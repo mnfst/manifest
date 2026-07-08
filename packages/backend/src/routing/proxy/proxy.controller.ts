@@ -18,7 +18,7 @@ import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interf
 import { ProxyService, type RoutingMeta } from './proxy.service';
 import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProviderClient } from './provider-client';
-import { ProxyMessageRecorder } from './proxy-message-recorder';
+import { ProxyMessageRecorder, type ManifestBlockedRequestReason } from './proxy-message-recorder';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
@@ -147,7 +147,7 @@ export class ProxyController {
   ): Promise<void> {
     const { tenantId } = req.ingestionContext;
     const body = req.body as Record<string, unknown>;
-    const sessionKey = (req.headers['x-session-key'] as string) || 'default';
+    const sessionKey = this.extractSessionKey(req);
     const traceId = this.extractTraceId(req);
     const callerAttribution = classifyCaller(req.headers);
     const requestHeaders = sanitizeRequestHeaders(req.headers);
@@ -162,15 +162,22 @@ export class ProxyController {
     const startTime = Date.now();
 
     // Plan request-limit gate. A 402 must reach ProxyExceptionFilter (friendly
-    // upgrade message / real 402) WITHOUT going through handleProxyError, which
-    // would record it as an agent_messages row that counts toward the very limit
-    // it hit — so rethrow the 402 to propagate past this handler. Any other
-    // error (e.g. a plan/subscription lookup failure) is an ordinary proxy error:
-    // route it through handleProxyError for consistent normalization + recording.
+    // upgrade message / real 402), but still gets a Manifest-policy row in
+    // agent_messages so the Messages tab explains why the request never routed.
+    // Billing counters exclude Manifest-origin rows, so this does not consume
+    // quota or push the tenant further over the limit.
     try {
       await this.planService.assertWithinRequestLimit(req.ingestionContext);
     } catch (err: unknown) {
       if (err instanceof HttpException && err.getStatus() === HttpStatus.PAYMENT_REQUIRED) {
+        this.recordManifestBlockedRequest(
+          err,
+          req,
+          traceId,
+          callerAttribution,
+          requestHeaders,
+          'limit_exceeded',
+        );
         throw err;
       }
       this.handleProxyError(
@@ -186,11 +193,13 @@ export class ProxyController {
       return;
     }
 
+    let manifestBlockReason: ManifestBlockedRequestReason | undefined = 'manifest_rate_limited';
     try {
       this.rateLimiter.checkLimit(tenantId);
       this.rateLimiter.checkIpLimit(req.ip ?? '');
       this.rateLimiter.acquireSlot(tenantId);
       slotAcquired = true;
+      manifestBlockReason = undefined;
       routingBody = redactInlineImageDataUrls(body);
       const specificityOverride = req.headers['x-manifest-specificity'] as string | undefined;
       const { forward, meta, failedFallbacks, autofix } = await this.proxyService.proxyRequest({
@@ -290,6 +299,12 @@ export class ProxyController {
         autofix,
       );
     } catch (err: unknown) {
+      const recordAsManifestBlock =
+        manifestBlockReason &&
+        err instanceof HttpException &&
+        err.getStatus() === HttpStatus.TOO_MANY_REQUESTS
+          ? manifestBlockReason
+          : undefined;
       this.handleProxyError(
         err,
         req,
@@ -300,6 +315,7 @@ export class ProxyController {
         callerAttribution,
         requestHeaders,
         currentMeta,
+        recordAsManifestBlock,
       );
     } finally {
       if (slotAcquired) this.rateLimiter.releaseSlot(tenantId);
@@ -316,13 +332,14 @@ export class ProxyController {
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
     meta?: RoutingMeta,
+    manifestBlockReason?: ManifestBlockedRequestReason,
   ): void {
     if (clientAbort.signal.aborted) {
       if (!res.writableEnded) res.end();
       return;
     }
 
-    const message = err instanceof Error ? err.message : String(err);
+    const message = this.extractErrorMessage(err);
     const status =
       err instanceof ResponsesSseError
         ? err.status
@@ -332,31 +349,43 @@ export class ProxyController {
     const providerErrorBody = err instanceof ResponsesSseError ? err.body : message;
     this.logger.error(`Proxy error: ${message}`);
 
-    this.recorder
-      .recordProviderError(req.ingestionContext, status, providerErrorBody, {
-        ...(meta
-          ? {
-              model: meta.model,
-              provider: meta.provider,
-              tier: meta.tier,
-              fallbackFromModel: meta.fallbackFromModel,
-              fallbackIndex: meta.fallbackIndex,
-              authType: meta.auth_type,
-              reason: meta.reason,
-              specificityCategory: meta.specificity_category,
-              providerKeyLabel: meta.provider_key_label,
-              tenantProviderId: meta.tenantProviderId,
-              requestParams: meta.request_params,
-              headerTierId: meta.header_tier_id,
-              headerTierName: meta.header_tier_name,
-              headerTierColor: meta.header_tier_color,
-            }
-          : {}),
+    if (manifestBlockReason) {
+      this.recordManifestBlockedRequest(
+        err,
+        req,
         traceId,
         callerAttribution,
         requestHeaders,
-      })
-      .catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
+        manifestBlockReason,
+        status,
+      );
+    } else {
+      this.recorder
+        .recordProviderError(req.ingestionContext, status, providerErrorBody, {
+          ...(meta
+            ? {
+                model: meta.model,
+                provider: meta.provider,
+                tier: meta.tier,
+                fallbackFromModel: meta.fallbackFromModel,
+                fallbackIndex: meta.fallbackIndex,
+                authType: meta.auth_type,
+                reason: meta.reason,
+                specificityCategory: meta.specificity_category,
+                providerKeyLabel: meta.provider_key_label,
+                tenantProviderId: meta.tenantProviderId,
+                requestParams: meta.request_params,
+                headerTierId: meta.header_tier_id,
+                headerTierName: meta.header_tier_name,
+                headerTierColor: meta.header_tier_color,
+              }
+            : {}),
+          traceId,
+          callerAttribution,
+          requestHeaders,
+        })
+        .catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
+    }
 
     if (headersSent) {
       if (!res.writableEnded) res.end();
@@ -412,6 +441,63 @@ export class ProxyController {
     if (!header) return undefined;
     const parts = header.split('-');
     return parts.length >= 2 ? parts[1] : undefined;
+  }
+
+  private extractSessionKey(req: Request): string {
+    return (req.headers['x-session-key'] as string) || 'default';
+  }
+
+  private extractRequestedModel(body: Record<string, unknown> | undefined): string | undefined {
+    const model = body?.model;
+    return typeof model === 'string' && model.length > 0 ? model : undefined;
+  }
+
+  private extractErrorMessage(err: unknown): string {
+    if (err instanceof ResponsesSseError) return err.body;
+    if (err instanceof HttpException) {
+      const response = err.getResponse();
+      if (typeof response === 'string') return response;
+      if (response && typeof response === 'object') {
+        const record = response as Record<string, unknown>;
+        const message = record.message;
+        if (typeof message === 'string') return message;
+        if (Array.isArray(message)) return message.filter((m) => typeof m === 'string').join(', ');
+        const error = record.error;
+        if (typeof error === 'string') return error;
+        if (error && typeof error === 'object') {
+          const nested = (error as Record<string, unknown>).message;
+          if (typeof nested === 'string') return nested;
+        }
+        const code = record.code;
+        if (code === 'PLAN_LIMIT_REQUESTS') return 'Free plan monthly request limit reached';
+        if (typeof code === 'string') return code;
+      }
+    }
+    return err instanceof Error ? err.message : String(err);
+  }
+
+  private recordManifestBlockedRequest(
+    err: unknown,
+    req: Request & { ingestionContext: IngestionContext },
+    traceId: string | undefined,
+    callerAttribution: ReturnType<typeof classifyCaller>,
+    requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
+    reason: ManifestBlockedRequestReason,
+    httpStatus?: number,
+  ): void {
+    const body = req.body as Record<string, unknown> | undefined;
+    this.recorder
+      .recordManifestBlockedRequest(req.ingestionContext, {
+        httpStatus: httpStatus ?? (err instanceof HttpException ? err.getStatus() : 500),
+        errorMessage: this.extractErrorMessage(err),
+        reason,
+        model: this.extractRequestedModel(body),
+        traceId,
+        sessionKey: this.extractSessionKey(req),
+        callerAttribution,
+        requestHeaders,
+      })
+      .catch((e) => this.logger.warn(`Failed to record Manifest-blocked request: ${e}`));
   }
 
   private trackFirstProxyRequest(tenantId: string): void {

@@ -252,10 +252,13 @@ describe('PlanService', () => {
       expect(mockQuery).not.toHaveBeenCalled();
     });
 
-    it('counts via SQL and passes the tenant + month-start params', async () => {
+    it('counts via SQL, excluding Manifest-side blocks, and passes the tenant + month-start params', async () => {
       mockQuery.mockResolvedValue([{ n: 7 }]);
       expect(await service.countRequestsSince('t1', START)).toBe(7);
-      const [, params] = mockQuery.mock.calls[0];
+      const [sql, params] = mockQuery.mock.calls[0];
+      expect(sql).toContain(
+        "m.error_origin IS NULL OR m.error_origin NOT IN ('config', 'policy', 'internal')",
+      );
       expect(params[0]).toBe('t1');
       expect(params[1]).toBe(new Date(START).toISOString());
     });

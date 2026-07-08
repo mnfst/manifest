@@ -297,7 +297,7 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Reason']).toBe('scored');
   });
 
-  it('enforces the plan request limit before routing — a block propagates and is not recorded', async () => {
+  it('enforces the plan request limit before routing and records a Manifest policy row', async () => {
     const block = new HttpException(
       {
         statusCode: 402,
@@ -308,21 +308,39 @@ describe('ProxyController', () => {
       402,
     );
     planService.assertWithinRequestLimit.mockRejectedValueOnce(block);
-    const recordSpy = jest.spyOn(recorder, 'recordProviderError');
+    const recordSpy = jest.spyOn(recorder, 'recordManifestBlockedRequest');
 
-    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const req = mockRequest({ model: 'auto', messages: [{ role: 'user', content: 'hi' }] });
     const { res } = mockResponse();
 
     // The gate runs BEFORE the try/catch, so the 402 propagates to
     // ProxyExceptionFilter instead of the local handleProxyError.
     await expect(controller.chatCompletions(req as never, res as never)).rejects.toBe(block);
+    await flushRecorderMicrotasks();
 
-    // Gate ran before rate limiting / routing, and nothing was recorded (which
-    // would have counted the blocked request toward its own limit).
+    // Gate ran before rate limiting / routing. The recorded row is classified as
+    // Manifest policy, which PlanService excludes from billable request counts.
     expect(planService.assertWithinRequestLimit).toHaveBeenCalledWith(req.ingestionContext);
     expect(rateLimiter.checkLimit).not.toHaveBeenCalled();
     expect(proxyService.proxyRequest).not.toHaveBeenCalled();
-    expect(recordSpy).not.toHaveBeenCalled();
+    expect(recordSpy).toHaveBeenCalledWith(
+      req.ingestionContext,
+      expect.objectContaining({
+        httpStatus: 402,
+        errorMessage: 'Free plan monthly request limit reached',
+        reason: 'limit_exceeded',
+        model: 'auto',
+      }),
+    );
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'error',
+        error_http_status: 402,
+        routing_reason: 'limit_exceeded',
+        error_origin: 'policy',
+        error_class: 'limit_exceeded',
+      }),
+    );
   });
 
   it('routes a non-402 plan-lookup error through the normal proxy error handler', async () => {
@@ -1361,7 +1379,7 @@ describe('ProxyController', () => {
       expect(rateLimiter.releaseSlot).not.toHaveBeenCalled();
     });
 
-    it('should record 429 when checkLimit throws with 429', async () => {
+    it('should record local rate-limit blocks as Manifest policy rows', async () => {
       rateLimiter.checkLimit.mockImplementation(() => {
         throw new HttpException('Too many requests — wait a few seconds and retry.', 429);
       });
@@ -1376,6 +1394,10 @@ describe('ProxyController', () => {
         expect.objectContaining({
           status: 'rate_limited',
           tenant_id: 'tenant-1',
+          error_http_status: 429,
+          routing_reason: 'manifest_rate_limited',
+          error_origin: 'policy',
+          error_class: 'rate_limit',
         }),
       );
     });
