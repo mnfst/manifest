@@ -152,7 +152,7 @@ async function requestManifest(
 		options.body = body;
 	}
 
-	return await executeFunctions.helpers.httpRequest.call(executeFunctions, options);
+	return await executeFunctions.helpers.httpRequest(options);
 }
 
 export class Manifest implements INodeType {
