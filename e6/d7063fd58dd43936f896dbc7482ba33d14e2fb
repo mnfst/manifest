@@ -1,0 +1,22 @@
+packages/frontend/src/components/UpgradeSuccessModal.tsx
+  s_2a27f10736f8cc::t_778e2e00263efa 19-32
+  s_2a27f10736f8cc::t_45cb310219b03d 35-42,53-60,67-70
+packages/frontend/tests/components/UpgradeSuccessModal.test.tsx
+  s_2a27f10736f8cc::t_778e2e00263efa 10,13,15,21-24,30,32-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "e6d7063fd58dd43936f896dbc7482ba33d14e2fb",
+  "prompts": {},
+  "sessions": {
+    "s_2a27f10736f8cc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4184-a356-7bb3-bfee-194b1c5b90fc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
