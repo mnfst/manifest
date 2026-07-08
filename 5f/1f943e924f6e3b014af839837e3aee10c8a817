@@ -1,0 +1,26 @@
+deploy/digitalocean/TUTORIAL.md
+  s_d4dd3ac37be356::t_0f538324ae45c4 41-42
+  s_d4dd3ac37be356::t_69fb9befd168cb 43-48
+  s_d4dd3ac37be356::t_0f0bdc3d33608c 1-40
+.do/deploy.template.yaml
+  s_d4dd3ac37be356::t_0f0bdc3d33608c 1-30,32-33,35-50
+  s_d4dd3ac37be356::t_0f538324ae45c4 31,34
+README.md
+  s_d4dd3ac37be356::t_0f0bdc3d33608c 19,77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "5f1f943e924f6e3b014af839837e3aee10c8a817",
+  "prompts": {},
+  "sessions": {
+    "s_d4dd3ac37be356": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bb6-aeb4-70e1-bc09-0180cc699731",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
