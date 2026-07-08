@@ -1,8 +1,31 @@
 import { A } from '@solidjs/router';
-import { Show, createResource, type Component } from 'solid-js';
+import { Show, createResource, createSignal, type Component } from 'solid-js';
 import { getBillingStatus } from '../services/api/billing.js';
 
+const DISMISS_KEY = 'manifest_usage_banner_dismissed';
+
+function isDismissedToday(): boolean {
+  try {
+    const stored = localStorage.getItem(DISMISS_KEY);
+    if (!stored) return false;
+    const today = new Date().toISOString().slice(0, 10);
+    return stored === today;
+  } catch {
+    return false;
+  }
+}
+
+function dismissForToday(): void {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    localStorage.setItem(DISMISS_KEY, today);
+  } catch {
+    /* noop */
+  }
+}
+
 const UsageLimitBanner: Component = () => {
+  const [dismissed, setDismissed] = createSignal(isDismissedToday());
   const [billing] = createResource(async () => {
     try {
       return await getBillingStatus();
@@ -19,9 +42,15 @@ const UsageLimitBanner: Component = () => {
 
   const atLimit = () => ratio() >= 1;
   const nearLimit = () => ratio() >= 0.8 && ratio() < 1;
+  const canDismiss = () => nearLimit() && !atLimit();
+
+  const handleDismiss = () => {
+    dismissForToday();
+    setDismissed(true);
+  };
 
   return (
-    <Show when={nearLimit() || atLimit()}>
+    <Show when={(nearLimit() && !dismissed()) || atLimit()}>
       <div
         class="usage-limit-banner"
         classList={{ 'usage-limit-banner--danger': atLimit() }}
@@ -31,10 +60,21 @@ const UsageLimitBanner: Component = () => {
             ? "You've reached your monthly limit. Requests are being blocked."
             : "You're limited to 10,000 requests this month. Upgrade for unlimited."}
         </span>
-        <A href="/upgrade" class="btn btn--outline btn--sm usage-limit-banner__btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2m0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8"/><path d="m8 12 1.41 1.41L11 11.83V17h2v-5.17l1.59 1.59L16 12l-4-4z"/></svg>
-          Upgrade plan
-        </A>
+        <div class="usage-limit-banner__actions">
+          <A href="/upgrade" class="btn btn--outline btn--sm usage-limit-banner__btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2m0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8"/><path d="m8 12 1.41 1.41L11 11.83V17h2v-5.17l1.59 1.59L16 12l-4-4z"/></svg>
+            Upgrade plan
+          </A>
+          <Show when={canDismiss()}>
+            <button
+              type="button"
+              class="btn btn--outline btn--sm usage-limit-banner__btn"
+              onClick={handleDismiss}
+            >
+              Got it
+            </button>
+          </Show>
+        </div>
       </div>
     </Show>
   );

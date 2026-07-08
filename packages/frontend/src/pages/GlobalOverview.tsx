@@ -206,10 +206,15 @@ const GlobalOverview: Component = () => {
   const effectiveChartRange = createMemo(() =>
     isProRangeLocked(chartRange()) ? '7d' : chartRange(),
   );
+  const proBadge = () => (
+    <A href="/upgrade" class="pro-range-badge" onClick={(e: MouseEvent) => e.stopPropagation()}>
+      PRO
+    </A>
+  );
   const rangeOptions = () =>
     RANGE_OPTIONS.map((option) =>
       isProRangeLocked(option.value)
-        ? { ...option, disabled: true, description: 'Available on Pro' }
+        ? { ...option, disabled: true, badge: proBadge() }
         : option,
     );
   createEffect(() => {

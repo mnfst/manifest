@@ -905,13 +905,19 @@
   font-weight: 500;
 }
 
+.usage-limit-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  flex-shrink: 0;
+}
+
 .usage-limit-banner__btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   text-decoration: none;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .sidebar-usage__alert {

@@ -38,9 +38,19 @@ import {
   useOverviewColumns,
   useOverviewRange,
 } from '../services/use-overview-range.js';
+import { getBillingStatus } from '../services/api/billing.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/routing.css';
+
+const PRO_RANGES = new Set(['30d', '90d', '365d']);
+const AGENT_RANGE_OPTIONS = [
+  { label: 'Last 24 hours', value: '24h' },
+  { label: 'Last 7 days', value: '7d' },
+  { label: 'Last 30 days', value: '30d' },
+  { label: 'Last 90 days', value: '90d' },
+  { label: 'Last 365 days', value: '365d' },
+];
 
 interface OverviewData {
   summary: {
@@ -95,6 +105,21 @@ const Overview: Component = () => {
   const location = useLocation<{ newApiKey?: string }>();
   const navigate = useNavigate();
   preloadModelDisplayNames();
+  const [billing] = createResource(async () => {
+    try { return await getBillingStatus(); } catch { return null; }
+  });
+  const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
+  const proBadge = () => (
+    <A href="/upgrade" class="pro-range-badge" onClick={(e: MouseEvent) => e.stopPropagation()}>
+      PRO
+    </A>
+  );
+  const agentRangeOptions = () =>
+    AGENT_RANGE_OPTIONS.map((opt) =>
+      isFreePlan() && PRO_RANGES.has(opt.value)
+        ? { ...opt, disabled: true, badge: proBadge() }
+        : opt,
+    );
   const { isSelfHosted, columns } = useOverviewColumns();
   // Only treat the stored value as a user selection when it is actually valid.
   // An invalid stored range falls through to the smart-range cascade.
@@ -349,14 +374,11 @@ const Overview: Component = () => {
           <Show when={showDashboard()}>
             <Select
               value={range()}
-              onChange={handleRangeChange}
-              options={[
-                { label: 'Last 24 hours', value: '24h' },
-                { label: 'Last 7 days', value: '7d' },
-                { label: 'Last 30 days', value: '30d' },
-                { label: 'Last 90 days', value: '90d' },
-                { label: 'Last 365 days', value: '365d' },
-              ]}
+              onChange={(v) => {
+                if (isFreePlan() && PRO_RANGES.has(v)) return;
+                handleRangeChange(v);
+              }}
+              options={agentRangeOptions()}
             />
           </Show>
           <Show when={showEmptyState() && !setupCompleted()}>

@@ -112,6 +112,23 @@
   color: hsl(var(--muted-foreground));
 }
 
+.pro-range-badge {
+  margin-left: auto;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  opacity: 1;
+}
+
+.pro-range-badge:hover {
+  opacity: 0.85;
+}
+
 .custom-select__option--selected {
   background: hsl(var(--accent));
   font-weight: 500;
