@@ -356,15 +356,18 @@ describe('GlobalOverview filter onUnselectAll', () => {
     const replaceState = vi.spyOn(window.history, 'replaceState').mockImplementation(() => {});
     mockSearchParams = { upgraded: '1' };
 
-    render(() => <GlobalOverview />);
+    try {
+      render(() => <GlobalOverview />);
 
-    await waitFor(() => expect(localStorage.getItem('manifest_plan_chosen_u1')).toBe('1'));
-    await waitFor(() => expect(document.body.textContent).toContain("You're on the Pro plan"));
+      await waitFor(() => expect(localStorage.getItem('manifest_plan_chosen_u1')).toBe('1'));
+      await waitFor(() => expect(document.body.textContent).toContain("You're on the Pro plan"));
 
-    await waitFor(() => expect(document.querySelector('.modal-backdrop')).not.toBeNull());
-    fireEvent.click(document.querySelector('.modal-backdrop')!);
+      await waitFor(() => expect(document.querySelector('.modal-backdrop')).not.toBeNull());
+      fireEvent.click(document.querySelector('.modal-backdrop')!);
 
-    expect(replaceState).toHaveBeenCalledWith(null, '', '/overview');
-    replaceState.mockRestore();
+      expect(replaceState).toHaveBeenCalledWith(null, '', '/overview');
+    } finally {
+      replaceState.mockRestore();
+    }
   });
 });

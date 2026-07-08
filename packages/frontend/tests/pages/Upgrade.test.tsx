@@ -119,12 +119,15 @@ describe('Upgrade', () => {
       value: `${window.location.origin}/account`,
       configurable: true,
     });
-    render(() => <Upgrade />);
+    try {
+      render(() => <Upgrade />);
 
-    fireEvent.click(await screen.findByText('Back'));
+      fireEvent.click(await screen.findByText('Back'));
 
-    expect(back).toHaveBeenCalled();
-    back.mockRestore();
+      expect(back).toHaveBeenCalled();
+    } finally {
+      back.mockRestore();
+    }
   });
 
   it('falls back to the dashboard when Back has no same-origin referrer', async () => {

@@ -252,7 +252,10 @@ describe('Register', () => {
     const { container } = render(() => <Register />);
     await screen.findByText('Choose your plan');
 
-    const freeCard = container.querySelectorAll<HTMLButtonElement>('.plan-picker__card')[0];
+    const freeCard = Array.from(container.querySelectorAll<HTMLButtonElement>('.plan-picker__card')).find(
+      (card) => card.textContent?.includes('Free'),
+    );
+    if (!freeCard) throw new Error('Free plan card not found');
     fireEvent.click(freeCard);
     fireEvent.click(container.querySelector('.plan-picker__cta')!);
 

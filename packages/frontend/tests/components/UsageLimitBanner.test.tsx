@@ -69,13 +69,15 @@ describe('UsageLimitBanner', () => {
       throw new Error('blocked');
     });
 
-    render(() => <UsageLimitBanner />);
+    try {
+      render(() => <UsageLimitBanner />);
 
-    await screen.findByText("You're limited to 10,000 requests this month. Upgrade for unlimited.");
-    expect(() => fireEvent.click(screen.getByText('Got it'))).not.toThrow();
-
-    getItem.mockRestore();
-    setItem.mockRestore();
+      await screen.findByText("You're limited to 10,000 requests this month. Upgrade for unlimited.");
+      expect(() => fireEvent.click(screen.getByText('Got it'))).not.toThrow();
+    } finally {
+      getItem.mockRestore();
+      setItem.mockRestore();
+    }
   });
 
   it('stays hidden for pro users and billing fetch failures', async () => {
