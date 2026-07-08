@@ -1,0 +1,117 @@
+packages/backend/src/billing/emails/billing-plan-email.spec.ts
+  s_2a27f10736f8cc::t_8ce02b133bc7aa 1-86
+packages/backend/src/routing/proxy/__tests__/proxy-exception.filter.spec.ts
+  s_2a27f10736f8cc::t_a2eade25e617ce 4,272-277,289,305-306
+packages/shared/src/plan-limits.ts
+  s_2a27f10736f8cc::t_142092f2e82ce3 26-29,34
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_2a27f10736f8cc::t_8548cfe9d7bca3 108-111,114,116
+packages/frontend/src/components/UsageLimitBanner.tsx
+  s_2a27f10736f8cc::t_5600f6411dc97a 4,55,59
+  s_2a27f10736f8cc::t_2002c54b6496bf 63-73
+packages/backend/src/billing/plan.service.ts
+  s_2a27f10736f8cc::t_6ea930e3f79d76 333,341
+  s_2a27f10736f8cc::t_3b957a8cc68d15 1-3,5-11,13,16-19,66,76,89-92,105,113,135,141-145,327-328,348,359-375
+  s_0601354a8a53a4::t_387a8a1a59aedf 376
+packages/frontend/tests/pages/Upgrade.test.tsx
+  s_2a27f10736f8cc::t_194c960c7a4a92 4,46-49,56-63,70,72-73
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_2a27f10736f8cc::t_d1c3d071d80c07 2,302-307
+packages/backend/src/billing/billing-email-log.service.spec.ts
+  s_2a27f10736f8cc::t_02cfa434494553 1-65
+packages/backend/src/billing/billing-usage-email.service.spec.ts
+  s_2a27f10736f8cc::t_39a3051ccd8332 1-203
+packages/shared/src/index.ts
+  s_2a27f10736f8cc::t_3fdec0e50e7dca 151-157
+packages/frontend/tests/pages/Workspace-validation.test.tsx
+  s_2a27f10736f8cc::t_9b91339e5bf2b9 85-88,91,93
+packages/frontend/tests/pages/Account.test.tsx
+  s_2a27f10736f8cc::t_19049a0da4fd2f 4,83,93-97,273
+  s_2a27f10736f8cc::t_fd9e571ec6f1ae 41,44,82,84-85,92,98-99,106,108-109,120,214,230-252,255-269
+packages/frontend/tests/services/api/billing.test.ts
+  s_2a27f10736f8cc::t_3d3f68a80f9f1d 19,51,69
+  s_2a27f10736f8cc::t_b28b85d6d97737 7,9,14,17-18,24,32,34-35,50,52-53,68,70-71,80-92
+  s_2a27f10736f8cc::t_51606d815f82dd 93
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_2a27f10736f8cc::t_ee01d2c7f24d2b 4,786-791
+  s_2a27f10736f8cc::t_4c251532f6017d 261-264,266,268
+  s_2a27f10736f8cc::t_9c3a7cd64227cb 267,269-270
+  s_2a27f10736f8cc::t_8d0697bde0017b 164-170,175-179,808,1046-1047,1405
+packages/backend/src/billing/plan.service.spec.ts
+  s_2a27f10736f8cc::t_1e0f53e2d009f9 2,7,12-13,18,30-31,34-41,148,156-194
+  s_2a27f10736f8cc::t_76ca9c5cb21aed 195-196
+.changeset/subscription-plan-emails.md
+  s_2a27f10736f8cc::t_c5f40303e109ee 1-5
+packages/backend/src/auth/auth.instance.spec.ts
+  s_2a27f10736f8cc::t_ff4e381232186c 478,482-486
+packages/backend/src/auth/auth.instance.ts
+  s_2a27f10736f8cc::t_5f334b5599eb10 2,9-14,72-73,80-96,173
+packages/backend/src/billing/billing-email-log.service.ts
+  s_2a27f10736f8cc::t_c87c7b86f809b0 1-85
+packages/backend/src/billing/billing-email-preferences.ts
+  s_2a27f10736f8cc::t_2b2bf6fb83d8af 1-15
+packages/backend/src/billing/billing-email-sender.ts
+  s_2a27f10736f8cc::t_99af1c721c4360 1-81
+packages/backend/src/billing/billing-email.service.ts
+  s_2a27f10736f8cc::t_211f0003fb4601 1-58
+packages/backend/src/billing/billing-usage-email.service.ts
+  s_2a27f10736f8cc::t_d2a532c3a05af7 1-118
+packages/backend/src/billing/billing.controller.spec.ts
+  s_2a27f10736f8cc::t_41ddb5d58698d5 8,13-18,21,32-42
+packages/backend/src/billing/billing.controller.ts
+  s_2a27f10736f8cc::t_c1bbe7a3cfd85c 1,4,14-21
+packages/backend/src/billing/billing.module.ts
+  s_2a27f10736f8cc::t_8d3678d2bb200f 6-8,13
+packages/backend/src/billing/dto/update-billing-email-preferences.dto.ts
+  s_2a27f10736f8cc::t_28bbeed2fd2b7c 1-6
+packages/backend/src/billing/emails/billing-plan-email.tsx
+  s_2a27f10736f8cc::t_45e93aa88b8200 1-364
+packages/backend/src/billing/subscription-webhook-emails.spec.ts
+  s_2a27f10736f8cc::t_6f07619d444ef8 1-162
+packages/backend/src/billing/subscription-webhook-emails.ts
+  s_2a27f10736f8cc::t_302635a03ebcb0 1-156
+packages/backend/src/database/data-source-definitions.ts
+  s_2a27f10736f8cc::t_613dc2ec98be4b 137-138,275-276
+packages/backend/src/database/migrations/1798200000000-AddBillingEmailLogs.spec.ts
+  s_2a27f10736f8cc::t_72aee6626532ac 1-38
+packages/backend/src/database/migrations/1798200000000-AddBillingEmailLogs.ts
+  s_2a27f10736f8cc::t_de9af8b080b749 1-40
+packages/backend/src/database/migrations/1798300000000-AddBillingEmailPreferences.spec.ts
+  s_2a27f10736f8cc::t_997617d0c4eaaa 1-40
+packages/backend/src/database/migrations/1798300000000-AddBillingEmailPreferences.ts
+  s_2a27f10736f8cc::t_886e274ff177f3 1-21
+packages/backend/src/entities/tenant.entity.spec.ts
+  s_2a27f10736f8cc::t_90a5ad31e85a51 43-51
+packages/backend/src/entities/tenant.entity.ts
+  s_2a27f10736f8cc::t_70652d609612de 4,42-44
+packages/frontend/src/pages/Account.tsx
+  s_2a27f10736f8cc::t_bd6b511ec9bad4 1-8,12,24,27-28,35-39,121-136,184,344-381
+packages/frontend/src/services/api/billing.ts
+  s_2a27f10736f8cc::t_bfeabf0ff4ab5a 1-2,6,14-23
+packages/frontend/src/styles/agents.css
+  s_2a27f10736f8cc::t_1694971ad7a956 341-351,420-423,440-441
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a2b02b14c6ed6b4cbf330c451a98dd0e0bf7810e",
+  "prompts": {},
+  "sessions": {
+    "s_0601354a8a53a4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2650e45d-39d6-47a2-ac31-661699e546b5",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_2a27f10736f8cc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4184-a356-7bb3-bfee-194b1c5b90fc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
