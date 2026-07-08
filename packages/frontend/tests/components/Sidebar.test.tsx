@@ -495,25 +495,16 @@ describe("Sidebar — structure and interaction", () => {
 });
 
 describe("Sidebar — Auto-fix card", () => {
-  it("renders the Auto-fix card with badge, title, description, and button", () => {
+  it("renders the Auto-fix discovery card with title, description, and external link", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector(".sidebar-autofix")).not.toBeNull();
-    expect(container.querySelector(".sidebar-autofix__new-badge")?.textContent).toBe("New");
-    expect(container.querySelector(".sidebar-autofix__title")?.textContent).toBe("Auto-fix");
+    expect(container.querySelector(".sidebar-autofix__new-badge")).toBeNull();
+    expect(container.querySelector(".sidebar-autofix__title")?.textContent).toBe("Discover Auto-fix");
     expect(container.textContent).toContain("Failing requests are automatically fixed");
-    expect(container.querySelector(".sidebar-autofix__btn")?.textContent).toBe("Get early access");
-  });
-
-  it("opens the AutofixModal when the Get early access button is clicked", async () => {
-    const { container } = render(() => <Sidebar />);
-    expect(container.querySelector('[data-testid="autofix-modal"]')).toBeNull();
-
-    const btn = container.querySelector(".sidebar-autofix__btn") as HTMLButtonElement;
-    await fireEvent.click(btn);
-
-    await waitFor(() => {
-      expect(container.querySelector('[data-testid="autofix-modal"]')).not.toBeNull();
-    });
-    expect(mockAutofixModal).toHaveBeenCalledWith(true);
+    const link = container.querySelector(".sidebar-autofix__btn") as HTMLAnchorElement;
+    expect(link?.textContent).toBe("Learn more");
+    expect(link?.getAttribute("href")).toBe("https://manifest.build/autofix/");
+    expect(link?.getAttribute("target")).toBe("_blank");
+    expect(link?.getAttribute("rel")).toBe("noopener noreferrer");
   });
 });

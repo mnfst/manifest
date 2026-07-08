@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@solidjs/testing-library';
 
 const mockNavigate = vi.fn();
+const mockGetBillingStatus = vi.fn().mockResolvedValue({ enabled: false, plan: 'free' });
 let mockLocation = { pathname: '/', search: '' };
 let mockSessionData: any = {
   data: { user: { id: 'u1', name: 'Test' } },
@@ -19,11 +20,17 @@ vi.mock('../../src/services/auth-client.js', () => ({
   },
 }));
 
+vi.mock('../../src/services/api/billing.js', () => ({
+  getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
+}));
+
 import AuthGuard from '../../src/components/AuthGuard';
 
 describe('AuthGuard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
+    mockGetBillingStatus.mockResolvedValue({ enabled: false, plan: 'free' });
     mockSessionData = {
       data: { user: { id: 'u1', name: 'Test' } },
       isPending: false,
@@ -31,13 +38,13 @@ describe('AuthGuard', () => {
     mockLocation = { pathname: '/', search: '' };
   });
 
-  it('renders children when session exists', () => {
+  it('renders children when session exists', async () => {
     render(() => (
       <AuthGuard>
         <span>Protected content</span>
       </AuthGuard>
     ));
-    expect(screen.getByText('Protected content')).toBeDefined();
+    expect(await screen.findByText('Protected content')).toBeDefined();
   });
 
   it('shows loading state when session is pending', () => {

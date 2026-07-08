@@ -3,7 +3,11 @@ import { render, screen, fireEvent } from '@solidjs/testing-library';
 
 const mockSignUpEmail = vi.fn().mockResolvedValue({});
 const mockSendVerificationEmail = vi.fn().mockResolvedValue({});
+const mockSubscriptionUpgrade = vi.fn().mockResolvedValue({});
+const mockGetBillingStatus = vi.fn().mockResolvedValue({ enabled: false, plan: 'free' });
+const mockNavigate = vi.fn();
 let mockLocationSearch = '';
+let mockSearchParams: Record<string, string | undefined> = {};
 
 vi.mock('@solidjs/router', () => ({
   A: (props: any) => (
@@ -12,7 +16,8 @@ vi.mock('@solidjs/router', () => ({
     </a>
   ),
   useLocation: () => ({ search: mockLocationSearch }),
-  useSearchParams: () => [{}],
+  useNavigate: () => mockNavigate,
+  useSearchParams: () => [mockSearchParams],
 }));
 
 vi.mock('@solidjs/meta', () => ({
@@ -22,9 +27,18 @@ vi.mock('@solidjs/meta', () => ({
 
 vi.mock('../../src/services/auth-client.js', () => ({
   authClient: {
+    useSession: () => () => ({
+      data: { user: { id: 'u1', name: 'Test User', email: 'test@test.com' } },
+      isPending: false,
+    }),
     signUp: { email: (...args: unknown[]) => mockSignUpEmail(...args) },
     sendVerificationEmail: (...args: unknown[]) => mockSendVerificationEmail(...args),
+    subscription: { upgrade: (...args: unknown[]) => mockSubscriptionUpgrade(...args) },
   },
+}));
+
+vi.mock('../../src/services/api/billing.js', () => ({
+  getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
 }));
 
 vi.mock('../../src/services/toast-store.js', () => ({
@@ -42,7 +56,9 @@ describe('Register', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSignUpEmail.mockResolvedValue({});
+    mockGetBillingStatus.mockResolvedValue({ enabled: false, plan: 'free' });
     mockLocationSearch = '';
+    mockSearchParams = {};
     localStorage.clear();
   });
 
@@ -171,7 +187,7 @@ describe('Register', () => {
     expect(container.querySelector('a[href="/reset-password"]')).not.toBeNull();
   });
 
-  it('redirects to upgrade when signup returns a token', async () => {
+  it('opens the plan step when signup returns a token and billing is enabled', async () => {
     const locationSpy = vi.spyOn(window, 'location', 'get').mockReturnValue({
       ...window.location,
       href: '',
@@ -179,6 +195,11 @@ describe('Register', () => {
     const hrefSetter = vi.fn();
     Object.defineProperty(window.location, 'href', { set: hrefSetter, configurable: true });
 
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: 'free',
+      priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
+    });
     mockSignUpEmail.mockResolvedValue({
       data: { token: 'tok', user: { id: 'u1' } },
       error: null,
@@ -193,7 +214,7 @@ describe('Register', () => {
     });
     fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(hrefSetter).toHaveBeenCalledWith('/upgrade');
+      expect(hrefSetter).toHaveBeenCalledWith('/register?step=plan');
     });
 
     locationSpy.mockRestore();
