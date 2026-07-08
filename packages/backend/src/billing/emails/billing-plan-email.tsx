@@ -83,8 +83,14 @@ function subscriptionCopy(props: SubscriptionPlanEmailProps): {
       heading: `Your plan is now Manifest ${props.planName}`,
       body: (
         <>
-          {greeting(props.userName)} your plan has been updated to{' '}
-          <strong>{props.planName}</strong>. Here's what you now have access to:
+          {greeting(props.userName)} your plan has been updated
+          {props.previousPlanName ? (
+            <>
+              {' '}
+              from <strong>{props.previousPlanName}</strong>
+            </>
+          ) : null}{' '}
+          to <strong>{props.planName}</strong>. Here's what you now have access to:
         </>
       ),
       features: [
@@ -163,7 +169,9 @@ export function SubscriptionPlanEmail(props: SubscriptionPlanEmailProps) {
             <Text style={heading}>{copy.heading}</Text>
             {copy.paragraphs ? (
               copy.paragraphs.map((p, i) => (
-                <Text key={i} style={paragraph}>{p}</Text>
+                <Text key={i} style={paragraph}>
+                  {p}
+                </Text>
               ))
             ) : (
               <Text style={paragraph}>{copy.body}</Text>
@@ -189,10 +197,7 @@ export function SubscriptionPlanEmail(props: SubscriptionPlanEmailProps) {
                 {copy.cta}
               </Button>
               {copy.ctaSecondary && (
-                <Button
-                  style={buttonSecondary}
-                  href="https://manifest.build/pricing"
-                >
+                <Button style={buttonSecondary} href="https://manifest.build/pricing">
                   {copy.ctaSecondary}
                 </Button>
               )}

@@ -16,6 +16,7 @@ describe('BillingUsageEmailService', () => {
   let dataSourceQuery: jest.Mock;
   let getLimits: jest.Mock;
   let countRequestsSince: jest.Mock;
+  let invalidateRequestCountCache: jest.Mock;
   let hasDedupeKey: jest.Mock;
   let tryInsert: jest.Mock;
   let sendPlanUsageEmail: jest.Mock;
@@ -28,6 +29,7 @@ describe('BillingUsageEmailService', () => {
       requestsPerMonth: FREE_PLAN_REQUESTS_PER_MONTH,
     });
     countRequestsSince = jest.fn().mockResolvedValue(8_000);
+    invalidateRequestCountCache = jest.fn();
     hasDedupeKey = jest.fn().mockResolvedValue(false);
     tryInsert = jest.fn().mockResolvedValue(true);
     sendPlanUsageEmail = jest.fn().mockResolvedValue(true);
@@ -43,7 +45,7 @@ describe('BillingUsageEmailService', () => {
     });
     service = new BillingUsageEmailService(
       { all: jest.fn() } as unknown as IngestEventBusService,
-      { getLimits, countRequestsSince } as unknown as PlanService,
+      { getLimits, countRequestsSince, invalidateRequestCountCache } as unknown as PlanService,
       { query: dataSourceQuery } as unknown as DataSource,
       { hasDedupeKey, tryInsert } as unknown as BillingEmailLogService,
       { sendPlanUsageEmail } as unknown as BillingEmailService,
@@ -107,7 +109,7 @@ describe('BillingUsageEmailService', () => {
     } as unknown as IngestEventBusService;
     const localService = new BillingUsageEmailService(
       bus,
-      { getLimits, countRequestsSince } as unknown as PlanService,
+      { getLimits, countRequestsSince, invalidateRequestCountCache } as unknown as PlanService,
       { query: dataSourceQuery } as unknown as DataSource,
       { hasDedupeKey, tryInsert } as unknown as BillingEmailLogService,
       { sendPlanUsageEmail } as unknown as BillingEmailService,

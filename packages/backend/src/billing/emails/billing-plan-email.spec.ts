@@ -31,8 +31,8 @@ describe('billing plan emails', () => {
       }),
     );
 
-    expect(html).toContain('Your plan is now Pro');
-    expect(html).toContain('from Free');
+    expect(html).toContain('Your plan is now Manifest Pro');
+    expect(html).toContain('from <strong>Free</strong>');
   });
 
   it('renders cancellation subscription copy without a period end', () => {
