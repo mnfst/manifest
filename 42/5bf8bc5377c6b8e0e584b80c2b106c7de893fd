@@ -1,0 +1,21 @@
+.github/workflows/publish-n8n-node.yml
+  s_6d8a2aeb292c0d::t_8f56728999c19c 29-30,36
+integrations/n8n-nodes-manifest/package-lock.json
+  s_6d8a2aeb292c0d::t_3de4d3f890dbd1 1-10235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "425bf8bc5377c6b8e0e584b80c2b106c7de893fd",
+  "prompts": {},
+  "sessions": {
+    "s_6d8a2aeb292c0d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f418a-9e60-7fb0-b308-cfbdef64b9a7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
