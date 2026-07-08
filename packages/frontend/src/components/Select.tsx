@@ -8,6 +8,8 @@ export interface SelectOption {
   icon?: JSX.Element;
   disabled?: boolean;
   description?: string;
+  /** Optional badge rendered after the label (e.g. "PRO" tag). */
+  badge?: JSX.Element;
 }
 
 interface SelectProps {
@@ -121,7 +123,8 @@ const Select: Component<SelectProps> = (props) => {
             type="button"
             role="option"
             aria-selected={props.value === opt.value}
-            style={opt.icon ? 'display: flex; align-items: center; gap: 6px;' : undefined}
+            aria-disabled={opt.disabled}
+            style="display: flex; align-items: center; gap: 6px;"
           >
             <Show when={opt.icon}>{opt.icon}</Show>
             <span class="custom-select__option-text">
@@ -130,6 +133,7 @@ const Select: Component<SelectProps> = (props) => {
                 <span class="custom-select__option-desc">{opt.description}</span>
               </Show>
             </span>
+            <Show when={opt.badge}>{opt.badge}</Show>
           </button>
         )}
       </For>

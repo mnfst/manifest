@@ -887,6 +887,33 @@
   margin-bottom: 6px;
 }
 
+/* ── Global Usage Limit Banner ────────────────────── */
+.usage-limit-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-md);
+  padding: var(--gap-sm) var(--gap-lg);
+  margin: calc(-1 * var(--gap-xl)) calc(-1 * var(--gap-xl)) var(--gap-lg);
+  background: hsl(var(--destructive) / 0.06);
+  border-bottom: 1px solid hsl(var(--destructive) / 0.2);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--destructive));
+}
+
+.usage-limit-banner__text {
+  font-weight: 500;
+}
+
+.usage-limit-banner__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .sidebar-usage__alert {
   margin: 6px 0 0;
   font-size: 11px;
