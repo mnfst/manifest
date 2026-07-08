@@ -16,7 +16,6 @@ Plug your AI agents into any provider
   <a href="https://railway.com/deploy/wild-wild" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-Railway-0B0D0E?style=for-the-badge&amp;logo=railway&amp;logoColor=white" alt="Deploy on Railway" /></a>
   <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/quickcreate?stackName=manifest&amp;templateURL=https%3A%2F%2Fmnfst-manifest-deploy-templates.s3.us-east-1.amazonaws.com%2Fmanifest.yaml" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-AWS-232F3E?style=for-the-badge&amp;logo=amazonwebservices&amp;logoColor=white" alt="Deploy on AWS" /></a>
   <a href="https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fmnfst%2Fmanifest&amp;cloudshell_workspace=deploy%2Fgcp&amp;cloudshell_tutorial=TUTORIAL.md&amp;cloudshell_image=gcr.io/ds-artifacts-cloudshell/deploystack_custom_image&amp;shellonly=true" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-GCP-4285F4?style=for-the-badge&amp;logo=googlecloud&amp;logoColor=white" alt="Deploy on GCP" /></a>
-  <a href="https://app.koyeb.com/deploy?type=docker&amp;image=docker.io%2Fmanifestdotbuild%2Fmanifest%3A6&amp;name=manifest&amp;service_type=web&amp;ports=2099%3Bhttp%3B%2F&amp;env%5BDATABASE_URL%5D=postgres%3A%2F%2FUSER%3APASSWORD%40HOST%2FDB%3Fsslmode%3Drequire&amp;env%5BBETTER_AUTH_SECRET%5D=replace-with-openssl-rand-hex-32&amp;env%5BMANIFEST_ENCRYPTION_KEY%5D=replace-with-different-openssl-rand-hex-32&amp;env%5BBETTER_AUTH_URL%5D=https%3A%2F%2F%7B%7B+KOYEB_PUBLIC_DOMAIN+%7D%7D&amp;env%5BMANIFEST_MODE%5D=selfhosted&amp;env%5BDB_POOL_MAX%5D=8&amp;env%5BAUTH_DB_POOL_MAX%5D=4" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-Koyeb-121212?style=for-the-badge&amp;logo=koyeb&amp;logoColor=white" alt="Deploy on Koyeb" /></a>
 </p>
 
 <p align="center">
@@ -66,15 +65,20 @@ bash <(curl -sSL https://raw.githubusercontent.com/mnfst/manifest/main/docker/in
 
 Open [http://localhost:2099](http://localhost:2099) and sign up — the first account you create becomes the admin. Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
 
-Managed deployment options:
+### Deploy with one click
 
-| Platform | What it provisions |
+| Platform | Notes |
 | --- | --- |
-| [Railway](https://railway.com/deploy/wild-wild) | Manifest plus PostgreSQL from the public Railway template. |
-| [Render](https://render.com/deploy?repo=https://github.com/mnfst/manifest) | Manifest web service plus Render PostgreSQL from [render.yaml](render.yaml). |
-| [AWS](deploy/aws/TUTORIAL.md) | ECS Fargate, Application Load Balancer, RDS PostgreSQL, and Secrets Manager via CloudFormation. |
-| [GCP](deploy/gcp/TUTORIAL.md) | Cloud Run, Cloud SQL for PostgreSQL, and Secret Manager via the Cloud Shell tutorial. |
-| [Koyeb](deploy/koyeb/TUTORIAL.md) | Manifest Docker web service from the deploy button. Create a Koyeb PostgreSQL Database Service first and paste `DATABASE_URL`. |
+| [Railway](https://railway.com/deploy/wild-wild) | Best path. Template includes Manifest and PostgreSQL. |
+| [Render](https://render.com/deploy?repo=https://github.com/mnfst/manifest) | Blueprint includes Manifest and Render PostgreSQL. |
+| [AWS](deploy/aws/TUTORIAL.md) | CloudFormation quick-create for ECS, RDS, and Secrets Manager. |
+| [GCP](deploy/gcp/TUTORIAL.md) | Cloud Shell guided deploy for Cloud Run, Cloud SQL, and Secret Manager. |
+
+### Other deployment guides
+
+| Platform | Notes |
+| --- | --- |
+| [Koyeb](deploy/koyeb/TUTORIAL.md) | Requires manual PostgreSQL and generated secrets before deploy. |
 
 > The legacy `manifest` npm package is deprecated and no longer published.
 

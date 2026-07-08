@@ -27,7 +27,13 @@ openssl rand -hex 32
 
 ## Deploy Manifest
 
-Open the Koyeb deploy button from the README. In the deploy form:
+Open the Koyeb deploy link:
+
+```text
+https://app.koyeb.com/deploy?type=docker&image=docker.io%2Fmanifestdotbuild%2Fmanifest%3A6&name=manifest&service_type=web&ports=2099%3Bhttp%3B%2F&env%5BDATABASE_URL%5D=postgres%3A%2F%2FUSER%3APASSWORD%40HOST%2FDB%3Fsslmode%3Drequire&env%5BBETTER_AUTH_SECRET%5D=replace-with-openssl-rand-hex-32&env%5BMANIFEST_ENCRYPTION_KEY%5D=replace-with-different-openssl-rand-hex-32&env%5BBETTER_AUTH_URL%5D=https%3A%2F%2F%7B%7B+KOYEB_PUBLIC_DOMAIN+%7D%7D&env%5BMANIFEST_MODE%5D=selfhosted&env%5BDB_POOL_MAX%5D=8&env%5BAUTH_DB_POOL_MAX%5D=4
+```
+
+In the deploy form:
 
 - Replace `DATABASE_URL` with your Koyeb Postgres connection string.
 - Replace `BETTER_AUTH_SECRET` with the first generated secret.
