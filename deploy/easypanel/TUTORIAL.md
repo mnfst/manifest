@@ -6,7 +6,7 @@ Easypanel is a good fit for Manifest because it can run Docker image services, p
 
 ## Prerequisites
 
-- An Easypanel instance or Easypanel Cloud account.
+- A self-hosted Easypanel instance.
 - A project with a server destination.
 - A domain or generated Easypanel domain for the app.
 
