@@ -1,0 +1,33 @@
+packages/shared/src/agent-type.ts
+  s_6d8a2aeb292c0d::t_6ec34e130ff460 1,9,14-15,23,33,46,56
+packages/frontend/tests/components/AgentTypeSelect.test.tsx
+  s_6d8a2aeb292c0d::t_3955d33d1814d1 5,8,15,26,33,81,85,87-89,92,106,133-135,139-141,177-187,190-191,296-303,312,318,320,323,332
+  s_6d8a2aeb292c0d::t_76e8b4806d925a 96-97,118-120,128-129,136-138,188-189,206-207,224-225,242,316,319,328-330,362
+  s_6d8a2aeb292c0d::t_66ea00a8aace50 192-193
+packages/shared/__tests__/agent-type.spec.ts
+  s_6d8a2aeb292c0d::t_bda308de4851a7 13,19,24-25,31,50-53,73-79,109,121,133
+packages/frontend/tests/components/AgentTypeGrid.test.tsx
+  s_6d8a2aeb292c0d::t_d8df61ca441f8b 5,8,17,28,37,60,63,65-67,70,76,79,105-114,117-119,177-180,185,195-196,199-201
+  s_6d8a2aeb292c0d::t_1fc8df0909b004 73,100,115-116,132,148,190-191,197-198,205,212
+  s_6d8a2aeb292c0d::t_ba8041396f9c1e 120
+  s_6d8a2aeb292c0d::t_c65aba3e08c169 181-184
+  s_6d8a2aeb292c0d::t_71d33f76921d7b 186
+packages/frontend/public/icons/n8n.svg
+  s_6d8a2aeb292c0d::t_6ec34e130ff460 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "c73cbe0fcd82a9d9d878e770095803015e338579",
+  "prompts": {},
+  "sessions": {
+    "s_6d8a2aeb292c0d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f418a-9e60-7fb0-b308-cfbdef64b9a7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
