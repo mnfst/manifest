@@ -1,6 +1,14 @@
 import { A, useLocation, useNavigate, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
-import { type Component, createEffect, createSignal, createUniqueId, onCleanup, onMount, Show } from 'solid-js';
+import {
+  type Component,
+  createEffect,
+  createSignal,
+  createUniqueId,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 import SocialButtons from '../components/SocialButtons.jsx';
 import PlanPicker, { type PlanId } from '../components/PlanPicker.jsx';
 import { authClient } from '../services/auth-client.js';
@@ -9,6 +17,7 @@ import { getLastAuthMethod, setLastAuthMethod } from '../services/last-auth-meth
 import { checkSocialProviders } from '../services/setup-status.js';
 import { getBillingStatus } from '../services/api/billing.js';
 import { markPlanChosen } from '../services/plan-selection.js';
+import { formatBillingPrice } from '../services/billing-display.js';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -40,14 +49,16 @@ const Register: Component = () => {
 
   createEffect(() => {
     if (!showPlan()) return;
-    getBillingStatus({ cache: false }).then((status) => {
-      if (status?.plan === 'pro') {
-        markPlanChosen();
-        navigate('/', { replace: true });
-      } else if (status?.priceMonthlyUsd != null) {
-        setProPrice(`$${status.priceMonthlyUsd}`);
-      }
-    }).catch(() => {});
+    getBillingStatus({ cache: false })
+      .then((status) => {
+        if (status?.plan === 'pro') {
+          markPlanChosen();
+          navigate('/', { replace: true });
+        } else {
+          setProPrice(formatBillingPrice(status?.priceMonthly));
+        }
+      })
+      .catch(() => {});
   });
 
   let cooldownInterval: ReturnType<typeof setInterval> | undefined;
@@ -99,9 +110,7 @@ const Register: Component = () => {
       try {
         const status = await getBillingStatus();
         if (status?.enabled) {
-          if (status.priceMonthlyUsd != null) {
-            setProPrice(`$${status.priceMonthlyUsd}`);
-          }
+          setProPrice(formatBillingPrice(status.priceMonthly));
           window.location.href = '/register?step=plan';
           return;
         }
@@ -222,10 +231,7 @@ const Register: Component = () => {
                 <Show when={alreadyExists()}>
                   <div id={errorId} class="auth-form__error" role="alert">
                     An account with this email already exists.{' '}
-                    <A
-                      href={appendSearch('/login', location.search)}
-                      class="auth-form__error-link"
-                    >
+                    <A href={appendSearch('/login', location.search)} class="auth-form__error-link">
                       Sign in
                     </A>{' '}
                     or{' '}
@@ -327,11 +333,7 @@ const Register: Component = () => {
             <p class="plan-picker__section-subtitle">You can change your plan anytime</p>
           </div>
 
-          <PlanPicker
-            proPrice={proPrice()}
-            onSelect={handlePlanSelect}
-            busy={planBusy()}
-          />
+          <PlanPicker proPrice={proPrice()} onSelect={handlePlanSelect} busy={planBusy()} />
         </Show>
       </Show>
     </>

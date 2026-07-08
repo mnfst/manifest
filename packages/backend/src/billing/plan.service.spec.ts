@@ -1,19 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { HttpException } from '@nestjs/common';
+import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
 import { PlanService } from './plan.service';
-import { Tenant } from '../entities/tenant.entity';
 import * as billingConfig from './billing.config';
 
 describe('PlanService', () => {
   let service: PlanService;
-  let mockTenantFindOne: jest.Mock;
   let mockQuery: jest.Mock;
   const saved = { ...process.env };
   const CTX = { tenantId: 't1', userId: 'u1' };
   const FRESH_CTX = { tenantId: null, userId: 'u1' };
-  const TENANT = { id: 't1', owner_user_id: 'u1', limit_overrides: null };
 
   function enableBilling() {
     process.env['MANIFEST_MODE'] = 'cloud';
@@ -25,14 +22,9 @@ describe('PlanService', () => {
   beforeEach(async () => {
     process.env = { ...saved };
     jest.restoreAllMocks();
-    mockTenantFindOne = jest.fn().mockResolvedValue(null);
     mockQuery = jest.fn().mockResolvedValue([]);
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        PlanService,
-        { provide: getRepositoryToken(Tenant), useValue: { findOne: mockTenantFindOne } },
-        { provide: DataSource, useValue: { query: mockQuery } },
-      ],
+      providers: [PlanService, { provide: DataSource, useValue: { query: mockQuery } }],
     }).compile();
     service = module.get(PlanService);
   });
@@ -47,19 +39,20 @@ describe('PlanService', () => {
       expect(mockQuery).not.toHaveBeenCalled();
     });
 
-    it('resolves the subscription via the tenant owner', async () => {
+    it('resolves the active subscription in the tenant snapshot query', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue({ ...TENANT, owner_user_id: 'owner-9' });
-      mockQuery.mockResolvedValueOnce([{ plan: 'pro' }]);
+      mockQuery.mockResolvedValueOnce([{ subscriptionPlan: 'pro' }]);
       expect(await service.getPlan(CTX)).toBe('pro');
-      expect(mockQuery.mock.calls[0][1]).toEqual(['owner-9']);
+      expect(mockQuery.mock.calls[0][1]).toEqual(['t1', 'u1']);
+      expect(String(mockQuery.mock.calls[0][0])).toContain('LEFT JOIN LATERAL');
+      expect(String(mockQuery.mock.calls[0][0])).toContain('t."limit_overrides"');
     });
 
     it('falls back to ctx.userId when there is no tenant yet', async () => {
       enableBilling();
-      mockQuery.mockResolvedValueOnce([{ plan: 'pro' }]);
+      mockQuery.mockResolvedValueOnce([{ subscriptionPlan: 'pro' }]);
       expect(await service.getPlan(FRESH_CTX)).toBe('pro');
-      expect(mockQuery.mock.calls[0][1]).toEqual(['u1']);
+      expect(mockQuery.mock.calls[0][1]).toEqual([null, 'u1']);
     });
 
     it('returns free when neither tenant owner nor userId exists', async () => {
@@ -70,7 +63,6 @@ describe('PlanService', () => {
 
     it('returns free when no active subscription row exists', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
       expect(await service.getPlan(CTX)).toBe('free');
     });
   });
@@ -82,39 +74,42 @@ describe('PlanService', () => {
 
     it('returns free plan defaults', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
-      expect(await service.getLimits(CTX)).toEqual({ requestsPerMonth: 10_000 });
+      expect(await service.getLimits(CTX)).toEqual({
+        requestsPerMonth: FREE_PLAN_REQUESTS_PER_MONTH,
+      });
     });
 
     it('env var overrides plan default', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
       process.env['PLAN_LIMIT_FREE_REQUESTS'] = '3000';
       expect((await service.getLimits(CTX)).requestsPerMonth).toBe(3000);
     });
 
     it('ignores a non-numeric env override', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
       process.env['PLAN_LIMIT_FREE_REQUESTS'] = 'abc';
-      expect((await service.getLimits(CTX)).requestsPerMonth).toBe(10_000);
+      expect((await service.getLimits(CTX)).requestsPerMonth).toBe(FREE_PLAN_REQUESTS_PER_MONTH);
     });
 
     it('tenant limit_overrides beats env and defaults', async () => {
       enableBilling();
       process.env['PLAN_LIMIT_FREE_REQUESTS'] = '3000';
-      mockTenantFindOne.mockResolvedValue({
-        ...TENANT,
-        limit_overrides: { requestsPerMonth: 50_000 },
-      });
+      mockQuery.mockResolvedValue([{ limitOverrides: { requestsPerMonth: 50_000 } }]);
       expect((await service.getLimits(CTX)).requestsPerMonth).toBe(50_000);
     });
 
     it('returns pro defaults (unlimited) for pro tenants', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
-      mockQuery.mockResolvedValue([{ plan: 'pro' }]);
+      mockQuery.mockResolvedValue([{ subscriptionPlan: 'pro' }]);
       expect(await service.getLimits(CTX)).toEqual({ requestsPerMonth: null });
+    });
+
+    it('can fail open when requested by the proxy hot path', async () => {
+      enableBilling();
+      mockQuery.mockRejectedValue(new Error('snapshot down'));
+      await expect(service.getLimits(CTX, { failOpen: true })).resolves.toEqual({
+        requestsPerMonth: null,
+      });
     });
   });
 
@@ -127,17 +122,16 @@ describe('PlanService', () => {
 
     it('reports plan, usage and limits when enabled', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
       mockQuery.mockImplementation((sql: string) =>
         sql.includes('agent_messages')
           ? Promise.resolve([{ n: 42 }])
-          : Promise.resolve([{ plan: 'free' }]),
+          : Promise.resolve([{ subscriptionPlan: 'free' }]),
       );
       const status = await service.getBillingStatus(CTX);
       expect(status).toMatchObject({
         enabled: true,
         plan: 'free',
-        requests: { used: 42, limit: 10_000 },
+        requests: { used: 42, limit: FREE_PLAN_REQUESTS_PER_MONTH },
       });
       // periodEnd is the 1st of next month at midnight UTC.
       expect(status.requests.periodEnd).toMatch(/^\d{4}-\d{2}-01T00:00:00\.000Z$/);
@@ -147,39 +141,50 @@ describe('PlanService', () => {
   describe('price lookup', () => {
     it('fetches, converts cents to dollars, and caches', async () => {
       enableBilling();
-      const retrieve = jest.fn().mockResolvedValue({ unit_amount: 2000 });
+      const retrieve = jest.fn().mockResolvedValue({
+        currency: 'usd',
+        recurring: { interval: 'month' },
+        unit_amount: 2000,
+      });
       jest
         .spyOn(billingConfig, 'getStripeClient')
         .mockReturnValue({ prices: { retrieve } } as never);
-      mockTenantFindOne.mockResolvedValue({ id: 't1', limit_overrides: null });
 
-      const first = await service.getBillingStatus('u1' as never);
-      const second = await service.getBillingStatus('u1' as never);
-      expect(first.priceMonthlyUsd).toBe(20);
-      expect(second.priceMonthlyUsd).toBe(20);
+      const first = await service.getBillingStatus(CTX);
+      const second = await service.getBillingStatus(CTX);
+      expect(first.priceMonthly).toEqual({ amount: 20, currency: 'USD', interval: 'month' });
+      expect(second.priceMonthly).toEqual({ amount: 20, currency: 'USD', interval: 'month' });
       expect(retrieve).toHaveBeenCalledTimes(1); // second call served from cache
     });
 
-    it('returns null price when Stripe errors, without failing the endpoint', async () => {
+    it('returns an empty price when Stripe errors, without failing the endpoint', async () => {
       enableBilling();
       jest.spyOn(billingConfig, 'getStripeClient').mockReturnValue({
         prices: { retrieve: jest.fn().mockRejectedValue(new Error('down')) },
       } as never);
-      mockTenantFindOne.mockResolvedValue({ id: 't1', limit_overrides: null });
 
-      const status = await service.getBillingStatus('u1' as never);
+      const status = await service.getBillingStatus(CTX);
       expect(status.enabled).toBe(true);
-      expect(status.priceMonthlyUsd).toBeNull();
+      expect(status.priceMonthly).toEqual({ amount: null, currency: null, interval: null });
     });
 
     it('handles a price with no unit_amount', async () => {
       enableBilling();
       jest.spyOn(billingConfig, 'getStripeClient').mockReturnValue({
-        prices: { retrieve: jest.fn().mockResolvedValue({ unit_amount: null }) },
+        prices: {
+          retrieve: jest.fn().mockResolvedValue({
+            currency: 'eur',
+            recurring: { interval: 'month' },
+            unit_amount: null,
+          }),
+        },
       } as never);
-      mockTenantFindOne.mockResolvedValue({ id: 't1', limit_overrides: null });
 
-      expect((await service.getBillingStatus('u1' as never)).priceMonthlyUsd).toBeNull();
+      expect((await service.getBillingStatus(CTX)).priceMonthly).toEqual({
+        amount: null,
+        currency: 'EUR',
+        interval: 'month',
+      });
     });
   });
 
@@ -263,7 +268,7 @@ describe('PlanService', () => {
       mockQuery.mockImplementation((sql: string) =>
         sql.includes('agent_messages')
           ? Promise.resolve([{ n: count }])
-          : Promise.resolve([{ plan }]),
+          : Promise.resolve([{ subscriptionPlan: plan }]),
       );
     }
 
@@ -274,8 +279,7 @@ describe('PlanService', () => {
 
     it('allows an unlimited (pro) tenant without counting requests', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
-      mockQuery.mockResolvedValue([{ plan: 'pro' }]); // getPlan → pro → limit null
+      mockQuery.mockResolvedValue([{ subscriptionPlan: 'pro' }]); // plan null limit
       await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
       // Only the subscription lookup ran; no agent_messages COUNT.
       expect(mockQuery.mock.calls.every(([sql]) => !String(sql).includes('agent_messages'))).toBe(
@@ -285,15 +289,13 @@ describe('PlanService', () => {
 
     it('allows a free tenant below the request limit', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
-      routeQuery('free', 9_999);
+      routeQuery('free', FREE_PLAN_REQUESTS_PER_MONTH - 1);
       await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
     });
 
     it('throws 402 PLAN_LIMIT_REQUESTS for a free tenant at the limit', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
-      routeQuery('free', 10_000);
+      routeQuery('free', FREE_PLAN_REQUESTS_PER_MONTH);
       try {
         await service.assertWithinRequestLimit(CTX);
         fail('expected HttpException');
@@ -302,31 +304,37 @@ describe('PlanService', () => {
         expect(err.getStatus()).toBe(402);
         expect(err.getResponse()).toMatchObject({
           code: 'PLAN_LIMIT_REQUESTS',
-          limit: 10_000,
-          used: 10_000,
+          limit: FREE_PLAN_REQUESTS_PER_MONTH,
+          used: FREE_PLAN_REQUESTS_PER_MONTH,
         });
       }
     });
 
     it('fails open (allows the request) when the count query errors', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
       mockQuery.mockImplementation((sql: string) =>
         sql.includes('agent_messages')
           ? Promise.reject(new Error('db down'))
-          : Promise.resolve([{ plan: 'free' }]),
+          : Promise.resolve([{ subscriptionPlan: 'free' }]),
       );
       // A COUNT failure must never block: the soft Free-tier gate errs to "allow".
       await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
     });
 
+    it('fails open (allows the request) when the billing snapshot query errors', async () => {
+      enableBilling();
+      mockQuery.mockRejectedValue(new Error('snapshot down'));
+      await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+      expect(String(mockQuery.mock.calls[0][0])).not.toContain('agent_messages');
+    });
+
     it('throttles the fail-open warning and reports the suppressed count', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
       mockQuery.mockImplementation((sql: string) =>
         sql.includes('agent_messages')
           ? Promise.reject(new Error('db down'))
-          : Promise.resolve([{ plan: 'free' }]),
+          : Promise.resolve([{ subscriptionPlan: 'free' }]),
       );
       const warn = jest
         .spyOn((service as unknown as { logger: { warn: jest.Mock } }).logger, 'warn')
@@ -352,18 +360,16 @@ describe('PlanService', () => {
   describe('envLimit hardening', () => {
     it('rejects hex and scientific notation, falling back to the plan default', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
       process.env['PLAN_LIMIT_FREE_REQUESTS'] = '0x10';
-      expect((await service.getLimits(CTX)).requestsPerMonth).toBe(10_000);
+      expect((await service.getLimits(CTX)).requestsPerMonth).toBe(FREE_PLAN_REQUESTS_PER_MONTH);
       process.env['PLAN_LIMIT_FREE_REQUESTS'] = '1e3';
-      expect((await service.getLimits(CTX)).requestsPerMonth).toBe(10_000);
+      expect((await service.getLimits(CTX)).requestsPerMonth).toBe(FREE_PLAN_REQUESTS_PER_MONTH);
       process.env['PLAN_LIMIT_FREE_REQUESTS'] = ' 5 ';
-      expect((await service.getLimits(CTX)).requestsPerMonth).toBe(10_000);
+      expect((await service.getLimits(CTX)).requestsPerMonth).toBe(FREE_PLAN_REQUESTS_PER_MONTH);
     });
 
     it('accepts a plain digits-only override', async () => {
       enableBilling();
-      mockTenantFindOne.mockResolvedValue(TENANT);
       process.env['PLAN_LIMIT_FREE_REQUESTS'] = '7000';
       expect((await service.getLimits(CTX)).requestsPerMonth).toBe(7000);
     });

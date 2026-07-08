@@ -1,10 +1,11 @@
 import { For, Show, createSignal, type Component } from 'solid-js';
+import { FREE_REQUEST_LIMIT_LABEL } from '../services/billing-display.js';
 
 /* ── Plan data ───────────────────────────────────────── */
 
 const freeFeatures = [
   'Unlimited agents',
-  '10,000 routed requests / month',
+  `${FREE_REQUEST_LIMIT_LABEL} routed requests / month`,
   'All providers, no restrictions',
   'Subscription providers (Claude, ChatGPT, Gemini...)',
   '7-day dashboard retention',
@@ -71,8 +72,8 @@ const PlanPicker: Component<PlanPickerProps> = (props) => {
     {
       id: 'pro',
       name: 'Pro',
-      price: props.proPrice ?? '$19',
-      period: '/month',
+      price: props.proPrice ?? 'Pro',
+      period: props.proPrice ? '/month' : undefined,
       desc: 'For production projects. Longer data access and unlimited agents. Not suited for teams.',
       features: proFeatures,
       popular: true,
@@ -95,7 +96,6 @@ const PlanPicker: Component<PlanPickerProps> = (props) => {
       <For each={plans()}>
         {(plan) => {
           const isExpanded = () => expanded() === plan.id;
-          const isEnterprise = plan.id === 'enterprise';
 
           return (
             <button
@@ -126,15 +126,22 @@ const PlanPicker: Component<PlanPickerProps> = (props) => {
               <Show when={isExpanded()}>
                 <div class="plan-picker__details">
                   <Show when={plan.id === 'free' && props.usedRequests != null}>
-                    <p class="plan-picker__usage">
-                      {fmt(props.usedRequests!)} used this month
-                    </p>
+                    <p class="plan-picker__usage">{fmt(props.usedRequests!)} used this month</p>
                   </Show>
                   <ul class="plan-picker__features">
                     <For each={plan.features}>
                       {(feature) => (
                         <li>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#2632EF" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z"/></svg>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            fill="#2632EF"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z" />
+                          </svg>
                           <span>{feature}</span>
                         </li>
                       )}

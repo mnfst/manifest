@@ -4,6 +4,10 @@ import { Title, Meta } from '@solidjs/meta';
 import { authClient } from '../services/auth-client.js';
 import { getBillingStatus } from '../services/api/billing.js';
 import { toast } from '../services/toast-store.js';
+import {
+  FREE_REQUEST_LIMIT_LABEL,
+  formatBillingPriceWithInterval,
+} from '../services/billing-display.js';
 
 const Account: Component = () => {
   const navigate = useNavigate();
@@ -17,6 +21,7 @@ const Account: Component = () => {
   const userName = () => session()?.data?.user?.name ?? '';
   const userEmail = () => session()?.data?.user?.email ?? '';
   const userId = () => session()?.data?.user?.id ?? '';
+  const proPriceWithInterval = () => formatBillingPriceWithInterval(billing()?.priceMonthly);
 
   onMount(() => {
     const stored = localStorage.getItem('theme');
@@ -231,8 +236,8 @@ const Account: Component = () => {
                 <span class="billing-stat__label">Current plan</span>
                 <span class="billing-stat__value">
                   {billing()!.plan === 'pro' ? 'Pro' : 'Free'}
-                  {billing()!.plan === 'pro' && billing()!.priceMonthlyUsd != null
-                    ? ` · $${billing()!.priceMonthlyUsd}/mo`
+                  {billing()!.plan === 'pro' && proPriceWithInterval()
+                    ? ` · ${proPriceWithInterval()}`
                     : ''}
                 </span>
                 <Show when={billing()!.cancelAtPeriodEnd && billing()!.subscriptionPeriodEnd}>
@@ -271,7 +276,7 @@ const Account: Component = () => {
             <div class="settings-card__footer billing-footer">
               <span class="billing-footer__note">
                 {billing()!.plan === 'free'
-                  ? 'Free: 10,000 requests/mo · Pro: unlimited requests'
+                  ? `Free: ${FREE_REQUEST_LIMIT_LABEL} requests/mo · Pro: unlimited requests`
                   : 'Update your payment method and view invoices.'}
               </span>
               <Show
@@ -301,7 +306,7 @@ const Account: Component = () => {
                   onClick={handleUpgrade}
                 >
                   Upgrade to Pro
-                  {billing()!.priceMonthlyUsd != null ? ` · $${billing()!.priceMonthlyUsd}/mo` : ''}
+                  {proPriceWithInterval() ? ` · ${proPriceWithInterval()}` : ''}
                 </button>
               </Show>
             </div>

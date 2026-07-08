@@ -6,6 +6,8 @@ export interface SelectOption {
   value: string;
   /** Optional icon rendered before the label (e.g. provider logo, platform icon). */
   icon?: JSX.Element;
+  disabled?: boolean;
+  description?: string;
 }
 
 interface SelectProps {
@@ -106,18 +108,28 @@ const Select: Component<SelectProps> = (props) => {
         {(opt) => (
           <button
             class="custom-select__option"
-            classList={{ 'custom-select__option--selected': props.value === opt.value }}
+            classList={{
+              'custom-select__option--selected': props.value === opt.value,
+              'custom-select__option--disabled': opt.disabled,
+            }}
             onClick={() => {
+              if (opt.disabled) return;
               props.onChange(opt.value);
               setOpen(false);
             }}
+            disabled={opt.disabled}
             type="button"
             role="option"
             aria-selected={props.value === opt.value}
             style={opt.icon ? 'display: flex; align-items: center; gap: 6px;' : undefined}
           >
             <Show when={opt.icon}>{opt.icon}</Show>
-            {opt.label}
+            <span class="custom-select__option-text">
+              <span>{opt.label}</span>
+              <Show when={opt.description}>
+                <span class="custom-select__option-desc">{opt.description}</span>
+              </Show>
+            </span>
           </button>
         )}
       </For>

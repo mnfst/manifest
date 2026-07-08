@@ -1,7 +1,7 @@
 import { Meta, Title } from '@solidjs/meta';
 import { useNavigate, useSearchParams } from '@solidjs/router';
-import { Show, createEffect, createResource, createSignal, type Component } from 'solid-js';
-import PlanPicker, {
+import { For, Show, createEffect, createResource, createSignal, type Component } from 'solid-js';
+import {
   type PlanId,
   freeFeatures,
   proFeatures,
@@ -10,9 +10,7 @@ import PlanPicker, {
 import { authClient } from '../services/auth-client.js';
 import { getBillingStatus } from '../services/api/billing.js';
 import { toast } from '../services/toast-store.js';
-import { For } from 'solid-js';
-
-const fmt = (n: number) => n.toLocaleString('en-US');
+import { FREE_REQUEST_LIMIT_LABEL, formatBillingPrice } from '../services/billing-display.js';
 
 const Upgrade: Component = () => {
   const navigate = useNavigate();
@@ -31,10 +29,7 @@ const Upgrade: Component = () => {
 
   const status = () => billing();
   const isRequestLimitEntry = () => searchParams.reason === 'requests';
-  const proPrice = () => {
-    const price = status()?.priceMonthlyUsd;
-    return price != null ? `$${price}` : null;
-  };
+  const proPrice = () => formatBillingPrice(status()?.priceMonthly);
 
   createEffect(() => {
     const current = status();
@@ -54,8 +49,7 @@ const Upgrade: Component = () => {
     setBillingBusy(true);
     try {
       const origin = window.location.origin;
-      const cancelPath =
-        `${window.location.pathname}${window.location.search}` || '/upgrade';
+      const cancelPath = `${window.location.pathname}${window.location.search}` || '/upgrade';
       await authClient.subscription.upgrade({
         plan: 'pro',
         successUrl: `${origin}/overview?upgraded=1`,
@@ -75,22 +69,31 @@ const Upgrade: Component = () => {
       <div class="account-modal__inner account-modal__inner--upgrade">
         <Show when={window.history.length > 1}>
           <button class="upgrade-back" onClick={() => window.history.back()}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12l4.58-4.59Z"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12l4.58-4.59Z" />
+            </svg>
             Back
           </button>
         </Show>
         <div class="page-header upgrade-page-header upgrade-page-header--centered">
           <div class="upgrade-page-header__copy">
             <h1>Full control over your AI routing</h1>
-            <p>
-              Free to start. Pick the plan that fits how your team ships AI.
-            </p>
+            <p>Free to start. Pick the plan that fits how your team ships AI.</p>
           </div>
         </div>
 
         <Show when={isRequestLimitEntry()}>
           <div class="auth-form__success" role="status">
-            You've used all 10,000 requests this month. Upgrade for unlimited routed requests.
+            You've used all{' '}
+            {status()?.requests.limit?.toLocaleString('en-US') ?? FREE_REQUEST_LIMIT_LABEL} requests
+            this month. Upgrade for unlimited routed requests.
           </div>
         </Show>
 
@@ -121,128 +124,166 @@ const Upgrade: Component = () => {
             when={status()!.plan === 'pro'}
             fallback={
               <>
-              <div class="upgrade-plan-grid">
-                <section class="settings-card upgrade-plan-card">
-                  <div class="upgrade-plan-card__header">
-                    <h2>Free</h2>
-                  </div>
-                  <div class="upgrade-plan-card__price">
-                    <span class="upgrade-plan-card__amount">$0</span>
-                    <span class="upgrade-plan-card__period">/month</span>
-                  </div>
-                  <p class="upgrade-plan-card__desc">
-                    For prototypes and small projects.
-                  </p>
-                  <div class="upgrade-plan-card__cta">
-                    <button class="btn btn--outline" onClick={() => navigate('/')}>
-                      Use Manifest for free
-                    </button>
-                  </div>
-                  <div class="upgrade-plan-card__bottom">
-                    <div class="upgrade-plan-card__divider" />
-                    <ul class="upgrade-plan-card__features">
-                      <For each={freeFeatures}>
-                        {(feature) => (
-                          <li>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#2632EF" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z"/></svg>
-                            <span>{feature}</span>
-                          </li>
-                        )}
-                      </For>
-                    </ul>
-                  </div>
-                </section>
+                <div class="upgrade-plan-grid">
+                  <section class="settings-card upgrade-plan-card">
+                    <div class="upgrade-plan-card__header">
+                      <h2>Free</h2>
+                    </div>
+                    <div class="upgrade-plan-card__price">
+                      <span class="upgrade-plan-card__amount">$0</span>
+                      <span class="upgrade-plan-card__period">/month</span>
+                    </div>
+                    <p class="upgrade-plan-card__desc">For prototypes and small projects.</p>
+                    <div class="upgrade-plan-card__cta">
+                      <button class="btn btn--outline" onClick={() => navigate('/')}>
+                        Use Manifest for free
+                      </button>
+                    </div>
+                    <div class="upgrade-plan-card__bottom">
+                      <div class="upgrade-plan-card__divider" />
+                      <ul class="upgrade-plan-card__features">
+                        <For each={freeFeatures}>
+                          {(feature) => (
+                            <li>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                fill="#2632EF"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z" />
+                              </svg>
+                              <span>{feature}</span>
+                            </li>
+                          )}
+                        </For>
+                      </ul>
+                    </div>
+                  </section>
 
-                <section class="settings-card upgrade-plan-card upgrade-plan-card--pro">
-                  <span class="upgrade-plan-card__badge">Popular</span>
-                  <div class="upgrade-plan-card__header">
-                    <h2>Pro</h2>
-                  </div>
-                  <div class="upgrade-plan-card__price">
-                    <span class="upgrade-plan-card__amount">{proPrice() ?? '$19'}</span>
-                    <span class="upgrade-plan-card__period">/month</span>
-                  </div>
-                  <p class="upgrade-plan-card__desc">
-                    For production projects. Longer data access and unlimited agents. Not suited for teams.
-                  </p>
-                  <div class="upgrade-plan-card__cta">
-                    <button
-                      class="btn btn--primary"
-                      disabled={billingBusy()}
-                      onClick={() => handlePlanSelect('pro')}
-                    >
-                      {billingBusy() ? <span class="spinner" /> : 'Upgrade to Pro'}
-                    </button>
-                    <span class="upgrade-plan-card__no-commitment">No commitment, cancel anytime</span>
-                  </div>
-                  <div class="upgrade-plan-card__bottom">
-                    <div class="upgrade-plan-card__divider" />
-                    <p class="upgrade-plan-card__features-intro">Everything in the Free plan, plus:</p>
-                    <ul class="upgrade-plan-card__features">
-                      <For each={proFeatures}>
-                        {(feature) => (
-                          <li>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#2632EF" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z"/></svg>
-                            <span>{feature}</span>
-                          </li>
-                        )}
-                      </For>
-                    </ul>
-                  </div>
-                </section>
+                  <section class="settings-card upgrade-plan-card upgrade-plan-card--pro">
+                    <span class="upgrade-plan-card__badge">Popular</span>
+                    <div class="upgrade-plan-card__header">
+                      <h2>Pro</h2>
+                    </div>
+                    <div class="upgrade-plan-card__price">
+                      <span class="upgrade-plan-card__amount">{proPrice() ?? 'Pro'}</span>
+                      <Show when={proPrice()}>
+                        <span class="upgrade-plan-card__period">/month</span>
+                      </Show>
+                    </div>
+                    <p class="upgrade-plan-card__desc">
+                      For production projects. Longer data access and unlimited agents. Not suited
+                      for teams.
+                    </p>
+                    <div class="upgrade-plan-card__cta">
+                      <button
+                        class="btn btn--primary"
+                        disabled={billingBusy()}
+                        onClick={() => handlePlanSelect('pro')}
+                      >
+                        {billingBusy() ? <span class="spinner" /> : 'Upgrade to Pro'}
+                      </button>
+                      <span class="upgrade-plan-card__no-commitment">
+                        No commitment, cancel anytime
+                      </span>
+                    </div>
+                    <div class="upgrade-plan-card__bottom">
+                      <div class="upgrade-plan-card__divider" />
+                      <p class="upgrade-plan-card__features-intro">
+                        Everything in the Free plan, plus:
+                      </p>
+                      <ul class="upgrade-plan-card__features">
+                        <For each={proFeatures}>
+                          {(feature) => (
+                            <li>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                fill="#2632EF"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z" />
+                              </svg>
+                              <span>{feature}</span>
+                            </li>
+                          )}
+                        </For>
+                      </ul>
+                    </div>
+                  </section>
 
-                <section class="settings-card upgrade-plan-card">
-                  <div class="upgrade-plan-card__header">
-                    <h2>Enterprise</h2>
-                  </div>
-                  <div class="upgrade-plan-card__price">
-                    <span class="upgrade-plan-card__amount upgrade-plan-card__amount--custom">
-                      Let's Talk
-                    </span>
-                  </div>
-                  <p class="upgrade-plan-card__desc">
-                    For scaling projects, large scale teams. Enterprise-grade support and security.
-                  </p>
-                  <div class="upgrade-plan-card__cta">
-                    <a
-                      class="btn btn--primary"
-                      href="https://manifest.build/pricing"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Talk to sales
-                    </a>
-                  </div>
-                  <div class="upgrade-plan-card__bottom">
-                    <div class="upgrade-plan-card__divider" />
-                    <ul class="upgrade-plan-card__features">
-                      <For each={enterpriseFeatures}>
-                        {(feature) => (
-                          <li>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#2632EF" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z"/></svg>
-                            <span>{feature}</span>
-                          </li>
-                        )}
-                      </For>
-                    </ul>
-                  </div>
-                </section>
-              </div>
-              <p class="upgrade-terms">
-                Subject to our{' '}
-                <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
-                  terms and conditions
-                </a>
-              </p>
+                  <section class="settings-card upgrade-plan-card">
+                    <div class="upgrade-plan-card__header">
+                      <h2>Enterprise</h2>
+                    </div>
+                    <div class="upgrade-plan-card__price">
+                      <span class="upgrade-plan-card__amount upgrade-plan-card__amount--custom">
+                        Let's Talk
+                      </span>
+                    </div>
+                    <p class="upgrade-plan-card__desc">
+                      For scaling projects, large scale teams. Enterprise-grade support and
+                      security.
+                    </p>
+                    <div class="upgrade-plan-card__cta">
+                      <a
+                        class="btn btn--primary"
+                        href="https://manifest.build/pricing"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Talk to sales
+                      </a>
+                    </div>
+                    <div class="upgrade-plan-card__bottom">
+                      <div class="upgrade-plan-card__divider" />
+                      <ul class="upgrade-plan-card__features">
+                        <For each={enterpriseFeatures}>
+                          {(feature) => (
+                            <li>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                fill="#2632EF"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z" />
+                              </svg>
+                              <span>{feature}</span>
+                            </li>
+                          )}
+                        </For>
+                      </ul>
+                    </div>
+                  </section>
+                </div>
+                <p class="upgrade-terms">
+                  Subject to our{' '}
+                  <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
+                    terms and conditions
+                  </a>
+                </p>
               </>
             }
           >
             <div class="upgrade-pro-current">
               <p class="upgrade-pro-current__status">
-                You're currently on the <strong>Pro plan</strong>. Manage billing from <a href="/account" class="billing-footer__link">Account</a>.
+                You're currently on the <strong>Pro plan</strong>. Manage billing from{' '}
+                <a href="/account" class="billing-footer__link">
+                  Account
+                </a>
+                .
               </p>
               <p class="upgrade-pro-current__status">
-                If you need more (team management, compliance, SLAs...), explore our Enterprise plan.
+                If you need more (team management, compliance, SLAs...), explore our Enterprise
+                plan.
               </p>
 
               <div class="upgrade-pro-current__card">
@@ -283,7 +324,16 @@ const Upgrade: Component = () => {
                         'Dedicated support (Slack and email)',
                       ].map((feature) => (
                         <li>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#2632EF" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z"/></svg>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            fill="#2632EF"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z" />
+                          </svg>
                           <span>{feature}</span>
                         </li>
                       ))}

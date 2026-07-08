@@ -6,8 +6,10 @@ export interface PlanLimits {
   requestsPerMonth: number | null;
 }
 
+export const FREE_PLAN_REQUESTS_PER_MONTH = 10_000;
+
 export const PLAN_LIMITS: Readonly<Record<Plan, PlanLimits>> = {
-  free: { requestsPerMonth: 10_000 },
+  free: { requestsPerMonth: FREE_PLAN_REQUESTS_PER_MONTH },
   // Pro is unlimited. null = unlimited, enforced the same way as the self-hosted
   // UNLIMITED_PLAN_LIMITS.
   pro: { requestsPerMonth: null },
@@ -15,10 +17,16 @@ export const PLAN_LIMITS: Readonly<Record<Plan, PlanLimits>> = {
 
 export const UNLIMITED_PLAN_LIMITS: PlanLimits = { requestsPerMonth: null };
 
+export interface BillingPrice {
+  amount: number | null;
+  currency: string | null;
+  interval: string | null;
+}
+
 export interface BillingStatus {
   enabled: boolean;
   plan: Plan;
-  priceMonthlyUsd: number | null;
+  priceMonthly: BillingPrice;
   requests: { used: number | null; limit: number | null; periodEnd: string | null };
   cancelAtPeriodEnd: boolean;
   subscriptionPeriodEnd: string | null;

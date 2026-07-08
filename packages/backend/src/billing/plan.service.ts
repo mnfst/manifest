@@ -1,13 +1,17 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
-import type { BillingStatus, Plan, PlanLimits } from 'manifest-shared';
-import { Tenant } from '../entities/tenant.entity';
+import type { BillingPrice, BillingStatus, Plan, PlanLimits } from 'manifest-shared';
+import type Stripe from 'stripe';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { getStripeClient, isBillingEnabled } from './billing.config';
 
 const PRICE_CACHE_TTL_MS = 60 * 60 * 1000;
+const BILLING_PRICE_UNAVAILABLE: BillingPrice = Object.freeze({
+  amount: null,
+  currency: null,
+  interval: null,
+});
 // Short TTL keeps the hot proxy path O(1) between refreshes. Staleness is
 // bounded to this window: a tenant can slip at most ~TTL worth of requests past
 // the cap before the next refresh blocks them (per process — multiple pods
@@ -20,6 +24,7 @@ const MAX_REQUEST_COUNT_CACHE_SIZE = 10_000;
 // pressure to the hot path. One line per window, with a suppressed-count tail so
 // the true rate stays visible.
 const COUNT_FAILURE_WARN_WINDOW_MS = 60 * 1000;
+const LIMIT_FAILURE_WARN_WINDOW_MS = 60 * 1000;
 
 function envLimit(name: string): number | undefined {
   const raw = process.env[name];
@@ -43,18 +48,31 @@ interface RequestCountEntry {
   pending?: Promise<number>;
 }
 
+interface BillingSnapshot {
+  plan: Plan;
+  limitOverrides: { requestsPerMonth?: number } | null;
+  cancelAtPeriodEnd: boolean;
+  periodEnd: string | null;
+}
+
+interface BillingSnapshotRow {
+  subscriptionPlan: string | null;
+  cancelAtPeriodEnd: boolean | null;
+  periodEnd: string | null;
+  limitOverrides: { requestsPerMonth?: number } | null;
+}
+
 @Injectable()
 export class PlanService {
   private readonly logger = new Logger(PlanService.name);
-  private priceCache: { value: number | null; fetchedAt: number } | null = null;
+  private priceCache: { value: BillingPrice; fetchedAt: number } | null = null;
   private requestCountCache = new Map<string, RequestCountEntry>();
   private lastCountFailureWarnAtMs = 0;
   private suppressedCountFailureWarns = 0;
+  private lastLimitFailureWarnAtMs = 0;
+  private suppressedLimitFailureWarns = 0;
 
-  constructor(
-    @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
-    private readonly dataSource: DataSource,
-  ) {}
+  constructor(private readonly dataSource: DataSource) {}
 
   /**
    * Billing attaches to the tenant. The Stripe subscription row is keyed by
@@ -62,62 +80,69 @@ export class PlanService {
    * checkout to the session user); fall back to ctx.userId for fresh
    * accounts that have no tenant yet.
    */
-  private async resolveOwnerUserId(ctx: TenantContext): Promise<string | null> {
-    if (ctx.tenantId) {
-      const tenant = await this.tenantRepo.findOne({ where: { id: ctx.tenantId } });
-      if (tenant?.owner_user_id) return tenant.owner_user_id;
+  private async getBillingSnapshot(ctx: TenantContext): Promise<BillingSnapshot> {
+    if (!isBillingEnabled() || (!ctx.tenantId && !ctx.userId)) {
+      return {
+        plan: 'free',
+        limitOverrides: null,
+        cancelAtPeriodEnd: false,
+        periodEnd: null,
+      };
     }
-    return ctx.userId;
-  }
-
-  private async findTenant(ctx: TenantContext): Promise<Tenant | null> {
-    if (!ctx.tenantId) return null;
-    return this.tenantRepo.findOne({ where: { id: ctx.tenantId } });
+    const rows: BillingSnapshotRow[] = await this.dataSource.query(
+      `SELECT
+          t."limit_overrides" AS "limitOverrides",
+          s."plan" AS "subscriptionPlan",
+          s."cancelAtPeriodEnd" AS "cancelAtPeriodEnd",
+          s."periodEnd" AS "periodEnd"
+         FROM (SELECT 1) seed
+    LEFT JOIN "tenants" t
+           ON t."id" = $1
+    LEFT JOIN LATERAL (
+          SELECT "plan", "cancelAtPeriodEnd", "periodEnd"
+            FROM "subscription"
+           WHERE "referenceId" = COALESCE(t."owner_user_id", $2)
+             AND "status" IN ('active', 'trialing')
+        ORDER BY "periodEnd" DESC NULLS LAST
+           LIMIT 1
+         ) s
+           ON COALESCE(t."owner_user_id", $2) IS NOT NULL`,
+      [ctx.tenantId, ctx.userId],
+    );
+    const row = rows[0];
+    return {
+      plan: row?.subscriptionPlan === 'pro' ? 'pro' : 'free',
+      limitOverrides: row?.limitOverrides ?? null,
+      cancelAtPeriodEnd: row?.cancelAtPeriodEnd ?? false,
+      periodEnd: row?.periodEnd ?? null,
+    };
   }
 
   /** Resolve the tenant's plan from better-auth's webhook-synced subscription table. */
   async getPlan(ctx: TenantContext): Promise<Plan> {
-    const sub = await this.getSubscriptionDetails(ctx);
-    return sub?.plan === 'pro' ? 'pro' : 'free';
+    return (await this.getBillingSnapshot(ctx)).plan;
   }
 
-  private async getSubscriptionDetails(
-    ctx: TenantContext,
-  ): Promise<{
-    plan: string;
-    cancelAtPeriodEnd: boolean;
-    periodEnd: string | null;
-  } | null> {
-    if (!isBillingEnabled()) return null;
-    const ownerId = await this.resolveOwnerUserId(ctx);
-    if (!ownerId) return null;
-    const rows: Array<{
-      plan: string;
-      cancelAtPeriodEnd: boolean;
-      periodEnd: string | null;
-    }> = await this.dataSource.query(
-      `SELECT "plan", "cancelAtPeriodEnd", "periodEnd"
-       FROM "subscription"
-       WHERE "referenceId" = $1 AND "status" IN ('active', 'trialing')
-       ORDER BY "periodEnd" DESC NULLS LAST
-       LIMIT 1`,
-      [ownerId],
-    );
-    return rows[0] ?? null;
-  }
-
-  /** Resolution order: per-tenant override > instance env > plan defaults. */
-  async getLimits(ctx: TenantContext): Promise<PlanLimits> {
-    if (!isBillingEnabled()) return UNLIMITED_PLAN_LIMITS;
-    const plan = await this.getPlan(ctx);
-    const defaults = PLAN_LIMITS[plan];
-    const prefix = `PLAN_LIMIT_${plan.toUpperCase()}`;
-    const tenant = await this.findTenant(ctx);
-    const overrides = tenant?.limit_overrides;
+  private limitsForSnapshot(snapshot: BillingSnapshot): PlanLimits {
+    const defaults = PLAN_LIMITS[snapshot.plan];
+    const prefix = `PLAN_LIMIT_${snapshot.plan.toUpperCase()}`;
+    const overrides = snapshot.limitOverrides;
     return {
       requestsPerMonth:
         overrides?.requestsPerMonth ?? envLimit(`${prefix}_REQUESTS`) ?? defaults.requestsPerMonth,
     };
+  }
+
+  /** Resolution order: per-tenant override > instance env > plan defaults. */
+  async getLimits(ctx: TenantContext, opts: { failOpen?: boolean } = {}): Promise<PlanLimits> {
+    if (!isBillingEnabled()) return UNLIMITED_PLAN_LIMITS;
+    try {
+      return this.limitsForSnapshot(await this.getBillingSnapshot(ctx));
+    } catch (err) {
+      if (!opts.failOpen) throw err;
+      this.warnLimitFailureThrottled(ctx.tenantId, err as Error);
+      return UNLIMITED_PLAN_LIMITS;
+    }
   }
 
   /** Start of the current calendar month in UTC (epoch ms). */
@@ -221,6 +246,24 @@ export class PlanService {
     );
   }
 
+  private warnLimitFailureThrottled(tenantId: string | null, err: Error): void {
+    const now = Date.now();
+    if (now - this.lastLimitFailureWarnAtMs < LIMIT_FAILURE_WARN_WINDOW_MS) {
+      this.suppressedLimitFailureWarns++;
+      return;
+    }
+    const suppressed = this.suppressedLimitFailureWarns;
+    this.suppressedLimitFailureWarns = 0;
+    this.lastLimitFailureWarnAtMs = now;
+    const tail =
+      suppressed > 0
+        ? ` (${suppressed} more suppressed in the last ${LIMIT_FAILURE_WARN_WINDOW_MS / 1000}s)`
+        : '';
+    this.logger.warn(
+      `Request-limit lookup failed for tenant ${tenantId}; allowing request: ${err.message}${tail}`,
+    );
+  }
+
   /**
    * Block a routed request when the tenant is at/over its monthly request cap.
    * Called on the /v1/* proxy admission path BEFORE the request is recorded, so
@@ -230,7 +273,7 @@ export class PlanService {
    */
   async assertWithinRequestLimit(ctx: TenantContext): Promise<void> {
     if (!isBillingEnabled()) return;
-    const limits = await this.getLimits(ctx);
+    const limits = await this.getLimits(ctx, { failOpen: true });
     if (limits.requestsPerMonth === null) return; // Pro / unlimited
     let used: number;
     try {
@@ -260,44 +303,70 @@ export class PlanService {
       return {
         enabled: false,
         plan: 'free',
-        priceMonthlyUsd: null,
+        priceMonthly: BILLING_PRICE_UNAVAILABLE,
         requests: { used: null, limit: null, periodEnd: null },
         cancelAtPeriodEnd: false,
         subscriptionPeriodEnd: null,
       };
     }
-    const sub = await this.getSubscriptionDetails(ctx);
-    const plan: Plan = sub?.plan === 'pro' ? 'pro' : 'free';
-    const limits = await this.getLimits(ctx);
+    const snapshot = await this.getBillingSnapshot(ctx);
+    const limits = this.limitsForSnapshot(snapshot);
     const now = new Date();
     const requestsUsed = await this.countRequestsSince(ctx.tenantId, this.monthStartMsUtc(now));
     return {
       enabled: true,
-      plan,
-      priceMonthlyUsd: await this.getProPriceUsd(),
+      plan: snapshot.plan,
+      priceMonthly: await this.getProPrice(),
       requests: {
         used: requestsUsed,
         limit: limits.requestsPerMonth,
         periodEnd: this.nextMonthStartUtc(now).toISOString(),
       },
-      cancelAtPeriodEnd: sub?.cancelAtPeriodEnd ?? false,
-      subscriptionPeriodEnd: sub?.periodEnd ?? null,
+      cancelAtPeriodEnd: snapshot.cancelAtPeriodEnd,
+      subscriptionPeriodEnd: snapshot.periodEnd,
     };
   }
 
   /** Display price for the Pro plan, cached; never lets a Stripe outage break the endpoint. */
-  private async getProPriceUsd(): Promise<number | null> {
+  private async getProPrice(): Promise<BillingPrice> {
     if (this.priceCache && Date.now() - this.priceCache.fetchedAt < PRICE_CACHE_TTL_MS) {
       return this.priceCache.value;
     }
     try {
       const price = await getStripeClient().prices.retrieve(process.env['STRIPE_PRO_PRICE_ID']!);
-      const value = price.unit_amount != null ? price.unit_amount / 100 : null;
+      const value = this.stripePriceToBillingPrice(price);
       this.priceCache = { value, fetchedAt: Date.now() };
       return value;
     } catch {
-      this.priceCache = { value: null, fetchedAt: Date.now() };
-      return null;
+      this.priceCache = { value: BILLING_PRICE_UNAVAILABLE, fetchedAt: Date.now() };
+      return BILLING_PRICE_UNAVAILABLE;
+    }
+  }
+
+  private stripePriceToBillingPrice(price: Stripe.Price): BillingPrice {
+    const rawAmount =
+      price.unit_amount_decimal ?? (price.unit_amount != null ? String(price.unit_amount) : null);
+    const minorAmount = rawAmount != null ? Number(rawAmount) : null;
+    return {
+      amount:
+        minorAmount != null && Number.isFinite(minorAmount)
+          ? minorAmount / this.currencyMinorUnitDivisor(price.currency)
+          : null,
+      currency: price.currency ? price.currency.toUpperCase() : null,
+      interval: price.recurring?.interval ?? null,
+    };
+  }
+
+  private currencyMinorUnitDivisor(currency: string): number {
+    try {
+      const digits =
+        new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency,
+        }).resolvedOptions().maximumFractionDigits ?? 2;
+      return 10 ** digits;
+    } catch {
+      return 100;
     }
   }
 }

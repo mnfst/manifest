@@ -16,6 +16,7 @@ const apiMocks = vi.hoisted(() => ({
   getOverview: vi.fn(),
   getOverviewAgentUsage: vi.fn(),
   getOverviewProviderUsage: vi.fn(),
+  getBillingStatus: vi.fn(),
 }));
 
 const sseMocks = vi.hoisted(() => ({
@@ -42,6 +43,7 @@ vi.mock('@solidjs/router', () => ({
     </a>
   ),
   useNavigate: () => vi.fn(),
+  useSearchParams: () => [{}],
 }));
 
 vi.mock('../../src/services/api.js', async () => {
@@ -60,6 +62,10 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
   getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
   getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
+}));
+
+vi.mock('../../src/services/api/billing.js', () => ({
+  getBillingStatus: (...args: unknown[]) => apiMocks.getBillingStatus(...args),
 }));
 
 vi.mock('../../src/services/providers.js', () => ({
@@ -92,11 +98,13 @@ vi.mock('../../src/components/Select.jsx', () => ({
   default: (props: {
     value: string;
     onChange: (value: string) => void;
-    options: Array<{ label: string; value: string }>;
+    options: Array<{ label: string; value: string; disabled?: boolean; description?: string }>;
   }) => (
     <select value={props.value} onChange={(e) => props.onChange(e.currentTarget.value)}>
       {props.options.map((option) => (
-        <option value={option.value}>{option.label}</option>
+        <option value={option.value} disabled={option.disabled}>
+          {option.description ? `${option.label} · ${option.description}` : option.label}
+        </option>
       ))}
     </select>
   ),
@@ -255,6 +263,14 @@ beforeEach(() => {
   apiMocks.getOverview.mockResolvedValue(overviewResponse);
   apiMocks.getOverviewAgentUsage.mockResolvedValue(providerUsageTimeseries);
   apiMocks.getOverviewProviderUsage.mockResolvedValue(providerUsageTimeseries);
+  apiMocks.getBillingStatus.mockResolvedValue({
+    enabled: false,
+    plan: 'free',
+    priceMonthly: { amount: null, currency: null, interval: null },
+    requests: { used: null, limit: null, periodEnd: null },
+    cancelAtPeriodEnd: false,
+    subscriptionPeriodEnd: null,
+  });
 });
 
 afterEach(() => {

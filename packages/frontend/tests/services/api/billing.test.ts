@@ -25,7 +25,7 @@ describe('billing API client', () => {
     const status: BillingStatus = {
       enabled: true,
       plan: 'pro',
-      priceMonthlyUsd: 20,
+      priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
       requests: { used: 1_000, limit: 500_000, periodEnd: '2026-08-01T00:00:00.000Z' },
     };
     fetchJsonMock.mockResolvedValue(status);
@@ -40,7 +40,7 @@ describe('billing API client', () => {
     const status: BillingStatus = {
       enabled: false,
       plan: 'free',
-      priceMonthlyUsd: null,
+      priceMonthly: { amount: null, currency: null, interval: null },
       requests: { used: null, limit: 10_000, periodEnd: null },
     };
     fetchJsonMock.mockResolvedValue(status);
@@ -55,7 +55,7 @@ describe('billing API client', () => {
     const status: BillingStatus = {
       enabled: true,
       plan: 'free',
-      priceMonthlyUsd: 20,
+      priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
       requests: { used: 500, limit: 10_000, periodEnd: null },
     };
     fetchJsonMock.mockResolvedValue(status);

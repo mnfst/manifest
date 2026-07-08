@@ -3,6 +3,7 @@ import { Show, For, createSignal, createResource, type Component } from 'solid-j
 import { useAgentName } from '../services/routing.js';
 import { getAgents } from '../services/api.js';
 import { getBillingStatus } from '../services/api/billing.js';
+import { FREE_REQUEST_LIMIT_LABEL } from '../services/billing-display.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { agentPing } from '../services/sse.js';
 import { platformIcon } from 'manifest-shared';
@@ -43,9 +44,15 @@ const Sidebar: Component<SidebarProps> = (props) => {
   // can't reach the user's localhost, so the Local entry is hidden there.
   const [selfHosted] = createResource(checkIsSelfHosted);
   const [billing] = createResource(async () => {
-    try { return await getBillingStatus(); } catch { return null; }
+    try {
+      return await getBillingStatus();
+    } catch {
+      return null;
+    }
   });
   const showUpgrade = () => billing()?.enabled && billing()?.plan === 'free';
+  const requestLimitLabel = () =>
+    billing()?.requests.limit?.toLocaleString('en-US') ?? FREE_REQUEST_LIMIT_LABEL;
 
   // Harness list for the in-nav switcher. Refetches whenever the agent SSE ping
   // fires (create/delete/rename). Uses the DEFAULT getAgents() — playground agents
@@ -256,33 +263,52 @@ const Sidebar: Component<SidebarProps> = (props) => {
           </span>
           <span
             class="sidebar-usage__count"
-            classList={{ 'sidebar-usage__count--danger': (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.8 }}
+            classList={{
+              'sidebar-usage__count--danger':
+                (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.8,
+            }}
           >
-            {billing()!.requests.used != null ? billing()!.requests.used!.toLocaleString('en-US') : '0'}
+            {billing()!.requests.used != null
+              ? billing()!.requests.used!.toLocaleString('en-US')
+              : '0'}
             {' / '}
-            {billing()!.requests.limit != null ? billing()!.requests.limit!.toLocaleString('en-US') : '0'}
+            {billing()!.requests.limit != null
+              ? billing()!.requests.limit!.toLocaleString('en-US')
+              : '0'}
             {' requests'}
           </span>
           <div class="sidebar-usage__bar">
             <div
               class="sidebar-usage__fill"
               classList={{
-                'sidebar-usage__fill--warning': (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.5 && (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) < 0.8,
-                'sidebar-usage__fill--danger': (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.8,
+                'sidebar-usage__fill--warning':
+                  (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.5 &&
+                  (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) < 0.8,
+                'sidebar-usage__fill--danger':
+                  (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.8,
               }}
-              style={{ width: `${Math.min(100, ((billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1)) * 100)}%` }}
+              style={{
+                width: `${Math.min(100, ((billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1)) * 100)}%`,
+              }}
             />
           </div>
           <Show when={(billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.8}>
             <p class="sidebar-usage__alert">
               {(billing()!.requests.used ?? 0) >= (billing()!.requests.limit ?? 1)
                 ? "You've reached your monthly limit. Requests are being blocked."
-                : "You're limited to 10,000 requests this month. Upgrade for unlimited."}
+                : `You're limited to ${requestLimitLabel()} requests this month. Upgrade for unlimited.`}
             </p>
           </Show>
         </div>
         <A href="/upgrade" class="sidebar-upgrade" onClick={handleNav}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2m0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8" />
             <path d="m8 12 1.41 1.41L11 11.83V17h2v-5.17l1.59 1.59L16 12l-4-4z" />
           </svg>

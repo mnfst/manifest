@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
+import { FREE_REQUEST_LIMIT_LABEL } from '../../src/services/billing-display';
 
 const mockNavigate = vi.fn();
 let mockSearchParams: Record<string, string> = {};
@@ -40,21 +41,21 @@ import Upgrade from '../../src/pages/Upgrade';
 const disabledStatus = {
   enabled: false,
   plan: 'free' as const,
-  priceMonthlyUsd: null,
+  priceMonthly: { amount: null, currency: null, interval: null },
   requests: { used: null, limit: 10_000, periodEnd: null },
 };
 
 const freeStatus = {
   enabled: true,
   plan: 'free' as const,
-  priceMonthlyUsd: 20,
+  priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
   requests: { used: 1250, limit: 10_000, periodEnd: '2026-08-01T00:00:00.000Z' },
 };
 
 const proStatus = {
   enabled: true,
   plan: 'pro' as const,
-  priceMonthlyUsd: 20,
+  priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
   requests: { used: null, limit: null, periodEnd: null },
 };
 
@@ -73,16 +74,15 @@ describe('Upgrade', () => {
     await screen.findByText('Free');
 
     expect(mockGetBillingStatus).toHaveBeenCalledWith({ cache: false });
-    expect(screen.getByText('Choose your Manifest plan')).toBeDefined();
+    expect(screen.getByText('Full control over your AI routing')).toBeDefined();
     expect(screen.getByText('$0')).toBeDefined();
     expect(screen.getByText('$20')).toBeDefined();
-    expect(screen.getAllByText('Unlimited agents').length).toBe(2);
-    expect(screen.getByText('10,000 routed requests / month')).toBeDefined();
-    expect(screen.getByText('1,250 used this month')).toBeDefined();
+    expect(screen.getByText('Unlimited agents')).toBeDefined();
+    expect(screen.getByText(`${FREE_REQUEST_LIMIT_LABEL} routed requests / month`)).toBeDefined();
     expect(screen.getByText('All providers, no restrictions')).toBeDefined();
-    expect(screen.getByText('Subscription providers')).toBeDefined();
+    expect(screen.getByText('Subscription providers (Claude, ChatGPT, Gemini...)')).toBeDefined();
     expect(screen.getByText('Unlimited routed requests')).toBeDefined();
-    expect(screen.getByText('30-day dashboard retention')).toBeDefined();
+    expect(screen.getByText('365 days dashboard retention')).toBeDefined();
     expect(screen.getByText('Budget alerts and notifications')).toBeDefined();
     expect(screen.getByText('Enterprise')).toBeDefined();
     expect(screen.getByText("Let's Talk")).toBeDefined();
@@ -94,13 +94,15 @@ describe('Upgrade', () => {
     mockSearchParams = { reason: 'requests' };
     render(() => <Upgrade />);
 
-    await screen.findByText(/You've used all 10,000 requests this month/);
+    await screen.findByText(
+      new RegExp(`You've used all ${FREE_REQUEST_LIMIT_LABEL} requests this month`),
+    );
   });
 
   it('continues on Free by navigating to the dashboard', async () => {
     render(() => <Upgrade />);
 
-    const button = await screen.findByText('Continue on Free');
+    const button = await screen.findByText('Use Manifest for free');
     fireEvent.click(button);
 
     expect(mockNavigate).toHaveBeenCalledWith('/');
@@ -116,7 +118,7 @@ describe('Upgrade', () => {
 
     expect(mockUpgrade).toHaveBeenCalledWith({
       plan: 'pro',
-      successUrl: `${window.location.origin}/account?upgraded=1`,
+      successUrl: `${window.location.origin}/overview?upgraded=1`,
       cancelUrl: `${window.location.origin}/upgrade?reason=requests`,
     });
     await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
@@ -145,9 +147,8 @@ describe('Upgrade', () => {
     mockGetBillingStatus.mockResolvedValue(proStatus);
     render(() => <Upgrade />);
 
-    await screen.findByText("You're already on Pro");
+    await screen.findByText(/You're currently on the/);
     expect(screen.getByText('Account')).toBeDefined();
-    expect(screen.getByText('Dashboard')).toBeDefined();
     expect(screen.queryByText('$20')).toBeNull();
   });
 
