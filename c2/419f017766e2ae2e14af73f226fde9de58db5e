@@ -1,0 +1,41 @@
+packages/shared/src/error-taxonomy.ts
+  s_2a27f10736f8cc::t_61f32b5f5f3cc6 13,76-77,86
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_2a27f10736f8cc::t_e79f6daa240064 300,311,313,319,321-322,326-343,1382,1397-1400
+packages/backend/src/entities/agent-message.entity.ts
+  s_2a27f10736f8cc::t_e424a3676924ed 88
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_2a27f10736f8cc::t_558b23ff61f919 302-307,318
+  s_2a27f10736f8cc::t_862fbe2d96c831 21,150,165-168,173-180,196,202,335,342,352-355,359-388,446-471,473-501
+  s_2a27f10736f8cc::t_f65cff34bd375d 472
+  s_2a27f10736f8cc::t_6e95c5cc3a2df1 502
+packages/backend/src/billing/plan.service.spec.ts
+  s_2a27f10736f8cc::t_59b67a1d311c6e 255,258-261
+packages/backend/src/database/migrations/1798000000000-AddErrorClassification.ts
+  s_2a27f10736f8cc::t_fe56ac7f921721 28,42
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_2a27f10736f8cc::t_aefdcc62c443de 104-119,265-281,309,348-392,394
+  s_2a27f10736f8cc::t_5d51a9a2813d52 393,395-399
+packages/backend/src/billing/plan.service.ts
+  s_2a27f10736f8cc::t_b9364e26456715 4,34-36,194-195,217
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_2a27f10736f8cc::t_0558f2fa1bb4fe 439-508
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_2a27f10736f8cc::t_b3b7c1e7bd074e 64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "c2419f017766e2ae2e14af73f226fde9de58db5e",
+  "prompts": {},
+  "sessions": {
+    "s_2a27f10736f8cc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4184-a356-7bb3-bfee-194b1c5b90fc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
