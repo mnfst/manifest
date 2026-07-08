@@ -648,6 +648,51 @@
   padding: var(--gap-md) var(--gap-lg);
 }
 
+/* ── Settings toggle switch (e.g. Auto-fix) ─────────── */
+.settings-switch {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.settings-switch:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-switch__track {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background: hsl(var(--border));
+  border-radius: 999px;
+  transition: background var(--transition-fast);
+}
+
+.settings-switch--on .settings-switch__track {
+  background: #5bbcb4;
+}
+
+.settings-switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: left var(--transition-fast);
+}
+
+.settings-switch--on .settings-switch__thumb {
+  left: 20px;
+}
+
 .settings-card__desc {
   font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));

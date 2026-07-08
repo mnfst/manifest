@@ -1,0 +1,50 @@
+spec:
+  name: manifest
+  region: nyc
+  services:
+    - name: manifest
+      image:
+        registry_type: DOCKER_HUB
+        registry: manifestdotbuild
+        repository: manifest
+        tag: "6"
+      instance_count: 1
+      instance_size_slug: apps-s-1vcpu-1gb
+      http_port: 2099
+      health_check:
+        http_path: /api/v1/health
+        port: 2099
+        initial_delay_seconds: 30
+        period_seconds: 10
+        timeout_seconds: 5
+        success_threshold: 1
+        failure_threshold: 6
+      envs:
+        - key: BIND_ADDRESS
+          scope: RUN_TIME
+          value: 0.0.0.0
+        - key: MANIFEST_MODE
+          scope: RUN_TIME
+          value: selfhosted
+        - key: DATABASE_URL
+          scope: RUN_TIME
+          value: "${manifest-db.DATABASE_URL}&uselibpqcompat=true"
+        - key: BETTER_AUTH_URL
+          scope: RUN_TIME
+          value: "${APP_URL}"
+        - key: BETTER_AUTH_SECRET
+          scope: RUN_TIME
+          type: SECRET
+        - key: MANIFEST_ENCRYPTION_KEY
+          scope: RUN_TIME
+          type: SECRET
+        - key: DB_POOL_MAX
+          scope: RUN_TIME
+          value: "10"
+        - key: AUTH_DB_POOL_MAX
+          scope: RUN_TIME
+          value: "5"
+  databases:
+    - name: manifest-db
+      engine: PG
+      version: "16"

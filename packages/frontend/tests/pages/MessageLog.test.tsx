@@ -73,6 +73,7 @@ vi.mock('../../src/services/formatters.js', () => ({
   formatNumber: (v: number) => String(v),
   formatStatus: (s: string) => s,
   formatErrorOrigin: (o: string | null | undefined) => o ?? null,
+  formatErrorClass: (c: string | null | undefined) => c ?? null,
   formatTime: (t: string) => t,
   formatDuration: (ms: number) => (ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`),
   formatErrorMessage: (s: string) => s,
@@ -537,8 +538,10 @@ describe('MessageLog', () => {
     });
   });
 
-  describe('error tooltip', () => {
-    it('shows tooltip when error_message is present on a failed row', async () => {
+  describe('status cell', () => {
+    it('renders a failed row as a Failed badge with no hover tooltip', async () => {
+      // The status-cell hover tooltip was removed — error detail is shown in the
+      // expanded accordion now, so the cell is just the binary Failed pill.
       const dataWithError = {
         ...messagesData,
         items: [
@@ -552,6 +555,7 @@ describe('MessageLog', () => {
             total_tokens: 0,
             cost: 0,
             status: 'error',
+            error_origin: 'provider',
             error_message: '401 Unauthorized: invalid API key',
           },
         ],
@@ -559,48 +563,11 @@ describe('MessageLog', () => {
       mockGetMessages.mockResolvedValue(dataWithError);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        const tooltip = container.querySelector('.status-badge-tooltip');
-        expect(tooltip).not.toBeNull();
-        const bubble = container.querySelector('.status-badge-tooltip__bubble');
-        expect(bubble).not.toBeNull();
-        expect(bubble!.textContent).toBe('401 Unauthorized: invalid API key');
+        const badge = container.querySelector('.status-badge--error');
+        expect(badge).not.toBeNull();
+        expect(badge!.textContent).toContain('Failed');
       });
-    });
-
-    it('does not show tooltip when error_message is absent', async () => {
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.textContent).toContain('msg-1234');
-        const tooltip = container.querySelector('.status-badge-tooltip');
-        expect(tooltip).toBeNull();
-      });
-    });
-
-    it('sets aria-label on the tooltip wrapper', async () => {
-      const dataWithError = {
-        ...messagesData,
-        items: [
-          {
-            id: 'msg-err99999',
-            timestamp: '2026-02-18T10:00:00Z',
-            agent_name: 'test-agent',
-            model: 'gpt-4o',
-            input_tokens: 0,
-            output_tokens: 0,
-            total_tokens: 0,
-            cost: 0,
-            status: 'error',
-            error_message: 'timeout',
-          },
-        ],
-      };
-      mockGetMessages.mockResolvedValue(dataWithError);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        const tooltip = container.querySelector('.status-badge-tooltip');
-        expect(tooltip?.getAttribute('aria-label')).toBe('timeout');
-      });
+      expect(container.querySelector('.status-badge-tooltip')).toBeNull();
     });
   });
 
@@ -1055,10 +1022,11 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(dataWithFallback);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      const badge = container.querySelector('.tier-badge--fallback');
+      // Fallback is now shown in the Trigger column, not a Model-cell tier badge.
+      const badge = container.querySelector('.trigger-badge--fallback');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toBe('fallback');
-      expect(badge!.getAttribute('title')).toContain('gpt-4o');
+      expect(badge!.textContent).toContain('fallback');
+      expect(badge!.getAttribute('title')).toBe('Triggered by fallback');
     });
   });
 
@@ -1072,25 +1040,27 @@ describe('MessageLog', () => {
     });
   });
 
-  it('renders fallback_error status with orange Handled badge', async () => {
-    const dataWithHandled = {
+  it('renders a non-ok row as a binary Failed status (fallback_error is no longer its own pill)', async () => {
+    const dataWithFailure = {
       ...messagesData,
       items: [
         {
           ...messagesData.items[0],
           status: 'fallback_error',
           model: 'gemini-flash',
+          error_origin: 'provider',
           error_message: 'Provider returned HTTP 429, routed to fallback',
         },
       ],
       total_count: 1,
     };
-    mockGetMessages.mockResolvedValue(dataWithHandled);
+    mockGetMessages.mockResolvedValue(dataWithFailure);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      const badge = container.querySelector('.status-badge--fallback_error');
+      expect(container.querySelector('.status-badge--fallback_error')).toBeNull();
+      const badge = container.querySelector('.status-badge--error');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toBe('fallback_error');
+      expect(badge!.textContent).toContain('Failed');
     });
   });
 
@@ -1103,7 +1073,9 @@ describe('MessageLog', () => {
     });
   });
 
-  it('scrolls to fallback success when clicking Handled badge', async () => {
+  it('shows the fallback trigger badge on the recovered (retry) row', async () => {
+    // The redesign moved the fallback indicator to the Trigger column, shown on
+    // the row that carries fallback_from_model (the recovered/retry row).
     const dataWithChain = {
       ...messagesData,
       items: [
@@ -1145,155 +1117,156 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(dataWithChain);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      const badge = container.querySelector('.status-badge--fallback_error');
+      const badge = container.querySelector('.trigger-badge--fallback');
       expect(badge).not.toBeNull();
+      expect(badge!.textContent).toContain('fallback');
     });
-    const successRow = container.querySelector('#msg-success-1');
+    // The badge lives on the recovered row, and there's exactly one (the failed
+    // original carries no fallback_from_model, so no Trigger badge).
+    expect(container.querySelectorAll('.trigger-badge--fallback').length).toBe(1);
+    const successRow = container.querySelector('#msg-success-1')!;
+    expect(successRow.querySelector('.trigger-badge--fallback')).not.toBeNull();
+  });
+
+  it('scrolls to the Auto-fix sibling when the link in an expanded row is clicked', async () => {
+    // The failed original (msg-12345678) links to its successful retry
+    // (msg-87654321). Expanding the original renders the real MessageDetails,
+    // whose Auto-fix link calls MessageLog's scrollToMessage(sibling.id).
+    mockGetMessages.mockResolvedValue(messagesData);
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        id: 'msg-12345678',
+        timestamp: '2026-02-18T10:00:00Z',
+        agent_name: 'test-agent',
+        model: 'gpt-4o',
+        status: 'error',
+        error_message: 'Unknown parameter: max_tokens',
+        description: null,
+        service_type: 'agent',
+        input_tokens: 100,
+        output_tokens: 50,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
+        cost_usd: 0.01,
+        duration_ms: 1200,
+        trace_id: null,
+        routing_tier: 'standard',
+        routing_reason: null,
+        specificity_category: null,
+        specificity_miscategorized: false,
+        auth_type: 'api_key',
+        provider_key_label: null,
+        skill_name: null,
+        fallback_from_model: null,
+        fallback_index: null,
+        session_key: null,
+        feedback_rating: null,
+        feedback_tags: null,
+        feedback_details: null,
+        request_headers: null,
+        request_params: null,
+        header_tier_id: null,
+        header_tier_name: null,
+        header_tier_color: null,
+        caller_attribution: null,
+        autofix_applied: true,
+        autofix_role: 'original',
+        autofix_operations: [
+          { type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' },
+        ],
+        autofix_sibling: { id: 'msg-87654321', role: 'retry', status: 'ok' },
+      },
+    });
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.querySelector('.msg-detail__chevron-btn')).not.toBeNull();
+    });
+
+    // The sibling row is the target scrollToMessage() looks up by id.
+    const siblingRow = container.querySelector('#msg-msg-87654321') as HTMLElement;
+    expect(siblingRow).not.toBeNull();
     const scrollSpy = vi.fn();
-    if (successRow) {
-      successRow.scrollIntoView = scrollSpy;
-    }
-    const badge = container.querySelector('.status-badge--fallback_error')!;
-    fireEvent.click(badge);
+    siblingRow.scrollIntoView = scrollSpy;
+
+    // Expand the failed original's row.
+    const chevron = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
+    fireEvent.click(chevron);
+
+    // Wait for the real MessageDetails to render the Auto-fix link, then click it.
+    const link = await vi.waitFor(() => {
+      const el = container.querySelector('.error-autofix-row__autofix-btn');
+      expect(el).not.toBeNull();
+      return el as HTMLButtonElement;
+    });
+    fireEvent.click(link);
+
     expect(scrollSpy).toHaveBeenCalled();
+    expect(siblingRow.classList.contains('msg-highlight')).toBe(true);
   });
 
-  describe('feedback', () => {
-    it('calls setMessageFeedback with like when thumb up is clicked', async () => {
-      mockSetMessageFeedback.mockResolvedValue(undefined);
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const likeBtn = container.querySelector('.feedback-btn') as HTMLElement;
-      fireEvent.click(likeBtn);
-      expect(mockSetMessageFeedback).toHaveBeenCalledWith('msg-12345678', { rating: 'like' });
+  it('scrollToMessage is a no-op when the sibling row is not in the DOM', async () => {
+    // The Auto-fix sibling points at a row that isn't on this page. The lookup
+    // misses and scrollToMessage bails without throwing.
+    mockGetMessages.mockResolvedValue(messagesData);
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        id: 'msg-12345678',
+        timestamp: '2026-02-18T10:00:00Z',
+        agent_name: 'test-agent',
+        model: 'gpt-4o',
+        status: 'error',
+        error_message: 'Unknown parameter: max_tokens',
+        description: null,
+        service_type: 'agent',
+        input_tokens: 100,
+        output_tokens: 50,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
+        cost_usd: 0.01,
+        duration_ms: 1200,
+        trace_id: null,
+        routing_tier: 'standard',
+        routing_reason: null,
+        specificity_category: null,
+        specificity_miscategorized: false,
+        auth_type: 'api_key',
+        provider_key_label: null,
+        skill_name: null,
+        fallback_from_model: null,
+        fallback_index: null,
+        session_key: null,
+        feedback_rating: null,
+        feedback_tags: null,
+        feedback_details: null,
+        request_headers: null,
+        request_params: null,
+        header_tier_id: null,
+        header_tier_name: null,
+        header_tier_color: null,
+        caller_attribution: null,
+        autofix_applied: true,
+        autofix_role: 'original',
+        autofix_operations: null,
+        autofix_sibling: { id: 'not-on-this-page', role: 'retry', status: 'ok' },
+      },
+    });
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.querySelector('.msg-detail__chevron-btn')).not.toBeNull();
     });
 
-    it('calls setMessageFeedback with dislike and opens modal when thumb down is clicked', async () => {
-      mockSetMessageFeedback.mockResolvedValue(undefined);
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
-      fireEvent.click(dislikeBtn);
-      expect(mockSetMessageFeedback).toHaveBeenCalledWith('msg-12345678', { rating: 'dislike' });
-      const modal = container.querySelector('[data-testid="feedback-modal"]');
-      expect(modal?.getAttribute('data-open')).toBe('true');
+    const chevron = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
+    fireEvent.click(chevron);
+    const link = await vi.waitFor(() => {
+      const el = container.querySelector('.error-autofix-row__autofix-btn');
+      expect(el).not.toBeNull();
+      return el as HTMLButtonElement;
     });
-
-    it('calls clearMessageFeedback when active like is clicked', async () => {
-      mockClearMessageFeedback.mockResolvedValue(undefined);
-      const dataWithFeedback = {
-        ...messagesData,
-        items: [{ ...messagesData.items[0], feedback_rating: 'like' }, messagesData.items[1]],
-      };
-      mockGetMessages.mockResolvedValue(dataWithFeedback);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-like')).not.toBeNull();
-      });
-      const likeBtn = container.querySelector('.feedback-btn--active-like') as HTMLElement;
-      fireEvent.click(likeBtn);
-      expect(mockClearMessageFeedback).toHaveBeenCalledWith('msg-12345678');
-    });
-
-    it('submits feedback details from modal', async () => {
-      mockSetMessageFeedback.mockResolvedValue(undefined);
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      // Click dislike to open modal
-      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
-      fireEvent.click(dislikeBtn);
-      // Submit via modal
-      const submitBtn = container.querySelector('[data-testid="feedback-submit"]') as HTMLElement;
-      fireEvent.click(submitBtn);
-      expect(mockSetMessageFeedback).toHaveBeenCalledWith('msg-12345678', {
-        rating: 'dislike',
-        tags: ['Too slow'],
-        details: 'test',
-      });
-    });
-
-    it('closes feedback modal without submitting', async () => {
-      mockSetMessageFeedback.mockResolvedValue(undefined);
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
-      fireEvent.click(dislikeBtn);
-      const closeBtn = container.querySelector('[data-testid="feedback-close"]') as HTMLElement;
-      fireEvent.click(closeBtn);
-      const modal = container.querySelector('[data-testid="feedback-modal"]');
-      expect(modal?.getAttribute('data-open')).toBe('false');
-    });
-
-    it('hides feedback column and modal in the self-hosted version', async () => {
-      mockCheckIsSelfHosted.mockResolvedValue(true);
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.data-table')).not.toBeNull();
-      });
-      expect(container.querySelector('.feedback-btn')).toBeNull();
-      expect(container.querySelector('[data-testid="feedback-modal"]')).toBeNull();
-      mockCheckIsSelfHosted.mockResolvedValue(false);
-    });
-
-    it('reverts optimistic like on API error', async () => {
-      mockSetMessageFeedback.mockRejectedValue(new Error('fail'));
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const likeBtn = container.querySelector('.feedback-btn') as HTMLElement;
-      fireEvent.click(likeBtn);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-like')).toBeNull();
-      });
-    });
-
-    it('reverts optimistic dislike on API error', async () => {
-      mockSetMessageFeedback.mockRejectedValue(new Error('fail'));
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn')).not.toBeNull();
-      });
-      const dislikeBtn = container.querySelectorAll('.feedback-btn')[1] as HTMLElement;
-      fireEvent.click(dislikeBtn);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-dislike')).toBeNull();
-      });
-    });
-
-    it('reverts optimistic clear on API error', async () => {
-      mockClearMessageFeedback.mockRejectedValue(new Error('fail'));
-      const dataWithFeedback = {
-        ...messagesData,
-        items: [{ ...messagesData.items[0], feedback_rating: 'like' }, messagesData.items[1]],
-      };
-      mockGetMessages.mockResolvedValue(dataWithFeedback);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-like')).not.toBeNull();
-      });
-      const likeBtn = container.querySelector('.feedback-btn--active-like') as HTMLElement;
-      fireEvent.click(likeBtn);
-      await vi.waitFor(() => {
-        expect(container.querySelector('.feedback-btn--active-like')).not.toBeNull();
-      });
-    });
+    // No matching #msg-not-on-this-page element — click must not throw.
+    expect(() => fireEvent.click(link)).not.toThrow();
+    expect(container.querySelector('#msg-not-on-this-page')).toBeNull();
   });
+
 
   describe('Tier filter', () => {
     it('renders a Tier select with Playground among the options', async () => {

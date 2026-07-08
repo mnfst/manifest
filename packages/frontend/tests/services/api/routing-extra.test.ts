@@ -115,6 +115,32 @@ describe('routing API client (additional coverage)', () => {
     await expect(routing.copilotPollToken('demo', 'dc-1')).rejects.toThrow(/Poll failed/);
   });
 
+  describe('auto-fix config', () => {
+    it('getAutofix GETs the autofix endpoint', async () => {
+      // The config now carries the early-access `available` flag alongside
+      // `enabled`; the client returns whatever the server sends verbatim.
+      const fetchMock = setupFetch({ enabled: true, available: true });
+      const out = await routing.getAutofix('demo');
+      expect(out).toEqual({ enabled: true, available: true });
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(url).toContain('/api/v1/routing/demo/autofix');
+    });
+
+    it('updateAutofix PATCHes the autofix endpoint with a JSON body', async () => {
+      // Server echoes the full config back (here with early access NOT granted)
+      // — the client passes `available` through untouched, only sending `enabled`.
+      const fetchMock = setupFetch({ enabled: true, available: false });
+      const out = await routing.updateAutofix('demo', { enabled: true });
+      expect(out).toEqual({ enabled: true, available: false });
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toContain('/api/v1/routing/demo/autofix');
+      expect((init as RequestInit).method).toBe('PATCH');
+      expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+        enabled: true,
+      });
+    });
+  });
+
   it('getTierAssignments GETs the tiers list', async () => {
     const fetchMock = setupFetch([]);
     await routing.getTierAssignments('demo');

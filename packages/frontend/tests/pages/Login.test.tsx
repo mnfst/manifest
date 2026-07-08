@@ -68,6 +68,28 @@ describe('Login', () => {
     expect(screen.getByText('Sign in')).toBeDefined();
   });
 
+  it('dev-only button signs in with the seed admin credentials', async () => {
+    mockSignInEmail.mockResolvedValue({ error: null });
+    render(() => <Login />);
+    fireEvent.click(screen.getByRole('button', { name: /sign in as dev/i }));
+    await vi.waitFor(() => {
+      expect(mockSignInEmail).toHaveBeenCalledWith({
+        email: 'admin@manifest.build',
+        password: 'manifest',
+      });
+    });
+    expect(getLastAuthMethod()).toBe('email');
+  });
+
+  it('dev-only button surfaces an error when sign-in fails', async () => {
+    mockSignInEmail.mockResolvedValue({ error: {} });
+    const { container } = render(() => <Login />);
+    fireEvent.click(screen.getByRole('button', { name: /sign in as dev/i }));
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Dev sign-in failed');
+    });
+  });
+
   it('has link to register', () => {
     render(() => <Login />);
     expect(screen.getByText('Sign up')).toBeDefined();

@@ -106,6 +106,7 @@ packages/
 │   │   │   └── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
 │   │   ├── routing/                         # LLM routing (providers, tiers, proxy, scorer)
 │   │   │   ├── proxy/                       # OpenAI-compatible proxy (anthropic/google adapters)
+│   │   │   ├── autofix/                     # Auto-fix self-healing (Phoenix client + heal-once flow)
 │   │   │   ├── routing-core/               # Tier, provider, specificity services + cache
 │   │   │   ├── resolve/                     # Scoring-based tier + specificity resolution
 │   │   │   ├── custom-provider/             # Custom provider CRUD
@@ -214,6 +215,13 @@ Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test onl
 - **Agent messages**: Sample telemetry messages for the demo agent
 
 Seeding is idempotent — it checks for existing records before inserting.
+
+**Dev-login shortcut:** when running under the Vite dev server the login page shows a
+prominent one-click **⚡ Sign in as dev** button that submits the seeded
+`admin@manifest.build` / `manifest` credentials — no copy-paste. It's gated by
+`import.meta.env.DEV`, so Vite strips the button and the credential literals from
+production builds, and no password ever rides in a URL. See
+`packages/frontend/src/pages/Login.tsx`.
 
 **Minimal `.env` for development:**
 
@@ -391,10 +399,14 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `MANIFEST_TELEMETRY_DISABLED` — Set `1` to opt out of anonymous telemetry (self-hosted only).
 - `MANIFEST_PUBLIC_STATS` — Set `true` to expose `/api/v1/public/*` aggregate stats without auth (cloud-only marketing use).
 - `OLLAMA_HOST` — Ollama endpoint for the built-in tile. Defaults to `http://localhost:11434` outside Docker and `http://host.docker.internal:11434` inside the bundled `docker/docker-compose.yml`.
+- `AUTOFIX_HEALING_URL` — Base URL of the Phoenix healing service for Auto-fix. Unset → inert Noop client in production (never mutates traffic), in-process mock in dev/test. See [Auto-fix](#auto-fix-self-healing-via-phoenix).
+- `AUTOFIX_HEALING_API_KEY` — Sent as `x-api-key` on every call to Phoenix. Phoenix guards `/api/heal*` and fails closed in production, so this is required when `AUTOFIX_HEALING_URL` points at a production Phoenix; omit it for a keyless dev/test Phoenix.
+- `AUTOFIX_GLOBAL_ENABLED` — Set `false` to disable Auto-fix for all agents (default on). Companions: `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
+- `AUTOFIX_ROLLOUT` — Three-phase early-access gate: `selected` (default — only tenants we hand-picked via `tenants.autofix_access_granted_at`), `waitlist` (+ anyone who joined `tenants.autofix_waitlist_at`), or `everyone` (GA). See [Auto-fix](#auto-fix-self-healing-via-phoenix).
 
 ## Domain Terminology
 
-- **Message**: The primary entity in the system. Every row in `agent_messages` is a Message. The UI labels them "Messages" everywhere. Key routing columns: `routing_tier` (complexity tier used), `routing_reason` (why — `scored`, `specificity`, `heartbeat`, etc.), `specificity_category` (which task-type category, null if complexity-routed).
+- **Message**: The primary entity in the system. Every row in `agent_messages` is a Message. The UI labels them "Messages" everywhere. Key routing columns: `routing_tier` (complexity tier used), `routing_reason` (why — `scored`, `specificity`, `heartbeat`, etc.), `specificity_category` (which task-type category, null if complexity-routed). A healed request is two linked rows (`status='auto_fixed'` original + `status='ok'` retry) — see [Auto-fix](#auto-fix-self-healing-via-phoenix).
 - **Tenant**: A user's data boundary. Created from `user.id` on first agent creation.
 - **Agent**: An AI agent owned by a tenant. Has a unique OTLP ingest key.
 
@@ -512,6 +524,42 @@ Otherwise the agent is **clean** and gets the simplified view. The signals live 
 Dev seeding (`packages/backend/src/database/seed-cohorts.ts`, `seedRoutingCohorts`) creates two demo logins so both states are visible side by side: `admin@manifest.build` (clean — Default + Custom only) and `olduser@manifest.build` (legacy — complexity + task-specific visible). Both passwords are `manifest`. Seeding is idempotent.
 
 Still to come (not in this phase): a migration assistant (task-specific → header rules, complexity → collapse to default) and a committed end date.
+
+## Auto-fix (self-healing via Phoenix)
+
+**Auto-fix** repairs a failing request before the fallback chain runs. When an agent request fails with a **repairable request-side 4xx** (default allow-list `400,404,422` — never 401/403/429/5xx), Manifest hands the failed request + normalized provider error to an external healing service (**Phoenix**), gets back a patched request, and resends it **once**. It runs **before** `shouldTriggerFallback`, so the fallback chain is the safety net if healing doesn't clear the error. Toggled **per agent** (`agents.autofix_enabled`) and gated to **early-access tenants** (the waitlist gate below) — not tied to the routing cohort.
+
+**Per-agent default is deployment-mode-dependent.** `agents.autofix_enabled` is **nullable**: `NULL` means "no explicit choice — inherit the mode default", which is **ON in cloud, OFF in self-hosted** (resolved by `AutofixService.resolveEnabled()` via `isSelfHosted()`, computed once at boot). An explicit `true`/`false` (the user flipping the Settings toggle) always wins. The `GET/PATCH …/autofix` endpoints return the *resolved* effective value, so the UI shows the right default state without persisting one. Migration `1799000300000` drops the old blanket `false` default and resets pre-feature `false` rows to `NULL` so they inherit the mode default.
+
+**Three-phase early-access gate.** A per-**tenant** gate sits ABOVE the per-agent default, driven by `AUTOFIX_ROLLOUT` (`selected` → `waitlist` → `everyone`):
+- **`selected`** (default, most restrictive) — only tenants **we hand-picked**: `tenants.autofix_access_granted_at != null` (set it manually, e.g. `UPDATE tenants SET autofix_access_granted_at = now() WHERE id = (SELECT t.id FROM tenants t JOIN "user" u ON u.id = t.owner_user_id WHERE u.email = '…')`).
+- **`waitlist`** — granted tenants **plus** anyone who joined the waitlist (`tenants.autofix_waitlist_at`, set via `POST /api/v1/waitlist/autofix` — the "Get early access" card).
+- **`everyone`** — general availability, no gate.
+
+`AutofixService.hasAccess(tenantId)` (cached 30s; invalidated on waitlist join) computes `granted || (rollout==='waitlist' && joined)`, short-circuiting to `true` under `everyone`. `maybeHeal` requires it, so a non-access tenant **never heals even when the cloud default would enable it**; `GET/PATCH …/autofix` return `available` so the Settings toggle shows only to access tenants (everyone else keeps the "Get early access" card). Advance the rollout by bumping `AUTOFIX_ROLLOUT`; at `everyone`, retire the gate.
+
+**Scope:** non-streaming responses + streaming that fails before the first byte (a repairable 4xx makes `providerResponse.ok=false` before any client bytes are sent). **One attempt only — there is no retry budget.** If the single patched retry still fails, Manifest reports the outcome to Phoenix and hands off to fallback.
+
+**Code:** `packages/backend/src/routing/autofix/`
+- `autofix.service.ts` — `maybeHeal()` gates on (globally enabled + repairable status + circuit breaker closed + agent opted in), then `runHealOnce()` does one heal + one reforward. Any throw degrades to the original provider error (never a Manifest 500). Per-agent config is cached 30s; `invalidateConfig()` is called on toggle. **Circuit breaker:** after 3 consecutive heal-call transport failures the breaker opens for 30s and `maybeHeal()` skips healing (returns null → straight to fallback), so a slow/down Phoenix stops adding latency to every repairable 4xx; any successful round-trip clears the streak.
+- `healing-client.ts` — the `HealingClient` port + `HEALING_CLIENT` DI token. Chosen at boot in `autofix.module.ts`: `HttpHealingClient` when `AUTOFIX_HEALING_URL` is set; otherwise **`NoopHealingClient` in production** (inert — never mutates traffic) and the in-process **`MockHealingClient` only in dev/test** (so the flow can be exercised without an external Phoenix). This keeps the dev mock's hardcoded catalog off real traffic when a healer isn't wired.
+- `phoenix.types.ts` — the wire contract. `provider-error-normalizer.ts` — turns a raw 4xx body into `{message,type,param,code}`. `autofix.types.ts` — internal `AutofixRecord` / `AutofixChainEntry`.
+- `autofix-health-probe.ts` — on boot (`OnApplicationBootstrap`), if `AUTOFIX_HEALING_URL` is set, pings Phoenix `GET /api/health` once (fire-and-forget, never blocks/fails boot) and warns if unreachable — so a wrong URL / missing key / down Phoenix surfaces at deploy, not on the first repairable 4xx.
+- **Contract guardrail (anti-drift):** `phoenix.types.ts` is kept in lockstep with Phoenix's OpenAPI, vendored at `contract/phoenix-openapi.yaml`. `__tests__/phoenix-contract.spec.ts` (ajv) fails CI if the status enums or required fields drift — the status unions live as `as const` arrays (`HEAL_STATUSES`/`ISSUE_STATUSES`/`OUTCOME_STATUSES`) so they're compared to the spec at runtime. Refresh with `npm run contract:refresh --workspace=packages/backend` (uses `gh`; needs read access to the private `mnfst/phoenix`). `.github/workflows/phoenix-contract-drift.yml` flags weekly when the vendored copy falls behind Phoenix `main` (needs a `PHOENIX_CONTRACT_TOKEN` secret).
+- **Hook:** `proxy.service.ts`, after the primary forward and *before* `shouldTriggerFallback`. `ProxyResult.autofix` threads the record to the recorder.
+
+**Phoenix = [`mnfst/phoenix`](https://github.com/mnfst/phoenix)** (separate repo). Contract (v2):
+- `POST /api/heal` — body `{traceId, provider, api, url?, request, response:{statusCode, error:{message,type?,param?,code?}}}`. **`traceId` is required** (Phoenix rejects a body without it) and **the provider error is nested under `response`** (a flat `providerError` is rejected), and `api` is the proxy `apiMode` verbatim (`chat_completions` | `responses` | `messages`). The response is discriminated on `status`: `patched` / `unverified` (both carry `healedBody` + `healAttemptId` → apply the patch and resend; `patched` = verified issue, `unverified` = fresh patch) | `resolving` (Phoenix is still authoring a fix — nothing to resend) | `no_patch`. Also returns `issueId`, `patchId?`, `operations?`.
+- `PATCH /api/heal-attempts/{healAttemptId}` — report the retry outcome `{retryStatusCode, error?}` (`error` required when ≥400). Fire-and-forget; Phoenix decides succeeded/failed. Only possible when a patch handed out a `healAttemptId` — `no_patch`/`resolving` carry none, so those outcomes are **not** reported.
+- `traceId` is stable across the logical request (Manifest reuses the internal `groupId`).
+
+**Recording — a healed request is TWO linked `agent_messages` rows:** the failed original (`status='auto_fixed'`, orange badge, `autofix_role='original'`, carries the error + `autofix_operations` + `autofix_phoenix` ids) and the successful retry (`status='ok'`, `autofix_role='retry'`), sharing `autofix_group_id`. `auto_fixed` is in `ERROR_MESSAGE_STATUSES` (excluded from KPI counts — the retry is the counted success). Columns on `agent_messages`: `autofix_applied` (bool), `autofix_group_id` (varchar, indexed), `autofix_role`, `autofix_operations` (jsonb), `autofix_phoenix` (jsonb `{issueId,patchId,healAttemptId}`). The message-detail panel links the two rows and shows the operations + Phoenix ids.
+
+**Frontend:** `pages/SettingsAutofixSection.tsx` — a single on/off toggle in the per-agent **Settings** page (shown for every agent; `services/api/routing.ts` `getAutofix`/`updateAutofix`; `.settings-switch` styling). `components/MessageDetails.tsx` renders the Auto-fix panel + sibling link.
+
+**Endpoints:** `GET/PATCH /api/v1/routing/:agentName/autofix` → `{ enabled }`.
+
+**Env:** `AUTOFIX_HEALING_URL` (unset → inert Noop in production, in-process mock in dev/test), `AUTOFIX_HEALING_API_KEY` (sent as `x-api-key`; required for a production Phoenix, which fails closed without it), `AUTOFIX_GLOBAL_ENABLED` (`false` disables Auto-fix everywhere; default on), `AUTOFIX_ROLLOUT` (`selected` [default] / `waitlist` / `everyone` — the early-access phase), `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
 
 ## Providers & Models
 

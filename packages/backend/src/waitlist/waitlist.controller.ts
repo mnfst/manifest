@@ -8,6 +8,7 @@ import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.de
 import { Public } from '../common/decorators/public.decorator';
 import { WaitlistSyncService } from './waitlist-sync.service';
 import { WaitlistClaimDto } from './dto/waitlist-claim.dto';
+import { AutofixService } from '../routing/autofix/autofix.service';
 
 @Controller('api/v1/waitlist')
 export class WaitlistController {
@@ -17,6 +18,7 @@ export class WaitlistController {
     @InjectRepository(WaitlistClaim)
     private readonly claimRepo: Repository<WaitlistClaim>,
     private readonly waitlistSync: WaitlistSyncService,
+    private readonly autofixService: AutofixService,
   ) {}
 
   @Get('autofix')
@@ -45,6 +47,9 @@ export class WaitlistController {
     }
     const now = new Date().toISOString();
     await this.tenantRepo.update(ctx.tenantId, { autofix_waitlist_at: now });
+    // Joining grants Auto-fix early access — drop the cached decision so the
+    // toggle shows up right away instead of after the cache TTL.
+    this.autofixService.invalidateAccess(ctx.tenantId);
 
     const email = req.user?.email ?? '';
     this.waitlistSync.syncClaim(email).catch(() => {});

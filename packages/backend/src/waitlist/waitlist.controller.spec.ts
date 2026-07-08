@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Request } from 'express';
 import { Tenant } from '../entities/tenant.entity';
 import { WaitlistClaim } from '../entities/waitlist-claim.entity';
+import type { AutofixService } from '../routing/autofix/autofix.service';
 
 type ReqWithUser = Request & { user?: { email?: string } };
 
@@ -16,6 +17,7 @@ describe('WaitlistController', () => {
   let tenantRepo: jest.Mocked<Pick<Repository<Tenant>, 'findOne' | 'update'>>;
   let claimRepo: jest.Mocked<Pick<Repository<WaitlistClaim>, 'upsert'>>;
   let waitlistSync: jest.Mocked<WaitlistSyncService>;
+  let autofixService: { invalidateAccess: jest.Mock };
 
   beforeEach(() => {
     tenantRepo = {
@@ -28,10 +30,12 @@ describe('WaitlistController', () => {
     waitlistSync = {
       syncClaim: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<WaitlistSyncService>;
+    autofixService = { invalidateAccess: jest.fn() };
     controller = new WaitlistController(
       tenantRepo as unknown as Repository<Tenant>,
       claimRepo as unknown as Repository<WaitlistClaim>,
       waitlistSync,
+      autofixService as unknown as AutofixService,
     );
   });
 
@@ -63,7 +67,7 @@ describe('WaitlistController', () => {
   });
 
   describe('join', () => {
-    it('sets autofix_waitlist_at and returns joined status', async () => {
+    it('sets autofix_waitlist_at, grants early access, and returns joined status', async () => {
       const result = await controller.join(
         { tenantId: 't1', userId: 'u1' },
         fakeReq('user@example.com'),
@@ -71,6 +75,8 @@ describe('WaitlistController', () => {
       expect(tenantRepo.update).toHaveBeenCalledWith('t1', {
         autofix_waitlist_at: expect.any(String),
       });
+      // Joining drops the cached access decision so the toggle shows immediately.
+      expect(autofixService.invalidateAccess).toHaveBeenCalledWith('t1');
       expect(result.joined).toBe(true);
       expect(result.joinedAt).toBeTruthy();
     });
@@ -85,12 +91,13 @@ describe('WaitlistController', () => {
       expect(waitlistSync.syncClaim).toHaveBeenCalledWith('');
     });
 
-    it('returns not joined when tenantId is null', async () => {
+    it('returns not joined (and grants nothing) when tenantId is null', async () => {
       const result = await controller.join(
         { tenantId: null, userId: 'u1' },
         fakeReq('user@example.com'),
       );
       expect(tenantRepo.update).not.toHaveBeenCalled();
+      expect(autofixService.invalidateAccess).not.toHaveBeenCalled();
       expect(result.joined).toBe(false);
     });
 

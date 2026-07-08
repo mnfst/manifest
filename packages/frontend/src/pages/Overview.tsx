@@ -14,7 +14,6 @@ import FilterSelect from '../components/FilterSelect.jsx';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import CostByModelTable from '../components/CostByModelTable.jsx';
 import ErrorState from '../components/ErrorState.jsx';
-import FeedbackModal from '../components/FeedbackModal.jsx';
 import MessageTable from '../components/MessageTable.jsx';
 import OverviewSkeleton from '../components/OverviewSkeleton.jsx';
 import Select from '../components/Select.jsx';
@@ -23,7 +22,7 @@ import { type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import { PROVIDERS } from '../services/providers.js';
-import { getOverview, setMessageFeedback, clearMessageFeedback } from '../services/api.js';
+import { getOverview } from '../services/api.js';
 import {
   getPerProviderTimeseries,
   getPerProviderMessageTimeseries,
@@ -106,9 +105,15 @@ const Overview: Component = () => {
   const navigate = useNavigate();
   preloadModelDisplayNames();
   const [billing] = createResource(async () => {
-    try { return await getBillingStatus(); } catch { return null; }
+    try {
+      return await getBillingStatus();
+    } catch {
+      return null;
+    }
   });
   const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
+  const shouldLockProRanges = () => billing.loading || isFreePlan();
+  const isProRangeLocked = (value: string) => shouldLockProRanges() && PRO_RANGES.has(value);
   const proBadge = () => (
     <A href="/upgrade" class="pro-range-badge" onClick={(e: MouseEvent) => e.stopPropagation()}>
       PRO
@@ -116,11 +121,9 @@ const Overview: Component = () => {
   );
   const agentRangeOptions = () =>
     AGENT_RANGE_OPTIONS.map((opt) =>
-      isFreePlan() && PRO_RANGES.has(opt.value)
-        ? { ...opt, disabled: true, badge: proBadge() }
-        : opt,
+      isProRangeLocked(opt.value) ? { ...opt, disabled: true, badge: proBadge() } : opt,
     );
-  const { isSelfHosted, columns } = useOverviewColumns();
+  const { columns } = useOverviewColumns();
   // Only treat the stored value as a user selection when it is actually valid.
   // An invalid stored range falls through to the smart-range cascade.
   const [userSelectedRange, setUserSelectedRange] = createSignal(
@@ -129,6 +132,7 @@ const Overview: Component = () => {
   const { range, setRange, handleRangeChange } = useOverviewRange({
     markUserSelected: () => setUserSelectedRange(true),
   });
+  const effectiveRange = createMemo(() => (isProRangeLocked(range()) ? '7d' : range()));
   const [activeView, setActiveViewRaw] = createSignal<ProviderView>('messages');
   const [tokenChartRequested, setTokenChartRequested] = createSignal(false);
   const [costChartRequested, setCostChartRequested] = createSignal(false);
@@ -150,62 +154,12 @@ const Overview: Component = () => {
   const [setupCompleted, setSetupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
   );
-  const [feedbackModalOpen, setFeedbackModalOpen] = createSignal(false);
-  const [feedbackMessageId, setFeedbackMessageId] = createSignal('');
-  const [feedbackOverrides, setFeedbackOverrides] = createSignal<Record<string, string | null>>({});
-
-  const applyFeedbackOverrides = (items: MessageRow[]): MessageRow[] => {
-    const overrides = feedbackOverrides();
-    return items.map((item) =>
-      item.id in overrides ? { ...item, feedback_rating: overrides[item.id] ?? undefined } : item,
-    );
-  };
-
-  const handleFeedbackLike = (id: string) => {
-    setFeedbackOverrides((prev) => ({ ...prev, [id]: 'like' }));
-    setMessageFeedback(id, { rating: 'like' }).catch(() => {
-      setFeedbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    });
-  };
-
-  const handleFeedbackDislike = (id: string) => {
-    setFeedbackOverrides((prev) => ({ ...prev, [id]: 'dislike' }));
-    setFeedbackMessageId(id);
-    setFeedbackModalOpen(true);
-    setMessageFeedback(id, { rating: 'dislike' }).catch(() => {
-      setFeedbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    });
-  };
-
-  const handleFeedbackClear = (id: string) => {
-    setFeedbackOverrides((prev) => ({ ...prev, [id]: null }));
-    clearMessageFeedback(id).catch(() => {
-      setFeedbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    });
-  };
-
-  const handleFeedbackSubmit = (tags: string[], details: string) => {
-    const id = feedbackMessageId();
-    if (id) {
-      setMessageFeedback(id, { rating: 'dislike', tags, details });
-    }
-    setFeedbackModalOpen(false);
-  };
 
   const [data, { refetch }] = createResource(
-    () => ({ range: range(), agentName: params.agentName, _ping: messagePing() }),
+    () =>
+      billing.loading
+        ? false
+        : { range: effectiveRange(), agentName: params.agentName, _ping: messagePing() },
     (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,
   );
 
@@ -220,6 +174,10 @@ const Overview: Component = () => {
   };
 
   createEffect(() => {
+    if (isFreePlan() && PRO_RANGES.has(range())) {
+      handleRangeChange('7d');
+      return;
+    }
     if (
       showEmptyState() &&
       !setupCompleted() &&
@@ -268,20 +226,20 @@ const Overview: Component = () => {
   const [selectedProviders, setSelectedProviders] = createSignal<Set<string>>(loadSavedProviders());
 
   const tsKey = (): TimeseriesKey => ({
-    range: range(),
+    range: effectiveRange(),
     agent: params.agentName,
     _ping: messagePing(),
   });
   const [providerTokenTs] = createResource(
-    () => (tokenChartRequested() ? tsKey() : false),
+    () => (tokenChartRequested() && !billing.loading ? tsKey() : false),
     (p) => getPerProviderTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
   const [providerMessageTs] = createResource(
-    tsKey,
+    () => (billing.loading ? false : tsKey()),
     (p) => getPerProviderMessageTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
   const [providerCostTs] = createResource(
-    () => (costChartRequested() ? tsKey() : false),
+    () => (costChartRequested() && !billing.loading ? tsKey() : false),
     (p) => getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
 
@@ -375,7 +333,7 @@ const Overview: Component = () => {
             <Select
               value={range()}
               onChange={(v) => {
-                if (isFreePlan() && PRO_RANGES.has(v)) return;
+                if (isProRangeLocked(v)) return;
                 handleRangeChange(v);
               }}
               options={agentRangeOptions()}
@@ -389,7 +347,10 @@ const Overview: Component = () => {
         </div>
       </div>
 
-      <Show when={data() !== undefined || !data.loading} fallback={<OverviewSkeleton />}>
+      <Show
+        when={!billing.loading && (data() !== undefined || !data.loading)}
+        fallback={<OverviewSkeleton />}
+      >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
           <Show when={showEmptyState()}>
             <Show
@@ -464,7 +425,7 @@ const Overview: Component = () => {
                     messagesValue={d().summary?.messages?.value ?? 0}
                     messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
                     costInfoTooltip="Actual API key costs only. Subscription usage is not included."
-                    range={range()}
+                    range={effectiveRange()}
                     agentTimeseries={filteredTokenTs() ?? undefined}
                     agentMessageTimeseries={filteredMessageTs() ?? undefined}
                     agentCostTimeseries={filteredCostTs() ?? undefined}
@@ -483,17 +444,10 @@ const Overview: Component = () => {
                       </A>
                     </div>
                     <MessageTable
-                      items={
-                        isSelfHosted()
-                          ? (d().recent_activity?.slice(0, 5) ?? [])
-                          : applyFeedbackOverrides(d().recent_activity?.slice(0, 5) ?? [])
-                      }
+                      items={d().recent_activity?.slice(0, 5) ?? []}
                       columns={columns()}
                       agentName={params.agentName}
                       customProviderName={() => undefined}
-                      onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
-                      onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
-                      onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
                     />
                   </div>
 
@@ -527,14 +481,6 @@ const Overview: Component = () => {
           });
         }}
       />
-
-      <Show when={!isSelfHosted()}>
-        <FeedbackModal
-          open={feedbackModalOpen()}
-          onClose={() => setFeedbackModalOpen(false)}
-          onSubmit={handleFeedbackSubmit}
-        />
-      </Show>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render } from '@solidjs/testing-library';
-import { FallbackIcon, HeartbeatIcon, ModelCell, AgentCell, StatusCell } from '../../src/components/message-table-cells';
+import { AutofixIcon, FallbackIcon, HeartbeatIcon, ModelCell, AgentCell, StatusCell, TriggerCell } from '../../src/components/message-table-cells';
+import { fireEvent } from '@solidjs/testing-library';
 import type { MessageRow } from '../../src/components/message-table-types';
 
 vi.mock('@solidjs/router', () => ({
@@ -77,6 +78,79 @@ describe('HeartbeatIcon', () => {
   });
 });
 
+describe('AutofixIcon', () => {
+  it('renders with aria-hidden', () => {
+    const { container } = render(() => <AutofixIcon />);
+    const svg = container.querySelector('svg');
+    expect(svg).not.toBeNull();
+    expect(svg!.getAttribute('aria-hidden')).toBe('true');
+  });
+});
+
+describe('TriggerCell', () => {
+  function renderCell(row: MessageRow, onTriggerClick?: (id: string) => void) {
+    return render(() => (
+      <table>
+        <tbody>
+          <tr>{TriggerCell(row, onTriggerClick)}</tr>
+        </tbody>
+      </table>
+    ));
+  }
+
+  it('renders an auto-fix badge on a healed retry row', () => {
+    const { container } = renderCell(baseRow({ autofix_role: 'retry' }));
+    const badge = container.querySelector('.trigger-badge--autofix');
+    expect(badge).not.toBeNull();
+    expect(badge!.textContent).toContain('auto-fix');
+    expect(badge!.getAttribute('title')).toBe('Triggered by Auto-fix');
+  });
+
+  it('renders a fallback badge when a non-retry row fell back', () => {
+    const { container } = renderCell(baseRow({ fallback_from_model: 'gpt-4o' }));
+    const badge = container.querySelector('.trigger-badge--fallback');
+    expect(badge).not.toBeNull();
+    expect(badge!.textContent).toContain('fallback');
+    expect(badge!.getAttribute('title')).toBe('Triggered by fallback');
+  });
+
+  it('prefers the auto-fix badge over fallback when both apply', () => {
+    const { container } = renderCell(
+      baseRow({ autofix_role: 'retry', fallback_from_model: 'gpt-4o' }),
+    );
+    expect(container.querySelector('.trigger-badge--autofix')).not.toBeNull();
+    expect(container.querySelector('.trigger-badge--fallback')).toBeNull();
+  });
+
+  it('renders an em dash when neither auto-fix nor fallback applies', () => {
+    const { container } = renderCell(baseRow({}));
+    expect(container.querySelector('.trigger-badge')).toBeNull();
+    expect(container.textContent).toContain('—');
+  });
+
+  it('fires onTriggerClick with the row id and does not render as a button without the handler', () => {
+    const onTriggerClick = vi.fn();
+    const { container } = renderCell(baseRow({ id: 'row-9', autofix_role: 'retry' }), onTriggerClick);
+    const badge = container.querySelector('.trigger-badge--autofix') as HTMLElement;
+    expect(badge.getAttribute('role')).toBe('button');
+    fireEvent.click(badge);
+    expect(onTriggerClick).toHaveBeenCalledWith('row-9');
+
+    const { container: plain } = renderCell(baseRow({ autofix_role: 'retry' }));
+    expect((plain.querySelector('.trigger-badge--autofix') as HTMLElement).getAttribute('role')).toBeNull();
+  });
+
+  it('fires onTriggerClick from a fallback badge too', () => {
+    const onTriggerClick = vi.fn();
+    const { container } = renderCell(
+      baseRow({ id: 'row-3', fallback_from_model: 'gpt-4o' }),
+      onTriggerClick,
+    );
+    fireEvent.click(container.querySelector('.trigger-badge--fallback') as HTMLElement);
+    expect(onTriggerClick).toHaveBeenCalledWith('row-3');
+  });
+});
+
 describe('AgentCell', () => {
   it('renders agent_name when present', () => {
     const row = baseRow({ agent_name: 'my-agent' });
@@ -133,13 +207,15 @@ describe('StatusCell merged pill', () => {
     expect(onlyBadge(container).textContent).toContain('Failed: Provider');
   });
 
-  it('merges a handled fallback into an amber "Handled: Provider" pill', () => {
+  it('renders a non-ok fallback_error row as a plain "Failed: Provider" pill', () => {
+    // fallback_error is no longer a distinct status pill — anything that isn't
+    // `ok` is a failure, and the fallback itself is surfaced in the Trigger column.
     const { container } = renderCell(
       baseRow({ status: 'fallback_error', error_message: 'overloaded', error_origin: 'provider' }),
     );
     const badge = onlyBadge(container);
-    expect(badge.textContent).toContain('Handled: Provider');
-    expect(badge.className).toContain('status-badge--fallback_error');
+    expect(badge.textContent).toContain('Failed: Provider');
+    expect(badge.className).toContain('status-badge--error');
   });
 
   it('renders a successful row as a single "Success" pill (no descriptor)', () => {

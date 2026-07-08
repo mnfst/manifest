@@ -29,6 +29,8 @@ export interface MessageRow {
   cache_creation_tokens?: number | null;
   duration_ms?: number | null;
   feedback_rating?: string | null;
+  autofix_applied?: boolean;
+  autofix_role?: string | null;
 }
 
 export function routingTierLabel(tier: string | null | undefined): string | undefined {
@@ -47,23 +49,25 @@ export type MessageColumnKey =
   | 'cache'
   | 'duration'
   | 'status'
-  | 'feedback'
+  | 'trigger'
   | 'agent';
 
 export const COMPACT_COLUMNS: MessageColumnKey[] = [
-  'feedback',
-  'date',
   'status',
+  'trigger',
+  'date',
   'model',
   'message',
   'cost',
   'totalTokens',
+  'cache',
+  'duration',
 ];
 
 export const DETAILED_COLUMNS: MessageColumnKey[] = [
-  'feedback',
-  'date',
   'status',
+  'trigger',
+  'date',
   'model',
   'message',
   'cost',

@@ -341,34 +341,41 @@ const overviewResponse = {
   ],
   recent_activity: [
     {
+      id: 'msg-recent-1',
       timestamp: '2026-06-04T10:00:00Z',
       agent_name: 'demo-agent',
       model: 'gpt-5',
+      input_tokens: 800,
+      output_tokens: 400,
       total_tokens: 1200,
       provider: 'openai',
       auth_type: 'api_key',
       status: 'ok',
-      first_message: 'Hello',
-      cost_usd: 1.23,
+      cost: 1.23,
     },
     {
+      id: 'msg-recent-2',
       timestamp: '2026-06-04T09:00:00Z',
       agent_name: 'demo-agent',
       model: 'gpt-5',
+      input_tokens: 30,
+      output_tokens: 20,
       total_tokens: 50,
       provider: 'openai',
       auth_type: 'api_key',
       status: 'retry',
-      description: 'Retry message',
-      cost_usd: 0.01,
+      cost: 0.01,
     },
     {
+      id: 'msg-recent-3',
       timestamp: '2026-06-04T08:00:00Z',
       agent_name: 'worker-agent',
       model: '',
+      input_tokens: 0,
+      output_tokens: 0,
       total_tokens: 0,
       status: 'error',
-      cost_usd: 0,
+      cost: 0,
     },
   ],
   has_data: true,
@@ -694,9 +701,10 @@ describe('GlobalOverview (analytics)', () => {
     expect(screen.getByText('All your harnesses and providers')).toBeDefined();
     expect(screen.getAllByText('Demo Agent').length).toBeGreaterThan(0);
     expect(screen.getAllByText('OpenAI').length).toBeGreaterThan(0);
+    // The shared MessageTable renders a binary status: the ok row is "Success"
+    // and the non-ok rows (retry + error) both render "Failed".
     expect(screen.getByText('Success')).toBeDefined();
-    expect(screen.getByText('Retried')).toBeDefined();
-    expect(screen.getByText('Failed')).toBeDefined();
+    expect(screen.getAllByText('Failed').length).toBe(2);
     // custom provider name resolves asynchronously
     await waitFor(() => expect(screen.getAllByText('Custom Provider').length).toBeGreaterThan(0));
     // model usage + provider connection rows render

@@ -9,6 +9,13 @@ import { checkSocialProviders } from '../services/setup-status.js';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
+// Dev-only seed credentials (see packages/backend/src/database/database-seeder.service.ts,
+// seeded only when SEED_DATA=true / non-production). Referenced solely inside the
+// `import.meta.env.DEV` branch below, so Vite strips both the button and these literals
+// from production builds — they never ship. The account exists only in a dev database.
+const DEV_EMAIL = 'admin@manifest.build';
+const DEV_PASSWORD = 'manifest';
+
 const Login: Component = () => {
   const [email, setEmail] = createSignal('');
   const [password, setPassword] = createSignal('');
@@ -83,6 +90,26 @@ const Login: Component = () => {
     window.location.href = getAuthDestination(searchParams);
   };
 
+  // Dev shortcut: fill + submit the seed admin. One click, no credentials in the URL;
+  // compiled out of production (see DEV_EMAIL/DEV_PASSWORD).
+  const signInAsDev = async () => {
+    setEmail(DEV_EMAIL);
+    setPassword(DEV_PASSWORD);
+    setError('');
+    setLoading(true);
+    const { error: authError } = await authClient.signIn.email({
+      email: DEV_EMAIL,
+      password: DEV_PASSWORD,
+    });
+    setLoading(false);
+    if (authError) {
+      setError(authError.message ?? 'Dev sign-in failed');
+      return;
+    }
+    setLastAuthMethod('email');
+    window.location.href = '/';
+  };
+
   const handleResendVerification = async () => {
     if (resendCooldown() > 0) return;
 
@@ -118,6 +145,17 @@ const Login: Component = () => {
       </Show>
 
       <form class="auth-form" onSubmit={handleSubmit}>
+        {import.meta.env.DEV && (
+          <button
+            type="button"
+            class="auth-form__submit"
+            onClick={signInAsDev}
+            disabled={loading()}
+            style="background:#f59e0b;color:#1f1400;font-weight:700;margin-bottom:0.75rem;"
+          >
+            ⚡ Sign in as dev — admin@manifest.build
+          </button>
+        )}
         {error() && (
           <div id={errorId} class="auth-form__error" role="alert">
             {error()}
