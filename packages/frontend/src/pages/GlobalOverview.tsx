@@ -147,6 +147,9 @@ const GlobalOverview: Component = () => {
   const closeUpgradeModal = () => {
     setUpgradeModalOpen(false);
     window.history.replaceState(null, '', '/overview');
+    if (hasNoAgents() && !sessionStorage.getItem(ONBOARDING_DISMISSED_KEY)) {
+      setAddAgentOpen(true);
+    }
   };
 
   preloadModelDisplayNames();
@@ -466,7 +469,7 @@ const GlobalOverview: Component = () => {
     on(
       () => hasNoAgents(),
       (empty) => {
-        if (empty && !sessionStorage.getItem(ONBOARDING_DISMISSED_KEY)) {
+        if (empty && !sessionStorage.getItem(ONBOARDING_DISMISSED_KEY) && !upgradeModalOpen()) {
           setAddAgentOpen(true);
         }
       },
