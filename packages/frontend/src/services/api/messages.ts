@@ -71,6 +71,12 @@ export interface MessageDetailResponse {
       issueId: string | null;
       patchId: string | null;
       healAttemptId: string | null;
+      /** Phoenix's human-readable "why" for the fix (null for pre-explanation rows). */
+      explanation?: {
+        summary: string;
+        operations: Array<{ type: string; detail: string }>;
+        source: string;
+      } | null;
     } | null;
     /** The paired row (failed original ↔ successful retry), for the visual link. */
     autofix_sibling: { id: string; role: string | null; status: string } | null;

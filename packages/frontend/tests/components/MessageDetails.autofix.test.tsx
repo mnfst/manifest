@@ -388,6 +388,46 @@ describe('MessageDetails Auto-fix section', () => {
     expect(container.textContent).not.toContain('Heal-attempt');
   });
 
+  it('renders Phoenix\'s explanation summary and per-op detail when present', async () => {
+    // Phoenix now sends a human-readable "why". The card shows its summary in place
+    // of the generic phrase, and its authoritative per-op detail — which the local
+    // describeOperation could not produce for clamp_param (no from/to).
+    const withExplanation = {
+      message: {
+        ...retryResponse.message,
+        autofix_operations: [{ type: 'clamp_param' }],
+        autofix_phoenix: {
+          issueId: 'issue-1',
+          patchId: 'patch-1',
+          healAttemptId: 'heal-1',
+          explanation: {
+            summary: "Your request set max_tokens above this model's limit, so it was capped at 8192.",
+            operations: [
+              { type: 'clamp_param', detail: 'Capped "max_tokens" at the maximum of 8192.' },
+            ],
+            source: 'deterministic',
+          },
+        },
+      },
+    };
+    mockGetMessageDetails.mockResolvedValue(withExplanation);
+    const { container } = render(() => <MessageDetails messageId="retry-1" />);
+
+    await vi.waitFor(() => {
+      expect(container.querySelector('.error-autofix-row__meta-table')).not.toBeNull();
+    });
+
+    const text = container.textContent!;
+    // Phoenix's summary replaces the generic success phrase.
+    expect(text).toContain('so it was capped at 8192');
+    expect(text).not.toContain(
+      'Manifest caught an error, repaired the request, and retried it successfully.',
+    );
+    // Phoenix's authoritative per-op detail (the local fallback couldn't describe clamp_param).
+    expect(text).toContain('Capped "max_tokens" at the maximum of 8192.');
+    expect(text).toContain('clamp_param');
+  });
+
   it('renders a triple layout: auto-fix retry trigger → error → fallback next', async () => {
     // A retry that itself failed and was recovered by a fallback: the request
     // was triggered by an auto-fix (left), it errored (middle), and a fallback

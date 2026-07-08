@@ -1,4 +1,9 @@
-import type { PhoenixHealStatus, PhoenixOperation, PhoenixProviderError } from './phoenix.types';
+import type {
+  PhoenixExplanation,
+  PhoenixHealStatus,
+  PhoenixOperation,
+  PhoenixProviderError,
+} from './phoenix.types';
 
 /**
  * How an Auto-fix attempt ended:
@@ -30,6 +35,8 @@ export interface AutofixChainEntry {
   patch_id?: string | null;
   heal_attempt_id?: string | null;
   operations?: PhoenixOperation[] | null;
+  /** Phoenix's human-readable "why" for the fix derived here (null when none). */
+  explanation?: PhoenixExplanation | null;
   patch_worked?: boolean;
 }
 

@@ -341,6 +341,7 @@ export class AutofixService {
     entry.patch_id = heal.patchId ?? null;
     entry.heal_attempt_id = heal.healAttemptId ?? null;
     entry.operations = heal.operations ?? null;
+    entry.explanation = heal.explanation ?? null;
 
     // Phoenix is still authoring a patch for this novel error — nothing to resend.
     if (heal.status === 'resolving') {

@@ -16,7 +16,28 @@ import { CallerAttribution } from './caller-classifier';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
-import type { AutofixRecord } from '../autofix/autofix.types';
+import type { AutofixChainEntry, AutofixRecord } from '../autofix/autofix.types';
+
+/**
+ * Phoenix's decision metadata for a healed row: its issue/patch/heal-attempt ids
+ * plus the human-readable "why" ({@link AutofixChainEntry.explanation}). Null when
+ * the entry carries none (e.g. the heal call never reached Phoenix).
+ */
+function buildAutofixPhoenix(entry: AutofixChainEntry | undefined): object | null {
+  if (!entry) return null;
+  const present =
+    entry.issue_id != null ||
+    entry.patch_id != null ||
+    entry.heal_attempt_id != null ||
+    entry.explanation != null;
+  if (!present) return null;
+  return {
+    issueId: entry.issue_id ?? null,
+    patchId: entry.patch_id ?? null,
+    healAttemptId: entry.heal_attempt_id ?? null,
+    explanation: entry.explanation ?? null,
+  };
+}
 
 /** Auto-fix columns for one row of a healed pair (or an exhausted attempt). */
 function autofixColumns(
@@ -24,12 +45,20 @@ function autofixColumns(
   role: 'original' | 'retry',
 ): Partial<AgentMessage> {
   if (!autofix) return {};
-  const operations = autofix.chain.find((e) => e.operations)?.operations ?? null;
+  // The heal decision (ids, operations, explanation) rides the attempt-0 entry.
+  const healEntry = autofix.chain.find(
+    (e) =>
+      e.operations != null ||
+      e.issue_id != null ||
+      e.heal_attempt_id != null ||
+      e.explanation != null,
+  );
   return {
     autofix_applied: true,
     autofix_group_id: autofix.groupId,
     autofix_role: role,
-    autofix_operations: (operations as object | null) ?? null,
+    autofix_operations: (healEntry?.operations as object | null) ?? null,
+    autofix_phoenix: buildAutofixPhoenix(healEntry),
   };
 }
 
@@ -726,14 +755,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         autofix_group_id: autofix.groupId,
         autofix_role: 'original',
         autofix_operations: (entry.operations as object | null) ?? null,
-        autofix_phoenix:
-          entry.issue_id != null || entry.patch_id != null || entry.heal_attempt_id != null
-            ? {
-                issueId: entry.issue_id ?? null,
-                patchId: entry.patch_id ?? null,
-                healAttemptId: entry.heal_attempt_id ?? null,
-              }
-            : null,
+        autofix_phoenix: buildAutofixPhoenix(entry),
       }),
     );
     await this.messageRepo.insert(rows);

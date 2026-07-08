@@ -109,17 +109,37 @@ function describeOperation(op: AutofixOperation): string {
 function AutofixSection(props: {
   role: string | null;
   operations: AutofixOperation[] | null;
-  phoenix: { issueId: string | null; patchId: string | null; healAttemptId: string | null } | null;
+  phoenix: {
+    issueId: string | null;
+    patchId: string | null;
+    healAttemptId: string | null;
+    explanation?: {
+      summary: string;
+      operations: Array<{ type: string; detail: string }>;
+      source: string;
+    } | null;
+  } | null;
   sibling: { id: string; role: string | null; status: string } | null;
   onOpenMessage?: (id: string) => void;
 }): JSX.Element {
   const isOriginal = () => props.role === 'original';
+  // Prefer Phoenix's own explanation (authoritative, built from the real edit) over
+  // our generic phrase and locally re-derived operation prose.
+  const explanation = () => props.phoenix?.explanation ?? null;
   const phrase = () => {
+    const summary = explanation()?.summary;
+    if (summary) return summary;
     if (!isOriginal())
       return 'Manifest caught an error, repaired the request, and retried it successfully.';
     return props.sibling
       ? 'This request failed. Manifest repaired it automatically and retried.'
       : 'This request failed. Auto-fix tried but could not find a repair.';
+  };
+  // One row per edit: Phoenix's per-op detail when present, else our local fallback.
+  const fixRows = (): Array<{ type: string; detail: string }> => {
+    const ex = explanation();
+    if (ex && ex.operations.length > 0) return ex.operations;
+    return (props.operations ?? []).map((op) => ({ type: op.type, detail: describeOperation(op) }));
   };
 
   return (
@@ -143,16 +163,16 @@ function AutofixSection(props: {
 
         <p class="autofix-card__phrase">{phrase()}</p>
 
-        <Show when={props.operations && props.operations.length > 0}>
+        <Show when={fixRows().length > 0}>
           <table class="error-autofix-row__meta-table">
             <tbody>
-              <For each={props.operations!}>
+              <For each={fixRows()}>
                 {(op) => (
                   <tr>
                     <td class="error-autofix-row__meta-label">Fix</td>
                     <td class="error-autofix-row__meta-value">
                       <strong>{op.type}</strong>
-                      <span class="error-autofix-row__meta-hint">{describeOperation(op)}</span>
+                      <span class="error-autofix-row__meta-hint">{op.detail}</span>
                     </td>
                   </tr>
                 )}

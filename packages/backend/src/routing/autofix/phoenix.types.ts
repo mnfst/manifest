@@ -66,6 +66,19 @@ export interface PhoenixOperation {
   to?: string;
 }
 
+/**
+ * Phoenix's own human-readable "why" for a served heal — render this instead of
+ * re-deriving prose from the raw operations (which we did before, incompletely).
+ * `operations[].detail` is a plain sentence per edit (built from the real args);
+ * `summary` is the one-line story; `source` says whether the text was composed
+ * deterministically, written by the investigator agent, or by an operator.
+ */
+export interface PhoenixExplanation {
+  summary: string;
+  operations: Array<{ type: string; detail: string }>;
+  source: 'deterministic' | 'agent' | 'operator';
+}
+
 /** POST /api/heal response — discriminated on `status`. */
 export interface HealResponse {
   status: PhoenixHealStatus;
@@ -74,6 +87,8 @@ export interface HealResponse {
   /** Present when a patch was handed out; report its outcome via PATCH /api/heal-attempts/{healAttemptId}. */
   healAttemptId?: string | null;
   operations?: PhoenixOperation[] | null;
+  /** Human-readable "why" for the fix, present when a patch was handed out. */
+  explanation?: PhoenixExplanation | null;
   healedBody?: Record<string, unknown> | null;
   retryAfterMs?: number | null;
 }

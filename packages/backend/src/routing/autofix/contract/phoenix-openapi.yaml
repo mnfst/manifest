@@ -358,6 +358,28 @@ components:
         healedBody:
           type: object
           additionalProperties: true
+        explanation:
+          type: object
+          description: >
+            Human-readable "why" for a served heal (present on "patched" /
+            "unverified"). operations[].detail is always deterministic (built from
+            the operations); summary prefers an authored rationale (source "agent" /
+            "operator") and falls back to the deterministic composition (source
+            "deterministic").
+          required: [summary, operations, source]
+          properties:
+            summary: { type: string }
+            operations:
+              type: array
+              items:
+                type: object
+                required: [type, detail]
+                properties:
+                  type: { type: string }
+                  detail: { type: string }
+            source:
+              type: string
+              enum: [deterministic, agent, operator]
         retryAfterMs:
           type: integer
           description: Present only when status is "resolving".

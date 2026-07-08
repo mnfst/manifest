@@ -1333,6 +1333,7 @@ describe('ProxyMessageRecorder', () => {
         issueId: null,
         patchId: null,
         healAttemptId: 'heal-1',
+        explanation: null,
       });
     });
 
@@ -1358,6 +1359,45 @@ describe('ProxyMessageRecorder', () => {
         issueId: null,
         patchId: 'patch-xyz',
         healAttemptId: null,
+        explanation: null,
+      });
+    });
+
+    it('recordAutofixOriginals carries the Phoenix explanation onto autofix_phoenix', async () => {
+      // Phoenix's human-readable "why" is persisted alongside the ids so the
+      // dashboard Auto-fix card can render it (not re-derive it locally).
+      const explanation = {
+        summary: 'Renamed the "max_tokens" parameter to "max_output_tokens".',
+        operations: [
+          {
+            type: 'rename_param',
+            detail: 'Renamed the "max_tokens" parameter to "max_output_tokens".',
+          },
+        ],
+        source: 'deterministic' as const,
+      };
+      await recorder.recordAutofixOriginals(ctx, 'gpt-4o', 'default', {
+        ...sampleAutofix,
+        chain: [
+          {
+            attempt: 0,
+            origin: 'original',
+            request: { max_tokens: 5 },
+            http_status: 400,
+            error: { message: 'Unknown parameter' },
+            issue_id: 'issue-9',
+            heal_attempt_id: 'heal-9',
+            explanation,
+          },
+          { attempt: 1, origin: 'autofix', request: { max_output_tokens: 5 }, http_status: 200 },
+        ],
+      });
+      const rows = insertMock.mock.calls.at(-1)![0] as Array<Record<string, unknown>>;
+      expect(rows[0].autofix_phoenix).toEqual({
+        issueId: 'issue-9',
+        patchId: null,
+        healAttemptId: 'heal-9',
+        explanation,
       });
     });
 

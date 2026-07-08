@@ -103,6 +103,16 @@ const patchedHeal = (over: Partial<HealResponse> = {}): HealResponse => ({
   patchId: 'patch-1',
   healAttemptId: 'heal-1',
   operations: [{ type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' }],
+  explanation: {
+    summary: 'Renamed the "max_tokens" parameter to "max_output_tokens".',
+    operations: [
+      {
+        type: 'rename_param',
+        detail: 'Renamed the "max_tokens" parameter to "max_output_tokens".',
+      },
+    ],
+    source: 'deterministic',
+  },
   healedBody: { model: 'gpt', max_output_tokens: 100 },
   ...over,
 });
@@ -556,6 +566,8 @@ describe('AutofixService', () => {
       expect(original.patch_id).toBe('patch-1');
       expect(original.heal_attempt_id).toBe('heal-1');
       expect(original.operations).toEqual(heal.operations);
+      // Phoenix's human-readable "why" rides the same entry, for the recorder to persist.
+      expect(original.explanation).toEqual(heal.explanation);
       expect(original.patch_worked).toBe(true);
 
       const terminal = chain[1];
