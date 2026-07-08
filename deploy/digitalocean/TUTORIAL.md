@@ -1,6 +1,6 @@
 # Deploy Manifest on DigitalOcean
 
-This deploys Manifest on DigitalOcean App Platform with a web service and Dev PostgreSQL database. The README badge uses DigitalOcean's Deploy to DigitalOcean flow, which reads `.do/deploy.template.yaml` from the public repository.
+This deploys Manifest on DigitalOcean App Platform with a web service and Dev PostgreSQL database. The deploy link uses DigitalOcean's Deploy to DigitalOcean flow, which reads `.do/deploy.template.yaml` from the public repository.
 
 ## Prerequisites
 
@@ -11,7 +11,7 @@ This stack creates paid resources, including an App Platform service and Dev Pos
 
 ## Deploy
 
-Open the README badge or go directly to:
+Open the DigitalOcean deploy link:
 
 ```text
 https://cloud.digitalocean.com/apps/new?repo=https://github.com/mnfst/manifest/tree/main
