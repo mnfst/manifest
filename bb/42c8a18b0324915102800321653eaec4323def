@@ -1,0 +1,19 @@
+README.md
+  s_3a46c9373f8519::t_287351d5dc06ed 83,98,103,113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "bb42c8a18b0324915102800321653eaec4323def",
+  "prompts": {},
+  "sessions": {
+    "s_3a46c9373f8519": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4035-f8c0-7500-840a-55f977866b53",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
