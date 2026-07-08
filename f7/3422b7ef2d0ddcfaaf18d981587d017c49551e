@@ -1,0 +1,21 @@
+README.md
+  s_d4dd3ac37be356::t_ead6ee85688b21 68,70,72-76
+deploy/digitalocean/TUTORIAL.md
+  s_d4dd3ac37be356::t_dbe5ebe97b1fbb 3,14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f73422b7ef2d0ddcfaaf18d981587d017c49551e",
+  "prompts": {},
+  "sessions": {
+    "s_d4dd3ac37be356": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bb6-aeb4-70e1-bc09-0180cc699731",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
