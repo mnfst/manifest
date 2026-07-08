@@ -16,6 +16,7 @@ Plug your AI agents into any provider
   <a href="https://railway.com/deploy/wild-wild" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-Railway-0B0D0E?style=for-the-badge&amp;logo=railway&amp;logoColor=white" alt="Deploy on Railway" /></a>
   <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/quickcreate?stackName=manifest&amp;templateURL=https%3A%2F%2Fmnfst-manifest-deploy-templates.s3.us-east-1.amazonaws.com%2Fmanifest.yaml" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-AWS-232F3E?style=for-the-badge&amp;logo=amazonwebservices&amp;logoColor=white" alt="Deploy on AWS" /></a>
   <a href="https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fmnfst%2Fmanifest&amp;cloudshell_workspace=deploy%2Fgcp&amp;cloudshell_tutorial=TUTORIAL.md&amp;cloudshell_image=gcr.io/ds-artifacts-cloudshell/deploystack_custom_image&amp;shellonly=true" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-GCP-4285F4?style=for-the-badge&amp;logo=googlecloud&amp;logoColor=white" alt="Deploy on GCP" /></a>
+  <a href="https://cloud.digitalocean.com/apps/new?repo=https://github.com/mnfst/manifest/tree/main" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-DigitalOcean-0080FF?style=for-the-badge&amp;logo=digitalocean&amp;logoColor=white" alt="Deploy on DigitalOcean" /></a>
 </p>
 
 <p align="center">
@@ -73,6 +74,7 @@ Managed deployment options:
 | [Render](https://render.com/deploy?repo=https://github.com/mnfst/manifest) | Manifest web service plus Render PostgreSQL from [render.yaml](render.yaml). |
 | [AWS](deploy/aws/TUTORIAL.md) | ECS Fargate, Application Load Balancer, RDS PostgreSQL, and Secrets Manager via CloudFormation. |
 | [GCP](deploy/gcp/TUTORIAL.md) | Cloud Run, Cloud SQL for PostgreSQL, and Secret Manager via the Cloud Shell tutorial. |
+| [DigitalOcean](deploy/digitalocean/TUTORIAL.md) | App Platform service plus Dev PostgreSQL from [.do/deploy.template.yaml](.do/deploy.template.yaml). |
 
 > The legacy `manifest` npm package is deprecated and no longer published.
 
