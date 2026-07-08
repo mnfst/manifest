@@ -1,9 +1,10 @@
 import {
-  DEV_CORS_MAX_AGE_SECONDS,
+  CORS_PREFLIGHT_MAX_AGE_SECONDS,
   HOSTED_WINGMAN_ORIGIN,
   applyPrivateNetworkAllow,
+  buildCorsOptions,
   buildDevAllowedOrigins,
-  buildDevCorsOptions,
+  buildProdAllowedOrigins,
   buildFrameSrc,
   createCorsOriginHandler,
   parseFrameAncestors,
@@ -39,6 +40,33 @@ describe('buildDevAllowedOrigins', () => {
     expect(allowed).toContain('http://localhost:38239');
     expect(allowed).toContain('http://127.0.0.1:38239');
     expect(allowed).toContain(HOSTED_WINGMAN_ORIGIN);
+  });
+});
+
+describe('buildProdAllowedOrigins', () => {
+  it('allows the hosted Wingman origin by default', () => {
+    expect(buildProdAllowedOrigins()).toEqual([HOSTED_WINGMAN_ORIGIN]);
+  });
+
+  it('appends operator-configured extra origins, trimmed and deduped', () => {
+    expect(
+      buildProdAllowedOrigins({
+        extraOrigins:
+          ' https://wingman.acme.dev , https://wingman.manifest.build ,https://tools.acme.dev',
+      }),
+    ).toEqual([HOSTED_WINGMAN_ORIGIN, 'https://wingman.acme.dev', 'https://tools.acme.dev']);
+  });
+
+  it('ignores empty / whitespace-only extra origins', () => {
+    expect(buildProdAllowedOrigins({ extraOrigins: '  , ,' })).toEqual([HOSTED_WINGMAN_ORIGIN]);
+    expect(buildProdAllowedOrigins({ extraOrigins: '' })).toEqual([HOSTED_WINGMAN_ORIGIN]);
+  });
+
+  it('strips a trailing slash so it matches the browser Origin header', () => {
+    expect(buildProdAllowedOrigins({ extraOrigins: 'https://wingman.acme.dev/' })).toEqual([
+      HOSTED_WINGMAN_ORIGIN,
+      'https://wingman.acme.dev',
+    ]);
   });
 });
 
@@ -130,19 +158,19 @@ describe('createCorsOriginHandler', () => {
   });
 });
 
-describe('buildDevCorsOptions', () => {
+describe('buildCorsOptions', () => {
   it('caches the preflight via maxAge so reloads stop re-running it', () => {
-    const opts = buildDevCorsOptions([HOSTED_WINGMAN_ORIGIN]);
-    expect(opts.maxAge).toBe(DEV_CORS_MAX_AGE_SECONDS);
-    expect(DEV_CORS_MAX_AGE_SECONDS).toBe(7200);
+    const opts = buildCorsOptions([HOSTED_WINGMAN_ORIGIN]);
+    expect(opts.maxAge).toBe(CORS_PREFLIGHT_MAX_AGE_SECONDS);
+    expect(CORS_PREFLIGHT_MAX_AGE_SECONDS).toBe(7200);
   });
 
   it('keeps credentials off the cross-origin path (bearer keys, never cookies)', () => {
-    expect(buildDevCorsOptions([HOSTED_WINGMAN_ORIGIN]).credentials).toBe(false);
+    expect(buildCorsOptions([HOSTED_WINGMAN_ORIGIN]).credentials).toBe(false);
   });
 
   it('wires the allow-list origin handler (allows listed, blocks unlisted)', () => {
-    const { origin } = buildDevCorsOptions([HOSTED_WINGMAN_ORIGIN]);
+    const { origin } = buildCorsOptions([HOSTED_WINGMAN_ORIGIN]);
     const allow = jest.fn();
     origin(HOSTED_WINGMAN_ORIGIN, allow);
     expect(allow).toHaveBeenCalledWith(null, true);
