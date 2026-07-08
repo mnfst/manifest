@@ -29,14 +29,16 @@ export function generate(input: Input): Output {
       env: [
         "PORT=2099",
         "BIND_ADDRESS=0.0.0.0",
-        `DATABASE_URL=postgres://postgres:${databasePassword}@$(PROJECT_NAME)_${input.databaseServiceName}:5432/$(PROJECT_NAME)`,
+        `DATABASE_URL=postgresql://postgres:${databasePassword}@$(PROJECT_NAME)_${input.databaseServiceName}:5432/$(PROJECT_NAME)`,
         `BETTER_AUTH_SECRET=${authSecret}`,
         `MANIFEST_ENCRYPTION_KEY=${encryptionKey}`,
         "BETTER_AUTH_URL=https://$(PRIMARY_DOMAIN)",
         "MANIFEST_MODE=selfhosted",
         "NODE_ENV=production",
+        "SEED_DATA=false",
         "DB_POOL_MAX=10",
         "AUTH_DB_POOL_MAX=5",
+        `MANIFEST_TELEMETRY_DISABLED=${input.telemetryDisabled || "0"}`,
       ].join("\n"),
     },
   });

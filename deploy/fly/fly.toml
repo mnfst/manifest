@@ -18,6 +18,7 @@ kill_timeout = "30s"
   BETTER_AUTH_URL = "https://manifest-example.fly.dev"
   MANIFEST_MODE = "selfhosted"
   NODE_ENV = "production"
+  SEED_DATA = "false"
   DB_POOL_MAX = "8"
   AUTH_DB_POOL_MAX = "4"
 

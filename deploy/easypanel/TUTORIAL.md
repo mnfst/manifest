@@ -50,14 +50,16 @@ Set the Manifest environment:
 ```env
 PORT=2099
 BIND_ADDRESS=0.0.0.0
-DATABASE_URL=postgres://postgres:<postgres-password>@$(PROJECT_NAME)_manifest-db:5432/$(PROJECT_NAME)
+DATABASE_URL=postgresql://postgres:<postgres-password>@$(PROJECT_NAME)_manifest-db:5432/$(PROJECT_NAME)
 BETTER_AUTH_SECRET=<openssl-rand-hex-32>
 MANIFEST_ENCRYPTION_KEY=<different-openssl-rand-hex-32>
 BETTER_AUTH_URL=https://$(PRIMARY_DOMAIN)
 MANIFEST_MODE=selfhosted
 NODE_ENV=production
+SEED_DATA=false
 DB_POOL_MAX=10
 AUTH_DB_POOL_MAX=5
+MANIFEST_TELEMETRY_DISABLED=0
 ```
 
 Generate secrets locally:
@@ -66,6 +68,8 @@ Generate secrets locally:
 openssl rand -hex 32
 openssl rand -hex 32
 ```
+
+Use an alphanumeric or hex PostgreSQL password in `DATABASE_URL`. If your password contains URL-reserved characters such as `@`, `:`, `/`, `%`, or `#`, percent-encode them before pasting the connection string.
 
 Deploy the app.
 
@@ -79,6 +83,16 @@ Verify the deployment:
 curl -fsS https://<your-easypanel-domain>/api/v1/health
 ```
 
+Before publishing a template, smoke test the full first-run flow:
+
+1. Confirm the app starts without crash loops.
+2. Confirm PostgreSQL migrations complete.
+3. Confirm `/api/v1/health` returns OK.
+4. Open `/setup` on the Easypanel domain.
+5. Create the first admin account.
+6. Log out and log back in on the same domain.
+7. Restart the app and confirm the account still exists.
+
 ## What Gets Provisioned
 
 - Manifest Docker image `manifestdotbuild/manifest:6`.
@@ -91,6 +105,7 @@ curl -fsS https://<your-easypanel-domain>/api/v1/health
 - Back up the PostgreSQL service through Easypanel or your server provider.
 - Use a real HTTPS domain before enabling OAuth providers.
 - Keep `BETTER_AUTH_SECRET` and `MANIFEST_ENCRYPTION_KEY` as separate values.
+- Set `MANIFEST_TELEMETRY_DISABLED=1` to disable anonymous self-hosted telemetry.
 - If you deploy more than one Manifest replica, lower database pool sizes or upgrade PostgreSQL connection capacity.
 
 Relevant Easypanel docs:

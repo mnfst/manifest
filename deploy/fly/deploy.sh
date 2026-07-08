@@ -28,6 +28,11 @@ cleanup() {
 }
 trap cleanup EXIT
 
+secret_exists() {
+  local secret_name="$1"
+  fly secrets list --app "$APP_NAME" | awk 'NR > 1 { print $1 }' | grep -Fxq "$secret_name"
+}
+
 sed \
   -e "s/manifest-example/${APP_NAME}/g" \
   -e "s/primary_region = \"cdg\"/primary_region = \"${REGION}\"/" \
@@ -63,11 +68,25 @@ fly postgres attach "$POSTGRES_APP_NAME" \
   --yes
 
 echo "Setting Manifest secrets..."
-fly secrets set \
-  --app "$APP_NAME" \
-  --stage \
-  "BETTER_AUTH_SECRET=$(openssl rand -hex 32)" \
-  "MANIFEST_ENCRYPTION_KEY=$(openssl rand -hex 32)"
+manifest_secret_args=(--app "$APP_NAME" --stage)
+
+if secret_exists "BETTER_AUTH_SECRET"; then
+  echo "BETTER_AUTH_SECRET already exists; leaving it unchanged."
+else
+  manifest_secret_args+=("BETTER_AUTH_SECRET=$(openssl rand -hex 32)")
+fi
+
+if secret_exists "MANIFEST_ENCRYPTION_KEY"; then
+  echo "MANIFEST_ENCRYPTION_KEY already exists; leaving it unchanged."
+else
+  manifest_secret_args+=("MANIFEST_ENCRYPTION_KEY=$(openssl rand -hex 32)")
+fi
+
+if [ "${#manifest_secret_args[@]}" -gt 3 ]; then
+  fly secrets set "${manifest_secret_args[@]}"
+else
+  echo "Manifest secrets already exist."
+fi
 
 echo "Deploying Manifest..."
 fly deploy --app "$APP_NAME" --config "$CONFIG_FILE"

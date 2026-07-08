@@ -30,7 +30,7 @@ Environment variables:
 - `FLY_REGION`: Fly region. Defaults to `cdg`.
 - `FLY_ORG`: Fly organization. Defaults to `personal`.
 
-The script uses [`fly.toml`](fly.toml) as a template and deploys `docker.io/manifestdotbuild/manifest:6`.
+The script uses [`fly.toml`](fly.toml) as a template and deploys `docker.io/manifestdotbuild/manifest:6`. Re-running it keeps existing `BETTER_AUTH_SECRET` and `MANIFEST_ENCRYPTION_KEY` values; rotate those secrets manually only if you intend to invalidate sessions and encrypted provider credentials.
 
 ## Manual Deploy
 
@@ -112,6 +112,7 @@ fly logs --app <your-fly-app>
 - The template keeps one Machine running with `min_machines_running = 1` so Manifest is always available for agents.
 - For production, choose a larger Postgres configuration or Fly Managed Postgres instead of the small script default.
 - Add a custom domain before configuring OAuth callback URLs.
+- Set `MANIFEST_TELEMETRY_DISABLED=1` as a Fly secret if you want to disable anonymous self-hosted telemetry.
 - Destroy both the app and database when testing is done:
 
 ```bash
