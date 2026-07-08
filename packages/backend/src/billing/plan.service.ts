@@ -1,10 +1,22 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { BadRequestException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
-import type { BillingPrice, BillingStatus, Plan, PlanLimits } from 'manifest-shared';
+import type {
+  BillingEmailPreferences,
+  BillingPrice,
+  BillingStatus,
+  Plan,
+  PlanLimits,
+} from 'manifest-shared';
 import type Stripe from 'stripe';
+import { Tenant } from '../entities/tenant.entity';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { getStripeClient, isBillingEnabled } from './billing.config';
+import {
+  DEFAULT_BILLING_EMAIL_PREFERENCES,
+  normalizeBillingEmailPreferences,
+} from './billing-email-preferences';
 
 const PRICE_CACHE_TTL_MS = 60 * 60 * 1000;
 const BILLING_PRICE_UNAVAILABLE: BillingPrice = Object.freeze({
@@ -51,6 +63,7 @@ interface RequestCountEntry {
 interface BillingSnapshot {
   plan: Plan;
   limitOverrides: { requestsPerMonth?: number } | null;
+  billingEmailPreferences: Partial<BillingEmailPreferences> | null;
   cancelAtPeriodEnd: boolean;
   periodEnd: string | null;
 }
@@ -60,6 +73,7 @@ interface BillingSnapshotRow {
   cancelAtPeriodEnd: boolean | null;
   periodEnd: string | null;
   limitOverrides: { requestsPerMonth?: number } | null;
+  billingEmailPreferences: Partial<BillingEmailPreferences> | null;
 }
 
 @Injectable()
@@ -72,7 +86,10 @@ export class PlanService {
   private lastLimitFailureWarnAtMs = 0;
   private suppressedLimitFailureWarns = 0;
 
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
+    private readonly dataSource: DataSource,
+  ) {}
 
   /**
    * Billing attaches to the tenant. The Stripe subscription row is keyed by
@@ -85,6 +102,7 @@ export class PlanService {
       return {
         plan: 'free',
         limitOverrides: null,
+        billingEmailPreferences: null,
         cancelAtPeriodEnd: false,
         periodEnd: null,
       };
@@ -92,6 +110,7 @@ export class PlanService {
     const rows: BillingSnapshotRow[] = await this.dataSource.query(
       `SELECT
           t."limit_overrides" AS "limitOverrides",
+          t."billing_email_preferences" AS "billingEmailPreferences",
           s."plan" AS "subscriptionPlan",
           s."cancelAtPeriodEnd" AS "cancelAtPeriodEnd",
           s."periodEnd" AS "periodEnd"
@@ -113,9 +132,15 @@ export class PlanService {
     return {
       plan: row?.subscriptionPlan === 'pro' ? 'pro' : 'free',
       limitOverrides: row?.limitOverrides ?? null,
+      billingEmailPreferences: row?.billingEmailPreferences ?? null,
       cancelAtPeriodEnd: row?.cancelAtPeriodEnd ?? false,
       periodEnd: row?.periodEnd ?? null,
     };
+  }
+
+  private async findTenant(ctx: TenantContext): Promise<Tenant | null> {
+    if (!ctx.tenantId) return null;
+    return this.tenantRepo.findOne({ where: { id: ctx.tenantId } });
   }
 
   /** Resolve the tenant's plan from better-auth's webhook-synced subscription table. */
@@ -299,11 +324,13 @@ export class PlanService {
   }
 
   async getBillingStatus(ctx: TenantContext): Promise<BillingStatus> {
-    if (!isBillingEnabled()) {
+    const billingEnabled = isBillingEnabled();
+    if (!billingEnabled) {
       return {
         enabled: false,
         plan: 'free',
         priceMonthly: BILLING_PRICE_UNAVAILABLE,
+        emailPreferences: DEFAULT_BILLING_EMAIL_PREFERENCES,
         requests: { used: null, limit: null, periodEnd: null },
         cancelAtPeriodEnd: false,
         subscriptionPeriodEnd: null,
@@ -311,12 +338,14 @@ export class PlanService {
     }
     const snapshot = await this.getBillingSnapshot(ctx);
     const limits = this.limitsForSnapshot(snapshot);
+    const emailPreferences = normalizeBillingEmailPreferences(snapshot.billingEmailPreferences);
     const now = new Date();
     const requestsUsed = await this.countRequestsSince(ctx.tenantId, this.monthStartMsUtc(now));
     return {
       enabled: true,
       plan: snapshot.plan,
       priceMonthly: await this.getProPrice(),
+      emailPreferences,
       requests: {
         used: requestsUsed,
         limit: limits.requestsPerMonth,
@@ -325,6 +354,24 @@ export class PlanService {
       cancelAtPeriodEnd: snapshot.cancelAtPeriodEnd,
       subscriptionPeriodEnd: snapshot.periodEnd,
     };
+  }
+
+  async getBillingEmailPreferences(ctx: TenantContext): Promise<BillingEmailPreferences> {
+    if (!ctx.tenantId) return DEFAULT_BILLING_EMAIL_PREFERENCES;
+    const tenant = await this.findTenant(ctx);
+    return normalizeBillingEmailPreferences(tenant?.billing_email_preferences);
+  }
+
+  async updateBillingEmailPreferences(
+    ctx: TenantContext,
+    preferences: BillingEmailPreferences,
+  ): Promise<BillingEmailPreferences> {
+    if (!ctx.tenantId) {
+      throw new BadRequestException('A workspace is required to update billing email preferences.');
+    }
+    const normalized = normalizeBillingEmailPreferences(preferences);
+    await this.tenantRepo.update({ id: ctx.tenantId }, { billing_email_preferences: normalized });
+    return normalized;
   }
 
   /** Display price for the Pro plan, cached; never lets a Stripe outage break the endpoint. */

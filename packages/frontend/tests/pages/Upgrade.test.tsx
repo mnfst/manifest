@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import { FREE_REQUEST_LIMIT_LABEL } from '../../src/services/billing-display';
+import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
 
 const mockNavigate = vi.fn();
 let mockSearchParams: Record<string, string> = {};
@@ -42,21 +43,34 @@ const disabledStatus = {
   enabled: false,
   plan: 'free' as const,
   priceMonthly: { amount: null, currency: null, interval: null },
-  requests: { used: null, limit: 10_000, periodEnd: null },
+  emailPreferences: { usageAlerts: true },
+  requests: { used: null, limit: FREE_PLAN_REQUESTS_PER_MONTH, periodEnd: null },
+  cancelAtPeriodEnd: false,
+  subscriptionPeriodEnd: null,
 };
 
 const freeStatus = {
   enabled: true,
   plan: 'free' as const,
   priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
-  requests: { used: 1250, limit: 10_000, periodEnd: '2026-08-01T00:00:00.000Z' },
+  emailPreferences: { usageAlerts: true },
+  requests: {
+    used: 1250,
+    limit: FREE_PLAN_REQUESTS_PER_MONTH,
+    periodEnd: '2026-08-01T00:00:00.000Z',
+  },
+  cancelAtPeriodEnd: false,
+  subscriptionPeriodEnd: null,
 };
 
 const proStatus = {
   enabled: true,
   plan: 'pro' as const,
   priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
+  emailPreferences: { usageAlerts: true },
   requests: { used: null, limit: null, periodEnd: null },
+  cancelAtPeriodEnd: false,
+  subscriptionPeriodEnd: null,
 };
 
 describe('Upgrade', () => {

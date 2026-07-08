@@ -338,6 +338,17 @@
   flex-shrink: 0;
 }
 
+.account-email-toggle--disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.account-email-footer {
+  justify-content: flex-start;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
 @media (max-width: 640px) {
   .billing-stats {
     flex-direction: column;
@@ -406,15 +417,10 @@
   left: -10%;
   right: -10%;
   height: 120px;
-  background: radial-gradient(
-    ellipse at 20% 0%, rgba(44, 224, 183, 0.25) 0%, transparent 50%
-  ),
-  radial-gradient(
-    ellipse at 50% 0%, rgba(38, 50, 239, 0.2) 0%, transparent 50%
-  ),
-  radial-gradient(
-    ellipse at 80% 0%, rgba(254, 7, 110, 0.2) 0%, transparent 50%
-  );
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(44, 224, 183, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 0%, rgba(38, 50, 239, 0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 0%, rgba(254, 7, 110, 0.2) 0%, transparent 50%);
   filter: blur(30px);
   pointer-events: none;
   z-index: 0;
@@ -431,8 +437,8 @@
   right: var(--gap-md);
   padding: 3px 5px;
   border-radius: 2px;
-  background: #2632EF;
-  color: #FFFFFF;
+  background: #2632ef;
+  color: #ffffff;
   font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;

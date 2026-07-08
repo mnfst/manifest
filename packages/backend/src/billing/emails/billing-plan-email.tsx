@@ -1,0 +1,364 @@
+import * as React from 'react';
+import {
+  Html,
+  Head,
+  Body,
+  Container,
+  Section,
+  Text,
+  Button,
+  Preview,
+  Hr,
+  Link,
+  Img,
+} from '@react-email/components';
+
+type SubscriptionEmailKind = 'subscription_confirmed' | 'plan_changed' | 'cancellation_confirmed';
+type UsageEmailKind = 'requests_warning' | 'requests_limit_reached';
+
+export interface SubscriptionPlanEmailProps {
+  kind: SubscriptionEmailKind;
+  userName?: string | null;
+  planName: string;
+  previousPlanName?: string | null;
+  periodEnd?: string | null;
+  appUrl: string;
+  manageBillingUrl: string;
+  logoUrl?: string;
+}
+
+export interface PlanUsageEmailProps {
+  kind: UsageEmailKind;
+  userName?: string | null;
+  used: number;
+  limit: number;
+  periodEnd: string;
+  appUrl: string;
+  logoUrl?: string;
+}
+
+function greeting(name?: string | null): string {
+  const trimmed = name?.trim();
+  return trimmed ? `Hi ${trimmed},` : 'Hi,';
+}
+
+function formatCount(value: number): string {
+  return Math.round(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
+}
+
+function formatDate(raw?: string | null): string | null {
+  if (!raw) return null;
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return raw;
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+function accountUrl(appUrl: string): string {
+  return `${appUrl.replace(/\/+$/, '')}/account`;
+}
+
+function emailPreferencesUrl(appUrl: string): string {
+  return `${accountUrl(appUrl)}#email-preferences`;
+}
+
+function subscriptionCopy(props: SubscriptionPlanEmailProps): {
+  preview: string;
+  badge: string;
+  heading: string;
+  body: React.ReactNode;
+  cta: string;
+} {
+  if (props.kind === 'plan_changed') {
+    const from = props.previousPlanName ? ` from ${props.previousPlanName}` : '';
+    return {
+      preview: `Your Manifest plan changed to ${props.planName}`,
+      badge: 'Plan changed',
+      heading: `Your plan is now ${props.planName}`,
+      body: (
+        <>
+          {greeting(props.userName)} your Manifest plan changed{from} to{' '}
+          <strong>{props.planName}</strong>. Your workspace limits now use the new plan.
+        </>
+      ),
+      cta: 'Review billing',
+    };
+  }
+
+  if (props.kind === 'cancellation_confirmed') {
+    const end = formatDate(props.periodEnd);
+    return {
+      preview: end
+        ? `Your Manifest ${props.planName} plan is scheduled to end on ${end}`
+        : `Your Manifest ${props.planName} plan is scheduled to end`,
+      badge: 'Cancellation scheduled',
+      heading: `${props.planName} cancellation confirmed`,
+      body: (
+        <>
+          {greeting(props.userName)} your <strong>{props.planName}</strong> plan is scheduled to end
+          {end ? ` on ${end}` : ''}. You can keep using the plan until then.
+        </>
+      ),
+      cta: 'Manage billing',
+    };
+  }
+
+  return {
+    preview: `Your Manifest ${props.planName} plan is active`,
+    badge: 'Plan active',
+    heading: `Welcome to ${props.planName}`,
+    body: (
+      <>
+        {greeting(props.userName)} your <strong>{props.planName}</strong> plan is active. Your
+        workspace now has the limits included with this plan.
+      </>
+    ),
+    cta: 'Open Manifest',
+  };
+}
+
+export function SubscriptionPlanEmail(props: SubscriptionPlanEmailProps) {
+  const logoUrl = props.logoUrl ?? 'https://app.manifest.build/manifest-logo.png';
+  const copy = subscriptionCopy(props);
+  const accent = props.kind === 'cancellation_confirmed' ? '#ea580c' : '#0f766e';
+  const accentBg = props.kind === 'cancellation_confirmed' ? '#fff7ed' : '#ecfdf5';
+
+  return (
+    <Html>
+      <Head />
+      <Preview>{copy.preview}</Preview>
+      <Body style={body}>
+        <Container style={container}>
+          <Section style={logoSection}>
+            <Img src={logoUrl} alt="Manifest" height="32" style={logoImg} />
+          </Section>
+
+          <Section style={card}>
+            <Text style={{ ...badge, color: accent, backgroundColor: accentBg }}>{copy.badge}</Text>
+            <Text style={heading}>{copy.heading}</Text>
+            <Text style={paragraph}>{copy.body}</Text>
+
+            <Section style={buttonContainer}>
+              <Button
+                style={button}
+                href={
+                  props.kind === 'subscription_confirmed' ? props.appUrl : props.manageBillingUrl
+                }
+              >
+                {copy.cta}
+              </Button>
+            </Section>
+
+            <Text style={hint}>
+              This email confirms a Manifest plan change only. Stripe may send payment receipts
+              separately.
+            </Text>
+          </Section>
+
+          <Footer preferencesUrl={emailPreferencesUrl(props.appUrl)} />
+        </Container>
+      </Body>
+    </Html>
+  );
+}
+
+export function PlanUsageEmail(props: PlanUsageEmailProps) {
+  const logoUrl = props.logoUrl ?? 'https://app.manifest.build/manifest-logo.png';
+  const isLimit = props.kind === 'requests_limit_reached';
+  const percentage = Math.min(100, Math.round((props.used / props.limit) * 100));
+  const accent = isLimit ? '#dc2626' : '#ea580c';
+  const accentBg = isLimit ? '#fef2f2' : '#fff7ed';
+  const reset = formatDate(props.periodEnd);
+  const title = isLimit ? 'Monthly request limit reached' : '80% of monthly requests used';
+
+  return (
+    <Html>
+      <Head />
+      <Preview>
+        {isLimit
+          ? `Your Manifest workspace reached ${formatCount(props.limit)} monthly requests`
+          : `Your Manifest workspace used ${percentage}% of monthly requests`}
+      </Preview>
+      <Body style={body}>
+        <Container style={container}>
+          <Section style={logoSection}>
+            <Img src={logoUrl} alt="Manifest" height="32" style={logoImg} />
+          </Section>
+
+          <Section style={card}>
+            <Text style={{ ...badge, color: accent, backgroundColor: accentBg }}>
+              {isLimit ? 'Requests blocked' : 'Usage warning'}
+            </Text>
+            <Text style={heading}>{title}</Text>
+            <Text style={paragraph}>
+              {greeting(props.userName)} your workspace has used{' '}
+              <strong>{formatCount(props.used)}</strong> of{' '}
+              <strong>{formatCount(props.limit)}</strong> included requests this month.
+            </Text>
+
+            <Section style={{ ...notice, backgroundColor: accentBg, borderColor: accent }}>
+              <Text style={{ ...noticeText, color: accent }}>
+                {isLimit
+                  ? `New routed requests are blocked until the limit resets${reset ? ` on ${reset}` : ''}.`
+                  : `Requests are still running. The limit resets${reset ? ` on ${reset}` : ' at the start of next month'}.`}
+              </Text>
+            </Section>
+
+            <Section style={buttonContainer}>
+              <Button style={button} href={accountUrl(props.appUrl)}>
+                Review plan
+              </Button>
+            </Section>
+          </Section>
+
+          <Footer preferencesUrl={emailPreferencesUrl(props.appUrl)} />
+        </Container>
+      </Body>
+    </Html>
+  );
+}
+
+function Footer(props: { preferencesUrl: string }) {
+  return (
+    <>
+      <Hr style={divider} />
+      <Section style={footer}>
+        <Text style={footerMuted}>
+          <Link href={props.preferencesUrl} style={footerLink}>
+            Manage email preferences
+          </Link>
+          {' · '}
+          (c) 2026 MNFST Inc.{' '}
+          <Link href="https://manifest.build" style={footerLink}>
+            manifest.build
+          </Link>
+        </Text>
+      </Section>
+    </>
+  );
+}
+
+const brandBg = '#f8f6f1';
+const brandCardBg = '#ffffff';
+const brandFg = '#020817';
+const brandMuted = '#64748b';
+const brandBorder = '#e5dfd6';
+const brandPrimary = '#0f172a';
+const brandPrimaryFg = '#f9f8f5';
+const brandFont =
+  'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+const body: React.CSSProperties = {
+  backgroundColor: brandBg,
+  fontFamily: brandFont,
+  margin: 0,
+  padding: 0,
+};
+
+const container: React.CSSProperties = {
+  maxWidth: '520px',
+  margin: '0 auto',
+  padding: '40px 20px',
+};
+
+const logoSection: React.CSSProperties = {
+  textAlign: 'center' as const,
+  paddingBottom: '32px',
+};
+
+const logoImg: React.CSSProperties = {
+  margin: '0 auto',
+};
+
+const card: React.CSSProperties = {
+  backgroundColor: brandCardBg,
+  borderRadius: '12px',
+  padding: '40px 36px',
+  border: `1px solid ${brandBorder}`,
+};
+
+const badge: React.CSSProperties = {
+  display: 'inline-block',
+  borderRadius: '999px',
+  fontSize: '12px',
+  fontWeight: 700,
+  padding: '5px 10px',
+  margin: '0 0 16px',
+};
+
+const heading: React.CSSProperties = {
+  fontSize: '22px',
+  fontWeight: 700,
+  color: brandFg,
+  margin: '0 0 12px',
+  lineHeight: '1.3',
+};
+
+const paragraph: React.CSSProperties = {
+  fontSize: '15px',
+  lineHeight: '1.6',
+  color: '#374151',
+  margin: '0 0 24px',
+};
+
+const buttonContainer: React.CSSProperties = {
+  textAlign: 'center' as const,
+  margin: '28px 0 0',
+};
+
+const button: React.CSSProperties = {
+  backgroundColor: brandPrimary,
+  color: brandPrimaryFg,
+  fontSize: '14px',
+  fontWeight: 600,
+  padding: '14px 28px',
+  borderRadius: '8px',
+  textDecoration: 'none',
+  display: 'inline-block',
+  lineHeight: '1',
+};
+
+const hint: React.CSSProperties = {
+  fontSize: '13px',
+  lineHeight: '1.5',
+  color: brandMuted,
+  margin: '24px 0 0',
+};
+
+const notice: React.CSSProperties = {
+  border: '1px solid',
+  borderRadius: '8px',
+  padding: '14px 16px',
+  margin: '0 0 8px',
+};
+
+const noticeText: React.CSSProperties = {
+  fontSize: '14px',
+  lineHeight: '1.5',
+  margin: 0,
+};
+
+const divider: React.CSSProperties = {
+  borderColor: brandBorder,
+  borderTop: 'none',
+  margin: '32px 0 24px',
+};
+
+const footer: React.CSSProperties = {
+  textAlign: 'center' as const,
+};
+
+const footerMuted: React.CSSProperties = {
+  fontSize: '12px',
+  color: '#94a3b8',
+  margin: 0,
+};
+
+const footerLink: React.CSSProperties = {
+  color: '#94a3b8',
+  textDecoration: 'underline',
+};

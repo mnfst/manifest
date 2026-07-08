@@ -148,4 +148,10 @@ export {
   PLAN_LIMITS,
   UNLIMITED_PLAN_LIMITS,
 } from './plan-limits';
-export type { BillingPrice, Plan, PlanLimits, BillingStatus } from './plan-limits';
+export type {
+  BillingEmailPreferences,
+  BillingPrice,
+  BillingStatus,
+  Plan,
+  PlanLimits,
+} from './plan-limits';

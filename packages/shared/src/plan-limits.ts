@@ -23,10 +23,15 @@ export interface BillingPrice {
   interval: string | null;
 }
 
+export interface BillingEmailPreferences {
+  usageAlerts: boolean;
+}
+
 export interface BillingStatus {
   enabled: boolean;
   plan: Plan;
   priceMonthly: BillingPrice;
+  emailPreferences: BillingEmailPreferences;
   requests: { used: number | null; limit: number | null; periodEnd: string | null };
   cancelAtPeriodEnd: boolean;
   subscriptionPeriodEnd: string | null;

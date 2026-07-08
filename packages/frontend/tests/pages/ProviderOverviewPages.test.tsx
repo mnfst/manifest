@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import { Show } from 'solid-js';
+import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
 
 const routerState = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -160,12 +161,22 @@ vi.mock('../../src/components/Select.jsx', () => ({
   default: (props: {
     value: string;
     onChange: (value: string) => void;
-    options: Array<{ label: string; value: string; disabled?: boolean; description?: string }>;
+    options: Array<{
+      label: string;
+      value: string;
+      disabled?: boolean;
+      description?: string;
+      badge?: unknown;
+    }>;
   }) => (
     <select value={props.value} onChange={(e) => props.onChange(e.currentTarget.value)}>
       {props.options.map((option) => (
         <option value={option.value} disabled={option.disabled}>
-          {option.description ? `${option.label} · ${option.description}` : option.label}
+          {option.description
+            ? `${option.label} · ${option.description}`
+            : option.badge
+              ? `${option.label} · PRO`
+              : option.label}
         </option>
       ))}
     </select>
@@ -247,7 +258,16 @@ vi.mock('../../src/services/connection-breadcrumb-store.js', () => ({
   setConnectionBreadcrumb: vi.fn(),
 }));
 
+const { MOCK_FREE_PLAN_REQUESTS_PER_MONTH } = vi.hoisted(() => ({
+  MOCK_FREE_PLAN_REQUESTS_PER_MONTH: 10_000,
+}));
+
 vi.mock('manifest-shared', () => ({
+  FREE_PLAN_REQUESTS_PER_MONTH: MOCK_FREE_PLAN_REQUESTS_PER_MONTH,
+  PLAN_LIMITS: {
+    free: { requestsPerMonth: MOCK_FREE_PLAN_REQUESTS_PER_MONTH },
+    pro: { requestsPerMonth: null },
+  },
   platformIcon: () => 'robot',
   PLATFORM_LABELS: { codex: 'Codex' },
   // routing-utils (imported by GlobalOverview for stripCustomPrefix) reads
@@ -763,7 +783,12 @@ describe('GlobalOverview (analytics)', () => {
       enabled: true,
       plan: 'free',
       priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
-      requests: { used: 120, limit: 10_000, periodEnd: '2026-08-01T00:00:00.000Z' },
+      emailPreferences: { usageAlerts: true },
+      requests: {
+        used: 120,
+        limit: FREE_PLAN_REQUESTS_PER_MONTH,
+        periodEnd: '2026-08-01T00:00:00.000Z',
+      },
       cancelAtPeriodEnd: false,
       subscriptionPeriodEnd: null,
     });
@@ -780,7 +805,7 @@ describe('GlobalOverview (analytics)', () => {
       ['30d', '90d', '365d'].includes(option.value),
     );
     expect(lockedOptions.map((option) => option.disabled)).toEqual([true, true, true]);
-    expect(screen.getByText('Last 30 days · Available on Pro')).toBeDefined();
+    expect(screen.getByText('Last 30 days · PRO')).toBeDefined();
 
     fireEvent.change(rangeSelect, { target: { value: '90d' } });
     expect(localStorage.getItem('manifest_global_range')).toBe('7d');
@@ -1018,7 +1043,8 @@ describe('ConnectionDetail (analytics)', () => {
     render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
 
-    fireEvent.change(screen.getByDisplayValue('Last 7 days'), { target: { value: '365d' } });
+    const rangeSelect = screen.getByRole('combobox') as HTMLSelectElement;
+    fireEvent.change(rangeSelect, { target: { value: '365d' } });
     expect(sessionStorage.getItem('chart-range:conn-openai')).toBe('365d');
 
     fireEvent.click(screen.getByText('Messages chart'));
@@ -1376,7 +1402,7 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
 
     // range + view persistence both throw and are swallowed
-    fireEvent.change(screen.getByDisplayValue('Last 7 days'), { target: { value: '30d' } });
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: '30d' } });
     fireEvent.click(screen.getByText('Messages chart'));
 
     // filter persistence (toggle / select all) all throw + swallow

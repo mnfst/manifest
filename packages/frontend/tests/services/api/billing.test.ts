@@ -4,21 +4,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // `billing.ts` asks for, without re-exercising the SWR cache + fetch plumbing
 // already covered by core.test.ts. The factory is hoisted, so the spy has to
 // be created via `vi.hoisted` to be referenceable inside it.
-const { fetchJsonMock } = vi.hoisted(() => ({
+const { fetchJsonMock, fetchMutateMock } = vi.hoisted(() => ({
   fetchJsonMock: vi.fn(),
+  fetchMutateMock: vi.fn(),
 }));
 
 vi.mock('../../../src/services/api/core.js', () => ({
   fetchJson: fetchJsonMock,
+  fetchMutate: fetchMutateMock,
 }));
 
-import { getBillingStatus } from '../../../src/services/api/billing';
-import { fetchJson } from '../../../src/services/api/core';
-import type { BillingStatus } from 'manifest-shared';
+import { getBillingStatus, updateBillingEmailPreferences } from '../../../src/services/api/billing';
+import { fetchJson, fetchMutate } from '../../../src/services/api/core';
+import { FREE_PLAN_REQUESTS_PER_MONTH, type BillingStatus } from 'manifest-shared';
 
 describe('billing API client', () => {
   beforeEach(() => {
     fetchJsonMock.mockReset();
+    fetchMutateMock.mockReset();
   });
 
   it('getBillingStatus GETs /billing/status and returns the parsed status', async () => {
@@ -26,7 +29,10 @@ describe('billing API client', () => {
       enabled: true,
       plan: 'pro',
       priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
+      emailPreferences: { usageAlerts: true },
       requests: { used: 1_000, limit: 500_000, periodEnd: '2026-08-01T00:00:00.000Z' },
+      cancelAtPeriodEnd: false,
+      subscriptionPeriodEnd: null,
     };
     fetchJsonMock.mockResolvedValue(status);
 
@@ -41,7 +47,10 @@ describe('billing API client', () => {
       enabled: false,
       plan: 'free',
       priceMonthly: { amount: null, currency: null, interval: null },
-      requests: { used: null, limit: 10_000, periodEnd: null },
+      emailPreferences: { usageAlerts: true },
+      requests: { used: null, limit: FREE_PLAN_REQUESTS_PER_MONTH, periodEnd: null },
+      cancelAtPeriodEnd: false,
+      subscriptionPeriodEnd: null,
     };
     fetchJsonMock.mockResolvedValue(status);
 
@@ -56,7 +65,10 @@ describe('billing API client', () => {
       enabled: true,
       plan: 'free',
       priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
-      requests: { used: 500, limit: 10_000, periodEnd: null },
+      emailPreferences: { usageAlerts: true },
+      requests: { used: 500, limit: FREE_PLAN_REQUESTS_PER_MONTH, periodEnd: null },
+      cancelAtPeriodEnd: false,
+      subscriptionPeriodEnd: null,
     };
     fetchJsonMock.mockResolvedValue(status);
 
@@ -64,5 +76,19 @@ describe('billing API client', () => {
 
     expect(fetchJson).toHaveBeenCalledWith('/billing/status', undefined, { cache: false });
     expect(result).toBe(status);
+  });
+
+  it('updateBillingEmailPreferences PATCHes the preference payload', async () => {
+    const saved = { usageAlerts: false };
+    fetchMutateMock.mockResolvedValue(saved);
+
+    const result = await updateBillingEmailPreferences({ usageAlerts: false });
+
+    expect(fetchMutate).toHaveBeenCalledWith('/billing/email-preferences', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usageAlerts: false }),
+    });
+    expect(result).toBe(saved);
   });
 });

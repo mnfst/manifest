@@ -475,10 +475,15 @@ describe('auth.instance', () => {
       const pluginConfig = mockStripePlugin.mock.calls[0][0];
       expect(pluginConfig.stripeClient).toBeDefined();
       expect(pluginConfig.stripeWebhookSecret).toBe('whsec_x');
-      expect(pluginConfig.subscription).toEqual({
+      expect(pluginConfig.subscription).toMatchObject({
         enabled: true,
         plans: [{ name: 'pro', priceId: 'price_x' }],
       });
+      expect(pluginConfig.subscription.onSubscriptionComplete).toEqual(expect.any(Function));
+      expect(pluginConfig.subscription.onSubscriptionCreated).toEqual(expect.any(Function));
+      expect(pluginConfig.subscription.onSubscriptionUpdate).toEqual(expect.any(Function));
+      expect(pluginConfig.subscription.onSubscriptionCancel).toEqual(expect.any(Function));
+      expect(pluginConfig.subscription.onSubscriptionDeleted).toEqual(expect.any(Function));
       expect(pluginConfig).not.toHaveProperty('createCustomerOnSignUp');
     });
   });

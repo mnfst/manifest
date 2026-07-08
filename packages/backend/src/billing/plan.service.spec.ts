@@ -1,16 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { HttpException } from '@nestjs/common';
 import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
 import { PlanService } from './plan.service';
+import { Tenant } from '../entities/tenant.entity';
 import * as billingConfig from './billing.config';
 
 describe('PlanService', () => {
   let service: PlanService;
+  let mockTenantFindOne: jest.Mock;
+  let mockTenantUpdate: jest.Mock;
   let mockQuery: jest.Mock;
   const saved = { ...process.env };
   const CTX = { tenantId: 't1', userId: 'u1' };
   const FRESH_CTX = { tenantId: null, userId: 'u1' };
+  const TENANT = { id: 't1', owner_user_id: 'u1', limit_overrides: null };
 
   function enableBilling() {
     process.env['MANIFEST_MODE'] = 'cloud';
@@ -22,9 +27,18 @@ describe('PlanService', () => {
   beforeEach(async () => {
     process.env = { ...saved };
     jest.restoreAllMocks();
+    mockTenantFindOne = jest.fn().mockResolvedValue(null);
+    mockTenantUpdate = jest.fn().mockResolvedValue({ affected: 1 });
     mockQuery = jest.fn().mockResolvedValue([]);
     const module: TestingModule = await Test.createTestingModule({
-      providers: [PlanService, { provide: DataSource, useValue: { query: mockQuery } }],
+      providers: [
+        PlanService,
+        {
+          provide: getRepositoryToken(Tenant),
+          useValue: { findOne: mockTenantFindOne, update: mockTenantUpdate },
+        },
+        { provide: DataSource, useValue: { query: mockQuery } },
+      ],
     }).compile();
     service = module.get(PlanService);
   });
@@ -131,10 +145,52 @@ describe('PlanService', () => {
       expect(status).toMatchObject({
         enabled: true,
         plan: 'free',
+        emailPreferences: { usageAlerts: true },
         requests: { used: 42, limit: FREE_PLAN_REQUESTS_PER_MONTH },
       });
       // periodEnd is the 1st of next month at midnight UTC.
       expect(status.requests.periodEnd).toMatch(/^\d{4}-\d{2}-01T00:00:00\.000Z$/);
+    });
+  });
+
+  describe('billing email preferences', () => {
+    it('defaults usage alerts on when no tenant preference is stored', async () => {
+      mockTenantFindOne.mockResolvedValue(TENANT);
+
+      await expect(service.getBillingEmailPreferences(CTX)).resolves.toEqual({
+        usageAlerts: true,
+      });
+    });
+
+    it('reads stored usage alert opt-outs', async () => {
+      mockTenantFindOne.mockResolvedValue({
+        ...TENANT,
+        billing_email_preferences: { usageAlerts: false },
+      });
+
+      await expect(service.getBillingEmailPreferences(CTX)).resolves.toEqual({
+        usageAlerts: false,
+      });
+    });
+
+    it('updates tenant billing email preferences', async () => {
+      await expect(
+        service.updateBillingEmailPreferences(CTX, { usageAlerts: false }),
+      ).resolves.toEqual({
+        usageAlerts: false,
+      });
+
+      expect(mockTenantUpdate).toHaveBeenCalledWith(
+        { id: 't1' },
+        { billing_email_preferences: { usageAlerts: false } },
+      );
+    });
+
+    it('rejects updates before a workspace exists', async () => {
+      await expect(
+        service.updateBillingEmailPreferences(FRESH_CTX, { usageAlerts: false }),
+      ).rejects.toThrow('A workspace is required');
+      expect(mockTenantUpdate).not.toHaveBeenCalled();
     });
   });
 

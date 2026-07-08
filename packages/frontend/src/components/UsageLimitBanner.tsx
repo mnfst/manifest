@@ -1,6 +1,7 @@
 import { A } from '@solidjs/router';
 import { Show, createResource, createSignal, type Component } from 'solid-js';
 import { getBillingStatus } from '../services/api/billing.js';
+import { FREE_REQUEST_LIMIT_LABEL } from '../services/billing-display.js';
 
 const DISMISS_KEY = 'manifest_usage_banner_dismissed';
 
@@ -51,18 +52,25 @@ const UsageLimitBanner: Component = () => {
 
   return (
     <Show when={(nearLimit() && !dismissed()) || atLimit()}>
-      <div
-        class="usage-limit-banner"
-        classList={{ 'usage-limit-banner--danger': atLimit() }}
-      >
+      <div class="usage-limit-banner" classList={{ 'usage-limit-banner--danger': atLimit() }}>
         <span class="usage-limit-banner__text">
           {atLimit()
             ? "You've reached your monthly limit. Requests are being blocked."
-            : "You're limited to 10,000 requests this month. Upgrade for unlimited."}
+            : `You're limited to ${FREE_REQUEST_LIMIT_LABEL} requests this month. Upgrade for unlimited.`}
         </span>
         <div class="usage-limit-banner__actions">
           <A href="/upgrade" class="btn btn--outline btn--sm usage-limit-banner__btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2m0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8"/><path d="m8 12 1.41 1.41L11 11.83V17h2v-5.17l1.59 1.59L16 12l-4-4z"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2m0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8" />
+              <path d="m8 12 1.41 1.41L11 11.83V17h2v-5.17l1.59 1.59L16 12l-4-4z" />
+            </svg>
             Upgrade plan
           </A>
           <Show when={canDismiss()}>

@@ -1,4 +1,5 @@
 import { HttpException } from '@nestjs/common';
+import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
 import { ProxyController } from '../proxy.controller';
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
 import { ProxyMessageDedup } from '../proxy-message-dedup';
@@ -298,7 +299,12 @@ describe('ProxyController', () => {
 
   it('enforces the plan request limit before routing — a block propagates and is not recorded', async () => {
     const block = new HttpException(
-      { statusCode: 402, code: 'PLAN_LIMIT_REQUESTS', limit: 10_000, used: 10_000 },
+      {
+        statusCode: 402,
+        code: 'PLAN_LIMIT_REQUESTS',
+        limit: FREE_PLAN_REQUESTS_PER_MONTH,
+        used: FREE_PLAN_REQUESTS_PER_MONTH,
+      },
       402,
     );
     planService.assertWithinRequestLimit.mockRejectedValueOnce(block);

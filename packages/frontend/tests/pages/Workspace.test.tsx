@@ -105,10 +105,15 @@ vi.mock('../../src/services/recent-agents.js', () => ({
   markSetupPending: vi.fn(),
 }));
 
+const { MOCK_FREE_PLAN_REQUESTS_PER_MONTH } = vi.hoisted(() => ({
+  MOCK_FREE_PLAN_REQUESTS_PER_MONTH: 10_000,
+}));
+
 vi.mock('manifest-shared', () => ({
   AGENT_CATEGORIES: ['personal', 'app', 'coding'],
+  FREE_PLAN_REQUESTS_PER_MONTH: MOCK_FREE_PLAN_REQUESTS_PER_MONTH,
   PLAN_LIMITS: {
-    free: { requestsPerMonth: 10_000 },
+    free: { requestsPerMonth: MOCK_FREE_PLAN_REQUESTS_PER_MONTH },
     pro: { requestsPerMonth: null },
   },
   PLATFORM_ICONS: {
