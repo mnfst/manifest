@@ -7,23 +7,30 @@ describe('UpgradeSuccessModal', () => {
     const { container } = render(() => <UpgradeSuccessModal open={false} onClose={vi.fn()} />);
 
     expect(container.textContent).toBe('');
+    expect(document.body.querySelector('.upgrade-success-modal')).toBeNull();
   });
 
-  it('renders Pro benefits and closes from the backdrop or done button', () => {
+  it('renders Pro benefits and closes from the backdrop, Escape, or done button', () => {
     const onClose = vi.fn();
-    const { container } = render(() => <UpgradeSuccessModal open onClose={onClose} />);
+    render(() => <UpgradeSuccessModal open onClose={onClose} />);
 
     expect(screen.getByText("You're on the Pro plan")).toBeDefined();
     expect(screen.getByText('Unlimited routed requests')).toBeDefined();
     expect(screen.getByText('365 days dashboard retention')).toBeDefined();
 
-    fireEvent.click(container.querySelector('.upgrade-success-modal')!);
+    const dialog = screen.getByRole('dialog', { name: 'Upgrade successful' });
+    const backdrop = document.body.querySelector('.modal-backdrop') as HTMLElement;
+
+    fireEvent.click(dialog);
     expect(onClose).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByText('Done'));
     expect(onClose).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(container.querySelector('.modal-backdrop')!);
+    fireEvent.keyDown(backdrop, { key: 'Escape' });
     expect(onClose).toHaveBeenCalledTimes(2);
+
+    fireEvent.click(backdrop);
+    expect(onClose).toHaveBeenCalledTimes(3);
   });
 });
