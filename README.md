@@ -75,7 +75,7 @@ Open [http://localhost:2099](http://localhost:2099) and sign up — the first ac
 | [AWS](deploy/aws/TUTORIAL.md) | CloudFormation quick-create for ECS, RDS, and Secrets Manager. |
 | [GCP](deploy/gcp/TUTORIAL.md) | Cloud Shell guided deploy for Cloud Run, Cloud SQL, and Secret Manager. |
 
-Full deployment guides: [Railway](https://manifest.build/deploy/railway/), [Render](https://manifest.build/deploy/render/), [DigitalOcean](https://manifest.build/deploy/digitalocean/), [AWS](https://manifest.build/deploy/aws/), [GCP](https://manifest.build/deploy/gcp/), [Coolify](https://manifest.build/deploy/coolify/), [Heroku](https://manifest.build/deploy/heroku/), and [Koyeb](https://manifest.build/deploy/koyeb/).
+Full deployment guides: [Railway](https://manifest.build/deploy/railway/), [Render](https://manifest.build/deploy/render/), [DigitalOcean](https://manifest.build/deploy/digitalocean/), [AWS](https://manifest.build/deploy/aws/), [GCP](https://manifest.build/deploy/gcp/), [Fly.io](https://manifest.build/deploy/fly/), [Coolify](https://manifest.build/deploy/coolify/), [Easypanel](https://manifest.build/deploy/easypanel/), [Heroku](https://manifest.build/deploy/heroku/), and [Koyeb](https://manifest.build/deploy/koyeb/).
 
 > The old npm-based self-hosting path is no longer supported. Use the Docker image or one of the deployment guides above.
 
