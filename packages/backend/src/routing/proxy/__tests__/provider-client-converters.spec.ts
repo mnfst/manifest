@@ -831,6 +831,32 @@ describe('provider-client-converters', () => {
       expect(result).not.toHaveProperty('max_tokens');
     });
 
+    it('should convert max_tokens for a custom OpenAI-compatible endpoint serving GPT-5 (#2415)', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        model: 'gpt-5',
+        max_tokens: 4096,
+      };
+
+      const result = sanitizeOpenAiBody(body, 'custom', 'gpt-5');
+
+      expect(result).toHaveProperty('max_completion_tokens', 4096);
+      expect(result).not.toHaveProperty('max_tokens');
+    });
+
+    it('should keep max_tokens for a custom endpoint serving a non o-series model', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        model: 'llama-3.1-70b',
+        max_tokens: 4096,
+      };
+
+      const result = sanitizeOpenAiBody(body, 'custom', 'llama-3.1-70b');
+
+      expect(result).toHaveProperty('max_tokens', 4096);
+      expect(result).not.toHaveProperty('max_completion_tokens');
+    });
+
     it('should keep max_tokens for older OpenAI models (GPT-4)', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],

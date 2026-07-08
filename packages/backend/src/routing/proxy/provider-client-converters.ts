@@ -123,9 +123,13 @@ const OPENAI_MAX_COMPLETION_TOKENS_RE = /^(o\d|gpt-5)/i;
  * Endpoints that ultimately hit OpenAI infrastructure and therefore need
  * `max_tokens` rewritten to `max_completion_tokens` for o-series / GPT-5+.
  * Copilot belongs here because GitHub Copilot proxies these models to OpenAI
- * (issue mnfst/manifest#1849).
+ * (issue mnfst/manifest#1849). Custom providers are OpenAI-compatible endpoints
+ * (Azure Foundry / vLLM / LiteLLM / OpenRouter-style), which reject `max_tokens`
+ * with a 400 when fronting a gpt-5 / o-series model (issue mnfst/manifest#2415).
+ * The model regex still gates the rewrite, so non o-series custom models are
+ * left untouched.
  */
-const OPENAI_MAX_COMPLETION_TOKENS_ENDPOINTS = new Set(['openai', 'copilot']);
+const OPENAI_MAX_COMPLETION_TOKENS_ENDPOINTS = new Set(['openai', 'copilot', 'custom']);
 
 function usesOpenAiMaxCompletionTokens(endpointKey: string, bareModel: string): boolean {
   return (
