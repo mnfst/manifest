@@ -15,8 +15,9 @@ import {
 } from './common/middleware/body-parser-limits';
 import {
   applyPrivateNetworkAllow,
+  buildCorsOptions,
   buildDevAllowedOrigins,
-  buildDevCorsOptions,
+  buildProdAllowedOrigins,
   buildFrameSrc,
   parseFrameAncestors,
 } from './cors-csp-config';
@@ -76,14 +77,17 @@ export async function bootstrap() {
   // the package's default content-type filter.
   app.use(compression({ filter: shouldCompress }));
 
-  // CORS is enabled only in dev so the Vite frontend on :3000, the local
-  // Wingman build at `WINGMAN_PORT`, and the hosted Wingman SPA can hit
-  // the backend cross-origin. Production never enables CORS — the
-  // dashboard is same-origin and the Wingman drawer is dead-code-
-  // eliminated, so there are no legitimate cross-origin callers.
+  // CORS: the dashboard is same-origin, but the hosted Wingman gateway tester
+  // (https://wingman.manifest.build) is a legitimate cross-origin caller of the
+  // gateway routes, so both dev and production allow its origin. Dev also allows
+  // the Vite frontend on :3000 and the local Wingman build at `WINGMAN_PORT`,
+  // and answers Chrome's Private Network Access preflight for loopback gateways.
+  // Production allows only the hosted Wingman origin plus any
+  // `WINGMAN_CORS_ORIGINS` a self-hoster opts into — and needs no PNA, since a
+  // public gateway isn't on a loopback address.
   //
-  // See `buildDevCorsOptions` for the rationale behind `credentials: false`,
-  // the omitted `allowedHeaders`, and the preflight `maxAge`.
+  // See `buildCorsOptions` for the rationale behind `credentials: false`, the
+  // omitted `allowedHeaders`, and the preflight `maxAge`.
   if (isDev) {
     const configuredOrigin = process.env['CORS_ORIGIN'] || 'http://localhost:3000';
     const allowedOrigins = buildDevAllowedOrigins({
@@ -97,7 +101,12 @@ export async function bootstrap() {
       applyPrivateNetworkAllow(req, allowedOrigins, (name, value) => res.setHeader(name, value));
       next();
     });
-    app.enableCors(buildDevCorsOptions(allowedOrigins));
+    app.enableCors(buildCorsOptions(allowedOrigins));
+  } else {
+    const allowedOrigins = buildProdAllowedOrigins({
+      extraOrigins: process.env['WINGMAN_CORS_ORIGINS'],
+    });
+    app.enableCors(buildCorsOptions(allowedOrigins));
   }
 
   app.useGlobalPipes(

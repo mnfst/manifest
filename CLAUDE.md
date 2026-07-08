@@ -376,8 +376,9 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `MANIFEST_ENCRYPTION_KEY` — Recommended. AES-256-GCM key (min 32 chars) for encrypting stored provider API keys and OAuth tokens. Defaults to `BETTER_AUTH_SECRET` if unset — set this independently so a session-cookie leak doesn't also expose provider credentials.
 - `PORT` — Server port. Default: `3001`
 - `BIND_ADDRESS` — Bind address. Default: `127.0.0.1` (use `0.0.0.0` for Railway/Docker)
-- `NODE_ENV` — `development` or `production`. CORS only enabled in dev.
-- `CORS_ORIGIN` — Allowed CORS origin. Default: `http://localhost:3000`
+- `NODE_ENV` — `development` or `production`. Dev allows broad CORS (local dashboard + Wingman); production allows only the hosted Wingman origin.
+- `CORS_ORIGIN` — Allowed CORS origin (dev). Default: `http://localhost:3000`
+- `WINGMAN_CORS_ORIGINS` — Production only. Extra browser origins allowed to call the gateway (comma-separated). The hosted Wingman (`https://wingman.manifest.build`) is always allowed.
 - `BETTER_AUTH_URL` — Base URL for Better Auth. Default: `http://localhost:{PORT}`
 - `FRONTEND_PORT` — Extra trusted origin port for Better Auth.
 - `API_KEY` — Secret for programmatic API access (X-API-Key header).

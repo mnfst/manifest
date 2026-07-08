@@ -1,13 +1,23 @@
-// Single source of truth for the dev-mode CORS allow-list and the CSP
-// `frame-src` directive. The Wingman drawer is a dev-only affordance —
-// the component is dead-code-eliminated from production bundles, so
-// neither directive needs Wingman in production.
+// Single source of truth for the CORS allow-lists and the CSP `frame-src`
+// directive. CORS allows the hosted Wingman gateway tester in both dev and
+// production (it's a legitimate cross-origin caller of the gateway). The CSP
+// `frame-src` — which governs embedding the Wingman drawer in the dashboard —
+// stays dev-only, since that drawer is dead-code-eliminated from production.
 
 export const HOSTED_WINGMAN_ORIGIN = 'https://wingman.manifest.build';
 
 export interface DevOriginBuilderOptions {
   configuredOrigin: string;
   wingmanPort: number;
+}
+
+export interface ProdOriginBuilderOptions {
+  /**
+   * Comma-separated extra origins from `WINGMAN_CORS_ORIGINS` — lets an
+   * operator whose self-hosted Wingman lives on a different origin than the
+   * gateway opt it in without a code change.
+   */
+  extraOrigins?: string;
 }
 
 export interface FrameSrcOptions {
@@ -28,6 +38,20 @@ export function buildDevAllowedOrigins({
       HOSTED_WINGMAN_ORIGIN,
     ]),
   );
+}
+
+// Production CORS allow-list. The dashboard is same-origin, but the hosted
+// Wingman gateway tester (https://wingman.manifest.build) is a legitimate
+// cross-origin caller of the gateway routes (`/v1/chat/completions`,
+// `/v1/messages`), so production must allow its origin. Exact match only, and
+// `credentials: false` at the call site keeps this safe: an allow-listed origin
+// still needs the user's own bearer key and no session cookie can ride along.
+export function buildProdAllowedOrigins({ extraOrigins }: ProdOriginBuilderOptions = {}): string[] {
+  const extras = (extraOrigins ?? '')
+    .split(',')
+    .map((v) => v.trim())
+    .filter((v) => v.length > 0);
+  return Array.from(new Set([HOSTED_WINGMAN_ORIGIN, ...extras]));
 }
 
 export function buildFrameSrc({ isDev, wingmanPort }: FrameSrcOptions): string[] {
@@ -79,35 +103,35 @@ export function createCorsOriginHandler(allowedOrigins: string[]): CorsOriginHan
   };
 }
 
-// Preflight cache lifetime (seconds) for the dev CORS path. Without a
-// max-age the browser re-runs the preflight — including the Private Network
-// Access preflight — roughly every 5s, so every dashboard reload re-issues
-// one. Each round trip is another chance for a transient dev-proxy or
-// backend-restart blip to surface as a spurious CORS error in the Wingman
-// drawer. Caching the preflight collapses those repeats. 7200s (2h) is the
-// ceiling Chrome honors; scoped to dev because production never enables CORS.
-export const DEV_CORS_MAX_AGE_SECONDS = 7200;
+// Preflight cache lifetime (seconds), shared by the dev and production CORS
+// paths. Without a max-age the browser re-runs the preflight — including the
+// dev Private Network Access preflight — roughly every 5s, so every dashboard
+// reload (dev) or burst of Wingman requests (production) re-issues one. Each
+// round trip is another chance for a transient blip to surface as a spurious
+// CORS error. Caching the preflight collapses those repeats. 7200s (2h) is the
+// ceiling Chrome honors.
+export const CORS_PREFLIGHT_MAX_AGE_SECONDS = 7200;
 
-export interface DevCorsOptions {
+export interface CorsOptions {
   origin: CorsOriginHandler;
   credentials: false;
   maxAge: number;
 }
 
-// The exact `enableCors()` options main.ts uses in dev, kept here so the
-// e2e/unit tests exercise the real shape rather than a hand-rolled copy.
-// `credentials: false` is deliberate — Wingman uses bearer keys, never
-// cookies, so keeping credentials off the cross-origin path means a
-// misconfigured allow-list can't leak session cookies. `allowedHeaders` is
-// intentionally omitted so the cors middleware reflects the request's
-// `Access-Control-Request-Headers` (Wingman replays real SDK fingerprints
-// like the `X-Stainless-*` family; a fixed allow-list would fail those
-// preflights).
-export function buildDevCorsOptions(allowedOrigins: string[]): DevCorsOptions {
+// The exact `enableCors()` options main.ts uses (both dev and production —
+// only the allow-list differs), kept here so the e2e/unit tests exercise the
+// real shape rather than a hand-rolled copy. `credentials: false` is
+// deliberate — Wingman uses bearer keys, never cookies, so keeping credentials
+// off the cross-origin path means a misconfigured allow-list can't leak session
+// cookies. `allowedHeaders` is intentionally omitted so the cors middleware
+// reflects the request's `Access-Control-Request-Headers` (Wingman replays real
+// SDK fingerprints like the `X-Stainless-*` family; a fixed allow-list would
+// fail those preflights).
+export function buildCorsOptions(allowedOrigins: string[]): CorsOptions {
   return {
     origin: createCorsOriginHandler(allowedOrigins),
     credentials: false,
-    maxAge: DEV_CORS_MAX_AGE_SECONDS,
+    maxAge: CORS_PREFLIGHT_MAX_AGE_SECONDS,
   };
 }
 
