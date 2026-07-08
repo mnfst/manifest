@@ -1,0 +1,27 @@
+heroku.yml
+  s_d4dd3ac37be356::t_ccfd96ed699111 1-3
+deploy/heroku/TUTORIAL.md
+  s_d4dd3ac37be356::t_ccfd96ed699111 1-49
+app.json
+  s_d4dd3ac37be356::t_ccfd96ed699111 1-66
+Dockerfile.heroku
+  s_d4dd3ac37be356::t_ccfd96ed699111 1
+README.md
+  s_d4dd3ac37be356::t_ccfd96ed699111 19,77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "8edfae7243025a34ec5182bce56903d15c86d648",
+  "prompts": {},
+  "sessions": {
+    "s_d4dd3ac37be356": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bb6-aeb4-70e1-bc09-0180cc699731",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
