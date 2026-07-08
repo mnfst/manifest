@@ -1,0 +1,35 @@
+deploy/easypanel/template/README.md
+  s_d4dd3ac37be356::t_e58186902b1d51 1-19
+README.md
+  s_d4dd3ac37be356::t_e58186902b1d51 78
+deploy/fly/deploy.sh
+  s_d4dd3ac37be356::t_e58186902b1d51 1-77
+deploy/easypanel/template/meta.yaml
+  s_d4dd3ac37be356::t_e58186902b1d51 1-74
+deploy/fly/TUTORIAL.md
+  s_d4dd3ac37be356::t_1b55184e53ae5f 112
+  s_d4dd3ac37be356::t_e58186902b1d51 1-111,113-127
+deploy/easypanel/template/index.ts
+  s_d4dd3ac37be356::t_e58186902b1d51 1-54
+deploy/easypanel/TUTORIAL.md
+  s_d4dd3ac37be356::t_e58186902b1d51 1-100
+deploy/fly/fly.toml
+  s_d4dd3ac37be356::t_1b55184e53ae5f 27
+  s_d4dd3ac37be356::t_e58186902b1d51 1-26,28-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "76788ea1633272b5b02d25d2c12e3fd1d8209ccd",
+  "prompts": {},
+  "sessions": {
+    "s_d4dd3ac37be356": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bb6-aeb4-70e1-bc09-0180cc699731",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
