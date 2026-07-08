@@ -1,0 +1,45 @@
+name: Publish n8n Community Node
+
+on:
+  push:
+    tags:
+      - 'n8n-nodes-manifest-v*'
+
+jobs:
+  publish:
+    name: Publish n8n-nodes-manifest to npm
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    defaults:
+      run:
+        working-directory: integrations/n8n-nodes-manifest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org/'
+          cache: npm
+          cache-dependency-path: integrations/n8n-nodes-manifest/package-lock.json
+
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish
+        run: npm run release
