@@ -80,7 +80,7 @@ Managed deployment options:
 
 Manifest connects to **300+ models through 31 built-in provider connections** plus any custom OpenAI/Anthropic-compatible endpoint. Bring your own API key, reuse one of **18 subscription flows**, or run models locally. Everything is routed through the same `/auto` endpoint.
 
-Provider catalogs are discovered dynamically when credentials are connected. The examples below show the main model families each connection exposes.
+Provider catalogs are discovered dynamically when credentials are connected. The examples below are representative, not exhaustive.
 
 | Provider | API key / local | Subscription | Model catalog |
 | --- | :---: | :--- | --- |
@@ -95,12 +95,12 @@ Provider catalogs are discovered dynamically when credentials are connected. The
 | [**Moonshot** (Kimi)](https://kimi.ai/) | ✅ | ✅ Kimi Coding Plan | Kimi K2, Kimi for Coding, Moonshot v1 |
 | [**MiniMax**](https://www.minimax.io/) | ✅ | ✅ MiniMax Coding Plan | MiniMax M3, M2.7, M2.5 |
 | [**Xiaomi MiMo**](https://platform.xiaomimimo.com/) | ✅ | ✅ MiMo Token Plan | MiMo V2.5 Pro, V2.5, Flash |
-| [**Z.ai**](https://z.ai/) | ✅ | ✅ GLM Coding Plan | GLM 5.1, GLM 5, GLM 4.7 |
+| [**Z.ai**](https://z.ai/) | ✅ | ✅ GLM Coding Plan | GLM 5.2, GLM 5.1, GLM 5 Turbo |
 | [**BytePlus**](https://www.byteplus.com/en/activity/codingplan) | — | ✅ ModelArk Coding Plan | Ark Code, Seed Code, GLM, Kimi, DeepSeek |
 | [**GitHub Copilot**](https://github.com/features/copilot) | — | ✅ Copilot subscription | Claude, GPT, Gemini, Grok via Copilot |
 | [**Kiro**](https://kiro.dev/) | — | ✅ Kiro subscription | `kiro/auto`, Claude, DeepSeek, MiniMax, GLM, Qwen |
 | [**Command Code**](https://commandcode.ai/studio) | — | ✅ Command Code subscription | Claude, GPT, Kimi, DeepSeek, Qwen |
-| [**ClinePass**](https://app.cline.bot/) | — | ✅ ClinePass subscription | GLM, Kimi, DeepSeek, MiMo, MiniMax, Qwen |
+| [**ClinePass**](https://app.cline.bot/) | — | ✅ ClinePass subscription | `cline-pass/glm-5.2`, Kimi, DeepSeek, MiMo, MiniMax, Qwen |
 | [**NousResearch**](https://portal.nousresearch.com/) | — | ✅ NousResearch subscription | NousResearch Portal model catalog |
 | [**OpenCode Go**](https://opencode.ai/) | — | ✅ OpenCode Go | GLM, Kimi, MiMo, MiniMax |
 | [**Ollama / Ollama Cloud**](https://ollama.com/) | 🖥️ Local | ✅ Ollama Cloud | Local or cloud tags: Llama, Qwen, DeepSeek, Gemma |
@@ -110,7 +110,7 @@ Provider catalogs are discovered dynamically when credentials are connected. The
 | [**OpenCode Zen**](https://opencode.ai/) | ✅ | — | Claude, GPT, Gemini, Qwen, GLM, MiniMax |
 | [**Kilo**](https://kilo.ai/) | ✅ | — | Kilo Gateway catalog |
 | [**Cerebras**](https://www.cerebras.ai/) | ✅ | — | GPT OSS, GLM on Cerebras inference |
-| [**Fireworks AI**](https://fireworks.ai/) | ✅ | — | DeepSeek, Kimi, Qwen, Llama |
+| [**Fireworks AI**](https://fireworks.ai/) | ✅ | — | GLM 5.2, DeepSeek, Kimi, Qwen, Llama |
 | [**Groq**](https://groq.com/) | ✅ | — | Llama, Gemma, Mixtral |
 | [**NVIDIA NIM**](https://build.nvidia.com/) | ✅ | — | Nemotron, Llama, Mistral |
 | [**Pioneer**](https://pioneer.ai/) | ✅ | — | OpenAI-compatible and fine-tuned Pioneer models |
