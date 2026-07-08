@@ -1,0 +1,34 @@
+deploy/coolify/docker-compose.yml
+  s_d4dd3ac37be356::t_ca337c6cc4b23f 1-45
+README.md
+  s_d4dd3ac37be356::t_643ed2c99a8a0e 45
+  s_d4dd3ac37be356::t_7b23d35ce36f95 78-80
+deploy/koyeb/TUTORIAL.md
+  s_d4dd3ac37be356::t_ca337c6cc4b23f 1-68
+deploy/heroku/TUTORIAL.md
+  s_d4dd3ac37be356::t_ca337c6cc4b23f 1-69
+heroku.yml
+  s_d4dd3ac37be356::t_ca337c6cc4b23f 1-3
+Dockerfile.heroku
+  s_d4dd3ac37be356::t_ca337c6cc4b23f 1
+deploy/coolify/TUTORIAL.md
+  s_d4dd3ac37be356::t_ca337c6cc4b23f 1-54
+app.json
+  s_d4dd3ac37be356::t_ca337c6cc4b23f 1-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0b027c1f7a420d09a8f8eaf766babe5492888476",
+  "prompts": {},
+  "sessions": {
+    "s_d4dd3ac37be356": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bb6-aeb4-70e1-bc09-0180cc699731",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
