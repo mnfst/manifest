@@ -20,6 +20,12 @@ describe('billing-display', () => {
     );
   });
 
+  it('falls back when Intl cannot format the currency code', () => {
+    expect(formatBillingPrice({ amount: 20, currency: 'NOT_A_CURRENCY', interval: 'month' })).toBe(
+      '20 NOT_A_CURRENCY',
+    );
+  });
+
   it('returns null for missing price pieces', () => {
     expect(formatBillingPrice(null)).toBeNull();
     expect(formatBillingPrice({ amount: null, currency: 'USD', interval: 'month' })).toBeNull();

@@ -113,6 +113,32 @@ describe('Upgrade', () => {
     );
   });
 
+  it('goes back when the referrer is from the same origin', async () => {
+    const back = vi.spyOn(window.history, 'back').mockImplementation(() => undefined);
+    Object.defineProperty(document, 'referrer', {
+      value: `${window.location.origin}/account`,
+      configurable: true,
+    });
+    render(() => <Upgrade />);
+
+    fireEvent.click(await screen.findByText('Back'));
+
+    expect(back).toHaveBeenCalled();
+    back.mockRestore();
+  });
+
+  it('falls back to the dashboard when Back has no same-origin referrer', async () => {
+    Object.defineProperty(document, 'referrer', {
+      value: 'https://example.com/account',
+      configurable: true,
+    });
+    render(() => <Upgrade />);
+
+    fireEvent.click(await screen.findByText('Back'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('/');
+  });
+
   it('continues on Free by navigating to the dashboard', async () => {
     render(() => <Upgrade />);
 

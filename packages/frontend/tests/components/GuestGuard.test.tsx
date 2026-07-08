@@ -5,7 +5,7 @@ import { createSignal } from 'solid-js';
 const mockNavigate = vi.fn();
 const mockCheckNeedsSetup = vi.fn();
 let mockSessionData: any = { data: null, isPending: false };
-let mockSearchParams: Record<string, string> = {};
+let mockSearchParams: Record<string, string | string[]> = {};
 let setMockSession: ((v: any) => void) | undefined;
 
 vi.mock('@solidjs/router', () => ({
@@ -91,6 +91,24 @@ describe('GuestGuard', () => {
         replace: true,
       });
     });
+  });
+
+  it('lets authenticated users finish the plan step before redirecting', async () => {
+    mockSessionData = {
+      data: { user: { id: 'u1', name: 'Test' } },
+      isPending: false,
+    };
+    mockSearchParams = { step: ['plan'] };
+    render(() => (
+      <GuestGuard>
+        <span>Guest content</span>
+      </GuestGuard>
+    ));
+
+    await vi.waitFor(() => {
+      expect(screen.getByText('Guest content')).not.toBeNull();
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('redirects to /setup when setup is incomplete', async () => {

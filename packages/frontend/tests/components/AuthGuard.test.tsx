@@ -47,6 +47,42 @@ describe('AuthGuard', () => {
     expect(await screen.findByText('Protected content')).toBeDefined();
   });
 
+  it('renders children without a billing call when the user already chose a plan', async () => {
+    localStorage.setItem('manifest_plan_chosen_u1', '1');
+    render(() => (
+      <AuthGuard>
+        <span>Protected content</span>
+      </AuthGuard>
+    ));
+
+    expect(await screen.findByText('Protected content')).toBeDefined();
+    expect(mockGetBillingStatus).not.toHaveBeenCalled();
+  });
+
+  it('redirects authenticated free users to the plan step', async () => {
+    mockGetBillingStatus.mockResolvedValue({ enabled: true, plan: 'free' });
+    render(() => (
+      <AuthGuard>
+        <span>Protected content</span>
+      </AuthGuard>
+    ));
+
+    await vi.waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/register?step=plan', { replace: true });
+    });
+  });
+
+  it('fails open when billing status cannot be loaded', async () => {
+    mockGetBillingStatus.mockRejectedValue(new Error('network'));
+    render(() => (
+      <AuthGuard>
+        <span>Protected content</span>
+      </AuthGuard>
+    ));
+
+    expect(await screen.findByText('Protected content')).toBeDefined();
+  });
+
   it('shows loading state when session is pending', () => {
     mockSessionData = { data: null, isPending: true };
     const { container } = render(() => (

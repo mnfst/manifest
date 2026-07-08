@@ -56,6 +56,7 @@ describe('Register', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSignUpEmail.mockResolvedValue({});
+    mockSubscriptionUpgrade.mockResolvedValue({});
     mockGetBillingStatus.mockResolvedValue({ enabled: false, plan: 'free' });
     mockLocationSearch = '';
     mockSearchParams = {};
@@ -218,6 +219,66 @@ describe('Register', () => {
     });
 
     locationSpy.mockRestore();
+  });
+
+  it('redirects already-Pro users away from the plan step', async () => {
+    mockSearchParams = { step: 'plan' };
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: 'pro',
+      priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
+    });
+
+    render(() => <Register />);
+
+    await vi.waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+    });
+  });
+
+  it('lets users choose the free plan from the plan step', async () => {
+    const replace = vi.fn();
+    const locationSpy = vi.spyOn(window, 'location', 'get').mockReturnValue({
+      ...window.location,
+      replace,
+    });
+    mockSearchParams = { step: 'plan' };
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: 'free',
+      priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
+    });
+
+    const { container } = render(() => <Register />);
+    await screen.findByText('Choose your plan');
+
+    const freeCard = container.querySelectorAll<HTMLButtonElement>('.plan-picker__card')[0];
+    fireEvent.click(freeCard);
+    fireEvent.click(container.querySelector('.plan-picker__cta')!);
+
+    expect(replace).toHaveBeenCalledWith('/');
+    locationSpy.mockRestore();
+  });
+
+  it('starts Pro checkout from the plan step', async () => {
+    mockSearchParams = { step: 'plan' };
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: 'free',
+      priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
+    });
+
+    const { container } = render(() => <Register />);
+    await screen.findByText('Choose your plan');
+    fireEvent.click(container.querySelector('.plan-picker__cta')!);
+
+    await vi.waitFor(() => {
+      expect(mockSubscriptionUpgrade).toHaveBeenCalledWith({
+        plan: 'pro',
+        successUrl: `${window.location.origin}/overview?upgraded=1`,
+        cancelUrl: `${window.location.origin}/register`,
+      });
+    });
   });
 
   it('shows loading state during submission', async () => {

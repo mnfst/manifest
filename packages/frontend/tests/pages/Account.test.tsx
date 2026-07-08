@@ -397,6 +397,19 @@ describe('Account', () => {
       await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false));
     });
 
+    it('shows the scheduled cancellation access date for Pro users', async () => {
+      mockGetBillingStatus.mockResolvedValue({
+        ...proStatus,
+        cancelAtPeriodEnd: true,
+        subscriptionPeriodEnd: '2026-08-15T00:00:00.000Z',
+      });
+
+      render(() => <Account />);
+
+      await screen.findByText(/You'll keep Pro access until/);
+      expect(screen.getByText(/August 15, 2026/)).toBeDefined();
+    });
+
     it('shows unlimited labels when pro limits are null', async () => {
       mockGetBillingStatus.mockResolvedValue({
         ...proStatus,
