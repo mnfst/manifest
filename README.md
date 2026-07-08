@@ -16,7 +16,6 @@ Plug your AI agents into any provider
   <a href="https://railway.com/deploy/wild-wild" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-Railway-0B0D0E?style=for-the-badge&amp;logo=railway&amp;logoColor=white" alt="Deploy on Railway" /></a>
   <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/quickcreate?stackName=manifest&amp;templateURL=https%3A%2F%2Fmnfst-manifest-deploy-templates.s3.us-east-1.amazonaws.com%2Fmanifest.yaml" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-AWS-232F3E?style=for-the-badge&amp;logo=amazonwebservices&amp;logoColor=white" alt="Deploy on AWS" /></a>
   <a href="https://ssh.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https%3A%2F%2Fgithub.com%2Fmnfst%2Fmanifest&amp;cloudshell_workspace=deploy%2Fgcp&amp;cloudshell_tutorial=TUTORIAL.md&amp;cloudshell_image=gcr.io/ds-artifacts-cloudshell/deploystack_custom_image&amp;shellonly=true" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-GCP-4285F4?style=for-the-badge&amp;logo=googlecloud&amp;logoColor=white" alt="Deploy on GCP" /></a>
-  <a href="https://www.heroku.com/deploy?template=https://github.com/mnfst/manifest" target="_blank" rel="nofollow"><img src="https://img.shields.io/badge/Deploy%20on-Heroku-430098?style=for-the-badge&amp;logo=heroku&amp;logoColor=white" alt="Deploy on Heroku" /></a>
 </p>
 
 <p align="center">
@@ -66,15 +65,15 @@ bash <(curl -sSL https://raw.githubusercontent.com/mnfst/manifest/main/docker/in
 
 Open [http://localhost:2099](http://localhost:2099) and sign up — the first account you create becomes the admin. Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
 
-Managed deployment options:
+### Deploy with one click
 
-| Platform | What it provisions |
+| Platform | Notes |
 | --- | --- |
-| [Railway](https://railway.com/deploy/wild-wild) | Manifest plus PostgreSQL from the public Railway template. |
-| [Render](https://render.com/deploy?repo=https://github.com/mnfst/manifest) | Manifest web service plus Render PostgreSQL from [render.yaml](render.yaml). |
-| [AWS](deploy/aws/TUTORIAL.md) | ECS Fargate, Application Load Balancer, RDS PostgreSQL, and Secrets Manager via CloudFormation. |
-| [GCP](deploy/gcp/TUTORIAL.md) | Cloud Run, Cloud SQL for PostgreSQL, and Secret Manager via the Cloud Shell tutorial. |
-| [Heroku](deploy/heroku/TUTORIAL.md) | Manifest web dyno plus Heroku Postgres from [app.json](app.json) and [heroku.yml](heroku.yml). |
+| [Railway](https://railway.com/deploy/wild-wild) | Best path. Template includes Manifest and PostgreSQL. |
+| [Render](https://render.com/deploy?repo=https://github.com/mnfst/manifest) | Blueprint includes Manifest and Render PostgreSQL. |
+| [Heroku](deploy/heroku/TUTORIAL.md) | Button includes Manifest and Heroku Postgres. Set `BETTER_AUTH_URL=https://<app-name>.herokuapp.com`. |
+| [AWS](deploy/aws/TUTORIAL.md) | CloudFormation quick-create for ECS, RDS, and Secrets Manager. |
+| [GCP](deploy/gcp/TUTORIAL.md) | Cloud Shell guided deploy for Cloud Run, Cloud SQL, and Secret Manager. |
 
 > The legacy `manifest` npm package is deprecated and no longer published.
 

@@ -4,7 +4,11 @@ This template deploys Manifest to a Heroku Cedar container-stack app with one we
 
 ## Deploy
 
-Click the Heroku button from the README and choose an app name.
+Open the Heroku deploy link and choose an app name:
+
+```text
+https://www.heroku.com/deploy?template=https://github.com/mnfst/manifest
+```
 
 When Heroku asks for `BETTER_AUTH_URL`, enter the public URL for the app name you chose:
 
