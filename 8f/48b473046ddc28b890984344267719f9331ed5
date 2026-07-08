@@ -1,0 +1,29 @@
+deploy/fly/fly.toml
+  s_d4dd3ac37be356::t_c35cc1580cb369 21
+deploy/easypanel/TUTORIAL.md
+  s_d4dd3ac37be356::t_c35cc1580cb369 53,59,62,72-73,86-95,108
+deploy/fly/TUTORIAL.md
+  s_d4dd3ac37be356::t_c35cc1580cb369 33,115
+deploy/easypanel/template/index.ts
+  s_d4dd3ac37be356::t_c35cc1580cb369 32,38,41
+deploy/fly/deploy.sh
+  s_d4dd3ac37be356::t_c35cc1580cb369 31-35,71-89
+deploy/easypanel/template/meta.yaml
+  s_d4dd3ac37be356::t_c35cc1580cb369 10-11,46-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "8f48b473046ddc28b890984344267719f9331ed5",
+  "prompts": {},
+  "sessions": {
+    "s_d4dd3ac37be356": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bb6-aeb4-70e1-bc09-0180cc699731",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
