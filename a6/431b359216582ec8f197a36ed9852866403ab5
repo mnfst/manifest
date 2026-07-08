@@ -1,0 +1,58 @@
+packages/frontend/tests/services/billing-display.test.ts
+  s_2a27f10736f8cc::t_260758bd9f6d00 23-28
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_2a27f10736f8cc::t_43be82509701dc 364-365
+  s_2a27f10736f8cc::t_93695dbee28655 34,47,268,354-363,366-368
+  s_2a27f10736f8cc::t_83c9b266be9863 72-80
+  s_2a27f10736f8cc::t_16e0f2667a552a 369
+packages/frontend/tests/components/UpgradeSuccessModal.test.tsx
+  s_2a27f10736f8cc::t_f222af54bfc9d7 1-29
+packages/frontend/tests/components/AuthGuard.test.tsx
+  s_2a27f10736f8cc::t_bf824ad3432080 50-85
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_2a27f10736f8cc::t_86e473571bfe22 37-41,116-120,521-531,533-549,551-565,567-569
+  s_2a27f10736f8cc::t_114c036213b96f 532,550,566
+  s_2a27f10736f8cc::t_137d132ba94f67 570
+packages/frontend/tests/services/plan-selection.test.ts
+  s_2a27f10736f8cc::t_6a9b60a0fbb402 1-42
+packages/frontend/tests/pages/Upgrade.test.tsx
+  s_2a27f10736f8cc::t_0ee619408b8d95 116-141
+packages/frontend/tests/pages/Account.test.tsx
+  s_2a27f10736f8cc::t_3b5066f0c23a24 400-412
+packages/frontend/tests/pages/Register.test.tsx
+  s_2a27f10736f8cc::t_6129f6f8549b22 59,224-282
+  s_2a27f10736f8cc::t_b432691f983fcb 283
+packages/frontend/tests/components/UsageLimitBanner.test.tsx
+  s_2a27f10736f8cc::t_18e507bc5bf378 64-80
+  s_2a27f10736f8cc::t_569cfd63458452 1-63,81-97
+packages/frontend/tests/components/GuestGuard.test.tsx
+  s_2a27f10736f8cc::t_b5fff13bbe989e 8,96-111
+  s_5c287139553f64::t_3570b91e6f707d 112-113
+packages/frontend/tests/components/PlanPicker.test.tsx
+  s_2a27f10736f8cc::t_5c01c27c6a6228 13
+  s_2a27f10736f8cc::t_1b2b0c0e3d1ec1 1-12,14-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a6431b359216582ec8f197a36ed9852866403ab5",
+  "prompts": {},
+  "sessions": {
+    "s_2a27f10736f8cc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4184-a356-7bb3-bfee-194b1c5b90fc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_5c287139553f64": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4235-b7bc-7f13-98a7-27d2d1c90800",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
