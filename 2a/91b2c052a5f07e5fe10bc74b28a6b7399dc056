@@ -1,0 +1,25 @@
+packages/frontend/tests/components/AuthGuard.test.tsx
+  s_2a27f10736f8cc::t_9dc5a8630545b2 5,23-26,32-33,41,47
+packages/frontend/tests/components/Header.test.tsx
+  s_2a27f10736f8cc::t_3ab23263ff3022 6-7,54-57,63-66,71-73,129
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_2a27f10736f8cc::t_cadd67aeefdfbd 498,501-502,504-508
+packages/frontend/tests/pages/Register.test.tsx
+  s_2a27f10736f8cc::t_9a2e68f859983b 6-8,10,19-20,30-33,36,40-43,59,61,190,198-202,217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2a91b2c052a5f07e5fe10bc74b28a6b7399dc056",
+  "prompts": {},
+  "sessions": {
+    "s_2a27f10736f8cc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4184-a356-7bb3-bfee-194b1c5b90fc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
