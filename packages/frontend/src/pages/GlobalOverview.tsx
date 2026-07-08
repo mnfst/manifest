@@ -14,6 +14,7 @@ import {
 import AddAgentModal from '../components/AddAgentModal.jsx';
 import UpgradeSuccessModal from '../components/UpgradeSuccessModal.jsx';
 import { markPlanChosen } from '../services/plan-selection.js';
+import { authClient } from '../services/auth-client.js';
 import {
   getAgents,
   getGlobalProviders,
@@ -135,8 +136,12 @@ function loadRange(): string {
 const GlobalOverview: Component = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const session = authClient.useSession();
   const isUpgraded = searchParams.upgraded === '1';
-  if (isUpgraded) markPlanChosen();
+  if (isUpgraded) {
+    const uid = session()?.data?.user?.id;
+    if (uid) markPlanChosen(uid);
+  }
   const [upgradeModalOpen, setUpgradeModalOpen] = createSignal(isUpgraded);
 
   const closeUpgradeModal = () => {

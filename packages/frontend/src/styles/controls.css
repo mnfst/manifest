@@ -339,10 +339,9 @@
 }
 
 .header__logo-img {
-  width: 152px;
+  width: 104px;
   height: auto;
   object-fit: contain;
-  margin-bottom: 9px;
 }
 
 .header__logo-img--dark {

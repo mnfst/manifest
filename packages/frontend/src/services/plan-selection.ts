@@ -1,24 +1,24 @@
-const KEY = 'manifest_plan_chosen';
+const PREFIX = 'manifest_plan_chosen_';
 
-export function markPlanChosen(): void {
+export function markPlanChosen(userId: string): void {
   try {
-    localStorage.setItem(KEY, '1');
+    localStorage.setItem(`${PREFIX}${userId}`, '1');
   } catch {
     /* storage full or unavailable */
   }
 }
 
-export function hasPlanBeenChosen(): boolean {
+export function hasPlanBeenChosen(userId: string): boolean {
   try {
-    return localStorage.getItem(KEY) === '1';
+    return localStorage.getItem(`${PREFIX}${userId}`) === '1';
   } catch {
     return false;
   }
 }
 
-export function clearPlanChosen(): void {
+export function clearPlanChosen(userId: string): void {
   try {
-    localStorage.removeItem(KEY);
+    localStorage.removeItem(`${PREFIX}${userId}`);
   } catch {
     /* noop */
   }

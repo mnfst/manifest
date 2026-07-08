@@ -37,6 +37,8 @@ const Register: Component = () => {
   const [proPrice, setProPrice] = createSignal<string | null>(null);
   const [planBusy, setPlanBusy] = createSignal(false);
   const location = useLocation();
+  const session = authClient.useSession();
+  const userId = () => session()?.data?.user?.id ?? '';
   const showPlan = () => searchParams.step === 'plan';
   const nameId = createUniqueId();
   const emailId = createUniqueId();
@@ -52,7 +54,7 @@ const Register: Component = () => {
     getBillingStatus({ cache: false })
       .then((status) => {
         if (status?.plan === 'pro') {
-          markPlanChosen();
+          markPlanChosen(userId());
           navigate('/', { replace: true });
         } else {
           setProPrice(formatBillingPrice(status?.priceMonthly));
@@ -127,14 +129,14 @@ const Register: Component = () => {
 
   const handlePlanSelect = async (plan: PlanId) => {
     if (plan === 'free') {
-      markPlanChosen();
-      window.location.href = '/';
+      markPlanChosen(userId());
+      window.location.replace('/');
       return;
     }
     if (plan === 'enterprise') {
       return;
     }
-    markPlanChosen();
+    markPlanChosen(userId());
     setPlanBusy(true);
     try {
       const origin = window.location.origin;

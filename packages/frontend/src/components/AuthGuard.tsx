@@ -18,8 +18,9 @@ const AuthGuard: ParentComponent = (props) => {
       navigate(buildLoginRedirect(location.pathname, location.search), { replace: true });
       return;
     }
+    const userId = s.data.user?.id;
     if (planChecked()) return;
-    if (hasPlanBeenChosen()) {
+    if (userId && hasPlanBeenChosen(userId)) {
       setPlanChecked(true);
       return;
     }
@@ -28,7 +29,7 @@ const AuthGuard: ParentComponent = (props) => {
         if (status?.enabled && status.plan !== 'pro') {
           navigate('/register?step=plan', { replace: true });
         } else {
-          markPlanChosen();
+          if (userId) markPlanChosen(userId);
           setPlanChecked(true);
         }
       })
@@ -44,8 +45,8 @@ const AuthGuard: ParentComponent = (props) => {
         <div class="auth-layout">
           <div class="auth-card" style="text-align: center;">
             <div class="auth-logo">
-              <img src="/logo.svg" alt="Manifest" class="auth-logo__img auth-logo__img--light" />
-              <img src="/logo-white.svg" alt="" class="auth-logo__img auth-logo__img--dark" />
+              <img src="/logotype-white.svg" alt="Manifest" class="auth-logo__img auth-logo__img--light" />
+              <img src="/logotype-dark.svg" alt="" class="auth-logo__img auth-logo__img--dark" />
             </div>
             <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
               Loading...

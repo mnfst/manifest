@@ -5,7 +5,6 @@ import { authClient } from '../services/auth-client.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
-import { clearPlanChosen } from '../services/plan-selection.js';
 import { getBillingStatus } from '../services/api/billing.js';
 import {
   connectionBreadcrumbName,
@@ -103,9 +102,8 @@ const Header: Component<HeaderProps> = (props) => {
   };
 
   const handleLogout = async () => {
-    clearPlanChosen();
     await authClient.signOut();
-    navigate('/login', { replace: true });
+    window.location.replace('/login');
   };
 
   const handleClickOutside = (e: MouseEvent) => {
@@ -130,15 +128,15 @@ const Header: Component<HeaderProps> = (props) => {
       <div class="header__left">
         <A href="/" class="header__logo">
           <img
-            src="/logo.svg"
+            src="/logotype-white.svg"
             alt="Manifest"
-            width="152"
+            width="104"
             class="header__logo-img header__logo-img--light"
           />
           <img
-            src="/logo-white.svg"
+            src="/logotype-dark.svg"
             alt=""
-            width="152"
+            width="104"
             class="header__logo-img header__logo-img--dark"
           />
         </A>

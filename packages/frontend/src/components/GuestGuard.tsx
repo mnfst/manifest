@@ -27,7 +27,7 @@ const GuestGuard: ParentComponent = (props) => {
       ? searchParams.step[0]
       : searchParams.step;
     if (!s.isPending && s.data) {
-      if (step === 'plan' && !hasPlanBeenChosen()) {
+      if (step === 'plan' && !hasPlanBeenChosen(s.data.user?.id ?? '')) {
         if (setupChecked()) setReady(true);
         return;
       }

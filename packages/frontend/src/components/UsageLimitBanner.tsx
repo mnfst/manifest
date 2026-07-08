@@ -56,7 +56,7 @@ const UsageLimitBanner: Component = () => {
         <span class="usage-limit-banner__text">
           {atLimit()
             ? "You've reached your monthly limit. Requests are being blocked."
-            : `You're limited to ${FREE_REQUEST_LIMIT_LABEL} requests this month. Upgrade for unlimited.`}
+            : `You're limited to ${billing()!.requests.limit!.toLocaleString('en-US')} requests this month. Upgrade for unlimited.`}
         </span>
         <div class="usage-limit-banner__actions">
           <A href="/upgrade" class="btn btn--outline btn--sm usage-limit-banner__btn">
