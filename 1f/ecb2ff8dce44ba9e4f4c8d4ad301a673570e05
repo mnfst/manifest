@@ -1,0 +1,32 @@
+deploy/aws/deploy.sh
+  s_d4dd3ac37be356::t_6aeb211a9541cd 24-34,40,44
+deploy/aws/manifest.yaml
+  s_d4dd3ac37be356::t_6aeb211a9541cd 2
+  s_d4dd3ac37be356::t_d32b833b1f7721 3-6
+deploy/gcp/TUTORIAL.md
+  s_d4dd3ac37be356::t_d32b833b1f7721 55
+deploy/gcp/main.tf
+  s_d4dd3ac37be356::t_6aeb211a9541cd 6,243-244
+deploy/gcp/variables.tf
+  s_d4dd3ac37be356::t_6aeb211a9541cd 18-19,44
+deploy/aws/TUTORIAL.md
+  s_d4dd3ac37be356::t_6aeb211a9541cd 13-14
+deploy/gcp/deploystack.json
+  s_d4dd3ac37be356::t_6aeb211a9541cd 47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "1fecb2ff8dce44ba9e4f4c8d4ad301a673570e05",
+  "prompts": {},
+  "sessions": {
+    "s_d4dd3ac37be356": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bb6-aeb4-70e1-bc09-0180cc699731",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
