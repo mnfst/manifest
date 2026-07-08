@@ -250,6 +250,30 @@ const Sidebar: Component<SidebarProps> = (props) => {
           </div>
         }
       >
+        <div class="sidebar-usage">
+          <span class="sidebar-usage__title">
+            {new Date().toLocaleDateString('en-US', { month: 'long' })} usage
+          </span>
+          <span
+            class="sidebar-usage__count"
+            classList={{ 'sidebar-usage__count--danger': (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.8 }}
+          >
+            {billing()!.requests.used != null ? billing()!.requests.used!.toLocaleString('en-US') : '0'}
+            {' / '}
+            {billing()!.requests.limit != null ? billing()!.requests.limit!.toLocaleString('en-US') : '0'}
+            {' requests'}
+          </span>
+          <div class="sidebar-usage__bar">
+            <div
+              class="sidebar-usage__fill"
+              classList={{
+                'sidebar-usage__fill--warning': (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.5 && (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) < 0.8,
+                'sidebar-usage__fill--danger': (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.8,
+              }}
+              style={{ width: `${Math.min(100, ((billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1)) * 100)}%` }}
+            />
+          </div>
+        </div>
         <A href="/upgrade" class="sidebar-upgrade" onClick={handleNav}>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2m0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8" />

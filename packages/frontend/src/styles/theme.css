@@ -75,6 +75,8 @@
     /* Success (emerald accent for our dashboard) */
     --success: 178 75% 44%;
     --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
   }
 
   .dark {
@@ -115,6 +117,8 @@
 
     --success: 178 70% 50%;
     --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
   }
 }
 
