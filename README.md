@@ -78,30 +78,43 @@ Managed deployment options:
 
 ## Providers
 
-Manifest connects to **300+ models across 18 providers** plus any custom provider (OpenAI/Anthropic compatible). Bring your own API key, reuse a paid subscription you already have, or run models locally — all routed through
-the same `/auto` endpoint.
+Manifest connects to **300+ models through 31 built-in provider connections** plus any custom OpenAI/Anthropic-compatible endpoint. Bring your own API key, reuse one of **18 subscription flows**, or run models locally. Everything is routed through the same `/auto` endpoint.
 
-| Provider                                                                                 | API key  | Subscription                 | Featured models                                         |
-| ---------------------------------------------------------------------------------------- | :------: | :--------------------------- | :------------------------------------------------------ |
-| [**OpenAI**](https://platform.openai.com/)                                               |    ✅    | ✅ ChatGPT Plus / Pro / Team | gpt-5, gpt-5-mini, o4, o4-mini                          |
-| [**Anthropic**](https://www.anthropic.com/)                                              |    ✅    | ✅ Claude Max / Pro          | claude-opus-4-7, claude-sonnet-4-6, claude-haiku-4-5    |
-| [**Google**](https://ai.google.dev/)                                                     |    ✅    | —                            | gemini-2.5-pro, gemini-2.5-flash, gemini-2.0-flash      |
-| [**xAI**](https://x.ai/)                                                                 |    ✅    | —                            | grok-4, grok-3, grok-code-fast                          |
-| [**DeepSeek**](https://www.deepseek.com/)                                                |    ✅    | —                            | deepseek-v3.2, deepseek-r1                              |
-| [**Mistral**](https://mistral.ai/)                                                       |    ✅    | —                            | mistral-large, codestral, magistral                     |
-| [**Qwen** (Alibaba Cloud)](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) |    ✅    | —                            | qwen3-max, qwen3-coder, qwq-32b                         |
-| [**Moonshot** (Kimi)](https://kimi.ai/)                                                  |    ✅    | ✅ Kimi Coding Plan          | kimi-k2, kimi-for-coding, moonshot-v1-128k              |
-| [**MiniMax**](https://www.minimax.io/)                                                   |    ✅    | ✅ MiniMax Coding Plan       | minimax-m2, abab7-chat-preview                          |
-| [**Xiaomi MiMo**](https://platform.xiaomimimo.com/)                                      |    ✅    | ✅ MiMo Token Plan           | mimo-v2.5-pro, mimo-v2.5, mimo-v2-flash                 |
-| [**Z.ai** (Zhipu)](https://z.ai/)                                                        |    ✅    | ✅ GLM Coding Plan           | glm-4.6, glm-4.5-air                                    |
-| [**BytePlus**](https://www.byteplus.com/en/activity/codingplan)                          |    —     | ✅ ModelArk Coding Plan      | ark-code-latest, bytedance-seed-code, deepseek-v4-flash |
-| [**OpenCode**](https://opencode.ai/)                                                     |    —     | ✅ Go subscription           | Routes via OpenCode Go catalog                          |
-| [**Ollama**](https://ollama.com/)                                                        | 🖥️ Local | ✅ Ollama Cloud              | Any GGUF model, port `11434`                            |
-| [**LM Studio**](https://lmstudio.ai/)                                                    | 🖥️ Local | —                            | Any GGUF model, port `1234`                             |
-| [**llama.cpp**](https://github.com/ggml-org/llama.cpp)                                   | 🖥️ Local | —                            | Any GGUF model, port `8080`                             |
-| [**OpenRouter**](https://openrouter.ai/)                                                 |    ✅    | —                            | Routes to 300+ models across labs                       |
-| [**GitHub Copilot**](https://github.com/features/copilot)                                |    —     | ✅ Copilot subscription      | OAuth, no API key needed                                |
-| **Custom** (OpenAI/Anthropic-compatible)                                                 |    ✅    | —                            | Any `/v1/chat/completions` or `/v1/messages` endpoint   |
+Provider catalogs are discovered dynamically when credentials are connected. The examples below are representative, not exhaustive.
+
+| Provider | API key / local | Subscription | Model catalog |
+| --- | :---: | :--- | --- |
+| [**OpenAI**](https://platform.openai.com/) | ✅ | ✅ ChatGPT Plus / Pro / Team | GPT-5 family, o-series, Codex / Responses models |
+| [**Anthropic**](https://www.anthropic.com/) | ✅ | ✅ Claude Max / Pro | Claude Opus, Sonnet, Haiku, Fable |
+| [**Google**](https://ai.google.dev/) | ✅ | ✅ Sign in with Google | Gemini 3.1, Gemini 3, Gemini 2.5 |
+| [**xAI**](https://x.ai/) | ✅ | ✅ Grok subscription | Grok, Grok Code Fast |
+| [**AWS Bedrock**](https://aws.amazon.com/bedrock/) | ✅ | — | Claude, Llama, Mistral, Nova via Bedrock |
+| [**Alibaba Cloud / Qwen**](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) | ✅ | ✅ Qwen Token Plan | Qwen, DeepSeek, Kimi, GLM via Alibaba Cloud |
+| [**DeepSeek**](https://www.deepseek.com/) | ✅ | — | DeepSeek V3, DeepSeek R1 |
+| [**Mistral**](https://mistral.ai/) | ✅ | ✅ Mistral Vibe | Mistral Large, Codestral, Pixtral |
+| [**Moonshot** (Kimi)](https://kimi.ai/) | ✅ | ✅ Kimi Coding Plan | Kimi K2, Kimi for Coding, Moonshot v1 |
+| [**MiniMax**](https://www.minimax.io/) | ✅ | ✅ MiniMax Coding Plan | MiniMax M3, M2.7, M2.5 |
+| [**Xiaomi MiMo**](https://platform.xiaomimimo.com/) | ✅ | ✅ MiMo Token Plan | MiMo V2.5 Pro, V2.5, Flash |
+| [**Z.ai**](https://z.ai/) | ✅ | ✅ GLM Coding Plan | GLM 5.2, GLM 5.1, GLM 5 Turbo |
+| [**BytePlus**](https://www.byteplus.com/en/activity/codingplan) | — | ✅ ModelArk Coding Plan | Ark Code, Seed Code, GLM, Kimi, DeepSeek |
+| [**GitHub Copilot**](https://github.com/features/copilot) | — | ✅ Copilot subscription | Claude, GPT, Gemini, Grok via Copilot |
+| [**Kiro**](https://kiro.dev/) | — | ✅ Kiro subscription | `kiro/auto`, Claude, DeepSeek, MiniMax, GLM, Qwen |
+| [**Command Code**](https://commandcode.ai/studio) | — | ✅ Command Code subscription | Claude, GPT, Kimi, DeepSeek, Qwen |
+| [**ClinePass**](https://app.cline.bot/) | — | ✅ ClinePass subscription | `cline-pass/glm-5.2`, Kimi, DeepSeek, MiMo, MiniMax, Qwen |
+| [**NousResearch**](https://portal.nousresearch.com/) | — | ✅ NousResearch subscription | NousResearch Portal model catalog |
+| [**OpenCode Go**](https://opencode.ai/) | — | ✅ OpenCode Go | GLM, Kimi, MiMo, MiniMax |
+| [**Ollama / Ollama Cloud**](https://ollama.com/) | 🖥️ Local | ✅ Ollama Cloud | Local or cloud tags: Llama, Qwen, DeepSeek, Gemma |
+| [**LM Studio**](https://lmstudio.ai/) | 🖥️ Local | — | Local GGUF models, port `1234` |
+| [**llama.cpp**](https://github.com/ggml-org/llama.cpp) | 🖥️ Local | — | Local GGUF models, port `8080` |
+| [**OpenRouter**](https://openrouter.ai/) | ✅ | — | 300+ models across labs |
+| [**OpenCode Zen**](https://opencode.ai/) | ✅ | — | Claude, GPT, Gemini, Qwen, GLM, MiniMax |
+| [**Kilo**](https://kilo.ai/) | ✅ | — | Kilo Gateway catalog |
+| [**Cerebras**](https://www.cerebras.ai/) | ✅ | — | GPT OSS, GLM on Cerebras inference |
+| [**Fireworks AI**](https://fireworks.ai/) | ✅ | — | GLM 5.2, DeepSeek, Kimi, Qwen, Llama |
+| [**Groq**](https://groq.com/) | ✅ | — | Llama, Gemma, Mixtral |
+| [**NVIDIA NIM**](https://build.nvidia.com/) | ✅ | — | Nemotron, Llama, Mistral |
+| [**Pioneer**](https://pioneer.ai/) | ✅ | — | OpenAI-compatible and fine-tuned Pioneer models |
+| **Custom** | ✅ | — | Any `/v1/chat/completions` or `/v1/messages` endpoint |
 
 ## Quick links
 
