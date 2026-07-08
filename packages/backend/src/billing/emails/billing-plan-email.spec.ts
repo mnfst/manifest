@@ -79,8 +79,9 @@ describe('billing plan emails', () => {
       }),
     );
 
-    expect(html).toContain('href="https://app.manifest.build/account"');
+    expect(html).toContain('href="https://app.manifest.build/upgrade"');
     expect(html).toContain('href="https://app.manifest.build/account#email-preferences"');
+    expect(html).not.toContain('https://app.manifest.build//upgrade');
     expect(html).not.toContain('https://app.manifest.build//account');
   });
 });
