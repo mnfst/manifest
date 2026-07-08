@@ -61,6 +61,13 @@ describe('buildProdAllowedOrigins', () => {
     expect(buildProdAllowedOrigins({ extraOrigins: '  , ,' })).toEqual([HOSTED_WINGMAN_ORIGIN]);
     expect(buildProdAllowedOrigins({ extraOrigins: '' })).toEqual([HOSTED_WINGMAN_ORIGIN]);
   });
+
+  it('strips a trailing slash so it matches the browser Origin header', () => {
+    expect(buildProdAllowedOrigins({ extraOrigins: 'https://wingman.acme.dev/' })).toEqual([
+      HOSTED_WINGMAN_ORIGIN,
+      'https://wingman.acme.dev',
+    ]);
+  });
 });
 
 describe('buildFrameSrc', () => {

@@ -80,34 +80,29 @@ export async function bootstrap() {
   // CORS: the dashboard is same-origin, but the hosted Wingman gateway tester
   // (https://wingman.manifest.build) is a legitimate cross-origin caller of the
   // gateway routes, so both dev and production allow its origin. Dev also allows
-  // the Vite frontend on :3000 and the local Wingman build at `WINGMAN_PORT`,
-  // and answers Chrome's Private Network Access preflight for loopback gateways.
-  // Production allows only the hosted Wingman origin plus any
-  // `WINGMAN_CORS_ORIGINS` a self-hoster opts into — and needs no PNA, since a
-  // public gateway isn't on a loopback address.
+  // the Vite frontend on :3000 and the local Wingman build at `WINGMAN_PORT`;
+  // production allows the hosted Wingman origin plus any `WINGMAN_CORS_ORIGINS` a
+  // self-hoster opts into.
   //
   // See `buildCorsOptions` for the rationale behind `credentials: false`, the
   // omitted `allowedHeaders`, and the preflight `maxAge`.
-  if (isDev) {
-    const configuredOrigin = process.env['CORS_ORIGIN'] || 'http://localhost:3000';
-    const allowedOrigins = buildDevAllowedOrigins({
-      configuredOrigin,
-      wingmanPort,
-    });
-    // PNA preflight must answer before the cors middleware ends the
-    // OPTIONS response. Registering this `app.use` first puts it ahead
-    // of the cors handler in the express middleware chain.
-    app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-      applyPrivateNetworkAllow(req, allowedOrigins, (name, value) => res.setHeader(name, value));
-      next();
-    });
-    app.enableCors(buildCorsOptions(allowedOrigins));
-  } else {
-    const allowedOrigins = buildProdAllowedOrigins({
-      extraOrigins: process.env['WINGMAN_CORS_ORIGINS'],
-    });
-    app.enableCors(buildCorsOptions(allowedOrigins));
-  }
+  const corsAllowedOrigins = isDev
+    ? buildDevAllowedOrigins({
+        configuredOrigin: process.env['CORS_ORIGIN'] || 'http://localhost:3000',
+        wingmanPort,
+      })
+    : buildProdAllowedOrigins({ extraOrigins: process.env['WINGMAN_CORS_ORIGINS'] });
+  // Chrome's Private Network Access preflight must be answered before the cors
+  // middleware ends the OPTIONS response, so register this first. It only echoes
+  // the allow-private-network header for already-allow-listed origins, so it's a
+  // no-op for a public gateway and only matters when a browser-hosted Wingman
+  // targets a gateway on a loopback / LAN address (local dev, or a self-hosted
+  // gateway on a private network).
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    applyPrivateNetworkAllow(req, corsAllowedOrigins, (name, value) => res.setHeader(name, value));
+    next();
+  });
+  app.enableCors(buildCorsOptions(corsAllowedOrigins));
 
   app.useGlobalPipes(
     new ValidationPipe({

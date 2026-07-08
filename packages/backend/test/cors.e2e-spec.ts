@@ -49,15 +49,19 @@ async function buildDevApp(): Promise<INestApplication> {
 }
 
 // Boots a minimal NestJS app with the exact CORS config main.ts uses in
-// production: only the hosted Wingman origin (plus WINGMAN_CORS_ORIGINS
-// opt-ins), no PNA middleware (production gateways aren't on loopback), and the
-// shared CORS options.
+// production: the hosted Wingman origin (plus WINGMAN_CORS_ORIGINS opt-ins), the
+// PNA middleware (so a browser-hosted Wingman can reach a self-hosted gateway on
+// a LAN address), and the shared CORS options.
 async function buildProdApp(extraOrigins?: string): Promise<INestApplication> {
   const moduleRef = await Test.createTestingModule({
     imports: [CorsTestModule],
   }).compile();
   const app = moduleRef.createNestApplication();
   const allowedOrigins = buildProdAllowedOrigins({ extraOrigins });
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    applyPrivateNetworkAllow(req, allowedOrigins, (name, value) => res.setHeader(name, value));
+    next();
+  });
   app.enableCors(buildCorsOptions(allowedOrigins));
   await app.init();
   return app;
@@ -203,13 +207,13 @@ describe('CORS — production', () => {
     expect(res.headers['access-control-allow-origin']).toBeUndefined();
   });
 
-  it('does not answer the Private Network Access preflight (prod gateways are public)', async () => {
+  it('answers the Private Network Access preflight for an allow-listed origin (self-hosted LAN gateways)', async () => {
     const res = await request(app.getHttpServer())
       .options('/v1/chat/completions')
       .set('Origin', HOSTED_WINGMAN_ORIGIN)
       .set('Access-Control-Request-Method', 'POST')
       .set('Access-Control-Request-Private-Network', 'true');
-    expect(res.headers['access-control-allow-private-network']).toBeUndefined();
+    expect(res.headers['access-control-allow-private-network']).toBe('true');
   });
 
   it('caches the preflight (maxAge) to avoid a preflight per Wingman request', async () => {

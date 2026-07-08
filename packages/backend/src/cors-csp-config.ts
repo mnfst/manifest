@@ -49,7 +49,10 @@ export function buildDevAllowedOrigins({
 export function buildProdAllowedOrigins({ extraOrigins }: ProdOriginBuilderOptions = {}): string[] {
   const extras = (extraOrigins ?? '')
     .split(',')
-    .map((v) => v.trim())
+    // Strip a trailing slash: browser `Origin` headers never carry one, so an
+    // exact-match allow-list entry like `https://wingman.acme.dev/` would never
+    // match otherwise.
+    .map((v) => v.trim().replace(/\/+$/, ''))
     .filter((v) => v.length > 0);
   return Array.from(new Set([HOSTED_WINGMAN_ORIGIN, ...extras]));
 }
