@@ -1,0 +1,64 @@
+integrations/n8n-nodes-manifest/LICENSE.md
+  s_6d8a2aeb292c0d::t_5464e678c6d066 1-21
+integrations/n8n-nodes-manifest/package.json
+  s_6d8a2aeb292c0d::t_b1a89ca598c9c2 18
+  s_6d8a2aeb292c0d::t_5464e678c6d066 1-17,19-61
+integrations/n8n-nodes-manifest/eslint.config.mjs
+  s_6d8a2aeb292c0d::t_5464e678c6d066 1-3
+integrations/n8n-nodes-manifest/.prettierrc.js
+  s_6d8a2aeb292c0d::t_5464e678c6d066 1-7
+integrations/n8n-nodes-manifest/nodes/Manifest/Manifest.node.ts
+  s_6d8a2aeb292c0d::t_49e4b127324bd3 145-147,155
+  s_6d8a2aeb292c0d::t_d9b23eb8d9478c 13-14
+  s_6d8a2aeb292c0d::t_946ba1b669c2a6 51,56
+  s_6d8a2aeb292c0d::t_5c92be8a4d0f04 128-131
+  s_6d8a2aeb292c0d::t_5464e678c6d066 1-4,6-12,15-27,29-49,52-55,57-62,64-78,158-161,163-268,270-289
+  s_6d8a2aeb292c0d::t_2323adf14f7ea1 162
+  s_6d8a2aeb292c0d::t_49807476d4fa9e 5,28,50,63,79-127,132-144,148-154,156-157,269
+integrations/n8n-nodes-manifest/nodes/Manifest/Manifest.node.json
+  s_6d8a2aeb292c0d::t_5464e678c6d066 1-4,9-21
+  s_6d8a2aeb292c0d::t_e269e993891582 5-8
+integrations/n8n-nodes-manifest/README.md
+  s_6d8a2aeb292c0d::t_dbed0be77543b8 55
+  s_6d8a2aeb292c0d::t_033ed5349cf595 11
+  s_6d8a2aeb292c0d::t_5464e678c6d066 1-10,12-54
+integrations/n8n-nodes-manifest/tsconfig.json
+  s_6d8a2aeb292c0d::t_b1a89ca598c9c2 18
+  s_6d8a2aeb292c0d::t_5464e678c6d066 1-17,19-25
+integrations/n8n-nodes-manifest/.gitignore
+  s_6d8a2aeb292c0d::t_5464e678c6d066 1-3,5-7
+  s_6d8a2aeb292c0d::t_65e33c50f03287 4
+integrations/n8n-nodes-manifest/credentials/ManifestApi.credentials.ts
+  s_6d8a2aeb292c0d::t_b1a89ca598c9c2 8,11-12
+  s_6d8a2aeb292c0d::t_2323adf14f7ea1 9-10
+  s_6d8a2aeb292c0d::t_8f95955c5da011 1,43-45
+  s_6d8a2aeb292c0d::t_5464e678c6d066 2-7,13-42,46-48
+integrations/n8n-nodes-manifest/CHANGELOG.md
+  s_6d8a2aeb292c0d::t_5464e678c6d066 1-5
+.github/workflows/publish-n8n-node.yml
+  s_6d8a2aeb292c0d::t_5464e678c6d066 1-27,29-31,35-44
+  s_6d8a2aeb292c0d::t_dbed0be77543b8 28,45
+  s_6d8a2aeb292c0d::t_eb127e4caaa4cb 32-34
+integrations/n8n-nodes-manifest/nodes/Manifest/manifest-logo.dark.svg
+  s_6d8a2aeb292c0d::t_ec16569ef0eed1 1-80
+integrations/n8n-nodes-manifest/nodes/Manifest/manifest-logo.svg
+  s_6d8a2aeb292c0d::t_2e9359fe2e8add 1-80
+integrations/n8n-nodes-manifest/package-lock.json
+  s_6d8a2aeb292c0d::t_b8f6b1fe20a12e 1-10228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f74dc5e31e308741ee75bd80d0d8387d6e9496a1",
+  "prompts": {},
+  "sessions": {
+    "s_6d8a2aeb292c0d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f418a-9e60-7fb0-b308-cfbdef64b9a7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
