@@ -1,0 +1,62 @@
+packages/backend/src/entities/agent-message.entity.ts
+  s_34a5a0500fe110::t_ad1fa5c11e2e86 86-89
+packages/frontend/src/services/api/messages.ts
+  s_34a5a0500fe110::t_06bb03119553be 20
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_34a5a0500fe110::t_a31a26a0da4fc4 34,114,137,152,154
+packages/backend/src/analytics/services/query-helpers.ts
+  s_34a5a0500fe110::t_a31a26a0da4fc4 78-80
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_34a5a0500fe110::t_a31a26a0da4fc4 535
+packages/backend/src/database/migrations/1798000000000-AddErrorClassification.ts
+  s_34a5a0500fe110::t_ad1fa5c11e2e86 28,42,44,51
+packages/frontend/src/components/message-table-types.ts
+  s_34a5a0500fe110::t_06bb03119553be 24
+packages/frontend/src/components/MessageDetails.tsx
+  s_34a5a0500fe110::t_06bb03119553be 74-87,286,364,369,411-412,419-420
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_34a5a0500fe110::t_ad1fa5c11e2e86 106,196
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_34a5a0500fe110::t_a31a26a0da4fc4 422,445,461,463,1130,1155-1159
+  s_34a5a0500fe110::t_31fe3230d20092 1160
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_34a5a0500fe110::t_ddb02e8e2155ee 25,34,65,167-179
+  s_34a5a0500fe110::t_ab6de58a6f87d2 180
+packages/frontend/tests/components/MessageDetails.test.tsx
+  s_34a5a0500fe110::t_06bb03119553be 124-125,134
+packages/frontend/tests/services/formatters.test.ts
+  s_34a5a0500fe110::t_06bb03119553be 109,112
+packages/frontend/tests/components/MessageTableStatus.test.tsx
+  s_34a5a0500fe110::t_06bb03119553be 40-41
+packages/frontend/src/components/message-table-cells.tsx
+  s_34a5a0500fe110::t_06bb03119553be 395,397-399
+  s_34a5a0500fe110::t_58191945aaaa0c 455-459
+.changeset/error-limit-taxonomy.md
+  s_34a5a0500fe110::t_79a1f1374e8c5b 1-5
+packages/shared/src/error-taxonomy.ts
+  s_34a5a0500fe110::t_ddb02e8e2155ee 61,71,88-91,99,149-155
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_34a5a0500fe110::t_ad1fa5c11e2e86 179
+packages/backend/src/database/migrations/1800100000000-ReclassifyPlanRequestLimitMessages.ts
+  s_34a5a0500fe110::t_ad1fa5c11e2e86 1-29
+packages/frontend/src/services/formatters.ts
+  s_34a5a0500fe110::t_06bb03119553be 115,123
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_34a5a0500fe110::t_a31a26a0da4fc4 331,339,341
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "8021ed6180a5ff9311eb7ebf8805658d26463257",
+  "prompts": {},
+  "sessions": {
+    "s_34a5a0500fe110": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f45f0-008b-7093-81b2-f464c7b970f1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
