@@ -210,6 +210,27 @@ export class AutofixService {
     this.configCache.delete(`${tenantId}:${agentId}`);
   }
 
+  /**
+   * Is Auto-fix active for this agent — deployment-wide, for the tenant, and for
+   * the agent itself? These are exactly the gates {@link maybeHeal} clears before
+   * it hands a request to Phoenix (it checks them inline so it can log *which*
+   * one short-circuited; keep the two in lockstep).
+   *
+   * Excludes the two gates that aren't about the agent's opt-in: the repairable
+   * status set (scope) and the circuit breaker (availability).
+   *
+   * This is the **consent boundary** for anything that ships a caller's request to
+   * the healing service. Turning Auto-fix on is what agrees to that; the evidence
+   * reporter must not send a body for an agent that never did. Rejects rather than
+   * resolves false on a DB hiccup, so callers fail closed on purpose.
+   */
+  async isActiveFor(tenantId: string, agentId: string): Promise<boolean> {
+    if (!this.globalEnabled) return false;
+    if (!(await this.hasAccess(tenantId))) return false;
+    const cfg = await this.loadAgentConfig(agentId, tenantId);
+    return cfg.enabled;
+  }
+
   /** A heal call reached the healer (any decision) — clear the failure streak. */
   private recordHealSuccess(): void {
     this.healFailureStreak = 0;

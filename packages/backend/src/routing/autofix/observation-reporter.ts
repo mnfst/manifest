@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { AutofixService } from './autofix.service';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
 import { toObservation, type ObservationInput } from './observation-payload';
 import type { HealRequest } from './phoenix.types';
@@ -17,23 +18,29 @@ const FLUSH_INTERVAL_MS = 2_000;
 const MAX_QUEUE = 500;
 
 /**
- * Streams every request-side 4xx to Phoenix as an observation, carrying the full
- * request body — independent of Auto-fix.
+ * Streams an agent's request-side 4xx to Phoenix as observations, carrying the
+ * full request body.
  *
- * Auto-fix only talks to Phoenix for tenants it is allowed to heal, and only for
- * the narrow `AUTOFIX_REPAIRABLE_STATUSES` set. Everything else reached Phoenix
- * solely through Peacock's hourly scrape of `agent_messages`, which stores the
- * model-parameter snapshot and not the messages — so those issues arrived
- * without the body that caused them. This reporter closes that gap without
- * persisting a single byte in Manifest: the body is scrubbed, batched, and
- * POSTed to Phoenix, which is where request evidence already lives.
+ * Auto-fix itself only reports the requests it actually heals: the narrow
+ * `AUTOFIX_REPAIRABLE_STATUSES` set, the primary attempt only, and only when the
+ * heal call gets through. Everything else reached Phoenix solely through
+ * Peacock's hourly scrape of `agent_messages`, which stores the model-parameter
+ * snapshot and not the messages — so those issues arrived without the body that
+ * caused them. This reporter closes that gap without persisting a single byte in
+ * Manifest: the body is scrubbed, batched, and POSTed to Phoenix, which is where
+ * request evidence already lives.
+ *
+ * **Only for agents with Auto-fix on** ({@link AutofixService.isActiveFor}).
+ * Turning Auto-fix on is what agrees to send failing requests to the healing
+ * service; an agent that never did must not have its callers' prompt content
+ * shipped there. The gate is checked per report and fails closed.
  *
  * Wholly best-effort. Nothing here is awaited by the request path, no failure
  * propagates, and the queue is bounded — a Phoenix outage costs dropped
  * evidence, never a slow or failed proxy response.
  *
- * Off unless `AUTOFIX_REPORT_ALL_4XX=true`: it ships caller prompt content to
- * the healing service, which is a deployment decision, not a default.
+ * Off unless `AUTOFIX_REPORT_ALL_4XX=true`, a second, deployment-level switch on
+ * top of the per-agent gate.
  */
 @Injectable()
 export class ObservationReporter implements OnModuleDestroy {
@@ -45,6 +52,7 @@ export class ObservationReporter implements OnModuleDestroy {
 
   constructor(
     @Inject(HEALING_CLIENT) private readonly client: HealingClient,
+    private readonly autofix: AutofixService,
     config: ConfigService,
   ) {
     this.enabled = config.get<string>('AUTOFIX_REPORT_ALL_4XX')?.trim() === 'true';
@@ -52,17 +60,26 @@ export class ObservationReporter implements OnModuleDestroy {
   }
 
   /**
-   * Queue a failed forward for reporting. Synchronous and non-throwing by
-   * contract — the caller is on the request path and must never wait on, or fail
-   * because of, evidence collection.
+   * Queue a failed forward for reporting, if the agent has Auto-fix on.
+   * Synchronous and non-throwing by contract — the caller is on the request path
+   * and must never wait on, or fail because of, evidence collection. The consent
+   * gate is async (cached, an occasional DB read), so it runs detached.
    */
   report(input: ObservationInput): void {
     if (!this.enabled) return;
+    void this.gateAndEnqueue(input);
+  }
+
+  private async gateAndEnqueue(input: ObservationInput): Promise<void> {
     try {
+      // Build first: a body we can't scrub or a status we don't report costs
+      // nothing to reject, and skips the gate's DB read entirely.
       const observation = toObservation(input);
       if (!observation) return;
+      if (!(await this.autofix.isActiveFor(input.tenantId, input.agentId))) return;
       this.enqueue(observation);
     } catch (err) {
+      // Includes a gate that threw (DB hiccup): no consent proven, no body sent.
       this.logger.warn(`observation dropped: ${(err as Error).message}`);
     }
   }

@@ -9,6 +9,7 @@ import {
 const baseInput: ObservationInput = {
   traceId: 'trace-1',
   tenantId: 'tenant-1',
+  agentId: 'agent-1',
   provider: 'openai',
   apiMode: 'chat_completions',
   requestBody: { model: 'gpt-5.1', temperature: 5, messages: [{ role: 'user', content: 'hi' }] },
@@ -112,6 +113,12 @@ describe('toObservation', () => {
   it('keeps the caller messages, which the historical scrape never carried', () => {
     const obs = toObservation(baseInput);
     expect(obs!.request.messages).toEqual([{ role: 'user', content: 'hi' }]);
+  });
+
+  it('never leaks the agent id — it only resolves the consent gate', () => {
+    const obs = toObservation(baseInput);
+    expect(obs).not.toHaveProperty('agentId');
+    expect(JSON.stringify(obs)).not.toContain('agent-1');
   });
 
   it('substitutes the resolved model for a routing alias', () => {

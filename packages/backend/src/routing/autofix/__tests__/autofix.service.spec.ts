@@ -1165,3 +1165,56 @@ describe('AutofixService', () => {
     });
   });
 });
+
+describe('isActiveFor (the consent gate)', () => {
+  const DENIED = () => ({ autofix_access_granted_at: null, autofix_waitlist_at: null });
+
+  it('is active when the deployment, the tenant and the agent all allow it', async () => {
+    const service = makeService({ repo: makeAgentRepo(() => ({ autofix_enabled: true })).repo });
+
+    await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(true);
+  });
+
+  it('inherits the cloud default when the agent never chose', async () => {
+    const service = makeService({ repo: makeAgentRepo(() => ({ autofix_enabled: null })).repo });
+
+    await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(true);
+  });
+
+  it('is inactive when the deployment killed Auto-fix globally', async () => {
+    const service = makeService({ config: makeConfig({ AUTOFIX_GLOBAL_ENABLED: 'false' }) });
+
+    await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(false);
+  });
+
+  it('is inactive when the tenant has no early access', async () => {
+    const service = makeService({ tenantRepo: makeTenantRepo(DENIED).repo });
+
+    await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(false);
+  });
+
+  it('is inactive when the agent turned Auto-fix off', async () => {
+    const service = makeService({ repo: makeAgentRepo(() => ({ autofix_enabled: false })).repo });
+
+    await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(false);
+  });
+
+  it('does not read the agent when the tenant gate already denied', async () => {
+    const agent = makeAgentRepo(() => ({ autofix_enabled: true }));
+    const service = makeService({ repo: agent.repo, tenantRepo: makeTenantRepo(DENIED).repo });
+
+    await service.isActiveFor('tenant-1', 'agent-1');
+
+    expect(agent.findOne).not.toHaveBeenCalled();
+  });
+
+  it('rejects rather than reporting false, so callers fail closed on a DB error', async () => {
+    const service = makeService({
+      repo: makeAgentRepo(() => {
+        throw new Error('db down');
+      }).repo,
+    });
+
+    await expect(service.isActiveFor('tenant-1', 'agent-1')).rejects.toThrow('db down');
+  });
+});

@@ -231,7 +231,8 @@ export class ProxyController {
         // Evidence feed (AUTOFIX_REPORT_ALL_4XX). Auto-fix already hands Phoenix
         // the full body for the requests it heals; every other request-side 4xx
         // reaches Phoenix only via Peacock's hourly scrape, which carries the
-        // model-parameter snapshot and not the messages. Report it live instead.
+        // model-parameter snapshot and not the messages. Report it live instead —
+        // but only for agents that turned Auto-fix on (the reporter's own gate).
         //
         // `traceId` is the `traceparent` id Peacock's scrape reports for the same
         // row, so a scraped duplicate collapses onto this one in Phoenix's ledger.
@@ -248,6 +249,7 @@ export class ProxyController {
           this.observationReporter.report({
             traceId: traceId ?? uuid(),
             tenantId,
+            agentId: req.ingestionContext.agentId,
             provider: meta.provider,
             apiMode,
             requestBody: routingBody,

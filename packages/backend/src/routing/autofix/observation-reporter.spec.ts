@@ -1,10 +1,16 @@
 import { ConfigService } from '@nestjs/config';
+import type { AutofixService } from './autofix.service';
 import { ObservationReporter } from './observation-reporter';
 import type { HealingClient } from './healing-client';
 import type { ObservationInput } from './observation-payload';
 
 function makeConfig(values: Record<string, string> = {}): ConfigService {
   return { get: (key: string) => values[key] } as unknown as ConfigService;
+}
+
+/** Auto-fix consent gate. Active by default; each test overrides what it needs. */
+function makeAutofix(isActiveFor: jest.Mock = jest.fn().mockResolvedValue(true)): AutofixService {
+  return { isActiveFor } as unknown as AutofixService;
 }
 
 function makeClient(): jest.Mocked<HealingClient> {
@@ -18,6 +24,7 @@ function makeClient(): jest.Mocked<HealingClient> {
 const input: ObservationInput = {
   traceId: 'trace-1',
   tenantId: 'tenant-1',
+  agentId: 'agent-1',
   provider: 'openai',
   apiMode: 'chat_completions',
   requestBody: { model: 'gpt-5.1', messages: [{ role: 'user', content: 'hi' }] },
@@ -25,34 +32,101 @@ const input: ObservationInput = {
   errorBody: '{"error":{"message":"bad request"}}',
 };
 
-function enabledReporter(client: HealingClient): ObservationReporter {
-  return new ObservationReporter(client, makeConfig({ AUTOFIX_REPORT_ALL_4XX: 'true' }));
+function enabledReporter(
+  client: HealingClient,
+  autofix: AutofixService = makeAutofix(),
+): ObservationReporter {
+  return new ObservationReporter(client, autofix, makeConfig({ AUTOFIX_REPORT_ALL_4XX: 'true' }));
+}
+
+/**
+ * `report()` returns before its gate resolves. Drain the microtask queue so the
+ * detached chain finishes — works under fake timers, which `setImmediate` doesn't.
+ */
+async function settle(): Promise<void> {
+  for (let i = 0; i < 5; i++) await Promise.resolve();
+}
+
+/** Queue `count` reports and wait for all of them to clear the gate. */
+async function reportMany(reporter: ObservationReporter, count: number): Promise<void> {
+  for (let i = 0; i < count; i++) reporter.report({ ...input, traceId: `trace-${i}` });
+  await settle();
 }
 
 describe('ObservationReporter', () => {
   afterEach(() => jest.useRealTimers());
 
-  it('does nothing when the feed is disabled', async () => {
-    const client = makeClient();
-    const reporter = new ObservationReporter(client, makeConfig());
-    reporter.report(input);
-    await reporter.flush();
-    expect(client.observe).not.toHaveBeenCalled();
-  });
+  describe('gating', () => {
+    it('does nothing when the deployment switch is off', async () => {
+      const client = makeClient();
+      const autofix = makeAutofix();
+      const reporter = new ObservationReporter(client, autofix, makeConfig());
 
-  it('never reports a non-request-side failure', async () => {
-    const client = makeClient();
-    const reporter = enabledReporter(client);
-    reporter.report({ ...input, status: 401 });
-    await reporter.flush();
-    expect(client.observe).not.toHaveBeenCalled();
+      reporter.report(input);
+      await settle();
+      await reporter.flush();
+
+      expect(client.observe).not.toHaveBeenCalled();
+      expect(autofix.isActiveFor).not.toHaveBeenCalled();
+    });
+
+    it('does not ship a body for an agent without Auto-fix on', async () => {
+      const client = makeClient();
+      const reporter = enabledReporter(client, makeAutofix(jest.fn().mockResolvedValue(false)));
+
+      reporter.report(input);
+      await settle();
+      await reporter.flush();
+
+      expect(client.observe).not.toHaveBeenCalled();
+    });
+
+    it("resolves the gate against the request's own tenant and agent", async () => {
+      const client = makeClient();
+      const isActiveFor = jest.fn().mockResolvedValue(true);
+      const reporter = enabledReporter(client, makeAutofix(isActiveFor));
+
+      reporter.report(input);
+      await settle();
+
+      expect(isActiveFor).toHaveBeenCalledWith('tenant-1', 'agent-1');
+    });
+
+    it('fails closed when the gate itself throws', async () => {
+      const client = makeClient();
+      const gate = jest.fn().mockRejectedValue(new Error('db down'));
+      const reporter = enabledReporter(client, makeAutofix(gate));
+
+      reporter.report(input);
+      await settle();
+      await reporter.flush();
+
+      // No consent proven → no body sent, and nothing propagates to the proxy.
+      expect(client.observe).not.toHaveBeenCalled();
+    });
+
+    it('never consults the gate for a failure it would not report anyway', async () => {
+      const client = makeClient();
+      const autofix = makeAutofix();
+      const reporter = enabledReporter(client, autofix);
+
+      reporter.report({ ...input, status: 401 });
+      await settle();
+
+      // Rejecting on status first keeps a 4xx storm off the gate's DB read.
+      expect(autofix.isActiveFor).not.toHaveBeenCalled();
+      expect(client.observe).not.toHaveBeenCalled();
+    });
   });
 
   it('sends a queued observation with the full body on flush', async () => {
     const client = makeClient();
     const reporter = enabledReporter(client);
+
     reporter.report(input);
+    await settle();
     await reporter.flush();
+
     expect(client.observe).toHaveBeenCalledTimes(1);
     const [batch] = client.observe.mock.calls[0];
     expect(batch).toHaveLength(1);
@@ -62,8 +136,9 @@ describe('ObservationReporter', () => {
   it('flushes automatically once a full batch accumulates', async () => {
     const client = makeClient();
     const reporter = enabledReporter(client);
-    for (let i = 0; i < 50; i++) reporter.report({ ...input, traceId: `trace-${i}` });
-    await Promise.resolve();
+
+    await reportMany(reporter, 50);
+
     expect(client.observe).toHaveBeenCalledTimes(1);
     expect(client.observe.mock.calls[0][0]).toHaveLength(50);
   });
@@ -72,20 +147,24 @@ describe('ObservationReporter', () => {
     jest.useFakeTimers();
     const client = makeClient();
     const reporter = enabledReporter(client);
+
     reporter.report(input);
+    await settle();
     expect(client.observe).not.toHaveBeenCalled();
+
     jest.advanceTimersByTime(2_000);
-    await Promise.resolve();
     expect(client.observe).toHaveBeenCalledTimes(1);
   });
 
-  it('bounds the queue at 500, dropping the oldest observations first', () => {
+  it('bounds the queue at 500, dropping the oldest observations first', async () => {
     const client = makeClient();
     const reporter = enabledReporter(client);
     // Stub the drain so the queue actually reaches the cap; otherwise the
     // batch-full auto-flush empties it long before any observation is dropped.
     jest.spyOn(reporter, 'flush').mockResolvedValue(undefined);
-    for (let i = 0; i < 601; i++) reporter.report({ ...input, traceId: `trace-${i}` });
+
+    await reportMany(reporter, 601);
+
     const queue = reporter['queue'];
     expect(queue).toHaveLength(500);
     // 101 dropped off the front; the newest is still there.
@@ -94,26 +173,30 @@ describe('ObservationReporter', () => {
   });
 
   it('keeps flushing while more than one batch is queued', async () => {
-    jest.useFakeTimers();
     const client = makeClient();
     const reporter = enabledReporter(client);
     // Fill past one batch without letting the batch-full auto-flush drain it.
     const drain = jest.spyOn(reporter, 'flush').mockResolvedValue(undefined);
-    for (let i = 0; i < 120; i++) reporter.report({ ...input, traceId: `trace-${i}` });
+    await reportMany(reporter, 120);
     drain.mockRestore();
 
+    jest.useFakeTimers();
     await reporter.flush();
     expect(client.observe).toHaveBeenCalledTimes(1);
+
     jest.advanceTimersByTime(2_000);
     expect(client.observe).toHaveBeenCalledTimes(2);
   });
 
-  it('never throws when a body cannot be serialized', () => {
+  it('never throws when a body cannot be serialized', async () => {
     const client = makeClient();
     const reporter = enabledReporter(client);
     const circular: Record<string, unknown> = { model: 'gpt-5.1' };
     circular.self = circular;
+
     expect(() => reporter.report({ ...input, requestBody: circular })).not.toThrow();
+    await settle();
+
     expect(client.observe).not.toHaveBeenCalled();
   });
 
@@ -121,15 +204,21 @@ describe('ObservationReporter', () => {
     const client = makeClient();
     client.observe.mockRejectedValue(new Error('phoenix down'));
     const reporter = enabledReporter(client);
+
     reporter.report(input);
+    await settle();
+
     await expect(reporter.flush()).resolves.toBeUndefined();
   });
 
   it('drains the queue on shutdown', async () => {
     const client = makeClient();
     const reporter = enabledReporter(client);
+
     reporter.report(input);
+    await settle();
     await reporter.onModuleDestroy();
+
     expect(client.observe).toHaveBeenCalledTimes(1);
   });
 
@@ -138,10 +227,11 @@ describe('ObservationReporter', () => {
     const reporter = enabledReporter(client);
     // Hold the queue at 120 so shutdown faces a multi-batch backlog.
     const drain = jest.spyOn(reporter, 'flush').mockResolvedValue(undefined);
-    for (let i = 0; i < 120; i++) reporter.report({ ...input, traceId: `trace-${i}` });
+    await reportMany(reporter, 120);
     drain.mockRestore();
 
     await reporter.onModuleDestroy();
+
     expect(client.observe).toHaveBeenCalledTimes(3);
     expect(reporter['queue']).toHaveLength(0);
   });
@@ -149,7 +239,9 @@ describe('ObservationReporter', () => {
   it('is a no-op flush when nothing is queued', async () => {
     const client = makeClient();
     const reporter = enabledReporter(client);
+
     await reporter.flush();
+
     expect(client.observe).not.toHaveBeenCalled();
   });
 });
