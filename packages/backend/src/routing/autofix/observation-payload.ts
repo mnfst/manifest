@@ -29,18 +29,25 @@ export function isReportableStatus(status: number): boolean {
 /**
  * Keys whose value is a credential whatever its shape. {@link scrubSecrets} only
  * matches text, so a non-string value (a number, an object) under one of these
- * would survive it.
+ * would survive it. Compared after {@link normalizeKey}, so every separator and
+ * casing variant a caller might send — `api_key`, `apiKey`, `X-API-Key` — folds
+ * onto one entry.
  */
 const CREDENTIAL_KEYS = new Set([
-  'x-api-key',
+  'xapikey',
   'authorization',
-  'api-key',
   'apikey',
-  'refresh_token',
-  'client_secret',
-  'access_token',
-  'device_code',
+  'apisecret',
+  'refreshtoken',
+  'clientsecret',
+  'accesstoken',
+  'devicecode',
 ]);
+
+/** Fold a JSON key to its separator- and case-insensitive form. */
+function normalizeKey(key: string): string {
+  return key.toLowerCase().replace(/[-_\s]/g, '');
+}
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -55,6 +62,9 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
  * escaped quotes defeat the header pattern — and a replacement landing outside a
  * string literal would leave invalid JSON. Walking sidesteps both: every string
  * reaches {@link scrubSecrets} unescaped, and the structure is never touched.
+ *
+ * Property names are caller-controlled too, so they are scrubbed like any other
+ * string — a key that IS a secret would otherwise ride along untouched.
  */
 function scrubValue(value: unknown): unknown {
   if (typeof value === 'string') return scrubSecrets(value);
@@ -62,7 +72,8 @@ function scrubValue(value: unknown): unknown {
   if (!isPlainRecord(value)) return value;
   const out: Record<string, unknown> = {};
   for (const [key, nested] of Object.entries(value)) {
-    out[key] = CREDENTIAL_KEYS.has(key.toLowerCase()) ? '[REDACTED]' : scrubValue(nested);
+    const scrubbed = CREDENTIAL_KEYS.has(normalizeKey(key)) ? '[REDACTED]' : scrubValue(nested);
+    out[scrubSecrets(key)] = scrubbed;
   }
   return out;
 }

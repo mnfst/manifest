@@ -56,6 +56,18 @@ describe('scrubBody', () => {
     });
   });
 
+  it.each(['api_key', 'apiKey', 'X-API-KEY', 'clientSecret', 'accessToken', 'refresh_token'])(
+    'redacts the opaque credential field %s',
+    (key) => {
+      expect(scrubBody({ [key]: 'opaquevalue1234' })).toEqual({ [key]: '[REDACTED]' });
+    },
+  );
+
+  it('scrubs a secret used as a property name', () => {
+    const scrubbed = scrubBody({ 'sk-ant-abcdefghijklmno': 'v' });
+    expect(Object.keys(scrubbed!)).toEqual(['[REDACTED]']);
+  });
+
   it('redacts a header-shaped secret quoted inside message content', () => {
     // Serializing first would escape these quotes and defeat the header pattern,
     // so the body is walked and each string scrubbed unescaped.
