@@ -65,12 +65,21 @@ const HEADER_TIER_FILTER_PREFIX = 'header:';
 const MESSAGE_STATUS_FILTERS = ['ok', 'failed'] as const;
 type MessageStatusFilter = (typeof MESSAGE_STATUS_FILTERS)[number];
 type MessageStatusFilterValue = '' | MessageStatusFilter;
+const MESSAGE_TRIGGER_FILTERS = ['none', 'fallback', 'autofix'] as const;
+type MessageTriggerFilter = (typeof MESSAGE_TRIGGER_FILTERS)[number];
+type MessageTriggerFilterValue = '' | MessageTriggerFilter;
 
 const isMessageStatusFilter = (value: unknown): value is MessageStatusFilter =>
   typeof value === 'string' && (MESSAGE_STATUS_FILTERS as readonly string[]).includes(value);
 
 const normalizeStatusFilter = (value: unknown): MessageStatusFilterValue =>
   isMessageStatusFilter(value) ? value : '';
+
+const isMessageTriggerFilter = (value: unknown): value is MessageTriggerFilter =>
+  typeof value === 'string' && (MESSAGE_TRIGGER_FILTERS as readonly string[]).includes(value);
+
+const normalizeTriggerFilter = (value: unknown): MessageTriggerFilterValue =>
+  isMessageTriggerFilter(value) ? value : '';
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -138,6 +147,7 @@ const MessageLog: Component = () => {
     }),
   ]);
   const [providerFilter, setProviderFilter] = createSignal('');
+  const [triggerFilter, setTriggerFilter] = createSignal<MessageTriggerFilterValue>('');
   const [tierFilter, setTierFilter] = createSignal('');
   const [statusFilterValue, setStatusFilterValue] = createSignal<MessageStatusFilterValue>(
     normalizeStatusFilter(searchParams.status),
@@ -191,6 +201,7 @@ const MessageLog: Component = () => {
     setStatusFilterValue(next);
     setSearchParams({ status: next || undefined }, { replace: true });
   };
+  const setTriggerFilterValue = (value: string) => setTriggerFilter(normalizeTriggerFilter(value));
 
   createEffect(
     on(
@@ -202,7 +213,7 @@ const MessageLog: Component = () => {
 
   createEffect(
     on(
-      [agentFilter, providerFilter, tierFilter, statusFilterValue, costMin, costMax],
+      [agentFilter, providerFilter, triggerFilter, tierFilter, statusFilterValue, costMin, costMax],
       () => pager.resetPage(),
       {
         defer: true,
@@ -213,6 +224,7 @@ const MessageLog: Component = () => {
   const [data, { refetch }] = createResource(
     () => ({
       provider: providerFilter(),
+      trigger: triggerFilter(),
       tier: tierFilter(),
       status: statusFilterValue(),
       costMin: costMin(),
@@ -225,6 +237,7 @@ const MessageLog: Component = () => {
     (p) => {
       const q: Record<string, string> = {};
       if (p.provider) q.provider = p.provider;
+      if (p.trigger) q.trigger = p.trigger;
       if (p.tier) {
         if (p.tier.startsWith(SPECIFICITY_FILTER_PREFIX)) {
           q.specificity_category = p.tier.slice(SPECIFICITY_FILTER_PREFIX.length);
@@ -271,6 +284,7 @@ const MessageLog: Component = () => {
   const hasActiveFilters = () =>
     agentFilter() !== '' ||
     providerFilter() !== '' ||
+    triggerFilter() !== '' ||
     tierFilter() !== '' ||
     statusFilterValue() !== '' ||
     costMin() !== '' ||
@@ -295,6 +309,7 @@ const MessageLog: Component = () => {
   const clearFilters = () => {
     setAgentFilter('');
     setProviderFilter('');
+    setTriggerFilter('');
     setTierFilter('');
     setStatusFilter('');
     setCostMin('');
@@ -350,6 +365,13 @@ const MessageLog: Component = () => {
     { label: 'Failed', value: 'failed' },
   ];
 
+  const triggerOptions = [
+    { label: 'All triggers', value: '' },
+    { label: 'No trigger', value: 'none' },
+    { label: 'Fallback', value: 'fallback' },
+    { label: 'Auto-fix', value: 'autofix' },
+  ];
+
   // Jump to a linked message (the Auto-fix sibling of an expanded row).
   const scrollToMessage = (id: string) => {
     const el = document.getElementById(`msg-${id}`);
@@ -394,6 +416,12 @@ const MessageLog: Component = () => {
               value={providerFilter()}
               onChange={setProviderFilter}
               options={providerOptions()}
+            />
+            <Select
+              value={triggerFilter()}
+              onChange={setTriggerFilterValue}
+              options={triggerOptions}
+              label="Trigger filter"
             />
             <Select
               value={statusFilterValue()}

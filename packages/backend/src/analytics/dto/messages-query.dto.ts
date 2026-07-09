@@ -20,6 +20,9 @@ export const MESSAGE_STATUS_FILTER_VALUES = [
 ] as const;
 export type MessageStatusFilter = (typeof MESSAGE_STATUS_FILTER_VALUES)[number];
 
+export const MESSAGE_TRIGGER_FILTER_VALUES = ['none', 'fallback', 'autofix'] as const;
+export type MessageTriggerFilter = (typeof MESSAGE_TRIGGER_FILTER_VALUES)[number];
+
 /**
  * Error-origin filter for the Messages log. The real origins plus a `manifest`
  * shorthand for "all of config/policy/internal" (the HTTP-200 Manifest stubs
@@ -74,6 +77,12 @@ export class MessagesQueryDto {
     message: `status must be one of: ${MESSAGE_STATUS_FILTER_VALUES.join(', ')}`,
   })
   status?: MessageStatusFilter;
+
+  @IsOptional()
+  @IsIn(MESSAGE_TRIGGER_FILTER_VALUES, {
+    message: `trigger must be one of: ${MESSAGE_TRIGGER_FILTER_VALUES.join(', ')}`,
+  })
+  trigger?: MessageTriggerFilter;
 
   @IsOptional()
   @IsIn(MESSAGE_ORIGIN_FILTER_VALUES, {

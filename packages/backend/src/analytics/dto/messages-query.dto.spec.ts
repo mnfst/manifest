@@ -72,6 +72,22 @@ describe('MessagesQueryDto', () => {
     expect(flat.join('\n')).toMatch(/status must be one of/);
   });
 
+  it('accepts each known trigger filter value', async () => {
+    for (const trigger of ['none', 'fallback', 'autofix']) {
+      const dto = plainToInstance(MessagesQueryDto, { trigger });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    }
+  });
+
+  it('rejects an unknown trigger filter value', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { trigger: 'manual' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+    expect(flat.join('\n')).toMatch(/trigger must be one of/);
+  });
+
   it('coerces include_total and include_filter_options flags', async () => {
     const dto = plainToInstance(MessagesQueryDto, {
       include_total: 'false',

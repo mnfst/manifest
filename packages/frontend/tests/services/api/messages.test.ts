@@ -43,6 +43,7 @@ describe('messages API client', () => {
       agent_name: 'demo',
       cost_min: '0.01',
       cost_max: '1.00',
+      trigger: 'fallback',
       include_total: 'false',
       include_filter_options: 'false',
     });
@@ -55,6 +56,7 @@ describe('messages API client', () => {
     expect(url).toContain('agent_name=demo');
     expect(url).toContain('cost_min=0.01');
     expect(url).toContain('cost_max=1.00');
+    expect(url).toContain('trigger=fallback');
     expect(url).toContain('include_total=false');
     expect(url).toContain('include_filter_options=false');
   });
