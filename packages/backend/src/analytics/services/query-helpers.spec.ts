@@ -532,7 +532,7 @@ describe('origin predicates', () => {
     expect(DEFAULT_LOG_ORIGIN_PREDICATE).toBe(
       "(at.error_origin IS NULL OR at.error_origin NOT IN ('config'))",
     );
-    // policy (limit_exceeded) must NOT be hidden — operators need to see limit hits.
+    // policy classes must NOT be hidden — operators need to see limit hits.
     expect(DEFAULT_LOG_ORIGIN_PREDICATE).not.toContain("'policy'");
   });
 });

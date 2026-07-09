@@ -121,7 +121,8 @@ describe('MessageDetails', () => {
         error_message: 'Request limit reached',
         error_http_status: 402,
         error_origin: 'policy',
-        error_class: 'limit_exceeded',
+        error_class: 'plan_request_limit_exceeded',
+        routing_reason: 'plan_request_limit_exceeded',
         superseded: false,
       },
     });
@@ -130,6 +131,7 @@ describe('MessageDetails', () => {
 
     await vi.waitFor(() => {
       expect(container.textContent).toContain('Upgrade to Pro for unlimited requests.');
+      expect(container.textContent).toContain('Plan request limit');
       const link = screen.getByText('Upgrade plan').closest('a');
       expect(link?.getAttribute('href')).toBe('/upgrade?reason=requests');
     });

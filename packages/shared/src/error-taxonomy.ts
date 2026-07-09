@@ -58,6 +58,7 @@ export const ERROR_CLASSES = [
   'invalid_request',
   'not_found',
   'payload_too_large',
+  'billing',
   'server_error',
   'client_error',
   // transport
@@ -67,6 +68,7 @@ export const ERROR_CLASSES = [
   'no_provider',
   'no_provider_key',
   'limit_exceeded',
+  'plan_request_limit_exceeded',
   'internal',
 ] as const;
 export type ErrorClass = (typeof ERROR_CLASSES)[number];
@@ -83,6 +85,10 @@ const MANIFEST_REASON_TO_CLASSIFICATION: Record<
   no_provider: { origin: 'config', errorClass: 'no_provider' },
   no_provider_key: { origin: 'config', errorClass: 'no_provider_key' },
   limit_exceeded: { origin: 'policy', errorClass: 'limit_exceeded' },
+  plan_request_limit_exceeded: {
+    origin: 'policy',
+    errorClass: 'plan_request_limit_exceeded',
+  },
   manifest_rate_limited: { origin: 'policy', errorClass: 'rate_limit' },
   friendly_error: { origin: 'internal', errorClass: 'internal' },
 };
@@ -90,6 +96,7 @@ const MANIFEST_REASON_TO_CLASSIFICATION: Record<
 /** Map a provider's HTTP status code to a normalized error class. */
 export function classifyHttpErrorClass(httpStatus: number): ErrorClass {
   if (httpStatus === 429) return 'rate_limit';
+  if (httpStatus === 402) return 'billing';
   if (httpStatus === 401 || httpStatus === 403) return 'auth';
   if (httpStatus === 404) return 'not_found';
   if (httpStatus === 413) return 'payload_too_large';
@@ -139,6 +146,13 @@ export function classifyMessageError(signals: MessageErrorSignals): MessageError
     ? MANIFEST_REASON_TO_CLASSIFICATION[signals.routingReason]
     : undefined;
   if (manifest) {
+    if (signals.routingReason === 'limit_exceeded' && signals.errorHttpStatus === 402) {
+      return {
+        error_origin: 'policy',
+        error_class: 'plan_request_limit_exceeded',
+        superseded,
+      };
+    }
     return { error_origin: manifest.origin, error_class: manifest.errorClass, superseded };
   }
 

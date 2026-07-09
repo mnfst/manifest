@@ -22,7 +22,7 @@ describe('error-taxonomy constants', () => {
   });
 
   it('produces only known classes from the HTTP mapper', () => {
-    for (const code of [429, 401, 403, 404, 413, 400, 422, 500, 502, 418, 200]) {
+    for (const code of [429, 402, 401, 403, 404, 413, 400, 422, 500, 502, 418, 200]) {
       expect(ERROR_CLASSES).toContain(classifyHttpErrorClass(code));
     }
   });
@@ -31,6 +31,7 @@ describe('error-taxonomy constants', () => {
 describe('classifyHttpErrorClass', () => {
   it.each([
     [429, 'rate_limit'],
+    [402, 'billing'],
     [401, 'auth'],
     [403, 'auth'],
     [404, 'not_found'],
@@ -61,6 +62,7 @@ describe('classifyMessageError', () => {
     ['no_provider', 'config', 'no_provider'],
     ['no_provider_key', 'config', 'no_provider_key'],
     ['limit_exceeded', 'policy', 'limit_exceeded'],
+    ['plan_request_limit_exceeded', 'policy', 'plan_request_limit_exceeded'],
     ['manifest_rate_limited', 'policy', 'rate_limit'],
     ['friendly_error', 'internal', 'internal'],
   ])('maps the Manifest reason %s to %s/%s', (reason, origin, klass) => {
@@ -161,6 +163,20 @@ describe('classifyMessageError', () => {
         errorHttpStatus: 500,
       }),
     ).toEqual({ error_origin: 'config', error_class: 'no_provider_key', superseded: true });
+  });
+
+  it('keeps legacy 402 request-quota rows distinct from user-configured limits', () => {
+    expect(
+      classifyMessageError({
+        status: 'error',
+        routingReason: 'limit_exceeded',
+        errorHttpStatus: 402,
+      }),
+    ).toEqual({
+      error_origin: 'policy',
+      error_class: 'plan_request_limit_exceeded',
+      superseded: false,
+    });
   });
 });
 

@@ -37,7 +37,8 @@ describe('MessageTable status labels', () => {
   it('labels billing plan request-limit blocks as plan limits', () => {
     renderStatus({
       error_origin: 'policy',
-      error_class: 'limit_exceeded',
+      error_class: 'plan_request_limit_exceeded',
+      routing_reason: 'plan_request_limit_exceeded',
       error_http_status: 402,
     });
 

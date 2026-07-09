@@ -419,6 +419,7 @@ describe('ProxyMessageRecorder', () => {
     describe('error classification axes', () => {
       it.each([
         [500, 'provider', 'server_error'],
+        [402, 'provider', 'billing'],
         [401, 'provider', 'auth'],
         [404, 'provider', 'not_found'],
         [400, 'provider', 'invalid_request'],
@@ -441,7 +442,7 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordManifestBlockedRequest(ctx, {
         httpStatus: 402,
         errorMessage: 'Free plan request limit reached',
-        reason: 'limit_exceeded',
+        reason: 'plan_request_limit_exceeded',
         model: 'auto',
         traceId: 'trace-1',
         sessionKey: 'session-1',
@@ -457,9 +458,9 @@ describe('ProxyMessageRecorder', () => {
         status: 'error',
         error_message: 'Free plan request limit reached',
         error_http_status: 402,
-        routing_reason: 'limit_exceeded',
+        routing_reason: 'plan_request_limit_exceeded',
         error_origin: 'policy',
-        error_class: 'limit_exceeded',
+        error_class: 'plan_request_limit_exceeded',
         superseded: false,
         model: 'auto',
         provider: null,
@@ -1126,7 +1127,7 @@ describe('ProxyMessageRecorder', () => {
       });
     });
 
-    describe('canned Manifest responses (no_provider / no_provider_key / limit_exceeded / friendly_error)', () => {
+    describe('canned Manifest responses (no_provider / no_provider_key / limit_exceeded / plan_request_limit_exceeded / friendly_error)', () => {
       const cases: Array<{
         reason: string;
         errorMessage: string;
@@ -1150,6 +1151,12 @@ describe('ProxyMessageRecorder', () => {
           errorMessage: 'Usage limit exceeded',
           origin: 'policy',
           klass: 'limit_exceeded',
+        },
+        {
+          reason: 'plan_request_limit_exceeded',
+          errorMessage: 'Free plan monthly request limit reached',
+          origin: 'policy',
+          klass: 'plan_request_limit_exceeded',
         },
         {
           reason: 'friendly_error',

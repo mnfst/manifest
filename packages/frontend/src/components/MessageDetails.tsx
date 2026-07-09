@@ -9,6 +9,7 @@ import {
 import { inferProviderName } from '../services/routing-utils.js';
 import { getModelDisplayName } from '../services/model-display.js';
 import { formatErrorClass, formatErrorOrigin } from '../services/formatters.js';
+import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
 import { ModelParamsSection, RequestHeadersSection } from './MessageDetailsSections.jsx';
 import { routingTierLabel } from './message-table-types.js';
 
@@ -269,6 +270,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
           const hasTrigger = isAutofixRetry || isFallbackTrigger;
           const hasNextAction = isAutofixOriginal || isFallbackError;
           const isTripleLayout = hasTrigger && hasNextAction && !!m.error_message;
+          const isPlanLimitBlock = () => isPlanRequestLimitMessage(m);
           return (
             <>
               {/* ── Message section — always first ─────────────────── */}
@@ -346,24 +348,12 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                         </svg>
                         <span>
                           {m.error_message}
-                          <Show
-                            when={
-                              m.error_origin === 'policy' &&
-                              m.error_class === 'limit_exceeded' &&
-                              m.error_http_status === 402
-                            }
-                          >
+                          <Show when={isPlanLimitBlock()}>
                             {' '}
                             Upgrade to Pro for unlimited requests.
                           </Show>
                         </span>
-                        <Show
-                          when={
-                            m.error_origin === 'policy' &&
-                            m.error_class === 'limit_exceeded' &&
-                            m.error_http_status === 402
-                          }
-                        >
+                        <Show when={isPlanLimitBlock()}>
                           <A
                             href="/upgrade?reason=requests"
                             class="btn btn--primary btn--sm"
@@ -405,12 +395,16 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                                     'Too many requests — the provider is throttling.'}
                                   {m.error_class === 'auth' &&
                                     'Authentication failed — invalid or expired API key.'}
+                                  {m.error_class === 'billing' &&
+                                    'The provider rejected the request for billing or quota reasons.'}
                                   {m.error_class === 'timeout' &&
                                     'The request timed out before the provider responded.'}
                                   {m.error_class === 'server_error' &&
                                     'The provider experienced an internal error.'}
                                   {m.error_class === 'no_provider_key' &&
                                     'No API key is configured for this provider.'}
+                                  {m.error_class === 'plan_request_limit_exceeded' &&
+                                    'The Manifest Free plan monthly request quota was reached.'}
                                 </span>
                               </td>
                             </tr>
