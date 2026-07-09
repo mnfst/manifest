@@ -371,6 +371,13 @@
   max-width: 680px;
 }
 
+.upgrade-limit-notice {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  margin-bottom: var(--gap-lg);
+}
+
 .upgrade-page-header--centered {
   display: block;
   text-align: center;

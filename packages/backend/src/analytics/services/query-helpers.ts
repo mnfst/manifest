@@ -287,6 +287,7 @@ export const MESSAGE_ROW_SELECT_ALIASES = [
   'error_message',
   'error_origin',
   'error_class',
+  'error_http_status',
   'auth_type',
   'fallback_from_model',
   'fallback_index',
@@ -323,6 +324,7 @@ export function selectMessageRowColumns<T extends ObjectLiteral>(
     .addSelect('at.error_message', 'error_message')
     .addSelect('at.error_origin', 'error_origin')
     .addSelect('at.error_class', 'error_class')
+    .addSelect('at.error_http_status', 'error_http_status')
     .addSelect('at.auth_type', 'auth_type')
     .addSelect('at.fallback_from_model', 'fallback_from_model')
     .addSelect('at.fallback_index', 'fallback_index')

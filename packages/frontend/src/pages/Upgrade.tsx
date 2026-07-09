@@ -102,11 +102,11 @@ const Upgrade: Component = () => {
         </div>
 
         <Show when={isRequestLimitEntry()}>
-          <div class="auth-form__success" role="status">
+          <p class="upgrade-limit-notice">
             You've used all{' '}
             {status()?.requests.limit?.toLocaleString('en-US') ?? FREE_REQUEST_LIMIT_LABEL} requests
             this month. Upgrade for unlimited routed requests.
-          </div>
+          </p>
         </Show>
 
         <Show when={billing.loading}>
