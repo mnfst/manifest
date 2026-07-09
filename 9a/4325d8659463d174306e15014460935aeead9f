@@ -1,0 +1,50 @@
+packages/frontend/tests/pages/Account.test.tsx
+  s_34a5a0500fe110::t_fbaaa25bf77cec 322-327
+  s_34a5a0500fe110::t_8385dbb86dc1f3 319-321
+  s_34a5a0500fe110::t_72e0417115d27b 314-318
+packages/frontend/tests/pages/Register.test.tsx
+  s_34a5a0500fe110::t_fbaaa25bf77cec 9,46-50,260-262,287,292-307
+  s_34a5a0500fe110::t_41005795effdc6 308-309
+packages/backend/src/billing/plan.service.spec.ts
+  s_34a5a0500fe110::t_fbaaa25bf77cec 8,264
+packages/frontend/src/pages/Upgrade.tsx
+  s_34a5a0500fe110::t_d703e00707d1f8 53,58-59
+  s_34a5a0500fe110::t_81737517badb09 73-83
+packages/frontend/src/pages/Overview.tsx
+  s_34a5a0500fe110::t_72ba39c427236a 118,120
+packages/backend/src/billing/plan.service.ts
+  s_34a5a0500fe110::t_d703e00707d1f8 15,223
+packages/frontend/src/components/UsageLimitBanner.tsx
+  s_34a5a0500fe110::t_ea50a93596665b 71-74
+  s_34a5a0500fe110::t_72ba39c427236a 2,4,8-9,11,20-21,24,31-36,45-46,58
+packages/frontend/src/pages/Account.tsx
+  s_34a5a0500fe110::t_d703e00707d1f8 58,63-64
+packages/frontend/tests/components/UsageLimitBanner.test.tsx
+  s_34a5a0500fe110::t_fbaaa25bf77cec 15-23,46,65-68,76-78
+  s_34a5a0500fe110::t_4dee4721748ab3 79-87,99-101
+packages/frontend/src/pages/Register.tsx
+  s_34a5a0500fe110::t_d703e00707d1f8 21,143,146,148-150,152
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_34a5a0500fe110::t_72ba39c427236a 129,131
+  s_34a5a0500fe110::t_67f6213da1578c 121-125
+packages/frontend/tests/pages/Upgrade.test.tsx
+  s_34a5a0500fe110::t_fbaaa25bf77cec 181-191
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_34a5a0500fe110::t_72ba39c427236a 211,213
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9a4325d8659463d174306e15014460935aeead9f",
+  "prompts": {},
+  "sessions": {
+    "s_34a5a0500fe110": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f45f0-008b-7093-81b2-f464c7b970f1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
