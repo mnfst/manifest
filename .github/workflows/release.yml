@@ -131,6 +131,11 @@ jobs:
       # GITHUB_TOKEN, which does NOT trigger `release: published` workflows, so a
       # standalone workflow would never fire. No-op if the secret is unset.
       - name: Trigger website changelog rebuild
+        # Best-effort: the release, tag, and Docker publish already succeeded by
+        # this point, so a transient hook or network error must not fail the job
+        # (a red status after a good release is misleading). The site also
+        # rebuilds on the next release or any push to the website repo.
+        continue-on-error: true
         env:
           HOOK: ${{ secrets.WEBSITE_DEPLOY_HOOK }}
         run: |
