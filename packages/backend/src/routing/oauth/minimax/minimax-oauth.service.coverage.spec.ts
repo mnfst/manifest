@@ -258,7 +258,7 @@ describe('MinimaxOauthService', () => {
           access_token: 'at',
           refresh_token: 'rt',
           expired_in: 3600,
-          resource_url: 'https://api.minimax.io/anthropic',
+          resource_url: 'https://api.minimax.io/anthropic/v1',
         }),
       );
       const out = await svc.pollAuthorization(start.flowId, 'user-1');

@@ -28,7 +28,7 @@ describe('resolveForwardEndpoint', () => {
       provider: 'minimax',
       authType: 'subscription',
       model: 'minimax/abab',
-      resourceUrl: 'https://api.minimaxi.com/anthropic',
+      resourceUrl: 'https://api.minimaxi.com/anthropic/v1',
     });
     expect(out.forwardModel).toBe('abab');
     expect(out.customEndpoint?.baseUrl).toContain('api.minimaxi.com');

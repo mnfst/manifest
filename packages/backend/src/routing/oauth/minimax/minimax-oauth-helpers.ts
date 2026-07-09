@@ -13,7 +13,7 @@ export type MinimaxRegion = keyof typeof MINIMAX_BASE_URLS;
 
 export const DEFAULT_REGION: MinimaxRegion = 'global';
 export const DEFAULT_BASE_URL = MINIMAX_BASE_URLS[DEFAULT_REGION];
-export const DEFAULT_RESOURCE_URL = `${DEFAULT_BASE_URL}/anthropic`;
+export const DEFAULT_RESOURCE_URL = `${DEFAULT_BASE_URL}/anthropic/v1`;
 export const DEFAULT_POLL_INTERVAL_MS = 2000;
 
 export function isMinimaxRegion(value: string | undefined): value is MinimaxRegion {
@@ -33,7 +33,7 @@ export function buildMinimaxTokenUrl(baseUrl: string): string {
 }
 
 export function buildMinimaxResourceUrl(baseUrl: string): string {
-  return `${baseUrl}/anthropic`;
+  return `${baseUrl}/anthropic/v1`;
 }
 
 const VERIFICATION_HOST_REWRITES: Record<string, string> = {

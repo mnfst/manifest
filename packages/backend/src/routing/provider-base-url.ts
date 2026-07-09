@@ -3,8 +3,8 @@ export function normalizeProviderBaseUrl(baseUrl: string): string {
 }
 
 const MINIMAX_SUBSCRIPTION_BASE_URLS = new Set([
-  'https://api.minimax.io/anthropic',
-  'https://api.minimaxi.com/anthropic',
+  'https://api.minimax.io/anthropic/v1',
+  'https://api.minimaxi.com/anthropic/v1',
 ]);
 
 export function normalizeMinimaxSubscriptionBaseUrl(baseUrl: string): string | null {
@@ -14,7 +14,7 @@ export function normalizeMinimaxSubscriptionBaseUrl(baseUrl: string): string | n
       return null;
     }
 
-    const normalized = normalizeProviderBaseUrl(`${url.origin}${url.pathname}`);
+    const normalized = `${url.origin}${url.pathname}`.replace(/\/+$/, '');
     return MINIMAX_SUBSCRIPTION_BASE_URLS.has(normalized) ? normalized : null;
   } catch {
     return null;
