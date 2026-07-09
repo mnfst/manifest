@@ -285,13 +285,19 @@ export class AutofixService {
     }
     if (!cfg.enabled) {
       this.logger.log(
-        `skip status=${status}: agent ${params.agentId} disabled ` +
-          `(defaultAgentEnabled=${this.defaultAgentEnabled})`,
+        `skip status=${status}: agent ${params.agentId} tenant ${params.tenantId} ` +
+          `disabled (defaultAgentEnabled=${this.defaultAgentEnabled})`,
       );
       return null;
     }
 
-    this.logger.log(`healing status=${status} agent=${params.agentId} provider=${params.provider}`);
+    // Include tenant + agent so a healing event is self-contained for
+    // tenant-scoped log filtering (the entry line above can interleave across
+    // requests once the two awaited gate checks run between them).
+    this.logger.log(
+      `healing status=${status} agent=${params.agentId} ` +
+        `tenant=${params.tenantId} provider=${params.provider}`,
+    );
 
     // Read the original error once, then rebuild it so it stays readable
     // downstream (fallback / recorder) whether or not we heal.
