@@ -319,5 +319,26 @@ describe('ProxyExceptionFilter', () => {
       const payload = res.json.mock.calls[0][0];
       expect(payload.error.type).not.toBe('insufficient_quota');
     });
+
+    it('renders the friendly M204 upgrade message as SSE for a streaming chat client', () => {
+      const { host, res } = createMockHost({ stream: true });
+      filter.catch(blockExc(), host);
+
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/event-stream');
+      expect(res.status).toHaveBeenCalledWith(200);
+      const payload = res.send.mock.calls[0][0] as string;
+      expect(payload).toContain('data: [DONE]');
+      expect(payload).toContain('M204');
+    });
+
+    it('returns the 402 to an Accept: text/event-stream non-streaming client with a friendly response', () => {
+      const { host, res } = chatHost();
+      filter.catch(blockExc(), host);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      const payload = res.json.mock.calls[0][0];
+      const content = payload.choices[0].message.content as string;
+      expect(content).toContain('M204');
+    });
   });
 });

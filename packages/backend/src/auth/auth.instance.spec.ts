@@ -25,6 +25,12 @@ jest.mock('../notifications/emails/reset-password', () => ({
 jest.mock('../notifications/services/email-providers/send-email', () => ({
   sendEmail: jest.fn(),
 }));
+jest.mock('../billing/subscription-webhook-emails', () => ({
+  previousPlanFromEvent: jest.fn().mockReturnValue(null),
+  sendPlanChangedEmail: jest.fn().mockResolvedValue(true),
+  sendSubscriptionCanceledEmail: jest.fn().mockResolvedValue(true),
+  sendSubscriptionConfirmedEmail: jest.fn().mockResolvedValue(true),
+}));
 
 describe('auth.instance', () => {
   const originalEnv = process.env;
@@ -485,6 +491,87 @@ describe('auth.instance', () => {
       expect(pluginConfig.subscription.onSubscriptionCancel).toEqual(expect.any(Function));
       expect(pluginConfig.subscription.onSubscriptionDeleted).toEqual(expect.any(Function));
       expect(pluginConfig).not.toHaveProperty('createCustomerOnSignUp');
+    });
+
+    it('onSubscriptionComplete calls sendSubscriptionConfirmedEmail', async () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      process.env['STRIPE_SECRET_KEY'] = 'sk_test_x';
+      process.env['STRIPE_WEBHOOK_SECRET'] = 'whsec_x';
+      process.env['STRIPE_PRO_PRICE_ID'] = 'price_x';
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const webhookEmails = require('../billing/subscription-webhook-emails') as {
+        sendSubscriptionConfirmedEmail: jest.Mock;
+        sendPlanChangedEmail: jest.Mock;
+        sendSubscriptionCanceledEmail: jest.Mock;
+        previousPlanFromEvent: jest.Mock;
+      };
+      jest.spyOn(webhookEmails, 'sendSubscriptionConfirmedEmail').mockResolvedValue(true);
+      jest.spyOn(webhookEmails, 'sendPlanChangedEmail').mockResolvedValue(true);
+      jest.spyOn(webhookEmails, 'sendSubscriptionCanceledEmail').mockResolvedValue(true);
+      jest.spyOn(webhookEmails, 'previousPlanFromEvent').mockReturnValue('free');
+
+      loadModule();
+      const pluginConfig = mockStripePlugin.mock.calls[0][0];
+      const sub = { subscription: { plan: 'pro' } };
+      const evt = { event: { id: 'evt_1' } };
+
+      await pluginConfig.subscription.onSubscriptionComplete({ ...evt, ...sub });
+      expect(webhookEmails.sendSubscriptionConfirmedEmail).toHaveBeenCalled();
+
+      await pluginConfig.subscription.onSubscriptionCreated({ ...evt, ...sub });
+      expect(webhookEmails.sendSubscriptionConfirmedEmail).toHaveBeenCalledTimes(2);
+
+      await pluginConfig.subscription.onSubscriptionUpdate({ ...evt, ...sub });
+      expect(webhookEmails.previousPlanFromEvent).toHaveBeenCalled();
+      expect(webhookEmails.sendPlanChangedEmail).toHaveBeenCalled();
+
+      await pluginConfig.subscription.onSubscriptionDeleted({ ...evt, ...sub });
+      expect(webhookEmails.sendSubscriptionCanceledEmail).toHaveBeenCalled();
+    });
+
+    it('onSubscriptionCancel skips when event is undefined', async () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      process.env['STRIPE_SECRET_KEY'] = 'sk_test_x';
+      process.env['STRIPE_WEBHOOK_SECRET'] = 'whsec_x';
+      process.env['STRIPE_PRO_PRICE_ID'] = 'price_x';
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const webhookEmails = require('../billing/subscription-webhook-emails') as {
+        sendSubscriptionCanceledEmail: jest.Mock;
+      };
+      jest.spyOn(webhookEmails, 'sendSubscriptionCanceledEmail').mockResolvedValue(true);
+
+      loadModule();
+      const pluginConfig = mockStripePlugin.mock.calls[0][0];
+
+      await pluginConfig.subscription.onSubscriptionCancel({
+        event: undefined,
+        subscription: { plan: 'pro' },
+      });
+      expect(webhookEmails.sendSubscriptionCanceledEmail).not.toHaveBeenCalled();
+    });
+
+    it('onSubscriptionCancel sends when event is present', async () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      process.env['STRIPE_SECRET_KEY'] = 'sk_test_x';
+      process.env['STRIPE_WEBHOOK_SECRET'] = 'whsec_x';
+      process.env['STRIPE_PRO_PRICE_ID'] = 'price_x';
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const webhookEmails = require('../billing/subscription-webhook-emails') as {
+        sendSubscriptionCanceledEmail: jest.Mock;
+      };
+      jest.spyOn(webhookEmails, 'sendSubscriptionCanceledEmail').mockResolvedValue(true);
+
+      loadModule();
+      const pluginConfig = mockStripePlugin.mock.calls[0][0];
+
+      await pluginConfig.subscription.onSubscriptionCancel({
+        event: { id: 'evt_cancel' },
+        subscription: { plan: 'pro' },
+      });
+      expect(webhookEmails.sendSubscriptionCanceledEmail).toHaveBeenCalled();
     });
   });
 

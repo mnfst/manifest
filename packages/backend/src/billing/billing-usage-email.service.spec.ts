@@ -202,4 +202,54 @@ describe('BillingUsageEmailService', () => {
     expect(tryInsert).not.toHaveBeenCalled();
     expect(sendPlanUsageEmail).not.toHaveBeenCalled();
   });
+
+  it('invalidates the request count cache before counting', async () => {
+    const callOrder: string[] = [];
+    invalidateRequestCountCache.mockImplementation(() => callOrder.push('invalidate'));
+    countRequestsSince.mockImplementation(() => {
+      callOrder.push('count');
+      return Promise.resolve(8_000);
+    });
+
+    await service.checkTenantUsage('t1');
+
+    expect(invalidateRequestCountCache).toHaveBeenCalledWith('t1');
+    expect(callOrder.indexOf('invalidate')).toBeLessThan(callOrder.indexOf('count'));
+  });
+
+  it('does not send when the plan limit is null (unlimited)', async () => {
+    getLimits.mockResolvedValue({ requestsPerMonth: null });
+
+    await expect(service.checkTenantUsage('t1')).resolves.toBe(false);
+
+    expect(countRequestsSince).not.toHaveBeenCalled();
+    expect(sendPlanUsageEmail).not.toHaveBeenCalled();
+  });
+
+  it('does not send when the plan limit is zero', async () => {
+    getLimits.mockResolvedValue({ requestsPerMonth: 0 });
+
+    await expect(service.checkTenantUsage('t1')).resolves.toBe(false);
+
+    expect(countRequestsSince).not.toHaveBeenCalled();
+    expect(sendPlanUsageEmail).not.toHaveBeenCalled();
+  });
+
+  it('does not send when recipient email is null', async () => {
+    const warn = jest.spyOn(service['logger'], 'warn').mockImplementation();
+    dataSourceQuery.mockResolvedValueOnce([
+      { email: null, name: 'Ada', user_id: 'u1', billing_email_preferences: null },
+    ]);
+
+    await expect(service.checkTenantUsage('t1')).resolves.toBe(false);
+
+    expect(warn).toHaveBeenCalledWith('No billing email recipient found for tenant t1');
+    expect(sendPlanUsageEmail).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it('calls onModuleDestroy safely when there is no subscription', () => {
+    // Service not yet initialized — ingestSub is undefined
+    expect(() => service.onModuleDestroy()).not.toThrow();
+  });
 });

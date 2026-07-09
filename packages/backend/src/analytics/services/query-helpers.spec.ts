@@ -9,6 +9,8 @@ import {
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
   filterByKeyLabel,
+  filterByTenantProviderId,
+  scopeToConnection,
   filterByLiveAgentName,
   MESSAGE_ROW_SELECT_ALIASES,
   sqlCountMessages,
@@ -290,6 +292,68 @@ describe('filterByKeyLabel', () => {
   });
 });
 
+describe('filterByTenantProviderId', () => {
+  function makeMockQb() {
+    const mockAndWhere = jest.fn();
+    const qb = { andWhere: mockAndWhere.mockImplementation(() => qb) };
+    return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere };
+  }
+
+  it('filters by the tenant_provider_id column', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByTenantProviderId(qb, 'tp-123');
+    expect(mockAndWhere).toHaveBeenCalledWith('at.tenant_provider_id = :tenantProviderId', {
+      tenantProviderId: 'tp-123',
+    });
+  });
+
+  it('returns the query builder for chaining', () => {
+    const { qb } = makeMockQb();
+    expect(filterByTenantProviderId(qb, 'tp-123')).toBe(qb);
+  });
+});
+
+describe('scopeToConnection', () => {
+  function makeMockQb() {
+    const mockAndWhere = jest.fn();
+    const qb = { andWhere: mockAndWhere.mockImplementation(() => qb) };
+    return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere };
+  }
+
+  it('uses filterByTenantProviderId when tenantProviderId is provided', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    scopeToConnection(qb, 'tp-123', 'Work');
+    expect(mockAndWhere).toHaveBeenCalledWith('at.tenant_provider_id = :tenantProviderId', {
+      tenantProviderId: 'tp-123',
+    });
+  });
+
+  it('uses filterByKeyLabel when only label is provided', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    scopeToConnection(qb, undefined, 'Work');
+    expect(mockAndWhere).toHaveBeenCalledWith(
+      "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)",
+      { keyLabel: 'Work' },
+    );
+  });
+
+  it('is a no-op when neither tenantProviderId nor label is supplied', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    const result = scopeToConnection(qb, undefined, undefined);
+    expect(mockAndWhere).not.toHaveBeenCalled();
+    expect(result).toBe(qb);
+  });
+
+  it('uses filterByKeyLabel when label is null', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    scopeToConnection(qb, undefined, null);
+    expect(mockAndWhere).toHaveBeenCalledWith(
+      "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)",
+      { keyLabel: 'Default' },
+    );
+  });
+});
+
 describe('selectMessageRowColumns', () => {
   function makeMockQb() {
     const selectCalls: Array<[string, string]> = [];
@@ -363,7 +427,7 @@ describe('selectMessageRowColumns', () => {
     expect(specCall).toEqual(['at.specificity_category', 'specificity_category']);
   });
 
-  it('projects error_origin and error_class so the frontend can render the taxonomy', () => {
+  it('projects error_origin, error_class, and error_http_status so the frontend can render the taxonomy', () => {
     const { qb, addSelectCalls } = makeMockQb();
     selectMessageRowColumns(qb, 'cost');
 
@@ -375,8 +439,13 @@ describe('selectMessageRowColumns', () => {
       'at.error_class',
       'error_class',
     ]);
+    expect(addSelectCalls.find(([, a]) => a === 'error_http_status')).toEqual([
+      'at.error_http_status',
+      'error_http_status',
+    ]);
     expect(MESSAGE_ROW_SELECT_ALIASES).toContain('error_origin');
     expect(MESSAGE_ROW_SELECT_ALIASES).toContain('error_class');
+    expect(MESSAGE_ROW_SELECT_ALIASES).toContain('error_http_status');
   });
 
   it('returns the query builder for chaining', () => {
@@ -397,6 +466,22 @@ describe('selectMessageRowColumns', () => {
 
     const nameCall = addSelectCalls.find(([, a]) => a === 'custom_provider_name');
     expect(nameCall).toEqual(['cp.name', 'custom_provider_name']);
+  });
+
+  it('projects autofix_applied and autofix_role for Auto-fix rendering', () => {
+    const { qb, addSelectCalls } = makeMockQb();
+    selectMessageRowColumns(qb, 'cost');
+
+    expect(addSelectCalls.find(([, a]) => a === 'autofix_applied')).toEqual([
+      'at.autofix_applied',
+      'autofix_applied',
+    ]);
+    expect(addSelectCalls.find(([, a]) => a === 'autofix_role')).toEqual([
+      'at.autofix_role',
+      'autofix_role',
+    ]);
+    expect(MESSAGE_ROW_SELECT_ALIASES).toContain('autofix_applied');
+    expect(MESSAGE_ROW_SELECT_ALIASES).toContain('autofix_role');
   });
 
   it('keys the join on the custom:-prefixed provider id', () => {

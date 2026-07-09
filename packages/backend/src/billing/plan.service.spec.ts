@@ -126,6 +126,29 @@ describe('PlanService', () => {
         requestsPerMonth: null,
       });
     });
+
+    it('throttles the limit failure warning and reports the suppressed count', async () => {
+      enableBilling();
+      mockQuery.mockRejectedValue(new Error('snapshot down'));
+      const warn = jest
+        .spyOn((service as unknown as { logger: { warn: jest.Mock } }).logger, 'warn')
+        .mockImplementation(() => undefined);
+      const nowSpy = jest.spyOn(Date, 'now');
+      try {
+        nowSpy.mockReturnValue(2_000_000);
+        await service.getLimits(CTX, { failOpen: true }); // first → warns once
+        await service.getLimits(CTX, { failOpen: true }); // within window → suppressed
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(String(warn.mock.calls[0][0])).not.toContain('suppressed');
+
+        nowSpy.mockReturnValue(2_000_000 + 61_000);
+        await service.getLimits(CTX, { failOpen: true }); // window elapsed → warns with tail
+        expect(warn).toHaveBeenCalledTimes(2);
+        expect(String(warn.mock.calls[1][0])).toContain('1 more suppressed');
+      } finally {
+        nowSpy.mockRestore();
+      }
+    });
   });
 
   describe('getBillingStatus', () => {
@@ -225,6 +248,23 @@ describe('PlanService', () => {
       expect(status.priceMonthly).toEqual({ amount: null, currency: null, interval: null });
     });
 
+    it('falls back to 100 divisor for an invalid currency code', async () => {
+      enableBilling();
+      jest.spyOn(billingConfig, 'getStripeClient').mockReturnValue({
+        prices: {
+          retrieve: jest.fn().mockResolvedValue({
+            currency: 'INVALID_NOT_A_CURRENCY',
+            recurring: { interval: 'month' },
+            unit_amount: 5000,
+          }),
+        },
+      } as never);
+
+      const status = await service.getBillingStatus(CTX);
+      // 5000 / 100 (fallback divisor) = 50
+      expect(status.priceMonthly.amount).toBe(50);
+    });
+
     it('handles a price with no unit_amount', async () => {
       enableBilling();
       jest.spyOn(billingConfig, 'getStripeClient').mockReturnValue({
@@ -319,6 +359,17 @@ describe('PlanService', () => {
       const monthStart = new Date(mockQuery.mock.calls[0][1][1]);
       expect(monthStart.getUTCDate()).toBe(1);
       expect(monthStart.getUTCHours()).toBe(0);
+    });
+
+    it('invalidateRequestCountCache forces the next count to re-query', async () => {
+      mockQuery.mockResolvedValue([{ n: 3 }]);
+      await service.countRequestsSince('t1', START);
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+
+      service.invalidateRequestCountCache('t1');
+      mockQuery.mockResolvedValue([{ n: 5 }]);
+      expect(await service.countRequestsSince('t1', START)).toBe(5);
+      expect(mockQuery).toHaveBeenCalledTimes(2);
     });
   });
 

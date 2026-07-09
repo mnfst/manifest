@@ -9,6 +9,7 @@ jest.mock('./billing-email-sender', () => ({
 import type Stripe from 'stripe';
 import type { Subscription } from '@better-auth/stripe';
 import {
+  planFromPriceId,
   previousPlanFromEvent,
   sendPlanChangedEmail,
   sendSubscriptionCanceledEmail,
@@ -157,6 +158,170 @@ describe('subscription webhook billing emails', () => {
       'owner@example.com',
       expect.objectContaining({ kind: 'cancellation_confirmed' }),
       'noreply@manifest.build',
+    );
+  });
+
+  it('returns false when no billing recipient email is found', async () => {
+    const query = jest
+      .fn()
+      .mockResolvedValueOnce({ rows: [] }) // dedupe check
+      .mockResolvedValueOnce({ rows: [{ email: null, name: null }] }); // user lookup
+
+    await expect(sendSubscriptionConfirmedEmail({ query }, event(), subscription())).resolves.toBe(
+      false,
+    );
+
+    expect(sendSubscriptionPlanEmail).not.toHaveBeenCalled();
+  });
+
+  it('returns false when no billing user row exists', async () => {
+    const query = jest
+      .fn()
+      .mockResolvedValueOnce({ rows: [] }) // dedupe check
+      .mockResolvedValueOnce({ rows: [] }); // no user found
+
+    await expect(sendSubscriptionConfirmedEmail({ query }, event(), subscription())).resolves.toBe(
+      false,
+    );
+
+    expect(sendSubscriptionPlanEmail).not.toHaveBeenCalled();
+  });
+
+  it('returns false for plan_changed when previousPlan is null', async () => {
+    await expect(sendPlanChangedEmail({ query: jest.fn() }, event(), subscription(), null))
+      .resolves.toBe(false);
+  });
+
+  it('uses the stripeSubscriptionId fallback to subscription.id when stripeSubscriptionId is null', async () => {
+    const query = jest
+      .fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ email: 'owner@example.com', name: 'Ada' }] })
+      .mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
+
+    const sub = subscription({ stripeSubscriptionId: null as unknown as string, id: 'ba-row-id' });
+    await sendSubscriptionConfirmedEmail({ query }, event(), sub);
+
+    expect(query.mock.calls[0][1][0]).toBe('billing:subscription_confirmed:ba-row-id:confirm');
+  });
+
+  it('uses cancelAt for the period end in cancel emails when cancelAt is present', async () => {
+    const cancelDate = new Date('2026-09-01T00:00:00.000Z');
+    const query = jest
+      .fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ email: 'owner@example.com', name: 'Ada' }] })
+      .mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
+
+    await sendSubscriptionCanceledEmail(
+      { query },
+      event(),
+      subscription({ cancelAt: cancelDate }),
+    );
+
+    expect(sendSubscriptionPlanEmail).toHaveBeenCalledWith(
+      'owner@example.com',
+      expect.objectContaining({
+        periodEnd: cancelDate.toISOString(),
+      }),
+      'noreply@manifest.build',
+    );
+  });
+
+  it('uses endedAt for the period end when both cancelAt and periodEnd are null', async () => {
+    const endedDate = new Date('2026-10-15T00:00:00.000Z');
+    const query = jest
+      .fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ email: 'owner@example.com', name: 'Ada' }] })
+      .mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
+
+    await sendSubscriptionCanceledEmail(
+      { query },
+      event(),
+      subscription({
+        cancelAt: null as unknown as Date,
+        periodEnd: null as unknown as Date,
+        endedAt: endedDate,
+      }),
+    );
+
+    expect(sendSubscriptionPlanEmail).toHaveBeenCalledWith(
+      'owner@example.com',
+      expect.objectContaining({
+        periodEnd: endedDate.toISOString(),
+      }),
+      'noreply@manifest.build',
+    );
+  });
+
+  it('resolves user from an array result (not { rows } wrapper)', async () => {
+    const query = jest
+      .fn()
+      .mockResolvedValueOnce([]) // dedupe check — array form
+      .mockResolvedValueOnce([{ email: 'owner@example.com', name: 'Ada' }]) // user — array form
+      .mockResolvedValueOnce([{ id: 'log-1' }]); // insert
+
+    await expect(sendSubscriptionConfirmedEmail({ query }, event(), subscription())).resolves.toBe(
+      true,
+    );
+
+    expect(sendSubscriptionPlanEmail).toHaveBeenCalled();
+  });
+
+  describe('planFromPriceId', () => {
+    const priceToPlan = new Map([['price_pro', 'pro']]);
+
+    it('returns the plan name for a known price', () => {
+      expect(planFromPriceId('price_pro', priceToPlan)).toBe('pro');
+    });
+
+    it('returns null for an unknown price', () => {
+      expect(planFromPriceId('price_unknown', priceToPlan)).toBeNull();
+    });
+
+    it('returns null for null priceId', () => {
+      expect(planFromPriceId(null, priceToPlan)).toBeNull();
+    });
+
+    it('returns null for undefined priceId', () => {
+      expect(planFromPriceId(undefined, priceToPlan)).toBeNull();
+    });
+  });
+
+  describe('previousPlanFromEvent edge cases', () => {
+    it('returns null when previous_attributes is undefined', () => {
+      const priceToPlan = new Map([['price_pro', 'pro']]);
+      const e = event({ data: { object: {} } } as Stripe.Event);
+      expect(previousPlanFromEvent(e, priceToPlan)).toBeNull();
+    });
+
+    it('returns null when previous_attributes has no items', () => {
+      const priceToPlan = new Map([['price_pro', 'pro']]);
+      const e = event({
+        data: { object: {}, previous_attributes: {} },
+      } as Stripe.Event);
+      expect(previousPlanFromEvent(e, priceToPlan)).toBeNull();
+    });
+  });
+
+  it('uses eventId for the dedupe action on plan_changed kind', async () => {
+    const query = jest
+      .fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ email: 'owner@example.com', name: 'Ada' }] })
+      .mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
+
+    await sendPlanChangedEmail(
+      { query },
+      event({ id: 'evt_plan_change_42' }),
+      subscription(),
+      'free',
+    );
+
+    // plan_changed uses the eventId as the dedupe action (not 'confirm' or 'cancel')
+    expect(query.mock.calls[0][1][0]).toBe(
+      'billing:plan_changed:sub_123:evt_plan_change_42',
     );
   });
 });
