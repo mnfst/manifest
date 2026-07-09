@@ -59,8 +59,16 @@ export class ProviderModelRegistryService implements OnApplicationBootstrap {
    * Merges with any existing confirmed models for that provider.
    */
   registerModels(providerId: string, models: ProviderModelRegistration[]): void {
+    this.registerInto(this.registry, providerId, models);
+  }
+
+  private registerInto(
+    target: Map<string, Map<string, ProviderModelRegistryEntry>>,
+    providerId: string,
+    models: ProviderModelRegistration[],
+  ): void {
     const key = providerId.toLowerCase();
-    const existing = this.registry.get(key) ?? new Map<string, ProviderModelRegistryEntry>();
+    const existing = target.get(key) ?? new Map<string, ProviderModelRegistryEntry>();
     for (const model of models) {
       const entry = this.toRegistryEntry(model);
       if (!entry) continue;
@@ -72,7 +80,7 @@ export class ProviderModelRegistryService implements OnApplicationBootstrap {
         supportedEndpoints: entry.supportedEndpoints ?? previous?.supportedEndpoints,
       });
     }
-    if (existing.size > 0) this.registry.set(key, existing);
+    if (existing.size > 0) target.set(key, existing);
   }
 
   /**
@@ -104,6 +112,14 @@ export class ProviderModelRegistryService implements OnApplicationBootstrap {
    */
   private async loadFromCache(): Promise<void> {
     try {
+      // Pages are ordered by primary key, so one provider's rows are scattered
+      // across them. Registering page-by-page would expose a half-built set for
+      // a provider, and a partial set is worse than none: `isModelConfirmed`
+      // answers `false` for a model that simply has not been read yet, and the
+      // caller filters that real model out as a phantom. An absent provider
+      // answers `null` instead, which callers treat as "no data, don't filter".
+      // So stage the whole load and publish it once, at the end.
+      const staged = new Map<string, Map<string, ProviderModelRegistryEntry>>();
       let totalModels = 0;
       let cursor: string | null = null;
 
@@ -123,13 +139,19 @@ export class ProviderModelRegistryService implements OnApplicationBootstrap {
               (m as { id?: string }).id!.length > 0,
           );
           if (models.length > 0) {
-            this.registerModels(p.provider, models);
+            this.registerInto(staged, p.provider, models);
             totalModels += models.length;
           }
         }
 
         if (page.length < CACHE_LOAD_BATCH_SIZE) break;
         cursor = page[page.length - 1].id;
+      }
+
+      // Merge rather than swap: a provider connected while the load was running
+      // registered straight into the live registry, and must survive.
+      for (const [provider, models] of staged) {
+        this.registerModels(provider, Array.from(models.values()));
       }
 
       const providerCount = this.registry.size;

@@ -327,6 +327,64 @@ describe('ProviderModelRegistryService', () => {
       await expect(service.whenLoaded()).resolves.toBeUndefined();
     });
 
+    it('should not expose a partially loaded provider while pages are still arriving', async () => {
+      // Two pages, both carrying models for the same provider. The second is
+      // held open so we can observe the registry mid-load.
+      const page = (start: number, count: number) =>
+        Array.from({ length: count }, (_, i) => ({
+          id: `id-${String(start + i).padStart(5, '0')}`,
+          provider: 'openai',
+          cached_models: [{ id: `gpt-${start + i}` }],
+        }));
+      let releaseSecondPage!: () => void;
+      let call = 0;
+      const mockRepo = {
+        createQueryBuilder: jest.fn(() => ({
+          select: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          orderBy: jest.fn().mockReturnThis(),
+          limit: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          getMany: jest.fn(async () => {
+            call += 1;
+            if (call === 1) return page(0, CACHE_LOAD_BATCH_SIZE);
+            await new Promise<void>((resolve) => (releaseSecondPage = resolve));
+            return page(CACHE_LOAD_BATCH_SIZE, 1);
+          }),
+        })),
+      };
+      const service = new ProviderModelRegistryService(mockRepo as never);
+
+      service.onApplicationBootstrap();
+      // Let the first page land and be staged.
+      while (call < 2) await Promise.resolve();
+
+      // A real model from the unread page must not be reported as a phantom,
+      // so the provider stays absent (null) rather than partially populated.
+      expect(service.getConfirmedModels('openai')).toBeNull();
+      expect(service.isModelConfirmed('openai', 'gpt-0')).toBeNull();
+
+      releaseSecondPage();
+      await service.whenLoaded();
+
+      expect(service.isModelConfirmed('openai', 'gpt-0')).toBe(true);
+      expect(service.isModelConfirmed('openai', `gpt-${CACHE_LOAD_BATCH_SIZE}`)).toBe(true);
+    });
+
+    it('should keep models registered while the load was running', async () => {
+      const providers = [{ provider: 'openai', cached_models: [{ id: 'gpt-4o' }] }];
+      const service = new ProviderModelRegistryService(makeMockRepo(providers) as never);
+
+      // A provider connected mid-load writes straight to the live registry.
+      service.onApplicationBootstrap();
+      service.registerModels('openai', ['gpt-live']);
+      await service.whenLoaded();
+
+      // The staged cache merges into it rather than replacing it.
+      expect(service.isModelConfirmed('openai', 'gpt-live')).toBe(true);
+      expect(service.isModelConfirmed('openai', 'gpt-4o')).toBe(true);
+    });
+
     it('should page through providers beyond a single batch', async () => {
       const providers = Array.from({ length: CACHE_LOAD_BATCH_SIZE + 1 }, (_, i) => ({
         provider: `provider-${i}`,
