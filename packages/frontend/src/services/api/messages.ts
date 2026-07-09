@@ -17,7 +17,7 @@ export interface MessageDetailResponse {
     error_message: string | null;
     /** WHO caused a failure: provider | transport | config | policy | internal. Null on success. */
     error_origin: string | null;
-    /** WHAT kind of failure (rate_limit, auth, no_provider_key, timeout, …). Null on success. */
+    /** WHAT kind of failure (rate_limit, auth, billing, no_provider_key, timeout, …). Null on success. */
     error_class: string | null;
     /** HTTP status code of the error response. Null on success. */
     error_http_status: number | null;

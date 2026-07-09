@@ -20,6 +20,7 @@ import { getModelDisplayName } from '../services/model-display.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.jsx';
 import { authBadgeFor, authLabel } from './AuthBadge.js';
 import { platformIcon } from 'manifest-shared';
+import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
 
 const MONO = 'font-family: var(--font-mono);';
 const MONO_XS =
@@ -392,11 +393,7 @@ const ERROR_DESCRIPTORS: Record<string, string> = {
 };
 
 function isPlanLimitBlock(item: MessageRow): boolean {
-  return (
-    item.error_origin === 'policy' &&
-    item.error_class === 'limit_exceeded' &&
-    item.error_http_status === 402
-  );
+  return isPlanRequestLimitMessage(item);
 }
 
 function statusErrorDescriptor(item: MessageRow): string | null {
@@ -451,7 +448,11 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
           {pill.label}
         </A>
         {planLimit && (
-          <A href="/upgrade?reason=requests" class="btn btn--primary btn--sm" style="margin-left: 6px; font-size: 11px; padding: 2px 8px; text-decoration: none;">
+          <A
+            href="/upgrade?reason=requests"
+            class="btn btn--primary btn--sm"
+            style="margin-left: 6px; font-size: 11px; padding: 2px 8px; text-decoration: none;"
+          >
             Upgrade plan
           </A>
         )}

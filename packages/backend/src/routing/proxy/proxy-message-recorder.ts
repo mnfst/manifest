@@ -103,6 +103,7 @@ export interface ProviderErrorOpts extends HeaderTierRef {
 
 export type ManifestBlockedRequestReason =
   | 'limit_exceeded'
+  | 'plan_request_limit_exceeded'
   | 'manifest_rate_limited'
   | 'friendly_error';
 
@@ -192,6 +193,7 @@ const CANNED_RESPONSE_REASONS: Record<string, string> = {
   no_provider: 'No providers configured for this agent',
   no_provider_key: 'Provider API key missing',
   limit_exceeded: 'Usage limit exceeded',
+  plan_request_limit_exceeded: 'Free plan monthly request limit reached',
   friendly_error: 'Manifest internal error',
 };
 

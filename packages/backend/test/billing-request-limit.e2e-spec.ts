@@ -31,7 +31,7 @@ async function waitForManifestBlockCount(tenantId: string, minimum: number): Pro
          FROM agent_messages
         WHERE tenant_id = $1
           AND error_origin = 'policy'
-          AND error_class = 'limit_exceeded'
+          AND error_class = 'plan_request_limit_exceeded'
           AND error_http_status = 402`,
       [tenantId],
     );
@@ -111,7 +111,7 @@ describe('request limit gate (/v1 proxy)', () => {
          FROM agent_messages
         WHERE tenant_id = $1
           AND error_origin = 'policy'
-          AND error_class = 'limit_exceeded'
+          AND error_class = 'plan_request_limit_exceeded'
           AND error_http_status = 402`,
       [tenantId],
     );
@@ -134,7 +134,7 @@ describe('request limit gate (/v1 proxy)', () => {
          FROM agent_messages
         WHERE tenant_id = $1
           AND error_origin = 'policy'
-          AND error_class = 'limit_exceeded'
+          AND error_class = 'plan_request_limit_exceeded'
           AND error_http_status = 402
         ORDER BY timestamp DESC
         LIMIT 1`,
@@ -149,9 +149,9 @@ describe('request limit gate (/v1 proxy)', () => {
       expect.objectContaining({
         status: 'error',
         error_origin: 'policy',
-        error_class: 'limit_exceeded',
+        error_class: 'plan_request_limit_exceeded',
         error_http_status: 402,
-        routing_reason: 'limit_exceeded',
+        routing_reason: 'plan_request_limit_exceeded',
       }),
     );
     expect(billableAfter).toBe(billableBefore);

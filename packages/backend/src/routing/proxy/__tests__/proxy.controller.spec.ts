@@ -328,7 +328,7 @@ describe('ProxyController', () => {
       expect.objectContaining({
         httpStatus: 402,
         errorMessage: 'Free plan monthly request limit reached',
-        reason: 'limit_exceeded',
+        reason: 'plan_request_limit_exceeded',
         model: 'auto',
       }),
     );
@@ -336,9 +336,9 @@ describe('ProxyController', () => {
       expect.objectContaining({
         status: 'error',
         error_http_status: 402,
-        routing_reason: 'limit_exceeded',
+        routing_reason: 'plan_request_limit_exceeded',
         error_origin: 'policy',
-        error_class: 'limit_exceeded',
+        error_class: 'plan_request_limit_exceeded',
       }),
     );
   });

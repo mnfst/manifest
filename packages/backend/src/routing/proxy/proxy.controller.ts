@@ -176,7 +176,7 @@ export class ProxyController {
           traceId,
           callerAttribution,
           requestHeaders,
-          'limit_exceeded',
+          'plan_request_limit_exceeded',
         );
         throw err;
       }

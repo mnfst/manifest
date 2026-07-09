@@ -112,6 +112,7 @@ const ERROR_CLASS_LABELS: Record<string, string> = {
   invalid_request: 'Invalid request',
   not_found: 'Not found',
   payload_too_large: 'Payload too large',
+  billing: 'Billing',
   server_error: 'Server error',
   client_error: 'Client error',
   timeout: 'Timeout',
@@ -119,6 +120,7 @@ const ERROR_CLASS_LABELS: Record<string, string> = {
   no_provider: 'No provider configured',
   no_provider_key: 'Missing API key',
   limit_exceeded: 'Limit exceeded',
+  plan_request_limit_exceeded: 'Plan request limit',
   internal: 'Internal error',
 };
 

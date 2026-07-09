@@ -75,9 +75,9 @@ export const MANIFEST_ORIGIN_PREDICATE = `at.error_origin IN (${MANIFEST_ORIGIN_
  * Error origins hidden from the Messages log by default: pure setup noise
  * (`config` — no provider configured / no API key) that isn't a message.
  * Everything else stays visible — provider & transport failures, Manifest
- * internal errors, and crucially a Manifest spend/token limit being hit
- * (`policy` / `limit_exceeded`), so operators can see when their own limits
- * fire. A Manifest config error remains "not a message"; a Manifest *limit* is.
+ * internal errors, and crucially Manifest spend/token/request limits being hit
+ * (`policy` classes), so operators can see when limits fire. A Manifest config
+ * error remains "not a message"; a Manifest *limit* is.
  */
 export const LOG_HIDDEN_ORIGINS = ['config'] as const;
 const LOG_HIDDEN_ORIGIN_SQL_LIST = LOG_HIDDEN_ORIGINS.map((o) => `'${o}'`).join(', ');
