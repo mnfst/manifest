@@ -13,6 +13,13 @@ type ProviderModelRegistration = string | Pick<DiscoveredModel, 'id' | 'supporte
 type CachedProviderModelRegistration = Pick<DiscoveredModel, 'id' | 'supportedEndpoints'>;
 
 /**
+ * Rows per keyset page. The full scan is ~9k rows / ~30 MB of JSON across all
+ * tenants, which as a single statement can hold a pooled connection for
+ * minutes on a loaded database.
+ */
+export const CACHE_LOAD_BATCH_SIZE = 500;
+
+/**
  * Maintains an in-memory registry of model IDs confirmed to exist
  * via provider-native APIs. Populated opportunistically when users
  * connect providers and on startup from cached data.
@@ -23,14 +30,28 @@ type CachedProviderModelRegistration = Pick<DiscoveredModel, 'id' | 'supportedEn
 export class ProviderModelRegistryService implements OnApplicationBootstrap {
   private readonly logger = new Logger(ProviderModelRegistryService.name);
   private readonly registry = new Map<string, Map<string, ProviderModelRegistryEntry>>();
+  private cacheLoad: Promise<void> = Promise.resolve();
 
   constructor(
     @InjectRepository(TenantProvider)
     private readonly providerRepo: Repository<TenantProvider>,
   ) {}
 
-  async onApplicationBootstrap(): Promise<void> {
-    await this.loadFromCache();
+  /**
+   * Nest runs bootstrap hooks inside `app.init()`, before the HTTP server
+   * starts listening. Awaiting the cache load here means a slow database keeps
+   * the port closed and the platform healthcheck hanging, so the load runs in
+   * the background instead. Until it finishes the registry is simply empty,
+   * which every caller already handles as "no native data recorded" — the same
+   * path a fresh install takes.
+   */
+  onApplicationBootstrap(): void {
+    this.cacheLoad = this.loadFromCache();
+  }
+
+  /** Resolves once the startup cache load has settled. For tests and probes. */
+  whenLoaded(): Promise<void> {
+    return this.cacheLoad;
   }
 
   /**
@@ -83,28 +104,32 @@ export class ProviderModelRegistryService implements OnApplicationBootstrap {
    */
   private async loadFromCache(): Promise<void> {
     try {
-      const providers = await this.providerRepo
-        .createQueryBuilder('p')
-        .select(['p.provider', 'p.cached_models'])
-        .where('p.cached_models IS NOT NULL')
-        .getMany();
-
       let totalModels = 0;
-      for (const p of providers) {
-        if (!Array.isArray(p.cached_models)) continue;
-        const cachedModels = p.cached_models as unknown[];
-        const models = cachedModels.filter(
-          (m): m is CachedProviderModelRegistration =>
-            typeof m === 'object' &&
-            m !== null &&
-            'id' in m &&
-            typeof (m as { id?: unknown }).id === 'string' &&
-            (m as { id?: string }).id!.length > 0,
-        );
-        if (models.length > 0) {
-          this.registerModels(p.provider, models);
-          totalModels += models.length;
+      let cursor: string | null = null;
+
+      for (;;) {
+        const page: TenantProvider[] = await this.fetchPage(cursor);
+        if (page.length === 0) break;
+
+        for (const p of page) {
+          if (!Array.isArray(p.cached_models)) continue;
+          const cachedModels = p.cached_models as unknown[];
+          const models = cachedModels.filter(
+            (m): m is CachedProviderModelRegistration =>
+              typeof m === 'object' &&
+              m !== null &&
+              'id' in m &&
+              typeof (m as { id?: unknown }).id === 'string' &&
+              (m as { id?: string }).id!.length > 0,
+          );
+          if (models.length > 0) {
+            this.registerModels(p.provider, models);
+            totalModels += models.length;
+          }
         }
+
+        if (page.length < CACHE_LOAD_BATCH_SIZE) break;
+        cursor = page[page.length - 1].id;
       }
 
       const providerCount = this.registry.size;
@@ -116,6 +141,20 @@ export class ProviderModelRegistryService implements OnApplicationBootstrap {
     } catch (err) {
       this.logger.warn(`Failed to load provider model registry from cache: ${err}`);
     }
+  }
+
+  /** One keyset page, ordered by the `id` primary key. */
+  private fetchPage(cursor: string | null): Promise<TenantProvider[]> {
+    const qb = this.providerRepo
+      .createQueryBuilder('p')
+      .select(['p.id', 'p.provider', 'p.cached_models'])
+      .where('p.cached_models IS NOT NULL')
+      .orderBy('p.id', 'ASC')
+      .limit(CACHE_LOAD_BATCH_SIZE);
+
+    if (cursor !== null) qb.andWhere('p.id > :cursor', { cursor });
+
+    return qb.getMany();
   }
 
   private toRegistryEntry(model: ProviderModelRegistration): ProviderModelRegistryEntry | null {
