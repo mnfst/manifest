@@ -480,7 +480,13 @@ export class AutofixService {
 
     const agent = await this.agentRepo.findOne({
       where: { id: agentId, tenant_id: tenantId },
-      select: ['autofix_enabled'],
+      // Select the PK alongside the flag. TypeORM's entity transformer treats a
+      // row whose only selected column is NULL as "no entity" and returns null,
+      // so `select: ['autofix_enabled']` alone makes every NULL-flag agent (the
+      // default "inherit the mode default" state) look not-found — which then
+      // resolves to `enabled: false` below and silently disables Auto-fix for it.
+      // The always-present `id` keeps the row materialized so the NULL flag is read.
+      select: ['id', 'autofix_enabled'],
     });
     // Unknown agent → off. Known agent → its explicit flag, or the mode default
     // when unset (NULL).
