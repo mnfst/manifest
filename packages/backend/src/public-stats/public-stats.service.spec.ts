@@ -11,6 +11,7 @@ function mockQueryBuilder(result: unknown) {
   qb.where = jest.fn().mockReturnValue(qb);
   qb.andWhere = jest.fn().mockReturnValue(qb);
   qb.groupBy = jest.fn().mockReturnValue(qb);
+  qb.addGroupBy = jest.fn().mockReturnValue(qb);
   qb.orderBy = jest.fn().mockReturnValue(qb);
   qb.limit = jest.fn().mockReturnValue(qb);
   qb.getRawOne = jest.fn().mockResolvedValue(result);
@@ -146,6 +147,75 @@ describe('PublicStatsService', () => {
 
       expect(result.top_models).toHaveLength(1);
       expect(result.top_models[0].provider).toBe('OpenRouter');
+    });
+
+    it('uses recorded provider before pricing cache attribution', async () => {
+      setupQueries(
+        { total: '1' },
+        [{ model: 'gpt-5.5', provider: 'openai', usage_count: '1' }],
+        [{ model: 'gpt-5.5', provider: 'openai', tokens: '6000000' }],
+        [{ model: 'gpt-5.5', provider: 'openai', tokens: '5000000' }],
+        [{ model: 'gpt-5.5', provider: 'openai', tokens: '18000000' }],
+      );
+      mockPricingCache.getByModel.mockReturnValue(
+        makePricingEntry({ provider: 'OpenCode Zen' }),
+      );
+
+      const result = await service.getUsageStats();
+
+      expect(result.top_models).toHaveLength(1);
+      expect(result.top_models[0]).toEqual(
+        expect.objectContaining({
+          model: 'gpt-5.5',
+          provider: 'OpenAI',
+          tokens_7d: 6000000,
+          tokens_previous_7d: 5000000,
+          tokens_30d: 18000000,
+        }),
+      );
+    });
+
+    it('aggregates duplicate normalized provider token rows and skips unknown scoped rows', async () => {
+      setupQueries(
+        { total: '1' },
+        [
+          { model: 'gpt-5.5', provider: 'openai', usage_count: '1' },
+          { model: 'gpt-5.5', provider: 'OpenAI', usage_count: '1' },
+        ],
+        [
+          { model: 'gpt-5.5', provider: 'openai', tokens: '3000' },
+          { model: 'gpt-5.5', provider: 'OpenAI', tokens: '2000' },
+        ],
+        [
+          { model: 'gpt-5.5', provider: 'openai', tokens: '1000' },
+          { model: 'gpt-5.5', provider: 'OpenAI', tokens: '500' },
+          { model: 'gpt-5.5', provider: 'openai', tokens: null },
+          { model: 'unknown-model', provider: null, tokens: '9999' },
+        ],
+        [
+          { model: 'gpt-5.5', provider: 'openai', tokens: '5000' },
+          { model: 'gpt-5.5', provider: 'OpenAI', tokens: '2500' },
+          { model: 'gpt-5.5', provider: 'openai', tokens: null },
+          { model: 'unknown-model', provider: null, tokens: '9999' },
+        ],
+      );
+      mockPricingCache.getByModel.mockImplementation((name: string) => {
+        if (name === 'gpt-5.5') return makePricingEntry({ provider: 'OpenCode Zen' });
+        return null;
+      });
+
+      const result = await service.getUsageStats();
+
+      expect(result.top_models).toHaveLength(1);
+      expect(result.top_models[0]).toEqual(
+        expect.objectContaining({
+          model: 'gpt-5.5',
+          provider: 'OpenAI',
+          tokens_7d: 5000,
+          tokens_previous_7d: 1500,
+          tokens_30d: 7500,
+        }),
+      );
     });
 
     it('limits to 10 results', async () => {
@@ -305,6 +375,19 @@ describe('PublicStatsService', () => {
         makePricingEntry({
           model_name: 'a',
           provider: 'Unknown',
+          input_price_per_token: 0,
+          output_price_per_token: 0,
+        }),
+      ]);
+
+      expect(service.getFreeModels(new Map([['a', 100]]))).toEqual([]);
+    });
+
+    it('excludes entries without a provider label', () => {
+      mockPricingCache.getAll.mockReturnValue([
+        makePricingEntry({
+          model_name: 'a',
+          provider: '',
           input_price_per_token: 0,
           output_price_per_token: 0,
         }),
@@ -800,6 +883,114 @@ describe('PublicStatsService', () => {
       expect(sub).toEqual({ auth_type: 'subscription', total_tokens: 2000, model_count: 1 });
       // Breakdown is sorted by token usage descending.
       expect(result[0].auth_types[0].auth_type).toBe('subscription');
+    });
+
+    it('uses recorded provider to split subscription GPT usage from OpenCode Zen', async () => {
+      setupProviderQuery([
+        {
+          model: 'gpt-5.5',
+          provider: 'openai',
+          date: '2026-04-07',
+          tokens: '6000',
+          auth_type: 'subscription',
+          cost: '0',
+        },
+        {
+          model: 'gpt-5.5',
+          provider: 'opencode-zen',
+          date: '2026-04-07',
+          tokens: '1000',
+          auth_type: 'api_key',
+          cost: '0.10',
+        },
+      ]);
+      mockPricingCache.getByModel.mockReturnValue(
+        makePricingEntry({ provider: 'OpenCode Zen' }),
+      );
+
+      const result = await service.getProviderDailyTokens();
+
+      expect(result).toHaveLength(2);
+      const openai = result.find((p) => p.provider === 'OpenAI');
+      const zen = result.find((p) => p.provider === 'OpenCode Zen');
+      expect(openai).toBeDefined();
+      expect(openai!.total_tokens).toBe(6000);
+      expect(openai!.models).toEqual([
+        expect.objectContaining({
+          model: 'gpt-5.5',
+          auth_type: 'subscription',
+          total_tokens: 6000,
+        }),
+      ]);
+      expect(openai!.auth_types).toEqual([
+        { auth_type: 'subscription', total_tokens: 6000, model_count: 1 },
+      ]);
+      expect(zen).toBeDefined();
+      expect(zen!.total_tokens).toBe(1000);
+      expect(zen!.auth_types).toEqual([
+        { auth_type: 'api_key', total_tokens: 1000, model_count: 1 },
+      ]);
+    });
+
+    it('normalizes recorded display-name providers through aliases', async () => {
+      setupProviderQuery([
+        {
+          model: 'gpt-5.5',
+          provider: 'OpenCode Zen',
+          date: '2026-04-07',
+          tokens: '1000',
+          auth_type: 'api_key',
+          cost: '0.10',
+        },
+      ]);
+
+      const result = await service.getProviderDailyTokens();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].provider).toBe('OpenCode Zen');
+      expect(result[0].models[0]).toEqual(
+        expect.objectContaining({ model: 'gpt-5.5', total_tokens: 1000 }),
+      );
+    });
+
+    it('collapses recorded custom provider labels to the public Custom bucket', async () => {
+      setupProviderQuery([
+        {
+          model: 'hosted-model',
+          provider: 'custom:tenant-provider',
+          date: '2026-04-07',
+          tokens: '500',
+          auth_type: 'api_key',
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getProviderDailyTokens();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].provider).toBe('Custom');
+      expect(result[0].models[0]).toEqual(
+        expect.objectContaining({ model: 'hosted-model', total_tokens: 500 }),
+      );
+    });
+
+    it('keeps non-registry recorded provider labels instead of dropping usage', async () => {
+      setupProviderQuery([
+        {
+          model: 'experimental-model',
+          provider: 'Experimental Provider',
+          date: '2026-04-07',
+          tokens: '750',
+          auth_type: 'api_key',
+          cost: null,
+        },
+      ]);
+
+      const result = await service.getProviderDailyTokens();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].provider).toBe('Experimental Provider');
+      expect(mockPricingCache.getByModel).not.toHaveBeenCalled();
     });
 
     it('excludes zero-token models from auth_types model_count', async () => {
