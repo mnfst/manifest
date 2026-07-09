@@ -1,0 +1,19 @@
+.changeset/request-quota-rollout-reset.md
+  s_34a5a0500fe110::t_af7dc7b0d0e001 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9514558baa69db6f6d6bad5993fa3064feecc160",
+  "prompts": {},
+  "sessions": {
+    "s_34a5a0500fe110": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f45f0-008b-7093-81b2-f464c7b970f1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
