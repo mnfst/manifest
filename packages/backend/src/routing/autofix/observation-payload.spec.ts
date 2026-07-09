@@ -56,12 +56,19 @@ describe('scrubBody', () => {
     });
   });
 
-  it.each(['api_key', 'apiKey', 'X-API-KEY', 'clientSecret', 'accessToken', 'refresh_token'])(
-    'redacts the opaque credential field %s',
-    (key) => {
-      expect(scrubBody({ [key]: 'opaquevalue1234' })).toEqual({ [key]: '[REDACTED]' });
-    },
-  );
+  it.each([
+    'api_key',
+    'apiKey',
+    'X-API-KEY',
+    'clientSecret',
+    'accessToken',
+    'refresh_token',
+    'client.secret',
+    'access.token',
+    'api key',
+  ])('redacts the opaque credential field %s', (key) => {
+    expect(scrubBody({ [key]: 'opaquevalue1234' })).toEqual({ [key]: '[REDACTED]' });
+  });
 
   it('scrubs a secret used as a property name', () => {
     const scrubbed = scrubBody({ 'sk-ant-abcdefghijklmno': 'v' });

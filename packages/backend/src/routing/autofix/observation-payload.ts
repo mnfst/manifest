@@ -44,9 +44,13 @@ const CREDENTIAL_KEYS = new Set([
   'devicecode',
 ]);
 
-/** Fold a JSON key to its separator- and case-insensitive form. */
+/**
+ * Fold a JSON key to its separator- and case-insensitive form. Every
+ * non-alphanumeric character goes, not just `-`/`_`, so `client.secret` and
+ * `access token` fold onto the same entry as `clientSecret` and `access_token`.
+ */
 function normalizeKey(key: string): string {
-  return key.toLowerCase().replace(/[-_\s]/g, '');
+  return key.toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
