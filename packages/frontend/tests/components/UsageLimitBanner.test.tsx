@@ -12,6 +12,15 @@ vi.mock('@solidjs/router', () => ({
   ),
 }));
 
+vi.mock('../../src/services/auth-client.js', () => ({
+  authClient: {
+    useSession: () => () => ({
+      data: { user: { id: 'u1' } },
+      isPending: false,
+    }),
+  },
+}));
+
 vi.mock('../../src/services/api/billing.js', () => ({
   getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
 }));
@@ -34,7 +43,7 @@ describe('UsageLimitBanner', () => {
 
     await screen.findByText("You're limited to 10,000 requests this month. Upgrade for unlimited.");
     expect(container.querySelector('.usage-limit-banner--danger')).toBeNull();
-    expect(container.querySelector('a[href="/upgrade"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/upgrade?reason=requests"]')).not.toBeNull();
 
     fireEvent.click(screen.getByText('Got it'));
 
@@ -53,12 +62,27 @@ describe('UsageLimitBanner', () => {
   });
 
   it('stays hidden when the warning was already dismissed today', async () => {
-    localStorage.setItem('manifest_usage_banner_dismissed', new Date().toISOString().slice(0, 10));
+    localStorage.setItem(
+      'manifest_usage_banner_dismissed:u1',
+      new Date().toISOString().slice(0, 10),
+    );
     const { container } = render(() => <UsageLimitBanner />);
 
     await waitFor(() => expect(mockGetBillingStatus).toHaveBeenCalled());
 
     expect(container.querySelector('.usage-limit-banner')).toBeNull();
+  });
+
+  it('does not reuse another user dismissal', async () => {
+    localStorage.setItem(
+      'manifest_usage_banner_dismissed:u2',
+      new Date().toISOString().slice(0, 10),
+    );
+    const { container } = render(() => <UsageLimitBanner />);
+
+    await screen.findByText("You're limited to 10,000 requests this month. Upgrade for unlimited.");
+
+    expect(container.querySelector('.usage-limit-banner')).not.toBeNull();
   });
 
   it('keeps working when dismissal storage is unavailable', async () => {
@@ -72,7 +96,9 @@ describe('UsageLimitBanner', () => {
     try {
       render(() => <UsageLimitBanner />);
 
-      await screen.findByText("You're limited to 10,000 requests this month. Upgrade for unlimited.");
+      await screen.findByText(
+        "You're limited to 10,000 requests this month. Upgrade for unlimited.",
+      );
       expect(() => fireEvent.click(screen.getByText('Got it'))).not.toThrow();
     } finally {
       getItem.mockRestore();

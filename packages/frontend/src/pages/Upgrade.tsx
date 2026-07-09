@@ -50,11 +50,13 @@ const Upgrade: Component = () => {
     try {
       const origin = window.location.origin;
       const cancelPath = `${window.location.pathname}${window.location.search}` || '/upgrade';
-      await authClient.subscription.upgrade({
+      const res = await authClient.subscription.upgrade({
         plan: 'pro',
         successUrl: `${origin}/overview?upgraded=1`,
         cancelUrl: `${origin}${cancelPath}`,
       });
+      const error = (res as { error?: unknown } | undefined)?.error;
+      if (error) throw error;
     } catch {
       toast.error('Could not start the upgrade. Please try again.');
     } finally {
@@ -68,14 +70,17 @@ const Upgrade: Component = () => {
       <Meta name="description" content="Upgrade Manifest to Pro for unlimited routed requests." />
       <div class="account-modal__inner account-modal__inner--upgrade">
         <Show when={window.history.length > 1}>
-          <button class="upgrade-back" onClick={() => {
-            const referrer = document.referrer;
-            if (referrer && new URL(referrer).origin === window.location.origin) {
-              window.history.back();
-            } else {
-              navigate('/');
-            }
-          }}>
+          <button
+            class="upgrade-back"
+            onClick={() => {
+              const referrer = document.referrer;
+              if (referrer && new URL(referrer).origin === window.location.origin) {
+                window.history.back();
+              } else {
+                navigate('/');
+              }
+            }}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"

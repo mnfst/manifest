@@ -319,6 +319,20 @@ describe('Account', () => {
       await waitFor(() => expect(button.disabled).toBe(false));
     });
 
+    it('shows an error toast and re-enables the button when the upgrade call returns an error payload', async () => {
+      mockGetBillingStatus.mockResolvedValue(freeStatus);
+      mockUpgrade.mockResolvedValue({ error: { message: 'network' } });
+      render(() => <Account />);
+      const button = (await screen.findByText(/Upgrade to Pro/)) as HTMLButtonElement;
+      fireEvent.click(button);
+      await waitFor(() =>
+        expect(mockToastError).toHaveBeenCalledWith(
+          'Could not start the upgrade. Please try again.',
+        ),
+      );
+      await waitFor(() => expect(button.disabled).toBe(false));
+    });
+
     it('shows an error toast when the billing portal call rejects', async () => {
       mockGetBillingStatus.mockResolvedValue(proStatus);
       mockBillingPortal.mockRejectedValue(new Error('network'));

@@ -18,6 +18,7 @@ import { checkSocialProviders } from '../services/setup-status.js';
 import { getBillingStatus } from '../services/api/billing.js';
 import { markPlanChosen } from '../services/plan-selection.js';
 import { formatBillingPrice } from '../services/billing-display.js';
+import { toast } from '../services/toast-store.js';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -136,16 +137,19 @@ const Register: Component = () => {
     if (plan === 'enterprise') {
       return;
     }
-    markPlanChosen(userId());
     setPlanBusy(true);
     try {
       const origin = window.location.origin;
-      await authClient.subscription.upgrade({
+      const res = await authClient.subscription.upgrade({
         plan: 'pro',
         successUrl: `${origin}/overview?upgraded=1`,
-        cancelUrl: `${origin}/register`,
+        cancelUrl: `${origin}/register?step=plan`,
       });
+      const error = (res as { error?: unknown } | undefined)?.error;
+      if (error) throw error;
+      markPlanChosen(userId());
     } catch {
+      toast.error('Could not start the upgrade. Please try again.');
       setPlanBusy(false);
     }
   };

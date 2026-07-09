@@ -55,11 +55,13 @@ const Account: Component = () => {
     setBillingBusy(true);
     try {
       const origin = window.location.origin;
-      await authClient.subscription.upgrade({
+      const res = await authClient.subscription.upgrade({
         plan: 'pro',
         successUrl: `${origin}/account?upgraded=1`,
         cancelUrl: `${origin}/account`,
       });
+      const error = (res as { error?: unknown } | undefined)?.error;
+      if (error) throw error;
     } catch {
       toast.error('Could not start the upgrade. Please try again.');
     } finally {

@@ -5,6 +5,7 @@ import { HttpException } from '@nestjs/common';
 import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
 import { PlanService } from './plan.service';
 import { Tenant } from '../entities/tenant.entity';
+import { toLocalSqlTimestamp } from '../common/utils/postgres-sql';
 import * as billingConfig from './billing.config';
 
 describe('PlanService', () => {
@@ -260,7 +261,7 @@ describe('PlanService', () => {
         "m.error_origin IS NULL OR m.error_origin NOT IN ('config', 'policy', 'internal')",
       );
       expect(params[0]).toBe('t1');
-      expect(params[1]).toBe(new Date(START).toISOString());
+      expect(params[1]).toBe(toLocalSqlTimestamp(new Date(START)));
     });
 
     it('caches within the TTL — a second call does not re-query', async () => {

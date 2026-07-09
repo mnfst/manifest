@@ -12,6 +12,7 @@ import type {
 import type Stripe from 'stripe';
 import { Tenant } from '../entities/tenant.entity';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
+import { toLocalSqlTimestamp } from '../common/utils/postgres-sql';
 import { getStripeClient, isBillingEnabled } from './billing.config';
 import {
   DEFAULT_BILLING_EMAIL_PREFERENCES,
@@ -219,7 +220,7 @@ export class PlanService {
               SELECT 1 FROM agents pa
                WHERE pa.id = m.agent_id AND pa.is_playground = true
             )`,
-        [tenantId, new Date(monthStartMs).toISOString()],
+        [tenantId, toLocalSqlTimestamp(new Date(monthStartMs))],
       )
       .then((rows: Array<{ n: number }>) => {
         const count = rows[0]?.n ?? 0;

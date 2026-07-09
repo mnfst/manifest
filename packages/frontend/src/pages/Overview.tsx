@@ -115,9 +115,9 @@ const Overview: Component = () => {
   const shouldLockProRanges = () => billing.loading || isFreePlan();
   const isProRangeLocked = (value: string) => shouldLockProRanges() && PRO_RANGES.has(value);
   const proBadge = () => (
-    <A href="/upgrade" class="pro-range-badge" onClick={(e: MouseEvent) => e.stopPropagation()}>
+    <span class="pro-range-badge" aria-label="Pro plan required">
       PRO
-    </A>
+    </span>
   );
   const agentRangeOptions = () =>
     AGENT_RANGE_OPTIONS.map((opt) =>

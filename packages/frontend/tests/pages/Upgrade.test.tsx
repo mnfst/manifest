@@ -178,6 +178,17 @@ describe('Upgrade', () => {
     );
   });
 
+  it('shows an error toast when checkout returns an error payload', async () => {
+    mockUpgrade.mockResolvedValue({ error: { message: 'stripe down' } });
+    render(() => <Upgrade />);
+
+    fireEvent.click(await screen.findByText('Upgrade to Pro'));
+
+    await waitFor(() =>
+      expect(mockToastError).toHaveBeenCalledWith('Could not start the upgrade. Please try again.'),
+    );
+  });
+
   it('redirects away when billing is disabled', async () => {
     mockGetBillingStatus.mockResolvedValue(disabledStatus);
     render(() => <Upgrade />);

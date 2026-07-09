@@ -208,9 +208,9 @@ const GlobalOverview: Component = () => {
     isProRangeLocked(chartRange()) ? '7d' : chartRange(),
   );
   const proBadge = () => (
-    <A href="/upgrade" class="pro-range-badge" onClick={(e: MouseEvent) => e.stopPropagation()}>
+    <span class="pro-range-badge" aria-label="Pro plan required">
       PRO
-    </A>
+    </span>
   );
   const rangeOptions = () =>
     RANGE_OPTIONS.map((option) =>

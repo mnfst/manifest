@@ -118,13 +118,17 @@ const ConnectionDetail: Component = () => {
   const params = useParams<{ connectionId: string }>();
   const navigate = useNavigate();
   const [billing] = createResource(async () => {
-    try { return await getBillingStatus(); } catch { return null; }
+    try {
+      return await getBillingStatus();
+    } catch {
+      return null;
+    }
   });
   const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
   const proBadge = () => (
-    <A href="/upgrade" class="pro-range-badge" onClick={(e: MouseEvent) => e.stopPropagation()}>
+    <span class="pro-range-badge" aria-label="Pro plan required">
       PRO
-    </A>
+    </span>
   );
   const cdRangeOptions = () =>
     CD_RANGE_OPTIONS.map((opt) =>

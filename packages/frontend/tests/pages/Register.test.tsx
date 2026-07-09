@@ -6,6 +6,7 @@ const mockSendVerificationEmail = vi.fn().mockResolvedValue({});
 const mockSubscriptionUpgrade = vi.fn().mockResolvedValue({});
 const mockGetBillingStatus = vi.fn().mockResolvedValue({ enabled: false, plan: 'free' });
 const mockNavigate = vi.fn();
+const mockToastError = vi.fn();
 let mockLocationSearch = '';
 let mockSearchParams: Record<string, string | undefined> = {};
 
@@ -42,7 +43,11 @@ vi.mock('../../src/services/api/billing.js', () => ({
 }));
 
 vi.mock('../../src/services/toast-store.js', () => ({
-  toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
+  toast: {
+    error: (...args: unknown[]) => mockToastError(...args),
+    success: vi.fn(),
+    warning: vi.fn(),
+  },
 }));
 
 vi.mock('../../src/services/setup-status.js', () => ({
@@ -252,9 +257,9 @@ describe('Register', () => {
     const { container } = render(() => <Register />);
     await screen.findByText('Choose your plan');
 
-    const freeCard = Array.from(container.querySelectorAll<HTMLButtonElement>('.plan-picker__card')).find(
-      (card) => card.textContent?.includes('Free'),
-    );
+    const freeCard = Array.from(
+      container.querySelectorAll<HTMLButtonElement>('.plan-picker__card'),
+    ).find((card) => card.textContent?.includes('Free'));
     if (!freeCard) throw new Error('Free plan card not found');
     fireEvent.click(freeCard);
     fireEvent.click(container.querySelector('.plan-picker__cta')!);
@@ -279,9 +284,27 @@ describe('Register', () => {
       expect(mockSubscriptionUpgrade).toHaveBeenCalledWith({
         plan: 'pro',
         successUrl: `${window.location.origin}/overview?upgraded=1`,
-        cancelUrl: `${window.location.origin}/register`,
+        cancelUrl: `${window.location.origin}/register?step=plan`,
       });
     });
+  });
+
+  it('shows an error toast when Pro checkout returns an error payload from the plan step', async () => {
+    mockSearchParams = { step: 'plan' };
+    mockSubscriptionUpgrade.mockResolvedValue({ error: { message: 'stripe down' } });
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: 'free',
+      priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
+    });
+
+    const { container } = render(() => <Register />);
+    await screen.findByText('Choose your plan');
+    fireEvent.click(container.querySelector('.plan-picker__cta')!);
+
+    await vi.waitFor(() =>
+      expect(mockToastError).toHaveBeenCalledWith('Could not start the upgrade. Please try again.'),
+    );
   });
 
   it('shows loading state during submission', async () => {

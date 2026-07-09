@@ -1,13 +1,14 @@
 import { A } from '@solidjs/router';
-import { Show, createResource, createSignal, type Component } from 'solid-js';
+import { Show, createEffect, createResource, createSignal, type Component } from 'solid-js';
 import { getBillingStatus } from '../services/api/billing.js';
-import { FREE_REQUEST_LIMIT_LABEL } from '../services/billing-display.js';
+import { authClient } from '../services/auth-client.js';
 
 const DISMISS_KEY = 'manifest_usage_banner_dismissed';
 
-function isDismissedToday(): boolean {
+function isDismissedToday(key: string | null): boolean {
+  if (!key) return false;
   try {
-    const stored = localStorage.getItem(DISMISS_KEY);
+    const stored = localStorage.getItem(key);
     if (!stored) return false;
     const today = new Date().toISOString().slice(0, 10);
     return stored === today;
@@ -16,17 +17,23 @@ function isDismissedToday(): boolean {
   }
 }
 
-function dismissForToday(): void {
+function dismissForToday(key: string | null): void {
+  if (!key) return;
   try {
     const today = new Date().toISOString().slice(0, 10);
-    localStorage.setItem(DISMISS_KEY, today);
+    localStorage.setItem(key, today);
   } catch {
     /* noop */
   }
 }
 
 const UsageLimitBanner: Component = () => {
-  const [dismissed, setDismissed] = createSignal(isDismissedToday());
+  const session = authClient.useSession();
+  const dismissKey = () => {
+    const userId = session()?.data?.user?.id;
+    return userId ? `${DISMISS_KEY}:${userId}` : null;
+  };
+  const [dismissed, setDismissed] = createSignal(false);
   const [billing] = createResource(async () => {
     try {
       return await getBillingStatus();
@@ -34,6 +41,8 @@ const UsageLimitBanner: Component = () => {
       return null;
     }
   });
+
+  createEffect(() => setDismissed(isDismissedToday(dismissKey())));
 
   const ratio = () => {
     const b = billing();
@@ -46,7 +55,7 @@ const UsageLimitBanner: Component = () => {
   const canDismiss = () => nearLimit() && !atLimit();
 
   const handleDismiss = () => {
-    dismissForToday();
+    dismissForToday(dismissKey());
     setDismissed(true);
   };
 
@@ -59,7 +68,10 @@ const UsageLimitBanner: Component = () => {
             : `You're limited to ${billing()!.requests.limit!.toLocaleString('en-US')} requests this month. Upgrade for unlimited.`}
         </span>
         <div class="usage-limit-banner__actions">
-          <A href="/upgrade" class="btn btn--outline btn--sm usage-limit-banner__btn">
+          <A
+            href="/upgrade?reason=requests"
+            class="btn btn--outline btn--sm usage-limit-banner__btn"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="14"
