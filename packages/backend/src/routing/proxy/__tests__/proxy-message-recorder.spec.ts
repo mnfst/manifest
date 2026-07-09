@@ -15,7 +15,12 @@ const sampleAutofix: AutofixRecord = {
       origin: 'original',
       request: { max_tokens: 5 },
       http_status: 400,
-      error: { message: 'Unknown parameter' },
+      error: {
+        message: 'Unknown parameter',
+        type: 'invalid_request_error',
+        param: 'max_tokens',
+        code: 'unknown_parameter',
+      },
       operations: [{ type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' }],
       heal_attempt_id: 'heal-1',
       patch_worked: true,
@@ -1398,7 +1403,16 @@ describe('ProxyMessageRecorder', () => {
       expect(rows).toHaveLength(1);
       expect(rows[0].status).toBe('auto_fixed');
       expect(rows[0].error_http_status).toBe(400);
-      expect(rows[0].error_message).toContain('Unknown parameter');
+      // The full provider envelope, like every other error row. Storing the bare message
+      // would drop type/param/code — the dimensions that identify the error downstream.
+      expect(JSON.parse(rows[0].error_message as string)).toEqual({
+        error: {
+          message: 'Unknown parameter',
+          type: 'invalid_request_error',
+          param: 'max_tokens',
+          code: 'unknown_parameter',
+        },
+      });
       expect(rows[0].autofix_applied).toBe(true);
       expect(rows[0].autofix_group_id).toBe('grp-1');
       expect(rows[0].autofix_role).toBe('original');
