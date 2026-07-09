@@ -140,6 +140,16 @@ export class AutofixService {
     this.rollout = parseRollout(config.get<string>('AUTOFIX_ROLLOUT'));
     this.defaultAgentEnabled = !isSelfHosted();
     this.repairableStatuses = parseStatuses(config.get<string>('AUTOFIX_REPAIRABLE_STATUSES'));
+    // Boot-time snapshot of the resolved gates. Logged once so an operator can
+    // confirm what the process actually loaded — e.g. whether the global kill
+    // switch is off, or self-hosted detection flipped the per-agent default off
+    // — straight from the deploy logs, without shell access. This is the first
+    // thing to check when "Auto-fix never runs".
+    this.logger.log(
+      `config: globalEnabled=${this.globalEnabled} rollout=${this.rollout} ` +
+        `defaultAgentEnabled=${this.defaultAgentEnabled} ` +
+        `repairableStatuses=[${[...this.repairableStatuses].join(',')}]`,
+    );
   }
 
   /**
@@ -223,22 +233,49 @@ export class AutofixService {
 
   async maybeHeal(params: MaybeHealParams): Promise<AutofixAttempt | null> {
     const { forward } = params;
-    // Hot path: successful and non-repairable forwards never enter healing.
-    if (forward.response.ok || !this.globalEnabled) return null;
+    // Hot path: successful forwards never enter healing — return silently so we
+    // don't emit a log line on every request.
+    if (forward.response.ok) return null;
+
+    // Everything below runs ONLY for failed forwards, so these diagnostics stay
+    // low-volume. They make "why didn't Auto-fix run?" answerable from logs
+    // alone: one line per failed request stamped with the resolved gate values,
+    // then a single reason whenever a gate short-circuits the heal.
     const status = forward.response.status;
-    if (!this.isRepairable(status)) return null;
+    this.logger.log(
+      `maybeHeal: failed forward status=${status} agent=${params.agentId} ` +
+        `tenant=${params.tenantId} globalEnabled=${this.globalEnabled}`,
+    );
+    if (!this.globalEnabled) {
+      this.logger.warn(`skip status=${status}: globally disabled (AUTOFIX_GLOBAL_ENABLED=false)`);
+      return null;
+    }
+    if (!this.isRepairable(status)) {
+      this.logger.log(
+        `skip status=${status}: not in repairable set [${[...this.repairableStatuses].join(',')}]`,
+      );
+      return null;
+    }
 
     // Circuit breaker: while the healing service is tripped, skip healing
     // entirely and hand the forward back untouched, so a slow/unreachable
     // Phoenix never delays the fallback chain (the next safety net).
-    if (this.breakerOpenUntil > Date.now()) return null;
+    if (this.breakerOpenUntil > Date.now()) {
+      this.logger.warn(`skip status=${status}: circuit breaker open`);
+      return null;
+    }
 
     let cfg: AgentAutofixConfig;
     try {
       // Limited-rollout gate: only early-access (waitlist) tenants heal for now.
       // Sits above the per-agent default so a cloud tenant that hasn't joined
       // never heals, even though the mode default would enable it.
-      if (!(await this.hasAccess(params.tenantId))) return null;
+      if (!(await this.hasAccess(params.tenantId))) {
+        this.logger.log(
+          `skip status=${status}: tenant ${params.tenantId} lacks early-access (rollout=${this.rollout})`,
+        );
+        return null;
+      }
       cfg = await this.loadAgentConfig(params.agentId, params.tenantId);
     } catch (err) {
       // A gate-load failure (DB hiccup) must never turn a recoverable provider
@@ -246,7 +283,21 @@ export class AutofixService {
       this.logger.warn(`autofix gate load failed, skipping: ${(err as Error).message}`);
       return null;
     }
-    if (!cfg.enabled) return null;
+    if (!cfg.enabled) {
+      this.logger.log(
+        `skip status=${status}: agent ${params.agentId} tenant ${params.tenantId} ` +
+          `disabled (defaultAgentEnabled=${this.defaultAgentEnabled})`,
+      );
+      return null;
+    }
+
+    // Include tenant + agent so a healing event is self-contained for
+    // tenant-scoped log filtering (the entry line above can interleave across
+    // requests once the two awaited gate checks run between them).
+    this.logger.log(
+      `healing status=${status} agent=${params.agentId} ` +
+        `tenant=${params.tenantId} provider=${params.provider}`,
+    );
 
     // Read the original error once, then rebuild it so it stays readable
     // downstream (fallback / recorder) whether or not we heal.
