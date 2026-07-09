@@ -125,6 +125,26 @@ jobs:
             --notes "${BODY:-No changelog}" \
             --verify-tag
 
+      # Nudge the marketing site to rebuild so its /changelog/ page (generated
+      # from these GitHub releases) picks up this version within ~1 min. Kept in
+      # this job on purpose: the release is created with the default
+      # GITHUB_TOKEN, which does NOT trigger `release: published` workflows, so a
+      # standalone workflow would never fire. No-op if the secret is unset.
+      - name: Trigger website changelog rebuild
+        # Best-effort: the release, tag, and Docker publish already succeeded by
+        # this point, so a transient hook or network error must not fail the job
+        # (a red status after a good release is misleading). The site also
+        # rebuilds on the next release or any push to the website repo.
+        continue-on-error: true
+        env:
+          HOOK: ${{ secrets.WEBSITE_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "WEBSITE_DEPLOY_HOOK not set; skipping website rebuild."
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK"
+
   publish-docker:
     needs: release
     if: needs.release.outputs.should_publish == 'true'
