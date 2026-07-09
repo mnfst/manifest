@@ -131,6 +131,7 @@ describe('ProxyController streaming abort', () => {
       new ThinkingBlockCache(),
       new ReasoningContentCache(),
       modelDiscovery as never,
+      { assertWithinRequestLimit: jest.fn().mockResolvedValue(undefined) } as never,
     );
   });
 

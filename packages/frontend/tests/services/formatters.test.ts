@@ -107,7 +107,7 @@ describe("formatErrorClass", () => {
   it("labels known classes", () => {
     expect(formatErrorClass("rate_limit")).toBe("Rate limit");
     expect(formatErrorClass("no_provider_key")).toBe("Missing API key");
-    expect(formatErrorClass("limit_exceeded")).toBe("Spend limit exceeded");
+    expect(formatErrorClass("limit_exceeded")).toBe("Limit exceeded");
     expect(formatErrorClass("server_error")).toBe("Server error");
   });
   it("returns null for a missing class", () => {

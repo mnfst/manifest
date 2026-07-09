@@ -16,6 +16,7 @@ const apiMocks = vi.hoisted(() => ({
   getOverview: vi.fn(),
   getOverviewAgentUsage: vi.fn(),
   getOverviewProviderUsage: vi.fn(),
+  getBillingStatus: vi.fn(),
 }));
 
 const sseMocks = vi.hoisted(() => ({
@@ -30,6 +31,7 @@ let filterSelectProps: {
   onSelectAll: () => void;
   items: string[];
 } | null = null;
+let mockSearchParams: Record<string, string | undefined> = {};
 
 vi.mock('@solidjs/meta', () => ({
   Title: (props: { children: unknown }) => <title>{props.children}</title>,
@@ -42,6 +44,7 @@ vi.mock('@solidjs/router', () => ({
     </a>
   ),
   useNavigate: () => vi.fn(),
+  useSearchParams: () => [mockSearchParams],
 }));
 
 vi.mock('../../src/services/api.js', async () => {
@@ -60,6 +63,19 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
   getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
   getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
+}));
+
+vi.mock('../../src/services/api/billing.js', () => ({
+  getBillingStatus: (...args: unknown[]) => apiMocks.getBillingStatus(...args),
+}));
+
+vi.mock('../../src/services/auth-client.js', () => ({
+  authClient: {
+    useSession: () => () => ({
+      data: { user: { id: 'u1', name: 'Test User', email: 'test@test.com' } },
+      isPending: false,
+    }),
+  },
 }));
 
 vi.mock('../../src/services/providers.js', () => ({
@@ -92,11 +108,13 @@ vi.mock('../../src/components/Select.jsx', () => ({
   default: (props: {
     value: string;
     onChange: (value: string) => void;
-    options: Array<{ label: string; value: string }>;
+    options: Array<{ label: string; value: string; disabled?: boolean; description?: string }>;
   }) => (
     <select value={props.value} onChange={(e) => props.onChange(e.currentTarget.value)}>
       {props.options.map((option) => (
-        <option value={option.value}>{option.label}</option>
+        <option value={option.value} disabled={option.disabled}>
+          {option.description ? `${option.label} · ${option.description}` : option.label}
+        </option>
       ))}
     </select>
   ),
@@ -247,6 +265,7 @@ beforeEach(() => {
   sessionStorage.clear();
   mockIsSelfHosted = false;
   filterSelectProps = null;
+  mockSearchParams = {};
   sseMocks.reset?.();
 
   apiMocks.getAgents.mockResolvedValue(agentsResponse);
@@ -255,6 +274,14 @@ beforeEach(() => {
   apiMocks.getOverview.mockResolvedValue(overviewResponse);
   apiMocks.getOverviewAgentUsage.mockResolvedValue(providerUsageTimeseries);
   apiMocks.getOverviewProviderUsage.mockResolvedValue(providerUsageTimeseries);
+  apiMocks.getBillingStatus.mockResolvedValue({
+    enabled: false,
+    plan: 'free',
+    priceMonthly: { amount: null, currency: null, interval: null },
+    requests: { used: null, limit: null, periodEnd: null },
+    cancelAtPeriodEnd: false,
+    subscriptionPeriodEnd: null,
+  });
 });
 
 afterEach(() => {
@@ -323,5 +350,24 @@ describe('GlobalOverview filter onUnselectAll', () => {
     expect(apiMocks.getGlobalProviders).toHaveBeenCalledTimes(1);
     expect(apiMocks.getGlobalProviderUsage).toHaveBeenCalledTimes(2);
     expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalledTimes(2);
+  });
+
+  it('opens the Pro success modal when upgraded=1 is present', async () => {
+    const replaceState = vi.spyOn(window.history, 'replaceState').mockImplementation(() => {});
+    mockSearchParams = { upgraded: '1' };
+
+    try {
+      render(() => <GlobalOverview />);
+
+      await waitFor(() => expect(localStorage.getItem('manifest_plan_chosen_u1')).toBe('1'));
+      await waitFor(() => expect(document.body.textContent).toContain("You're on the Pro plan"));
+
+      await waitFor(() => expect(document.querySelector('.modal-backdrop')).not.toBeNull());
+      fireEvent.click(document.querySelector('.modal-backdrop')!);
+
+      expect(replaceState).toHaveBeenCalledWith(null, '', '/overview');
+    } finally {
+      replaceState.mockRestore();
+    }
   });
 });

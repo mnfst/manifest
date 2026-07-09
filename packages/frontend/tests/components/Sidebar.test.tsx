@@ -34,6 +34,11 @@ vi.mock("../../src/services/api.js", () => ({
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
 }));
 
+const mockGetBillingStatus = vi.fn();
+vi.mock("../../src/services/api/billing.js", () => ({
+  getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
+}));
+
 // The SSE ping signal drives the agents resource refetch — a stable 0 is fine.
 vi.mock("../../src/services/sse.js", () => ({
   agentPing: () => 0,
@@ -108,6 +113,11 @@ beforeEach(() => {
   mockPathname = "/overview";
   mockIsSelfHosted = true;
   mockGetAgents.mockResolvedValue({ agents: SAMPLE_AGENTS });
+  mockGetBillingStatus.mockResolvedValue({
+    enabled: false,
+    plan: "free",
+    requests: { used: null, limit: null, periodEnd: null },
+  });
 });
 
 describe("Sidebar — global nav links", () => {
@@ -495,25 +505,66 @@ describe("Sidebar — structure and interaction", () => {
 });
 
 describe("Sidebar — Auto-fix card", () => {
-  it("renders the Auto-fix card with badge, title, description, and button", () => {
+  it("renders the Auto-fix discovery card with title, description, and external link", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector(".sidebar-autofix")).not.toBeNull();
-    expect(container.querySelector(".sidebar-autofix__new-badge")?.textContent).toBe("New");
-    expect(container.querySelector(".sidebar-autofix__title")?.textContent).toBe("Auto-fix");
+    expect(container.querySelector(".sidebar-autofix__new-badge")).toBeNull();
+    expect(container.querySelector(".sidebar-autofix__title")?.textContent).toBe("Discover Auto-fix");
     expect(container.textContent).toContain("Failing requests are automatically fixed");
-    expect(container.querySelector(".sidebar-autofix__btn")?.textContent).toBe("Get early access");
+    const link = container.querySelector(".sidebar-autofix__btn") as HTMLAnchorElement;
+    expect(link?.textContent).toBe("Learn more");
+    expect(link?.getAttribute("href")).toBe("https://manifest.build/autofix/");
+    expect(link?.getAttribute("target")).toBe("_blank");
+    expect(link?.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+});
+
+describe("Sidebar — usage card", () => {
+  it("renders free-plan usage and the near-limit warning state", async () => {
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: "free",
+      requests: { used: 8_500, limit: 10_000, periodEnd: null },
+    });
+
+    const { container } = render(() => <Sidebar />);
+
+    await screen.findByText(/8,500/);
+    expect(container.querySelector(".sidebar-usage__count--danger")).not.toBeNull();
+    expect(container.querySelector(".sidebar-usage__fill--danger")).not.toBeNull();
+    expect(container.textContent).toContain(
+      "You're limited to 10,000 requests this month. Upgrade for unlimited.",
+    );
+    expect(container.querySelector('a[href="/upgrade"]')).not.toBeNull();
   });
 
-  it("opens the AutofixModal when the Get early access button is clicked", async () => {
-    const { container } = render(() => <Sidebar />);
-    expect(container.querySelector('[data-testid="autofix-modal"]')).toBeNull();
-
-    const btn = container.querySelector(".sidebar-autofix__btn") as HTMLButtonElement;
-    await fireEvent.click(btn);
-
-    await waitFor(() => {
-      expect(container.querySelector('[data-testid="autofix-modal"]')).not.toBeNull();
+  it("renders the reached-limit warning state", async () => {
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: "free",
+      requests: { used: 10_001, limit: 10_000, periodEnd: null },
     });
-    expect(mockAutofixModal).toHaveBeenCalledWith(true);
+
+    const { container } = render(() => <Sidebar />);
+
+    await screen.findByText(/10,001/);
+    expect(container.textContent).toContain(
+      "You've reached your monthly limit. Requests are being blocked.",
+    );
+    expect(container.querySelector(".sidebar-usage__fill--danger")).not.toBeNull();
+  });
+
+  it("renders the warning fill before the danger threshold", async () => {
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: "free",
+      requests: { used: 5_500, limit: 10_000, periodEnd: null },
+    });
+
+    const { container } = render(() => <Sidebar />);
+
+    await screen.findByText(/5,500/);
+    expect(container.querySelector(".sidebar-usage__fill--warning")).not.toBeNull();
+    expect(container.querySelector(".sidebar-usage__fill--danger")).toBeNull();
   });
 });

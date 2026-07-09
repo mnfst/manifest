@@ -1,6 +1,6 @@
 import { Title } from '@solidjs/meta';
 import { toggleScrollFade } from '../services/scroll-fade.js';
-import { A, useNavigate } from '@solidjs/router';
+import { A, useNavigate, useSearchParams } from '@solidjs/router';
 import {
   createResource,
   createSignal,
@@ -12,6 +12,9 @@ import {
   type Component,
 } from 'solid-js';
 import AddAgentModal from '../components/AddAgentModal.jsx';
+import UpgradeSuccessModal from '../components/UpgradeSuccessModal.jsx';
+import { markPlanChosen } from '../services/plan-selection.js';
+import { authClient } from '../services/auth-client.js';
 import {
   getAgents,
   getGlobalProviders,
@@ -27,6 +30,7 @@ import {
   getOverviewAgentUsage,
   getOverviewProviderUsage,
 } from '../services/api/analytics.js';
+import { getBillingStatus } from '../services/api/billing.js';
 import { formatNumber, formatCost } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { preloadModelDisplayNames } from '../services/model-display.js';
@@ -109,6 +113,7 @@ const RANGE_OPTIONS = [
   { label: 'Last 90 days', value: '90d' },
   { label: 'Last 365 days', value: '365d' },
 ];
+const PRO_DASHBOARD_RANGES = new Set(['30d', '90d', '365d']);
 
 const GROUP_OPTIONS = [
   { label: 'By provider', value: 'provider' },
@@ -130,11 +135,41 @@ function loadRange(): string {
 
 const GlobalOverview: Component = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const session = authClient.useSession();
+  const isUpgraded = searchParams.upgraded === '1';
+  if (isUpgraded) {
+    const uid = session()?.data?.user?.id;
+    if (uid) markPlanChosen(uid);
+  }
+  const [upgradeModalOpen, setUpgradeModalOpen] = createSignal(isUpgraded);
+
+  const closeUpgradeModal = () => {
+    setUpgradeModalOpen(false);
+    window.history.replaceState(null, '', '/overview');
+    if (hasNoAgents() && !sessionStorage.getItem(ONBOARDING_DISMISSED_KEY)) {
+      setAddAgentOpen(true);
+    }
+  };
+
   preloadModelDisplayNames();
+
+  const [billing] = createResource(async () => {
+    try {
+      return await getBillingStatus();
+    } catch {
+      return null;
+    }
+  });
+  const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
+  const shouldLockProRanges = () => billing.loading || isFreePlan();
+  const isProRangeLocked = (range: string) =>
+    shouldLockProRanges() && PRO_DASHBOARD_RANGES.has(range);
 
   // ── Range state (persisted in localStorage) ──────────────────────────
   const [chartRange, setChartRangeRaw] = createSignal(loadRange());
   const setChartRange = (v: string) => {
+    if (isFreePlan() && PRO_DASHBOARD_RANGES.has(v)) return;
     setChartRangeRaw(v);
     try {
       localStorage.setItem(RANGE_STORAGE_KEY, v);
@@ -169,10 +204,27 @@ const GlobalOverview: Component = () => {
   // Local providers only exist on self-hosted installs; cloud hides the
   // Local stat card and drops the stats grid to three columns.
   const [selfHosted] = createResource(checkIsSelfHosted);
+  const effectiveChartRange = createMemo(() =>
+    isProRangeLocked(chartRange()) ? '7d' : chartRange(),
+  );
+  const proBadge = () => (
+    <span class="pro-range-badge" aria-label="Pro plan required">
+      PRO
+    </span>
+  );
+  const rangeOptions = () =>
+    RANGE_OPTIONS.map((option) =>
+      isProRangeLocked(option.value) ? { ...option, disabled: true, badge: proBadge() } : option,
+    );
+  createEffect(() => {
+    if (isFreePlan() && PRO_DASHBOARD_RANGES.has(chartRange())) {
+      setChartRange('7d');
+    }
+  });
 
   // ── Data resources (5 parallel) ──────────────────────────────────────
   const [overview] = createResource(
-    () => ({ range: chartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
     (p) => getOverview(p.range) as Promise<OverviewResponse>,
   );
 
@@ -239,7 +291,7 @@ const GlobalOverview: Component = () => {
   };
 
   const [usageTimeseries] = createResource(
-    () => ({ range: chartRange(), group: groupBy(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), group: groupBy(), _ping: messagePing() }),
     (p) => usageFetcher(p.range, p.group),
   );
 
@@ -417,7 +469,7 @@ const GlobalOverview: Component = () => {
     on(
       () => hasNoAgents(),
       (empty) => {
-        if (empty && !sessionStorage.getItem(ONBOARDING_DISMISSED_KEY)) {
+        if (empty && !sessionStorage.getItem(ONBOARDING_DISMISSED_KEY) && !upgradeModalOpen()) {
           setAddAgentOpen(true);
         }
       },
@@ -431,6 +483,7 @@ const GlobalOverview: Component = () => {
 
       {/* Add Harness Modal */}
       <AddAgentModal open={addAgentOpen()} onClose={dismissAddAgent} />
+      <UpgradeSuccessModal open={upgradeModalOpen()} onClose={closeUpgradeModal} />
 
       <SocialFollowBanner />
 
@@ -468,7 +521,7 @@ const GlobalOverview: Component = () => {
                 }}
               />
             </Show>
-            <Select value={chartRange()} onChange={setChartRange} options={RANGE_OPTIONS} />
+            <Select value={chartRange()} onChange={setChartRange} options={rangeOptions()} />
           </div>
         </Show>
       </div>
@@ -562,7 +615,7 @@ const GlobalOverview: Component = () => {
                 costValue={o().summary.cost_today.value}
                 costTrendPct={o().summary.cost_today.trend_pct}
                 costInfoTooltip="Actual API key costs only. Subscription usage is not included."
-                range={chartRange()}
+                range={effectiveChartRange()}
                 agentTimeseries={filteredAgentTimeseries() ?? undefined}
                 agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
                 agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}

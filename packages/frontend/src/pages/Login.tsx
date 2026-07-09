@@ -1,8 +1,9 @@
-import { A, useSearchParams } from '@solidjs/router';
+import { A, useLocation, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import { type Component, createSignal, createUniqueId, onCleanup, onMount, Show } from 'solid-js';
 import SocialButtons from '../components/SocialButtons.jsx';
 import { authClient } from '../services/auth-client.js';
+import { appendSearch, getAuthDestination } from '../services/auth-redirects.js';
 import { getLastAuthMethod, setLastAuthMethod } from '../services/last-auth-method.js';
 import { checkSocialProviders } from '../services/setup-status.js';
 
@@ -25,6 +26,7 @@ const Login: Component = () => {
   const [socialProviders, setSocialProviders] = createSignal<string[]>([]);
   const [lastAuthMethod] = createSignal(getLastAuthMethod());
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const emailId = createUniqueId();
   const passwordId = createUniqueId();
   const errorId = createUniqueId();
@@ -85,7 +87,7 @@ const Login: Component = () => {
     }
 
     setLastAuthMethod('email');
-    window.location.href = '/';
+    window.location.href = getAuthDestination(searchParams);
   };
 
   // Dev shortcut: fill + submit the seed admin. One click, no credentials in the URL;
@@ -113,7 +115,7 @@ const Login: Component = () => {
 
     const { error: resendError } = await authClient.sendVerificationEmail({
       email: email(),
-      callbackURL: '/',
+      callbackURL: getAuthDestination(searchParams),
     });
 
     if (resendError) {
@@ -209,7 +211,7 @@ const Login: Component = () => {
       </form>
       <div class="auth-footer">
         <span>Don't have an account? </span>
-        <A href="/register" class="auth-footer__link">
+        <A href={appendSearch('/register', location.search)} class="auth-footer__link">
           Sign up
         </A>
       </div>

@@ -71,7 +71,9 @@
 }
 
 .custom-select__option {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 100%;
   padding: 6px 14px;
   border: none;
@@ -87,6 +89,44 @@
 
 .custom-select__option:hover {
   background: hsl(var(--accent));
+}
+
+.custom-select__option:disabled {
+  cursor: not-allowed;
+}
+
+.custom-select__option--disabled {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.72;
+}
+
+.custom-select__option-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.custom-select__option-desc {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
+.pro-range-badge {
+  margin-left: auto;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  opacity: 1;
+}
+
+.pro-range-badge:hover {
+  opacity: 0.85;
 }
 
 .custom-select__option--selected {

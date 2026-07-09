@@ -2,7 +2,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 100;
   background: rgb(0 0 0 / 0.5);
   display: flex;
   align-items: center;
@@ -784,8 +784,198 @@
   text-align: center;
 }
 
+.sidebar-autofix__btn {
+  text-decoration: none;
+}
+
 .sidebar-autofix__btn:hover {
   opacity: 0.9;
+}
+
+/* ── Upgrade Success Modal ────────────────────────── */
+.modal.upgrade-success-modal {
+  max-width: 420px;
+}
+
+.upgrade-success-modal__body {
+  padding: var(--gap-xl);
+}
+
+.upgrade-success-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--gap-md);
+  background: hsl(230 90% 55% / 0.08);
+  border-radius: 50%;
+}
+
+.upgrade-success-modal__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  letter-spacing: -0.025em;
+}
+
+.upgrade-success-modal__subtitle {
+  margin: var(--gap-sm) 0 0;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+}
+
+.upgrade-success-modal__features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+  margin: var(--gap-lg) 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.upgrade-success-modal__features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+  line-height: 1.45;
+}
+
+.upgrade-success-modal__features svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.upgrade-success-modal__done {
+  width: fit-content;
+  float: right;
+}
+
+.sidebar-usage {
+  margin: 0 var(--gap-md) 10px;
+}
+
+.sidebar-usage__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2px;
+}
+
+.sidebar-usage__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.sidebar-usage__month {
+  font-size: 12px;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.sidebar-usage__count {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin-bottom: 6px;
+}
+
+/* ── Global Usage Limit Banner ────────────────────── */
+.usage-limit-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-md);
+  padding: var(--gap-sm) var(--gap-lg);
+  margin: calc(-1 * var(--gap-xl)) calc(-1 * var(--gap-xl)) var(--gap-lg);
+  background: hsl(var(--destructive) / 0.06);
+  border-bottom: 1px solid hsl(var(--destructive) / 0.2);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--destructive));
+}
+
+.usage-limit-banner__text {
+  font-weight: 500;
+}
+
+.usage-limit-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  flex-shrink: 0;
+}
+
+.usage-limit-banner__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sidebar-usage__alert {
+  margin: 6px 0 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: hsl(var(--destructive));
+  line-height: 1.4;
+}
+
+.sidebar-usage__count--danger {
+  color: hsl(var(--destructive));
+}
+
+.sidebar-usage__bar {
+  height: 4px;
+  background: hsl(var(--background));
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.sidebar-usage__fill {
+  height: 100%;
+  background: hsl(var(--primary));
+  border-radius: 2px;
+  transition: width 300ms ease;
+}
+
+.sidebar-usage__fill--warning {
+  background: hsl(var(--warning));
+}
+
+.sidebar-usage__fill--danger {
+  background: hsl(var(--destructive));
+}
+
+.sidebar-upgrade {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 var(--gap-md) var(--gap-md);
+  width: calc(100% - var(--gap-md) * 2);
+  padding: 8px 0;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  font-family: var(--font-family);
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+  text-decoration: none;
+}
+
+.sidebar-upgrade:hover {
+  border-color: hsl(var(--foreground) / 0.3);
 }
 
 @media (max-width: 768px) {

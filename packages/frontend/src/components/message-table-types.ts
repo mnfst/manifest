@@ -18,6 +18,7 @@ export interface MessageRow {
   cost: number | null;
   status: string;
   error_message?: string | null;
+  error_http_status?: number | null;
   /** WHO caused a failure: provider | transport | config | policy | internal. */
   error_origin?: string | null;
   /** WHAT kind of failure it was (rate_limit, auth, no_provider_key, timeout, …). */

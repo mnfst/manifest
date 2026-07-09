@@ -13,6 +13,7 @@ import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
 import VersionIndicator from './components/VersionIndicator.jsx';
+import UsageLimitBanner from './components/UsageLimitBanner.jsx';
 import { connectSse } from './services/sse.js';
 import { RightSidebarProvider, useRightSidebar } from './services/right-sidebar.jsx';
 
@@ -79,6 +80,7 @@ const AppInner: ParentComponent = (props) => {
           classList={{ 'main-content--full': !showSidebar() }}
           aria-label="Dashboard content"
         >
+          <UsageLimitBanner />
           {props.children}
         </main>
         {rightSidebar()}

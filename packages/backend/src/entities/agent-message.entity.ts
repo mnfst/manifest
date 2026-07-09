@@ -85,7 +85,7 @@ export class AgentMessage {
    * WHAT kind of failure it was (normalized): 'rate_limit' | 'auth' |
    * 'invalid_request' | 'server_error' | 'timeout' | 'network' | 'no_provider'
    * | 'no_provider_key' | 'limit_exceeded' | 'internal' | … A rate limit is a
-   * *class* of provider error here, not a top-level status. NULL on success.
+   * *class* of error here, not a top-level status. NULL on success.
    */
   @Column('varchar', { nullable: true })
   error_class!: string | null;

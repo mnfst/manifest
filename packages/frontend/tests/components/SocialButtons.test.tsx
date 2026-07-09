@@ -1,76 +1,104 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@solidjs/testing-library";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@solidjs/testing-library';
 
 const mockSignInSocial = vi.fn();
+let mockSearchParams: Record<string, string> = {};
 
-vi.mock("../../src/services/auth-client.js", () => ({
+vi.mock('@solidjs/router', () => ({
+  useSearchParams: () => [mockSearchParams],
+}));
+
+vi.mock('../../src/services/auth-client.js', () => ({
   authClient: {
     signIn: { social: (...args: any[]) => mockSignInSocial(...args) },
   },
 }));
 
-import SocialButtons from "../../src/components/SocialButtons";
-import { getLastAuthMethod } from "../../src/services/last-auth-method";
+import SocialButtons from '../../src/components/SocialButtons';
+import { getLastAuthMethod } from '../../src/services/last-auth-method';
 
-describe("SocialButtons", () => {
+describe('SocialButtons', () => {
   beforeEach(() => {
     mockSignInSocial.mockClear();
+    mockSearchParams = {};
     localStorage.clear();
   });
 
-  it("renders all 3 social buttons when no enabledProviders prop", () => {
+  it('renders all 3 social buttons when no enabledProviders prop', () => {
     render(() => <SocialButtons />);
-    expect(screen.getByText("Continue with Google")).toBeDefined();
-    expect(screen.getByText("Continue with GitHub")).toBeDefined();
-    expect(screen.getByText("Continue with Discord")).toBeDefined();
+    expect(screen.getByText('Continue with Google')).toBeDefined();
+    expect(screen.getByText('Continue with GitHub')).toBeDefined();
+    expect(screen.getByText('Continue with Discord')).toBeDefined();
   });
 
-  it("renders only enabled providers", () => {
-    render(() => <SocialButtons enabledProviders={["google"]} />);
-    expect(screen.getByText("Continue with Google")).toBeDefined();
-    expect(screen.queryByText("Continue with GitHub")).toBeNull();
-    expect(screen.queryByText("Continue with Discord")).toBeNull();
+  it('renders only enabled providers', () => {
+    render(() => <SocialButtons enabledProviders={['google']} />);
+    expect(screen.getByText('Continue with Google')).toBeDefined();
+    expect(screen.queryByText('Continue with GitHub')).toBeNull();
+    expect(screen.queryByText('Continue with Discord')).toBeNull();
   });
 
-  it("renders nothing when enabledProviders is empty", () => {
+  it('renders nothing when enabledProviders is empty', () => {
     const { container } = render(() => <SocialButtons enabledProviders={[]} />);
-    expect(container.querySelector(".auth-social-group")).toBeNull();
+    expect(container.querySelector('.auth-social-group')).toBeNull();
   });
 
-  it("calls signIn.social on Google click", async () => {
+  it('calls signIn.social on Google click', async () => {
     render(() => <SocialButtons />);
-    await fireEvent.click(screen.getByText("Continue with Google"));
-    expect(mockSignInSocial).toHaveBeenCalledWith(expect.objectContaining({ provider: "google" }));
+    await fireEvent.click(screen.getByText('Continue with Google'));
+    expect(mockSignInSocial).toHaveBeenCalledWith(expect.objectContaining({ provider: 'google' }));
   });
 
-  it("calls signIn.social on GitHub click", async () => {
+  it('calls signIn.social on GitHub click', async () => {
     render(() => <SocialButtons />);
-    await fireEvent.click(screen.getByText("Continue with GitHub"));
-    expect(mockSignInSocial).toHaveBeenCalledWith(expect.objectContaining({ provider: "github" }));
+    await fireEvent.click(screen.getByText('Continue with GitHub'));
+    expect(mockSignInSocial).toHaveBeenCalledWith(expect.objectContaining({ provider: 'github' }));
   });
 
-  it("calls signIn.social on Discord click", async () => {
+  it('calls signIn.social on Discord click', async () => {
     render(() => <SocialButtons />);
-    await fireEvent.click(screen.getByText("Continue with Discord"));
-    expect(mockSignInSocial).toHaveBeenCalledWith(expect.objectContaining({ provider: "discord" }));
+    await fireEvent.click(screen.getByText('Continue with Discord'));
+    expect(mockSignInSocial).toHaveBeenCalledWith(expect.objectContaining({ provider: 'discord' }));
   });
 
-  it("renders the Last used badge only on the matching provider", () => {
+  it('renders the Last used badge only on the matching provider', () => {
     const { container } = render(() => <SocialButtons lastUsed="github" />);
-    const badges = container.querySelectorAll(".auth-last-used");
+    const badges = container.querySelectorAll('.auth-last-used');
     expect(badges.length).toBe(1);
-    const githubBtn = container.querySelector(".auth-social-btn--github")!;
-    expect(githubBtn.querySelector(".auth-last-used")).not.toBeNull();
+    const githubBtn = container.querySelector('.auth-social-btn--github')!;
+    expect(githubBtn.querySelector('.auth-last-used')).not.toBeNull();
   });
 
-  it("renders no badge when lastUsed does not match a social provider", () => {
+  it('renders no badge when lastUsed does not match a social provider', () => {
     const { container } = render(() => <SocialButtons lastUsed="email" />);
-    expect(container.querySelector(".auth-last-used")).toBeNull();
+    expect(container.querySelector('.auth-last-used')).toBeNull();
   });
 
-  it("persists the chosen provider before redirecting", async () => {
+  it('persists the chosen provider before redirecting', async () => {
     render(() => <SocialButtons />);
-    await fireEvent.click(screen.getByText("Continue with Google"));
-    expect(getLastAuthMethod()).toBe("google");
+    await fireEvent.click(screen.getByText('Continue with Google'));
+    expect(getLastAuthMethod()).toBe('google');
+  });
+
+  it('routes pro-intent social auth to upgrade', async () => {
+    mockSearchParams = { plan: 'pro' };
+    render(() => <SocialButtons />);
+    await fireEvent.click(screen.getByText('Continue with Google'));
+    expect(mockSignInSocial).toHaveBeenCalledWith({
+      provider: 'google',
+      callbackURL: '/upgrade',
+      errorCallbackURL: '/login?plan=pro&error=oauth_failed',
+    });
+  });
+
+  it('preserves safe redirect intent for social auth', async () => {
+    mockSearchParams = { redirect: '/upgrade?reason=requests' };
+    render(() => <SocialButtons />);
+    await fireEvent.click(screen.getByText('Continue with GitHub'));
+    expect(mockSignInSocial).toHaveBeenCalledWith({
+      provider: 'github',
+      callbackURL: '/upgrade?reason=requests',
+      errorCallbackURL: '/login?redirect=%2Fupgrade%3Freason%3Drequests&error=oauth_failed',
+    });
   });
 });

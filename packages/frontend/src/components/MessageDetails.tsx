@@ -1,4 +1,5 @@
 import { createResource, createSignal, For, Show, type JSX } from 'solid-js';
+import { A } from '@solidjs/router';
 import {
   getMessageDetails,
   flagMessageMiscategorized,
@@ -343,7 +344,34 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                           <line x1="15" y1="9" x2="9" y2="15" />
                           <line x1="9" y1="9" x2="15" y2="15" />
                         </svg>
-                        <span>{m.error_message}</span>
+                        <span>
+                          {m.error_message}
+                          <Show
+                            when={
+                              m.error_origin === 'policy' &&
+                              m.error_class === 'limit_exceeded' &&
+                              m.error_http_status === 402
+                            }
+                          >
+                            {' '}
+                            Upgrade to Pro for unlimited requests.
+                          </Show>
+                        </span>
+                        <Show
+                          when={
+                            m.error_origin === 'policy' &&
+                            m.error_class === 'limit_exceeded' &&
+                            m.error_http_status === 402
+                          }
+                        >
+                          <A
+                            href="/upgrade?reason=requests"
+                            class="btn btn--primary btn--sm"
+                            style="text-decoration: none; flex-shrink: 0; margin-left: 8px;"
+                          >
+                            Upgrade plan
+                          </A>
+                        </Show>
                       </div>
                       <table class="error-autofix-row__meta-table">
                         <tbody>

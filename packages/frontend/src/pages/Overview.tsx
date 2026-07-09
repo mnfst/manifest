@@ -37,9 +37,19 @@ import {
   useOverviewColumns,
   useOverviewRange,
 } from '../services/use-overview-range.js';
+import { getBillingStatus } from '../services/api/billing.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/routing.css';
+
+const PRO_RANGES = new Set(['30d', '90d', '365d']);
+const AGENT_RANGE_OPTIONS = [
+  { label: 'Last 24 hours', value: '24h' },
+  { label: 'Last 7 days', value: '7d' },
+  { label: 'Last 30 days', value: '30d' },
+  { label: 'Last 90 days', value: '90d' },
+  { label: 'Last 365 days', value: '365d' },
+];
 
 interface OverviewData {
   summary: {
@@ -94,6 +104,25 @@ const Overview: Component = () => {
   const location = useLocation<{ newApiKey?: string }>();
   const navigate = useNavigate();
   preloadModelDisplayNames();
+  const [billing] = createResource(async () => {
+    try {
+      return await getBillingStatus();
+    } catch {
+      return null;
+    }
+  });
+  const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
+  const shouldLockProRanges = () => billing.loading || isFreePlan();
+  const isProRangeLocked = (value: string) => shouldLockProRanges() && PRO_RANGES.has(value);
+  const proBadge = () => (
+    <span class="pro-range-badge" aria-label="Pro plan required">
+      PRO
+    </span>
+  );
+  const agentRangeOptions = () =>
+    AGENT_RANGE_OPTIONS.map((opt) =>
+      isProRangeLocked(opt.value) ? { ...opt, disabled: true, badge: proBadge() } : opt,
+    );
   const { columns } = useOverviewColumns();
   // Only treat the stored value as a user selection when it is actually valid.
   // An invalid stored range falls through to the smart-range cascade.
@@ -103,6 +132,7 @@ const Overview: Component = () => {
   const { range, setRange, handleRangeChange } = useOverviewRange({
     markUserSelected: () => setUserSelectedRange(true),
   });
+  const effectiveRange = createMemo(() => (isProRangeLocked(range()) ? '7d' : range()));
   const [activeView, setActiveViewRaw] = createSignal<ProviderView>('messages');
   const [tokenChartRequested, setTokenChartRequested] = createSignal(false);
   const [costChartRequested, setCostChartRequested] = createSignal(false);
@@ -126,7 +156,10 @@ const Overview: Component = () => {
   );
 
   const [data, { refetch }] = createResource(
-    () => ({ range: range(), agentName: params.agentName, _ping: messagePing() }),
+    () =>
+      billing.loading
+        ? false
+        : { range: effectiveRange(), agentName: params.agentName, _ping: messagePing() },
     (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,
   );
 
@@ -141,6 +174,10 @@ const Overview: Component = () => {
   };
 
   createEffect(() => {
+    if (isFreePlan() && PRO_RANGES.has(range())) {
+      handleRangeChange('7d');
+      return;
+    }
     if (
       showEmptyState() &&
       !setupCompleted() &&
@@ -189,20 +226,20 @@ const Overview: Component = () => {
   const [selectedProviders, setSelectedProviders] = createSignal<Set<string>>(loadSavedProviders());
 
   const tsKey = (): TimeseriesKey => ({
-    range: range(),
+    range: effectiveRange(),
     agent: params.agentName,
     _ping: messagePing(),
   });
   const [providerTokenTs] = createResource(
-    () => (tokenChartRequested() ? tsKey() : false),
+    () => (tokenChartRequested() && !billing.loading ? tsKey() : false),
     (p) => getPerProviderTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
   const [providerMessageTs] = createResource(
-    tsKey,
+    () => (billing.loading ? false : tsKey()),
     (p) => getPerProviderMessageTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
   const [providerCostTs] = createResource(
-    () => (costChartRequested() ? tsKey() : false),
+    () => (costChartRequested() && !billing.loading ? tsKey() : false),
     (p) => getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
 
@@ -295,14 +332,11 @@ const Overview: Component = () => {
           <Show when={showDashboard()}>
             <Select
               value={range()}
-              onChange={handleRangeChange}
-              options={[
-                { label: 'Last 24 hours', value: '24h' },
-                { label: 'Last 7 days', value: '7d' },
-                { label: 'Last 30 days', value: '30d' },
-                { label: 'Last 90 days', value: '90d' },
-                { label: 'Last 365 days', value: '365d' },
-              ]}
+              onChange={(v) => {
+                if (isProRangeLocked(v)) return;
+                handleRangeChange(v);
+              }}
+              options={agentRangeOptions()}
             />
           </Show>
           <Show when={showEmptyState() && !setupCompleted()}>
@@ -313,7 +347,10 @@ const Overview: Component = () => {
         </div>
       </div>
 
-      <Show when={data() !== undefined || !data.loading} fallback={<OverviewSkeleton />}>
+      <Show
+        when={!billing.loading && (data() !== undefined || !data.loading)}
+        fallback={<OverviewSkeleton />}
+      >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
           <Show when={showEmptyState()}>
             <Show
@@ -388,7 +425,7 @@ const Overview: Component = () => {
                     messagesValue={d().summary?.messages?.value ?? 0}
                     messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
                     costInfoTooltip="Actual API key costs only. Subscription usage is not included."
-                    range={range()}
+                    range={effectiveRange()}
                     agentTimeseries={filteredTokenTs() ?? undefined}
                     agentMessageTimeseries={filteredMessageTs() ?? undefined}
                     agentCostTimeseries={filteredCostTs() ?? undefined}

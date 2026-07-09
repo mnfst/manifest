@@ -26,6 +26,14 @@ vi.mock('../../src/services/model-display.js', () => ({
   },
 }));
 
+vi.mock('@solidjs/router', () => ({
+  A: (props: any) => (
+    <a href={props.href} class={props.class} style={props.style}>
+      {props.children}
+    </a>
+  ),
+}));
+
 import MessageDetails from '../../src/components/MessageDetails';
 
 const detailsResponse = {
@@ -102,6 +110,28 @@ describe('MessageDetails', () => {
       const errorBox = container.querySelector('.msg-detail__error-inline');
       expect(errorBox).not.toBeNull();
       expect(errorBox!.textContent).toBe('401 Unauthorized: invalid API key');
+    });
+  });
+
+  it('links request-limit 402 errors to the upgrade page', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'error',
+        error_message: 'Request limit reached',
+        error_http_status: 402,
+        error_origin: 'policy',
+        error_class: 'limit_exceeded',
+        superseded: false,
+      },
+    });
+
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Upgrade to Pro for unlimited requests.');
+      const link = screen.getByText('Upgrade plan').closest('a');
+      expect(link?.getAttribute('href')).toBe('/upgrade?reason=requests');
     });
   });
 
@@ -731,7 +761,7 @@ describe('MessageDetails', () => {
       expect(chevron.classList.contains('msg-detail__chevron--open')).toBe(true);
     });
 
-    it("renders an info tooltip explaining what model parameters are and that the surface will grow", async () => {
+    it('renders an info tooltip explaining what model parameters are and that the surface will grow', async () => {
       const withParams = {
         ...detailsResponse,
         message: {

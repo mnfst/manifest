@@ -2,7 +2,7 @@ import { createSignal } from 'solid-js';
 import { COMPACT_COLUMNS } from '../components/message-table-types.js';
 
 export const RANGE_STORAGE_KEY = 'manifest_chart_range';
-export const VALID_RANGES = new Set(['24h', '7d', '30d']);
+export const VALID_RANGES = new Set(['24h', '7d', '30d', '90d', '365d']);
 
 /**
  * Shared range signal + localStorage persistence for Overview pages.

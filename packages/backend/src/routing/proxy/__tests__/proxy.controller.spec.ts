@@ -1,4 +1,5 @@
 import { HttpException } from '@nestjs/common';
+import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
 import { ProxyController } from '../proxy.controller';
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
 import { ProxyMessageDedup } from '../proxy-message-dedup';
@@ -122,10 +123,12 @@ describe('ProxyController', () => {
   let mockPricingCache: { getByModel: jest.Mock };
   let modelDiscovery: { getModelsForAgent: jest.Mock };
   let recorder: ProxyMessageRecorder;
+  let planService: { assertWithinRequestLimit: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
     proxyService = { proxyRequest: jest.fn() };
+    planService = { assertWithinRequestLimit: jest.fn().mockResolvedValue(undefined) };
     rateLimiter = {
       checkLimit: jest.fn(),
       checkIpLimit: jest.fn(),
@@ -188,6 +191,7 @@ describe('ProxyController', () => {
       new ThinkingBlockCache(),
       new ReasoningContentCache(),
       modelDiscovery as never,
+      planService as never,
     );
   });
 
@@ -291,6 +295,68 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     expect(headers['X-Manifest-Confidence']).toBe('0.9');
     expect(headers['X-Manifest-Reason']).toBe('scored');
+  });
+
+  it('enforces the plan request limit before routing and records a Manifest policy row', async () => {
+    const block = new HttpException(
+      {
+        statusCode: 402,
+        code: 'PLAN_LIMIT_REQUESTS',
+        limit: FREE_PLAN_REQUESTS_PER_MONTH,
+        used: FREE_PLAN_REQUESTS_PER_MONTH,
+      },
+      402,
+    );
+    planService.assertWithinRequestLimit.mockRejectedValueOnce(block);
+    const recordSpy = jest.spyOn(recorder, 'recordManifestBlockedRequest');
+
+    const req = mockRequest({ model: 'auto', messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    // The gate runs BEFORE the try/catch, so the 402 propagates to
+    // ProxyExceptionFilter instead of the local handleProxyError.
+    await expect(controller.chatCompletions(req as never, res as never)).rejects.toBe(block);
+    await flushRecorderMicrotasks();
+
+    // Gate ran before rate limiting / routing. The recorded row is classified as
+    // Manifest policy, which PlanService excludes from billable request counts.
+    expect(planService.assertWithinRequestLimit).toHaveBeenCalledWith(req.ingestionContext);
+    expect(rateLimiter.checkLimit).not.toHaveBeenCalled();
+    expect(proxyService.proxyRequest).not.toHaveBeenCalled();
+    expect(recordSpy).toHaveBeenCalledWith(
+      req.ingestionContext,
+      expect.objectContaining({
+        httpStatus: 402,
+        errorMessage: 'Free plan monthly request limit reached',
+        reason: 'limit_exceeded',
+        model: 'auto',
+      }),
+    );
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'error',
+        error_http_status: 402,
+        routing_reason: 'limit_exceeded',
+        error_origin: 'policy',
+        error_class: 'limit_exceeded',
+      }),
+    );
+  });
+
+  it('routes a non-402 plan-lookup error through the normal proxy error handler', async () => {
+    // A subscription/tenant lookup failure is an ordinary proxy error: it should
+    // be recorded + normalized, not thrown raw (which would 500 the caller).
+    planService.assertWithinRequestLimit.mockRejectedValueOnce(new Error('subscription db down'));
+    const recordSpy = jest.spyOn(recorder, 'recordProviderError');
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    // handleProxyError records the failure and never reaches routing.
+    expect(recordSpy).toHaveBeenCalled();
+    expect(proxyService.proxyRequest).not.toHaveBeenCalled();
   });
 
   it('should expose /v1/responses and convert chat completions output to Responses format', async () => {
@@ -1313,7 +1379,7 @@ describe('ProxyController', () => {
       expect(rateLimiter.releaseSlot).not.toHaveBeenCalled();
     });
 
-    it('should record 429 when checkLimit throws with 429', async () => {
+    it('should record local rate-limit blocks as Manifest policy rows', async () => {
       rateLimiter.checkLimit.mockImplementation(() => {
         throw new HttpException('Too many requests — wait a few seconds and retry.', 429);
       });
@@ -1328,6 +1394,10 @@ describe('ProxyController', () => {
         expect.objectContaining({
           status: 'rate_limited',
           tenant_id: 'tenant-1',
+          error_http_status: 429,
+          routing_reason: 'manifest_rate_limited',
+          error_origin: 'policy',
+          error_class: 'rate_limit',
         }),
       );
     });

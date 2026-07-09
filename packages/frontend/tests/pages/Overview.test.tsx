@@ -75,6 +75,11 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getPerProviderCostTimeseries: (...a: unknown[]) => mockPerProviderCosts(...a),
 }));
 
+const mockGetBillingStatus = vi.fn();
+vi.mock('../../src/services/api/billing.js', () => ({
+  getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
+}));
+
 vi.mock('../../src/components/MultiAgentTokenChart.jsx', () => ({
   AGENT_COLORS: ['#111111', '#222222', '#333333'],
   default: (props: any) => (
@@ -135,7 +140,10 @@ vi.mock('../../src/components/Select.jsx', () => ({
       onChange={(e: any) => props.onChange(e.target.value)}
     >
       {props.options?.map((o: any) => (
-        <option value={o.value}>{o.label}</option>
+        <option value={o.value} disabled={o.disabled}>
+          {o.label}
+          {o.badge ? ' - PRO' : ''}
+        </option>
       ))}
     </select>
   ),
@@ -215,6 +223,11 @@ describe('Overview', () => {
     mockLocationState = null;
     mockGetCustomProviders.mockResolvedValue([]);
     mockPerProvider.mockResolvedValue({ agents: [], timeseries: [] });
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: false,
+      plan: 'free',
+      emailPreferences: { usageAlerts: true },
+    });
   });
 
   it('renders Overview heading with agent name', () => {
@@ -928,6 +941,35 @@ describe('Overview', () => {
         const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
         expect(select.value).toBe('30d');
       });
+    });
+
+    it('limits Free users to 7-day dashboard ranges and labels longer ranges as Pro-only', async () => {
+      localStorage.setItem('manifest_chart_range', '365d');
+      mockGetBillingStatus.mockResolvedValue({
+        enabled: true,
+        plan: 'free',
+        emailPreferences: { usageAlerts: true },
+      });
+      mockGetOverview.mockResolvedValue(overviewData);
+
+      const { container } = render(() => <Overview />);
+
+      await vi.waitFor(() => {
+        expect(mockGetOverview).toHaveBeenCalledWith('7d', 'test-agent');
+      });
+      await vi.waitFor(() => {
+        expect(localStorage.getItem('manifest_chart_range')).toBe('7d');
+      });
+
+      const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+      const lockedOptions = Array.from(select.options).filter((option) =>
+        ['30d', '90d', '365d'].includes(option.value),
+      );
+      expect(lockedOptions.map((option) => option.disabled)).toEqual([true, true, true]);
+      expect(select.textContent).toContain('Last 30 days - PRO');
+
+      fireEvent.change(select, { target: { value: '90d' } });
+      expect(localStorage.getItem('manifest_chart_range')).toBe('7d');
     });
   });
 

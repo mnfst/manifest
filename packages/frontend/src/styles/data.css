@@ -1282,7 +1282,7 @@ table.msg-detail__table td {
 
 .msg-detail__error-inline {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   color: hsl(var(--destructive));
   font-size: var(--font-size-xs);
@@ -1350,6 +1350,20 @@ table.msg-detail__table td {
   font-weight: 400;
   margin-top: 2px;
   line-height: 1.4;
+}
+
+.error-autofix-row__upgrade {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  margin-top: var(--gap-md);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--foreground));
+}
+
+.error-autofix-row__upgrade .btn {
+  text-decoration: none;
+  flex-shrink: 0;
 }
 
 .msg-detail__fallback-banner {

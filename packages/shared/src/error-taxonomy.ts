@@ -10,7 +10,7 @@
  *  - `error_origin` — WHO caused the failure (provider / transport / config /
  *    policy / internal).
  *  - `error_class`  — WHAT kind of failure it was. A rate limit is a *class* of
- *    provider error here, not a top-level status.
+ *    error here, not a top-level status.
  *  - `superseded`   — whether this row is a retried / fell-back-away-from attempt
  *    rather than the request's terminal outcome (the old `fallback_error`).
  *
@@ -73,8 +73,8 @@ export type ErrorClass = (typeof ERROR_CLASSES)[number];
 
 /**
  * Canned `routing_reason` values the proxy writes for Manifest-originated stubs
- * (see CANNED_RESPONSE_REASONS in proxy-message-recorder.ts). Their presence is
- * the definitive signal that a row is Manifest's own error, not a provider's.
+ * (see proxy-message-recorder.ts). Their presence is the definitive signal that
+ * a row is Manifest's own error, not a provider's.
  */
 const MANIFEST_REASON_TO_CLASSIFICATION: Record<
   string,
@@ -83,6 +83,7 @@ const MANIFEST_REASON_TO_CLASSIFICATION: Record<
   no_provider: { origin: 'config', errorClass: 'no_provider' },
   no_provider_key: { origin: 'config', errorClass: 'no_provider_key' },
   limit_exceeded: { origin: 'policy', errorClass: 'limit_exceeded' },
+  manifest_rate_limited: { origin: 'policy', errorClass: 'rate_limit' },
   friendly_error: { origin: 'internal', errorClass: 'internal' },
 };
 

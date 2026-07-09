@@ -34,10 +34,12 @@ describe('use-overview-range', () => {
   });
 
   describe('VALID_RANGES', () => {
-    it('contains 24h, 7d, and 30d', () => {
+    it('contains the supported dashboard ranges', () => {
       expect(VALID_RANGES.has('24h')).toBe(true);
       expect(VALID_RANGES.has('7d')).toBe(true);
       expect(VALID_RANGES.has('30d')).toBe(true);
+      expect(VALID_RANGES.has('90d')).toBe(true);
+      expect(VALID_RANGES.has('365d')).toBe(true);
     });
 
     it('does not contain invalid values', () => {
@@ -59,14 +61,14 @@ describe('use-overview-range', () => {
     });
 
     it('reads saved range from localStorage when valid', () => {
-      localStorage.setItem(RANGE_STORAGE_KEY, '7d');
+      localStorage.setItem(RANGE_STORAGE_KEY, '365d');
       let rangeValue: string | undefined;
       const dispose = createRoot((d) => {
         const { range } = useOverviewRange();
         rangeValue = range();
         return d;
       });
-      expect(rangeValue).toBe('7d');
+      expect(rangeValue).toBe('365d');
       dispose();
     });
 

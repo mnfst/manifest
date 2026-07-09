@@ -12,6 +12,7 @@ import { OAuthModule } from '../oauth/oauth.module';
 import { ResolveModule } from '../resolve/resolve.module';
 import { CustomProviderModule } from '../custom-provider/custom-provider.module';
 import { HeaderTiersModule } from '../header-tiers/header-tiers.module';
+import { BillingModule } from '../../billing/billing.module';
 import { AutofixModule } from '../autofix/autofix.module';
 import { ProxyController } from './proxy.controller';
 import { ProxyService } from './proxy.service';
@@ -40,6 +41,7 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     ResolveModule,
     CustomProviderModule,
     HeaderTiersModule,
+    BillingModule,
     AutofixModule,
   ],
   controllers: [ProxyController],

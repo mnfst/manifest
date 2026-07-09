@@ -1,6 +1,7 @@
 import { Title } from '@solidjs/meta';
 import { toggleScrollFade } from '../../services/scroll-fade.js';
 import { A, useNavigate, useParams } from '@solidjs/router';
+import { getBillingStatus } from '../../services/api/billing.js';
 import {
   createEffect,
   createMemo,
@@ -104,9 +105,37 @@ interface AnalyticsResponse {
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
 }
 
+const PRO_RANGES_CD = new Set(['30d', '90d', '365d']);
+const CD_RANGE_OPTIONS = [
+  { label: 'Last 24 hours', value: '24h' },
+  { label: 'Last 7 days', value: '7d' },
+  { label: 'Last 30 days', value: '30d' },
+  { label: 'Last 90 days', value: '90d' },
+  { label: 'Last 365 days', value: '365d' },
+];
+
 const ConnectionDetail: Component = () => {
   const params = useParams<{ connectionId: string }>();
   const navigate = useNavigate();
+  const [billing] = createResource(async () => {
+    try {
+      return await getBillingStatus();
+    } catch {
+      return null;
+    }
+  });
+  const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
+  const proBadge = () => (
+    <span class="pro-range-badge" aria-label="Pro plan required">
+      PRO
+    </span>
+  );
+  const cdRangeOptions = () =>
+    CD_RANGE_OPTIONS.map((opt) =>
+      isFreePlan() && PRO_RANGES_CD.has(opt.value)
+        ? { ...opt, disabled: true, badge: proBadge() }
+        : opt,
+    );
 
   const [detail, { refetch: refetchDetail }] = createResource(
     () => params.connectionId,
@@ -646,14 +675,11 @@ const ConnectionDetail: Component = () => {
                   </Show>
                   <Select
                     value={chartRange()}
-                    onChange={setChartRange}
-                    options={[
-                      { label: 'Last 24 hours', value: '24h' },
-                      { label: 'Last 7 days', value: '7d' },
-                      { label: 'Last 30 days', value: '30d' },
-                      { label: 'Last 90 days', value: '90d' },
-                      { label: 'Last 365 days', value: '365d' },
-                    ]}
+                    onChange={(v) => {
+                      if (isFreePlan() && PRO_RANGES_CD.has(v)) return;
+                      setChartRange(v);
+                    }}
+                    options={cdRangeOptions()}
                   />
                   <button class="btn btn--outline btn--sm" onClick={openManageModal}>
                     Manage
