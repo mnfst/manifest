@@ -390,6 +390,7 @@ const ERROR_DESCRIPTORS: Record<string, string> = {
   config: 'Setup',
   policy: 'Custom limit',
   internal: 'Manifest error',
+  request: 'Bad request',
 };
 
 function isPlanLimitBlock(item: MessageRow): boolean {

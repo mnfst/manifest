@@ -39,7 +39,14 @@ export const AUTOFIX_ORIGINAL_STATUS = 'auto_fixed';
 /** Every status whose row is a recovered (superseded) attempt, not a terminal failure. */
 export const SUPERSEDED_STATUSES: readonly string[] = [SUPERSEDED_STATUS, AUTOFIX_ORIGINAL_STATUS];
 
-export const ERROR_ORIGINS = ['provider', 'transport', 'config', 'policy', 'internal'] as const;
+export const ERROR_ORIGINS = [
+  'provider',
+  'transport',
+  'config',
+  'policy',
+  'internal',
+  'request',
+] as const;
 export type ErrorOrigin = (typeof ERROR_ORIGINS)[number];
 
 /**
@@ -47,8 +54,13 @@ export type ErrorOrigin = (typeof ERROR_ORIGINS)[number];
  * short-circuited the request before (or without) reaching a provider. These
  * are returned to the caller as HTTP 200 friendly stubs, so they must never
  * count as a "message" nor as a provider-reliability event.
+ *
+ * `request` is the caller's own fault (a malformed body Manifest refused to
+ * route), which is neither the operator's setup (`config`), a limit they set
+ * (`policy`), nor a Manifest bug (`internal`) — but it is still not a provider
+ * failure, so it belongs here to stay out of `provider_error_rate`.
  */
-export const MANIFEST_ERROR_ORIGINS = ['config', 'policy', 'internal'] as const;
+export const MANIFEST_ERROR_ORIGINS = ['config', 'policy', 'internal', 'request'] as const;
 export type ManifestErrorOrigin = (typeof MANIFEST_ERROR_ORIGINS)[number];
 
 export const ERROR_CLASSES = [
@@ -77,6 +89,11 @@ export type ErrorClass = (typeof ERROR_CLASSES)[number];
  * Canned `routing_reason` values the proxy writes for Manifest-originated stubs
  * (see proxy-message-recorder.ts). Their presence is the definitive signal that
  * a row is Manifest's own error, not a provider's.
+ *
+ * Every documented Manifest error code (`M###`, see
+ * backend/src/common/errors/error-codes.ts) that can be attributed to an agent
+ * maps onto exactly one reason here — `manifest-error.spec.ts` fails if a new
+ * code ships without one.
  */
 const MANIFEST_REASON_TO_CLASSIFICATION: Record<
   string,
@@ -84,12 +101,21 @@ const MANIFEST_REASON_TO_CLASSIFICATION: Record<
 > = {
   no_provider: { origin: 'config', errorClass: 'no_provider' },
   no_provider_key: { origin: 'config', errorClass: 'no_provider_key' },
+  key_expired: { origin: 'config', errorClass: 'auth' },
   limit_exceeded: { origin: 'policy', errorClass: 'limit_exceeded' },
   plan_request_limit_exceeded: {
     origin: 'policy',
     errorClass: 'plan_request_limit_exceeded',
   },
+  // Three distinct limits (per-user / per-IP / concurrency) that used to
+  // collapse into `manifest_rate_limited`. That legacy reason stays mapped so
+  // rows written before the split keep classifying.
   manifest_rate_limited: { origin: 'policy', errorClass: 'rate_limit' },
+  manifest_ip_rate_limited: { origin: 'policy', errorClass: 'rate_limit' },
+  manifest_concurrency_limited: { origin: 'policy', errorClass: 'rate_limit' },
+  manifest_invalid_request: { origin: 'request', errorClass: 'invalid_request' },
+  manifest_internal_error: { origin: 'internal', errorClass: 'internal' },
+  // Legacy alias of `manifest_internal_error`, kept for rows already written.
   friendly_error: { origin: 'internal', errorClass: 'internal' },
 };
 

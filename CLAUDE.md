@@ -408,7 +408,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 
 ## Domain Terminology
 
-- **Message**: The primary entity in the system. Every row in `agent_messages` is a Message. The UI labels them "Messages" everywhere. Key routing columns: `routing_tier` (complexity tier used), `routing_reason` (why — `scored`, `specificity`, `heartbeat`, etc.), `specificity_category` (which task-type category, null if complexity-routed). A healed request is two linked rows (`status='auto_fixed'` original + `status='ok'` retry) — see [Auto-fix](#auto-fix-self-healing-via-phoenix).
+- **Message**: The primary entity in the system. Every row in `agent_messages` is a Message. The UI labels them "Messages" everywhere. Key routing columns: `routing_tier` (complexity tier used), `routing_reason` (why — `scored`, `specificity`, `heartbeat`, etc.), `specificity_category` (which task-type category, null if complexity-routed). Failure columns: `error_origin` / `error_class` / `superseded` (the orthogonal axes, see `error-taxonomy.ts`) and `error_code` (the documented `M###` when Manifest itself failed — see [Manifest's own errors](#manifests-own-errors-m)). A healed request is two linked rows (`status='auto_fixed'` original + `status='ok'` retry) — see [Auto-fix](#auto-fix-self-healing-via-phoenix).
 - **Tenant**: A user's data boundary. Created from `user.id` on first agent creation.
 - **Agent**: An AI agent owned by a tenant. Has a unique OTLP ingest key.
 
@@ -422,6 +422,24 @@ Any backend endpoint that returns rows rendered by the frontend `MessageTable` /
 - A `query-helpers.spec.ts` test pins the required alias set — it fails loudly if anyone drops a field from the helper. Don't bypass it by hand-rolling a new SELECT chain.
 
 This rule exists because the Overview and Messages pages previously drifted and the Recent Messages badge read `STANDARD` instead of the specificity category (`CODING` etc.) — the frontend already shares the rendering code, so the divergence was purely backend projection drift.
+
+## Manifest's own errors (`M###`)
+
+Every failure Manifest itself produces — as opposed to one a provider returned — carries a documented code from `MANIFEST_ERRORS` in `packages/backend/src/common/errors/error-codes.ts`, published at `https://manifest.build/docs/errors/<code>`.
+
+**Raise them with `ManifestError`** (`common/errors/manifest-error.ts`), never a bare `HttpException`. The type is what lets `proxy.controller.ts` tell "Manifest refused this request" from "the provider returned a 4xx". Before it existed, a malformed body (M300) and a Manifest bug (M500) were both recorded as *provider* errors and counted against `provider_error_rate`.
+
+**Every code is recorded as a Message**, with three exceptions. `M001`, `M002`, `M003`, and `M005` are raised by `AgentKeyAuthGuard` before a key resolves to a tenant, so there is no agent to attribute a row to — they're listed in `UNRECORDABLE_MANIFEST_CODES` and write nothing. (`M004`, an expired key, *does* resolve an agent, so the guard stashes it on `request.manifestErrorContext` and `ProxyExceptionFilter` records it.) `__tests__/manifest-error.spec.ts` fails if a new code is neither mapped in `MANIFEST_CODE_TO_REASON` nor declared unrecordable.
+
+**`ProxyMessageRecorder.recordManifestBlockedRequest()` is the only writer of Manifest rows.** It stamps `error_code`, the *rendered* message (the `[🦚 Manifest M100] No anthropic API key yet. Add one here: …` text the caller saw — not a generic stand-in), and leaves `provider` / `routing_tier` NULL because no provider was contacted and no tier chosen. Do not route these through `recordSuccessMessage`; it used to detect canned reasons and flip its own status to `error`, which stamped a phantom `provider='manifest'` / `routing_tier='simple'` on every setup error.
+
+**The Messages log hides no origin.** `getMessages()` applies an origin filter only when the caller passes `?origin=`. It previously hid `config` rows by default on the theory that "a Manifest config error is not a message", while the Overview's Recent Messages panel showed them — so a user who saw a "Failed: Setup" row and clicked through found nothing, with no filter anywhere to bring it back. `messages-manifest-errors.e2e-spec.ts` pins the fix.
+
+### The `request` error origin
+
+`ERROR_ORIGINS` (in `packages/shared/src/error-taxonomy.ts`) has six values. `request` means the caller sent a body Manifest could not route — not the operator's setup (`config`), not a limit they set (`policy`), and not a Manifest bug (`internal`).
+
+`request` is a member of `MANIFEST_ERROR_ORIGINS`. That membership is load-bearing: it keeps these rows out of `provider_error_rate` in `error-breakdown.service.ts`, out of billing counters in `plan.service.ts`, and inside the `origin=manifest` filter shorthand. Any new origin that isn't a provider round-trip belongs there too.
 
 ## Content Security Policy (CSP)
 

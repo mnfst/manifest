@@ -1298,6 +1298,19 @@ table.msg-detail__table td {
   margin-top: 2px;
 }
 
+/* Documented Manifest error code (M100, M300, …) linking to its docs page. */
+.msg-detail__error-code {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: hsl(var(--destructive));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.msg-detail__error-code:hover {
+  text-decoration: none;
+}
+
 .error-autofix-row__meta-table {
   width: 100%;
   max-width: 100%;

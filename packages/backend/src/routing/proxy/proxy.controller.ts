@@ -38,7 +38,12 @@ import {
 } from './proxy-response-handler';
 import { ProxyExceptionFilter, isChatRenderingClient } from './proxy-exception.filter';
 import { sendFriendlyResponse } from './proxy-friendly-response';
-import { formatManifestError } from '../../common/errors/error-codes';
+import { formatManifestError, type ManifestErrorCode } from '../../common/errors/error-codes';
+import {
+  MANIFEST_CODE_TO_REASON,
+  ManifestError,
+  isRecordableManifestCode,
+} from '../../common/errors/manifest-error';
 import type { ProxyApiMode } from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
@@ -180,6 +185,8 @@ export class ProxyController {
           callerAttribution,
           requestHeaders,
           'plan_request_limit_exceeded',
+          HttpStatus.PAYMENT_REQUIRED,
+          'M204',
         );
         throw err;
       }
@@ -196,13 +203,14 @@ export class ProxyController {
       return;
     }
 
-    let manifestBlockReason: ManifestBlockedRequestReason | undefined = 'manifest_rate_limited';
     try {
+      // Each of these throws its own ManifestError (M201 per-user, M202 per-IP,
+      // M203 concurrency), so handleProxyError records which limit actually
+      // fired instead of collapsing all three into one reason.
       this.rateLimiter.checkLimit(tenantId);
       this.rateLimiter.checkIpLimit(req.ip ?? '');
       this.rateLimiter.acquireSlot(tenantId);
       slotAcquired = true;
-      manifestBlockReason = undefined;
       routingBody = redactInlineImageDataUrls(body);
       const specificityOverride = req.headers['x-manifest-specificity'] as string | undefined;
       const { forward, meta, failedFallbacks, autofix } = await this.proxyService.proxyRequest({
@@ -319,26 +327,27 @@ export class ProxyController {
         );
       }
 
-      recordSuccess(
-        req.ingestionContext,
-        meta,
-        streamUsage,
-        fallbackSuccessTs,
-        this.recorder,
-        traceId,
-        sessionKey,
-        startTime,
-        callerAttribution,
-        requestHeaders,
-        autofix,
-      );
+      // A friendly stub (no provider key, no providers, usage limit) leaves the
+      // proxy as an HTTP 200 assistant message, so it lands here — but it is a
+      // Manifest failure, not a completion. Record it as one.
+      if (meta.manifest_error_code) {
+        this.recordManifestStub(req, meta, traceId, sessionKey, callerAttribution, requestHeaders);
+      } else {
+        recordSuccess(
+          req.ingestionContext,
+          meta,
+          streamUsage,
+          fallbackSuccessTs,
+          this.recorder,
+          traceId,
+          sessionKey,
+          startTime,
+          callerAttribution,
+          requestHeaders,
+          autofix,
+        );
+      }
     } catch (err: unknown) {
-      const recordAsManifestBlock =
-        manifestBlockReason &&
-        err instanceof HttpException &&
-        err.getStatus() === HttpStatus.TOO_MANY_REQUESTS
-          ? manifestBlockReason
-          : undefined;
       this.handleProxyError(
         err,
         req,
@@ -349,11 +358,40 @@ export class ProxyController {
         callerAttribution,
         requestHeaders,
         currentMeta,
-        recordAsManifestBlock,
       );
     } finally {
       if (slotAcquired) this.rateLimiter.releaseSlot(tenantId);
     }
+  }
+
+  /**
+   * Record the HTTP-200 friendly stub Manifest returned in place of a completion.
+   * `meta.manifest_error_message` is the rendered `[🦚 Manifest M100] …` text the
+   * caller actually saw — persisting it verbatim (rather than a generic
+   * "Provider API key missing") is what makes the row debuggable.
+   */
+  private recordManifestStub(
+    req: Request & { ingestionContext: IngestionContext },
+    meta: RoutingMeta,
+    traceId: string | undefined,
+    sessionKey: string | undefined,
+    callerAttribution: ReturnType<typeof classifyCaller>,
+    requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
+  ): void {
+    const code = meta.manifest_error_code;
+    if (!code || !isRecordableManifestCode(code)) return;
+    this.recorder
+      .recordManifestBlockedRequest(req.ingestionContext, {
+        errorMessage: meta.manifest_error_message ?? formatManifestError(code),
+        errorCode: code,
+        reason: MANIFEST_CODE_TO_REASON[code],
+        model: this.extractRequestedModel(req.body as Record<string, unknown> | undefined),
+        traceId,
+        sessionKey,
+        callerAttribution,
+        requestHeaders,
+      })
+      .catch((e) => this.logger.warn(`Failed to record Manifest stub: ${e}`));
   }
 
   private handleProxyError(
@@ -366,7 +404,6 @@ export class ProxyController {
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
     meta?: RoutingMeta,
-    manifestBlockReason?: ManifestBlockedRequestReason,
   ): void {
     if (clientAbort.signal.aborted) {
       if (!res.writableEnded) res.end();
@@ -383,15 +420,38 @@ export class ProxyController {
     const providerErrorBody = err instanceof ResponsesSseError ? err.body : message;
     this.logger.error(`Proxy error: ${message}`);
 
-    if (manifestBlockReason) {
+    // Who failed? A ManifestError says so explicitly. Everything a provider can
+    // do reaches us as a response — even a dead socket or a timeout, which
+    // proxy-transport turns into a synthetic 503/504 Response handled inline —
+    // so the only *thrown* errors left are Manifest's own bugs (M500).
+    //
+    // An unrecordable ManifestError (M001–M003, M005) writes NOTHING: it has no
+    // tenant to attribute, and falling through to recordProviderError would blame
+    // the provider for someone presenting a bad key.
+    if (err instanceof ManifestError) {
+      if (isRecordableManifestCode(err.code)) {
+        this.recordManifestBlockedRequest(
+          err,
+          req,
+          traceId,
+          callerAttribution,
+          requestHeaders,
+          MANIFEST_CODE_TO_REASON[err.code],
+          status,
+          err.code,
+        );
+      }
+    } else if (!(err instanceof ResponsesSseError) && !(err instanceof HttpException)) {
+      // A non-HTTP throw is Manifest's own bug, never a provider fault.
       this.recordManifestBlockedRequest(
         err,
         req,
         traceId,
         callerAttribution,
         requestHeaders,
-        manifestBlockReason,
+        MANIFEST_CODE_TO_REASON.M500,
         status,
+        'M500',
       );
     } else {
       this.recorder
@@ -518,12 +578,16 @@ export class ProxyController {
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
     reason: ManifestBlockedRequestReason,
     httpStatus?: number,
+    errorCode?: ManifestErrorCode,
   ): void {
     const body = req.body as Record<string, unknown> | undefined;
     this.recorder
       .recordManifestBlockedRequest(req.ingestionContext, {
         httpStatus: httpStatus ?? (err instanceof HttpException ? err.getStatus() : 500),
+        // The raw internal message, not the friendly M500 text the caller saw —
+        // the dashboard row is where you go to find out what actually broke.
         errorMessage: this.extractErrorMessage(err),
+        errorCode,
         reason,
         model: this.extractRequestedModel(body),
         traceId,

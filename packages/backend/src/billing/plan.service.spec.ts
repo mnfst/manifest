@@ -299,7 +299,7 @@ describe('PlanService', () => {
       expect(await service.countRequestsSince('t1', START)).toBe(7);
       const [sql, params] = mockQuery.mock.calls[0];
       expect(sql).toContain(
-        "m.error_origin IS NULL OR m.error_origin NOT IN ('config', 'policy', 'internal')",
+        "m.error_origin IS NULL OR m.error_origin NOT IN ('config', 'policy', 'internal', 'request')",
       );
       expect(params[0]).toBe('t1');
       expect(params[1]).toBe(toLocalSqlTimestamp(new Date(ROLLOUT_RESET)));

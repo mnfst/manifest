@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { ManifestError } from '../../../common/errors/manifest-error';
 import { ConfigService } from '@nestjs/config';
 import {
   getProviderParamSpecs,
@@ -219,16 +219,27 @@ describe('ProxyService — orchestration', () => {
   });
 
   describe('payload validation', () => {
-    it('throws when messages is missing', async () => {
+    // A ManifestError, not a BadRequestException: the controller uses the type to
+    // record the row as `request` origin instead of blaming the provider.
+    it('throws a ManifestError M300 when messages is missing', async () => {
       await expect(svc.proxyRequest(baseOpts({ body: {} as never }))).rejects.toThrow(
-        BadRequestException,
+        ManifestError,
+      );
+      await expect(svc.proxyRequest(baseOpts({ body: {} as never }))).rejects.toMatchObject({
+        code: 'M300',
+      });
+    });
+
+    it('throws a ManifestError M300 when messages is empty', async () => {
+      await expect(svc.proxyRequest(baseOpts({ body: { messages: [] } as never }))).rejects.toThrow(
+        ManifestError,
       );
     });
 
-    it('throws when messages is empty', async () => {
-      await expect(svc.proxyRequest(baseOpts({ body: { messages: [] } as never }))).rejects.toThrow(
-        BadRequestException,
-      );
+    it('keeps the M300 rejection a 400 for the caller', async () => {
+      await expect(
+        svc.proxyRequest(baseOpts({ body: { messages: [] } as never })),
+      ).rejects.toMatchObject({ status: 400 });
     });
 
     it('forwards long message arrays unchanged', async () => {

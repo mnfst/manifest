@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ResolveService } from '../resolve/resolve.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
@@ -53,7 +53,8 @@ import { ReasoningContentCache } from './reasoning-content-cache';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
-import { formatManifestError } from '../../common/errors/error-codes';
+import { formatManifestError, type ManifestErrorCode } from '../../common/errors/error-codes';
+import { ManifestError } from '../../common/errors/manifest-error';
 import { peekStream, STREAM_WARMUP_MS } from './stream-warmup';
 import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
@@ -82,6 +83,12 @@ export interface RoutingMeta {
   provider: string;
   confidence: number;
   reason: string;
+  /**
+   * Present when the "response" is really a Manifest error rendered as an
+   * assistant message (no provider was contacted). See buildFriendlyResponse.
+   */
+  manifest_error_code?: ManifestErrorCode;
+  manifest_error_message?: string;
   auth_type?: string;
   specificity_category?: string;
   header_tier_id?: string;
@@ -211,7 +218,12 @@ export class ProxyService {
 
     const limitMessage = await this.enforceLimits(tenantId, agentName);
     if (limitMessage) {
-      return buildFriendlyResponse(limitMessage, routingBody.stream === true, 'limit_exceeded');
+      return buildFriendlyResponse(
+        limitMessage,
+        routingBody.stream === true,
+        'limit_exceeded',
+        'M200',
+      );
     }
 
     const resolved = await this.resolveRouting(
@@ -242,7 +254,7 @@ export class ProxyService {
     if (credentials === null) {
       const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
       const content = formatManifestError('M100', { provider: route.provider, dashboardUrl });
-      return buildFriendlyResponse(content, stream, 'no_provider_key');
+      return buildFriendlyResponse(content, stream, 'no_provider_key', 'M100');
     }
 
     const primaryModel = normalizeProviderModel(route.provider, route.model);
@@ -620,7 +632,10 @@ export class ProxyService {
   private validatePayload(body: ProxyRequestOptions['body']): void {
     const messages = body.messages;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      throw new BadRequestException(formatManifestError('M300'));
+      // A ManifestError, not a bare BadRequestException: the proxy needs to tell
+      // "Manifest refused this body" from "the provider returned a 400", or the
+      // row lands in agent_messages blamed on the provider.
+      throw new ManifestError('M300', HttpStatus.BAD_REQUEST);
     }
     sanitizeNullContent(messages as Record<string, unknown>[]);
   }
@@ -999,7 +1014,7 @@ export class ProxyService {
   private buildNoProviderResult(stream: boolean, agentName?: string): ProxyResult {
     const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
     const content = formatManifestError('M101', { dashboardUrl });
-    return buildFriendlyResponse(content, stream, 'no_provider');
+    return buildFriendlyResponse(content, stream, 'no_provider', 'M101');
   }
 }
 

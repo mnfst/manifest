@@ -21,6 +21,13 @@ describe('error-taxonomy constants', () => {
     }
   });
 
+  it('counts a caller-malformed request as Manifest-originated, not a provider fault', () => {
+    // `request` must live in MANIFEST_ERROR_ORIGINS: that membership is what keeps
+    // it out of provider_error_rate and inside the `origin=manifest` shorthand.
+    expect(MANIFEST_ERROR_ORIGINS).toContain('request');
+    expect(ERROR_ORIGINS).toContain('request');
+  });
+
   it('produces only known classes from the HTTP mapper', () => {
     for (const code of [429, 402, 401, 403, 404, 413, 400, 422, 500, 502, 418, 200]) {
       expect(ERROR_CLASSES).toContain(classifyHttpErrorClass(code));
@@ -61,9 +68,15 @@ describe('classifyMessageError', () => {
   it.each([
     ['no_provider', 'config', 'no_provider'],
     ['no_provider_key', 'config', 'no_provider_key'],
+    ['key_expired', 'config', 'auth'],
     ['limit_exceeded', 'policy', 'limit_exceeded'],
     ['plan_request_limit_exceeded', 'policy', 'plan_request_limit_exceeded'],
     ['manifest_rate_limited', 'policy', 'rate_limit'],
+    ['manifest_ip_rate_limited', 'policy', 'rate_limit'],
+    ['manifest_concurrency_limited', 'policy', 'rate_limit'],
+    ['manifest_invalid_request', 'request', 'invalid_request'],
+    ['manifest_internal_error', 'internal', 'internal'],
+    // Legacy alias, kept so rows written before the rename keep classifying.
     ['friendly_error', 'internal', 'internal'],
   ])('maps the Manifest reason %s to %s/%s', (reason, origin, klass) => {
     expect(classifyMessageError({ status: 'error', routingReason: reason })).toEqual({

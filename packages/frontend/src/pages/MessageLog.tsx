@@ -139,6 +139,7 @@ const MessageLog: Component = () => {
   ]);
   const [providerFilter, setProviderFilter] = createSignal('');
   const [tierFilter, setTierFilter] = createSignal('');
+  const [originFilter, setOriginFilter] = createSignal('');
   const [statusFilterValue, setStatusFilterValue] = createSignal<MessageStatusFilterValue>(
     normalizeStatusFilter(searchParams.status),
   );
@@ -202,7 +203,7 @@ const MessageLog: Component = () => {
 
   createEffect(
     on(
-      [agentFilter, providerFilter, tierFilter, statusFilterValue, costMin, costMax],
+      [agentFilter, providerFilter, tierFilter, originFilter, statusFilterValue, costMin, costMax],
       () => pager.resetPage(),
       {
         defer: true,
@@ -214,6 +215,7 @@ const MessageLog: Component = () => {
     () => ({
       provider: providerFilter(),
       tier: tierFilter(),
+      origin: originFilter(),
       status: statusFilterValue(),
       costMin: costMin(),
       costMax: costMax(),
@@ -235,6 +237,7 @@ const MessageLog: Component = () => {
         }
       }
       if (p.status) q.status = p.status;
+      if (p.origin) q.origin = p.origin;
       if (p.costMin) q.cost_min = p.costMin;
       if (p.costMax) q.cost_max = p.costMax;
       if (p.agentName) q.agent_name = p.agentName;
@@ -272,6 +275,7 @@ const MessageLog: Component = () => {
     agentFilter() !== '' ||
     providerFilter() !== '' ||
     tierFilter() !== '' ||
+    originFilter() !== '' ||
     statusFilterValue() !== '' ||
     costMin() !== '' ||
     costMax() !== '';
@@ -296,6 +300,7 @@ const MessageLog: Component = () => {
     setAgentFilter('');
     setProviderFilter('');
     setTierFilter('');
+    setOriginFilter('');
     setStatusFilter('');
     setCostMin('');
     setCostMax('');
@@ -350,6 +355,16 @@ const MessageLog: Component = () => {
     { label: 'Failed', value: 'failed' },
   ];
 
+  // Who failed. `manifest` collapses every Manifest-authored origin (setup,
+  // limits, bad requests, internal errors) into one choice, since from a user's
+  // point of view they share a fix path that has nothing to do with a provider.
+  const originOptions = [
+    { label: 'All origins', value: '' },
+    { label: 'Manifest', value: 'manifest' },
+    { label: 'Provider', value: 'provider' },
+    { label: 'Transport', value: 'transport' },
+  ];
+
   // Jump to a linked message (the Auto-fix sibling of an expanded row).
   const scrollToMessage = (id: string) => {
     const el = document.getElementById(`msg-${id}`);
@@ -400,6 +415,12 @@ const MessageLog: Component = () => {
               onChange={setStatusFilter}
               options={statusOptions}
               label="Status filter"
+            />
+            <Select
+              value={originFilter()}
+              onChange={setOriginFilter}
+              options={originOptions}
+              label="Origin filter"
             />
             <Select value={tierFilter()} onChange={setTierFilter} options={tierOptions()} />
             <div class="cost-range-filter">

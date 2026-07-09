@@ -640,6 +640,29 @@ describe('MessageLog', () => {
     });
   });
 
+  it('does not send an origin param by default — no origin is hidden', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    render(() => <MessageLog />);
+    await vi.waitFor(() => expect(mockGetMessages).toHaveBeenCalled());
+
+    const query = mockGetMessages.mock.calls[0][0] as Record<string, string>;
+    expect(query.origin).toBeUndefined();
+  });
+
+  it('narrows the log to Manifest-authored failures via the origin filter', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => expect(mockGetMessages).toHaveBeenCalled());
+
+    const originSelect = selectWithOption(container, 'All origins');
+    await fireEvent.change(originSelect, { target: { value: 'manifest' } });
+
+    await vi.waitFor(() => {
+      const last = mockGetMessages.mock.calls.at(-1)![0] as Record<string, string>;
+      expect(last.origin).toBe('manifest');
+    });
+  });
+
   it('clears all filters when Clear filters button is clicked', async () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);
@@ -1171,9 +1194,7 @@ describe('MessageLog', () => {
         caller_attribution: null,
         autofix_applied: true,
         autofix_role: 'original',
-        autofix_operations: [
-          { type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' },
-        ],
+        autofix_operations: [{ type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' }],
         autofix_sibling: { id: 'msg-87654321', role: 'retry', status: 'ok' },
       },
     });
@@ -1266,7 +1287,6 @@ describe('MessageLog', () => {
     expect(() => fireEvent.click(link)).not.toThrow();
     expect(container.querySelector('#msg-not-on-this-page')).toBeNull();
   });
-
 
   describe('Tier filter', () => {
     it('renders a Tier select with Playground among the options', async () => {

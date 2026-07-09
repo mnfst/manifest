@@ -2,6 +2,10 @@ import { ExceptionFilter, Catch, ArgumentsHost, HttpException, Injectable } from
 import { ConfigService } from '@nestjs/config';
 import { Request, Response as ExpressResponse } from 'express';
 import { formatManifestError, ManifestErrorCode } from '../../common/errors/error-codes';
+import { MANIFEST_CODE_TO_REASON } from '../../common/errors/manifest-error';
+import type { RequestWithManifestErrorContext } from '../../otlp/interfaces/ingestion-context.interface';
+import { ProxyMessageRecorder } from './proxy-message-recorder';
+import { sanitizeRequestHeaders } from './request-headers';
 import { getDashboardUrl, sendFriendlyResponse } from './proxy-friendly-response';
 
 /** Guard-thrown messages that should become friendly chat responses. */
@@ -42,7 +46,33 @@ export function isChatRenderingClient(req: Request): boolean {
 @Injectable()
 @Catch(HttpException)
 export class ProxyExceptionFilter implements ExceptionFilter {
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly recorder: ProxyMessageRecorder,
+  ) {}
+
+  /**
+   * Record an expired-key rejection (M004) against the agent the key belongs to.
+   * The guard resolved that agent before noticing the expiry and left it on
+   * `manifestErrorContext`; without a context there is nobody to attribute the
+   * row to, so nothing is written.
+   */
+  private recordExpiredKey(req: Request): void {
+    const ctx = (req as Request & RequestWithManifestErrorContext).manifestErrorContext;
+    if (!ctx) return;
+    const body = req.body as Record<string, unknown> | undefined;
+    const model = typeof body?.model === 'string' ? body.model : undefined;
+    this.recorder
+      .recordManifestBlockedRequest(ctx, {
+        httpStatus: 401,
+        errorMessage: formatManifestError('M004'),
+        errorCode: 'M004',
+        reason: MANIFEST_CODE_TO_REASON.M004,
+        model,
+        requestHeaders: sanitizeRequestHeaders(req.headers),
+      })
+      .catch(() => undefined);
+  }
 
   catch(exception: HttpException, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
@@ -97,6 +127,7 @@ export class ProxyExceptionFilter implements ExceptionFilter {
 
     const errorCode = AUTH_ERROR_CODES[message];
     if (errorCode) {
+      if (errorCode === 'M004') this.recordExpiredKey(req);
       const friendly = formatManifestError(errorCode);
       const dashboardUrl = getDashboardUrl(this.config);
       const content =

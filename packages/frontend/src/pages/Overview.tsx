@@ -448,6 +448,9 @@ const Overview: Component = () => {
                       columns={columns()}
                       agentName={params.agentName}
                       customProviderName={() => undefined}
+                      // A row you can see is a row you can open: without this the
+                      // panel showed failures whose detail was unreachable.
+                      expandable
                     />
                   </div>
 
