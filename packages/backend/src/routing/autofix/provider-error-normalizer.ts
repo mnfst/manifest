@@ -51,3 +51,52 @@ export function normalizeProviderError(rawBody: string): PhoenixProviderError {
     code: coerceScrubbed(errorObj?.code),
   };
 }
+
+/** Cap on the dimension fields, mirroring the bound Phoenix's wire schema enforces. */
+const MAX_FIELD_LENGTH = 1024;
+
+/** Build the envelope, omitting the dimensions the provider didn't give us. */
+function envelopeOf(error: PhoenixProviderError, message: string): string {
+  return JSON.stringify({
+    error: {
+      message,
+      ...(error.type ? { type: error.type } : {}),
+      ...(error.param ? { param: error.param } : {}),
+      ...(error.code ? { code: error.code } : {}),
+    },
+  });
+}
+
+/**
+ * Re-serialize a normalised error into the OpenAI-compatible `{"error":{…}}` envelope —
+ * the inverse of {@link normalizeProviderError}, and the shape every other
+ * `agent_messages.error_message` already holds.
+ *
+ * Auto-fix rows used to persist `error.message` alone, silently dropping `type`, `param`
+ * and `code`. Those are exactly the dimensions Phoenix fingerprints on, so a downstream
+ * re-ingest of such a row (Peacock's historical scrape) landed on a *different* issue than
+ * the live `/heal` that had already reported the same failure — one error, two issues,
+ * split occurrence counts.
+ *
+ * Every field is scrubbed and bounded here rather than at the call site: this is a storage
+ * boundary, and it must not assume its input already went through
+ * {@link normalizeProviderError}. The message is then trimmed to keep the envelope within
+ * {@link MAX_MESSAGE_LENGTH} — the JSON itself is never cut, so the result always parses.
+ */
+export function serializeProviderError(error: PhoenixProviderError): string {
+  const clip = (v: string | null | undefined) =>
+    v ? scrubSecrets(v).slice(0, MAX_FIELD_LENGTH) : null;
+  const safe: PhoenixProviderError = {
+    message: scrubSecrets(error.message),
+    type: clip(error.type),
+    param: clip(error.param),
+    code: clip(error.code),
+  };
+
+  const full = envelopeOf(safe, safe.message);
+  if (full.length <= MAX_MESSAGE_LENGTH) return full;
+  // Dropping one character from the message drops at least one from the JSON (escapes
+  // only ever expand), so this single pass always lands at or under the cap.
+  const overflow = full.length - MAX_MESSAGE_LENGTH;
+  return envelopeOf(safe, safe.message.slice(0, Math.max(0, safe.message.length - overflow)));
+}
