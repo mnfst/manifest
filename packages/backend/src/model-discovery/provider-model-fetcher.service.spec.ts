@@ -2621,10 +2621,50 @@ describe('ProviderModelFetcherService', () => {
   });
 
   describe('cline-pass provider', () => {
-    it('returns known subscription models with configured context windows', async () => {
+    it('fetches models from the recommended-models endpoint and falls back when it returns none', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          clinePass: [
+            { id: 'cline-pass/glm-5.2', name: 'cline-pass/glm-5.2', description: 'Best open weights model', tags: [] },
+            { id: 'cline-pass/deepseek-v4-pro', name: 'cline-pass/deepseek-v4-pro', description: 'Frontier reasoning', tags: [] },
+            { id: 'cline-pass/deepseek-v4-flash', name: 'cline-pass/deepseek-v4-flash', description: 'Fast and efficient', tags: [] },
+          ],
+          recommended: [{ id: 'openai/gpt-5.6-sol', name: 'gpt-5.6-sol', description: '', tags: [] }],
+          free: [{ id: 'deepseek/deepseek-v4-flash', name: 'deepseek-v4-flash', description: '', tags: [] }],
+        }),
+      });
+
       const result = await service.fetch('cline-pass', 'cp-token', 'subscription');
 
-      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.cline.bot/api/v1/ai/cline/recommended-models',
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
+      expect(result).toHaveLength(3);
+      expect(result.map((m) => m.id)).toEqual([
+        'cline-pass/glm-5.2',
+        'cline-pass/deepseek-v4-pro',
+        'cline-pass/deepseek-v4-flash',
+      ]);
+      expect(result.every((model) => model.contextWindow === 200000)).toBe(true);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          provider: 'cline-pass',
+          capabilityReasoning: true,
+          capabilityCode: true,
+          qualityScore: 3,
+        }),
+      );
+    });
+
+    it('falls back to the hardcoded known-models list when the endpoint is unreachable', async () => {
+      fetchSpy.mockRejectedValue(new Error('network down'));
+
+      const result = await service.fetch('cline-pass', 'cp-token', 'subscription');
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(result.length).toBeGreaterThan(0);
       expect(result).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
@@ -2636,7 +2676,51 @@ describe('ProviderModelFetcherService', () => {
           }),
         ]),
       );
+      // Hardcoded fallback list is returned verbatim.
       expect(result.every((model) => model.contextWindow === 200000)).toBe(true);
+    });
+
+    it('falls back to the hardcoded list when the endpoint returns a non-ok status', async () => {
+      fetchSpy.mockResolvedValue({ ok: false, status: 503 });
+
+      const result = await service.fetch('cline-pass', 'cp-token', 'subscription');
+
+      expect(result.length).toBeGreaterThan(0);
+      expect(
+        result.some((model) => model.id === 'cline-pass/deepseek-v4-flash'),
+      ).toBe(true);
+    });
+
+    it('falls back to the hardcoded list when the response has no clinePass array', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ recommended: [], free: [] }),
+      });
+
+      const result = await service.fetch('cline-pass', 'cp-token', 'subscription');
+
+      expect(result.length).toBeGreaterThan(0);
+      expect(
+        result.some((model) => model.id === 'cline-pass/glm-5.2'),
+      ).toBe(true);
+    });
+
+    it('ignores entries without a cline-pass/ prefixed id', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          clinePass: [
+            { id: 'cline-pass/glm-5.2' },
+            { id: 'openai/gpt-5.6-sol' },
+            { id: 'deepseek/deepseek-v4-flash' },
+            { name: 'no-id' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('cline-pass', 'cp-token', 'subscription');
+
+      expect(result.map((m) => m.id)).toEqual(['cline-pass/glm-5.2']);
     });
   });
 
