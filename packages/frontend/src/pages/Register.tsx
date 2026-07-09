@@ -147,6 +147,7 @@ const Register: Component = () => {
       });
       const error = (res as { error?: unknown } | undefined)?.error;
       if (error) throw error;
+      markPlanChosen(userId());
     } catch {
       toast.error('Could not start the upgrade. Please try again.');
       setPlanBusy(false);
