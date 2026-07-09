@@ -1,5 +1,23 @@
 # manifest
 
+## 6.14.0
+
+### Minor Changes
+
+- 7dd4edc: Auto-fix now explains _why_ a request was repaired. Phoenix returns a human-readable explanation with each heal (a one-line summary plus a plain sentence per edit), and the message Auto-fix card renders it — replacing the locally re-derived operation prose, which couldn't describe most fixes. Falls back to the previous phrasing for older healed rows.
+- 45420a1: Add Auto-fix: when an agent request fails with a fixable error (bad parameter, wrong format, unknown model), Manifest sends it to a healing service, applies the patched request, and retries before falling back. Opt-in per agent from the Routing page. Each healed request shows as two linked rows in the log: the failed original and the successful retry.
+- 6442224: Report the Manifest tenant id to Phoenix on auto-fix heal requests, so failures are attributed to the tenant that hit them.
+- e5d4177: Add a post-auth Pro upgrade page and preserve upgrade intent through sign-in and sign-up.
+- 29f6cc7: Add support for ClinePass subscription
+- e5d4177: Add Stripe billing (cloud only). Free plan request quota comes from shared plan limits. Pro price is read from the configured Stripe Price ID and includes unlimited requests. Free request limits are enforced on the proxy; over-limit requests return a 402 with an upgrade prompt. Self-hosted stays unlimited.
+
+### Patch Changes
+
+- 5aeb106: Split user Limits, Manifest plan quota, and provider billing errors in message error taxonomy.
+- e5d4177: Route request-limit upgrade links to the post-auth upgrade page.
+- 9514558: Reset the request quota window for the billing rollout.
+- e5d4177: Send Manifest billing emails for plan lifecycle changes and monthly request usage milestones, with usage-alert preferences.
+
 ## 6.13.5
 
 ### Patch Changes
