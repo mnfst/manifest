@@ -53,6 +53,13 @@ describe('scrubBody', () => {
     const huge = { messages: [{ role: 'user', content: 'x'.repeat(MAX_BODY_BYTES) }] };
     expect(scrubBody(huge)).toBeNull();
   });
+
+  it('drops the body rather than ship it when scrubbing breaks the JSON', () => {
+    // `"authorization":123` — the header pattern eats the unquoted number and
+    // substitutes a bare `[REDACTED]`, leaving invalid JSON. Fail closed: an
+    // unscrubbable body is never sent.
+    expect(scrubBody({ authorization: 123 })).toBeNull();
+  });
 });
 
 describe('toObservation', () => {

@@ -79,14 +79,42 @@ describe('ObservationReporter', () => {
     expect(client.observe).toHaveBeenCalledTimes(1);
   });
 
-  it('bounds the queue, dropping the oldest observations under backpressure', async () => {
+  it('bounds the queue at 500, dropping the oldest observations first', () => {
     const client = makeClient();
-    // Never resolves: the first auto-flush is in flight while the queue keeps filling.
-    client.observe.mockReturnValue(new Promise(() => {}));
     const reporter = enabledReporter(client);
-    for (let i = 0; i < 700; i++) reporter.report({ ...input, traceId: `trace-${i}` });
-    // 500 cap + the 50 taken by the in-flight batch — never 700.
-    expect(reporter['queue'].length).toBeLessThanOrEqual(500);
+    // Stub the drain so the queue actually reaches the cap; otherwise the
+    // batch-full auto-flush empties it long before any observation is dropped.
+    jest.spyOn(reporter, 'flush').mockResolvedValue(undefined);
+    for (let i = 0; i < 601; i++) reporter.report({ ...input, traceId: `trace-${i}` });
+    const queue = reporter['queue'];
+    expect(queue).toHaveLength(500);
+    // 101 dropped off the front; the newest is still there.
+    expect(queue[0].traceId).toBe('trace-101');
+    expect(queue[queue.length - 1].traceId).toBe('trace-600');
+  });
+
+  it('keeps flushing while more than one batch is queued', async () => {
+    jest.useFakeTimers();
+    const client = makeClient();
+    const reporter = enabledReporter(client);
+    // Fill past one batch without letting the batch-full auto-flush drain it.
+    const drain = jest.spyOn(reporter, 'flush').mockResolvedValue(undefined);
+    for (let i = 0; i < 120; i++) reporter.report({ ...input, traceId: `trace-${i}` });
+    drain.mockRestore();
+
+    await reporter.flush();
+    expect(client.observe).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(2_000);
+    expect(client.observe).toHaveBeenCalledTimes(2);
+  });
+
+  it('never throws when a body cannot be serialized', () => {
+    const client = makeClient();
+    const reporter = enabledReporter(client);
+    const circular: Record<string, unknown> = { model: 'gpt-5.1' };
+    circular.self = circular;
+    expect(() => reporter.report({ ...input, requestBody: circular })).not.toThrow();
+    expect(client.observe).not.toHaveBeenCalled();
   });
 
   it('swallows a healer failure so the proxy never sees it', async () => {
