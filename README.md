@@ -42,7 +42,7 @@ Plug your AI agents into any provider
 
 ## What is Manifest?
 
-Manifest is a smart model router for AI agents and apps. Connect your API keys, subscriptions, and local models to one OpenAI-compatible endpoint, and each query goes to the right model. No single-provider lock-in.
+Manifest is an open-source model router for AI agents and apps. Connect your API keys, subscriptions, and local models to one OpenAI-compatible endpoint, and each query goes to the right model. No single-provider lock-in.
 
 - 🔀 Routing based on complexity, specificity and custom HTTP headers
 - 🎛️ Mix your providers: API keys, Subscriptions, Local models, Custom providers
@@ -75,7 +75,9 @@ Open [http://localhost:2099](http://localhost:2099) and sign up — the first ac
 | [AWS](deploy/aws/TUTORIAL.md) | CloudFormation quick-create for ECS, RDS, and Secrets Manager. |
 | [GCP](deploy/gcp/TUTORIAL.md) | Cloud Shell guided deploy for Cloud Run, Cloud SQL, and Secret Manager. |
 
-> The legacy `manifest` npm package is deprecated and no longer published.
+Full deployment guides: [Railway](https://manifest.build/docs/deploy/railway), [Render](https://manifest.build/docs/deploy/render), [DigitalOcean](https://manifest.build/docs/deploy/digitalocean), [AWS](https://manifest.build/docs/deploy/aws), [GCP](https://manifest.build/docs/deploy/gcp), [Fly.io](https://manifest.build/docs/deploy/fly), [Coolify](https://manifest.build/docs/deploy/coolify), [Easypanel](https://manifest.build/docs/deploy/easypanel), [Heroku](https://manifest.build/docs/deploy/heroku), and [Koyeb](https://manifest.build/docs/deploy/koyeb).
+
+> The old npm-based self-hosting path is no longer supported. Use the Docker image or one of the deployment guides above.
 
 ## Providers
 

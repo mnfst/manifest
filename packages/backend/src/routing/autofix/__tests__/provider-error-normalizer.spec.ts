@@ -1,4 +1,4 @@
-import { normalizeProviderError } from '../provider-error-normalizer';
+import { normalizeProviderError, serializeProviderError } from '../provider-error-normalizer';
 import type { PhoenixProviderError } from '../phoenix.types';
 
 describe('normalizeProviderError', () => {
@@ -123,5 +123,141 @@ describe('normalizeProviderError', () => {
     const result = normalizeProviderError(raw);
 
     expect(result).toEqual({ message: 'flat', type: null, param: null, code: null });
+  });
+});
+
+describe('serializeProviderError', () => {
+  const openaiError = JSON.stringify({
+    error: {
+      message: "Unsupported value: 'temperature' does not support 0.7 with this model.",
+      type: 'invalid_request_error',
+      param: 'temperature',
+      code: 'unsupported_value',
+    },
+  });
+
+  it('round-trips an envelope through normalize → serialize → normalize', () => {
+    const normalized = normalizeProviderError(openaiError);
+
+    const restored = normalizeProviderError(serializeProviderError(normalized));
+
+    // The dims survive the trip. Losing them is what split one error into two
+    // Phoenix issues when a stored row was later re-ingested.
+    expect(restored).toEqual(normalized);
+    expect(restored.param).toBe('temperature');
+    expect(restored.code).toBe('unsupported_value');
+  });
+
+  it('omits the dimensions the provider did not give us', () => {
+    const serialized = serializeProviderError({
+      message: 'boom',
+      type: null,
+      param: null,
+      code: null,
+    });
+
+    expect(JSON.parse(serialized)).toEqual({ error: { message: 'boom' } });
+  });
+
+  it('trims the message so a long error still parses as JSON', () => {
+    const serialized = serializeProviderError({
+      message: 'x'.repeat(2000),
+      type: 'invalid_request_error',
+      param: 'temperature',
+      code: 'unsupported_value',
+    });
+
+    expect(serialized.length).toBeLessThanOrEqual(2000);
+    const parsed = normalizeProviderError(serialized);
+    expect(parsed.message.startsWith('xxx')).toBe(true);
+    expect(parsed.param).toBe('temperature'); // the dims are never the thing that gets cut
+    expect(parsed.code).toBe('unsupported_value');
+  });
+
+  it('clips a pathologically long dimension rather than storing it whole', () => {
+    const serialized = serializeProviderError({
+      message: 'm',
+      type: null,
+      param: 'p'.repeat(5000),
+      code: null,
+    });
+
+    expect(normalizeProviderError(serialized).param).toHaveLength(1024);
+  });
+
+  it('never exceeds the cap, whatever the provider pads', () => {
+    // Control characters escape to six JSON bytes each, so bounded dimensions can still
+    // exhaust the budget between them. The envelope must fit regardless.
+    const cases: PhoenixProviderError[] = [
+      { message: 'x'.repeat(9000), type: 't', param: 'p', code: 'c' },
+      {
+        message: 'm',
+        type: '\u0000'.repeat(1024),
+        param: '"'.repeat(1024),
+        code: '\\'.repeat(1024),
+      },
+      { message: 'x'.repeat(9000), type: '\u0000'.repeat(1024), param: null, code: null },
+      { message: '"'.repeat(3000), type: null, param: null, code: null },
+    ];
+
+    for (const error of cases) {
+      const serialized = serializeProviderError(error);
+      expect(serialized.length).toBeLessThanOrEqual(2000);
+      expect(() => JSON.parse(serialized)).not.toThrow();
+    }
+  });
+
+  it('does not split an astral character when trimming to fit', () => {
+    // Cutting a surrogate pair in half orphans one, which JSON renders as `\ud83d`: six
+    // characters where there was one. A naive trim therefore grows the envelope past the
+    // cap. n=1975 is the length whose cut lands exactly between the two halves.
+    for (let n = 1970; n <= 1980; n++) {
+      const serialized = serializeProviderError({
+        message: 'x'.repeat(n) + '\u{1F600}',
+        type: null,
+        param: null,
+        code: null,
+      });
+
+      expect(serialized.length).toBeLessThanOrEqual(2000);
+      expect(serialized).not.toContain('\\ud83d');
+      expect(() => JSON.parse(serialized)).not.toThrow();
+    }
+  });
+
+  it('drops the dimensions rather than the whole message when they alone blow the cap', () => {
+    const serialized = serializeProviderError({
+      message: 'the real error',
+      type: '\u0000'.repeat(1024),
+      param: '\u0000'.repeat(1024),
+      code: '\u0000'.repeat(1024),
+    });
+
+    expect(JSON.parse(serialized)).toEqual({ error: { message: 'the real error' } });
+  });
+
+  it('escapes a message that would otherwise break the envelope', () => {
+    const message = 'he said "hi"\n\\ and left';
+
+    const parsed = normalizeProviderError(
+      serializeProviderError({ message, type: null, param: null, code: null }),
+    );
+
+    expect(parsed.message).toBe(message);
+  });
+
+  it('scrubs secrets even from an error that never went through normalizeProviderError', () => {
+    // This is a storage boundary: it must not assume its input is already clean.
+    const secret = `sk-ant-${'a'.repeat(24)}`;
+
+    const serialized = serializeProviderError({
+      message: `bad key ${secret}`,
+      type: `t ${secret}`,
+      param: `p ${secret}`,
+      code: `c ${secret}`,
+    });
+
+    expect(serialized).not.toContain(secret);
+    expect(serialized).toContain('[REDACTED]');
   });
 });

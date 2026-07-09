@@ -98,6 +98,7 @@ export function getMessages(
     cost_min?: string;
     cost_max?: string;
     status?: string;
+    trigger?: string;
     routing_tier?: string;
     specificity_category?: string;
     header_tier_id?: string;

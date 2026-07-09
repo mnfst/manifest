@@ -19,6 +19,7 @@ import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 import type { ManifestErrorCode } from '../../common/errors/error-codes';
 import type { ManifestBlockedRequestReason } from '../../common/errors/manifest-error';
 import type { AutofixChainEntry, AutofixRecord } from '../autofix/autofix.types';
+import { serializeProviderError } from '../autofix/provider-error-normalizer';
 
 /**
  * Phoenix's decision metadata for a healed row: its issue/patch/heal-attempt ids
@@ -817,7 +818,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         trace_id: opts?.traceId ?? null,
         timestamp: new Date(nowMs - (failed.length - i) * 1000).toISOString(),
         status: 'auto_fixed',
-        error_message: scrubSecrets(entry.error!.message).slice(0, 2000),
+        // The full `{"error":{…}}` envelope, like every other error row — storing the
+        // bare message would drop the `type`/`param`/`code` that identify the error
+        // downstream (see serializeProviderError).
+        error_message: serializeProviderError(entry.error!),
         error_http_status: entry.http_status,
         model: canonical.model,
         provider: canonical.provider,

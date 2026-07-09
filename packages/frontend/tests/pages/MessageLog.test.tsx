@@ -528,6 +528,28 @@ describe('MessageLog', () => {
     expect(mockSetSearchParams).toHaveBeenCalledWith({ status: 'failed' }, { replace: true });
   });
 
+  it('filters messages by trigger', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(selectWithOption(container, 'All triggers')).toBeDefined();
+    });
+
+    const triggerSelect = selectWithOption(container, 'All triggers');
+    expect(triggerSelect.textContent).toContain('No trigger');
+    expect(triggerSelect.textContent).toContain('Fallback');
+    expect(triggerSelect.textContent).toContain('Auto-fix');
+
+    mockGetMessages.mockClear();
+    await fireEvent.change(triggerSelect, { target: { value: 'fallback' } });
+
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(
+        expect.objectContaining({ trigger: 'fallback' }),
+      );
+    });
+  });
+
   it('seeds the status filter from the status search param', async () => {
     mockSearchParams = { status: 'failed' };
     mockGetMessages.mockResolvedValue(messagesData);
