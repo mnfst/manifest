@@ -16,6 +16,14 @@ const FLUSH_INTERVAL_MS = 2_000;
  * is strictly better than holding the heap.
  */
 const MAX_QUEUE = 500;
+/**
+ * Ceiling on consent checks awaiting a verdict. Each one retains a request body,
+ * and {@link MAX_QUEUE} only bounds what has already cleared the gate — so a slow
+ * gate (a cache miss storm against a struggling DB) would otherwise let bodies
+ * pile up behind it, unbounded. The gate is cached per tenant and per agent, so
+ * in steady state almost nothing is ever in flight.
+ */
+const MAX_IN_FLIGHT_GATES = 100;
 
 /**
  * Streams an agent's request-side 4xx to Phoenix as observations, carrying the
@@ -47,6 +55,8 @@ export class ObservationReporter implements OnModuleDestroy {
   private readonly logger = new Logger(ObservationReporter.name);
   private readonly enabled: boolean;
   private queue: HealRequest[] = [];
+  /** Consent checks that have not resolved yet — awaited on shutdown, capped on entry. */
+  private readonly inFlight = new Set<Promise<void>>();
   private timer: NodeJS.Timeout | null = null;
   private dropped = 0;
 
@@ -67,7 +77,24 @@ export class ObservationReporter implements OnModuleDestroy {
    */
   report(input: ObservationInput): void {
     if (!this.enabled) return;
-    void this.gateAndEnqueue(input);
+    if (this.inFlight.size >= MAX_IN_FLIGHT_GATES) {
+      this.countDrop();
+      return;
+    }
+    const pending: Promise<void> = this.gateAndEnqueue(input).finally(() => {
+      this.inFlight.delete(pending);
+    });
+    this.inFlight.add(pending);
+  }
+
+  /** Note a dropped observation, logging once per 100 so a saturated feed can't flood. */
+  private countDrop(): void {
+    this.dropped += 1;
+    // Enough to see sustained backpressure in the logs without a failing Phoenix
+    // (or a slow gate) turning into a log flood of its own.
+    if (this.dropped % 100 === 0) {
+      this.logger.warn(`observation feed saturated — dropped ${this.dropped} so far`);
+    }
   }
 
   private async gateAndEnqueue(input: ObservationInput): Promise<void> {
@@ -87,12 +114,7 @@ export class ObservationReporter implements OnModuleDestroy {
   private enqueue(observation: HealRequest): void {
     if (this.queue.length >= MAX_QUEUE) {
       this.queue.shift();
-      this.dropped += 1;
-      // One line per 100 drops: enough to see sustained backpressure in the logs
-      // without a failing Phoenix turning into a log flood of its own.
-      if (this.dropped % 100 === 0) {
-        this.logger.warn(`observation queue full — dropped ${this.dropped} so far`);
-      }
+      this.countDrop();
     }
     this.queue.push(observation);
     if (this.queue.length >= BATCH_MAX) {
@@ -135,10 +157,14 @@ export class ObservationReporter implements OnModuleDestroy {
    * process is going down. It always removes the batch it took (a failed batch is
    * dropped, not retried), so the queue strictly shrinks and this terminates.
    *
+   * Settle the outstanding consent checks first, or the observations still inside
+   * one would never reach the queue we are about to drain.
+   *
    * No timer to clear afterwards: one is only ever scheduled while the queue is
    * non-empty, and `flush()` clears it on entry — so an empty queue implies none.
    */
   async onModuleDestroy(): Promise<void> {
+    await Promise.allSettled([...this.inFlight]);
     while (this.queue.length > 0) await this.flush();
   }
 }

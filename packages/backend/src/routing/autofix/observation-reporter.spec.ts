@@ -47,10 +47,16 @@ async function settle(): Promise<void> {
   for (let i = 0; i < 5; i++) await Promise.resolve();
 }
 
-/** Queue `count` reports and wait for all of them to clear the gate. */
+/**
+ * Queue `count` reports, letting each clear the gate before the next. Real traffic
+ * arrives over time; firing them all synchronously would instead saturate the
+ * in-flight cap and drop most of them.
+ */
 async function reportMany(reporter: ObservationReporter, count: number): Promise<void> {
-  for (let i = 0; i < count; i++) reporter.report({ ...input, traceId: `trace-${i}` });
-  await settle();
+  for (let i = 0; i < count; i++) {
+    reporter.report({ ...input, traceId: `trace-${i}` });
+    await settle();
+  }
 }
 
 describe('ObservationReporter', () => {
@@ -103,6 +109,35 @@ describe('ObservationReporter', () => {
 
       // No consent proven → no body sent, and nothing propagates to the proxy.
       expect(client.observe).not.toHaveBeenCalled();
+    });
+
+    it('drops a report rather than let consent checks pile up unbounded', async () => {
+      const client = makeClient();
+      // A gate that never answers: every report stays in flight.
+      const reporter = enabledReporter(client, makeAutofix(jest.fn(() => new Promise(() => {}))));
+
+      for (let i = 0; i < 150; i++) reporter.report({ ...input, traceId: `trace-${i}` });
+      await settle();
+
+      // Bodies are retained per in-flight check, so the cap bounds them before the
+      // queue cap (which only applies once a check has cleared) ever gets to.
+      expect(reporter['inFlight'].size).toBe(100);
+      expect(client.observe).not.toHaveBeenCalled();
+    });
+
+    it('waits for an in-flight consent check before draining on shutdown', async () => {
+      const client = makeClient();
+      let allow!: () => void;
+      const gate = jest.fn(() => new Promise<boolean>((resolve) => (allow = () => resolve(true))));
+      const reporter = enabledReporter(client, makeAutofix(gate));
+
+      reporter.report(input);
+      const shutdown = reporter.onModuleDestroy();
+      allow();
+      await shutdown;
+
+      // The observation was still inside its gate when shutdown began.
+      expect(client.observe).toHaveBeenCalledTimes(1);
     });
 
     it('never consults the gate for a failure it would not report anyway', async () => {

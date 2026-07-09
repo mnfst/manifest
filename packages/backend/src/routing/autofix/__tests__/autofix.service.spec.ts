@@ -1175,10 +1175,37 @@ describe('isActiveFor (the consent gate)', () => {
     await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(true);
   });
 
-  it('inherits the cloud default when the agent never chose', async () => {
-    const service = makeService({ repo: makeAgentRepo(() => ({ autofix_enabled: null })).repo });
+  /**
+   * `defaultAgentEnabled` is `!isSelfHosted()`, resolved in the constructor, and
+   * `isSelfHosted()` sniffs for `/.dockerenv` / `/run/.containerenv` / Kubernetes.
+   * Pin `MANIFEST_MODE` (priority 1, always wins) so these assertions don't invert
+   * when the suite runs inside a container.
+   */
+  async function withMode(mode: string, run: () => Promise<void>): Promise<void> {
+    const previous = process.env['MANIFEST_MODE'];
+    process.env['MANIFEST_MODE'] = mode;
+    try {
+      await run();
+    } finally {
+      if (previous === undefined) delete process.env['MANIFEST_MODE'];
+      else process.env['MANIFEST_MODE'] = previous;
+    }
+  }
 
-    await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(true);
+  it('inherits the cloud default when the agent never chose', async () => {
+    await withMode('cloud', async () => {
+      const service = makeService({ repo: makeAgentRepo(() => ({ autofix_enabled: null })).repo });
+
+      await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(true);
+    });
+  });
+
+  it('inherits the self-hosted default, where Auto-fix is opt-in', async () => {
+    await withMode('selfhosted', async () => {
+      const service = makeService({ repo: makeAgentRepo(() => ({ autofix_enabled: null })).repo });
+
+      await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(false);
+    });
   });
 
   it('is inactive when the deployment killed Auto-fix globally', async () => {
