@@ -434,7 +434,7 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
   if (pill.limitAgent) {
     const planLimit = isPlanLimitBlock(item);
     return (
-      <td>
+      <td style={planLimit ? 'padding: 8.1px var(--gap-md)' : undefined}>
         <A
           class={pill.cls}
           href={
@@ -450,6 +450,11 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
         >
           {pill.label}
         </A>
+        {planLimit && (
+          <A href="/upgrade" class="btn btn--primary btn--sm" style="margin-left: 6px; font-size: 11px; padding: 2px 8px; text-decoration: none;">
+            Upgrade plan
+          </A>
+        )}
       </td>
     );
   }
