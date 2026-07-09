@@ -29,24 +29,6 @@ beforeAll(async () => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
     ['ps-msg-3', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 150, 75, 'claude-opus-4-6', 'ok'],
   );
-  await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, provider, auth_type, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
-    [
-      'ps-msg-6',
-      'test-tenant-001',
-      'test-agent-001',
-      'test-agent',
-      'test-user-001',
-      now,
-      800,
-      400,
-      'gpt-5.5',
-      'openai',
-      'subscription',
-      'ok',
-    ],
-  );
 
   // Custom-endpoint traffic: two tenant-scoped provider refs from one tenant,
   // exercising the Custom grouping + k-anonymity fold on real SQL.
@@ -134,39 +116,6 @@ describe('GET /api/v1/public/provider-tokens', () => {
     const payload = JSON.stringify(res.body);
     expect(payload).not.toContain('d0c5ce41');
     expect(payload).not.toContain('private-model');
-  });
-
-  it('attributes ChatGPT subscription GPT rows to OpenAI, not OpenCode Zen', async () => {
-    const res = await request(app.getHttpServer())
-      .get('/api/v1/public/provider-tokens')
-      .expect(200);
-
-    const openai = res.body.providers.find((p: { provider: string }) => p.provider === 'OpenAI');
-    expect(openai).toBeDefined();
-    expect(openai.models).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          model: 'gpt-5.5',
-          auth_type: 'subscription',
-          total_tokens: expect.any(Number),
-        }),
-      ]),
-    );
-    const gpt = openai.models.find(
-      (m: { model: string; auth_type: string | null }) =>
-        m.model === 'gpt-5.5' && m.auth_type === 'subscription',
-    );
-    expect(gpt.total_tokens).toBeGreaterThanOrEqual(1200);
-
-    const zen = res.body.providers.find(
-      (p: { provider: string }) => p.provider === 'OpenCode Zen',
-    );
-    expect(
-      zen?.models.some(
-        (m: { model: string; auth_type: string | null }) =>
-          m.model === 'gpt-5.5' && m.auth_type === 'subscription',
-      ),
-    ).not.toBe(true);
   });
 });
 
