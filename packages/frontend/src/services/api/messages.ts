@@ -19,6 +19,8 @@ export interface MessageDetailResponse {
     error_origin: string | null;
     /** WHAT kind of failure (rate_limit, auth, no_provider_key, timeout, …). Null on success. */
     error_class: string | null;
+    /** HTTP status code of the error response. Null on success. */
+    error_http_status: number | null;
     /** True when this row is a recovered (retried / fell-back-away-from) attempt, not the outcome. */
     superseded: boolean;
     description: string | null;
