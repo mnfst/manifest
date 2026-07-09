@@ -105,10 +105,26 @@ export function serializeProviderError(error: PhoenixProviderError): string {
   // always close the gap.
   const target = envelopeOf(safe, '').length <= MAX_MESSAGE_LENGTH ? safe : bare(safe.message);
 
-  const full = envelopeOf(target, target.message);
-  if (full.length <= MAX_MESSAGE_LENGTH) return full;
-  // Dropping one character from the message drops at least one from the JSON (escapes
-  // only ever expand), so this single pass always lands at or under the cap.
-  const overflow = full.length - MAX_MESSAGE_LENGTH;
-  return envelopeOf(target, target.message.slice(0, Math.max(0, target.message.length - overflow)));
+  let message = target.message;
+  let out = envelopeOf(target, message);
+  while (out.length > MAX_MESSAGE_LENGTH && message.length > 0) {
+    message = dropTail(message, Math.max(out.length - MAX_MESSAGE_LENGTH, 1));
+    out = envelopeOf(target, message);
+  }
+  return out;
+}
+
+/**
+ * Drop `count` UTF-16 code units off the end of `s`, never leaving a lone high surrogate.
+ *
+ * Trimming a message usually shrinks its JSON by as much as it removes. Cutting an astral
+ * character in half does the opposite: `JSON.stringify` renders the orphaned half as the
+ * six-character escape `\ud83d`, so a one-unit cut can grow the envelope by four. Dropping
+ * the orphan restores the "shrinks by at least `count`" property the caller's loop needs to
+ * make progress.
+ */
+function dropTail(s: string, count: number): string {
+  const cut = s.slice(0, Math.max(0, s.length - count));
+  const last = cut.charCodeAt(cut.length - 1);
+  return last >= 0xd800 && last <= 0xdbff ? cut.slice(0, -1) : cut;
 }
