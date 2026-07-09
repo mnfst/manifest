@@ -153,4 +153,66 @@ describe('HttpHealingClient', () => {
       await expect(client.reportOutcome('heal-1', outcome)).resolves.toBeNull();
     });
   });
+
+  describe('observe', () => {
+    /** Response stub whose body records that it was released. */
+    function observeResponse(ok: boolean, status: number, cancel = jest.fn()) {
+      return {
+        response: { ok, status, body: { cancel } } as unknown as Response,
+        cancel,
+      };
+    }
+
+    it('POSTs the batch to `${baseUrl}/api/heal/observe`', async () => {
+      const { response } = observeResponse(true, 200);
+      fetchSpy.mockResolvedValue(response);
+      const client = new HttpHealingClient('http://x', 1000, 'secret-key');
+      const batch = [makeHealRequest()];
+
+      await client.observe(batch);
+
+      const [url, init] = fetchSpy.mock.calls[0];
+      expect(url).toBe('http://x/api/heal/observe');
+      expect(init.method).toBe('POST');
+      expect(init.headers).toEqual({
+        'content-type': 'application/json',
+        'x-api-key': 'secret-key',
+      });
+      expect(JSON.parse(init.body)).toEqual({ observations: batch });
+    });
+
+    it('releases the response body so the connection is not held open', async () => {
+      const { response, cancel } = observeResponse(true, 200);
+      fetchSpy.mockResolvedValue(response);
+      const client = new HttpHealingClient('http://x', 1000);
+
+      await client.observe([makeHealRequest()]);
+
+      expect(cancel).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call fetch for an empty batch', async () => {
+      const client = new HttpHealingClient('http://x', 1000);
+
+      await client.observe([]);
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it('swallows a non-ok response — evidence is lost, never the request', async () => {
+      const { response, cancel } = observeResponse(false, 401);
+      fetchSpy.mockResolvedValue(response);
+      const client = new HttpHealingClient('http://x', 1000);
+
+      await expect(client.observe([makeHealRequest()])).resolves.toBeUndefined();
+      expect(cancel).toHaveBeenCalledTimes(1);
+    });
+
+    it('swallows a transport failure', async () => {
+      fetchSpy.mockRejectedValue(new Error('network down'));
+      const client = new HttpHealingClient('http://x', 1000);
+
+      await expect(client.observe([makeHealRequest()])).resolves.toBeUndefined();
+    });
+  });
 });
