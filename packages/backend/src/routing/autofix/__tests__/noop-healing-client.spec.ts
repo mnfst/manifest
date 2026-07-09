@@ -27,4 +27,8 @@ describe('NoopHealingClient', () => {
   it('reportOutcome() is a no-op that resolves null', async () => {
     await expect(client.reportOutcome('heal-1', { retryStatusCode: 200 })).resolves.toBeNull();
   });
+
+  it('observe() discards the batch without reaching a healer', async () => {
+    await expect(client.observe([sampleRequest])).resolves.toBeUndefined();
+  });
 });

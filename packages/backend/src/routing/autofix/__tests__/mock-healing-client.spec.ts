@@ -142,4 +142,13 @@ describe('MockHealingClient', () => {
       });
     });
   });
+
+  describe('observe', () => {
+    it('discards the batch — the mock has no issue base to grow', async () => {
+      const client = new MockHealingClient();
+      const batch = [makeRequest({ message: 'bad' }, { model: 'gpt-5.1' })];
+
+      await expect(client.observe(batch)).resolves.toBeUndefined();
+    });
+  });
 });

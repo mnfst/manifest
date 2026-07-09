@@ -48,6 +48,11 @@ export class MockHealingClient implements HealingClient {
     return Promise.resolve({ status: 'no_patch', issueId });
   }
 
+  observe(observations: HealRequest[]): Promise<void> {
+    this.logger.log(`mock observe: ${observations.length} observation(s) discarded`);
+    return Promise.resolve();
+  }
+
   reportOutcome(healAttemptId: string, outcome: HealOutcome): Promise<ConfirmResponse | null> {
     // Phoenix decides from the retry outcome: a cleared target (2xx or a
     // different error) succeeds; the same error recurring fails. The mock has no

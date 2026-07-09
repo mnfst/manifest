@@ -17,4 +17,8 @@ export class NoopHealingClient implements HealingClient {
   reportOutcome(_healAttemptId: string, _outcome: HealOutcome): Promise<ConfirmResponse | null> {
     return Promise.resolve(null);
   }
+
+  observe(_observations: HealRequest[]): Promise<void> {
+    return Promise.resolve();
+  }
 }

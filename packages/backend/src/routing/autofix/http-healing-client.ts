@@ -58,6 +58,31 @@ export class HttpHealingClient implements HealingClient {
     return (await res.json()) as HealResponse;
   }
 
+  /**
+   * Bulk-report evidence. Phoenix answers `207`-style per-item results we don't
+   * consume — a non-OK status only tells us the batch was lost, which is a
+   * warning, never an error the proxy should see.
+   */
+  async observe(observations: HealRequest[]): Promise<void> {
+    if (observations.length === 0) return;
+    try {
+      const res = await fetch(`${this.baseUrl}/api/heal/observe`, {
+        method: 'POST',
+        headers: this.headers(),
+        body: JSON.stringify({ observations }),
+        signal: AbortSignal.timeout(this.timeoutMs),
+      });
+      // We never read the per-item results, but an unconsumed body keeps the
+      // undici socket checked out — over many flushes that exhausts the pool.
+      await res.body?.cancel();
+      if (!res.ok) {
+        this.logger.warn(`Phoenix /api/heal/observe responded ${res.status}`);
+      }
+    } catch (err) {
+      this.logger.warn(`Phoenix /api/heal/observe failed: ${(err as Error).message}`);
+    }
+  }
+
   async reportOutcome(
     healAttemptId: string,
     outcome: HealOutcome,
