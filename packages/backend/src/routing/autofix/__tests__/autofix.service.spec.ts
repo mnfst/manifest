@@ -504,15 +504,19 @@ describe('AutofixService', () => {
       expect(result).toBeNull();
     });
 
-    it('queries the agent scoped by id + tenant with the minimal column set', async () => {
+    it('queries the agent scoped by id + tenant, selecting the PK so a NULL flag row is still found', async () => {
       const { repo, findOne } = makeAgentRepo(() => null);
       const service = makeService({ repo });
 
       await service.maybeHeal(makeParams({ agentId: 'a-9', tenantId: 't-9' }));
 
+      // `id` must stay in the select: TypeORM returns null for a row whose only
+      // selected column is NULL, so selecting the nullable `autofix_enabled`
+      // alone makes every default (NULL-flag) agent look not-found. See the
+      // real-DB regression in test/autofix-null-flag.e2e-spec.ts.
       expect(findOne).toHaveBeenCalledWith({
         where: { id: 'a-9', tenant_id: 't-9' },
-        select: ['autofix_enabled'],
+        select: ['id', 'autofix_enabled'],
       });
     });
   });
