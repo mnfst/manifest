@@ -68,7 +68,7 @@ describe('AuthGuard', () => {
     ));
 
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/register?step=plan', { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith('/register?step=plan&context=login', { replace: true });
     });
   });
 
