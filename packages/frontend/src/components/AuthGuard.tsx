@@ -25,14 +25,9 @@ const AuthGuard: ParentComponent = (props) => {
       return;
     }
     getBillingStatus()
-      .then((status) => {
-        if (status?.enabled && status.plan !== 'pro') {
-          if (userId) markPlanChosen(userId);
-          setPlanChecked(true);
-        } else {
-          if (userId) markPlanChosen(userId);
-          setPlanChecked(true);
-        }
+      .then(() => {
+        if (userId) markPlanChosen(userId);
+        setPlanChecked(true);
       })
       .catch(() => {
         setPlanChecked(true);
