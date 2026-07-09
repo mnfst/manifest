@@ -12,7 +12,11 @@ import {
   MANIFEST_ORIGIN_PREDICATE,
   DEFAULT_LOG_ORIGIN_PREDICATE,
 } from './query-helpers';
-import type { MessageOriginFilter, MessageStatusFilter } from '../dto/messages-query.dto';
+import type {
+  MessageOriginFilter,
+  MessageStatusFilter,
+  MessageTriggerFilter,
+} from '../dto/messages-query.dto';
 import { computeCutoff, sqlCastFloat, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 import { inferProviderFromModel } from '../../common/utils/provider-inference';
 import { TtlCache } from '../../common/utils/ttl-cache';
@@ -21,6 +25,7 @@ import { TtlCache } from '../../common/utils/ttl-cache';
 // share one definition of an error status (see query-helpers.sqlCountMessages).
 const FAILED_STATUSES = ERROR_MESSAGE_STATUSES;
 const ERROR_STATUSES = ERROR_MESSAGE_STATUSES;
+const AUTOFIX_TRIGGER_ROLE = 'retry';
 
 const MODELS_CACHE_TTL_MS = 5 * 60_000;
 const DISTINCT_MODELS_DEFAULT_INTERVAL = '90 days';
@@ -74,6 +79,7 @@ interface MessageQueryParams extends MessageFilterParams {
   limit: number;
   cursor?: string;
   status?: MessageStatusFilter;
+  trigger?: MessageTriggerFilter;
   origin?: MessageOriginFilter;
   error_class?: string;
   routing_tier?: string;
@@ -206,6 +212,7 @@ export class MessagesQueryService {
     cost_max?: number;
     agent_name?: string;
     status?: MessageStatusFilter;
+    trigger?: MessageTriggerFilter;
     origin?: MessageOriginFilter;
     error_class?: string;
     routing_tier?: string;
@@ -244,6 +251,8 @@ export class MessagesQueryService {
     } else if (params.status) {
       qb.andWhere('at.status = :statusFilter', { statusFilter: params.status });
     }
+
+    this.applyTriggerFilter(qb, params.trigger);
 
     // Error-origin scope. By default only Manifest *setup* errors (config — no
     // provider / no key) are hidden as "not a message"; a Manifest *limit* being
@@ -288,6 +297,30 @@ export class MessagesQueryService {
     }
 
     return qb;
+  }
+
+  private applyTriggerFilter(
+    qb: SelectQueryBuilder<AgentMessage>,
+    trigger: MessageTriggerFilter | undefined,
+  ): void {
+    if (!trigger) return;
+
+    if (trigger === 'autofix') {
+      qb.andWhere('at.autofix_role = :triggerAutofixRole', {
+        triggerAutofixRole: AUTOFIX_TRIGGER_ROLE,
+      });
+      return;
+    }
+
+    qb.andWhere('(at.autofix_role IS NULL OR at.autofix_role != :triggerAutofixRole)', {
+      triggerAutofixRole: AUTOFIX_TRIGGER_ROLE,
+    });
+
+    if (trigger === 'fallback') {
+      qb.andWhere("at.fallback_from_model IS NOT NULL AND at.fallback_from_model != ''");
+    } else {
+      qb.andWhere("(at.fallback_from_model IS NULL OR at.fallback_from_model = '')");
+    }
   }
 
   private async applyProviderFilter(
@@ -451,6 +484,7 @@ export class MessagesQueryService {
     cost_min?: number;
     cost_max?: number;
     status?: MessageStatusFilter;
+    trigger?: MessageTriggerFilter;
     origin?: MessageOriginFilter;
     error_class?: string;
     routing_tier?: string;
@@ -466,6 +500,7 @@ export class MessagesQueryService {
       params.cost_min ?? '',
       params.cost_max ?? '',
       params.status ?? '',
+      params.trigger ?? '',
       params.origin ?? '',
       params.error_class ?? '',
       params.routing_tier ?? '',

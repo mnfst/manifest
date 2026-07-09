@@ -5,7 +5,7 @@ import { MessagesQueryService } from './messages-query.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { MANIFEST_ORIGIN_PREDICATE, DEFAULT_LOG_ORIGIN_PREDICATE } from './query-helpers';
-import type { MessageStatusFilter } from '../dto/messages-query.dto';
+import type { MessageStatusFilter, MessageTriggerFilter } from '../dto/messages-query.dto';
 
 describe('MessagesQueryService', () => {
   let service: MessagesQueryService;
@@ -746,6 +746,68 @@ describe('MessagesQueryService', () => {
     expect(statusCall?.[1]).toEqual(bindings);
   });
 
+  async function runWithTrigger(trigger: MessageTriggerFilter): Promise<jest.Mock> {
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'gpt-4o-mini', cost: 0 },
+    ]);
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    await service.getMessages({
+      range: '24h',
+      tenantId: 'test-user',
+      limit: 20,
+      trigger,
+      include_filter_options: false,
+    });
+
+    return andWhereSpy;
+  }
+
+  it('filters auto-fix trigger rows by retry role', async () => {
+    const andWhereSpy = await runWithTrigger('autofix');
+    const triggerCall = andWhereSpy.mock.calls.find(
+      ([clause]) => clause === 'at.autofix_role = :triggerAutofixRole',
+    );
+    expect(triggerCall).toBeDefined();
+    expect(triggerCall?.[1]).toEqual({ triggerAutofixRole: 'retry' });
+  });
+
+  it('filters fallback trigger rows while preserving auto-fix precedence', async () => {
+    const andWhereSpy = await runWithTrigger('fallback');
+    expect(
+      andWhereSpy.mock.calls.find(
+        ([clause]) =>
+          clause === '(at.autofix_role IS NULL OR at.autofix_role != :triggerAutofixRole)',
+      )?.[1],
+    ).toEqual({ triggerAutofixRole: 'retry' });
+    expect(
+      andWhereSpy.mock.calls.find(
+        ([clause]) =>
+          clause === "at.fallback_from_model IS NOT NULL AND at.fallback_from_model != ''",
+      ),
+    ).toBeDefined();
+  });
+
+  it('filters ordinary rows with no trigger badge', async () => {
+    const andWhereSpy = await runWithTrigger('none');
+    expect(
+      andWhereSpy.mock.calls.find(
+        ([clause]) =>
+          clause === '(at.autofix_role IS NULL OR at.autofix_role != :triggerAutofixRole)',
+      )?.[1],
+    ).toEqual({ triggerAutofixRole: 'retry' });
+    expect(
+      andWhereSpy.mock.calls.find(
+        ([clause]) => clause === "(at.fallback_from_model IS NULL OR at.fallback_from_model = '')",
+      ),
+    ).toBeDefined();
+  });
+
   function runWithOrigin(params: {
     origin?: 'manifest' | 'provider' | 'transport' | 'config' | 'policy' | 'internal';
     error_class?: string;
@@ -924,6 +986,38 @@ describe('MessagesQueryService', () => {
       service_type: 'chat',
       cursor: '2026-02-16 10:00:00|msg-1',
     });
+    expect(result.total_count).toBe(5);
+    expect(mockGetRawOne).toHaveBeenCalledTimes(2);
+  });
+
+  it('different trigger filters produce different count cache keys', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 10 });
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' },
+    ]);
+
+    await service.getMessages({
+      range: '24h',
+      tenantId: 'test-user',
+      limit: 20,
+      trigger: 'fallback',
+      include_filter_options: false,
+    });
+
+    mockGetRawOne.mockResolvedValueOnce({ total: 5 });
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-2', timestamp: '2026-02-16 11:00:00', model: 'gpt-4o' },
+    ]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      tenantId: 'test-user',
+      limit: 20,
+      trigger: 'autofix',
+      cursor: '2026-02-16 10:00:00|msg-1',
+      include_filter_options: false,
+    });
+
     expect(result.total_count).toBe(5);
     expect(mockGetRawOne).toHaveBeenCalledTimes(2);
   });
