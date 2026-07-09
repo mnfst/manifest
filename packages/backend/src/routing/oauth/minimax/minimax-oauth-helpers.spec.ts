@@ -21,7 +21,7 @@ describe('minimax-oauth-helpers', () => {
   it('exposes the correct default region and base URLs', () => {
     expect(DEFAULT_REGION).toBe('global');
     expect(DEFAULT_BASE_URL).toBe('https://api.minimax.io');
-    expect(DEFAULT_RESOURCE_URL).toBe('https://api.minimax.io/anthropic');
+    expect(DEFAULT_RESOURCE_URL).toBe('https://api.minimax.io/anthropic/v1');
     expect(MINIMAX_BASE_URLS.cn).toBe('https://api.minimaxi.com');
   });
 
@@ -52,7 +52,7 @@ describe('minimax-oauth-helpers', () => {
         'https://api.minimax.io/oauth/token',
       );
       expect(buildMinimaxResourceUrl('https://api.minimax.io')).toBe(
-        'https://api.minimax.io/anthropic',
+        'https://api.minimax.io/anthropic/v1',
       );
     });
   });
@@ -65,8 +65,8 @@ describe('minimax-oauth-helpers', () => {
 
     it('normalises a resource URL through the provider-base-url helper', () => {
       // The helper is a pass-through for well-formed resource URLs.
-      expect(getMinimaxResourceUrl('https://api.minimax.io/anthropic')).toBe(
-        'https://api.minimax.io/anthropic',
+      expect(getMinimaxResourceUrl('https://api.minimax.io/anthropic/v1')).toBe(
+        'https://api.minimax.io/anthropic/v1',
       );
     });
   });
@@ -77,7 +77,7 @@ describe('minimax-oauth-helpers', () => {
     });
 
     it('returns the origin of a normalised resource URL', () => {
-      expect(getMinimaxOauthBaseUrl('https://api.minimaxi.com/anthropic')).toBe(
+      expect(getMinimaxOauthBaseUrl('https://api.minimaxi.com/anthropic/v1')).toBe(
         'https://api.minimaxi.com',
       );
     });

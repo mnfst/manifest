@@ -1518,7 +1518,7 @@ describe('ModelDiscoveryService', () => {
         t: 'minimax-access',
         r: 'minimax-refresh',
         e: Date.now() + 60000,
-        u: 'https://api.minimax.io/anthropic',
+        u: 'https://api.minimax.io/anthropic/v1',
       });
       mockDecrypt.mockReturnValue(blob);
 
@@ -1536,7 +1536,7 @@ describe('ModelDiscoveryService', () => {
         'minimax',
         'minimax-access',
         'subscription',
-        'https://api.minimax.io/anthropic',
+        'https://api.minimax.io/anthropic/v1',
       );
     });
 
@@ -1558,7 +1558,7 @@ describe('ModelDiscoveryService', () => {
         'minimax',
         'sk-cp-cn-token',
         'subscription',
-        'https://api.minimaxi.com/anthropic',
+        'https://api.minimaxi.com/anthropic/v1',
       );
     });
 
