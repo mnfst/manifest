@@ -133,6 +133,19 @@ describe('ObservationReporter', () => {
     expect(client.observe).toHaveBeenCalledTimes(1);
   });
 
+  it('drains every queued batch on shutdown, not just the first', async () => {
+    const client = makeClient();
+    const reporter = enabledReporter(client);
+    // Hold the queue at 120 so shutdown faces a multi-batch backlog.
+    const drain = jest.spyOn(reporter, 'flush').mockResolvedValue(undefined);
+    for (let i = 0; i < 120; i++) reporter.report({ ...input, traceId: `trace-${i}` });
+    drain.mockRestore();
+
+    await reporter.onModuleDestroy();
+    expect(client.observe).toHaveBeenCalledTimes(3);
+    expect(reporter['queue']).toHaveLength(0);
+  });
+
   it('is a no-op flush when nothing is queued', async () => {
     const client = makeClient();
     const reporter = enabledReporter(client);

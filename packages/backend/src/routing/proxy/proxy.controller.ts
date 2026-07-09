@@ -238,7 +238,13 @@ export class ProxyController {
         // Callers that send no `traceparent` get a fresh id, which the scrape
         // cannot match — those failures are recorded twice until the scrape is
         // retired for live traffic.
-        if (!autofix) {
+        //
+        // Auto-fix reports the PRIMARY attempt itself. The fallback chain runs
+        // after it, so when the response we're about to return came from a
+        // fallback model it is a different provider/model failing and Phoenix has
+        // never seen it — skipping on `autofix` alone would hide it.
+        const alreadyReportedByAutofix = Boolean(autofix) && !meta.fallbackFromModel;
+        if (!alreadyReportedByAutofix) {
           this.observationReporter.report({
             traceId: traceId ?? uuid(),
             tenantId,

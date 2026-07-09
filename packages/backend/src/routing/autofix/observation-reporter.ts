@@ -112,11 +112,16 @@ export class ObservationReporter implements OnModuleDestroy {
     if (this.queue.length > 0) this.scheduleFlush();
   }
 
+  /**
+   * Drain everything on shutdown, not just one batch. `flush()` sends at most
+   * BATCH_MAX and reschedules the rest on a timer that will never fire once the
+   * process is going down. It always removes the batch it took (a failed batch is
+   * dropped, not retried), so the queue strictly shrinks and this terminates.
+   *
+   * No timer to clear afterwards: one is only ever scheduled while the queue is
+   * non-empty, and `flush()` clears it on entry — so an empty queue implies none.
+   */
   async onModuleDestroy(): Promise<void> {
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = null;
-    }
-    await this.flush();
+    while (this.queue.length > 0) await this.flush();
   }
 }

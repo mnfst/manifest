@@ -49,16 +49,31 @@ describe('scrubBody', () => {
     expect(JSON.stringify(scrubbed)).not.toContain('supersecrettoken123');
   });
 
+  it('redacts a credential key whatever its value type', () => {
+    expect(scrubBody({ authorization: 123 })).toEqual({ authorization: '[REDACTED]' });
+    expect(scrubBody({ headers: { 'X-Api-Key': { nested: 'k' } } })).toEqual({
+      headers: { 'X-Api-Key': '[REDACTED]' },
+    });
+  });
+
+  it('redacts a header-shaped secret quoted inside message content', () => {
+    // Serializing first would escape these quotes and defeat the header pattern,
+    // so the body is walked and each string scrubbed unescaped.
+    const scrubbed = scrubBody({
+      messages: [{ role: 'user', content: 'why does {"authorization":"Basic c2VjcmV0dmFs"} 401?' }],
+    });
+    expect(JSON.stringify(scrubbed)).not.toContain('c2VjcmV0dmFs');
+    expect(JSON.stringify(scrubbed)).toContain('[REDACTED]');
+  });
+
+  it('leaves the structure intact while scrubbing', () => {
+    const scrubbed = scrubBody({ model: 'gpt-5.1', tools: [{ name: 't', args: { n: 1 } }] });
+    expect(scrubbed).toEqual({ model: 'gpt-5.1', tools: [{ name: 't', args: { n: 1 } }] });
+  });
+
   it('drops a body larger than the cap rather than truncating it', () => {
     const huge = { messages: [{ role: 'user', content: 'x'.repeat(MAX_BODY_BYTES) }] };
     expect(scrubBody(huge)).toBeNull();
-  });
-
-  it('drops the body rather than ship it when scrubbing breaks the JSON', () => {
-    // `"authorization":123` — the header pattern eats the unquoted number and
-    // substitutes a bare `[REDACTED]`, leaving invalid JSON. Fail closed: an
-    // unscrubbable body is never sent.
-    expect(scrubBody({ authorization: 123 })).toBeNull();
   });
 });
 

@@ -27,23 +27,54 @@ export function isReportableStatus(status: number): boolean {
 }
 
 /**
- * Strip credentials from a request body before it leaves this process.
+ * Keys whose value is a credential whatever its shape. {@link scrubSecrets} only
+ * matches text, so a non-string value (a number, an object) under one of these
+ * would survive it.
+ */
+const CREDENTIAL_KEYS = new Set([
+  'x-api-key',
+  'authorization',
+  'api-key',
+  'apikey',
+  'refresh_token',
+  'client_secret',
+  'access_token',
+  'device_code',
+]);
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Recursively scrub credentials out of a body.
  *
- * The body is the caller's, not ours, and it can carry a key a user pasted into
- * a prompt or a tool definition. {@link scrubSecrets} works on text, so the body
- * is scrubbed as serialized JSON and re-parsed. Every replacement it makes stays
- * inside a JSON string literal, so the result is still valid JSON — but if a
- * future pattern ever breaks that invariant, we drop the observation rather than
- * ship an unscrubbed body.
+ * Walk the values rather than the serialized JSON. Scrubbing the serialized form
+ * would miss a secret nested inside message content — `{"authorization":"Basic …"}`
+ * quoted inside a prompt serializes to `{\"authorization\":\"Basic …\"}`, whose
+ * escaped quotes defeat the header pattern — and a replacement landing outside a
+ * string literal would leave invalid JSON. Walking sidesteps both: every string
+ * reaches {@link scrubSecrets} unescaped, and the structure is never touched.
+ */
+function scrubValue(value: unknown): unknown {
+  if (typeof value === 'string') return scrubSecrets(value);
+  if (Array.isArray(value)) return value.map(scrubValue);
+  if (!isPlainRecord(value)) return value;
+  const out: Record<string, unknown> = {};
+  for (const [key, nested] of Object.entries(value)) {
+    out[key] = CREDENTIAL_KEYS.has(key.toLowerCase()) ? '[REDACTED]' : scrubValue(nested);
+  }
+  return out;
+}
+
+/**
+ * Strip credentials from a request body before it leaves this process, or return
+ * null when the body is too large to ship. The body is the caller's, not ours,
+ * and it can carry a key a user pasted into a prompt or a tool definition.
  */
 export function scrubBody(body: Record<string, unknown>): Record<string, unknown> | null {
-  const serialized = JSON.stringify(body);
-  if (Buffer.byteLength(serialized, 'utf8') > MAX_BODY_BYTES) return null;
-  try {
-    return JSON.parse(scrubSecrets(serialized)) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
+  if (Buffer.byteLength(JSON.stringify(body), 'utf8') > MAX_BODY_BYTES) return null;
+  return scrubValue(body) as Record<string, unknown>;
 }
 
 export interface ObservationInput {

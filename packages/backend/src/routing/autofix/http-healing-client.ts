@@ -72,6 +72,9 @@ export class HttpHealingClient implements HealingClient {
         body: JSON.stringify({ observations }),
         signal: AbortSignal.timeout(this.timeoutMs),
       });
+      // We never read the per-item results, but an unconsumed body keeps the
+      // undici socket checked out — over many flushes that exhausts the pool.
+      await res.body?.cancel();
       if (!res.ok) {
         this.logger.warn(`Phoenix /api/heal/observe responded ${res.status}`);
       }
