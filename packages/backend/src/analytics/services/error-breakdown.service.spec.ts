@@ -58,6 +58,7 @@ describe('ErrorBreakdownService', () => {
       config: 4,
       policy: 0,
       internal: 0,
+      request: 0,
     });
     expect(result.by_class).toEqual({
       rate_limit: 10,
@@ -71,6 +72,24 @@ describe('ErrorBreakdownService', () => {
     const { service } = makeService(GROUPS, 81);
     const result = await service.getBreakdown({ tenantId: 't1' });
     expect(result.provider_error_rate).toBeCloseTo(15 / 96, 10);
+  });
+
+  it('counts a malformed caller request as a Manifest error, never a provider fault', async () => {
+    const { service } = makeService(
+      [
+        { origin: 'provider', error_class: 'server_error', count: '3' },
+        { origin: 'request', error_class: 'invalid_request', count: '9' },
+        { origin: 'internal', error_class: 'internal', count: '1' },
+      ],
+      7,
+    );
+    const result = await service.getBreakdown({ tenantId: 't1' });
+
+    expect(result.provider_errors).toBe(3);
+    expect(result.manifest_errors).toBe(10);
+    // Before the `request` origin existed these 9 rows were recorded as provider
+    // 400s and dragged the reliability number down with them.
+    expect(result.provider_error_rate).toBeCloseTo(3 / 10, 10);
   });
 
   it('defaults the range to 30d when none is supplied', async () => {
@@ -94,6 +113,7 @@ describe('ErrorBreakdownService', () => {
       config: 0,
       policy: 0,
       internal: 0,
+      request: 0,
     });
   });
 

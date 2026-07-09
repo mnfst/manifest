@@ -19,7 +19,9 @@ export interface MessageRow {
   status: string;
   error_message?: string | null;
   error_http_status?: number | null;
-  /** WHO caused a failure: provider | transport | config | policy | internal. */
+  /** Documented Manifest error code ('M100', 'M300', …). Null for provider failures. */
+  error_code?: string | null;
+  /** WHO caused a failure: provider | transport | config | policy | internal | request. */
   error_origin?: string | null;
   /** WHAT kind of failure it was (rate_limit, auth, billing, no_provider_key, timeout, …). */
   error_class?: string | null;

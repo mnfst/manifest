@@ -443,6 +443,97 @@ describe('ProxyMessageRecorder', () => {
   });
 
   describe('recordManifestBlockedRequest', () => {
+    it('persists the error code and the rendered message a user can act on', async () => {
+      await recorder.recordManifestBlockedRequest(ctx, {
+        errorMessage:
+          '[🦚 Manifest M100] No anthropic API key yet. Add one here: https://x/routing',
+        errorCode: 'M100',
+        reason: 'no_provider_key',
+        model: 'auto',
+      });
+
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'error',
+        error_code: 'M100',
+        error_message:
+          '[🦚 Manifest M100] No anthropic API key yet. Add one here: https://x/routing',
+        error_origin: 'config',
+        error_class: 'no_provider_key',
+        // No provider was contacted and no tier chosen — the row must not claim
+        // otherwise (this used to say provider='manifest', routing_tier='simple').
+        provider: null,
+        routing_tier: null,
+        error_http_status: null,
+      });
+    });
+
+    it('leaves error_code null when a Manifest row carries no documented code', async () => {
+      await recorder.recordManifestBlockedRequest(ctx, {
+        errorMessage: 'something went sideways',
+        reason: 'manifest_internal_error',
+      });
+      expect(insertMock.mock.calls[0][0].error_code).toBeNull();
+    });
+
+    it('records a malformed caller body on the request origin', async () => {
+      await recorder.recordManifestBlockedRequest(ctx, {
+        httpStatus: 400,
+        errorMessage: '[🦚 Manifest M300] `messages` array is required.',
+        errorCode: 'M300',
+        reason: 'manifest_invalid_request',
+      });
+
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'error',
+        error_code: 'M300',
+        error_http_status: 400,
+        error_origin: 'request',
+        error_class: 'invalid_request',
+      });
+    });
+
+    it('records an expired key as a setup error against its agent', async () => {
+      await recorder.recordManifestBlockedRequest(ctx, {
+        httpStatus: 401,
+        errorMessage: '[🦚 Manifest M004] This key has expired.',
+        errorCode: 'M004',
+        reason: 'key_expired',
+      });
+
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        error_code: 'M004',
+        error_origin: 'config',
+        error_class: 'auth',
+      });
+    });
+
+    it('keeps the three rate limits on separate cooldowns', async () => {
+      await recorder.recordManifestBlockedRequest(ctx, {
+        httpStatus: 429,
+        errorMessage: 'per-user',
+        reason: 'manifest_rate_limited',
+      });
+      await recorder.recordManifestBlockedRequest(ctx, {
+        httpStatus: 429,
+        errorMessage: 'per-ip',
+        reason: 'manifest_ip_rate_limited',
+      });
+      await recorder.recordManifestBlockedRequest(ctx, {
+        httpStatus: 429,
+        errorMessage: 'concurrency',
+        reason: 'manifest_concurrency_limited',
+      });
+
+      // Three distinct limits fired, so three rows. One shared cooldown would
+      // have swallowed the second and third.
+      expect(insertMock).toHaveBeenCalledTimes(3);
+      expect(insertMock.mock.calls.map((c) => c[0].routing_reason)).toEqual([
+        'manifest_rate_limited',
+        'manifest_ip_rate_limited',
+        'manifest_concurrency_limited',
+      ]);
+    });
+
     it('records plan-limit blocks as Manifest policy rows', async () => {
       await recorder.recordManifestBlockedRequest(ctx, {
         httpStatus: 402,
@@ -1132,116 +1223,69 @@ describe('ProxyMessageRecorder', () => {
       });
     });
 
-    describe('canned Manifest responses (no_provider / no_provider_key / limit_exceeded / plan_request_limit_exceeded / friendly_error)', () => {
-      const cases: Array<{
-        reason: string;
-        errorMessage: string;
-        origin: string;
-        klass: string;
-      }> = [
-        {
-          reason: 'no_provider',
-          errorMessage: 'No providers configured for this agent',
-          origin: 'config',
-          klass: 'no_provider',
-        },
-        {
-          reason: 'no_provider_key',
-          errorMessage: 'Provider API key missing',
-          origin: 'config',
-          klass: 'no_provider_key',
-        },
-        {
-          reason: 'limit_exceeded',
-          errorMessage: 'Usage limit exceeded',
-          origin: 'policy',
-          klass: 'limit_exceeded',
-        },
-        {
-          reason: 'plan_request_limit_exceeded',
-          errorMessage: 'Free plan monthly request limit reached',
-          origin: 'policy',
-          klass: 'plan_request_limit_exceeded',
-        },
-        {
-          reason: 'friendly_error',
-          errorMessage: 'Manifest internal error',
-          origin: 'internal',
-          klass: 'internal',
-        },
-      ];
+    it('keeps status=ok and no error axes for every reason — Manifest stubs never reach here', async () => {
+      await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
+        prompt_tokens: 1,
+        completion_tokens: 1,
+      });
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'ok',
+        error_message: null,
+        routing_reason: 'scored',
+        error_origin: null,
+        error_class: null,
+        superseded: false,
+      });
+    });
 
-      it.each(cases)(
-        'classifies reason=$reason as a Manifest $origin error, not a provider failure',
-        async ({ reason, errorMessage, origin, klass }) => {
-          await recorder.recordSuccessMessage(ctx, 'manifest', 'simple', reason, {
-            prompt_tokens: 0,
-            completion_tokens: 0,
-          });
-          expect(insertMock).toHaveBeenCalledTimes(1);
-          expect(insertMock.mock.calls[0][0]).toMatchObject({
-            status: 'error',
-            error_message: errorMessage,
-            routing_reason: reason,
-            model: 'manifest',
-            error_origin: origin,
-            error_class: klass,
-            superseded: false,
-          });
-        },
+    // The canned-stub detour through recordSuccessMessage is gone: a Manifest
+    // failure is written by recordManifestBlockedRequest, never by the success
+    // path flipping its own status to 'error'. A reason like `no_provider` that
+    // somehow arrives here is a routing reason, not a failure signal.
+    it('does not resurrect the canned-response branch for a Manifest reason', async () => {
+      await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'simple', 'no_provider', {
+        prompt_tokens: 0,
+        completion_tokens: 0,
+      });
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'ok',
+        error_message: null,
+        error_origin: null,
+      });
+    });
+
+    it('keeps status=ok on the dedup-update path', async () => {
+      const updateMock = jest.fn();
+      (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
+        (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
+          fn({ insert: insertMock, update: updateMock }),
       );
-
-      it('keeps status=ok, no error axes for non-canned reasons (e.g. "scored")', async () => {
-        await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
-          prompt_tokens: 1,
-          completion_tokens: 1,
-        });
-        expect(insertMock).toHaveBeenCalledTimes(1);
-        expect(insertMock.mock.calls[0][0]).toMatchObject({
-          status: 'ok',
-          error_message: null,
-          routing_reason: 'scored',
-          error_origin: null,
-          error_class: null,
-          superseded: false,
-        });
+      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
+        id: 'existing-row',
+        timestamp: new Date().toISOString(),
+        input_tokens: 0,
+        output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
+        duration_ms: null,
       });
 
-      it('flips status to error and populates error_message on the dedup-update path', async () => {
-        const updateMock = jest.fn();
-        (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
-          (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-            fn({ insert: insertMock, update: updateMock }),
-        );
-        // Pre-existing zero-token row from an earlier write — recordSuccessMessage
-        // takes the update branch and must overwrite both status and error_message.
-        (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
-          id: 'existing-canned',
-          timestamp: new Date().toISOString(),
-          input_tokens: 0,
-          output_tokens: 0,
-          cache_read_tokens: 0,
-          cache_creation_tokens: 0,
-          duration_ms: null,
-        });
-
-        await recorder.recordSuccessMessage(ctx, 'manifest', 'simple', 'no_provider', {
-          prompt_tokens: 0,
-          completion_tokens: 0,
-        });
-
-        expect(updateMock).toHaveBeenCalledTimes(1);
-        expect(updateMock.mock.calls[0][0]).toEqual({ id: 'existing-canned' });
-        expect(updateMock.mock.calls[0][1]).toMatchObject({
-          status: 'error',
-          error_message: 'No providers configured for this agent',
-          routing_reason: 'no_provider',
-          error_origin: 'config',
-          error_class: 'no_provider',
-          superseded: false,
-        });
-        expect(insertMock).not.toHaveBeenCalled();
+      await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'simple', 'scored', {
+        prompt_tokens: 3,
+        completion_tokens: 4,
       });
+
+      expect(updateMock).toHaveBeenCalledTimes(1);
+      expect(updateMock.mock.calls[0][0]).toEqual({ id: 'existing-row' });
+      expect(updateMock.mock.calls[0][1]).toMatchObject({
+        status: 'ok',
+        error_message: null,
+        error_origin: null,
+        error_class: null,
+        superseded: false,
+      });
+      expect(insertMock).not.toHaveBeenCalled();
     });
   });
 

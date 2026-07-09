@@ -44,6 +44,7 @@ const detailsResponse = {
     model: 'gpt-4o',
     status: 'ok',
     error_message: null,
+    error_code: null,
     description: 'Test description',
     service_type: 'agent',
     input_tokens: 100,
@@ -155,6 +156,65 @@ describe('MessageDetails', () => {
       expect(container.textContent).toContain('Manifest · Setup');
       expect(container.textContent).toContain('Missing API key');
     });
+  });
+
+  it('links the documented error code so a setup failure is debuggable', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'error',
+        // The rendered text the caller actually saw — provider name and fix link
+        // included — rather than a generic "Provider API key missing".
+        error_message:
+          '[🦚 Manifest M100] No anthropic API key yet. Add one here: https://x/routing',
+        error_code: 'M100',
+        error_origin: 'config',
+        error_class: 'no_provider_key',
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('M100');
+    });
+
+    const codeLink = container.querySelector('.msg-detail__error-code');
+    expect(codeLink?.getAttribute('href')).toBe('https://manifest.build/docs/errors/M100');
+    expect(codeLink?.getAttribute('target')).toBe('_blank');
+    expect(container.textContent).toContain('No anthropic API key yet');
+  });
+
+  it('omits the code row entirely for a provider failure', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'error',
+        error_message: 'Overloaded',
+        error_code: null,
+        error_origin: 'provider',
+        error_class: 'server_error',
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => expect(container.textContent).toContain('Overloaded'));
+    expect(container.querySelector('.msg-detail__error-code')).toBeNull();
+  });
+
+  it('explains that a request-origin failure never reached a provider', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'error',
+        error_message: '[🦚 Manifest M300] `messages` array is required.',
+        error_code: 'M300',
+        error_origin: 'request',
+        error_class: 'invalid_request',
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Manifest · Bad request');
+    });
+    expect(container.textContent).toContain('No provider was called.');
   });
 
   it('renders a fallback-recovery panel for a fallback_error attempt', async () => {

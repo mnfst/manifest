@@ -16,8 +16,6 @@ import {
   sqlCountMessages,
   ERROR_MESSAGE_STATUSES,
   MANIFEST_ORIGIN_PREDICATE,
-  DEFAULT_LOG_ORIGIN_PREDICATE,
-  LOG_HIDDEN_ORIGINS,
 } from './query-helpers';
 import { MANIFEST_ERROR_ORIGINS } from 'manifest-shared';
 import { SelectQueryBuilder } from 'typeorm';
@@ -522,17 +520,10 @@ describe('sqlCountMessages', () => {
 });
 
 describe('origin predicates', () => {
-  it('MANIFEST_ORIGIN_PREDICATE matches every Manifest origin (config/policy/internal)', () => {
-    expect(MANIFEST_ERROR_ORIGINS).toEqual(['config', 'policy', 'internal']);
-    expect(MANIFEST_ORIGIN_PREDICATE).toBe("at.error_origin IN ('config', 'policy', 'internal')");
-  });
-
-  it('hides only setup (config) errors from the log by default; a Manifest limit stays visible', () => {
-    expect(LOG_HIDDEN_ORIGINS).toEqual(['config']);
-    expect(DEFAULT_LOG_ORIGIN_PREDICATE).toBe(
-      "(at.error_origin IS NULL OR at.error_origin NOT IN ('config'))",
+  it('MANIFEST_ORIGIN_PREDICATE matches every Manifest origin, request included', () => {
+    expect(MANIFEST_ERROR_ORIGINS).toEqual(['config', 'policy', 'internal', 'request']);
+    expect(MANIFEST_ORIGIN_PREDICATE).toBe(
+      "at.error_origin IN ('config', 'policy', 'internal', 'request')",
     );
-    // policy classes must NOT be hidden — operators need to see limit hits.
-    expect(DEFAULT_LOG_ORIGIN_PREDICATE).not.toContain("'policy'");
   });
 });

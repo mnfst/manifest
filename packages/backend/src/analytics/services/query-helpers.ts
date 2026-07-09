@@ -60,34 +60,23 @@ export function sqlCountMessages(alias = 'at'): string {
   return `COUNT(*) FILTER (WHERE ${alias}.status IS NULL OR ${alias}.status NOT IN (${list}))`;
 }
 
-/** Comma-quoted list of Manifest-originated error origins, e.g. `'config', 'policy', 'internal'`. */
+/** Comma-quoted list of Manifest-originated error origins, e.g. `'config', 'policy', …`. */
 const MANIFEST_ORIGIN_SQL_LIST = MANIFEST_ERROR_ORIGINS.map((o) => `'${o}'`).join(', ');
 
 /**
- * SQL predicate matching Manifest-originated errors (config / policy / internal)
- * — the rows returned to the caller as HTTP 200 stubs (no provider was ever
- * contacted). Backs the `origin=manifest` filter shorthand. Assumes the query
- * builder aliases `agent_messages` as `at`.
+ * SQL predicate matching Manifest-originated errors (config / policy / internal
+ * / request) — the rows the caller gets back as HTTP 200 stubs or 4xx envelopes
+ * without a provider ever being contacted. Backs the `origin=manifest` filter
+ * shorthand. Assumes the query builder aliases `agent_messages` as `at`.
+ *
+ * The Messages log used to hide `config` rows by default on the theory that "a
+ * Manifest config error is not a message". It was the only surface that hid
+ * them — the Overview's Recent Messages panel always showed them — so a user who
+ * saw a "Failed: Setup" row there and clicked through found nothing, with no
+ * filter anywhere to bring it back. Every origin is now listed by default;
+ * callers narrow with `?origin=`.
  */
 export const MANIFEST_ORIGIN_PREDICATE = `at.error_origin IN (${MANIFEST_ORIGIN_SQL_LIST})`;
-
-/**
- * Error origins hidden from the Messages log by default: pure setup noise
- * (`config` — no provider configured / no API key) that isn't a message.
- * Everything else stays visible — provider & transport failures, Manifest
- * internal errors, and crucially Manifest spend/token/request limits being hit
- * (`policy` classes), so operators can see when limits fire. A Manifest config
- * error remains "not a message"; a Manifest *limit* is.
- */
-export const LOG_HIDDEN_ORIGINS = ['config'] as const;
-const LOG_HIDDEN_ORIGIN_SQL_LIST = LOG_HIDDEN_ORIGINS.map((o) => `'${o}'`).join(', ');
-
-/**
- * Default Messages-log origin filter: keep everything except the hidden setup
- * origins. A NULL origin (every success, and legacy rows predating the column)
- * is kept. Assumes the query builder aliases `agent_messages` as `at`.
- */
-export const DEFAULT_LOG_ORIGIN_PREDICATE = `(at.error_origin IS NULL OR at.error_origin NOT IN (${LOG_HIDDEN_ORIGIN_SQL_LIST}))`;
 
 export function downsample(data: number[], targetLen: number): number[] {
   if (data.length <= targetLen) return data;
@@ -285,6 +274,7 @@ export const MESSAGE_ROW_SELECT_ALIASES = [
   'routing_reason',
   'specificity_category',
   'error_message',
+  'error_code',
   'error_origin',
   'error_class',
   'error_http_status',
@@ -322,6 +312,7 @@ export function selectMessageRowColumns<T extends ObjectLiteral>(
     .addSelect('at.routing_reason', 'routing_reason')
     .addSelect('at.specificity_category', 'specificity_category')
     .addSelect('at.error_message', 'error_message')
+    .addSelect('at.error_code', 'error_code')
     .addSelect('at.error_origin', 'error_origin')
     .addSelect('at.error_class', 'error_class')
     .addSelect('at.error_http_status', 'error_http_status')

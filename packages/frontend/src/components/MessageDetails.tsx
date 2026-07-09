@@ -8,6 +8,7 @@ import {
 } from '../services/api.js';
 import { inferProviderName } from '../services/routing-utils.js';
 import { getModelDisplayName } from '../services/model-display.js';
+import { manifestErrorDocsUrl } from 'manifest-shared';
 import { formatErrorClass, formatErrorOrigin } from '../services/formatters.js';
 import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
 import { ModelParamsSection, RequestHeadersSection } from './MessageDetailsSections.jsx';
@@ -365,6 +366,24 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                       </div>
                       <table class="error-autofix-row__meta-table">
                         <tbody>
+                          <Show when={m.error_code}>
+                            <tr>
+                              <td class="error-autofix-row__meta-label">Code</td>
+                              <td class="error-autofix-row__meta-value">
+                                <a
+                                  class="msg-detail__error-code"
+                                  href={manifestErrorDocsUrl(m.error_code!)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  {m.error_code}
+                                </a>
+                                <span class="error-autofix-row__meta-hint">
+                                  Read the docs for this error.
+                                </span>
+                              </td>
+                            </tr>
+                          </Show>
                           <Show when={formatErrorOrigin(m.error_origin)}>
                             <tr>
                               <td class="error-autofix-row__meta-label">Origin</td>
@@ -379,6 +398,8 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                                   {m.error_origin === 'policy' &&
                                     'A Manifest usage limit was reached.'}
                                   {m.error_origin === 'internal' && 'An unexpected Manifest error.'}
+                                  {m.error_origin === 'request' &&
+                                    'Your agent sent a request Manifest could not route. No provider was called.'}
                                 </span>
                               </td>
                             </tr>

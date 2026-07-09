@@ -662,6 +662,29 @@ describe('MessageLog', () => {
     });
   });
 
+  it('does not send an origin param by default — no origin is hidden', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    render(() => <MessageLog />);
+    await vi.waitFor(() => expect(mockGetMessages).toHaveBeenCalled());
+
+    const query = mockGetMessages.mock.calls[0][0] as Record<string, string>;
+    expect(query.origin).toBeUndefined();
+  });
+
+  it('narrows the log to Manifest-authored failures via the origin filter', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => expect(mockGetMessages).toHaveBeenCalled());
+
+    const originSelect = selectWithOption(container, 'All origins');
+    await fireEvent.change(originSelect, { target: { value: 'manifest' } });
+
+    await vi.waitFor(() => {
+      const last = mockGetMessages.mock.calls.at(-1)![0] as Record<string, string>;
+      expect(last.origin).toBe('manifest');
+    });
+  });
+
   it('clears all filters when Clear filters button is clicked', async () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);

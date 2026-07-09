@@ -98,6 +98,9 @@ const ERROR_ORIGIN_LABELS: Record<string, string> = {
   // "Limit" so it reads distinctly from a provider rate limit.
   policy: 'Manifest · Limit',
   internal: 'Manifest · Internal',
+  // request = the caller's own payload was refused before routing. Not the
+  // operator's setup, not a Manifest bug, and never a provider failure.
+  request: 'Manifest · Bad request',
 };
 
 export function formatErrorOrigin(origin: string | null | undefined): string | null {

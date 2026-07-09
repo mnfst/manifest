@@ -15,7 +15,9 @@ export interface MessageDetailResponse {
     model: string | null;
     status: string;
     error_message: string | null;
-    /** WHO caused a failure: provider | transport | config | policy | internal. Null on success. */
+    /** Documented Manifest error code ('M100', 'M300', …). Null for provider failures. */
+    error_code: string | null;
+    /** WHO caused a failure: provider | transport | config | policy | internal | request. Null on success. */
     error_origin: string | null;
     /** WHAT kind of failure (rate_limit, auth, billing, no_provider_key, timeout, …). Null on success. */
     error_class: string | null;

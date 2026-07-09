@@ -14,6 +14,7 @@ export interface MessageDetailResponse {
     model: string | null;
     status: string;
     error_message: string | null;
+    error_code: string | null;
     error_http_status: number | null;
     error_origin: string | null;
     error_class: string | null;
@@ -90,6 +91,7 @@ export class MessageDetailsService {
         model: message.model,
         status: message.status,
         error_message: message.error_message,
+        error_code: message.error_code,
         error_http_status: message.error_http_status,
         error_origin: message.error_origin,
         error_class: message.error_class,

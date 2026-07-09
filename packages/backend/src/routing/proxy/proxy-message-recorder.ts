@@ -16,6 +16,8 @@ import { CallerAttribution } from './caller-classifier';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
+import type { ManifestErrorCode } from '../../common/errors/error-codes';
+import type { ManifestBlockedRequestReason } from '../../common/errors/manifest-error';
 import type { AutofixChainEntry, AutofixRecord } from '../autofix/autofix.types';
 import { serializeProviderError } from '../autofix/provider-error-normalizer';
 
@@ -102,15 +104,18 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   autofix?: AutofixRecord;
 }
 
-export type ManifestBlockedRequestReason =
-  | 'limit_exceeded'
-  | 'plan_request_limit_exceeded'
-  | 'manifest_rate_limited'
-  | 'friendly_error';
+export type { ManifestBlockedRequestReason };
 
 export interface ManifestBlockedRequestOpts {
-  httpStatus: number;
+  /**
+   * The status the caller saw, when there was one. Omitted for the HTTP-200
+   * friendly stubs (no provider was contacted, so there is no upstream status
+   * to record) — `error_http_status` then stays NULL, as it always has.
+   */
+  httpStatus?: number | null;
   errorMessage: string;
+  /** The documented `M###` code, persisted so the UI can link to its doc page. */
+  errorCode?: ManifestErrorCode;
   reason: ManifestBlockedRequestReason;
   model?: string;
   traceId?: string;
@@ -183,20 +188,6 @@ export interface AutofixOriginalOpts extends HeaderTierRef {
   requestHeaders?: Record<string, string> | null;
   requestParams?: RequestParamDefaults | null;
 }
-
-/**
- * Reasons that mark a `recordSuccessMessage` call as a Manifest-generated
- * stub instead of a real upstream completion. The HTTP envelope is 200 OK
- * (so the chat client renders the canned `[🦚 Manifest] …` text), but the
- * dashboard should classify the row as failed and surface why.
- */
-const CANNED_RESPONSE_REASONS: Record<string, string> = {
-  no_provider: 'No providers configured for this agent',
-  no_provider_key: 'Provider API key missing',
-  limit_exceeded: 'Usage limit exceeded',
-  plan_request_limit_exceeded: 'Free plan monthly request limit reached',
-  friendly_error: 'Manifest internal error',
-};
 
 function buildMessageRow(
   ctx: IngestionContext,
@@ -348,6 +339,18 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
+  /**
+   * The single writer for every Manifest-authored failure row: setup errors
+   * (M100/M101), limits (M200/M204), rate limits (M201–M203), malformed requests
+   * (M300), internal errors (M500), and expired keys (M004).
+   *
+   * `provider` and `routing_tier` are deliberately left NULL — no provider was
+   * contacted and no tier was chosen. (The old canned-stub path wrote a
+   * placeholder `provider='manifest'` / `routing_tier='simple'`, which put a
+   * meaningless SIMPLE badge on setup errors and a phantom "manifest" entry in
+   * the Messages provider dropdown.) `model` keeps the model the caller asked
+   * for, which is real information.
+   */
   async recordManifestBlockedRequest(
     ctx: IngestionContext,
     opts: ManifestBlockedRequestOpts,
@@ -355,6 +358,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const {
       httpStatus,
       errorMessage,
+      errorCode,
       reason,
       model,
       traceId,
@@ -363,7 +367,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       requestHeaders,
     } = opts;
 
-    if (httpStatus === 429 && this.shouldSkipRateLimitRecord(ctx, 'manifest')) return;
+    // Cooldown per reason, not per tenant: a per-IP limit firing must not
+    // suppress the row for a concurrency limit hit in the same minute.
+    if (httpStatus === 429 && this.shouldSkipRateLimitRecord(ctx, `manifest:${reason}`)) return;
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
       ctx.tenantId,
@@ -378,9 +384,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         timestamp: new Date().toISOString(),
         status: httpStatus === 429 ? 'rate_limited' : 'error',
         error_message: scrubSecrets(errorMessage).slice(0, 2000),
-        error_http_status: httpStatus,
+        error_code: errorCode ?? null,
+        error_http_status: httpStatus ?? null,
         model: canonical.model,
-        provider: canonical.provider,
+        provider: null,
         routing_tier: null,
         routing_reason: reason,
         fallback_from_model: null,
@@ -681,9 +688,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const normalizedSessionKey = this.dedup.normalizeSessionKey(sessionKey);
 
-    const cannedMessage = CANNED_RESPONSE_REASONS[reason];
-    const status = cannedMessage ? 'error' : 'ok';
-    const errorMessage = cannedMessage ?? null;
+    // Manifest's own canned stubs never reach here — the controller routes them
+    // to recordManifestBlockedRequest, which is the sole writer of Manifest rows.
+    const status = 'ok';
+    const errorMessage = null;
 
     let wrote = false;
     await this.dedup.withSuccessWriteLock(
@@ -731,9 +739,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               header_tier_color: headerTierColor ?? null,
             };
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
-            // This update path bypasses buildMessageRow, so classify inline —
-            // a canned Manifest stub (status 'error' + no_provider_key etc.)
-            // must still be stamped as a config/policy/internal origin.
+            // This update path bypasses buildMessageRow, so classify inline to
+            // keep every write site stamping the same orthogonal error axes.
             Object.assign(updatePayload, classifyRow(updatePayload));
 
             await messageRepo.update({ id: existing.id }, updatePayload);

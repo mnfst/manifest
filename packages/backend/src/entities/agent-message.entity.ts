@@ -71,12 +71,21 @@ export class AgentMessage {
   error_http_status!: number | null;
 
   /**
+   * The documented Manifest error code behind this row ('M100', 'M300', …),
+   * NULL for provider/transport failures and successes. Lets the dashboard deep
+   * link to https://manifest.build/docs/errors/<code>. The catalogue lives in
+   * common/errors/error-codes.ts.
+   */
+  @Column('varchar', { length: 8, nullable: true })
+  error_code!: string | null;
+
+  /**
    * WHO caused a failed row: 'provider' | 'transport' | 'config' | 'policy' |
-   * 'internal'. NULL on successful rows. Separates a provider's own error (a
-   * reliability event) from Manifest's own config/policy/internal rejections
-   * (which are returned as HTTP 200 stubs and are NOT provider failures).
-   * Derived by classifyMessageError() in manifest-shared — the single source of
-   * truth shared with the backfill migration.
+   * 'internal' | 'request'. NULL on successful rows. Separates a provider's own
+   * error (a reliability event) from Manifest's own config/policy/internal
+   * rejections and the caller's malformed requests (`request`) — none of which
+   * are provider failures. Derived by classifyMessageError() in manifest-shared,
+   * the single source of truth shared with the backfill migration.
    */
   @Column('varchar', { nullable: true })
   error_origin!: string | null;

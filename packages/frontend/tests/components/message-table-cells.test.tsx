@@ -1,11 +1,23 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render } from '@solidjs/testing-library';
-import { AutofixIcon, FallbackIcon, HeartbeatIcon, ModelCell, AgentCell, StatusCell, TriggerCell } from '../../src/components/message-table-cells';
+import {
+  AutofixIcon,
+  FallbackIcon,
+  HeartbeatIcon,
+  ModelCell,
+  AgentCell,
+  StatusCell,
+  TriggerCell,
+} from '../../src/components/message-table-cells';
 import { fireEvent } from '@solidjs/testing-library';
 import type { MessageRow } from '../../src/components/message-table-types';
 
 vi.mock('@solidjs/router', () => ({
-  A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
+  A: (props: any) => (
+    <a href={props.href} class={props.class}>
+      {props.children}
+    </a>
+  ),
 }));
 
 vi.mock('../../src/services/formatters.js', () => ({
@@ -33,7 +45,8 @@ vi.mock('../../src/services/model-display.js', () => ({
 }));
 
 vi.mock('../../src/components/ProviderIcon.jsx', () => ({
-  providerIcon: () => null, customProviderLogo: () => null,
+  providerIcon: () => null,
+  customProviderLogo: () => null,
 }));
 
 vi.mock('../../src/components/AuthBadge.js', () => ({
@@ -130,14 +143,19 @@ describe('TriggerCell', () => {
 
   it('fires onTriggerClick with the row id and does not render as a button without the handler', () => {
     const onTriggerClick = vi.fn();
-    const { container } = renderCell(baseRow({ id: 'row-9', autofix_role: 'retry' }), onTriggerClick);
+    const { container } = renderCell(
+      baseRow({ id: 'row-9', autofix_role: 'retry' }),
+      onTriggerClick,
+    );
     const badge = container.querySelector('.trigger-badge--autofix') as HTMLElement;
     expect(badge.getAttribute('role')).toBe('button');
     fireEvent.click(badge);
     expect(onTriggerClick).toHaveBeenCalledWith('row-9');
 
     const { container: plain } = renderCell(baseRow({ autofix_role: 'retry' }));
-    expect((plain.querySelector('.trigger-badge--autofix') as HTMLElement).getAttribute('role')).toBeNull();
+    expect(
+      (plain.querySelector('.trigger-badge--autofix') as HTMLElement).getAttribute('role'),
+    ).toBeNull();
   });
 
   it('fires onTriggerClick from a fallback badge too', () => {
@@ -154,13 +172,25 @@ describe('TriggerCell', () => {
 describe('AgentCell', () => {
   it('renders agent_name when present', () => {
     const row = baseRow({ agent_name: 'my-agent' });
-    const { container } = render(() => <table><tbody><tr>{AgentCell(row)}</tr></tbody></table>);
+    const { container } = render(() => (
+      <table>
+        <tbody>
+          <tr>{AgentCell(row)}</tr>
+        </tbody>
+      </table>
+    ));
     expect(container.textContent).toContain('my-agent');
   });
 
   it('renders em dash when agent_name is null', () => {
     const row = baseRow({ agent_name: null });
-    const { container } = render(() => <table><tbody><tr>{AgentCell(row)}</tr></tbody></table>);
+    const { container } = render(() => (
+      <table>
+        <tbody>
+          <tr>{AgentCell(row)}</tr>
+        </tbody>
+      </table>
+    ));
     expect(container.textContent).toContain('—');
   });
 });
@@ -197,6 +227,21 @@ describe('StatusCell merged pill', () => {
       baseRow({ status: 'error', error_message: 'net', error_origin: 'transport' }),
     );
     expect(onlyBadge(container).textContent).toContain('Failed: Transport');
+  });
+
+  it('labels a malformed caller body "Failed: Bad request", not "Failed: Provider"', () => {
+    const { container } = renderCell(
+      baseRow({
+        status: 'error',
+        error_message: '[🦚 Manifest M300] `messages` array is required.',
+        error_origin: 'request',
+        error_class: 'invalid_request',
+      }),
+    );
+    const badge = onlyBadge(container);
+    expect(badge.textContent).toContain('Failed: Bad request');
+    // `request` is not a policy origin, so no limits link is rendered.
+    expect(container.querySelector('a')).toBeNull();
   });
 
   it('renders a provider rate limit as "Failed: Provider" with no limits link', () => {
@@ -264,7 +309,13 @@ describe('ModelCell', () => {
       header_tier_name: 'My Custom Tier',
       header_tier_color: 'rose',
     });
-    const { container } = render(() => <table><tbody><tr>{ModelCell(row)}</tr></tbody></table>);
+    const { container } = render(() => (
+      <table>
+        <tbody>
+          <tr>{ModelCell(row)}</tr>
+        </tbody>
+      </table>
+    ));
     const badge = container.querySelector('.tier-badge--custom');
     expect(badge).not.toBeNull();
     expect(badge!.textContent).toBe('My Custom Tier');
@@ -273,7 +324,13 @@ describe('ModelCell', () => {
 
   it('uses indigo as default header tier color', () => {
     const row = baseRow({ header_tier_name: 'Tier A' });
-    const { container } = render(() => <table><tbody><tr>{ModelCell(row)}</tr></tbody></table>);
+    const { container } = render(() => (
+      <table>
+        <tbody>
+          <tr>{ModelCell(row)}</tr>
+        </tbody>
+      </table>
+    ));
     const badge = container.querySelector('.tier-badge--custom');
     expect(badge).not.toBeNull();
     expect(badge!.className).toContain('tier-color--indigo');
@@ -285,7 +342,13 @@ describe('ModelCell', () => {
       provider: 'custom:u-1',
       custom_provider_name: 'MyLLM',
     });
-    const { container } = render(() => <table><tbody><tr>{ModelCell(row)}</tr></tbody></table>);
+    const { container } = render(() => (
+      <table>
+        <tbody>
+          <tr>{ModelCell(row)}</tr>
+        </tbody>
+      </table>
+    ));
     expect(container.textContent).toContain('openai/gpt-oss-120b');
     expect(container.textContent).not.toContain('custom:');
     expect(container.textContent).not.toContain('Custom');
@@ -298,7 +361,13 @@ describe('ModelCell', () => {
       provider: 'custom:gone',
       custom_provider_name: null,
     });
-    const { container } = render(() => <table><tbody><tr>{ModelCell(row)}</tr></tbody></table>);
+    const { container } = render(() => (
+      <table>
+        <tbody>
+          <tr>{ModelCell(row)}</tr>
+        </tbody>
+      </table>
+    ));
     expect(container.textContent).toContain('my-model');
     expect(container.textContent).not.toContain('custom:');
     const avatar = container.querySelector('.provider-card__logo-letter');

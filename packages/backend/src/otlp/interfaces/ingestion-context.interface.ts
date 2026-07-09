@@ -8,3 +8,14 @@ export interface IngestionContext {
    */
   userId: string | null;
 }
+
+/**
+ * Attribution for a request the auth guard REJECTED but could still trace back
+ * to an agent (today: an expired key, M004). Deliberately a separate property
+ * from `ingestionContext` — the request is unauthenticated, and nothing
+ * downstream may mistake this for a passing auth check. Only the proxy's
+ * exception filter reads it, to record the rejection as a message row.
+ */
+export interface RequestWithManifestErrorContext {
+  manifestErrorContext?: IngestionContext;
+}

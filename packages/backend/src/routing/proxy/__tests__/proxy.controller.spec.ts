@@ -1,5 +1,6 @@
 import { HttpException } from '@nestjs/common';
 import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
+import { ManifestError } from '../../../common/errors/manifest-error';
 import { ProxyController } from '../proxy.controller';
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
 import { ProxyMessageDedup } from '../proxy-message-dedup';
@@ -345,18 +346,29 @@ describe('ProxyController', () => {
   });
 
   it('routes a non-402 plan-lookup error through the normal proxy error handler', async () => {
-    // A subscription/tenant lookup failure is an ordinary proxy error: it should
-    // be recorded + normalized, not thrown raw (which would 500 the caller).
+    // A subscription/tenant lookup failure is Manifest's own bug (M500), not a
+    // provider failure — it must be recorded + normalized, never thrown raw
+    // (which would 500 the caller) and never blamed on the provider.
     planService.assertWithinRequestLimit.mockRejectedValueOnce(new Error('subscription db down'));
-    const recordSpy = jest.spyOn(recorder, 'recordProviderError');
+    const manifestSpy = jest.spyOn(recorder, 'recordManifestBlockedRequest');
+    const providerSpy = jest.spyOn(recorder, 'recordProviderError');
 
     const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
     const { res } = mockResponse();
 
     await controller.chatCompletions(req as never, res as never);
 
-    // handleProxyError records the failure and never reaches routing.
-    expect(recordSpy).toHaveBeenCalled();
+    expect(providerSpy).not.toHaveBeenCalled();
+    expect(manifestSpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        errorCode: 'M500',
+        reason: 'manifest_internal_error',
+        httpStatus: 500,
+        // The real internal message, not the friendly text the caller sees.
+        errorMessage: expect.stringContaining('subscription db down'),
+      }),
+    );
     expect(proxyService.proxyRequest).not.toHaveBeenCalled();
   });
 
@@ -1381,8 +1393,10 @@ describe('ProxyController', () => {
     });
 
     it('should record local rate-limit blocks as Manifest policy rows', async () => {
+      // The real limiter throws a ManifestError — that type is what tells the
+      // controller this 429 is Manifest's, not a provider's.
       rateLimiter.checkLimit.mockImplementation(() => {
-        throw new HttpException('Too many requests — wait a few seconds and retry.', 429);
+        throw new ManifestError('M201', 429);
       });
 
       const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -1399,6 +1413,174 @@ describe('ProxyController', () => {
           routing_reason: 'manifest_rate_limited',
           error_origin: 'policy',
           error_class: 'rate_limit',
+          error_code: 'M201',
+        }),
+      );
+    });
+
+    it('names which limit fired: per-IP is M202, not the per-user reason', async () => {
+      rateLimiter.checkIpLimit.mockImplementation(() => {
+        throw new ManifestError('M202', 429);
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error_code: 'M202',
+          routing_reason: 'manifest_ip_rate_limited',
+          error_origin: 'policy',
+        }),
+      );
+    });
+
+    it('names which limit fired: concurrency is M203', async () => {
+      rateLimiter.acquireSlot.mockImplementation(() => {
+        throw new ManifestError('M203', 429);
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error_code: 'M203',
+          routing_reason: 'manifest_concurrency_limited',
+        }),
+      );
+    });
+  });
+
+  describe('Manifest-authored failures', () => {
+    it('records a malformed body (M300) on the request origin, not the provider', async () => {
+      proxyService.proxyRequest.mockRejectedValueOnce(new ManifestError('M300', 400));
+      const providerSpy = jest.spyOn(recorder, 'recordProviderError');
+
+      const req = mockRequest({ messages: [] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(providerSpy).not.toHaveBeenCalled();
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'error',
+          error_code: 'M300',
+          error_http_status: 400,
+          error_origin: 'request',
+          error_class: 'invalid_request',
+          provider: null,
+          routing_tier: null,
+        }),
+      );
+    });
+
+    it('never records an unauthenticated auth failure — there is no agent to attribute it to', async () => {
+      // M005 reaches the proxy only via the guard, which throws before any tenant
+      // resolves. If it ever surfaced here it must still write nothing.
+      proxyService.proxyRequest.mockRejectedValueOnce(new ManifestError('M005', 401));
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+    });
+
+    it('swallows a recorder failure on the stub path rather than failing the response', async () => {
+      jest
+        .spyOn(recorder, 'recordManifestBlockedRequest')
+        .mockRejectedValueOnce(new Error('db down'));
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: new Response(
+            JSON.stringify({
+              choices: [{ message: { role: 'assistant', content: 'no key' } }],
+              usage: { prompt_tokens: 0, completion_tokens: 0 },
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          ),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'simple',
+          model: 'manifest',
+          provider: 'manifest',
+          confidence: 1,
+          reason: 'no_provider',
+          manifest_error_code: 'M101',
+          manifest_error_message: '[🦚 Manifest M101] No providers set up yet.',
+        },
+        failedFallbacks: [],
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await expect(controller.chatCompletions(req as never, res as never)).resolves.toBeUndefined();
+      await flushRecorderMicrotasks();
+
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('records an HTTP-200 friendly stub as a failed setup row, not a success', async () => {
+      // What the user saw in the dashboard as "Failed: Setup": the proxy answered
+      // 200 with a canned assistant message because no provider key was present.
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: new Response(
+            JSON.stringify({
+              choices: [{ message: { role: 'assistant', content: 'no key' } }],
+              usage: { prompt_tokens: 0, completion_tokens: 0 },
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          ),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'simple',
+          model: 'manifest',
+          provider: 'manifest',
+          confidence: 1,
+          reason: 'no_provider_key',
+          manifest_error_code: 'M100',
+          manifest_error_message: '[🦚 Manifest M100] No anthropic API key yet.',
+        },
+        failedFallbacks: [],
+      });
+      const successSpy = jest.spyOn(recorder, 'recordSuccessMessage');
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }], model: 'auto' });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(successSpy).not.toHaveBeenCalled();
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'error',
+          error_code: 'M100',
+          error_message: '[🦚 Manifest M100] No anthropic API key yet.',
+          error_origin: 'config',
+          error_class: 'no_provider_key',
+          model: 'auto',
+          provider: null,
+          routing_tier: null,
         }),
       );
     });

@@ -1,4 +1,6 @@
-export const MANIFEST_ERRORS_DOCS_BASE = 'https://manifest.build/docs/errors';
+import { MANIFEST_ERRORS_DOCS_BASE } from 'manifest-shared';
+
+export { MANIFEST_ERRORS_DOCS_BASE };
 
 const PEACOCK = '🦚';
 
