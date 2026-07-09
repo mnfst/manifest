@@ -34,7 +34,7 @@
     "@better-auth/stripe": "1.6.11",
     "@react-email/components": "^1.0.7",
     "@react-email/render": "^2.0.4",
-    "better-auth": "1.6.11",
+    "better-auth": "1.6.13",
     "cache-manager": "^7.2.8",
     "cacheable": "^2.3.5",
     "class-transformer": "^0.5.1",
@@ -52,7 +52,7 @@
     "rxjs": "^7.8.0",
     "stripe": "^18.0.0",
     "typeorm": "^0.3.0",
-    "uuid": "^11.0.0"
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
