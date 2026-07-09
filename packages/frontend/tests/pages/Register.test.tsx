@@ -457,6 +457,35 @@ describe('Register', () => {
     });
   });
 
+  it('shows "Choose your plan" title when context=login (existing/OAuth user)', async () => {
+    mockSearchParams = { step: 'plan', context: 'login' };
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: 'free',
+      priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
+    });
+
+    render(() => <Register />);
+    await vi.waitFor(() => {
+      expect(screen.getByText('Choose your plan')).toBeDefined();
+    });
+    expect(screen.getByText(/Manifest now offers Free and Pro plans/)).toBeDefined();
+  });
+
+  it('shows "Create an account" title without context=login (email signup)', async () => {
+    mockSearchParams = { step: 'plan' };
+    mockGetBillingStatus.mockResolvedValue({
+      enabled: true,
+      plan: 'free',
+      priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
+    });
+
+    render(() => <Register />);
+    await vi.waitFor(() => {
+      expect(screen.getByText('Create an account')).toBeDefined();
+    });
+  });
+
   it('clears the cooldown interval on unmount', async () => {
     const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
     mockSignUpEmail.mockResolvedValue({ error: null });

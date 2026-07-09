@@ -330,14 +330,22 @@ const Register: Component = () => {
           }
         >
           <div class="auth-header">
-            <h1 class="auth-header__title">Create an account</h1>
-            <p class="auth-header__subtitle">Monitor your AI harnesses' costs and usage</p>
+            <h1 class="auth-header__title">
+              {searchParams.context === 'login' ? 'Choose your plan' : 'Create an account'}
+            </h1>
+            <p class="auth-header__subtitle">
+              {searchParams.context === 'login'
+                ? 'Manifest now offers Free and Pro plans. Select the one that fits your needs.'
+                : 'Monitor your AI harnesses\' costs and usage'}
+            </p>
           </div>
 
-          <div class="plan-picker__section-header">
-            <h2 class="plan-picker__section-title">Choose your plan</h2>
-            <p class="plan-picker__section-subtitle">You can change your plan anytime</p>
-          </div>
+          <Show when={searchParams.context !== 'login'}>
+            <div class="plan-picker__section-header">
+              <h2 class="plan-picker__section-title">Choose your plan</h2>
+              <p class="plan-picker__section-subtitle">You can change your plan anytime</p>
+            </div>
+          </Show>
 
           <PlanPicker proPrice={proPrice()} onSelect={handlePlanSelect} busy={planBusy()} />
         </Show>

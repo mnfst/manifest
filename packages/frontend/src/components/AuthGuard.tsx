@@ -27,7 +27,7 @@ const AuthGuard: ParentComponent = (props) => {
     getBillingStatus()
       .then((status) => {
         if (status?.enabled && status.plan !== 'pro') {
-          navigate('/register?step=plan', { replace: true });
+          navigate('/register?step=plan&context=login', { replace: true });
         } else {
           if (userId) markPlanChosen(userId);
           setPlanChecked(true);
