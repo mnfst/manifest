@@ -346,12 +346,12 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                         </svg>
                         <span>
                           {m.error_message}
-                          <Show when={m.error_origin === 'policy' && m.error_class === 'limit_exceeded'}>
+                          <Show when={m.error_origin === 'policy' && m.error_class === 'limit_exceeded' && m.error_http_status === 402}>
                             {' '}Upgrade to Pro for unlimited requests.
                           </Show>
                         </span>
-                        <Show when={m.error_origin === 'policy' && m.error_class === 'limit_exceeded'}>
-                          <A href="/upgrade" class="btn btn--primary btn--sm" style="text-decoration: none; flex-shrink: 0; margin-left: 8px;">
+                        <Show when={m.error_origin === 'policy' && m.error_class === 'limit_exceeded' && m.error_http_status === 402}>
+                          <A href="/upgrade?reason=requests" class="btn btn--primary btn--sm" style="text-decoration: none; flex-shrink: 0; margin-left: 8px;">
                             Upgrade plan
                           </A>
                         </Show>

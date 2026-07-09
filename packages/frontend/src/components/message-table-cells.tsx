@@ -451,7 +451,7 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
           {pill.label}
         </A>
         {planLimit && (
-          <A href="/upgrade" class="btn btn--primary btn--sm" style="margin-left: 6px; font-size: 11px; padding: 2px 8px; text-decoration: none;">
+          <A href="/upgrade?reason=requests" class="btn btn--primary btn--sm" style="margin-left: 6px; font-size: 11px; padding: 2px 8px; text-decoration: none;">
             Upgrade plan
           </A>
         )}
