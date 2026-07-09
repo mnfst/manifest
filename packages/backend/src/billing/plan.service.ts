@@ -32,6 +32,8 @@ const BILLING_PRICE_UNAVAILABLE: BillingPrice = Object.freeze({
 // letting a few extra requests through, never toward false blocks.
 const REQUEST_COUNT_CACHE_TTL_MS = 30 * 1000;
 const MAX_REQUEST_COUNT_CACHE_SIZE = 10_000;
+const DEFAULT_REQUEST_QUOTA_RESET_AT = '2026-07-09T09:06:52Z';
+const REQUEST_QUOTA_RESET_AT_ENV = 'PLAN_REQUEST_QUOTA_RESET_AT';
 const MANIFEST_ERROR_ORIGIN_SQL_LIST = MANIFEST_ERROR_ORIGINS.map((origin) => `'${origin}'`).join(
   ', ',
 );
@@ -53,12 +55,18 @@ function envLimit(name: string): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
-/** Cached monthly request count for one tenant. Keyed by the UTC month it
- * covers so a month rollover invalidates naturally instead of serving last
- * month's total under this month's periodEnd. `pending` coalesces concurrent
+function requestQuotaResetAtMs(): number {
+  const raw = process.env[REQUEST_QUOTA_RESET_AT_ENV]?.trim() || DEFAULT_REQUEST_QUOTA_RESET_AT;
+  const parsed = Date.parse(raw);
+  return Number.isFinite(parsed) ? parsed : Date.parse(DEFAULT_REQUEST_QUOTA_RESET_AT);
+}
+
+/** Cached monthly request count for one tenant. Keyed by the effective quota
+ * window start so a month rollover invalidates naturally instead of serving
+ * last month's total under this month's periodEnd. `pending` coalesces concurrent
  * misses (single-flight) so a burst can't stampede the DB with COUNT(*). */
 interface RequestCountEntry {
-  monthStartMs: number;
+  windowStartMs: number;
   count?: number;
   fetchedAt?: number;
   pending?: Promise<number>;
@@ -184,9 +192,13 @@ export class PlanService {
     return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
   }
 
+  private requestQuotaWindowStartMs(monthStartMs: number): number {
+    return Math.max(monthStartMs, requestQuotaResetAtMs());
+  }
+
   /**
-   * Routed requests recorded for the tenant since `monthStartMs`, cached per
-   * tenant+month with single-flight coalescing. "Routed request" = one
+   * Routed requests recorded for the tenant since the effective quota window
+   * start, cached per tenant+window with single-flight coalescing. "Routed request" = one
    * non-superseded `agent_messages` row that does not belong to the tenant's
    * Playground agent:
    *  - `superseded = false` drops intermediate fallback attempts, which the
@@ -199,9 +211,10 @@ export class PlanService {
    */
   async countRequestsSince(tenantId: string | null, monthStartMs: number): Promise<number> {
     if (!tenantId) return 0;
+    const windowStartMs = this.requestQuotaWindowStartMs(monthStartMs);
 
     const cached = this.requestCountCache.get(tenantId);
-    if (cached && cached.monthStartMs === monthStartMs) {
+    if (cached && cached.windowStartMs === windowStartMs) {
       if (cached.pending) return cached.pending;
       if (cached.count !== undefined && cached.fetchedAt !== undefined) {
         if (Date.now() - cached.fetchedAt < REQUEST_COUNT_CACHE_TTL_MS) return cached.count;
@@ -220,11 +233,11 @@ export class PlanService {
               SELECT 1 FROM agents pa
                WHERE pa.id = m.agent_id AND pa.is_playground = true
             )`,
-        [tenantId, toLocalSqlTimestamp(new Date(monthStartMs))],
+        [tenantId, toLocalSqlTimestamp(new Date(windowStartMs))],
       )
       .then((rows: Array<{ n: number }>) => {
         const count = rows[0]?.n ?? 0;
-        this.requestCountCache.set(tenantId, { monthStartMs, count, fetchedAt: Date.now() });
+        this.requestCountCache.set(tenantId, { windowStartMs, count, fetchedAt: Date.now() });
         this.evictRequestCountCache();
         return count;
       })
@@ -237,7 +250,7 @@ export class PlanService {
         throw err;
       });
 
-    this.requestCountCache.set(tenantId, { monthStartMs, pending });
+    this.requestCountCache.set(tenantId, { windowStartMs, pending });
     return pending;
   }
 

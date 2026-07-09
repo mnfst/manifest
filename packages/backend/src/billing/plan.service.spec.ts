@@ -287,13 +287,14 @@ describe('PlanService', () => {
 
   describe('countRequestsSince', () => {
     const START = Date.UTC(2026, 6, 1); // 2026-07-01 UTC
+    const ROLLOUT_RESET = Date.parse('2026-07-09T09:06:52Z');
 
     it('returns 0 for a null tenantId without querying', async () => {
       expect(await service.countRequestsSince(null, START)).toBe(0);
       expect(mockQuery).not.toHaveBeenCalled();
     });
 
-    it('counts via SQL, excluding Manifest-side blocks, and passes the tenant + month-start params', async () => {
+    it('counts via SQL, excluding Manifest-side blocks, and applies the rollout reset window', async () => {
       mockQuery.mockResolvedValue([{ n: 7 }]);
       expect(await service.countRequestsSince('t1', START)).toBe(7);
       const [sql, params] = mockQuery.mock.calls[0];
@@ -301,7 +302,18 @@ describe('PlanService', () => {
         "m.error_origin IS NULL OR m.error_origin NOT IN ('config', 'policy', 'internal')",
       );
       expect(params[0]).toBe('t1');
-      expect(params[1]).toBe(toLocalSqlTimestamp(new Date(START)));
+      expect(params[1]).toBe(toLocalSqlTimestamp(new Date(ROLLOUT_RESET)));
+    });
+
+    it('allows the quota reset window to be moved by env override', async () => {
+      process.env['PLAN_REQUEST_QUOTA_RESET_AT'] = '2026-07-10T12:34:56Z';
+      mockQuery.mockResolvedValue([{ n: 4 }]);
+
+      expect(await service.countRequestsSince('t1', START)).toBe(4);
+
+      expect(mockQuery.mock.calls[0][1][1]).toBe(
+        toLocalSqlTimestamp(new Date('2026-07-10T12:34:56Z')),
+      );
     });
 
     it('caches within the TTL — a second call does not re-query', async () => {
@@ -354,11 +366,27 @@ describe('PlanService', () => {
     });
 
     it('countRequestsThisMonth derives the current UTC month window', async () => {
-      mockQuery.mockResolvedValue([{ n: 2 }]);
-      expect(await service.countRequestsThisMonth('t1')).toBe(2);
-      const monthStart = new Date(mockQuery.mock.calls[0][1][1]);
-      expect(monthStart.getUTCDate()).toBe(1);
-      expect(monthStart.getUTCHours()).toBe(0);
+      jest.useFakeTimers().setSystemTime(new Date('2026-08-15T10:00:00Z'));
+      try {
+        mockQuery.mockResolvedValue([{ n: 2 }]);
+        expect(await service.countRequestsThisMonth('t1')).toBe(2);
+        expect(mockQuery.mock.calls[0][1][1]).toBe(
+          toLocalSqlTimestamp(new Date(Date.UTC(2026, 7, 1))),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('countRequestsThisMonth starts at the rollout reset during the rollout month', async () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-07-10T10:00:00Z'));
+      try {
+        mockQuery.mockResolvedValue([{ n: 2 }]);
+        expect(await service.countRequestsThisMonth('t1')).toBe(2);
+        expect(mockQuery.mock.calls[0][1][1]).toBe(toLocalSqlTimestamp(new Date(ROLLOUT_RESET)));
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('invalidateRequestCountCache forces the next count to re-query', async () => {
