@@ -9,6 +9,7 @@ import { HEALING_CLIENT, type HealingClient } from './healing-client';
 import { HttpHealingClient } from './http-healing-client';
 import { MockHealingClient } from './mock-healing-client';
 import { NoopHealingClient } from './noop-healing-client';
+import { ObservationReporter } from './observation-reporter';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
@@ -25,6 +26,7 @@ const DEFAULT_TIMEOUT_MS = 10_000;
   providers: [
     AutofixService,
     AutofixHealthProbe,
+    ObservationReporter,
     {
       provide: HEALING_CLIENT,
       useFactory: (config: ConfigService): HealingClient => {
@@ -48,6 +50,6 @@ const DEFAULT_TIMEOUT_MS = 10_000;
       inject: [ConfigService],
     },
   ],
-  exports: [AutofixService],
+  exports: [AutofixService, ObservationReporter],
 })
 export class AutofixModule {}

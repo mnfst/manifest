@@ -192,6 +192,7 @@ describe('ProxyController', () => {
       new ReasoningContentCache(),
       modelDiscovery as never,
       planService as never,
+      { report: jest.fn() } as never,
     );
   });
 

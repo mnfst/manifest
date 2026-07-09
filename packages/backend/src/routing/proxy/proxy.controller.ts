@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response as ExpressResponse } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
+import { v4 as uuid } from 'uuid';
 import { Public } from '../../common/decorators/public.decorator';
 import { AgentKeyAuthGuard } from '../../otlp/guards/agent-key-auth.guard';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
@@ -24,6 +25,7 @@ import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { classifyCaller } from './caller-classifier';
+import { ObservationReporter } from '../autofix/observation-reporter';
 import { sanitizeRequestHeaders } from './request-headers';
 import {
   buildMetaHeaders,
@@ -78,6 +80,7 @@ export class ProxyController {
     private readonly reasoningCache: ReasoningContentCache,
     private readonly modelDiscovery: ModelDiscoveryService,
     private readonly planService: PlanService,
+    private readonly observationReporter: ObservationReporter,
   ) {}
 
   @Get('models')
@@ -225,6 +228,29 @@ export class ProxyController {
 
       if (!providerResponse.ok) {
         const errorBody = await providerResponse.text();
+        // Evidence feed (AUTOFIX_REPORT_ALL_4XX). Auto-fix already hands Phoenix
+        // the full body for the requests it heals; every other request-side 4xx
+        // reaches Phoenix only via Peacock's hourly scrape, which carries the
+        // model-parameter snapshot and not the messages. Report it live instead.
+        //
+        // `traceId` is the `traceparent` id Peacock's scrape reports for the same
+        // row, so a scraped duplicate collapses onto this one in Phoenix's ledger.
+        // Callers that send no `traceparent` get a fresh id, which the scrape
+        // cannot match — those failures are recorded twice until the scrape is
+        // retired for live traffic.
+        if (!autofix) {
+          this.observationReporter.report({
+            traceId: traceId ?? uuid(),
+            tenantId,
+            provider: meta.provider,
+            apiMode,
+            requestBody: routingBody,
+            resolvedModel: meta.model,
+            status: providerResponse.status,
+            errorBody,
+            responseTimeMs: Date.now() - startTime,
+          });
+        }
         await handleProviderError(
           res,
           req.ingestionContext,

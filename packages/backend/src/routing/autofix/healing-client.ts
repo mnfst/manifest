@@ -16,6 +16,13 @@ export interface HealingClient {
    * never breaks the user's request.
    */
   reportOutcome(healAttemptId: string, outcome: HealOutcome): Promise<ConfirmResponse | null>;
+  /**
+   * Bulk-report failed requests as evidence, without asking for a fix. Phoenix
+   * fingerprints each into an issue and stores the body; nothing is served back
+   * and no heal attempt is created. Best-effort like {@link reportOutcome}: never
+   * throws, so a healer outage costs evidence rather than a request.
+   */
+  observe(observations: HealRequest[]): Promise<void>;
 }
 
 /** DI token for the active HealingClient implementation. */

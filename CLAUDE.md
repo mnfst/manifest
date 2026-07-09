@@ -404,6 +404,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `AUTOFIX_HEALING_API_KEY` — Sent as `x-api-key` on every call to Phoenix. Phoenix guards `/api/heal*` and fails closed in production, so this is required when `AUTOFIX_HEALING_URL` points at a production Phoenix; omit it for a keyless dev/test Phoenix.
 - `AUTOFIX_GLOBAL_ENABLED` — Set `false` to disable Auto-fix for all agents (default on). Companions: `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
 - `AUTOFIX_ROLLOUT` — Three-phase early-access gate: `selected` (default — only tenants we hand-picked via `tenants.autofix_access_granted_at`), `waitlist` (+ anyone who joined `tenants.autofix_waitlist_at`), or `everyone` (GA). See [Auto-fix](#auto-fix-self-healing-via-phoenix).
+- `AUTOFIX_REPORT_ALL_4XX` — Set `true` to stream **every** request-side 4xx (4xx except 401/402/403/429) to Phoenix's `POST /api/heal/observe` as evidence, carrying the full request body. Independent of the rollout gate and of `AUTOFIX_REPAIRABLE_STATUSES`: it serves no fix and creates no heal attempt, it only lets Phoenix see the body that failed. Off by default — it ships caller prompt content to the healing service. Manifest persists nothing; the body is secret-scrubbed, capped at 256 KB, batched, and dropped under backpressure. Skipped when Auto-fix already reported the same failure via `/api/heal`. See `routing/autofix/observation-reporter.ts`.
 
 ## Domain Terminology
 
