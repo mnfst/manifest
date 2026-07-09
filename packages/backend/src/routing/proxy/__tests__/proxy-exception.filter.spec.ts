@@ -133,6 +133,24 @@ describe('ProxyExceptionFilter', () => {
       );
     });
 
+    it('stores the same text the caller saw, dashboard link included', () => {
+      const { host, req, res } = chatHost();
+      req.manifestErrorContext = {
+        tenantId: 't-1',
+        agentId: 'a-1',
+        agentName: 'Fireplace',
+        userId: null,
+      };
+
+      filter.catch(new UnauthorizedException('API key expired'), host);
+
+      const recorded = recordManifestBlockedRequest.mock.calls[0][1].errorMessage as string;
+      const shown = res.json.mock.calls[0][0].choices[0].message.content as string;
+      expect(recorded).toBe(shown);
+      // A row that doesn't say where to generate a new key isn't actionable.
+      expect(recorded).toContain('http://localhost:3001');
+    });
+
     it('records nothing when the key never resolved to an agent', () => {
       const { host } = chatHost();
       filter.catch(new UnauthorizedException('API key expired'), host);

@@ -137,6 +137,14 @@ describe('AddMessageErrorCode migration — data backfill (e2e)', () => {
     await insertRow(ds, stub('m-internal', 'friendly_error', 'internal'));
     await insertRow(ds, stub('m-ratelimit', 'manifest_rate_limited', 'policy', 429));
 
+    // A failed stub written before the taxonomy backfill: still NULL origin.
+    // Prod has a handful of these; keying the cleanup on error_origin missed them.
+    await insertRow(ds, { ...stub('m-null-origin', 'no_provider_key', null), status: 'error' });
+
+    // A much older stub, recorded as a success before the canned-status change.
+    // It still counts as a message, so its placeholder model must survive.
+    await insertRow(ds, { ...stub('m-legacy-ok', 'no_provider', null), status: 'ok' });
+
     // A real provider failure must be left completely untouched.
     await insertRow(ds, {
       id: 'm-provider',
@@ -185,6 +193,24 @@ describe('AddMessageErrorCode migration — data backfill (e2e)', () => {
     expect(row.provider).toBeNull();
     expect(row.model).toBeNull();
     expect(row.routing_tier).toBeNull();
+  });
+
+  it('clears the placeholders on a failed stub whose error_origin was never backfilled', async () => {
+    const row = await fetchRow(ds, 'm-null-origin');
+    expect(row.provider).toBeNull();
+    expect(row.model).toBeNull();
+    expect(row.routing_tier).toBeNull();
+    // The code backfill keys on routing_reason, so it reaches this row too.
+    expect(row.error_code).toBe('M100');
+  });
+
+  it('leaves a legacy stub that was recorded as a success alone', async () => {
+    // status='ok' rows still count as messages; nulling the model would move
+    // them under "unknown model" in the cost breakdown.
+    const row = await fetchRow(ds, 'm-legacy-ok');
+    expect(row.provider).toBe('manifest');
+    expect(row.model).toBe('manifest');
+    expect(row.routing_tier).toBe('simple');
   });
 
   it('never touches a real provider failure', async () => {

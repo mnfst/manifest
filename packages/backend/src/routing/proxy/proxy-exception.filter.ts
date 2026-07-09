@@ -56,8 +56,11 @@ export class ProxyExceptionFilter implements ExceptionFilter {
    * The guard resolved that agent before noticing the expiry and left it on
    * `manifestErrorContext`; without a context there is nobody to attribute the
    * row to, so nothing is written.
+   *
+   * `content` is the exact text the caller received, dashboard link included —
+   * the row is only useful if it says where to generate a new key.
    */
-  private recordExpiredKey(req: Request): void {
+  private recordExpiredKey(req: Request, content: string): void {
     const ctx = (req as Request & RequestWithManifestErrorContext).manifestErrorContext;
     if (!ctx) return;
     const body = req.body as Record<string, unknown> | undefined;
@@ -65,7 +68,7 @@ export class ProxyExceptionFilter implements ExceptionFilter {
     this.recorder
       .recordManifestBlockedRequest(ctx, {
         httpStatus: 401,
-        errorMessage: formatManifestError('M004'),
+        errorMessage: content,
         errorCode: 'M004',
         reason: MANIFEST_CODE_TO_REASON.M004,
         model,
@@ -127,13 +130,13 @@ export class ProxyExceptionFilter implements ExceptionFilter {
 
     const errorCode = AUTH_ERROR_CODES[message];
     if (errorCode) {
-      if (errorCode === 'M004') this.recordExpiredKey(req);
       const friendly = formatManifestError(errorCode);
       const dashboardUrl = getDashboardUrl(this.config);
       const content =
         errorCode === 'M004'
           ? `${friendly}: ${dashboardUrl}`
           : `${friendly}\n\nDashboard: ${dashboardUrl}`;
+      if (errorCode === 'M004') this.recordExpiredKey(req, content);
       if (isChatClient) {
         sendFriendlyResponse(res, content, isStream);
       } else {

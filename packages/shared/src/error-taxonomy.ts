@@ -76,7 +76,7 @@ export const ERROR_CLASSES = [
   // transport
   'timeout',
   'network',
-  // manifest (config / policy / internal)
+  // manifest (config / policy / internal / request)
   'no_provider',
   'no_provider_key',
   'limit_exceeded',
@@ -200,7 +200,11 @@ export function classifyMessageError(signals: MessageErrorSignals): MessageError
   return { error_origin: 'transport', error_class: 'network', superseded };
 }
 
-/** True when an origin is Manifest's own (config/policy/internal), not a provider round-trip. */
+/**
+ * True when an origin is Manifest's own — config, policy, internal, or request —
+ * rather than a provider round-trip. Reads MANIFEST_ERROR_ORIGINS, so a new
+ * origin added there is covered without touching this guard.
+ */
 export function isManifestErrorOrigin(
   origin: string | null | undefined,
 ): origin is ManifestErrorOrigin {

@@ -10,10 +10,11 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  *    M201 / M202 / M203 (per-user, per-IP, concurrency) and cannot be resolved
  *    retroactively.
  * 3. Clears the placeholder `model`/`provider`/`routing_tier` that the canned
- *    stub path stamped on Manifest rows ('manifest' / 'manifest' / 'simple').
- *    Those values are not a real model, provider, or routing decision — they
- *    only polluted the Messages filter dropdowns and put a meaningless SIMPLE
- *    tier badge on setup errors. Only rows Manifest itself authored are touched.
+ *    stub path stamped on failed Manifest rows ('manifest' / 'manifest' /
+ *    'simple'). Those values are not a real model, provider, or routing decision
+ *    — they only polluted the Messages filter dropdowns and put a meaningless
+ *    SIMPLE tier badge on setup errors. Only rows Manifest itself authored are
+ *    touched, and only the failed ones (see the WHERE clause below).
  */
 export class AddMessageErrorCode1800200000000 implements MigrationInterface {
   name = 'AddMessageErrorCode1800200000000';
@@ -37,11 +38,21 @@ export class AddMessageErrorCode1800200000000 implements MigrationInterface {
              )
     `);
 
+    // `provider = 'manifest'` is the unambiguous marker: no real provider is
+    // named that (custom ones are `custom:<uuid>`), and only the canned-stub path
+    // ever wrote it. Keying on that rather than on `error_origin` also catches
+    // the handful of failed stubs written between the canned-status change and
+    // the taxonomy backfill, whose `error_origin` is still NULL.
+    //
+    // `status <> 'ok'` protects a much older cohort: Manifest stubs that predate
+    // the canned-status change and were recorded as successes. They keep their
+    // placeholder model, because they still count as messages and nulling it
+    // would move them under "unknown model" in the cost breakdown.
     await queryRunner.query(`
       UPDATE agent_messages
          SET model = NULL, provider = NULL, routing_tier = NULL
-       WHERE error_origin IN ('config', 'policy', 'internal')
-         AND provider = 'manifest'
+       WHERE provider = 'manifest'
+         AND status IS DISTINCT FROM 'ok'
     `);
   }
 
