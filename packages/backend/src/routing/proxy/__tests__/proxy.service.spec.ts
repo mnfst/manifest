@@ -85,7 +85,9 @@ const specCatalog: ProviderParamSpecCatalog = [
 ];
 
 describe('ProxyService — orchestration', () => {
-  let resolveService: jest.Mocked<Pick<ResolveService, 'resolve' | 'resolveForTier'>>;
+  let resolveService: jest.Mocked<
+    Pick<ResolveService, 'resolve' | 'resolveForTier' | 'resolveHeaderTier'>
+  >;
   let providerKeyService: jest.Mocked<
     Pick<
       ProviderKeyService,
@@ -125,6 +127,7 @@ describe('ProxyService — orchestration', () => {
     resolveService = {
       resolve: jest.fn(),
       resolveForTier: jest.fn(),
+      resolveHeaderTier: jest.fn().mockResolvedValue(null),
     };
     modelDiscovery = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
@@ -434,9 +437,26 @@ describe('ProxyService — orchestration', () => {
     it('returns a synthetic 502 (without throwing) when the heal changes to a model that no longer resolves (M5 no-route)', async () => {
       routableResolve();
       fallbackService.tryForwardToProvider.mockResolvedValueOnce(fwd(400));
-      // No discovered models → routeForOpenAiModelId returns null → the re-resolve
-      // yields no route, so reforwardHealed surfaces a synthetic 502 forward.
+      // No discovered models → the healed model resolves to no route, and the
+      // configured routing it falls back to has none either, so reforwardHealed
+      // surfaces a synthetic 502 forward. The primary forward resolved first.
       modelDiscovery.getModelsForAgent.mockResolvedValue([]);
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: null,
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      resolveService.resolve.mockResolvedValueOnce({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
       let reforwardResult: { response: Response } | undefined;
       autofixService.maybeHeal.mockImplementation(
         async (params: {
@@ -831,21 +851,110 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
-    it('does not silently auto-route unlisted model IDs', async () => {
+    it('routes a bare provider-native model name to the one connection carrying it', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
+      ]);
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: { model: 'gpt-4o-mini', messages: [{ role: 'user', content: 'hi' }] },
+        }),
+      );
+
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'openai', authType: 'api_key', model: 'gpt-4o-mini' }),
+      );
+    });
+
+    // The regression that made every SDK sending an unrecognized `model` fail
+    // with M101 "no providers configured" — on agents whose providers were
+    // connected. An unroutable name must land on configured routing instead.
+    it('falls back to configured routing for a model no connection carries', async () => {
       modelDiscovery.getModelsForAgent.mockResolvedValue([
         discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
       ]);
 
       const result = await svc.proxyRequest(
         baseOpts({
-          body: { model: 'gpt-4o-mini', messages: [{ role: 'user', content: 'hi' }] },
+          body: { model: 'some-retired-model', messages: [{ role: 'user', content: 'hi' }] },
         }),
       );
       const body = await result.forward.response.text();
 
-      expect(resolveService.resolve).not.toHaveBeenCalled();
-      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
-      expect(body).toContain('M101');
+      expect(body).not.toContain('M101');
+      expect(resolveService.resolve).toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'anthropic',
+          authType: 'api_key',
+          model: 'claude-sonnet-4-5',
+        }),
+      );
+    });
+
+    it('falls back to configured routing when two connections carry the same bare name', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'api_key' }),
+        discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'subscription' }),
+      ]);
+
+      await svc.proxyRequest(
+        baseOpts({ body: { model: 'gpt-4o', messages: [{ role: 'user', content: 'hi' }] } }),
+      );
+
+      expect(resolveService.resolve).toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'anthropic', model: 'claude-sonnet-4-5' }),
+      );
+    });
+
+    // A header rule is an override the operator configured on purpose; the
+    // `model` field is mandatory in every OpenAI SDK, so it cannot outrank it.
+    it('lets a matching header tier outrank the explicit model', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
+      ]);
+      resolveService.resolveHeaderTier.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-5.4-nano'),
+        fallback_routes: null,
+        confidence: 1,
+        score: 0,
+        reason: 'header-match',
+        header_tier_id: 'ht-1',
+        header_tier_name: 'Groceries',
+      });
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: { model: 'gpt-4o-mini', messages: [{ role: 'user', content: 'hi' }] },
+          headers: { 'x-manifest-tag': 'groceries' },
+        }),
+      );
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'openai', model: 'gpt-5.4-nano' }),
+      );
+    });
+
+    it('routes the explicit model when no header tier matches', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
+      ]);
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: { model: 'gpt-4o-mini', messages: [{ role: 'user', content: 'hi' }] },
+          headers: { 'x-manifest-tag': 'unmatched' },
+        }),
+      );
+
+      expect(resolveService.resolveHeaderTier).toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'openai', model: 'gpt-4o-mini' }),
+      );
     });
 
     it('does not treat the Anthropic Messages model field as an SDK routing override', async () => {

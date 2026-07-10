@@ -217,7 +217,15 @@ export class ResolveService {
     };
   }
 
-  private async resolveHeaderTier(
+  /**
+   * Public so the proxy can apply header tiers ahead of an explicit `model` in
+   * the request body: a header rule is a deliberate override the operator
+   * configured, and it outranks the model an SDK happens to name.
+   *
+   * Returns null when no rule matches, and when the matched rule has no
+   * available route — both mean "keep looking".
+   */
+  async resolveHeaderTier(
     agentId: string,
     tenantId: string,
     headers: IncomingHttpHeaders,
