@@ -114,6 +114,7 @@ const MANIFEST_REASON_TO_CLASSIFICATION: Record<
   manifest_ip_rate_limited: { origin: 'policy', errorClass: 'rate_limit' },
   manifest_concurrency_limited: { origin: 'policy', errorClass: 'rate_limit' },
   manifest_invalid_request: { origin: 'request', errorClass: 'invalid_request' },
+  model_not_available: { origin: 'request', errorClass: 'not_found' },
   manifest_internal_error: { origin: 'internal', errorClass: 'internal' },
   // Legacy alias of `manifest_internal_error`, kept for rows already written.
   friendly_error: { origin: 'internal', errorClass: 'internal' },
