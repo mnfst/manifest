@@ -22,13 +22,11 @@ export function openAiModelId(model: DiscoveredModel): string {
  *
  * Matches the provider-qualified id published by `/v1/models`
  * (`openai/gpt-5.4-nano`) first, then the bare provider-native name
- * (`gpt-5.4-nano`) when it names exactly one discovered model. Most SDKs send a
- * bare name because the field is mandatory, and refusing to resolve it stranded
- * the request on an error even though the model was connected.
+ * (`gpt-5.4-nano`) when it names exactly one discovered model.
  *
  * Returns null for an unknown name, and for a bare name carried by more than
  * one connection (the same id under both an API key and a subscription) — the
- * caller cannot guess which was meant, so it falls back to configured routing.
+ * caller cannot guess which was meant.
  */
 export function routeForOpenAiModelId(
   modelId: string,

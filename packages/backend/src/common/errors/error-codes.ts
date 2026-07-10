@@ -62,6 +62,11 @@ export const MANIFEST_ERRORS = {
     title: 'Missing messages array',
     template: '`messages` array is required.',
   },
+  M302: {
+    title: 'Model not available',
+    template:
+      'Model "{model}" is not available for this agent. Use GET /v1/models to list available model IDs, or make the provider available for this agent here: {dashboardUrl}',
+  },
   M500: {
     title: 'Internal server error',
     template: 'Something broke on our end. Try again in a moment.',

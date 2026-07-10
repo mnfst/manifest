@@ -82,6 +82,16 @@ describe('every documented error code is accounted for', () => {
     expect(error_class).toBe('invalid_request');
   });
 
+  it('puts an unavailable explicit model on the request origin, not config', () => {
+    const { error_origin, error_class } = classifyMessageError({
+      status: 'error',
+      routingReason: MANIFEST_CODE_TO_REASON.M302,
+    });
+
+    expect(error_origin).toBe('request');
+    expect(error_class).toBe('not_found');
+  });
+
   it('keeps a Manifest internal error off the provider reliability signal', () => {
     const { error_origin } = classifyMessageError({
       status: 'error',
