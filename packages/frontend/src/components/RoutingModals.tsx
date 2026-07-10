@@ -68,7 +68,6 @@ interface RoutingModalsProps {
   ) => void;
   onProviderUpdate: () => Promise<void>;
   onProviderPoll?: () => Promise<void>;
-  onOpenProviderModal: () => void;
 }
 
 interface PendingOverride {
