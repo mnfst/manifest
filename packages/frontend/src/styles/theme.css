@@ -850,6 +850,12 @@ h6 {
   align-items: center;
   justify-content: space-between;
   margin: var(--gap-md) 0.5rem 1px;
+  border-radius: var(--radius);
+  transition: background var(--transition-fast);
+}
+
+.sidebar__section-header:hover {
+  background: hsl(var(--sidebar-accent));
 }
 
 /* Collapse toggle: carries the uppercased section label styling so it reads as
@@ -874,9 +880,12 @@ h6 {
   transition: background var(--transition-fast);
 }
 
-.sidebar__section-caret:hover,
 .sidebar__section-caret:focus-visible {
   background: hsl(var(--sidebar-accent));
+  color: hsl(var(--sidebar-foreground));
+}
+
+.sidebar__section-header:hover .sidebar__section-caret {
   color: hsl(var(--sidebar-foreground));
 }
 
@@ -886,10 +895,11 @@ h6 {
   justify-content: center;
   width: 22px;
   height: 22px;
-  background: hsl(var(--muted));
+  background: transparent;
   border: none;
   border-radius: var(--radius-sm);
   padding: 0;
+  margin-right: 2px;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
   transition:
