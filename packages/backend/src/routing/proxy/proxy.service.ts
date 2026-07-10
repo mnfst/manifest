@@ -653,20 +653,15 @@ export class ProxyService {
     // Anthropic Messages requests require a provider-native model field; only
     // OpenAI-compatible surfaces use /v1/models IDs as route overrides.
     if (apiMode !== 'messages' && requestedModel && requestedModel !== OPENAI_MODEL_ID_AUTO) {
-      const models = await this.modelDiscovery.getModelsForAgent(tenantId, agentId);
-      return {
-        tier: 'default' as const,
-        route: routeForOpenAiModelId(requestedModel, models),
-        fallback_routes: null,
-        response_mode: DEFAULT_RESPONSE_MODE,
-        confidence: 1,
-        score: 0,
-        reason: 'default' as const,
-        explicit_model_override: true,
-      };
+      const explicit = await this.resolveExplicitModel(agentId, tenantId, requestedModel, headers);
+      if (explicit) return explicit;
     }
 
-    const messages = body.messages as ScorerMessage[];
+    // Not guaranteed to be an array here: a healed body reaches this path from
+    // forwardResolvedHealed, which never runs it past validatePayload. An
+    // explicit model used to return before this line, so the fall-through is
+    // what newly exposes it to a body Phoenix rewrote.
+    const messages = (Array.isArray(body.messages) ? body.messages : []) as ScorerMessage[];
     const scoringMessages = this.filterScoringMessages(messages);
     const scoringTools = Array.isArray(body.tools) ? body.tools : undefined;
     const isHeartbeat = this.detectHeartbeat(scoringMessages);
@@ -689,6 +684,52 @@ export class ProxyService {
         ));
 
     return baseResolved;
+  }
+
+  /**
+   * Route the `model` an OpenAI-compatible client named in the body.
+   *
+   * A matching header tier wins: that rule is an override the operator
+   * configured on purpose, and the SDK's `model` field is mandatory, so most
+   * agents send a name they cannot change.
+   *
+   * Returns null when neither applies, which lands the request on configured
+   * routing. It must never fail on its own: an unrecognized name used to
+   * resolve to no route at all, and the caller reported that as M101 "no
+   * providers configured" — on agents whose providers were connected and whose
+   * header tier would have routed the request.
+   */
+  private async resolveExplicitModel(
+    agentId: string,
+    tenantId: string,
+    requestedModel: string,
+    headers: ProxyRequestOptions['headers'],
+  ): Promise<ResolvedRouting | null> {
+    if (headers) {
+      const headerTier = await this.resolveService.resolveHeaderTier(agentId, tenantId, headers);
+      if (headerTier) return headerTier;
+    }
+
+    const models = await this.modelDiscovery.getModelsForAgent(tenantId, agentId);
+    const route = routeForOpenAiModelId(requestedModel, models);
+    if (!route) {
+      this.logger.warn(
+        `Requested model "${requestedModel}" matches no connected model for agent=${agentId} — ` +
+          `falling back to configured routing`,
+      );
+      return null;
+    }
+
+    return {
+      tier: 'default' as const,
+      route,
+      fallback_routes: null,
+      response_mode: DEFAULT_RESPONSE_MODE,
+      confidence: 1,
+      score: 0,
+      reason: 'default' as const,
+      explicit_model_override: true,
+    };
   }
 
   private async resolveCredentials(
