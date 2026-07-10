@@ -477,8 +477,15 @@ describe('getSubscriptionKnownModelsMatch', () => {
 });
 
 describe('getSubscriptionExcludedModels', () => {
-  it('returns the -fast exclusion for anthropic', () => {
-    expect(getSubscriptionExcludedModels('anthropic')).toEqual(['-fast']);
+  it('returns the -fast and -20250514 exclusions for anthropic', () => {
+    // `-fast` drops the OpenRouter pricing-cache entries that 404 at
+    // api.anthropic.com. `-20250514` drops the retired
+    // claude-sonnet-4-20250514 / claude-opus-4-20250514 snapshots
+    // (retired 2026-06-15) if the pricing cache still surfaces them.
+    expect(getSubscriptionExcludedModels('anthropic')).toEqual([
+      '-fast',
+      '-20250514',
+    ]);
   });
 
   it('returns an empty array for providers with no exclusion configured', () => {
