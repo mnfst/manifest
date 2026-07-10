@@ -1502,11 +1502,16 @@ describe('ModelDiscoveryService', () => {
       );
 
       expect(fetcher.fetch).not.toHaveBeenCalled();
-      expect(result.map((m) => m.id)).toEqual([
+      // Curated list now includes the July 2026 Anthropic ids alongside
+      // the original family-prefix entries.
+      expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
-        'claude-opus-4',
-        'claude-sonnet-4',
         'claude-haiku-4',
+        'claude-haiku-4-5',
+        'claude-opus-4',
+        'claude-opus-4-6',
+        'claude-sonnet-4',
+        'claude-sonnet-5',
       ]);
     });
 
@@ -1819,14 +1824,19 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Should only include models matching knownModels prefixes (claude-opus-4, claude-sonnet-4, claude-haiku-4)
-      // and NOT claude-2.1 or openai models. claude-fable-5 has no OpenRouter
-      // pricing entry, so it is appended directly as a zero-cost known model.
-      expect(result).toHaveLength(4);
+      // and NOT claude-2.1 or openai models. claude-fable-5, claude-sonnet-5,
+      // claude-opus-4-6, and claude-haiku-4-5 have no OpenRouter pricing
+      // entry in this fixture, so they are appended directly as zero-cost
+      // known models from the curated list.
+      expect(result).toHaveLength(7);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
         'claude-haiku-4-20260301',
+        'claude-haiku-4-5',
         'claude-opus-4-20260301',
+        'claude-opus-4-6',
         'claude-sonnet-4-20260301',
+        'claude-sonnet-5',
       ]);
       // All should be stamped as subscription
       for (const m of result) {
@@ -2020,13 +2030,19 @@ describe('ModelDiscoveryService', () => {
         }),
       );
 
-      // Even without pricingSync, knownModels are returned directly
-      expect(result).toHaveLength(4);
+      // Even without pricingSync, knownModels are returned directly. The
+      // curated list now includes the July 2026 Anthropic ids
+      // (claude-sonnet-5, claude-opus-4-6, claude-haiku-4-5) in
+      // addition to the original family-prefix entries.
+      expect(result).toHaveLength(7);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
         'claude-haiku-4',
+        'claude-haiku-4-5',
         'claude-opus-4',
+        'claude-opus-4-6',
         'claude-sonnet-4',
+        'claude-sonnet-5',
       ]);
       for (const m of result) {
         expect(m.authType).toBe('subscription');
@@ -2400,13 +2416,18 @@ describe('ModelDiscoveryService', () => {
     it('should return knownModels directly when pricingSync is null', () => {
       const result = buildSubscriptionFallbackModels(null as never, 'anthropic');
 
-      // No OpenRouter data, but knownModels are added directly
-      expect(result).toHaveLength(4);
+      // No OpenRouter data, but knownModels are added directly. The
+      // curated list now includes the July 2026 Anthropic ids in
+      // addition to the original family-prefix entries.
+      expect(result).toHaveLength(7);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
         'claude-haiku-4',
+        'claude-haiku-4-5',
         'claude-opus-4',
+        'claude-opus-4-6',
         'claude-sonnet-4',
+        'claude-sonnet-5',
       ]);
       expect(result[0].inputPricePerToken).toBe(0);
     });
@@ -2443,11 +2464,15 @@ describe('ModelDiscoveryService', () => {
       mockPricingSync.getAll.mockReturnValue(orMap);
 
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'anthropic');
-      const opusModels = result.filter((m) => m.id.startsWith('claude-opus-4'));
+      // Filter on the EXACT id, not a prefix — the curated list now
+      // includes claude-opus-4-6 as a separate top-level entry (see
+      // packages/shared/src/subscription/configs.ts), so a prefix
+      // filter would also catch it and confuse the de-dup assertion.
+      const opusFour = result.filter((m) => m.id === 'claude-opus-4');
 
       // Only one claude-opus-4 entry (from OpenRouter), not duplicated
-      expect(opusModels).toHaveLength(1);
-      expect(opusModels[0].displayName).toBe('Opus 4');
+      expect(opusFour).toHaveLength(1);
+      expect(opusFour[0].displayName).toBe('Opus 4');
     });
 
     it('should use default context window when entry has none', () => {

@@ -320,6 +320,29 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('claude-sonnet-4');
   });
 
+  it('includes July 2026 Anthropic models for subscription auth', () => {
+    // claude-sonnet-5 (2026-06-30), claude-opus-4-6 (2026-06-29),
+    // claude-haiku-4-5 (2025-10-01). All three are reachable under
+    // auth_type=subscription but absent from the previous family-prefix-
+    // only curated list.
+    const models = getSubscriptionKnownModels('anthropic');
+    expect(models).toContain('claude-sonnet-5');
+    expect(models).toContain('claude-opus-4-6');
+    expect(models).toContain('claude-haiku-4-5');
+  });
+
+  it('excludes the retired 20250514 Anthropic snapshots', () => {
+    // claude-sonnet-4-20250514 and claude-opus-4-20250514 were retired
+    // on 2026-06-15. The knownModelsExclude sentinel `-20250514`
+    // ensures the prefix-match walker never leaks them through even if
+    // the pricing cache still surfaces them.
+    const models = getSubscriptionKnownModels('anthropic');
+    expect(models).not.toBeNull();
+    for (const m of models ?? []) {
+      expect(m).not.toContain('-20250514');
+    }
+  });
+
   it('returns known models for copilot', () => {
     const models = getSubscriptionKnownModels('copilot');
     expect(models).toContain('copilot/claude-opus-4.6');
@@ -454,8 +477,15 @@ describe('getSubscriptionKnownModelsMatch', () => {
 });
 
 describe('getSubscriptionExcludedModels', () => {
-  it('returns the -fast exclusion for anthropic', () => {
-    expect(getSubscriptionExcludedModels('anthropic')).toEqual(['-fast']);
+  it('returns the -fast and -20250514 exclusions for anthropic', () => {
+    // `-fast` drops the OpenRouter pricing-cache entries that 404 at
+    // api.anthropic.com. `-20250514` drops the retired
+    // claude-sonnet-4-20250514 / claude-opus-4-20250514 snapshots
+    // (retired 2026-06-15) if the pricing cache still surfaces them.
+    expect(getSubscriptionExcludedModels('anthropic')).toEqual([
+      '-fast',
+      '-20250514',
+    ]);
   });
 
   it('returns an empty array for providers with no exclusion configured', () => {
