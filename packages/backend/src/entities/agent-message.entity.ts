@@ -4,7 +4,9 @@ import type { CallerAttribution } from '../routing/proxy/caller-classifier';
 
 @Entity('agent_messages')
 @Index(['tenant_id', 'agent_id', 'timestamp'])
-@Index(['user_id', 'timestamp'])
+// No index on `user_id`: it is deprecated attribution-only metadata, never
+// scoped or filtered on (see query-helpers.ts). Its index cost 715 MB and was
+// dropped in migration 1800300000000.
 @Index(['tenant_id', 'agent_name', 'timestamp'])
 @Index(['tenant_id', 'timestamp'])
 @Index(['tenant_id', 'trace_id'])
