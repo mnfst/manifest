@@ -1,5 +1,22 @@
 # manifest
 
+## 6.15.0
+
+### Minor Changes
+
+- 5059bcb: Show every Manifest error in the Messages log, with a documented error code and a link to its docs page. Setup errors are no longer hidden from the log, malformed requests and Manifest internal errors are no longer blamed on your providers, and each rate limit now says which one fired.
+- 4c5aed8: Report an agent's request-side 4xx to Phoenix as evidence, carrying the full request body, for agents that have Auto-fix on. Opt-in via `AUTOFIX_REPORT_ALL_4XX=true`; nothing is stored in Manifest.
+
+### Patch Changes
+
+- e7fa0c1: Show a dedicated M302 "model not available" message when an explicit model ID is not available for the agent.
+- fccb0e2: Stop failing requests whose `model` isn't a provider-qualified ID. A bare model name now routes to the connection carrying it, an unrecognized one falls back to configured routing instead of erroring with "no providers configured", and a matching custom header tier again outranks the model an SDK names.
+- 80f3cb5: Drop two unused indexes on `agent_messages`, reclaiming about 1 GB and removing an index write from every message insert.
+- 09ecac0: Store the full provider error envelope on Auto-fix rows. They previously kept only the error's message text, dropping its `type`, `param` and `code` — so re-reading such a row identified the failure differently from the live report of that same failure.
+- ff947a6: Open the HTTP port at boot instead of waiting for the provider model registry to load, so a slow database no longer stalls deploy healthchecks.
+- ca87016: Attribute public provider-token stats from recorded message providers before falling back to pricing metadata, so ChatGPT subscription usage is not grouped under API-key gateways that expose the same model name.
+- ec290d1: Add a Messages dashboard trigger filter for ordinary, fallback, and Auto-fix rows.
+
 ## 6.14.0
 
 ### Minor Changes
