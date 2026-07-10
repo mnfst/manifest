@@ -1,0 +1,50 @@
+packages/backend/src/common/errors/manifest-error.ts
+  s_742e2db21fdbe7::t_fd66b336fdefa1 20,56
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_742e2db21fdbe7::t_5195a570870339 871,883,895,901,904,906-909
+  s_742e2db21fdbe7::t_305810af515bd4 884-887,889-892
+packages/backend/src/common/errors/__tests__/manifest-error.spec.ts
+  s_742e2db21fdbe7::t_305810af515bd4 85-94
+packages/shared/src/error-taxonomy.ts
+  s_742e2db21fdbe7::t_fd66b336fdefa1 117
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_742e2db21fdbe7::t_305810af515bd4 78
+packages/backend/src/common/errors/error-codes.ts
+  s_742e2db21fdbe7::t_fd66b336fdefa1 65-67,69
+  s_742e2db21fdbe7::t_46bb99add81576 68
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_742e2db21fdbe7::t_fd66b336fdefa1 68,246-252,1076-1084
+  s_8b758fb95ee01c::t_eb6daf8e045c22 1085
+  s_742e2db21fdbe7::t_3ea529254da9f5 666-675,714-716,734
+packages/backend/src/routing/proxy/__tests__/openai-model-id.spec.ts
+  s_742e2db21fdbe7::t_a151c879f5dbaf 107
+.changeset/explicit-model-unavailable-message.md
+  s_742e2db21fdbe7::t_a151c879f5dbaf 5
+  s_742e2db21fdbe7::t_afaa077b6d4435 1-4
+packages/backend/src/routing/proxy/openai-model-id.ts
+  s_742e2db21fdbe7::t_ad182d00d25667 25,29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.11",
+  "base_commit_sha": "e7fa0c123a4ea1781df3660c89dfd8b867b94f3c",
+  "prompts": {},
+  "sessions": {
+    "s_742e2db21fdbe7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4b2b-81a5-7171-b728-060243f7d22e",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_8b758fb95ee01c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "112bf8a8-6f5c-4088-aa96-ec6920bc2b81",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
