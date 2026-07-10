@@ -337,7 +337,8 @@ describe('getSubscriptionKnownModels', () => {
     // ensures the prefix-match walker never leaks them through even if
     // the pricing cache still surfaces them.
     const models = getSubscriptionKnownModels('anthropic');
-    for (const m of models) {
+    expect(models).not.toBeNull();
+    for (const m of models ?? []) {
       expect(m).not.toContain('-20250514');
     }
   });
