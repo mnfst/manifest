@@ -1,4 +1,5 @@
 import { Show, Suspense, createSignal, lazy, type Accessor, type Component } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
 import RoutingInstructionModal from './RoutingInstructionModal.js';
 import KeyPickerModal from './KeyPickerModal.js';
 
@@ -89,6 +90,7 @@ function providerDisplayName(providerId: string, customProviders: CustomProvider
 }
 
 const RoutingModals: Component<RoutingModalsProps> = (props) => {
+  const navigate = useNavigate();
   const [pendingOverride, setPendingOverride] = createSignal<PendingOverride | null>(null);
   const requiredCapabilityForResponseMode = (
     responseMode: ResponseMode | undefined,
@@ -155,7 +157,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               onClose={props.onDropdownClose}
               onConnectProviders={() => {
                 props.onDropdownClose();
-                props.onOpenProviderModal();
+                navigate(`/harnesses/${encodeURIComponent(props.agentName())}/providers`);
               }}
               onProviderRefreshed={props.onProviderUpdate}
             />
@@ -185,7 +187,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
                 onClose={() => props.onSpecificityDropdownClose?.()}
                 onConnectProviders={() => {
                   props.onSpecificityDropdownClose?.();
-                  props.onOpenProviderModal();
+                  navigate(`/harnesses/${encodeURIComponent(props.agentName())}/providers`);
                 }}
                 onProviderRefreshed={props.onProviderUpdate}
               />
@@ -293,7 +295,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
                 onClose={props.onFallbackPickerClose}
                 onConnectProviders={() => {
                   props.onFallbackPickerClose();
-                  props.onOpenProviderModal();
+                  navigate(`/harnesses/${encodeURIComponent(props.agentName())}/providers`);
                 }}
                 onProviderRefreshed={props.onProviderUpdate}
               />
