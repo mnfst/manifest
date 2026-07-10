@@ -27,6 +27,15 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  *
  * Dropped CONCURRENTLY (so `transaction = false`) to avoid the ACCESS EXCLUSIVE
  * lock against live writes during a deploy.
+ *
+ * `npm run migration:revert` CANNOT run the `down()` below, and this is true of
+ * every CONCURRENTLY migration here (1795100000000 included). TypeORM honours a
+ * migration's `transaction = false` in `executePendingMigrations`, but
+ * `undoLastMigration` consults only the DataSource-level setting, so it opens a
+ * transaction and Postgres rejects `CREATE/DROP INDEX CONCURRENTLY` with
+ * `PreventInTransactionBlock`. To roll back, run the `down()` statements
+ * directly against the database, then delete this migration's row from
+ * `migrations`.
  */
 export class DropUnusedAgentMessageIndexes1800300000000 implements MigrationInterface {
   name = 'DropUnusedAgentMessageIndexes1800300000000';
@@ -40,9 +49,18 @@ export class DropUnusedAgentMessageIndexes1800300000000 implements MigrationInte
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    // Clear any invalid leftover from an interrupted CONCURRENTLY build first:
+    // `CREATE ... IF NOT EXISTS` matches on name, so it would skip over an
+    // invalid index and leave it permanently unusable. Same guard migration
+    // 1795100000000 applies before its concurrent build.
+    await queryRunner.query(
+      `DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_user_id_timestamp"`,
+    );
     await queryRunner.query(
       `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_agent_messages_user_id_timestamp" ON "agent_messages" ("user_id", "timestamp")`,
     );
+
+    await queryRunner.query(`DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_errors"`);
     await queryRunner.query(
       `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_agent_messages_errors" ON "agent_messages" ("tenant_id", "timestamp") WHERE "status" IN ('error', 'fallback_error', 'rate_limited')`,
     );
