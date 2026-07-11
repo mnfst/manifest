@@ -24,9 +24,11 @@ const MIN_TOKEN_LENGTH = 12;
 const CACHE_KEY_SECRET = randomBytes(32);
 
 export function agentKeyCacheKey(token: string): string {
-  // This is an ephemeral in-memory index, not the persisted credential
-  // verifier. A process-local HMAC keeps cache keys stable for the process
-  // while preventing offline correlation across restarts or memory snapshots.
+  // This is a keyed PRF for an ephemeral in-memory cache index, not a
+  // password verifier. Persisted credentials still use scrypt via verifyKey().
+  // The process-local secret prevents correlation across restarts or when
+  // only cache contents (without the secret) are disclosed.
+  // codeql[js/insufficient-password-hash]
   return createHmac('sha256', CACHE_KEY_SECRET).update(token).digest('hex');
 }
 
