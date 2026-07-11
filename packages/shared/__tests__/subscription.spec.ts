@@ -318,6 +318,8 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('claude-fable-5');
     expect(models).toContain('claude-opus-4');
     expect(models).toContain('claude-sonnet-4');
+    // claude-sonnet-5 (launched 2026-06-30) is served on the Claude plan.
+    expect(models).toContain('claude-sonnet-5');
   });
 
   it('returns known models for copilot', () => {
@@ -454,8 +456,10 @@ describe('getSubscriptionKnownModelsMatch', () => {
 });
 
 describe('getSubscriptionExcludedModels', () => {
-  it('returns the -fast exclusion for anthropic', () => {
-    expect(getSubscriptionExcludedModels('anthropic')).toEqual(['-fast']);
+  it('returns the -fast and retired-snapshot exclusions for anthropic', () => {
+    // `-20250514` blocks the claude-{sonnet,opus}-4-20250514 snapshots
+    // retired on 2026-06-15 if the pricing cache still surfaces them.
+    expect(getSubscriptionExcludedModels('anthropic')).toEqual(['-fast', '-20250514']);
   });
 
   it('returns an empty array for providers with no exclusion configured', () => {
