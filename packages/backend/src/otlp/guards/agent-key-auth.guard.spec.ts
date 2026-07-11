@@ -32,6 +32,17 @@ function createMockConfig(overrides: Record<string, string> = {}): ConfigService
   } as unknown as ConfigService;
 }
 
+describe('agentKeyCacheKey', () => {
+  it('produces a stable opaque process-local cache index', () => {
+    const token = 'mnfst_high-entropy-test-token';
+    const cacheKey = agentKeyCacheKey(token);
+
+    expect(cacheKey).toMatch(/^[0-9a-f]{64}$/);
+    expect(agentKeyCacheKey(token)).toBe(cacheKey);
+    expect(agentKeyCacheKey(`${token}-other`)).not.toBe(cacheKey);
+  });
+});
+
 describe('AgentKeyAuthGuard', () => {
   let guard: AgentKeyAuthGuard;
   let mockGetMany: jest.Mock;
@@ -195,7 +206,7 @@ describe('AgentKeyAuthGuard', () => {
     });
   });
 
-  it('accepts a Manifest agent key from Claude-compatible x-api-key', async () => {
+  it('accepts, caches, and invalidates a Manifest key from Claude-compatible x-api-key', async () => {
     const token = 'mnfst_claude-key';
     mockGetMany.mockResolvedValue([
       {
@@ -214,6 +225,14 @@ describe('AgentKeyAuthGuard', () => {
     expect(req.ingestionContext).toEqual(
       expect.objectContaining({ tenantId: 'tenant-claude', agentId: 'agent-claude' }),
     );
+    expect(mockGetMany).toHaveBeenCalledTimes(1);
+
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
+    expect(mockGetMany).toHaveBeenCalledTimes(1);
+
+    guard.invalidateCache(token);
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
+    expect(mockGetMany).toHaveBeenCalledTimes(2);
   });
 
   it('rejects conflicting Authorization and x-api-key credentials', async () => {
