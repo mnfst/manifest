@@ -2485,7 +2485,10 @@ describe('ModelDiscoveryService', () => {
 
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'openai');
 
-      expect(result.length).toBe(4);
+      expect(result.length).toBe(7);
+      expect(result.map((m) => m.id)).toContain('gpt-5.6-sol');
+      expect(result.map((m) => m.id)).toContain('gpt-5.6-terra');
+      expect(result.map((m) => m.id)).toContain('gpt-5.6-luna');
       expect(result.map((m) => m.id)).toContain('gpt-5.5');
       expect(result.map((m) => m.id)).toContain('gpt-5.4');
       expect(result.map((m) => m.id)).toContain('gpt-5.4-mini');
@@ -2688,9 +2691,12 @@ describe('ModelDiscoveryService', () => {
 
       const result = supplementWithKnownModels(raw, 'openai');
 
-      // 1 discovered + 4 ChatGPT-account supported knownModels
-      expect(result.length).toBe(5);
+      // 1 discovered + 7 ChatGPT-account supported knownModels
+      expect(result.length).toBe(8);
       expect(result[0].id).toBe('gpt-oss-120b');
+      expect(result.map((m) => m.id)).toContain('gpt-5.6-sol');
+      expect(result.map((m) => m.id)).toContain('gpt-5.6-terra');
+      expect(result.map((m) => m.id)).toContain('gpt-5.6-luna');
       expect(result.map((m) => m.id)).toContain('gpt-5.5');
       expect(result.map((m) => m.id)).toContain('gpt-5.4');
       expect(result.map((m) => m.id)).toContain('gpt-5.4-mini');
