@@ -13,6 +13,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     knownModels: Object.freeze([
       'claude-fable-5',
       'claude-opus-4',
+      'claude-sonnet-5',
       'claude-sonnet-4',
       'claude-haiku-4',
     ]),
@@ -23,6 +24,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
       modelContextWindows: Object.freeze({
+        'claude-sonnet-5': 1048576,
         'claude-opus-4-8': 1000000,
       }),
       supportsPromptCaching: true,

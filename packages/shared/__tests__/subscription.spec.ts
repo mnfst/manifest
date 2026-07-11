@@ -317,6 +317,7 @@ describe('getSubscriptionKnownModels', () => {
     const models = getSubscriptionKnownModels('anthropic');
     expect(models).toContain('claude-fable-5');
     expect(models).toContain('claude-opus-4');
+    expect(models).toContain('claude-sonnet-5');
     expect(models).toContain('claude-sonnet-4');
   });
 
@@ -475,6 +476,7 @@ describe('getSubscriptionCapabilities', () => {
       supportsPromptCaching: true,
       supportsBatching: false,
     });
+    expect(caps?.modelContextWindows?.['claude-sonnet-5']).toBe(1048576);
     expect(caps?.modelContextWindows?.['claude-opus-4-8']).toBe(1000000);
   });
 
