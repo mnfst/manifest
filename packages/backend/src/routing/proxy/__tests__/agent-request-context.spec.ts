@@ -141,6 +141,30 @@ describe('agent request context', () => {
       expect(context.anthropicHeaders['anthropic-version']).toBe('2023-06-01');
       expect(context.anthropicHeaders).not.toHaveProperty('anthropic-beta');
     });
+
+    it('enforces forwarded-header count, null-value, and aggregate byte budgets', () => {
+      const manyHeaders: IncomingHttpHeaders = {};
+      for (let index = 0; index < 70; index++) {
+        manyHeaders[`anthropic-feature-${index}`] = 'enabled';
+      }
+      const countBounded = extractAgentRequestContext(manyHeaders);
+      expect(Object.keys(countBounded.anthropicHeaders)).toHaveLength(64);
+      expect(countBounded.anthropicHeaders).not.toHaveProperty('anthropic-feature-64');
+
+      const nullSafe = extractAgentRequestContext({
+        'anthropic-null': undefined,
+        'anthropic-version': '2023-06-01',
+      });
+      expect(nullSafe.anthropicHeaders).toEqual({ 'anthropic-version': '2023-06-01' });
+
+      const byteHeavy: IncomingHttpHeaders = {};
+      for (let index = 0; index < 5; index++) {
+        byteHeavy[`anthropic-budget-${index}`] = 'x'.repeat(8 * 1024);
+      }
+      const byteBounded = extractAgentRequestContext(byteHeavy);
+      expect(Object.keys(byteBounded.anthropicHeaders)).toHaveLength(3);
+      expect(byteBounded.anthropicHeaders).not.toHaveProperty('anthropic-budget-3');
+    });
   });
 
   describe('chooseAgentSessionKey', () => {
@@ -192,6 +216,18 @@ describe('agent request context', () => {
     it('caps derived session values', () => {
       const key = chooseAgentSessionKey({ 'session-id': 's'.repeat(1_000) });
       expect(key).toMatch(/^codex-session:[a-f0-9]{64}$/);
+    });
+
+    it('handles mixed-case, blank, and truncated synthetic session headers safely', () => {
+      expect(classifyAgentCaller({ 'User-Agent': 'codex/0.144.1' } as IncomingHttpHeaders)).toBe(
+        'codex',
+      );
+      expect(chooseAgentSessionKey({ 'x-session-key': '\r\n\t' })).toBe('default');
+      expect(chooseAgentSessionKey({ 'x-session-key': 'a'.repeat(600) })).toBe('a'.repeat(512));
+
+      // The classifier probes Claude session IDs with a one-byte read. Splitting
+      // a multibyte value must fail closed instead of retaining U+FFFD.
+      expect(classifyAgentCaller({ 'x-claude-code-session-id': '😀' })).toBe('unknown');
     });
   });
 
@@ -264,6 +300,25 @@ describe('agent request context', () => {
 
       expect(headers['anthropic-beta']).toBe('claude-code-20250219');
       expect(headers['x-api-key']).toBe('stored-api-key');
+    });
+
+    it('uses a provider beta only when the caller omitted beta headers', () => {
+      const context = extractAgentRequestContext({
+        'user-agent': 'claude-cli/2.1.207',
+      });
+      const providerBeta = buildEndpointAwareUpstreamHeaders(
+        { 'x-api-key': 'stored-api-key', 'Anthropic-Beta': 'provider-feature-2026-01-01' },
+        context,
+        { apiMode: 'messages', endpointKey: 'anthropic', authType: 'api_key' },
+      );
+      expect(providerBeta['anthropic-beta']).toBe('provider-feature-2026-01-01');
+
+      const noBeta = buildEndpointAwareUpstreamHeaders({ 'x-api-key': 'stored-api-key' }, context, {
+        apiMode: 'messages',
+        endpointKey: 'anthropic',
+        authType: 'api_key',
+      });
+      expect(noBeta).not.toHaveProperty('anthropic-beta');
     });
 
     it('forwards only Codex metadata and identity to OpenAI subscription Responses', () => {

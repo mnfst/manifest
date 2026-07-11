@@ -376,6 +376,72 @@ describe('ProviderClient — strict header contract on auth-critical paths', () 
       shell: 'custom',
     });
   });
+
+  it('omits an empty Responses tool-type map', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    const result = await client.forward({
+      provider: 'openai',
+      apiKey: 'sk-openai',
+      model: 'gpt-5.4',
+      body: {
+        input: 'Use a tool.',
+        tools: [null, { type: 'function' }, { type: 'web_search_preview' }],
+      },
+      stream: false,
+      apiMode: 'responses',
+    });
+
+    expect(result.responsesToolTypesByName).toBeUndefined();
+  });
+
+  it('does not treat Responses metadata as active when apiMode is omitted', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+    const requestContext = extractAgentRequestContext({
+      'user-agent': 'codex_exec/0.144.1 (Linux)',
+      originator: 'codex_exec',
+      'session-id': 'codex-session',
+      'thread-id': 'codex-thread',
+    });
+
+    const result = await client.forward({
+      provider: 'openai',
+      apiKey: 'sk-openai',
+      model: 'gpt-4o',
+      body: {
+        messages: [{ role: 'user', content: 'Hello' }],
+        text: { format: { type: 'json_object' } },
+        tools: [{ type: 'custom', name: 'shell' }],
+      },
+      stream: false,
+      requestContext,
+    });
+
+    const sentHeaders = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+    expect(result.responsesTextFormat).toBeUndefined();
+    expect(result.responsesToolTypesByName).toBeUndefined();
+    expect(sentHeaders).not.toHaveProperty('originator');
+    expect(sentHeaders).not.toHaveProperty('session-id');
+  });
+
+  it('retains only supplied fields from a sparse Responses json_schema', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+    const schema = { type: 'object' };
+
+    const result = await client.forward({
+      provider: 'openai',
+      apiKey: 'sk-openai',
+      model: 'gpt-5.4',
+      body: {
+        input: 'Return JSON.',
+        text: { format: { type: 'json_schema', schema } },
+      },
+      stream: false,
+      apiMode: 'responses',
+    });
+
+    expect(result.responsesTextFormat).toEqual({ type: 'json_schema', schema });
+  });
 });
 
 describe('ProviderClient — Codex prompt-cache affinity (openai-subscription)', () => {

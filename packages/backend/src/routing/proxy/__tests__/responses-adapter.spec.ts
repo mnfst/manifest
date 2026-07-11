@@ -142,6 +142,18 @@ describe('Responses adapter', () => {
       });
     });
 
+    it('preserves a sparse Responses json_schema without inventing optional fields', () => {
+      const result = toChatCompletionsRequest({
+        input: 'Return structured data.',
+        text: { format: { type: 'json_schema' } },
+      });
+
+      expect(result.response_format).toEqual({
+        type: 'json_schema',
+        json_schema: {},
+      });
+    });
+
     it('converts custom tools to string-input functions and drops hosted tools', () => {
       const result = toChatCompletionsRequest({
         input: 'Run the command.',
@@ -333,6 +345,47 @@ describe('Responses adapter', () => {
           ],
         },
         { role: 'tool', tool_call_id: 'call_shell', content: 'hello' },
+      ]);
+    });
+
+    it('normalizes non-string custom history inputs and outputs safely', () => {
+      const result = toChatCompletionsRequest({
+        input: [
+          {
+            type: 'custom_tool_call',
+            call_id: 'call_shell',
+            name: 'shell',
+            input: { command: 'pwd' },
+          },
+          {
+            type: 'custom_tool_call_output',
+            call_id: 'call_shell',
+            output: { stdout: '/workspace', exitCode: 0 },
+          },
+          {
+            type: 'custom_tool_call_output',
+            call_id: 'call_empty',
+            output: null,
+          },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        expect.objectContaining({
+          role: 'assistant',
+          tool_calls: [
+            expect.objectContaining({
+              id: 'call_shell',
+              function: { name: 'shell', arguments: '{"input":""}' },
+            }),
+          ],
+        }),
+        {
+          role: 'tool',
+          tool_call_id: 'call_shell',
+          content: '{"stdout":"/workspace","exitCode":0}',
+        },
+        { role: 'tool', tool_call_id: 'call_empty', content: '' },
       ]);
     });
 
@@ -733,6 +786,35 @@ describe('Responses adapter', () => {
       expect(result.text).toEqual({ format: { type: 'text' } });
     });
 
+    it('uses safe defaults for malformed ordinary function calls', () => {
+      const result = fromChatCompletionResponse(
+        {
+          choices: [
+            {
+              message: {
+                content: null,
+                tool_calls: [
+                  null,
+                  { id: 'missing_function' },
+                  { id: 42, function: { name: 7, arguments: { invalid: true } } },
+                ],
+              },
+            },
+          ],
+        },
+        'fallback-model',
+      );
+
+      expect(result.output).toEqual([
+        expect.objectContaining({
+          type: 'function_call',
+          name: '',
+          arguments: '{}',
+          call_id: expect.any(String),
+        }),
+      ]);
+    });
+
     it('unwraps the configured structured-output tool call into response text', () => {
       const schema = { type: 'object', properties: { title: { type: 'string' } } };
       const result = fromChatCompletionResponse(
@@ -797,6 +879,28 @@ describe('Responses adapter', () => {
       );
 
       expect(result).toEqual(response);
+    });
+
+    it('does not duplicate collected text when completed output already contains text', () => {
+      const output = [
+        null,
+        { type: 'reasoning' },
+        { type: 'message', content: null },
+        {
+          type: 'message',
+          content: [null, { type: 'output_text', text: 'Authoritative', annotations: [] }],
+        },
+      ];
+      const result = collectResponsesSseResponse(
+        [
+          'event: response.output_text.delta\ndata: {"delta":"Partial"}',
+          `event: response.completed\ndata: ${JSON.stringify({ response: { output } })}`,
+          '',
+        ].join('\n\n'),
+      );
+
+      expect(result.output).toEqual(output);
+      expect(JSON.stringify(result.output)).not.toContain('Partial');
     });
 
     it('keeps collected text when the completed response omits output', () => {
@@ -1174,6 +1278,26 @@ describe('Responses adapter', () => {
       expect(failed).not.toContain('response.completed');
       expect(t.finalize()).toBeNull();
       expect(t.transform('{"choices":[{"delta":{"content":"ignored"}}]}')).toBeNull();
+    });
+
+    it('handles top-level and empty upstream stream errors', () => {
+      const topLevel = createResponsesStreamTransformer('gpt-5');
+      const topLevelFailure =
+        topLevel.transform(
+          '{"type":"error","message":"Authentication failed","code":"authentication_error"}',
+        ) ?? '';
+      expect(firstEventData(topLevelFailure, 'response.failed')!.response.error).toEqual({
+        code: 'authentication_error',
+        message: 'Authentication failed',
+      });
+
+      const empty = createResponsesStreamTransformer('gpt-5');
+      const emptyFailure = empty.transform('{"error":{}}') ?? '';
+      expect(firstEventData(emptyFailure, 'response.failed')!.response.error).toEqual({
+        code: 'server_error',
+        message: 'Upstream provider stream failed',
+      });
+      expect(empty.finalize()).toBeNull();
     });
 
     it('keeps an Anthropic fallback stream error terminal through the composed Codex path', () => {

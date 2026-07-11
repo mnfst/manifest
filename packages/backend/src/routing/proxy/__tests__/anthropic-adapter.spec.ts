@@ -1064,6 +1064,15 @@ describe('Anthropic Adapter', () => {
       ).toBeNull();
     });
 
+    it('sanitizes malformed top-level stream errors with safe defaults', () => {
+      const transform = createAnthropicStreamTransformer('claude-sonnet-4-20250514');
+      const result = transform('event: error\n{"code":"vendor_failure"}');
+
+      expect(result).toBe(
+        'data: {"error":{"message":"Upstream provider stream failed","type":"api_error","code":"vendor_failure"}}\n\n',
+      );
+    });
+
     it('converts message_start to initial role chunk', () => {
       const chunk =
         'event: message_start\n{"type":"message_start","message":{"id":"msg_01","role":"assistant"}}';

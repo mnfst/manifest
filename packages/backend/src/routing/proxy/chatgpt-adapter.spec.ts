@@ -55,6 +55,36 @@ describe('chatgpt-adapter', () => {
       });
     });
 
+    it('preserves native reasoning and text objects over Chat aliases', () => {
+      const reasoning = { effort: 'minimal', summary: 'auto' };
+      const text = { verbosity: 'low' };
+      const req = toResponsesRequest(
+        {
+          messages: [{ role: 'user', content: 'hi' }],
+          reasoning,
+          reasoning_effort: 'high',
+          text,
+          response_format: { type: 'json_object' },
+        },
+        'gpt-5.4',
+      );
+
+      expect(req.reasoning).toBe(reasoning);
+      expect(req.text).toBe(text);
+    });
+
+    it('maps a sparse Chat json_schema without inventing optional Responses fields', () => {
+      const req = toResponsesRequest(
+        {
+          messages: [{ role: 'user', content: 'hi' }],
+          response_format: { type: 'json_schema', json_schema: {} },
+        },
+        'gpt-5.4',
+      );
+
+      expect(req.text).toEqual({ format: { type: 'json_schema' } });
+    });
+
     it('maps Chat Completions json_object output to Responses text format', () => {
       const req = toResponsesRequest(
         {
@@ -438,6 +468,18 @@ describe('chatgpt-adapter', () => {
       ]);
     });
 
+    it('ignores malformed function-call delta and item payloads', () => {
+      expect(
+        transformResponsesStreamChunk(
+          'event: response.function_call_arguments.delta\ndata: {',
+          'gpt-5',
+        ),
+      ).toBeNull();
+      expect(
+        transformResponsesStreamChunk('event: response.output_item.added\ndata: {', 'gpt-5'),
+      ).toBeNull();
+    });
+
     it('converts output_item.added (function_call) into a tool_calls announcement', () => {
       const chunk =
         'event: response.output_item.added\ndata: {"output_index":2,"item":{"type":"function_call","call_id":"c1","name":"foo"}}';
@@ -479,6 +521,37 @@ describe('chatgpt-adapter', () => {
       expect(parsed.choices[0].finish_reason).toBe('tool_calls');
       // No usage attached.
       expect(parsed.usage).toBeUndefined();
+    });
+
+    it.each([
+      ['authentication_error', 401],
+      ['permission_error', 403],
+      ['server_error', 500],
+    ])('maps a top-level %s stream error to HTTP status %i', (type, status) => {
+      const parsed = parseFrame(
+        transformResponsesStreamChunk(
+          `event: error\ndata: ${JSON.stringify({ message: 'Upstream failed', type })}`,
+          'gpt-5',
+        ),
+      );
+
+      expect(parsed.error).toEqual({
+        message: 'Upstream failed',
+        type,
+        status,
+      });
+    });
+
+    it('uses a stable fallback for an empty Responses stream error', () => {
+      const raw = transformResponsesStreamChunk('event: response.failed\ndata: {}', 'gpt-5');
+      const parsed = parseFrame(raw);
+
+      expect(parsed.error).toEqual({
+        message: 'OpenAI Responses stream failed',
+        type: 'upstream_error',
+        status: 502,
+      });
+      expect(raw).toContain('data: [DONE]');
     });
   });
 

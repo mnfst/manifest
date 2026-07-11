@@ -4,7 +4,7 @@ import {
   serializeOpenAiSubscriptionMetadata,
 } from './openai-token-metadata';
 
-function token(payload: Record<string, unknown>): string {
+function token(payload: unknown): string {
   const encoded = Buffer.from(JSON.stringify(payload)).toString('base64url');
   return `header.${encoded}.signature`;
 }
@@ -40,6 +40,21 @@ describe('extractOpenAiSubscriptionMetadata', () => {
     expect(extractOpenAiSubscriptionMetadata(accessToken)).toEqual({});
   });
 
+  it.each([null, [], 'claims'])('fails closed for a decoded non-object payload: %p', (payload) => {
+    expect(extractOpenAiSubscriptionMetadata(token(payload))).toEqual({});
+  });
+
+  it('falls back to top-level claims when the namespaced claim is malformed', () => {
+    const accessToken = token({
+      'https://api.openai.com/auth': [],
+      chatgpt_account_id: 'top-level-fallback',
+    });
+
+    expect(extractOpenAiSubscriptionMetadata(accessToken)).toEqual({
+      accountId: 'top-level-fallback',
+    });
+  });
+
   it('drops control characters and refuses oversized account ids', () => {
     const control = token({
       'https://api.openai.com/auth': { chatgpt_account_id: 'account\r\n-123' },
@@ -51,8 +66,10 @@ describe('extractOpenAiSubscriptionMetadata', () => {
     expect(extractOpenAiSubscriptionMetadata(control)).toEqual({ accountId: 'account-123' });
     expect(extractOpenAiSubscriptionMetadata(oversized)).toEqual({});
   });
+});
 
-  it('round-trips compact non-secret routing metadata and fails closed', () => {
+describe('serializeOpenAiSubscriptionMetadata', () => {
+  it('round-trips both compact routing fields', () => {
     const serialized = serializeOpenAiSubscriptionMetadata({
       accountId: 'account-123',
       fedramp: true,
@@ -63,9 +80,35 @@ describe('extractOpenAiSubscriptionMetadata', () => {
       accountId: 'account-123',
       fedramp: true,
     });
-    expect(parseOpenAiSubscriptionMetadata('{bad')).toEqual({});
-    expect(parseOpenAiSubscriptionMetadata('{"a":"x\\r\\nInjected"}')).toEqual({
-      accountId: 'xInjected',
-    });
+  });
+
+  it.each([
+    [{ accountId: 'account-only' }, '{"a":"account-only"}'],
+    [{ fedramp: true }, '{"f":true}'],
+    [{ accountId: ' account\r\n-123 ', fedramp: false }, '{"a":"account-123"}'],
+    [{}, undefined],
+    [{ fedramp: false }, undefined],
+    [{ accountId: 'x'.repeat(257) }, undefined],
+  ] as const)('serializes %p as %p', (metadata, expected) => {
+    expect(serializeOpenAiSubscriptionMetadata(metadata)).toBe(expected);
+  });
+});
+
+describe('parseOpenAiSubscriptionMetadata', () => {
+  it.each([
+    [undefined, {}],
+    ['', {}],
+    ['{bad', {}],
+    ['null', {}],
+    ['[]', {}],
+    ['"metadata"', {}],
+    ['x'.repeat(1025), {}],
+    ['{"a":"account-only"}', { accountId: 'account-only' }],
+    ['{"f":true}', { fedramp: true }],
+    ['{"a":42,"f":true}', { fedramp: true }],
+    ['{"a":"x\\r\\nInjected","f":false}', { accountId: 'xInjected' }],
+    [JSON.stringify({ a: 'x'.repeat(257), f: false }), {}],
+  ] as const)('parses %p as %p', (serialized, expected) => {
+    expect(parseOpenAiSubscriptionMetadata(serialized)).toEqual(expected);
   });
 });

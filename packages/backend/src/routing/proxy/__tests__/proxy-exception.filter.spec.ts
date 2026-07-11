@@ -153,6 +153,44 @@ describe('ProxyExceptionFilter', () => {
         },
       });
     });
+
+    it.each([
+      [401, 'authentication_error'],
+      [402, 'insufficient_quota'],
+      [500, 'server_error'],
+    ])('returns the generic Responses envelope for HTTP %i', (status, type) => {
+      const { host, res, req } = createMockHost({ stream: true });
+      req.path = '/v1/responses';
+
+      filter.catch(new HttpException('Upstream rejected the request', status), host);
+
+      expect(res.status).toHaveBeenCalledWith(status);
+      expect(res.json).toHaveBeenCalledWith({
+        error: {
+          message:
+            status >= 500
+              ? 'Manifest encountered an internal error. Try again shortly.'
+              : 'Upstream rejected the request',
+          type,
+        },
+      });
+    });
+
+    it('keeps a 400 Manifest auth failure in an OpenAI-compatible error envelope', () => {
+      const { host, res, req } = createMockHost({ stream: true });
+      req.url = '/v1/responses?trace=1';
+
+      filter.catch(new BadRequestException('Invalid API key format'), host);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: {
+          message: expect.stringContaining('mnfst_'),
+          type: 'invalid_request_error',
+          code: 'manifest_auth',
+        },
+      });
+    });
   });
 
   describe('recording an expired key (M004)', () => {

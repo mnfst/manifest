@@ -327,6 +327,41 @@ describe('Anthropic Messages adapter', () => {
       expect(fallbackBody).not.toHaveProperty('tools');
     });
 
+    it('ignores unnamed server tools and retains malformed fallback tool records', () => {
+      const messagesBody = {
+        messages: [{ role: 'user', content: 'search' }],
+        tools: [
+          { type: 'web_search_20260318' },
+          { type: 'web_search_20260318', name: 'web_search' },
+        ],
+      };
+      const malformedTool = { type: 'function' };
+      const fallbackBody = stripAnthropicServerToolsForFallback(messagesBody, {
+        messages: [],
+        tools: [null, malformedTool, { type: 'function', function: { name: 'web_search' } }],
+      });
+
+      expect(fallbackBody.tools).toEqual([null, malformedTool]);
+    });
+
+    it('uses a safe object schema when Anthropic output schema metadata is malformed', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [{ role: 'user', content: 'Return JSON.' }],
+        output_config: {
+          format: { type: 'json_schema', schema: 'not-an-object' },
+        },
+      });
+
+      expect(result.response_format).toEqual({
+        type: 'json_schema',
+        json_schema: {
+          name: 'anthropic_output',
+          schema: { type: 'object' },
+          strict: true,
+        },
+      });
+    });
+
     it('treats unknown non-custom tool types as custom tools with a safe empty schema (issue #1897)', () => {
       const result = messagesToChatCompletionsRequest({
         messages: [{ role: 'user', content: 'x' }],

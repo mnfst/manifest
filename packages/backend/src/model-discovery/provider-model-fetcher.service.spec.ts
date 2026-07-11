@@ -1,6 +1,10 @@
 import { ProviderModelFetcherService, PROVIDER_CONFIGS } from './provider-model-fetcher.service';
 import { CODEX_CLI_VERSION } from '../common/constants/subscription-clients';
 
+function jwt(payload: Record<string, unknown>): string {
+  return `header.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.signature`;
+}
+
 describe('ProviderModelFetcherService', () => {
   let service: ProviderModelFetcherService;
   let fetchSpy: jest.SpyInstance;
@@ -2342,6 +2346,74 @@ describe('ProviderModelFetcherService', () => {
           }),
         }),
       );
+    });
+
+    it('derives workspace routing headers from OpenAI JWT claims', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ models: [] }),
+      });
+      const accessToken = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'jwt-workspace',
+          chatgpt_account_is_fedramp: true,
+        },
+      });
+
+      await service.fetch('openai', accessToken, 'subscription');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${accessToken}`,
+            'ChatGPT-Account-ID': 'jwt-workspace',
+            'X-OpenAI-Fedramp': 'true',
+          }),
+        }),
+      );
+    });
+
+    it('lets stored metadata override JWT account routing without dropping JWT FedRAMP', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ models: [] }),
+      });
+      const accessToken = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'jwt-workspace',
+          chatgpt_account_is_fedramp: true,
+        },
+      });
+
+      await service.fetch('openai', accessToken, 'subscription', undefined, {
+        subscriptionMetadata: { accountId: 'stored-workspace' },
+      });
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'ChatGPT-Account-ID': 'stored-workspace',
+            'X-OpenAI-Fedramp': 'true',
+          }),
+        }),
+      );
+    });
+
+    it('does not synthesize routing headers from an explicitly empty metadata object', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ models: [] }),
+      });
+
+      await service.fetch('openai', 'opaque-access-token', 'subscription', undefined, {
+        subscriptionMetadata: {},
+      });
+
+      const headers = fetchSpy.mock.calls[0][1]?.headers as Record<string, string>;
+      expect(headers['ChatGPT-Account-ID']).toBeUndefined();
+      expect(headers['X-OpenAI-Fedramp']).toBeUndefined();
     });
   });
 

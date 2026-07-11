@@ -388,6 +388,78 @@ describe('OpenaiOauthService', () => {
       expect(persistedBlob.m).toBe(refreshed.m);
     });
 
+    it('uses access-token claims when the refreshed blob has malformed metadata', async () => {
+      const original: OAuthTokenBlob = {
+        t: 'expired-access',
+        r: 'old-refresh',
+        e: Date.now() - 1,
+        m: '{"a":"old-account"}',
+      };
+      const refreshedAccess = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'account-from-refreshed-access',
+        },
+      });
+      const freshBlob = JSON.stringify({
+        t: refreshedAccess,
+        r: 'new-refresh',
+        e: Date.now() + 3_600_000,
+        m: '{bad',
+      });
+      providerService.getFreshSubscriptionCredential.mockResolvedValue(freshBlob);
+
+      await expect(
+        service.unwrapTokenWithMetadata(
+          JSON.stringify(original),
+          'agent-1',
+          'tenant-malformed-metadata',
+        ),
+      ).resolves.toEqual({
+        accessToken: refreshedAccess,
+        metadata: { accountId: 'account-from-refreshed-access' },
+      });
+
+      expect(providerService.getFreshSubscriptionCredential).toHaveBeenCalledTimes(2);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('falls back to original metadata when the post-refresh credential cannot be parsed', async () => {
+      const original: OAuthTokenBlob = {
+        t: 'expired-access',
+        r: 'old-refresh',
+        e: Date.now() - 1,
+        m: '{"a":"original-account","f":true}',
+      };
+      const refreshedAccess = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'account-from-refreshed-access',
+        },
+      });
+      providerService.getFreshSubscriptionCredential
+        .mockResolvedValueOnce(
+          JSON.stringify({
+            t: refreshedAccess,
+            r: 'new-refresh',
+            e: Date.now() + 3_600_000,
+          }),
+        )
+        .mockResolvedValueOnce('{"not":"an-oauth-blob"}');
+
+      await expect(
+        service.unwrapTokenWithMetadata(
+          JSON.stringify(original),
+          'agent-1',
+          'tenant-unparseable-refresh',
+        ),
+      ).resolves.toEqual({
+        accessToken: refreshedAccess,
+        metadata: { accountId: 'original-account', fedramp: true },
+      });
+
+      expect(providerService.getFreshSubscriptionCredential).toHaveBeenCalledTimes(2);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
     it('returns null when an expired token cannot be refreshed', async () => {
       const blob: OAuthTokenBlob = {
         t: 'expired-access',
