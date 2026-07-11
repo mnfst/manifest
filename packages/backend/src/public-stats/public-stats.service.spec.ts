@@ -157,7 +157,9 @@ describe('PublicStatsService', () => {
         [{ model: 'gpt-5.5', provider: 'openai', tokens: '5000000' }],
         [{ model: 'gpt-5.5', provider: 'openai', tokens: '18000000' }],
       );
-      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenCode Zen' }));
+      mockPricingCache.getByModel.mockReturnValue(
+        makePricingEntry({ provider: 'OpenCode Zen' }),
+      );
 
       const result = await service.getUsageStats();
 
@@ -902,7 +904,9 @@ describe('PublicStatsService', () => {
           cost: '0.10',
         },
       ]);
-      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenCode Zen' }));
+      mockPricingCache.getByModel.mockReturnValue(
+        makePricingEntry({ provider: 'OpenCode Zen' }),
+      );
 
       const result = await service.getProviderDailyTokens();
 

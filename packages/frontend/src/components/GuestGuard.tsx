@@ -23,7 +23,9 @@ const GuestGuard: ParentComponent = (props) => {
 
   createEffect(() => {
     const s = session();
-    const step = Array.isArray(searchParams.step) ? searchParams.step[0] : searchParams.step;
+    const step = Array.isArray(searchParams.step)
+      ? searchParams.step[0]
+      : searchParams.step;
     if (!s.isPending && s.data) {
       if (step === 'plan' && !hasPlanBeenChosen(s.data.user?.id ?? '')) {
         if (setupChecked()) setReady(true);

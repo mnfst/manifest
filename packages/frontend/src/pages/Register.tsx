@@ -336,7 +336,7 @@ const Register: Component = () => {
             <p class="auth-header__subtitle">
               {searchParams.context === 'login'
                 ? 'Manifest now offers Free and Pro plans. Select the one that fits your needs.'
-                : "Monitor your AI harnesses' costs and usage"}
+                : 'Monitor your AI harnesses\' costs and usage'}
             </p>
           </div>
 

@@ -345,9 +345,7 @@
   cursor: pointer;
   text-align: left;
   font-family: var(--font-family);
-  transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .plan-picker__card:hover {
@@ -404,8 +402,8 @@
 .plan-picker__badge {
   padding: 3px 5px;
   border-radius: 2px;
-  background: #2632ef;
-  color: #ffffff;
+  background: #2632EF;
+  color: #FFFFFF;
   font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
