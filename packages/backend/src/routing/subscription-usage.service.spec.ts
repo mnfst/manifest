@@ -173,8 +173,8 @@ describe('SubscriptionUsageService', () => {
     ]);
 
     fetchMock.mockImplementation(async (input, init) => {
-      const url = String(input);
-      if (url.includes('chatgpt.com')) {
+      const url = new URL(String(input));
+      if (url.hostname === 'chatgpt.com') {
         expect((init?.headers as Record<string, string>).Authorization).toBe(
           'Bearer openai-access',
         );
@@ -203,7 +203,7 @@ describe('SubscriptionUsageService', () => {
           ],
         });
       }
-      if (url.includes('api.anthropic.com')) {
+      if (url.hostname === 'api.anthropic.com') {
         expect((init?.headers as Record<string, string>)['anthropic-beta']).toBe(
           'oauth-2025-04-20',
         );
@@ -214,7 +214,7 @@ describe('SubscriptionUsageService', () => {
           extra_usage: { used_credits: 5, monthly_limit: 20, utilization: 25, currency: 'USD' },
         });
       }
-      if (url.includes('cloudcode-pa.googleapis.com')) {
+      if (url.hostname === 'cloudcode-pa.googleapis.com') {
         expect(JSON.parse((init?.body as string) ?? '{}')).toEqual({ project: 'project-123' });
         return jsonResponse({
           buckets: [
@@ -224,7 +224,7 @@ describe('SubscriptionUsageService', () => {
           ],
         });
       }
-      if (url.includes('grok.com')) {
+      if (url.hostname === 'grok.com') {
         const headers = init?.headers as Record<string, string>;
         expect(headers.Authorization).toBe('Bearer xai-access');
         expect(headers['Content-Type']).toBe('application/grpc-web+proto');
