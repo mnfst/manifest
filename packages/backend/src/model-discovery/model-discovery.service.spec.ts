@@ -1502,12 +1502,14 @@ describe('ModelDiscoveryService', () => {
       );
 
       expect(fetcher.fetch).not.toHaveBeenCalled();
-      expect(result.map((m) => m.id)).toEqual([
+      // Sorted: the enrichment order of curated entries is not stable across
+      // environments (pricing-cache state moves ids around).
+      expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
-        'claude-opus-4',
-        'claude-sonnet-5',
-        'claude-sonnet-4',
         'claude-haiku-4',
+        'claude-opus-4',
+        'claude-sonnet-4',
+        'claude-sonnet-5',
       ]);
     });
 
