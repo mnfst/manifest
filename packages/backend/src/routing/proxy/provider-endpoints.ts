@@ -120,6 +120,7 @@ const NOUS_PORTAL_BASE = 'https://inference-api.nousresearch.com';
 const NVIDIA_NIM_BASE = 'https://integrate.api.nvidia.com';
 const FIREWORKS_INFERENCE_BASE = 'https://api.fireworks.ai/inference';
 const PIONEER_BASE = 'https://api.pioneer.ai';
+const META_MODEL_API_BASE = 'https://api.meta.ai';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
@@ -267,6 +268,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   minimax: {
     baseUrl: 'https://api.minimax.io',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  meta: {
+    baseUrl: META_MODEL_API_BASE,
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
