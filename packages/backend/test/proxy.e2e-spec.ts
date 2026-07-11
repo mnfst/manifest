@@ -131,7 +131,7 @@ describe('Proxy E2E — /v1/chat/completions', () => {
   it('rejects unauthenticated Responses API requests with HTTP 401', async () => {
     const res = await api().post('/v1/responses').send({ input: 'hello' }).expect(401);
 
-    expect(res.body.error.type).toBe('auth_error');
+    expect(res.body.error.type).toBe('authentication_error');
     expect(res.body.error.message).toContain('Missing the Authorization header');
   });
 
