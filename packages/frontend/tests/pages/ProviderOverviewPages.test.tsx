@@ -18,6 +18,7 @@ const apiMocks = vi.hoisted(() => ({
   renameProviderKey: vi.fn(),
   refreshModels: vi.fn(),
   fetchMutate: vi.fn(),
+  fetchJson: vi.fn(),
   getOverview: vi.fn(),
   getOverviewAgentUsage: vi.fn(),
   getOverviewProviderUsage: vi.fn(),
@@ -45,6 +46,7 @@ vi.mock('@solidjs/router', () => ({
 }));
 
 vi.mock('../../src/services/api/core.js', () => ({
+  fetchJson: (...args: unknown[]) => apiMocks.fetchJson(...args),
   fetchMutate: (...args: unknown[]) => apiMocks.fetchMutate(...args),
   routingPath: (agent: string, path: string) => `/api/v1/routing/${agent}/${path}`,
 }));
@@ -642,6 +644,7 @@ beforeEach(() => {
   apiMocks.renameProviderKey.mockResolvedValue(undefined);
   apiMocks.refreshModels.mockResolvedValue(undefined);
   apiMocks.fetchMutate.mockResolvedValue({});
+  apiMocks.fetchJson.mockResolvedValue({ providers: [] });
   apiMocks.getOverview.mockResolvedValue(overviewResponse);
   apiMocks.getOverviewAgentUsage.mockResolvedValue(agentUsageTimeseries);
   apiMocks.getOverviewProviderUsage.mockResolvedValue(providerUsageTimeseries);

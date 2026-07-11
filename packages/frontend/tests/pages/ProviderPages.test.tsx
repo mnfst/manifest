@@ -75,6 +75,7 @@ vi.mock('../../src/services/formatters.js', () => ({
 }));
 
 const mockGetProviderUsage = vi.fn();
+const mockGetProviderSubscriptionUsage = vi.fn();
 // Use the real mergeUsage so the merge logic stays under test through the page.
 vi.mock('../../src/services/api/providers.js', async () => {
   const actual = await vi.importActual<typeof import('../../src/services/api/providers')>(
@@ -83,6 +84,7 @@ vi.mock('../../src/services/api/providers.js', async () => {
   return {
     getProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
     getProviderUsage: (...args: unknown[]) => mockGetProviderUsage(...args),
+    getProviderSubscriptionUsage: (...args: unknown[]) => mockGetProviderSubscriptionUsage(...args),
     mergeUsage: actual.mergeUsage,
   };
 });
@@ -200,6 +202,38 @@ describe('provider pages', () => {
         sparkline_7d: p.sparkline_7d,
       })),
     });
+    mockGetProviderSubscriptionUsage.mockResolvedValue({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          status: 'ok',
+          updated_at: '2026-06-01T00:00:00Z',
+          connections: [
+            {
+              id: 'sub-openai',
+              label: 'ChatGPT',
+              status: 'ok',
+              message: null,
+              updated_at: '2026-06-01T00:00:00Z',
+              windows: [
+                {
+                  id: 'codex-5h',
+                  label: 'Codex 5h',
+                  used_percent: 20,
+                  remaining_percent: 80,
+                  resets_at: null,
+                  window_seconds: null,
+                  current: null,
+                  limit: null,
+                  unit: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
     mockGetAgents.mockResolvedValue({ agents: [{ agent_name: 'demo-agent' }] });
     mockGetAgentProviders.mockResolvedValue([{ id: 'route-provider' }]);
     mockGetCustomProviders.mockResolvedValue([
@@ -237,6 +271,8 @@ describe('provider pages', () => {
       expect(screen.getByText('Subscriptions')).toBeDefined();
       expect(screen.getByText('My subscription connections')).toBeDefined();
       expect(screen.getByText('ChatGPT')).toBeDefined();
+      expect(screen.getByText('Codex 5h')).toBeDefined();
+      expect(screen.getByText('80% left')).toBeDefined();
     });
 
     fireEvent.click(screen.getAllByText('Connect')[0]!);
@@ -653,10 +689,7 @@ describe('provider pages', () => {
           provider: 'openai',
           auth_type: 'subscription',
           connection_count: 2,
-          connections: [
-            connection('sub-1', 'Plan A'),
-            connection('sub-2', 'Plan B'),
-          ],
+          connections: [connection('sub-1', 'Plan A'), connection('sub-2', 'Plan B')],
           total_models: 3,
           consumption_tokens: 42,
           consumption_messages: 2,

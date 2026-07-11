@@ -3,6 +3,7 @@ import * as api from '../../../src/services/api';
 import {
   getProviders,
   getProviderUsage,
+  getProviderSubscriptionUsage,
   mergeUsage,
   type TenantProviderConfig,
   type TenantProviderUsage,
@@ -71,6 +72,24 @@ describe('providers API client', () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain('/api/v1/providers/usage');
     expect((init as RequestInit).credentials).toBe('include');
+  });
+
+  it('GETs live subscription limits from the dedicated endpoint', async () => {
+    const response = {
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          status: 'ok',
+          updated_at: '2026-06-16T10:00:00.000Z',
+          connections: [],
+        },
+      ],
+    };
+    const fetchMock = setupFetch(response);
+
+    await expect(getProviderSubscriptionUsage()).resolves.toEqual(response);
+    expect(fetchMock.mock.calls[0]?.[0]).toContain('/api/v1/providers/subscription-usage');
   });
 
   it('re-exports the tenant provider clients from the root API barrel', () => {
