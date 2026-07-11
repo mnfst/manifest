@@ -1502,11 +1502,14 @@ describe('ModelDiscoveryService', () => {
       );
 
       expect(fetcher.fetch).not.toHaveBeenCalled();
-      expect(result.map((m) => m.id)).toEqual([
+      // Sorted: the enrichment order of curated entries is not stable across
+      // environments (pricing-cache state moves ids around).
+      expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
+        'claude-haiku-4',
         'claude-opus-4',
         'claude-sonnet-4',
-        'claude-haiku-4',
+        'claude-sonnet-5',
       ]);
     });
 
@@ -1819,14 +1822,16 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Should only include models matching knownModels prefixes (claude-opus-4, claude-sonnet-4, claude-haiku-4)
-      // and NOT claude-2.1 or openai models. claude-fable-5 has no OpenRouter
-      // pricing entry, so it is appended directly as a zero-cost known model.
-      expect(result).toHaveLength(4);
+      // and NOT claude-2.1 or openai models. claude-fable-5 and claude-sonnet-5
+      // have no OpenRouter pricing entry, so they are appended directly as
+      // zero-cost known models.
+      expect(result).toHaveLength(5);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
         'claude-haiku-4-20260301',
         'claude-opus-4-20260301',
         'claude-sonnet-4-20260301',
+        'claude-sonnet-5',
       ]);
       // All should be stamped as subscription
       for (const m of result) {
@@ -2021,12 +2026,13 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Even without pricingSync, knownModels are returned directly
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(5);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
         'claude-haiku-4',
         'claude-opus-4',
         'claude-sonnet-4',
+        'claude-sonnet-5',
       ]);
       for (const m of result) {
         expect(m.authType).toBe('subscription');
@@ -2401,12 +2407,13 @@ describe('ModelDiscoveryService', () => {
       const result = buildSubscriptionFallbackModels(null as never, 'anthropic');
 
       // No OpenRouter data, but knownModels are added directly
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(5);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
         'claude-haiku-4',
         'claude-opus-4',
         'claude-sonnet-4',
+        'claude-sonnet-5',
       ]);
       expect(result[0].inputPricePerToken).toBe(0);
     });
