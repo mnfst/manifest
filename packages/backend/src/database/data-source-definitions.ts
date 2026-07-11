@@ -24,6 +24,11 @@ import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { PublicErrorPage } from '../entities/public-error-page.entity';
+import { WaitlistClaim } from '../entities/waitlist-claim.entity';
+import { RenameWaitlistClaimsTable1800000000000 } from './migrations/1800000000000-RenameWaitlistClaimsTable';
+import { ReclassifyPlanRequestLimitMessages1800100000000 } from './migrations/1800100000000-ReclassifyPlanRequestLimitMessages';
+import { AddMessageErrorCode1800200000000 } from './migrations/1800200000000-AddMessageErrorCode';
+import { DropUnusedAgentMessageIndexes1800300000000 } from './migrations/1800300000000-DropUnusedAgentMessageIndexes';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
 import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
@@ -130,6 +135,16 @@ import { AddCrossTenantErrorTimestampIndex1795100000000 } from './migrations/179
 import { RemoveMessageRecording1795000000000 } from './migrations/1795000000000-RemoveMessageRecording';
 import { AddAutofixWaitlist1796000000000 } from './migrations/1796000000000-AddAutofixWaitlist';
 import { AddPublicErrorPages1797000000000 } from './migrations/1797000000000-AddPublicErrorPages';
+import { AddErrorClassification1798000000000 } from './migrations/1798000000000-AddErrorClassification';
+import { AddTenantLimitOverrides1798100000000 } from './migrations/1798100000000-AddTenantLimitOverrides';
+import { AddBillingEmailLogs1798200000000 } from './migrations/1798200000000-AddBillingEmailLogs';
+import { AddBillingEmailPreferences1798300000000 } from './migrations/1798300000000-AddBillingEmailPreferences';
+import { AddAutofixWaitlistSignups1799000000000 } from './migrations/1799000000000-AddAutofixWaitlistSignups';
+import { AddAutofixAgentFlags1799000010000 } from './migrations/1799000010000-AddAutofixAgentFlags';
+import { AddAutofixMessageFields1799000100000 } from './migrations/1799000100000-AddAutofixMessageFields';
+import { AddAutofixPhoenixIds1799000200000 } from './migrations/1799000200000-AddAutofixPhoenixIds';
+import { MakeAutofixEnabledNullable1799000300000 } from './migrations/1799000300000-MakeAutofixEnabledNullable';
+import { AddAutofixAccessGrant1799000400000 } from './migrations/1799000400000-AddAutofixAccessGrant';
 
 export const entities = [
   AgentMessage,
@@ -153,6 +168,7 @@ export const entities = [
   AgentEnabledProvider,
   BackfillState,
   PublicErrorPage,
+  WaitlistClaim,
 ];
 
 export const migrations = [
@@ -262,4 +278,18 @@ export const migrations = [
   AddCrossTenantErrorTimestampIndex1795100000000,
   AddAutofixWaitlist1796000000000,
   AddPublicErrorPages1797000000000,
+  AddErrorClassification1798000000000,
+  AddTenantLimitOverrides1798100000000,
+  AddBillingEmailLogs1798200000000,
+  AddBillingEmailPreferences1798300000000,
+  AddAutofixWaitlistSignups1799000000000,
+  AddAutofixAgentFlags1799000010000,
+  AddAutofixMessageFields1799000100000,
+  AddAutofixPhoenixIds1799000200000,
+  MakeAutofixEnabledNullable1799000300000,
+  AddAutofixAccessGrant1799000400000,
+  RenameWaitlistClaimsTable1800000000000,
+  ReclassifyPlanRequestLimitMessages1800100000000,
+  AddMessageErrorCode1800200000000,
+  DropUnusedAgentMessageIndexes1800300000000,
 ];

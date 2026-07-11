@@ -75,7 +75,11 @@ describe('PublicStatsService — pricing edge cases', () => {
   }
 
   function setupProviderDailyQuery(rows: unknown) {
-    mockRepo.createQueryBuilder.mockReturnValueOnce(mockQueryBuilder(rows));
+    mockRepo.createQueryBuilder
+      .mockReturnValueOnce(mockQueryBuilder(rows))
+      // Second parallel query: distinct (custom model, tenant) pairs feeding
+      // the custom-model k-anonymity floor. Irrelevant to pricing edges.
+      .mockReturnValueOnce(mockQueryBuilder([]));
   }
 
   function setupAgentDailyQuery(rows: unknown) {

@@ -9,6 +9,7 @@ import {
   MaxLength,
   ArrayMinSize,
   ValidateNested,
+  IsBoolean,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
@@ -226,4 +227,10 @@ export class SetResponseModeDto {
 
 export function responseModeFromDto(body: SetResponseModeDto): ResponseMode | undefined {
   return body.response_mode ?? body.responseMode;
+}
+
+export class UpdateAutofixDto {
+  @IsOptional()
+  @IsBoolean()
+  enabled?: boolean;
 }

@@ -176,6 +176,28 @@ export function toggleComplexity(agentName: string) {
   });
 }
 
+/* -- Routing: Auto-fix -- */
+
+export interface AutofixConfig {
+  enabled: boolean;
+  /** Whether this tenant has Auto-fix early access (waitlist / GA). The toggle
+   *  is only shown when true; the rest of the time the "Get early access" card
+   *  in the sidebar is the entry point. */
+  available: boolean;
+}
+
+export function getAutofix(agentName: string) {
+  return fetchJson<AutofixConfig>(routingPath(agentName, 'autofix'));
+}
+
+export function updateAutofix(agentName: string, body: { enabled?: boolean }) {
+  return fetchMutate<AutofixConfig>(routingPath(agentName, 'autofix'), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
 /* -- Routing: Tier Assignments -- */
 
 /**

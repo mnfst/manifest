@@ -77,4 +77,44 @@ describe('OpenAI model ids', () => {
     expect(routeForOpenAiModelId('openai/gpt-4o', [model({ id: 'gpt-4o-mini' })])).toBeNull();
     expect(routeForOpenAiModelId('openai/gpt-4o', [model({ authType: undefined })])).toBeNull();
   });
+
+  it('resolves a bare provider-native name carried by one connection', () => {
+    expect(routeForOpenAiModelId('gpt-5.4-nano', [model({ id: 'gpt-5.4-nano' })])).toEqual({
+      provider: 'openai',
+      authType: 'api_key',
+      model: 'gpt-5.4-nano',
+    });
+  });
+
+  it('resolves a bare prefixed id whose published form carries the subscription suffix', () => {
+    expect(
+      routeForOpenAiModelId('copilot/gpt-4o', [
+        model({ id: 'copilot/gpt-4o', provider: 'copilot', authType: 'subscription' }),
+      ]),
+    ).toEqual({ provider: 'copilot', authType: 'subscription', model: 'copilot/gpt-4o' });
+  });
+
+  it('prefers the provider-qualified id over a bare collision', () => {
+    const route = routeForOpenAiModelId('openai/gpt-4o', [
+      model({ id: 'openai/gpt-4o', provider: 'openrouter' }),
+      model({ id: 'gpt-4o', provider: 'openai' }),
+    ]);
+
+    expect(route).toEqual({ provider: 'openai', authType: 'api_key', model: 'gpt-4o' });
+  });
+
+  // Two connections carrying one bare id: the caller cannot know which was
+  // meant, so the route helper refuses to guess.
+  it('returns null for a bare name carried by two connections', () => {
+    expect(
+      routeForOpenAiModelId('gpt-4o', [
+        model({ id: 'gpt-4o', authType: 'api_key' }),
+        model({ id: 'gpt-4o', authType: 'subscription' }),
+      ]),
+    ).toBeNull();
+  });
+
+  it('returns null for a bare name that matches nothing', () => {
+    expect(routeForOpenAiModelId('some-retired-model', [model()])).toBeNull();
+  });
 });

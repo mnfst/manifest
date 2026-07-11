@@ -1,4 +1,6 @@
 import { HttpException } from '@nestjs/common';
+import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
+import { ManifestError } from '../../../common/errors/manifest-error';
 import { ProxyController } from '../proxy.controller';
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
 import { ProxyMessageDedup } from '../proxy-message-dedup';
@@ -122,10 +124,12 @@ describe('ProxyController', () => {
   let mockPricingCache: { getByModel: jest.Mock };
   let modelDiscovery: { getModelsForAgent: jest.Mock };
   let recorder: ProxyMessageRecorder;
+  let planService: { assertWithinRequestLimit: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
     proxyService = { proxyRequest: jest.fn() };
+    planService = { assertWithinRequestLimit: jest.fn().mockResolvedValue(undefined) };
     rateLimiter = {
       checkLimit: jest.fn(),
       checkIpLimit: jest.fn(),
@@ -188,6 +192,8 @@ describe('ProxyController', () => {
       new ThinkingBlockCache(),
       new ReasoningContentCache(),
       modelDiscovery as never,
+      planService as never,
+      { report: jest.fn() } as never,
     );
   });
 
@@ -291,6 +297,79 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     expect(headers['X-Manifest-Confidence']).toBe('0.9');
     expect(headers['X-Manifest-Reason']).toBe('scored');
+  });
+
+  it('enforces the plan request limit before routing and records a Manifest policy row', async () => {
+    const block = new HttpException(
+      {
+        statusCode: 402,
+        code: 'PLAN_LIMIT_REQUESTS',
+        limit: FREE_PLAN_REQUESTS_PER_MONTH,
+        used: FREE_PLAN_REQUESTS_PER_MONTH,
+      },
+      402,
+    );
+    planService.assertWithinRequestLimit.mockRejectedValueOnce(block);
+    const recordSpy = jest.spyOn(recorder, 'recordManifestBlockedRequest');
+
+    const req = mockRequest({ model: 'auto', messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    // The gate runs BEFORE the try/catch, so the 402 propagates to
+    // ProxyExceptionFilter instead of the local handleProxyError.
+    await expect(controller.chatCompletions(req as never, res as never)).rejects.toBe(block);
+    await flushRecorderMicrotasks();
+
+    // Gate ran before rate limiting / routing. The recorded row is classified as
+    // Manifest policy, which PlanService excludes from billable request counts.
+    expect(planService.assertWithinRequestLimit).toHaveBeenCalledWith(req.ingestionContext);
+    expect(rateLimiter.checkLimit).not.toHaveBeenCalled();
+    expect(proxyService.proxyRequest).not.toHaveBeenCalled();
+    expect(recordSpy).toHaveBeenCalledWith(
+      req.ingestionContext,
+      expect.objectContaining({
+        httpStatus: 402,
+        errorMessage: 'Free plan monthly request limit reached',
+        reason: 'plan_request_limit_exceeded',
+        model: 'auto',
+      }),
+    );
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'error',
+        error_http_status: 402,
+        routing_reason: 'plan_request_limit_exceeded',
+        error_origin: 'policy',
+        error_class: 'plan_request_limit_exceeded',
+      }),
+    );
+  });
+
+  it('routes a non-402 plan-lookup error through the normal proxy error handler', async () => {
+    // A subscription/tenant lookup failure is Manifest's own bug (M500), not a
+    // provider failure — it must be recorded + normalized, never thrown raw
+    // (which would 500 the caller) and never blamed on the provider.
+    planService.assertWithinRequestLimit.mockRejectedValueOnce(new Error('subscription db down'));
+    const manifestSpy = jest.spyOn(recorder, 'recordManifestBlockedRequest');
+    const providerSpy = jest.spyOn(recorder, 'recordProviderError');
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(providerSpy).not.toHaveBeenCalled();
+    expect(manifestSpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        errorCode: 'M500',
+        reason: 'manifest_internal_error',
+        httpStatus: 500,
+        // The real internal message, not the friendly text the caller sees.
+        errorMessage: expect.stringContaining('subscription db down'),
+      }),
+    );
+    expect(proxyService.proxyRequest).not.toHaveBeenCalled();
   });
 
   it('should expose /v1/responses and convert chat completions output to Responses format', async () => {
@@ -531,6 +610,85 @@ describe('ProxyController', () => {
       (providerClient as Record<string, jest.Mock>).collectChatGptSseResponse,
     ).toHaveBeenCalledWith(sseText, 'gpt-5.3-codex');
     expect(res.json).toHaveBeenCalledWith(collectedBody);
+  });
+
+  it('should record route metadata when collected SSE response fails after routing', async () => {
+    const sseText = 'event: error\ndata: {"error":{"message":"too large"}}\n\n';
+    const errorBody = JSON.stringify({
+      error: {
+        message: 'Your input exceeds the context window of this model.',
+        code: 'context_length_exceeded',
+        type: 'invalid_request_error',
+      },
+    });
+    const mockProviderResp = new Response(sseText, {
+      status: 200,
+      headers: { 'Content-Type': 'text/event-stream' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+      },
+      meta: {
+        tier: 'standard',
+        model: 'gpt-5.3-codex',
+        provider: 'openai',
+        confidence: 0.8,
+        reason: 'scored',
+        auth_type: 'subscription',
+        provider_key_label: 'Work',
+        tenantProviderId: 'tenant-provider-1',
+        request_params: { reasoning_effort: 'medium' },
+        header_tier_id: 'header-tier-1',
+        header_tier_name: 'Premium',
+        header_tier_color: 'indigo',
+      },
+    });
+    (providerClient as Record<string, jest.Mock>).collectChatGptSseResponse = jest
+      .fn()
+      .mockImplementation(() => {
+        throw new ResponsesSseError(
+          'Your input exceeds the context window of this model.',
+          400,
+          errorBody,
+        );
+      });
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+    await flushRecorderMicrotasks();
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'error',
+        error_http_status: 400,
+        error_message: errorBody,
+        model: 'gpt-5.3-codex',
+        provider: 'openai',
+        routing_tier: 'standard',
+        routing_reason: 'scored',
+        auth_type: 'subscription',
+        provider_key_label: 'Work',
+        tenant_provider_id: 'tenant-provider-1',
+        request_params: { reasoning_effort: 'medium' },
+        header_tier_id: 'header-tier-1',
+        header_tier_name: 'Premium',
+        header_tier_color: 'indigo',
+      }),
+    );
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: expect.objectContaining({
+        provider: 'openai',
+        model: 'gpt-5.3-codex',
+      }),
+    });
   });
 
   it('should not record success message for non-fallback responses (OTLP pipeline records them)', async () => {
@@ -1234,9 +1392,11 @@ describe('ProxyController', () => {
       expect(rateLimiter.releaseSlot).not.toHaveBeenCalled();
     });
 
-    it('should record 429 when checkLimit throws with 429', async () => {
+    it('should record local rate-limit blocks as Manifest policy rows', async () => {
+      // The real limiter throws a ManifestError — that type is what tells the
+      // controller this 429 is Manifest's, not a provider's.
       rateLimiter.checkLimit.mockImplementation(() => {
-        throw new HttpException('Too many requests — wait a few seconds and retry.', 429);
+        throw new ManifestError('M201', 429);
       });
 
       const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
@@ -1249,6 +1409,178 @@ describe('ProxyController', () => {
         expect.objectContaining({
           status: 'rate_limited',
           tenant_id: 'tenant-1',
+          error_http_status: 429,
+          routing_reason: 'manifest_rate_limited',
+          error_origin: 'policy',
+          error_class: 'rate_limit',
+          error_code: 'M201',
+        }),
+      );
+    });
+
+    it('names which limit fired: per-IP is M202, not the per-user reason', async () => {
+      rateLimiter.checkIpLimit.mockImplementation(() => {
+        throw new ManifestError('M202', 429);
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error_code: 'M202',
+          routing_reason: 'manifest_ip_rate_limited',
+          error_origin: 'policy',
+        }),
+      );
+    });
+
+    it('names which limit fired: concurrency is M203', async () => {
+      rateLimiter.acquireSlot.mockImplementation(() => {
+        throw new ManifestError('M203', 429);
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error_code: 'M203',
+          routing_reason: 'manifest_concurrency_limited',
+        }),
+      );
+    });
+  });
+
+  describe('Manifest-authored failures', () => {
+    it('records a malformed body (M300) on the request origin, not the provider', async () => {
+      proxyService.proxyRequest.mockRejectedValueOnce(new ManifestError('M300', 400));
+      const providerSpy = jest.spyOn(recorder, 'recordProviderError');
+
+      const req = mockRequest({ messages: [] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(providerSpy).not.toHaveBeenCalled();
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'error',
+          error_code: 'M300',
+          error_http_status: 400,
+          error_origin: 'request',
+          error_class: 'invalid_request',
+          provider: null,
+          routing_tier: null,
+        }),
+      );
+    });
+
+    it('never records an unauthenticated auth failure — there is no agent to attribute it to', async () => {
+      // M005 reaches the proxy only via the guard, which throws before any tenant
+      // resolves. If it ever surfaced here it must still write nothing.
+      proxyService.proxyRequest.mockRejectedValueOnce(new ManifestError('M005', 401));
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(mockMessageRepo.insert).not.toHaveBeenCalled();
+    });
+
+    it('swallows a recorder failure on the stub path rather than failing the response', async () => {
+      jest
+        .spyOn(recorder, 'recordManifestBlockedRequest')
+        .mockRejectedValueOnce(new Error('db down'));
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: new Response(
+            JSON.stringify({
+              choices: [{ message: { role: 'assistant', content: 'no key' } }],
+              usage: { prompt_tokens: 0, completion_tokens: 0 },
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          ),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'simple',
+          model: 'manifest',
+          provider: 'manifest',
+          confidence: 1,
+          reason: 'no_provider',
+          manifest_error_code: 'M101',
+          manifest_error_message: '[🦚 Manifest M101] No providers set up yet.',
+        },
+        failedFallbacks: [],
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await expect(controller.chatCompletions(req as never, res as never)).resolves.toBeUndefined();
+      await flushRecorderMicrotasks();
+
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('records an HTTP-200 friendly stub as a failed setup row, not a success', async () => {
+      // What the user saw in the dashboard as "Failed: Setup": the proxy answered
+      // 200 with a canned assistant message because no provider key was present.
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: new Response(
+            JSON.stringify({
+              choices: [{ message: { role: 'assistant', content: 'no key' } }],
+              usage: { prompt_tokens: 0, completion_tokens: 0 },
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          ),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'simple',
+          model: 'manifest',
+          provider: 'manifest',
+          confidence: 1,
+          reason: 'no_provider_key',
+          manifest_error_code: 'M100',
+          manifest_error_message: '[🦚 Manifest M100] No anthropic API key yet.',
+        },
+        failedFallbacks: [],
+      });
+      const successSpy = jest.spyOn(recorder, 'recordSuccessMessage');
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }], model: 'auto' });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(successSpy).not.toHaveBeenCalled();
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'error',
+          error_code: 'M100',
+          error_message: '[🦚 Manifest M100] No anthropic API key yet.',
+          error_origin: 'config',
+          error_class: 'no_provider_key',
+          model: 'auto',
+          provider: null,
+          routing_tier: null,
         }),
       );
     });

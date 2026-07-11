@@ -8,6 +8,7 @@ let mockSearchParams: Record<string, string> = {};
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
   useNavigate: () => vi.fn(),
+  useLocation: () => ({ search: "" }),
   useSearchParams: () => [mockSearchParams],
 }));
 

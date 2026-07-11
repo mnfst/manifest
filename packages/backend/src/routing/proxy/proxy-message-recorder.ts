@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
-import type { RequestParamDefaults } from 'manifest-shared';
+import { classifyMessageError, type RequestParamDefaults } from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
@@ -16,6 +16,54 @@ import { CallerAttribution } from './caller-classifier';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
+import type { ManifestErrorCode } from '../../common/errors/error-codes';
+import type { ManifestBlockedRequestReason } from '../../common/errors/manifest-error';
+import type { AutofixChainEntry, AutofixRecord } from '../autofix/autofix.types';
+import { serializeProviderError } from '../autofix/provider-error-normalizer';
+
+/**
+ * Phoenix's decision metadata for a healed row: its issue/patch/heal-attempt ids
+ * plus the human-readable "why" ({@link AutofixChainEntry.explanation}). Null when
+ * the entry carries none (e.g. the heal call never reached Phoenix).
+ */
+function buildAutofixPhoenix(entry: AutofixChainEntry | undefined): object | null {
+  if (!entry) return null;
+  const present =
+    entry.issue_id != null ||
+    entry.patch_id != null ||
+    entry.heal_attempt_id != null ||
+    entry.explanation != null;
+  if (!present) return null;
+  return {
+    issueId: entry.issue_id ?? null,
+    patchId: entry.patch_id ?? null,
+    healAttemptId: entry.heal_attempt_id ?? null,
+    explanation: entry.explanation ?? null,
+  };
+}
+
+/** Auto-fix columns for one row of a healed pair (or an exhausted attempt). */
+function autofixColumns(
+  autofix: AutofixRecord | undefined,
+  role: 'original' | 'retry',
+): Partial<AgentMessage> {
+  if (!autofix) return {};
+  // The heal decision (ids, operations, explanation) rides the attempt-0 entry.
+  const healEntry = autofix.chain.find(
+    (e) =>
+      e.operations != null ||
+      e.issue_id != null ||
+      e.heal_attempt_id != null ||
+      e.explanation != null,
+  );
+  return {
+    autofix_applied: true,
+    autofix_group_id: autofix.groupId,
+    autofix_role: role,
+    autofix_operations: (healEntry?.operations as object | null) ?? null,
+    autofix_phoenix: buildAutofixPhoenix(healEntry),
+  };
+}
 
 export interface HeaderTierRef {
   headerTierId?: string | null;
@@ -52,6 +100,28 @@ export interface ProviderErrorOpts extends HeaderTierRef {
    * provider request. Persisted to `agent_messages.request_params`.
    */
   requestParams?: RequestParamDefaults | null;
+  /** Auto-fix audit when this error was the terminal outcome after healing. */
+  autofix?: AutofixRecord;
+}
+
+export type { ManifestBlockedRequestReason };
+
+export interface ManifestBlockedRequestOpts {
+  /**
+   * The status the caller saw, when there was one. Omitted for the HTTP-200
+   * friendly stubs (no provider was contacted, so there is no upstream status
+   * to record) — `error_http_status` then stays NULL, as it always has.
+   */
+  httpStatus?: number | null;
+  errorMessage: string;
+  /** The documented `M###` code, persisted so the UI can link to its doc page. */
+  errorCode?: ManifestErrorCode;
+  reason: ManifestBlockedRequestReason;
+  model?: string;
+  traceId?: string;
+  sessionKey?: string;
+  callerAttribution?: CallerAttribution | null;
+  requestHeaders?: Record<string, string> | null;
 }
 
 export interface FallbackSuccessOpts extends HeaderTierRef {
@@ -102,26 +172,28 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
   requestParams?: RequestParamDefaults | null;
+  /** Auto-fix audit when a healed request succeeded. */
+  autofix?: AutofixRecord;
 }
 
-/**
- * Reasons that mark a `recordSuccessMessage` call as a Manifest-generated
- * stub instead of a real upstream completion. The HTTP envelope is 200 OK
- * (so the chat client renders the canned `[🦚 Manifest] …` text), but the
- * dashboard should classify the row as failed and surface why.
- */
-const CANNED_RESPONSE_REASONS: Record<string, string> = {
-  no_provider: 'No providers configured for this agent',
-  no_provider_key: 'Provider API key missing',
-  limit_exceeded: 'Usage limit exceeded',
-  friendly_error: 'Manifest internal error',
-};
+export interface AutofixOriginalOpts extends HeaderTierRef {
+  provider?: string;
+  reason?: string;
+  authType?: string;
+  traceId?: string;
+  specificityCategory?: string;
+  providerKeyLabel?: string;
+  tenantProviderId?: string | null;
+  callerAttribution?: CallerAttribution | null;
+  requestHeaders?: Record<string, string> | null;
+  requestParams?: RequestParamDefaults | null;
+}
 
 function buildMessageRow(
   ctx: IngestionContext,
   overrides: Partial<AgentMessage>,
 ): Partial<AgentMessage> {
-  return {
+  const row: Partial<AgentMessage> = {
     id: uuid(),
     tenant_id: ctx.tenantId,
     agent_id: ctx.agentId,
@@ -135,6 +207,26 @@ function buildMessageRow(
     cache_creation_tokens: 0,
     ...overrides,
   };
+  // Stamp the orthogonal error axes from this row's own signals so every insert
+  // site is classified identically (and identically to the backfill migration).
+  return { ...row, ...classifyRow(row) };
+}
+
+/**
+ * Derive `{ error_origin, error_class, superseded }` for a row from the same
+ * signals the backfill reads, via the shared classifyMessageError source of
+ * truth. A row with no explicit status is a success ('ok').
+ */
+function classifyRow(row: Partial<AgentMessage>): {
+  error_origin: string | null;
+  error_class: string | null;
+  superseded: boolean;
+} {
+  return classifyMessageError({
+    status: row.status ?? 'ok',
+    errorHttpStatus: row.error_http_status,
+    routingReason: row.routing_reason,
+  });
 }
 
 @Injectable()
@@ -164,6 +256,23 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     clearInterval(this.cooldownCleanupTimer);
   }
 
+  private shouldSkipRateLimitRecord(ctx: IngestionContext, scope?: string): boolean {
+    const key = scope
+      ? `${scope}:${ctx.tenantId}:${ctx.agentId}`
+      : `${ctx.tenantId}:${ctx.agentId}`;
+    const now = Date.now();
+    const lastRecorded = this.rateLimitCooldown.get(key) ?? 0;
+    if (now - lastRecorded < this.RATE_LIMIT_COOLDOWN_MS) return true;
+    this.rateLimitCooldown.set(key, now);
+
+    if (this.rateLimitCooldown.size > this.MAX_COOLDOWN_ENTRIES) {
+      for (const [k, v] of this.rateLimitCooldown) {
+        if (now - v >= this.RATE_LIMIT_COOLDOWN_MS) this.rateLimitCooldown.delete(k);
+      }
+    }
+    return false;
+  }
+
   async recordProviderError(
     ctx: IngestionContext,
     httpStatus: number,
@@ -188,21 +297,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierId,
       headerTierName,
       headerTierColor,
+      autofix,
     } = opts ?? {};
 
-    if (httpStatus === 429) {
-      const key = `${ctx.tenantId}:${ctx.agentId}`;
-      const now = Date.now();
-      const lastRecorded = this.rateLimitCooldown.get(key) ?? 0;
-      if (now - lastRecorded < this.RATE_LIMIT_COOLDOWN_MS) return;
-      this.rateLimitCooldown.set(key, now);
-
-      if (this.rateLimitCooldown.size > this.MAX_COOLDOWN_ENTRIES) {
-        for (const [k, v] of this.rateLimitCooldown) {
-          if (now - v >= this.RATE_LIMIT_COOLDOWN_MS) this.rateLimitCooldown.delete(k);
-        }
-      }
-    }
+    if (httpStatus === 429 && this.shouldSkipRateLimitRecord(ctx)) return;
 
     const messageStatus = httpStatus === 429 ? 'rate_limited' : 'error';
 
@@ -219,6 +317,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         status: messageStatus,
         error_message: scrubSecrets(errorMessage).slice(0, 2000),
         error_http_status: httpStatus,
+        ...autofixColumns(autofix, 'original'),
         model: canonical.model,
         provider: canonical.provider,
         routing_tier: tier ?? null,
@@ -235,6 +334,74 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         header_tier_id: headerTierId ?? null,
         header_tier_name: headerTierName ?? null,
         header_tier_color: headerTierColor ?? null,
+      }),
+    );
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
+  }
+
+  /**
+   * The single writer for every Manifest-authored failure row: setup errors
+   * (M100/M101), limits (M200/M204), rate limits (M201–M203), malformed requests
+   * (M300), internal errors (M500), and expired keys (M004).
+   *
+   * `provider` and `routing_tier` are deliberately left NULL — no provider was
+   * contacted and no tier was chosen. (The old canned-stub path wrote a
+   * placeholder `provider='manifest'` / `routing_tier='simple'`, which put a
+   * meaningless SIMPLE badge on setup errors and a phantom "manifest" entry in
+   * the Messages provider dropdown.) `model` keeps the model the caller asked
+   * for, which is real information.
+   */
+  async recordManifestBlockedRequest(
+    ctx: IngestionContext,
+    opts: ManifestBlockedRequestOpts,
+  ): Promise<void> {
+    const {
+      httpStatus,
+      errorMessage,
+      errorCode,
+      reason,
+      model,
+      traceId,
+      sessionKey,
+      callerAttribution,
+      requestHeaders,
+    } = opts;
+
+    // Cooldown per reason, not per tenant: a per-IP limit firing must not
+    // suppress the row for a concurrency limit hit in the same minute.
+    if (httpStatus === 429 && this.shouldSkipRateLimitRecord(ctx, `manifest:${reason}`)) return;
+
+    const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
+      ctx.tenantId,
+      null,
+      model ?? null,
+    );
+
+    await this.messageRepo.insert(
+      buildMessageRow(ctx, {
+        trace_id: traceId ?? null,
+        session_key: sessionKey ?? null,
+        timestamp: new Date().toISOString(),
+        status: httpStatus === 429 ? 'rate_limited' : 'error',
+        error_message: scrubSecrets(errorMessage).slice(0, 2000),
+        error_code: errorCode ?? null,
+        error_http_status: httpStatus ?? null,
+        model: canonical.model,
+        provider: null,
+        routing_tier: null,
+        routing_reason: reason,
+        fallback_from_model: null,
+        fallback_index: null,
+        auth_type: null,
+        specificity_category: null,
+        provider_key_label: null,
+        tenant_provider_id: null,
+        caller_attribution: callerAttribution ?? null,
+        request_headers: requestHeaders ?? null,
+        request_params: null,
+        header_tier_id: null,
+        header_tier_name: null,
+        header_tier_color: null,
       }),
     );
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
@@ -352,6 +519,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierId?: string | null;
       headerTierName?: string | null;
       headerTierColor?: string | null;
+      /**
+       * Auto-fix audit when this superseded primary was also an Auto-fix
+       * attempt. Stamped onto THIS row (not a separate `auto_fixed` row) so a
+       * heal-then-fallback flow records the primary failure exactly once.
+       */
+      autofix?: AutofixRecord;
     },
   ): Promise<void> {
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
@@ -363,6 +536,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       buildMessageRow(ctx, {
         timestamp,
         status: 'fallback_error',
+        ...autofixColumns(opts?.autofix, 'original'),
         error_message: scrubSecrets(errorBody).slice(0, 2000),
         model: canonical.model,
         provider: canonical.provider,
@@ -487,6 +661,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierId,
       headerTierName,
       headerTierColor,
+      autofix,
     } = opts ?? {};
 
     const costUsd = computeTokenCost({
@@ -513,9 +688,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const normalizedSessionKey = this.dedup.normalizeSessionKey(sessionKey);
 
-    const cannedMessage = CANNED_RESPONSE_REASONS[reason];
-    const status = cannedMessage ? 'error' : 'ok';
-    const errorMessage = cannedMessage ?? null;
+    // Manifest's own canned stubs never reach here — the controller routes them
+    // to recordManifestBlockedRequest, which is the sole writer of Manifest rows.
+    const status = 'ok';
+    const errorMessage = null;
 
     let wrote = false;
     await this.dedup.withSuccessWriteLock(
@@ -538,6 +714,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
             const updatePayload: Partial<AgentMessage> = {
               status,
+              ...autofixColumns(autofix, 'retry'),
               error_message: errorMessage,
               model: canonicalModel,
               provider: canonicalProvider,
@@ -562,6 +739,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               header_tier_color: headerTierColor ?? null,
             };
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
+            // This update path bypasses buildMessageRow, so classify inline to
+            // keep every write site stamping the same orthogonal error axes.
+            Object.assign(updatePayload, classifyRow(updatePayload));
 
             await messageRepo.update({ id: existing.id }, updatePayload);
             wrote = true;
@@ -572,6 +752,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           await messageRepo.insert(
             buildMessageRow(ctx, {
               id: newId,
+              ...autofixColumns(autofix, 'retry'),
               trace_id: traceId ?? null,
               session_key: normalizedSessionKey,
               timestamp: new Date().toISOString(),
@@ -608,6 +789,63 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     if (wrote) {
       this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
     }
+  }
+
+  /**
+   * Record the failed original request(s) of a healed Auto-fix flow as their
+   * own rows (`status='auto_fixed'`, `autofix_role='original'`), linked to the
+   * successful retry row via `autofix.groupId`. Timestamped just before the
+   * retry so they sort adjacently, with the retry directly above.
+   */
+  async recordAutofixOriginals(
+    ctx: IngestionContext,
+    model: string,
+    tier: string,
+    autofix: AutofixRecord,
+    opts?: AutofixOriginalOpts,
+  ): Promise<void> {
+    const failed = autofix.chain.filter((e) => e.error);
+    if (failed.length === 0) return;
+
+    const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
+      ctx.tenantId,
+      opts?.provider,
+      model,
+    );
+    const nowMs = Date.now();
+    const rows = failed.map((entry, i) =>
+      buildMessageRow(ctx, {
+        trace_id: opts?.traceId ?? null,
+        timestamp: new Date(nowMs - (failed.length - i) * 1000).toISOString(),
+        status: 'auto_fixed',
+        // The full `{"error":{…}}` envelope, like every other error row — storing the
+        // bare message would drop the `type`/`param`/`code` that identify the error
+        // downstream (see serializeProviderError).
+        error_message: serializeProviderError(entry.error!),
+        error_http_status: entry.http_status,
+        model: canonical.model,
+        provider: canonical.provider,
+        routing_tier: tier ?? null,
+        routing_reason: opts?.reason ?? null,
+        auth_type: opts?.authType ?? null,
+        specificity_category: opts?.specificityCategory ?? null,
+        provider_key_label: opts?.providerKeyLabel ?? null,
+        tenant_provider_id: opts?.tenantProviderId ?? null,
+        caller_attribution: opts?.callerAttribution ?? null,
+        request_headers: opts?.requestHeaders ?? null,
+        request_params: opts?.requestParams ?? null,
+        header_tier_id: opts?.headerTierId ?? null,
+        header_tier_name: opts?.headerTierName ?? null,
+        header_tier_color: opts?.headerTierColor ?? null,
+        autofix_applied: true,
+        autofix_group_id: autofix.groupId,
+        autofix_role: 'original',
+        autofix_operations: (entry.operations as object | null) ?? null,
+        autofix_phoenix: buildAutofixPhoenix(entry),
+      }),
+    );
+    await this.messageRepo.insert(rows);
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
   /**

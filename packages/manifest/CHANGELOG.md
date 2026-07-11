@@ -1,5 +1,142 @@
 # manifest
 
+## 6.15.0
+
+### Minor Changes
+
+- 5059bcb: Show every Manifest error in the Messages log, with a documented error code and a link to its docs page. Setup errors are no longer hidden from the log, malformed requests and Manifest internal errors are no longer blamed on your providers, and each rate limit now says which one fired.
+- 4c5aed8: Report an agent's request-side 4xx to Phoenix as evidence, carrying the full request body, for agents that have Auto-fix on. Opt-in via `AUTOFIX_REPORT_ALL_4XX=true`; nothing is stored in Manifest.
+
+### Patch Changes
+
+- e7fa0c1: Show a dedicated M302 "model not available" message when an explicit model ID is not available for the agent.
+- fccb0e2: Stop failing requests whose `model` isn't a provider-qualified ID. A bare model name now routes to the connection carrying it, an unrecognized one falls back to configured routing instead of erroring with "no providers configured", and a matching custom header tier again outranks the model an SDK names.
+- 80f3cb5: Drop two unused indexes on `agent_messages`, reclaiming about 1 GB and removing an index write from every message insert.
+- 09ecac0: Store the full provider error envelope on Auto-fix rows. They previously kept only the error's message text, dropping its `type`, `param` and `code` — so re-reading such a row identified the failure differently from the live report of that same failure.
+- ff947a6: Open the HTTP port at boot instead of waiting for the provider model registry to load, so a slow database no longer stalls deploy healthchecks.
+- ca87016: Attribute public provider-token stats from recorded message providers before falling back to pricing metadata, so ChatGPT subscription usage is not grouped under API-key gateways that expose the same model name.
+- ec290d1: Add a Messages dashboard trigger filter for ordinary, fallback, and Auto-fix rows.
+
+## 6.14.0
+
+### Minor Changes
+
+- 7dd4edc: Auto-fix now explains _why_ a request was repaired. Phoenix returns a human-readable explanation with each heal (a one-line summary plus a plain sentence per edit), and the message Auto-fix card renders it — replacing the locally re-derived operation prose, which couldn't describe most fixes. Falls back to the previous phrasing for older healed rows.
+- 45420a1: Add Auto-fix: when an agent request fails with a fixable error (bad parameter, wrong format, unknown model), Manifest sends it to a healing service, applies the patched request, and retries before falling back. Opt-in per agent from the Routing page. Each healed request shows as two linked rows in the log: the failed original and the successful retry.
+- 6442224: Report the Manifest tenant id to Phoenix on auto-fix heal requests, so failures are attributed to the tenant that hit them.
+- e5d4177: Add a post-auth Pro upgrade page and preserve upgrade intent through sign-in and sign-up.
+- 29f6cc7: Add support for ClinePass subscription
+- e5d4177: Add Stripe billing (cloud only). Free plan request quota comes from shared plan limits. Pro price is read from the configured Stripe Price ID and includes unlimited requests. Free request limits are enforced on the proxy; over-limit requests return a 402 with an upgrade prompt. Self-hosted stays unlimited.
+
+### Patch Changes
+
+- 5aeb106: Split user Limits, Manifest plan quota, and provider billing errors in message error taxonomy.
+- e5d4177: Route request-limit upgrade links to the post-auth upgrade page.
+- 9514558: Reset the request quota window for the billing rollout.
+- e5d4177: Send Manifest billing emails for plan lifecycle changes and monthly request usage milestones, with usage-alert preferences.
+
+## 6.13.5
+
+### Patch Changes
+
+- 46a09a8: Fix waitlist sync reading email from session instead of empty tenant field, rename table to waitlist_claims
+
+## 6.13.4
+
+### Patch Changes
+
+- b2b95f0: Preserve route metadata on streamed provider errors so message logs keep model and provider fields.
+- 3dd41a1: fix: Gemini adapter — strip unsupported schema keywords, merge parallel tool responses, and inject missing thought signatures
+
+  The Gemini adapter now strips additional JSON Schema keywords that Google's
+  `function_declarations` parameter schema rejects (`propertyNames`,
+  `uniqueItems`, `multipleOf`, `contains`/`minContains`/`maxContains`,
+  `prefixItems`, `additionalItems`, `readOnly`, `writeOnly`, `deprecated`,
+  and `$comment`/`$anchor`/`$dynamicRef`/`$dynamicAnchor`/`$vocabulary`).
+
+  It merges consecutive parallel tool responses into a single Gemini user turn,
+  matching Google's requirement that N functionCall parts be answered by exactly
+  N functionResponse parts in one turn.
+
+  When a functionCall part has no `thought_signature` from the client or cache
+  (e.g. after a fallback from another model), the adapter now injects the
+  documented dummy signature so Gemini 3.x does not reject the request with
+  "Function call is missing a thought_signature".
+
+- 3b2bbd9: Self-hosted waitlist claims now sync to the cloud instance
+
+## 6.13.3
+
+### Patch Changes
+
+- 4e3fdde: Report Claude Opus 4.8 with a 1M context window for Anthropic subscription routing.
+- a0f5549: Preserve Responses reasoning summaries when Copilot responses-only models are used through Chat Completions.
+- aafa8d4: Record DeepSeek prompt cache hits from `prompt_cache_hit_tokens`.
+- 6ce3a9d: Send Fireworks prompt cache keys from Manifest sessions.
+- 4c9335e: Mark MiniMax Coding Plan subscriptions as prompt-cache capable.
+- ff48cfb: Send Moonshot prompt cache keys and record Kimi cached tokens.
+- 884170d: Preserve author-prefixed Ollama model IDs when proxying requests.
+- a4fd8aa: Stop forwarding Anthropic-style thinking params to Ollama endpoints.
+- d329f57: Send Qwen cache-control markers and mark Qwen subscriptions cacheable.
+- 09d904a: Remove the proxy message-count limit so long agent sessions are bounded by request body limits instead.
+- f1a5243: Mark Xiaomi MiMo Token Plan subscriptions as prompt-cache capable.
+- 0cc5520: Mark Z.ai Coding Plan subscriptions as prompt-cache capable.
+
+## 6.13.2
+
+### Patch Changes
+
+- 7ca120b: Enable prompt caching support metadata for Anthropic subscriptions and send first-party subscription requests with Anthropic automatic cache control.
+- a46c3dc: Mark Gemini subscriptions as supporting prompt caching in shared provider metadata.
+- dc3c4a9: Send stable prompt cache keys to Mistral when callers do not provide one.
+- abec177: Mark OpenAI subscriptions as supporting prompt caching in shared provider metadata.
+- fb63274: Add OpenRouter prompt cache breakpoints for Gemini and Qwen model families.
+- 22a15a4: Send prompt cache keys to xAI Responses requests from Manifest session affinity.
+
+## 6.13.1
+
+### Patch Changes
+
+- fef144a: Show explicit SDK model overrides as Direct in Messages.
+- 5572692: Update the shipped modal for OpenAI-compatible model discovery and direct model calls.
+- f8a5a5d: Lead README, Docker docs, and app meta tags with connecting agents to any provider instead of cost savings.
+
+## 6.13.0
+
+### Minor Changes
+
+- 1131013: Add Auto-fix early access card in sidebar and waitlist modal
+- 34c0a99: Separate provider errors from Manifest's own errors in the dashboard. Each message now records who caused a failure (provider, transport, or a Manifest setup/limit/internal issue) and what kind, so a provider outage no longer reads the same as a missing API key. The Messages log shows one clear status pill per row (e.g. "Failed: Provider", "Failed: Custom limit"), hides pre-flight setup errors by default, and a new `/api/v1/errors/breakdown` endpoint reports the provider-vs-Manifest split.
+- 2eabbf9: Add an opt-in public API that serves curated cross-tenant error-cluster pages for the marketing site. `GET /api/v1/public/error-pages[/:slug]` returns operator-approved clusters (gated by `MANIFEST_PUBLIC_STATS`), and a secret-guarded `POST/DELETE /api/v1/internal/error-pages` lets the Peacock CMS publish or pull pages. Only clusters seen by at least 10 distinct tenants are eligible, and every public sample is run through secret and email scrubbing before storage, so no single tenant's data or credentials can leak.
+
+### Patch Changes
+
+- 060db8f: Stop a wrong or revoked agent key from hammering the database and flooding the logs. Every request bearing a bad `mnfst_` key used to run a fresh indexed DB lookup and emit a warning, so one misconfigured agent in a retry loop sustained DB load and log noise indefinitely. Rejected keys are now cached for 30s (cleared the moment a key is created or rotated), collapsing a storm to one lookup and one log line per window. Separately, the dashboard live-update stream (`/api/v1/events`) no longer counts against the global rate limiter, so heavy dashboard use can't trip a 429 that severs the stream.
+- 3e0b517: Support Alibaba Cloud Model Studio compatible-mode endpoint URLs for Qwen API-key connections, including workspace-scoped Frankfurt endpoints.
+- 8ef014e: Drop unsigned Anthropic thinking blocks before forwarding native Messages requests to Anthropic.
+- bc292b4: Stop a slow memory climb on long-running servers. The global dashboard response cache used cache-manager's default in-memory store, which has no size limit and only drops entries when their exact URL is requested again. High-cardinality dashboard URLs (filters, cursors, time ranges) piled up for the life of the process. It now uses a bounded LRU store with a hard entry cap plus an active sweep of expired entries. Three proxy session caches (Anthropic thinking blocks, Gemini thought signatures, DeepSeek reasoning content) were also uncapped and now evict their oldest entries once a ceiling is reached.
+- 926b51a: Add Cerebras as a first-class API-key provider. Manifest can now connect Cerebras keys, discover models from `https://api.cerebras.ai/v1/models`, proxy chat completions through the OpenAI-compatible endpoint, and enrich model metadata from models.dev.
+- 75b6518: Public provider stats now include custom-provider usage, grouped under a single "Custom" provider with tenant-scoped endpoint ids scrubbed and rare model names folded into an aggregate bucket
+- 16f0cc9: Restore dropped `reasoning_content` on DeepSeek-compatible tool-call follow-up turns, including fallback requests where clients stripped provider-specific reasoning fields. Manifest now caches streamed and non-streamed assistant tool-call reasoning by session and first `tool_call.id`, and replays only exact DeepSeek-style `reasoning_content` for the same tool-call id. If no exact value is recoverable, Manifest injects an empty `reasoning_content` only as a last resort for DeepSeek-compatible assistant tool-call turns. Other reasoning fields such as `reasoning`, `reasoning_text`, and `reasoning_details` are treated as provider-specific and are not translated across formats. Normal assistant turns without tool calls are not cached or replayed by content fingerprint.
+- ccfe367: Allow inactive subscription connections to be deleted from the provider detail page, including stale duplicate rows left by upgrades.
+- ccb748d: Fix Playground streaming for Gemini subscription responses that use the CodeAssist envelope.
+- fbf8160: Allow self-hosted installs to tune the proxy message-count limit with MANIFEST_MAX_MESSAGES.
+- bd45672: Fix the dashboard "Messages" totals so every view agrees. The Overview card counted failed requests (including agents that have no provider set up yet) while the per-agent and per-provider views did not, so the headline number could sit ~35% above the sum of its parts. Every "messages" metric now counts the same thing: real messages, excluding error and rate-limited rows. The Messages log still lists failed rows so you can see what went wrong.
+- 8df89b7: Show custom and task-specific tiers in the Messages tab Tiers filter when a harness is selected from the global Messages view.
+- 3b5c63d: Add a status filter to the Messages dashboard.
+- 71d4acc: Add Mistral Vibe as a subscription provider with token setup, Vibe key guidance, and subscription-scoped discovery for the Vibe CLI model.
+- 4144e68: Load model parameter specs from the versioned `modelparams` npm package instead of refreshing modelparams.dev at runtime.
+- b0a8f66: Add Nous Portal as a subscription provider.
+- 4c7d19e: OpenCode Go and Zen model discovery now use the models.dev catalog first, and manual refreshes refresh the models.dev cache before OpenCode Go falls back to its docs catalog.
+- 9c36695: Refresh OpenCode Go models from the live OpenCode catalog and clarify per-request subscription values as quota usage instead of extra billing.
+- ae7f564: Replace the Overview News card with a full-width social follow banner.
+- ea9b422: Add Pioneer as a first-class API-key provider. Manifest can now connect Pioneer keys, discover models and pricing from Pioneer APIs, and proxy chat completions through the OpenAI-compatible endpoint using `X-API-Key` authentication.
+- 4aace1b: Return provider context-window errors as OpenAI-compatible `/v1` errors while still letting configured fallbacks try a larger context window.
+- 6b2ff17: Expose authenticated agent models from `/v1/models` using the OpenAI-compatible model list shape.
+- 687c2b7: Prevent Anthropic signed thinking blocks from being replayed into incompatible fallback attempts. Cached thinking is now scoped to the provider, auth type, and model that produced it, so an incompatible fallback omits stale signatures while a later compatible Anthropic attempt can restore them.
+- 2ab748a: Route explicit provider-qualified model IDs from the OpenAI-compatible API.
+- 26be5cc: Stop rolling deploys from dropping requests. During a deploy the old replicas got SIGTERM and closed their socket immediately while the Railway edge was still routing to them, so a chunk of requests failed for the length of the deploy window. The server now drains on SIGTERM: the health probe at /api/v1/health reports 503 so the edge deregisters the replica, and the process keeps serving for SHUTDOWN_DRAIN_MS (default 10s) before closing connections. railway.toml gains overlapSeconds and drainingSeconds so the new deployment overlaps the old one and the drain finishes before SIGKILL.
+
 ## 6.12.0
 
 ### Minor Changes

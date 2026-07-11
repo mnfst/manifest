@@ -6,6 +6,7 @@ import {
   AGENT_PLATFORMS,
   CATEGORY_LABELS,
   PLATFORM_LABELS,
+  normalizeProviderName,
   type AgentCategory,
   type AgentPlatform,
 } from 'manifest-shared';
@@ -13,6 +14,7 @@ import { AgentMessage } from '../entities/agent-message.entity';
 import { Agent } from '../entities/agent.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { computeCutoff, sqlDateBucket } from '../common/utils/postgres-sql';
+import { PROVIDER_BY_ID_OR_ALIAS } from '../common/constants/providers';
 
 const MAX_RESULTS = 10;
 const EXCLUDED_PROVIDERS = new Set(['Unknown']);
@@ -88,6 +90,47 @@ function isCustomModel(model: string): boolean {
   return model.startsWith('custom:');
 }
 
+// All custom-provider traffic is published under this single synthetic
+// provider so the public site can show one aggregate "Custom" entry instead
+// of one page per (tenant-scoped, unpublishable) custom endpoint.
+export const CUSTOM_PROVIDER_LABEL = 'Custom';
+// Custom model names are user-supplied strings. Publish one only when this
+// many distinct tenants used it in the window — the same k-anonymity idea as
+// the error-pages publishing floor — and fold everything below into a single
+// bucket row so provider totals stay exact.
+export const MIN_TENANTS_PER_CUSTOM_MODEL = 10;
+export const OTHER_CUSTOM_MODELS = 'other-custom-models';
+// "custom:<provider-id>/<model>" -> "<model>". The provider id is a
+// tenant-scoped UUID and must never appear in public output.
+const CUSTOM_MODEL_REF_RE = /^custom:[^/]+\//;
+
+function scrubCustomModel(model: string): string {
+  const scrubbed = model.replace(CUSTOM_MODEL_REF_RE, '');
+  // A ref without a "/<model>" part falls through unchanged; never let the
+  // raw provider id out.
+  return isCustomModel(scrubbed) ? OTHER_CUSTOM_MODELS : scrubbed;
+}
+
+function providerModelKey(provider: string, model: string): string {
+  return `${provider}\u0000${model}`;
+}
+
+function normalizePublicProvider(provider: string | null | undefined): string | null {
+  const raw = provider?.trim();
+  if (!raw) return null;
+
+  const lower = raw.toLowerCase();
+  if (lower === 'custom' || lower.startsWith('custom:')) return CUSTOM_PROVIDER_LABEL;
+
+  const direct = PROVIDER_BY_ID_OR_ALIAS.get(lower);
+  if (direct) return direct.displayName;
+
+  const normalized = PROVIDER_BY_ID_OR_ALIAS.get(normalizeProviderName(raw));
+  if (normalized) return normalized.displayName;
+
+  return raw;
+}
+
 @Injectable()
 export class PublicStatsService {
   constructor(
@@ -95,6 +138,16 @@ export class PublicStatsService {
     private readonly messageRepo: Repository<AgentMessage>,
     private readonly pricingCache: ModelPricingCacheService,
   ) {}
+
+  private publicProviderFor(modelName: string, recordedProvider?: string | null): string | null {
+    const recorded = normalizePublicProvider(recordedProvider);
+    if (recorded && !EXCLUDED_PROVIDERS.has(recorded)) return recorded;
+
+    const pricing = this.pricingCache.getByModel(modelName);
+    const fallback = normalizePublicProvider(pricing?.provider);
+    if (!fallback || EXCLUDED_PROVIDERS.has(fallback)) return null;
+    return fallback;
+  }
 
   async getUsageStats(): Promise<UsageStats> {
     const cutoff7d = computeCutoff('7 days');
@@ -106,68 +159,107 @@ export class PublicStatsService {
       this.messageRepo
         .createQueryBuilder('at')
         .select('at.model', 'model')
+        .addSelect('at.provider', 'provider')
         .addSelect('COUNT(*)', 'usage_count')
         .where('at.model IS NOT NULL')
         .groupBy('at.model')
+        .addGroupBy('at.provider')
         .orderBy('usage_count', 'DESC')
         .limit(MAX_MODEL_ROWS)
         .getRawMany(),
       this.messageRepo
         .createQueryBuilder('at')
         .select('at.model', 'model')
+        .addSelect('at.provider', 'provider')
         .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
         .where('at.model IS NOT NULL')
         .andWhere('at.timestamp >= :cutoff', { cutoff: cutoff7d })
         .groupBy('at.model')
+        .addGroupBy('at.provider')
         .getRawMany(),
       this.messageRepo
         .createQueryBuilder('at')
         .select('at.model', 'model')
+        .addSelect('at.provider', 'provider')
         .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
         .where('at.model IS NOT NULL')
         .andWhere('at.timestamp >= :cutoff14d', { cutoff14d })
         .andWhere('at.timestamp < :cutoff7d', { cutoff7d })
         .groupBy('at.model')
+        .addGroupBy('at.provider')
         .getRawMany(),
       this.messageRepo
         .createQueryBuilder('at')
         .select('at.model', 'model')
+        .addSelect('at.provider', 'provider')
         .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
         .where('at.model IS NOT NULL')
         .andWhere('at.timestamp >= :cutoff30d', { cutoff30d })
         .groupBy('at.model')
+        .addGroupBy('at.provider')
         .getRawMany(),
     ]);
 
     const tokenMap = new Map<string, number>();
+    const tokenMapByProvider = new Map<string, number>();
     for (const r of tokenRows) {
-      tokenMap.set(r.model as string, Number(r.tokens ?? 0));
+      const modelName = r.model as string;
+      const tokens = Number(r.tokens ?? 0);
+      tokenMap.set(modelName, (tokenMap.get(modelName) ?? 0) + tokens);
+      const provider = this.publicProviderFor(modelName, r.provider as string | null);
+      if (provider) {
+        const key = providerModelKey(provider, modelName);
+        tokenMapByProvider.set(key, (tokenMapByProvider.get(key) ?? 0) + tokens);
+      }
     }
 
     const tokenMapPrev7d = new Map<string, number>();
     for (const r of tokenRowsPrev7d) {
-      tokenMapPrev7d.set(r.model as string, Number(r.tokens ?? 0));
+      const modelName = r.model as string;
+      const provider = this.publicProviderFor(modelName, r.provider as string | null);
+      if (!provider) continue;
+      const key = providerModelKey(provider, modelName);
+      tokenMapPrev7d.set(key, (tokenMapPrev7d.get(key) ?? 0) + Number(r.tokens ?? 0));
     }
 
     const tokenMap30d = new Map<string, number>();
     for (const r of tokenRows30d) {
-      tokenMap30d.set(r.model as string, Number(r.tokens ?? 0));
+      const modelName = r.model as string;
+      const provider = this.publicProviderFor(modelName, r.provider as string | null);
+      if (!provider) continue;
+      const key = providerModelKey(provider, modelName);
+      tokenMap30d.set(key, (tokenMap30d.get(key) ?? 0) + Number(r.tokens ?? 0));
     }
 
-    const eligible: TopModel[] = [];
+    const topCandidates = new Map<string, { modelName: string; provider: string }>();
     for (const r of topRows) {
       const modelName = r.model as string;
       if (isCustomModel(modelName)) continue;
+
+      const provider = this.publicProviderFor(modelName, r.provider as string | null);
+      if (!provider) continue;
+
+      const key = providerModelKey(provider, modelName);
+      if (!topCandidates.has(key)) {
+        topCandidates.set(key, {
+          modelName,
+          provider,
+        });
+      }
+    }
+
+    const eligible: TopModel[] = [];
+    for (const candidate of topCandidates.values()) {
+      const modelName = candidate.modelName;
       const pricing = this.pricingCache.getByModel(modelName);
-      const provider = pricing?.provider || 'Unknown';
-      if (EXCLUDED_PROVIDERS.has(provider)) continue;
+      const key = providerModelKey(candidate.provider, modelName);
 
       eligible.push({
         model: modelName,
-        provider,
-        tokens_7d: tokenMap.get(modelName) ?? 0,
-        tokens_previous_7d: tokenMapPrev7d.get(modelName) ?? 0,
-        tokens_30d: tokenMap30d.get(modelName) ?? 0,
+        provider: candidate.provider,
+        tokens_7d: tokenMapByProvider.get(key) ?? 0,
+        tokens_previous_7d: tokenMapPrev7d.get(key) ?? 0,
+        tokens_30d: tokenMap30d.get(key) ?? 0,
         input_price_per_million:
           pricing?.input_price_per_token != null
             ? Number(pricing.input_price_per_token) * 1_000_000
@@ -195,27 +287,66 @@ export class PublicStatsService {
     const cutoff30d = computeCutoff('30 days');
     const dateBucket = sqlDateBucket('at.timestamp');
 
-    const rows: {
-      model: string;
-      date: string;
-      tokens: string;
-      auth_type: string | null;
-      cost: string | null;
-    }[] = await this.messageRepo
-      .createQueryBuilder('at')
-      .select('at.model', 'model')
-      .addSelect(dateBucket, 'date')
-      .addSelect('at.auth_type', 'auth_type')
-      .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
-      .addSelect('SUM(at.cost_usd)', 'cost')
-      .where('at.model IS NOT NULL')
-      .andWhere('at.timestamp >= :cutoff30d', { cutoff30d })
-      .groupBy('at.model')
-      .addGroupBy('date')
-      .addGroupBy('at.auth_type')
-      .orderBy('date', 'ASC')
-      .limit(MAX_PROVIDER_DAILY_ROWS)
-      .getRawMany();
+    const [rows, customPairs]: [
+      {
+        model: string;
+        provider: string | null;
+        date: string;
+        tokens: string;
+        auth_type: string | null;
+        cost: string | null;
+      }[],
+      { model: string; tenant_id: string }[],
+    ] = await Promise.all([
+      this.messageRepo
+        .createQueryBuilder('at')
+        .select('at.model', 'model')
+        .addSelect('at.provider', 'provider')
+        .addSelect(dateBucket, 'date')
+        .addSelect('at.auth_type', 'auth_type')
+        .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
+        .addSelect('SUM(at.cost_usd)', 'cost')
+        .where('at.model IS NOT NULL')
+        .andWhere('at.timestamp >= :cutoff30d', { cutoff30d })
+        .groupBy('at.model')
+        .addGroupBy('at.provider')
+        .addGroupBy('date')
+        .addGroupBy('at.auth_type')
+        .orderBy('date', 'ASC')
+        .limit(MAX_PROVIDER_DAILY_ROWS)
+        .getRawMany(),
+      // Distinct (model, tenant) pairs for custom traffic, so the k-anonymity
+      // floor counts real tenants per scrubbed name (summing per-raw-name
+      // counts would overcount a tenant with several custom endpoints).
+      this.messageRepo
+        .createQueryBuilder('at')
+        .select('at.model', 'model')
+        .addSelect('at.tenant_id', 'tenant_id')
+        .where("at.model LIKE 'custom:%'")
+        // NULL tenants would collapse into one phantom Set member and lower
+        // the effective anonymity floor by one.
+        .andWhere('at.tenant_id IS NOT NULL')
+        .andWhere('at.timestamp >= :cutoff30d', { cutoff30d })
+        .groupBy('at.model')
+        .addGroupBy('at.tenant_id')
+        .limit(MAX_PROVIDER_DAILY_ROWS)
+        .getRawMany(),
+    ]);
+
+    const customTenantsByModel = new Map<string, Set<string>>();
+    for (const pair of customPairs) {
+      const scrubbed = scrubCustomModel(pair.model);
+      let tenants = customTenantsByModel.get(scrubbed);
+      if (!tenants) {
+        tenants = new Set();
+        customTenantsByModel.set(scrubbed, tenants);
+      }
+      tenants.add(pair.tenant_id);
+    }
+    const publishableCustomModels = new Set<string>();
+    for (const [name, tenants] of customTenantsByModel) {
+      if (tenants.size >= MIN_TENANTS_PER_CUSTOM_MODEL) publishableCustomModels.add(name);
+    }
 
     const modelMap = new Map<
       string,
@@ -230,13 +361,21 @@ export class PublicStatsService {
     >();
 
     for (const r of rows) {
-      const modelName = r.model;
-      if (isCustomModel(modelName)) continue;
-      const pricing = this.pricingCache.getByModel(modelName);
-      const provider = pricing?.provider || 'Unknown';
-      if (EXCLUDED_PROVIDERS.has(provider)) continue;
+      let modelName = r.model;
+      let provider: string;
+      if (isCustomModel(modelName)) {
+        provider = CUSTOM_PROVIDER_LABEL;
+        const scrubbed = scrubCustomModel(modelName);
+        modelName = publishableCustomModels.has(scrubbed) ? scrubbed : OTHER_CUSTOM_MODELS;
+      } else {
+        const publicProvider = this.publicProviderFor(modelName, r.provider);
+        if (!publicProvider) continue;
+        provider = publicProvider;
+      }
 
-      const key = `${modelName}:${r.auth_type ?? ''}`;
+      // Provider is part of the key: a scrubbed custom name can collide with
+      // a real catalog model, and those must stay separate entries.
+      const key = `${provider}:${modelName}:${r.auth_type ?? ''}`;
       let entry = modelMap.get(key);
       if (!entry) {
         entry = {
@@ -448,14 +587,15 @@ export class PublicStatsService {
         if ((e.input_price_per_token ?? 0) !== 0 || (e.output_price_per_token ?? 0) !== 0)
           return false;
         if (isCustomModel(e.model_name)) return false;
-        const provider = e.provider || 'Unknown';
+        const provider = e.provider;
+        if (!provider) return false;
         if (EXCLUDED_PROVIDERS.has(provider)) return false;
         return (tokenMap.get(e.model_name) ?? 0) > 0;
       })
       .map((e) => ({
         model_name: e.model_name,
-        provider: e.provider || 'Unknown',
-        tokens_7d: tokenMap.get(e.model_name) ?? 0,
+        provider: e.provider,
+        tokens_7d: tokenMap.get(e.model_name) as number,
       }))
       .sort((a, b) => b.tokens_7d - a.tokens_7d)
       .slice(0, MAX_RESULTS);

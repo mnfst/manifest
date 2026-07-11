@@ -85,7 +85,7 @@ export class AgentsController {
       throw new BadRequestException('"Playground" is a reserved agent name');
     }
     const displayName = body.name.trim();
-    let result: { tenantId: string; agentId: string; apiKey: string };
+    let result: Awaited<ReturnType<ApiKeyGeneratorService['onboardAgent']>>;
     try {
       result = await this.apiKeyGenerator.onboardAgent({
         tenantId: ctx.tenantId,
@@ -168,7 +168,7 @@ export class AgentsController {
       throw new BadRequestException('"Playground" is a reserved agent name');
     }
     const displayName = body.name.trim();
-    let result;
+    let result: Awaited<ReturnType<AgentDuplicationService['duplicate']>>;
     try {
       result = await this.duplication.duplicate(ctx.tenantId, sourceName, {
         name: slug,

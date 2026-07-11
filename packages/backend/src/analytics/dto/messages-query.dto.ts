@@ -2,7 +2,10 @@ import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 import {
   ALL_TIERS,
+  ERROR_CLASSES,
+  ERROR_ORIGINS,
   SPECIFICITY_CATEGORIES,
+  type ErrorClass,
   type MessageTier,
   type SpecificityCategory,
 } from 'manifest-shared';
@@ -16,6 +19,17 @@ export const MESSAGE_STATUS_FILTER_VALUES = [
   'errors',
 ] as const;
 export type MessageStatusFilter = (typeof MESSAGE_STATUS_FILTER_VALUES)[number];
+
+export const MESSAGE_TRIGGER_FILTER_VALUES = ['none', 'fallback', 'autofix'] as const;
+export type MessageTriggerFilter = (typeof MESSAGE_TRIGGER_FILTER_VALUES)[number];
+
+/**
+ * Error-origin filter for the Messages log. The real origins plus a `manifest`
+ * shorthand for "all of config/policy/internal" (the HTTP-200 Manifest stubs
+ * that are hidden from the log by default).
+ */
+export const MESSAGE_ORIGIN_FILTER_VALUES = [...ERROR_ORIGINS, 'manifest'] as const;
+export type MessageOriginFilter = (typeof MESSAGE_ORIGIN_FILTER_VALUES)[number];
 
 export class MessagesQueryDto {
   @IsOptional()
@@ -63,6 +77,24 @@ export class MessagesQueryDto {
     message: `status must be one of: ${MESSAGE_STATUS_FILTER_VALUES.join(', ')}`,
   })
   status?: MessageStatusFilter;
+
+  @IsOptional()
+  @IsIn(MESSAGE_TRIGGER_FILTER_VALUES, {
+    message: `trigger must be one of: ${MESSAGE_TRIGGER_FILTER_VALUES.join(', ')}`,
+  })
+  trigger?: MessageTriggerFilter;
+
+  @IsOptional()
+  @IsIn(MESSAGE_ORIGIN_FILTER_VALUES, {
+    message: `origin must be one of: ${MESSAGE_ORIGIN_FILTER_VALUES.join(', ')}`,
+  })
+  origin?: MessageOriginFilter;
+
+  @IsOptional()
+  @IsIn(ERROR_CLASSES, {
+    message: `error_class must be one of: ${ERROR_CLASSES.join(', ')}`,
+  })
+  error_class?: ErrorClass;
 
   @IsOptional()
   @IsIn(ALL_TIERS, {

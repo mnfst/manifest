@@ -4,15 +4,22 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // module under test (`auth-client.ts`) imports this symbol and invokes it
 // once at module-load time, so we mock it before any dynamic import below.
 // Use `vi.hoisted` so the spy is available to the hoisted `vi.mock` factory.
-const { createAuthClientMock } = vi.hoisted(() => ({
+const { createAuthClientMock, stripeClientMock } = vi.hoisted(() => ({
   createAuthClientMock: vi.fn((config: unknown) => ({
     __mockClient: true,
     config,
   })),
+  // `stripeClient` is a factory the module passes into `plugins`. We tag the
+  // return value so the test can assert the plugin was actually wired in.
+  stripeClientMock: vi.fn((opts: unknown) => ({ __stripePlugin: true, opts })),
 }));
 
 vi.mock("better-auth/solid", () => ({
   createAuthClient: createAuthClientMock,
+}));
+
+vi.mock("@better-auth/stripe/client", () => ({
+  stripeClient: stripeClientMock,
 }));
 
 describe("authClient", () => {
@@ -21,6 +28,7 @@ describe("authClient", () => {
     // `createAuthClient({...})` call against a fresh mock state.
     vi.resetModules();
     createAuthClientMock.mockClear();
+    stripeClientMock.mockClear();
 
     // Pin `window.location.origin` to a deterministic value. jsdom would
     // otherwise return "http://localhost:3000", which is fine but we want
@@ -60,6 +68,23 @@ describe("authClient", () => {
     expect(config.basePath).toBe("/api/auth");
   });
 
+  it("registers the stripe subscription client plugin", async () => {
+    await import("../../src/services/auth-client.js");
+
+    // `stripeClient` must be called once with subscription mode enabled...
+    expect(stripeClientMock).toHaveBeenCalledTimes(1);
+    expect(stripeClientMock.mock.calls[0][0]).toEqual({ subscription: true });
+
+    // ...and the returned plugin must be passed into `createAuthClient`'s
+    // `plugins` array, which is what widens the client type with the
+    // `subscription` namespace in production.
+    const config = createAuthClientMock.mock.calls[0][0] as {
+      plugins: unknown[];
+    };
+    expect(config.plugins).toHaveLength(1);
+    expect(config.plugins[0]).toBe(stripeClientMock.mock.results[0].value);
+  });
+
   it("exports authClient as createAuthClient return type", async () => {
     const mod = await import("../../src/services/auth-client.js");
 
@@ -90,6 +115,7 @@ describe("authClient", () => {
     // a stale value baked at first import.
     vi.resetModules();
     createAuthClientMock.mockClear();
+    stripeClientMock.mockClear();
     vi.stubGlobal("window", {
       ...window,
       location: {

@@ -9,11 +9,15 @@ import {
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
   filterByKeyLabel,
+  filterByTenantProviderId,
+  scopeToConnection,
   filterByLiveAgentName,
   MESSAGE_ROW_SELECT_ALIASES,
   sqlCountMessages,
   ERROR_MESSAGE_STATUSES,
+  MANIFEST_ORIGIN_PREDICATE,
 } from './query-helpers';
+import { MANIFEST_ERROR_ORIGINS } from 'manifest-shared';
 import { SelectQueryBuilder } from 'typeorm';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 
@@ -286,6 +290,68 @@ describe('filterByKeyLabel', () => {
   });
 });
 
+describe('filterByTenantProviderId', () => {
+  function makeMockQb() {
+    const mockAndWhere = jest.fn();
+    const qb = { andWhere: mockAndWhere.mockImplementation(() => qb) };
+    return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere };
+  }
+
+  it('filters by the tenant_provider_id column', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByTenantProviderId(qb, 'tp-123');
+    expect(mockAndWhere).toHaveBeenCalledWith('at.tenant_provider_id = :tenantProviderId', {
+      tenantProviderId: 'tp-123',
+    });
+  });
+
+  it('returns the query builder for chaining', () => {
+    const { qb } = makeMockQb();
+    expect(filterByTenantProviderId(qb, 'tp-123')).toBe(qb);
+  });
+});
+
+describe('scopeToConnection', () => {
+  function makeMockQb() {
+    const mockAndWhere = jest.fn();
+    const qb = { andWhere: mockAndWhere.mockImplementation(() => qb) };
+    return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere };
+  }
+
+  it('uses filterByTenantProviderId when tenantProviderId is provided', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    scopeToConnection(qb, 'tp-123', 'Work');
+    expect(mockAndWhere).toHaveBeenCalledWith('at.tenant_provider_id = :tenantProviderId', {
+      tenantProviderId: 'tp-123',
+    });
+  });
+
+  it('uses filterByKeyLabel when only label is provided', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    scopeToConnection(qb, undefined, 'Work');
+    expect(mockAndWhere).toHaveBeenCalledWith(
+      "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)",
+      { keyLabel: 'Work' },
+    );
+  });
+
+  it('is a no-op when neither tenantProviderId nor label is supplied', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    const result = scopeToConnection(qb, undefined, undefined);
+    expect(mockAndWhere).not.toHaveBeenCalled();
+    expect(result).toBe(qb);
+  });
+
+  it('uses filterByKeyLabel when label is null', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    scopeToConnection(qb, undefined, null);
+    expect(mockAndWhere).toHaveBeenCalledWith(
+      "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)",
+      { keyLabel: 'Default' },
+    );
+  });
+});
+
 describe('selectMessageRowColumns', () => {
   function makeMockQb() {
     const selectCalls: Array<[string, string]> = [];
@@ -359,6 +425,27 @@ describe('selectMessageRowColumns', () => {
     expect(specCall).toEqual(['at.specificity_category', 'specificity_category']);
   });
 
+  it('projects error_origin, error_class, and error_http_status so the frontend can render the taxonomy', () => {
+    const { qb, addSelectCalls } = makeMockQb();
+    selectMessageRowColumns(qb, 'cost');
+
+    expect(addSelectCalls.find(([, a]) => a === 'error_origin')).toEqual([
+      'at.error_origin',
+      'error_origin',
+    ]);
+    expect(addSelectCalls.find(([, a]) => a === 'error_class')).toEqual([
+      'at.error_class',
+      'error_class',
+    ]);
+    expect(addSelectCalls.find(([, a]) => a === 'error_http_status')).toEqual([
+      'at.error_http_status',
+      'error_http_status',
+    ]);
+    expect(MESSAGE_ROW_SELECT_ALIASES).toContain('error_origin');
+    expect(MESSAGE_ROW_SELECT_ALIASES).toContain('error_class');
+    expect(MESSAGE_ROW_SELECT_ALIASES).toContain('error_http_status');
+  });
+
   it('returns the query builder for chaining', () => {
     const { qb } = makeMockQb();
     const result = selectMessageRowColumns(qb, 'cost');
@@ -379,6 +466,22 @@ describe('selectMessageRowColumns', () => {
     expect(nameCall).toEqual(['cp.name', 'custom_provider_name']);
   });
 
+  it('projects autofix_applied and autofix_role for Auto-fix rendering', () => {
+    const { qb, addSelectCalls } = makeMockQb();
+    selectMessageRowColumns(qb, 'cost');
+
+    expect(addSelectCalls.find(([, a]) => a === 'autofix_applied')).toEqual([
+      'at.autofix_applied',
+      'autofix_applied',
+    ]);
+    expect(addSelectCalls.find(([, a]) => a === 'autofix_role')).toEqual([
+      'at.autofix_role',
+      'autofix_role',
+    ]);
+    expect(MESSAGE_ROW_SELECT_ALIASES).toContain('autofix_applied');
+    expect(MESSAGE_ROW_SELECT_ALIASES).toContain('autofix_role');
+  });
+
   it('keys the join on the custom:-prefixed provider id', () => {
     expect(CUSTOM_PROVIDER_JOIN_CONDITION).toBe("at.provider = 'custom:' || cp.id");
   });
@@ -393,20 +496,34 @@ describe('selectMessageRowColumns', () => {
 describe('sqlCountMessages', () => {
   it('excludes every error status and counts NULL status as a real message', () => {
     expect(sqlCountMessages()).toBe(
-      "COUNT(*) FILTER (WHERE at.status IS NULL OR at.status NOT IN ('error', 'fallback_error', 'rate_limited'))",
+      "COUNT(*) FILTER (WHERE at.status IS NULL OR at.status NOT IN ('error', 'fallback_error', 'rate_limited', 'auto_fixed'))",
     );
   });
 
   it('honours a custom table alias', () => {
     expect(sqlCountMessages('m')).toBe(
-      "COUNT(*) FILTER (WHERE m.status IS NULL OR m.status NOT IN ('error', 'fallback_error', 'rate_limited'))",
+      "COUNT(*) FILTER (WHERE m.status IS NULL OR m.status NOT IN ('error', 'fallback_error', 'rate_limited', 'auto_fixed'))",
     );
   });
 
   it('derives the excluded list from the shared error-status set', () => {
-    expect(ERROR_MESSAGE_STATUSES).toEqual(['error', 'fallback_error', 'rate_limited']);
+    expect(ERROR_MESSAGE_STATUSES).toEqual([
+      'error',
+      'fallback_error',
+      'rate_limited',
+      'auto_fixed',
+    ]);
     for (const status of ERROR_MESSAGE_STATUSES) {
       expect(sqlCountMessages()).toContain(`'${status}'`);
     }
+  });
+});
+
+describe('origin predicates', () => {
+  it('MANIFEST_ORIGIN_PREDICATE matches every Manifest origin, request included', () => {
+    expect(MANIFEST_ERROR_ORIGINS).toEqual(['config', 'policy', 'internal', 'request']);
+    expect(MANIFEST_ORIGIN_PREDICATE).toBe(
+      "at.error_origin IN ('config', 'policy', 'internal', 'request')",
+    );
   });
 });

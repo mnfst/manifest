@@ -29,6 +29,37 @@ beforeAll(async () => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
     ['ps-msg-3', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 150, 75, 'claude-opus-4-6', 'ok'],
   );
+  await ds.query(
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, provider, auth_type, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+    [
+      'ps-msg-6',
+      'test-tenant-001',
+      'test-agent-001',
+      'test-agent',
+      'test-user-001',
+      now,
+      800,
+      400,
+      'gpt-5.5',
+      'openai',
+      'subscription',
+      'ok',
+    ],
+  );
+
+  // Custom-endpoint traffic: two tenant-scoped provider refs from one tenant,
+  // exercising the Custom grouping + k-anonymity fold on real SQL.
+  await ds.query(
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+    ['ps-msg-4', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 400, 200, 'custom:d0c5ce41-0000-4000-8000-000000000001/private-model', 'ok'],
+  );
+  await ds.query(
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+    ['ps-msg-5', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 200, 100, 'custom:d0c5ce41-0000-4000-8000-000000000002/other-private-model', 'ok'],
+  );
 
   // Tag the seeded agent so the agent-tokens endpoint has a recognised
   // (category, platform) pair to aggregate the seeded messages under.
@@ -79,6 +110,63 @@ describe('GET /api/v1/public/free-models', () => {
     expect(Array.isArray(res.body.models)).toBe(true);
     expect(res.body).toHaveProperty('total_models');
     expect(res.body).toHaveProperty('cached_at');
+  });
+});
+
+describe('GET /api/v1/public/provider-tokens', () => {
+  it('groups custom-endpoint traffic under one Custom provider without leaking refs', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/public/provider-tokens')
+      .expect(200);
+
+    expect(Array.isArray(res.body.providers)).toBe(true);
+    const custom = res.body.providers.find(
+      (p: { provider: string }) => p.provider === 'Custom',
+    );
+    expect(custom).toBeDefined();
+    // A single tenant sits below the k-anonymity floor, so both seeded model
+    // names fold into the aggregate bucket while the totals stay exact.
+    expect(custom.models).toEqual([
+      expect.objectContaining({ model: 'other-custom-models', total_tokens: 900 }),
+    ]);
+    expect(custom.total_tokens).toBe(900);
+    // The tenant-scoped provider refs must never appear anywhere in the payload.
+    const payload = JSON.stringify(res.body);
+    expect(payload).not.toContain('d0c5ce41');
+    expect(payload).not.toContain('private-model');
+  });
+
+  it('attributes ChatGPT subscription GPT rows to OpenAI, not OpenCode Zen', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/public/provider-tokens')
+      .expect(200);
+
+    const openai = res.body.providers.find((p: { provider: string }) => p.provider === 'OpenAI');
+    expect(openai).toBeDefined();
+    expect(openai.models).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          model: 'gpt-5.5',
+          auth_type: 'subscription',
+          total_tokens: expect.any(Number),
+        }),
+      ]),
+    );
+    const gpt = openai.models.find(
+      (m: { model: string; auth_type: string | null }) =>
+        m.model === 'gpt-5.5' && m.auth_type === 'subscription',
+    );
+    expect(gpt.total_tokens).toBeGreaterThanOrEqual(1200);
+
+    const zen = res.body.providers.find(
+      (p: { provider: string }) => p.provider === 'OpenCode Zen',
+    );
+    expect(
+      zen?.models.some(
+        (m: { model: string; auth_type: string | null }) =>
+          m.model === 'gpt-5.5' && m.auth_type === 'subscription',
+      ),
+    ).not.toBe(true);
   });
 });
 

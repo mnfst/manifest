@@ -31,6 +31,9 @@ describe('MessageDetailsService', () => {
     status: 'ok',
     error_message: null,
     error_http_status: null,
+    error_origin: null,
+    error_class: null,
+    superseded: false,
     description: 'test desc',
     service_type: 'agent',
     input_tokens: 100,
@@ -58,6 +61,11 @@ describe('MessageDetailsService', () => {
     header_tier_color: null,
     specificity_category: null,
     specificity_miscategorized: false,
+    autofix_applied: false,
+    autofix_group_id: null,
+    autofix_role: null,
+    autofix_operations: null,
+    autofix_phoenix: null,
   };
 
   beforeEach(async () => {
@@ -112,6 +120,9 @@ describe('MessageDetailsService', () => {
       status: 'ok',
       error_message: null,
       error_http_status: null,
+      error_origin: null,
+      error_class: null,
+      superseded: false,
       description: 'test desc',
       service_type: 'agent',
       input_tokens: 100,
@@ -140,7 +151,47 @@ describe('MessageDetailsService', () => {
       header_tier_id: null,
       header_tier_name: null,
       header_tier_color: null,
+      autofix_applied: false,
+      autofix_role: null,
+      autofix_operations: null,
+      autofix_phoenix: null,
+      autofix_sibling: null,
     });
+  });
+
+  it('maps autofix_phoenix ids when the message carries them', async () => {
+    // The "maps all fields" test above covers the null case; here the stored
+    // row has a non-null autofix_phoenix, exercising the `?? null` mapping's
+    // non-null branch.
+    const phoenix = { issueId: 'i', patchId: 'p', healAttemptId: 'h' };
+    msgQb.getOne.mockResolvedValue({ ...baseMessage, autofix_phoenix: phoenix });
+    const result = await service.getDetails('msg-1', 'u1');
+    expect(result.message.autofix_phoenix).toEqual(phoenix);
+  });
+
+  it('resolves the autofix sibling when the message has a group id', async () => {
+    msgQb.getOne
+      .mockResolvedValueOnce({
+        ...baseMessage,
+        id: 'msg-1',
+        autofix_group_id: 'grp-9',
+        autofix_role: 'original',
+      })
+      .mockResolvedValueOnce({ id: 'msg-retry', autofix_role: 'retry', status: 'ok' });
+    const result = await service.getDetails('msg-1', 'u1');
+    expect(result.message.autofix_sibling).toEqual({
+      id: 'msg-retry',
+      role: 'retry',
+      status: 'ok',
+    });
+  });
+
+  it('returns a null sibling when no paired row exists', async () => {
+    msgQb.getOne
+      .mockResolvedValueOnce({ ...baseMessage, id: 'msg-1', autofix_group_id: 'grp-9' })
+      .mockResolvedValueOnce(null);
+    const result = await service.getDetails('msg-1', 'u1');
+    expect(result.message.autofix_sibling).toBeNull();
   });
 
   it('does not return recording, llm_calls, tool_executions, or agent_logs', async () => {
@@ -208,6 +259,9 @@ describe('MessageDetailsService', () => {
       status: 'error',
       error_message: '401 Unauthorized: invalid API key',
       error_http_status: 401,
+      error_origin: 'provider',
+      error_class: 'auth',
+      superseded: false,
     };
     msgQb.getOne.mockResolvedValue(errorMsg);
 
@@ -216,5 +270,26 @@ describe('MessageDetailsService', () => {
     expect(result.message.status).toBe('error');
     expect(result.message.error_message).toBe('401 Unauthorized: invalid API key');
     expect(result.message.error_http_status).toBe(401);
+    expect(result.message.error_origin).toBe('provider');
+    expect(result.message.error_class).toBe('auth');
+    expect(result.message.superseded).toBe(false);
+  });
+
+  it('surfaces the origin/class/superseded axes for a Manifest config error', async () => {
+    msgQb.getOne.mockResolvedValue({
+      ...baseMessage,
+      status: 'error',
+      error_message: 'Provider API key missing',
+      routing_reason: 'no_provider_key',
+      error_origin: 'config',
+      error_class: 'no_provider_key',
+      superseded: false,
+    });
+
+    const result = await service.getDetails('msg-1', 'u1');
+
+    expect(result.message.error_origin).toBe('config');
+    expect(result.message.error_class).toBe('no_provider_key');
+    expect(result.message.superseded).toBe(false);
   });
 });

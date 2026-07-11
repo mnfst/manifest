@@ -339,10 +339,9 @@
 }
 
 .header__logo-img {
-  width: 152px;
+  width: 104px;
   height: auto;
   object-fit: contain;
-  margin-bottom: 9px;
 }
 
 .header__logo-img--dark {
@@ -469,10 +468,22 @@
 }
 
 .header__dropdown-name {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: hsl(var(--foreground));
+}
+
+.header__pro-badge {
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .header__dropdown-email {

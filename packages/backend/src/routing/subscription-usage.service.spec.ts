@@ -1,3 +1,4 @@
+const originalManifestEncryptionKey = process.env['MANIFEST_ENCRYPTION_KEY'];
 process.env['MANIFEST_ENCRYPTION_KEY'] = 'm'.repeat(64);
 
 import { encrypt, getEncryptionSecret } from '../common/utils/crypto.util';
@@ -129,6 +130,11 @@ describe('SubscriptionUsageService', () => {
 
   afterAll(() => {
     global.fetch = originalFetch;
+    if (originalManifestEncryptionKey === undefined) {
+      delete process.env['MANIFEST_ENCRYPTION_KEY'];
+    } else {
+      process.env['MANIFEST_ENCRYPTION_KEY'] = originalManifestEncryptionKey;
+    }
   });
 
   it('normalizes Codex, Claude, Gemini, and Grok subscription limit windows', async () => {
@@ -390,6 +396,28 @@ describe('SubscriptionUsageService', () => {
     ]);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(openaiOauth.unwrapToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not treat a trailer-only Grok response as protobuf usage', async () => {
+    providerRepo.find.mockResolvedValue([
+      makeProvider({
+        id: 'xai-1',
+        provider: 'xai',
+        label: 'Grok',
+        api_key_encrypted: encrypted(oauthBlob('stored-xai')),
+      }),
+    ]);
+    fetchMock.mockResolvedValue(binaryResponse(grpcFrame(Buffer.from('grpc-status: 0\r\n'), 0x80)));
+
+    const result = await service.getUsage(TENANT_ID);
+
+    expect(result[0]?.connections[0]).toEqual(
+      expect.objectContaining({
+        status: 'error',
+        message: 'Usage lookup failed',
+        windows: [],
+      }),
+    );
   });
 
   it('does not query repositories when no tenant is scoped', async () => {

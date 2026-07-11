@@ -749,10 +749,11 @@ export class SubscriptionUsageService {
   }
 
   private parseGrokWebBilling(data: Uint8Array): GrokWebBillingSnapshot {
-    let payloads = this.grpcWebDataFrames(data);
-    if (payloads.length === 0 && this.looksLikeProtobufPayload(data)) {
-      payloads = [data];
-    }
+    const framedPayloads = this.grpcWebDataFrames(data);
+    const payloads =
+      framedPayloads === null && this.looksLikeProtobufPayload(data)
+        ? [data]
+        : (framedPayloads ?? []);
     if (payloads.length === 0) {
       throw new SubscriptionUsageFetchError(502, 'Grok web billing returned no protobuf payload');
     }
@@ -802,12 +803,14 @@ export class SubscriptionUsageService {
     };
   }
 
-  private grpcWebDataFrames(data: Uint8Array): Uint8Array[] {
+  private grpcWebDataFrames(data: Uint8Array): Uint8Array[] | null {
+    if (data.length === 0) return null;
     const frames: Uint8Array[] = [];
     let index = 0;
     while (index < data.length) {
-      if (index + 5 > data.length) return [];
+      if (index + 5 > data.length) return null;
       const flags = data[index];
+      if ((flags & 0x7e) !== 0) return null;
       const length =
         data[index + 1] * 2 ** 24 +
         (data[index + 2] << 16) +
@@ -815,7 +818,7 @@ export class SubscriptionUsageService {
         data[index + 4];
       const start = index + 5;
       const end = start + length;
-      if (length < 0 || end > data.length) return [];
+      if (length < 0 || end > data.length) return null;
       if ((flags & 0x80) === 0) frames.push(data.slice(start, end));
       index = end;
     }

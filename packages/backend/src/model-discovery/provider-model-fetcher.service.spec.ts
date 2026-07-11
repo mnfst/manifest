@@ -2042,6 +2042,24 @@ describe('ProviderModelFetcherService', () => {
       expect(result[0].id).toBe('mistral');
     });
 
+    it('should preserve author-prefixed third-party model ids', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [
+            { name: 'mdq100/qwen3.5-flash:35b' },
+            { name: 'hf.co/acon96/Home-Llama-3.2-3B:F16' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('ollama', '');
+      expect(result.map((model) => model.id)).toEqual([
+        'mdq100/qwen3.5-flash:35b',
+        'hf.co/acon96/Home-Llama-3.2-3B:F16',
+      ]);
+    });
+
     it('should filter out entries without string name', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
@@ -2599,6 +2617,26 @@ describe('ProviderModelFetcherService', () => {
           capabilityCode: true,
         }),
       ]);
+    });
+  });
+
+  describe('cline-pass provider', () => {
+    it('returns known subscription models with configured context windows', async () => {
+      const result = await service.fetch('cline-pass', 'cp-token', 'subscription');
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(result).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'cline-pass/deepseek-v4-flash',
+            provider: 'cline-pass',
+            contextWindow: 200000,
+            capabilityReasoning: true,
+            capabilityCode: true,
+          }),
+        ]),
+      );
+      expect(result.every((model) => model.contextWindow === 200000)).toBe(true);
     });
   });
 

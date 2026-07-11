@@ -3,6 +3,8 @@ import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 const mockSignOut = vi.fn().mockResolvedValue(undefined);
 const mockNavigate = vi.fn();
+const mockGetBillingStatus = vi.fn().mockResolvedValue({ enabled: false, plan: "free" });
+const mockLocationReplace = vi.fn();
 let mockPathname = "/";
 
 vi.mock("@solidjs/router", () => ({
@@ -49,15 +51,26 @@ vi.mock("../../src/services/setup-status.js", () => ({
   checkIsSelfHosted: () => mockCheckIsSelfHosted(),
 }));
 
+vi.mock("../../src/services/api/billing.js", () => ({
+  getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
+}));
+
 import Header from "../../src/components/Header";
 import { setConnectionBreadcrumb } from "../../src/services/connection-breadcrumb-store";
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  vi.spyOn(window, "location", "get").mockReturnValue({
+    ...window.location,
+    replace: mockLocationReplace,
+  });
   sessionStorage.clear();
   mockPathname = "/";
   mockAgentName = null;
   mockAgentDisplayName = null;
+  mockGetBillingStatus.mockReset();
+  mockGetBillingStatus.mockResolvedValue({ enabled: false, plan: "free" });
+  mockLocationReplace.mockReset();
   mockCheckIsSelfHosted.mockReset();
   mockCheckIsSelfHosted.mockResolvedValue(false);
   // The breadcrumb store is a real module-level signal; reset it so a value
@@ -113,7 +126,7 @@ describe("Header", () => {
     await fireEvent.click(screen.getByLabelText("User menu"));
     await fireEvent.click(screen.getByText("Log out"));
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/login", { replace: true });
+      expect(mockLocationReplace).toHaveBeenCalledWith("/login");
     });
   });
 

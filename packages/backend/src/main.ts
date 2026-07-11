@@ -15,10 +15,13 @@ import {
 } from './common/middleware/body-parser-limits';
 import {
   applyPrivateNetworkAllow,
+  buildCorsOptions,
   buildDevAllowedOrigins,
+  buildProdAllowedOrigins,
   buildFrameSrc,
-  createCorsOriginHandler,
+  parseFrameAncestors,
 } from './cors-csp-config';
+import { createRateLimitReachedHandler } from './common/middleware/rate-limit-log';
 import { shouldCompress } from './routing/proxy/compression-filter';
 
 export async function bootstrap() {
@@ -57,12 +60,7 @@ export async function bootstrap() {
           fontSrc: ["'self'"],
           objectSrc: ["'none'"],
           frameSrc,
-          frameAncestors: process.env['FRAME_ANCESTORS']
-            ? process.env['FRAME_ANCESTORS']
-                .split(',')
-                .map((v) => v.trim())
-                .filter((v) => v !== '*')
-            : ["'none'"],
+          frameAncestors: parseFrameAncestors(process.env['FRAME_ANCESTORS']),
           // Disable helmet's default `upgrade-insecure-requests`: it breaks
           // HTTP-only LAN deployments (10.x / 192.168.x / 172.16-31.x) where
           // browsers don't treat the origin as trustworthy and rewrite
@@ -79,42 +77,42 @@ export async function bootstrap() {
   // the package's default content-type filter.
   app.use(compression({ filter: shouldCompress }));
 
-  // CORS is enabled only in dev so the Vite frontend on :3000, the local
-  // Wingman build at `WINGMAN_PORT`, and the hosted Wingman SPA can hit
-  // the backend cross-origin. Production never enables CORS — the
-  // dashboard is same-origin and the Wingman drawer is dead-code-
-  // eliminated, so there are no legitimate cross-origin callers.
+  // CORS: the dashboard is same-origin, but the hosted Wingman gateway tester
+  // (https://wingman.manifest.build) is a legitimate cross-origin caller of the
+  // gateway routes, so both dev and production allow its origin. Dev also allows
+  // the Vite frontend on :3000 and the local Wingman build at `WINGMAN_PORT`;
+  // production allows the hosted Wingman origin plus any `WINGMAN_CORS_ORIGINS` a
+  // self-hoster opts into.
   //
-  // `credentials: false` is deliberate — Wingman uses bearer keys, never
-  // cookies, and keeping credentials off the cross-origin path means a
-  // misconfigured allow-list can't leak session cookies. We omit
-  // `allowedHeaders` on purpose so the cors middleware reflects the
-  // request's `Access-Control-Request-Headers`: Wingman replays real SDK
-  // fingerprints (e.g. the OpenAI/Stainless `X-Stainless-*` family), and a
-  // fixed allow-list silently fails those preflights.
-  if (isDev) {
-    const configuredOrigin = process.env['CORS_ORIGIN'] || 'http://localhost:3000';
-    const allowedOrigins = buildDevAllowedOrigins({
-      configuredOrigin,
-      wingmanPort,
-    });
-    // PNA preflight must answer before the cors middleware ends the
-    // OPTIONS response. Registering this `app.use` first puts it ahead
-    // of the cors handler in the express middleware chain.
-    app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-      applyPrivateNetworkAllow(req, allowedOrigins, (name, value) => res.setHeader(name, value));
-      next();
-    });
-    app.enableCors({
-      origin: createCorsOriginHandler(allowedOrigins),
-      credentials: false,
-    });
-  }
+  // See `buildCorsOptions` for the rationale behind `credentials: false`, the
+  // omitted `allowedHeaders`, and the preflight `maxAge`.
+  const corsAllowedOrigins = isDev
+    ? buildDevAllowedOrigins({
+        configuredOrigin: process.env['CORS_ORIGIN'] || 'http://localhost:3000',
+        wingmanPort,
+      })
+    : buildProdAllowedOrigins({ extraOrigins: process.env['WINGMAN_CORS_ORIGINS'] });
+  // Chrome's Private Network Access preflight must be answered before the cors
+  // middleware ends the OPTIONS response, so register this first. It only echoes
+  // the allow-private-network header for already-allow-listed origins, so it's a
+  // no-op for a public gateway and only matters when a browser-hosted Wingman
+  // targets a gateway on a loopback / LAN address (local dev, or a self-hosted
+  // gateway on a private network).
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    applyPrivateNetworkAllow(req, corsAllowedOrigins, (name, value) => res.setHeader(name, value));
+    next();
+  });
+  app.enableCors(buildCorsOptions(corsAllowedOrigins));
 
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
       whitelist: true,
+      // Reject requests carrying unknown fields with a 400 instead of silently
+      // stripping them. `whitelist` alone drops extras without a signal, which
+      // hides client/API misuse; forbidding them surfaces it and keeps the DTO
+      // contract strict.
+      forbidNonWhitelisted: true,
     }),
   );
 
@@ -156,6 +154,7 @@ export async function bootstrap() {
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many login attempts. Try again later.' },
+    handler: createRateLimitReachedHandler('sign-in'),
   });
   const signupLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -163,6 +162,7 @@ export async function bootstrap() {
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many sign-up attempts. Try again later.' },
+    handler: createRateLimitReachedHandler('sign-up'),
   });
   // forget-password is the worst offender: each request sends an email and
   // can be used for account enumeration via timing differences. Tight cap.
@@ -172,6 +172,7 @@ export async function bootstrap() {
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many password reset requests. Try again later.' },
+    handler: createRateLimitReachedHandler('password-reset'),
   });
   const verifyEmailLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -179,6 +180,7 @@ export async function bootstrap() {
     standardHeaders: true,
     legacyHeaders: false,
     message: { error: 'Too many verification requests. Try again later.' },
+    handler: createRateLimitReachedHandler('verify-email'),
   });
   expressApp.use('/api/auth/sign-in', loginLimiter);
   expressApp.use('/api/auth/sign-up', signupLimiter);

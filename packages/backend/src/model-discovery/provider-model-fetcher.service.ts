@@ -24,7 +24,7 @@ import {
   KIRO_MODELS_TARGET,
   parseKiroModels,
 } from '../routing/proxy/kiro-adapter';
-import { getSubscriptionKnownModels } from 'manifest-shared';
+import { getSubscriptionCapabilities, getSubscriptionKnownModels } from 'manifest-shared';
 
 const FETCH_TIMEOUT_MS = 5000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
@@ -833,6 +833,8 @@ export class ProviderModelFetcherService {
       configKey = 'zai-subscription';
     } else if (configKey === 'opencode-go') {
       return this.fetchOpencodeGoModels(apiKey, options?.forceRefresh === true);
+    } else if (configKey === 'cline-pass') {
+      return this.fetchClinePassKnownModels();
     } else if (configKey === 'gemini' && authType === 'subscription') {
       // CodeAssist (`cloudcode-pa.googleapis.com`) does not expose a
       // `/models` endpoint; the discovery fallback chain pulls Gemini
@@ -1151,5 +1153,22 @@ export class ProviderModelFetcherService {
       this.logger.warn(`Failed to fetch models from kiro: ${message}`);
       return [];
     }
+  }
+
+  private fetchClinePassKnownModels(): DiscoveredModel[] {
+    const known = getSubscriptionKnownModels('cline-pass') ?? [];
+    const contextWindow =
+      getSubscriptionCapabilities('cline-pass')?.maxContextWindow ?? DEFAULT_CONTEXT_WINDOW;
+    return known.map((id) => ({
+      id,
+      displayName: id,
+      provider: 'cline-pass',
+      contextWindow,
+      inputPricePerToken: null,
+      outputPricePerToken: null,
+      capabilityReasoning: true,
+      capabilityCode: true,
+      qualityScore: 3,
+    }));
   }
 }

@@ -8,12 +8,10 @@ import {
   For,
   on,
   onCleanup,
-  onMount,
   Show,
   type Component,
 } from 'solid-js';
 import ErrorState from '../components/ErrorState.jsx';
-import FeedbackModal from '../components/FeedbackModal.jsx';
 import MessageTable from '../components/MessageTable.jsx';
 import Pagination from '../components/Pagination.jsx';
 import Select from '../components/Select.jsx';
@@ -28,8 +26,6 @@ import {
   getMessageFilterOptions,
   getRoutingStatus,
   listHeaderTiers,
-  setMessageFeedback,
-  clearMessageFeedback,
 } from '../services/api.js';
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
@@ -37,7 +33,6 @@ import { PROVIDERS, SPECIFICITY_STAGES } from '../services/providers.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { platformIcon } from 'manifest-shared';
 import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
-import { checkIsSelfHosted } from '../services/setup-status.js';
 import { messagePing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/routing.css';
@@ -70,6 +65,9 @@ const HEADER_TIER_FILTER_PREFIX = 'header:';
 const MESSAGE_STATUS_FILTERS = ['ok', 'failed'] as const;
 type MessageStatusFilter = (typeof MESSAGE_STATUS_FILTERS)[number];
 type MessageStatusFilterValue = '' | MessageStatusFilter;
+const MESSAGE_TRIGGER_FILTERS = ['none', 'fallback', 'autofix'] as const;
+type MessageTriggerFilter = (typeof MESSAGE_TRIGGER_FILTERS)[number];
+type MessageTriggerFilterValue = '' | MessageTriggerFilter;
 
 const isMessageStatusFilter = (value: unknown): value is MessageStatusFilter =>
   typeof value === 'string' && (MESSAGE_STATUS_FILTERS as readonly string[]).includes(value);
@@ -77,20 +75,20 @@ const isMessageStatusFilter = (value: unknown): value is MessageStatusFilter =>
 const normalizeStatusFilter = (value: unknown): MessageStatusFilterValue =>
   isMessageStatusFilter(value) ? value : '';
 
+const isMessageTriggerFilter = (value: unknown): value is MessageTriggerFilter =>
+  typeof value === 'string' && (MESSAGE_TRIGGER_FILTERS as readonly string[]).includes(value);
+
+const normalizeTriggerFilter = (value: unknown): MessageTriggerFilterValue =>
+  isMessageTriggerFilter(value) ? value : '';
+
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
   const [searchParams, setSearchParams] = useSearchParams<{ agent?: string; status?: string }>();
   const navigate = useNavigate();
 
   preloadModelDisplayNames();
-  const [isSelfHosted, setIsSelfHosted] = createSignal(false);
-  onMount(() => {
-    checkIsSelfHosted().then(setIsSelfHosted);
-  });
   const columns = () => {
-    const base = isSelfHosted()
-      ? DETAILED_COLUMNS.filter((c) => c !== 'feedback')
-      : DETAILED_COLUMNS;
+    const base = DETAILED_COLUMNS;
     if (params.agentName) return base;
     // Global Messages spans every harness, so show which harness each row belongs to.
     const at = base.indexOf('model');
@@ -149,7 +147,9 @@ const MessageLog: Component = () => {
     }),
   ]);
   const [providerFilter, setProviderFilter] = createSignal('');
+  const [triggerFilter, setTriggerFilter] = createSignal<MessageTriggerFilterValue>('');
   const [tierFilter, setTierFilter] = createSignal('');
+  const [originFilter, setOriginFilter] = createSignal('');
   const [statusFilterValue, setStatusFilterValue] = createSignal<MessageStatusFilterValue>(
     normalizeStatusFilter(searchParams.status),
   );
@@ -159,53 +159,6 @@ const MessageLog: Component = () => {
   const [setupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
   );
-
-  const [feedbackModalOpen, setFeedbackModalOpen] = createSignal(false);
-  const [feedbackMessageId, setFeedbackMessageId] = createSignal('');
-  const [feedbackOverrides, setFeedbackOverrides] = createSignal<Record<string, string | null>>({});
-
-  const handleFeedbackLike = (id: string) => {
-    setFeedbackOverrides((prev) => ({ ...prev, [id]: 'like' }));
-    setMessageFeedback(id, { rating: 'like' }).catch(() => {
-      setFeedbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    });
-  };
-
-  const handleFeedbackDislike = (id: string) => {
-    setFeedbackOverrides((prev) => ({ ...prev, [id]: 'dislike' }));
-    setFeedbackMessageId(id);
-    setFeedbackModalOpen(true);
-    setMessageFeedback(id, { rating: 'dislike' }).catch(() => {
-      setFeedbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    });
-  };
-
-  const handleFeedbackClear = (id: string) => {
-    setFeedbackOverrides((prev) => ({ ...prev, [id]: null }));
-    clearMessageFeedback(id).catch(() => {
-      setFeedbackOverrides((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    });
-  };
-
-  const handleFeedbackSubmit = (tags: string[], details: string) => {
-    const id = feedbackMessageId();
-    if (id) {
-      setMessageFeedback(id, { rating: 'dislike', tags, details });
-    }
-    setFeedbackModalOpen(false);
-  };
 
   const [routingStatus] = createResource(
     () => params.agentName,
@@ -249,6 +202,7 @@ const MessageLog: Component = () => {
     setStatusFilterValue(next);
     setSearchParams({ status: next || undefined }, { replace: true });
   };
+  const setTriggerFilterValue = (value: string) => setTriggerFilter(normalizeTriggerFilter(value));
 
   createEffect(
     on(
@@ -260,7 +214,16 @@ const MessageLog: Component = () => {
 
   createEffect(
     on(
-      [agentFilter, providerFilter, tierFilter, statusFilterValue, costMin, costMax],
+      [
+        agentFilter,
+        providerFilter,
+        triggerFilter,
+        tierFilter,
+        originFilter,
+        statusFilterValue,
+        costMin,
+        costMax,
+      ],
       () => pager.resetPage(),
       {
         defer: true,
@@ -271,7 +234,9 @@ const MessageLog: Component = () => {
   const [data, { refetch }] = createResource(
     () => ({
       provider: providerFilter(),
+      trigger: triggerFilter(),
       tier: tierFilter(),
+      origin: originFilter(),
       status: statusFilterValue(),
       costMin: costMin(),
       costMax: costMax(),
@@ -283,6 +248,7 @@ const MessageLog: Component = () => {
     (p) => {
       const q: Record<string, string> = {};
       if (p.provider) q.provider = p.provider;
+      if (p.trigger) q.trigger = p.trigger;
       if (p.tier) {
         if (p.tier.startsWith(SPECIFICITY_FILTER_PREFIX)) {
           q.specificity_category = p.tier.slice(SPECIFICITY_FILTER_PREFIX.length);
@@ -293,6 +259,7 @@ const MessageLog: Component = () => {
         }
       }
       if (p.status) q.status = p.status;
+      if (p.origin) q.origin = p.origin;
       if (p.costMin) q.cost_min = p.costMin;
       if (p.costMax) q.cost_max = p.costMax;
       if (p.agentName) q.agent_name = p.agentName;
@@ -314,12 +281,7 @@ const MessageLog: Component = () => {
   );
 
   const displayedItems = createMemo<MessageRow[]>(() => {
-    const items = data()?.items ?? [];
-    if (isSelfHosted()) return items;
-    const overrides = feedbackOverrides();
-    return items.map((item) =>
-      item.id in overrides ? { ...item, feedback_rating: overrides[item.id] ?? undefined } : item,
-    );
+    return data()?.items ?? [];
   });
 
   createEffect(
@@ -334,7 +296,9 @@ const MessageLog: Component = () => {
   const hasActiveFilters = () =>
     agentFilter() !== '' ||
     providerFilter() !== '' ||
+    triggerFilter() !== '' ||
     tierFilter() !== '' ||
+    originFilter() !== '' ||
     statusFilterValue() !== '' ||
     costMin() !== '' ||
     costMax() !== '';
@@ -358,7 +322,9 @@ const MessageLog: Component = () => {
   const clearFilters = () => {
     setAgentFilter('');
     setProviderFilter('');
+    setTriggerFilter('');
     setTierFilter('');
+    setOriginFilter('');
     setStatusFilter('');
     setCostMin('');
     setCostMax('');
@@ -413,12 +379,26 @@ const MessageLog: Component = () => {
     { label: 'Failed', value: 'failed' },
   ];
 
-  const scrollToFallbackSuccess = (model: string) => {
-    const items = data()?.items;
-    if (!items) return;
-    const success = items.find((i) => i.fallback_from_model === model && i.status === 'ok');
-    if (!success) return;
-    const el = document.getElementById(`msg-${success.id}`);
+  const triggerOptions = [
+    { label: 'All triggers', value: '' },
+    { label: 'No trigger', value: 'none' },
+    { label: 'Fallback', value: 'fallback' },
+    { label: 'Auto-fix', value: 'autofix' },
+  ];
+
+  // Who failed. `manifest` collapses every Manifest-authored origin (setup,
+  // limits, bad requests, internal errors) into one choice, since from a user's
+  // point of view they share a fix path that has nothing to do with a provider.
+  const originOptions = [
+    { label: 'All origins', value: '' },
+    { label: 'Manifest', value: 'manifest' },
+    { label: 'Provider', value: 'provider' },
+    { label: 'Transport', value: 'transport' },
+  ];
+
+  // Jump to a linked message (the Auto-fix sibling of an expanded row).
+  const scrollToMessage = (id: string) => {
+    const el = document.getElementById(`msg-${id}`);
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el.classList.add('msg-highlight');
@@ -462,10 +442,22 @@ const MessageLog: Component = () => {
               options={providerOptions()}
             />
             <Select
+              value={triggerFilter()}
+              onChange={setTriggerFilterValue}
+              options={triggerOptions}
+              label="Trigger filter"
+            />
+            <Select
               value={statusFilterValue()}
               onChange={setStatusFilter}
               options={statusOptions}
               label="Status filter"
+            />
+            <Select
+              value={originFilter()}
+              onChange={setOriginFilter}
+              options={originOptions}
+              label="Origin filter"
             />
             <Select value={tierFilter()} onChange={setTierFilter} options={tierOptions()} />
             <div class="cost-range-filter">
@@ -678,10 +670,7 @@ const MessageLog: Component = () => {
                   agentName={params.agentName}
                   customProviderName={() => undefined}
                   agentPlatformLookup={(name) => agentPlatformMap().get(name)}
-                  onFallbackErrorClick={scrollToFallbackSuccess}
-                  onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
-                  onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
-                  onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
+                  onOpenMessage={scrollToMessage}
                   rowIdPrefix="msg-"
                   showHeaderTooltips
                   expandable
@@ -708,14 +697,6 @@ const MessageLog: Component = () => {
           agentPlatform={agentPlatform()}
           agentCategory={agentCategory()}
           onClose={() => setSetupOpen(false)}
-        />
-      </Show>
-
-      <Show when={!isSelfHosted()}>
-        <FeedbackModal
-          open={feedbackModalOpen()}
-          onClose={() => setFeedbackModalOpen(false)}
-          onSubmit={handleFeedbackSubmit}
         />
       </Show>
     </div>

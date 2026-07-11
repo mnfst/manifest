@@ -1,6 +1,7 @@
 import { Title } from '@solidjs/meta';
 import { toggleScrollFade } from '../../services/scroll-fade.js';
 import { A, useNavigate, useParams } from '@solidjs/router';
+import { getBillingStatus } from '../../services/api/billing.js';
 import {
   createEffect,
   createMemo,
@@ -28,6 +29,15 @@ import {
   formatTimeAgo,
   customProviderColor,
 } from '../../services/formatters.js';
+import {
+  clampLimitPercent,
+  formatLimitAmount,
+  formatLimitPercent,
+  subscriptionLimitPace,
+  subscriptionLimitTone,
+  type SubscriptionLimitPace,
+  type SubscriptionLimitTone,
+} from '../../services/subscription-usage-display.js';
 import { getAgents, getCustomProviders as fetchCustomProviders } from '../../services/api.js';
 import {
   getProviderSubscriptionUsage,
@@ -109,40 +119,6 @@ interface AnalyticsResponse {
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
 }
 
-interface SubscriptionLimitPace {
-  usedPercent: number | null;
-  projectedPercent: number | null;
-  willRunOut: boolean;
-  exhausted: boolean;
-}
-
-interface SubscriptionLimitTone {
-  color: string;
-  foreground: string;
-  background: string;
-}
-
-const clampLimitPercent = (value: number | null | undefined): number | null => {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
-  const clamped = Math.max(0, Math.min(100, value));
-  return Math.round(clamped * 10) / 10;
-};
-
-const formatLimitPercent = (value: number | null | undefined): string | null => {
-  const rounded = clampLimitPercent(value);
-  if (rounded === null) return null;
-  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`;
-};
-
-const formatLimitAmount = (value: number | null, unit: string | null): string | null => {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
-  const formatted =
-    Math.abs(value) >= 100 || Number.isInteger(value)
-      ? formatNumber(Math.round(value))
-      : value.toFixed(1);
-  return unit ? `${formatted} ${unit}` : formatted;
-};
-
 const formatProjectedPercent = (value: number | null | undefined): string | null => {
   if (typeof value !== 'number' || !Number.isFinite(value)) return null;
   const rounded = Math.round(Math.max(0, value) * 10) / 10;
@@ -183,85 +159,6 @@ const formatWindowDuration = (seconds: number | null): string => {
   if (seconds % 3_600 === 0) return `${seconds / 3_600}h`;
   if (seconds % 60 === 0) return `${seconds / 60}m`;
   return `${seconds}s`;
-};
-
-const subscriptionLimitPace = (window: SubscriptionUsageWindow): SubscriptionLimitPace => {
-  const usedPercent = clampLimitPercent(window.used_percent);
-  if (usedPercent === null) {
-    return {
-      usedPercent: null,
-      projectedPercent: null,
-      willRunOut: false,
-      exhausted: false,
-    };
-  }
-
-  const exhausted = usedPercent >= 99.5;
-  const resetTime = window.resets_at ? new Date(window.resets_at).getTime() : NaN;
-  const windowSeconds = window.window_seconds;
-  if (
-    exhausted ||
-    typeof windowSeconds !== 'number' ||
-    !Number.isFinite(windowSeconds) ||
-    windowSeconds <= 0 ||
-    !Number.isFinite(resetTime)
-  ) {
-    return {
-      usedPercent,
-      projectedPercent: null,
-      willRunOut: false,
-      exhausted,
-    };
-  }
-
-  const remainingSeconds = Math.max(0, (resetTime - Date.now()) / 1000);
-  const elapsedSeconds = Math.max(0, windowSeconds - remainingSeconds);
-  const elapsedRatio = elapsedSeconds / windowSeconds;
-  if (elapsedRatio <= 0 || usedPercent <= 0) {
-    return {
-      usedPercent,
-      projectedPercent: usedPercent <= 0 ? 0 : null,
-      willRunOut: false,
-      exhausted,
-    };
-  }
-
-  const projectedPercent = usedPercent / elapsedRatio;
-  return {
-    usedPercent,
-    projectedPercent,
-    willRunOut: projectedPercent > 100.5,
-    exhausted,
-  };
-};
-
-const subscriptionLimitTone = (pace: SubscriptionLimitPace): SubscriptionLimitTone => {
-  if (pace.usedPercent === null) {
-    return {
-      color: 'hsl(var(--muted-foreground))',
-      foreground: 'hsl(var(--muted-foreground))',
-      background: 'hsl(var(--muted) / 0.65)',
-    };
-  }
-  if (pace.exhausted) {
-    return {
-      color: 'hsl(var(--destructive))',
-      foreground: 'hsl(var(--destructive))',
-      background: 'hsl(var(--destructive) / 0.12)',
-    };
-  }
-  if (pace.willRunOut) {
-    return {
-      color: 'hsl(38 92% 48%)',
-      foreground: 'hsl(35 92% 38%)',
-      background: 'hsl(38 92% 48% / 0.14)',
-    };
-  }
-  return {
-    color: 'hsl(var(--success))',
-    foreground: 'hsl(178 70% 32%)',
-    background: 'hsl(var(--success) / 0.14)',
-  };
 };
 
 const subscriptionPaceLabel = (pace: SubscriptionLimitPace): string => {
@@ -403,7 +300,9 @@ const SubscriptionLimitDetailRow: Component<{ window: SubscriptionUsageWindow }>
         {formatWindowDuration(props.window.window_seconds)}
       </td>
       <td style="white-space: nowrap;">
-        <span style="color: hsl(var(--foreground));">{formatLimitResetRelative(props.window.resets_at)}</span>
+        <span style="color: hsl(var(--foreground));">
+          {formatLimitResetRelative(props.window.resets_at)}
+        </span>
         <Show when={absoluteReset()}>
           <div style="margin-top: 2px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
             {absoluteReset()}
@@ -436,7 +335,7 @@ const SubscriptionLimitsDetailPanel: Component<{
         </Show>
       </div>
       <Show
-        when={!props.loading || props.connection}
+        when={!props.loading}
         fallback={
           <div style="height: 96px; margin: 16px; border-radius: var(--radius); background: hsl(var(--muted) / 0.45); animation: skeleton-pulse 1.2s ease-in-out infinite;" />
         }
@@ -461,7 +360,9 @@ const SubscriptionLimitsDetailPanel: Component<{
                 </tr>
               </thead>
               <tbody>
-                <For each={windows()}>{(window) => <SubscriptionLimitDetailRow window={window} />}</For>
+                <For each={windows()}>
+                  {(window) => <SubscriptionLimitDetailRow window={window} />}
+                </For>
               </tbody>
             </table>
           </div>
@@ -470,10 +371,37 @@ const SubscriptionLimitsDetailPanel: Component<{
     </div>
   );
 };
+const PRO_RANGES_CD = new Set(['30d', '90d', '365d']);
+const CD_RANGE_OPTIONS = [
+  { label: 'Last 24 hours', value: '24h' },
+  { label: 'Last 7 days', value: '7d' },
+  { label: 'Last 30 days', value: '30d' },
+  { label: 'Last 90 days', value: '90d' },
+  { label: 'Last 365 days', value: '365d' },
+];
 
 const ConnectionDetail: Component = () => {
   const params = useParams<{ connectionId: string }>();
   const navigate = useNavigate();
+  const [billing] = createResource(async () => {
+    try {
+      return await getBillingStatus();
+    } catch {
+      return null;
+    }
+  });
+  const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
+  const proBadge = () => (
+    <span class="pro-range-badge" aria-label="Pro plan required">
+      PRO
+    </span>
+  );
+  const cdRangeOptions = () =>
+    CD_RANGE_OPTIONS.map((opt) =>
+      isFreePlan() && PRO_RANGES_CD.has(opt.value)
+        ? { ...opt, disabled: true, badge: proBadge() }
+        : opt,
+    );
 
   const [detail, { refetch: refetchDetail }] = createResource(
     () => params.connectionId,
@@ -496,6 +424,11 @@ const ConnectionDetail: Component = () => {
     },
   );
   const provDef = () => PROVIDERS.find((p) => p.id === conn()?.provider);
+  const currentSubscriptionUsageDetail = () => {
+    const usage = subscriptionUsageDetail();
+    return usage?.id === conn()?.id ? usage : usage === null ? null : undefined;
+  };
+
   const isCustomProvider = () => conn()?.provider?.startsWith('custom:') ?? false;
 
   // Fetch custom provider name for custom: providers
@@ -1027,14 +960,11 @@ const ConnectionDetail: Component = () => {
                   </Show>
                   <Select
                     value={chartRange()}
-                    onChange={setChartRange}
-                    options={[
-                      { label: 'Last 24 hours', value: '24h' },
-                      { label: 'Last 7 days', value: '7d' },
-                      { label: 'Last 30 days', value: '30d' },
-                      { label: 'Last 90 days', value: '90d' },
-                      { label: 'Last 365 days', value: '365d' },
-                    ]}
+                    onChange={(v) => {
+                      if (isFreePlan() && PRO_RANGES_CD.has(v)) return;
+                      setChartRange(v);
+                    }}
+                    options={cdRangeOptions()}
                   />
                   <button class="btn btn--outline btn--sm" onClick={openManageModal}>
                     Manage
@@ -1077,8 +1007,11 @@ const ConnectionDetail: Component = () => {
 
               <Show when={c.auth_type === 'subscription'}>
                 <SubscriptionLimitsDetailPanel
-                  connection={subscriptionUsageDetail()}
-                  loading={subscriptionUsageDetail.loading}
+                  connection={currentSubscriptionUsageDetail()}
+                  loading={
+                    subscriptionUsageDetail.loading ||
+                    currentSubscriptionUsageDetail() === undefined
+                  }
                 />
               </Show>
 

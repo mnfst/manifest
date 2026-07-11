@@ -149,6 +149,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('anthropic');
     expect(known).toContain('bedrock');
     expect(known).toContain('cerebras');
+    expect(known).toContain('cline-pass');
     expect(known).toContain('pioneer');
     expect(known).toContain('google');
     expect(known).toContain('qwen');
@@ -682,6 +683,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'openai',
       'byteplus',
       'cerebras',
+      'cline-pass',
       'pioneer',
       'deepseek',
       'groq',

@@ -435,8 +435,12 @@ export abstract class RedirectPkceOauthBaseService {
 
   private isAllowedRedirectOrigin(url: string): boolean {
     try {
-      const parsed = new URL(url);
-      const hostname = parsed.hostname;
+      // Node's WHATWG URL parser wraps IPv6 hosts in brackets (`[::1]`), so a
+      // bare `'::1'` comparison never matches — IPv6 loopback would be dropped
+      // at storage and fall back to the inline HTML page. Strip the brackets
+      // before comparing so `[::1]` is treated the same as localhost /
+      // 127.0.0.1 in both the storage gate and the redirect gate.
+      const hostname = new URL(url).hostname.replace(/^\[|\]$/g, '');
       return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
     } catch {
       return false;

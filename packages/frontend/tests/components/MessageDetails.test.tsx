@@ -26,6 +26,14 @@ vi.mock('../../src/services/model-display.js', () => ({
   },
 }));
 
+vi.mock('@solidjs/router', () => ({
+  A: (props: any) => (
+    <a href={props.href} class={props.class} style={props.style}>
+      {props.children}
+    </a>
+  ),
+}));
+
 import MessageDetails from '../../src/components/MessageDetails';
 
 const detailsResponse = {
@@ -36,6 +44,7 @@ const detailsResponse = {
     model: 'gpt-4o',
     status: 'ok',
     error_message: null,
+    error_code: null,
     description: 'Test description',
     service_type: 'agent',
     input_tokens: 100,
@@ -97,10 +106,139 @@ describe('MessageDetails', () => {
     mockGetMessageDetails.mockResolvedValue(errorResponse);
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     await vi.waitFor(() => {
-      const errorBox = container.querySelector('.msg-detail__error-box');
+      // The redesign renders the error message inside `.msg-detail__error-inline`
+      // (an icon + the message span) within the error/auto-fix row.
+      const errorBox = container.querySelector('.msg-detail__error-inline');
       expect(errorBox).not.toBeNull();
       expect(errorBox!.textContent).toBe('401 Unauthorized: invalid API key');
     });
+  });
+
+  it('links request-limit 402 errors to the upgrade page', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'error',
+        error_message: 'Request limit reached',
+        error_http_status: 402,
+        error_origin: 'policy',
+        error_class: 'plan_request_limit_exceeded',
+        routing_reason: 'plan_request_limit_exceeded',
+        superseded: false,
+      },
+    });
+
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Upgrade to Pro for unlimited requests.');
+      expect(container.textContent).toContain('Plan request limit');
+      const link = screen.getByText('Upgrade plan').closest('a');
+      expect(link?.getAttribute('href')).toBe('/upgrade?reason=requests');
+    });
+  });
+
+  it('surfaces a Manifest config error as origin/type, not a provider fault', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'error',
+        error_message: 'Provider API key missing',
+        routing_reason: 'no_provider_key',
+        error_origin: 'config',
+        error_class: 'no_provider_key',
+        superseded: false,
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Origin');
+      expect(container.textContent).toContain('Manifest · Setup');
+      expect(container.textContent).toContain('Missing API key');
+    });
+  });
+
+  it('links the documented error code so a setup failure is debuggable', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'error',
+        // The rendered text the caller actually saw — provider name and fix link
+        // included — rather than a generic "Provider API key missing".
+        error_message:
+          '[🦚 Manifest M100] No anthropic API key yet. Add one here: https://x/routing',
+        error_code: 'M100',
+        error_origin: 'config',
+        error_class: 'no_provider_key',
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('M100');
+    });
+
+    const codeLink = container.querySelector('.msg-detail__error-code');
+    expect(codeLink?.getAttribute('href')).toBe('https://manifest.build/docs/errors/M100');
+    expect(codeLink?.getAttribute('target')).toBe('_blank');
+    expect(container.textContent).toContain('No anthropic API key yet');
+  });
+
+  it('omits the code row entirely for a provider failure', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'error',
+        error_message: 'Overloaded',
+        error_code: null,
+        error_origin: 'provider',
+        error_class: 'server_error',
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => expect(container.textContent).toContain('Overloaded'));
+    expect(container.querySelector('.msg-detail__error-code')).toBeNull();
+  });
+
+  it('explains that a request-origin failure never reached a provider', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'error',
+        error_message: '[🦚 Manifest M300] `messages` array is required.',
+        error_code: 'M300',
+        error_origin: 'request',
+        error_class: 'invalid_request',
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Manifest · Bad request');
+    });
+    expect(container.textContent).toContain('No provider was called.');
+  });
+
+  it('renders a fallback-recovery panel for a fallback_error attempt', async () => {
+    // A fallback_error is the failed original of a chain that recovered on a
+    // fallback. The redesign pairs the error block with a "fallback was
+    // triggered" next-card, and surfaces the provider origin/type.
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'fallback_error',
+        error_message: 'Overloaded',
+        error_origin: 'provider',
+        error_class: 'server_error',
+        superseded: true,
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Overloaded');
+      expect(container.textContent).toContain('A fallback was triggered after this error.');
+    });
+    // The provider fault is surfaced as origin + type in the error meta table.
+    expect(container.textContent).toContain('Provider');
+    expect(container.textContent).toContain('Server error');
   });
 
   it('shows message summary', async () => {
@@ -169,7 +307,9 @@ describe('MessageDetails', () => {
     mockGetMessageDetails.mockResolvedValue(fallbackResponse);
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     await vi.waitFor(() => {
-      const banner = container.querySelector('.msg-detail__fallback-banner');
+      // A successful request reached via fallback renders the fallback
+      // trigger card (`.autofix-card--fallback`) with the attempt number.
+      const banner = container.querySelector('.autofix-card--fallback');
       expect(banner).not.toBeNull();
       expect(banner!.textContent).toContain('gemini-2.5-flash-lite');
       expect(banner!.textContent).toContain('#1');
@@ -180,7 +320,7 @@ describe('MessageDetails', () => {
     mockGetMessageDetails.mockResolvedValue(detailsResponse);
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     await vi.waitFor(() => {
-      expect(container.querySelector('.msg-detail__fallback-banner')).toBeNull();
+      expect(container.querySelector('.autofix-card--fallback')).toBeNull();
     });
   });
 
@@ -436,7 +576,7 @@ describe('MessageDetails', () => {
     });
   });
 
-  it('omits the attempt # when fallback_index is null but fallback_from_model is set', async () => {
+  it('defaults to Attempt #1 in the fallback banner when fallback_index is null', async () => {
     const fallbackNoIndexResponse = {
       ...detailsResponse,
       message: {
@@ -448,11 +588,12 @@ describe('MessageDetails', () => {
     mockGetMessageDetails.mockResolvedValue(fallbackNoIndexResponse);
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     await vi.waitFor(() => {
-      const banner = container.querySelector('.msg-detail__fallback-banner');
+      const banner = container.querySelector('.autofix-card--fallback');
       expect(banner).not.toBeNull();
       expect(banner!.textContent).toContain('gemini-2.5-flash-lite');
-      // Without fallback_index, the "(attempt #N)" suffix is hidden.
-      expect(banner!.textContent).not.toContain('attempt #');
+      // With no explicit index the attempt number falls back to #1 rather than
+      // being hidden — `(fallback_index ?? 0) + 1`.
+      expect(banner!.textContent).toContain('Attempt #1');
     });
   });
 
@@ -682,7 +823,7 @@ describe('MessageDetails', () => {
       expect(chevron.classList.contains('msg-detail__chevron--open')).toBe(true);
     });
 
-    it("renders an info tooltip explaining what model parameters are and that the surface will grow", async () => {
+    it('renders an info tooltip explaining what model parameters are and that the surface will grow', async () => {
       const withParams = {
         ...detailsResponse,
         message: {
@@ -695,9 +836,10 @@ describe('MessageDetails', () => {
       await vi.waitFor(() => {
         expect(container.textContent).toContain('Model Parameters');
       });
-      // The tooltip lives next to the toggle button as a sibling — putting
-      // it inside the button would nest interactive elements (invalid HTML).
-      const row = container.querySelector('.msg-detail__section-row');
+      // The tooltip lives next to the toggle button as a sibling in the
+      // panel header — putting it inside the button would nest interactive
+      // elements (invalid HTML).
+      const row = container.querySelector('.toggle-panel__header');
       expect(row).not.toBeNull();
       const tooltip = row!.querySelector('.info-tooltip');
       expect(tooltip).not.toBeNull();

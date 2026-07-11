@@ -1,4 +1,5 @@
 import { ObjectLiteral, SelectQueryBuilder } from 'typeorm';
+import { MANIFEST_ERROR_ORIGINS } from 'manifest-shared';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 
 export interface MetricWithTrend {
@@ -31,7 +32,15 @@ export function computeTrend(current: number, previous: number): number {
  * "what is an error" — consumed both by the Messages-log error filter and by
  * every "messages" KPI count below, so the two notions can never drift.
  */
-export const ERROR_MESSAGE_STATUSES = ['error', 'fallback_error', 'rate_limited'] as const;
+// `auto_fixed` is the failed-original row of a healed Auto-fix pair; its paired
+// `ok` retry row is the real success, so the original is excluded here to avoid
+// double-counting one logical request.
+export const ERROR_MESSAGE_STATUSES = [
+  'error',
+  'fallback_error',
+  'rate_limited',
+  'auto_fixed',
+] as const;
 
 /**
  * SQL `COUNT(*)` expression that counts only real (non-error) messages.
@@ -50,6 +59,24 @@ export function sqlCountMessages(alias = 'at'): string {
   const list = ERROR_MESSAGE_STATUSES.map((s) => `'${s}'`).join(', ');
   return `COUNT(*) FILTER (WHERE ${alias}.status IS NULL OR ${alias}.status NOT IN (${list}))`;
 }
+
+/** Comma-quoted list of Manifest-originated error origins, e.g. `'config', 'policy', …`. */
+const MANIFEST_ORIGIN_SQL_LIST = MANIFEST_ERROR_ORIGINS.map((o) => `'${o}'`).join(', ');
+
+/**
+ * SQL predicate matching Manifest-originated errors (config / policy / internal
+ * / request) — the rows the caller gets back as HTTP 200 stubs or 4xx envelopes
+ * without a provider ever being contacted. Backs the `origin=manifest` filter
+ * shorthand. Assumes the query builder aliases `agent_messages` as `at`.
+ *
+ * The Messages log used to hide `config` rows by default on the theory that "a
+ * Manifest config error is not a message". It was the only surface that hid
+ * them — the Overview's Recent Messages panel always showed them — so a user who
+ * saw a "Failed: Setup" row there and clicked through found nothing, with no
+ * filter anywhere to bring it back. Every origin is now listed by default;
+ * callers narrow with `?origin=`.
+ */
+export const MANIFEST_ORIGIN_PREDICATE = `at.error_origin IN (${MANIFEST_ORIGIN_SQL_LIST})`;
 
 export function downsample(data: number[], targetLen: number): number[] {
   if (data.length <= targetLen) return data;
@@ -247,6 +274,10 @@ export const MESSAGE_ROW_SELECT_ALIASES = [
   'routing_reason',
   'specificity_category',
   'error_message',
+  'error_code',
+  'error_origin',
+  'error_class',
+  'error_http_status',
   'auth_type',
   'fallback_from_model',
   'fallback_index',
@@ -256,6 +287,8 @@ export const MESSAGE_ROW_SELECT_ALIASES = [
   'header_tier_color',
   'provider_key_label',
   'custom_provider_name',
+  'autofix_applied',
+  'autofix_role',
 ] as const;
 
 export function selectMessageRowColumns<T extends ObjectLiteral>(
@@ -279,6 +312,10 @@ export function selectMessageRowColumns<T extends ObjectLiteral>(
     .addSelect('at.routing_reason', 'routing_reason')
     .addSelect('at.specificity_category', 'specificity_category')
     .addSelect('at.error_message', 'error_message')
+    .addSelect('at.error_code', 'error_code')
+    .addSelect('at.error_origin', 'error_origin')
+    .addSelect('at.error_class', 'error_class')
+    .addSelect('at.error_http_status', 'error_http_status')
     .addSelect('at.auth_type', 'auth_type')
     .addSelect('at.fallback_from_model', 'fallback_from_model')
     .addSelect('at.fallback_index', 'fallback_index')
@@ -287,5 +324,7 @@ export function selectMessageRowColumns<T extends ObjectLiteral>(
     .addSelect('at.header_tier_name', 'header_tier_name')
     .addSelect('at.header_tier_color', 'header_tier_color')
     .addSelect('at.provider_key_label', 'provider_key_label')
-    .addSelect('cp.name', 'custom_provider_name');
+    .addSelect('cp.name', 'custom_provider_name')
+    .addSelect('at.autofix_applied', 'autofix_applied')
+    .addSelect('at.autofix_role', 'autofix_role');
 }

@@ -1,4 +1,6 @@
-export const MANIFEST_ERRORS_DOCS_BASE = 'https://manifest.build/docs/errors';
+import { MANIFEST_ERRORS_DOCS_BASE } from 'manifest-shared';
+
+export { MANIFEST_ERRORS_DOCS_BASE };
 
 const PEACOCK = '🦚';
 
@@ -50,13 +52,20 @@ export const MANIFEST_ERRORS = {
     title: 'Concurrency limit exceeded',
     template: 'Too many concurrent requests. Give it a moment.',
   },
+  M204: {
+    title: 'Monthly request limit reached',
+    template:
+      "You've used all {threshold} requests included this month on the Free plan. " +
+      'Upgrade to Pro for unlimited requests: {upgradeUrl}',
+  },
   M300: {
     title: 'Missing messages array',
     template: '`messages` array is required.',
   },
-  M301: {
-    title: 'Messages array too long',
-    template: '`messages` array exceeds maximum length of {max}.',
+  M302: {
+    title: 'Model not available',
+    template:
+      'Model "{model}" is not available for this agent. Use GET /v1/models to list available model IDs, or make the provider available for this agent here: {dashboardUrl}',
   },
   M500: {
     title: 'Internal server error',

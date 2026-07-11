@@ -13,7 +13,10 @@ import { Repository } from 'typeorm';
 import { createHash } from 'crypto';
 import { Request } from 'express';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
-import { IngestionContext } from '../interfaces/ingestion-context.interface';
+import {
+  IngestionContext,
+  RequestWithManifestErrorContext,
+} from '../interfaces/ingestion-context.interface';
 import { verifyKey, keyPrefix as computePrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 import { isLoopbackPeer } from '../../common/utils/local-ip';
@@ -231,7 +234,32 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
       throw new UnauthorizedException('Invalid API key');
     }
 
+    // The candidate query left-joins agent + tenant. If either relation fails
+    // to hydrate — e.g. the agent is soft-deleted in the race between the query
+    // above and the dereference below — reading keyRecord.agent.name /
+    // keyRecord.tenant.owner_user_id would throw a TypeError and surface a 500
+    // that leaks an internal error. Treat an unhydrated relation as an invalid
+    // key: remember the rejection (so an identical retry is served from the
+    // negative cache) and return a clean 401.
+    if (!keyRecord.agent || !keyRecord.tenant) {
+      this.rememberInvalid(hashed);
+      this.logger.warn(
+        `Rejected agent key with unhydrated relations (prefix: ${API_KEY_PREFIX}...)`,
+      );
+      throw new UnauthorizedException('Invalid API key');
+    }
+
     if (keyRecord.expires_at && new Date(keyRecord.expires_at) < new Date()) {
+      // An expired key still identifies its agent, so this rejection is the one
+      // auth failure Manifest can attribute and record (M004). The other four
+      // (M001–M003, M005) never resolve a tenant and stay unrecorded — see
+      // UNRECORDABLE_MANIFEST_CODES.
+      (request as Request & RequestWithManifestErrorContext).manifestErrorContext = {
+        tenantId: keyRecord.tenant_id,
+        agentId: keyRecord.agent_id,
+        agentName: keyRecord.agent.name,
+        userId: keyRecord.tenant.owner_user_id,
+      };
       throw new UnauthorizedException('API key expired');
     }
 

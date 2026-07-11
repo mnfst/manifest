@@ -1,6 +1,6 @@
 import { Title } from '@solidjs/meta';
 import { toggleScrollFade } from '../services/scroll-fade.js';
-import { A, useNavigate } from '@solidjs/router';
+import { A, useNavigate, useSearchParams } from '@solidjs/router';
 import {
   createResource,
   createSignal,
@@ -12,6 +12,9 @@ import {
   type Component,
 } from 'solid-js';
 import AddAgentModal from '../components/AddAgentModal.jsx';
+import UpgradeSuccessModal from '../components/UpgradeSuccessModal.jsx';
+import { markPlanChosen } from '../services/plan-selection.js';
+import { authClient } from '../services/auth-client.js';
 import {
   getAgents,
   getGlobalProviders,
@@ -27,9 +30,10 @@ import {
   getOverviewAgentUsage,
   getOverviewProviderUsage,
 } from '../services/api/analytics.js';
-import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
+import { getBillingStatus } from '../services/api/billing.js';
+import { formatNumber, formatCost } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
-import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
+import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import ProviderChartCard from '../components/ProviderChartCard.jsx';
@@ -40,6 +44,12 @@ import Select from '../components/Select.jsx';
 import { authLabel, authBadgeFor } from '../components/AuthBadge.jsx';
 import { platformIcon } from 'manifest-shared';
 import GlobalOverviewSkeleton from '../components/GlobalOverviewSkeleton.jsx';
+import MessageTable from '../components/MessageTable.jsx';
+import {
+  COMPACT_COLUMNS,
+  type MessageColumnKey,
+  type MessageRow,
+} from '../components/message-table-types.js';
 import { agentPing, messagePing, routingPing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
@@ -72,19 +82,6 @@ interface CostByModelRow {
   custom_provider_name?: string | null;
 }
 
-interface RecentActivityRow {
-  timestamp: string;
-  agent_name: string;
-  model: string;
-  total_tokens: number;
-  status?: string;
-  provider?: string;
-  auth_type?: string;
-  description?: string;
-  first_message?: string;
-  cost_usd?: number;
-}
-
 interface OverviewResponse {
   summary: {
     tokens_today: { value: number; trend_pct: number };
@@ -94,7 +91,7 @@ interface OverviewResponse {
   token_usage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
   cost_by_model: CostByModelRow[];
-  recent_activity: RecentActivityRow[];
+  recent_activity: MessageRow[];
   has_data: boolean;
   has_providers: boolean;
 }
@@ -116,6 +113,7 @@ const RANGE_OPTIONS = [
   { label: 'Last 90 days', value: '90d' },
   { label: 'Last 365 days', value: '365d' },
 ];
+const PRO_DASHBOARD_RANGES = new Set(['30d', '90d', '365d']);
 
 const GROUP_OPTIONS = [
   { label: 'By provider', value: 'provider' },
@@ -137,11 +135,41 @@ function loadRange(): string {
 
 const GlobalOverview: Component = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const session = authClient.useSession();
+  const isUpgraded = searchParams.upgraded === '1';
+  if (isUpgraded) {
+    const uid = session()?.data?.user?.id;
+    if (uid) markPlanChosen(uid);
+  }
+  const [upgradeModalOpen, setUpgradeModalOpen] = createSignal(isUpgraded);
+
+  const closeUpgradeModal = () => {
+    setUpgradeModalOpen(false);
+    window.history.replaceState(null, '', '/overview');
+    if (hasNoAgents() && !sessionStorage.getItem(ONBOARDING_DISMISSED_KEY)) {
+      setAddAgentOpen(true);
+    }
+  };
+
   preloadModelDisplayNames();
+
+  const [billing] = createResource(async () => {
+    try {
+      return await getBillingStatus();
+    } catch {
+      return null;
+    }
+  });
+  const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
+  const shouldLockProRanges = () => billing.loading || isFreePlan();
+  const isProRangeLocked = (range: string) =>
+    shouldLockProRanges() && PRO_DASHBOARD_RANGES.has(range);
 
   // ── Range state (persisted in localStorage) ──────────────────────────
   const [chartRange, setChartRangeRaw] = createSignal(loadRange());
   const setChartRange = (v: string) => {
+    if (isFreePlan() && PRO_DASHBOARD_RANGES.has(v)) return;
     setChartRangeRaw(v);
     try {
       localStorage.setItem(RANGE_STORAGE_KEY, v);
@@ -176,10 +204,27 @@ const GlobalOverview: Component = () => {
   // Local providers only exist on self-hosted installs; cloud hides the
   // Local stat card and drops the stats grid to three columns.
   const [selfHosted] = createResource(checkIsSelfHosted);
+  const effectiveChartRange = createMemo(() =>
+    isProRangeLocked(chartRange()) ? '7d' : chartRange(),
+  );
+  const proBadge = () => (
+    <span class="pro-range-badge" aria-label="Pro plan required">
+      PRO
+    </span>
+  );
+  const rangeOptions = () =>
+    RANGE_OPTIONS.map((option) =>
+      isProRangeLocked(option.value) ? { ...option, disabled: true, badge: proBadge() } : option,
+    );
+  createEffect(() => {
+    if (isFreePlan() && PRO_DASHBOARD_RANGES.has(chartRange())) {
+      setChartRange('7d');
+    }
+  });
 
   // ── Data resources (5 parallel) ──────────────────────────────────────
   const [overview] = createResource(
-    () => ({ range: chartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
     (p) => getOverview(p.range) as Promise<OverviewResponse>,
   );
 
@@ -246,7 +291,7 @@ const GlobalOverview: Component = () => {
   };
 
   const [usageTimeseries] = createResource(
-    () => ({ range: chartRange(), group: groupBy(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), group: groupBy(), _ping: messagePing() }),
     (p) => usageFetcher(p.range, p.group),
   );
 
@@ -424,7 +469,7 @@ const GlobalOverview: Component = () => {
     on(
       () => hasNoAgents(),
       (empty) => {
-        if (empty && !sessionStorage.getItem(ONBOARDING_DISMISSED_KEY)) {
+        if (empty && !sessionStorage.getItem(ONBOARDING_DISMISSED_KEY) && !upgradeModalOpen()) {
           setAddAgentOpen(true);
         }
       },
@@ -438,6 +483,7 @@ const GlobalOverview: Component = () => {
 
       {/* Add Harness Modal */}
       <AddAgentModal open={addAgentOpen()} onClose={dismissAddAgent} />
+      <UpgradeSuccessModal open={upgradeModalOpen()} onClose={closeUpgradeModal} />
 
       <SocialFollowBanner />
 
@@ -475,7 +521,7 @@ const GlobalOverview: Component = () => {
                 }}
               />
             </Show>
-            <Select value={chartRange()} onChange={setChartRange} options={RANGE_OPTIONS} />
+            <Select value={chartRange()} onChange={setChartRange} options={rangeOptions()} />
           </div>
         </Show>
       </div>
@@ -569,7 +615,7 @@ const GlobalOverview: Component = () => {
                 costValue={o().summary.cost_today.value}
                 costTrendPct={o().summary.cost_today.trend_pct}
                 costInfoTooltip="Actual API key costs only. Subscription usage is not included."
-                range={chartRange()}
+                range={effectiveChartRange()}
                 agentTimeseries={filteredAgentTimeseries() ?? undefined}
                 agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
                 agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
@@ -868,89 +914,23 @@ const GlobalOverview: Component = () => {
             </A>
           </div>
           <div class="scroll-panel__body" onScroll={toggleScrollFade}>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Harness</th>
-                  <th>Model</th>
-                  <th>Message</th>
-                  <th style="text-align: right;">Cost</th>
-                  <th style="text-align: right;">Tokens</th>
-                </tr>
-              </thead>
-              <tbody>
-                <For each={overview()?.recent_activity ?? []}>
-                  {(row) => (
-                    <tr>
-                      <td style="white-space: nowrap; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                        {formatTimeAgo(row.timestamp) ?? '—'}
-                      </td>
-                      <td>
-                        {(() => {
-                          const s = (row.status ?? 'ok').toLowerCase();
-                          if (s === 'ok' || s === 'success')
-                            return (
-                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success) / 0.1); color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500;">
-                                Success
-                              </span>
-                            );
-                          if (s === 'retry')
-                            return (
-                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(38 92% 50% / 0.15); color: hsl(38 92% 40%); font-size: var(--font-size-xs); font-weight: 500;">
-                                Retried
-                              </span>
-                            );
-                          return (
-                            <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--destructive) / 0.1); color: hsl(var(--destructive)); font-size: var(--font-size-xs); font-weight: 500;">
-                              Failed
-                            </span>
-                          );
-                        })()}
-                      </td>
-                      <td>
-                        <span style="font-weight: 500; color: hsl(var(--foreground));">
-                          {row.agent_name}
-                        </span>
-                      </td>
-                      <td>
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                          <Show when={row.provider}>
-                            <span style="position: relative; flex-shrink: 0; display: flex; align-items: center; width: 14px; height: 14px;">
-                              {providerIcon(row.provider!, 16)}
-                              {authBadgeFor(row.auth_type ?? null, 12)}
-                            </span>
-                          </Show>
-                          <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
-                            {row.model ? getModelDisplayName(row.model) : '—'}
-                          </span>
-                        </div>
-                      </td>
-                      <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
-                        {row.description || row.first_message || '—'}
-                      </td>
-                      <td style="text-align: right; font-variant-numeric: tabular-nums; color: hsl(var(--muted-foreground));">
-                        {formatCost(Number(row.cost_usd ?? 0)) ?? '—'}
-                      </td>
-                      <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                        {formatNumber(Number(row.total_tokens ?? 0))}
-                      </td>
-                    </tr>
-                  )}
-                </For>
-                <Show when={(overview()?.recent_activity ?? []).length === 0}>
-                  <tr>
-                    <td
-                      colspan="7"
-                      style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
-                    >
-                      No messages yet
-                    </td>
-                  </tr>
-                </Show>
-              </tbody>
-            </table>
+            {(() => {
+              const cols = (): MessageColumnKey[] => {
+                const at = COMPACT_COLUMNS.indexOf('model');
+                return [
+                  ...COMPACT_COLUMNS.slice(0, at),
+                  'agent' as const,
+                  ...COMPACT_COLUMNS.slice(at),
+                ];
+              };
+              return (
+                <MessageTable
+                  items={overview()?.recent_activity ?? []}
+                  columns={cols()}
+                  customProviderName={() => undefined}
+                />
+              );
+            })()}
           </div>
         </div>
 
