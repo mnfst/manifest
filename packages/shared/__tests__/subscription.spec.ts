@@ -322,6 +322,16 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('claude-sonnet-5');
   });
 
+  it('returns the curated ChatGPT plan models for OpenAI', () => {
+    const models = getSubscriptionKnownModels('openai');
+    expect(models).toEqual(
+      expect.arrayContaining(['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna']),
+    );
+    expect(models).not.toContain('gpt-5.6-sol-pro');
+    expect(models).not.toContain('gpt-5.6-terra-pro');
+    expect(models).not.toContain('gpt-5.6-luna-pro');
+  });
+
   it('returns known models for copilot', () => {
     const models = getSubscriptionKnownModels('copilot');
     expect(models).toContain('copilot/claude-opus-4.6');
@@ -488,6 +498,11 @@ describe('getSubscriptionCapabilities', () => {
       maxContextWindow: 200000,
       supportsPromptCaching: true,
       supportsBatching: false,
+    });
+    expect(caps?.modelContextWindows).toMatchObject({
+      'gpt-5.6-sol': 1050000,
+      'gpt-5.6-terra': 1050000,
+      'gpt-5.6-luna': 1050000,
     });
   });
 
