@@ -1048,6 +1048,22 @@ describe('Anthropic Adapter', () => {
       expect(result).toBeNull();
     });
 
+    it('converts Anthropic stream errors to a terminal provider error chunk', () => {
+      const transform = createAnthropicStreamTransformer('claude-sonnet-4-20250514');
+      const result = transform(
+        'event: error\n{"type":"error","error":{"type":"rate_limit_error","message":"Too many requests"}}',
+      );
+
+      expect(result).toBe(
+        'data: {"error":{"message":"Too many requests","type":"rate_limit_error","status":429}}\n\n',
+      );
+      expect(
+        transform(
+          'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"text_delta","text":"must be ignored"}}',
+        ),
+      ).toBeNull();
+    });
+
     it('converts message_start to initial role chunk', () => {
       const chunk =
         'event: message_start\n{"type":"message_start","message":{"id":"msg_01","role":"assistant"}}';
@@ -2183,6 +2199,37 @@ describe('Anthropic Adapter', () => {
   });
 
   describe('applyAnthropicMessagesMutations', () => {
+    it('preserves a native Claude body exactly even when thinking replay is available', () => {
+      const inbound = {
+        model: 'claude-sonnet-4-6',
+        stream: true,
+        system: 'Native system',
+        context_management: { edits: [{ type: 'clear_tool_uses_20250919' }] },
+        messages: [
+          {
+            role: 'assistant',
+            content: [
+              { type: 'thinking', thinking: 'native', signature: '' },
+              { type: 'tool_use', id: 'call_1', name: 'search', input: { q: 'cats' } },
+            ],
+          },
+        ],
+      };
+      const lookup = jest
+        .fn()
+        .mockReturnValue([{ type: 'thinking', thinking: 'cached', signature: 'cached-signature' }]);
+
+      const result = applyAnthropicMessagesMutations(inbound, {
+        preserveNativeBody: true,
+        injectSubscriptionIdentity: true,
+        thinkingLookup: lookup,
+      });
+
+      expect(result).toEqual(inbound);
+      expect(result).not.toBe(inbound);
+      expect(lookup).not.toHaveBeenCalled();
+    });
+
     it('preserves Anthropic server tools with their type discriminator and skips input_schema (issue #1886)', () => {
       const inbound = {
         model: 'claude-sonnet-4-20250514',

@@ -41,6 +41,7 @@ function mockResponse(): {
       headers[k] = v;
     }),
     json: jest.fn(),
+    send: jest.fn(),
     write: jest.fn(),
     end: jest.fn(),
   };
@@ -487,6 +488,114 @@ describe('proxy-response-handler', () => {
         } else {
           process.env.NODE_ENV = originalEnv;
         }
+      }
+    });
+
+    it('passes a native Anthropic Messages error body and protocol headers through unchanged', async () => {
+      const { res, headers } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-sonnet-4-6' });
+      const errorBody = JSON.stringify({
+        type: 'error',
+        error: { type: 'invalid_request_error', message: 'Unsupported beta flag' },
+        request_id: 'req_native',
+      });
+      const upstreamHeaders = new Headers({
+        'content-type': 'application/json; charset=utf-8',
+        'request-id': 'req_native',
+        'retry-after': '3',
+        'anthropic-ratelimit-requests-remaining': '0',
+        'set-cookie': 'must-not-forward=1',
+      });
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        400,
+        errorBody,
+        undefined,
+        recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { apiMode: 'messages', isAnthropic: true, headers: upstreamHeaders },
+      );
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(errorBody);
+      expect(res.json).not.toHaveBeenCalled();
+      expect(headers['request-id']).toBe('req_native');
+      expect(headers['retry-after']).toBe('3');
+      expect(headers['anthropic-ratelimit-requests-remaining']).toBe('0');
+      expect(headers['content-type']).toBe('application/json; charset=utf-8');
+      expect(headers['set-cookie']).toBeUndefined();
+    });
+
+    it('returns an Anthropic-shaped error when a Messages request fails on a fallback provider', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'openai', model: 'gpt-5.4' });
+      const upstreamHeaders = new Headers({ 'x-request-id': 'req_fallback' });
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        429,
+        JSON.stringify({ error: { message: 'Rate limit reached' } }),
+        undefined,
+        recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { apiMode: 'messages', isAnthropic: false, headers: upstreamHeaders },
+      );
+
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        error: { type: 'rate_limit_error', message: 'Rate limit reached' },
+        request_id: 'req_fallback',
+      });
+    });
+
+    it('sanitizes non-Anthropic error bodies from Anthropic-compatible providers', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        const { res } = mockResponse();
+        const recorder = mockRecorder();
+        const meta = makeMeta({ provider: 'moonshot', model: 'kimi-k2' });
+
+        await handleProviderError(
+          res as any,
+          testCtx,
+          meta,
+          buildMetaHeaders(meta),
+          502,
+          '<html>private upstream details</html>',
+          undefined,
+          recorder as any,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          { apiMode: 'messages', isAnthropic: true, headers: new Headers() },
+        );
+
+        expect(res.send).not.toHaveBeenCalled();
+        expect(res.json).toHaveBeenCalledWith({
+          type: 'error',
+          error: { type: 'api_error', message: 'Upstream provider returned bad gateway' },
+        });
+        expect(JSON.stringify(res.json.mock.calls)).not.toContain('private upstream details');
+      } finally {
+        if (originalEnv === undefined) delete process.env.NODE_ENV;
+        else process.env.NODE_ENV = originalEnv;
       }
     });
   });
@@ -1295,6 +1404,35 @@ describe('proxy-response-handler', () => {
         cache_creation_tokens: undefined,
       });
       expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('forwards safe Codex response metadata without forwarding unrelated provider headers', async () => {
+      const { res, headers } = mockResponse();
+      const client = mockProviderClient();
+      const forward = mockForward({ id: 'resp_1', usage: {} }, { isResponses: true });
+      forward.response.headers = new Headers({
+        'x-codex-turn-state': 'turn-state-token',
+        'x-request-id': 'req_codex',
+        'x-ratelimit-remaining-requests': '7',
+        'set-cookie': 'must-not-forward=1',
+      }) as any;
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        makeMeta({ provider: 'openai', model: 'gpt-5.4' }),
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      expect(headers['x-codex-turn-state']).toBe('turn-state-token');
+      expect(headers['x-request-id']).toBe('req_codex');
+      expect(headers['x-ratelimit-remaining-requests']).toBe('7');
+      expect(headers['set-cookie']).toBeUndefined();
     });
 
     it('apiMode=messages + Anthropic upstream returns the upstream body verbatim, preserving server-tool blocks (issue #1886)', async () => {

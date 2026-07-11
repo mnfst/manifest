@@ -109,6 +109,52 @@ describe('ProxyExceptionFilter', () => {
     });
   });
 
+  describe('coding-client protocol errors', () => {
+    it('returns a real Anthropic authentication error for streaming /v1/messages', () => {
+      const { host, res, req } = createMockHost({ stream: true }, { accept: 'text/event-stream' });
+      req.originalUrl = '/v1/messages';
+
+      filter.catch(new UnauthorizedException('Invalid API key'), host);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        error: {
+          type: 'authentication_error',
+          message: expect.stringContaining("I don't recognize this key"),
+        },
+      });
+    });
+
+    it('returns a real OpenAI rate-limit error for streaming /v1/responses', () => {
+      const { host, res, req } = createMockHost({ stream: true }, { accept: 'text/event-stream' });
+      req.originalUrl = '/v1/responses';
+
+      filter.catch(new HttpException('Slow down', 429), host);
+
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith({
+        error: { message: 'Slow down', type: 'rate_limit_error' },
+      });
+    });
+
+    it('masks internal details in an Anthropic error instead of a friendly success', () => {
+      const { host, res, req } = createMockHost({ stream: true }, { accept: 'text/event-stream' });
+      req.originalUrl = '/v1/messages';
+
+      filter.catch(new HttpException('private stack detail', 500), host);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        error: {
+          type: 'api_error',
+          message: 'Manifest encountered an internal error. Try again shortly.',
+        },
+      });
+    });
+  });
+
   describe('recording an expired key (M004)', () => {
     it('records the rejection against the agent the guard resolved', () => {
       const { host, req } = chatHost({ model: 'gpt-4o' });

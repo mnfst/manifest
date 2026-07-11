@@ -3,8 +3,17 @@ import { ConfigService } from '@nestjs/config';
 import { ProviderService } from '../../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import { PendingOAuth } from './openai-oauth.types';
-import { oauthDoneHtml, type OAuthTokenBlob } from '../core';
-import { RedirectPkceOauthBaseService } from '../core/redirect-pkce-oauth.base';
+import { oauthDoneHtml, parseOAuthTokenBlob, type OAuthTokenBlob } from '../core';
+import {
+  RedirectPkceOauthBaseService,
+  type OAuthTokenResponse,
+} from '../core/redirect-pkce-oauth.base';
+import {
+  extractOpenAiSubscriptionMetadata,
+  parseOpenAiSubscriptionMetadata,
+  serializeOpenAiSubscriptionMetadata,
+  type OpenAiSubscriptionMetadata,
+} from './openai-token-metadata';
 
 export { PendingOAuth };
 export { oauthDoneHtml, type OAuthTokenBlob };
@@ -29,5 +38,38 @@ export class OpenaiOauthService extends RedirectPkceOauthBaseService {
       scope: 'openid profile email offline_access',
       callbackPort: 1455,
     });
+  }
+
+  protected extractTokenMetadata(response: OAuthTokenResponse): string | undefined {
+    const metadata = extractOpenAiSubscriptionMetadata(response.id_token ?? response.access_token);
+    return serializeOpenAiSubscriptionMetadata(metadata);
+  }
+
+  async unwrapTokenWithMetadata(
+    rawValue: string,
+    agentId: string,
+    tenantId: string,
+    keyLabel?: string,
+  ): Promise<{ accessToken: string; metadata: OpenAiSubscriptionMetadata } | null> {
+    const originalBlob = parseOAuthTokenBlob(rawValue);
+    if (!originalBlob) return null;
+    const wasFresh = Date.now() < originalBlob.e - 60_000;
+    const accessToken = await this.unwrapToken(rawValue, agentId, tenantId, keyLabel);
+    if (!accessToken) return null;
+
+    let currentBlob = originalBlob;
+    if (!wasFresh) {
+      const freshRaw = await this.providerService.getFreshSubscriptionCredential(
+        tenantId,
+        'openai',
+        keyLabel,
+      );
+      currentBlob = (freshRaw && parseOAuthTokenBlob(freshRaw)) || originalBlob;
+    }
+    const metadata = {
+      ...extractOpenAiSubscriptionMetadata(accessToken),
+      ...parseOpenAiSubscriptionMetadata(currentBlob.m),
+    };
+    return { accessToken, metadata };
   }
 }

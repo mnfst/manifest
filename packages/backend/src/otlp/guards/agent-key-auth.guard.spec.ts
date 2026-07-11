@@ -196,6 +196,37 @@ describe('AgentKeyAuthGuard', () => {
     });
   });
 
+  it('accepts a Manifest agent key from Claude-compatible x-api-key', async () => {
+    const token = 'mnfst_claude-key';
+    mockGetMany.mockResolvedValue([
+      {
+        id: 'key-claude',
+        tenant_id: 'tenant-claude',
+        agent_id: 'agent-claude',
+        key_hash: hashKey(token),
+        expires_at: null,
+        agent: { name: 'claude-agent' },
+        tenant: { owner_user_id: 'user-claude' },
+      },
+    ]);
+
+    const { ctx, req } = makeContext({ 'x-api-key': token });
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
+    expect(req.ingestionContext).toEqual(
+      expect.objectContaining({ tenantId: 'tenant-claude', agentId: 'agent-claude' }),
+    );
+  });
+
+  it('rejects conflicting Authorization and x-api-key credentials', async () => {
+    const { ctx } = makeContext({
+      authorization: 'Bearer mnfst_first-key',
+      'x-api-key': 'mnfst_second-key',
+    });
+
+    await expect(guard.canActivate(ctx)).rejects.toThrow('Conflicting API credentials');
+    expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+  });
+
   it('returns true when raw token (no Bearer prefix) matches', async () => {
     const token = 'mnfst_raw-key-test';
     mockGetMany.mockResolvedValue([

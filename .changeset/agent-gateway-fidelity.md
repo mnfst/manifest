@@ -1,0 +1,5 @@
+---
+'manifest': patch
+---
+
+Preserve Claude Code and Codex protocol fidelity through Manifest by forwarding safe client and session metadata only to matching upstreams, keeping native Claude Messages bodies intact, and retaining Responses tool-call lifecycles, provider errors, and response headers across fallback conversions.

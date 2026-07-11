@@ -160,6 +160,7 @@ interface HealedReforwardContext {
   stream: boolean;
   specificityOverride?: ProxyRequestOptions['specificityOverride'];
   headers?: ProxyRequestOptions['headers'];
+  requestContext?: ProxyRequestOptions['requestContext'];
   originalModel: string | undefined;
   provider: string;
   apiKey: string;
@@ -168,6 +169,7 @@ interface HealedReforwardContext {
   keyLabel?: string;
   authType?: AuthType;
   resourceUrl?: string;
+  subscriptionMetadata?: import('../oauth/openai/openai-token-metadata').OpenAiSubscriptionMetadata;
   providerRegion?: string | null;
   paramMergeContext: ParamMergeContext | undefined;
   signatureLookup: SignatureLookup;
@@ -203,8 +205,17 @@ export class ProxyService {
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
-    const { agentId, tenantId, body, sessionKey, agentName, signal, specificityOverride, headers } =
-      opts;
+    const {
+      agentId,
+      tenantId,
+      body,
+      sessionKey,
+      agentName,
+      signal,
+      specificityOverride,
+      headers,
+      requestContext,
+    } = opts;
     const apiMode = opts.apiMode ?? 'chat_completions';
     const routingSource = opts.routingBody ?? body;
     const chatBody = this.toChatBody(apiMode, body);
@@ -339,11 +350,13 @@ export class ProxyService {
       authType: route.authType,
       apiMode,
       resourceUrl: credentials.resourceUrl,
+      subscriptionMetadata: credentials.subscriptionMetadata,
       providerRegion: credentials.providerRegion,
       signatureLookup,
       thinkingLookup,
       reasoningContentLookup,
       paramMergeContext,
+      requestContext,
     });
 
     // Auto-fix runs BEFORE the fallback chain: heal a repairable 4xx and retry
@@ -370,6 +383,7 @@ export class ProxyService {
           stream,
           specificityOverride,
           headers,
+          requestContext,
           originalModel: typeof body.model === 'string' ? body.model : undefined,
           provider: route.provider,
           apiKey: credentials.apiKey,
@@ -378,6 +392,7 @@ export class ProxyService {
           keyLabel: route.keyLabel ?? undefined,
           authType: route.authType,
           resourceUrl: credentials.resourceUrl,
+          subscriptionMetadata: credentials.subscriptionMetadata,
           providerRegion: credentials.providerRegion,
           paramMergeContext,
           signatureLookup,
@@ -411,6 +426,7 @@ export class ProxyService {
         apiMode,
         paramMergeContext,
         primaryTenantProviderId: credentials.tenantProviderId,
+        requestContext,
       });
       if (fallbackResult) return { ...fallbackResult, autofix: autofixRecord };
     }
@@ -434,6 +450,7 @@ export class ProxyService {
           isCodeAssist: forward.isCodeAssist,
           structuredOutputToolName: forward.structuredOutputToolName,
           responsesTextFormat: forward.responsesTextFormat,
+          responsesToolTypesByName: forward.responsesToolTypesByName,
         };
         this.recordTierIfScoring(sessionKey, resolved.tier);
         this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
@@ -482,6 +499,7 @@ export class ProxyService {
           apiMode,
           paramMergeContext,
           primaryTenantProviderId: credentials.tenantProviderId,
+          requestContext,
         });
         if (fallbackResult) return { ...fallbackResult, autofix: autofixRecord };
       }
@@ -562,11 +580,13 @@ export class ProxyService {
       authType: ctx.authType,
       apiMode: ctx.apiMode,
       resourceUrl: ctx.resourceUrl,
+      subscriptionMetadata: ctx.subscriptionMetadata,
       providerRegion: ctx.providerRegion,
       signatureLookup: ctx.signatureLookup,
       thinkingLookup: ctx.thinkingLookup,
       reasoningContentLookup: ctx.reasoningContentLookup,
       paramMergeContext: ctx.paramMergeContext,
+      requestContext: ctx.requestContext,
     });
   }
 
@@ -614,11 +634,13 @@ export class ProxyService {
       authType: route.authType,
       apiMode: ctx.apiMode,
       resourceUrl: credentials.resourceUrl,
+      subscriptionMetadata: credentials.subscriptionMetadata,
       providerRegion: credentials.providerRegion,
       signatureLookup: ctx.signatureLookup,
       thinkingLookup: ctx.thinkingLookup,
       reasoningContentLookup: ctx.reasoningContentLookup,
       paramMergeContext: explicitModelOverride ? undefined : { agentId: ctx.agentId, scopeKey },
+      requestContext: ctx.requestContext,
     });
   }
 
@@ -756,6 +778,7 @@ export class ProxyService {
     apiKey: string;
     rawApiKey: string;
     resourceUrl?: string;
+    subscriptionMetadata?: import('../oauth/openai/openai-token-metadata').OpenAiSubscriptionMetadata;
     providerRegion?: string | null;
     tenantProviderId: string | null;
   } | null> {
@@ -809,6 +832,7 @@ export class ProxyService {
       apiKey: unwrappedApiKey,
       rawApiKey,
       resourceUrl: unwrapped.resourceUrl,
+      subscriptionMetadata: unwrapped.subscriptionMetadata,
       providerRegion: key.region,
       tenantProviderId,
     };
@@ -833,6 +857,7 @@ export class ProxyService {
     /** Primary connection id, carried so a fallback-success flow can attribute
      * its recorded primary-failure row to the connection that actually failed. */
     primaryTenantProviderId: string | null;
+    requestContext?: ProxyRequestOptions['requestContext'];
   }): Promise<ProxyResult | null> {
     const {
       agentId,
@@ -891,6 +916,7 @@ export class ProxyService {
       fallbackRoutes,
       args.paramMergeContext,
       args.reasoningContentLookup,
+      args.requestContext,
     );
 
     this.recordTierIfScoring(sessionKey, resolved.tier);

@@ -36,12 +36,14 @@ interface ForwardProviderOptions {
   agentId?: string;
   tenantId?: string;
   resourceUrl?: string;
+  subscriptionMetadata?: import('../oauth/openai/openai-token-metadata').OpenAiSubscriptionMetadata;
   providerRegion?: string | null;
   apiMode?: ProxyApiMode;
   signatureLookup?: SignatureLookup;
   thinkingLookup?: ThinkingBlockLookup;
   reasoningContentLookup?: ReasoningContentLookup;
   paramMergeContext?: ParamMergeContext;
+  requestContext?: AgentRequestContext;
 }
 
 import {
@@ -71,8 +73,13 @@ import {
   buildTransportErrorResponse,
   describeTransportError,
 } from './proxy-transport';
-import type { SignatureLookup, ThinkingBlockLookup, ReasoningContentLookup } from './proxy-types';
-import type { ProxyApiMode } from './proxy-types';
+import type {
+  AgentRequestContext,
+  ProxyApiMode,
+  ReasoningContentLookup,
+  SignatureLookup,
+  ThinkingBlockLookup,
+} from './proxy-types';
 import {
   isRefreshableOAuthCredential,
   refreshRejectedOAuthCredential,
@@ -174,6 +181,7 @@ export class ProxyFallbackService {
     fallbackRoutes?: ModelRoute[] | null,
     paramMergeContext?: ParamMergeContext,
     reasoningContentLookup?: ReasoningContentLookup,
+    requestContext?: AgentRequestContext,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -324,11 +332,13 @@ export class ProxyFallbackService {
         authType,
         apiMode,
         resourceUrl: resolvedCredentials.resourceUrl,
+        subscriptionMetadata: resolvedCredentials.subscriptionMetadata,
         providerRegion,
         signatureLookup,
         thinkingLookup,
         reasoningContentLookup,
         paramMergeContext,
+        requestContext,
       });
 
       if (forward.response.ok) {
@@ -531,6 +541,7 @@ export class ProxyFallbackService {
       ...opts,
       apiKey: refreshed.apiKey,
       resourceUrl: refreshed.resourceUrl ?? opts.resourceUrl,
+      subscriptionMetadata: refreshed.subscriptionMetadata ?? opts.subscriptionMetadata,
     });
   }
 
@@ -655,6 +666,8 @@ export class ProxyFallbackService {
         : {}),
       reasoningContentLookup,
       providerResource,
+      requestContext: opts.requestContext,
+      subscriptionMetadata: opts.subscriptionMetadata,
     });
   }
 }

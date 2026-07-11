@@ -7,12 +7,18 @@ import type { RequestWithManifestErrorContext } from '../../otlp/interfaces/inge
 import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { sanitizeRequestHeaders } from './request-headers';
 import { getDashboardUrl, sendFriendlyResponse } from './proxy-friendly-response';
+import {
+  isCodingClientApiMode,
+  proxyApiModeFromRequest,
+  sendProxyProtocolError,
+} from './proxy-protocol-error';
 
 /** Guard-thrown messages that should become friendly chat responses. */
 const AUTH_ERROR_CODES: Record<string, ManifestErrorCode> = {
   'Authorization header required': 'M001',
   'Empty token': 'M002',
   'Invalid API key format': 'M003',
+  'Conflicting API credentials': 'M003',
   'API key expired': 'M004',
   'Invalid API key': 'M005',
 };
@@ -84,9 +90,15 @@ export class ProxyExceptionFilter implements ExceptionFilter {
 
     const status = exception.getStatus();
     const message = exception.message;
+    const apiMode = proxyApiModeFromRequest(req);
+    const isCodingClient = isCodingClientApiMode(apiMode);
 
     // Rate limit errors should stay as HTTP 429 so clients can backoff
     if (PASSTHROUGH_STATUSES.has(status)) {
+      if (isCodingClient) {
+        sendProxyProtocolError(res, apiMode, status, message);
+        return;
+      }
       const response = exception.getResponse();
       res
         .status(status)
@@ -113,6 +125,13 @@ export class ProxyExceptionFilter implements ExceptionFilter {
       const upgradeUrl = `${getDashboardUrl(this.config)}/upgrade?reason=requests`;
       const content = formatManifestError('M204', { threshold: limit ?? 0, upgradeUrl });
       const isStream = (req.body as Record<string, unknown>)?.stream === true;
+      if (isCodingClient) {
+        sendProxyProtocolError(res, apiMode, status, content, {
+          code: 'PLAN_LIMIT_REQUESTS',
+          openAiType: 'insufficient_quota',
+        });
+        return;
+      }
       if (isChatRenderingClient(req)) {
         sendFriendlyResponse(res, content, isStream);
       } else {
@@ -137,6 +156,12 @@ export class ProxyExceptionFilter implements ExceptionFilter {
           ? `${friendly}: ${dashboardUrl}`
           : `${friendly}\n\nDashboard: ${dashboardUrl}`;
       if (errorCode === 'M004') this.recordExpiredKey(req, content);
+      if (isCodingClient) {
+        sendProxyProtocolError(res, apiMode, status === 400 ? 400 : 401, content, {
+          code: 'manifest_auth',
+        });
+        return;
+      }
       if (isChatClient) {
         sendFriendlyResponse(res, content, isStream);
       } else {
@@ -146,6 +171,13 @@ export class ProxyExceptionFilter implements ExceptionFilter {
           error: { message: content, type: 'auth_error', code: 'manifest_auth' },
         });
       }
+      return;
+    }
+
+    if (isCodingClient) {
+      const errorMessage =
+        status >= 500 ? 'Manifest encountered an internal error. Try again shortly.' : message;
+      sendProxyProtocolError(res, apiMode, status, errorMessage);
       return;
     }
 

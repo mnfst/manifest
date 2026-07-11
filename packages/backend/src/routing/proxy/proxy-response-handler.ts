@@ -86,6 +86,126 @@ function setHeaders(res: ExpressResponse, headers: Record<string, string>): void
   for (const [k, v] of Object.entries(headers)) res.setHeader(k, v);
 }
 
+interface ProviderErrorResponseContext {
+  apiMode: ProxyApiMode;
+  isAnthropic: boolean;
+  headers: Headers;
+}
+
+const SAFE_COMMON_RESPONSE_HEADERS = new Set(['request-id', 'x-request-id', 'retry-after']);
+const SAFE_RESPONSES_HEADERS = new Set([
+  'openai-model',
+  'x-codex-turn-state',
+  'x-reasoning-included',
+]);
+
+function copySafeProviderResponseHeaders(
+  res: ExpressResponse,
+  headers: Headers | undefined,
+  apiMode: ProxyApiMode,
+): void {
+  if (!headers || typeof headers.entries !== 'function') return;
+  for (const [rawName, value] of headers.entries()) {
+    const name = rawName.toLowerCase();
+    const isCommon = SAFE_COMMON_RESPONSE_HEADERS.has(name);
+    const isMessages =
+      apiMode === 'messages' &&
+      (name.startsWith('anthropic-ratelimit-') || name.startsWith('ratelimit-'));
+    const isResponses =
+      apiMode === 'responses' &&
+      (SAFE_RESPONSES_HEADERS.has(name) ||
+        name.startsWith('x-ratelimit-') ||
+        name.startsWith('openai-ratelimit-'));
+    if (isCommon || isMessages || isResponses) res.setHeader(rawName, value);
+  }
+}
+
+const ANTHROPIC_ERROR_TYPE_BY_STATUS: Record<number, string> = {
+  400: 'invalid_request_error',
+  401: 'authentication_error',
+  403: 'permission_error',
+  404: 'not_found_error',
+  413: 'request_too_large',
+  429: 'rate_limit_error',
+  529: 'overloaded_error',
+};
+
+function isAnthropicErrorEnvelope(errorBody: string): boolean {
+  try {
+    const parsed = JSON.parse(errorBody) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
+    const envelope = parsed as Record<string, unknown>;
+    const error = envelope.error;
+    return (
+      envelope.type === 'error' &&
+      !!error &&
+      typeof error === 'object' &&
+      !Array.isArray(error) &&
+      typeof (error as Record<string, unknown>).type === 'string' &&
+      typeof (error as Record<string, unknown>).message === 'string'
+    );
+  } catch {
+    return false;
+  }
+}
+
+function sendProviderError(
+  res: ExpressResponse,
+  meta: RoutingMeta,
+  metaHeaders: Record<string, string>,
+  status: number,
+  errorBody: string,
+  responseContext?: ProviderErrorResponseContext,
+  errorOptions?: {
+    source?: OpenAiErrorSource;
+    code?: string | null;
+    extra?: Record<string, unknown>;
+  },
+): void {
+  res.status(status);
+  setHeaders(res, metaHeaders);
+  if (responseContext) {
+    copySafeProviderResponseHeaders(res, responseContext.headers, responseContext.apiMode);
+  }
+
+  if (
+    responseContext?.apiMode === 'messages' &&
+    responseContext.isAnthropic &&
+    isAnthropicErrorEnvelope(errorBody)
+  ) {
+    const contentType = responseContext.headers.get('content-type');
+    if (contentType) res.setHeader('content-type', contentType);
+    res.send(errorBody);
+    return;
+  }
+
+  if (responseContext?.apiMode === 'messages') {
+    const classified = classifyProviderError(status, errorBody);
+    const requestId =
+      responseContext.headers.get('request-id') ?? responseContext.headers.get('x-request-id');
+    res.json({
+      type: 'error',
+      error: {
+        type: ANTHROPIC_ERROR_TYPE_BY_STATUS[status] ?? 'api_error',
+        message:
+          classified?.message ?? sanitizeProviderError(status, errorBody, process.env.NODE_ENV),
+      },
+      ...(requestId ? { request_id: requestId } : {}),
+    });
+    return;
+  }
+
+  res.json({
+    error: buildOpenAiCompatibleError(status, errorBody, {
+      source: errorOptions?.source ?? 'provider',
+      code: errorOptions?.code,
+      provider: meta.provider,
+      model: meta.model,
+      extra: errorOptions?.extra,
+    }),
+  });
+}
+
 type OpenAiErrorSource = 'provider' | 'manifest';
 
 export function buildOpenAiCompatibleError(
@@ -126,6 +246,7 @@ export async function handleProviderError(
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
   autofix?: AutofixRecord,
+  responseContext?: ProviderErrorResponseContext,
 ): Promise<void> {
   if (failedFallbacks && failedFallbacks.length > 0 && !meta.fallbackFromModel) {
     await handleFallbackExhausted(
@@ -141,6 +262,7 @@ export async function handleProviderError(
       callerAttribution,
       requestHeaders,
       autofix,
+      responseContext,
     );
     return;
   }
@@ -172,15 +294,7 @@ export async function handleProviderError(
   logger.warn(
     `Upstream error ${errorStatus}: provider=${meta.provider} model=${meta.model} tier=${meta.tier} body=${errorBody.slice(0, 500)}`,
   );
-  res.status(errorStatus);
-  setHeaders(res, metaHeaders);
-  res.json({
-    error: buildOpenAiCompatibleError(errorStatus, errorBody, {
-      source: 'provider',
-      provider: meta.provider,
-      model: meta.model,
-    }),
-  });
+  sendProviderError(res, meta, metaHeaders, errorStatus, errorBody, responseContext);
 }
 
 function handleFallbackExhausted(
@@ -196,6 +310,7 @@ function handleFallbackExhausted(
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
   autofix?: AutofixRecord,
+  responseContext?: ProviderErrorResponseContext,
 ): void {
   const baseTime = Date.now();
   recordSafely(
@@ -246,25 +361,19 @@ function handleFallbackExhausted(
 
   logger.warn(`Fallback chain exhausted: ${errorBody.slice(0, 200)}`);
   const classified = classifyProviderError(errorStatus, errorBody);
-  res.status(errorStatus);
-  setHeaders(res, metaHeaders);
   res.setHeader('X-Manifest-Fallback-Exhausted', 'true');
-  res.json({
-    error: buildOpenAiCompatibleError(errorStatus, errorBody, {
-      source: classified?.source ?? 'manifest',
-      code: classified?.code ?? 'fallback_exhausted',
-      provider: meta.provider,
-      model: meta.model,
-      extra: {
-        primary_model: meta.model,
-        primary_provider: meta.provider,
-        attempted_fallbacks: failedFallbacks.map((f) => ({
-          model: f.model,
-          provider: f.provider,
-          status: f.status,
-        })),
-      },
-    }),
+  sendProviderError(res, meta, metaHeaders, errorStatus, errorBody, responseContext, {
+    source: classified?.source ?? 'manifest',
+    code: classified?.code ?? 'fallback_exhausted',
+    extra: {
+      primary_model: meta.model,
+      primary_provider: meta.provider,
+      attempted_fallbacks: failedFallbacks.map((f) => ({
+        model: f.model,
+        provider: f.provider,
+        status: f.status,
+      })),
+    },
   });
 }
 
@@ -356,6 +465,7 @@ export async function handleStreamResponse(
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
 ): Promise<StreamUsage | null> {
+  copySafeProviderResponseHeaders(res, forward.response.headers, apiMode);
   initSseHeaders(res, metaHeaders, 200);
 
   const onClient = undefined;
@@ -372,6 +482,7 @@ export async function handleStreamResponse(
       ? createResponsesStreamTransformer(meta.model, {
           structuredOutputToolName: forward.structuredOutputToolName,
           textFormat: forward.responsesTextFormat,
+          toolTypesByName: forward.responsesToolTypesByName,
         })
       : null;
   const streamTransformer = messagesTransformer ?? responsesTransformer;
@@ -522,6 +633,7 @@ export async function handleNonStreamResponse(
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
 ): Promise<StreamUsage | null> {
+  copySafeProviderResponseHeaders(res, forward.response.headers, apiMode);
   let responseBody: unknown;
 
   if (apiMode === 'responses' && forward.isResponses) {
@@ -587,6 +699,7 @@ export async function handleNonStreamResponse(
     responseBody = fromChatCompletionResponse(responseBody as Record<string, unknown>, meta.model, {
       structuredOutputToolName: forward.structuredOutputToolName,
       textFormat: forward.responsesTextFormat,
+      toolTypesByName: forward.responsesToolTypesByName,
     });
   } else if (apiMode === 'messages' && !forward.isAnthropic) {
     // Anthropic upstreams already returned a Messages-shaped body via the

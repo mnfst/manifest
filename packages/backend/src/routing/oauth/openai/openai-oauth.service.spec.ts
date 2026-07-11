@@ -2,6 +2,7 @@ import { createServer } from 'http';
 import { ConfigService } from '@nestjs/config';
 import { OpenaiOauthService, OAuthTokenBlob } from './openai-oauth.service';
 import { ProviderService } from '../../routing-core/provider.service';
+import { parseOpenAiSubscriptionMetadata } from './openai-token-metadata';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fetchMock = jest.fn() as jest.Mock<Promise<any>>;
@@ -23,6 +24,10 @@ jest.mock('http', () => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createServerMock = createServer as unknown as jest.Mock<any>;
+
+function jwt(payload: Record<string, unknown>): string {
+  return `header.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.signature`;
+}
 
 describe('OpenaiOauthService', () => {
   let service: OpenaiOauthService;
@@ -132,6 +137,36 @@ describe('OpenaiOauthService', () => {
       expect(storedBlob.e).toBeGreaterThan(Date.now());
     });
 
+    it('stores compact workspace routing metadata from id_token without persisting that token', async () => {
+      const url = await service.generateAuthorizationUrl('agent-1', 'tenant-1');
+      const state = new URL(url).searchParams.get('state')!;
+      const idToken = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'workspace-123',
+          chatgpt_account_is_fedramp: true,
+        },
+      });
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          access_token: 'opaque-access',
+          refresh_token: 'refresh-token',
+          expires_in: 3600,
+          id_token: idToken,
+        }),
+      });
+
+      await service.exchangeCode(state, 'auth-code');
+
+      const storedRaw = providerService.upsertProvider.mock.calls[0][3] as string;
+      const storedBlob = JSON.parse(storedRaw) as OAuthTokenBlob;
+      expect(parseOpenAiSubscriptionMetadata(storedBlob.m)).toEqual({
+        accountId: 'workspace-123',
+        fedramp: true,
+      });
+      expect(storedRaw).not.toContain(idToken);
+    });
+
     it('throws for invalid state', async () => {
       await expect(service.exchangeCode('bad-state', 'code')).rejects.toThrow(
         'Invalid or expired OAuth state',
@@ -231,6 +266,18 @@ describe('OpenaiOauthService', () => {
 
       const result = await service.refreshAccessToken('original-refresh');
       expect(result.r).toBe('original-refresh');
+    });
+
+    it('keeps stored workspace metadata when refresh omits id_token', async () => {
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ access_token: 'new-access', expires_in: 3600 }),
+      });
+      const metadata = '{"a":"workspace-123","f":true}';
+
+      const result = await service.refreshAccessToken('original-refresh', undefined, metadata);
+
+      expect(result.m).toBe(metadata);
     });
 
     it('throws when refresh fails', async () => {

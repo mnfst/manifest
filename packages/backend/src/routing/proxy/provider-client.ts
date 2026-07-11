@@ -26,10 +26,13 @@ import {
 } from './provider-client-converters';
 import { ForwardOptions } from './proxy-types';
 import { CodexSessionAffinity } from './codex-session-affinity';
-import { toNativeResponsesRequest } from './responses-adapter';
+import { toNativeResponsesRequest, type ResponsesToolCallType } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { ProviderModelRegistryService } from '../../model-discovery/provider-model-registry.service';
+import { buildEndpointAwareUpstreamHeaders } from './agent-request-context';
+import { extractOpenAiSubscriptionMetadata } from '../oauth/openai/openai-token-metadata';
+import { stripAnthropicServerToolsForFallback } from './anthropic-messages-adapter';
 
 export interface ForwardResult {
   response: Response;
@@ -51,6 +54,8 @@ export interface ForwardResult {
   structuredOutputToolName?: string;
   /** Internal: original Responses text.format metadata for synthesized Responses bodies. */
   responsesTextFormat?: Record<string, unknown>;
+  /** Internal: original Responses tool types keyed by tool name. */
+  responsesToolTypesByName?: Readonly<Record<string, ResponsesToolCallType>>;
 }
 
 interface BuiltProviderRequest {
@@ -100,6 +105,19 @@ function responsesTextFormat(
     out.description = format.description;
   }
   return out;
+}
+
+function responsesToolTypesByName(
+  body: Record<string, unknown>,
+  apiMode: ForwardOptions['apiMode'],
+): Readonly<Record<string, ResponsesToolCallType>> | undefined {
+  if (apiMode !== 'responses' || !Array.isArray(body.tools)) return undefined;
+  const result: Record<string, ResponsesToolCallType> = {};
+  for (const tool of body.tools) {
+    if (!isRecord(tool) || typeof tool.name !== 'string') continue;
+    if (tool.type === 'function' || tool.type === 'custom') result[tool.name] = tool.type;
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
 }
 
 function isStructuredResponseFormat(responseFormat: unknown): boolean {
@@ -223,6 +241,7 @@ export class ProviderClient {
     const isChatGpt = endpoint.format === 'chatgpt' && !isResponses;
     const isCodeAssist = !!endpoint.codeAssistEnvelope;
     const textFormat = responsesTextFormat(body, opts.apiMode);
+    const toolTypesByName = responsesToolTypesByName(body, opts.apiMode);
 
     const bareModel = stripModelPrefix(model, endpointKey);
     if (endpoint.format === 'kiro') {
@@ -243,6 +262,7 @@ export class ProviderClient {
         isAnthropic: false,
         isChatGpt: false,
         responsesTextFormat: textFormat,
+        responsesToolTypesByName: toolTypesByName,
       };
     }
     const { url, headers, requestBody, structuredOutputToolName } = this.buildRequest({
@@ -263,18 +283,42 @@ export class ProviderClient {
       reasoningContentLookup: opts.reasoningContentLookup,
       providerResource: opts.providerResource,
       sessionKey: opts.sessionKey,
+      requestContext: opts.requestContext,
     });
 
     // The Codex backend only serves prompt-cache hits with session affinity
     // headers the real Codex CLI sends — see CodexSessionAffinity.
+    if (endpointKey === 'openai-subscription') {
+      const metadata = {
+        ...extractOpenAiSubscriptionMetadata(apiKey),
+        ...opts.subscriptionMetadata,
+      };
+      if (metadata.accountId) headers['ChatGPT-Account-ID'] = metadata.accountId;
+      if (metadata.fedramp) headers['X-OpenAI-Fedramp'] = 'true';
+    }
+    const protocolHeaders = opts.requestContext
+      ? buildEndpointAwareUpstreamHeaders(headers, opts.requestContext, {
+          apiMode: opts.apiMode ?? 'chat_completions',
+          endpointKey,
+          authType,
+        })
+      : headers;
+    const hasNativeCodexAffinity =
+      endpointKey === 'openai-subscription' &&
+      opts.apiMode === 'responses' &&
+      opts.requestContext?.caller === 'codex' &&
+      typeof opts.requestContext.codexHeaders['session-id'] === 'string' &&
+      typeof opts.requestContext.codexHeaders['thread-id'] === 'string';
     const affinity =
-      endpointKey === 'openai-subscription'
+      endpointKey === 'openai-subscription' && !hasNativeCodexAffinity
         ? this.codexAffinity.prepare(apiKey, requestBody)
         : undefined;
     // Affinity headers are routing-critical and must win over caller-supplied
     // extraHeaders (provider-side observability hints), so they spread last.
     const finalHeaders =
-      affinity || extraHeaders ? { ...headers, ...extraHeaders, ...affinity?.headers } : headers;
+      affinity || extraHeaders
+        ? { ...protocolHeaders, ...extraHeaders, ...affinity?.headers }
+        : protocolHeaders;
 
     this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 
@@ -299,6 +343,7 @@ export class ProviderClient {
       isCodeAssist,
       structuredOutputToolName,
       responsesTextFormat: textFormat,
+      responsesToolTypesByName: toolTypesByName,
     });
     if (affinity) this.codexAffinity.capture(affinity.storeKey, result.response);
     return result;
@@ -458,14 +503,19 @@ export class ProviderClient {
     reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
     providerResource?: string;
     sessionKey?: string;
+    requestContext?: ForwardOptions['requestContext'];
   }): BuiltProviderRequest {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // For non-chat_completions inbound modes ('responses', 'messages'), the
     // routing layer pre-translated the request into chat_completions form
     // (`chatBody`). Provider adapters all consume chat_completions, so prefer
     // `chatBody` when present.
-    const requestSource =
+    const baseRequestSource =
       ctx.apiMode && ctx.apiMode !== 'chat_completions' ? (chatBody ?? body) : body;
+    const requestSource =
+      ctx.apiMode === 'messages' && endpoint.format !== 'anthropic'
+        ? stripAnthropicServerToolsForFallback(body, baseRequestSource)
+        : baseRequestSource;
 
     if (endpoint.format === 'google') {
       // Google accepts the API key via header (set by buildHeaders below) so
@@ -493,8 +543,12 @@ export class ProviderClient {
     }
 
     if (endpoint.format === 'anthropic') {
+      const preserveNativeBody =
+        ctx.apiMode === 'messages' &&
+        endpointKey === 'anthropic' &&
+        ctx.requestContext?.caller === 'claude-code';
       const injectSubscriptionIdentity =
-        authType === 'subscription' && !endpoint.skipSubscriptionIdentity;
+        authType === 'subscription' && !endpoint.skipSubscriptionIdentity && !preserveNativeBody;
       const thinkingRouteContext = ctx.thinkingRouteContext ?? {
         provider: ctx.provider,
         authType,
@@ -513,6 +567,7 @@ export class ProviderClient {
         ctx.apiMode === 'messages'
           ? applyAnthropicMessagesMutations(body, {
               injectSubscriptionIdentity,
+              preserveNativeBody,
               thinkingLookup: ctx.thinkingLookup,
               thinkingRouteContext,
               targetModel: bareModel,
@@ -528,7 +583,7 @@ export class ProviderClient {
           : undefined;
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
-      if (shouldApplyAnthropicAutomaticCacheControl(endpointKey, authType)) {
+      if (!preserveNativeBody && shouldApplyAnthropicAutomaticCacheControl(endpointKey, authType)) {
         applyAnthropicAutomaticCacheControl(requestBody);
       }
       return {
@@ -640,6 +695,7 @@ export class ProviderClient {
       isCodeAssist?: boolean;
       structuredOutputToolName?: string;
       responsesTextFormat?: Record<string, unknown>;
+      responsesToolTypesByName?: Readonly<Record<string, ResponsesToolCallType>>;
     },
   ): Promise<ForwardResult> {
     let fetchSignal: AbortSignal;

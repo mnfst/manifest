@@ -10,6 +10,7 @@
 
 import { ProviderClient } from '../provider-client';
 import { CodexSessionAffinity } from '../codex-session-affinity';
+import { extractAgentRequestContext } from '../agent-request-context';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
@@ -20,6 +21,13 @@ const body = {
   messages: [{ role: 'user', content: 'Hello' }],
   temperature: 0.7,
 };
+
+function openAiOAuthToken(authClaims: Record<string, unknown>): string {
+  const payload = Buffer.from(
+    JSON.stringify({ 'https://api.openai.com/auth': authClaims }),
+  ).toString('base64url');
+  return `header.${payload}.signature`;
+}
 
 describe('ProviderClient — strict header contract on auth-critical paths', () => {
   let client: ProviderClient;
@@ -85,7 +93,7 @@ describe('ProviderClient — strict header contract on auth-critical paths', () 
     expect(sentHeaders['anthropic-beta']).toContain('oauth-2025-04-20');
     expect(sentHeaders['anthropic-beta']).toContain('context-management-2025-06-27');
     expect(sentHeaders['anthropic-beta']).toContain('effort-2025-11-24');
-    expect(sentHeaders['anthropic-beta']).not.toContain('prompt-caching-scope-2026-01-05');
+    expect(sentHeaders['anthropic-beta']).toContain('prompt-caching-scope-2026-01-05');
     expect(sentHeaders).not.toHaveProperty('x-api-key');
   });
 
@@ -209,6 +217,7 @@ describe('ProviderClient — strict header contract on auth-critical paths', () 
     expect(sentHeaders.Authorization).toBe('Bearer oauth-token');
     expect(sentHeaders['Content-Type']).toBe('application/json');
     expect(sentHeaders.originator).toBe('codex_cli_rs');
+    expect(sentHeaders.version).toBe('0.144.1');
     // user-agent is the spoofed Codex CLI agent — must be present (any
     // missing field would change upstream behavior since chatgpt.com
     // rejects non-Codex shaped requests).
@@ -219,6 +228,126 @@ describe('ProviderClient — strict header contract on auth-critical paths', () 
     expect(sentHeaders['thread-id']).toMatch(UUID_RE);
     expect(sentHeaders).not.toHaveProperty('x-api-key');
     expect(sentHeaders).not.toHaveProperty('anthropic-version');
+  });
+
+  it('preserves current Claude Code protocol headers and native Messages body', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+    const nativeBody = {
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      stream: true,
+      system: [
+        {
+          type: 'text',
+          text: 'Claude Code attribution',
+          cache_control: { type: 'ephemeral', ttl: '1h' },
+        },
+        { type: 'text', text: 'Repository instructions' },
+      ],
+      messages: [{ role: 'user', content: 'Hello' }],
+      context_management: { edits: [{ type: 'clear_tool_uses_20250919' }] },
+    };
+    const requestContext = extractAgentRequestContext({
+      authorization: 'Bearer mnfst_gateway_key',
+      'user-agent': 'claude-cli/2.1.207 (external, sdk-cli)',
+      'x-app': 'cli',
+      'anthropic-version': '2023-06-01',
+      'anthropic-beta': 'claude-code-20250219,future-capability-2099-01-01',
+      'anthropic-future-header': 'enabled',
+    });
+
+    await client.forward({
+      provider: 'anthropic',
+      apiKey: 'stored-anthropic-oauth',
+      model: 'claude-sonnet-4-6',
+      body: nativeBody,
+      stream: true,
+      authType: 'subscription',
+      apiMode: 'messages',
+      requestContext,
+    });
+
+    const init = mockFetch.mock.calls[0][1] as RequestInit;
+    const sentHeaders = init.headers as Record<string, string>;
+    const sentBody = JSON.parse(init.body as string);
+    expect(sentHeaders.Authorization).toBe('Bearer stored-anthropic-oauth');
+    expect(sentHeaders).not.toHaveProperty('x-api-key');
+    expect(sentHeaders['user-agent']).toBe('claude-cli/2.1.207 (external, sdk-cli)');
+    expect(sentHeaders['anthropic-future-header']).toBe('enabled');
+    expect(sentHeaders['anthropic-beta']).toBe(
+      'claude-code-20250219,future-capability-2099-01-01,oauth-2025-04-20',
+    );
+    expect(sentBody).toEqual(nativeBody);
+    expect(sentBody.system[0].text).toBe('Claude Code attribution');
+    expect(sentBody).not.toHaveProperty('cache_control');
+  });
+
+  it('uses native Codex metadata while provider-owned OAuth account headers remain authoritative', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+    const apiKey = openAiOAuthToken({
+      chatgpt_account_id: 'stored-account-id',
+      chatgpt_account_is_fedramp: true,
+    });
+    const requestContext = extractAgentRequestContext({
+      authorization: 'Bearer mnfst_gateway_key',
+      'chatgpt-account-id': 'caller-account-id',
+      'user-agent': 'codex_exec/0.144.1 (Ubuntu 24.4.0; x86_64)',
+      originator: 'codex_exec',
+      version: '0.144.1',
+      'session-id': 'native-session',
+      'thread-id': 'native-thread',
+      'x-client-request-id': 'native-request',
+      'x-codex-beta-features': 'remote_compaction_v2',
+    });
+
+    await client.forward({
+      provider: 'openai',
+      apiKey,
+      model: 'gpt-5.4',
+      body: {
+        model: 'gpt-5.4',
+        instructions: 'You are Codex.',
+        input: [{ role: 'user', content: [{ type: 'input_text', text: 'Hello' }] }],
+        stream: true,
+        prompt_cache_key: 'native-thread',
+      },
+      stream: true,
+      authType: 'subscription',
+      apiMode: 'responses',
+      requestContext,
+    });
+
+    const sentHeaders = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+    expect(sentHeaders.Authorization).toBe(`Bearer ${apiKey}`);
+    expect(sentHeaders['ChatGPT-Account-ID']).toBe('stored-account-id');
+    expect(sentHeaders['X-OpenAI-Fedramp']).toBe('true');
+    expect(sentHeaders['user-agent']).toContain('codex_exec/0.144.1');
+    expect(sentHeaders.originator).toBe('codex_exec');
+    expect(sentHeaders.version).toBe('0.144.1');
+    expect(sentHeaders['session-id']).toBe('native-session');
+    expect(sentHeaders['thread-id']).toBe('native-thread');
+    expect(sentHeaders['x-codex-beta-features']).toBe('remote_compaction_v2');
+    expect(JSON.stringify(sentHeaders)).not.toContain('caller-account-id');
+  });
+
+  it('uses stored OpenAI workspace metadata when the access token has no routing claims', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await client.forward({
+      provider: 'openai',
+      apiKey: 'opaque-access-token',
+      model: 'gpt-5.4',
+      body: { model: 'gpt-5.4', input: 'Hello', stream: true },
+      stream: true,
+      authType: 'subscription',
+      apiMode: 'responses',
+      subscriptionMetadata: { accountId: 'stored-workspace', fedramp: true },
+    });
+
+    const sentHeaders = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+    expect(sentHeaders.Authorization).toBe('Bearer opaque-access-token');
+    expect(sentHeaders['ChatGPT-Account-ID']).toBe('stored-workspace');
+    expect(sentHeaders['X-OpenAI-Fedramp']).toBe('true');
   });
 });
 

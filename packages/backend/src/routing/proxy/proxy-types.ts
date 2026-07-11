@@ -1,7 +1,10 @@
 import type { IncomingHttpHeaders } from 'http';
 import { ProviderEndpoint } from './provider-endpoints';
+import type { AgentRequestContext } from './agent-request-context';
+export type { AgentRequestContext } from './agent-request-context';
 import type { ThinkingBlock, ThinkingBlockRouteContext } from './thinking-block-cache';
 import { CallerAttribution } from './caller-classifier';
+import type { OpenAiSubscriptionMetadata } from '../oauth/openai/openai-token-metadata';
 
 /**
  * Optional lookup to re-inject cached thought_signature values that were
@@ -54,6 +57,10 @@ export interface ForwardOptions {
   stream: boolean;
   signal?: AbortSignal;
   extraHeaders?: Record<string, string>;
+  /** Auth-free caller protocol metadata, safe only for endpoint-aware forwarding. */
+  requestContext?: AgentRequestContext;
+  /** Provider-owned workspace routing decoded from the stored OAuth blob. */
+  subscriptionMetadata?: OpenAiSubscriptionMetadata;
   customEndpoint?: ProviderEndpoint;
   authType?: string;
   /** Lookup for re-injecting cached thought_signature values (Google only). */
@@ -93,4 +100,6 @@ export interface ProxyRequestOptions {
   specificityOverride?: string;
   callerAttribution?: CallerAttribution | null;
   headers?: IncomingHttpHeaders;
+  /** Auth-free caller protocol metadata captured once by the controller. */
+  requestContext?: AgentRequestContext;
 }

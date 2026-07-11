@@ -17,11 +17,8 @@ const DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA = {
 } as const;
 
 const ANTHROPIC_SERVER_TOOL_PREFIXES = [
-  'bash_',
+  'advisor_',
   'code_execution_',
-  'computer_',
-  'memory_',
-  'text_editor_',
   'tool_search_tool_',
   'web_fetch_',
   'web_search_',
@@ -181,12 +178,12 @@ function buildUserMessages(content: unknown): OpenAIMessage[] {
   return messages;
 }
 
-// chatBody is fed to the routing/scoring layer when the inbound is Anthropic
-// Messages — `toolCount` and the specificity detector read `function.name`
-// and array length, nothing else. The Anthropic wire body is emitted by
-// `applyAnthropicMessagesMutations` directly from the inbound body, so this
-// translation can lose Anthropic-only tool fields (e.g. server-tool `type`
-// tags, omitted input_schema) without affecting upstream behavior.
+// chatBody feeds the routing/scoring layer and generic Chat Completions
+// fallbacks when the inbound is Anthropic Messages. The scorer only reads
+// `function.name` and array length. Anthropic server tools stay represented
+// here for scoring, then `stripAnthropicServerToolsForFallback` removes them
+// from a non-Anthropic wire body. Client-executed Anthropic tools remain so
+// the caller can execute them after a cross-provider fallback.
 function toChatTools(tools: unknown[]): JsonRecord[] {
   return tools.filter(isRecord).map((tool) => ({
     type: 'function',
@@ -214,6 +211,42 @@ function toChatToolChoice(choice: unknown): unknown {
   return undefined;
 }
 
+/**
+ * Server tools execute inside Anthropic and cannot be delegated to a generic
+ * Chat Completions fallback. Keep them in the scoring body, but remove them
+ * (and a forced choice targeting one) from the actual non-Anthropic wire body
+ * so Claude Code is never asked to execute a server-only tool locally.
+ */
+export function stripAnthropicServerToolsForFallback(
+  messagesBody: JsonRecord,
+  chatBody: JsonRecord,
+): JsonRecord {
+  const serverToolNames = new Set(
+    (Array.isArray(messagesBody.tools) ? messagesBody.tools : [])
+      .filter(isRecord)
+      .filter((tool) => typeof tool.type === 'string' && isAnthropicServerToolType(tool.type))
+      .map((tool) => (typeof tool.name === 'string' ? tool.name : ''))
+      .filter(Boolean),
+  );
+  if (serverToolNames.size === 0) return chatBody;
+
+  const result = { ...chatBody };
+  if (Array.isArray(chatBody.tools)) {
+    const tools = chatBody.tools.filter((tool) => {
+      if (!isRecord(tool) || !isRecord(tool.function)) return true;
+      return !(typeof tool.function.name === 'string' && serverToolNames.has(tool.function.name));
+    });
+    if (tools.length > 0) result.tools = tools;
+    else delete result.tools;
+  }
+
+  if (isRecord(chatBody.tool_choice) && isRecord(chatBody.tool_choice.function)) {
+    const name = chatBody.tool_choice.function.name;
+    if (typeof name === 'string' && serverToolNames.has(name)) delete result.tool_choice;
+  }
+  return result;
+}
+
 /** Anthropic Messages request → chat_completions request (used for routing/forwarding). */
 export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   const messages: OpenAIMessage[] = [];
@@ -224,12 +257,14 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   const inputMessages = Array.isArray(body.messages) ? body.messages : [];
   for (const item of inputMessages) {
     if (!isRecord(item)) continue;
-    const role = item.role === 'assistant' ? 'assistant' : 'user';
-    messages.push(
-      ...(role === 'assistant'
-        ? buildAssistantMessage(item.content)
-        : buildUserMessages(item.content)),
-    );
+    if (item.role === 'assistant') {
+      messages.push(...buildAssistantMessage(item.content));
+    } else if (item.role === 'system' || item.role === 'developer') {
+      const content = systemToString(item.content);
+      if (content) messages.push({ role: 'system', content });
+    } else {
+      messages.push(...buildUserMessages(item.content));
+    }
   }
 
   const chatBody: JsonRecord = { messages };
@@ -246,6 +281,26 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   // provider is Anthropic; harmlessly ignored by other adapters.
   if (body.thinking !== undefined) chatBody.thinking = body.thinking;
   if (body.top_k !== undefined) chatBody.top_k = body.top_k;
+  if (isRecord(body.output_config)) {
+    if (typeof body.output_config.effort === 'string') {
+      chatBody.reasoning_effort = body.output_config.effort;
+    }
+    if (isRecord(body.output_config.format) && body.output_config.format.type === 'json_schema') {
+      chatBody.response_format = {
+        type: 'json_schema',
+        json_schema: {
+          name: 'anthropic_output',
+          schema: isRecord(body.output_config.format.schema)
+            ? body.output_config.format.schema
+            : { type: 'object' },
+          strict: true,
+        },
+      };
+    }
+  }
+  // `context_management` describes Anthropic server-side context editing and
+  // has no generic Chat Completions equivalent; it is intentionally omitted
+  // rather than forwarded as an unknown parameter that breaks the fallback.
 
   if (Array.isArray(body.tools)) chatBody.tools = toChatTools(body.tools);
   const toolChoice = toChatToolChoice(body.tool_choice);

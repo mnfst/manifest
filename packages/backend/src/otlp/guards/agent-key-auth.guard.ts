@@ -106,19 +106,31 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers['authorization'];
+    const apiKeyHeader = request.headers['x-api-key'];
 
     // Use socket.remoteAddress (TCP peer) — request.ip honors X-Forwarded-For
     // and is spoofable when `trust proxy` is enabled.
     const isDevLoopback =
       this.configService.get<string>('app.nodeEnv') === 'development' && isLoopbackPeer(request);
 
-    if (!authHeader) {
+    if (!authHeader && !apiKeyHeader) {
       if (await this.handleDevLoopback(request, isDevLoopback)) return true;
       this.logger.warn(`Request without auth from ${request.ip}`);
       throw new UnauthorizedException('Authorization header required');
     }
 
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+    const authorizationToken = authHeader
+      ? authHeader.startsWith('Bearer ')
+        ? authHeader.slice(7)
+        : authHeader
+      : undefined;
+    const apiKeyToken = Array.isArray(apiKeyHeader) ? apiKeyHeader[0] : apiKeyHeader;
+
+    if (authorizationToken && apiKeyToken && authorizationToken !== apiKeyToken) {
+      throw new UnauthorizedException('Conflicting API credentials');
+    }
+
+    const token = authorizationToken ?? apiKeyToken;
 
     if (!token) {
       throw new UnauthorizedException('Empty token');

@@ -13,17 +13,22 @@
  * together when GitHub deprecates an older pair.
  */
 
-export const CODEX_CLI_VERSION = '0.128.0';
+export const CODEX_CLI_VERSION = '0.144.1';
 export const CODEX_CLI_ORIGINATOR = 'codex_cli_rs';
-export const CODEX_CLI_USER_AGENT = 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown';
+export const CODEX_CLI_USER_AGENT = `codex_cli_rs/${CODEX_CLI_VERSION} (Unknown 0; unknown) unknown`;
 
-export const CLAUDE_CODE_USER_AGENT = 'claude-cli/2.1.92 (external, sdk-cli)';
-export const CLAUDE_CODE_STAINLESS_PACKAGE_VERSION = '0.80.0';
-export const CLAUDE_CODE_STAINLESS_RUNTIME_VERSION = 'v24.14.0';
+export const CLAUDE_CODE_USER_AGENT = 'claude-cli/2.1.207 (external, sdk-cli)';
+export const CLAUDE_CODE_STAINLESS_PACKAGE_VERSION = '0.94.0';
+export const CLAUDE_CODE_STAINLESS_RUNTIME_VERSION = 'v26.3.0';
 export const CLAUDE_CODE_BETA_FLAGS = [
   'claude-code-20250219',
   'oauth-2025-04-20',
+  'interleaved-thinking-2025-05-14',
+  'thinking-token-count-2026-05-13',
   'context-management-2025-06-27',
+  'prompt-caching-scope-2026-01-05',
+  'mid-conversation-system-2026-04-07',
+  'advisor-tool-2026-03-01',
   'effort-2025-11-24',
 ].join(',');
 

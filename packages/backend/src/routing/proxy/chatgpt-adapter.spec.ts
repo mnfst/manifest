@@ -35,6 +35,26 @@ describe('chatgpt-adapter', () => {
       expect(req.stream).toBe(false);
     });
 
+    it('maps chat reasoning effort and JSON schema format to Responses fields', () => {
+      const schema = { type: 'object', properties: { answer: { type: 'string' } } };
+      const req = toResponsesRequest(
+        {
+          messages: [{ role: 'user', content: 'hi' }],
+          reasoning_effort: 'high',
+          response_format: {
+            type: 'json_schema',
+            json_schema: { name: 'answer', schema, strict: true },
+          },
+        },
+        'gpt-5.4',
+      );
+
+      expect(req.reasoning).toEqual({ effort: 'high' });
+      expect(req.text).toEqual({
+        format: { type: 'json_schema', name: 'answer', schema, strict: true },
+      });
+    });
+
     it('converts assistant tool_calls to function_call items and keeps any preceding text', () => {
       const body = {
         messages: [

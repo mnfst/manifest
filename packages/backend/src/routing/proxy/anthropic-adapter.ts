@@ -324,6 +324,8 @@ function toAnthropicOutputConfig(
 export interface AnthropicRequestOptions {
   /** When true, prepends the Claude Code agent system prompt required for subscription OAuth tokens. */
   injectSubscriptionIdentity?: boolean;
+  /** Preserve a native Claude Code Messages body except for invalid unsigned thinking cleanup. */
+  preserveNativeBody?: boolean;
   /** Lookup for re-injecting cached extended-thinking blocks. */
   thinkingLookup?: ThinkingBlockLookup;
   /** Route context for replaying only compatible cached thinking blocks. */
@@ -434,7 +436,9 @@ export function extractThinkingBlocksFromMessagesResponse(
  * Bypasses the lossy OpenAI round-trip used by `toAnthropicRequest`: server
  * tools keep their `type` discriminator, `cache_control` placement matches
  * what Anthropic would see natively, and Anthropic-only fields don't leak
- * through a chat-completions stencil. Mutations:
+ * through a chat-completions stencil. Normalized proxy calls may apply all
+ * mutations below; native Claude Code passthrough sets `preserveNativeBody`
+ * and returns an unmodified shallow copy:
  *
  * - Default `max_tokens` to 4096 if unset.
  * - Inject the subscription-identity system block for OAuth tokens.
@@ -448,6 +452,8 @@ export function applyAnthropicMessagesMutations(
   options?: AnthropicRequestOptions,
 ): Record<string, unknown> {
   const result: Record<string, unknown> = { ...body };
+  const preserveNativeBody = options?.preserveNativeBody === true;
+  if (preserveNativeBody) return result;
   const cacheBudget = {
     remaining: Math.max(0, MAX_CACHE_CONTROL_BLOCKS - countCacheControlBlocks(body)),
   };
@@ -707,6 +713,39 @@ interface StreamState {
   thinkingBlocksByIndex: Map<number, ThinkingBlock>;
   firstToolUseId: string | null;
   onThinkingBlocks?: ThinkingBlocksCallback;
+  terminalError: boolean;
+}
+
+const ANTHROPIC_STREAM_ERROR_STATUS: Record<string, number> = {
+  invalid_request_error: 400,
+  authentication_error: 401,
+  permission_error: 403,
+  not_found_error: 404,
+  request_too_large: 413,
+  rate_limit_error: 429,
+  overloaded_error: 529,
+};
+
+function handleAnthropicStreamError(state: StreamState, data: Record<string, unknown>): string {
+  state.terminalError = true;
+  const upstreamError = isObjectRecord(data.error) ? data.error : data;
+  const type =
+    typeof upstreamError.type === 'string' && upstreamError.type ? upstreamError.type : 'api_error';
+  const message =
+    typeof upstreamError.message === 'string' && upstreamError.message
+      ? upstreamError.message
+      : 'Upstream provider stream failed';
+  const code = typeof upstreamError.code === 'string' ? upstreamError.code : undefined;
+  return `data: ${JSON.stringify({
+    error: {
+      message,
+      type,
+      ...(code ? { code } : {}),
+      ...(ANTHROPIC_STREAM_ERROR_STATUS[type]
+        ? { status: ANTHROPIC_STREAM_ERROR_STATUS[type] }
+        : {}),
+    },
+  })}\n\n`;
 }
 
 function handleMessageStart(state: StreamState, data: Record<string, unknown>): string {
@@ -869,9 +908,11 @@ export function createAnthropicStreamTransformer(
     thinkingBlocksByIndex: new Map(),
     firstToolUseId: null,
     onThinkingBlocks,
+    terminalError: false,
   };
 
   return (chunk: string): string | null => {
+    if (state.terminalError) return null;
     const parsed = parseStreamEvent(chunk);
     if (!parsed) return null;
     const { eventType, data } = parsed;
@@ -880,6 +921,7 @@ export function createAnthropicStreamTransformer(
     if (type === 'content_block_start') return handleContentBlockStart(state, data);
     if (type === 'content_block_delta') return handleContentBlockDelta(state, data);
     if (type === 'message_delta') return handleMessageDelta(state, data);
+    if (type === 'error') return handleAnthropicStreamError(state, data);
     return null;
   };
 }

@@ -25,6 +25,7 @@ import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { classifyCaller } from './caller-classifier';
+import { chooseAgentSessionKey, extractAgentRequestContext } from './agent-request-context';
 import { ObservationReporter } from '../autofix/observation-reporter';
 import { sanitizeRequestHeaders } from './request-headers';
 import {
@@ -49,10 +50,17 @@ import { ResponsesSseError } from './chatgpt-adapter';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
 import { openAiModelId } from './openai-model-id';
 import { PlanService } from '../../billing/plan.service';
+import { isCodingClientApiMode, sendProxyProtocolError } from './proxy-protocol-error';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
 const MODEL_CREATED_UNKNOWN = 0;
+const MANIFEST_STUB_STATUS: Partial<Record<ManifestErrorCode, number>> = {
+  M100: 503,
+  M101: 503,
+  M200: 429,
+  M302: 400,
+};
 
 interface OpenAiModelObject {
   id: string;
@@ -156,6 +164,7 @@ export class ProxyController {
     const { tenantId } = req.ingestionContext;
     const body = req.body as Record<string, unknown>;
     const sessionKey = this.extractSessionKey(req);
+    const requestContext = extractAgentRequestContext(req.headers);
     const traceId = this.extractTraceId(req);
     const callerAttribution = classifyCaller(req.headers);
     const requestHeaders = sanitizeRequestHeaders(req.headers);
@@ -199,6 +208,7 @@ export class ProxyController {
         traceId,
         callerAttribution,
         requestHeaders,
+        apiMode,
       );
       return;
     }
@@ -225,6 +235,7 @@ export class ProxyController {
         signal: clientAbort.signal,
         specificityOverride,
         headers: req.headers,
+        requestContext,
         apiMode,
       });
       currentMeta = meta;
@@ -233,6 +244,19 @@ export class ProxyController {
 
       const metaHeaders = buildMetaHeaders(meta);
       const providerResponse = forward.response;
+
+      if (meta.manifest_error_code && isCodingClientApiMode(apiMode)) {
+        this.recordManifestStub(req, meta, traceId, sessionKey, callerAttribution, requestHeaders);
+        for (const [name, value] of Object.entries(metaHeaders)) res.setHeader(name, value);
+        sendProxyProtocolError(
+          res,
+          apiMode,
+          MANIFEST_STUB_STATUS[meta.manifest_error_code] ?? 500,
+          meta.manifest_error_message ?? formatManifestError(meta.manifest_error_code),
+          { code: meta.manifest_error_code },
+        );
+        return;
+      }
 
       if (!providerResponse.ok) {
         const errorBody = await providerResponse.text();
@@ -280,6 +304,11 @@ export class ProxyController {
           callerAttribution,
           requestHeaders,
           autofix,
+          {
+            apiMode,
+            isAnthropic: forward.isAnthropic,
+            headers: providerResponse.headers,
+          },
         );
         return;
       }
@@ -357,6 +386,7 @@ export class ProxyController {
         traceId,
         callerAttribution,
         requestHeaders,
+        apiMode,
         currentMeta,
       );
     } finally {
@@ -403,6 +433,7 @@ export class ProxyController {
     traceId: string | undefined,
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
+    apiMode: ProxyApiMode,
     meta?: RoutingMeta,
   ): void {
     if (clientAbort.signal.aborted) {
@@ -487,6 +518,10 @@ export class ProxyController {
     }
 
     if (err instanceof ResponsesSseError) {
+      if (apiMode === 'messages') {
+        sendProxyProtocolError(res, apiMode, err.status, err.message);
+        return;
+      }
       res.status(err.status).json({
         error: buildOpenAiCompatibleError(
           err.status,
@@ -499,6 +534,10 @@ export class ProxyController {
 
     // Rate limit errors stay as HTTP 429 so clients can backoff
     if (status === 429) {
+      if (isCodingClientApiMode(apiMode)) {
+        sendProxyProtocolError(res, apiMode, status, message);
+        return;
+      }
       const response = err instanceof HttpException ? err.getResponse() : message;
       res
         .status(429)
@@ -511,6 +550,12 @@ export class ProxyController {
     }
 
     const isStream = (req.body as Record<string, unknown>)?.stream === true;
+    if (isCodingClientApiMode(apiMode)) {
+      const clientMessage =
+        status >= 500 ? 'Manifest encountered an internal error. Try again shortly.' : message;
+      sendProxyProtocolError(res, apiMode, status, clientMessage);
+      return;
+    }
     if (isChatRenderingClient(req)) {
       const clientMessage = status >= 500 ? formatManifestError('M500') : message;
       sendFriendlyResponse(res, clientMessage, isStream);
@@ -538,7 +583,7 @@ export class ProxyController {
   }
 
   private extractSessionKey(req: Request): string {
-    return (req.headers['x-session-key'] as string) || 'default';
+    return chooseAgentSessionKey(req.headers);
   }
 
   private extractRequestedModel(body: Record<string, unknown> | undefined): string | undefined {

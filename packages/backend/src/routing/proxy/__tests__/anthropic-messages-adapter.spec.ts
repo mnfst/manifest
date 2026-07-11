@@ -2,6 +2,7 @@ import {
   chatCompletionsResponseToMessages,
   createMessagesStreamTransformer,
   messagesToChatCompletionsRequest,
+  stripAnthropicServerToolsForFallback,
 } from '../anthropic-messages-adapter';
 
 describe('Anthropic Messages adapter', () => {
@@ -61,6 +62,31 @@ describe('Anthropic Messages adapter', () => {
         messages: [{ role: 'user', content: 'x' }],
       });
       expect(emptyArray.messages).toEqual([{ role: 'user', content: 'x' }]);
+    });
+
+    it('preserves mid-conversation system instructions and representable output settings', () => {
+      const schema = { type: 'object', properties: { answer: { type: 'string' } } };
+      const result = messagesToChatCompletionsRequest({
+        messages: [
+          { role: 'user', content: 'First request' },
+          { role: 'system', content: [{ type: 'text', text: 'New operator instruction' }] },
+          { role: 'user', content: 'Second request' },
+        ],
+        output_config: { effort: 'high', format: { type: 'json_schema', schema } },
+        context_management: { edits: [{ type: 'clear_tool_uses_20250919' }] },
+      });
+
+      expect(result.messages).toEqual([
+        { role: 'user', content: 'First request' },
+        { role: 'system', content: 'New operator instruction' },
+        { role: 'user', content: 'Second request' },
+      ]);
+      expect(result.reasoning_effort).toBe('high');
+      expect(result.response_format).toEqual({
+        type: 'json_schema',
+        json_schema: { name: 'anthropic_output', schema, strict: true },
+      });
+      expect(result).not.toHaveProperty('context_management');
     });
 
     it('keeps text-only multimodal user content as a string', () => {
@@ -230,11 +256,9 @@ describe('Anthropic Messages adapter', () => {
       expect(ignoredNamed.tool_choice).toBeUndefined();
     });
 
-    it('exposes Anthropic server tools to the scorer by function.name (issue #1886)', () => {
-      // chatBody is only consumed by the routing/scoring layer in messages
-      // mode — the wire body goes through applyAnthropicMessagesMutations
-      // direct from the inbound body, so server-tool `type` tags are
-      // preserved upstream. Scoring just needs tool count + function.name.
+    it('exposes all Anthropic tools to the scorer by function.name (issue #1886)', () => {
+      // Scoring needs tool count + function.name regardless of where a tool
+      // executes. The fallback wire-body pass filters only server tools.
       const result = messagesToChatCompletionsRequest({
         messages: [{ role: 'user', content: 'x' }],
         tools: [
@@ -259,18 +283,45 @@ describe('Anthropic Messages adapter', () => {
       ]);
     });
 
+    it('removes Anthropic server tools and their forced choice from fallback wire bodies', () => {
+      const messagesBody = {
+        messages: [{ role: 'user', content: 'search' }],
+        tools: [
+          { type: 'web_search_20250305', name: 'web_search' },
+          { type: 'advisor_20260301', name: 'advisor' },
+          { type: 'bash_20250124', name: 'bash' },
+          { type: 'memory_20250818', name: 'memory' },
+          { type: 'text_editor_20250728', name: 'text_editor' },
+          { type: 'computer_20251124', name: 'computer' },
+          { name: 'local_tool', input_schema: { type: 'object' } },
+        ],
+        tool_choice: { type: 'tool', name: 'advisor' },
+      };
+      const scoringBody = messagesToChatCompletionsRequest(messagesBody);
+
+      const fallbackBody = stripAnthropicServerToolsForFallback(messagesBody, scoringBody);
+
+      expect(scoringBody.tools as unknown[]).toHaveLength(7);
+      expect(
+        (fallbackBody.tools as Array<Record<string, Record<string, unknown>>>).map(
+          (tool) => tool.function.name,
+        ),
+      ).toEqual(['bash', 'memory', 'text_editor', 'computer', 'local_tool']);
+      expect(fallbackBody).not.toHaveProperty('tool_choice');
+    });
+
     it('treats unknown non-custom tool types as custom tools with a safe empty schema (issue #1897)', () => {
       const result = messagesToChatCompletionsRequest({
         messages: [{ role: 'user', content: 'x' }],
-        tools: [{ type: 'advisor_20260301', name: 'advisor', description: 'Plan the task' }],
+        tools: [{ type: 'future_client_20260301', name: 'future', description: 'Do the task' }],
       });
 
       expect(result.tools).toEqual([
         {
           type: 'function',
           function: {
-            name: 'advisor',
-            description: 'Plan the task',
+            name: 'future',
+            description: 'Do the task',
             parameters: { type: 'object', properties: {}, additionalProperties: false },
           },
         },
