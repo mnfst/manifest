@@ -18,6 +18,31 @@ type OauthMock = {
   unwrapToken: jest.Mock<Promise<string | null>, [string, string, string, string?]>;
 };
 
+type ServiceInternals = {
+  fetchJson<T>(url: string, init: RequestInit): Promise<T>;
+  fetchBytes(url: string, init: RequestInit): Promise<Uint8Array>;
+  errorMessage(error: unknown): string;
+  grokPeriodFromSeconds(seconds: number): {
+    id: string;
+    label: string;
+    windowSeconds: number;
+  } | null;
+  parseGrokWebBilling(data: Uint8Array): { usedPercent: number; resetsAt: string | null };
+  grpcWebDataFrames(data: Uint8Array): Uint8Array[] | null;
+  grpcWebTrailerFields(data: Uint8Array): Record<string, string>;
+  validateGrpcStatusFields(fields: Record<string, string>): void;
+  throwGrpcStatus(status: string, message: string): never;
+  looksLikeProtobufPayload(data: Uint8Array): boolean;
+  scanProtobuf(
+    data: Uint8Array,
+    depth: number,
+  ): {
+    fixed32Fields: Array<{ path: number[]; value: number; order: number }>;
+    varintFields: Array<{ path: number[]; value: number }>;
+    order: number;
+  };
+};
+
 const TENANT_ID = 'tenant-1';
 const NOW = '2026-07-01T12:00:00.000Z';
 const RESET = '2026-07-01T18:00:00.000Z';
@@ -418,6 +443,189 @@ describe('SubscriptionUsageService', () => {
         windows: [],
       }),
     );
+  });
+
+  it('reports missing, unreadable, and refreshless credentials as unavailable', async () => {
+    providerRepo.find.mockResolvedValue([
+      makeProvider({ id: 'missing', label: 'Missing', api_key_encrypted: null }),
+      makeProvider({ id: 'invalid', label: 'Invalid', api_key_encrypted: 'not-ciphertext' }),
+      makeProvider({ id: 'refreshless', label: 'Refreshless' }),
+    ]);
+    openaiOauth.unwrapToken.mockResolvedValue(null);
+
+    const result = await service.getUsage(TENANT_ID);
+    const connections = result[0]?.connections ?? [];
+
+    expect(connections.find((connection) => connection.id === 'missing')).toEqual(
+      expect.objectContaining({ message: 'Credential is unavailable', status: 'unavailable' }),
+    );
+    expect(connections.find((connection) => connection.id === 'invalid')).toEqual(
+      expect.objectContaining({ message: 'Credential is unavailable', status: 'unavailable' }),
+    );
+    expect(connections.find((connection) => connection.id === 'refreshless')).toEqual(
+      expect.objectContaining({
+        message: 'Sign in again to refresh usage limits',
+        status: 'unavailable',
+      }),
+    );
+  });
+
+  it('uses stored OAuth credentials when no fallback agent exists', async () => {
+    agentRepo.findOne.mockResolvedValue(null);
+    providerRepo.find.mockResolvedValue([
+      makeProvider({
+        id: 'openai-stored',
+        label: 'Stored OpenAI',
+        api_key_encrypted: encrypted(oauthBlob('stored-openai')),
+      }),
+      makeProvider({
+        id: 'openai-expired',
+        label: 'Expired OpenAI',
+        api_key_encrypted: encrypted(
+          JSON.stringify({ t: 'expired', r: 'refresh', e: Date.now() - 1_000 }),
+        ),
+      }),
+      makeProvider({
+        id: 'anthropic-raw',
+        provider: 'anthropic',
+        label: 'Raw Anthropic',
+        api_key_encrypted: encrypted('raw-anthropic-token'),
+      }),
+    ]);
+    fetchMock.mockImplementation(async (input) => {
+      const hostname = new URL(String(input)).hostname;
+      if (hostname === 'chatgpt.com' || hostname === 'api.anthropic.com') return jsonResponse({});
+      throw new Error(`Unexpected URL ${String(input)}`);
+    });
+
+    const result = await service.getUsage(TENANT_ID);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
+    expect(anthropicOauth.unwrapToken).not.toHaveBeenCalled();
+    expect(
+      result
+        .find((summary) => summary.provider === 'openai')
+        ?.connections.find((connection) => connection.id === 'openai-expired'),
+    ).toEqual(
+      expect.objectContaining({
+        message: 'Sign in again to refresh usage limits',
+        status: 'unavailable',
+      }),
+    );
+  });
+
+  it('normalizes JSON and binary transport failures', async () => {
+    const internals = service as unknown as ServiceInternals;
+    const capture = async (promise: Promise<unknown>): Promise<unknown> => {
+      try {
+        await promise;
+        return null;
+      } catch (error) {
+        return error;
+      }
+    };
+
+    fetchMock.mockResolvedValueOnce(new Response('unauthorized', { status: 401 }));
+    const authError = await capture(internals.fetchJson('https://example.test', {}));
+    expect(internals.errorMessage(authError)).toBe('Sign in again to refresh usage limits');
+
+    fetchMock.mockResolvedValueOnce(new Response('slow down', { status: 429 }));
+    const rateError = await capture(internals.fetchJson('https://example.test', {}));
+    expect(internals.errorMessage(rateError)).toBe('Provider rate-limited the usage lookup');
+
+    const abortError = Object.assign(new Error('aborted'), { name: 'AbortError' });
+    fetchMock.mockRejectedValueOnce(abortError);
+    const timeoutError = await capture(internals.fetchJson('https://example.test', {}));
+    expect(internals.errorMessage(timeoutError)).toBe('Usage lookup timed out');
+
+    const networkError = new Error('network down');
+    fetchMock.mockRejectedValueOnce(networkError);
+    await expect(internals.fetchJson('https://example.test', {})).rejects.toBe(networkError);
+    expect(internals.errorMessage(networkError)).toBe('Usage lookup failed');
+
+    fetchMock.mockResolvedValueOnce(
+      new Response(new Uint8Array(), {
+        headers: { 'grpc-status': '16', 'grpc-message': 'expired' },
+      }),
+    );
+    await expect(internals.fetchBytes('https://example.test', {})).rejects.toMatchObject({
+      status: 401,
+    });
+
+    fetchMock.mockResolvedValueOnce(new Response('bad gateway', { status: 502 }));
+    await expect(internals.fetchBytes('https://example.test', {})).rejects.toMatchObject({
+      status: 502,
+    });
+
+    fetchMock.mockRejectedValueOnce(abortError);
+    await expect(internals.fetchBytes('https://example.test', {})).rejects.toMatchObject({
+      status: 408,
+    });
+
+    fetchMock.mockRejectedValueOnce(networkError);
+    await expect(internals.fetchBytes('https://example.test', {})).rejects.toBe(networkError);
+  });
+
+  it('validates Grok periods, frames, trailers, and raw protobuf payloads', () => {
+    const internals = service as unknown as ServiceInternals;
+    const futureReset = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1_000) / 1_000);
+
+    expect(internals.grokPeriodFromSeconds(30 * 86_400)).toEqual({
+      id: 'monthly',
+      label: 'monthly',
+      windowSeconds: 2_592_000,
+    });
+    expect(internals.grokPeriodFromSeconds(2 * 86_400)).toBeNull();
+    expect(internals.parseGrokWebBilling(protobufPayload(25, futureReset))).toEqual({
+      usedPercent: 25,
+      resetsAt: new Date(futureReset * 1_000).toISOString(),
+    });
+    expect(() =>
+      internals.parseGrokWebBilling(Uint8Array.from([0x10, ...varint(futureReset)])),
+    ).toThrow('Could not parse Grok web billing usage');
+
+    expect(internals.grpcWebDataFrames(new Uint8Array())).toBeNull();
+    expect(internals.grpcWebDataFrames(Uint8Array.from([0]))).toBeNull();
+    expect(internals.grpcWebDataFrames(Uint8Array.from([0x02, 0, 0, 0, 0]))).toBeNull();
+    expect(internals.grpcWebDataFrames(Uint8Array.from([0, 0, 0, 0, 2, 1]))).toBeNull();
+
+    const trailer = grpcFrame(
+      Buffer.from('ignored\r\ngrpc-status: 7\r\ngrpc-message: bad%ZZ\r\n'),
+      0x80,
+    );
+    const fields = internals.grpcWebTrailerFields(trailer);
+    expect(fields).toEqual({ 'grpc-status': '7', 'grpc-message': 'bad%ZZ' });
+    expect(() => internals.validateGrpcStatusFields({})).not.toThrow();
+    expect(() => internals.validateGrpcStatusFields({ 'grpc-status': '0' })).not.toThrow();
+    expect(() => internals.validateGrpcStatusFields(fields)).toThrow('gRPC 7: bad%ZZ');
+    expect(() => internals.throwGrpcStatus('4', 'deadline')).toThrow('gRPC 4: deadline');
+    expect(() => internals.throwGrpcStatus('2', 'unknown')).toThrow('gRPC 2: unknown');
+
+    expect(internals.looksLikeProtobufPayload(new Uint8Array())).toBe(false);
+    expect(internals.looksLikeProtobufPayload(Uint8Array.from([0]))).toBe(false);
+    expect(internals.looksLikeProtobufPayload(Uint8Array.from([0x0d]))).toBe(true);
+  });
+
+  it('recovers from malformed protobuf fields while retaining valid nested data', () => {
+    const internals = service as unknown as ServiceInternals;
+    const nestedPercent = protobufPayload(12.5, RESET_EPOCH_SECONDS).slice(0, 5);
+    const nested = Uint8Array.from([0x0a, nestedPercent.length, ...nestedPercent]);
+
+    expect(internals.scanProtobuf(nested, 0).fixed32Fields[0]).toEqual(
+      expect.objectContaining({ path: [1, 1], value: 12.5 }),
+    );
+    expect(internals.scanProtobuf(Uint8Array.from([0]), 0).fixed32Fields).toEqual([]);
+    expect(internals.scanProtobuf(Uint8Array.from([0x08, 0x80]), 0).varintFields).toEqual([]);
+    expect(internals.scanProtobuf(Uint8Array.from([0x09]), 0).fixed32Fields).toEqual([]);
+    expect(
+      internals.scanProtobuf(Uint8Array.from([0x09, 0, 0, 0, 0, 0, 0, 0, 0]), 0).fixed32Fields,
+    ).toEqual([]);
+    expect(internals.scanProtobuf(Uint8Array.from([0x0a, 0x05, 0x01]), 0).fixed32Fields).toEqual(
+      [],
+    );
+    expect(internals.scanProtobuf(Uint8Array.from([0x0d, 0]), 0).fixed32Fields).toEqual([]);
+    expect(internals.scanProtobuf(Uint8Array.from([0x0b]), 0).fixed32Fields).toEqual([]);
   });
 
   it('does not query repositories when no tenant is scoped', async () => {
