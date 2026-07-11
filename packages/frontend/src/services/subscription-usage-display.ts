@@ -1,4 +1,4 @@
-import type { SubscriptionUsageWindow } from './api/providers.js';
+import type { SubscriptionUsageConnection, SubscriptionUsageWindow } from './api/providers.js';
 import { formatNumber } from './formatters.js';
 
 export interface SubscriptionLimitPace {
@@ -33,6 +33,104 @@ export const formatLimitAmount = (value: number | null, unit: string | null): st
       ? formatNumber(Math.round(value))
       : value.toFixed(1);
   return unit ? `${formatted} ${unit}` : formatted;
+};
+
+export const formatProjectedLimitPercent = (value: number | null | undefined): string | null => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  const rounded = Math.round(Math.max(0, value) * 10) / 10;
+  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`;
+};
+
+const resetCountdown = (
+  iso: string | null,
+): { value: string; unit: 'now' | 'minute' | 'hour' | 'day' } | null => {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const minutes = Math.max(0, Math.round((date.getTime() - Date.now()) / 60_000));
+  if (minutes === 0) return { value: '', unit: 'now' };
+  if (minutes < 60) return { value: `${minutes}m`, unit: 'minute' };
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (hours < 24) {
+    return { value: `${hours}h${remainingMinutes ? ` ${remainingMinutes}m` : ''}`, unit: 'hour' };
+  }
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
+  return { value: `${days}d${remainingHours ? ` ${remainingHours}h` : ''}`, unit: 'day' };
+};
+
+export const formatLimitResetRelative = (iso: string | null): string => {
+  const countdown = resetCountdown(iso);
+  if (!countdown) return '-';
+  return countdown.unit === 'now' ? 'now' : `in ${countdown.value}`;
+};
+
+export const formatLimitResetTime = (iso: string | null): string | null => {
+  const countdown = resetCountdown(iso);
+  if (!countdown) return null;
+  return countdown.unit === 'now' ? 'reset now' : `resets in ${countdown.value}`;
+};
+
+export const formatLimitResetAbsolute = (iso: string | null): string | null => {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+};
+
+export const formatLimitWindowDuration = (seconds: number | null): string => {
+  if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds <= 0) return '-';
+  if (seconds % 604_800 === 0) return `${seconds / 604_800}w`;
+  if (seconds % 86_400 === 0) return `${seconds / 86_400}d`;
+  if (seconds % 3_600 === 0) return `${seconds / 3_600}h`;
+  if (seconds % 60 === 0) return `${seconds / 60}m`;
+  return `${seconds}s`;
+};
+
+export const subscriptionLimitPaceLabel = (pace: SubscriptionLimitPace): string => {
+  if (pace.usedPercent === null) return 'Balance';
+  if (pace.exhausted) return 'Exhausted';
+  if (pace.willRunOut) return 'At risk';
+  if (pace.projectedPercent === null) return 'Tracked';
+  return 'On track';
+};
+
+export const subscriptionLimitPaceDetail = (pace: SubscriptionLimitPace): string | null => {
+  if (pace.projectedPercent === null) return null;
+  return `Projected ${formatProjectedLimitPercent(pace.projectedPercent) ?? '-'} by reset`;
+};
+
+export const formatLimitAmountLine = (window: SubscriptionUsageWindow): string | null => {
+  const current = formatLimitAmount(window.current, window.unit);
+  const limit = formatLimitAmount(window.limit, window.unit);
+  if (current && limit) return `${current} / ${limit}`;
+  if (current) return current;
+  if (limit) return `${limit} limit`;
+  return null;
+};
+
+export const formatLimitWindowDetails = (window: SubscriptionUsageWindow): string[] => {
+  const parts: string[] = [];
+  const amount = formatLimitAmountLine(window);
+  const remaining = formatLimitPercent(window.remaining_percent);
+  const reset = formatLimitResetTime(window.resets_at);
+  if (amount) parts.push(amount);
+  if (remaining) parts.push(`${remaining} left`);
+  if (reset) parts.push(reset);
+  return parts;
+};
+
+export const subscriptionConnectionLimitMessage = (
+  connection: SubscriptionUsageConnection,
+): string | null => {
+  if (connection.status === 'ok') return null;
+  return connection.message ?? 'Not available';
 };
 
 export const subscriptionLimitPace = (window: SubscriptionUsageWindow): SubscriptionLimitPace => {

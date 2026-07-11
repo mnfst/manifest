@@ -30,12 +30,15 @@ import {
   customProviderColor,
 } from '../../services/formatters.js';
 import {
-  clampLimitPercent,
-  formatLimitAmount,
+  formatLimitAmountLine,
   formatLimitPercent,
+  formatLimitResetAbsolute,
+  formatLimitResetRelative,
+  formatLimitWindowDuration,
+  subscriptionLimitPaceDetail,
+  subscriptionLimitPaceLabel,
   subscriptionLimitPace,
   subscriptionLimitTone,
-  type SubscriptionLimitPace,
   type SubscriptionLimitTone,
 } from '../../services/subscription-usage-display.js';
 import { getAgents, getCustomProviders as fetchCustomProviders } from '../../services/api.js';
@@ -119,70 +122,6 @@ interface AnalyticsResponse {
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
 }
 
-const formatProjectedPercent = (value: number | null | undefined): string | null => {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
-  const rounded = Math.round(Math.max(0, value) * 10) / 10;
-  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}%`;
-};
-
-const formatLimitResetRelative = (iso: string | null): string => {
-  if (!iso) return '-';
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '-';
-  const minutes = Math.max(0, Math.round((date.getTime() - Date.now()) / 60_000));
-  if (minutes === 0) return 'now';
-  if (minutes < 60) return `in ${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  if (hours < 24) return `in ${hours}h${remainingMinutes ? ` ${remainingMinutes}m` : ''}`;
-  const days = Math.floor(hours / 24);
-  const remainingHours = hours % 24;
-  return `in ${days}d${remainingHours ? ` ${remainingHours}h` : ''}`;
-};
-
-const formatLimitResetAbsolute = (iso: string | null): string | null => {
-  if (!iso) return null;
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date);
-};
-
-const formatWindowDuration = (seconds: number | null): string => {
-  if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds <= 0) return '-';
-  if (seconds % 604_800 === 0) return `${seconds / 604_800}w`;
-  if (seconds % 86_400 === 0) return `${seconds / 86_400}d`;
-  if (seconds % 3_600 === 0) return `${seconds / 3_600}h`;
-  if (seconds % 60 === 0) return `${seconds / 60}m`;
-  return `${seconds}s`;
-};
-
-const subscriptionPaceLabel = (pace: SubscriptionLimitPace): string => {
-  if (pace.usedPercent === null) return 'Balance';
-  if (pace.exhausted) return 'Exhausted';
-  if (pace.willRunOut) return 'At risk';
-  if (pace.projectedPercent === null) return 'Tracked';
-  return 'On track';
-};
-
-const subscriptionPaceDetail = (pace: SubscriptionLimitPace): string | null => {
-  if (pace.projectedPercent === null) return null;
-  return `Projected ${formatProjectedPercent(pace.projectedPercent) ?? '-'} by reset`;
-};
-
-const limitAmountLine = (window: SubscriptionUsageWindow): string | null => {
-  const current = formatLimitAmount(window.current, window.unit);
-  const limit = formatLimitAmount(window.limit, window.unit);
-  if (current && limit) return `${current} / ${limit}`;
-  if (current) return current;
-  if (limit) return `${limit} limit`;
-  return null;
-};
-
 const SubscriptionLimitGauge: Component<{
   usedPercent: number | null;
   tone: SubscriptionLimitTone;
@@ -234,8 +173,8 @@ const SubscriptionLimitDetailRow: Component<{ window: SubscriptionUsageWindow }>
   const usedPercent = createMemo(() => pace().usedPercent);
   const usedLabel = createMemo(() => formatLimitPercent(usedPercent()));
   const remainingLabel = createMemo(() => formatLimitPercent(props.window.remaining_percent));
-  const amountLine = createMemo(() => limitAmountLine(props.window));
-  const paceDetail = createMemo(() => subscriptionPaceDetail(pace()));
+  const amountLine = createMemo(() => formatLimitAmountLine(props.window));
+  const paceDetail = createMemo(() => subscriptionLimitPaceDetail(pace()));
   const absoluteReset = createMemo(() => formatLimitResetAbsolute(props.window.resets_at));
 
   return (
@@ -288,7 +227,7 @@ const SubscriptionLimitDetailRow: Component<{ window: SubscriptionUsageWindow }>
             'white-space': 'nowrap',
           }}
         >
-          {subscriptionPaceLabel(pace())}
+          {subscriptionLimitPaceLabel(pace())}
         </span>
         <Show when={paceDetail()}>
           <div style="margin-top: 4px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); white-space: nowrap;">
@@ -297,7 +236,7 @@ const SubscriptionLimitDetailRow: Component<{ window: SubscriptionUsageWindow }>
         </Show>
       </td>
       <td style="white-space: nowrap; color: hsl(var(--muted-foreground));">
-        {formatWindowDuration(props.window.window_seconds)}
+        {formatLimitWindowDuration(props.window.window_seconds)}
       </td>
       <td style="white-space: nowrap;">
         <span style="color: hsl(var(--foreground));">

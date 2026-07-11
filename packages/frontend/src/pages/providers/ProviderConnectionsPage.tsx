@@ -19,7 +19,6 @@ import {
   getProviders as getGlobalProviders,
   getProviderUsage,
   mergeUsage,
-  type SubscriptionUsageConnection,
   type SubscriptionUsageSummary,
   type SubscriptionUsageWindow,
   type TenantProviderSummary,
@@ -36,12 +35,11 @@ import {
   formatTimeAgo,
 } from '../../services/formatters.js';
 import {
-  clampLimitPercent,
-  formatLimitAmount,
+  formatLimitWindowDetails,
   formatLimitPercent,
+  subscriptionConnectionLimitMessage,
   subscriptionLimitPace as limitUsagePace,
   subscriptionLimitTone as limitUsageTone,
-  type SubscriptionLimitPace as LimitUsagePace,
   type SubscriptionLimitTone as LimitUsageTone,
 } from '../../services/subscription-usage-display.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
@@ -170,41 +168,6 @@ interface SubscriptionLimitRow {
   window: SubscriptionUsageWindow;
 }
 
-const formatResetTime = (iso: string | null): string | null => {
-  if (!iso) return null;
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return null;
-  const minutes = Math.max(0, Math.round((date.getTime() - Date.now()) / 60_000));
-  if (minutes === 0) return 'reset now';
-  if (minutes < 60) return `resets in ${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  if (hours < 24) return `resets in ${hours}h${remainingMinutes ? ` ${remainingMinutes}m` : ''}`;
-  const days = Math.floor(hours / 24);
-  const remainingHours = hours % 24;
-  return `resets in ${days}d${remainingHours ? ` ${remainingHours}h` : ''}`;
-};
-
-const limitWindowDetails = (window: SubscriptionUsageWindow): string[] => {
-  const parts: string[] = [];
-  const remaining = formatLimitPercent(window.remaining_percent);
-  const current = formatLimitAmount(window.current, window.unit);
-  const limit = formatLimitAmount(window.limit, window.unit);
-  const reset = formatResetTime(window.resets_at);
-
-  if (current && limit) parts.push(`${current} / ${limit}`);
-  else if (current) parts.push(current);
-  else if (limit) parts.push(`${limit} limit`);
-  if (remaining) parts.push(`${remaining} left`);
-  if (reset) parts.push(reset);
-  return parts;
-};
-
-const connectionLimitMessage = (connection: SubscriptionUsageConnection): string | null => {
-  if (connection.status === 'ok') return null;
-  return connection.message ?? 'Not available';
-};
-
 const LimitUsageGauge: Component<{
   usedPercent: number | null;
   tone: LimitUsageTone;
@@ -256,7 +219,7 @@ const SubscriptionLimitMeter: Component<{ row: SubscriptionLimitRow }> = (props)
   const usedPercent = createMemo(() => pace().usedPercent);
   const tone = createMemo(() => limitUsageTone(pace()));
   const percentLabel = createMemo(() => formatLimitPercent(usedPercent()));
-  const details = createMemo(() => limitWindowDetails(props.row.window));
+  const details = createMemo(() => formatLimitWindowDetails(props.row.window));
   const topMetric = createMemo(() => percentLabel() ?? details()[0] ?? 'Available');
   const accessibilityMetric = createMemo(() => {
     const percent = percentLabel();
@@ -387,7 +350,7 @@ const SubscriptionLimitsCell: Component<{
   });
   const messages = createMemo(() =>
     (props.usage?.connections ?? [])
-      .map(connectionLimitMessage)
+      .map(subscriptionConnectionLimitMessage)
       .filter((message): message is string => !!message),
   );
   const visibleRows = createMemo(() => rows().slice(0, MAX_LIMIT_ROWS));

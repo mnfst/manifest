@@ -1050,6 +1050,154 @@ describe('ConnectionDetail (analytics)', () => {
     }
   });
 
+  it('renders detailed subscription limits with pace, balances, and reset windows', async () => {
+    const resetIn = (milliseconds: number) => new Date(Date.now() + milliseconds).toISOString();
+    const quotaWindow = (overrides: Record<string, unknown>) => ({
+      id: 'quota',
+      label: 'Quota',
+      used_percent: 20,
+      remaining_percent: 80,
+      resets_at: resetIn(2.5 * 60 * 60 * 1000),
+      window_seconds: 5 * 60 * 60,
+      current: null,
+      limit: null,
+      unit: null,
+      ...overrides,
+    });
+
+    apiMocks.getConnectionDetail.mockResolvedValue({
+      ...connectionDetail,
+      connection: {
+        ...connectionDetail.connection,
+        auth_type: 'subscription',
+        label: 'ChatGPT',
+      },
+    });
+    apiMocks.fetchJson.mockResolvedValue({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          status: 'ok',
+          updated_at: new Date().toISOString(),
+          connections: [
+            {
+              id: 'conn-openai',
+              label: 'ChatGPT',
+              status: 'ok',
+              message: null,
+              updated_at: new Date().toISOString(),
+              windows: [
+                quotaWindow({
+                  id: 'healthy',
+                  label: 'Codex 5h',
+                  current: 2,
+                  limit: 10,
+                  unit: 'requests',
+                }),
+                quotaWindow({
+                  id: 'risk',
+                  label: 'Codex weekly',
+                  used_percent: 80,
+                  remaining_percent: 20,
+                  resets_at: resetIn(6 * 24 * 60 * 60 * 1000),
+                  window_seconds: 7 * 24 * 60 * 60,
+                  current: 80,
+                  unit: 'credits',
+                }),
+                quotaWindow({
+                  id: 'exhausted',
+                  label: 'Monthly credits',
+                  used_percent: 100,
+                  remaining_percent: 0,
+                  resets_at: resetIn(25 * 24 * 60 * 60 * 1000),
+                  window_seconds: 30 * 24 * 60 * 60,
+                  limit: 100,
+                  unit: 'USD',
+                }),
+                quotaWindow({
+                  id: 'balance',
+                  label: 'Credits balance',
+                  used_percent: null,
+                  remaining_percent: null,
+                  resets_at: null,
+                  window_seconds: null,
+                  current: 25,
+                  unit: 'credits',
+                }),
+                quotaWindow({
+                  id: 'tracked',
+                  label: 'Tracked quota',
+                  resets_at: null,
+                  window_seconds: 45,
+                }),
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const { container } = render(() => <ConnectionDetail />);
+
+    await waitFor(() => expect(screen.getByText('Subscription limits')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Codex 5h')).toBeDefined());
+    expect(screen.getByText('On track')).toBeDefined();
+    expect(screen.getByText('At risk')).toBeDefined();
+    expect(screen.getByText('Exhausted')).toBeDefined();
+    expect(screen.getByText('Balance')).toBeDefined();
+    expect(screen.getByText('Tracked')).toBeDefined();
+    expect(screen.getByText('2 requests / 10 requests')).toBeDefined();
+    expect(screen.getByText('80 credits')).toBeDefined();
+    expect(screen.getByText('100 USD limit')).toBeDefined();
+    expect(screen.getByText('25 credits')).toBeDefined();
+    expect(screen.getByText('7d')).toBeDefined();
+    expect(screen.getByText('45s')).toBeDefined();
+    expect(screen.getAllByText(/Projected .* by reset/).length).toBeGreaterThan(0);
+
+    const limitsScroller = screen.getByText('Codex 5h').closest('.scroll-panel__body');
+    if (limitsScroller) fireEvent.scroll(limitsScroller);
+    expect(container.querySelectorAll('table.data-table').length).toBeGreaterThan(0);
+  });
+
+  it('shows subscription loading and unavailable states for the current connection', async () => {
+    apiMocks.getConnectionDetail.mockResolvedValue({
+      ...connectionDetail,
+      connection: { ...connectionDetail.connection, auth_type: 'subscription' },
+    });
+    apiMocks.fetchJson.mockReturnValueOnce(new Promise(() => {}));
+
+    const loading = render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getByText('Subscription limits')).toBeDefined());
+    expect(loading.container.querySelector('[style*="skeleton-pulse"]')).not.toBeNull();
+    loading.unmount();
+
+    apiMocks.fetchJson.mockResolvedValueOnce({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          status: 'unavailable',
+          updated_at: null,
+          connections: [
+            {
+              id: 'conn-openai',
+              label: 'Default',
+              status: 'unavailable',
+              message: 'Sign in again to refresh usage limits',
+              updated_at: null,
+              windows: [],
+            },
+          ],
+        },
+      ],
+    });
+    render(() => <ConnectionDetail />);
+    await waitFor(() =>
+      expect(screen.getByText('Sign in again to refresh usage limits')).toBeDefined(),
+    );
+  });
+
   it('persists chart range/view and harness filter selection', async () => {
     render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));

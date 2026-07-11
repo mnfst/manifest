@@ -295,6 +295,132 @@ describe('provider pages', () => {
     });
   });
 
+  it('combines multiple subscription connections into compact limit meters', async () => {
+    const resetIn = (milliseconds: number) => new Date(Date.now() + milliseconds).toISOString();
+    const quotaWindow = (overrides: Record<string, unknown>) => ({
+      id: 'quota',
+      label: 'Quota',
+      used_percent: 20,
+      remaining_percent: 80,
+      resets_at: resetIn(30 * 60 * 1000),
+      window_seconds: 18_000,
+      current: null,
+      limit: null,
+      unit: null,
+      ...overrides,
+    });
+    mockGetProviderSubscriptionUsage.mockResolvedValueOnce({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          status: 'partial',
+          updated_at: new Date().toISOString(),
+          connections: [
+            {
+              id: 'sub-openai',
+              label: 'ChatGPT',
+              status: 'ok',
+              message: null,
+              updated_at: new Date().toISOString(),
+              windows: [
+                quotaWindow({
+                  id: 'five-hour',
+                  label: 'Codex 5h',
+                  current: 2,
+                  limit: 10,
+                  unit: 'requests',
+                }),
+                quotaWindow({
+                  id: 'balance',
+                  label: 'Credits balance',
+                  used_percent: null,
+                  remaining_percent: null,
+                  resets_at: null,
+                  current: 25,
+                  unit: 'credits',
+                }),
+              ],
+            },
+            {
+              id: 'sub-openai-backup',
+              label: 'Backup',
+              status: 'error',
+              message: 'Usage lookup failed',
+              updated_at: null,
+              windows: [
+                quotaWindow({
+                  id: 'weekly',
+                  label: 'Codex weekly',
+                  used_percent: 100,
+                  remaining_percent: 0,
+                  limit: 100,
+                  unit: 'credits',
+                }),
+                quotaWindow({
+                  id: 'monthly',
+                  label: 'Monthly quota',
+                  used_percent: 30,
+                  remaining_percent: 70,
+                  resets_at: resetIn(2 * 24 * 60 * 60 * 1000),
+                }),
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    render(() => <Subscriptions />);
+
+    await waitFor(() => expect(screen.getByText('Credits balance')).toBeDefined());
+    expect(screen.getByLabelText(/Codex 5h.*2 requests.*80% left/)).toBeDefined();
+    expect(screen.getByLabelText(/Credits balance.*25 credits/)).toBeDefined();
+    expect(screen.getByLabelText(/Codex weekly.*100 credits limit.*0% left/)).toBeDefined();
+    expect(screen.getByText('Backup')).toBeDefined();
+    expect(screen.getByText('+1 more limits')).toBeDefined();
+    expect(screen.getByText('Usage lookup failed')).toBeDefined();
+  });
+
+  it('shows loading and unavailable limit states without disturbing the connection row', async () => {
+    mockGetProviderSubscriptionUsage.mockReturnValueOnce(new Promise(() => {}));
+    const loading = render(() => <Subscriptions />);
+
+    await waitFor(() => expect(screen.getByText('ChatGPT')).toBeDefined());
+    expect(loading.container.querySelector('[style*="width: 148px"]')).not.toBeNull();
+    loading.unmount();
+
+    mockGetProviderSubscriptionUsage.mockRejectedValueOnce(new Error('network down'));
+    render(() => <Subscriptions />);
+    await waitFor(() => expect(screen.getByText('Not available')).toBeDefined());
+  });
+
+  it('shows a provider message when no subscription windows are available', async () => {
+    mockGetProviderSubscriptionUsage.mockResolvedValueOnce({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          status: 'unavailable',
+          updated_at: null,
+          connections: [
+            {
+              id: 'sub-openai',
+              label: 'ChatGPT',
+              status: 'unavailable',
+              message: null,
+              updated_at: null,
+              windows: [],
+            },
+          ],
+        },
+      ],
+    });
+
+    render(() => <Subscriptions />);
+    await waitFor(() => expect(screen.getByText('Not available')).toBeDefined());
+  });
+
   it('renders inactive subscription rows even when they have no usage', async () => {
     mockGetGlobalProviders.mockResolvedValue({
       ...globalProvidersResponse,
