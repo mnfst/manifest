@@ -642,15 +642,31 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     const rows: Array<{
       summary: TenantProviderSummary;
       connection: TenantProviderSummary['connections'][number];
+      connections: TenantProviderSummary['connections'];
       name: string;
     }> = [];
     for (const summary of connectedSummaries()) {
+      const name = providerDisplayName(summary.provider, customProviders() ?? []);
+      if (props.kind === 'subscriptions') {
+        const connection =
+          summary.connections.find((candidate) => candidate.is_active) ?? summary.connections[0];
+        if (connection) {
+          rows.push({
+            summary,
+            connection,
+            connections: summary.connections,
+            name,
+          });
+        }
+        continue;
+      }
       for (const connection of summary.connections) {
-        if (!connection.is_active && props.kind !== 'subscriptions' && !hasUsage(summary)) continue;
+        if (!connection.is_active && !hasUsage(summary)) continue;
         rows.push({
           summary,
           connection,
-          name: providerDisplayName(summary.provider, customProviders() ?? []),
+          connections: [connection],
+          name,
         });
       }
     }
@@ -847,79 +863,102 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Show
-                        when={renamingId() === row.connection.id}
+                        when={row.connections.length === 1}
                         fallback={
-                          <span
-                            style="display: inline-flex; align-items: center; gap: 6px; cursor: default;"
-                            class="connection-label-cell"
-                          >
-                            {row.connection.label}
-                            <button
-                              type="button"
-                              class="connection-label-cell__edit"
-                              onClick={(e) =>
-                                startRename(row.connection.id, row.connection.label, e)
-                              }
-                              aria-label={`Rename ${row.connection.label}`}
-                              style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s; display: inline-flex; align-items: center; line-height: 1;"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M5 21h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2" />
-                                <path d="M7 13v3c0 .55.45 1 1 1h3c.27 0 .52-.11.71-.29l9-9a.996.996 0 0 0 0-1.41l-3-3a.996.996 0 0 0-1.41 0l-9.01 8.99A1 1 0 0 0 7 13m10-7.59L18.59 7 17.5 8.09 15.91 6.5zm-8 8 5.5-5.5 1.59 1.59-5.5 5.5H9z" />
-                              </svg>
-                            </button>
-                          </span>
+                          <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+                            <For each={row.connections}>
+                              {(connection) => (
+                                <button
+                                  type="button"
+                                  aria-label={`View ${connection.label} details`}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    navigate(`/providers/connections/${connection.id}`);
+                                  }}
+                                  style="border: 0; background: none; padding: 0; color: hsl(var(--muted-foreground)); font: inherit; cursor: pointer; text-align: left;"
+                                >
+                                  {connection.label}
+                                </button>
+                              )}
+                            </For>
+                          </div>
                         }
                       >
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                          <input
-                            type="text"
-                            class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
-                            value={renameValue()}
-                            onInput={(e) => {
-                              setRenameValue(e.currentTarget.value);
-                              setRenameError('');
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter')
+                        <Show
+                          when={renamingId() === row.connection.id}
+                          fallback={
+                            <span
+                              style="display: inline-flex; align-items: center; gap: 6px; cursor: default;"
+                              class="connection-label-cell"
+                            >
+                              {row.connection.label}
+                              <button
+                                type="button"
+                                class="connection-label-cell__edit"
+                                onClick={(e) =>
+                                  startRename(row.connection.id, row.connection.label, e)
+                                }
+                                aria-label={`Rename ${row.connection.label}`}
+                                style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s; display: inline-flex; align-items: center; line-height: 1;"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M5 21h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2" />
+                                  <path d="M7 13v3c0 .55.45 1 1 1h3c.27 0 .52-.11.71-.29l9-9a.996.996 0 0 0 0-1.41l-3-3a.996.996 0 0 0-1.41 0l-9.01 8.99A1 1 0 0 0 7 13m10-7.59L18.59 7 17.5 8.09 15.91 6.5zm-8 8 5.5-5.5 1.59 1.59-5.5 5.5H9z" />
+                                </svg>
+                              </button>
+                            </span>
+                          }
+                        >
+                          <div style="display: flex; align-items: center; gap: 6px;">
+                            <input
+                              type="text"
+                              class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
+                              value={renameValue()}
+                              onInput={(e) => {
+                                setRenameValue(e.currentTarget.value);
+                                setRenameError('');
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter')
+                                  submitRename(
+                                    row.summary.provider,
+                                    row.connection.label,
+                                    row.summary.auth_type ?? copy().authType,
+                                    e,
+                                  );
+                                if (e.key === 'Escape') cancelRename(e);
+                              }}
+                              style="width: 120px;"
+                              ref={(el) => requestAnimationFrame(() => el.focus())}
+                            />
+                            <button
+                              class="btn btn--primary btn--sm"
+                              style="font-size: var(--font-size-xs); padding: 4px 10px;"
+                              disabled={renameBusy()}
+                              onClick={(e) =>
                                 submitRename(
                                   row.summary.provider,
                                   row.connection.label,
                                   row.summary.auth_type ?? copy().authType,
                                   e,
-                                );
-                              if (e.key === 'Escape') cancelRename(e);
-                            }}
-                            style="width: 120px;"
-                            ref={(el) => requestAnimationFrame(() => el.focus())}
-                          />
-                          <button
-                            class="btn btn--primary btn--sm"
-                            style="font-size: var(--font-size-xs); padding: 4px 10px;"
-                            disabled={renameBusy()}
-                            onClick={(e) =>
-                              submitRename(
-                                row.summary.provider,
-                                row.connection.label,
-                                row.summary.auth_type ?? copy().authType,
-                                e,
-                              )
-                            }
-                          >
-                            Save
-                          </button>
-                          <button
-                            class="btn btn--outline btn--sm"
-                            style="font-size: var(--font-size-xs); padding: 4px 10px;"
-                            onClick={cancelRename}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                        <Show when={renameError()}>
-                          <div style="color: hsl(var(--destructive)); font-size: var(--font-size-xs); margin-top: 2px;">
-                            {renameError()}
+                                )
+                              }
+                            >
+                              Save
+                            </button>
+                            <button
+                              class="btn btn--outline btn--sm"
+                              style="font-size: var(--font-size-xs); padding: 4px 10px;"
+                              onClick={cancelRename}
+                            >
+                              Cancel
+                            </button>
                           </div>
+                          <Show when={renameError()}>
+                            <div style="color: hsl(var(--destructive)); font-size: var(--font-size-xs); margin-top: 2px;">
+                              {renameError()}
+                            </div>
+                          </Show>
                         </Show>
                       </Show>
                     </td>
@@ -931,7 +970,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                               <Sparkline data={row.summary.sparkline_7d} width={60} height={20} />
                             </span>
                           </Show>
-                          <span>{formatNumber(perConnectionTokens(row.summary))} tokens</span>
+                          <span>
+                            {formatNumber(
+                              props.kind === 'subscriptions'
+                                ? row.summary.consumption_tokens
+                                : perConnectionTokens(row.summary),
+                            )}{' '}
+                            tokens
+                          </span>
                         </div>
                       </Show>
                     </td>
@@ -951,12 +997,22 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       </td>
                     </Show>
                     <td>
-                      <StatusBadge active={row.connection.is_active} />
+                      <StatusBadge
+                        active={row.connections.some((connection) => connection.is_active)}
+                      />
                     </td>
                     <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
-                        {connectionLastUsedAt(row.summary)
-                          ? formatTimeAgo(connectionLastUsedAt(row.summary)!)
+                        {(
+                          props.kind === 'subscriptions'
+                            ? row.summary.last_used_at
+                            : connectionLastUsedAt(row.summary)
+                        )
+                          ? formatTimeAgo(
+                              (props.kind === 'subscriptions'
+                                ? row.summary.last_used_at
+                                : connectionLastUsedAt(row.summary))!,
+                            )
                           : '-'}
                       </Show>
                     </td>

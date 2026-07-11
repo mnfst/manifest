@@ -309,6 +309,21 @@ describe('provider pages', () => {
       unit: null,
       ...overrides,
     });
+    mockGetGlobalProviders.mockResolvedValueOnce({
+      ...globalProvidersResponse,
+      providers: globalProvidersResponse.providers.map((provider) =>
+        provider.provider === 'openai'
+          ? {
+              ...provider,
+              connection_count: 2,
+              connections: [
+                connection('sub-openai', 'ChatGPT'),
+                connection('sub-openai-backup', 'Backup'),
+              ],
+            }
+          : provider,
+      ),
+    });
     mockGetProviderSubscriptionUsage.mockResolvedValueOnce({
       providers: [
         {
@@ -371,13 +386,17 @@ describe('provider pages', () => {
       ],
     });
 
-    render(() => <Subscriptions />);
+    const { container } = render(() => <Subscriptions />);
 
     await waitFor(() => expect(screen.getByText('Credits balance')).toBeDefined());
     expect(screen.getByLabelText(/Codex 5h.*2 requests.*80% left/)).toBeDefined();
     expect(screen.getByLabelText(/Credits balance.*25 credits/)).toBeDefined();
     expect(screen.getByLabelText(/Codex weekly.*100 credits limit.*0% left/)).toBeDefined();
-    expect(screen.getByText('Backup')).toBeDefined();
+    expect(container.querySelectorAll('table.data-table tbody > tr')).toHaveLength(1);
+    expect(screen.getByText('42 tokens')).toBeDefined();
+    expect(screen.getByLabelText('View ChatGPT details')).toBeDefined();
+    fireEvent.click(screen.getByLabelText('View Backup details'));
+    expect(mockNavigate).toHaveBeenCalledWith('/providers/connections/sub-openai-backup');
     expect(screen.getByText('+1 more limits')).toBeDefined();
     expect(screen.getByText('Usage lookup failed')).toBeDefined();
   });
