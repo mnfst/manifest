@@ -1,11 +1,10 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createHash } from 'crypto';
-import { AgentKeyAuthGuard } from './agent-key-auth.guard';
+import { AgentKeyAuthGuard, agentKeyCacheKey } from './agent-key-auth.guard';
 import { hashKey } from '../../common/utils/hash.util';
 
 function testCacheKey(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
+  return agentKeyCacheKey(token);
 }
 
 function makeContext(headers: Record<string, string | undefined>, ip = '203.0.113.1') {

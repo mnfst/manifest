@@ -10,7 +10,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { createHash } from 'crypto';
+import { createHmac, randomBytes } from 'crypto';
 import { Request } from 'express';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import {
@@ -21,9 +21,13 @@ import { verifyKey, keyPrefix as computePrefix } from '../../common/utils/hash.u
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 import { isLoopbackPeer } from '../../common/utils/local-ip';
 const MIN_TOKEN_LENGTH = 12;
+const CACHE_KEY_SECRET = randomBytes(32);
 
-function cacheKey(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
+export function agentKeyCacheKey(token: string): string {
+  // This is an ephemeral in-memory index, not the persisted credential
+  // verifier. A process-local HMAC keeps cache keys stable for the process
+  // while preventing offline correlation across restarts or memory snapshots.
+  return createHmac('sha256', CACHE_KEY_SECRET).update(token).digest('hex');
 }
 
 interface CachedKey {
@@ -149,7 +153,7 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
   }
 
   invalidateCache(key: string) {
-    const hashed = cacheKey(key);
+    const hashed = agentKeyCacheKey(key);
     this.cache.delete(hashed);
     // Drop any negative entry too, so re-creating or rotating a key that was
     // briefly rejected (e.g. a client raced ahead of key creation) takes
@@ -175,7 +179,7 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
   }
 
   private async validateMnfstToken(request: Request, token: string): Promise<boolean> {
-    const hashed = cacheKey(token);
+    const hashed = agentKeyCacheKey(token);
     const now = Date.now();
 
     // Negative cache first: a recently-rejected token short-circuits here
