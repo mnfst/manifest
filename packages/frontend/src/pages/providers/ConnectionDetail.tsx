@@ -799,9 +799,12 @@ const ConnectionDetail: Component = () => {
               </div>
 
               {/* Header */}
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-                <div>
-                  <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+              <div
+                class="connection-detail-header"
+                style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;"
+              >
+                <div style="flex: 1 1 320px; min-width: 0;">
+                  <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
                     <span style="display: flex; align-items: center; width: 32px; height: 32px;">
                       <Show
                         when={providerIcon(c.provider, 32)}
@@ -854,7 +857,7 @@ const ConnectionDetail: Component = () => {
                       </span>
                     </Show>
                   </div>
-                  <div style="display: flex; gap: 24px; font-size: var(--font-size-sm);">
+                  <div style="display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: var(--font-size-sm);">
                     <span>
                       <span style="font-weight: 600; color: hsl(var(--foreground));">
                         Connection name:
@@ -885,7 +888,10 @@ const ConnectionDetail: Component = () => {
                     </span>
                   </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                <div
+                  class="connection-detail-header__actions"
+                  style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; flex-shrink: 0; max-width: 100%; margin-left: auto;"
+                >
                   <Show when={allAgents().length > 1}>
                     <FilterSelect
                       noun="harnesses"

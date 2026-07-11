@@ -1033,6 +1033,12 @@ describe('ConnectionDetail (analytics)', () => {
     expect(screen.getByText('Recent Messages')).toBeDefined();
     // BYOK connection → cost columns present
     expect(screen.getByText('Active')).toBeDefined();
+    expect(container.querySelector('.connection-detail-header')?.getAttribute('style')).toContain(
+      'flex-wrap:wrap',
+    );
+    expect(
+      container.querySelector('.connection-detail-header__actions')?.getAttribute('style'),
+    ).toContain('max-width:100%');
 
     // Manage opens an inline modal (not the ProviderSelectModal).
     fireEvent.click(screen.getByText('Manage'));
