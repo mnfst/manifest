@@ -170,6 +170,19 @@ describe('Responses adapter', () => {
       expect(result.tool_choice).toEqual({ type: 'function', function: { name: 'shell' } });
     });
 
+    it.each(['auto', 'required', 'none'])(
+      'keeps %s tool_choice when at least one fallback tool remains',
+      (toolChoice) => {
+        const result = toChatCompletionsRequest({
+          input: 'Use the local tool.',
+          tools: [{ type: 'function', name: 'local_lookup', parameters: { type: 'object' } }],
+          tool_choice: toolChoice,
+        });
+
+        expect(result.tool_choice).toBe(toolChoice);
+      },
+    );
+
     it('drops a hosted tool choice when that tool cannot cross the fallback boundary', () => {
       const result = toChatCompletionsRequest({
         input: 'Search the web.',
@@ -611,6 +624,36 @@ describe('Responses adapter', () => {
           input: 'echo hello',
           status: 'completed',
         }),
+      ]);
+    });
+
+    it.each([
+      ['"echo hello"', 'echo hello'],
+      ['already raw input', 'already raw input'],
+    ])('restores custom input from %s', (argumentsValue, expectedInput) => {
+      const result = fromChatCompletionResponse(
+        {
+          choices: [
+            {
+              message: {
+                content: null,
+                tool_calls: [
+                  {
+                    id: 'call_shell',
+                    type: 'function',
+                    function: { name: 'shell', arguments: argumentsValue },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        'claude-sonnet-4',
+        { toolTypesByName: { shell: 'custom' } },
+      );
+
+      expect(result.output).toEqual([
+        expect.objectContaining({ type: 'custom_tool_call', input: expectedInput }),
       ]);
     });
 
@@ -1320,6 +1363,93 @@ describe('Responses adapter', () => {
       ]);
     });
 
+    it.each([
+      ['"echo hello"', 'echo hello'],
+      ['raw shell input', 'raw shell input'],
+      ['{}', '{}'],
+    ])('streams and finalizes custom input encoded as %s', (argumentsValue, expectedInput) => {
+      const t = createResponsesStreamTransformer('claude-sonnet-4', {
+        toolTypesByName: { shell: 'custom' },
+      });
+      const out =
+        t.transform(
+          JSON.stringify({
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'call_shell',
+                      function: { name: 'shell', arguments: argumentsValue },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ) ?? '';
+      const end = t.finalize() ?? '';
+
+      const deltas = allEventData(out, 'response.custom_tool_call_input.delta');
+      if (expectedInput !== '{}') {
+        expect(deltas).toEqual([expect.objectContaining({ delta: expectedInput })]);
+      }
+      expect(firstEventData(end, 'response.custom_tool_call_input.done')).toMatchObject({
+        input: expectedInput,
+      });
+    });
+
+    it('buffers an incomplete wrapped custom input but streams already-raw input immediately', () => {
+      const wrapped = createResponsesStreamTransformer('claude-sonnet-4', {
+        toolTypesByName: { shell: 'custom' },
+      });
+      const wrappedOut =
+        wrapped.transform(
+          JSON.stringify({
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'call_wrapped',
+                      function: { name: 'shell', arguments: '{"input":"echo' },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ) ?? '';
+      expect(allEventData(wrappedOut, 'response.custom_tool_call_input.delta')).toEqual([]);
+
+      const raw = createResponsesStreamTransformer('claude-sonnet-4', {
+        toolTypesByName: { shell: 'custom' },
+      });
+      const rawOut =
+        raw.transform(
+          JSON.stringify({
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'call_raw',
+                      function: { name: 'shell', arguments: 'echo now' },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ) ?? '';
+      expect(firstEventData(rawOut, 'response.custom_tool_call_input.delta')).toMatchObject({
+        delta: 'echo now',
+      });
+    });
+
     it('streams configured structured-output tool arguments as response text', () => {
       const t = createResponsesStreamTransformer('claude-sonnet-4', {
         structuredOutputToolName: 'patient_summary',
@@ -1347,6 +1477,37 @@ describe('Responses adapter', () => {
         }),
       ]);
       expect(completed.response.text).toEqual({ format: { type: 'json_object' } });
+    });
+
+    it('opens an empty structured-output message during finalization', () => {
+      const t = createResponsesStreamTransformer('claude-sonnet-4', {
+        structuredOutputToolName: 'patient_summary',
+      });
+      const out =
+        t.transform(
+          JSON.stringify({
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'toolu_empty',
+                      function: { name: 'patient_summary', arguments: '' },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ) ?? '';
+      const end = t.finalize() ?? '';
+
+      expect(eventTypes(out)).not.toContain('response.output_item.added');
+      expect(eventTypes(end)).toContain('response.output_item.added');
+      expect(firstEventData(end, 'response.completed')!.response.output).toEqual([
+        expect.objectContaining({ type: 'message' }),
+      ]);
     });
 
     it('ignores malformed structured-output stream tool-call entries', () => {

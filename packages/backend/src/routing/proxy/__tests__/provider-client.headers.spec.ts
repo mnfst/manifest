@@ -349,6 +349,33 @@ describe('ProviderClient — strict header contract on auth-critical paths', () 
     expect(sentHeaders['ChatGPT-Account-ID']).toBe('stored-workspace');
     expect(sentHeaders['X-OpenAI-Fedramp']).toBe('true');
   });
+
+  it('retains only named Responses function and custom tool types for response restoration', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    const result = await client.forward({
+      provider: 'openai',
+      apiKey: 'sk-openai',
+      model: 'gpt-5.4',
+      body: {
+        input: 'Use a tool.',
+        tools: [
+          null,
+          { type: 'function' },
+          { type: 'web_search_preview' },
+          { type: 'function', name: 'lookup' },
+          { type: 'custom', name: 'shell' },
+        ],
+      },
+      stream: false,
+      apiMode: 'responses',
+    });
+
+    expect(result.responsesToolTypesByName).toEqual({
+      lookup: 'function',
+      shell: 'custom',
+    });
+  });
 });
 
 describe('ProviderClient — Codex prompt-cache affinity (openai-subscription)', () => {

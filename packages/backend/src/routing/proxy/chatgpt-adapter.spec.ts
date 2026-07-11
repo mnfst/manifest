@@ -55,6 +55,18 @@ describe('chatgpt-adapter', () => {
       });
     });
 
+    it('maps Chat Completions json_object output to Responses text format', () => {
+      const req = toResponsesRequest(
+        {
+          messages: [{ role: 'user', content: 'Return JSON.' }],
+          response_format: { type: 'json_object' },
+        },
+        'gpt-5.4',
+      );
+
+      expect(req.text).toEqual({ format: { type: 'json_object' } });
+    });
+
     it('converts assistant tool_calls to function_call items and keeps any preceding text', () => {
       const body = {
         messages: [

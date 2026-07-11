@@ -1652,6 +1652,60 @@ describe('ProxyFallbackService', () => {
   });
 
   describe('resolveApiKey', () => {
+    it('uses the metadata-aware OpenAI subscription unwrap path when available', async () => {
+      const unwrapTokenWithMetadata = jest.fn().mockResolvedValue({
+        accessToken: 'metadata-aware-access-token',
+        metadata: { accountId: 'workspace-123', fedramp: true },
+      });
+      Object.assign(openaiOauth, { unwrapTokenWithMetadata });
+
+      const result = await resolveApiKey(
+        'openai',
+        'blob',
+        'subscription',
+        'agent-1',
+        'tenant-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
+        'Work',
+      );
+
+      expect(result).toEqual({
+        apiKey: 'metadata-aware-access-token',
+        subscriptionMetadata: { accountId: 'workspace-123', fedramp: true },
+      });
+      expect(unwrapTokenWithMetadata).toHaveBeenCalledWith('blob', 'agent-1', 'tenant-1', 'Work');
+      expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
+    });
+
+    it('returns null when the metadata-aware OpenAI unwrap cannot recover a stored blob', async () => {
+      const unwrapTokenWithMetadata = jest.fn().mockResolvedValue(null);
+      Object.assign(openaiOauth, { unwrapTokenWithMetadata });
+      const blob = JSON.stringify({ t: 'old', r: 'refresh', e: Date.now() - 1000 });
+
+      const result = await resolveApiKey(
+        'openai',
+        blob,
+        'subscription',
+        'agent-1',
+        'tenant-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
+      );
+
+      expect(result).toEqual({ apiKey: null });
+      expect(unwrapTokenWithMetadata).toHaveBeenCalledWith(blob, 'agent-1', 'tenant-1', undefined);
+      expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
+    });
+
     it('unwraps OpenAI subscription token', async () => {
       openaiOauth.unwrapToken.mockResolvedValue('access-token');
 

@@ -290,6 +290,123 @@ describe('OpenaiOauthService', () => {
     });
   });
 
+  describe('unwrapTokenWithMetadata', () => {
+    it('returns null without attempting to unwrap a malformed OAuth blob', async () => {
+      await expect(
+        service.unwrapTokenWithMetadata('not-an-oauth-blob', 'agent-1', 'tenant-1'),
+      ).resolves.toBeNull();
+
+      expect(providerService.getFreshSubscriptionCredential).not.toHaveBeenCalled();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('returns stored routing metadata with a fresh access token', async () => {
+      const accessToken = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'account-from-access-token',
+        },
+      });
+      const blob: OAuthTokenBlob = {
+        t: accessToken,
+        r: 'refresh-token',
+        e: Date.now() + 120_000,
+        m: '{"a":"account-from-id-token","f":true}',
+      };
+
+      await expect(
+        service.unwrapTokenWithMetadata(JSON.stringify(blob), 'agent-1', 'tenant-1', 'Work'),
+      ).resolves.toEqual({
+        accessToken,
+        metadata: { accountId: 'account-from-id-token', fedramp: true },
+      });
+
+      expect(providerService.getFreshSubscriptionCredential).not.toHaveBeenCalled();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('re-reads refreshed metadata after rotating an expired token', async () => {
+      const original: OAuthTokenBlob = {
+        t: 'expired-access',
+        r: 'old-refresh',
+        e: Date.now() - 1,
+        m: '{"a":"old-account"}',
+      };
+      const refreshedAccess = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'account-from-refreshed-access',
+        },
+      });
+      const refreshed: OAuthTokenBlob = {
+        t: refreshedAccess,
+        r: 'new-refresh',
+        e: Date.now() + 3_600_000,
+        m: '{"a":"account-from-refreshed-id-token","f":true}',
+      };
+      providerService.getFreshSubscriptionCredential
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(JSON.stringify(refreshed));
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          access_token: refreshedAccess,
+          refresh_token: 'new-refresh',
+          expires_in: 3600,
+          id_token: jwt({
+            chatgpt_account_id: 'account-from-refreshed-id-token',
+            chatgpt_account_is_fedramp: true,
+          }),
+        }),
+      });
+
+      await expect(
+        service.unwrapTokenWithMetadata(
+          JSON.stringify(original),
+          'agent-1',
+          'tenant-refreshed',
+          'Work',
+        ),
+      ).resolves.toEqual({
+        accessToken: refreshedAccess,
+        metadata: { accountId: 'account-from-refreshed-id-token', fedramp: true },
+      });
+
+      expect(providerService.getFreshSubscriptionCredential).toHaveBeenNthCalledWith(
+        1,
+        'tenant-refreshed',
+        'openai',
+        'Work',
+      );
+      expect(providerService.getFreshSubscriptionCredential).toHaveBeenNthCalledWith(
+        2,
+        'tenant-refreshed',
+        'openai',
+        'Work',
+      );
+      const persistedBlob = JSON.parse(
+        providerService.upsertProvider.mock.calls[0][3] as string,
+      ) as OAuthTokenBlob;
+      expect(persistedBlob.m).toBe(refreshed.m);
+    });
+
+    it('returns null when an expired token cannot be refreshed', async () => {
+      const blob: OAuthTokenBlob = {
+        t: 'expired-access',
+        r: 'invalid-refresh',
+        e: Date.now() - 1,
+      };
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        text: async () => 'invalid refresh token',
+      });
+
+      await expect(
+        service.unwrapTokenWithMetadata(JSON.stringify(blob), 'agent-1', 'tenant-failed'),
+      ).resolves.toBeNull();
+
+      expect(providerService.getFreshSubscriptionCredential).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('unwrapToken', () => {
     it('returns access token from valid, non-expired blob', async () => {
       const blob: OAuthTokenBlob = {

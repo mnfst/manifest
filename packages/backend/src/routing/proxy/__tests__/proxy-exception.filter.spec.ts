@@ -453,6 +453,22 @@ describe('ProxyExceptionFilter', () => {
       expect(payload.error.message).toContain('http://localhost:3001/upgrade?reason=requests');
     });
 
+    it('returns an OpenAI Responses plan-limit envelope on /v1/responses', () => {
+      const { host, req, res } = createMockHost({ stream: true }, { accept: 'text/event-stream' });
+      req.originalUrl = '/v1/responses';
+
+      filter.catch(blockExc(), host);
+
+      expect(res.status).toHaveBeenCalledWith(402);
+      expect(res.json).toHaveBeenCalledWith({
+        error: {
+          type: 'insufficient_quota',
+          code: 'PLAN_LIMIT_REQUESTS',
+          message: expect.stringContaining('Upgrade to Pro'),
+        },
+      });
+    });
+
     it('ignores a 402 without the PLAN_LIMIT_REQUESTS code (falls through)', () => {
       const { host, res } = createMockHost({}, { accept: 'application/json' });
       filter.catch(new HttpException({ statusCode: 402, code: 'SOMETHING_ELSE' }, 402), host);

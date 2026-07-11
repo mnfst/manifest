@@ -310,6 +310,23 @@ describe('Anthropic Messages adapter', () => {
       expect(fallbackBody).not.toHaveProperty('tool_choice');
     });
 
+    it('removes the tools field when every Anthropic tool executes server-side', () => {
+      const messagesBody = {
+        messages: [{ role: 'user', content: 'search' }],
+        tools: [
+          { type: 'web_search_20260318', name: 'web_search' },
+          { type: 'advisor_20260301', name: 'advisor' },
+        ],
+      };
+
+      const fallbackBody = stripAnthropicServerToolsForFallback(
+        messagesBody,
+        messagesToChatCompletionsRequest(messagesBody),
+      );
+
+      expect(fallbackBody).not.toHaveProperty('tools');
+    });
+
     it('treats unknown non-custom tool types as custom tools with a safe empty schema (issue #1897)', () => {
       const result = messagesToChatCompletionsRequest({
         messages: [{ role: 'user', content: 'x' }],
