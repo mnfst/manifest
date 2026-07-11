@@ -456,6 +456,7 @@ describe('SubscriptionUsageService', () => {
     const result = await service.getUsage(TENANT_ID);
     const connections = result[0]?.connections ?? [];
 
+    expect(result[0]?.status).toBe('unavailable');
     expect(connections.find((connection) => connection.id === 'missing')).toEqual(
       expect.objectContaining({ message: 'Credential is unavailable', status: 'unavailable' }),
     );
