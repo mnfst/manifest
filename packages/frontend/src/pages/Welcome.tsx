@@ -236,9 +236,7 @@ const Welcome: Component = () => {
   const contextAgent = () => agent()?.name;
 
   const [providers, { refetch: refetchProviders }] = createResource(contextAgent, (name) =>
-    // This is an activation gate, so never accept the prior empty provider
-    // list while SWR revalidates a newly completed connection in the background.
-    getProviders(name, { cache: false }),
+    getProviders(name),
   );
   const [customProviders, { refetch: refetchCustom }] = createResource(contextAgent, (name) =>
     getCustomProviders(name),
@@ -270,7 +268,7 @@ const Welcome: Component = () => {
   // null = no user action yet — use the server-resolved setting.
   const [autofixOverride, setAutofixOverride] = createSignal<boolean | null>(null);
   const autofixOn = () => autofixOverride() ?? autofixConfig()?.enabled ?? false;
-  const [preferredRoute, setPreferredRoute] = createSignal<PlaygroundModelSelection | null>(null);
+  const preferredRoute = () => null as PlaygroundModelSelection | null;
 
   // ── Step: providers ──────────────────────────────────────────────────
   const [connectTarget, setConnectTarget] = createSignal<string | null>(null);
@@ -386,7 +384,7 @@ const Welcome: Component = () => {
   );
   const [harnessProviders, { refetch: refetchHarnessProviders }] = createResource(
     harnessSlug,
-    (slug) => (slug ? getProviders(slug, { cache: false }) : Promise.resolve([])),
+    (slug) => (slug ? getProviders(slug) : Promise.resolve([])),
   );
   const [harnessCustomProviders, { refetch: refetchHarnessCustom }] = createResource(
     harnessSlug,
@@ -465,6 +463,9 @@ const Welcome: Component = () => {
     setInstructionModal,
   });
 
+  const [routingError, setRoutingError] = createSignal<string | null>(null);
+  let proposalDone = false;
+
   const handleOverride: typeof actions.handleOverride = async (...args) => {
     setDropdownTier(null);
     setRoutingError(null);
@@ -490,12 +491,6 @@ const Welcome: Component = () => {
   // Seed the proposal once: best model per provider — primary + fallbacks —
   // persisted so the real routing card opens pre-configured and editable.
   const [proposing, setProposing] = createSignal(false);
-  const [routingError, setRoutingError] = createSignal<string | null>(null);
-  let proposalDone = false;
-  const handlePreferredRouteChange = (selection: PlaygroundModelSelection | null) => {
-    setPreferredRoute(selection);
-    proposalDone = false;
-  };
 
   const proposeRouting = async () => {
     const slug = harnessSlug();
@@ -753,12 +748,11 @@ const Welcome: Component = () => {
     if (!slug || agentRequestSeen() || checkingForRequest()) return;
     setCheckingForRequest(true);
     try {
-      const result = (await getMessages(
-        { agent_name: slug, limit: '1', include_total: 'false' },
-        // This is an activation probe: a cached list would leave the UI
-        // waiting even after the user's agent has successfully sent traffic.
-        { cache: false },
-      )) as {
+      const result = (await getMessages({
+        agent_name: slug,
+        limit: '1',
+        include_total: 'false',
+      })) as {
         items?: OnboardingMessageSummary[];
       };
       setRequestCheckError(false);
@@ -884,7 +878,7 @@ const Welcome: Component = () => {
   // activate step already said "it works" and a 5.6 s cinematic would frustrate.
   createEffect(() => {
     if (!agentRequestSeen() && !liftoffPreview()) return;
-    if (!import.meta.env.DEV || !searchParams.preview?.startsWith('liftoff')) {
+    if (!import.meta.env.DEV || !String(searchParams.preview).startsWith('liftoff')) {
       const uid = userId();
       if (uid) markOnboardingDone(uid);
       const slug = harnessSlug();
@@ -1220,12 +1214,7 @@ const Welcome: Component = () => {
                   onboarding.
                 </p>
               </div>
-              <Playground
-                embedded
-                onBack={() => goTo('providers')}
-                onContinue={() => goTo('route')}
-                onBestModelChange={handlePreferredRouteChange}
-              />
+              <Playground />
               <div class="welcome__skip-row">
                 <button type="button" class="welcome__text-link" onClick={() => goTo('route')}>
                   Skip this step — use recommended routing
@@ -1441,7 +1430,6 @@ const Welcome: Component = () => {
                   keyPrefix={harnessKeyPrefix()}
                   baseUrl={baseUrl()}
                   platform={platform()}
-                  defaultRevealed
                 />
               </section>
 
