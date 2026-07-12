@@ -371,8 +371,7 @@ export function sanitizeOpenAiBody(
   // Strip vendor prefix (e.g., "openai/gpt-5" → "gpt-5") before matching.
   const bareForRegex = model.includes('/') ? model.substring(model.indexOf('/') + 1) : model;
   const needsMaxCompletionTokens = usesOpenAiMaxCompletionTokens(endpointKey, bareForRegex);
-  const convertMaxTokens =
-    needsMaxCompletionTokens && 'max_tokens' in body && !('max_completion_tokens' in body);
+  const convertMaxTokens = needsMaxCompletionTokens && 'max_tokens' in body;
 
   const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(body)) {
@@ -384,7 +383,11 @@ export function sanitizeOpenAiBody(
     // require it (native OpenAI + Copilot for o-series / GPT-5+). Applies in both
     // passthrough and non-passthrough branches.
     if (convertMaxTokens && key === 'max_tokens') {
-      cleaned['max_completion_tokens'] = value;
+      // Preserve an explicit max_completion_tokens value while removing the
+      // incompatible legacy parameter.
+      if (!('max_completion_tokens' in body)) {
+        cleaned['max_completion_tokens'] = value;
+      }
       continue;
     }
     if (passthroughTopLevel) {

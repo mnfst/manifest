@@ -844,6 +844,20 @@ describe('provider-client-converters', () => {
       expect(result).not.toHaveProperty('max_tokens');
     });
 
+    it('should remove max_tokens when a custom GPT-5 endpoint receives both token limits', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        model: 'gpt-5',
+        max_tokens: 1000,
+        max_completion_tokens: 2000,
+      };
+
+      const result = sanitizeOpenAiBody(body, 'custom', 'gpt-5');
+
+      expect(result).toHaveProperty('max_completion_tokens', 2000);
+      expect(result).not.toHaveProperty('max_tokens');
+    });
+
     it('should keep max_tokens for a custom endpoint serving a non o-series model', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
@@ -870,7 +884,7 @@ describe('provider-client-converters', () => {
       expect(result).not.toHaveProperty('max_completion_tokens');
     });
 
-    it('should not convert when max_completion_tokens already present', () => {
+    it('should remove max_tokens when max_completion_tokens is already present', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
         model: 'gpt-5.2',
@@ -881,7 +895,7 @@ describe('provider-client-converters', () => {
       const result = sanitizeOpenAiBody(body, 'openai', 'gpt-5.2');
 
       expect(result).toHaveProperty('max_completion_tokens', 2000);
-      expect(result).toHaveProperty('max_tokens', 1000);
+      expect(result).not.toHaveProperty('max_tokens');
     });
 
     it('should not convert max_tokens for non-OpenAI providers', () => {
