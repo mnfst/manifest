@@ -128,6 +128,11 @@ vi.mock('../../src/components/RoutingInstructionModal.js', () => ({
   },
 }));
 
+const mockNavigate = vi.fn();
+vi.mock('@solidjs/router', () => ({
+  useNavigate: () => mockNavigate,
+}));
+
 import RoutingModals from '../../src/components/RoutingModals';
 import type {
   TierAssignment,
@@ -217,7 +222,6 @@ const baseProps = {
   onProviderModalClose: vi.fn(),
   onInstructionClose: vi.fn(),
   onProviderUpdate: vi.fn().mockResolvedValue(undefined),
-  onOpenProviderModal: vi.fn(),
   models: () => sampleModels,
   tiers: () => tiers,
   specificityAssignments: () => specificityAssignments,
@@ -247,6 +251,7 @@ describe('RoutingModals', () => {
     psmProps.length = 0;
     riProps.length = 0;
     kpmProps.length = 0;
+    mockNavigate.mockClear();
     vi.clearAllMocks();
   });
 
@@ -429,57 +434,6 @@ describe('RoutingModals', () => {
       <RoutingModals {...makeProps({ instructionModal: () => null })} />
     ));
     expect(queryByTestId('instruction-modal-closed-enable')).not.toBeNull();
-  });
-
-  it('forwards onConnectProviders from the dropdown picker through to onOpenProviderModal', () => {
-    const onOpenProviderModal = vi.fn();
-    const onDropdownClose = vi.fn();
-    const { getByTestId } = render(() => (
-      <RoutingModals
-        {...makeProps({
-          dropdownTier: () => 'simple',
-          onOpenProviderModal,
-          onDropdownClose,
-        })}
-      />
-    ));
-    fireEvent.click(getByTestId('picker-connect-simple'));
-    expect(onDropdownClose).toHaveBeenCalled();
-    expect(onOpenProviderModal).toHaveBeenCalled();
-  });
-
-  it('forwards onConnectProviders from the fallback picker through to onOpenProviderModal', () => {
-    const onOpenProviderModal = vi.fn();
-    const onFallbackPickerClose = vi.fn();
-    const { getByTestId } = render(() => (
-      <RoutingModals
-        {...makeProps({
-          fallbackPickerTier: () => 'simple',
-          onOpenProviderModal,
-          onFallbackPickerClose,
-        })}
-      />
-    ));
-    fireEvent.click(getByTestId('picker-connect-simple'));
-    expect(onFallbackPickerClose).toHaveBeenCalled();
-    expect(onOpenProviderModal).toHaveBeenCalled();
-  });
-
-  it('forwards onConnectProviders from the specificity picker through to onOpenProviderModal', () => {
-    const onOpenProviderModal = vi.fn();
-    const onSpecificityDropdownClose = vi.fn();
-    const { getByTestId } = render(() => (
-      <RoutingModals
-        {...makeProps({
-          specificityDropdown: () => 'coding',
-          onOpenProviderModal,
-          onSpecificityDropdownClose,
-        })}
-      />
-    ));
-    fireEvent.click(getByTestId('picker-connect-coding'));
-    expect(onSpecificityDropdownClose).toHaveBeenCalled();
-    expect(onOpenProviderModal).toHaveBeenCalled();
   });
 
   it('calls onAddFallback when fallback picker selects a model', () => {
