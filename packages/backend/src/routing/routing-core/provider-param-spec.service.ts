@@ -59,6 +59,9 @@ interface ProviderlessModelParamCandidate {
   model: string;
 }
 
+/** The generation-limit field accepted by an OpenAI-compatible wire endpoint. */
+export type OutputTokenParameter = 'max_tokens' | 'max_completion_tokens';
+
 const requireFromThisModule = createRequire(__filename);
 
 @Injectable()
@@ -115,6 +118,25 @@ export class ProviderParamSpecService {
     const metadata = providerMetadataIdentity(providerId, model);
     if (!metadata || metadataMatchesRoute(metadata, providerId, model)) return direct;
     return getProviderModelCapabilities(this.specs, metadata.provider, authType, metadata.model);
+  }
+
+  /**
+   * Resolve the model-declared output-token field. The catalog is authoritative
+   * here: a model that exposes only `max_completion_tokens` must not receive
+   * the legacy `max_tokens` field, while models that expose only `max_tokens`
+   * keep that name.
+   */
+  async getOutputTokenParameter(
+    providerId: string | undefined,
+    authType: AuthType | undefined,
+    model: string | undefined,
+  ): Promise<OutputTokenParameter | null> {
+    const specs = await this.getSpecs(providerId, authType, model);
+    const hasMaxTokens = specs.some((spec) => spec.path === 'max_tokens');
+    const hasMaxCompletionTokens = specs.some((spec) => spec.path === 'max_completion_tokens');
+
+    if (hasMaxTokens === hasMaxCompletionTokens) return null;
+    return hasMaxCompletionTokens ? 'max_completion_tokens' : 'max_tokens';
   }
 
   private getProviderlessSpecs(

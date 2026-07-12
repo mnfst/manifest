@@ -803,7 +803,7 @@ describe('provider-client-converters', () => {
       expect(messages[1].tool_call_id).toBe(messages[0].tool_calls[0].id);
     });
 
-    /* ── max_tokens → max_completion_tokens for newer OpenAI models ── */
+    /* ── ModelParams-declared output token fields ── */
 
     it('should convert max_tokens to max_completion_tokens for GPT-5 models', () => {
       const body = {
@@ -812,7 +812,13 @@ describe('provider-client-converters', () => {
         max_tokens: 4096,
       };
 
-      const result = sanitizeOpenAiBody(body, 'openai', 'gpt-5');
+      const result = sanitizeOpenAiBody(
+        body,
+        'openai',
+        'gpt-5',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).toHaveProperty('max_completion_tokens', 4096);
       expect(result).not.toHaveProperty('max_tokens');
@@ -825,7 +831,7 @@ describe('provider-client-converters', () => {
         max_tokens: 2048,
       };
 
-      const result = sanitizeOpenAiBody(body, 'openai', 'o3');
+      const result = sanitizeOpenAiBody(body, 'openai', 'o3', undefined, 'max_completion_tokens');
 
       expect(result).toHaveProperty('max_completion_tokens', 2048);
       expect(result).not.toHaveProperty('max_tokens');
@@ -838,7 +844,13 @@ describe('provider-client-converters', () => {
         max_tokens: 4096,
       };
 
-      const result = sanitizeOpenAiBody(body, 'custom', 'gpt-5');
+      const result = sanitizeOpenAiBody(
+        body,
+        'custom',
+        'gpt-5',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).toHaveProperty('max_completion_tokens', 4096);
       expect(result).not.toHaveProperty('max_tokens');
@@ -852,7 +864,13 @@ describe('provider-client-converters', () => {
         max_completion_tokens: 2000,
       };
 
-      const result = sanitizeOpenAiBody(body, 'custom', 'gpt-5');
+      const result = sanitizeOpenAiBody(
+        body,
+        'custom',
+        'gpt-5',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).toHaveProperty('max_completion_tokens', 2000);
       expect(result).not.toHaveProperty('max_tokens');
@@ -892,7 +910,13 @@ describe('provider-client-converters', () => {
         max_completion_tokens: 2000,
       };
 
-      const result = sanitizeOpenAiBody(body, 'openai', 'gpt-5.2');
+      const result = sanitizeOpenAiBody(
+        body,
+        'openai',
+        'gpt-5.2',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).toHaveProperty('max_completion_tokens', 2000);
       expect(result).not.toHaveProperty('max_tokens');
@@ -911,30 +935,36 @@ describe('provider-client-converters', () => {
       expect(result).not.toHaveProperty('max_completion_tokens');
     });
 
-    /* ── max_tokens → max_completion_tokens: extended edge cases ── */
+    /* ── ModelParams generation-limit coverage ── */
 
     it('should convert max_tokens for o1 model', () => {
       const body = { messages: [], max_tokens: 2048 };
 
-      const result = sanitizeOpenAiBody(body, 'openai', 'o1');
+      const result = sanitizeOpenAiBody(body, 'openai', 'o1', undefined, 'max_completion_tokens');
 
       expect(result).toHaveProperty('max_completion_tokens', 2048);
       expect(result).not.toHaveProperty('max_tokens');
     });
 
-    it('should convert max_tokens for o1-mini model', () => {
+    it('should keep max_tokens when ModelParams declares the legacy field', () => {
       const body = { messages: [], max_tokens: 1024 };
 
-      const result = sanitizeOpenAiBody(body, 'openai', 'o1-mini');
+      const result = sanitizeOpenAiBody(body, 'openai', 'o1-mini', undefined, 'max_tokens');
 
-      expect(result).toHaveProperty('max_completion_tokens', 1024);
-      expect(result).not.toHaveProperty('max_tokens');
+      expect(result).toHaveProperty('max_tokens', 1024);
+      expect(result).not.toHaveProperty('max_completion_tokens');
     });
 
     it('should convert max_tokens for o3-mini model', () => {
       const body = { messages: [], max_tokens: 4096 };
 
-      const result = sanitizeOpenAiBody(body, 'openai', 'o3-mini');
+      const result = sanitizeOpenAiBody(
+        body,
+        'openai',
+        'o3-mini',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).toHaveProperty('max_completion_tokens', 4096);
       expect(result).not.toHaveProperty('max_tokens');
@@ -943,7 +973,13 @@ describe('provider-client-converters', () => {
     it('should convert max_tokens for o4-mini model', () => {
       const body = { messages: [], max_tokens: 8192 };
 
-      const result = sanitizeOpenAiBody(body, 'openai', 'o4-mini');
+      const result = sanitizeOpenAiBody(
+        body,
+        'openai',
+        'o4-mini',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).toHaveProperty('max_completion_tokens', 8192);
       expect(result).not.toHaveProperty('max_tokens');
@@ -952,7 +988,13 @@ describe('provider-client-converters', () => {
     it('should convert max_tokens for gpt-5.4 model', () => {
       const body = { messages: [], max_tokens: 16384 };
 
-      const result = sanitizeOpenAiBody(body, 'openai', 'gpt-5.4');
+      const result = sanitizeOpenAiBody(
+        body,
+        'openai',
+        'gpt-5.4',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).toHaveProperty('max_completion_tokens', 16384);
       expect(result).not.toHaveProperty('max_tokens');
@@ -961,7 +1003,13 @@ describe('provider-client-converters', () => {
     it('should convert max_tokens for gpt-5-chat-latest model', () => {
       const body = { messages: [], max_tokens: 4096 };
 
-      const result = sanitizeOpenAiBody(body, 'openai', 'gpt-5-chat-latest');
+      const result = sanitizeOpenAiBody(
+        body,
+        'openai',
+        'gpt-5-chat-latest',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).toHaveProperty('max_completion_tokens', 4096);
       expect(result).not.toHaveProperty('max_tokens');
@@ -997,51 +1045,28 @@ describe('provider-client-converters', () => {
       expect(result).not.toHaveProperty('max_completion_tokens');
     });
 
-    it('should handle case insensitivity for o-series regex', () => {
-      const body = { messages: [], max_tokens: 4096 };
-
-      const result = sanitizeOpenAiBody(body, 'openai', 'O3');
-
-      expect(result).toHaveProperty('max_completion_tokens', 4096);
-      expect(result).not.toHaveProperty('max_tokens');
-    });
-
-    it('should handle case insensitivity for GPT-5 regex', () => {
-      const body = { messages: [], max_tokens: 4096 };
-
-      const result = sanitizeOpenAiBody(body, 'openai', 'GPT-5');
-
-      expect(result).toHaveProperty('max_completion_tokens', 4096);
-      expect(result).not.toHaveProperty('max_tokens');
-    });
-
     it('should NOT convert when body has no max_tokens', () => {
       const body = { messages: [], model: 'gpt-5' };
 
-      const result = sanitizeOpenAiBody(body, 'openai', 'gpt-5');
+      const result = sanitizeOpenAiBody(
+        body,
+        'openai',
+        'gpt-5',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).not.toHaveProperty('max_tokens');
       expect(result).not.toHaveProperty('max_completion_tokens');
     });
 
-    it('should NOT match model names like "operative" that start with "o"', () => {
+    it('should keep max_tokens for o1-preview when ModelParams declares it', () => {
       const body = { messages: [], max_tokens: 4096 };
 
-      // "operative" starts with "o" but the regex is /^(o[134]|gpt-5)/i
-      // So "operative" won't match since it's o + non-[134] char
-      const result = sanitizeOpenAiBody(body, 'openai', 'operative');
+      const result = sanitizeOpenAiBody(body, 'openai', 'o1-preview', undefined, 'max_tokens');
 
       expect(result).toHaveProperty('max_tokens', 4096);
       expect(result).not.toHaveProperty('max_completion_tokens');
-    });
-
-    it('should match o1-preview model', () => {
-      const body = { messages: [], max_tokens: 4096 };
-
-      const result = sanitizeOpenAiBody(body, 'openai', 'o1-preview');
-
-      expect(result).toHaveProperty('max_completion_tokens', 4096);
-      expect(result).not.toHaveProperty('max_tokens');
     });
 
     /* ── Non-passthrough provider: max_completion_tokens conversion ── */
@@ -1083,12 +1108,18 @@ describe('provider-client-converters', () => {
       expect(result).not.toHaveProperty('max_completion_tokens');
     });
 
-    /* ── Copilot: max_tokens → max_completion_tokens (mnfst/manifest#1849) ── */
+    /* ── Copilot: ModelParams-declared output token field ── */
 
     it('should convert max_tokens to max_completion_tokens for Copilot GPT-5', () => {
       const body = { messages: [{ role: 'user', content: 'hi' }], max_tokens: 4096 };
 
-      const result = sanitizeOpenAiBody(body, 'copilot', 'gpt-5');
+      const result = sanitizeOpenAiBody(
+        body,
+        'copilot',
+        'gpt-5',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).toHaveProperty('max_completion_tokens', 4096);
       expect(result).not.toHaveProperty('max_tokens');
@@ -1097,7 +1128,13 @@ describe('provider-client-converters', () => {
     it('should convert max_tokens to max_completion_tokens for Copilot o-series', () => {
       const body = { messages: [], max_tokens: 2048 };
 
-      const result = sanitizeOpenAiBody(body, 'copilot', 'o3-mini');
+      const result = sanitizeOpenAiBody(
+        body,
+        'copilot',
+        'o3-mini',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).toHaveProperty('max_completion_tokens', 2048);
       expect(result).not.toHaveProperty('max_tokens');
@@ -1106,7 +1143,13 @@ describe('provider-client-converters', () => {
     it('should preserve max_completion_tokens unchanged for Copilot GPT-5 family', () => {
       const body = { messages: [], max_completion_tokens: 1024 };
 
-      const result = sanitizeOpenAiBody(body, 'copilot', 'gpt-5.2');
+      const result = sanitizeOpenAiBody(
+        body,
+        'copilot',
+        'gpt-5.2',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).toHaveProperty('max_completion_tokens', 1024);
       expect(result).not.toHaveProperty('max_tokens');
@@ -1129,7 +1172,13 @@ describe('provider-client-converters', () => {
         service_tier: 'auto',
       };
 
-      const result = sanitizeOpenAiBody(body, 'copilot', 'gpt-5');
+      const result = sanitizeOpenAiBody(
+        body,
+        'copilot',
+        'gpt-5',
+        undefined,
+        'max_completion_tokens',
+      );
 
       expect(result).toHaveProperty('max_completion_tokens', 4096);
       expect(result).not.toHaveProperty('store');

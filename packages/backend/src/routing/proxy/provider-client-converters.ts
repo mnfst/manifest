@@ -113,31 +113,6 @@ const OLLAMA_ENDPOINTS = new Set(['ollama', 'ollama-cloud']);
 const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
 const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
-/**
- * OpenAI models that require `max_completion_tokens` instead of `max_tokens`.
- * All o-series reasoning models and GPT-5+ models use the new parameter.
- */
-const OPENAI_MAX_COMPLETION_TOKENS_RE = /^(o\d|gpt-5)/i;
-
-/**
- * Endpoints that ultimately hit OpenAI infrastructure and therefore need
- * `max_tokens` rewritten to `max_completion_tokens` for o-series / GPT-5+.
- * Copilot belongs here because GitHub Copilot proxies these models to OpenAI
- * (issue mnfst/manifest#1849). Custom providers are OpenAI-compatible endpoints
- * (Azure Foundry / vLLM / LiteLLM / OpenRouter-style), which reject `max_tokens`
- * with a 400 when fronting a gpt-5 / o-series model (issue mnfst/manifest#2415).
- * The model regex still gates the rewrite, so non o-series custom models are
- * left untouched.
- */
-const OPENAI_MAX_COMPLETION_TOKENS_ENDPOINTS = new Set(['openai', 'copilot', 'custom']);
-
-function usesOpenAiMaxCompletionTokens(endpointKey: string, bareModel: string): boolean {
-  return (
-    OPENAI_MAX_COMPLETION_TOKENS_ENDPOINTS.has(endpointKey) &&
-    OPENAI_MAX_COMPLETION_TOKENS_RE.test(bareModel)
-  );
-}
-
 export type ReasoningContentCallback = (firstToolCallId: string, content: string) => void;
 
 /**
@@ -365,12 +340,11 @@ export function sanitizeOpenAiBody(
   endpointKey: string,
   model: string,
   reasoningContentLookup?: (firstToolCallId: string) => string | null,
+  outputTokenParameter?: 'max_tokens' | 'max_completion_tokens' | null,
 ): Record<string, unknown> {
   const passthroughTopLevel = PASSTHROUGH_PROVIDERS.has(endpointKey);
 
-  // Strip vendor prefix (e.g., "openai/gpt-5" → "gpt-5") before matching.
-  const bareForRegex = model.includes('/') ? model.substring(model.indexOf('/') + 1) : model;
-  const needsMaxCompletionTokens = usesOpenAiMaxCompletionTokens(endpointKey, bareForRegex);
+  const needsMaxCompletionTokens = outputTokenParameter === 'max_completion_tokens';
   const convertMaxTokens = needsMaxCompletionTokens && 'max_tokens' in body;
 
   const cleaned: Record<string, unknown> = {};
@@ -379,9 +353,8 @@ export function sanitizeOpenAiBody(
       cleaned[key] = sanitizeOpenAiMessages(value, endpointKey, model, reasoningContentLookup);
       continue;
     }
-    // Rewrite max_tokens → max_completion_tokens for OpenAI-backed endpoints that
-    // require it (native OpenAI + Copilot for o-series / GPT-5+). Applies in both
-    // passthrough and non-passthrough branches.
+    // ModelParams declares the field the resolved model accepts; the endpoint
+    // descriptor already verified that its wire schema honors that declaration.
     if (convertMaxTokens && key === 'max_tokens') {
       // Preserve an explicit max_completion_tokens value while removing the
       // incompatible legacy parameter.

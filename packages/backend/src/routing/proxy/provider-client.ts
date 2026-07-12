@@ -30,6 +30,11 @@ import { toNativeResponsesRequest } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { ProviderModelRegistryService } from '../../model-discovery/provider-model-registry.service';
+import {
+  ProviderParamSpecService,
+  type OutputTokenParameter,
+} from '../routing-core/provider-param-spec.service';
+import type { AuthType } from 'manifest-shared';
 
 export interface ForwardResult {
   response: Response;
@@ -193,6 +198,8 @@ export class ProviderClient {
     private readonly modelRegistry?: ProviderModelRegistryService,
     @Optional()
     codexAffinity?: CodexSessionAffinity,
+    @Optional()
+    private readonly providerParamSpecs?: ProviderParamSpecService,
   ) {
     this.codexAffinity = codexAffinity ?? new CodexSessionAffinity();
   }
@@ -225,6 +232,13 @@ export class ProviderClient {
     const textFormat = responsesTextFormat(body, opts.apiMode);
 
     const bareModel = stripModelPrefix(model, endpointKey);
+    const outputTokenParameter = endpoint.usesModelParamOutputTokenField
+      ? await this.providerParamSpecs?.getOutputTokenParameter(
+          provider,
+          authType as AuthType | undefined,
+          bareModel,
+        )
+      : null;
     if (endpoint.format === 'kiro') {
       const requestSource =
         opts.apiMode && opts.apiMode !== 'chat_completions' ? (opts.chatBody ?? body) : body;
@@ -263,6 +277,7 @@ export class ProviderClient {
       reasoningContentLookup: opts.reasoningContentLookup,
       providerResource: opts.providerResource,
       sessionKey: opts.sessionKey,
+      outputTokenParameter,
     });
 
     // The Codex backend only serves prompt-cache hits with session affinity
@@ -458,6 +473,7 @@ export class ProviderClient {
     reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
     providerResource?: string;
     sessionKey?: string;
+    outputTokenParameter?: OutputTokenParameter | null;
   }): BuiltProviderRequest {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // For non-chat_completions inbound modes ('responses', 'messages'), the
@@ -594,6 +610,7 @@ export class ProviderClient {
       endpointKey,
       ctx.model,
       ctx.reasoningContentLookup,
+      ctx.outputTokenParameter,
     );
     if (stream && endpoint.streamUsageReporting === 'openai_stream_options') {
       const existing =
