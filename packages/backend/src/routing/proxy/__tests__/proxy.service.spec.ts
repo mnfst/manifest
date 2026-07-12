@@ -868,10 +868,7 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
-    // The regression that made every SDK sending an unrecognized `model` fail
-    // with M101 "no providers configured" — on agents whose providers were
-    // connected. An unroutable name must land on configured routing instead.
-    it('falls back to configured routing for a model no connection carries', async () => {
+    it('returns model-not-available for a model no connection carries', async () => {
       modelDiscovery.getModelsForAgent.mockResolvedValue([
         discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
       ]);
@@ -883,31 +880,33 @@ describe('ProxyService — orchestration', () => {
       );
       const body = await result.forward.response.text();
 
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(body).toContain('M302');
+      expect(body).toContain('some-retired-model');
+      expect(body).toContain('not available for this agent');
       expect(body).not.toContain('M101');
-      expect(resolveService.resolve).toHaveBeenCalled();
-      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
-        expect.objectContaining({
-          provider: 'anthropic',
-          authType: 'api_key',
-          model: 'claude-sonnet-4-5',
-        }),
-      );
+      expect(result.meta).toMatchObject({
+        reason: 'model_not_available',
+        manifest_error_code: 'M302',
+      });
     });
 
-    it('falls back to configured routing when two connections carry the same bare name', async () => {
+    it('returns model-not-available when two connections carry the same bare name', async () => {
       modelDiscovery.getModelsForAgent.mockResolvedValue([
         discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'api_key' }),
         discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'subscription' }),
       ]);
 
-      await svc.proxyRequest(
+      const result = await svc.proxyRequest(
         baseOpts({ body: { model: 'gpt-4o', messages: [{ role: 'user', content: 'hi' }] } }),
       );
+      const body = await result.forward.response.text();
 
-      expect(resolveService.resolve).toHaveBeenCalled();
-      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
-        expect.objectContaining({ provider: 'anthropic', model: 'claude-sonnet-4-5' }),
-      );
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(body).toContain('M302');
+      expect(body).toContain('gpt-4o');
     });
 
     // A header rule is an override the operator configured on purpose; the

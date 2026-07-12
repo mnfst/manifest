@@ -15,15 +15,20 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       'claude-opus-4',
       'claude-sonnet-4',
       'claude-haiku-4',
+      // claude-opus-4-6 / claude-haiku-4-5 are already matched by the
+      // claude-opus-4 / claude-haiku-4 prefixes above.
+      'claude-sonnet-5',
     ]),
     // `claude-*-fast` ids exist in the OpenRouter pricing cache but 404 at
     // api.anthropic.com — fast mode is an `anthropic-beta` header on the base
     // Opus model, not a distinct model id. Keep them out of the catalog.
-    knownModelsExclude: Object.freeze(['-fast']),
+    // `*-20250514` snapshots were retired on 2026-06-15.
+    knownModelsExclude: Object.freeze(['-fast', '-20250514']),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
       modelContextWindows: Object.freeze({
         'claude-opus-4-8': 1000000,
+        'claude-sonnet-5': 1000000,
       }),
       supportsPromptCaching: true,
       supportsBatching: false,
@@ -56,10 +61,23 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     supportsSubscription: true as const,
     subscriptionLabel: 'ChatGPT Plus/Pro/Team',
     subscriptionAuthMode: 'popup_oauth' as const,
-    knownModels: Object.freeze(['gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex-spark']),
+    knownModels: Object.freeze([
+      'gpt-5.6-sol',
+      'gpt-5.6-terra',
+      'gpt-5.6-luna',
+      'gpt-5.5',
+      'gpt-5.4',
+      'gpt-5.4-mini',
+      'gpt-5.3-codex-spark',
+    ]),
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
+      modelContextWindows: Object.freeze({
+        'gpt-5.6-sol': 1050000,
+        'gpt-5.6-terra': 1050000,
+        'gpt-5.6-luna': 1050000,
+      }),
       supportsPromptCaching: true,
       supportsBatching: false,
     }),
@@ -195,6 +213,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionAuthMode: 'token' as const,
     subscriptionKeyPlaceholder: 'Paste your Z.ai API key',
     knownModels: Object.freeze([
+      'glm-5.2',
       'glm-5.1',
       'glm-5-turbo',
       'glm-5',

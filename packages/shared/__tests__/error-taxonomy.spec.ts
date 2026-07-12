@@ -75,6 +75,7 @@ describe('classifyMessageError', () => {
     ['manifest_ip_rate_limited', 'policy', 'rate_limit'],
     ['manifest_concurrency_limited', 'policy', 'rate_limit'],
     ['manifest_invalid_request', 'request', 'invalid_request'],
+    ['model_not_available', 'request', 'not_found'],
     ['manifest_internal_error', 'internal', 'internal'],
     // Legacy alias, kept so rows written before the rename keep classifying.
     ['friendly_error', 'internal', 'internal'],

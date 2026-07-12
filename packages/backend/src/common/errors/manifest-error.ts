@@ -17,6 +17,7 @@ export const MANIFEST_BLOCKED_REQUEST_REASONS = [
   'manifest_ip_rate_limited',
   'manifest_concurrency_limited',
   'manifest_invalid_request',
+  'model_not_available',
   'manifest_internal_error',
 ] as const;
 export type ManifestBlockedRequestReason = (typeof MANIFEST_BLOCKED_REQUEST_REASONS)[number];
@@ -52,6 +53,7 @@ export const MANIFEST_CODE_TO_REASON: Record<RecordableManifestCode, ManifestBlo
     M203: 'manifest_concurrency_limited',
     M204: 'plan_request_limit_exceeded',
     M300: 'manifest_invalid_request',
+    M302: 'model_not_available',
     M500: 'manifest_internal_error',
   };
 

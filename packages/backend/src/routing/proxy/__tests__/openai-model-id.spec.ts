@@ -104,7 +104,7 @@ describe('OpenAI model ids', () => {
   });
 
   // Two connections carrying one bare id: the caller cannot know which was
-  // meant, so it falls back to configured routing rather than guessing.
+  // meant, so the route helper refuses to guess.
   it('returns null for a bare name carried by two connections', () => {
     expect(
       routeForOpenAiModelId('gpt-4o', [

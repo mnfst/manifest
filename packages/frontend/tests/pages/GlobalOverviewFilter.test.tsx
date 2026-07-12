@@ -360,7 +360,7 @@ describe('GlobalOverview filter onUnselectAll', () => {
       render(() => <GlobalOverview />);
 
       await waitFor(() => expect(localStorage.getItem('manifest_plan_chosen_u1')).toBe('1'));
-      await waitFor(() => expect(document.body.textContent).toContain("You're on the Pro plan"));
+      await waitFor(() => expect(document.body.textContent).toContain("You're now on the Pro plan"));
 
       await waitFor(() => expect(document.querySelector('.modal-backdrop')).not.toBeNull());
       fireEvent.click(document.querySelector('.modal-backdrop')!);

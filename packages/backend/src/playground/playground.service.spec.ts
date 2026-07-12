@@ -343,7 +343,9 @@ describe('PlaygroundService.runStream', () => {
     const call = mocks.providerClient.forward.mock.calls[0][0] as Record<string, unknown>;
     expect(call.apiKey).toBe('mm-access');
     expect(call.customEndpoint).toBeDefined();
-    expect((call.customEndpoint as { baseUrl?: string }).baseUrl).toContain('api.minimaxi.com');
+    expect((call.customEndpoint as { baseUrl?: string }).baseUrl).toBe(
+      'https://api.minimaxi.com/anthropic/v1',
+    );
     // Custom endpoint forwards the model verbatim, so the `minimax/` prefix
     // must be stripped or the subscription endpoint 404s.
     expect(call.model).toBe('abab');

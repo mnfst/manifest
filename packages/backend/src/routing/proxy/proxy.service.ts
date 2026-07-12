@@ -65,6 +65,7 @@ import type { AutofixRecord } from '../autofix/autofix.types';
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>> & {
   explicit_model_override?: boolean;
+  explicit_model_unavailable?: string;
 };
 
 /**
@@ -242,6 +243,13 @@ export class ProxyService {
         `No route available for agent=${agentId}: ` +
           `tier=${resolved.tier} confidence=${resolved.confidence} reason=${resolved.reason}`,
       );
+      if (resolved.explicit_model_unavailable) {
+        return this.buildModelUnavailableResult(
+          stream,
+          agentName,
+          resolved.explicit_model_unavailable,
+        );
+      }
       return this.buildNoProviderResult(stream, agentName);
     }
 
@@ -655,6 +663,16 @@ export class ProxyService {
     if (apiMode !== 'messages' && requestedModel && requestedModel !== OPENAI_MODEL_ID_AUTO) {
       const explicit = await this.resolveExplicitModel(agentId, tenantId, requestedModel, headers);
       if (explicit) return explicit;
+      return {
+        tier: 'default' as const,
+        route: null,
+        fallback_routes: null,
+        response_mode: DEFAULT_RESPONSE_MODE,
+        confidence: 0,
+        score: 0,
+        reason: 'default' as const,
+        explicit_model_unavailable: requestedModel,
+      };
     }
 
     // Not guaranteed to be an array here: a healed body reaches this path from
@@ -693,11 +711,9 @@ export class ProxyService {
    * configured on purpose, and the SDK's `model` field is mandatory, so most
    * agents send a name they cannot change.
    *
-   * Returns null when neither applies, which lands the request on configured
-   * routing. It must never fail on its own: an unrecognized name used to
-   * resolve to no route at all, and the caller reported that as M101 "no
-   * providers configured" — on agents whose providers were connected and whose
-   * header tier would have routed the request.
+   * Returns null when neither applies. The caller turns that into M302 instead
+   * of falling back to automatic routing, because a concrete `model` is a
+   * request for that model.
    */
   private async resolveExplicitModel(
     agentId: string,
@@ -715,7 +731,7 @@ export class ProxyService {
     if (!route) {
       this.logger.warn(
         `Requested model "${requestedModel}" matches no connected model for agent=${agentId} — ` +
-          `falling back to configured routing`,
+          `returning model-not-available`,
       );
       return null;
     }
@@ -1056,6 +1072,16 @@ export class ProxyService {
     const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
     const content = formatManifestError('M101', { dashboardUrl });
     return buildFriendlyResponse(content, stream, 'no_provider', 'M101');
+  }
+
+  private buildModelUnavailableResult(
+    stream: boolean,
+    agentName: string | undefined,
+    model: string,
+  ): ProxyResult {
+    const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
+    const content = formatManifestError('M302', { model, dashboardUrl });
+    return buildFriendlyResponse(content, stream, 'model_not_available', 'M302');
   }
 }
 
