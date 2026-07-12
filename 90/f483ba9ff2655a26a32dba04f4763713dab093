@@ -1,0 +1,19 @@
+packages/frontend/src/components/RoutingModals.tsx
+  s_9af6f1debb95de::t_8f5854c5813863 71,105-111,167,197,305
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "90f483ba9ff2655a26a32dba04f4763713dab093",
+  "prompts": {},
+  "sessions": {
+    "s_9af6f1debb95de": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f57ed-c127-7df0-8c86-2ffe75c631c0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
