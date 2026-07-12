@@ -4,6 +4,7 @@ import AgentTypeSelect from './AgentTypeSelect.jsx';
 import { createAgent, getGlobalProviders } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { markAgentCreated, markSetupPending } from '../services/recent-agents.js';
+import { refreshAgents } from '../services/sse.js';
 import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'manifest-shared';
 
 /**
@@ -59,6 +60,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
         ...(category() ? { agent_category: category()! } : {}),
         ...(platform() ? { agent_platform: platform()! } : {}),
       });
+      // Local creates do not wait for the asynchronous server-sent event. This
+      // immediately reruns the sidebar's harness-list resource with fresh data.
+      refreshAgents();
       // The user dismissed the modal while the request was in flight — honour
       // that dismissal and skip every success side effect + the navigation.
       if (cancelled) return;
