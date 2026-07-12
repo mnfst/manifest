@@ -161,6 +161,66 @@ export function getOverview(range = '24h', agentName?: string) {
   return fetchJson('/overview', { range, ...(agentName ? { agent_name: agentName } : {}) });
 }
 
+// ---------------------------------------------------------------------------
+// Auto-fix analytics
+// ---------------------------------------------------------------------------
+
+export interface AutofixStatus {
+  available: boolean;
+  any_enabled: boolean;
+  enabled_agents: string[];
+}
+
+export interface AutofixStats {
+  success_rate: { value: number; previous: number };
+  autofix_saves: { value: number; previous: number };
+  errors_remaining: { value: number; previous: number };
+  coverage: { rate: number; previous_rate: number };
+  dispositions: {
+    healed: number;
+    no_fix_found: number;
+    resolving: number;
+    ineffective: number;
+  };
+  needs_attention: Array<{
+    error_message: string;
+    provider: string;
+    model: string;
+    count: number;
+    phoenix_issue_id: string | null;
+  }>;
+}
+
+export interface AutofixTimeseries {
+  range: string;
+  by: string;
+  keys: string[];
+  buckets: Array<{ bucket: string; counts: number[] }>;
+}
+
+export function getWorkspaceAutofixStatus(): Promise<AutofixStatus> {
+  return fetchJson('/autofix/status') as Promise<AutofixStatus>;
+}
+
+export function getAutofixStats(range = '7d', agentName?: string): Promise<AutofixStats> {
+  return fetchJson('/overview/autofix-stats', {
+    range,
+    ...(agentName ? { agent_name: agentName } : {}),
+  }) as Promise<AutofixStats>;
+}
+
+export function getAutofixTimeseries(
+  range = '7d',
+  by = 'disposition',
+  agentName?: string,
+): Promise<AutofixTimeseries> {
+  return fetchJson('/overview/autofix-timeseries', {
+    range,
+    by,
+    ...(agentName ? { agent_name: agentName } : {}),
+  }) as Promise<AutofixTimeseries>;
+}
+
 export function getHealth() {
   return fetchJson('/health');
 }

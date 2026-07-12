@@ -73,6 +73,13 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getPerProviderTimeseries: (...a: unknown[]) => mockPerProviderTokens(...a),
   getPerProviderMessageTimeseries: (...a: unknown[]) => mockPerProviderMessages(...a),
   getPerProviderCostTimeseries: (...a: unknown[]) => mockPerProviderCosts(...a),
+  getWorkspaceAutofixStatus: () => Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
+  getAutofixStats: () => Promise.resolve(null),
+  getAutofixTimeseries: () => Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
+}));
+
+vi.mock('../../src/services/api/routing.js', () => ({
+  getAutofix: () => Promise.resolve({ available: false, enabled: false }),
 }));
 
 const mockGetBillingStatus = vi.fn();

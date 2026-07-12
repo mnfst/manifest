@@ -1,0 +1,157 @@
+/* ---------------------------------------------------------------------------
+ * Reliability card — self-contained, gated by tenant autofix access.
+ * Prefixed .rel- to avoid collision.
+ * Route-scoped: imported from ReliabilityCard.tsx.
+ * --------------------------------------------------------------------------- */
+
+.rel-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius, 14px);
+  padding: var(--space-md, 1.5rem);
+  margin-bottom: 24px;
+}
+
+/* --- Stat row (same style as ProviderChartCard header) --- */
+.rel-stats {
+  display: flex;
+  gap: 0;
+  margin-bottom: var(--space-sm, 1rem);
+  border-bottom: 1px solid hsl(var(--border));
+  padding-bottom: var(--space-sm, 1rem);
+}
+.rel-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 var(--space-sm, 1rem);
+  border-right: 1px solid hsl(var(--border));
+}
+.rel-stat:first-child {
+  padding-left: 0;
+}
+.rel-stat:last-child {
+  border-right: none;
+}
+.rel-stat__label {
+  font-family: var(--font-body);
+  font-size: var(--size-sm, 0.875rem);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+.rel-stat__value {
+  font-family: var(--font-display);
+  font-size: var(--size-xl, 1.25rem);
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin: 0;
+  line-height: 1.2;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.rel-stat__trend {
+  font-family: var(--font-body);
+  font-size: var(--size-sm, 0.875rem);
+  font-weight: 500;
+}
+.rel-stat__trend--up {
+  color: hsl(var(--success));
+}
+.rel-stat__trend--down {
+  color: hsl(var(--destructive));
+}
+.rel-stat__trend--neutral {
+  color: hsl(var(--muted-foreground));
+}
+
+@media (max-width: 768px) {
+  .rel-stats {
+    flex-wrap: wrap;
+  }
+  .rel-stat {
+    flex: 1 1 45%;
+    border-right: none;
+    padding: 8px 0;
+  }
+}
+
+/* --- Series toggle (card-local, pill style) --- */
+.rel-toggle {
+  display: inline-flex;
+  background: hsl(var(--secondary));
+  border-radius: 9999px;
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: var(--space-sm, 1rem);
+}
+.rel-toggle__btn {
+  font-family: var(--font-body);
+  font-size: var(--size-sm, 0.875rem);
+  font-weight: 500;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.rel-toggle__btn:hover {
+  color: hsl(var(--foreground));
+}
+.rel-toggle__btn--active {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* --- Chart area --- */
+.rel-chart__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 260px;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--size-sm, 0.875rem);
+}
+.rel-chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: var(--space-sm, 1rem);
+  font-size: var(--size-sm, 0.875rem);
+  color: hsl(var(--foreground));
+}
+.rel-chart__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+.rel-chart__legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* --- Skeleton --- */
+.rel-card--skeleton .rel-stat__value,
+.rel-card--skeleton .rel-stat__trend {
+  background: hsl(var(--border));
+  border-radius: 4px;
+  color: transparent;
+  animation: rel-pulse 1.5s ease-in-out infinite;
+}
+@keyframes rel-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}

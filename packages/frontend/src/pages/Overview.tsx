@@ -41,6 +41,7 @@ import { getBillingStatus } from '../services/api/billing.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/routing.css';
+import ReliabilityCard from '../components/ReliabilityCard.jsx';
 
 const PRO_RANGES = new Set(['30d', '90d', '365d']);
 const AGENT_RANGE_OPTIONS = [
@@ -415,6 +416,10 @@ const Overview: Component = () => {
                       </p>
                     </div>
                   </Show>
+                  <ReliabilityCard
+                    range={effectiveRange()}
+                    agentName={decodeURIComponent(params.agentName)}
+                  />
                   <ProviderChartCard
                     activeView={activeView()}
                     onViewChange={setActiveView}

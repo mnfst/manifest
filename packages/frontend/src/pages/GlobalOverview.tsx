@@ -55,6 +55,7 @@ import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/analytics-overview.css';
 import '../styles/routing.css';
+import ReliabilityCard from '../components/ReliabilityCard.jsx';
 
 interface ProviderGroup {
   provider: string;
@@ -599,6 +600,9 @@ const GlobalOverview: Component = () => {
           </Show>
         }
       >
+        {/* ── Reliability card (autofix-gated) ──────────────────────── */}
+        <ReliabilityCard range={effectiveChartRange()} />
+
         {/* ── 2. Chart Card ───────────────────────────────────────────── */}
         <div style="margin-bottom: 24px;">
           {(() => {

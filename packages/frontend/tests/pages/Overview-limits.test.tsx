@@ -61,6 +61,13 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getPerProviderTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
   getPerProviderMessageTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
   getPerProviderCostTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
+  getWorkspaceAutofixStatus: () => Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
+  getAutofixStats: () => Promise.resolve(null),
+  getAutofixTimeseries: () => Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
+}));
+
+vi.mock('../../src/services/api/routing.js', () => ({
+  getAutofix: () => Promise.resolve({ available: false, enabled: false }),
 }));
 vi.mock('../../src/components/MultiAgentTokenChart.jsx', () => ({
   AGENT_COLORS: ['#111111', '#222222'],
