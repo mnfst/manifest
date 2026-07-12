@@ -1,0 +1,19 @@
+package-lock.json
+  s_99d7ec6a6edad1::t_0b9baaf4e57012 8660-8686,11081-11121,14915,15086
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "df73c0d38c5c62568f0036d1c72f08f3877b12ca",
+  "prompts": {},
+  "sessions": {
+    "s_99d7ec6a6edad1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a5b21433-3772-412c-9590-875d2ced1685",
+        "model": "deepseek/deepseek-v4-flash"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
