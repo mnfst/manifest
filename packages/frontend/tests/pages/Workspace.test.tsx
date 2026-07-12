@@ -79,6 +79,7 @@ vi.mock('../../src/services/sse.js', () => ({
   messagePing: () => 0,
   agentPing: () => 0,
   routingPing: () => 0,
+  refreshAgents: vi.fn(),
 }));
 
 vi.mock('../../src/components/AgentTypeSelect.jsx', () => ({
