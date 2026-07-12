@@ -20,7 +20,14 @@ import AgentTypeSelect from '../components/AgentTypeSelect.jsx';
 import SetupStepAddProvider from '../components/SetupStepAddProvider.jsx';
 import RoutingModals from '../components/RoutingModals.js';
 import RoutingDefaultTierSection from './RoutingDefaultTierSection.js';
-import Playground, { type PlaygroundModelSelection } from './Playground.jsx';
+import Playground from './Playground.jsx';
+
+/** A model the user starred in the embedded Playground (primary route pick). */
+interface PlaygroundModelSelection {
+  model: string;
+  provider: string;
+  authType: string;
+}
 import { createRoutingActions } from './RoutingActions.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { PROVIDERS } from '../services/providers.js';
