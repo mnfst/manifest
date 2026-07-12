@@ -1,0 +1,24 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_871e178133cbd8::t_8befcf56e99b88 591-601,604
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_871e178133cbd8::t_8befcf56e99b88 3825-3864
+  s_871e178133cbd8::t_491fbdc69aa597 3824
+.changeset/fix-openrouter-anthropic-thinking.md
+  s_871e178133cbd8::t_ae2b42dd3d6755 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "0d6a222d7e5ccf48d20cd3b92a85ead46788645f",
+  "prompts": {},
+  "sessions": {
+    "s_871e178133cbd8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5504-77f1-7b52-93e0-f2c2e7c22f71",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
