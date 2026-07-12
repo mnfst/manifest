@@ -1,5 +1,11 @@
 # manifest
 
+## 6.15.1
+
+### Patch Changes
+
+- 970ed63: Show newly created harnesses in the sidebar immediately.
+
 ## 6.15.0
 
 ### Minor Changes
