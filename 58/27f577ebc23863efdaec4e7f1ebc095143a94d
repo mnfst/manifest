@@ -1,0 +1,25 @@
+packages/frontend/src/pages/Welcome.tsx
+  s_99d7ec6a6edad1::t_26c42dfcb35ea2 751-755
+  s_99d7ec6a6edad1::t_f36a81b27faa9e 239
+  s_99d7ec6a6edad1::t_de182dad632d14 387
+  s_99d7ec6a6edad1::t_a8e60d564d1153 271
+  s_99d7ec6a6edad1::t_cb7b8bbe3fd6bc 466-468
+  s_99d7ec6a6edad1::t_11644f7c599cdf 1217
+  s_99d7ec6a6edad1::t_cf68acc5c70582 881
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "5827f577ebc23863efdaec4e7f1ebc095143a94d",
+  "prompts": {},
+  "sessions": {
+    "s_99d7ec6a6edad1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a5b21433-3772-412c-9590-875d2ced1685",
+        "model": "deepseek/deepseek-v4-flash"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
