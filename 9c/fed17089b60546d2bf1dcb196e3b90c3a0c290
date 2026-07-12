@@ -1,0 +1,38 @@
+packages/frontend/src/pages/Playground.tsx
+  s_9af6f1debb95de::t_3682f6e359858a 125-128,192-193
+  s_9af6f1debb95de::t_cfeba25518bde7 12,129
+  s_9af6f1debb95de::t_8487b095242673 130-131,194-195,198,548-550
+packages/frontend/tests/pages/Welcome.test.ts
+  s_9af6f1debb95de::t_737c414e83477c 74
+packages/frontend/src/services/api/messages.ts
+  s_9af6f1debb95de::t_db8dedfa062cd3 1,108,110
+packages/frontend/src/pages/Welcome.tsx
+  s_9af6f1debb95de::t_10fc0a0bfc1b50 271,751-755
+  s_9af6f1debb95de::t_51a3b8572c4258 756-758,1220
+packages/frontend/tests/pages/Playground.test.tsx
+  s_9af6f1debb95de::t_de9e21417a1e49 549-550,571,575-576
+  s_9af6f1debb95de::t_a6ecc40bed2d77 399,495,555,560-565,568,572-574,826
+  s_9af6f1debb95de::t_a0fbac5ce33cb3 69-72,87-90,241,284-287,391-398,478,496-497,513-522,542,577-578,727-729,771,824-825
+packages/frontend/src/index.tsx
+  s_9af6f1debb95de::t_eeca2176f4f85f 37,82
+packages/frontend/tests/services/api/messages.test.ts
+  s_9af6f1debb95de::t_491cdd15c064cc 64-69
+packages/frontend/tests/components/RoutingModals.test.tsx
+  s_9af6f1debb95de::t_ef505b80702847 441-451,454-458,463-464
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "9cfed17089b60546d2bf1dcb196e3b90c3a0c290",
+  "prompts": {},
+  "sessions": {
+    "s_9af6f1debb95de": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f57ed-c127-7df0-8c86-2ffe75c631c0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
