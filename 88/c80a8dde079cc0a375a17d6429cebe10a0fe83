@@ -1,0 +1,19 @@
+.changeset/safari-modal-backdrop.md
+  s_d780033b38dc96::t_32e11bb3413cca 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "88c80a8dde079cc0a375a17d6429cebe10a0fe83",
+  "prompts": {},
+  "sessions": {
+    "s_d780033b38dc96": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f56ad-6f7a-73d2-bb0c-3c34d307d1d2",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
