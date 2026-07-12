@@ -1446,12 +1446,7 @@ describe('ProviderModelFetcherService', () => {
       json: async () => ({ data: [] }),
     });
 
-    await service.fetch(
-      'minimax',
-      'sk-test',
-      'subscription',
-      'https://api.minimaxi.com/anthropic/v1',
-    );
+    await service.fetch('minimax', 'sk-test', 'subscription', 'https://api.minimaxi.com/anthropic');
 
     expect(fetchSpy).toHaveBeenCalledWith(
       'https://api.minimaxi.com/anthropic/v1/models?limit=100',

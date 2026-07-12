@@ -1518,7 +1518,7 @@ describe('ModelDiscoveryService', () => {
         t: 'minimax-access',
         r: 'minimax-refresh',
         e: Date.now() + 60000,
-        u: 'https://api.minimax.io/anthropic/v1',
+        u: 'https://api.minimax.io/anthropic',
       });
       mockDecrypt.mockReturnValue(blob);
 
@@ -1536,7 +1536,7 @@ describe('ModelDiscoveryService', () => {
         'minimax',
         'minimax-access',
         'subscription',
-        'https://api.minimax.io/anthropic/v1',
+        'https://api.minimax.io/anthropic',
       );
     });
 

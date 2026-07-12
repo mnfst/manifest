@@ -23,15 +23,15 @@ describe('resolveForwardEndpoint', () => {
     expect(out.customEndpoint).toBeUndefined();
   });
 
-  it('builds the minimax region endpoint from a valid resource_url and strips the prefix', () => {
+  it('normalises a legacy MiniMax resource_url before building the region endpoint', () => {
     const out = resolveForwardEndpoint({
       provider: 'minimax',
       authType: 'subscription',
       model: 'minimax/abab',
-      resourceUrl: 'https://api.minimaxi.com/anthropic/v1',
+      resourceUrl: 'https://api.minimaxi.com/anthropic',
     });
     expect(out.forwardModel).toBe('abab');
-    expect(out.customEndpoint?.baseUrl).toContain('api.minimaxi.com');
+    expect(out.customEndpoint?.baseUrl).toBe('https://api.minimaxi.com/anthropic/v1');
   });
 
   it('warns and builds no endpoint for an invalid minimax resource_url (still strips prefix)', () => {

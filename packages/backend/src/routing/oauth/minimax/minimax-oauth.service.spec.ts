@@ -229,7 +229,7 @@ describe('MinimaxOauthService', () => {
           t: 'old-access',
           r: 'old-refresh',
           e: now - 1000,
-          u: 'https://api.minimaxi.com/anthropic/v1',
+          u: 'https://api.minimaxi.com/anthropic',
         }),
         'agent-1',
         'user-1',
