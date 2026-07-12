@@ -1,0 +1,22 @@
+.changeset/safari-modal-backdrop.md
+  s_d780033b38dc96::t_32e11bb3413cca 1-5
+packages/frontend/src/styles/modals.css
+  8687f30dfa1974d4 160-161
+  s_d780033b38dc96::t_3c08f76c8c8ed7 155-159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "94e3f9fa0658d096372d5d9a3f6b4f87fe4d4415",
+  "prompts": {},
+  "sessions": {
+    "s_d780033b38dc96": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f56ad-6f7a-73d2-bb0c-3c34d307d1d2",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": null
+    }
+  }
+}
