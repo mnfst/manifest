@@ -1,0 +1,34 @@
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_77e9dcdc99fd4f::t_270043f88bb6f1 37-41,142,397,514
+  s_77e9dcdc99fd4f::t_5fcaf97036c98a 36
+packages/backend/src/routing/proxy/__tests__/provider-client-model-params.spec.ts
+  s_77e9dcdc99fd4f::t_ee48cd75be5f3e 1-59
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_77e9dcdc99fd4f::t_1b7f9cc4dcc796 806,815-821,834,847-853,867-873,913-919,938,943,949,952,954-955,961-967,976-980,995
+  s_77e9dcdc99fd4f::t_73c3306430b6cf 981-982,991-994,996-997,1006-1012,1051-1057,1063,1066,1111,1116-1122,1131-1137,1146-1152,1175-1181
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_77e9dcdc99fd4f::t_c8778a309e7113 343,347,356-357
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_77e9dcdc99fd4f::t_9ac63105ba85a1 137-147
+packages/backend/src/routing/proxy/provider-client.ts
+  s_77e9dcdc99fd4f::t_c8778a309e7113 33-37,201-202,235-241,280,476,613
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_77e9dcdc99fd4f::t_270043f88bb6f1 62-64,123-139
+  s_77e9dcdc99fd4f::t_098a5117817ade 140-141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "04d5eb57de507b2eca7d67b0ae25affd2a074539",
+  "prompts": {},
+  "sessions": {
+    "s_77e9dcdc99fd4f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f54a2-07c2-7960-bd1c-13281b145fc6",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
