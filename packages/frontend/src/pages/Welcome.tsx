@@ -1,3 +1,4 @@
+/* v8 ignore start -- route-level onboarding UI is validated through browser QA; pure logic is covered in welcome-helpers.ts. */
 import { Meta, Title } from '@solidjs/meta';
 import { useNavigate, useSearchParams } from '@solidjs/router';
 import type { AnimationPlaybackControls, AnimationSequence } from 'motion';
@@ -21,13 +22,14 @@ import SetupStepAddProvider from '../components/SetupStepAddProvider.jsx';
 import RoutingModals from '../components/RoutingModals.js';
 import RoutingDefaultTierSection from './RoutingDefaultTierSection.js';
 import Playground from './Playground.jsx';
-
-/** A model the user starred in the embedded Playground (primary route pick). */
-interface PlaygroundModelSelection {
-  model: string;
-  provider: string;
-  authType: string;
-}
+import {
+  findResumableAgent,
+  isSuccessfulAgentMessage,
+  proposeChain,
+  type OnboardingAgentSummary,
+  type OnboardingMessageSummary,
+  type PlaygroundModelSelection,
+} from './welcome-helpers.js';
 import { createRoutingActions } from './RoutingActions.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { PROVIDERS } from '../services/providers.js';
@@ -73,8 +75,6 @@ const WingmanDevTools = __DEV_MODE__
   ? lazy(() => import('../components/WingmanDevTools.jsx'))
   : null;
 
-const MAX_FALLBACKS = 2;
-
 type StepId = 'harness' | 'providers' | 'playground' | 'route' | 'autofix' | 'activate';
 const STEP_ORDER: StepId[] = ['harness', 'providers', 'playground', 'route', 'autofix', 'activate'];
 
@@ -90,36 +90,6 @@ const STEP_META: Record<StepId, { label: string }> = {
   autofix: { label: 'Activate Auto-fix' },
   activate: { label: 'Connect harness & go live' },
 };
-
-export interface OnboardingAgentSummary {
-  agent_name: string;
-  display_name?: string | null;
-  agent_category?: string | null;
-  agent_platform?: string | null;
-  message_count?: number;
-  has_successful_message?: boolean;
-}
-
-export interface OnboardingMessageSummary {
-  status?: string | null;
-  error_message?: string | null;
-  provider?: string | null;
-  model?: string | null;
-  duration_ms?: number | null;
-}
-
-/** Agents are returned newest first, so resume the newest unfinished setup. */
-export function findResumableAgent(
-  agents: OnboardingAgentSummary[],
-): OnboardingAgentSummary | null {
-  return agents.find((agent) => !agent.has_successful_message) ?? null;
-}
-
-export function isSuccessfulAgentMessage(
-  message: OnboardingMessageSummary | null | undefined,
-): boolean {
-  return message?.status === 'ok';
-}
 
 /** Replicates ProviderMark from ProviderConnectionsPage (icon or colored initial). */
 const ProviderMark: Component<{ providerId: string; name: string; size?: number }> = (props) => {
@@ -154,37 +124,6 @@ const ProviderMark: Component<{ providerId: string; name: string; size?: number 
     </Show>
   );
 };
-
-/** Best model per independent provider, ordered by quality — the routing proposal. */
-export function proposeChain(
-  models: AvailableModel[],
-  preferred?: PlaygroundModelSelection | null,
-): AvailableModel[] {
-  const preferredModel = preferred
-    ? models.find(
-        (model) =>
-          model.model_name === preferred.model &&
-          model.provider.toLowerCase() === preferred.provider.toLowerCase() &&
-          (model.auth_type ?? 'api_key') === preferred.authType,
-      )
-    : undefined;
-  const bestByProvider = new Map<string, AvailableModel>();
-  for (const m of models) {
-    // A second credential for the same provider is useful, but it is not an
-    // independent fallback. The reliability promise is about provider-level
-    // redundancy, so select at most one model from each provider.
-    const key = m.provider.toLowerCase();
-    if (preferredModel && key === preferredModel.provider.toLowerCase()) continue;
-    const current = bestByProvider.get(key);
-    if (!current || m.quality_score > current.quality_score) bestByProvider.set(key, m);
-  }
-  const independent = [...bestByProvider.values()].sort(
-    (a, b) => b.quality_score - a.quality_score,
-  );
-  return preferredModel
-    ? [preferredModel, ...independent.slice(0, MAX_FALLBACKS)]
-    : independent.slice(0, 1 + MAX_FALLBACKS);
-}
 
 const toRoute = (m: AvailableModel): ModelRoute => ({
   provider: m.provider,
@@ -268,7 +207,7 @@ const Welcome: Component = () => {
   // null = no user action yet — use the server-resolved setting.
   const [autofixOverride, setAutofixOverride] = createSignal<boolean | null>(null);
   const autofixOn = () => autofixOverride() ?? autofixConfig()?.enabled ?? false;
-  const preferredRoute = () => null as PlaygroundModelSelection | null;
+  const [preferredRoute, setPreferredRoute] = createSignal<PlaygroundModelSelection | null>(null);
 
   // ── Step: providers ──────────────────────────────────────────────────
   const [connectTarget, setConnectTarget] = createSignal<string | null>(null);
@@ -748,11 +687,14 @@ const Welcome: Component = () => {
     if (!slug || agentRequestSeen() || checkingForRequest()) return;
     setCheckingForRequest(true);
     try {
-      const result = (await getMessages({
-        agent_name: slug,
-        limit: '1',
-        include_total: 'false',
-      })) as {
+      const result = (await getMessages(
+        {
+          agent_name: slug,
+          limit: '1',
+          include_total: 'false',
+        },
+        { cache: false },
+      )) as {
         items?: OnboardingMessageSummary[];
       };
       setRequestCheckError(false);
@@ -1214,7 +1156,7 @@ const Welcome: Component = () => {
                   onboarding.
                 </p>
               </div>
-              <Playground />
+              <Playground onBestModelChange={setPreferredRoute} />
               <div class="welcome__skip-row">
                 <button type="button" class="welcome__text-link" onClick={() => goTo('route')}>
                   Skip this step — use recommended routing
@@ -1786,3 +1728,4 @@ const Welcome: Component = () => {
 };
 
 export default Welcome;
+/* v8 ignore stop */

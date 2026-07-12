@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { AvailableModel } from '../../src/services/api.js';
 import {
   findResumableAgent,
   isSuccessfulAgentMessage,
   proposeChain,
-} from '../../src/pages/Welcome.js';
+} from '../../src/pages/welcome-helpers.js';
+import { markOnboardingDone } from '../../src/services/onboarding.js';
 
 const model = (
   provider: string,
@@ -71,7 +72,7 @@ describe('proposeChain', () => {
 });
 
 describe('onboarding activation helpers', () => {
-  it('resumes the newest zero-message harness', () => {
+  it('resumes the newest unfinished harness', () => {
     expect(
       findResumableAgent([
         { agent_name: 'activated', message_count: 3, has_successful_message: true },
@@ -85,5 +86,28 @@ describe('onboarding activation helpers', () => {
     expect(isSuccessfulAgentMessage({ status: 'failed' })).toBe(false);
     expect(isSuccessfulAgentMessage({ status: 'rate_limited' })).toBe(false);
     expect(isSuccessfulAgentMessage({ status: 'ok' })).toBe(true);
+  });
+
+  it('marks onboarding done in local storage', () => {
+    const calls: Array<[string, string]> = [];
+    vi.stubGlobal('localStorage', {
+      setItem: (key: string, value: string) => calls.push([key, value]),
+    });
+
+    markOnboardingDone('user-1');
+
+    expect(calls).toEqual([['manifest_onboarding_done_user-1', '1']]);
+    vi.unstubAllGlobals();
+  });
+
+  it('ignores local storage write failures', () => {
+    vi.stubGlobal('localStorage', {
+      setItem: () => {
+        throw new Error('quota');
+      },
+    });
+
+    expect(() => markOnboardingDone('user-1')).not.toThrow();
+    vi.unstubAllGlobals();
   });
 });

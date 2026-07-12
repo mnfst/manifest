@@ -9,7 +9,7 @@ import {
   Show,
   type Component,
 } from 'solid-js';
-import { useSearchParams } from '@solidjs/router';
+import { useSearchParams, type RouteSectionProps } from '@solidjs/router';
 import { Meta, Title } from '@solidjs/meta';
 import type { AuthType, PlaygroundHistoryRunSummary } from '../services/api.js';
 import {
@@ -122,7 +122,13 @@ function findWinners(columns: readonly ColumnData[]): {
   };
 }
 
-const Playground: Component = () => {
+interface PlaygroundProps {
+  onBestModelChange?: (
+    selection: { model: string; provider: string; authType: AuthType } | null,
+  ) => void;
+}
+
+const Playground: Component<PlaygroundProps & Partial<RouteSectionProps>> = (props) => {
   const [searchParams, setSearchParams] = useSearchParams<{ run?: string }>();
   const [agent] = createResource(getPlaygroundAgent);
   // Only the resolved name (from the server) drives resource sources and the
@@ -183,8 +189,13 @@ const Playground: Component = () => {
 
   const handleMarkBest = (col: ColumnData) => {
     if (viewingHistory()) return; // read-only overlay
+    const next =
+      col.columnDbId != null && col.columnDbId !== store().bestColumnId()
+        ? { model: col.model, provider: col.provider, authType: col.authType }
+        : null;
     void store()
       .markBest(col)
+      .then(() => props.onBestModelChange?.(next))
       .catch((err) =>
         toast.error(err instanceof Error ? err.message : 'Failed to set best answer'),
       );
@@ -534,7 +545,9 @@ const Playground: Component = () => {
           }
         >
           <PlaygroundPrompt
-            ref={(el) => { promptRef = el; }}
+            ref={(el) => {
+              promptRef = el;
+            }}
             value={store().prompt()}
             onChange={store().setPrompt}
             onSubmit={handleSubmit}

@@ -34,6 +34,7 @@ const Login = lazyReload(() => import('./pages/Login.jsx'));
 const Register = lazyReload(() => import('./pages/Register.jsx'));
 const ResetPassword = lazyReload(() => import('./pages/ResetPassword.jsx'));
 const Setup = lazyReload(() => import('./pages/Setup.jsx'));
+const Welcome = lazyReload(() => import('./pages/Welcome.jsx'));
 const ModelPrices = lazyReload(() => import('./pages/ModelPrices.jsx'));
 const Help = lazyReload(() => import('./pages/Help.jsx'));
 const FreeModels = lazyReload(() => import('./pages/FreeModels.jsx'));
@@ -78,6 +79,7 @@ render(
           <Route path="/providers/usage-based" component={Byok} />
           <Route path="/providers/local" component={LocalProviders} />
           <Route path="/providers/connections/:connectionId" component={ConnectionDetail} />
+          <Route path="/welcome" component={Welcome} />
           <Route path="/harnesses/:agentName" component={AgentGuard}>
             {/* Redirects: /limits → /guardrails, /messages → global /messages */}
             <Route path="/limits" component={AgentLimitsRedirect} />
