@@ -262,14 +262,14 @@ describe('ProxyFallbackService', () => {
           t: 'old-access-token',
           r: 'refresh-token',
           e: Date.now() + 10 * 60 * 1000,
-          u: 'https://api.minimax.io/anthropic',
+          u: 'https://api.minimax.io/anthropic/v1',
         }),
         setup: () =>
           minimaxOauth.unwrapToken.mockResolvedValue({
             t: 'fresh-minimax-token',
             r: 'refresh-token',
             e: Date.now() + 60 * 60 * 1000,
-            u: 'https://api.minimax.io/anthropic',
+            u: 'https://api.minimax.io/anthropic/v1',
           }),
         unwrap: () => minimaxOauth.unwrapToken,
         expectedApiKey: 'fresh-minimax-token',
@@ -824,7 +824,7 @@ describe('ProxyFallbackService', () => {
         stream: false,
         sessionKey: 'sess-1',
         authType: 'subscription',
-        resourceUrl: 'https://api.minimax.io/anthropic',
+        resourceUrl: 'https://api.minimax.io/anthropic/v1',
       });
 
       expect(providerClient.forward).toHaveBeenCalledWith(
@@ -835,7 +835,7 @@ describe('ProxyFallbackService', () => {
           body,
           stream: false,
           customEndpoint: expect.objectContaining({
-            baseUrl: 'https://api.minimax.io/anthropic',
+            baseUrl: 'https://api.minimax.io/anthropic/v1',
             format: 'anthropic',
           }),
           authType: 'subscription',
@@ -900,7 +900,7 @@ describe('ProxyFallbackService', () => {
       expect(providerClient.forward).toHaveBeenCalledWith(
         expect.objectContaining({
           customEndpoint: expect.objectContaining({
-            baseUrl: 'https://api.minimaxi.com/anthropic',
+            baseUrl: 'https://api.minimaxi.com/anthropic/v1',
             format: 'anthropic',
           }),
         }),

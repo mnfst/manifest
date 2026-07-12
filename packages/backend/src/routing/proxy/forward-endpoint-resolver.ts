@@ -133,7 +133,7 @@ export function resolveForwardEndpoint(
       }
     } else if (providerRegion === 'cn') {
       customEndpoint = buildEndpointOverride(
-        `${MINIMAX_BASE_URLS.cn}/anthropic`,
+        `${MINIMAX_BASE_URLS.cn}/anthropic/v1`,
         'minimax-subscription',
       );
     }

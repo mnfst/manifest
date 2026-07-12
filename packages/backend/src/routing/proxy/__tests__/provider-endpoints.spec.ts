@@ -486,9 +486,9 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers['user-agent']).toBe('codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown');
   });
 
-  it('minimax-subscription buildPath returns /v1/messages', () => {
+  it('minimax-subscription buildPath returns /messages', () => {
     const path = PROVIDER_ENDPOINTS['minimax-subscription'].buildPath('abab7-chat-preview');
-    expect(path).toBe('/v1/messages');
+    expect(path).toBe('/messages');
   });
 
   it('minimax-subscription uses Bearer auth with anthropic-version header', () => {
@@ -741,11 +741,14 @@ describe('PROVIDER_ENDPOINTS', () => {
 
 describe('buildEndpointOverride', () => {
   it('creates endpoint using the template for a known key', () => {
-    const ep = buildEndpointOverride('https://custom.minimax.io/anthropic', 'minimax-subscription');
+    const ep = buildEndpointOverride(
+      'https://custom.minimax.io/anthropic/v1',
+      'minimax-subscription',
+    );
 
-    expect(ep.baseUrl).toBe('https://custom.minimax.io/anthropic');
+    expect(ep.baseUrl).toBe('https://custom.minimax.io/anthropic/v1');
     expect(ep.format).toBe('anthropic');
-    expect(ep.buildPath('model-x')).toBe('/v1/messages');
+    expect(ep.buildPath('model-x')).toBe('/messages');
   });
 
   it('throws when template key does not exist', () => {
