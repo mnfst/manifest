@@ -1576,3 +1576,8 @@ h6 {
     display: none;
   }
 }
+
+/* ── Dark-mode icon overrides ─────────────────────── */
+.dark img[src$="/icons/hermes.svg"] {
+  filter: brightness(0) invert(1);
+}
