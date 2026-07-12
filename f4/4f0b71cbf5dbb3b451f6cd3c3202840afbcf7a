@@ -1,0 +1,22 @@
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_77e9dcdc99fd4f::t_b08b64c21a316b 374,386-390
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_77e9dcdc99fd4f::t_297786f12e6fa0 847-860
+  s_77e9dcdc99fd4f::t_b08b64c21a316b 887,898
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "f44f0b71cbf5dbb3b451f6cd3c3202840afbcf7a",
+  "prompts": {},
+  "sessions": {
+    "s_77e9dcdc99fd4f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f54a2-07c2-7960-bd1c-13281b145fc6",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
