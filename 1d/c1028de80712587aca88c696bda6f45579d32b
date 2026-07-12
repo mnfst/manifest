@@ -1,0 +1,19 @@
+packages/frontend/src/pages/Welcome.tsx
+  s_99d7ec6a6edad1::t_e4671249a82793 1736-1738,1749-1751,1753-1755,1760-1762
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "1dc1028de80712587aca88c696bda6f45579d32b",
+  "prompts": {},
+  "sessions": {
+    "s_99d7ec6a6edad1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a5b21433-3772-412c-9590-875d2ced1685",
+        "model": "deepseek/deepseek-v4-flash"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
