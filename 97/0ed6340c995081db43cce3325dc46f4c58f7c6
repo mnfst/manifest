@@ -1,0 +1,33 @@
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_d780033b38dc96::t_4196fa1332d742 82
+packages/frontend/tests/components/AddAgentModal.test.tsx
+  s_d780033b38dc96::t_ae4ea21ec7fdca 27-31,118-125
+  s_d780033b38dc96::t_1a77bde9b419c1 126-127
+packages/frontend/src/components/AddAgentModal.tsx
+  s_d780033b38dc96::t_ae4ea21ec7fdca 7,63-65
+.changeset/instant-harness-sidebar.md
+  s_d780033b38dc96::t_ae4ea21ec7fdca 1-5
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_d780033b38dc96::t_98f1cd37099b2c 90
+  s_d780033b38dc96::t_93105831464ae8 331-348
+packages/frontend/tests/pages/Workspace-validation.test.tsx
+  s_d780033b38dc96::t_4196fa1332d742 59
+packages/frontend/src/services/sse.ts
+  s_d780033b38dc96::t_ae4ea21ec7fdca 15-20,59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "970ed6340c995081db43cce3325dc46f4c58f7c6",
+  "prompts": {},
+  "sessions": {
+    "s_d780033b38dc96": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f56ad-6f7a-73d2-bb0c-3c34d307d1d2",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
