@@ -1,0 +1,23 @@
+packages/frontend/src/services/onboarding.ts
+  s_99d7ec6a6edad1::t_a2b4a36998e125 1-29
+packages/frontend/package.json
+  s_99d7ec6a6edad1::t_51d0177d82df77 23
+packages/frontend/src/pages/Welcome.tsx
+  s_99d7ec6a6edad1::t_5bfc08c76a65e0 23-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "84cc7f463eb44a0d78de1aca20cbe07011a38a78",
+  "prompts": {},
+  "sessions": {
+    "s_99d7ec6a6edad1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a5b21433-3772-412c-9590-875d2ced1685",
+        "model": "deepseek/deepseek-v4-flash"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
