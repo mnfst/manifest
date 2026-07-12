@@ -1,0 +1,58 @@
+packages/frontend/tests/pages/Playground.test.tsx
+  s_9af6f1debb95de::t_a0fbac5ce33cb3 69-72,87-90,241,284-287,388-398,476,494-495,511-520,540,575-576,727-729,771,824-825
+  s_9af6f1debb95de::t_de9e21417a1e49 547-548,569,573-574
+  s_9af6f1debb95de::t_6f5836975fd7c0 578-579
+  s_9af6f1debb95de::t_a6ecc40bed2d77 493,553,558-563,566,570-572,826
+packages/frontend/src/services/api/messages.ts
+  s_9af6f1debb95de::t_db8dedfa062cd3 1,108,110
+packages/frontend/src/pages/Playground.tsx
+  s_9af6f1debb95de::t_8487b095242673 130-131,194-195,198,548-550
+  s_9af6f1debb95de::t_3682f6e359858a 125-128,192-193
+  s_9af6f1debb95de::t_cfeba25518bde7 12,129
+packages/frontend/tests/services/api/messages.test.ts
+  s_9af6f1debb95de::t_38d8d70fe60e1f 66-71
+  s_9af6f1debb95de::t_491cdd15c064cc 64-65,72-73
+packages/frontend/src/pages/welcome-helpers.ts
+  s_9af6f1debb95de::t_175acb87193491 1-71
+packages/frontend/tests/components/RoutingModals.test.tsx
+  s_9af6f1debb95de::t_ef505b80702847 441-451,454-458,463-464
+packages/frontend/tests/pages/Welcome.test.ts
+  s_9af6f1debb95de::t_228aae964ab3b1 7
+  s_9af6f1debb95de::t_cdf3240bc5fb5e 1
+  s_9af6f1debb95de::t_39610e8acd871b 8,90-100
+  s_9af6f1debb95de::t_224808ba535d91 102-112
+  s_9af6f1debb95de::t_737c414e83477c 75
+  s_133610ec4cbb54::t_7594e1ccfe3fa2 101
+packages/frontend/src/pages/Welcome.tsx
+  s_9af6f1debb95de::t_a656b41f6a0758 25-32
+  s_9af6f1debb95de::t_10fc0a0bfc1b50 210,690-694
+  s_9af6f1debb95de::t_619457b1f72be0 1
+  s_9af6f1debb95de::t_705dab8e703a5a 1731
+  s_9af6f1debb95de::t_51a3b8572c4258 695-697,1159
+packages/frontend/src/index.tsx
+  s_9af6f1debb95de::t_eeca2176f4f85f 37,82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "1a4096cc1f4873bb8c866e81ca20b2bb11828f4c",
+  "prompts": {},
+  "sessions": {
+    "s_133610ec4cbb54": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5495-541b-7aa1-82fc-8cfdf84b0125",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_9af6f1debb95de": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f57ed-c127-7df0-8c86-2ffe75c631c0",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
