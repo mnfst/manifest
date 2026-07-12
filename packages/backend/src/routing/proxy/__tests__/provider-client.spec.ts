@@ -3822,6 +3822,47 @@ describe('ProviderClient', () => {
       expect(sentBody.stream_options).toEqual({ include_usage: true });
     });
 
+    it('drops Anthropic thinking only for OpenRouter Messages requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: 'nvidia/nemotron-3-ultra-550b-a55b',
+        body: {
+          messages: [{ role: 'user', content: 'Hello' }],
+          thinking: { type: 'enabled', budget_tokens: 1024 },
+        },
+        chatBody: {
+          messages: [{ role: 'user', content: 'Hello' }],
+          thinking: { type: 'enabled', budget_tokens: 1024 },
+          reasoning: { effort: 'high' },
+        },
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).not.toHaveProperty('thinking');
+      expect(sentBody).toHaveProperty('reasoning', { effort: 'high' });
+    });
+
+    it('preserves direct OpenRouter thinking params', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: 'openai/gpt-4o',
+        body: {
+          messages: [{ role: 'user', content: 'Hello' }],
+          thinking: { type: 'enabled', budget_tokens: 1024 },
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).toHaveProperty('thinking', { type: 'enabled', budget_tokens: 1024 });
+    });
+
     it('injects stream_options.include_usage for Ollama streaming requests', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward({

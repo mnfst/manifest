@@ -588,9 +588,20 @@ export class ProviderClient {
       };
     }
 
+    // OpenRouter accepts model-specific OpenAI-compatible parameters. An Anthropic
+    // Messages request, however, has been translated to this shape and its
+    // `thinking` object is not valid on OpenRouter's API.
+    const openAiRequestSource =
+      endpointKey === 'openrouter' && ctx.apiMode === 'messages'
+        ? { ...requestSource }
+        : requestSource;
+    if (openAiRequestSource !== requestSource) {
+      delete openAiRequestSource.thinking;
+    }
+
     // OpenAI-compatible path (default)
     const sanitized = sanitizeOpenAiBody(
-      requestSource,
+      openAiRequestSource,
       endpointKey,
       ctx.model,
       ctx.reasoningContentLookup,
