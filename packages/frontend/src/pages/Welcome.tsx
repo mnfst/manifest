@@ -1733,7 +1733,9 @@ const Welcome: Component = () => {
           providers={providers() ?? []}
           customProviders={customProviders() ?? []}
           providerDeepLink={{ providerId: connectTarget()!, authType: tab() }}
-          onClose={() => setConnectTarget(null)}
+          onClose={() => {
+            setConnectTarget(null);
+          }}
           onUpdate={handleProvidersUpdate}
           onPollProviders={handleProvidersUpdate}
         />
@@ -1744,14 +1746,20 @@ const Welcome: Component = () => {
         <RoutingModals
           agentName={harnessSlug}
           dropdownTier={dropdownTier}
-          onDropdownClose={() => setDropdownTier(null)}
+          onDropdownClose={() => {
+            setDropdownTier(null);
+          }}
           fallbackPickerTier={fallbackPickerTier}
-          onFallbackPickerClose={() => setFallbackPickerTier(null)}
+          onFallbackPickerClose={() => {
+            setFallbackPickerTier(null);
+          }}
           showProviderModal={() => false}
           onProviderModalClose={() => {}}
           instructionModal={instructionModal}
           instructionProvider={() => null}
-          onInstructionClose={() => setInstructionModal(null)}
+          onInstructionClose={() => {
+            setInstructionModal(null);
+          }}
           models={() => models() ?? []}
           tiers={() => tiers() ?? []}
           customProviders={() => harnessCustomProviders() ?? []}
