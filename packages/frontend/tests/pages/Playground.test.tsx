@@ -89,31 +89,38 @@ vi.mock('../../src/components/playground/PlaygroundColumn.jsx', () => ({
   },
 }));
 
+let mockPromptTextarea: HTMLTextAreaElement | null = null;
 vi.mock('../../src/components/playground/PlaygroundPrompt.jsx', () => ({
-  default: (props: Record<string, unknown>) => (
-    <div data-testid="prompt">
-      <span data-testid="prompt-disabled">{String(props.disabled)}</span>
-      {/* Touch every prop so SolidJS evaluates each accessor (coverage). */}
-      <span data-testid="prompt-value">{String(props.value)}</span>
-      <span data-testid="prompt-running">{String(props.running)}</span>
-      {props.headersSlot as JSX.Element}
-      <button data-testid="prompt-submit" onClick={() => (props.onSubmit as () => void)()}>
-        submit
-      </button>
-      <button
-        data-testid="prompt-set"
-        onClick={() => (props.onChange as (v: string) => void)('hello world')}
-      >
-        set
-      </button>
-      <button
-        data-testid="prompt-recall"
-        onClick={() => (props.onRecallPrevious as () => void)()}
-      >
-        recall
-      </button>
-    </div>
-  ),
+  default: (props: Record<string, unknown>) => {
+    // Simulate the ref callback: create a fake textarea and pass it back.
+    const el = document.createElement('textarea');
+    mockPromptTextarea = el;
+    (props.ref as ((el: HTMLTextAreaElement) => void) | undefined)?.(el);
+    return (
+      <div data-testid="prompt">
+        <span data-testid="prompt-disabled">{String(props.disabled)}</span>
+        {/* Touch every prop so SolidJS evaluates each accessor (coverage). */}
+        <span data-testid="prompt-value">{String(props.value)}</span>
+        <span data-testid="prompt-running">{String(props.running)}</span>
+        {props.headersSlot as JSX.Element}
+        <button data-testid="prompt-submit" onClick={() => (props.onSubmit as () => void)()}>
+          submit
+        </button>
+        <button
+          data-testid="prompt-set"
+          onClick={() => (props.onChange as (v: string) => void)('hello world')}
+        >
+          set
+        </button>
+        <button
+          data-testid="prompt-recall"
+          onClick={() => (props.onRecallPrevious as () => void)()}
+        >
+          recall
+        </button>
+      </div>
+    );
+  },
 }));
 
 let lastSummaryProps: Record<string, unknown> | null = null;
@@ -361,6 +368,7 @@ describe('Playground page', () => {
     lastSummaryProps = null;
     providerModalProps = null;
     sidebarContent = null;
+    mockPromptTextarea = null;
     searchParamsState.run = undefined;
     for (const k of Object.keys(lsStore)) delete lsStore[k];
     for (const k of Object.keys(ssStore)) delete ssStore[k];
@@ -821,6 +829,26 @@ describe('Playground page', () => {
       fireEvent.click(await find('sidebar-new'));
       // Store reset clears columns; pickDefaults reseeds afterwards.
       expect(setSearchParamsFn).toHaveBeenCalledWith({ run: undefined });
+    });
+
+    it('schedules focus on the prompt textarea via requestAnimationFrame when starting a new playground', async () => {
+      const rafSpy = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+        cb(0);
+        return 0;
+      });
+      const focusSpy = vi.fn();
+      render(() => <Playground />);
+      await waitFor(() =>
+        expect(document.querySelectorAll('[data-testid^="col-"]').length).toBeGreaterThan(0),
+      );
+      // Attach a focus spy to the textarea that the mock handed to promptRef.
+      if (mockPromptTextarea) mockPromptTextarea.focus = focusSpy;
+      renderSidebar();
+      rafSpy.mockClear();
+      fireEvent.click(await find('sidebar-new'));
+      expect(rafSpy).toHaveBeenCalled();
+      expect(focusSpy).toHaveBeenCalled();
+      rafSpy.mockRestore();
     });
 
     it('Ctrl+Shift+O starts a new playground', async () => {
