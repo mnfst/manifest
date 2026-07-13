@@ -413,9 +413,10 @@ h6 {
   font-family: var(--font-body);
   font-size: var(--font-size-xs);
   font-weight: 500;
-  padding: 4px 10px;
+  height: 32px;
+  padding: 0 10px;
   border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
+  border-radius: 8px;
   background: transparent;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
