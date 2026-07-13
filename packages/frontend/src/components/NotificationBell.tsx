@@ -9,10 +9,9 @@ import {
 } from 'solid-js';
 import '../styles/notifications-bell.css';
 import { A } from '@solidjs/router';
-import { getWorkspaceAutofixStatus, type AutofixStatus } from '../services/api/analytics.js';
-import { getAutofix } from '../services/api/routing.js';
+import { getWorkspaceAutofixStatus } from '../services/api/analytics.js';
 import { getAgents } from '../services/api.js';
-import { messagePing, agentPing } from '../services/sse.js';
+import { messagePing, agentPing, routingPing } from '../services/sse.js';
 
 const READ_KEY = 'manifest_notif_read';
 
@@ -55,41 +54,32 @@ const NotificationBell: Component = () => {
     onCleanup(() => document.removeEventListener('mousedown', handler));
   }
 
-  const [status] = createResource(
-    () => ({ _ping: messagePing() }),
+  const [status, { refetch: refetchStatus }] = createResource(
+    () => ({ _a: agentPing(), _m: messagePing(), _r: routingPing() }),
     () => getWorkspaceAutofixStatus(),
   );
 
-  const [agents] = createResource(
-    () => ({ _a: agentPing(), _m: messagePing() }),
+  const [agentList] = createResource(
+    () => ({ _a: agentPing() }),
     async () => {
       try {
         const data = (await getAgents()) as { agents?: AgentRow[] } | AgentRow[];
-        const list = Array.isArray(data) ? data : (data?.agents ?? []);
-        // Check autofix for each agent
-        const results: Array<{ name: string; display: string; enabled: boolean }> = [];
-        for (const a of list) {
-          try {
-            const cfg = await getAutofix(a.agent_name);
-            if (cfg.available) {
-              results.push({
-                name: a.agent_name,
-                display: a.display_name || a.agent_name,
-                enabled: cfg.enabled,
-              });
-            }
-          } catch {
-            /* skip */
-          }
-        }
-        return results;
+        return Array.isArray(data) ? data : (data?.agents ?? []);
       } catch {
-        return [];
+        return [] as AgentRow[];
       }
     },
   );
 
-  const disabledAgents = createMemo(() => (agents() ?? []).filter((a) => !a.enabled));
+  const disabledAgents = createMemo(() => {
+    const s = status();
+    const list = agentList() ?? [];
+    if (!s || !s.available) return [];
+    const enabledSet = new Set(s.enabled_agents);
+    return list
+      .filter((a) => !enabledSet.has(a.agent_name))
+      .map((a) => ({ name: a.agent_name, display: a.display_name || a.agent_name }));
+  });
 
   const unreadCount = createMemo(
     () => disabledAgents().filter((a) => !readSet().has(a.name)).length,
