@@ -46,6 +46,7 @@ export const AUTOFIX_TS_DIMENSIONS = [
   'http_status',
   'provider',
   'error_kind',
+  'autofix',
 ] as const;
 export type AutofixTsDimension = (typeof AUTOFIX_TS_DIMENSIONS)[number];
 
@@ -186,6 +187,8 @@ export class AutofixStatsService {
         return `CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END`;
       case 'error_kind':
         return `COALESCE(at.error_class, 'none')`;
+      case 'autofix':
+        return `CASE WHEN at.autofix_applied = true THEN 'auto-fixed' ELSE 'not fixed' END`;
     }
   }
 

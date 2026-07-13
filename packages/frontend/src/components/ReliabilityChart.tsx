@@ -28,6 +28,10 @@ const OUTCOME_COLORS: Record<string, string> = {
 
 function colorFor(key: string, mode: string, idx: number): string {
   if (mode === 'disposition') return OUTCOME_COLORS[key] ?? '#888';
+  if (mode === 'autofix') {
+    if (key === 'auto-fixed') return '#1cc4bf';
+    return '#EF4444';
+  }
   if (mode === 'http_status') {
     if (key.startsWith('2')) return '#9CA3AF';
     if (key.startsWith('4')) return '#F59E0B';
