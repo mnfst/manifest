@@ -186,7 +186,7 @@ export class AutofixStatsService {
           WHEN at.status IN ('error','fallback_error','rate_limited') THEN 'error'
           ELSE 'success' END`;
       case 'http_status':
-        return `COALESCE(at.error_http_status::text, '200')`;
+        return `COALESCE(at.error_http_status::text, 'No response')`;
       case 'provider':
         return `CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END`;
       case 'error_kind':
