@@ -415,7 +415,7 @@ h6 {
   font-weight: 500;
   padding: 4px 10px;
   border: 1px solid hsl(var(--border));
-  border-radius: 3px;
+  border-radius: var(--radius);
   background: transparent;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
@@ -429,6 +429,9 @@ h6 {
   background: hsl(var(--foreground));
   color: hsl(var(--background));
   border-color: hsl(var(--foreground));
+}
+.chart-card__filter-btn--active:hover {
+  color: hsl(var(--background));
 }
 
 .chart-card__body {
