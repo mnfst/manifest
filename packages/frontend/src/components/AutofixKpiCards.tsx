@@ -60,14 +60,14 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Auto-fixed</span>
+            <span class="overview-stat-card__label">Total auto-fixed</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{formatNumber(s().autofix_saves.value)}</span>
               {trendBadge(s().autofix_saves.value, s().autofix_saves.previous)}
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Not fixed</span>
+            <span class="overview-stat-card__label">Total not fixed</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">
                 {formatNumber(s().errors_remaining.value)}

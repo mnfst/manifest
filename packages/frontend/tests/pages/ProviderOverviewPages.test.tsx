@@ -722,7 +722,7 @@ describe('GlobalOverview (analytics)', () => {
     // The shared MessageTable renders a binary status: the ok row is "Success"
     // and the non-ok rows (retry + error) both render "Failed".
     expect(screen.getByText('Success')).toBeDefined();
-    expect(screen.getAllByText('Failed').length).toBe(3);
+    expect(screen.getAllByText('Failed').length).toBe(2);
     // custom provider name resolves asynchronously
     await waitFor(() => expect(screen.getAllByText('Custom Provider').length).toBeGreaterThan(0));
     // model usage + provider connection rows render

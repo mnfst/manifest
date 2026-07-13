@@ -900,10 +900,10 @@ const GlobalOverview: Component = () => {
                 <tr>
                   <th>Provider</th>
                   <th>Type</th>
-                  <th style="text-align: right;">Requests</th>
-                  <th style="text-align: right;">Failed</th>
-                  <th style="text-align: right;">Auto-fixed</th>
                   <th>Status</th>
+                  <th style="text-align: right;">Requests</th>
+                  <th style="text-align: right;">Fail requests</th>
+                  <th style="text-align: right;">Auto-fixed</th>
                 </tr>
               </thead>
               <tbody>
@@ -976,6 +976,20 @@ const GlobalOverview: Component = () => {
                             {authLabel(group.auth_type)}
                           </span>
                         </td>
+                        <td>
+                          <Show
+                            when={isActive()}
+                            fallback={
+                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+                                Inactive
+                              </span>
+                            }
+                          >
+                            <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
+                              Active
+                            </span>
+                          </Show>
+                        </td>
                         {(() => {
                           const pKey = group.provider.startsWith('custom:')
                             ? 'custom'
@@ -1028,20 +1042,6 @@ const GlobalOverview: Component = () => {
                             </>
                           );
                         })()}
-                        <td>
-                          <Show
-                            when={isActive()}
-                            fallback={
-                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
-                                Inactive
-                              </span>
-                            }
-                          >
-                            <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
-                              Active
-                            </span>
-                          </Show>
-                        </td>
                       </tr>
                     );
                   }}
