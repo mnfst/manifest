@@ -94,14 +94,20 @@ describe('analytics chart surface components', () => {
 
     render(() => (
       <ProviderChartCard
-        activeView="tokens"
+        activeView="requests"
         onViewChange={onViewChange}
+        requestsValue={100}
+        requestsTrendPct={5}
         tokensValue={1234}
         tokensTrendPct={5}
         costValue={4.56}
         costTrendPct={-2}
         costInfoTooltip="API key cost only"
         range="24h"
+        agentRequestTimeseries={{
+          agents: ['openai'],
+          timeseries: [{ hour: '2026-06-04 10:00:00', openai: 100 }],
+        }}
         agentTimeseries={{
           agents: ['openai'],
           timeseries: [{ hour: '2026-06-04 10:00:00', openai: 1200 }],
@@ -114,12 +120,15 @@ describe('analytics chart surface components', () => {
       />
     ));
 
+    expect(screen.getByText('Requests')).toBeDefined();
     expect(screen.getByText('Cost')).toBeDefined();
     expect(screen.getByText('Token usage')).toBeDefined();
     expect(screen.getByTestId('info-tooltip')).toBeDefined();
     await buildLazyChart();
 
     // Tab controls are semantic <button>s (keyboard/a11y).
+    fireEvent.click(screen.getByText('Requests'));
+    expect(onViewChange).toHaveBeenCalledWith('requests');
     fireEvent.click(screen.getByText('Token usage'));
     expect(onViewChange).toHaveBeenCalledWith('tokens');
     fireEvent.click(screen.getByText('Cost'));
@@ -133,6 +142,8 @@ describe('analytics chart surface components', () => {
       <ProviderChartCard
         activeView="tokens"
         onViewChange={onViewChange}
+        requestsValue={100}
+        requestsTrendPct={0}
         tokensValue={1234}
         tokensTrendPct={0}
         costValue={4.56}
@@ -156,6 +167,8 @@ describe('analytics chart surface components', () => {
       <ProviderChartCard
         activeView="cost"
         onViewChange={onViewChange}
+        requestsValue={100}
+        requestsTrendPct={0}
         tokensValue={1234}
         tokensTrendPct={0}
         costValue={4.56}
@@ -179,6 +192,8 @@ describe('analytics chart surface components', () => {
       <ProviderChartCard
         activeView="tokens"
         onViewChange={vi.fn()}
+        requestsValue={0}
+        requestsTrendPct={0}
         tokensValue={0}
         tokensTrendPct={0}
         range="24h"
@@ -195,6 +210,8 @@ describe('analytics chart surface components', () => {
       <ProviderChartCard
         activeView="cost"
         onViewChange={vi.fn()}
+        requestsValue={0}
+        requestsTrendPct={0}
         tokensValue={0}
         tokensTrendPct={0}
         costValue={0}

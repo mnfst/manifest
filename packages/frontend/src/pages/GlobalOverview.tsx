@@ -202,7 +202,7 @@ const GlobalOverview: Component = () => {
   };
 
   // ── Chart view state ─────────────────────────────────────────────────
-  const [chartView, setChartView] = createSignal<'tokens' | 'cost'>('tokens');
+  const [chartView, setChartView] = createSignal<'requests' | 'tokens' | 'cost'>('requests');
 
   // Local providers only exist on self-hosted installs; cloud hides the
   // Local stat card and drops the stats grid to three columns.
@@ -628,6 +628,8 @@ const GlobalOverview: Component = () => {
               <ProviderChartCard
                 activeView={chartView()}
                 onViewChange={setChartView}
+                requestsValue={o().summary.messages.value}
+                requestsTrendPct={o().summary.messages.trend_pct}
                 tokensValue={o().summary.tokens_today.value}
                 tokensTrendPct={o().summary.tokens_today.trend_pct}
                 costValue={o().summary.cost_today.value}
@@ -635,6 +637,7 @@ const GlobalOverview: Component = () => {
                 costInfoTooltip="Actual API key costs only. Subscription usage is not included."
                 range={effectiveChartRange()}
                 agentTimeseries={filteredAgentTimeseries() ?? undefined}
+                agentRequestTimeseries={filteredAgentMessageTimeseries() ?? undefined}
                 agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
                 colorMap={agentColorMap()}
               />

@@ -25,6 +25,7 @@ import { PROVIDERS } from '../services/providers.js';
 import { getOverview } from '../services/api.js';
 import {
   getPerProviderTimeseries,
+  getPerProviderMessageTimeseries,
   getPerProviderCostTimeseries,
 } from '../services/api/analytics.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
@@ -99,7 +100,7 @@ type PivotedTimeseries = {
   timeseries: Array<Record<string, number | string>>;
 };
 
-type ProviderView = 'cost' | 'tokens';
+type ProviderView = 'requests' | 'cost' | 'tokens';
 type TimeseriesKey = { range: string; agent: string; _ping: number };
 
 const Overview: Component = () => {
@@ -136,7 +137,7 @@ const Overview: Component = () => {
     markUserSelected: () => setUserSelectedRange(true),
   });
   const effectiveRange = createMemo(() => (isProRangeLocked(range()) ? '7d' : range()));
-  const [activeView, setActiveViewRaw] = createSignal<ProviderView>('tokens');
+  const [activeView, setActiveViewRaw] = createSignal<ProviderView>('requests');
   const [tokenChartRequested, setTokenChartRequested] = createSignal(false);
   const [costChartRequested, setCostChartRequested] = createSignal(false);
   const setActiveView = (view: ProviderView) => {
@@ -233,8 +234,12 @@ const Overview: Component = () => {
     agent: params.agentName,
     _ping: messagePing(),
   });
-  const [providerTokenTs] = createResource(
+  const [providerRequestTs] = createResource(
     () => (billing.loading ? false : tsKey()),
+    (p) => getPerProviderMessageTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
+  );
+  const [providerTokenTs] = createResource(
+    () => (tokenChartRequested() && !billing.loading ? tsKey() : false),
     (p) => getPerProviderTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
   const [providerCostTs] = createResource(
@@ -262,6 +267,7 @@ const Overview: Component = () => {
 
   const allProviders = createMemo(() => {
     const set = new Set<string>([
+      ...(providerRequestTs()?.agents ?? []),
       ...(providerTokenTs()?.agents ?? []),
       ...(providerCostTs()?.agents ?? []),
     ]);
@@ -312,6 +318,7 @@ const Overview: Component = () => {
       }),
     };
   };
+  const filteredRequestTs = createMemo(() => filterTs(providerRequestTs()));
   const filteredTokenTs = createMemo(() => filterTs(providerTokenTs()));
   const filteredCostTs = createMemo(() => filterTs(providerCostTs()));
 
@@ -440,12 +447,15 @@ const Overview: Component = () => {
                   <ProviderChartCard
                     activeView={activeView()}
                     onViewChange={setActiveView}
+                    requestsValue={d().summary?.messages?.value ?? 0}
+                    requestsTrendPct={d().summary?.messages?.trend_pct ?? 0}
                     costValue={d().summary?.cost_today?.value ?? 0}
                     costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
                     tokensValue={d().summary?.tokens_today?.value ?? 0}
                     tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
                     costInfoTooltip="Actual API key costs only. Subscription usage is not included."
                     range={effectiveRange()}
+                    agentRequestTimeseries={filteredRequestTs() ?? undefined}
                     agentTimeseries={filteredTokenTs() ?? undefined}
                     agentCostTimeseries={filteredCostTs() ?? undefined}
                     colorMap={providerColorMap()}

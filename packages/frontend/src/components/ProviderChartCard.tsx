@@ -2,11 +2,9 @@ import { Show, Suspense, lazy, type Component } from 'solid-js';
 import InfoTooltip from './InfoTooltip.jsx';
 import { formatNumber, formatCost } from '../services/formatters.js';
 
-// uPlot is heavy; lazy-load the chart so it stays out of the initial bundle and
-// is only fetched when this card actually renders a chart body.
 const MultiAgentTokenChart = lazy(() => import('./MultiAgentTokenChart.jsx'));
 
-type ProviderView = 'tokens' | 'cost';
+type ProviderView = 'requests' | 'cost' | 'tokens';
 
 const trendBadge = (pct: number, value: number) => {
   if (pct === 0 || Math.abs(value) < 0.005) return null;
@@ -29,6 +27,8 @@ interface AgentTimeseries {
 interface ProviderChartCardProps {
   activeView: ProviderView;
   onViewChange: (view: ProviderView) => void;
+  requestsValue: number;
+  requestsTrendPct: number;
   tokensValue: number;
   tokensTrendPct: number;
   costValue?: number;
@@ -36,6 +36,7 @@ interface ProviderChartCardProps {
   costInfoTooltip?: string;
   range: string;
   agentTimeseries?: AgentTimeseries;
+  agentRequestTimeseries?: AgentTimeseries;
   agentCostTimeseries?: AgentTimeseries;
   colorMap?: Record<string, string>;
 }
@@ -52,6 +53,18 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
   return (
     <div class="chart-card">
       <div class="chart-card__header">
+        <button
+          type="button"
+          class="chart-card__stat chart-card__stat--clickable"
+          classList={{ 'chart-card__stat--active': props.activeView === 'requests' }}
+          onClick={() => props.onViewChange('requests')}
+        >
+          <span class="chart-card__label">Requests</span>
+          <div class="chart-card__value-row">
+            <span class="chart-card__value">{formatNumber(props.requestsValue)}</span>
+            {trendBadge(props.requestsTrendPct, props.requestsValue)}
+          </div>
+        </button>
         <Show when={showCost()}>
           <button
             type="button"
@@ -86,6 +99,20 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
       </div>
       <div class="chart-card__body">
         <Suspense fallback={EMPTY('Loading chart…')}>
+          <Show when={props.activeView === 'requests'}>
+            <Show
+              when={props.agentRequestTimeseries?.agents.length}
+              fallback={EMPTY('No request data for this time range')}
+            >
+              <MultiAgentTokenChart
+                agents={props.agentRequestTimeseries!.agents}
+                timeseries={props.agentRequestTimeseries!.timeseries}
+                range={props.range}
+                colorMap={props.colorMap}
+                label="Requests"
+              />
+            </Show>
+          </Show>
           <Show when={props.activeView === 'tokens'}>
             <Show
               when={props.agentTimeseries?.agents.length}

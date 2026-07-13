@@ -217,8 +217,8 @@ const ConnectionDetail: Component = () => {
       /* ignore */
     }
   };
-  const [chartView, setChartViewRaw] = createSignal<'tokens' | 'cost'>(savedView());
-  const setChartView = (v: 'tokens' | 'cost') => {
+  const [chartView, setChartViewRaw] = createSignal<'requests' | 'tokens' | 'cost'>(savedView());
+  const setChartView = (v: 'requests' | 'tokens' | 'cost') => {
     setChartViewRaw(v);
     try {
       sessionStorage.setItem(viewKey(), v);
@@ -703,10 +703,13 @@ const ConnectionDetail: Component = () => {
                     <ProviderChartCard
                       activeView={chartView()}
                       onViewChange={setChartView}
+                      requestsValue={analytics()!.summary.messages.value}
+                      requestsTrendPct={analytics()!.summary.messages.trend_pct}
                       tokensValue={analytics()!.summary.tokens.value}
                       tokensTrendPct={analytics()!.summary.tokens.trend_pct}
                       costValue={isByok() ? (totalCost() ?? 0) : undefined}
                       range={chartRange()}
+                      agentRequestTimeseries={filteredAgentMessageTimeseries() ?? undefined}
                       agentTimeseries={filteredAgentTimeseries() ?? undefined}
                       agentCostTimeseries={
                         isByok() ? (filteredAgentCostTimeseries() ?? undefined) : undefined

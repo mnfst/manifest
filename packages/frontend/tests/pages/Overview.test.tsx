@@ -66,10 +66,12 @@ vi.mock('../../src/services/setup-status.js', () => ({
 // Stub the chart to a marker exposing its series, and the per-view provider
 // timeseries endpoints to a controllable resolver.
 const mockPerProvider = vi.fn(() => Promise.resolve({ agents: [], timeseries: [] }));
+const mockPerProviderMessages = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockPerProviderTokens = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockPerProviderCosts = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 vi.mock('../../src/services/api/analytics.js', () => ({
   getPerProviderTimeseries: (...a: unknown[]) => mockPerProviderTokens(...a),
+  getPerProviderMessageTimeseries: (...a: unknown[]) => mockPerProviderMessages(...a),
   getPerProviderCostTimeseries: (...a: unknown[]) => mockPerProviderCosts(...a),
   getWorkspaceAutofixStatus: () => Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
   getAutofixStats: () => Promise.resolve(null),
@@ -423,9 +425,10 @@ describe('Overview', () => {
     render(() => <Overview />);
 
     await vi.waitFor(() => {
-      expect(mockPerProviderTokens).toHaveBeenCalledWith('test-agent', '30d');
+      expect(mockPerProviderMessages).toHaveBeenCalledWith('test-agent', '30d');
     });
-    expect(mockPerProviderTokens).toHaveBeenCalledTimes(1);
+    expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
+    expect(mockPerProviderTokens).not.toHaveBeenCalled();
     expect(mockPerProviderCosts).not.toHaveBeenCalled();
   });
 
@@ -438,21 +441,21 @@ describe('Overview', () => {
     const { container } = render(() => <Overview />);
 
     await vi.waitFor(() => {
-      expect(mockPerProviderTokens).toHaveBeenCalledTimes(1);
+      expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
     });
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
-    fireEvent.click(stats[0]); // cost
+    fireEvent.click(stats[1]); // cost (Requests=0, Cost=1, Token usage=2)
     await vi.waitFor(() => {
       expect(mockPerProviderCosts).toHaveBeenCalledWith('test-agent', '30d');
     });
   });
 
-  it('has clickable stat headers for cost and tokens', async () => {
+  it('has clickable stat headers for requests, cost and tokens', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       const clickable = container.querySelectorAll('.chart-card__stat--clickable');
-      expect(clickable.length).toBe(2);
+      expect(clickable.length).toBe(3);
     });
   });
 
@@ -464,21 +467,21 @@ describe('Overview', () => {
     });
     const { container } = render(() => <Overview />);
     // ProviderChartCard renders the multi-provider chart for every view; the
-    // active stat reflects the selection. Stat order is Cost / Tokens.
+    // active stat reflects the selection. Stat order is Requests / Cost / Tokens.
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="multi-agent-chart"]')).not.toBeNull();
     });
 
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
-    expect(stats.length).toBe(2);
+    expect(stats.length).toBe(3);
 
-    fireEvent.click(stats[0]); // cost
+    fireEvent.click(stats[1]); // cost
     await vi.waitFor(() => {
       const active = container.querySelector('.chart-card__stat--active');
       expect(active?.textContent).toContain('Cost');
     });
 
-    fireEvent.click(stats[1]); // tokens — renders the token-view chart
+    fireEvent.click(stats[2]); // tokens — renders the token-view chart
     await vi.waitFor(() => {
       const active = container.querySelector('.chart-card__stat--active');
       expect(active?.textContent).toContain('Token usage');
