@@ -53,6 +53,12 @@
   color: hsl(var(--foreground));
 }
 
+.overview-stat-card__value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
 /* ── Scrollable panel ────────────────────────────── */
 .scroll-panel {
   position: relative;
