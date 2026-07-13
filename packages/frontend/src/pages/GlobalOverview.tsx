@@ -442,6 +442,15 @@ const GlobalOverview: Component = () => {
       /* ignore */
     }
   };
+  const setAllAgents = (on: boolean) => {
+    const next = on ? new Set(allAgents()) : new Set<string>();
+    setSelectedAgents(next);
+    try {
+      sessionStorage.setItem(storageKey(), JSON.stringify([...next]));
+    } catch {
+      /* ignore */
+    }
+  };
 
   const filteredAgentTimeseries = createMemo(() => {
     const raw = tokenSeries();
@@ -659,6 +668,22 @@ const GlobalOverview: Component = () => {
               agentTimeseries={filteredAgentTimeseries() ?? undefined}
               agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
               colorMap={agentColorMap()}
+              seriesFilters={
+                <>
+                  <Select value={groupBy()} onChange={setGroupBy} options={GROUP_OPTIONS} />
+                  <Show when={allAgents().length > 1}>
+                    <FilterSelect
+                      noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}
+                      items={allAgents()}
+                      selected={effectiveSelected()}
+                      colorMap={agentColorMap()}
+                      onToggle={toggleAgent}
+                      onSelectAll={() => setAllAgents(true)}
+                      onUnselectAll={() => setAllAgents(false)}
+                    />
+                  </Show>
+                </>
+              }
             />
           );
         })()}

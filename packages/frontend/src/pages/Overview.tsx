@@ -493,6 +493,20 @@ const Overview: Component = () => {
                           agentTimeseries={filteredTokenTs() ?? undefined}
                           agentCostTimeseries={filteredCostTs() ?? undefined}
                           colorMap={providerColorMap()}
+                          seriesFilters={
+                            <Show when={allProviders().length > 1}>
+                              <FilterSelect
+                                noun="providers"
+                                items={allProviders()}
+                                selected={effectiveSelected()}
+                                colorMap={providerColorMap()}
+                                displayName={providerDisplayName}
+                                onToggle={toggleProvider}
+                                onSelectAll={() => setAllProviders(true)}
+                                onUnselectAll={() => setAllProviders(false)}
+                              />
+                            </Show>
+                          }
                         />
                       </>
                     );

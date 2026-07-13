@@ -1,4 +1,4 @@
-import { createSignal, Show, Suspense, lazy, type Component } from 'solid-js';
+import { createSignal, Show, Suspense, lazy, type Component, type JSX } from 'solid-js';
 import InfoTooltip from './InfoTooltip.jsx';
 import { formatNumber, formatCost } from '../services/formatters.js';
 import type { AutofixStats, AutofixTimeseries } from '../services/api/analytics.js';
@@ -39,9 +39,8 @@ export interface UnifiedChartCardProps {
   // Shared
   range: string;
   colorMap?: Record<string, string>;
-  // Requests tab filters
-  requestFilter?: string;
-  onRequestFilterChange?: (f: string) => void;
+  /** Filter controls rendered in the subtitle bar for Requests/Cost/Token tabs */
+  seriesFilters?: JSX.Element;
 }
 
 const trendBadge = (pct: number, value: number) => {
@@ -161,6 +160,9 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
               </button>
             ))}
           </div>
+        </Show>
+        <Show when={props.activeTab !== 'failed' && props.seriesFilters}>
+          <div class="chart-card__filters">{props.seriesFilters}</div>
         </Show>
       </div>
 
