@@ -85,6 +85,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getWorkspaceAutofixStatus: () => Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () => Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
+  getPerProviderReliability: () => Promise.resolve([]),
   getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
 }));
 
@@ -744,7 +745,7 @@ describe('GlobalOverview (analytics)', () => {
     // The shared MessageTable renders a binary status: the ok row is "Success"
     // and the non-ok rows (retry + error) both render "Failed".
     expect(screen.getByText('Success')).toBeDefined();
-    expect(screen.getAllByText('Failed').length).toBe(2);
+    expect(screen.getAllByText('Failed').length).toBe(3);
     // custom provider name resolves asynchronously
     await waitFor(() => expect(screen.getAllByText('Custom Provider').length).toBeGreaterThan(0));
     // model usage + provider connection rows render

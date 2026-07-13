@@ -49,4 +49,13 @@ export class AutofixAnalyticsController {
       failedOnly: query.failed_only === 'true',
     });
   }
+
+  @Get('overview/autofix-per-provider')
+  async getPerProvider(@Query() query: RangeQueryDto, @TenantCtx() ctx: TenantContext) {
+    return this.autofixStats.getPerProviderStats({
+      tenantId: ctx.tenantId,
+      range: query.range,
+      agentName: query.agent_name,
+    });
+  }
 }

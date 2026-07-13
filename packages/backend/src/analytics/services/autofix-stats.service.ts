@@ -144,6 +144,52 @@ export class AutofixStatsService {
     };
   }
 
+  async getPerProviderStats(params: {
+    tenantId: string | null;
+    range?: string;
+    agentName?: string;
+  }): Promise<Array<{ provider: string; requests: number; failed: number; autofixed: number }>> {
+    const range = params.range ?? '7d';
+    const cutoff = computeCutoff(rangeToInterval(range));
+    const qb = this.messageRepo
+      .createQueryBuilder('at')
+      .select(
+        "CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END",
+        'provider',
+      )
+      .addSelect('COUNT(*)', 'requests')
+      .addSelect(
+        `COUNT(*) FILTER (WHERE at.status IN ('error','fallback_error','rate_limited','auto_fixed'))`,
+        'failed',
+      )
+      .addSelect(
+        `COUNT(*) FILTER (WHERE at.status = 'auto_fixed' AND at.autofix_group_id IN (
+          SELECT sib.autofix_group_id FROM agent_messages sib
+          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
+            AND sib.tenant_id = at.tenant_id
+        ))`,
+        'autofixed',
+      )
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')")
+      .groupBy("CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END");
+    addTenantFilter(qb, params.tenantId, params.agentName);
+    excludePlaygroundAgents(qb);
+
+    const rows = await qb.getRawMany<{
+      provider: string;
+      requests: string;
+      failed: string;
+      autofixed: string;
+    }>();
+    return rows.map((r) => ({
+      provider: r.provider,
+      requests: Number(r.requests),
+      failed: Number(r.failed),
+      autofixed: Number(r.autofixed),
+    }));
+  }
+
   async getTimeseries(params: {
     tenantId: string | null;
     range?: string;

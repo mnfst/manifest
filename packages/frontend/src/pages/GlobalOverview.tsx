@@ -62,6 +62,8 @@ import {
   getAutofixStats,
   getAutofixTimeseries,
   getErrorBreakdown,
+  getPerProviderReliability,
+  type ProviderReliabilityRow,
 } from '../services/api/analytics.js';
 
 interface ProviderGroup {
@@ -330,6 +332,11 @@ const GlobalOverview: Component = () => {
   const [errorBreakdown] = createResource(
     () => ({ range: effectiveChartRange(), _ping: messagePing() }),
     (p) => getErrorBreakdown(p.range),
+  );
+
+  const [providerReliability] = createResource(
+    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    (p) => getPerProviderReliability(p.range),
   );
 
   // Sparkline: total errors per bucket from the failed timeseries
@@ -1168,7 +1175,9 @@ const GlobalOverview: Component = () => {
                 <tr>
                   <th>Provider</th>
                   <th>Type</th>
-                  <th>Usage (30d)</th>
+                  <th style="text-align: right;">Requests</th>
+                  <th style="text-align: right;">Failed</th>
+                  <th style="text-align: right;">Auto-fixed</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -1242,35 +1251,58 @@ const GlobalOverview: Component = () => {
                             {authLabel(group.auth_type)}
                           </span>
                         </td>
-                        <td>
-                          <Show
-                            when={!providerUsageLoading()}
-                            fallback={
-                              <span
-                                aria-hidden="true"
-                                style={{
-                                  display: 'inline-block',
-                                  width: '96px',
-                                  height: '12px',
-                                  'border-radius': 'var(--radius-sm)',
-                                  background: 'hsl(var(--muted) / 0.6)',
-                                  animation: 'skeleton-pulse 1.2s ease-in-out infinite',
-                                }}
-                              />
-                            }
-                          >
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                              <Show when={group.sparkline_7d.length > 0}>
-                                <span style="flex-shrink: 0;">
-                                  <Sparkline data={group.sparkline_7d} width={60} height={24} />
-                                </span>
-                              </Show>
-                              <span style="font-variant-numeric: tabular-nums;">
-                                {formatNumber(group.consumption_tokens)} tokens
-                              </span>
-                            </div>
-                          </Show>
-                        </td>
+                        {(() => {
+                          const pKey = group.provider.startsWith('custom:')
+                            ? 'custom'
+                            : group.provider;
+                          const rel = () => providerReliability()?.find((r) => r.provider === pKey);
+                          const maxReq = () => {
+                            const all = providerReliability();
+                            if (!all || all.length === 0) return 1;
+                            return Math.max(...all.map((r) => r.requests), 1);
+                          };
+                          return (
+                            <>
+                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                {rel() ? formatNumber(rel()!.requests) : '—'}
+                              </td>
+                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                <Show when={rel()} fallback="—">
+                                  <div style="display: flex; align-items: center; gap: 6px; justify-content: flex-end;">
+                                    <div style="width: 40px; height: 6px; background: hsl(var(--border)); border-radius: 3px; overflow: hidden;">
+                                      <div
+                                        style={{
+                                          height: '100%',
+                                          'border-radius': '3px',
+                                          background: 'hsl(var(--destructive))',
+                                          width: `${rel()!.requests > 0 ? (rel()!.failed / rel()!.requests) * 100 : 0}%`,
+                                        }}
+                                      />
+                                    </div>
+                                    <span>{formatNumber(rel()!.failed)}</span>
+                                  </div>
+                                </Show>
+                              </td>
+                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                <Show when={rel()} fallback="—">
+                                  <div style="display: flex; align-items: center; gap: 6px; justify-content: flex-end;">
+                                    <div style="width: 40px; height: 6px; background: hsl(var(--border)); border-radius: 3px; overflow: hidden;">
+                                      <div
+                                        style={{
+                                          height: '100%',
+                                          'border-radius': '3px',
+                                          background: 'hsl(var(--success))',
+                                          width: `${rel()!.failed > 0 ? (rel()!.autofixed / rel()!.failed) * 100 : 0}%`,
+                                        }}
+                                      />
+                                    </div>
+                                    <span>{formatNumber(rel()!.autofixed)}</span>
+                                  </div>
+                                </Show>
+                              </td>
+                            </>
+                          );
+                        })()}
                         <td>
                           <Show
                             when={isActive()}

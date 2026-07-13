@@ -224,6 +224,23 @@ export function getAutofixTimeseries(
   }) as Promise<AutofixTimeseries>;
 }
 
+export interface ProviderReliabilityRow {
+  provider: string;
+  requests: number;
+  failed: number;
+  autofixed: number;
+}
+
+export function getPerProviderReliability(
+  range = '7d',
+  agentName?: string,
+): Promise<ProviderReliabilityRow[]> {
+  return fetchJson('/overview/autofix-per-provider', {
+    range,
+    ...(agentName ? { agent_name: agentName } : {}),
+  }) as Promise<ProviderReliabilityRow[]>;
+}
+
 export interface ErrorBreakdownResponse {
   range: string;
   successful: number;

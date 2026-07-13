@@ -64,6 +64,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getWorkspaceAutofixStatus: () => Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () => Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
+  getPerProviderReliability: () => Promise.resolve([]),
   getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
 }));
 
