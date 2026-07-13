@@ -1,0 +1,41 @@
+packages/backend/src/analytics/services/error-breakdown.service.ts
+  s_34c2564287d902::t_a4da3404b806b8 109-129,134
+  s_34c2564287d902::t_2a96b6af0467c0 57,60,63
+  s_34c2564287d902::t_66754f9fffbc9a 154
+  s_34c2564287d902::t_a11377c7c61529 22-29
+packages/frontend/tests/services/api/analytics.test.ts
+  s_34c2564287d902::t_0c0f5e8e2b9f29 45-62
+packages/backend/src/analytics/services/error-breakdown.service.spec.ts
+  s_34c2564287d902::t_5ce647b9252854 11,20-24,28-29
+  s_34c2564287d902::t_d6953faae16664 99-119
+  s_d63e9b5bb9dcb8::t_f9acaf7b4cd7d6 120
+packages/frontend/src/services/api/analytics.ts
+  s_34c2564287d902::t_aaf4b799c830d6 164-192,197-202
+  s_34c2564287d902::t_4f1c34da0f6e61 193-196
+.changeset/autofix-count-errors-breakdown.md
+  s_34c2564287d902::t_0da1f182b3814b 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "3ea10e56318eb51302b0c85f7f700acdce89adb7",
+  "prompts": {},
+  "sessions": {
+    "s_34c2564287d902": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5f75e9ca-f536-4081-9403-884fcedc4718",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_d63e9b5bb9dcb8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c48c143-b7e9-42ef-ac2d-63a6f3a3dd65",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
