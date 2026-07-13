@@ -1,18 +1,7 @@
 import { createResource, For, Show, type Component } from 'solid-js';
 import { formatNumber } from '../services/formatters.js';
 import { messagePing } from '../services/sse.js';
-import { fetchJson } from '../services/api/core.js';
-
-interface ErrorBreakdown {
-  by_class: Record<string, number>;
-}
-
-function getErrorBreakdown(range: string, agentName?: string): Promise<ErrorBreakdown> {
-  return fetchJson('/errors/breakdown', {
-    range,
-    ...(agentName ? { agent_name: agentName } : {}),
-  }) as Promise<ErrorBreakdown>;
-}
+import { getErrorBreakdown } from '../services/api/analytics.js';
 
 function label(key: string): string {
   return key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());

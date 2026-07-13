@@ -64,6 +64,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getWorkspaceAutofixStatus: () => Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () => Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
+  getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
 }));
 
 vi.mock('../../src/services/api/routing.js', () => ({
@@ -134,6 +135,7 @@ describe('Overview - trend badges and status display', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    localStorage.setItem('manifest_global_group', 'provider');
     mockAgentName = 'test-agent';
   });
 

@@ -85,6 +85,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getWorkspaceAutofixStatus: () => Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () => Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
+  getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
 }));
 
 vi.mock('../../src/services/api/billing.js', () => ({
@@ -669,6 +670,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   ensureStorageLike('localStorage').clear();
   ensureStorageLike('sessionStorage').clear();
+  localStorage.setItem('manifest_global_group', 'provider');
   routerState.navigate.mockReset();
   routerState.params = { connectionId: 'conn-openai' };
   mockIsSelfHosted = true;

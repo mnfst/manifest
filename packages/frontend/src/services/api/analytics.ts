@@ -223,6 +223,29 @@ export function getAutofixTimeseries(
   }) as Promise<AutofixTimeseries>;
 }
 
+export interface ErrorBreakdownResponse {
+  range: string;
+  successful: number;
+  total_errors: number;
+  provider_errors: number;
+  transport_errors: number;
+  manifest_errors: number;
+  auto_fixed: number;
+  by_origin: Record<string, number>;
+  by_class: Record<string, number>;
+  provider_error_rate: number;
+}
+
+export function getErrorBreakdown(
+  range = '24h',
+  agentName?: string,
+): Promise<ErrorBreakdownResponse> {
+  return fetchJson('/errors/breakdown', {
+    range,
+    ...(agentName ? { agent_name: agentName } : {}),
+  }) as Promise<ErrorBreakdownResponse>;
+}
+
 export function getHealth() {
   return fetchJson('/health');
 }

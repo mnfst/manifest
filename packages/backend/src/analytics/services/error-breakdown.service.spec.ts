@@ -8,7 +8,7 @@ interface GroupRow {
   count: string;
 }
 
-function makeQb(groups: GroupRow[], successful: number) {
+function makeQb(groups: GroupRow[], successful: number, autoFixed: number) {
   return {
     select: jest.fn().mockReturnThis(),
     addSelect: jest.fn().mockReturnThis(),
@@ -17,12 +17,16 @@ function makeQb(groups: GroupRow[], successful: number) {
     groupBy: jest.fn().mockReturnThis(),
     addGroupBy: jest.fn().mockReturnThis(),
     getRawMany: jest.fn().mockResolvedValue(groups),
-    getRawOne: jest.fn().mockResolvedValue({ count: String(successful) }),
+    // querySuccessful resolves first, queryAutoFixed second (Promise.all order).
+    getRawOne: jest
+      .fn()
+      .mockResolvedValueOnce({ count: String(successful) })
+      .mockResolvedValue({ count: String(autoFixed) }),
   };
 }
 
-function makeService(groups: GroupRow[], successful: number) {
-  const qb = makeQb(groups, successful);
+function makeService(groups: GroupRow[], successful: number, autoFixed = 0) {
+  const qb = makeQb(groups, successful, autoFixed);
   const repo = {
     createQueryBuilder: jest.fn().mockReturnValue(qb),
   } as unknown as Repository<AgentMessage>;
@@ -90,6 +94,28 @@ describe('ErrorBreakdownService', () => {
     // Before the `request` origin existed these 9 rows were recorded as provider
     // 400s and dragged the reliability number down with them.
     expect(result.provider_error_rate).toBeCloseTo(3 / 10, 10);
+  });
+
+  it('counts healed requests via status=auto_fixed, independent of the error groups', async () => {
+    const { service, qb } = makeService(GROUPS, 81, 7);
+    const result = await service.getBreakdown({ tenantId: 't1', range: '7d' });
+
+    expect(result.auto_fixed).toBe(7);
+    // The heal count must not inflate the error totals — it is a view over rows
+    // already inside total_errors, not a new bucket.
+    expect(result.total_errors).toBe(21);
+    // The dedicated count query filters on status='auto_fixed'.
+    const filtersAutoFixed = (qb.andWhere as jest.Mock).mock.calls.some(
+      ([clause, params]) =>
+        clause === 'at.status = :autoFixedStatus' && params?.autoFixedStatus === 'auto_fixed',
+    );
+    expect(filtersAutoFixed).toBe(true);
+  });
+
+  it('reports auto_fixed as 0 when nothing was healed', async () => {
+    const { service } = makeService(GROUPS, 81);
+    const result = await service.getBreakdown({ tenantId: 't1' });
+    expect(result.auto_fixed).toBe(0);
   });
 
   it('defaults the range to 30d when none is supplied', async () => {
