@@ -42,6 +42,24 @@ describe('analytics API client', () => {
     expect(url).toContain('agent_name=demo');
   });
 
+  it('getErrorBreakdown defaults range to 24h and omits agent_name when absent', async () => {
+    const fetchMock = setupFetch({ auto_fixed: 0 });
+    await analytics.getErrorBreakdown();
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/errors/breakdown');
+    expect(url).toContain('range=24h');
+    expect(url).not.toContain('agent_name=');
+  });
+
+  it('getErrorBreakdown forwards range and agent_name when provided', async () => {
+    const fetchMock = setupFetch({ auto_fixed: 3 });
+    const out = await analytics.getErrorBreakdown('30d', 'demo');
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('range=30d');
+    expect(url).toContain('agent_name=demo');
+    expect(out.auto_fixed).toBe(3);
+  });
+
   it('getHealth GETs /health', async () => {
     const fetchMock = setupFetch({ ok: true });
     await analytics.getHealth();

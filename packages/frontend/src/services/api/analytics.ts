@@ -161,6 +161,45 @@ export function getOverview(range = '24h', agentName?: string) {
   return fetchJson('/overview', { range, ...(agentName ? { agent_name: agentName } : {}) });
 }
 
+/** Response shape of `GET /api/v1/errors/breakdown`. Mirrors the backend `ErrorBreakdownResponse`. */
+export interface ErrorBreakdownResponse {
+  range: string;
+  /** Real (successful) messages in the window — the provider-error-rate denominator. */
+  successful: number;
+  /** All classified error rows (every origin). */
+  total_errors: number;
+  /** Errors a provider actually threw (the reliability signal). */
+  provider_errors: number;
+  /** Network/timeout failures reaching a provider. */
+  transport_errors: number;
+  /** Manifest's OWN config/policy/internal rejections — NOT a provider failure. */
+  manifest_errors: number;
+  /**
+   * Requests healed by Auto-fix — one per healed request. NOT additive with
+   * `total_errors`: the healed original is a superseded attempt already counted
+   * there, so read this as "of those errors, this many were auto-fixed".
+   */
+  auto_fixed: number;
+  by_origin: Record<string, number>;
+  by_class: Record<string, number>;
+  /** provider_errors / (provider_errors + successful), 0..1. */
+  provider_error_rate: number;
+}
+
+/**
+ * Error + Auto-fix breakdown for the window. `range` is one of the standard
+ * analytics presets (1h/6h/24h/7d/30d/90d/365d); pass the page's range signal.
+ */
+export function getErrorBreakdown(
+  range = '24h',
+  agentName?: string,
+): Promise<ErrorBreakdownResponse> {
+  return fetchJson('/errors/breakdown', {
+    range,
+    ...(agentName ? { agent_name: agentName } : {}),
+  }) as Promise<ErrorBreakdownResponse>;
+}
+
 export function getHealth() {
   return fetchJson('/health');
 }
