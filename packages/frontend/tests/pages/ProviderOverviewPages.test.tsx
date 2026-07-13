@@ -120,16 +120,14 @@ vi.mock('../../src/components/ProviderChartCard.jsx', () => ({
     onViewChange: (view: 'messages' | 'tokens' | 'cost') => void;
     tokensValue: number;
     tokensTrendPct?: number;
-    messagesValue: number;
-    messagesTrendPct?: number;
+    requestsValue: number;
+    requestsTrendPct?: number;
     costValue?: number;
     costTrendPct?: number;
     costInfoTooltip?: string;
-    tokenUsage?: unknown[];
-    messageChartData?: unknown[];
     range?: string;
     agentTimeseries?: { agents: string[]; timeseries: unknown[] };
-    agentMessageTimeseries?: { agents: string[]; timeseries: unknown[] };
+    agentRequestTimeseries?: { agents: string[]; timeseries: unknown[] };
     agentCostTimeseries?: { agents: string[]; timeseries: unknown[] };
     colorMap?: Record<string, string>;
   }) => (
@@ -137,19 +135,61 @@ vi.mock('../../src/components/ProviderChartCard.jsx', () => ({
       <button onClick={() => props.onViewChange('messages')}>Requests chart</button>
       <button onClick={() => props.onViewChange('tokens')}>Tokens chart</button>
       <button onClick={() => props.onViewChange('cost')}>Cost chart</button>
-      {/* Read every prop so each prop accessor is exercised for coverage. */}
       <span>{props.tokensValue}</span>
       <span>{props.tokensTrendPct ?? 0}</span>
-      <span>{props.messagesValue}</span>
-      <span>{props.messagesTrendPct ?? 0}</span>
+      <span>{props.requestsValue}</span>
+      <span>{props.requestsTrendPct ?? 0}</span>
       <span>{props.costValue ?? 0}</span>
       <span>{props.costTrendPct ?? 0}</span>
       <span>{props.costInfoTooltip ?? ''}</span>
-      <span>{props.tokenUsage?.length ?? 0}</span>
-      <span>{props.messageChartData?.length ?? 0}</span>
       <span>{props.range}</span>
       <span data-testid="ts-agents">{props.agentTimeseries?.agents.join(',') ?? ''}</span>
-      <span data-testid="msg-agents">{props.agentMessageTimeseries?.agents.join(',') ?? ''}</span>
+      <span data-testid="msg-agents">{props.agentRequestTimeseries?.agents.join(',') ?? ''}</span>
+      <span data-testid="cost-agents">{props.agentCostTimeseries?.agents.join(',') ?? ''}</span>
+      <span data-testid="color-keys">{Object.keys(props.colorMap ?? {}).join(',')}</span>
+    </div>
+  ),
+}));
+
+vi.mock('../../src/components/UnifiedChartCard.jsx', () => ({
+  default: (props: {
+    activeTab: string;
+    onTabChange: (tab: 'requests' | 'failed' | 'tokens' | 'cost') => void;
+    tokensValue: number;
+    tokensTrendPct?: number;
+    requestsValue: number;
+    requestsTrendPct?: number;
+    failedValue?: number;
+    failedTrendPct?: number;
+    failedTimeseries?: unknown;
+    failedFilter?: string;
+    onFailedFilterChange?: (f: string) => void;
+    costValue?: number;
+    costTrendPct?: number;
+    costInfoTooltip?: string;
+    range?: string;
+    agentTimeseries?: { agents: string[]; timeseries: unknown[] };
+    agentRequestTimeseries?: { agents: string[]; timeseries: unknown[] };
+    agentCostTimeseries?: { agents: string[]; timeseries: unknown[] };
+    colorMap?: Record<string, string>;
+  }) => (
+    <div data-active-view={props.activeTab} data-testid="provider-chart-card">
+      <button onClick={() => props.onTabChange('requests')}>Requests chart</button>
+      <button onClick={() => props.onTabChange('failed')}>Failed chart</button>
+      <button onClick={() => props.onTabChange('tokens')}>Tokens chart</button>
+      <button onClick={() => props.onTabChange('cost')}>Cost chart</button>
+      <span>{props.tokensValue}</span>
+      <span>{props.tokensTrendPct ?? 0}</span>
+      <span>{props.requestsValue}</span>
+      <span>{props.requestsTrendPct ?? 0}</span>
+      <span>{props.failedValue ?? 0}</span>
+      <span>{props.failedTrendPct ?? 0}</span>
+      <span>{props.costValue ?? 0}</span>
+      <span>{props.costTrendPct ?? 0}</span>
+      <span>{props.costInfoTooltip ?? ''}</span>
+      <span>{props.range}</span>
+      <span data-testid="ts-agents">{props.agentTimeseries?.agents.join(',') ?? ''}</span>
+      <span data-testid="msg-agents">{props.agentRequestTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="cost-agents">{props.agentCostTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="color-keys">{Object.keys(props.colorMap ?? {}).join(',')}</span>
     </div>
@@ -722,7 +762,7 @@ describe('GlobalOverview (analytics)', () => {
 
     fireEvent.click(screen.getByText('Requests chart'));
     expect(screen.getByTestId('provider-chart-card').getAttribute('data-active-view')).toBe(
-      'messages',
+      'requests',
     );
 
     for (const scroller of container.querySelectorAll('.scroll-panel__body')) {

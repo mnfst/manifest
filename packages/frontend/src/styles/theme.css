@@ -393,6 +393,44 @@ h6 {
   align-items: center;
 }
 
+.chart-card__subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--gap-lg);
+  min-height: 36px;
+}
+.chart-card__subtitle-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.chart-card__filters {
+  display: flex;
+  gap: 4px;
+}
+.chart-card__filter-btn {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  padding: 4px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 9999px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.chart-card__filter-btn:hover {
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--foreground) / 0.2);
+}
+.chart-card__filter-btn--active {
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  border-color: hsl(var(--foreground));
+}
+
 .chart-card__body {
   padding: var(--gap-md) var(--gap-lg) var(--gap-lg);
 }
@@ -1578,6 +1616,6 @@ h6 {
 }
 
 /* ── Dark-mode icon overrides ─────────────────────── */
-.dark img[src$="/icons/hermes.svg"] {
+.dark img[src$='/icons/hermes.svg'] {
   filter: brightness(0) invert(1);
 }

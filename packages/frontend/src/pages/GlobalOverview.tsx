@@ -36,7 +36,7 @@ import { providerIcon } from '../components/ProviderIcon.jsx';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
-import ProviderChartCard from '../components/ProviderChartCard.jsx';
+import UnifiedChartCard from '../components/UnifiedChartCard.jsx';
 import SocialFollowBanner from '../components/SocialFollowBanner.jsx';
 import Sparkline from '../components/Sparkline.jsx';
 import FilterSelect from '../components/FilterSelect.jsx';
@@ -55,9 +55,11 @@ import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/analytics-overview.css';
 import '../styles/routing.css';
-import ReliabilityCard from '../components/ReliabilityCard.jsx';
-import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
-import { getWorkspaceAutofixStatus, getAutofixStats } from '../services/api/analytics.js';
+import {
+  getWorkspaceAutofixStatus,
+  getAutofixStats,
+  getAutofixTimeseries,
+} from '../services/api/analytics.js';
 
 interface ProviderGroup {
   provider: string;
@@ -202,7 +204,30 @@ const GlobalOverview: Component = () => {
   };
 
   // ── Chart view state ─────────────────────────────────────────────────
-  const [chartView, setChartView] = createSignal<'requests' | 'tokens' | 'cost'>('requests');
+  const [chartView, setChartView] = createSignal<'requests' | 'failed' | 'tokens' | 'cost'>(
+    'requests',
+  );
+
+  // ── Failed filter state (persisted in sessionStorage) ────────────────
+  const loadFailedFilter = (): string => {
+    try {
+      const v = sessionStorage.getItem('manifest_failed_filter');
+      if (v === 'disposition' || v === 'http_status' || v === 'error_kind' || v === 'autofix')
+        return v;
+    } catch {
+      /* ignore */
+    }
+    return 'disposition';
+  };
+  const [failedFilter, setFailedFilterRaw] = createSignal(loadFailedFilter());
+  const setFailedFilter = (v: string) => {
+    setFailedFilterRaw(v);
+    try {
+      sessionStorage.setItem('manifest_failed_filter', v);
+    } catch {
+      /* ignore */
+    }
+  };
 
   // Local providers only exist on self-hosted installs; cloud hides the
   // Local stat card and drops the stats grid to three columns.
@@ -282,6 +307,14 @@ const GlobalOverview: Component = () => {
   const [autofixStats] = createResource(
     () => (autofixAvailable() ? { range: effectiveChartRange(), _ping: messagePing() } : false),
     (p) => getAutofixStats(p.range),
+  );
+
+  const [failedTs] = createResource(
+    () =>
+      autofixAvailable()
+        ? { range: effectiveChartRange(), by: failedFilter(), _ping: messagePing() }
+        : false,
+    (p) => getAutofixTimeseries(p.range, p.by),
   );
 
   // Shimmer the usage cells until the first usage load resolves; SSE refetches
@@ -613,37 +646,41 @@ const GlobalOverview: Component = () => {
           </Show>
         }
       >
-        {/* ── Auto-fix KPI cards + Reliability chart (autofix-gated) ── */}
-        <Show when={autofixAvailable()}>
-          <AutofixKpiCards stats={autofixStats()} />
-        </Show>
-        <ReliabilityCard range={effectiveChartRange()} />
-
-        {/* ── 2. Chart Card ───────────────────────────────────────────── */}
-        <div style="margin-bottom: 24px;">
-          {(() => {
-            // The enclosing Show guarantees overview() is defined here.
-            const o = () => overview()!;
-            return (
-              <ProviderChartCard
-                activeView={chartView()}
-                onViewChange={setChartView}
-                requestsValue={o().summary.messages.value}
-                requestsTrendPct={o().summary.messages.trend_pct}
-                tokensValue={o().summary.tokens_today.value}
-                tokensTrendPct={o().summary.tokens_today.trend_pct}
-                costValue={o().summary.cost_today.value}
-                costTrendPct={o().summary.cost_today.trend_pct}
-                costInfoTooltip="Actual API key costs only. Subscription usage is not included."
-                range={effectiveChartRange()}
-                agentTimeseries={filteredAgentTimeseries() ?? undefined}
-                agentRequestTimeseries={filteredAgentMessageTimeseries() ?? undefined}
-                agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
-                colorMap={agentColorMap()}
-              />
-            );
-          })()}
-        </div>
+        {/* ── 2. Unified Chart Card ─────────────────────────────────── */}
+        {(() => {
+          const o = () => overview()!;
+          const failedTrendPct = () => {
+            const s = autofixStats();
+            if (!s) return 0;
+            const cur = s.errors_remaining.value;
+            const prev = s.errors_remaining.previous;
+            if (prev === 0) return 0;
+            return Math.max(-999, Math.min(999, Math.round(((cur - prev) / prev) * 100)));
+          };
+          return (
+            <UnifiedChartCard
+              activeTab={chartView()}
+              onTabChange={setChartView}
+              requestsValue={o().summary.messages.value}
+              requestsTrendPct={o().summary.messages.trend_pct}
+              failedValue={autofixStats()?.errors_remaining.value ?? 0}
+              failedTrendPct={failedTrendPct()}
+              failedTimeseries={failedTs()}
+              failedFilter={failedFilter()}
+              onFailedFilterChange={setFailedFilter}
+              costValue={o().summary.cost_today.value}
+              costTrendPct={o().summary.cost_today.trend_pct}
+              costInfoTooltip="Actual API key costs only. Subscription usage is not included."
+              tokensValue={o().summary.tokens_today.value}
+              tokensTrendPct={o().summary.tokens_today.trend_pct}
+              range={effectiveChartRange()}
+              agentRequestTimeseries={filteredAgentMessageTimeseries() ?? undefined}
+              agentTimeseries={filteredAgentTimeseries() ?? undefined}
+              agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
+              colorMap={agentColorMap()}
+            />
+          );
+        })()}
 
         {/* ── 3. Summary Stat Cards (4 columns) ────────────────────── */}
         {(() => {
