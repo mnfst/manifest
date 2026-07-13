@@ -148,7 +148,7 @@ const ReliabilityChart: Component<ReliabilityChartProps> = (props) => {
           cursor: { x: true, y: false, points: { show: false }, drag: { x: false, y: false } },
           axes: createBaseAxes(axisColor, gridColor, props.range),
           scales: {
-            x: { range: createTimeScaleRange(props.range) },
+            x: { range: createTimeScaleRange(props.range, true) },
             y: { range: (_u: uPlot, _min: number, max: number) => [0, max * 1.1 || 10] },
           },
           series,
