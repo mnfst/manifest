@@ -1,0 +1,23 @@
+packages/backend/package.json
+  s_1544253ee011e8::t_928fe61346f20b 25,47
+.changeset/bump-modelparams-0-0-12.md
+  s_1544253ee011e8::t_ad15393afb2ffc 1-5
+package-lock.json
+  s_1544253ee011e8::t_e401bf7952d6ba 14757,14826-14834,15017
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "5d0e283c379e7150365169d4bc948d1b73e71142",
+  "prompts": {},
+  "sessions": {
+    "s_1544253ee011e8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b7bbb77d-d1c8-4b51-bb16-14b9668ab28a",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
