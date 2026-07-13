@@ -611,11 +611,13 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
               <tr>
                 <th>Provider</th>
                 <th>Connection</th>
+                <th>Status</th>
                 <th>Usage (30d)</th>
                 <Show when={copy().rowMetricHeading}>
                   <th>{copy().rowMetricHeading}</th>
                 </Show>
-                <th>Status</th>
+                <th style="text-align: right;">Requests (30d)</th>
+                <th style="text-align: right;">Success rate (30d)</th>
                 <th>Last used</th>
                 <th />
               </tr>
@@ -728,6 +730,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       </Show>
                     </td>
                     <td>
+                      <StatusBadge active={row.connection.is_active} />
+                    </td>
+                    <td>
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={96} />}>
                         <div style="display: flex; align-items: center; gap: 8px;">
                           <Show when={row.summary.sparkline_7d?.length}>
@@ -746,9 +751,24 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         </Show>
                       </td>
                     </Show>
-                    <td>
-                      <StatusBadge active={row.connection.is_active} />
-                    </td>
+                    {(() => {
+                      const pKey = row.summary.provider.startsWith('custom:')
+                        ? 'custom'
+                        : row.summary.provider;
+                      const rel = () => providerReliability()?.find((r) => r.provider === pKey);
+                      return (
+                        <>
+                          <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                            {rel() ? formatNumber(rel()!.requests) : '—'}
+                          </td>
+                          <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                            {rel() && rel()!.requests > 0
+                              ? `${(((rel()!.requests - rel()!.failed) / rel()!.requests) * 100).toFixed(1)}%`
+                              : '—'}
+                          </td>
+                        </>
+                      );
+                    })()}
                     <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
                         {connectionLastUsedAt(row.summary)
