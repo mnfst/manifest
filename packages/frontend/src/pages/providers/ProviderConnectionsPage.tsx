@@ -37,7 +37,13 @@ import { toast } from '../../services/toast-store.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
+import {
+  getPerProviderReliability,
+  getWorkspaceAutofixStatus,
+  type ProviderReliabilityRow,
+} from '../../services/api/analytics.js';
 import '../../styles/routing.css';
+import '../../styles/analytics-overview.css';
 
 type ProviderPageKind = 'subscriptions' | 'byok' | 'local';
 type ViewMode = 'list' | 'grid';
@@ -407,6 +413,51 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     connectedSummaries().reduce((sum, summary) => sum + summary.consumption_cost, 0),
   );
 
+  const [autofixStatus] = createResource(
+    () => ({ _ping: messagePing() }),
+    () => getWorkspaceAutofixStatus(),
+  );
+  const autofixAvailable = () => autofixStatus()?.available ?? false;
+
+  const [providerReliability] = createResource(
+    () => ({ _ping: messagePing() }),
+    () => getPerProviderReliability('30d'),
+  );
+
+  const totalRequests = createMemo(() =>
+    (providerReliability() ?? [])
+      .filter((r) =>
+        connectedSummaries().some((s) => {
+          const pKey = s.provider.startsWith('custom:') ? 'custom' : s.provider;
+          return pKey === r.provider;
+        }),
+      )
+      .reduce((sum, r) => sum + r.requests, 0),
+  );
+  const totalFailed = createMemo(() =>
+    (providerReliability() ?? [])
+      .filter((r) =>
+        connectedSummaries().some((s) => {
+          const pKey = s.provider.startsWith('custom:') ? 'custom' : s.provider;
+          return pKey === r.provider;
+        }),
+      )
+      .reduce((sum, r) => sum + r.failed, 0),
+  );
+  const totalAutofixed = createMemo(() =>
+    (providerReliability() ?? [])
+      .filter((r) =>
+        connectedSummaries().some((s) => {
+          const pKey = s.provider.startsWith('custom:') ? 'custom' : s.provider;
+          return pKey === r.provider;
+        }),
+      )
+      .reduce((sum, r) => sum + r.autofixed, 0),
+  );
+  const successRate = () =>
+    totalRequests() > 0 ? (totalRequests() - totalFailed()) / totalRequests() : 0;
+  const autofixedPct = () => (totalFailed() > 0 ? totalAutofixed() / totalFailed() : 0);
+
   const connectionDenominator = (summary: TenantProviderSummary) =>
     Math.max(
       summary.connections.filter((connection) => connection.is_active || hasUsage(summary)).length,
@@ -508,23 +559,44 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
         </Show>
       </div>
 
-      <Show when={showMetricCard()}>
-        <div class="chart-card" style="margin-bottom: 24px; padding: 20px 24px;">
-          <span class="chart-card__label" style="display: flex; align-items: center; gap: 0;">
-            {copy().metricLabel}
-            <InfoTooltip text={copy().metricTooltip!} />
-          </span>
-          <div class="chart-card__value-row" style="margin-top: 4px;">
-            <Show
-              when={!usageLoading()}
-              fallback={
-                <span class="chart-card__value">
-                  <UsageShimmer width={72} />
-                </span>
-              }
-            >
-              <span class="chart-card__value">{formatCost(totalApiCost()) ?? '$0.00'}</span>
-            </Show>
+      <Show when={connectedRows().length > 0}>
+        <div
+          class="overview-stats"
+          style={`grid-template-columns: repeat(${showMetricCard() ? 4 : 3}, 1fr); margin-bottom: 24px;`}
+        >
+          <Show when={showMetricCard()}>
+            <div class="overview-stat-card">
+              <span class="overview-stat-card__label">Total API cost (30d)</span>
+              <div class="overview-stat-card__value-row">
+                <Show when={!usageLoading()} fallback={<UsageShimmer width={72} />}>
+                  <span class="overview-stat-card__value">
+                    {formatCost(totalApiCost()) ?? '$0.00'}
+                  </span>
+                </Show>
+              </div>
+            </div>
+          </Show>
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">Total requests (30d)</span>
+            <div class="overview-stat-card__value-row">
+              <span class="overview-stat-card__value">{formatNumber(totalRequests())}</span>
+            </div>
+          </div>
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">Success rate (30d)</span>
+            <div class="overview-stat-card__value-row">
+              <span class="overview-stat-card__value">
+                {totalRequests() > 0 ? `${(successRate() * 100).toFixed(1)}%` : '—'}
+              </span>
+            </div>
+          </div>
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">Auto-fixed requests (30d)</span>
+            <div class="overview-stat-card__value-row">
+              <span class="overview-stat-card__value">
+                {totalFailed() > 0 ? `${(autofixedPct() * 100).toFixed(1)}%` : '0%'}
+              </span>
+            </div>
           </div>
         </div>
       </Show>
