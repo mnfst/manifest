@@ -397,7 +397,7 @@ h6 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--gap-lg);
+  padding: var(--gap-lg) var(--gap-lg) 0;
   min-height: 36px;
 }
 .chart-card__subtitle-title {
