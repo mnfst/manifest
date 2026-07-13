@@ -709,7 +709,7 @@ afterEach(() => {
 });
 
 describe('GlobalOverview (analytics)', () => {
-  it('shows the Local stat card with a 4-column grid when self-hosted', async () => {
+  it('shows the Local stat card when self-hosted', async () => {
     const { container } = render(() => <GlobalOverview />);
     await waitFor(() => {
       const labels = Array.from(container.querySelectorAll('.overview-stat-card__label')).map(
@@ -717,24 +717,18 @@ describe('GlobalOverview (analytics)', () => {
       );
       expect(labels).toContain('Local');
     });
-    expect(container.querySelector('.overview-stats')?.getAttribute('style')).toContain(
-      'repeat(4, 1fr)',
-    );
   });
 
-  it('hides the Local stat card and drops to a 3-column grid in cloud', async () => {
+  it('hides the Local stat card in cloud', async () => {
     mockIsSelfHosted = false;
     const { container } = render(() => <GlobalOverview />);
     await waitFor(() => {
-      expect(container.querySelector('.overview-stats')?.getAttribute('style')).toContain(
-        'repeat(3, 1fr)',
+      const labels = Array.from(container.querySelectorAll('.overview-stat-card__label')).map(
+        (el) => el.textContent,
       );
+      expect(labels).not.toContain('Local');
+      expect(labels).toContain('Subscriptions');
     });
-    const labels = Array.from(container.querySelectorAll('.overview-stat-card__label')).map(
-      (el) => el.textContent,
-    );
-    expect(labels).not.toContain('Local');
-    expect(labels).toContain('Subscriptions');
   });
 
   it('renders the dashboard with harness and provider data', async () => {

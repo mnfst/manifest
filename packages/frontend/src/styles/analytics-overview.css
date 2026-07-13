@@ -136,6 +136,12 @@
   text-align: right;
 }
 
+@media (max-width: 768px) {
+  .overview-split {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* ── Scrollable panel ────────────────────────────── */
 .scroll-panel {
   position: relative;
