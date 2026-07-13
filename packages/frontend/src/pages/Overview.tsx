@@ -443,7 +443,7 @@ const Overview: Component = () => {
                       class="panel__title"
                       style="display: flex; justify-content: space-between; align-items: center;"
                     >
-                      Recent Messages
+                      Recent Requests
                       <A href={`/harnesses/${params.agentName}/messages`} class="view-more-link">
                         View more
                       </A>

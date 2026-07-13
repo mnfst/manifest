@@ -128,7 +128,7 @@ describe('MessageTable', () => {
       expect(headers[1]!.textContent).toContain('Trigger');
       expect(headers[2]!.textContent).toContain('Date');
       expect(headers[3]!.textContent).toContain('Model');
-      expect(headers[4]!.textContent).toContain('Message');
+      expect(headers[4]!.textContent).toContain('Request');
       expect(headers[5]!.textContent).toContain('Cost');
       expect(headers[6]!.textContent).toContain('Tokens');
       expect(headers[7]!.textContent).toContain('Cache');
@@ -150,7 +150,7 @@ describe('MessageTable', () => {
       expect(headers[1]!.textContent).toContain('Trigger');
       expect(headers[2]!.textContent).toContain('Date');
       expect(headers[3]!.textContent).toContain('Model');
-      expect(headers[4]!.textContent).toContain('Message');
+      expect(headers[4]!.textContent).toContain('Request');
       expect(headers[6]!.textContent).toContain('Total Tokens');
       expect(headers[9]!.textContent).toContain('Cache');
       expect(headers[10]!.textContent).toContain('Latency');

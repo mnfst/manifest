@@ -81,7 +81,7 @@ export function FallbackIcon(): JSX.Element {
 
 const HEADER_LABELS: Record<MessageColumnKey, string> = {
   date: 'Date',
-  message: 'Message',
+  message: 'Request',
   cost: 'Cost',
   totalTokens: 'Tokens',
   input: 'Input',

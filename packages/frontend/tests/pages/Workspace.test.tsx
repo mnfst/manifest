@@ -233,7 +233,7 @@ describe('Workspace', () => {
     const { container } = render(() => <Workspace />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain('Tokens');
-      expect(container.textContent).toContain('Messages');
+      expect(container.textContent).toContain('Requests');
     });
   });
 

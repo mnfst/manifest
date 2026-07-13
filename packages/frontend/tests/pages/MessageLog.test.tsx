@@ -225,10 +225,10 @@ describe('MessageLog', () => {
     mockListHeaderTiers.mockResolvedValue([]);
   });
 
-  it('renders Messages heading', () => {
+  it('renders Requests heading', () => {
     mockGetMessages.mockResolvedValue(messagesData);
     render(() => <MessageLog />);
-    expect(screen.getByText('Messages')).toBeDefined();
+    expect(screen.getByText('Requests')).toBeDefined();
   });
 
   it('renders breadcrumb subtitle', () => {
@@ -295,7 +295,7 @@ describe('MessageLog', () => {
     });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('No messages yet');
+      expect(container.textContent).toContain('No requests yet');
     });
   });
 
@@ -315,7 +315,7 @@ describe('MessageLog', () => {
     });
     await fireEvent.change(selects[0], { target: { value: 'openai' } });
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('No messages match your filters');
+      expect(container.textContent).toContain('No requests match your filters');
     });
   });
 
@@ -336,7 +336,7 @@ describe('MessageLog', () => {
     await fireEvent.change(selects[0], { target: { value: 'openai' } });
     await vi.waitFor(() => {
       expect(container.textContent).not.toContain('Waiting for data');
-      expect(container.textContent).not.toContain('No messages yet');
+      expect(container.textContent).not.toContain('No requests yet');
     });
   });
 
@@ -702,7 +702,7 @@ describe('MessageLog', () => {
     });
     await fireEvent.change(selects[0], { target: { value: 'openai' } });
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('No messages match your filters');
+      expect(container.textContent).toContain('No requests match your filters');
     });
     // Click Clear filters
     const clearBtn = container.querySelector('.btn--outline')!;
@@ -924,7 +924,7 @@ describe('MessageLog', () => {
       await fireEvent.change(selects[0], { target: { value: 'openai' } });
 
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('No messages match your filters');
+        expect(container.textContent).toContain('No requests match your filters');
       });
 
       // Click clear filters
@@ -1032,7 +1032,7 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(messagesData);
     render(() => <MessageLog />);
     // Meta is mocked as null, just ensure it renders without error
-    expect(screen.getByText('Messages')).toBeDefined();
+    expect(screen.getByText('Requests')).toBeDefined();
   });
 
   it('renders routing tier badge when present', async () => {
@@ -1621,7 +1621,7 @@ describe('MessageLog', () => {
       )[0] as HTMLSelectElement;
       fireEvent.change(agentSelect, { target: { value: 'agent-alpha' } });
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('No messages match your filters');
+        expect(container.textContent).toContain('No requests match your filters');
       });
     });
 
@@ -1647,7 +1647,7 @@ describe('MessageLog', () => {
       )[0] as HTMLSelectElement;
       fireEvent.change(agentSelect, { target: { value: 'agent-alpha' } });
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('No messages match your filters');
+        expect(container.textContent).toContain('No requests match your filters');
       });
       // Clear filters — restores data
       mockGetMessages.mockResolvedValue(messagesData);
@@ -1792,7 +1792,7 @@ describe('MessageLog', () => {
       mockGetMessages.mockResolvedValue(messagesData);
       const { container } = render(() => <MessageLog />);
       const title = container.querySelector('title');
-      expect(title?.textContent).toBe('Messages - Manifest');
+      expect(title?.textContent).toBe('Requests - Manifest');
     });
 
     it('renders agent-scoped title in agent mode', () => {
@@ -1801,7 +1801,7 @@ describe('MessageLog', () => {
       const { container } = render(() => <MessageLog />);
       const title = container.querySelector('title');
       expect(title?.textContent).toContain('test-agent');
-      expect(title?.textContent).toContain('Messages - Manifest');
+      expect(title?.textContent).toContain('Requests - Manifest');
     });
 
     it("does not render 'undefined' in the title in global mode", () => {
@@ -1837,7 +1837,7 @@ describe('MessageLog', () => {
       });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('No messages yet');
+        expect(container.textContent).toContain('No requests yet');
         // Global empty state guides to /harnesses, not set-up-agent modal
         const link = container.querySelector('a[href="/harnesses"]') as HTMLAnchorElement;
         expect(link).not.toBeNull();
@@ -1857,7 +1857,7 @@ describe('MessageLog', () => {
       });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('No messages yet');
+        expect(container.textContent).toContain('No requests yet');
       });
       // Clicking the "Go to Harnesses" link should use the href attribute, not navigate()
       // Verify no button triggers mockNavigate with "/harnesses/undefined/routing"

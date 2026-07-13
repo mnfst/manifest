@@ -912,7 +912,7 @@ const GlobalOverview: Component = () => {
             class="panel__title"
             style="display: flex; justify-content: space-between; align-items: center;"
           >
-            Recent Messages
+            Recent Requests
             <A href="/messages" class="view-more-link">
               View more
             </A>
@@ -1189,7 +1189,7 @@ const GlobalOverview: Component = () => {
                 <tr>
                   <th>Harness</th>
                   <th>Usage (30d)</th>
-                  <th style="text-align: right;">Messages</th>
+                  <th style="text-align: right;">Requests</th>
                 </tr>
               </thead>
               <tbody>

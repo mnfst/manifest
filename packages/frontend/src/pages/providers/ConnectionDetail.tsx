@@ -726,13 +726,13 @@ const ConnectionDetail: Component = () => {
                   class="panel__title"
                   style="display: flex; justify-content: space-between; align-items: center;"
                 >
-                  Recent Messages
+                  Recent Requests
                 </div>
                 <Show
                   when={detail()!.recent_messages.length > 0}
                   fallback={
                     <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
-                      No messages yet.
+                      No requests yet.
                     </div>
                   }
                 >
@@ -741,7 +741,7 @@ const ConnectionDetail: Component = () => {
                       <thead>
                         <tr>
                           <th>Date</th>
-                          <th>Message ID</th>
+                          <th>Request ID</th>
                           <th>Model</th>
                           <th>Tokens</th>
                         </tr>

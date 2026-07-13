@@ -276,7 +276,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
             <>
               {/* ── Message section — always first ─────────────────── */}
               <div class="msg-detail__section">
-                <div class="msg-detail__section-title">Message</div>
+                <div class="msg-detail__section-title">Request</div>
                 <div class="msg-detail__meta">
                   <span class="msg-detail__meta-item">
                     <span class="msg-detail__meta-label">Status</span>

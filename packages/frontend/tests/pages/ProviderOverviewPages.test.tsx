@@ -134,7 +134,7 @@ vi.mock('../../src/components/ProviderChartCard.jsx', () => ({
     colorMap?: Record<string, string>;
   }) => (
     <div data-active-view={props.activeView} data-testid="provider-chart-card">
-      <button onClick={() => props.onViewChange('messages')}>Messages chart</button>
+      <button onClick={() => props.onViewChange('messages')}>Requests chart</button>
       <button onClick={() => props.onViewChange('tokens')}>Tokens chart</button>
       <button onClick={() => props.onViewChange('cost')}>Cost chart</button>
       {/* Read every prop so each prop accessor is exercised for coverage. */}
@@ -720,7 +720,7 @@ describe('GlobalOverview (analytics)', () => {
     expect(container.textContent).not.toContain('custom:cp-1/');
     expect(container.textContent).not.toContain('custom:cp-gone/');
 
-    fireEvent.click(screen.getByText('Messages chart'));
+    fireEvent.click(screen.getByText('Requests chart'));
     expect(screen.getByTestId('provider-chart-card').getAttribute('data-active-view')).toBe(
       'messages',
     );
@@ -1030,7 +1030,7 @@ describe('ConnectionDetail (analytics)', () => {
     expect(screen.getAllByText('Harnesses').length).toBeGreaterThan(0);
     expect(screen.getAllByText('gpt-5').length).toBeGreaterThan(0);
     // Recent messages table renders model and token data (description is no longer displayed).
-    expect(screen.getByText('Recent Messages')).toBeDefined();
+    expect(screen.getByText('Recent Requests')).toBeDefined();
     // BYOK connection → cost columns present
     expect(screen.getByText('Active')).toBeDefined();
 
@@ -1058,7 +1058,7 @@ describe('ConnectionDetail (analytics)', () => {
     fireEvent.change(rangeSelect, { target: { value: '365d' } });
     expect(sessionStorage.getItem('chart-range:conn-openai')).toBe('365d');
 
-    fireEvent.click(screen.getByText('Messages chart'));
+    fireEvent.click(screen.getByText('Requests chart'));
     expect(sessionStorage.getItem('chart-view:conn-openai')).toBe('messages');
 
     fireEvent.click(screen.getByText('All harnesses (2)'));
@@ -1144,7 +1144,7 @@ describe('ConnectionDetail (analytics)', () => {
     // "Custom" appears both as the badge and as the connection label.
     expect(screen.getAllByText('Custom').length).toBeGreaterThan(0);
     expect(screen.getByText('Inactive')).toBeDefined();
-    expect(screen.getByText('No messages yet.')).toBeDefined();
+    expect(screen.getByText('No requests yet.')).toBeDefined();
     expect(screen.getByText('No model usage data yet.')).toBeDefined();
     expect(screen.getByText('No harnesses have used this provider yet.')).toBeDefined();
     // Manage button is present even for inactive connections.
@@ -1414,7 +1414,7 @@ describe('ConnectionDetail (analytics)', () => {
 
     // range + view persistence both throw and are swallowed
     fireEvent.change(screen.getByRole('combobox'), { target: { value: '30d' } });
-    fireEvent.click(screen.getByText('Messages chart'));
+    fireEvent.click(screen.getByText('Requests chart'));
 
     // filter persistence (toggle / select all) all throw + swallow
     fireEvent.click(screen.getByText('All harnesses (2)'));

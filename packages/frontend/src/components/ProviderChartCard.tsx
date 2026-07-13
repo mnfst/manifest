@@ -80,7 +80,7 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
           classList={{ 'chart-card__stat--active': props.activeView === 'messages' }}
           onClick={() => props.onViewChange('messages')}
         >
-          <span class="chart-card__label">Messages</span>
+          <span class="chart-card__label">Requests</span>
           <div class="chart-card__value-row">
             <span class="chart-card__value">{props.messagesValue}</span>
             {trendBadge(props.messagesTrendPct, props.messagesValue)}
@@ -104,14 +104,14 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
           <Show when={props.activeView === 'messages'}>
             <Show
               when={props.agentMessageTimeseries?.agents.length}
-              fallback={EMPTY('No message data for this time range')}
+              fallback={EMPTY('No request data for this time range')}
             >
               <MultiAgentTokenChart
                 agents={props.agentMessageTimeseries!.agents}
                 timeseries={props.agentMessageTimeseries!.timeseries}
                 range={props.range}
                 colorMap={props.colorMap}
-                label="Messages"
+                label="Requests"
               />
             </Show>
           </Show>
