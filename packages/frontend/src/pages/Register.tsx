@@ -94,7 +94,7 @@ const Register: Component = () => {
       name: name(),
       email: email(),
       password: password(),
-      callbackURL: '/upgrade',
+      callbackURL: '/welcome',
     });
 
     setLoading(false);
@@ -120,7 +120,7 @@ const Register: Component = () => {
       } catch {
         /* billing unavailable — skip plan step */
       }
-      window.location.href = '/';
+      window.location.href = '/welcome';
       return;
     }
 
@@ -131,7 +131,7 @@ const Register: Component = () => {
   const handlePlanSelect = async (plan: PlanId) => {
     if (plan === 'free') {
       markPlanChosen(userId());
-      window.location.replace('/');
+      window.location.replace('/welcome');
       return;
     }
     if (plan === 'enterprise') {
@@ -159,7 +159,7 @@ const Register: Component = () => {
 
     const { error: resendError } = await authClient.sendVerificationEmail({
       email: email(),
-      callbackURL: '/upgrade',
+      callbackURL: '/welcome',
     });
 
     if (resendError) {
@@ -336,7 +336,7 @@ const Register: Component = () => {
             <p class="auth-header__subtitle">
               {searchParams.context === 'login'
                 ? 'Manifest now offers Free and Pro plans. Select the one that fits your needs.'
-                : 'Monitor your AI harnesses\' costs and usage'}
+                : "Monitor your AI harnesses' costs and usage"}
             </p>
           </div>
 

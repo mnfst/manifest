@@ -572,6 +572,30 @@
   border-radius: var(--radius-sm);
 }
 
+/* Steps already reached are real navigation; locked ones just look inert. */
+.welcome__progress .welcome__nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.welcome__progress .welcome__nav-btn:disabled {
+  cursor: default;
+}
+
+.welcome__progress .welcome__nav-btn:not(:disabled):hover .welcome__nav-label {
+  color: hsl(var(--foreground));
+}
+
 .welcome__progress .welcome__nav-item--active {
   background: hsl(var(--sidebar-accent));
 }

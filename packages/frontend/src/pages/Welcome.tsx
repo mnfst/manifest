@@ -61,6 +61,7 @@ import type { RequestParamDefaults } from 'manifest-shared';
 import { getMessages } from '../services/api/messages.js';
 import { customProviderColor } from '../services/formatters.js';
 import { markAgentCreated } from '../services/recent-agents.js';
+import { useRightSidebar } from '../services/right-sidebar.jsx';
 import { markOnboardingDone } from '../services/onboarding.js';
 import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'manifest-shared';
 import '../styles/routing.css';
@@ -133,6 +134,9 @@ const toRoute = (m: AvailableModel): ModelRoute => ({
 
 const Welcome: Component = () => {
   const navigate = useNavigate();
+  // Playground pushes its run-details drawer here; App renders it in the
+  // dashboard shell, so the standalone onboarding layout must render it too.
+  const { content: rightSidebar } = useRightSidebar();
   const [searchParams] = useSearchParams();
   const liftoffPreview = () => import.meta.env.DEV && searchParams.preview === 'liftoff';
   const session = authClient.useSession();
@@ -174,10 +178,16 @@ const Welcome: Component = () => {
   const [agent] = createResource(() => getPlaygroundAgent());
   const contextAgent = () => agent()?.name;
 
-  const [providers, { refetch: refetchProviders }] = createResource(contextAgent, (name) =>
+  // Providers connect against the user's harness once it exists; the reserved
+  // Playground agent only bridges the gap before creation. Declared before the
+  // resources below because createResource evaluates its source immediately.
+  const [harnessName, setHarnessName] = createSignal('');
+  const [harnessSlug, setHarnessSlug] = createSignal('');
+  const providerAgent = () => harnessSlug() || contextAgent();
+  const [providers, { refetch: refetchProviders }] = createResource(providerAgent, (name) =>
     getProviders(name),
   );
-  const [customProviders, { refetch: refetchCustom }] = createResource(contextAgent, (name) =>
+  const [customProviders, { refetch: refetchCustom }] = createResource(providerAgent, (name) =>
     getCustomProviders(name),
   );
   const [existingAgents] = createResource(
@@ -267,8 +277,6 @@ const Welcome: Component = () => {
     );
 
   // ── Step: harness ────────────────────────────────────────────────────
-  const [harnessName, setHarnessName] = createSignal('');
-  const [harnessSlug, setHarnessSlug] = createSignal('');
   const [harnessKey, setHarnessKey] = createSignal<string | null>(null);
   const [harnessKeyPrefix, setHarnessKeyPrefix] = createSignal<string | null>(null);
   const [category, setCategory] = createSignal<AgentCategory | null>('personal');
@@ -897,23 +905,33 @@ const Welcome: Component = () => {
                     'welcome__nav-item--done': stepDone(id),
                   }}
                 >
-                  <span class="welcome__nav-check" aria-hidden="true">
-                    <Show when={stepDone(id)} fallback={index() + 1}>
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="3"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </Show>
-                  </span>
-                  <span class="welcome__nav-label">{STEP_META[id].label}</span>
+                  {/* Reached steps stay revisitable; unreached ones stay locked
+                      so the wizard can't be skipped ahead from the sidebar. */}
+                  <button
+                    type="button"
+                    class="welcome__nav-btn"
+                    disabled={index() > maxStepReached()}
+                    aria-current={step() === id ? 'step' : undefined}
+                    onClick={() => goTo(id)}
+                  >
+                    <span class="welcome__nav-check" aria-hidden="true">
+                      <Show when={stepDone(id)} fallback={index() + 1}>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </Show>
+                    </span>
+                    <span class="welcome__nav-label">{STEP_META[id].label}</span>
+                  </button>
                 </li>
               )}
             </For>
@@ -1060,7 +1078,7 @@ const Welcome: Component = () => {
               </div>
 
               <Show
-                when={!providers.loading && contextAgent()}
+                when={!providers.loading && providerAgent()}
                 fallback={
                   <div class="welcome__pending">
                     <span class="welcome__spinner" />
@@ -1135,7 +1153,7 @@ const Welcome: Component = () => {
                   type="button"
                   class="btn btn--primary"
                   disabled={connectedCount() === 0}
-                  onClick={() => setStep('playground')}
+                  onClick={() => goTo('playground')}
                 >
                   Test connected models
                 </button>
@@ -1156,10 +1174,14 @@ const Welcome: Component = () => {
                   onboarding.
                 </p>
               </div>
-              <Playground onBestModelChange={setPreferredRoute} />
-              <div class="welcome__skip-row">
-                <button type="button" class="welcome__text-link" onClick={() => goTo('route')}>
-                  Skip this step — use recommended routing
+              <Playground embedded onBestModelChange={setPreferredRoute} />
+              <div class="welcome__actions welcome__actions--split welcome__actions--sticky">
+                <button type="button" class="btn btn--ghost" onClick={() => goTo('providers')}>
+                  Back to providers
+                </button>
+                <span class="welcome__actions-note">This step is optional.</span>
+                <button type="button" class="btn btn--primary" onClick={() => goTo('route')}>
+                  Continue to routing
                 </button>
               </div>
             </div>
@@ -1488,6 +1510,10 @@ const Welcome: Component = () => {
           </Show>
         </Show>
       </main>
+
+      {/* Playground run-details drawer (right sidebar) — rendered by App in
+          the dashboard, by the wizard itself here. */}
+      {rightSidebar()}
 
       {/* Dev-only: the liftoff cinematic, accessible via ?preview=liftoff. In
           production the activate step already says "it works", so a 5.6 s
