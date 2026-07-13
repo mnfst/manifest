@@ -61,6 +61,7 @@ import {
   getWorkspaceAutofixStatus,
   getAutofixStats,
   getAutofixTimeseries,
+  getErrorBreakdown,
 } from '../services/api/analytics.js';
 
 interface ProviderGroup {
@@ -324,6 +325,19 @@ const GlobalOverview: Component = () => {
     () => (groupBy() === 'status' ? { range: effectiveChartRange(), _ping: messagePing() } : false),
     (p) => getAutofixTimeseries(p.range, 'disposition'),
   );
+
+  // Error breakdown for KPI cards (top error + sparkline)
+  const [errorBreakdown] = createResource(
+    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    (p) => getErrorBreakdown(p.range),
+  );
+
+  // Sparkline: total errors per bucket from the failed timeseries
+  const errorSparkline = () => {
+    const ts = failedTs();
+    if (!ts || ts.buckets.length === 0) return undefined;
+    return ts.buckets.map((b) => b.counts.reduce((s, c) => s + c, 0));
+  };
 
   // Shimmer the usage cells until the first usage load resolves; SSE refetches
   // keep the prior numbers on screen so the table doesn't flicker.
@@ -639,7 +653,11 @@ const GlobalOverview: Component = () => {
       >
         {/* ── KPI line (autofix-gated) ── */}
         <Show when={autofixAvailable()}>
-          <AutofixKpiCards stats={autofixStats()} />
+          <AutofixKpiCards
+            stats={autofixStats()}
+            errorClasses={errorBreakdown()?.by_class}
+            errorSparkline={errorSparkline()}
+          />
         </Show>
 
         {/* ── 2. Unified Chart Card ─────────────────────────────────── */}

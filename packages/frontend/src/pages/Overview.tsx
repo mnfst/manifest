@@ -29,6 +29,7 @@ import {
   getPerProviderTimeseries,
   getPerProviderMessageTimeseries,
   getPerProviderCostTimeseries,
+  getErrorBreakdown,
 } from '../services/api/analytics.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated, isSetupPending, clearSetupPending } from '../services/recent-agents.js';
@@ -299,6 +300,20 @@ const Overview: Component = () => {
     (p) => getAutofixTimeseries(p.range, p.by, p.agent),
   );
 
+  const [errorBreakdown] = createResource(
+    () => ({
+      range: effectiveRange(),
+      agent: decodeURIComponent(params.agentName),
+      _ping: messagePing(),
+    }),
+    (p) => getErrorBreakdown(p.range, p.agent),
+  );
+  const errorSparkline = () => {
+    const ts = failedTs();
+    if (!ts || ts.buckets.length === 0) return undefined;
+    return ts.buckets.map((b) => b.counts.reduce((s, c) => s + c, 0));
+  };
+
   const allProviders = createMemo(() => {
     const set = new Set<string>([
       ...(providerRequestTs()?.agents ?? []),
@@ -471,7 +486,11 @@ const Overview: Component = () => {
                     return (
                       <>
                         <Show when={autofixAvailable()}>
-                          <AutofixKpiCards stats={autofixStats()} />
+                          <AutofixKpiCards
+                            stats={autofixStats()}
+                            errorClasses={errorBreakdown()?.by_class}
+                            errorSparkline={errorSparkline()}
+                          />
                         </Show>
                         <UnifiedChartCard
                           activeTab={activeView()}
