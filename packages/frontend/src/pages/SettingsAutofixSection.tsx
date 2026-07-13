@@ -1,4 +1,5 @@
-import { createResource, createSignal, Show, type Component } from 'solid-js';
+import { createResource, createSignal, createEffect, Show, type Component } from 'solid-js';
+import { useSearchParams } from '@solidjs/router';
 import { getAutofix, updateAutofix } from '../services/api.js';
 
 /**
@@ -42,10 +43,26 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
     }
   };
 
+  const [searchParams] = useSearchParams();
+  const [highlighted, setHighlighted] = createSignal(searchParams.highlight === 'autofix');
+  createEffect(() => {
+    if (highlighted()) {
+      const timer = setTimeout(() => setHighlighted(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  });
+
   return (
     <Show when={available()}>
       <h2 class="settings-section__title">Auto-fix</h2>
-      <div class="settings-card">
+      <div
+        class="settings-card"
+        style={
+          highlighted()
+            ? 'outline: 2px solid hsl(38, 92%, 50%); outline-offset: 2px; transition: outline 0.3s ease;'
+            : ''
+        }
+      >
         <div class="settings-card__row">
           <div class="settings-card__label">
             <span class="settings-card__label-title">Auto-fix failing requests</span>

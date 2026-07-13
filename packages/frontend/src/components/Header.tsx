@@ -1,10 +1,19 @@
 import { A, useLocation, useNavigate } from '@solidjs/router';
-import { Show, createSignal, createEffect, createResource, onCleanup, onMount, type Component } from 'solid-js';
+import {
+  Show,
+  createSignal,
+  createEffect,
+  createResource,
+  onCleanup,
+  onMount,
+  type Component,
+} from 'solid-js';
 import { useAgentName } from '../services/routing.js';
 import { authClient } from '../services/auth-client.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
+import NotificationBell from './NotificationBell.jsx';
 import { getBillingStatus } from '../services/api/billing.js';
 import {
   connectionBreadcrumbName,
@@ -43,7 +52,11 @@ const Header: Component<HeaderProps> = (props) => {
   const session = authClient.useSession();
   const navigate = useNavigate();
   const [billing] = createResource(async () => {
-    try { return await getBillingStatus(); } catch { return null; }
+    try {
+      return await getBillingStatus();
+    } catch {
+      return null;
+    }
   });
   const isPro = () => billing()?.enabled && billing()?.plan === 'pro';
 
@@ -300,6 +313,7 @@ const Header: Component<HeaderProps> = (props) => {
           </svg>
           Docs
         </a>
+        <NotificationBell />
         <Show when={!starDismissed()}>
           <div class="header__star-separator" />
           <div class="header__github-star">
