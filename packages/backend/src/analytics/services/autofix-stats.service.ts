@@ -232,6 +232,8 @@ export class AutofixStatsService {
     // Exclude autofix_role='retry' rows so each client request counts once.
     // A healed flow = one 'original' row + one 'retry' row; we count from
     // the original and check if a successful retry sibling exists.
+    // Query only total, successes, and saves from SQL.
+    // Derive errors = total - successes (guarantees they sum correctly).
     const qb = this.messageRepo
       .createQueryBuilder('at')
       .select('COUNT(*)', 'total')
@@ -252,31 +254,6 @@ export class AutofixStatsService {
         ))`,
         'saves',
       )
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status IN ('error','fallback_error','rate_limited')
-          OR (at.status = 'auto_fixed' AND at.autofix_group_id NOT IN (
-            SELECT sib.autofix_group_id FROM agent_messages sib
-            WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-              AND sib.tenant_id = at.tenant_id
-          )))`,
-        'errors',
-      )
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status = 'auto_fixed' AND at.autofix_group_id IN (
-          SELECT sib.autofix_group_id FROM agent_messages sib
-          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-            AND sib.tenant_id = at.tenant_id
-        ))`,
-        'healed',
-      )
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status = 'auto_fixed' AND at.autofix_group_id NOT IN (
-          SELECT sib.autofix_group_id FROM agent_messages sib
-          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-            AND sib.tenant_id = at.tenant_id
-        ))`,
-        'no_fix_found',
-      )
       .where('at.timestamp >= :from', { from })
       .andWhere('at.timestamp < :to', { to })
       .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')");
@@ -284,13 +261,17 @@ export class AutofixStatsService {
     excludePlaygroundAgents(qb);
 
     const row = await qb.getRawOne<Record<string, string>>();
+    const total = Number(row?.total ?? 0);
+    const successes = Number(row?.successes ?? 0);
+    const saves = Number(row?.saves ?? 0);
+    const errors = total - successes;
     return {
-      total: Number(row?.total ?? 0),
-      successes: Number(row?.successes ?? 0),
-      saves: Number(row?.saves ?? 0),
-      errors: Number(row?.errors ?? 0),
-      healed: Number(row?.healed ?? 0),
-      no_fix_found: Number(row?.no_fix_found ?? 0),
+      total,
+      successes,
+      saves,
+      errors,
+      healed: saves,
+      no_fix_found: errors - saves,
       resolving: 0,
       ineffective: 0,
     };
