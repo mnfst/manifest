@@ -542,32 +542,6 @@ const GlobalOverview: Component = () => {
         </div>
         <Show when={!hasNoAgents() || !hasNoProviders()}>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <Select value={groupBy()} onChange={setGroupBy} options={GROUP_OPTIONS} />
-            <Show when={allAgents().length > 1}>
-              <FilterSelect
-                noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}
-                items={allAgents()}
-                selected={effectiveSelected()}
-                colorMap={agentColorMap()}
-                onToggle={toggleAgent}
-                onSelectAll={() => {
-                  setSelectedAgents(new Set(allAgents()));
-                  try {
-                    sessionStorage.setItem(storageKey(), JSON.stringify([...allAgents()]));
-                  } catch {
-                    /* ignore */
-                  }
-                }}
-                onUnselectAll={() => {
-                  setSelectedAgents(new Set<string>());
-                  try {
-                    sessionStorage.setItem(storageKey(), JSON.stringify([]));
-                  } catch {
-                    /* ignore */
-                  }
-                }}
-              />
-            </Show>
             <Select value={chartRange()} onChange={setChartRange} options={rangeOptions()} />
           </div>
         </Show>

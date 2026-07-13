@@ -371,18 +371,6 @@ const Overview: Component = () => {
         style="justify-content: flex-end; border-bottom: none; padding-bottom: 0;"
       >
         <div class="header-controls">
-          <Show when={showDashboard() && allProviders().length > 1}>
-            <FilterSelect
-              noun="providers"
-              items={allProviders()}
-              selected={effectiveSelected()}
-              colorMap={providerColorMap()}
-              displayName={providerDisplayName}
-              onToggle={toggleProvider}
-              onSelectAll={() => setAllProviders(true)}
-              onUnselectAll={() => setAllProviders(false)}
-            />
-          </Show>
           <Show when={showDashboard()}>
             <Select
               value={range()}
