@@ -47,7 +47,7 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
   const [highlighted, setHighlighted] = createSignal(searchParams.highlight === 'autofix');
   createEffect(() => {
     if (highlighted()) {
-      const timer = setTimeout(() => setHighlighted(false), 3000);
+      const timer = setTimeout(() => setHighlighted(false), 1500);
       return () => clearTimeout(timer);
     }
   });
@@ -55,14 +55,7 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
   return (
     <Show when={available()}>
       <h2 class="settings-section__title">Auto-fix</h2>
-      <div
-        class="settings-card"
-        style={
-          highlighted()
-            ? 'outline: 2px solid hsl(38, 92%, 50%); outline-offset: 2px; transition: outline 0.3s ease;'
-            : ''
-        }
-      >
+      <div class="settings-card" classList={{ 'settings-card--highlight': highlighted() }}>
         <div class="settings-card__row">
           <div class="settings-card__label">
             <span class="settings-card__label-title">Auto-fix failing requests</span>
