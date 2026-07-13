@@ -45,15 +45,26 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
               {trendBadge(s().success_rate.value, s().success_rate.previous)}
             </div>
           </div>
-          <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Auto-fixed</span>
-            <div class="overview-stat-card__value-row">
-              <span class="overview-stat-card__value">{fmtPct(autofixPct())}</span>
+          <div
+            class="overview-stat-card"
+            style="display: flex; flex-direction: row; align-items: center; gap: 24px;"
+          >
+            <div style="flex: 1;">
+              <span class="overview-stat-card__label">Auto-fixed requests</span>
+              <div class="overview-stat-card__value-row">
+                <span class="overview-stat-card__value">{fmtPct(autofixPct())}</span>
+              </div>
             </div>
-            <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 4px;">
-              {formatNumber(s().autofix_saves.value)} requests auto-fixed and{' '}
-              {formatNumber(s().errors_remaining.value)} not fixed
-            </span>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: hsl(var(--success)); flex-shrink: 0;" />
+                <span>{formatNumber(s().autofix_saves.value)} auto-fixed</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: hsl(var(--destructive)); flex-shrink: 0;" />
+                <span>{formatNumber(s().errors_remaining.value)} not fixed</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
