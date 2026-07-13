@@ -728,291 +728,289 @@ const GlobalOverview: Component = () => {
           );
         })()}
 
-        {/* ── Error classes (left) + Stat Cards (right) ───────────── */}
-        <div
-          class="overview-split"
-          style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; align-items: start;"
-        >
+        {/* ── Error classes (full width) ──────────────────────────── */}
+        <div style="margin-bottom: 24px;">
           <ErrorClassCard range={effectiveChartRange()} />
-          <div>
-            {/* ── 3. Summary Stat Cards (stacked in right column) ───── */}
-            {(() => {
-              const subs = () => providerList().filter((g) => g.auth_type === 'subscription');
-              const byok = () => providerList().filter((g) => g.auth_type === 'api_key');
-              const local = () => providerList().filter((g) => g.auth_type === 'local');
-              const totalConns = (list: ProviderGroup[]) =>
-                list.reduce((s, g) => s + g.connections.length, 0);
-              const connList = (groups: ProviderGroup[]) => {
-                const items: Array<{
-                  id: string;
-                  icon: string;
-                  name: string;
-                  label: string;
-                  isCustom: boolean;
-                }> = [];
-                for (const g of groups) {
-                  for (const c of g.connections.slice(0, 5 - items.length)) {
-                    const prov = PROVIDERS.find((p) => p.id === g.provider);
-                    const customName = g.display_name ?? null;
-                    const isCustom = g.provider.startsWith('custom:');
-                    items.push({
-                      id: c.id,
-                      icon: g.provider,
-                      name: prov?.name ?? customName ?? g.provider,
-                      label: c.label,
-                      isCustom,
-                    });
-                    if (items.length >= 5) break;
-                  }
+        </div>
+
+        {/* ── 3. Summary Stat Cards (in a row) ────────────────────── */}
+        <div>
+          {(() => {
+            const subs = () => providerList().filter((g) => g.auth_type === 'subscription');
+            const byok = () => providerList().filter((g) => g.auth_type === 'api_key');
+            const local = () => providerList().filter((g) => g.auth_type === 'local');
+            const totalConns = (list: ProviderGroup[]) =>
+              list.reduce((s, g) => s + g.connections.length, 0);
+            const connList = (groups: ProviderGroup[]) => {
+              const items: Array<{
+                id: string;
+                icon: string;
+                name: string;
+                label: string;
+                isCustom: boolean;
+              }> = [];
+              for (const g of groups) {
+                for (const c of g.connections.slice(0, 5 - items.length)) {
+                  const prov = PROVIDERS.find((p) => p.id === g.provider);
+                  const customName = g.display_name ?? null;
+                  const isCustom = g.provider.startsWith('custom:');
+                  items.push({
+                    id: c.id,
+                    icon: g.provider,
+                    name: prov?.name ?? customName ?? g.provider,
+                    label: c.label,
+                    isCustom,
+                  });
                   if (items.length >= 5) break;
                 }
-                return items;
-              };
-              const cardStyle = 'display: flex; flex-direction: column; padding: 20px;';
-              return (
-                <div class="overview-stats" style="grid-template-columns: 1fr; gap: 16px;">
-                  <div class="overview-stat-card" style={cardStyle}>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                      <span class="overview-stat-card__label">Subscriptions</span>
-                      <A
-                        href="/providers/subscriptions"
-                        class="btn btn--outline btn--sm"
-                        style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
-                      >
-                        + Add
-                      </A>
-                    </div>
-                    <span class="overview-stat-card__value" style="margin-bottom: 12px;">
-                      {totalConns(subs())}
-                    </span>
-                    <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                      <For each={connList(subs())}>
-                        {(item) => (
-                          <A
-                            href={`/providers/connections/${item.id}`}
-                            style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
-                          >
-                            <span style="flex-shrink: 0; display: flex; align-items: center;">
-                              {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
-                                <span
-                                  style={{
-                                    display: 'inline-flex',
-                                    'align-items': 'center',
-                                    'justify-content': 'center',
-                                    width: '14px',
-                                    height: '14px',
-                                    'border-radius': '3px',
-                                    'font-size': '9px',
-                                    'font-weight': '600',
-                                    color: 'white',
-                                    background: customProviderColor(item.name),
-                                  }}
-                                >
-                                  {item.name.charAt(0).toUpperCase()}
-                                </span>
-                              )}
-                            </span>
-                            <span style="font-weight: 500; color: hsl(var(--foreground));">
-                              {item.name}
-                            </span>
-                            <Show when={item.isCustom}>
-                              <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
-                                custom
-                              </span>
-                            </Show>
-                            <Show when={item.label !== 'Default'}>
-                              <span>{item.label}</span>
-                            </Show>
-                          </A>
-                        )}
-                      </For>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                      <A href="/providers/subscriptions" class="view-more-link">
-                        View more
-                      </A>
-                    </div>
+                if (items.length >= 5) break;
+              }
+              return items;
+            };
+            const cardStyle = 'display: flex; flex-direction: column; padding: 20px;';
+            return (
+              <div
+                class="overview-stats"
+                style={`grid-template-columns: repeat(${selfHosted() ? 4 : 3}, 1fr); align-items: stretch;`}
+              >
+                <div class="overview-stat-card" style={cardStyle}>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <span class="overview-stat-card__label">Subscriptions</span>
+                    <A
+                      href="/providers/subscriptions"
+                      class="btn btn--outline btn--sm"
+                      style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                    >
+                      + Add
+                    </A>
                   </div>
-                  <div class="overview-stat-card" style={cardStyle}>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                      <span class="overview-stat-card__label">Usage-based</span>
-                      <A
-                        href="/providers/usage-based"
-                        class="btn btn--outline btn--sm"
-                        style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
-                      >
-                        + Add
-                      </A>
-                    </div>
-                    <span class="overview-stat-card__value" style="margin-bottom: 12px;">
-                      {totalConns(byok())}
-                    </span>
-                    <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                      <For each={connList(byok())}>
-                        {(item) => (
-                          <A
-                            href={`/providers/connections/${item.id}`}
-                            style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
-                          >
-                            <span style="flex-shrink: 0; display: flex; align-items: center;">
-                              {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
-                                <span
-                                  style={{
-                                    display: 'inline-flex',
-                                    'align-items': 'center',
-                                    'justify-content': 'center',
-                                    width: '14px',
-                                    height: '14px',
-                                    'border-radius': '3px',
-                                    'font-size': '9px',
-                                    'font-weight': '600',
-                                    color: 'white',
-                                    background: customProviderColor(item.name),
-                                  }}
-                                >
-                                  {item.name.charAt(0).toUpperCase()}
-                                </span>
-                              )}
-                            </span>
-                            <span style="font-weight: 500; color: hsl(var(--foreground));">
-                              {item.name}
-                            </span>
-                            <Show when={item.isCustom}>
-                              <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
-                                custom
-                              </span>
-                            </Show>
-                            <Show when={item.label !== 'Default'}>
-                              <span>{item.label}</span>
-                            </Show>
-                          </A>
-                        )}
-                      </For>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                      <A href="/providers/usage-based" class="view-more-link">
-                        View more
-                      </A>
-                    </div>
-                  </div>
-                  <Show when={selfHosted()}>
-                    <div class="overview-stat-card" style={cardStyle}>
-                      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                        <span class="overview-stat-card__label">Local</span>
+                  <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                    {totalConns(subs())}
+                  </span>
+                  <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                    <For each={connList(subs())}>
+                      {(item) => (
                         <A
-                          href="/providers/local"
-                          class="btn btn--outline btn--sm"
-                          style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                          href={`/providers/connections/${item.id}`}
+                          style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
                         >
-                          + Add
+                          <span style="flex-shrink: 0; display: flex; align-items: center;">
+                            {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  'align-items': 'center',
+                                  'justify-content': 'center',
+                                  width: '14px',
+                                  height: '14px',
+                                  'border-radius': '3px',
+                                  'font-size': '9px',
+                                  'font-weight': '600',
+                                  color: 'white',
+                                  background: customProviderColor(item.name),
+                                }}
+                              >
+                                {item.name.charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                          </span>
+                          <span style="font-weight: 500; color: hsl(var(--foreground));">
+                            {item.name}
+                          </span>
+                          <Show when={item.isCustom}>
+                            <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                              custom
+                            </span>
+                          </Show>
+                          <Show when={item.label !== 'Default'}>
+                            <span>{item.label}</span>
+                          </Show>
                         </A>
-                      </div>
-                      <span class="overview-stat-card__value" style="margin-bottom: 12px;">
-                        {totalConns(local())}
-                      </span>
-                      <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                        <For each={connList(local())}>
-                          {(item) => (
-                            <A
-                              href={`/providers/connections/${item.id}`}
-                              style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
-                            >
-                              <span style="flex-shrink: 0; display: flex; align-items: center;">
-                                {providerIcon(item.icon, 14) ??
-                                  customProviderLogo(item.name, 14) ?? (
-                                    <span
-                                      style={{
-                                        display: 'inline-flex',
-                                        'align-items': 'center',
-                                        'justify-content': 'center',
-                                        width: '14px',
-                                        height: '14px',
-                                        'border-radius': '3px',
-                                        'font-size': '9px',
-                                        'font-weight': '600',
-                                        color: 'white',
-                                        background: customProviderColor(item.name),
-                                      }}
-                                    >
-                                      {item.name.charAt(0).toUpperCase()}
-                                    </span>
-                                  )}
-                              </span>
-                              <span style="font-weight: 500; color: hsl(var(--foreground));">
-                                {item.name}
-                              </span>
-                              <Show when={item.isCustom}>
-                                <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
-                                  custom
-                                </span>
-                              </Show>
-                              <Show when={item.label !== 'Default'}>
-                                <span>{item.label}</span>
-                              </Show>
-                            </A>
-                          )}
-                        </For>
-                      </div>
-                      <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                        <A href="/providers/local" class="view-more-link">
-                          View more
-                        </A>
-                      </div>
-                    </div>
-                  </Show>
-                  <div class="overview-stat-card" style={cardStyle}>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                      <span class="overview-stat-card__label">Harnesses</span>
-                      <A
-                        href="/harnesses?add=true"
-                        class="btn btn--outline btn--sm"
-                        style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
-                      >
-                        + Add
-                      </A>
-                    </div>
-                    <span class="overview-stat-card__value" style="margin-bottom: 12px;">
-                      {agentList().length}
-                    </span>
-                    <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                      <For each={sortedAgents().slice(0, 5)}>
-                        {(agent) => {
-                          const icon = platformIcon(agent.agent_platform, agent.agent_category);
-                          return (
-                            <A
-                              href={`/harnesses/${encodeURIComponent(agent.agent_name)}`}
-                              style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
-                            >
-                              <Show when={icon}>
-                                <img
-                                  src={icon!}
-                                  alt=""
-                                  width="14"
-                                  height="14"
-                                  style="flex-shrink: 0;"
-                                />
-                              </Show>
-                              <span style="font-weight: 500; color: hsl(var(--foreground));">
-                                {agent.display_name || agent.agent_name}
-                              </span>
-                            </A>
-                          );
-                        }}
-                      </For>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                      <A href="/harnesses" class="view-more-link">
-                        View more
-                      </A>
-                    </div>
+                      )}
+                    </For>
+                  </div>
+                  <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                    <A href="/providers/subscriptions" class="view-more-link">
+                      View more
+                    </A>
                   </div>
                 </div>
-              );
-            })()}
-          </div>
-          {/* end right column */}
+                <div class="overview-stat-card" style={cardStyle}>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <span class="overview-stat-card__label">Usage-based</span>
+                    <A
+                      href="/providers/usage-based"
+                      class="btn btn--outline btn--sm"
+                      style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                    >
+                      + Add
+                    </A>
+                  </div>
+                  <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                    {totalConns(byok())}
+                  </span>
+                  <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                    <For each={connList(byok())}>
+                      {(item) => (
+                        <A
+                          href={`/providers/connections/${item.id}`}
+                          style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
+                        >
+                          <span style="flex-shrink: 0; display: flex; align-items: center;">
+                            {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  'align-items': 'center',
+                                  'justify-content': 'center',
+                                  width: '14px',
+                                  height: '14px',
+                                  'border-radius': '3px',
+                                  'font-size': '9px',
+                                  'font-weight': '600',
+                                  color: 'white',
+                                  background: customProviderColor(item.name),
+                                }}
+                              >
+                                {item.name.charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                          </span>
+                          <span style="font-weight: 500; color: hsl(var(--foreground));">
+                            {item.name}
+                          </span>
+                          <Show when={item.isCustom}>
+                            <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                              custom
+                            </span>
+                          </Show>
+                          <Show when={item.label !== 'Default'}>
+                            <span>{item.label}</span>
+                          </Show>
+                        </A>
+                      )}
+                    </For>
+                  </div>
+                  <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                    <A href="/providers/usage-based" class="view-more-link">
+                      View more
+                    </A>
+                  </div>
+                </div>
+                <Show when={selfHosted()}>
+                  <div class="overview-stat-card" style={cardStyle}>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                      <span class="overview-stat-card__label">Local</span>
+                      <A
+                        href="/providers/local"
+                        class="btn btn--outline btn--sm"
+                        style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                      >
+                        + Add
+                      </A>
+                    </div>
+                    <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                      {totalConns(local())}
+                    </span>
+                    <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                      <For each={connList(local())}>
+                        {(item) => (
+                          <A
+                            href={`/providers/connections/${item.id}`}
+                            style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
+                          >
+                            <span style="flex-shrink: 0; display: flex; align-items: center;">
+                              {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    'align-items': 'center',
+                                    'justify-content': 'center',
+                                    width: '14px',
+                                    height: '14px',
+                                    'border-radius': '3px',
+                                    'font-size': '9px',
+                                    'font-weight': '600',
+                                    color: 'white',
+                                    background: customProviderColor(item.name),
+                                  }}
+                                >
+                                  {item.name.charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                            </span>
+                            <span style="font-weight: 500; color: hsl(var(--foreground));">
+                              {item.name}
+                            </span>
+                            <Show when={item.isCustom}>
+                              <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                                custom
+                              </span>
+                            </Show>
+                            <Show when={item.label !== 'Default'}>
+                              <span>{item.label}</span>
+                            </Show>
+                          </A>
+                        )}
+                      </For>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                      <A href="/providers/local" class="view-more-link">
+                        View more
+                      </A>
+                    </div>
+                  </div>
+                </Show>
+                <div class="overview-stat-card" style={cardStyle}>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <span class="overview-stat-card__label">Harnesses</span>
+                    <A
+                      href="/harnesses?add=true"
+                      class="btn btn--outline btn--sm"
+                      style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                    >
+                      + Add
+                    </A>
+                  </div>
+                  <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                    {agentList().length}
+                  </span>
+                  <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                    <For each={sortedAgents().slice(0, 5)}>
+                      {(agent) => {
+                        const icon = platformIcon(agent.agent_platform, agent.agent_category);
+                        return (
+                          <A
+                            href={`/harnesses/${encodeURIComponent(agent.agent_name)}`}
+                            style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
+                          >
+                            <Show when={icon}>
+                              <img
+                                src={icon!}
+                                alt=""
+                                width="14"
+                                height="14"
+                                style="flex-shrink: 0;"
+                              />
+                            </Show>
+                            <span style="font-weight: 500; color: hsl(var(--foreground));">
+                              {agent.display_name || agent.agent_name}
+                            </span>
+                          </A>
+                        );
+                      }}
+                    </For>
+                  </div>
+                  <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                    <A href="/harnesses" class="view-more-link">
+                      View more
+                    </A>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
-        {/* end overview-split grid */}
 
         {/* ── 4. Recent Requests (full width) ──────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
