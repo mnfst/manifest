@@ -476,8 +476,24 @@ const Overview: Component = () => {
                         <UnifiedChartCard
                           activeTab={activeView()}
                           onTabChange={setActiveView}
-                          requestsValue={d().summary?.messages?.value ?? 0}
-                          requestsTrendPct={d().summary?.messages?.trend_pct ?? 0}
+                          requestsValue={
+                            autofixStats()?.total_requests.value ??
+                            d().summary?.messages?.value ??
+                            0
+                          }
+                          requestsTrendPct={
+                            autofixStats()?.total_requests.previous != null
+                              ? (() => {
+                                  const cur = autofixStats()!.total_requests.value;
+                                  const prev = autofixStats()!.total_requests.previous;
+                                  if (prev === 0) return 0;
+                                  return Math.max(
+                                    -999,
+                                    Math.min(999, Math.round(((cur - prev) / prev) * 100)),
+                                  );
+                                })()
+                              : (d().summary?.messages?.trend_pct ?? 0)
+                          }
                           failedValue={autofixStats()?.errors_remaining.value ?? 0}
                           failedTrendPct={failedTrendPct()}
                           failedTimeseries={failedTs()}

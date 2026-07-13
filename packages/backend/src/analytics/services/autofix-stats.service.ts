@@ -22,6 +22,7 @@ export interface AutofixStatusResponse {
 }
 
 export interface AutofixStatsResponse {
+  total_requests: { value: number; previous: number };
   success_rate: { value: number; previous: number };
   autofix_saves: { value: number; previous: number };
   errors_remaining: { value: number; previous: number };
@@ -128,6 +129,7 @@ export class AutofixStatsService {
     };
 
     return {
+      total_requests: { value: current.total, previous: previous.total },
       success_rate: { value: rate(current), previous: rate(previous) },
       autofix_saves: { value: current.saves, previous: previous.saves },
       errors_remaining: { value: current.errors, previous: previous.errors },

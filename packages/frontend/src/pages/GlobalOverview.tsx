@@ -657,8 +657,17 @@ const GlobalOverview: Component = () => {
             <UnifiedChartCard
               activeTab={chartView()}
               onTabChange={setChartView}
-              requestsValue={o().summary.messages.value}
-              requestsTrendPct={o().summary.messages.trend_pct}
+              requestsValue={autofixStats()?.total_requests.value ?? o().summary.messages.value}
+              requestsTrendPct={
+                autofixStats()?.total_requests.previous != null
+                  ? (() => {
+                      const cur = autofixStats()!.total_requests.value;
+                      const prev = autofixStats()!.total_requests.previous;
+                      if (prev === 0) return 0;
+                      return Math.max(-999, Math.min(999, Math.round(((cur - prev) / prev) * 100)));
+                    })()
+                  : o().summary.messages.trend_pct
+              }
               failedValue={autofixStats()?.errors_remaining.value ?? 0}
               failedTrendPct={failedTrendPct()}
               failedTimeseries={failedTs()}

@@ -172,6 +172,7 @@ export interface AutofixStatus {
 }
 
 export interface AutofixStats {
+  total_requests: { value: number; previous: number };
   success_rate: { value: number; previous: number };
   autofix_saves: { value: number; previous: number };
   errors_remaining: { value: number; previous: number };
