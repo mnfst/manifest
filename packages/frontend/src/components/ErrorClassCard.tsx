@@ -33,7 +33,7 @@ const ErrorClassCard: Component<ErrorClassCardProps> = (props) => {
 
   return (
     <div class="error-class-card">
-      <div class="error-class-card__title">Error classes</div>
+      <div class="error-class-card__title">Error classes by frequency</div>
       <Show
         when={sorted().length > 0}
         fallback={<p class="error-class-card__empty">No errors in this period</p>}
