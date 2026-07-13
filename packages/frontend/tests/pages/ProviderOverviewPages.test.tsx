@@ -86,6 +86,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () => Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
   getPerProviderReliability: () => Promise.resolve([]),
+  getPerAgentReliability: () => Promise.resolve([]),
   getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
 }));
 
@@ -322,9 +323,7 @@ vi.mock('manifest-shared', () => ({
   inferProviderFromModel: (m: string) => (m.startsWith('custom:') ? 'custom' : null),
 }));
 
-// Local providers only exist on self-hosted installs; GlobalOverview hides
-// the Local stat card in cloud. Default to self-hosted so the dashboard
-// tests keep covering the card; cloud tests flip the flag.
+// Local providers only exist on self-hosted installs.
 let mockIsSelfHosted = true;
 vi.mock('../../src/services/setup-status.js', () => ({
   checkIsSelfHosted: () => Promise.resolve(mockIsSelfHosted),
@@ -712,28 +711,6 @@ afterEach(() => {
 });
 
 describe('GlobalOverview (analytics)', () => {
-  it('shows the Local stat card when self-hosted', async () => {
-    const { container } = render(() => <GlobalOverview />);
-    await waitFor(() => {
-      const labels = Array.from(container.querySelectorAll('.overview-stat-card__label')).map(
-        (el) => el.textContent,
-      );
-      expect(labels).toContain('Local');
-    });
-  });
-
-  it('hides the Local stat card in cloud', async () => {
-    mockIsSelfHosted = false;
-    const { container } = render(() => <GlobalOverview />);
-    await waitFor(() => {
-      const labels = Array.from(container.querySelectorAll('.overview-stat-card__label')).map(
-        (el) => el.textContent,
-      );
-      expect(labels).not.toContain('Local');
-      expect(labels).toContain('Subscriptions');
-    });
-  });
-
   it('renders the dashboard with harness and provider data', async () => {
     const { container } = render(() => <GlobalOverview />);
 

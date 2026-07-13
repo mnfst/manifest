@@ -50,6 +50,14 @@ export class AutofixAnalyticsController {
     });
   }
 
+  @Get('overview/autofix-per-agent')
+  async getPerAgent(@Query() query: RangeQueryDto, @TenantCtx() ctx: TenantContext) {
+    return this.autofixStats.getPerAgentStats({
+      tenantId: ctx.tenantId,
+      range: query.range,
+    });
+  }
+
   @Get('overview/autofix-per-provider')
   async getPerProvider(@Query() query: RangeQueryDto, @TenantCtx() ctx: TenantContext) {
     return this.autofixStats.getPerProviderStats({

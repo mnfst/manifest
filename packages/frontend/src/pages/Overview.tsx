@@ -486,11 +486,7 @@ const Overview: Component = () => {
                     return (
                       <>
                         <Show when={autofixAvailable()}>
-                          <AutofixKpiCards
-                            stats={autofixStats()}
-                            errorClasses={errorBreakdown()?.by_class}
-                            errorSparkline={errorSparkline()}
-                          />
+                          <AutofixKpiCards stats={autofixStats()} />
                         </Show>
                         <UnifiedChartCard
                           activeTab={activeView()}

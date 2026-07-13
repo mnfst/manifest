@@ -241,6 +241,17 @@ export function getPerProviderReliability(
   }) as Promise<ProviderReliabilityRow[]>;
 }
 
+export interface AgentReliabilityRow {
+  agent_name: string;
+  requests: number;
+  failed: number;
+  autofixed: number;
+}
+
+export function getPerAgentReliability(range = '7d'): Promise<AgentReliabilityRow[]> {
+  return fetchJson('/overview/autofix-per-agent', { range }) as Promise<AgentReliabilityRow[]>;
+}
+
 export interface ErrorBreakdownResponse {
   range: string;
   successful: number;

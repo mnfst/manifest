@@ -106,22 +106,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
         Requests
       </A>
       <div class="sidebar__section-label">PROVIDERS</div>
-      <A
-        href="/providers/subscriptions"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/providers/subscriptions') }}
-        aria-current={isGlobalActive('/providers/subscriptions') ? 'page' : undefined}
-      >
-        Subscriptions
-      </A>
-      <A
-        href="/providers/usage-based"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/providers/usage-based') }}
-        aria-current={isGlobalActive('/providers/usage-based') ? 'page' : undefined}
-      >
-        Usage-based
-      </A>
       <Show when={selfHosted()}>
         <A
           href="/providers/local"
@@ -132,6 +116,22 @@ const Sidebar: Component<SidebarProps> = (props) => {
           Local
         </A>
       </Show>
+      <A
+        href="/providers/usage-based"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/usage-based') }}
+        aria-current={isGlobalActive('/providers/usage-based') ? 'page' : undefined}
+      >
+        Usage-based
+      </A>
+      <A
+        href="/providers/subscriptions"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/subscriptions') }}
+        aria-current={isGlobalActive('/providers/subscriptions') ? 'page' : undefined}
+      >
+        Subscriptions
+      </A>
 
       {/* Harnesses — collapsible section with a + create button.
           The collapse toggle and the create button are sibling buttons (never

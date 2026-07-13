@@ -22,21 +22,8 @@ function trendBadge(current: number, previous: number) {
   );
 }
 
-function errorTrendLabel(current: number, previous: number): string {
-  if (previous === 0 && current === 0) return 'No errors';
-  if (previous === 0) return 'New errors';
-  const pct = ((current - previous) / previous) * 100;
-  const clamped = Math.max(-999, Math.min(999, Math.round(pct)));
-  const sign = clamped > 0 ? '+' : '';
-  return `${sign}${clamped}% vs previous period`;
-}
-
 export interface AutofixKpiCardsProps {
   stats: AutofixStats | undefined;
-  /** Error classes breakdown (by_class from /errors/breakdown) */
-  errorClasses?: Record<string, number>;
-  /** Sparkline data points (daily/hourly error counts) for the error trend card */
-  errorSparkline?: number[];
 }
 
 const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
@@ -47,23 +34,17 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
     return total > 0 ? s.autofix_saves.value / total : 0;
   };
 
-  const topError = () => {
-    const classes = props.errorClasses;
-    if (!classes) return null;
-    const entries = Object.entries(classes).filter(([, c]) => c > 0);
-    if (entries.length === 0) return null;
-    entries.sort(([, a], [, b]) => b - a);
-    return { name: entries[0]![0], count: entries[0]![1] };
+  const autofixPctPrev = () => {
+    const s = props.stats;
+    if (!s) return 0;
+    const total = s.autofix_saves.previous + s.errors_remaining.previous;
+    return total > 0 ? s.autofix_saves.previous / total : 0;
   };
-
-  const errorLabel = (key: string): string =>
-    key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 
   return (
     <Show when={props.stats}>
       {(s) => (
         <div class="overview-stats" style="grid-template-columns: repeat(4, 1fr);">
-          {/* Card 1: Success rate */}
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">Success rate</span>
             <div class="overview-stat-card__value-row">
@@ -71,76 +52,28 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
               {trendBadge(s().success_rate.value, s().success_rate.previous)}
             </div>
           </div>
-
-          {/* Card 2: Auto-fixed */}
-          <div
-            class="overview-stat-card"
-            style="display: flex; flex-direction: row; align-items: center; gap: 24px;"
-          >
-            <div style="flex: 1;">
-              <span class="overview-stat-card__label">Auto-fixed requests</span>
-              <div class="overview-stat-card__value-row">
-                <span class="overview-stat-card__value">{fmtPct(autofixPct())}</span>
-              </div>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 6px; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: hsl(var(--success)); flex-shrink: 0;" />
-                <span>{formatNumber(s().autofix_saves.value)} auto-fixed</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: hsl(var(--destructive)); flex-shrink: 0;" />
-                <span>{formatNumber(s().errors_remaining.value)} not fixed</span>
-              </div>
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">Auto-fixed requests</span>
+            <div class="overview-stat-card__value-row">
+              <span class="overview-stat-card__value">{fmtPct(autofixPct())}</span>
+              {trendBadge(autofixPct(), autofixPctPrev())}
             </div>
           </div>
-
-          {/* Card 3: Error trend */}
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Error trend</span>
-            <Show when={props.errorSparkline && props.errorSparkline.length > 1}>
-              <div style="display: flex; align-items: end; gap: 1px; height: 32px; margin: 4px 0;">
-                {props.errorSparkline!.map((v) => {
-                  const max = Math.max(...props.errorSparkline!, 1);
-                  return (
-                    <div
-                      style={{
-                        flex: '1',
-                        background: 'hsl(var(--foreground) / 0.15)',
-                        'border-radius': '2px 2px 0 0',
-                        'min-height': '2px',
-                        height: `${(v / max) * 100}%`,
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            </Show>
-            <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-              {errorTrendLabel(s().errors_remaining.value, s().errors_remaining.previous)}
-            </span>
+            <span class="overview-stat-card__label">Auto-fixed</span>
+            <div class="overview-stat-card__value-row">
+              <span class="overview-stat-card__value">{formatNumber(s().autofix_saves.value)}</span>
+              {trendBadge(s().autofix_saves.value, s().autofix_saves.previous)}
+            </div>
           </div>
-
-          {/* Card 4: Top error */}
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Top error</span>
-            <Show
-              when={topError()}
-              fallback={
-                <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); font-style: italic;">
-                  No errors
-                </span>
-              }
-            >
-              {(top) => (
-                <>
-                  <span class="overview-stat-card__value">{formatNumber(top().count)}</span>
-                  <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                    {errorLabel(top().name)}
-                  </span>
-                </>
-              )}
-            </Show>
+            <span class="overview-stat-card__label">Not fixed</span>
+            <div class="overview-stat-card__value-row">
+              <span class="overview-stat-card__value">
+                {formatNumber(s().errors_remaining.value)}
+              </span>
+              {trendBadge(s().errors_remaining.value, s().errors_remaining.previous)}
+            </div>
           </div>
         </div>
       )}

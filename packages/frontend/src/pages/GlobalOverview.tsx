@@ -63,6 +63,7 @@ import {
   getAutofixTimeseries,
   getErrorBreakdown,
   getPerProviderReliability,
+  getPerAgentReliability,
   type ProviderReliabilityRow,
 } from '../services/api/analytics.js';
 
@@ -332,6 +333,11 @@ const GlobalOverview: Component = () => {
   const [errorBreakdown] = createResource(
     () => ({ range: effectiveChartRange(), _ping: messagePing() }),
     (p) => getErrorBreakdown(p.range),
+  );
+
+  const [agentReliability] = createResource(
+    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    (p) => getPerAgentReliability(p.range),
   );
 
   const [providerReliability] = createResource(
@@ -660,11 +666,7 @@ const GlobalOverview: Component = () => {
       >
         {/* ── KPI line (autofix-gated) ── */}
         <Show when={autofixAvailable()}>
-          <AutofixKpiCards
-            stats={autofixStats()}
-            errorClasses={errorBreakdown()?.by_class}
-            errorSparkline={errorSparkline()}
-          />
+          <AutofixKpiCards stats={autofixStats()} />
         </Show>
 
         {/* ── 2. Unified Chart Card ─────────────────────────────────── */}
@@ -758,284 +760,7 @@ const GlobalOverview: Component = () => {
           <ErrorClassCard range={effectiveChartRange()} />
         </div>
 
-        {/* ── 3. Summary Stat Cards (in a row) ────────────────────── */}
-        <div>
-          {(() => {
-            const subs = () => providerList().filter((g) => g.auth_type === 'subscription');
-            const byok = () => providerList().filter((g) => g.auth_type === 'api_key');
-            const local = () => providerList().filter((g) => g.auth_type === 'local');
-            const totalConns = (list: ProviderGroup[]) =>
-              list.reduce((s, g) => s + g.connections.length, 0);
-            const connList = (groups: ProviderGroup[]) => {
-              const items: Array<{
-                id: string;
-                icon: string;
-                name: string;
-                label: string;
-                isCustom: boolean;
-              }> = [];
-              for (const g of groups) {
-                for (const c of g.connections.slice(0, 5 - items.length)) {
-                  const prov = PROVIDERS.find((p) => p.id === g.provider);
-                  const customName = g.display_name ?? null;
-                  const isCustom = g.provider.startsWith('custom:');
-                  items.push({
-                    id: c.id,
-                    icon: g.provider,
-                    name: prov?.name ?? customName ?? g.provider,
-                    label: c.label,
-                    isCustom,
-                  });
-                  if (items.length >= 5) break;
-                }
-                if (items.length >= 5) break;
-              }
-              return items;
-            };
-            const cardStyle = 'display: flex; flex-direction: column; padding: 20px;';
-            return (
-              <div
-                class="overview-stats"
-                style={`grid-template-columns: repeat(${selfHosted() ? 4 : 3}, 1fr); align-items: stretch;`}
-              >
-                <div class="overview-stat-card" style={cardStyle}>
-                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <span class="overview-stat-card__label">Subscriptions</span>
-                    <A
-                      href="/providers/subscriptions"
-                      class="btn btn--outline btn--sm"
-                      style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
-                    >
-                      + Add
-                    </A>
-                  </div>
-                  <span class="overview-stat-card__value" style="margin-bottom: 12px;">
-                    {totalConns(subs())}
-                  </span>
-                  <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                    <For each={connList(subs())}>
-                      {(item) => (
-                        <A
-                          href={`/providers/connections/${item.id}`}
-                          style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
-                        >
-                          <span style="flex-shrink: 0; display: flex; align-items: center;">
-                            {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
-                              <span
-                                style={{
-                                  display: 'inline-flex',
-                                  'align-items': 'center',
-                                  'justify-content': 'center',
-                                  width: '14px',
-                                  height: '14px',
-                                  'border-radius': '3px',
-                                  'font-size': '9px',
-                                  'font-weight': '600',
-                                  color: 'white',
-                                  background: customProviderColor(item.name),
-                                }}
-                              >
-                                {item.name.charAt(0).toUpperCase()}
-                              </span>
-                            )}
-                          </span>
-                          <span style="font-weight: 500; color: hsl(var(--foreground));">
-                            {item.name}
-                          </span>
-                          <Show when={item.isCustom}>
-                            <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
-                              custom
-                            </span>
-                          </Show>
-                          <Show when={item.label !== 'Default'}>
-                            <span>{item.label}</span>
-                          </Show>
-                        </A>
-                      )}
-                    </For>
-                  </div>
-                  <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                    <A href="/providers/subscriptions" class="view-more-link">
-                      View more
-                    </A>
-                  </div>
-                </div>
-                <div class="overview-stat-card" style={cardStyle}>
-                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <span class="overview-stat-card__label">Usage-based</span>
-                    <A
-                      href="/providers/usage-based"
-                      class="btn btn--outline btn--sm"
-                      style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
-                    >
-                      + Add
-                    </A>
-                  </div>
-                  <span class="overview-stat-card__value" style="margin-bottom: 12px;">
-                    {totalConns(byok())}
-                  </span>
-                  <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                    <For each={connList(byok())}>
-                      {(item) => (
-                        <A
-                          href={`/providers/connections/${item.id}`}
-                          style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
-                        >
-                          <span style="flex-shrink: 0; display: flex; align-items: center;">
-                            {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
-                              <span
-                                style={{
-                                  display: 'inline-flex',
-                                  'align-items': 'center',
-                                  'justify-content': 'center',
-                                  width: '14px',
-                                  height: '14px',
-                                  'border-radius': '3px',
-                                  'font-size': '9px',
-                                  'font-weight': '600',
-                                  color: 'white',
-                                  background: customProviderColor(item.name),
-                                }}
-                              >
-                                {item.name.charAt(0).toUpperCase()}
-                              </span>
-                            )}
-                          </span>
-                          <span style="font-weight: 500; color: hsl(var(--foreground));">
-                            {item.name}
-                          </span>
-                          <Show when={item.isCustom}>
-                            <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
-                              custom
-                            </span>
-                          </Show>
-                          <Show when={item.label !== 'Default'}>
-                            <span>{item.label}</span>
-                          </Show>
-                        </A>
-                      )}
-                    </For>
-                  </div>
-                  <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                    <A href="/providers/usage-based" class="view-more-link">
-                      View more
-                    </A>
-                  </div>
-                </div>
-                <Show when={selfHosted()}>
-                  <div class="overview-stat-card" style={cardStyle}>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                      <span class="overview-stat-card__label">Local</span>
-                      <A
-                        href="/providers/local"
-                        class="btn btn--outline btn--sm"
-                        style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
-                      >
-                        + Add
-                      </A>
-                    </div>
-                    <span class="overview-stat-card__value" style="margin-bottom: 12px;">
-                      {totalConns(local())}
-                    </span>
-                    <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                      <For each={connList(local())}>
-                        {(item) => (
-                          <A
-                            href={`/providers/connections/${item.id}`}
-                            style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
-                          >
-                            <span style="flex-shrink: 0; display: flex; align-items: center;">
-                              {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
-                                <span
-                                  style={{
-                                    display: 'inline-flex',
-                                    'align-items': 'center',
-                                    'justify-content': 'center',
-                                    width: '14px',
-                                    height: '14px',
-                                    'border-radius': '3px',
-                                    'font-size': '9px',
-                                    'font-weight': '600',
-                                    color: 'white',
-                                    background: customProviderColor(item.name),
-                                  }}
-                                >
-                                  {item.name.charAt(0).toUpperCase()}
-                                </span>
-                              )}
-                            </span>
-                            <span style="font-weight: 500; color: hsl(var(--foreground));">
-                              {item.name}
-                            </span>
-                            <Show when={item.isCustom}>
-                              <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
-                                custom
-                              </span>
-                            </Show>
-                            <Show when={item.label !== 'Default'}>
-                              <span>{item.label}</span>
-                            </Show>
-                          </A>
-                        )}
-                      </For>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                      <A href="/providers/local" class="view-more-link">
-                        View more
-                      </A>
-                    </div>
-                  </div>
-                </Show>
-                <div class="overview-stat-card" style={cardStyle}>
-                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <span class="overview-stat-card__label">Harnesses</span>
-                    <A
-                      href="/harnesses?add=true"
-                      class="btn btn--outline btn--sm"
-                      style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
-                    >
-                      + Add
-                    </A>
-                  </div>
-                  <span class="overview-stat-card__value" style="margin-bottom: 12px;">
-                    {agentList().length}
-                  </span>
-                  <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                    <For each={sortedAgents().slice(0, 5)}>
-                      {(agent) => {
-                        const icon = platformIcon(agent.agent_platform, agent.agent_category);
-                        return (
-                          <A
-                            href={`/harnesses/${encodeURIComponent(agent.agent_name)}`}
-                            style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
-                          >
-                            <Show when={icon}>
-                              <img
-                                src={icon!}
-                                alt=""
-                                width="14"
-                                height="14"
-                                style="flex-shrink: 0;"
-                              />
-                            </Show>
-                            <span style="font-weight: 500; color: hsl(var(--foreground));">
-                              {agent.display_name || agent.agent_name}
-                            </span>
-                          </A>
-                        );
-                      }}
-                    </For>
-                  </div>
-                  <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                    <A href="/harnesses" class="view-more-link">
-                      View more
-                    </A>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
+        {/* Stat cards removed — info is in Provider connections + Harnesses tables below */}
 
         {/* ── 4. Recent Requests (full width) ──────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
@@ -1346,6 +1071,8 @@ const GlobalOverview: Component = () => {
                   <th>Harness</th>
                   <th>Usage (30d)</th>
                   <th style="text-align: right;">Requests</th>
+                  <th style="text-align: right;">Fail requests</th>
+                  <th style="text-align: right;">Auto-fixed</th>
                 </tr>
               </thead>
               <tbody>
@@ -1390,6 +1117,48 @@ const GlobalOverview: Component = () => {
                         <td style="text-align: right; font-variant-numeric: tabular-nums;">
                           {formatNumber(agent.message_count ?? 0)}
                         </td>
+                        {(() => {
+                          const rel = () =>
+                            agentReliability()?.find((r) => r.agent_name === agent.agent_name);
+                          return (
+                            <>
+                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                <Show when={rel()} fallback="—">
+                                  <div style="display: flex; align-items: center; gap: 6px; justify-content: flex-end;">
+                                    <div style="width: 40px; height: 6px; background: hsl(var(--border)); border-radius: 3px; overflow: hidden;">
+                                      <div
+                                        style={{
+                                          height: '100%',
+                                          'border-radius': '3px',
+                                          background: 'hsl(var(--destructive))',
+                                          width: `${rel()!.requests > 0 ? (rel()!.failed / rel()!.requests) * 100 : 0}%`,
+                                        }}
+                                      />
+                                    </div>
+                                    <span>{formatNumber(rel()!.failed)}</span>
+                                  </div>
+                                </Show>
+                              </td>
+                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                <Show when={rel()} fallback="—">
+                                  <div style="display: flex; align-items: center; gap: 6px; justify-content: flex-end;">
+                                    <div style="width: 40px; height: 6px; background: hsl(var(--border)); border-radius: 3px; overflow: hidden;">
+                                      <div
+                                        style={{
+                                          height: '100%',
+                                          'border-radius': '3px',
+                                          background: 'hsl(var(--success))',
+                                          width: `${rel()!.failed > 0 ? (rel()!.autofixed / rel()!.failed) * 100 : 0}%`,
+                                        }}
+                                      />
+                                    </div>
+                                    <span>{formatNumber(rel()!.autofixed)}</span>
+                                  </div>
+                                </Show>
+                              </td>
+                            </>
+                          );
+                        })()}
                       </tr>
                     );
                   }}

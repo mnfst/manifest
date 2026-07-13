@@ -190,6 +190,48 @@ export class AutofixStatsService {
     }));
   }
 
+  async getPerAgentStats(params: {
+    tenantId: string | null;
+    range?: string;
+  }): Promise<Array<{ agent_name: string; requests: number; failed: number; autofixed: number }>> {
+    const range = params.range ?? '7d';
+    const cutoff = computeCutoff(rangeToInterval(range));
+    const qb = this.messageRepo
+      .createQueryBuilder('at')
+      .select('at.agent_name', 'agent_name')
+      .addSelect('COUNT(*)', 'requests')
+      .addSelect(
+        `COUNT(*) FILTER (WHERE at.status IN ('error','fallback_error','rate_limited','auto_fixed'))`,
+        'failed',
+      )
+      .addSelect(
+        `COUNT(*) FILTER (WHERE at.status = 'auto_fixed' AND at.autofix_group_id IN (
+          SELECT sib.autofix_group_id FROM agent_messages sib
+          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
+            AND sib.tenant_id = at.tenant_id
+        ))`,
+        'autofixed',
+      )
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')")
+      .groupBy('at.agent_name');
+    addTenantFilter(qb, params.tenantId);
+    excludePlaygroundAgents(qb);
+
+    const rows = await qb.getRawMany<{
+      agent_name: string;
+      requests: string;
+      failed: string;
+      autofixed: string;
+    }>();
+    return rows.map((r) => ({
+      agent_name: r.agent_name,
+      requests: Number(r.requests),
+      failed: Number(r.failed),
+      autofixed: Number(r.autofixed),
+    }));
+  }
+
   async getTimeseries(params: {
     tenantId: string | null;
     range?: string;
