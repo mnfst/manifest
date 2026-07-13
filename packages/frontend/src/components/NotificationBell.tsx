@@ -55,8 +55,13 @@ const NotificationBell: Component = () => {
     onCleanup(() => document.removeEventListener('mousedown', handler));
   }
 
-  const [status, { refetch: refetchStatus }] = createResource(
-    () => ({ _a: agentPing(), _m: messagePing(), _r: routingPing() }),
+  // Poll every 15s to catch autofix toggle changes (no SSE for this mutation)
+  const [tick, setTick] = createSignal(0);
+  const interval = setInterval(() => setTick((n) => n + 1), 15_000);
+  onCleanup(() => clearInterval(interval));
+
+  const [status] = createResource(
+    () => ({ _a: agentPing(), _m: messagePing(), _r: routingPing(), _t: tick() }),
     () => getWorkspaceAutofixStatus(),
   );
 
