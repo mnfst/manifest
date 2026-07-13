@@ -22,6 +22,7 @@
     "backfill:message-providers:prod": "node dist/database/backfills/backfill-message-providers.cli.js"
   },
   "dependencies": {
+    "@better-auth/stripe": "1.6.11",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
@@ -31,7 +32,6 @@
     "@nestjs/serve-static": "^5.0.4",
     "@nestjs/throttler": "^6.0.0",
     "@nestjs/typeorm": "^11.0.0",
-    "@better-auth/stripe": "1.6.11",
     "@react-email/components": "^1.0.7",
     "@react-email/render": "^2.0.4",
     "better-auth": "1.6.11",
@@ -44,7 +44,7 @@
     "express-rate-limit": "^8.5.1",
     "helmet": "^8.1.0",
     "manifest-shared": "*",
-    "modelparams": "^0.0.3",
+    "modelparams": "^0.0.13",
     "pg": "^8.13.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
