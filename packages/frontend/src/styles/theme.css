@@ -423,18 +423,18 @@ h6 {
   transition: all 0.15s ease;
 }
 .chart-card__filter-btn:hover {
-  background: hsl(var(--success));
-  color: white;
-  border-color: hsl(var(--success));
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  border-color: hsl(var(--foreground));
 }
 .chart-card__filter-btn--active {
-  background: hsl(var(--success));
-  color: white;
-  border-color: hsl(var(--success));
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  border-color: hsl(var(--foreground));
 }
 .chart-card__filter-btn--active:hover {
-  background: hsl(var(--success));
-  color: white;
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
 }
 
 .chart-card__body {
