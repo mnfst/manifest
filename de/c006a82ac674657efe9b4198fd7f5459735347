@@ -1,0 +1,51 @@
+packages/frontend/src/styles/welcome.css
+  s_5e506490419884::t_9e6a013ed7c73e 575-598
+packages/frontend/src/pages/Playground.tsx
+  s_5e506490419884::t_c1259ae3879c86 474-490
+  s_5e506490419884::t_225183c5c4dd23 341
+  s_5e506490419884::t_34412fc3dbf995 469-473
+  s_5e506490419884::t_6f67e76357219c 169
+  s_5e506490419884::t_69a4e462d0b1d0 129-133
+  s_5e506490419884::t_3fd6ce55aef840 447
+packages/frontend/src/index.tsx
+  s_5e506490419884::t_3aaf13affe0c15 54-62
+  s_5e506490419884::t_2ef5649249c264 146
+  s_5e506490419884::t_a1e2f68d87d51e 15
+  s_5e506490419884::t_9671ffad160b57 147-148
+packages/frontend/src/pages/Register.tsx
+  s_5e506490419884::t_493ec6c2524595 97
+  s_5e506490419884::t_283a4cdf17fd90 123
+  s_5e506490419884::t_acd7c6364ca6b6 162
+  s_5e506490419884::t_72bf8394993444 134
+  s_5e506490419884::t_5371861c38c326 339
+packages/frontend/src/pages/Welcome.tsx
+  s_5e506490419884::t_2195226cfb7dfd 908
+  s_5e506490419884::t_6a0518e2303792 181-185
+  s_5e506490419884::t_ec1ba485a4c5d2 909-934
+  s_5e506490419884::t_304ffdf25839af 1156
+  s_5e506490419884::t_8aea8a0e531353 1177-1178,1183-1184
+  s_5e506490419884::t_26542840241349 64
+  s_5e506490419884::t_92c088dcbb4dc5 1081
+  s_5e506490419884::t_e256a65cf56dc4 1179-1182
+  s_5e506490419884::t_4c12d3b081931a 137-139
+  s_5e506490419884::t_6c1ce4e1979781 186-187,190
+  s_5e506490419884::t_1658720a2ed573 1514-1517
+packages/frontend/src/styles/playground.css
+  s_5e506490419884::t_013a222ed7909e 8-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "dec006a82ac674657efe9b4198fd7f5459735347",
+  "prompts": {},
+  "sessions": {
+    "s_5e506490419884": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7c2e167c-b538-4f23-9471-d687b7fe7b07",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
