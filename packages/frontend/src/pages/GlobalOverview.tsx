@@ -670,7 +670,20 @@ const GlobalOverview: Component = () => {
               colorMap={agentColorMap()}
               seriesFilters={
                 <>
-                  <Select value={groupBy()} onChange={setGroupBy} options={GROUP_OPTIONS} />
+                  <button
+                    class="chart-card__filter-btn"
+                    classList={{ 'chart-card__filter-btn--active': groupBy() === 'provider' }}
+                    onClick={() => setGroupBy('provider')}
+                  >
+                    By provider
+                  </button>
+                  <button
+                    class="chart-card__filter-btn"
+                    classList={{ 'chart-card__filter-btn--active': groupBy() === 'agent' }}
+                    onClick={() => setGroupBy('agent')}
+                  >
+                    By harness
+                  </button>
                   <Show when={allAgents().length > 1}>
                     <FilterSelect
                       noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}

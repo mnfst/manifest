@@ -415,7 +415,7 @@ h6 {
   font-weight: 500;
   padding: 4px 10px;
   border: 1px solid hsl(var(--border));
-  border-radius: 9999px;
+  border-radius: 3px;
   background: transparent;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
