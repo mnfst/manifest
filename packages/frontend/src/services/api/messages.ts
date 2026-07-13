@@ -1,4 +1,4 @@
-import { fetchJson, fetchMutate } from './core.js';
+import { fetchJson, fetchMutate, type FetchJsonOptions } from './core.js';
 
 /** A deterministic edit Phoenix applied to heal a request. */
 export interface AutofixOperation {
@@ -105,8 +105,9 @@ export function getMessages(
     include_total?: string;
     include_filter_options?: string;
   } = {},
+  options?: FetchJsonOptions,
 ) {
-  return fetchJson('/messages', params);
+  return fetchJson('/messages', params, options);
 }
 
 export function getMessageFilterOptions(

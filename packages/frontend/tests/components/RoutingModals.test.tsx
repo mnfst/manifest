@@ -439,13 +439,29 @@ describe('RoutingModals', () => {
   it('navigates to the providers page when the dropdown picker fires onConnectProviders', async () => {
     const onDropdownClose = vi.fn();
     const { findByTestId } = render(() => (
-      <RoutingModals
-        {...makeProps({ dropdownTier: () => 'simple', onDropdownClose })}
-      />
+      <RoutingModals {...makeProps({ dropdownTier: () => 'simple', onDropdownClose })} />
     ));
     fireEvent.click(await findByTestId('picker-connect-simple'));
     expect(onDropdownClose).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('/harnesses/demo/providers');
+  });
+
+  it('uses onOpenProviderModal instead of navigation when supplied', async () => {
+    const onDropdownClose = vi.fn();
+    const onOpenProviderModal = vi.fn();
+    const { findByTestId } = render(() => (
+      <RoutingModals
+        {...makeProps({
+          dropdownTier: () => 'simple',
+          onDropdownClose,
+          onOpenProviderModal,
+        })}
+      />
+    ));
+    fireEvent.click(await findByTestId('picker-connect-simple'));
+    expect(onDropdownClose).toHaveBeenCalled();
+    expect(onOpenProviderModal).toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('navigates to the providers page when the fallback picker fires onConnectProviders', async () => {

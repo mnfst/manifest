@@ -12,6 +12,7 @@ import GuestGuard from './components/GuestGuard.jsx';
 import NotFound from './pages/NotFound.jsx';
 import ToastContainer from './components/ToastContainer.jsx';
 import { lazyReload, clearReloadFlag } from './services/lazy-reload.js';
+import { RightSidebarProvider } from './services/right-sidebar.jsx';
 import type { ParentComponent } from 'solid-js';
 import './styles/theme.css';
 
@@ -34,6 +35,7 @@ const Login = lazyReload(() => import('./pages/Login.jsx'));
 const Register = lazyReload(() => import('./pages/Register.jsx'));
 const ResetPassword = lazyReload(() => import('./pages/ResetPassword.jsx'));
 const Setup = lazyReload(() => import('./pages/Setup.jsx'));
+const Welcome = lazyReload(() => import('./pages/Welcome.jsx'));
 const ModelPrices = lazyReload(() => import('./pages/ModelPrices.jsx'));
 const Help = lazyReload(() => import('./pages/Help.jsx'));
 const FreeModels = lazyReload(() => import('./pages/FreeModels.jsx'));
@@ -47,6 +49,15 @@ const GuestLayout: ParentComponent = (props) => (
   <GuestGuard>
     <AuthLayout>{props.children}</AuthLayout>
   </GuestGuard>
+);
+
+// Full-page onboarding: authenticated but outside the App dashboard shell.
+// The embedded Playground step calls useRightSidebar, so the provider App
+// normally supplies must be recreated here.
+const WelcomeLayout: ParentComponent = (props) => (
+  <AuthGuard>
+    <RightSidebarProvider>{props.children}</RightSidebarProvider>
+  </AuthGuard>
 );
 
 // Remove the static <title> from index.html so @solidjs/meta can manage
@@ -131,6 +142,9 @@ render(
         </Route>
         <Route path="/setup" component={AuthLayout}>
           <Route path="/" component={Setup} />
+        </Route>
+        <Route path="/welcome" component={WelcomeLayout}>
+          <Route path="/" component={Welcome} />
         </Route>
         <Route path="*404" component={NotFound} />
       </Router>
