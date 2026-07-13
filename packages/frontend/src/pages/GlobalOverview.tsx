@@ -37,6 +37,7 @@ import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import UnifiedChartCard from '../components/UnifiedChartCard.jsx';
+import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
 import SocialFollowBanner from '../components/SocialFollowBanner.jsx';
 import Sparkline from '../components/Sparkline.jsx';
 import FilterSelect from '../components/FilterSelect.jsx';
@@ -620,6 +621,11 @@ const GlobalOverview: Component = () => {
           </Show>
         }
       >
+        {/* ── KPI line (autofix-gated) ── */}
+        <Show when={autofixAvailable()}>
+          <AutofixKpiCards stats={autofixStats()} />
+        </Show>
+
         {/* ── 2. Unified Chart Card ─────────────────────────────────── */}
         {(() => {
           const o = () => overview()!;

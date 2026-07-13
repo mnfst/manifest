@@ -59,6 +59,26 @@
   gap: 6px;
 }
 
+.afx-kpi-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 0 16px;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+}
+.afx-kpi-line__primary {
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  color: hsl(var(--foreground));
+}
+.afx-kpi-line__sep {
+  color: hsl(var(--border));
+}
+.afx-kpi-line__stat {
+  font-weight: 500;
+}
+
 /* ── Scrollable panel ────────────────────────────── */
 .scroll-panel {
   position: relative;

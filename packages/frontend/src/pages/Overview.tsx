@@ -10,6 +10,7 @@ import {
   type Component,
 } from 'solid-js';
 import UnifiedChartCard from '../components/UnifiedChartCard.jsx';
+import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
 import FilterSelect from '../components/FilterSelect.jsx';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import CostByModelTable from '../components/CostByModelTable.jsx';
@@ -467,27 +468,32 @@ const Overview: Component = () => {
                       return Math.max(-999, Math.min(999, Math.round(((cur - prev) / prev) * 100)));
                     };
                     return (
-                      <UnifiedChartCard
-                        activeTab={activeView()}
-                        onTabChange={setActiveView}
-                        requestsValue={d().summary?.messages?.value ?? 0}
-                        requestsTrendPct={d().summary?.messages?.trend_pct ?? 0}
-                        failedValue={autofixStats()?.errors_remaining.value ?? 0}
-                        failedTrendPct={failedTrendPct()}
-                        failedTimeseries={failedTs()}
-                        failedFilter={failedFilter()}
-                        onFailedFilterChange={setFailedFilter}
-                        costValue={d().summary?.cost_today?.value ?? 0}
-                        costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
-                        costInfoTooltip="Actual API key costs only. Subscription usage is not included."
-                        tokensValue={d().summary?.tokens_today?.value ?? 0}
-                        tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
-                        range={effectiveRange()}
-                        agentRequestTimeseries={filteredRequestTs() ?? undefined}
-                        agentTimeseries={filteredTokenTs() ?? undefined}
-                        agentCostTimeseries={filteredCostTs() ?? undefined}
-                        colorMap={providerColorMap()}
-                      />
+                      <>
+                        <Show when={autofixAvailable()}>
+                          <AutofixKpiCards stats={autofixStats()} />
+                        </Show>
+                        <UnifiedChartCard
+                          activeTab={activeView()}
+                          onTabChange={setActiveView}
+                          requestsValue={d().summary?.messages?.value ?? 0}
+                          requestsTrendPct={d().summary?.messages?.trend_pct ?? 0}
+                          failedValue={autofixStats()?.errors_remaining.value ?? 0}
+                          failedTrendPct={failedTrendPct()}
+                          failedTimeseries={failedTs()}
+                          failedFilter={failedFilter()}
+                          onFailedFilterChange={setFailedFilter}
+                          costValue={d().summary?.cost_today?.value ?? 0}
+                          costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
+                          costInfoTooltip="Actual API key costs only. Subscription usage is not included."
+                          tokensValue={d().summary?.tokens_today?.value ?? 0}
+                          tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
+                          range={effectiveRange()}
+                          agentRequestTimeseries={filteredRequestTs() ?? undefined}
+                          agentTimeseries={filteredTokenTs() ?? undefined}
+                          agentCostTimeseries={filteredCostTs() ?? undefined}
+                          colorMap={providerColorMap()}
+                        />
+                      </>
                     );
                   })()}
 
