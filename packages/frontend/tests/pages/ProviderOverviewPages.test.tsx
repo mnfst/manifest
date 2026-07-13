@@ -942,7 +942,7 @@ describe('ConnectionDetail (analytics)', () => {
     expect(sessionStorage.getItem('chart-range:conn-openai')).toBe('365d');
 
     fireEvent.click(screen.getByText('Requests chart'));
-    expect(sessionStorage.getItem('chart-view:conn-openai')).toBe('messages');
+    expect(sessionStorage.getItem('chart-view:conn-openai')).toBe('requests');
   });
 
   it('opens the inline manage modal from the connection detail', async () => {

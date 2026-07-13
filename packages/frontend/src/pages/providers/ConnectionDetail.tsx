@@ -18,7 +18,11 @@ import {
   getPerAgentTimeseries,
   getPerAgentMessageTimeseries,
   getPerAgentCostTimeseries,
+  getWorkspaceAutofixStatus,
+  getAutofixStats,
+  getAutofixTimeseries,
 } from '../../services/api/analytics.js';
+import { messagePing } from '../../services/sse.js';
 import { platformIcon } from 'manifest-shared';
 import { PROVIDERS } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
@@ -36,7 +40,8 @@ import {
   disconnectProvider,
   refreshModels,
 } from '../../services/api/routing.js';
-import ProviderChartCard from '../../components/ProviderChartCard.jsx';
+import UnifiedChartCard from '../../components/UnifiedChartCard.jsx';
+import AutofixKpiCards from '../../components/AutofixKpiCards.jsx';
 import { AGENT_COLORS } from '../../components/MultiAgentTokenChart.jsx';
 import Select from '../../components/Select.jsx';
 import { setConnectionBreadcrumb } from '../../services/connection-breadcrumb-store.js';
@@ -202,7 +207,7 @@ const ConnectionDetail: Component = () => {
   const savedView = () => {
     try {
       const v = sessionStorage.getItem(viewKey());
-      if (v === 'tokens' || v === 'cost') return v;
+      if (v === 'tokens' || v === 'cost' || v === 'failed') return v;
     } catch {
       /* ignore */
     }
@@ -217,8 +222,10 @@ const ConnectionDetail: Component = () => {
       /* ignore */
     }
   };
-  const [chartView, setChartViewRaw] = createSignal<'requests' | 'tokens' | 'cost'>(savedView());
-  const setChartView = (v: 'requests' | 'tokens' | 'cost') => {
+  const [chartView, setChartViewRaw] = createSignal<'requests' | 'failed' | 'tokens' | 'cost'>(
+    savedView(),
+  );
+  const setChartView = (v: 'requests' | 'failed' | 'tokens' | 'cost') => {
     setChartViewRaw(v);
     try {
       sessionStorage.setItem(viewKey(), v);
@@ -306,6 +313,45 @@ const ConnectionDetail: Component = () => {
         params.connectionId,
       );
     },
+  );
+
+  // ── Auto-fix resources (workspace-level, conditional on availability) ──
+  const [autofixStatus] = createResource(
+    () => ({ _ping: messagePing() }),
+    () => getWorkspaceAutofixStatus(),
+  );
+  const autofixAvailable = () => autofixStatus()?.available ?? false;
+  const [autofixStats] = createResource(
+    () => (autofixAvailable() ? { range: chartRange(), _ping: messagePing() } : false),
+    (p) => getAutofixStats(p.range),
+  );
+
+  // ── Failed filter state (persisted in sessionStorage) ────────────────
+  const loadFailedFilter = (): string => {
+    try {
+      const v = sessionStorage.getItem('manifest_connection_failed_filter');
+      if (v === 'http_status' || v === 'error_kind' || v === 'autofix') return v;
+    } catch {
+      /* ignore */
+    }
+    return 'error_kind';
+  };
+  const [failedFilter, setFailedFilterRaw] = createSignal(loadFailedFilter());
+  const setFailedFilter = (v: string) => {
+    setFailedFilterRaw(v);
+    try {
+      sessionStorage.setItem('manifest_connection_failed_filter', v);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const [failedTs] = createResource(
+    () =>
+      autofixAvailable()
+        ? { range: chartRange(), by: failedFilter(), _ping: messagePing() }
+        : false,
+    (p) => getAutofixTimeseries(p.range, p.by, undefined, true),
   );
 
   // Harness tag selection for chart filtering (persisted in sessionStorage).
@@ -687,6 +733,11 @@ const ConnectionDetail: Component = () => {
                 </div>
               </div>
 
+              {/* KPI cards (autofix) */}
+              <Show when={autofixAvailable()}>
+                <AutofixKpiCards stats={autofixStats()} />
+              </Show>
+
               {/* Chart */}
               <Show when={analytics()}>
                 {(() => {
@@ -699,12 +750,39 @@ const ConnectionDetail: Component = () => {
                     }
                     return sum;
                   });
+                  const failedTrendPct = () => {
+                    const s = autofixStats();
+                    if (!s) return 0;
+                    const cur = s.errors_remaining.value;
+                    const prev = s.errors_remaining.previous;
+                    if (prev === 0) return 0;
+                    return Math.max(-999, Math.min(999, Math.round(((cur - prev) / prev) * 100)));
+                  };
                   return (
-                    <ProviderChartCard
-                      activeView={chartView()}
-                      onViewChange={setChartView}
-                      requestsValue={analytics()!.summary.messages.value}
-                      requestsTrendPct={analytics()!.summary.messages.trend_pct}
+                    <UnifiedChartCard
+                      activeTab={chartView()}
+                      onTabChange={setChartView}
+                      requestsValue={
+                        autofixStats()?.total_requests.value ?? analytics()!.summary.messages.value
+                      }
+                      requestsTrendPct={
+                        autofixStats()?.total_requests.previous != null
+                          ? (() => {
+                              const cur = autofixStats()!.total_requests.value;
+                              const prev = autofixStats()!.total_requests.previous;
+                              if (prev === 0) return 0;
+                              return Math.max(
+                                -999,
+                                Math.min(999, Math.round(((cur - prev) / prev) * 100)),
+                              );
+                            })()
+                          : (analytics()!.summary.messages.trend_pct ?? 0)
+                      }
+                      failedValue={autofixStats()?.errors_remaining.value ?? 0}
+                      failedTrendPct={failedTrendPct()}
+                      failedTimeseries={failedTs()}
+                      failedFilter={failedFilter()}
+                      onFailedFilterChange={setFailedFilter}
                       tokensValue={analytics()!.summary.tokens.value}
                       tokensTrendPct={analytics()!.summary.tokens.trend_pct}
                       costValue={isByok() ? (totalCost() ?? 0) : undefined}
@@ -715,6 +793,19 @@ const ConnectionDetail: Component = () => {
                         isByok() ? (filteredAgentCostTimeseries() ?? undefined) : undefined
                       }
                       colorMap={agentColorMap()}
+                      seriesFilters={
+                        <Show when={allAgents().length > 1}>
+                          <FilterSelect
+                            noun="harnesses"
+                            items={allAgents()}
+                            selected={effectiveSelected()}
+                            colorMap={agentColorMap()}
+                            onToggle={toggleAgent}
+                            onSelectAll={() => persistSelection(new Set(allAgents()))}
+                            onUnselectAll={() => persistSelection(new Set<string>())}
+                          />
+                        </Show>
+                      }
                     />
                   );
                 })()}
@@ -865,6 +956,8 @@ const ConnectionDetail: Component = () => {
                           <Show when={isByok()}>
                             <th>Cost (30d)</th>
                           </Show>
+                          <th style="text-align: right;">Fail requests</th>
+                          <th style="text-align: right;">Auto-fixed</th>
                           <th>Last used</th>
                         </tr>
                       </thead>
@@ -910,6 +1003,12 @@ const ConnectionDetail: Component = () => {
                               <Show when={isByok()}>
                                 <td>{formatCost(agent.cost_30d) ?? '$0.00'}</td>
                               </Show>
+                              <td style="text-align: right; color: hsl(var(--muted-foreground));">
+                                —
+                              </td>
+                              <td style="text-align: right; color: hsl(var(--muted-foreground));">
+                                —
+                              </td>
                               <td style="color: hsl(var(--muted-foreground));">
                                 {agent.last_used ? formatTimeAgo(agent.last_used) : '—'}
                               </td>
