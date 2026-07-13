@@ -684,7 +684,7 @@ const GlobalOverview: Component = () => {
                   >
                     By harness
                   </button>
-                  <Show when={allAgents().length > 1}>
+                  <div style="min-width: 140px;">
                     <FilterSelect
                       noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}
                       items={allAgents()}
@@ -694,7 +694,7 @@ const GlobalOverview: Component = () => {
                       onSelectAll={() => setAllAgents(true)}
                       onUnselectAll={() => setAllAgents(false)}
                     />
-                  </Show>
+                  </div>
                 </>
               }
             />
