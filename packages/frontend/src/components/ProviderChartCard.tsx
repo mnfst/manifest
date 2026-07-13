@@ -6,7 +6,7 @@ import { formatNumber, formatCost } from '../services/formatters.js';
 // is only fetched when this card actually renders a chart body.
 const MultiAgentTokenChart = lazy(() => import('./MultiAgentTokenChart.jsx'));
 
-type ProviderView = 'messages' | 'tokens' | 'cost';
+type ProviderView = 'tokens' | 'cost';
 
 const trendBadge = (pct: number, value: number) => {
   if (pct === 0 || Math.abs(value) < 0.005) return null;
@@ -29,8 +29,6 @@ interface AgentTimeseries {
 interface ProviderChartCardProps {
   activeView: ProviderView;
   onViewChange: (view: ProviderView) => void;
-  messagesValue: number;
-  messagesTrendPct: number;
   tokensValue: number;
   tokensTrendPct: number;
   costValue?: number;
@@ -38,7 +36,6 @@ interface ProviderChartCardProps {
   costInfoTooltip?: string;
   range: string;
   agentTimeseries?: AgentTimeseries;
-  agentMessageTimeseries?: AgentTimeseries;
   agentCostTimeseries?: AgentTimeseries;
   colorMap?: Record<string, string>;
 }
@@ -77,18 +74,6 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
         <button
           type="button"
           class="chart-card__stat chart-card__stat--clickable"
-          classList={{ 'chart-card__stat--active': props.activeView === 'messages' }}
-          onClick={() => props.onViewChange('messages')}
-        >
-          <span class="chart-card__label">Requests</span>
-          <div class="chart-card__value-row">
-            <span class="chart-card__value">{props.messagesValue}</span>
-            {trendBadge(props.messagesTrendPct, props.messagesValue)}
-          </div>
-        </button>
-        <button
-          type="button"
-          class="chart-card__stat chart-card__stat--clickable"
           classList={{ 'chart-card__stat--active': props.activeView === 'tokens' }}
           onClick={() => props.onViewChange('tokens')}
         >
@@ -101,20 +86,6 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
       </div>
       <div class="chart-card__body">
         <Suspense fallback={EMPTY('Loading chart…')}>
-          <Show when={props.activeView === 'messages'}>
-            <Show
-              when={props.agentMessageTimeseries?.agents.length}
-              fallback={EMPTY('No request data for this time range')}
-            >
-              <MultiAgentTokenChart
-                agents={props.agentMessageTimeseries!.agents}
-                timeseries={props.agentMessageTimeseries!.timeseries}
-                range={props.range}
-                colorMap={props.colorMap}
-                label="Requests"
-              />
-            </Show>
-          </Show>
           <Show when={props.activeView === 'tokens'}>
             <Show
               when={props.agentTimeseries?.agents.length}

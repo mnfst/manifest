@@ -96,8 +96,6 @@ describe('analytics chart surface components', () => {
       <ProviderChartCard
         activeView="tokens"
         onViewChange={onViewChange}
-        messagesValue={12}
-        messagesTrendPct={10}
         tokensValue={1234}
         tokensTrendPct={5}
         costValue={4.56}
@@ -108,10 +106,6 @@ describe('analytics chart surface components', () => {
           agents: ['openai'],
           timeseries: [{ hour: '2026-06-04 10:00:00', openai: 1200 }],
         }}
-        agentMessageTimeseries={{
-          agents: ['openai'],
-          timeseries: [{ hour: '2026-06-04 10:00:00', openai: 12 }],
-        }}
         agentCostTimeseries={{
           agents: ['openai'],
           timeseries: [{ hour: '2026-06-04 10:00:00', openai: 4.56 }],
@@ -121,41 +115,30 @@ describe('analytics chart surface components', () => {
     ));
 
     expect(screen.getByText('Cost')).toBeDefined();
-    expect(screen.getByText('Requests')).toBeDefined();
     expect(screen.getByText('Token usage')).toBeDefined();
     expect(screen.getByTestId('info-tooltip')).toBeDefined();
     await buildLazyChart();
 
     // Tab controls are semantic <button>s (keyboard/a11y).
-    const messagesTab = screen.getByText('Requests').closest('button');
-    expect(messagesTab).not.toBeNull();
-    fireEvent.click(screen.getByText('Requests'));
-    expect(onViewChange).toHaveBeenCalledWith('messages');
     fireEvent.click(screen.getByText('Token usage'));
     expect(onViewChange).toHaveBeenCalledWith('tokens');
     fireEvent.click(screen.getByText('Cost'));
     expect(onViewChange).toHaveBeenCalledWith('cost');
   });
 
-  it('renders ProviderChartCard message and cost chart branches', async () => {
+  it('renders ProviderChartCard token and cost chart branches', async () => {
     const onViewChange = vi.fn();
 
     const { unmount } = render(() => (
       <ProviderChartCard
-        activeView="messages"
+        activeView="tokens"
         onViewChange={onViewChange}
-        messagesValue={12}
-        messagesTrendPct={0}
         tokensValue={1234}
         tokensTrendPct={0}
         costValue={4.56}
         costTrendPct={0}
         range="24h"
         agentTimeseries={{ agents: ['openai'], timeseries: [] }}
-        agentMessageTimeseries={{
-          agents: ['openai'],
-          timeseries: [{ hour: '2026-06-04 10:00:00', openai: 12 }],
-        }}
         agentCostTimeseries={{
           agents: ['openai'],
           timeseries: [{ hour: '2026-06-04 10:00:00', openai: 4.56 }],
@@ -164,7 +147,7 @@ describe('analytics chart surface components', () => {
       />
     ));
 
-    expect(screen.getByText('Requests')).toBeDefined();
+    expect(screen.getByText('Token usage')).toBeDefined();
     await buildLazyChart();
     unmount();
     capturedLifecycleOpts = null;
@@ -173,15 +156,12 @@ describe('analytics chart surface components', () => {
       <ProviderChartCard
         activeView="cost"
         onViewChange={onViewChange}
-        messagesValue={12}
-        messagesTrendPct={0}
         tokensValue={1234}
         tokensTrendPct={0}
         costValue={4.56}
         costTrendPct={0}
         range="24h"
         agentTimeseries={{ agents: ['openai'], timeseries: [] }}
-        agentMessageTimeseries={{ agents: ['openai'], timeseries: [] }}
         agentCostTimeseries={{
           agents: ['openai'],
           timeseries: [{ hour: '2026-06-04 10:00:00', openai: 4.56 }],
@@ -197,54 +177,30 @@ describe('analytics chart surface components', () => {
   it('renders ProviderChartCard empty states and hides cost when missing', () => {
     const { unmount } = render(() => (
       <ProviderChartCard
-        activeView="messages"
-        onViewChange={vi.fn()}
-        messagesValue={0}
-        messagesTrendPct={0}
-        tokensValue={0}
-        tokensTrendPct={0}
-        range="24h"
-        agentTimeseries={{ agents: [], timeseries: [] }}
-        agentMessageTimeseries={{ agents: [], timeseries: [] }}
-        agentCostTimeseries={{ agents: [], timeseries: [] }}
-      />
-    ));
-
-    expect(screen.getByText('No request data for this time range')).toBeDefined();
-    expect(screen.queryByText('Cost')).toBeNull();
-    unmount();
-
-    const tokenEmpty = render(() => (
-      <ProviderChartCard
         activeView="tokens"
         onViewChange={vi.fn()}
-        messagesValue={0}
-        messagesTrendPct={0}
         tokensValue={0}
         tokensTrendPct={0}
         range="24h"
         agentTimeseries={{ agents: [], timeseries: [] }}
-        agentMessageTimeseries={{ agents: [], timeseries: [] }}
         agentCostTimeseries={{ agents: [], timeseries: [] }}
       />
     ));
 
     expect(screen.getByText('No token data for this time range')).toBeDefined();
-    tokenEmpty.unmount();
+    expect(screen.queryByText('Cost')).toBeNull();
+    unmount();
 
     render(() => (
       <ProviderChartCard
         activeView="cost"
         onViewChange={vi.fn()}
-        messagesValue={0}
-        messagesTrendPct={0}
         tokensValue={0}
         tokensTrendPct={0}
         costValue={0}
         costTrendPct={0}
         range="24h"
         agentTimeseries={{ agents: [], timeseries: [] }}
-        agentMessageTimeseries={{ agents: [], timeseries: [] }}
         agentCostTimeseries={{ agents: [], timeseries: [] }}
       />
     ));

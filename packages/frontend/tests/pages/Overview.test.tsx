@@ -67,11 +67,9 @@ vi.mock('../../src/services/setup-status.js', () => ({
 // timeseries endpoints to a controllable resolver.
 const mockPerProvider = vi.fn(() => Promise.resolve({ agents: [], timeseries: [] }));
 const mockPerProviderTokens = vi.fn((...a: unknown[]) => mockPerProvider(...a));
-const mockPerProviderMessages = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockPerProviderCosts = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 vi.mock('../../src/services/api/analytics.js', () => ({
   getPerProviderTimeseries: (...a: unknown[]) => mockPerProviderTokens(...a),
-  getPerProviderMessageTimeseries: (...a: unknown[]) => mockPerProviderMessages(...a),
   getPerProviderCostTimeseries: (...a: unknown[]) => mockPerProviderCosts(...a),
   getWorkspaceAutofixStatus: () => Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
   getAutofixStats: () => Promise.resolve(null),
@@ -283,7 +281,6 @@ describe('Overview', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('$3.50');
       expect(container.textContent).toContain('50000');
-      expect(container.textContent).toContain('42');
     });
   });
 
@@ -293,7 +290,6 @@ describe('Overview', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('+12%');
       expect(container.textContent).toContain('-5%');
-      expect(container.textContent).toContain('+8%');
     });
   });
 
@@ -427,14 +423,13 @@ describe('Overview', () => {
     render(() => <Overview />);
 
     await vi.waitFor(() => {
-      expect(mockPerProviderMessages).toHaveBeenCalledWith('test-agent', '30d');
+      expect(mockPerProviderTokens).toHaveBeenCalledWith('test-agent', '30d');
     });
-    expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
-    expect(mockPerProviderTokens).not.toHaveBeenCalled();
+    expect(mockPerProviderTokens).toHaveBeenCalledTimes(1);
     expect(mockPerProviderCosts).not.toHaveBeenCalled();
   });
 
-  it('fetches token and cost provider series when those chart views are opened', async () => {
+  it('fetches cost provider series when that chart view is opened', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     mockPerProvider.mockResolvedValue({
       agents: ['openai'],
@@ -443,25 +438,21 @@ describe('Overview', () => {
     const { container } = render(() => <Overview />);
 
     await vi.waitFor(() => {
-      expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
+      expect(mockPerProviderTokens).toHaveBeenCalledTimes(1);
     });
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
-    fireEvent.click(stats[2]); // tokens
-    await vi.waitFor(() => {
-      expect(mockPerProviderTokens).toHaveBeenCalledWith('test-agent', '30d');
-    });
     fireEvent.click(stats[0]); // cost
     await vi.waitFor(() => {
       expect(mockPerProviderCosts).toHaveBeenCalledWith('test-agent', '30d');
     });
   });
 
-  it('has clickable stat headers for cost, tokens and messages', async () => {
+  it('has clickable stat headers for cost and tokens', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       const clickable = container.querySelectorAll('.chart-card__stat--clickable');
-      expect(clickable.length).toBe(3);
+      expect(clickable.length).toBe(2);
     });
   });
 
@@ -473,13 +464,13 @@ describe('Overview', () => {
     });
     const { container } = render(() => <Overview />);
     // ProviderChartCard renders the multi-provider chart for every view; the
-    // active stat reflects the selection. Stat order is Cost / Messages / Tokens.
+    // active stat reflects the selection. Stat order is Cost / Tokens.
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="multi-agent-chart"]')).not.toBeNull();
     });
 
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
-    expect(stats.length).toBe(3);
+    expect(stats.length).toBe(2);
 
     fireEvent.click(stats[0]); // cost
     await vi.waitFor(() => {
@@ -487,13 +478,7 @@ describe('Overview', () => {
       expect(active?.textContent).toContain('Cost');
     });
 
-    fireEvent.click(stats[1]); // messages
-    await vi.waitFor(() => {
-      const active = container.querySelector('.chart-card__stat--active');
-      expect(active?.textContent).toContain('Requests');
-    });
-
-    fireEvent.click(stats[2]); // tokens — renders the token-view chart
+    fireEvent.click(stats[1]); // tokens — renders the token-view chart
     await vi.waitFor(() => {
       const active = container.querySelector('.chart-card__stat--active');
       expect(active?.textContent).toContain('Token usage');

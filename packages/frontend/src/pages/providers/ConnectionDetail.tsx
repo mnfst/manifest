@@ -202,7 +202,7 @@ const ConnectionDetail: Component = () => {
   const savedView = () => {
     try {
       const v = sessionStorage.getItem(viewKey());
-      if (v === 'messages' || v === 'cost') return v;
+      if (v === 'tokens' || v === 'cost') return v;
     } catch {
       /* ignore */
     }
@@ -217,8 +217,8 @@ const ConnectionDetail: Component = () => {
       /* ignore */
     }
   };
-  const [chartView, setChartViewRaw] = createSignal<'messages' | 'tokens' | 'cost'>(savedView());
-  const setChartView = (v: 'messages' | 'tokens' | 'cost') => {
+  const [chartView, setChartViewRaw] = createSignal<'tokens' | 'cost'>(savedView());
+  const setChartView = (v: 'tokens' | 'cost') => {
     setChartViewRaw(v);
     try {
       sessionStorage.setItem(viewKey(), v);
@@ -703,14 +703,11 @@ const ConnectionDetail: Component = () => {
                     <ProviderChartCard
                       activeView={chartView()}
                       onViewChange={setChartView}
-                      messagesValue={analytics()!.summary.messages.value}
-                      messagesTrendPct={analytics()!.summary.messages.trend_pct}
                       tokensValue={analytics()!.summary.tokens.value}
                       tokensTrendPct={analytics()!.summary.tokens.trend_pct}
                       costValue={isByok() ? (totalCost() ?? 0) : undefined}
                       range={chartRange()}
                       agentTimeseries={filteredAgentTimeseries() ?? undefined}
-                      agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
                       agentCostTimeseries={
                         isByok() ? (filteredAgentCostTimeseries() ?? undefined) : undefined
                       }

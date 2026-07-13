@@ -25,7 +25,6 @@ import { PROVIDERS } from '../services/providers.js';
 import { getOverview } from '../services/api.js';
 import {
   getPerProviderTimeseries,
-  getPerProviderMessageTimeseries,
   getPerProviderCostTimeseries,
 } from '../services/api/analytics.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
@@ -97,7 +96,7 @@ type PivotedTimeseries = {
   timeseries: Array<Record<string, number | string>>;
 };
 
-type ProviderView = 'cost' | 'tokens' | 'messages';
+type ProviderView = 'cost' | 'tokens';
 type TimeseriesKey = { range: string; agent: string; _ping: number };
 
 const Overview: Component = () => {
@@ -134,7 +133,7 @@ const Overview: Component = () => {
     markUserSelected: () => setUserSelectedRange(true),
   });
   const effectiveRange = createMemo(() => (isProRangeLocked(range()) ? '7d' : range()));
-  const [activeView, setActiveViewRaw] = createSignal<ProviderView>('messages');
+  const [activeView, setActiveViewRaw] = createSignal<ProviderView>('tokens');
   const [tokenChartRequested, setTokenChartRequested] = createSignal(false);
   const [costChartRequested, setCostChartRequested] = createSignal(false);
   const setActiveView = (view: ProviderView) => {
@@ -232,12 +231,8 @@ const Overview: Component = () => {
     _ping: messagePing(),
   });
   const [providerTokenTs] = createResource(
-    () => (tokenChartRequested() && !billing.loading ? tsKey() : false),
-    (p) => getPerProviderTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
-  );
-  const [providerMessageTs] = createResource(
     () => (billing.loading ? false : tsKey()),
-    (p) => getPerProviderMessageTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
+    (p) => getPerProviderTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
   const [providerCostTs] = createResource(
     () => (costChartRequested() && !billing.loading ? tsKey() : false),
@@ -247,7 +242,6 @@ const Overview: Component = () => {
   const allProviders = createMemo(() => {
     const set = new Set<string>([
       ...(providerTokenTs()?.agents ?? []),
-      ...(providerMessageTs()?.agents ?? []),
       ...(providerCostTs()?.agents ?? []),
     ]);
     return [...set].sort();
@@ -298,7 +292,6 @@ const Overview: Component = () => {
     };
   };
   const filteredTokenTs = createMemo(() => filterTs(providerTokenTs()));
-  const filteredMessageTs = createMemo(() => filterTs(providerMessageTs()));
   const filteredCostTs = createMemo(() => filterTs(providerCostTs()));
 
   const providerDisplayName = (provId: string): string =>
@@ -427,12 +420,9 @@ const Overview: Component = () => {
                     costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
                     tokensValue={d().summary?.tokens_today?.value ?? 0}
                     tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
-                    messagesValue={d().summary?.messages?.value ?? 0}
-                    messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
                     costInfoTooltip="Actual API key costs only. Subscription usage is not included."
                     range={effectiveRange()}
                     agentTimeseries={filteredTokenTs() ?? undefined}
-                    agentMessageTimeseries={filteredMessageTs() ?? undefined}
                     agentCostTimeseries={filteredCostTs() ?? undefined}
                     colorMap={providerColorMap()}
                   />
