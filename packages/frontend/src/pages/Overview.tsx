@@ -11,6 +11,7 @@ import {
 } from 'solid-js';
 import UnifiedChartCard from '../components/UnifiedChartCard.jsx';
 import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
+import ErrorClassCard from '../components/ErrorClassCard.jsx';
 import FilterSelect from '../components/FilterSelect.jsx';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import CostByModelTable from '../components/CostByModelTable.jsx';
@@ -497,7 +498,15 @@ const Overview: Component = () => {
                     );
                   })()}
 
-                  {/* Recent Messages */}
+                  {/* Error class breakdown */}
+                  <div style="margin-bottom: 24px;">
+                    <ErrorClassCard
+                      range={effectiveRange()}
+                      agentName={decodeURIComponent(params.agentName)}
+                    />
+                  </div>
+
+                  {/* Recent Requests */}
                   <div class="panel">
                     <div
                       class="panel__title"

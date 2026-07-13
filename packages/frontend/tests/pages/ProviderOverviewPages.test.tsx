@@ -45,6 +45,7 @@ vi.mock('@solidjs/router', () => ({
 }));
 
 vi.mock('../../src/services/api/core.js', () => ({
+  fetchJson: () => Promise.resolve({ by_class: {}, by_origin: {} }),
   fetchMutate: (...args: unknown[]) => apiMocks.fetchMutate(...args),
   routingPath: (agent: string, path: string) => `/api/v1/routing/${agent}/${path}`,
 }));

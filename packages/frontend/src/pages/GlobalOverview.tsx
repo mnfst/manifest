@@ -38,6 +38,7 @@ import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import UnifiedChartCard from '../components/UnifiedChartCard.jsx';
 import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
+import ErrorClassCard from '../components/ErrorClassCard.jsx';
 import SocialFollowBanner from '../components/SocialFollowBanner.jsx';
 import Sparkline from '../components/Sparkline.jsx';
 import FilterSelect from '../components/FilterSelect.jsx';
@@ -661,6 +662,11 @@ const GlobalOverview: Component = () => {
             />
           );
         })()}
+
+        {/* ── Error class breakdown ──────────────────────────────── */}
+        <div style="margin-bottom: 24px;">
+          <ErrorClassCard range={effectiveChartRange()} />
+        </div>
 
         {/* ── 3. Summary Stat Cards (4 columns) ────────────────────── */}
         {(() => {
