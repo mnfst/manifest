@@ -2,6 +2,7 @@ import {
   createResource,
   createSignal,
   createMemo,
+  createEffect,
   For,
   Show,
   onCleanup,
@@ -79,6 +80,30 @@ const NotificationBell: Component = () => {
     return list
       .filter((a) => !enabledSet.has(a.agent_name))
       .map((a) => ({ name: a.agent_name, display: a.display_name || a.agent_name }));
+  });
+
+  // When an agent gets enabled, remove it from the read set so the
+  // notification reappears fresh if it's later disabled again.
+  createEffect(() => {
+    const s = status();
+    if (!s) return;
+    const enabled = new Set(s.enabled_agents);
+    const read = getReadSet();
+    let changed = false;
+    for (const name of read) {
+      if (enabled.has(name)) {
+        read.delete(name);
+        changed = true;
+      }
+    }
+    if (changed) {
+      try {
+        localStorage.setItem(READ_KEY, JSON.stringify([...read]));
+      } catch {
+        /* ignore */
+      }
+      setReadSet(new Set(read));
+    }
   });
 
   const unreadCount = createMemo(
