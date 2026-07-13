@@ -18,9 +18,9 @@ import type { AutofixTimeseries } from '../services/api/analytics.js';
 // Colors per series mode
 // ---------------------------------------------------------------------------
 const OUTCOME_COLORS: Record<string, string> = {
-  success: '#9CA3AF', // neutral/desaturated — baseline, shouldn't demand attention
+  success: '#1cc4bf', // --success teal
   healed: '#1cc4bf', // teal accent — "the product saved this request"
-  error: '#EF4444', // red — still failing
+  error: '#EF4444', // --destructive red
   no_fix_found: '#F59E0B', // amber
   resolving: '#D1D5DB',
   ineffective: '#DC2626',
