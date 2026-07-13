@@ -13,6 +13,10 @@ class AutofixTimeseriesQueryDto extends RangeQueryDto {
   @IsString()
   @IsIn([...AUTOFIX_TS_DIMENSIONS])
   by?: string;
+
+  @IsOptional()
+  @IsString()
+  failed_only?: string;
 }
 
 @Controller('api/v1')
@@ -42,6 +46,7 @@ export class AutofixAnalyticsController {
       range: query.range,
       by: query.by,
       agentName: query.agent_name,
+      failedOnly: query.failed_only === 'true',
     });
   }
 }

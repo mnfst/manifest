@@ -825,6 +825,7 @@ describe('GlobalOverview (analytics)', () => {
   });
 
   it('shows custom provider names instead of custom:<uuid> in provider series', async () => {
+    localStorage.setItem('manifest_global_group', 'provider');
     const customSeries = {
       agents: ['openai', 'custom:cp-1'],
       timeseries: [{ hour: '2026-06-04 10:00:00', openai: 1200, 'custom:cp-1': 300 }],

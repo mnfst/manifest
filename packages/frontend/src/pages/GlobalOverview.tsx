@@ -189,11 +189,11 @@ const GlobalOverview: Component = () => {
   const loadGroup = (): string => {
     try {
       const v = localStorage.getItem(GROUP_STORAGE_KEY);
-      if (v === 'provider' || v === 'agent') return v;
+      if (v === 'provider' || v === 'agent' || v === 'status') return v;
     } catch {
       /* ignore */
     }
-    return 'provider';
+    return 'status';
   };
   const [groupBy, setGroupByRaw] = createSignal(loadGroup());
   const setGroupBy = (v: string) => {
@@ -219,7 +219,7 @@ const GlobalOverview: Component = () => {
     } catch {
       /* ignore */
     }
-    return 'disposition';
+    return 'error_kind';
   };
   const [failedFilter, setFailedFilterRaw] = createSignal(loadFailedFilter());
   const setFailedFilter = (v: string) => {
@@ -316,7 +316,13 @@ const GlobalOverview: Component = () => {
       autofixAvailable()
         ? { range: effectiveChartRange(), by: failedFilter(), _ping: messagePing() }
         : false,
-    (p) => getAutofixTimeseries(p.range, p.by),
+    (p) => getAutofixTimeseries(p.range, p.by, undefined, true),
+  );
+
+  // Request status timeseries (all requests by disposition — for "By request status" filter)
+  const [requestStatusTs] = createResource(
+    () => (groupBy() === 'status' ? { range: effectiveChartRange(), _ping: messagePing() } : false),
+    (p) => getAutofixTimeseries(p.range, 'disposition'),
   );
 
   // Shimmer the usage cells until the first usage load resolves; SSE refetches
@@ -664,12 +670,22 @@ const GlobalOverview: Component = () => {
               tokensValue={o().summary.tokens_today.value}
               tokensTrendPct={o().summary.tokens_today.trend_pct}
               range={effectiveChartRange()}
-              agentRequestTimeseries={filteredAgentMessageTimeseries() ?? undefined}
+              requestStatusTimeseries={groupBy() === 'status' ? requestStatusTs() : undefined}
+              agentRequestTimeseries={
+                groupBy() !== 'status' ? (filteredAgentMessageTimeseries() ?? undefined) : undefined
+              }
               agentTimeseries={filteredAgentTimeseries() ?? undefined}
               agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
               colorMap={agentColorMap()}
               seriesFilters={
                 <>
+                  <button
+                    class="chart-card__filter-btn"
+                    classList={{ 'chart-card__filter-btn--active': groupBy() === 'status' }}
+                    onClick={() => setGroupBy('status')}
+                  >
+                    By request status
+                  </button>
                   <button
                     class="chart-card__filter-btn"
                     classList={{ 'chart-card__filter-btn--active': groupBy() === 'provider' }}
@@ -684,17 +700,19 @@ const GlobalOverview: Component = () => {
                   >
                     By harness
                   </button>
-                  <div style="min-width: 140px;">
-                    <FilterSelect
-                      noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}
-                      items={allAgents()}
-                      selected={effectiveSelected()}
-                      colorMap={agentColorMap()}
-                      onToggle={toggleAgent}
-                      onSelectAll={() => setAllAgents(true)}
-                      onUnselectAll={() => setAllAgents(false)}
-                    />
-                  </div>
+                  <Show when={groupBy() !== 'status'}>
+                    <div style="min-width: 140px;">
+                      <FilterSelect
+                        noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}
+                        items={allAgents()}
+                        selected={effectiveSelected()}
+                        colorMap={agentColorMap()}
+                        onToggle={toggleAgent}
+                        onSelectAll={() => setAllAgents(true)}
+                        onUnselectAll={() => setAllAgents(false)}
+                      />
+                    </div>
+                  </Show>
                 </>
               }
             />

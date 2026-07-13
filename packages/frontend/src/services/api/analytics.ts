@@ -213,11 +213,13 @@ export function getAutofixTimeseries(
   range = '7d',
   by = 'disposition',
   agentName?: string,
+  failedOnly?: boolean,
 ): Promise<AutofixTimeseries> {
   return fetchJson('/overview/autofix-timeseries', {
     range,
     by,
     ...(agentName ? { agent_name: agentName } : {}),
+    ...(failedOnly ? { failed_only: 'true' } : {}),
   }) as Promise<AutofixTimeseries>;
 }
 

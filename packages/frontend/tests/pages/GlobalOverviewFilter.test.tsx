@@ -266,6 +266,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   sessionStorage.clear();
+  localStorage.setItem('manifest_global_group', 'provider');
   mockIsSelfHosted = false;
   filterSelectProps = null;
   mockSearchParams = {};

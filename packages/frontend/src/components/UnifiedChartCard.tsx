@@ -7,7 +7,7 @@ const MultiAgentTokenChart = lazy(() => import('./MultiAgentTokenChart.jsx'));
 const ReliabilityChart = lazy(() => import('./ReliabilityChart.jsx'));
 
 export type ChartTab = 'requests' | 'failed' | 'cost' | 'tokens';
-type FailedFilter = 'disposition' | 'http_status' | 'error_kind' | 'autofix';
+type FailedFilter = 'error_kind' | 'http_status' | 'autofix';
 
 interface AgentTimeseries {
   agents: string[];
@@ -21,6 +21,8 @@ export interface UnifiedChartCardProps {
   requestsValue: number;
   requestsTrendPct: number;
   agentRequestTimeseries?: AgentTimeseries;
+  /** When set, the Requests tab shows this (disposition) instead of agentRequestTimeseries */
+  requestStatusTimeseries?: AutofixTimeseries;
   // Failed requests tab
   failedValue: number;
   failedTrendPct: number;
@@ -63,7 +65,7 @@ const EMPTY = (msg: string) => (
 );
 
 const FAILED_FILTERS: Array<{ value: FailedFilter; label: string }> = [
-  { value: 'disposition', label: 'By error class' },
+  { value: 'error_kind', label: 'By error class' },
   { value: 'http_status', label: 'By HTTP status' },
   { value: 'autofix', label: 'By auto-fixed' },
 ];
@@ -171,16 +173,32 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
         <Suspense fallback={EMPTY('Loading chart…')}>
           <Show when={props.activeTab === 'requests'}>
             <Show
-              when={props.agentRequestTimeseries?.agents.length}
-              fallback={EMPTY('No request data for this time range')}
+              when={props.requestStatusTimeseries}
+              fallback={
+                <Show
+                  when={props.agentRequestTimeseries?.agents.length}
+                  fallback={EMPTY('No request data for this time range')}
+                >
+                  <MultiAgentTokenChart
+                    agents={props.agentRequestTimeseries!.agents}
+                    timeseries={props.agentRequestTimeseries!.timeseries}
+                    range={props.range}
+                    colorMap={props.colorMap}
+                    label="Requests"
+                  />
+                </Show>
+              }
             >
-              <MultiAgentTokenChart
-                agents={props.agentRequestTimeseries!.agents}
-                timeseries={props.agentRequestTimeseries!.timeseries}
-                range={props.range}
-                colorMap={props.colorMap}
-                label="Requests"
-              />
+              <Show
+                when={props.requestStatusTimeseries!.buckets.length > 0}
+                fallback={EMPTY('No request data for this time range')}
+              >
+                <ReliabilityChart
+                  timeseries={props.requestStatusTimeseries!}
+                  range={props.range}
+                  seriesMode="disposition"
+                />
+              </Show>
             </Show>
           </Show>
           <Show when={props.activeTab === 'failed'}>

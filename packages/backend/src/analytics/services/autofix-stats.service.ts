@@ -147,6 +147,7 @@ export class AutofixStatsService {
     range?: string;
     by?: string;
     agentName?: string;
+    failedOnly?: boolean;
   }): Promise<AutofixTimeseriesResponse> {
     const range = params.range ?? '7d';
     const by = (AUTOFIX_TS_DIMENSIONS as readonly string[]).includes(params.by ?? '')
@@ -163,10 +164,13 @@ export class AutofixStatsService {
       .addSelect(dimExpr, 'dim')
       .addSelect('COUNT(*)', 'count')
       .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')")
-      .groupBy(bucketExpr)
-      .addGroupBy(dimExpr)
-      .orderBy(bucketExpr, 'ASC');
+      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')");
+
+    if (params.failedOnly) {
+      qb.andWhere("at.status IN ('error','fallback_error','rate_limited','auto_fixed')");
+    }
+
+    qb.groupBy(bucketExpr).addGroupBy(dimExpr).orderBy(bucketExpr, 'ASC');
     addTenantFilter(qb, params.tenantId, params.agentName);
     excludePlaygroundAgents(qb);
 
