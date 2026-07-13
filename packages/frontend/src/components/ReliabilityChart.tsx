@@ -1,6 +1,7 @@
 import { For, type Component } from 'solid-js';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
+import '../styles/reliability-card.css';
 import { getHslA } from '../services/theme.js';
 import { formatNumber } from '../services/formatters.js';
 import {
