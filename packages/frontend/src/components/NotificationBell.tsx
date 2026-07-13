@@ -135,12 +135,10 @@ const NotificationBell: Component = () => {
                           <span class="notif-dropdown__dot" />
                         </Show>
                       </div>
-                      <div>
-                        <div class="notif-dropdown__title">{agent.display} — Auto-fix disabled</div>
-                        <div class="notif-dropdown__desc">
-                          Enable Auto-fix on this agent to improve your experience
-                        </div>
-                      </div>
+                      <span style="font-size: 14px;">
+                        Auto-fix is inactive on <strong>{agent.display}</strong>. Enable it to get
+                        the full dashboard experience.
+                      </span>
                     </A>
                   );
                 }}
