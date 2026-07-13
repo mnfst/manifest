@@ -41,6 +41,9 @@ import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/routing.css';
 import ReliabilityCard from '../components/ReliabilityCard.jsx';
+import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
+import { getAutofixStats } from '../services/api/analytics.js';
+import { getAutofix } from '../services/api/routing.js';
 
 const PRO_RANGES = new Set(['30d', '90d', '365d']);
 const AGENT_RANGE_OPTIONS = [
@@ -239,6 +242,24 @@ const Overview: Component = () => {
     (p) => getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
 
+  // ── Auto-fix resources (conditional on agent access) ────────────────
+  const [autofixConfig] = createResource(
+    () => ({ agent: params.agentName, _ping: messagePing() }),
+    (p) => getAutofix(decodeURIComponent(p.agent)),
+  );
+  const autofixAvailable = () => autofixConfig()?.available ?? false;
+  const [autofixStats] = createResource(
+    () =>
+      autofixAvailable()
+        ? {
+            range: effectiveRange(),
+            agent: decodeURIComponent(params.agentName),
+            _ping: messagePing(),
+          }
+        : false,
+    (p) => getAutofixStats(p.range, p.agent),
+  );
+
   const allProviders = createMemo(() => {
     const set = new Set<string>([
       ...(providerTokenTs()?.agents ?? []),
@@ -408,6 +429,9 @@ const Overview: Component = () => {
                         No activity yet. Your dashboard updates seconds after the first LLM call.
                       </p>
                     </div>
+                  </Show>
+                  <Show when={autofixAvailable()}>
+                    <AutofixKpiCards stats={autofixStats()} />
                   </Show>
                   <ReliabilityCard
                     range={effectiveRange()}

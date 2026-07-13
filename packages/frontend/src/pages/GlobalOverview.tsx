@@ -56,6 +56,8 @@ import '../styles/charts.css';
 import '../styles/analytics-overview.css';
 import '../styles/routing.css';
 import ReliabilityCard from '../components/ReliabilityCard.jsx';
+import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
+import { getWorkspaceAutofixStatus, getAutofixStats } from '../services/api/analytics.js';
 
 interface ProviderGroup {
   provider: string;
@@ -269,6 +271,17 @@ const GlobalOverview: Component = () => {
         return [];
       }
     },
+  );
+
+  // ── Auto-fix resources (conditional on tenant access) ────────────────
+  const [autofixStatus] = createResource(
+    () => ({ _ping: messagePing() }),
+    () => getWorkspaceAutofixStatus(),
+  );
+  const autofixAvailable = () => autofixStatus()?.available ?? false;
+  const [autofixStats] = createResource(
+    () => (autofixAvailable() ? { range: effectiveChartRange(), _ping: messagePing() } : false),
+    (p) => getAutofixStats(p.range),
   );
 
   // Shimmer the usage cells until the first usage load resolves; SSE refetches
@@ -600,7 +613,10 @@ const GlobalOverview: Component = () => {
           </Show>
         }
       >
-        {/* ── Reliability card (autofix-gated) ──────────────────────── */}
+        {/* ── Auto-fix KPI cards + Reliability chart (autofix-gated) ── */}
+        <Show when={autofixAvailable()}>
+          <AutofixKpiCards stats={autofixStats()} />
+        </Show>
         <ReliabilityCard range={effectiveChartRange()} />
 
         {/* ── 2. Chart Card ───────────────────────────────────────────── */}
