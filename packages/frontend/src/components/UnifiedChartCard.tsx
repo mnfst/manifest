@@ -45,8 +45,8 @@ export interface UnifiedChartCardProps {
   seriesFilters?: JSX.Element;
 }
 
-const trendBadge = (pct: number, value: number) => {
-  if (pct === 0 || Math.abs(value) < 0.005) return null;
+const trendBadge = (pct: number) => {
+  if (pct === 0) return null;
   const clamped = Math.max(-999, Math.min(999, Math.round(pct)));
   if (clamped === 0) return null;
   const sign = clamped > 0 ? '+' : '';
@@ -99,7 +99,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
           <span class="chart-card__label">Requests</span>
           <div class="chart-card__value-row">
             <span class="chart-card__value">{formatNumber(props.requestsValue)}</span>
-            {trendBadge(props.requestsTrendPct, props.requestsValue)}
+            {trendBadge(props.requestsTrendPct)}
           </div>
         </button>
         <button
@@ -111,7 +111,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
           <span class="chart-card__label">Failed requests</span>
           <div class="chart-card__value-row">
             <span class="chart-card__value">{formatNumber(props.failedValue)}</span>
-            {trendBadge(props.failedTrendPct, props.failedValue)}
+            {trendBadge(props.failedTrendPct)}
           </div>
         </button>
         <Show when={showCost()}>
@@ -129,7 +129,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
             </span>
             <div class="chart-card__value-row">
               <span class="chart-card__value">{formatCost(props.costValue!) ?? '$0.00'}</span>
-              {trendBadge(props.costTrendPct ?? 0, props.costValue!)}
+              {trendBadge(props.costTrendPct ?? 0)}
             </div>
           </button>
         </Show>
@@ -142,7 +142,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
           <span class="chart-card__label">Token usage</span>
           <div class="chart-card__value-row">
             <span class="chart-card__value">{formatNumber(props.tokensValue)}</span>
-            {trendBadge(props.tokensTrendPct, props.tokensValue)}
+            {trendBadge(props.tokensTrendPct)}
           </div>
         </button>
       </div>

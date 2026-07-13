@@ -297,12 +297,12 @@ describe('Overview', () => {
     });
   });
 
-  it('hides trend badges when metric values are zero', async () => {
+  it('shows trend badges even when metric values are zero (trend is still meaningful)', async () => {
     const zeroData = {
       ...overviewData,
       summary: {
         ...overviewData.summary,
-        cost_today: { value: 0, trend_pct: -34497259 },
+        cost_today: { value: 0, trend_pct: -999 },
         tokens_today: { value: 0, trend_pct: 500, sub_values: { input: 0, output: 0 } },
         messages: { value: 0, trend_pct: -100 },
       },
@@ -312,7 +312,7 @@ describe('Overview', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('$0.00');
       const trends = container.querySelectorAll('.trend');
-      expect(trends.length).toBe(0);
+      expect(trends.length).toBeGreaterThan(0);
     });
   });
 
