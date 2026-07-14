@@ -138,7 +138,7 @@
   align-items: center;
   padding: 0 12px;
   border-bottom: 1px solid hsl(var(--border));
-  background: hsl(var(--muted));
+  background: hsl(var(--card));
 }
 
 .attempt-item {
