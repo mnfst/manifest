@@ -115,6 +115,9 @@
 .drawer-timeline .toggle-panel {
   display: none;
 }
+.drawer-timeline .error-autofix-row__arrow {
+  padding: 8px 0;
+}
 
 /* Tabs — full-width override for the drawer context */
 .drawer__tabs-full.panel__tabs {
