@@ -199,13 +199,9 @@ export class PlanService {
   /**
    * Routed requests recorded for the tenant since the effective quota window
    * start, cached per tenant+window with single-flight coalescing. "Routed request" = one
-   * non-superseded `agent_messages` row that does not belong to the tenant's
-   * Playground agent:
-   *  - `superseded = false` drops intermediate fallback attempts, which the
-   *    recorder flags as rows that "must never count as a message" — otherwise
-   *    a single fallback-heavy request would count 2-3×.
-   *  - excluding Manifest-origin rows keeps our own config/policy/internal
-   *    short-circuits visible in Messages without consuming request quota.
+   * explicit request with at least one provider attempt that does not belong to
+   * the tenant's Playground agent. The unlinked-attempt term preserves exact
+   * quota behavior while the online historical backfill is still running.
    *  - excluding Playground keeps the dashboard test tool from consuming (or
    *    being blocked by) the production request quota.
    */
@@ -223,16 +219,29 @@ export class PlanService {
 
     const pending = this.dataSource
       .query(
-        `SELECT COUNT(*)::int AS n
-           FROM agent_messages m
-          WHERE m.tenant_id = $1
-            AND m.timestamp >= $2
-            AND m.superseded = false
-            AND (m.error_origin IS NULL OR m.error_origin NOT IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST}))
-            AND NOT EXISTS (
-              SELECT 1 FROM agents pa
-               WHERE pa.id = m.agent_id AND pa.is_playground = true
-            )`,
+        `SELECT (
+           SELECT COUNT(*)
+           FROM requests r
+           WHERE r.tenant_id = $1
+             AND r.timestamp >= $2
+             AND EXISTS (SELECT 1 FROM provider_attempts pa WHERE pa.request_id = r.id)
+             AND NOT EXISTS (
+               SELECT 1 FROM agents a
+               WHERE a.id = r.agent_id AND a.is_playground = true
+             )
+         ) + (
+           SELECT COUNT(*)
+           FROM provider_attempts m
+           WHERE m.tenant_id = $1
+             AND m.timestamp >= $2
+             AND m.request_id IS NULL
+             AND m.superseded = false
+             AND (m.error_origin IS NULL OR m.error_origin NOT IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST}))
+             AND NOT EXISTS (
+               SELECT 1 FROM agents a
+               WHERE a.id = m.agent_id AND a.is_playground = true
+             )
+         ) AS n`,
         [tenantId, toLocalSqlTimestamp(new Date(windowStartMs))],
       )
       .then((rows: Array<{ n: number }>) => {
@@ -317,7 +326,7 @@ export class PlanService {
   /**
    * Block a routed request when the tenant is at/over its monthly request cap.
    * Called on the /v1/* proxy admission path BEFORE the request is recorded, so
-   * a blocked request never becomes an `agent_messages` row (which would count
+   * a blocked request never becomes an `provider_attempts` row (which would count
    * toward the very limit it hit). Only structured data is thrown; the friendly
    * copy + upgrade link is built in ProxyExceptionFilter.
    */

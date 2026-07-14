@@ -1027,7 +1027,7 @@ describe('ConnectionDetail (analytics)', () => {
     expect(screen.getAllByText('Harnesses').length).toBeGreaterThan(0);
     expect(screen.getAllByText('gpt-5').length).toBeGreaterThan(0);
     // Recent messages table renders model and token data (description is no longer displayed).
-    expect(screen.getByText('Recent Messages')).toBeDefined();
+    expect(screen.getByText('Recent Requests')).toBeDefined();
     // BYOK connection → cost columns present
     expect(screen.getByText('Active')).toBeDefined();
 
@@ -1141,7 +1141,7 @@ describe('ConnectionDetail (analytics)', () => {
     // "Custom" appears both as the badge and as the connection label.
     expect(screen.getAllByText('Custom').length).toBeGreaterThan(0);
     expect(screen.getByText('Inactive')).toBeDefined();
-    expect(screen.getByText('No messages yet.')).toBeDefined();
+    expect(screen.getByText('No requests yet.')).toBeDefined();
     expect(screen.getByText('No model usage data yet.')).toBeDefined();
     expect(screen.getByText('No harnesses have used this provider yet.')).toBeDefined();
     // Manage button is present even for inactive connections.

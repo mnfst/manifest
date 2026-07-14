@@ -121,15 +121,15 @@ describe('analytics chart surface components', () => {
     ));
 
     expect(screen.getByText('Cost')).toBeDefined();
-    expect(screen.getByText('Messages')).toBeDefined();
+    expect(screen.getByText('Requests')).toBeDefined();
     expect(screen.getByText('Token usage')).toBeDefined();
     expect(screen.getByTestId('info-tooltip')).toBeDefined();
     await buildLazyChart();
 
     // Tab controls are semantic <button>s (keyboard/a11y).
-    const messagesTab = screen.getByText('Messages').closest('button');
+    const messagesTab = screen.getByText('Requests').closest('button');
     expect(messagesTab).not.toBeNull();
-    fireEvent.click(screen.getByText('Messages'));
+    fireEvent.click(screen.getByText('Requests'));
     expect(onViewChange).toHaveBeenCalledWith('messages');
     fireEvent.click(screen.getByText('Token usage'));
     expect(onViewChange).toHaveBeenCalledWith('tokens');
@@ -164,7 +164,7 @@ describe('analytics chart surface components', () => {
       />
     ));
 
-    expect(screen.getByText('Messages')).toBeDefined();
+    expect(screen.getByText('Requests')).toBeDefined();
     await buildLazyChart();
     unmount();
     capturedLifecycleOpts = null;
@@ -210,7 +210,7 @@ describe('analytics chart surface components', () => {
       />
     ));
 
-    expect(screen.getByText('No message data for this time range')).toBeDefined();
+    expect(screen.getByText('No request data for this time range')).toBeDefined();
     expect(screen.queryByText('Cost')).toBeNull();
     unmount();
 

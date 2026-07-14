@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType } from '../common/utils/postgres-sql';
 import type { CallerAttribution } from '../routing/proxy/caller-classifier';
 
-@Entity('agent_messages')
+@Entity('provider_attempts')
 @Index(['tenant_id', 'agent_id', 'timestamp'])
 // No index on `user_id`: it is deprecated attribution-only metadata, never
 // scoped or filtered on (see query-helpers.ts). Its index cost 715 MB and was
@@ -26,6 +26,10 @@ import type { CallerAttribution } from '../routing/proxy/caller-classifier';
 export class AgentMessage {
   @PrimaryColumn('varchar')
   id!: string;
+
+  /** Parent caller request. NULL only while the historical backfill is running. */
+  @Column('varchar', { nullable: true })
+  request_id!: string | null;
 
   @Column('varchar', { nullable: true })
   tenant_id!: string | null;
@@ -148,7 +152,7 @@ export class AgentMessage {
   /**
    * DEPRECATED — informational attribution only, written by the proxy
    * recorder. Never filter, scope, key, or authorize by this column; all
-   * scoping goes through `tenant_id`. Kept because agent_messages is the
+   * scoping goes through `tenant_id`. Kept because provider_attempts is the
    * big hot table and a column drop isn't worth the rewrite.
    */
   @Column('varchar', { nullable: true })

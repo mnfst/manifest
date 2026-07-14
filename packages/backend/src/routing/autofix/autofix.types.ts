@@ -45,7 +45,8 @@ export interface AutofixChainEntry {
  * The full Auto-fix story. An `autofix` chain entry exists if and only if a
  * patched request was actually sent to the provider. The recorder uses that
  * invariant—not Phoenix consultation alone—to decide whether Auto-fix was
- * applied and whether linked original/retry rows must be written.
+ * applied. When a retry exists, the failed original and retry are recorded as
+ * linked `provider_attempts` rows sharing `groupId`.
  */
 export interface AutofixRecord {
   /** Shared id linking the failed-original and retry rows, when a retry exists. */
