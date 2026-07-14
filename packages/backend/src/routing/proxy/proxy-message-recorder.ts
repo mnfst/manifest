@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { classifyMessageError, type RequestParamDefaults } from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { ManifestRequest } from '../../entities/request.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
@@ -87,6 +88,7 @@ export interface HeaderTierRef {
 }
 
 export interface ProviderErrorOpts extends HeaderTierRef {
+  requestId?: string;
   model?: string;
   provider?: string;
   tier?: string;
@@ -96,7 +98,7 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   authType?: string;
   /**
    * Why the tier was selected (e.g. 'header-match', 'specificity', 'scored').
-   * Persisted to agent_messages.routing_reason so single-shot upstream errors
+   * Persisted to provider_attempts.routing_reason so single-shot upstream errors
    * keep the same audit context as their successful siblings.
    */
   reason?: string;
@@ -104,7 +106,7 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   providerKeyLabel?: string;
   /**
    * The tenant_providers row (connection/key) that served this message.
-   * Persisted to agent_messages.tenant_provider_id so per-connection analytics
+   * Persisted to provider_attempts.tenant_provider_id so per-connection analytics
    * scope by the exact key rather than the non-unique provider/auth/label tuple.
    */
   tenantProviderId?: string | null;
@@ -112,7 +114,7 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   requestHeaders?: Record<string, string> | null;
   /**
    * Snapshot of effective request body parameters merged into the outbound
-   * provider request. Persisted to `agent_messages.request_params`.
+   * provider request. Persisted to `provider_attempts.request_params`.
    */
   requestParams?: RequestParamDefaults | null;
   /** Auto-fix audit when this error was the terminal outcome after healing. */
@@ -122,6 +124,7 @@ export interface ProviderErrorOpts extends HeaderTierRef {
 export type { ManifestBlockedRequestReason };
 
 export interface ManifestBlockedRequestOpts {
+  requestId?: string;
   /**
    * The status the caller saw, when there was one. Omitted for the HTTP-200
    * friendly stubs (no provider was contacted, so there is no upstream status
@@ -140,6 +143,7 @@ export interface ManifestBlockedRequestOpts {
 }
 
 export interface FallbackSuccessOpts extends HeaderTierRef {
+  requestId?: string;
   traceId?: string;
   provider?: string;
   fallbackFromModel?: string;
@@ -148,14 +152,14 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
   authType?: string;
   /**
    * Why the primary tier was selected (e.g. 'header-match', 'specificity',
-   * 'scored'). Persisted to agent_messages.routing_reason so fallback rows
+   * 'scored'). Persisted to provider_attempts.routing_reason so fallback rows
    * keep the same audit context as their non-fallback siblings.
    */
   reason?: string;
   providerKeyLabel?: string;
   /**
    * The tenant_providers row (connection/key) that served this message.
-   * Persisted to agent_messages.tenant_provider_id so per-connection analytics
+   * Persisted to provider_attempts.tenant_provider_id so per-connection analytics
    * scope by the exact key rather than the non-unique provider/auth/label tuple.
    */
   tenantProviderId?: string | null;
@@ -165,12 +169,13 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
   /**
    * Snapshot of effective request body parameters (today: DeepSeek
    * `thinking`) merged into the outbound provider request. `null` when no
-   * known params apply. Persisted to `agent_messages.request_params`.
+   * known params apply. Persisted to `provider_attempts.request_params`.
    */
   requestParams?: RequestParamDefaults | null;
 }
 
 export interface SuccessMessageOpts extends HeaderTierRef {
+  requestId?: string;
   traceId?: string;
   provider?: string;
   authType?: string;
@@ -180,7 +185,7 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   providerKeyLabel?: string;
   /**
    * The tenant_providers row (connection/key) that served this message.
-   * Persisted to agent_messages.tenant_provider_id so per-connection analytics
+   * Persisted to provider_attempts.tenant_provider_id so per-connection analytics
    * scope by the exact key rather than the non-unique provider/auth/label tuple.
    */
   tenantProviderId?: string | null;
@@ -192,6 +197,7 @@ export interface SuccessMessageOpts extends HeaderTierRef {
 }
 
 export interface AutofixOriginalOpts extends HeaderTierRef {
+  requestId?: string;
   provider?: string;
   reason?: string;
   authType?: string;
@@ -225,6 +231,41 @@ function buildMessageRow(
   // Stamp the orthogonal error axes from this row's own signals so every insert
   // site is classified identically (and identically to the backfill migration).
   return { ...row, ...classifyRow(row) };
+}
+
+function buildRequestRow(
+  ctx: IngestionContext,
+  requestId: string,
+  attempt: Partial<AgentMessage>,
+  terminal: boolean,
+): ManifestRequest {
+  const classified = classifyRow(attempt);
+  const status = terminal ? (attempt.status ?? 'ok') : 'pending';
+  return {
+    id: requestId,
+    tenant_id: ctx.tenantId,
+    agent_id: ctx.agentId,
+    user_id: ctx.userId,
+    agent_name: ctx.agentName,
+    trace_id: attempt.trace_id ?? null,
+    session_key: attempt.session_key ?? null,
+    session_id: attempt.session_id ?? null,
+    timestamp: attempt.timestamp ?? new Date().toISOString(),
+    duration_ms: attempt.duration_ms ?? null,
+    status,
+    error_message: terminal ? (attempt.error_message ?? null) : null,
+    error_http_status: terminal ? (attempt.error_http_status ?? null) : null,
+    error_code: terminal ? (attempt.error_code ?? null) : null,
+    error_origin: terminal ? classified.error_origin : null,
+    error_class: terminal ? classified.error_class : null,
+    requested_model: attempt.fallback_from_model ?? attempt.model ?? null,
+    caller_attribution: attempt.caller_attribution ?? null,
+    request_headers: attempt.request_headers ?? null,
+    request_params: attempt.request_params ?? null,
+    feedback_rating: attempt.feedback_rating ?? null,
+    feedback_tags: attempt.feedback_tags ?? null,
+    feedback_details: attempt.feedback_details ?? null,
+  };
 }
 
 /**
@@ -271,6 +312,57 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     clearInterval(this.cooldownCleanupTimer);
   }
 
+  /**
+   * Insert the parent before its attempts. Intermediate hops only insert the
+   * initial pending row; the one terminal writer replaces it with the outcome
+   * observed by the caller. This prevents a late fallback-error write from
+   * downgrading a request that already succeeded.
+   */
+  private async persistRequest(
+    ctx: IngestionContext,
+    requestId: string,
+    attempt: Partial<AgentMessage>,
+    terminal: boolean,
+  ): Promise<boolean> {
+    // Unit-test repository doubles predate the request table. Production
+    // repositories always expose manager.getRepository().
+    const getRepository = this.messageRepo.manager?.getRepository?.bind(this.messageRepo.manager);
+    if (!getRepository) return false;
+    const repo = getRepository(ManifestRequest);
+    if (typeof repo.createQueryBuilder !== 'function') return false;
+    const row = buildRequestRow(ctx, requestId, attempt, terminal);
+    const insert = repo.createQueryBuilder().insert().into(ManifestRequest).values(row);
+    if (terminal) {
+      await insert
+        .orUpdate(
+          [
+            'user_id',
+            'agent_name',
+            'trace_id',
+            'session_key',
+            'session_id',
+            'timestamp',
+            'duration_ms',
+            'status',
+            'error_message',
+            'error_http_status',
+            'error_code',
+            'error_origin',
+            'error_class',
+            'requested_model',
+            'caller_attribution',
+            'request_headers',
+            'request_params',
+          ],
+          ['id'],
+        )
+        .execute();
+    } else {
+      await insert.orIgnore().execute();
+    }
+    return true;
+  }
+
   private shouldSkipRateLimitRecord(ctx: IngestionContext, scope?: string): boolean {
     const key = scope
       ? `${scope}:${ctx.tenantId}:${ctx.agentId}`
@@ -295,6 +387,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     opts?: ProviderErrorOpts,
   ): Promise<void> {
     const {
+      requestId = uuid(),
       model,
       provider,
       tier,
@@ -314,7 +407,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierColor,
       autofix,
     } = opts ?? {};
-
     // A real Auto-fix retry must never disappear behind the generic 429
     // deduplication window; it is required to complete the linked attempt story.
     if (httpStatus === 429 && !getAutofixRetry(autofix) && this.shouldSkipRateLimitRecord(ctx)) {
@@ -329,32 +421,33 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       model,
     );
 
-    await this.messageRepo.insert(
-      buildMessageRow(ctx, {
-        trace_id: traceId ?? null,
-        timestamp: new Date().toISOString(),
-        status: messageStatus,
-        error_message: scrubSecrets(errorMessage).slice(0, 2000),
-        error_http_status: httpStatus,
-        ...autofixColumns(autofix, terminalAutofixRole(autofix)),
-        model: canonical.model,
-        provider: canonical.provider,
-        routing_tier: tier ?? null,
-        routing_reason: reason ?? null,
-        fallback_from_model: fallbackFromModel ?? null,
-        fallback_index: fallbackIndex ?? null,
-        auth_type: authType ?? null,
-        specificity_category: specificityCategory ?? null,
-        provider_key_label: providerKeyLabel ?? null,
-        tenant_provider_id: tenantProviderId ?? null,
-        caller_attribution: callerAttribution ?? null,
-        request_headers: requestHeaders ?? null,
-        request_params: requestParams ?? null,
-        header_tier_id: headerTierId ?? null,
-        header_tier_name: headerTierName ?? null,
-        header_tier_color: headerTierColor ?? null,
-      }),
-    );
+    const row = buildMessageRow(ctx, {
+      request_id: requestId,
+      trace_id: traceId ?? null,
+      timestamp: new Date().toISOString(),
+      status: messageStatus,
+      error_message: scrubSecrets(errorMessage).slice(0, 2000),
+      error_http_status: httpStatus,
+      ...autofixColumns(autofix, terminalAutofixRole(autofix)),
+      model: canonical.model,
+      provider: canonical.provider,
+      routing_tier: tier ?? null,
+      routing_reason: reason ?? null,
+      fallback_from_model: fallbackFromModel ?? null,
+      fallback_index: fallbackIndex ?? null,
+      auth_type: authType ?? null,
+      specificity_category: specificityCategory ?? null,
+      provider_key_label: providerKeyLabel ?? null,
+      tenant_provider_id: tenantProviderId ?? null,
+      caller_attribution: callerAttribution ?? null,
+      request_headers: requestHeaders ?? null,
+      request_params: requestParams ?? null,
+      header_tier_id: headerTierId ?? null,
+      header_tier_name: headerTierName ?? null,
+      header_tier_color: headerTierColor ?? null,
+    });
+    await this.persistRequest(ctx, requestId, row, true);
+    await this.messageRepo.insert(row);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
@@ -375,6 +468,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     opts: ManifestBlockedRequestOpts,
   ): Promise<void> {
     const {
+      requestId = uuid(),
       httpStatus,
       errorMessage,
       errorCode,
@@ -396,33 +490,36 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       model ?? null,
     );
 
-    await this.messageRepo.insert(
-      buildMessageRow(ctx, {
-        trace_id: traceId ?? null,
-        session_key: sessionKey ?? null,
-        timestamp: new Date().toISOString(),
-        status: httpStatus === 429 ? 'rate_limited' : 'error',
-        error_message: scrubSecrets(errorMessage).slice(0, 2000),
-        error_code: errorCode ?? null,
-        error_http_status: httpStatus ?? null,
-        model: canonical.model,
-        provider: null,
-        routing_tier: null,
-        routing_reason: reason,
-        fallback_from_model: null,
-        fallback_index: null,
-        auth_type: null,
-        specificity_category: null,
-        provider_key_label: null,
-        tenant_provider_id: null,
-        caller_attribution: callerAttribution ?? null,
-        request_headers: requestHeaders ?? null,
-        request_params: null,
-        header_tier_id: null,
-        header_tier_name: null,
-        header_tier_color: null,
-      }),
-    );
+    const row = buildMessageRow(ctx, {
+      trace_id: traceId ?? null,
+      session_key: sessionKey ?? null,
+      timestamp: new Date().toISOString(),
+      status: httpStatus === 429 ? 'rate_limited' : 'error',
+      error_message: scrubSecrets(errorMessage).slice(0, 2000),
+      error_code: errorCode ?? null,
+      error_http_status: httpStatus ?? null,
+      model: canonical.model,
+      provider: null,
+      routing_tier: null,
+      routing_reason: reason,
+      fallback_from_model: null,
+      fallback_index: null,
+      auth_type: null,
+      specificity_category: null,
+      provider_key_label: null,
+      tenant_provider_id: null,
+      caller_attribution: callerAttribution ?? null,
+      request_headers: requestHeaders ?? null,
+      request_params: null,
+      header_tier_id: null,
+      header_tier_name: null,
+      header_tier_color: null,
+    });
+    // A Manifest-level rejection is a real request with zero provider attempts.
+    const wroteRequest = await this.persistRequest(ctx, requestId, row, true);
+    // Legacy unit-test doubles have no request repository. Keep their observed
+    // write shape without affecting the production zero-attempt model.
+    if (!wroteRequest) await this.messageRepo.insert(row);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
@@ -433,6 +530,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     failures: FailedFallback[],
     opts?: {
       traceId?: string;
+      requestId?: string;
       baseTimeMs?: number;
       markHandled?: boolean;
       lastAsError?: boolean;
@@ -448,6 +546,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
   ): Promise<void> {
     const {
       traceId,
+      requestId = uuid(),
       baseTimeMs,
       markHandled = false,
       lastAsError = false,
@@ -494,6 +593,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       const recordedAuth = f.authType ?? authType ?? null;
       rows.push(
         buildMessageRow(ctx, {
+          request_id: requestId,
           trace_id: traceId ?? null,
           timestamp: ts,
           status,
@@ -517,6 +617,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         }),
       );
     }
+    await this.persistRequest(ctx, requestId, rows[rows.length - 1], lastAsError);
     await this.messageRepo.insert(rows);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
@@ -530,6 +631,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     authType?: string,
     opts?: {
       provider?: string;
+      requestId?: string;
       reason?: string;
       tenantProviderId?: string | null;
       callerAttribution?: CallerAttribution | null;
@@ -553,29 +655,31 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       opts?.provider,
       model,
     );
-    await this.messageRepo.insert(
-      buildMessageRow(ctx, {
-        timestamp,
-        status: 'fallback_error',
-        ...autofixColumns(opts?.autofix, terminalAutofixRole(opts?.autofix)),
-        error_message: scrubSecrets(errorBody).slice(0, 2000),
-        error_http_status: opts?.httpStatus ?? null,
-        model: canonical.model,
-        provider: canonical.provider,
-        routing_tier: tier,
-        routing_reason: opts?.reason ?? null,
-        fallback_from_model: null,
-        fallback_index: null,
-        auth_type: authType ?? null,
-        tenant_provider_id: opts?.tenantProviderId ?? null,
-        caller_attribution: opts?.callerAttribution ?? null,
-        request_headers: opts?.requestHeaders ?? null,
-        request_params: opts?.requestParams ?? null,
-        header_tier_id: opts?.headerTierId ?? null,
-        header_tier_name: opts?.headerTierName ?? null,
-        header_tier_color: opts?.headerTierColor ?? null,
-      }),
-    );
+    const requestId = opts?.requestId ?? uuid();
+    const row = buildMessageRow(ctx, {
+      request_id: requestId,
+      timestamp,
+      status: 'fallback_error',
+      ...autofixColumns(opts?.autofix, terminalAutofixRole(opts?.autofix)),
+      error_message: scrubSecrets(errorBody).slice(0, 2000),
+      error_http_status: opts?.httpStatus ?? null,
+      model: canonical.model,
+      provider: canonical.provider,
+      routing_tier: tier,
+      routing_reason: opts?.reason ?? null,
+      fallback_from_model: null,
+      fallback_index: null,
+      auth_type: authType ?? null,
+      tenant_provider_id: opts?.tenantProviderId ?? null,
+      caller_attribution: opts?.callerAttribution ?? null,
+      request_headers: opts?.requestHeaders ?? null,
+      request_params: opts?.requestParams ?? null,
+      header_tier_id: opts?.headerTierId ?? null,
+      header_tier_name: opts?.headerTierName ?? null,
+      header_tier_color: opts?.headerTierColor ?? null,
+    });
+    await this.persistRequest(ctx, requestId, row, false);
+    await this.messageRepo.insert(row);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
@@ -586,6 +690,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     opts?: FallbackSuccessOpts,
   ): Promise<void> {
     const {
+      requestId = uuid(),
       traceId,
       provider,
       fallbackFromModel,
@@ -630,33 +735,34 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallbackFromModel,
     );
 
-    await this.messageRepo.insert(
-      buildMessageRow(ctx, {
-        trace_id: traceId ?? null,
-        timestamp: timestamp ?? new Date().toISOString(),
-        status: 'ok',
-        model: canonical.model,
-        provider: canonical.provider,
-        routing_tier: tier,
-        routing_reason: reason ?? null,
-        input_tokens: inputTokens,
-        output_tokens: outputTokens,
-        cache_read_tokens: usage?.cache_read_tokens ?? 0,
-        cache_creation_tokens: usage?.cache_creation_tokens ?? 0,
-        cost_usd: costUsd,
-        auth_type: authType ?? null,
-        fallback_from_model: canonicalFallbackFrom.model,
-        fallback_index: fallbackIndex ?? null,
-        provider_key_label: providerKeyLabel ?? null,
-        tenant_provider_id: tenantProviderId ?? null,
-        caller_attribution: callerAttribution ?? null,
-        request_headers: requestHeaders ?? null,
-        request_params: requestParams ?? null,
-        header_tier_id: headerTierId ?? null,
-        header_tier_name: headerTierName ?? null,
-        header_tier_color: headerTierColor ?? null,
-      }),
-    );
+    const row = buildMessageRow(ctx, {
+      request_id: requestId,
+      trace_id: traceId ?? null,
+      timestamp: timestamp ?? new Date().toISOString(),
+      status: 'ok',
+      model: canonical.model,
+      provider: canonical.provider,
+      routing_tier: tier,
+      routing_reason: reason ?? null,
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      cache_read_tokens: usage?.cache_read_tokens ?? 0,
+      cache_creation_tokens: usage?.cache_creation_tokens ?? 0,
+      cost_usd: costUsd,
+      auth_type: authType ?? null,
+      fallback_from_model: canonicalFallbackFrom.model,
+      fallback_index: fallbackIndex ?? null,
+      provider_key_label: providerKeyLabel ?? null,
+      tenant_provider_id: tenantProviderId ?? null,
+      caller_attribution: callerAttribution ?? null,
+      request_headers: requestHeaders ?? null,
+      request_params: requestParams ?? null,
+      header_tier_id: headerTierId ?? null,
+      header_tier_name: headerTierName ?? null,
+      header_tier_color: headerTierColor ?? null,
+    });
+    await this.persistRequest(ctx, requestId, row, true);
+    await this.messageRepo.insert(row);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
@@ -669,6 +775,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     opts?: SuccessMessageOpts,
   ): Promise<void> {
     const {
+      requestId: providedRequestId,
       traceId,
       provider,
       authType,
@@ -685,6 +792,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierColor,
       autofix,
     } = opts ?? {};
+    const requestId = providedRequestId ?? uuid();
 
     const costUsd = computeTokenCost({
       inputTokens: usage.prompt_tokens,
@@ -715,9 +823,33 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const status = 'ok';
     const errorMessage = null;
 
+    const requestRow = buildMessageRow(ctx, {
+      request_id: requestId,
+      trace_id: traceId ?? null,
+      session_key: normalizedSessionKey,
+      timestamp: new Date().toISOString(),
+      status,
+      error_message: errorMessage,
+      model: canonicalModel,
+      provider: canonicalProvider,
+      routing_tier: tier,
+      routing_reason: reason,
+      duration_ms: durationMs ?? null,
+      caller_attribution: callerAttribution ?? null,
+      request_headers: requestHeaders ?? null,
+      request_params: requestParams ?? null,
+    });
+    await this.persistRequest(ctx, requestId, requestRow, true);
+
     let wrote = false;
     await this.dedup.withSuccessWriteLock(
-      this.dedup.getSuccessWriteLockKey(ctx, canonicalModel, traceId, normalizedSessionKey),
+      this.dedup.getSuccessWriteLockKey(
+        ctx,
+        canonicalModel,
+        traceId,
+        normalizedSessionKey,
+        providedRequestId,
+      ),
       async () => {
         await this.dedup.withAgentMessageTransaction(this.messageRepo, ctx, async (messageRepo) => {
           const existing = await this.dedup.findExistingSuccessMessage(
@@ -727,6 +859,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             usage,
             traceId,
             normalizedSessionKey,
+            providedRequestId,
           );
 
           if (existing) {
@@ -735,6 +868,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             if (hasRecordedTokens) return;
 
             const updatePayload: Partial<AgentMessage> = {
+              request_id: requestId,
               status,
               ...autofixColumns(autofix, 'retry'),
               error_message: errorMessage,
@@ -774,6 +908,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           await messageRepo.insert(
             buildMessageRow(ctx, {
               id: newId,
+              request_id: requestId,
               ...autofixColumns(autofix, 'retry'),
               trace_id: traceId ?? null,
               session_key: normalizedSessionKey,
@@ -833,7 +968,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       opts?.provider,
       model,
     );
+    const requestId = opts?.requestId ?? uuid();
     const row = buildMessageRow(ctx, {
+      request_id: requestId,
       trace_id: opts?.traceId ?? null,
       timestamp: new Date(Date.now() - 1000).toISOString(),
       status: 'auto_fixed',
@@ -862,6 +999,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       autofix_operations: (original.operations as object | null) ?? null,
       autofix_phoenix: buildAutofixPhoenix(original),
     });
+    await this.persistRequest(ctx, requestId, row, false);
     await this.messageRepo.insert(row);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }

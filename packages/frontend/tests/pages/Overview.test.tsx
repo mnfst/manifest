@@ -329,7 +329,7 @@ describe('Overview', () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('Recent Messages');
+      expect(container.textContent).toContain('Recent Requests');
       expect(container.textContent).toContain('msg-1234');
       expect(container.textContent).toContain('gpt-4o');
     });
@@ -483,7 +483,7 @@ describe('Overview', () => {
     fireEvent.click(stats[1]); // messages
     await vi.waitFor(() => {
       const active = container.querySelector('.chart-card__stat--active');
-      expect(active?.textContent).toContain('Messages');
+      expect(active?.textContent).toContain('Requests');
     });
 
     fireEvent.click(stats[2]); // tokens — renders the token-view chart

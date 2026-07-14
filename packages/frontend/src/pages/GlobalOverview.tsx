@@ -88,6 +88,14 @@ interface OverviewResponse {
     cost_today: { value: number; trend_pct: number };
     messages: { value: number; trend_pct: number };
   };
+  request_reliability: {
+    total: number;
+    successful: number;
+    success_rate: number;
+    attempt_success_rate: number;
+    manifest_lift_pct: number;
+    recovered: number;
+  };
   token_usage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
   cost_by_model: CostByModelRow[];
@@ -610,6 +618,8 @@ const GlobalOverview: Component = () => {
                 onViewChange={setChartView}
                 messagesValue={o().summary.messages.value}
                 messagesTrendPct={o().summary.messages.trend_pct}
+                requestSuccessRate={o().request_reliability?.success_rate}
+                attemptSuccessRate={o().request_reliability?.attempt_success_rate}
                 tokensValue={o().summary.tokens_today.value}
                 tokensTrendPct={o().summary.tokens_today.trend_pct}
                 costValue={o().summary.cost_today.value}
@@ -902,13 +912,13 @@ const GlobalOverview: Component = () => {
           );
         })()}
 
-        {/* ── 4. Recent Messages (full width) ──────────────────────────── */}
+        {/* ── 4. Recent Requests (full width) ──────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
           <div
             class="panel__title"
             style="display: flex; justify-content: space-between; align-items: center;"
           >
-            Recent Messages
+            Recent Requests
             <A href="/messages" class="view-more-link">
               View more
             </A>
@@ -1185,7 +1195,7 @@ const GlobalOverview: Component = () => {
                 <tr>
                   <th>Harness</th>
                   <th>Usage (30d)</th>
-                  <th style="text-align: right;">Messages</th>
+                  <th style="text-align: right;">Requests</th>
                 </tr>
               </thead>
               <tbody>

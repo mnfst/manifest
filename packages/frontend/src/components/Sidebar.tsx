@@ -103,7 +103,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
         classList={{ active: isGlobalActive('/messages') }}
         aria-current={isGlobalActive('/messages') ? 'page' : undefined}
       >
-        Messages
+        Requests
       </A>
       <div class="sidebar__section-label">PROVIDERS</div>
       <A

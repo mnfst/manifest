@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { v4 as uuid } from 'uuid';
 import { Response as ExpressResponse } from 'express';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { RoutingMeta } from './proxy.service';
@@ -62,6 +63,7 @@ function recordAutofixOriginalIfRetried(
   traceId?: string,
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
+  requestId?: string,
   route?: {
     model?: string;
     provider?: string;
@@ -72,6 +74,7 @@ function recordAutofixOriginalIfRetried(
   if (!autofix || !getAutofixRetry(autofix)) return;
   recordSafely(
     recorder.recordAutofixOriginal(ctx, route?.model ?? meta.model, meta.tier, autofix, {
+      requestId,
       provider: route ? route.provider : meta.provider,
       reason: meta.reason,
       authType: route?.authType ?? meta.auth_type,
@@ -163,6 +166,7 @@ export async function handleProviderError(
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
   autofix?: AutofixRecord,
+  requestId: string = uuid(),
 ): Promise<void> {
   recordAutofixOriginalIfRetried(
     ctx,
@@ -172,6 +176,7 @@ export async function handleProviderError(
     traceId,
     callerAttribution,
     requestHeaders,
+    requestId,
   );
 
   if (failedFallbacks && failedFallbacks.length > 0 && !meta.fallbackFromModel) {
@@ -188,12 +193,14 @@ export async function handleProviderError(
       callerAttribution,
       requestHeaders,
       autofix,
+      requestId,
     );
     return;
   }
 
   recordSafely(
     recorder.recordProviderError(ctx, errorStatus, errorBody, {
+      requestId,
       model: meta.model,
       provider: meta.provider,
       tier: meta.tier,
@@ -243,10 +250,12 @@ function handleFallbackExhausted(
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
   autofix?: AutofixRecord,
+  requestId: string = uuid(),
 ): void {
   const baseTime = Date.now();
   recordSafely(
     recorder.recordFailedFallbacks(ctx, meta.tier, meta.model, failedFallbacks, {
+      requestId,
       traceId,
       baseTimeMs: baseTime,
       markHandled: true,
@@ -273,6 +282,7 @@ function handleFallbackExhausted(
       primaryTs,
       meta.auth_type,
       {
+        requestId,
         provider: meta.provider,
         reason: meta.reason,
         // Exhausted chain: primary connection (meta.tenantProviderId holds it here).
@@ -324,6 +334,7 @@ export function recordFallbackFailures(
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
   autofix?: AutofixRecord,
+  requestId: string = uuid(),
 ): string | undefined {
   if (!meta.fallbackFromModel) return undefined;
 
@@ -342,6 +353,7 @@ export function recordFallbackFailures(
     undefined,
     callerAttribution,
     requestHeaders,
+    requestId,
     {
       model: meta.fallbackFromModel,
       provider: meta.primaryProvider,
@@ -358,6 +370,7 @@ export function recordFallbackFailures(
       new Date(fallbackBaseTime).toISOString(),
       primaryAuthType,
       {
+        requestId,
         // Use the primary provider explicitly — meta.provider holds the
         // succeeding fallback's provider in this flow, not the primary's.
         provider: meta.primaryProvider,
@@ -389,6 +402,7 @@ export function recordFallbackFailures(
   if (failures.length > 0) {
     recordSafely(
       recorder.recordFailedFallbacks(ctx, meta.tier, meta.fallbackFromModel, failures, {
+        requestId,
         baseTimeMs: fallbackBaseTime,
         markHandled: true,
         authType: primaryAuthType,
@@ -698,10 +712,12 @@ export function recordSuccess(
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
   autofix?: AutofixRecord,
+  requestId: string = uuid(),
 ): void {
   if (meta.fallbackFromModel && fallbackSuccessTs) {
     recordSafely(
       recorder.recordFallbackSuccess(ctx, meta.model, meta.tier, {
+        requestId,
         traceId,
         provider: meta.provider,
         fallbackFromModel: meta.fallbackFromModel,
@@ -726,6 +742,7 @@ export function recordSuccess(
     const durationMs = startTime ? Date.now() - startTime : undefined;
     recordSafely(
       recorder.recordSuccessMessage(ctx, meta.model, meta.tier, meta.reason, usage, {
+        requestId,
         traceId,
         provider: meta.provider,
         authType: meta.auth_type,
@@ -757,6 +774,7 @@ export function recordSuccess(
       traceId,
       callerAttribution,
       requestHeaders,
+      requestId,
     );
   }
 }

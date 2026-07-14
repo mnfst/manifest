@@ -714,6 +714,38 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                 })()}
               </Show>
 
+              <Show when={(m.attempts?.length ?? 0) > 0}>
+                <div class="message-details__section">
+                  <h4>Provider attempts</h4>
+                  <table class="details-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Provider</th>
+                        <th>Model</th>
+                        <th>Status</th>
+                        <th>Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <For each={m.attempts}>
+                        {(attempt, index) => (
+                          <tr>
+                            <td>{index() + 1}</td>
+                            <td>{attempt.provider ?? 'Unknown'}</td>
+                            <td>{attempt.model ? getModelDisplayName(attempt.model) : '—'}</td>
+                            <td>{attempt.status}</td>
+                            <td>
+                              {attempt.cost_usd == null ? '—' : `$${attempt.cost_usd.toFixed(6)}`}
+                            </td>
+                          </tr>
+                        )}
+                      </For>
+                    </tbody>
+                  </table>
+                </div>
+              </Show>
+
               {/* Model Parameters renders above Request Headers — params
                   are user intent (what the request asked for); headers are
                   protocol noise. */}

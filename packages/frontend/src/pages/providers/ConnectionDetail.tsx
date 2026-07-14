@@ -103,6 +103,7 @@ interface AnalyticsResponse {
   };
   token_usage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
+  attempts: { total: number; successful: number; success_rate: number };
 }
 
 const PRO_RANGES_CD = new Set(['30d', '90d', '365d']);
@@ -705,6 +706,7 @@ const ConnectionDetail: Component = () => {
                       onViewChange={setChartView}
                       messagesValue={analytics()!.summary.messages.value}
                       messagesTrendPct={analytics()!.summary.messages.trend_pct}
+                      attemptSuccessRate={analytics()!.attempts?.success_rate}
                       tokensValue={analytics()!.summary.tokens.value}
                       tokensTrendPct={analytics()!.summary.tokens.trend_pct}
                       costValue={isByok() ? (totalCost() ?? 0) : undefined}
@@ -720,19 +722,19 @@ const ConnectionDetail: Component = () => {
                 })()}
               </Show>
 
-              {/* Recent Messages (full width) */}
+              {/* Recent Requests (full width) */}
               <div class="panel scroll-panel" style="margin-bottom: 24px;">
                 <div
                   class="panel__title"
                   style="display: flex; justify-content: space-between; align-items: center;"
                 >
-                  Recent Messages
+                  Recent Requests
                 </div>
                 <Show
                   when={detail()!.recent_messages.length > 0}
                   fallback={
                     <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
-                      No messages yet.
+                      No requests yet.
                     </div>
                   }
                 >

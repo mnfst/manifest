@@ -175,7 +175,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
           <div class="duplicate-agent__section">
             <div class="duplicate-agent__section-header">What is not copied</div>
             <ul class="duplicate-agent__list">
-              <li>Messages</li>
+              <li>Requests</li>
               <li>Logs</li>
               <li>Notification rules</li>
             </ul>
