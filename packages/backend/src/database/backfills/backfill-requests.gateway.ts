@@ -172,7 +172,17 @@ export const REFRESH_ATTEMPT_REQUESTS_SQL = `
 
 export const FINALIZE_PENDING_REQUESTS_SQL = `
   WITH pending AS (
-    SELECT id FROM "requests" WHERE status = 'pending'
+    SELECT r.id
+    FROM "requests" r
+    WHERE r.status = 'pending'
+      AND (
+        r.id LIKE 'legacy-autofix-%'
+        OR r.id LIKE 'legacy-trace-%'
+        OR EXISTS (
+          SELECT 1 FROM "provider_attempts" pa
+          WHERE pa.request_id = r.id AND pa.id = r.id
+        )
+      )
   ), last_attempt AS (
     SELECT DISTINCT ON (pa.request_id) pa.*
     FROM "provider_attempts" pa

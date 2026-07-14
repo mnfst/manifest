@@ -12,6 +12,7 @@ import {
   sqlCountMessages,
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
+  sqlExcludePlayground,
 } from './query-helpers';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { ManifestRequest } from '../../entities/request.entity';
@@ -106,9 +107,7 @@ export class TimeseriesQueriesService {
         );
       }
       if (excludePlayground) {
-        requestQb.andWhere(
-          'NOT EXISTS (SELECT 1 FROM agents a WHERE a.id = r.agent_id AND a.is_playground = true)',
-        );
+        requestQb.andWhere(sqlExcludePlayground('r'));
       }
       requestRowsPromise = requestQb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
 
@@ -424,6 +423,59 @@ export class TimeseriesQueriesService {
     const cutoff = computeCutoff(interval);
     const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
     const bucketAlias = hourly ? 'hour' : 'date';
+
+    const useRequestCounts =
+      this.requestRepo && !authType && !provider && !label && !tenantProviderId;
+    if (useRequestCounts) {
+      const requestBucketExpr = hourly
+        ? sqlHourBucket('r.timestamp')
+        : sqlDateBucket('r.timestamp');
+      const requestQb = this.requestRepo!.createQueryBuilder('r')
+        .select(requestBucketExpr, bucketAlias)
+        .addSelect('r.agent_name', 'agent_name')
+        .addSelect('COUNT(*)', 'messages')
+        .where('r.timestamp >= :requestCutoff', { requestCutoff: cutoff })
+        .andWhere('r.agent_name IS NOT NULL')
+        .andWhere(sqlExcludePlayground('r'));
+      if (tenantId)
+        requestQb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: tenantId });
+      else requestQb.andWhere('1 = 0');
+
+      const unlinkedQb = this.turnRepo
+        .createQueryBuilder('at')
+        .select(bucketExpr, bucketAlias)
+        .addSelect('at.agent_name', 'agent_name')
+        .addSelect('COUNT(*)', 'messages')
+        .where('at.request_id IS NULL')
+        .andWhere('at.timestamp >= :unlinkedCutoff', { unlinkedCutoff: cutoff })
+        .andWhere('at.agent_name IS NOT NULL');
+      addTenantFilter(unlinkedQb, tenantId);
+      excludePlaygroundAgents(unlinkedQb);
+
+      const [requestRows, unlinkedRows] = await Promise.all([
+        requestQb
+          .groupBy(bucketAlias)
+          .addGroupBy('r.agent_name')
+          .orderBy(bucketAlias, 'ASC')
+          .getRawMany(),
+        unlinkedQb
+          .groupBy(bucketAlias)
+          .addGroupBy('at.agent_name')
+          .orderBy(bucketAlias, 'ASC')
+          .getRawMany(),
+      ]);
+      const combined = new Map<string, Record<string, unknown>>();
+      for (const row of [...requestRows, ...unlinkedRows]) {
+        const key = `${String(row[bucketAlias])}\0${String(row['agent_name'])}`;
+        const current = combined.get(key);
+        if (current) current['messages'] = Number(current['messages']) + Number(row['messages']);
+        else combined.set(key, { ...row, messages: Number(row['messages'] ?? 0) });
+      }
+      const rows = [...combined.values()].sort((a, b) =>
+        String(a[bucketAlias]).localeCompare(String(b[bucketAlias])),
+      );
+      return pivotByKey(rows, bucketAlias, 'agent_name', 'messages');
+    }
 
     const qb = this.turnRepo
       .createQueryBuilder('at')

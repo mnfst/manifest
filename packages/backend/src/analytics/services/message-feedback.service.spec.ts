@@ -167,12 +167,44 @@ describe('MessageFeedbackService', () => {
 
       await requestService.setFeedback('attempt-1', 'tenant-123', 'dislike', ['Too slow']);
 
-      expect(attemptQb.andWhere).toHaveBeenCalledWith('m.request_id IS NULL');
       expect(attemptUpdate).toHaveBeenCalledWith('attempt-1', {
         feedback_rating: 'dislike',
         feedback_tags: 'Too slow',
         feedback_details: null,
       });
+    });
+
+    it('resolves a linked attempt detail id to its parent request', async () => {
+      const attemptQb = mockQb({
+        id: 'attempt-1',
+        tenant_id: 'tenant-123',
+        request_id: 'req-1',
+      });
+      const requestUpdate = jest.fn().mockResolvedValue({ affected: 1 });
+      const requestRepo = {
+        findOne: jest
+          .fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce({ id: 'req-1', tenant_id: 'tenant-123' }),
+        update: requestUpdate,
+      };
+      const messageRepo = {
+        createQueryBuilder: jest.fn().mockReturnValue(attemptQb),
+        update: jest.fn(),
+      };
+      const requestService = new MessageFeedbackService(messageRepo as never, requestRepo as never);
+
+      await requestService.setFeedback('attempt-1', 'tenant-123', 'like');
+
+      expect(requestRepo.findOne).toHaveBeenLastCalledWith({
+        where: { id: 'req-1', tenant_id: 'tenant-123' },
+      });
+      expect(requestUpdate).toHaveBeenCalledWith('req-1', {
+        feedback_rating: 'like',
+        feedback_tags: null,
+        feedback_details: null,
+      });
+      expect(messageRepo.update).not.toHaveBeenCalled();
     });
   });
 });

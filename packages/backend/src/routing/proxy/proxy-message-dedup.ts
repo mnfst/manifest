@@ -18,6 +18,16 @@ export type DedupMatch = Pick<
   | 'duration_ms'
 >;
 
+const DEDUP_SELECT: Array<keyof AgentMessage> = [
+  'id',
+  'timestamp',
+  'input_tokens',
+  'output_tokens',
+  'cache_read_tokens',
+  'cache_creation_tokens',
+  'duration_ms',
+];
+
 @Injectable()
 export class ProxyMessageDedup {
   private readonly successWriteLocks = new Map<string, Promise<void>>();
@@ -38,15 +48,7 @@ export class ProxyMessageDedup {
           request_id: requestId,
           status: 'ok',
         },
-        select: [
-          'id',
-          'timestamp',
-          'input_tokens',
-          'output_tokens',
-          'cache_read_tokens',
-          'cache_creation_tokens',
-          'duration_ms',
-        ],
+        select: DEDUP_SELECT,
         order: { timestamp: 'DESC' },
       });
       if (existing) return existing;
@@ -60,15 +62,7 @@ export class ProxyMessageDedup {
           trace_id: traceId,
           status: 'ok',
         },
-        select: [
-          'id',
-          'timestamp',
-          'input_tokens',
-          'output_tokens',
-          'cache_read_tokens',
-          'cache_creation_tokens',
-          'duration_ms',
-        ],
+        select: DEDUP_SELECT,
         order: { timestamp: 'DESC' },
       });
       if (existing) return existing;
@@ -83,15 +77,7 @@ export class ProxyMessageDedup {
         status: 'ok',
         ...(sessionKey ? { session_key: sessionKey } : {}),
       },
-      select: [
-        'id',
-        'timestamp',
-        'input_tokens',
-        'output_tokens',
-        'cache_read_tokens',
-        'cache_creation_tokens',
-        'duration_ms',
-      ],
+      select: DEDUP_SELECT,
       order: { timestamp: 'DESC' },
       take: 10,
     });

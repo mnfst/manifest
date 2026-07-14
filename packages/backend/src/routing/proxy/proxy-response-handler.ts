@@ -294,6 +294,7 @@ function handleFallbackExhausted(
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
         httpStatus: errorStatus,
+        terminalHttpStatus: errorStatus,
         // When a patched retry exists this row is that retry; otherwise it is
         // the plain original failure carrying only Phoenix's audit.
         autofix,

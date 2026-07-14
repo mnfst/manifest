@@ -37,4 +37,18 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
     expect(sql).toContain('IF NOT EXISTS (');
     expect(sql).toContain('IF NOT EXISTS "IDX_provider_attempts_request_id"');
   });
+
+  it('drops an invalid concurrent index before rebuilding it', async () => {
+    (runner as { query: jest.Mock }).query.mockImplementation((sql: string) => {
+      queries.push(sql);
+      return Promise.resolve(sql.includes('i.indisvalid') ? [{ valid: false }] : undefined);
+    });
+
+    await migration.up(runner);
+
+    const drop = queries.findIndex((sql) => sql.includes('DROP INDEX CONCURRENTLY'));
+    const create = queries.findIndex((sql) => sql.includes('CREATE INDEX CONCURRENTLY'));
+    expect(drop).toBeGreaterThan(-1);
+    expect(create).toBeGreaterThan(drop);
+  });
 });

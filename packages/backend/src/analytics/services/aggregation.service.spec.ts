@@ -98,6 +98,31 @@ describe('AggregationService', () => {
       expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
     });
 
+    it('treats a zero-attempt request as data', async () => {
+      const attemptQb = {
+        select: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue(null),
+      };
+      const requestQb = {
+        select: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({ '?column?': 1 }),
+      };
+      const requestAware = new AggregationService(
+        { createQueryBuilder: jest.fn(() => attemptQb) } as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      await expect(requestAware.hasAnyData('tenant-1', undefined, true)).resolves.toBe(true);
+      expect(requestQb.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('playag.name = r.agent_name'),
+      );
+    });
+
     it('does not exclude Playground traffic by default', async () => {
       mockGetRawOne.mockResolvedValueOnce({ '?column?': 1 });
       await service.hasAnyData('tenant-1');

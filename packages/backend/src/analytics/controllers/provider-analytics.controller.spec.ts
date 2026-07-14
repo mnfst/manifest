@@ -142,6 +142,20 @@ describe('ProviderAnalyticsController', () => {
       );
     });
 
+    it.each(['90d', '365d'])('honors the Connection Detail %s range', async (range) => {
+      await controller.getAnalytics(ctx, undefined, range);
+      expect(aggregation.getSummaryMetrics).toHaveBeenCalledWith(
+        range,
+        'tenant-1',
+        undefined,
+        undefined,
+        undefined,
+        true,
+        undefined,
+        undefined,
+      );
+    });
+
     it('passes a null tenantId straight through when the account has no tenant', async () => {
       const noTenant: TenantContext = { tenantId: null, userId: 'u1' };
       await controller.getAnalytics(noTenant, 'subscription');
@@ -247,6 +261,19 @@ describe('ProviderAnalyticsController', () => {
         false,
         'api_key',
         'anthropic',
+        undefined,
+        undefined,
+      );
+    });
+
+    it('uses 365d for matching provider timeseries endpoints', async () => {
+      await controller.getPerAgentMessageTimeseries(ctx, 'api_key', 'openai', '365d');
+      expect(timeseries.getPerAgentMessageTimeseries).toHaveBeenCalledWith(
+        '365d',
+        'tenant-1',
+        false,
+        'api_key',
+        'openai',
         undefined,
         undefined,
       );

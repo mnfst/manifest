@@ -109,10 +109,11 @@ describe('OverviewController', () => {
     );
   });
 
-  it('derives the current-window summary by summing the timeseries buckets', async () => {
+  it('derives token and cost totals from buckets and messages from requests', async () => {
     const result = await controller.getOverview({ range: '24h' }, ctx as never);
 
-    // 600 + 400 input/output tokens, $5 cost, 50 messages from the buckets.
+    // Tokens and cost come from attempt buckets; the message total comes from
+    // request reliability (the fixtures intentionally both contain 50).
     expect(result.summary.tokens_today.value).toBe(1000);
     expect(result.summary.tokens_today.sub_values).toEqual({ input: 600, output: 400 });
     expect(result.summary.cost_today.value).toBe(5.0);
@@ -121,6 +122,15 @@ describe('OverviewController', () => {
     expect(result.summary.tokens_today.trend_pct).toBe(11); // (1000-900)/900
     expect(result.summary.cost_today.trend_pct).toBe(25); // (5-4)/4
     expect(result.summary.messages.trend_pct).toBe(11); // (50-45)/45
+    expect(result.request_reliability).toEqual({
+      total: 50,
+      successful: 48,
+      success_rate: 96,
+      attempt_success_rate: 90,
+      manifest_lift_pct: 6,
+      recovered: 3,
+      previous_total: 45,
+    });
   });
 
   it('returns overview with daily timeseries for 7d range', async () => {
@@ -158,6 +168,7 @@ describe('OverviewController', () => {
     await controller.getOverview({ range: '24h', agent_name: 'bot-1' }, ctx as never);
 
     expect(agg.getPreviousWindowMetrics).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1', true);
+    expect(agg.getRequestReliability).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1', true);
     expect(ts.getTimeseries).toHaveBeenCalledWith(
       '24h',
       'tenant-123',

@@ -77,4 +77,47 @@ describe('ProxyMessageRecorder request parents', () => {
     expect(insert).not.toHaveBeenCalled();
     recorder.onModuleDestroy();
   });
+
+  it('uses the rebuilt primary response as an exhausted fallback outcome', async () => {
+    const { recorder, requestValues } = setup();
+    await recorder.recordFailedFallbacks(
+      ctx,
+      'standard',
+      'gpt-4o',
+      [
+        {
+          model: 'claude-sonnet',
+          provider: 'anthropic',
+          status: 429,
+          errorBody: 'fallback limited',
+          fallbackIndex: 0,
+        },
+      ],
+      { requestId: 'request-3', markHandled: true, lastAsError: true },
+    );
+    await recorder.recordPrimaryFailure(
+      ctx,
+      'standard',
+      'gpt-4o',
+      'primary unavailable',
+      '2026-07-14T12:00:00.000Z',
+      'api_key',
+      { requestId: 'request-3', provider: 'openai', terminalHttpStatus: 503 },
+    );
+
+    expect(requestValues).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ id: 'request-3', status: 'pending' }),
+    );
+    expect(requestValues).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        id: 'request-3',
+        status: 'error',
+        error_http_status: 503,
+        error_message: 'primary unavailable',
+      }),
+    );
+    recorder.onModuleDestroy();
+  });
 });

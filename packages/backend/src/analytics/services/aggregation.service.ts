@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -10,8 +10,10 @@ import {
   excludePlaygroundAgents,
   scopeToConnection,
   sqlCountMessages,
+  sqlExcludePlayground,
 } from './query-helpers';
 import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql';
+import { ManifestRequest } from '../../entities/request.entity';
 
 export { MetricWithTrend };
 
@@ -25,6 +27,9 @@ export class AggregationService {
   constructor(
     @InjectRepository(AgentMessage)
     private readonly turnRepo: Repository<AgentMessage>,
+    @Optional()
+    @InjectRepository(ManifestRequest)
+    private readonly requestRepo?: Repository<ManifestRequest>,
   ) {}
 
   async hasAnyData(
@@ -32,14 +37,35 @@ export class AggregationService {
     agentName?: string,
     excludePlayground = false,
   ): Promise<boolean> {
-    const qb = this.turnRepo.createQueryBuilder('at').select('1').limit(1);
-    addTenantFilter(qb, tenantId, agentName);
+    const attemptQb = this.turnRepo.createQueryBuilder('at').select('1').limit(1);
+    addTenantFilter(attemptQb, tenantId, agentName);
     // Mirror the overview's exclusion: a tenant whose only traffic is Playground
     // must read as empty, or has_data=true paints a non-empty state over cards
     // and charts that all dropped Playground and so render blank.
-    if (excludePlayground) excludePlaygroundAgents(qb);
-    const row = await qb.getRawOne();
-    return row != null;
+    if (excludePlayground) excludePlaygroundAgents(attemptQb);
+
+    let requestRow: Promise<unknown> = Promise.resolve(null);
+    if (this.requestRepo) {
+      const requestQb = this.requestRepo.createQueryBuilder('r').select('1').limit(1);
+      if (tenantId)
+        requestQb.where('r.tenant_id = :requestTenantId', { requestTenantId: tenantId });
+      else requestQb.where('1 = 0');
+      if (agentName && tenantId) {
+        requestQb.andWhere(
+          `r.agent_id = (
+            SELECT id FROM agents
+            WHERE tenant_id = :requestTenantId AND name = :requestAgentName AND deleted_at IS NULL
+            LIMIT 1
+          )`,
+          { requestAgentName: agentName },
+        );
+      }
+      if (excludePlayground) requestQb.andWhere(sqlExcludePlayground('r'));
+      requestRow = requestQb.getRawOne();
+    }
+
+    const [attempt, request] = await Promise.all([attemptQb.getRawOne(), requestRow]);
+    return attempt != null || request != null;
   }
 
   async getPreviousTokenTotal(
@@ -204,9 +230,7 @@ export class AggregationService {
           LIMIT 1
         )`
       : '';
-    const playgroundPredicate = excludePlayground
-      ? `AND NOT EXISTS (SELECT 1 FROM agents a WHERE a.id = r.agent_id AND a.is_playground = true)`
-      : '';
+    const playgroundPredicate = excludePlayground ? `AND ${sqlExcludePlayground('r')}` : '';
     const unlinkedAgentPredicate = agentName
       ? `AND pa.agent_id = (
           SELECT id FROM agents
@@ -215,7 +239,7 @@ export class AggregationService {
         )`
       : '';
     const unlinkedPlaygroundPredicate = excludePlayground
-      ? `AND NOT EXISTS (SELECT 1 FROM agents a WHERE a.id = pa.agent_id AND a.is_playground = true)`
+      ? `AND ${sqlExcludePlayground('pa')}`
       : '';
     const queryParams = agentName
       ? [tenantId, prevCutoff, cutoff, agentName]

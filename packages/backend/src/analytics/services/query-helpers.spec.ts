@@ -495,11 +495,13 @@ describe('selectMessageRowColumns', () => {
 
 describe('sqlCountMessages', () => {
   it('counts logical requests rather than provider hops', () => {
-    expect(sqlCountMessages()).toBe('COUNT(DISTINCT COALESCE(at.request_id, at.id))');
+    expect(sqlCountMessages()).toContain('COUNT(DISTINCT COALESCE(at.request_id, at.id))');
+    expect(sqlCountMessages()).toContain("at.status NOT IN ('error', 'fallback_error'");
   });
 
   it('honours a custom table alias', () => {
-    expect(sqlCountMessages('m')).toBe('COUNT(DISTINCT COALESCE(m.request_id, m.id))');
+    expect(sqlCountMessages('m')).toContain('COUNT(DISTINCT COALESCE(m.request_id, m.id))');
+    expect(sqlCountMessages('m')).toContain('m.status IS NULL');
   });
 
   it('keeps the shared error-status set for request log filters', () => {
