@@ -243,6 +243,7 @@ function handleFallbackExhausted(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
+        terminalHttpStatus: errorStatus,
         // Auto-fix ran on this primary before the chain exhausted — stamp its
         // audit onto the single primary-failure row (no separate `auto_fixed`).
         autofix,

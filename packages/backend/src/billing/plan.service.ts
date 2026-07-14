@@ -245,7 +245,7 @@ export class PlanService {
         [tenantId, toLocalSqlTimestamp(new Date(windowStartMs))],
       )
       .then((rows: Array<{ n: number }>) => {
-        const count = rows[0]?.n ?? 0;
+        const count = Number(rows[0]?.n ?? 0);
         this.requestCountCache.set(tenantId, { windowStartMs, count, fetchedAt: Date.now() });
         this.evictRequestCountCache();
         return count;

@@ -305,6 +305,15 @@ describe('PlanService', () => {
       expect(params[1]).toBe(toLocalSqlTimestamp(new Date(ROLLOUT_RESET)));
     });
 
+    it('casts PostgreSQL bigint counts to numbers before caching', async () => {
+      mockQuery.mockResolvedValue([{ n: '7' }]);
+
+      const count = await service.countRequestsSince('t1', START);
+
+      expect(count).toBe(7);
+      expect(typeof count).toBe('number');
+    });
+
     it('allows the quota reset window to be moved by env override', async () => {
       process.env['PLAN_REQUEST_QUOTA_RESET_AT'] = '2026-07-10T12:34:56Z';
       mockQuery.mockResolvedValue([{ n: 4 }]);

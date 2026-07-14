@@ -132,7 +132,7 @@ export class ProviderAnalyticsController {
     @Query('label') label?: string,
     @Query('connection_id') connectionId?: string,
   ) {
-    const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
+    const validRange = this.validateRange(range);
     const hourly = validRange === '24h';
 
     return this.timeseries.getPerAgentTimeseries(
@@ -155,7 +155,7 @@ export class ProviderAnalyticsController {
     @Query('label') label?: string,
     @Query('connection_id') connectionId?: string,
   ) {
-    const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
+    const validRange = this.validateRange(range);
     const hourly = validRange === '24h';
 
     return this.timeseries.getPerAgentMessageTimeseries(
@@ -178,7 +178,7 @@ export class ProviderAnalyticsController {
     @Query('label') label?: string,
     @Query('connection_id') connectionId?: string,
   ) {
-    const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
+    const validRange = this.validateRange(range);
     const hourly = validRange === '24h';
 
     return this.timeseries.getPerAgentCostTimeseries(
@@ -348,6 +348,6 @@ export class ProviderAnalyticsController {
   }
 
   private validateRange(range?: string): string {
-    return range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
+    return range === '7d' || range === '30d' || range === '90d' || range === '365d' ? range : '24h';
   }
 }

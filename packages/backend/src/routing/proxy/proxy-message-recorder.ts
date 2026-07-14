@@ -598,7 +598,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         }),
       );
     }
-    await this.persistRequest(ctx, requestId, rows[rows.length - 1], lastAsError);
+    // Fallback attempts never define the caller-visible outcome themselves.
+    // Exhausted chains persist the rebuilt primary response as the terminal
+    // parent in recordPrimaryFailure; recovered chains finish on success.
+    await this.persistRequest(ctx, requestId, rows[rows.length - 1], false);
     await this.messageRepo.insert(rows);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
@@ -627,6 +630,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
        * heal-then-fallback flow records the primary failure exactly once.
        */
       autofix?: AutofixRecord;
+      /** HTTP status returned to the caller when every fallback was exhausted. */
+      terminalHttpStatus?: number;
     },
   ): Promise<void> {
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
@@ -641,6 +646,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       status: 'fallback_error',
       ...autofixColumns(opts?.autofix, 'original'),
       error_message: scrubSecrets(errorBody).slice(0, 2000),
+      error_http_status: opts?.terminalHttpStatus ?? null,
       model: canonical.model,
       provider: canonical.provider,
       routing_tier: tier,
@@ -656,7 +662,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       header_tier_name: opts?.headerTierName ?? null,
       header_tier_color: opts?.headerTierColor ?? null,
     });
-    await this.persistRequest(ctx, requestId, row, false);
+    const requestOutcome = opts?.terminalHttpStatus
+      ? {
+          ...row,
+          status: opts.terminalHttpStatus === 429 ? 'rate_limited' : 'error',
+        }
+      : row;
+    await this.persistRequest(ctx, requestId, requestOutcome, Boolean(opts?.terminalHttpStatus));
     await this.messageRepo.insert(row);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }

@@ -182,7 +182,10 @@ interface Mocks {
   pricingCache: { getByModel: jest.Mock };
   eventBus: { emit: jest.Mock };
   history: { saveColumn: jest.Mock };
-  messageRepo: { insert: jest.Mock };
+  messageRepo: {
+    insert: jest.Mock;
+    manager?: { getRepository: jest.Mock };
+  };
   customProviderRepo: { findOne: jest.Mock };
 }
 
@@ -469,12 +472,17 @@ describe('PlaygroundService.runStream', () => {
   });
 
   it('sends a 404 JSON error (no stream) when the provider is not connected', async () => {
-    const { service } = buildService({
+    const requestInsert = jest.fn().mockResolvedValue(undefined);
+    const { service, mocks } = buildService({
       providerKeyService: {
         hasActiveProvider: jest.fn().mockResolvedValue(false),
         getAuthType: jest.fn(),
         getProviderKeys: jest.fn(),
         getProviderApiKey: jest.fn(),
+      },
+      messageRepo: {
+        insert: jest.fn(),
+        manager: { getRepository: jest.fn(() => ({ insert: requestInsert })) },
       },
     });
     const res = mockRes();
@@ -485,6 +493,10 @@ describe('PlaygroundService.runStream', () => {
     expect(res._json).toMatchObject({ statusCode: 404 });
     expect((res._json as { message: string }).message).toContain('not connected');
     expect(res.write).not.toHaveBeenCalled();
+    expect(requestInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'error', error_origin: 'config' }),
+    );
+    expect(mocks.messageRepo.insert).not.toHaveBeenCalled();
   });
 
   it('sends a 404 JSON error when no usable API key is found', async () => {
@@ -701,7 +713,13 @@ describe('PlaygroundService.runStream', () => {
   });
 
   it('returns 502 JSON when forward() throws (Error)', async () => {
-    const { service, mocks } = buildService();
+    const requestInsert = jest.fn().mockResolvedValue(undefined);
+    const { service, mocks } = buildService({
+      messageRepo: {
+        insert: jest.fn().mockResolvedValue(undefined),
+        manager: { getRepository: jest.fn(() => ({ insert: requestInsert })) },
+      },
+    });
     mocks.providerClient.forward.mockRejectedValue(new Error('connection refused'));
     const res = mockRes();
 
@@ -709,6 +727,12 @@ describe('PlaygroundService.runStream', () => {
 
     expect(res._status).toBe(502);
     expect((res._json as { message: string }).message).toContain('connection refused');
+    expect(requestInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'error', error_origin: 'transport' }),
+    );
+    expect(mocks.messageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'error', error_origin: 'transport' }),
+    );
   });
 
   it('returns 502 JSON when forward() throws a non-Error', async () => {

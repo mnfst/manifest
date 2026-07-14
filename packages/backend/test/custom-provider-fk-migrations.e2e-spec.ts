@@ -9,7 +9,7 @@ import { AddRequestsAndProviderAttempts1801000000000 } from '../src/database/mig
  * user_providers → tenant_providers + its FK/index (TenantProviders) and demotes
  * custom_providers.user_id → created_by_user_id (TenantScopedConfigs). These
  * specs assert + seed under the ORIGINAL user_providers / custom_providers.user_id
- * names, so revert those two later migrations (newest first) before exercising
+ * names, so revert those later migrations (newest first) before exercising
  * this migration's own behaviour.
  */
 async function revertTenantCanonicalScoping(ds: DataSource): Promise<void> {
