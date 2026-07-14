@@ -109,7 +109,7 @@ function describeOperation(op: AutofixOperation): string {
  * Auto-fix card. Shows the branding, a human phrase, the operation details,
  * Phoenix IDs, and a link to the paired row.
  */
-function AutofixSection(props: {
+export function AutofixSection(props: {
   role: string | null;
   operations: AutofixOperation[] | null;
   phoenix: {

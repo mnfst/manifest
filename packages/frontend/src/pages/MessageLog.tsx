@@ -13,6 +13,7 @@ import {
 } from 'solid-js';
 import ErrorState from '../components/ErrorState.jsx';
 import MessageTable from '../components/MessageTable.jsx';
+import RequestDrawer from '../components/RequestDrawer.jsx';
 import Pagination from '../components/Pagination.jsx';
 import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
@@ -405,6 +406,15 @@ const MessageLog: Component = () => {
     setTimeout(() => el.classList.remove('msg-highlight'), 2000);
   };
 
+  // Drawer state
+  const [selectedMessageId, setSelectedMessageId] = createSignal<string | null>(null);
+  const openDrawer = (id: string) => setSelectedMessageId(id);
+  const closeDrawer = () => setSelectedMessageId(null);
+  const handleOpenMessageInDrawer = (id: string) => {
+    closeDrawer();
+    setTimeout(() => openDrawer(id), 100);
+  };
+
   return (
     <div class="container--full">
       <Title>
@@ -671,6 +681,7 @@ const MessageLog: Component = () => {
                   customProviderName={() => undefined}
                   agentPlatformLookup={(name) => agentPlatformMap().get(name)}
                   onOpenMessage={scrollToMessage}
+                  onRowSelect={openDrawer}
                   rowIdPrefix="msg-"
                   showHeaderTooltips
                   expandable
@@ -699,6 +710,11 @@ const MessageLog: Component = () => {
           onClose={() => setSetupOpen(false)}
         />
       </Show>
+      <RequestDrawer
+        messageId={selectedMessageId()}
+        onClose={closeDrawer}
+        onOpenMessage={handleOpenMessageInDrawer}
+      />
     </div>
   );
 };
