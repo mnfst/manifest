@@ -147,7 +147,7 @@ async function postRun(body: Record<string, unknown>): Promise<string> {
 }
 
 describe('Playground E2E — POST /api/v1/playground/run (SSE)', () => {
-  it('streams deltas + a done event and records an agent_messages row on happy path', async () => {
+  it('streams deltas + a done event and records a provider attempt on happy path', async () => {
     stubOpenAiChatStream(['hello ', 'world'], { prompt_tokens: 7, completion_tokens: 3 });
 
     const sseText = await postRun({
@@ -181,7 +181,7 @@ describe('Playground E2E — POST /api/v1/playground/run (SSE)', () => {
       `SELECT id FROM agents WHERE is_playground = true AND deleted_at IS NULL LIMIT 1`,
     );
     const rows = await ds.query(
-      `SELECT routing_reason, routing_tier, status, provider, model, input_tokens, output_tokens, agent_name FROM agent_messages WHERE agent_id = $1 AND routing_tier = $2`,
+      `SELECT routing_reason, routing_tier, status, provider, model, input_tokens, output_tokens, agent_name FROM provider_attempts WHERE agent_id = $1 AND routing_tier = $2`,
       [playgroundAgent.id, 'playground'],
     );
     expect(rows.length).toBe(1);

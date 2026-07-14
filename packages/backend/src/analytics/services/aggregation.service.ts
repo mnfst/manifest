@@ -217,6 +217,9 @@ export class AggregationService {
     const unlinkedPlaygroundPredicate = excludePlayground
       ? `AND NOT EXISTS (SELECT 1 FROM agents a WHERE a.id = pa.agent_id AND a.is_playground = true)`
       : '';
+    const queryParams = agentName
+      ? [tenantId, prevCutoff, cutoff, agentName]
+      : [tenantId, prevCutoff, cutoff];
     const rows = (await this.turnRepo.query(
       `WITH scoped_requests AS (
          SELECT r.id, r.timestamp, r.status
@@ -259,7 +262,7 @@ export class AggregationService {
          COUNT(*) FILTER (WHERE r.timestamp >= $3 AND r.status = 'ok' AND a.had_failure)::int AS recovered
        FROM scoped_requests r
        LEFT JOIN attempt_stats a ON a.request_id = r.id`,
-      [tenantId, prevCutoff, cutoff, agentName ?? null],
+      queryParams,
     )) as Array<{
       total: number;
       successful: number;
