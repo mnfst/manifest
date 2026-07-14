@@ -13,6 +13,15 @@ function mockAggregation(): Record<string, jest.Mock> {
     // Previous-window totals power the trend arrows; the current-window summary
     // is derived from the timeseries buckets below.
     getPreviousWindowMetrics: jest.fn().mockResolvedValue({ tokens: 900, cost: 4.0, messages: 45 }),
+    getRequestReliability: jest.fn().mockResolvedValue({
+      total: 50,
+      successful: 48,
+      success_rate: 96,
+      attempt_success_rate: 90,
+      manifest_lift_pct: 6,
+      recovered: 3,
+      previous_total: 45,
+    }),
     hasAnyData: jest.fn().mockResolvedValue(true),
   };
 }

@@ -238,7 +238,7 @@ describe('MessageLog', () => {
   it('renders breadcrumb subtitle', () => {
     mockGetMessages.mockResolvedValue(messagesData);
     render(() => <MessageLog />);
-    expect(screen.getByText(/Full log of every LLM call/)).toBeDefined();
+    expect(screen.getByText(/Full log of requests from your app/)).toBeDefined();
   });
 
   it('shows loading skeleton while fetching', () => {
@@ -1654,7 +1654,7 @@ describe('MessageLog', () => {
   });
 
   describe('global mode title and CTA (Bug 2 + Bug 3)', () => {
-    it("renders 'Messages - Manifest' title without agent prefix in global mode", () => {
+    it("renders 'Requests - Manifest' title without agent prefix in global mode", () => {
       mockAgentName = '';
       mockGetMessages.mockResolvedValue(messagesData);
       const { container } = render(() => <MessageLog />);

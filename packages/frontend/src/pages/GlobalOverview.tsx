@@ -99,6 +99,14 @@ interface OverviewResponse {
     cost_today: { value: number; trend_pct: number };
     messages: { value: number; trend_pct: number };
   };
+  request_reliability: {
+    total: number;
+    successful: number;
+    success_rate: number;
+    attempt_success_rate: number;
+    manifest_lift_pct: number;
+    recovered: number;
+  };
   token_usage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
   cost_by_model: CostByModelRow[];
@@ -664,10 +672,33 @@ const GlobalOverview: Component = () => {
           </Show>
         }
       >
-        {/* ── KPI line (autofix-gated) ── */}
-        <Show when={autofixAvailable()}>
-          <AutofixKpiCards stats={autofixStats()} />
-        </Show>
+        {/* ── 2. Chart Card ───────────────────────────────────────────── */}
+        <div style="margin-bottom: 24px;">
+          {(() => {
+            // The enclosing Show guarantees overview() is defined here.
+            const o = () => overview()!;
+            return (
+              <ProviderChartCard
+                activeView={chartView()}
+                onViewChange={setChartView}
+                messagesValue={o().summary.messages.value}
+                messagesTrendPct={o().summary.messages.trend_pct}
+                requestSuccessRate={o().request_reliability?.success_rate}
+                attemptSuccessRate={o().request_reliability?.attempt_success_rate}
+                tokensValue={o().summary.tokens_today.value}
+                tokensTrendPct={o().summary.tokens_today.trend_pct}
+                costValue={o().summary.cost_today.value}
+                costTrendPct={o().summary.cost_today.trend_pct}
+                costInfoTooltip="Actual API key costs only. Subscription usage is not included."
+                range={effectiveChartRange()}
+                agentTimeseries={filteredAgentTimeseries() ?? undefined}
+                agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
+                agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
+                colorMap={agentColorMap()}
+              />
+            );
+          })()}
+        </div>
 
         {/* ── 2. Unified Chart Card ─────────────────────────────────── */}
         {(() => {
@@ -754,13 +785,6 @@ const GlobalOverview: Component = () => {
             />
           );
         })()}
-
-        {/* ── Error classes (full width) ──────────────────────────── */}
-        <div style="margin-bottom: 24px;">
-          <ErrorClassCard range={effectiveChartRange()} />
-        </div>
-
-        {/* Stat cards removed — info is in Provider connections + Harnesses tables below */}
 
         {/* ── 4. Recent Requests (full width) ──────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
@@ -1071,8 +1095,6 @@ const GlobalOverview: Component = () => {
                   <th>Harness</th>
                   <th>Usage (30d)</th>
                   <th style="text-align: right;">Requests</th>
-                  <th style="text-align: right;">Fail requests</th>
-                  <th style="text-align: right;">Auto-fixed</th>
                 </tr>
               </thead>
               <tbody>

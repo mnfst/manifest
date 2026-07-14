@@ -23,7 +23,7 @@ export const MANIFEST_BLOCKED_REQUEST_REASONS = [
 export type ManifestBlockedRequestReason = (typeof MANIFEST_BLOCKED_REQUEST_REASONS)[number];
 
 /**
- * Error codes that can never become an `agent_messages` row: they are raised by
+ * Error codes that can never become an `provider_attempts` row: they are raised by
  * `AgentKeyAuthGuard` before a key resolves to a tenant, so there is no agent to
  * attribute the row to. Recording them anyway would let anyone holding the
  * endpoint URL write rows into someone else's dashboard by guessing keys.

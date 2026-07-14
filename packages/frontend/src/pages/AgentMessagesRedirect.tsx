@@ -4,7 +4,7 @@ import type { Component } from 'solid-js';
 /**
  * Redirects /harnesses/:agentName/messages → /messages?agent=<name> so the
  * global message log opens pre-filtered to the harness the user came from
- * (e.g. via a Recent Messages "View more" link).
+ * (e.g. via a Recent Requests "View more" link).
  */
 const AgentMessagesRedirect: Component = () => {
   const params = useParams<{ agentName: string }>();

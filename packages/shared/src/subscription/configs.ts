@@ -271,7 +271,13 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     supportsSubscription: true as const,
     subscriptionLabel: 'Grok subscription',
     subscriptionAuthMode: 'popup_oauth' as const,
-    // Model list is fetched dynamically from xAI's OpenAI-compatible /v1/models endpoint.
+    knownModels: Object.freeze([
+      'grok-4.5',
+      'grok-4.3',
+      'grok-4.20-0309-reasoning',
+      'grok-4.20-0309-non-reasoning',
+      'grok-build-0.1',
+    ]),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 128000,
       supportsPromptCaching: true,

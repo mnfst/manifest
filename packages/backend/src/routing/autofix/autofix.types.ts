@@ -42,7 +42,7 @@ export interface AutofixChainEntry {
 
 /**
  * The full Auto-fix story. A healed request is recorded as two linked
- * `agent_messages` rows (failed original + successful retry) sharing `groupId`;
+ * `provider_attempts` rows (failed original + successful retry) sharing `groupId`;
  * `chain` carries the per-attempt detail the recorder splits into those rows.
  */
 export interface AutofixRecord {

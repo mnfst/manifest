@@ -122,13 +122,16 @@ describe('analytics chart surface components', () => {
 
     expect(screen.getByText('Requests')).toBeDefined();
     expect(screen.getByText('Cost')).toBeDefined();
+    expect(screen.getByText('Requests')).toBeDefined();
     expect(screen.getByText('Token usage')).toBeDefined();
     expect(screen.getByTestId('info-tooltip')).toBeDefined();
     await buildLazyChart();
 
     // Tab controls are semantic <button>s (keyboard/a11y).
+    const messagesTab = screen.getByText('Requests').closest('button');
+    expect(messagesTab).not.toBeNull();
     fireEvent.click(screen.getByText('Requests'));
-    expect(onViewChange).toHaveBeenCalledWith('requests');
+    expect(onViewChange).toHaveBeenCalledWith('messages');
     fireEvent.click(screen.getByText('Token usage'));
     expect(onViewChange).toHaveBeenCalledWith('tokens');
     fireEvent.click(screen.getByText('Cost'));
@@ -158,7 +161,7 @@ describe('analytics chart surface components', () => {
       />
     ));
 
-    expect(screen.getByText('Token usage')).toBeDefined();
+    expect(screen.getByText('Requests')).toBeDefined();
     await buildLazyChart();
     unmount();
     capturedLifecycleOpts = null;
@@ -189,6 +192,25 @@ describe('analytics chart surface components', () => {
 
   it('renders ProviderChartCard empty states and hides cost when missing', () => {
     const { unmount } = render(() => (
+      <ProviderChartCard
+        activeView="messages"
+        onViewChange={vi.fn()}
+        messagesValue={0}
+        messagesTrendPct={0}
+        tokensValue={0}
+        tokensTrendPct={0}
+        range="24h"
+        agentTimeseries={{ agents: [], timeseries: [] }}
+        agentMessageTimeseries={{ agents: [], timeseries: [] }}
+        agentCostTimeseries={{ agents: [], timeseries: [] }}
+      />
+    ));
+
+    expect(screen.getByText('No request data for this time range')).toBeDefined();
+    expect(screen.queryByText('Cost')).toBeNull();
+    unmount();
+
+    const tokenEmpty = render(() => (
       <ProviderChartCard
         activeView="tokens"
         onViewChange={vi.fn()}

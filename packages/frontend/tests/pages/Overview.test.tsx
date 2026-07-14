@@ -484,7 +484,13 @@ describe('Overview', () => {
       expect(active?.textContent).toContain('Cost');
     });
 
-    fireEvent.click(stats[3]); // tokens — renders the token-view chart
+    fireEvent.click(stats[1]); // messages
+    await vi.waitFor(() => {
+      const active = container.querySelector('.chart-card__stat--active');
+      expect(active?.textContent).toContain('Requests');
+    });
+
+    fireEvent.click(stats[2]); // tokens — renders the token-view chart
     await vi.waitFor(() => {
       const active = container.querySelector('.chart-card__stat--active');
       expect(active?.textContent).toContain('Token usage');

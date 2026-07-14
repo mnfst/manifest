@@ -108,6 +108,7 @@ interface AnalyticsResponse {
   };
   token_usage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
+  attempts: { total: number; successful: number; success_rate: number };
 }
 
 const PRO_RANGES_CD = new Set(['30d', '90d', '365d']);
@@ -759,30 +760,12 @@ const ConnectionDetail: Component = () => {
                     return Math.max(-999, Math.min(999, Math.round(((cur - prev) / prev) * 100)));
                   };
                   return (
-                    <UnifiedChartCard
-                      activeTab={chartView()}
-                      onTabChange={setChartView}
-                      requestsValue={
-                        autofixStats()?.total_requests.value ?? analytics()!.summary.messages.value
-                      }
-                      requestsTrendPct={
-                        autofixStats()?.total_requests.previous != null
-                          ? (() => {
-                              const cur = autofixStats()!.total_requests.value;
-                              const prev = autofixStats()!.total_requests.previous;
-                              if (prev === 0) return 0;
-                              return Math.max(
-                                -999,
-                                Math.min(999, Math.round(((cur - prev) / prev) * 100)),
-                              );
-                            })()
-                          : (analytics()!.summary.messages.trend_pct ?? 0)
-                      }
-                      failedValue={autofixStats()?.errors_remaining.value ?? 0}
-                      failedTrendPct={failedTrendPct()}
-                      failedTimeseries={failedTs()}
-                      failedFilter={failedFilter()}
-                      onFailedFilterChange={setFailedFilter}
+                    <ProviderChartCard
+                      activeView={chartView()}
+                      onViewChange={setChartView}
+                      messagesValue={analytics()!.summary.messages.value}
+                      messagesTrendPct={analytics()!.summary.messages.trend_pct}
+                      attemptSuccessRate={analytics()!.attempts?.success_rate}
                       tokensValue={analytics()!.summary.tokens.value}
                       tokensTrendPct={analytics()!.summary.tokens.trend_pct}
                       costValue={isByok() ? (totalCost() ?? 0) : undefined}
@@ -811,7 +794,7 @@ const ConnectionDetail: Component = () => {
                 })()}
               </Show>
 
-              {/* Recent Messages (full width) */}
+              {/* Recent Requests (full width) */}
               <div class="panel scroll-panel" style="margin-bottom: 24px;">
                 <div
                   class="panel__title"

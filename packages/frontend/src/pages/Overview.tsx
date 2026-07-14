@@ -67,6 +67,14 @@ interface OverviewData {
     messages: { value: number; trend_pct: number };
     services_hit: { total: number; healthy: number; issues: number };
   };
+  request_reliability: {
+    total: number;
+    successful: number;
+    success_rate: number;
+    attempt_success_rate: number;
+    manifest_lift_pct: number;
+    recovered: number;
+  };
   token_usage: Array<{
     hour?: string;
     date?: string;
@@ -474,82 +482,24 @@ const Overview: Component = () => {
                       </p>
                     </div>
                   </Show>
-                  {(() => {
-                    const failedTrendPct = () => {
-                      const s = autofixStats();
-                      if (!s) return 0;
-                      const cur = s.errors_remaining.value;
-                      const prev = s.errors_remaining.previous;
-                      if (prev === 0) return 0;
-                      return Math.max(-999, Math.min(999, Math.round(((cur - prev) / prev) * 100)));
-                    };
-                    return (
-                      <>
-                        <Show when={autofixAvailable()}>
-                          <AutofixKpiCards stats={autofixStats()} />
-                        </Show>
-                        <UnifiedChartCard
-                          activeTab={activeView()}
-                          onTabChange={setActiveView}
-                          requestsValue={
-                            autofixStats()?.total_requests.value ??
-                            d().summary?.messages?.value ??
-                            0
-                          }
-                          requestsTrendPct={
-                            autofixStats()?.total_requests.previous != null
-                              ? (() => {
-                                  const cur = autofixStats()!.total_requests.value;
-                                  const prev = autofixStats()!.total_requests.previous;
-                                  if (prev === 0) return 0;
-                                  return Math.max(
-                                    -999,
-                                    Math.min(999, Math.round(((cur - prev) / prev) * 100)),
-                                  );
-                                })()
-                              : (d().summary?.messages?.trend_pct ?? 0)
-                          }
-                          failedValue={autofixStats()?.errors_remaining.value ?? 0}
-                          failedTrendPct={failedTrendPct()}
-                          failedTimeseries={failedTs()}
-                          failedFilter={failedFilter()}
-                          onFailedFilterChange={setFailedFilter}
-                          costValue={d().summary?.cost_today?.value ?? 0}
-                          costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
-                          costInfoTooltip="Actual API key costs only. Subscription usage is not included."
-                          tokensValue={d().summary?.tokens_today?.value ?? 0}
-                          tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
-                          range={effectiveRange()}
-                          agentRequestTimeseries={filteredRequestTs() ?? undefined}
-                          agentTimeseries={filteredTokenTs() ?? undefined}
-                          agentCostTimeseries={filteredCostTs() ?? undefined}
-                          colorMap={providerColorMap()}
-                          seriesFilters={
-                            <Show when={allProviders().length > 1}>
-                              <FilterSelect
-                                noun="providers"
-                                items={allProviders()}
-                                selected={effectiveSelected()}
-                                colorMap={providerColorMap()}
-                                displayName={providerDisplayName}
-                                onToggle={toggleProvider}
-                                onSelectAll={() => setAllProviders(true)}
-                                onUnselectAll={() => setAllProviders(false)}
-                              />
-                            </Show>
-                          }
-                        />
-                      </>
-                    );
-                  })()}
-
-                  {/* Error class breakdown */}
-                  <div style="margin-bottom: 24px;">
-                    <ErrorClassCard
-                      range={effectiveRange()}
-                      agentName={decodeURIComponent(params.agentName)}
-                    />
-                  </div>
+                  <ProviderChartCard
+                    activeView={activeView()}
+                    onViewChange={setActiveView}
+                    costValue={d().summary?.cost_today?.value ?? 0}
+                    costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
+                    tokensValue={d().summary?.tokens_today?.value ?? 0}
+                    tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
+                    messagesValue={d().summary?.messages?.value ?? 0}
+                    messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
+                    requestSuccessRate={d().request_reliability?.success_rate}
+                    attemptSuccessRate={d().request_reliability?.attempt_success_rate}
+                    costInfoTooltip="Actual API key costs only. Subscription usage is not included."
+                    range={effectiveRange()}
+                    agentTimeseries={filteredTokenTs() ?? undefined}
+                    agentMessageTimeseries={filteredMessageTs() ?? undefined}
+                    agentCostTimeseries={filteredCostTs() ?? undefined}
+                    colorMap={providerColorMap()}
+                  />
 
                   {/* Recent Requests */}
                   <div class="panel">

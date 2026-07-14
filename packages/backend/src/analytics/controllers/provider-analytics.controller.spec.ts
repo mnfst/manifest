@@ -69,7 +69,11 @@ describe('ProviderAnalyticsController', () => {
       getAgentNamesByAuthType: jest.fn().mockResolvedValue(['agent-1']),
     };
     providerRepo = { findOne: jest.fn() };
-    messageRepo = { createQueryBuilder: jest.fn() };
+    messageRepo = {
+      createQueryBuilder: jest
+        .fn()
+        .mockReturnValue(makeQb({ rawOne: { total: 0, successful: 0 } })),
+    };
 
     controller = new ProviderAnalyticsController(
       aggregation as unknown as AggregationService,
