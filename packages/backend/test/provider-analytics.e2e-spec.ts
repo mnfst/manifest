@@ -46,7 +46,7 @@ beforeAll(async () => {
     ['gpt-4o-mini', 200, 100],
   ] as Array<[string, number, number]>) {
     await ds.query(
-      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, tenant_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+      `INSERT INTO provider_attempts (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, tenant_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
        VALUES ($1,$2,$3,$4,'ok',$5,'openai','subscription','My OpenAI',$6,$7,$8,0,0,$9,'msg','agent','test-agent',$10)`,
       [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, now, model, connectionId, inTok, outTok, 0.01, TEST_USER_ID],
     );
@@ -69,7 +69,7 @@ beforeAll(async () => {
   // live `test-agent` must NOT include this dead namesake's row — the agent
   // filter has to resolve to the live agent's id, not match by slug.
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+    `INSERT INTO provider_attempts (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
      VALUES ($1,$2,$3,$4,'ok','ghost-model','ghostprovider','api_key',5000,5000,0,0,0.5,'msg','agent','test-agent',$5)`,
     [uuid(), TEST_TENANT_ID, ghostAgentId, now, TEST_USER_ID],
   );
@@ -83,7 +83,7 @@ beforeAll(async () => {
     [playgroundAgentId, TEST_TENANT_ID, now],
   );
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+    `INSERT INTO provider_attempts (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
      VALUES ($1,$2,$3,$4,'ok','gpt-4o','openai','subscription',9000,9000,0,0,0.99,'msg','agent','Playground',$5)`,
     [uuid(), TEST_TENANT_ID, playgroundAgentId, now, TEST_USER_ID],
   );
@@ -96,7 +96,7 @@ beforeAll(async () => {
   // the 'My OpenAI' connection's tenant_provider_id so the connection-detail leak
   // guard proves excludeSystemAgents (not the id scope) is what drops it.
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, tenant_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+    `INSERT INTO provider_attempts (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, tenant_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
      VALUES ($1,$2,NULL,$3,'ok','gpt-4o','openai','subscription','My OpenAI',$4,7000,7000,0,0,0.77,'msg','agent','Playground',$5)`,
     [uuid(), TEST_TENANT_ID, now, connectionId, TEST_USER_ID],
   );
@@ -127,7 +127,7 @@ beforeAll(async () => {
     // connection-detail (which scopes on tenant_provider_id) keeps Work and
     // Personal separate even though they share provider+auth_type.
     await ds.query(
-      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, tenant_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+      `INSERT INTO provider_attempts (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, tenant_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
        VALUES ($1,$2,$3,$4,'ok','claude','anthropic','api_key',$5,$6,$7,$7,0,0,0.02,'msg','agent','test-agent',$8)`,
       [
         uuid(),

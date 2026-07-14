@@ -30,7 +30,7 @@ async function seed(
   const id = uuid();
   const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
   await ds.query(
-    `INSERT INTO agent_messages
+    `INSERT INTO provider_attempts
        (id, tenant_id, agent_id, agent_name, timestamp, status, error_message, error_code,
         error_origin, error_class, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens)
      VALUES ($1,$2,$3,'test-agent',$4,$5,$6,$7,$8,$9, 0,0,0,0)`,

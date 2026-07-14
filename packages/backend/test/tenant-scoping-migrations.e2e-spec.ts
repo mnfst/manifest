@@ -14,6 +14,7 @@ import { TenantOwnerColumn1792400000000 } from '../src/database/migrations/17924
 import { TenantProviders1792500000000 } from '../src/database/migrations/1792500000000-TenantProviders';
 import { TenantScopedConfigs1792600000000 } from '../src/database/migrations/1792600000000-TenantScopedConfigs';
 import { DropUserScopeFromRouting1792700000000 } from '../src/database/migrations/1792700000000-DropUserScopeFromRouting';
+import { AddRequestsAndProviderAttempts1801000000000 } from '../src/database/migrations/1801000000000-AddRequestsAndProviderAttempts';
 
 const USER = 'mig-user-1';
 const TENANT = 'mig-tenant-1';
@@ -66,6 +67,8 @@ describe('Tenant-canonical scoping migrations — data backfill (e2e)', () => {
     });
     await ds.initialize();
     await ds.runMigrations({ transaction: 'each' });
+
+    await runDown(ds, new AddRequestsAndProviderAttempts1801000000000());
 
     // Revert the four tenant migrations, newest first → pre-tenant schema
     // (user_id scope columns everywhere, no owner_user_id).

@@ -23,14 +23,16 @@ export class MessageFeedbackService {
   ): Promise<void> {
     if (this.requestRepo) {
       const request = await this.findOwnedRequest(messageId, tenantId);
-      await this.requestRepo.update(request.id, {
-        feedback_rating: rating,
-        feedback_tags: tags?.length ? tags.join(',') : null,
-        feedback_details: details ?? null,
-      });
-      return;
+      if (request) {
+        await this.requestRepo.update(request.id, {
+          feedback_rating: rating,
+          feedback_tags: tags?.length ? tags.join(',') : null,
+          feedback_details: details ?? null,
+        });
+        return;
+      }
     }
-    const message = await this.findOwnedMessage(messageId, tenantId);
+    const message = await this.findOwnedMessage(messageId, tenantId, Boolean(this.requestRepo));
     await this.messageRepo.update(message.id, {
       feedback_rating: rating,
       feedback_tags: tags?.length ? tags.join(',') : null,
@@ -41,14 +43,16 @@ export class MessageFeedbackService {
   async clearFeedback(messageId: string, tenantId: string | null): Promise<void> {
     if (this.requestRepo) {
       const request = await this.findOwnedRequest(messageId, tenantId);
-      await this.requestRepo.update(request.id, {
-        feedback_rating: null,
-        feedback_tags: null,
-        feedback_details: null,
-      });
-      return;
+      if (request) {
+        await this.requestRepo.update(request.id, {
+          feedback_rating: null,
+          feedback_tags: null,
+          feedback_details: null,
+        });
+        return;
+      }
     }
-    const message = await this.findOwnedMessage(messageId, tenantId);
+    const message = await this.findOwnedMessage(messageId, tenantId, Boolean(this.requestRepo));
     await this.messageRepo.update(message.id, {
       feedback_rating: null,
       feedback_tags: null,
@@ -59,26 +63,26 @@ export class MessageFeedbackService {
   private async findOwnedRequest(
     requestId: string,
     tenantId: string | null,
-  ): Promise<ManifestRequest> {
-    if (!tenantId) throw new NotFoundException('Request not found');
-    const request = await this.requestRepo!.findOne({
+  ): Promise<ManifestRequest | null> {
+    if (!tenantId) return null;
+    return this.requestRepo!.findOne({
       where: { id: requestId, tenant_id: tenantId },
     });
-    if (!request) throw new NotFoundException('Request not found');
-    return request;
   }
 
   private async findOwnedMessage(
     messageId: string,
     tenantId: string | null,
+    syntheticOnly = false,
   ): Promise<AgentMessage> {
     // No tenant → no messages, so any id is unknown.
     if (!tenantId) throw new NotFoundException('Message not found');
-    const message = await this.messageRepo
+    const qb = this.messageRepo
       .createQueryBuilder('m')
       .where('m.id = :id', { id: messageId })
-      .andWhere('m.tenant_id = :tenantId', { tenantId })
-      .getOne();
+      .andWhere('m.tenant_id = :tenantId', { tenantId });
+    if (syntheticOnly) qb.andWhere('m.request_id IS NULL');
+    const message = await qb.getOne();
     if (!message) throw new NotFoundException('Message not found');
     return message;
   }
