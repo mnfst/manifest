@@ -391,10 +391,13 @@ export class ResolveService {
   }
 
   /**
-   * Build the resolved route chain for a tier assignment. Validates the
-   * override still points to an available model; when an override is orphaned,
-   * walk configured fallbacks before trying the auto-assigned route. Enriches
-   * routes with the default key label when no explicit pin is present.
+   * Build the resolved route chain for a tier assignment. Explicit overrides
+   * retain the full model-aware availability check. Automatic and fallback
+   * candidates use the provider-key cache instead: the proxy needs the same
+   * key before forwarding, so this prevents stale disconnected providers from
+   * becoming primary without adding a separate model-discovery query to the
+   * gateway path. When nothing has usable credentials, the proxy gets a null
+   * route and returns the neutral M101 instead of M100 (#2494).
    */
   private async buildResolvedRouteChain(
     agentId: string,
@@ -407,32 +410,35 @@ export class ResolveService {
     // honored when override is empty" semantics stay in lockstep with
     // TierService.hasRoutableTier / effectiveRoute (see route-helpers.ts).
     const autoAssigned = readAutoAssignedRoute(assignment);
+
+    if (override && (await this.providerKeyService.isRouteAvailable(tenantId, override, agentId))) {
+      return {
+        primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, override),
+        fallbackRoutes,
+      };
+    }
     if (override) {
-      if (await this.providerKeyService.isRouteAvailable(tenantId, override, agentId)) {
-        return {
-          primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, override),
-          fallbackRoutes,
-        };
-      }
       this.logger.warn(
         `Override ${override.model} unavailable for agent=${agentId} — ` +
           `falling back to configured routes`,
       );
-      const candidates = [...(fallbackRoutes ?? []), ...(autoAssigned ? [autoAssigned] : [])];
-      const [primaryRoute, ...remainingFallbacks] = candidates;
-      return {
-        primaryRoute: primaryRoute
-          ? await this.enrichRouteKeyLabel(agentId, tenantId, primaryRoute)
-          : null,
-        fallbackRoutes: remainingFallbacks.length > 0 ? remainingFallbacks : null,
-      };
     }
-    return {
-      primaryRoute: autoAssigned
-        ? await this.enrichRouteKeyLabel(agentId, tenantId, autoAssigned)
-        : null,
-      fallbackRoutes,
-    };
+
+    // An orphaned override walks its fallbacks before the legacy auto-assigned
+    // route; a tier with no override starts from the auto-assigned route.
+    const candidates = override
+      ? [...(fallbackRoutes ?? []), ...(autoAssigned ? [autoAssigned] : [])]
+      : [...(autoAssigned ? [autoAssigned] : []), ...(fallbackRoutes ?? [])];
+    for (let i = 0; i < candidates.length; i++) {
+      if (await this.providerKeyService.hasRouteCredentials(tenantId, candidates[i], agentId)) {
+        const rest = candidates.slice(i + 1);
+        return {
+          primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, candidates[i]),
+          fallbackRoutes: rest.length > 0 ? rest : null,
+        };
+      }
+    }
+    return { primaryRoute: null, fallbackRoutes: null };
   }
 
   /**

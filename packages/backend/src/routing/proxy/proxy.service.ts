@@ -6,7 +6,6 @@ import {
   ProviderKeyService,
   SYNTHETIC_OLLAMA_PROVIDER_ID,
 } from '../routing-core/provider-key.service';
-import { TierService } from '../routing-core/tier.service';
 import { OpenaiOauthService } from '../oauth/openai/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
@@ -183,7 +182,6 @@ export class ProxyService {
     private readonly resolveService: ResolveService,
     private readonly modelDiscovery: ModelDiscoveryService,
     private readonly providerKeyService: ProviderKeyService,
-    private readonly tierService: TierService,
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
     private readonly anthropicOauth: AnthropicOauthService,
@@ -847,15 +845,12 @@ export class ProxyService {
       signal,
       apiMode,
     } = args;
-    // Prefer the resolver's fallback_routes (which already contains the right
-    // tier's routes); fall back to a fresh tier lookup if the resolver returned
-    // null (e.g. the tier itself was missing).
+    // The resolver owns the effective route chain. Null is a definitive
+    // "nothing remains", including when the only configured fallback was
+    // promoted to primary. Reloading the persisted tier here would retry that
+    // promoted route as its own fallback and could resurrect routes the
+    // resolver deliberately skipped.
     let fallbackRoutes = resolved.fallback_routes ?? null;
-    if (!fallbackRoutes) {
-      const tiers = await this.tierService.getTiers(agentId);
-      const assignment = tiers.find((t) => t.tier === resolved.tier);
-      fallbackRoutes = assignment?.fallback_routes ?? null;
-    }
     if ((resolved.response_mode ?? DEFAULT_RESPONSE_MODE) === 'stream') {
       const effectiveRoutes = effectiveRoutesForResponseMode(
         resolved.response_mode,
