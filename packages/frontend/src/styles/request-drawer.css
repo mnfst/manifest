@@ -125,7 +125,7 @@
   border-right: 1px solid hsl(var(--border));
   background: hsl(var(--card));
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 0;
 }
 .drawer__sidebar-title {
   font-size: var(--font-size-xs);
