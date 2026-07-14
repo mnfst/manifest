@@ -11,7 +11,7 @@ import { CustomProviderService } from './custom-provider/custom-provider.service
  * Returns all providers for the tenant (not scoped to a specific agent).
  *
  * CONFIG ONLY. This endpoint must stay cheap: it reads `tenant_providers`
- * (small) plus the in-memory pricing cache, and never touches `agent_messages`.
+ * (small) plus the in-memory pricing cache, and never touches `provider_attempts`.
  * Usage stats (consumption_*, last_used_at, sparkline_7d) moved to
  * `GET /api/v1/providers/usage` (ProviderUsageController) so a config read no
  * longer triggers two multi-second scans over the 8GB messages table. The

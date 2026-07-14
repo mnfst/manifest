@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -14,6 +14,7 @@ import {
   PROVIDER_SERIES_KEY_EXPR,
 } from './query-helpers';
 import { CustomProvider } from '../../entities/custom-provider.entity';
+import { ManifestRequest } from '../../entities/request.entity';
 import {
   computeCutoff,
   sqlHourBucket,
@@ -49,6 +50,9 @@ export class TimeseriesQueriesService {
     private readonly turnRepo: Repository<AgentMessage>,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
+    @Optional()
+    @InjectRepository(ManifestRequest)
+    private readonly requestRepo?: Repository<ManifestRequest>,
   ) {}
 
   async getTimeseries(
@@ -82,7 +86,50 @@ export class TimeseriesQueriesService {
     // Scope to this connection: pin to the tenant_providers id when present,
     // else the provider+auth_type+label tuple (see scopeToConnection).
     scopeToConnection(qb, tenantProviderId, label);
-    const rows = await qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
+    const attemptsPromise = qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
+    const useRequestCounts =
+      this.requestRepo && !authType && !provider && !label && !tenantProviderId;
+    let requestRowsPromise: Promise<Array<Record<string, unknown>>> = Promise.resolve([]);
+    let unlinkedRowsPromise: Promise<Array<Record<string, unknown>>> = Promise.resolve([]);
+    if (useRequestCounts) {
+      const requestQb = this.requestRepo!.createQueryBuilder('r')
+        .select(hourly ? sqlHourBucket('r.timestamp') : sqlDateBucket('r.timestamp'), bucketAlias)
+        .addSelect('COUNT(*)', 'count')
+        .where('r.timestamp >= :requestCutoff', { requestCutoff: cutoff });
+      if (tenantId)
+        requestQb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: tenantId });
+      else requestQb.andWhere('1 = 0');
+      if (agentName && tenantId) {
+        requestQb.andWhere(
+          `r.agent_id = (SELECT id FROM agents WHERE tenant_id = :requestTenantId AND name = :requestAgentName AND deleted_at IS NULL LIMIT 1)`,
+          { requestAgentName: agentName },
+        );
+      }
+      if (excludePlayground) {
+        requestQb.andWhere(
+          'NOT EXISTS (SELECT 1 FROM agents a WHERE a.id = r.agent_id AND a.is_playground = true)',
+        );
+      }
+      requestRowsPromise = requestQb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
+
+      const unlinkedQb = this.turnRepo
+        .createQueryBuilder('at')
+        .select(bucketExpr, bucketAlias)
+        .addSelect('COUNT(*)', 'count')
+        .where('at.request_id IS NULL')
+        .andWhere('at.timestamp >= :unlinkedCutoff', { unlinkedCutoff: cutoff });
+      addTenantFilter(unlinkedQb, tenantId, agentName);
+      if (excludePlayground) excludePlaygroundAgents(unlinkedQb);
+      unlinkedRowsPromise = unlinkedQb
+        .groupBy(bucketAlias)
+        .orderBy(bucketAlias, 'ASC')
+        .getRawMany();
+    }
+    const [rows, requestRows, unlinkedRows] = await Promise.all([
+      attemptsPromise,
+      requestRowsPromise,
+      unlinkedRowsPromise,
+    ]);
 
     const tokenUsage: {
       hour?: string;
@@ -103,6 +150,18 @@ export class TimeseriesQueriesService {
       });
       costUsage.push({ ...bucketKey, cost: parsed.cost });
       messageUsage.push({ ...bucketKey, count: parsed.count });
+    }
+
+    if (useRequestCounts) {
+      const counts = new Map<string, number>();
+      for (const row of [...requestRows, ...unlinkedRows]) {
+        const value = String(row[bucketAlias] ?? '');
+        counts.set(value, (counts.get(value) ?? 0) + Number(row['count'] ?? 0));
+      }
+      messageUsage.length = 0;
+      for (const [bucket, count] of [...counts].sort(([a], [b]) => a.localeCompare(b))) {
+        messageUsage.push(hourly ? { hour: bucket, count } : { date: bucket, count });
+      }
     }
 
     return { tokenUsage, costUsage, messageUsage };

@@ -84,6 +84,15 @@ export interface MessageDetailResponse {
     } | null;
     /** The paired row (failed original ↔ successful retry), for the visual link. */
     autofix_sibling: { id: string; role: string | null; status: string } | null;
+    attempts?: Array<{
+      id: string;
+      model: string | null;
+      provider: string | null;
+      status: string;
+      error_http_status: number | null;
+      duration_ms: number | null;
+      cost_usd: number | null;
+    }>;
   };
 }
 

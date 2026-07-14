@@ -409,22 +409,22 @@ const MessageLog: Component = () => {
     <div class="container--full">
       <Title>
         {params.agentName
-          ? `${agentDisplayName() ?? decodeURIComponent(params.agentName)} Messages - Manifest`
-          : 'Messages - Manifest'}
+          ? `${agentDisplayName() ?? decodeURIComponent(params.agentName)} Requests - Manifest`
+          : 'Requests - Manifest'}
       </Title>
       <Meta
         name="description"
         content={
           params.agentName
-            ? `Browse all messages sent and received by ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider, status, or cost.`
-            : 'Browse all messages across all harnesses. Filter by provider, status, or cost.'
+            ? `Browse all requests handled for ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider, status, or cost.`
+            : 'Browse all requests across all harnesses. Filter by provider, status, or cost.'
         }
       />
       <div class="page-header">
         <div>
-          <h1>Messages</h1>
+          <h1>Requests</h1>
           <span class="breadcrumb">
-            Full log of every LLM call. Filter by provider, status, or cost.
+            Full log of requests from your app. Provider calls appear as attempts.
           </span>
         </div>
         <div class="header-controls">
@@ -565,12 +565,14 @@ const MessageLog: Component = () => {
               when={params.agentName && setupCompleted()}
               fallback={
                 <div class="empty-state">
-                  <div class="empty-state__title">No messages yet</div>
+                  <div class="empty-state__title">No requests yet</div>
                   <Show
                     when={params.agentName}
                     fallback={
                       <>
-                        <p>Create a harness and send a message. Every LLM call shows up here.</p>
+                        <p>
+                          Create a harness and send a request. Every caller request shows up here.
+                        </p>
                         <A
                           href="/harnesses"
                           class="btn btn--primary btn--sm"
@@ -581,7 +583,9 @@ const MessageLog: Component = () => {
                       </>
                     }
                   >
-                    <p>Set up your harness and send a message. Every LLM call shows up here.</p>
+                    <p>
+                      Set up your harness and send a request. Every caller request shows up here.
+                    </p>
                     <button
                       class="btn btn--primary btn--sm"
                       style="margin-top: var(--gap-md);"
@@ -593,7 +597,7 @@ const MessageLog: Component = () => {
                   <div class="empty-state__img-wrapper">
                     <img
                       src="/example-messages.svg"
-                      alt="Example message log showing LLM call history"
+                      alt="Example request log showing LLM request history"
                       class="empty-state__img"
                       loading="lazy"
                     />
@@ -602,7 +606,7 @@ const MessageLog: Component = () => {
               }
             >
               <div class="empty-state">
-                <div class="empty-state__title">No messages yet</div>
+                <div class="empty-state__title">No requests yet</div>
                 <p>Connect a provider to start routing LLM calls.</p>
                 <button
                   class="btn btn--primary btn--sm"
@@ -618,7 +622,7 @@ const MessageLog: Component = () => {
                 <div class="empty-state__img-wrapper">
                   <img
                     src="/example-messages.svg"
-                    alt="Example message log showing LLM call history"
+                    alt="Example request log showing LLM request history"
                     class="empty-state__img"
                     loading="lazy"
                   />
@@ -630,14 +634,14 @@ const MessageLog: Component = () => {
             <div class="panel">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
                 <div class="panel__title" style="margin-bottom: 0;">
-                  Messages
+                  Requests
                 </div>
                 <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                   0 results
                 </span>
               </div>
               <div class="model-filter__empty">
-                <p class="model-filter__empty-title">No messages match your filters</p>
+                <p class="model-filter__empty-title">No requests match your filters</p>
                 <p class="model-filter__empty-hint">
                   Try adjusting your provider, status, or cost filters to see more results.
                 </p>
@@ -651,13 +655,13 @@ const MessageLog: Component = () => {
             <Show when={hasNoData() && hasProviders()}>
               <div class="waiting-banner">
                 <i class="bxd bx-florist" />
-                <p>No messages yet. They appear seconds after your first LLM call.</p>
+                <p>No requests yet. They appear seconds after your first LLM call.</p>
               </div>
             </Show>
             <div class="panel">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
                 <div class="panel__title" style="margin-bottom: 0;">
-                  Messages
+                  Requests
                 </div>
                 <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
                   {totalForPager()} total

@@ -62,6 +62,14 @@ interface OverviewData {
     messages: { value: number; trend_pct: number };
     services_hit: { total: number; healthy: number; issues: number };
   };
+  request_reliability: {
+    total: number;
+    successful: number;
+    success_rate: number;
+    attempt_success_rate: number;
+    manifest_lift_pct: number;
+    recovered: number;
+  };
   token_usage: Array<{
     hour?: string;
     date?: string;
@@ -424,6 +432,8 @@ const Overview: Component = () => {
                     tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
                     messagesValue={d().summary?.messages?.value ?? 0}
                     messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
+                    requestSuccessRate={d().request_reliability?.success_rate}
+                    attemptSuccessRate={d().request_reliability?.attempt_success_rate}
                     costInfoTooltip="Actual API key costs only. Subscription usage is not included."
                     range={effectiveRange()}
                     agentTimeseries={filteredTokenTs() ?? undefined}
@@ -432,13 +442,13 @@ const Overview: Component = () => {
                     colorMap={providerColorMap()}
                   />
 
-                  {/* Recent Messages */}
+                  {/* Recent Requests */}
                   <div class="panel">
                     <div
                       class="panel__title"
                       style="display: flex; justify-content: space-between; align-items: center;"
                     >
-                      Recent Messages
+                      Recent Requests
                       <A href={`/harnesses/${params.agentName}/messages`} class="view-more-link">
                         View more
                       </A>

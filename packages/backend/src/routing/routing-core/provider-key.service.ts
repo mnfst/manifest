@@ -18,7 +18,7 @@ import { isManifestUsableProvider } from '../../common/utils/subscription-suppor
 /**
  * Sentinel id for the built-in Ollama tile. getProviderKeys() short-circuits
  * Ollama to a synthetic key without a DB lookup, so this id matches no
- * `tenant_providers` row — callers stamping `agent_messages.tenant_provider_id`
+ * `tenant_providers` row — callers stamping `provider_attempts.tenant_provider_id`
  * must treat it as "no persisted connection" (NULL) to avoid an FK violation.
  */
 export const SYNTHETIC_OLLAMA_PROVIDER_ID = 'ollama';
@@ -90,7 +90,7 @@ export class ProviderKeyService {
    * match when a label is given, else the first (priority-ordered) default key.
    * Returns null when no key resolves. getProviderApiKey/getProviderRegion are
    * thin projections of this — callers that also need the `tenant_providers` row
-   * id (e.g. the proxy, to stamp `agent_messages.tenant_provider_id`) call it
+   * id (e.g. the proxy, to stamp `provider_attempts.tenant_provider_id`) call it
    * directly so the id selected and the key forwarded can never diverge.
    */
   async selectProviderKey(
@@ -122,9 +122,9 @@ export class ProviderKeyService {
 
   /**
    * Returns the `tenant_providers` row id of the selected key, for stamping
-   * `agent_messages.tenant_provider_id` at proxy time. Returns null when no key
+   * `provider_attempts.tenant_provider_id` at proxy time. Returns null when no key
    * resolves OR when the selection is the synthetic Ollama tile (which has no
-   * persisted row — stamping its id would violate the agent_messages FK).
+   * persisted row — stamping its id would violate the provider_attempts FK).
    */
   async getProviderKeyId(
     tenantId: string,

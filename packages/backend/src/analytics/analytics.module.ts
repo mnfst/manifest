@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentMessage } from '../entities/agent-message.entity';
+import { ManifestRequest } from '../entities/request.entity';
 import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
@@ -39,6 +40,7 @@ import { BillingModule } from '../billing/billing.module';
   imports: [
     TypeOrmModule.forFeature([
       AgentMessage,
+      ManifestRequest,
       Agent,
       Tenant,
       CustomProvider,

@@ -122,9 +122,9 @@ describe("Sidebar — global nav links", () => {
     expect(screen.getByText("Overview")).toBeDefined();
   });
 
-  it("renders Messages link", () => {
+  it("renders Requests link", () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Messages")).toBeDefined();
+    expect(screen.getByText("Requests")).toBeDefined();
   });
 
   it("renders provider section links (Local resolves async, self-hosted)", async () => {

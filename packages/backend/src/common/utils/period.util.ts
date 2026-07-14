@@ -6,7 +6,7 @@ export interface PeriodBoundaries {
 }
 
 // Boundaries are computed in the Node process's LOCAL timezone, not UTC, because
-// they are compared against `agent_messages.timestamp` — which the pg driver
+// they are compared against `provider_attempts.timestamp` — which the pg driver
 // stores as a local-time `timestamp without time zone`. A UTC boundary would be
 // offset from the stored values by the process TZ, so `periodEnd` (UTC "now")
 // lands behind the local-time rows and the SUM silently reads ~0, meaning token

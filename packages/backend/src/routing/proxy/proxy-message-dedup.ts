@@ -29,7 +29,29 @@ export class ProxyMessageDedup {
     usage: StreamUsage,
     traceId?: string,
     sessionKey?: string | null,
+    requestId?: string,
   ): Promise<DedupMatch | null> {
+    if (requestId) {
+      const existing = await messageRepo.findOne({
+        where: {
+          tenant_id: ctx.tenantId,
+          request_id: requestId,
+          status: 'ok',
+        },
+        select: [
+          'id',
+          'timestamp',
+          'input_tokens',
+          'output_tokens',
+          'cache_read_tokens',
+          'cache_creation_tokens',
+          'duration_ms',
+        ],
+        order: { timestamp: 'DESC' },
+      });
+      if (existing) return existing;
+    }
+
     if (traceId) {
       const existing = await messageRepo.findOne({
         where: {
@@ -85,7 +107,7 @@ export class ProxyMessageDedup {
         ) {
           return false;
         }
-        // agent_messages.input_tokens already stores the chat-shape prompt_tokens
+        // provider_attempts.input_tokens already stores the chat-shape prompt_tokens
         // (total input including cache reads + creation). Comparing the column
         // directly avoids double-counting the cache portions which are reported
         // separately in cache_read_tokens / cache_creation_tokens.
@@ -109,7 +131,9 @@ export class ProxyMessageDedup {
     model: string,
     traceId?: string,
     sessionKey?: string | null,
+    requestId?: string,
   ): string {
+    if (requestId) return `request:${requestId}`;
     if (traceId) return `trace:${ctx.tenantId}:${ctx.agentId}:${traceId}`;
     return `success:${ctx.tenantId}:${ctx.agentId}:${sessionKey ?? 'no-session'}:${model}`;
   }
