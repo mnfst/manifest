@@ -9,7 +9,7 @@ import {
 } from 'solid-js';
 import { getMessageDetails } from '../services/api/messages.js';
 import { formatParamValue } from './MessageDetailsSections.jsx';
-import { AutofixSection } from './MessageDetails.jsx';
+import MessageDetails from './MessageDetails.jsx';
 import '../styles/request-drawer.css';
 
 export interface RequestDrawerProps {
@@ -62,8 +62,8 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
   const visibleTabs = createMemo(() => {
     const msg = m();
     const tabs: Array<{ value: DrawerTab; label: string }> = [
-      { value: 'events', label: 'Request events' },
-      { value: 'metadata', label: 'Metadata' },
+      { value: 'events', label: 'Timeline' },
+      { value: 'metadata', label: 'Details' },
     ];
     if (msg?.request_headers && Object.keys(msg.request_headers).length > 0) {
       tabs.push({ value: 'headers', label: 'Request headers' });
@@ -146,111 +146,13 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
 
               {/* Tab content */}
               <div class="drawer__body">
-                {/* Events tab */}
+                {/* Timeline tab — reuses the original MessageDetails component */}
                 <Show when={tab() === 'events'}>
-                  <div class="drawer-events">
-                    <Show when={msg().fallback_from_model}>
-                      <div class="drawer-event">
-                        <div class="drawer-event__badge drawer-event__badge--fallback">
-                          fallback
-                        </div>
-                        <div class="drawer-event__text">
-                          Attempt #{msg().fallback_index ?? 2}: triggered by a fallback from{' '}
-                          <strong>{msg().fallback_from_model}</strong>
-                        </div>
-                      </div>
-                      <div class="drawer-event__arrow">
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="m6 9 6 6 6-6" />
-                        </svg>
-                      </div>
-                    </Show>
-
-                    <Show when={msg().error_message}>
-                      <div class="drawer-event">
-                        <div class="drawer-event__badge drawer-event__badge--error">error</div>
-                        <div class="drawer-event__error-msg">{msg().error_message}</div>
-                        <Show when={msg().error_origin || msg().error_class}>
-                          <div class="drawer-event__details">
-                            <Show when={msg().error_origin}>
-                              <div class="drawer-event__kv">
-                                <span class="drawer-event__key">Origin</span>
-                                <span>{msg().error_origin}</span>
-                              </div>
-                            </Show>
-                            <Show when={msg().error_class}>
-                              <div class="drawer-event__kv">
-                                <span class="drawer-event__key">Type</span>
-                                <span>{msg().error_class}</span>
-                              </div>
-                            </Show>
-                            <Show when={msg().error_http_status}>
-                              <div class="drawer-event__kv">
-                                <span class="drawer-event__key">HTTP status</span>
-                                <span>{msg().error_http_status}</span>
-                              </div>
-                            </Show>
-                          </div>
-                        </Show>
-                      </div>
-                      <Show when={msg().autofix_applied}>
-                        <div class="drawer-event__arrow">
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="m6 9 6 6 6-6" />
-                          </svg>
-                        </div>
-                      </Show>
-                    </Show>
-
-                    <Show when={msg().autofix_applied}>
-                      <div class="drawer-event">
-                        <div class="drawer-event__badge drawer-event__badge--autofix">auto-fix</div>
-                        <AutofixSection
-                          role={msg().autofix_role}
-                          operations={msg().autofix_operations}
-                          phoenix={
-                            msg().autofix_phoenix
-                              ? {
-                                  issueId: msg().autofix_phoenix.issueId,
-                                  patchId: msg().autofix_phoenix.patchId,
-                                  healAttemptId: msg().autofix_phoenix.healAttemptId,
-                                  explanation: msg().autofix_phoenix.explanation,
-                                }
-                              : null
-                          }
-                          sibling={msg().autofix_sibling}
-                          onOpenMessage={props.onOpenMessage}
-                        />
-                      </div>
-                    </Show>
-
-                    <Show
-                      when={
-                        !msg().fallback_from_model && !msg().error_message && !msg().autofix_applied
-                      }
-                    >
-                      <p class="drawer-events__empty">
-                        No events — request completed successfully.
-                      </p>
-                    </Show>
+                  <div class="drawer-timeline">
+                    <MessageDetails
+                      messageId={props.messageId!}
+                      onOpenMessage={props.onOpenMessage}
+                    />
                   </div>
                 </Show>
 
