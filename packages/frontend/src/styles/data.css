@@ -708,7 +708,7 @@ a.status-badge:hover {
 }
 
 .msg-row--selected > td {
-  background: hsl(var(--success) / 0.08);
+  background: hsl(var(--accent));
 }
 
 .msg-detail__eye-btn {

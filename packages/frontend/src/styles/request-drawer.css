@@ -104,8 +104,15 @@
   display: block;
 }
 
-/* Hide the Request metadata section title in timeline (drawer header has it) */
+/* Hide the Request metadata section and headers/params panels in timeline
+   (drawer header shows the meta, tabs handle headers/params separately) */
 .drawer-timeline .msg-detail__section-title {
+  display: none;
+}
+.drawer-timeline .msg-detail__section {
+  display: none;
+}
+.drawer-timeline .toggle-panel {
   display: none;
 }
 

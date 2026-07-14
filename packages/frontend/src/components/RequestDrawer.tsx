@@ -10,6 +10,8 @@ import {
 import { getMessageDetails } from '../services/api/messages.js';
 import { formatParamValue } from './MessageDetailsSections.jsx';
 import MessageDetails from './MessageDetails.jsx';
+import { providerIcon } from './ProviderIcon.jsx';
+import { authBadgeFor } from './AuthBadge.js';
 import '../styles/request-drawer.css';
 
 export interface RequestDrawerProps {
@@ -119,7 +121,18 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                   </Show>
                   <Show when={msg().model || msg().model_id}>
                     <span class="drawer__meta-sep">&middot;</span>
-                    <span class="drawer__meta-text">{msg().model || msg().model_id}</span>
+                    <span
+                      class="drawer__meta-text"
+                      style="display: inline-flex; align-items: center; gap: 4px;"
+                    >
+                      <Show when={msg().provider}>
+                        <span style="display: inline-flex; position: relative; flex-shrink: 0; width: 14px; height: 14px;">
+                          {providerIcon(msg().provider, 14)}
+                          {authBadgeFor(msg().auth_type, 8)}
+                        </span>
+                      </Show>
+                      {msg().model || msg().model_id}
+                    </span>
                   </Show>
                   <Show when={msg().timestamp}>
                     <span class="drawer__meta-sep">&middot;</span>
