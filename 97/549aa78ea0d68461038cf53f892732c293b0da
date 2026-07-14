@@ -1,0 +1,37 @@
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_c4ec3585d58b76::t_d412643d182784 1680-1722
+  s_c4ec3585d58b76::t_bb9e5414d16c13 1676-1678
+  s_c4ec3585d58b76::t_6d9c2488890039 1127-1129
+  s_c4ec3585d58b76::t_2d9b30644ac106 1474,1477,1480
+  s_c4ec3585d58b76::t_546ec52d742b4a 1459
+  s_1fcfa8b64fda58::t_83a8805a0967cb 1679
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_c4ec3585d58b76::t_3fbe3deaa514d0 1110-1118
+  s_c4ec3585d58b76::t_6573496a4101a8 107-110
+  s_c4ec3585d58b76::t_0706d9bc0f6d4f 1023-1031
+  s_c4ec3585d58b76::t_6abab0ec9c599a 459-464
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "97549aa78ea0d68461038cf53f892732c293b0da",
+  "prompts": {},
+  "sessions": {
+    "s_1fcfa8b64fda58": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f192f-8fd7-7a02-a84d-1d7edab2d343",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_c4ec3585d58b76": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0dbe843d-48fc-4d31-8edb-c6dcf49ef5b6",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
