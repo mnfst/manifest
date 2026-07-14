@@ -134,6 +134,7 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 8px 12px;
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .attempt-item {
