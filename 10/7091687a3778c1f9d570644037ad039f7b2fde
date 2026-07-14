@@ -1,0 +1,72 @@
+packages/frontend/tests/components/Header.test.tsx
+  s_d44bc4100865cf::t_dbb4a8f6dc7161 156,247,257,278,343,349,352,355
+  s_d44bc4100865cf::t_448b1ba29ac85d 157-159
+  s_d44bc4100865cf::t_b24e7815f912bc 248-250
+  s_d44bc4100865cf::t_182980ffd3cf50 258-260
+  s_d44bc4100865cf::t_2168a405a2c174 277
+  s_d44bc4100865cf::t_4ad6ed5227ee87 279-281
+  s_d44bc4100865cf::t_93fa9e2f475b3a 342
+  s_d44bc4100865cf::t_0ff04957e49cd2 356-358
+packages/frontend/tests/services/connection-breadcrumb-store.test.ts
+  s_d44bc4100865cf::t_5bccb8c1c7b2cc 16,18,22
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_d44bc4100865cf::t_28a79b8f59bfab 697-730
+  s_d44bc4100865cf::t_ed1a270eb193c8 31,38,94-108,126,148-159,175-180,182-187,190,211,242-266,377-385,440-442,481-484,735-745,747-780,782-823,825-838,843-844,846,848-957,961-963
+  s_d44bc4100865cf::t_5a82f350163c1b 485-487
+  s_d44bc4100865cf::t_df52bbd9b07f2b 696
+  s_d44bc4100865cf::t_77585276a9e9f8 734
+  s_d44bc4100865cf::t_7d0a995e04bbe9 964
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_d44bc4100865cf::t_c2f589b54d5dd6 99,113,115-116,119,123,126,129,131,134,136,140,142-144,147,153,160,165-166,169-175,183-184,187,190-191,194,197-198,201,204-205,211-212,227-228,235,264,339,368,417,441,456,491
+  s_d44bc4100865cf::t_8fc5d7ba9f0431 100
+  s_d44bc4100865cf::t_ee6a84c969b583 112
+  s_d44bc4100865cf::t_d7af7b0484dfb6 114
+  s_d44bc4100865cf::t_e91ac9349ff963 206-210
+  s_d44bc4100865cf::t_89a01d6b824da2 234
+  s_d44bc4100865cf::t_c2432c8aae7ed0 340
+  s_d44bc4100865cf::t_6dd677dbaf9383 369-371
+  s_d44bc4100865cf::t_b13dda0a7092cd 415-416
+  s_d44bc4100865cf::t_dd101a5e342501 489-490
+packages/frontend/src/index.tsx
+  s_d44bc4100865cf::t_8dbe1244361b62 41,78
+packages/frontend/src/components/NoConnectionsPrompt.tsx
+  s_d44bc4100865cf::t_3d67c65ae8c0ae 40-52,110-123
+  s_d44bc4100865cf::t_894c99fce57c6a 124-125
+packages/frontend/tests/pages/ProviderPages.test.tsx
+  s_d44bc4100865cf::t_59c96bcf767217 261
+  s_d44bc4100865cf::t_f6a63ffbd594d8 270-271,273-275,277-283,306-308
+  s_d44bc4100865cf::t_a1781c9ecfb541 43,272,276
+  s_d44bc4100865cf::t_f60de2413ad933 98,245,251-258,260,263-269,284-305,404,431,442,468,488,501,514,533,548,564,633
+  s_d44bc4100865cf::t_cf2ccb2b7cbd23 186-190
+  s_d44bc4100865cf::t_7d71637a071d81 259
+  s_d44bc4100865cf::t_b7701c8380b5af 262
+packages/frontend/src/pages/providers/Custom.tsx
+  s_d44bc4100865cf::t_fb3ff33d8855b3 1-6
+.changeset/custom-provider-byok-cta.md
+  s_d44bc4100865cf::t_7e67359bd680c2 5
+  s_d44bc4100865cf::t_ebcc7070bcc9bd 1-4
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_d44bc4100865cf::t_d37a258252ee64 145-152
+packages/frontend/tests/components/NoConnectionsPrompt.test.tsx
+  s_d44bc4100865cf::t_331dc3dc3bb474 26,33,36
+packages/frontend/src/components/Sidebar.tsx
+  s_d44bc4100865cf::t_db10e49d502596 111-118
+packages/frontend/src/components/Header.tsx
+  s_d44bc4100865cf::t_298ba53f27e6e9 87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "107091687a3778c1f9d570644037ad039f7b2fde",
+  "prompts": {},
+  "sessions": {
+    "s_d44bc4100865cf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ed089-933b-7d41-a5d2-d3ffc6da8576",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
