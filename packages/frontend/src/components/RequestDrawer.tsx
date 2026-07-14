@@ -2,6 +2,7 @@ import {
   createSignal,
   createResource,
   createMemo,
+  createEffect,
   Show,
   For,
   onCleanup,
@@ -60,13 +61,20 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
     return (raw as any).message ?? raw;
   };
 
-  // Dynamic tabs — only show headers/params when data exists
+  // Dynamic tabs — only show when there's data for that tab
+  const hasTimeline = () => {
+    const msg = m();
+    if (!msg) return false;
+    return !!(msg.error_message || msg.fallback_from_model || msg.autofix_applied);
+  };
+
   const visibleTabs = createMemo(() => {
     const msg = m();
-    const tabs: Array<{ value: DrawerTab; label: string }> = [
-      { value: 'events', label: 'Timeline' },
-      { value: 'metadata', label: 'Details' },
-    ];
+    const tabs: Array<{ value: DrawerTab; label: string }> = [];
+    if (hasTimeline()) {
+      tabs.push({ value: 'events', label: 'Timeline' });
+    }
+    tabs.push({ value: 'metadata', label: 'Details' });
     if (msg?.request_headers && Object.keys(msg.request_headers).length > 0) {
       tabs.push({ value: 'headers', label: 'Request headers' });
     }
@@ -74,6 +82,14 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
       tabs.push({ value: 'params', label: 'Model params' });
     }
     return tabs;
+  });
+
+  // Reset tab to first visible when message changes or current tab disappears
+  createEffect(() => {
+    const tabs = visibleTabs();
+    if (tabs.length > 0 && !tabs.some((t) => t.value === tab())) {
+      setTab(tabs[0]!.value);
+    }
   });
 
   // Close on Escape
