@@ -1,0 +1,26 @@
+docs/superpowers/specs/2026-06-08-pr2-agent-tabbed-shell-design.md
+  s_0dc1825d457013::t_e6ef8d4c7ef18e 1-58
+docs/superpowers/specs/2026-06-08-pr1-global-dashboard-design.md
+  s_0dc1825d457013::t_5b0aaf80dc09c4 53-54
+  s_0dc1825d457013::t_e6ef8d4c7ef18e 1-43,46-51,55-80
+  s_0dc1825d457013::t_ffca8690e8ab07 44-45
+  s_0dc1825d457013::t_815b5389d8993d 52
+package-lock.json
+  s_0dc1825d457013::t_12d106d5dc6af1 14992
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "01d2b06a8bb07cc06bc57caf58df075151b4f41f",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
