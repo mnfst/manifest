@@ -8,6 +8,7 @@ import { Tenant } from '../../entities/tenant.entity';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import type { ForwardResult } from '../proxy/provider-client';
 import type { ProxyApiMode } from '../proxy/proxy-types';
+import type { AuthType } from 'manifest-shared';
 import { HEALING_CLIENT, HealContractError, type HealingClient } from './healing-client';
 import { normalizeProviderError } from './provider-error-normalizer';
 import type { AutofixChainEntry, AutofixRecord } from './autofix.types';
@@ -18,6 +19,7 @@ export interface MaybeHealParams {
   agentId: string;
   tenantId: string;
   provider: string;
+  authType: AuthType;
   apiMode: ProxyApiMode;
   /** The request body that was actually forwarded and failed. */
   requestBody: Record<string, unknown>;
@@ -382,6 +384,7 @@ export class AutofixService {
         traceId: groupId,
         tenantId: params.tenantId,
         provider: params.provider,
+        authType: params.authType,
         api: params.apiMode,
         url: params.url,
         request: phoenixRequest,

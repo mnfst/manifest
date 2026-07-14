@@ -1,5 +1,6 @@
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import type { ProxyApiMode } from '../proxy/proxy-types';
+import type { AuthType } from 'manifest-shared';
 import { normalizeProviderError } from './provider-error-normalizer';
 import type { HealRequest } from './phoenix.types';
 
@@ -108,6 +109,7 @@ export interface ObservationInput {
    */
   agentId: string;
   provider: string;
+  authType: AuthType;
   apiMode: ProxyApiMode;
   /**
    * The forwarded body, with inline base64 images already redacted
@@ -148,6 +150,7 @@ export function toObservation(input: ObservationInput): HealRequest | null {
     traceId: input.traceId,
     tenantId: input.tenantId,
     provider: input.provider,
+    authType: input.authType,
     api: input.apiMode,
     request,
     response: { statusCode: input.status, error: normalizeProviderError(input.errorBody) },

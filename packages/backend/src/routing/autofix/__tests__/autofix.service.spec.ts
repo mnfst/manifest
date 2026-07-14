@@ -89,6 +89,7 @@ function makeParams(overrides: Partial<MaybeHealParams>): MaybeHealParams {
     agentId: 'agent-1',
     tenantId: 'tenant-1',
     provider: 'anthropic',
+    authType: 'subscription',
     apiMode: 'chat_completions',
     requestBody: { model: 'gpt', max_tokens: 100 },
     url: 'https://api.example.com/v1/chat/completions',
@@ -603,6 +604,7 @@ describe('AutofixService', () => {
       expect(client.heal).toHaveBeenCalledTimes(1);
       const arg = client.heal.mock.calls[0][0] as Record<string, unknown>;
       expect(arg.provider).toBe('openai');
+      expect(arg.authType).toBe('subscription');
       expect(arg.api).toBe('chat_completions');
       expect(arg.url).toBe('u');
       expect(arg.request).toEqual(requestBody);
