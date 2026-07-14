@@ -1,0 +1,30 @@
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_f7a42a35c3f11e::t_c18f99a5fcb754 70
+packages/frontend/tests/components/ProviderDetailView.test.tsx
+  s_f7a42a35c3f11e::t_53bbe6049a7c25 453-482
+.changeset/ollama-local-refresh.md
+  s_f7a42a35c3f11e::t_ef7e88c8e90250 2-3,6
+  s_f7a42a35c3f11e::t_a8e3dcc15b288e 1,4-5
+packages/backend/src/database/ollama-sync.service.ts
+  s_f7a42a35c3f11e::t_d5afd54879827a 46
+packages/backend/src/database/ollama-sync.service.spec.ts
+  s_f7a42a35c3f11e::t_f954c8dc068818 164-169,233-238
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_f7a42a35c3f11e::t_7eb1db146e84c9 1763-1797
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "a4c7820c9659e22c5d86263b9666a1d876a713d3",
+  "prompts": {},
+  "sessions": {
+    "s_f7a42a35c3f11e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f27cf-5f79-74f1-bcfa-3f43a204922a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
