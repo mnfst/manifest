@@ -1,0 +1,19 @@
+package-lock.json
+  s_fd2df272df99f8::t_44c959e23f0b5e 14992
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "a1f30f2afe23fcf999829be3a4e7b985ab262ab1",
+  "prompts": {},
+  "sessions": {
+    "s_fd2df272df99f8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fd1d38ae-57b0-4be1-a4ab-d4ad5071abc9",
+        "model": "unknown"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
