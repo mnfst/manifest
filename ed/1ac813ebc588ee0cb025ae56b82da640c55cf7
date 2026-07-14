@@ -1,0 +1,62 @@
+packages/frontend/src/components/ProviderSelectContent.tsx
+  s_0591e345438e0b::t_082a20a9251027 144,181,186,193,199,201,206,292-293,299
+packages/frontend/tests/components/ProviderKeyForm.test.tsx
+  s_0591e345438e0b::t_0a982e0c03fdd2 1001,1003,1007,1013-1032
+  s_0591e345438e0b::t_7bd8bc5fc3e464 1033-1034
+packages/frontend/src/components/CustomProviderForm.tsx
+  s_0591e345438e0b::t_80c133a2ac40a6 2-9,18,25,39-41,100-159,435-468
+  s_0591e345438e0b::t_23dfcaa2aa105c 24
+  s_0591e345438e0b::t_85c01d5a633578 173
+  s_0591e345438e0b::t_5a7253ca46dfb2 287,662
+  s_0591e345438e0b::t_871211dba8de48 1,288-292,469-473,483-484,626,655,663-667
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_0591e345438e0b::t_b743ab9442f275 381-391,1127-1130
+  s_0591e345438e0b::t_87d862e14774d7 1126
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_0591e345438e0b::t_9dcd1666076695 19,853-873,883,902-903,905-925,927-946
+  s_0591e345438e0b::t_28e98869e984e9 394,421,432,514,782,790,904,926,949,958,1003,1011
+  s_0591e345438e0b::t_df772ce4d581ed 371-374,492-495,762-765,992-999
+  s_0591e345438e0b::t_6de00658ca01b7 666
+  s_d0cdfc426b47a8::t_959b63433addf2 947
+packages/frontend/src/components/ProviderApiKeyTab.tsx
+  s_0591e345438e0b::t_e0034d034f1875 33,61-62,85-111
+  s_0591e345438e0b::t_5d34f41e368a84 64,176
+  s_0591e345438e0b::t_a910d3d79619ba 65-68,112-115,129,177-180
+.changeset/custom-provider-keys.md
+  s_0591e345438e0b::t_e7b8ff03ec9a2a 1-5
+packages/frontend/tests/components/CustomProviderForm.test.tsx
+  s_0591e345438e0b::t_cc474ca4715d94 1011-1013
+  s_0591e345438e0b::t_c993eada0a5427 78-81
+  s_0591e345438e0b::t_98aa5885c4bc9b 8-12
+  s_0591e345438e0b::t_f07eb873392568 20-24
+  s_0591e345438e0b::t_e388b79ae3ded3 37-51
+  s_0591e345438e0b::t_23ae86fa7ee47a 1508,1523-1527
+  s_0591e345438e0b::t_9adf8949506797 878,888-889,942,962,965-966,968-1008,1010
+  s_0591e345438e0b::t_f39e41e867c2d3 1014-1031
+packages/frontend/tests/components/ProviderApiKeyTab.test.tsx
+  s_0591e345438e0b::t_ae01e7caeb9963 32-38,125-126,154,240-272
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "ed1ac813ebc588ee0cb025ae56b82da640c55cf7",
+  "prompts": {},
+  "sessions": {
+    "s_0591e345438e0b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3381-f644-7141-ac52-64ddff31cbc0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_d0cdfc426b47a8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f609f-13d1-7ca3-b2e9-a79452c52ba9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
