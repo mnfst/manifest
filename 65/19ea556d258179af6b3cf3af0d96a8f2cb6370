@@ -1,0 +1,66 @@
+packages/backend/src/sentry/sentry-options.ts
+  s_51364d2d573b88::t_4a8cf960ac1308 17-27
+  s_cae45fafb45c81::t_aed918d2979970 2-3,5,8-16,28-29
+  s_51364d2d573b88::t_f9cd69d7cc9d7e 1,6-7
+  s_51364d2d573b88::t_d91c935d8a8148 4
+.changeset/sentry-error-monitoring.md
+  s_51364d2d573b88::t_064afde702a884 2
+  s_cae45fafb45c81::t_9f5d08a80dfe49 1,3-4
+  s_51364d2d573b88::t_4a8cf960ac1308 5
+packages/backend/package.json
+  s_cae45fafb45c81::t_74886769665f89 97
+  s_cae45fafb45c81::t_d056bd31b38dc3 37
+packages/backend/src/app.module.ts
+  s_cae45fafb45c81::t_a649c9af8f18ed 67
+  s_51364d2d573b88::t_302857b818ad92 60-64,70,107
+  s_cae45fafb45c81::t_44a9f56f284295 2-3
+  s_51364d2d573b88::t_ac51cb6fc7e693 36,65-66,112
+package-lock.json
+  s_51364d2d573b88::t_0280ff75a955ee 491-551,3799-3902,4560-4694,6101-6109,7633-7635,9478-9497,11247-11255,11379-11384,12390-12402,12706-12711,15106
+packages/backend/src/main.ts
+  s_51364d2d573b88::t_302857b818ad92 1
+  s_cae45fafb45c81::t_4c9b2f9f22af01 2
+packages/backend/src/sentry/__tests__/debug-sentry.controller.spec.ts
+  s_51364d2d573b88::t_ac51cb6fc7e693 1-7
+packages/backend/src/sentry/__tests__/sentry-options.spec.ts
+  s_51364d2d573b88::t_f9cd69d7cc9d7e 1
+  s_cae45fafb45c81::t_80f569e502f5a0 2-11,13-16,18-21,34-40,42-47,49-52
+  s_51364d2d573b88::t_4a8cf960ac1308 12,23-33
+  s_51364d2d573b88::t_d91c935d8a8148 17,41,48
+  s_51364d2d573b88::t_f87fc3541d13d7 22
+CLAUDE.md
+  s_51364d2d573b88::t_ac51cb6fc7e693 539-541
+  s_51364d2d573b88::t_4a8cf960ac1308 533-535
+  s_51364d2d573b88::t_f9cd69d7cc9d7e 521-524,532,543
+  s_cae45fafb45c81::t_182059b70cce01 519-520,525-526,528-531,544
+  s_51364d2d573b88::t_064afde702a884 527,536-538,542
+packages/backend/src/sentry/debug-sentry.controller.ts
+  s_51364d2d573b88::t_ac51cb6fc7e693 1-11
+packages/backend/src/instrument.ts
+  s_51364d2d573b88::t_f9cd69d7cc9d7e 1-2
+  s_cae45fafb45c81::t_0f81f8f73434fb 3-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "6519ea556d258179af6b3cf3af0d96a8f2cb6370",
+  "prompts": {},
+  "sessions": {
+    "s_51364d2d573b88": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f600b-f612-7c02-9de9-2a1d3c575856",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null
+    },
+    "s_cae45fafb45c81": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e6b79e57-b2e9-482e-93d5-f91f1b0c8c8c",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
