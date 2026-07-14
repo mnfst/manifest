@@ -1,0 +1,23 @@
+packages/backend/src/routing/oauth/openai-oauth.controller.ts
+  s_62913d1505b1f0::t_3baae7cd8e97c8 45,52,60-65
+packages/backend/src/routing/oauth/openai-oauth.types.ts
+  s_62913d1505b1f0::t_3baae7cd8e97c8 19
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_62913d1505b1f0::t_801c833c79c991 72,120,132,190-192,245-250,267-268
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "5dad751755ecc6acc5f777c901e5972e3d339a81",
+  "prompts": {},
+  "sessions": {
+    "s_62913d1505b1f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e87db-0b95-7600-86fe-0d72261561ea",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
