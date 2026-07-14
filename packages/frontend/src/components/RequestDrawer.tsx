@@ -63,14 +63,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
 
   return (
     <>
-      {/* Overlay */}
-      <div
-        class="drawer-overlay"
-        classList={{ 'drawer-overlay--open': open() }}
-        onClick={props.onClose}
-      />
-
-      {/* Drawer */}
+      {/* Drawer (no overlay — click another row to switch, click elsewhere to close) */}
       <div class="drawer" classList={{ 'drawer--open': open() }}>
         <Show when={m()}>
           {/* Header */}

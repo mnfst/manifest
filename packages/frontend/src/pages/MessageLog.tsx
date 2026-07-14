@@ -415,8 +415,19 @@ const MessageLog: Component = () => {
     setTimeout(() => openDrawer(id), 100);
   };
 
+  // Close drawer when clicking outside the table (not on a message row)
+  const handlePageClick = (e: MouseEvent) => {
+    if (!selectedMessageId()) return;
+    const target = e.target as HTMLElement;
+    // If clicking inside the drawer itself, ignore
+    if (target.closest('.drawer')) return;
+    // If clicking on a message row, the row handler will switch content
+    if (target.closest('.msg-row--clickable')) return;
+    closeDrawer();
+  };
+
   return (
-    <div class="container--full">
+    <div class="container--full" onClick={handlePageClick}>
       <Title>
         {params.agentName
           ? `${agentDisplayName() ?? decodeURIComponent(params.agentName)} Requests - Manifest`
@@ -682,6 +693,7 @@ const MessageLog: Component = () => {
                   agentPlatformLookup={(name) => agentPlatformMap().get(name)}
                   onOpenMessage={scrollToMessage}
                   onRowSelect={openDrawer}
+                  selectedRowId={selectedMessageId()}
                   rowIdPrefix="msg-"
                   showHeaderTooltips
                   expandable

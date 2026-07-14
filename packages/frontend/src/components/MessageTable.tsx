@@ -20,6 +20,8 @@ export interface MessageTableProps {
   expandable?: boolean;
   /** When set, clicking a row calls this instead of expanding inline (drawer mode). */
   onRowSelect?: (id: string) => void;
+  /** The currently selected row ID (for focus highlight in drawer mode). */
+  selectedRowId?: string | null;
 }
 
 function ChevronIcon(): JSX.Element {
@@ -73,7 +75,7 @@ function ExpandableRow(props: {
     <>
       <tr
         id={props.rowId}
-        class={`msg-row--clickable${expanded() ? ' msg-row--expanded' : ''}`}
+        class={`msg-row--clickable${expanded() ? ' msg-row--expanded' : ''}${useDrawer() && props.tableProps.selectedRowId === props.item.id ? ' msg-row--selected' : ''}`}
         onClick={handleRowClick}
       >
         <For each={props.columns}>{(col) => renderCell(col, props.item, ctx)}</For>

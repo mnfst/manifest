@@ -707,6 +707,10 @@ a.status-badge:hover {
   background: hsl(var(--accent));
 }
 
+.msg-row--selected > td {
+  background: hsl(var(--success) / 0.08);
+}
+
 .msg-detail__eye-btn {
   display: inline-flex;
   align-items: center;

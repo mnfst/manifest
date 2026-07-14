@@ -1,18 +1,4 @@
-/* ── Request drawer (slide-in from right) ── */
-
-.drawer-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: 199;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-}
-.drawer-overlay--open {
-  opacity: 1;
-  pointer-events: auto;
-}
+/* ── Request drawer (slide-in from right, no overlay) ── */
 
 .drawer {
   position: fixed;
