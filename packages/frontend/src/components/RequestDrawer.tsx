@@ -8,7 +8,7 @@ import {
   type Component,
 } from 'solid-js';
 import { getMessageDetails } from '../services/api/messages.js';
-import { ModelParamsSection, RequestHeadersSection } from './MessageDetailsSections.jsx';
+import { formatParamValue } from './MessageDetailsSections.jsx';
 import { AutofixSection } from './MessageDetails.jsx';
 import '../styles/request-drawer.css';
 
@@ -350,14 +350,42 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                   </div>
                 </Show>
 
-                {/* Headers tab */}
+                {/* Headers tab — flat table, no accordion */}
                 <Show when={tab() === 'headers' && msg().request_headers}>
-                  <RequestHeadersSection headers={msg().request_headers} />
+                  <div class="drawer-metadata">
+                    <For
+                      each={Object.entries(msg().request_headers).sort(([a], [b]) =>
+                        a.localeCompare(b),
+                      )}
+                    >
+                      {([key, val]) => (
+                        <div class="drawer-kv">
+                          <span class="drawer-kv__key">{key}</span>
+                          <span style="word-break: break-all;">{String(val)}</span>
+                        </div>
+                      )}
+                    </For>
+                  </div>
                 </Show>
 
-                {/* Params tab */}
+                {/* Params tab — flat table, no accordion */}
                 <Show when={tab() === 'params' && msg().request_params}>
-                  <ModelParamsSection params={msg().request_params} />
+                  <div class="drawer-metadata">
+                    <For
+                      each={Object.entries(msg().request_params).sort(([a], [b]) =>
+                        a.localeCompare(b),
+                      )}
+                    >
+                      {([key, val]) => (
+                        <div class="drawer-kv">
+                          <span class="drawer-kv__key">{key}</span>
+                          <span style="word-break: break-all; font-family: var(--font-mono, monospace); font-size: var(--font-size-xs);">
+                            {formatParamValue(val)}
+                          </span>
+                        </div>
+                      )}
+                    </For>
+                  </div>
                 </Show>
               </div>
             </>
