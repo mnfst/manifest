@@ -9,7 +9,6 @@ import {
 import { ProxyService } from '../proxy.service';
 import type { ResolveService } from '../../resolve/resolve.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
-import type { TierService } from '../../routing-core/tier.service';
 import type { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
 import type { MinimaxOauthService } from '../../oauth/minimax/minimax-oauth.service';
 import type { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
@@ -94,7 +93,6 @@ describe('ProxyService — orchestration', () => {
       'getProviderApiKey' | 'getProviderRegion' | 'getProviderKeyId' | 'selectProviderKey'
     >
   >;
-  let tierService: jest.Mocked<Pick<TierService, 'getTiers'>>;
   let openaiOauth: jest.Mocked<Pick<OpenaiOauthService, 'unwrapToken'>>;
   let minimaxOauth: jest.Mocked<Pick<MinimaxOauthService, 'unwrapToken'>>;
   let anthropicOauth: jest.Mocked<Pick<AnthropicOauthService, 'unwrapToken'>>;
@@ -146,7 +144,6 @@ describe('ProxyService — orchestration', () => {
         priority: 0,
       }),
     };
-    tierService = { getTiers: jest.fn().mockResolvedValue([]) };
     openaiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     minimaxOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     anthropicOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
@@ -191,7 +188,6 @@ describe('ProxyService — orchestration', () => {
       resolveService as unknown as ResolveService,
       modelDiscovery as unknown as ModelDiscoveryService,
       providerKeyService as unknown as ProviderKeyService,
-      tierService as unknown as TierService,
       openaiOauth as unknown as OpenaiOauthService,
       minimaxOauth as unknown as MinimaxOauthService,
       anthropicOauth as unknown as AnthropicOauthService,
@@ -1660,7 +1656,6 @@ describe('ProxyService — orchestration', () => {
     });
 
     it('falls through to the resolver-provided fallback_routes', async () => {
-      // resolved.fallback_routes is non-null — tier service should NOT be consulted.
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: new Response('boom', { status: 500 }),
         isGoogle: false,
@@ -1683,7 +1678,7 @@ describe('ProxyService — orchestration', () => {
       } as never);
 
       await svc.proxyRequest(baseOpts());
-      expect(tierService.getTiers).not.toHaveBeenCalled();
+      expect(fallbackService.tryFallbacks).toHaveBeenCalled();
     });
 
     it('skips non-stream fallback routes when response mode is stream', async () => {
@@ -1727,12 +1722,6 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      tierService.getTiers.mockResolvedValue([
-        {
-          tier: 'standard',
-          fallback_routes: [route('anthropic', 'api_key', 'claude')],
-        } as never,
-      ]);
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: new Response('boom', { status: 500 }),
         isGoogle: false,
@@ -1746,37 +1735,29 @@ describe('ProxyService — orchestration', () => {
       expect(result.forward.response.status).toBe(500);
     });
 
-    it('looks up tier fallbacks when the resolver returned null', async () => {
+    it('does not reload persisted fallbacks when the resolver returned null', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
-        route: route('openai', 'api_key', 'gpt-4o'),
+        // This route represents a configured fallback promoted to primary.
+        route: route('anthropic', 'api_key', 'claude'),
         fallback_routes: null,
         confidence: 0.9,
         score: 5,
         reason: 'scored',
       });
-      tierService.getTiers.mockResolvedValue([
-        {
-          tier: 'standard',
-          fallback_routes: [route('anthropic', 'api_key', 'claude')],
-        } as never,
-      ]);
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: new Response('boom', { status: 500 }),
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
       });
-      fallbackService.tryFallbacks.mockResolvedValue({
-        success: null,
-        failures: [],
-      } as never);
 
-      await svc.proxyRequest(baseOpts());
-      expect(tierService.getTiers).toHaveBeenCalledWith('agent-1');
+      const result = await svc.proxyRequest(baseOpts());
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(500);
     });
 
-    it('returns null fallback chain when neither resolver nor tier provides routes', async () => {
+    it('returns the primary error when the resolver provides no fallback routes', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('openai', 'api_key', 'gpt-4o'),
@@ -1785,7 +1766,6 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      tierService.getTiers.mockResolvedValue([]);
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: new Response('boom', { status: 500 }),
         isGoogle: false,
@@ -1882,7 +1862,6 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      tierService.getTiers.mockResolvedValue([]);
       const streamRes = new Response(new ReadableStream(), {
         status: 200,
         headers: { 'content-type': 'text/event-stream' },
@@ -1933,7 +1912,6 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      tierService.getTiers.mockResolvedValue([]);
       const streamRes = new Response(new ReadableStream(), {
         status: 200,
         headers: { 'content-type': 'text/event-stream' },
