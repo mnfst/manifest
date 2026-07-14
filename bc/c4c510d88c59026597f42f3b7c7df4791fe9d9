@@ -1,0 +1,19 @@
+packages/backend/node_modules
+  s_756ad5e3766555::t_35df4150bda9db 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "bcc4c510d88c59026597f42f3b7c7df4791fe9d9",
+  "prompts": {},
+  "sessions": {
+    "s_756ad5e3766555": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3669-ce33-7072-8b32-c8a68e50a701",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
