@@ -128,8 +128,8 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                 </div>
               </div>
 
-              {/* Tabs — using panel__tabs design system */}
-              <div class="panel__tabs" role="tablist" style="padding: 0 24px;">
+              {/* Tabs — using panel__tabs design system, full width in drawer */}
+              <div class="panel__tabs drawer__tabs-full" role="tablist">
                 <For each={visibleTabs()}>
                   {(t) => (
                     <button

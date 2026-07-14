@@ -92,7 +92,14 @@
   color: hsl(var(--destructive));
 }
 
-/* Tabs use the design system panel__tabs / panel__tab classes */
+/* Tabs — full-width override for the drawer context */
+.drawer__tabs-full.panel__tabs {
+  display: flex;
+  width: 100%;
+  border-radius: 0;
+  padding: 3px 24px;
+  flex-shrink: 0;
+}
 
 /* ── Body (scrollable) ── */
 .drawer__body {
