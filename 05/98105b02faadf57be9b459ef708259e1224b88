@@ -1,0 +1,23 @@
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_51668ee3fc1ce1::t_ca08b45a55c88e 931-960
+.changeset/local-stream-warmup.md
+  s_51668ee3fc1ce1::t_1685d22b803d0c 1-5
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_51668ee3fc1ce1::t_f717861ecb0696 295-299
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "0598105b02faadf57be9b459ef708259e1224b88",
+  "prompts": {},
+  "sessions": {
+    "s_51668ee3fc1ce1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e88c5-3cbc-7692-9b6f-ee0dc36172a3",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
