@@ -1,0 +1,19 @@
+package-lock.json
+  s_2292b27b79e6ae::t_0b957a82eee662 15017
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "c2afd709a47d60aaf6f5b585124cd595278b92a9",
+  "prompts": {},
+  "sessions": {
+    "s_2292b27b79e6ae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b83e5f96-a291-41ca-b209-b0685db7e306",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
