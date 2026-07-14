@@ -304,7 +304,36 @@ export class TimeseriesQueriesService {
       .setParameter('sparkCutoff', sparkCutoff);
     addTenantFilter(bucketsQb, tenantId);
 
-    const [agents, bucketRows] = await Promise.all([
+    let requestCountRowsPromise: Promise<Array<Record<string, unknown>>> = Promise.resolve([]);
+    let unlinkedCountRowsPromise: Promise<Array<Record<string, unknown>>> = Promise.resolve([]);
+    if (this.requestRepo) {
+      const requestCountsQb = this.requestRepo
+        .createQueryBuilder('r')
+        .select('r.agent_id', 'agent_id')
+        .addSelect('COUNT(*)', 'message_count')
+        .addSelect('MAX(r.timestamp)', 'last_active')
+        .where('r.agent_id IS NOT NULL')
+        .andWhere('r.timestamp >= :requestStatsCutoff', { requestStatsCutoff: statsCutoff });
+      if (tenantId) {
+        requestCountsQb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: tenantId });
+      } else {
+        requestCountsQb.andWhere('1 = 0');
+      }
+      requestCountRowsPromise = requestCountsQb.groupBy('r.agent_id').getRawMany();
+
+      const unlinkedCountsQb = this.turnRepo
+        .createQueryBuilder('at')
+        .select('at.agent_id', 'agent_id')
+        .addSelect('COUNT(*)', 'message_count')
+        .addSelect('MAX(at.timestamp)', 'last_active')
+        .where('at.request_id IS NULL')
+        .andWhere('at.agent_id IS NOT NULL')
+        .andWhere('at.timestamp >= :legacyStatsCutoff', { legacyStatsCutoff: statsCutoff });
+      addTenantFilter(unlinkedCountsQb, tenantId);
+      unlinkedCountRowsPromise = unlinkedCountsQb.groupBy('at.agent_id').getRawMany();
+    }
+
+    const [agents, bucketRows, requestCountRows, unlinkedCountRows] = await Promise.all([
       agentQb.andWhere('a.is_active = true').orderBy('a.created_at', 'DESC').getMany(),
       bucketsQb
         .groupBy('at.agent_id')
@@ -312,6 +341,8 @@ export class TimeseriesQueriesService {
         .orderBy('at.agent_id', 'ASC')
         .addOrderBy('date', 'ASC')
         .getRawMany(),
+      requestCountRowsPromise,
+      unlinkedCountRowsPromise,
     ]);
 
     const sparkCutoffIso = String(sparkCutoff);
@@ -319,6 +350,23 @@ export class TimeseriesQueriesService {
       string,
       { message_count: number; total_cost: number; total_tokens: number; last_active: string }
     >();
+    const requestStatsMap = new Map<string, { count: number; last_active: string }>();
+    for (const r of [...requestCountRows, ...unlinkedCountRows]) {
+      const id = String(r['agent_id']);
+      const rawLastActive = r['last_active'];
+      const lastActive =
+        rawLastActive instanceof Date ? rawLastActive.toISOString() : String(rawLastActive ?? '');
+      const existing = requestStatsMap.get(id);
+      if (existing) {
+        existing.count += Number(r['message_count'] ?? 0);
+        if (lastActive > existing.last_active) existing.last_active = lastActive;
+      } else {
+        requestStatsMap.set(id, {
+          count: Number(r['message_count'] ?? 0),
+          last_active: lastActive,
+        });
+      }
+    }
     const sparkMap = new Map<string, number[]>();
     for (const r of bucketRows) {
       const id = String(r['agent_id']);
@@ -355,13 +403,16 @@ export class TimeseriesQueriesService {
 
     return agents.map((a) => {
       const stats = statsMap.get(a.id);
+      const requestStats = requestStatsMap.get(a.id);
       return {
         agent_name: a.name,
         display_name: a.display_name ?? a.name,
         agent_category: a.agent_category ?? null,
         agent_platform: a.agent_platform ?? null,
-        message_count: stats?.message_count ?? 0,
-        last_active: stats?.last_active || String(a.created_at ?? ''),
+        message_count: requestStats?.count ?? stats?.message_count ?? 0,
+        last_active:
+          [requestStats?.last_active, stats?.last_active].filter(Boolean).sort().at(-1) ||
+          String(a.created_at ?? ''),
         total_cost: stats?.total_cost ?? 0,
         total_tokens: stats?.total_tokens ?? 0,
         sparkline: sparkMap.get(a.id) ?? [],
