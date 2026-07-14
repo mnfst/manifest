@@ -1,4 +1,5 @@
 import { runRequestBackfill, type RequestBackfillGateway } from './backfill-requests';
+import { FINALIZE_PENDING_REQUESTS_SQL } from './backfill-requests.gateway';
 
 describe('runRequestBackfill', () => {
   it('walks bounded windows, throttles, and finalizes only after all rows link', async () => {
@@ -50,5 +51,36 @@ describe('runRequestBackfill', () => {
     expect(result.windows).toBe(1);
     expect(gateway.backfillWindow).toHaveBeenCalledTimes(2);
     expect(sleep).toHaveBeenCalledWith(10);
+  });
+
+  it.each([
+    ['batchSize', 0],
+    ['batchSize', Number.NaN],
+    ['throttleMs', -1],
+    ['maxRetries', -1],
+    ['retryBackoffMs', Number.POSITIVE_INFINITY],
+    ['lockTimeoutMs', 0],
+    ['statementTimeoutMs', -1],
+  ] as const)('rejects invalid %s before touching the gateway', async (name, value) => {
+    const gateway: RequestBackfillGateway = {
+      analyze: jest.fn(),
+      nextWindowEnd: jest.fn(),
+      backfillWindow: jest.fn(),
+      finalize: jest.fn(),
+    };
+
+    await expect(runRequestBackfill(gateway, { [name]: value })).rejects.toThrow(name);
+    expect(gateway.analyze).not.toHaveBeenCalled();
+  });
+});
+
+describe('request backfill finalization', () => {
+  it('only finalizes backfill-created pending parents', () => {
+    expect(FINALIZE_PENDING_REQUESTS_SQL).toContain("r.id LIKE 'legacy-autofix-%'");
+    expect(FINALIZE_PENDING_REQUESTS_SQL).toContain("r.id LIKE 'legacy-trace-%'");
+    expect(FINALIZE_PENDING_REQUESTS_SQL).toContain('pa.id = r.id');
+    expect(FINALIZE_PENDING_REQUESTS_SQL).not.toContain(
+      `SELECT id FROM "requests" WHERE status = 'pending'`,
+    );
   });
 });

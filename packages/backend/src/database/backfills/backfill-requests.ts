@@ -34,6 +34,18 @@ export interface RequestBackfillResult {
   rejections: number;
 }
 
+function assertPositiveFinite(name: string, value: number): void {
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`request backfill ${name} must be a positive finite number`);
+  }
+}
+
+function assertNonNegativeFinite(name: string, value: number): void {
+  if (!Number.isFinite(value) || value < 0) {
+    throw new Error(`request backfill ${name} must be a non-negative finite number`);
+  }
+}
+
 const realSleep = (ms: number): Promise<void> =>
   new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -58,6 +70,13 @@ export async function runRequestBackfill(
     lockTimeoutMs: options.lockTimeoutMs ?? DEFAULT_BACKFILL_OPTIONS.lockTimeoutMs,
     statementTimeoutMs: options.statementTimeoutMs ?? DEFAULT_BACKFILL_OPTIONS.statementTimeoutMs,
   };
+
+  assertPositiveFinite('batchSize', batchSize);
+  assertNonNegativeFinite('throttleMs', throttleMs);
+  assertNonNegativeFinite('maxRetries', maxRetries);
+  assertNonNegativeFinite('retryBackoffMs', retryBackoffMs);
+  assertPositiveFinite('lockTimeoutMs', timeouts.lockTimeoutMs);
+  assertPositiveFinite('statementTimeoutMs', timeouts.statementTimeoutMs);
 
   await gateway.analyze();
 

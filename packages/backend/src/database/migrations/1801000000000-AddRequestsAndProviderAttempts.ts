@@ -83,6 +83,20 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
     await queryRunner.query(
       `CREATE INDEX IF NOT EXISTS "IDX_requests_tenant_status_timestamp" ON "requests" ("tenant_id", "status", "timestamp")`,
     );
+    const requestIndex = (await queryRunner.query(`
+      SELECT i.indisvalid AS valid
+      FROM pg_class c
+      JOIN pg_index i ON i.indexrelid = c.oid
+      WHERE c.relname = 'IDX_provider_attempts_request_id'
+    `)) as Array<{ valid: boolean }>;
+    // PostgreSQL leaves an invalid shell behind when CREATE INDEX
+    // CONCURRENTLY is interrupted. IF NOT EXISTS would treat that shell as a
+    // usable index, so remove it before retrying the build.
+    if (requestIndex?.[0]?.valid === false) {
+      await queryRunner.query(
+        `DROP INDEX CONCURRENTLY IF EXISTS "IDX_provider_attempts_request_id"`,
+      );
+    }
     await queryRunner.query(
       `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_provider_attempts_request_id" ON "provider_attempts" ("request_id") WHERE "request_id" IS NOT NULL`,
     );

@@ -3,10 +3,10 @@
  * (TenantOwnerColumn → TenantProviders → TenantScopedConfigs →
  * DropUserScopeFromRouting).
  *
- * Builds the fully-migrated schema, reverts JUST the four tenant migrations
- * (newest first), seeds a realistic pre-tenant user-scoped dataset, then
- * replays the chain and asserts every backfill — the part string-inspection
- * unit specs can't catch. Mirrors the replay pattern of
+ * Builds the fully-migrated schema, reverts the request/attempt migration and
+ * then the four tenant migrations (newest first), seeds a realistic pre-tenant
+ * user-scoped dataset, then replays the chain and asserts every backfill — the
+ * part string-inspection unit specs can't catch. Mirrors the replay pattern of
  * custom-providers-lift-migrations.e2e-spec.ts.
  */
 import { DataSource } from 'typeorm';

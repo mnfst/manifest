@@ -42,7 +42,7 @@ describe('SeedPlaygroundAgents data transformation (e2e)', () => {
     // migration can be replayed against the schema naming it expects
     // (user_providers / user_provider_id, agent_provider_access, no is_playground
     // column). TenantProviders.down() restores user_providers + user_provider_id
-    // and the provider_attempts.tenant_provider_id → user_provider_id rename.
+    // and the agent_messages.tenant_provider_id → user_provider_id rename.
     const tenantProvidersQr = ds.createQueryRunner();
     await new TenantProviders1792500000000().down(tenantProvidersQr);
     await tenantProvidersQr.release();

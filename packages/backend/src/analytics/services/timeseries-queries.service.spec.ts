@@ -606,6 +606,39 @@ describe('TimeseriesQueriesService', () => {
       expect(out.timeseries[0]).toEqual({ hour: '01', alpha: 1, bravo: 2 });
     });
 
+    it('counts parent requests plus unlinked synthetic rows per agent', async () => {
+      const makeRequestQb = (rows: unknown[]) => {
+        const qb = {
+          select: jest.fn().mockReturnThis(),
+          addSelect: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          groupBy: jest.fn().mockReturnThis(),
+          addGroupBy: jest.fn().mockReturnThis(),
+          orderBy: jest.fn().mockReturnThis(),
+          getRawMany: jest.fn().mockResolvedValue(rows),
+        };
+        return qb;
+      };
+      const requestQb = makeRequestQb([{ hour: '01', agent_name: 'alpha', messages: '1' }]);
+      const unlinkedQb = makeRequestQb([
+        { hour: '01', agent_name: 'alpha', messages: '2' },
+        { hour: '01', agent_name: 'bravo', messages: '1' },
+      ]);
+      const requestAware = new TimeseriesQueriesService(
+        { createQueryBuilder: jest.fn(() => unlinkedQb) } as never,
+        {} as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      const out = await requestAware.getPerAgentMessageTimeseries('24h', 'tenant-1', true);
+
+      expect(out.timeseries).toEqual([{ hour: '01', alpha: 3, bravo: 1 }]);
+      expect(requestQb.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('playag.name = r.agent_name'),
+      );
+    });
+
     it('getPerAgentCostTimeseries pivots cost (non-hourly date bucket)', async () => {
       mockGetRawMany.mockResolvedValue([{ date: '2026-01-01', agent_name: 'alpha', cost: 2.5 }]);
       const out = await service.getPerAgentCostTimeseries('7d', 'u1', false);

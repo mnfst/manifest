@@ -56,10 +56,11 @@ export const ERROR_MESSAGE_STATUSES = [
  * it is a complete event listing that must page over failed rows too.
  */
 export function sqlCountMessages(alias = 'at'): string {
+  const list = ERROR_MESSAGE_STATUSES.map((s) => `'${s}'`).join(', ');
   // COALESCE keeps dashboards correct while the online backfill is in flight:
   // linked attempts collapse to one request, while an unlinked historical row
   // temporarily remains its own synthetic request.
-  return `COUNT(DISTINCT COALESCE(${alias}.request_id, ${alias}.id))`;
+  return `COUNT(DISTINCT COALESCE(${alias}.request_id, ${alias}.id)) FILTER (WHERE ${alias}.status IS NULL OR ${alias}.status NOT IN (${list}))`;
 }
 
 /** Comma-quoted list of Manifest-originated error origins, e.g. `'config', 'policy', …`. */
@@ -169,8 +170,11 @@ export function addTenantFilter<T extends ObjectLiteral>(
  * call sites and tests reference one string instead of duplicating (and
  * drifting on) the SQL.
  */
-export const EXCLUDE_PLAYGROUND_AGENTS_PREDICATE =
-  'NOT EXISTS (SELECT 1 FROM agents playag WHERE playag.tenant_id = at.tenant_id AND playag.is_playground = true AND (playag.id = at.agent_id OR playag.name = at.agent_name))';
+export function sqlExcludePlayground(alias: string): string {
+  return `NOT EXISTS (SELECT 1 FROM agents playag WHERE playag.tenant_id = ${alias}.tenant_id AND playag.is_playground = true AND (playag.id = ${alias}.agent_id OR playag.name = ${alias}.agent_name))`;
+}
+
+export const EXCLUDE_PLAYGROUND_AGENTS_PREDICATE = sqlExcludePlayground('at');
 
 export function excludePlaygroundAgents<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,

@@ -717,7 +717,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
               <Show when={(m.attempts?.length ?? 0) > 0}>
                 <div class="message-details__section">
                   <h4>Provider attempts</h4>
-                  <table class="details-table">
+                  <table class="details-table" aria-label="Provider attempts">
                     <thead>
                       <tr>
                         <th>#</th>
