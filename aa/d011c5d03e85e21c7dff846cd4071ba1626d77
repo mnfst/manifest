@@ -1,0 +1,25 @@
+packages/frontend/src/components/Sidebar.tsx
+  s_feb7f7e060c1a0::t_5b739ca6eca805 48-74
+packages/frontend/src/App.tsx
+  s_feb7f7e060c1a0::t_913097a3a163fb 39-44
+packages/backend/src/routing/global-providers.controller.ts
+  s_feb7f7e060c1a0::t_1e093184689ed0 7-16,25-31,35-65,68-69,72,74-81,83
+  s_feb7f7e060c1a0::t_a294497eb2df26 5,20-23,66-67,70-71,73,82
+  s_feb7f7e060c1a0::t_4be139c9a353e0 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "aad011c5d03e85e21c7dff846cd4071ba1626d77",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
