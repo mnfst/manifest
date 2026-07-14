@@ -1,0 +1,21 @@
+packages/backend/node_modules
+  s_8d7abb4142b62c::t_5f4fbac79cb387 1
+packages/shared/node_modules
+  s_8d7abb4142b62c::t_933454e2b940a1 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "3ac4698080300000da61952d0f67308421a288c9",
+  "prompts": {},
+  "sessions": {
+    "s_8d7abb4142b62c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f120a-9765-72e1-bb87-22a45d71fc0c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
