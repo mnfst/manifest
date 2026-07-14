@@ -89,7 +89,7 @@ export interface RoutingMeta {
    */
   manifest_error_code?: ManifestErrorCode;
   manifest_error_message?: string;
-  auth_type?: string;
+  auth_type?: AuthType;
   specificity_category?: string;
   header_tier_id?: string;
   header_tier_name?: string;
@@ -353,6 +353,7 @@ export class ProxyService {
       agentId,
       tenantId,
       provider: route.provider,
+      authType: route.authType,
       apiMode,
       requestBody: body,
       // Report the resolved provider model to Phoenix (the body may carry the

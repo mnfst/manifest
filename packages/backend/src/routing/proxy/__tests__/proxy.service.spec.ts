@@ -337,6 +337,9 @@ describe('ProxyService — orchestration', () => {
 
       expect(result.forward).toBe(healed);
       expect(result.autofix).toBe(record);
+      expect(autofixService.maybeHeal).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'openai', authType: 'api_key' }),
+      );
     });
 
     it('re-forwards the patched same-model body WITH the agent param merge re-applied (M3)', async () => {

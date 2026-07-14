@@ -67,6 +67,7 @@ describe('Phoenix wire contract (vendored OpenAPI)', () => {
       traceId: 'trace-abc',
       tenantId: 'tenant-abc',
       provider: 'openai',
+      authType: 'api_key',
       api: 'chat_completions',
       url: 'https://api.openai.com/v1/chat/completions',
       request: { model: 'gpt-4o', max_tokens: 100 },
@@ -94,6 +95,10 @@ describe('Phoenix wire contract (vendored OpenAPI)', () => {
 
     it('rejects an `api` value outside the enum', () => {
       expect(validate({ ...valid, api: 'completions' })).toBe(false);
+    });
+
+    it('rejects an auth type outside the enum', () => {
+      expect(validate({ ...valid, authType: 'oauth' })).toBe(false);
     });
   });
 
