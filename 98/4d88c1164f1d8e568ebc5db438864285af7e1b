@@ -1,0 +1,40 @@
+deploy/aws/deploy.sh
+  s_d4dd3ac37be356::t_121e16fdbdede3 1-40
+deploy/gcp/main.tf
+  s_d4dd3ac37be356::t_6861a7af4483b1 262
+  s_d4dd3ac37be356::t_35c3c1dc12a0d8 1-261,263-266
+deploy/aws/TUTORIAL.md
+  s_d4dd3ac37be356::t_53399cb0294763 91,93,95-96
+  s_d4dd3ac37be356::t_121e16fdbdede3 1-90,92,94
+render.yaml
+  s_d4dd3ac37be356::t_b4d527607e6360 1-35
+README.md
+  s_d4dd3ac37be356::t_eaf89553c2f865 16,72
+  s_d4dd3ac37be356::t_53399cb0294763 17
+  s_d4dd3ac37be356::t_0aebbea4ce4bdf 18
+  s_d4dd3ac37be356::t_a18a3c24b55869 68-71,73,75
+  s_d4dd3ac37be356::t_0eb84a73bd0e53 14-15,19
+  s_d4dd3ac37be356::t_ad60da2f054359 74
+  s_d4dd3ac37be356::t_41f305463659e1 20
+  s_d4dd3ac37be356::t_62dc5661cdbe49 76
+deploy/aws/manifest.yaml
+  s_d4dd3ac37be356::t_3111cf46829460 287
+  s_d4dd3ac37be356::t_121e16fdbdede3 1-286,288-368,370-443
+  s_d4dd3ac37be356::t_e2bb236a3dde88 369
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "984d88c1164f1d8e568ebc5db438864285af7e1b",
+  "prompts": {},
+  "sessions": {
+    "s_d4dd3ac37be356": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bb6-aeb4-70e1-bc09-0180cc699731",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
