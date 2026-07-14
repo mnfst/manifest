@@ -1,3 +1,5 @@
+// Keep this first so opt-in Sentry error monitoring initializes before Nest.
+import './instrument';
 import { NestFactory } from '@nestjs/core';
 import { ConsoleLogger, Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';

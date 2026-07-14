@@ -516,6 +516,32 @@ because it survives restarts without missing windows.
 additively — the ingest (peacock-backend) rejects unknown `schema_version`
 values with 400, so downgrades stay safe.
 
+## Error Monitoring (Sentry, opt-in)
+
+The backend integrates the Sentry NestJS SDK for optional error monitoring. It
+is disabled unless the process environment provides `SENTRY_DSN`. This applies
+equally to Cloud and self-hosted deployments; the bundled self-hosted
+configuration simply leaves it unset by default.
+
+- **Init**: `packages/backend/src/instrument.ts` is imported on the very first
+  line of `main.ts` (before any other import). It calls
+  `Sentry.init(buildSentryInitOptions(process.env))` only when the builder
+  returns non-null. The option-building logic lives in
+  `src/sentry/sentry-options.ts` (fully unit-tested); `instrument.ts` is a thin
+  boot shell excluded from coverage like `main.ts`.
+- **Scope**: error monitoring only. Performance tracing is explicitly disabled
+  and the profiling package is not installed. Request headers, cookies, query
+  parameters, bodies, user data, GenAI inputs/outputs, local variables, and
+  breadcrumbs are disabled through the SDK's `dataCollection` options.
+- **Error capture**: when enabled, `SentryModule.forRoot()` and
+  `SentryGlobalFilter` are registered in `app.module.ts` for otherwise-unhandled
+  errors. When disabled, neither is part of the Nest application.
+- **Setup check**: when Sentry is enabled outside production,
+  `GET /api/v1/debug-sentry` throws a test error. The controller is not
+  registered in production.
+- **Optional tags**: `SENTRY_ENVIRONMENT` and `SENTRY_RELEASE` may be supplied
+  alongside `SENTRY_DSN`.
+
 ## Architecture Notes
 
 - **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/` with SPA fallback. API routes (`/api/*`, `/otlp/*`) are excluded.
