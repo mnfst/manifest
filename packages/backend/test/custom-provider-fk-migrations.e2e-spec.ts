@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { AddCustomProviderFkToUserProviders1792100000000 } from '../src/database/migrations/1792100000000-AddCustomProviderFkToUserProviders';
 import { TenantProviders1792500000000 } from '../src/database/migrations/1792500000000-TenantProviders';
 import { TenantScopedConfigs1792600000000 } from '../src/database/migrations/1792600000000-TenantScopedConfigs';
+import { AddRequestsAndProviderAttempts1801000000000 } from '../src/database/migrations/1801000000000-AddRequestsAndProviderAttempts';
 
 /**
  * The tenant-canonical chain (which runs AFTER the migration under test) renames
@@ -12,6 +13,9 @@ import { TenantScopedConfigs1792600000000 } from '../src/database/migrations/179
  * this migration's own behaviour.
  */
 async function revertTenantCanonicalScoping(ds: DataSource): Promise<void> {
+  const requestSchemaQr = ds.createQueryRunner();
+  await new AddRequestsAndProviderAttempts1801000000000().down(requestSchemaQr);
+  await requestSchemaQr.release();
   const configsQr = ds.createQueryRunner();
   await new TenantScopedConfigs1792600000000().down(configsQr);
   await configsQr.release();

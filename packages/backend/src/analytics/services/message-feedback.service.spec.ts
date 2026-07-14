@@ -128,4 +128,51 @@ describe('MessageFeedbackService', () => {
       expect(msgQb.andWhere).toHaveBeenCalled();
     });
   });
+
+  describe('request-first storage', () => {
+    it('stores feedback on an explicit request', async () => {
+      const requestUpdate = jest.fn().mockResolvedValue({ affected: 1 });
+      const requestRepo = {
+        findOne: jest.fn().mockResolvedValue({ id: 'req-1', tenant_id: 'tenant-123' }),
+        update: requestUpdate,
+      };
+      const messageRepo = {
+        createQueryBuilder: jest.fn(),
+        update: jest.fn(),
+      };
+      const requestService = new MessageFeedbackService(messageRepo as never, requestRepo as never);
+
+      await requestService.setFeedback('req-1', 'tenant-123', 'like');
+
+      expect(requestUpdate).toHaveBeenCalledWith('req-1', {
+        feedback_rating: 'like',
+        feedback_tags: null,
+        feedback_details: null,
+      });
+      expect(messageRepo.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('stores feedback on an unlinked attempt exposed as a synthetic request', async () => {
+      const attemptQb = mockQb({ id: 'attempt-1', tenant_id: 'tenant-123', request_id: null });
+      const attemptUpdate = jest.fn().mockResolvedValue({ affected: 1 });
+      const requestRepo = {
+        findOne: jest.fn().mockResolvedValue(null),
+        update: jest.fn(),
+      };
+      const messageRepo = {
+        createQueryBuilder: jest.fn().mockReturnValue(attemptQb),
+        update: attemptUpdate,
+      };
+      const requestService = new MessageFeedbackService(messageRepo as never, requestRepo as never);
+
+      await requestService.setFeedback('attempt-1', 'tenant-123', 'dislike', ['Too slow']);
+
+      expect(attemptQb.andWhere).toHaveBeenCalledWith('m.request_id IS NULL');
+      expect(attemptUpdate).toHaveBeenCalledWith('attempt-1', {
+        feedback_rating: 'dislike',
+        feedback_tags: 'Too slow',
+        feedback_details: null,
+      });
+    });
+  });
 });

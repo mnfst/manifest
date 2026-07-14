@@ -5,7 +5,7 @@ import { ERROR_ORIGINS, MANIFEST_ERROR_ORIGINS } from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
 import { computeCutoff } from '../../common/utils/postgres-sql';
-import { addTenantFilter, excludePlaygroundAgents, sqlCountMessages } from './query-helpers';
+import { addTenantFilter, excludePlaygroundAgents } from './query-helpers';
 
 export interface ErrorBreakdownResponse {
   range: string;
@@ -89,7 +89,7 @@ export class ErrorBreakdownService {
   ): Promise<number> {
     const qb = this.messageRepo
       .createQueryBuilder('at')
-      .select(sqlCountMessages(), 'count')
+      .select("COUNT(*) FILTER (WHERE at.status = 'ok')", 'count')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, tenantId, agentName);
     excludePlaygroundAgents(qb);
