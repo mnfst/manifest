@@ -1,0 +1,19 @@
+package-lock.json
+  s_d780033b38dc96::t_c0c2005842dc9d 15017
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "fadd0ab175af11ad4071414cfb4202333a25b455",
+  "prompts": {},
+  "sessions": {
+    "s_d780033b38dc96": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f56ad-6f7a-73d2-bb0c-3c34d307d1d2",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
