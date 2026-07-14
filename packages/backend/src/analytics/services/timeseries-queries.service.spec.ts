@@ -464,6 +464,66 @@ describe('TimeseriesQueriesService', () => {
       expect(result[0].message_count).toBe(10);
     });
 
+    it('uses request parents plus unlinked legacy attempts for agent message counts', async () => {
+      const makeQb = (rawRows: unknown[] = [], entities: unknown[] = []) => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        addGroupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        setParameter: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue(rawRows),
+        getMany: jest.fn().mockResolvedValue(entities),
+      });
+      const agentQb = makeQb(
+        [],
+        [{ id: 'agent-1', name: 'bot-1', display_name: 'Bot One', created_at: oldIso }],
+      );
+      const attemptQb = makeQb([
+        {
+          agent_id: 'agent-1',
+          date: '2026-02-16',
+          message_count: 1,
+          cost: 2,
+          tokens: 300,
+          spark_tokens: 300,
+          last_active: recentIso,
+        },
+      ]);
+      const requestLastActive = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+      const requestQb = makeQb([
+        { agent_id: 'agent-1', message_count: '2', last_active: requestLastActive },
+      ]);
+      const unlinkedQb = makeQb([
+        { agent_id: 'agent-1', message_count: '1', last_active: recentIso },
+      ]);
+      const requestAware = new TimeseriesQueriesService(
+        {
+          createQueryBuilder: jest
+            .fn()
+            .mockReturnValueOnce(attemptQb)
+            .mockReturnValueOnce(unlinkedQb),
+        } as never,
+        { createQueryBuilder: jest.fn(() => agentQb) } as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      const result = await requestAware.getAgentList('u1');
+
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          message_count: 3,
+          total_cost: 2,
+          total_tokens: 300,
+          last_active: requestLastActive,
+        }),
+      );
+      expect(unlinkedQb.where).toHaveBeenCalledWith('at.request_id IS NULL');
+    });
+
     it('falls back to agent_name when display_name is null', async () => {
       mockGetMany.mockResolvedValueOnce([
         { id: 'agent-1', name: 'bot-1', display_name: null, created_at: '2026-02-16' },
