@@ -1,0 +1,87 @@
+packages/backend/test/custom-providers-lift-migrations.e2e-spec.ts
+  s_429b9b7858f465::t_40ba1a62a5c455 6,100-102
+packages/backend/test/tenant-isolation.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 70,92,150,231
+packages/backend/test/user-provider-backfill-migrations.e2e-spec.ts
+  s_429b9b7858f465::t_ea71a5010a0451 9,50-52
+  s_429b9b7858f465::t_40ba1a62a5c455 120-123,150,161,168,175,184,191
+  s_429b9b7858f465::t_15aaa2db6a14ca 53
+packages/backend/test/roundtrip.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 21,53
+packages/backend/test/tenant-scoping-migrations.e2e-spec.ts
+  s_429b9b7858f465::t_40ba1a62a5c455 17,71
+  s_429b9b7858f465::t_627b04f2652f86 72
+packages/backend/test/smoke-test.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 163
+packages/backend/test/messages-manifest-errors.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 33
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_429b9b7858f465::t_21e336d492cc9d 220-222,265
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_429b9b7858f465::t_65f6fd76ede4db 10,31,106-109,115,133-136,141-142,155,163
+  s_429b9b7858f465::t_9e15b832f88445 110,137
+packages/backend/test/helpers.ts
+  s_429b9b7858f465::t_65f6fd76ede4db 21,64
+packages/backend/test/custom-provider-fk-migrations.e2e-spec.ts
+  s_429b9b7858f465::t_40ba1a62a5c455 5,16-18
+packages/backend/test/public-stats.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 18,23,28,33,54,59
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 6,164,171,204,217,250
+packages/backend/test/overview.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 17,23
+packages/backend/test/playground-flow.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 184
+  s_429b9b7858f465::t_8500537bcca8a4 150
+packages/backend/test/message-count-consistency.e2e-spec.ts
+  s_429b9b7858f465::t_aa40699062ae29 7-9,13,44,46,55,60,77,86
+  s_429b9b7858f465::t_9e15b832f88445 20
+packages/backend/test/agent-recreate.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 34,67
+packages/backend/test/tokens.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 17,23
+packages/backend/test/messages.isolation.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 9,37,153
+packages/backend/test/errors-breakdown.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 20
+packages/backend/test/message-error-code-migrations.e2e-spec.ts
+  s_429b9b7858f465::t_ea71a5010a0451 9,107-109
+  s_429b9b7858f465::t_e32f8f33f495c6 110
+packages/backend/test/proxy-fallback-auth.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 8,213,230
+packages/backend/test/provider-analytics.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 49,72,86,99,130
+packages/backend/test/custom-provider-fk-data-loss.e2e-spec.ts
+  s_429b9b7858f465::t_40ba1a62a5c455 5,61-63
+  s_429b9b7858f465::t_ef8dc4130a6e51 64
+packages/backend/test/seed-playground-agents-migrations.e2e-spec.ts
+  s_429b9b7858f465::t_40ba1a62a5c455 6,37-39
+  s_429b9b7858f465::t_9e15b832f88445 45
+  s_429b9b7858f465::t_c01c6d02c6c919 40
+packages/backend/src/analytics/services/error-breakdown.service.ts
+  s_429b9b7858f465::t_21e336d492cc9d 8,92
+packages/backend/src/analytics/services/message-feedback.service.ts
+  s_429b9b7858f465::t_72de9d08bc8cf3 26-33,35,46-53,55,66-68,76,80,83-85
+packages/backend/test/costs.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 51,57,62,168,190,214
+packages/backend/test/messages.e2e-spec.ts
+  s_429b9b7858f465::t_9e15b832f88445 17,23,29,207,286
+packages/backend/src/analytics/services/message-feedback.service.spec.ts
+  s_429b9b7858f465::t_f5ccef9b8d12e1 131-177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "a4943da310e260b59d174e56c48f1947c2904c7f",
+  "prompts": {},
+  "sessions": {
+    "s_429b9b7858f465": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f60f7-390c-7fa3-a91a-edc913000679",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
