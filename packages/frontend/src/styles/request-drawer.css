@@ -92,33 +92,7 @@
   color: hsl(var(--destructive));
 }
 
-/* ── Tabs ── */
-.drawer__tabs {
-  display: flex;
-  border-bottom: 1px solid hsl(var(--border));
-  padding: 0 24px;
-  flex-shrink: 0;
-}
-.drawer__tab {
-  font-family: var(--font-body);
-  font-size: var(--font-size-xs);
-  font-weight: 500;
-  color: hsl(var(--muted-foreground));
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  padding: 10px 12px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.drawer__tab:hover {
-  color: hsl(var(--foreground));
-}
-.drawer__tab--active {
-  color: hsl(var(--foreground));
-  font-weight: 600;
-  border-bottom-color: hsl(var(--foreground));
-}
+/* Tabs use the design system panel__tabs / panel__tab classes */
 
 /* ── Body (scrollable) ── */
 .drawer__body {
