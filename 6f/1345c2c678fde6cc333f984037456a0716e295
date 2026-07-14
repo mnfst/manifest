@@ -1,0 +1,51 @@
+packages/backend/src/routing/autofix/__tests__/http-healing-client.spec.ts
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 19
+packages/backend/src/routing/autofix/__tests__/noop-healing-client.spec.ts
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 11
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 92,607
+packages/backend/src/routing/autofix/__tests__/mock-healing-client.spec.ts
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 13
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 262
+  s_e8156cce0170cb::t_671e4bdcb75a25 256
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 11,22,387
+.changeset/calm-birds-scope.md
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 1-5
+packages/backend/src/routing/autofix/observation-payload.ts
+  s_e8156cce0170cb::t_a44d000dd93885 112,153
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 3
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_e8156cce0170cb::t_7dca0a23db3854 340-342
+packages/backend/src/routing/autofix/observation-reporter.spec.ts
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 29
+packages/backend/src/routing/autofix/phoenix.types.ts
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 2,25,42
+packages/backend/src/routing/autofix/observation-payload.spec.ts
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 14
+  s_e8156cce0170cb::t_a5803cf52b90a9 108
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 92,356
+packages/backend/src/routing/autofix/contract/phoenix-openapi.yaml
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 328-331
+packages/backend/src/routing/autofix/__tests__/phoenix-contract.spec.ts
+  s_e8156cce0170cb::t_0fd1eb98c1a7ff 70,99-101
+  s_e8156cce0170cb::t_44304ad093eb17 102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "6f1345c2c678fde6cc333f984037456a0716e295",
+  "prompts": {},
+  "sessions": {
+    "s_e8156cce0170cb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f602c-d100-70f1-b733-a7973706f7e3",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
