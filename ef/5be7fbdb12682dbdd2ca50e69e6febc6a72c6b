@@ -1,0 +1,40 @@
+packages/frontend/tests/components/OAuthDetailView.test.tsx
+  s_b0af843c71ffcd::t_d62f41d34cddf6 466-467
+  s_b0af843c71ffcd::t_732cfdd42f22af 795-873
+  s_b0af843c71ffcd::t_6dff70c69b7361 675-676,692-693
+packages/frontend/tests/components/AnthropicOAuthDetailView.test.tsx
+  s_b0af843c71ffcd::t_6043f9915cf430 330-331
+packages/frontend/src/components/OAuthDetailView.tsx
+  s_b0af843c71ffcd::t_13b995deaa1a5c 220-222,240
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_b0af843c71ffcd::t_c21c26665a9d6a 297-298
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  s_b0af843c71ffcd::t_25f17c9bdcbcee 221-223,241
+packages/frontend/src/components/AnthropicOAuthDetailView.tsx
+  s_b0af843c71ffcd::t_c78e94270792c5 157-159,177
+packages/frontend/src/components/CopilotDeviceLogin.tsx
+  s_b0af843c71ffcd::t_03ab7ece4a533b 129-131,146
+  s_b0af843c71ffcd::t_286a6494d6581b 32-33
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_b0af843c71ffcd::t_ad3595eaf7f4ce 183-185
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_b0af843c71ffcd::t_d7495c99c8b14c 333-335
+packages/frontend/src/components/ProviderSelectContent.tsx
+  s_b0af843c71ffcd::t_1176aaa6562200 327-328
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "ef5be7fbdb12682dbdd2ca50e69e6febc6a72c6b",
+  "prompts": {},
+  "sessions": {
+    "s_b0af843c71ffcd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5e3ccc1b-acd8-4e19-b586-fa18f14a3aaf",
+        "model": "accounts/fireworks/models/glm-5p2"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
