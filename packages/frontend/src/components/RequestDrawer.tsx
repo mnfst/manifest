@@ -259,31 +259,56 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                   <For each={attempts()}>
                     {(att, idx) => (
                       <button
-                        class={`attempt-item attempt-border--${att.status === 'ok' ? 'ok' : att.status === 'auto_fixed' ? 'autofix' : 'error'}`}
+                        class="attempt-item"
                         classList={{ 'attempt-item--active': selectedAttempt() === idx() }}
                         onClick={() => {
                           setSelectedAttempt(idx());
                           setTab('details');
                         }}
                       >
-                        <div class="attempt-item__info">
-                          <span class="attempt-item__line">
-                            <span class="attempt-item__num">
-                              #{String(att.index).padStart(2, '0')}
-                            </span>
-                            <span class="attempt-item__model">{att.model}</span>
-                          </span>
-                          <Show when={att.type === 'fallback'}>
-                            <span class="attempt-item__badge attempt-item__badge--fallback">
-                              fallback
-                            </span>
-                          </Show>
-                          <Show when={att.type === 'auto-fix'}>
-                            <span class="attempt-item__badge attempt-item__badge--autofix">
-                              auto-fix
-                            </span>
-                          </Show>
-                        </div>
+                        <span class="attempt-item__num">{att.index}</span>
+                        <span class="attempt-item__icon">
+                          {att.type === 'fallback' ? (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                            >
+                              <path d="m7.84 13.75 1.33-1.49-2.53-2.25h8.37c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H6.63l2.53-2.25-1.33-1.49-5.34 4.75 5.34 4.75Z" />
+                            </svg>
+                          ) : att.type === 'auto-fix' ? (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                            >
+                              <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
+                            </svg>
+                          ) : (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="14"
+                              height="14"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                            >
+                              <path d="M5 12h14" />
+                              <path d="m12 5 7 7-7 7" />
+                            </svg>
+                          )}
+                        </span>
+                        <span class="attempt-item__model">{att.model}</span>
                       </button>
                     )}
                   </For>
