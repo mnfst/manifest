@@ -259,18 +259,20 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                   <For each={attempts()}>
                     {(att, idx) => (
                       <button
-                        class="attempt-item"
+                        class={`attempt-item attempt-border--${att.status === 'ok' ? 'ok' : att.status === 'auto_fixed' ? 'autofix' : 'error'}`}
                         classList={{ 'attempt-item--active': selectedAttempt() === idx() }}
                         onClick={() => {
                           setSelectedAttempt(idx());
                           setTab('details');
                         }}
                       >
-                        <span class={`attempt-dot ${statusDotClass(att.status)}`} />
                         <div class="attempt-item__info">
-                          <span class="attempt-item__num">#{att.index}</span>
-                          <span class="attempt-item__provider">{att.provider}</span>
-                          <span class="attempt-item__model">{att.model}</span>
+                          <span class="attempt-item__line">
+                            <span class="attempt-item__num">
+                              #{String(att.index).padStart(2, '0')}
+                            </span>
+                            <span class="attempt-item__model">{att.model}</span>
+                          </span>
                           <Show when={att.type === 'fallback'}>
                             <span class="attempt-item__badge attempt-item__badge--fallback">
                               fallback

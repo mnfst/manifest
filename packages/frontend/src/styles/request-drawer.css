@@ -7,7 +7,7 @@
   bottom: 0;
   width: 50%;
   min-width: 400px;
-  max-width: 920px;
+  max-width: 1084px;
   background: hsl(var(--card));
   border-left: 1px solid hsl(var(--border));
   z-index: 200;
@@ -120,7 +120,7 @@
 
 /* ── Attempts sidebar ── */
 .drawer__sidebar {
-  width: 180px;
+  width: 220px;
   flex-shrink: 0;
   border-right: 1px solid hsl(var(--border));
   background: hsl(var(--card));
@@ -133,24 +133,37 @@
   color: hsl(var(--muted-foreground));
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 8px 12px;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
   border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--muted));
 }
 
 .attempt-item {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
   width: 100%;
   padding: 8px 12px;
   border: none;
   border-bottom: 1px solid hsl(var(--border));
+  border-left: 3px solid transparent;
   background: transparent;
   cursor: pointer;
   text-align: left;
   font-family: var(--font-body);
   transition: background 0.15s ease;
   border-radius: 0;
+}
+.attempt-border--ok {
+  border-left-color: hsl(var(--success));
+}
+.attempt-border--error {
+  border-left-color: hsl(var(--destructive));
+}
+.attempt-border--autofix {
+  border-left-color: hsl(222 47% 50%);
 }
 .attempt-item:hover {
   background: hsl(var(--muted) / 0.5);
@@ -161,20 +174,23 @@
 .attempt-item__info {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
+  min-width: 0;
+}
+.attempt-item__line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   min-width: 0;
 }
 .attempt-item__num {
   font-size: var(--font-size-xs);
   font-weight: 600;
   color: hsl(var(--foreground));
-}
-.attempt-item__provider {
-  font-size: 11px;
-  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
 }
 .attempt-item__model {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
   overflow: hidden;
   text-overflow: ellipsis;
@@ -206,22 +222,7 @@
   padding: 8px 12px;
 }
 
-.attempt-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 4px;
-}
-.attempt-dot--ok {
-  background: hsl(var(--success));
-}
-.attempt-dot--error {
-  background: hsl(var(--destructive));
-}
-.attempt-dot--autofix {
-  background: hsl(222 47% 50%);
-}
+/* Status indicated by border-left color on attempt-item */
 
 /* ── Content area ── */
 .drawer__content {
