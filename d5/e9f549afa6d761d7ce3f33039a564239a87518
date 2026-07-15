@@ -1,0 +1,37 @@
+packages/frontend/src/services/api/analytics.ts
+  s_02f28e248c2d45::t_33efd2b798a949 177
+packages/frontend/src/components/UnifiedChartCard.tsx
+  s_02f28e248c2d45::t_33efd2b798a949 1,4,9,37,126
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_02f28e248c2d45::t_33efd2b798a949 447,576,598,743
+packages/frontend/src/components/RequestDrawer.tsx
+  s_02f28e248c2d45::t_33efd2b798a949 85-94,96-129,131,136-168,358
+packages/frontend/src/components/message-table-cells.tsx
+  s_02f28e248c2d45::t_33efd2b798a949 151-153
+packages/frontend/src/components/AutofixKpiCards.tsx
+  s_02f28e248c2d45::t_33efd2b798a949 30,32-33,36,38-39,54,56-57,61,63-66,70
+packages/frontend/src/components/ErrorClassCard.tsx
+  s_02f28e248c2d45::t_33efd2b798a949 1-5
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_02f28e248c2d45::t_33efd2b798a949 3,6,26,28-30,67,82-83,86,140,157-158,162-208,218-219,223-241,255-256,263-264,266-277,279-299,303,306,308,310-315,317,319-321,358-391,393-412,417,419-420,431-465
+packages/frontend/src/components/ReliabilityCard.tsx
+  s_02f28e248c2d45::t_33efd2b798a949 89
+packages/frontend/src/styles/request-drawer.css
+  s_02f28e248c2d45::t_33efd2b798a949 185-202
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "d5e9f549afa6d761d7ce3f33039a564239a87518",
+  "prompts": {},
+  "sessions": {
+    "s_02f28e248c2d45": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f651f-32e7-7652-ba1c-50bf40823758",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
