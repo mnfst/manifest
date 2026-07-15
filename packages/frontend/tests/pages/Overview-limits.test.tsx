@@ -58,6 +58,7 @@ vi.mock('../../src/components/ProviderIcon.jsx', () => ({
 // (uPlot) and fetches per-provider timeseries; stub both so jsdom doesn't load
 // the real chart (which calls matchMedia).
 vi.mock('../../src/services/api/analytics.js', () => ({
+  HEALED_REQUESTS_TOOLTIP: 'Successful requests that were healed by Auto-fix or fallback.',
   getPerProviderTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
   getPerProviderMessageTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
   getPerProviderCostTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),

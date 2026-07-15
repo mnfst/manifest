@@ -21,6 +21,7 @@ import { render, screen, waitFor } from '@solidjs/testing-library';
 
 const breakdown = vi.fn();
 vi.mock('../../src/services/api/analytics.js', () => ({
+  HEALED_REQUESTS_TOOLTIP: 'Successful requests that were healed by Auto-fix or fallback.',
   getErrorBreakdown: (...args: unknown[]) => breakdown(...args),
 }));
 vi.mock('../../src/services/sse.js', () => ({ messagePing: () => 0 }));

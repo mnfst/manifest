@@ -72,6 +72,7 @@ const mockPerProviderCosts = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockGetAutofixStats = vi.fn();
 let mockAutofixEligible = false;
 vi.mock('../../src/services/api/analytics.js', () => ({
+  HEALED_REQUESTS_TOOLTIP: 'Successful requests that were healed by Auto-fix or fallback.',
   getPerProviderTimeseries: (...a: unknown[]) => mockPerProviderTokens(...a),
   getPerProviderMessageTimeseries: (...a: unknown[]) => mockPerProviderMessages(...a),
   getPerProviderCostTimeseries: (...a: unknown[]) => mockPerProviderCosts(...a),

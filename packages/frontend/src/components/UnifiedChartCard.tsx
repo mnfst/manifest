@@ -1,7 +1,7 @@
 import { Show, Suspense, lazy, type Component, type JSX } from 'solid-js';
 import InfoTooltip from './InfoTooltip.jsx';
 import { formatNumber, formatCost } from '../services/formatters.js';
-import type { AutofixTimeseries } from '../services/api/analytics.js';
+import { HEALED_REQUESTS_TOOLTIP, type AutofixTimeseries } from '../services/api/analytics.js';
 
 const MultiAgentTokenChart = lazy(() => import('./MultiAgentTokenChart.jsx'));
 const ReliabilityChart = lazy(() => import('./ReliabilityChart.jsx'));
@@ -101,7 +101,10 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
             classList={{ 'chart-card__stat--active': props.activeTab === 'selfheal' }}
             onClick={() => props.onTabChange('selfheal')}
           >
-            <span class="chart-card__label">Healed requests</span>
+            <span class="chart-card__label">
+              Healed requests
+              <InfoTooltip text={HEALED_REQUESTS_TOOLTIP} />
+            </span>
             <div class="chart-card__value-row">
               <span class="chart-card__value">{formatNumber(props.selfHealedValue ?? 0)}</span>
               {trendBadge(props.selfHealedTrendPct ?? 0)}

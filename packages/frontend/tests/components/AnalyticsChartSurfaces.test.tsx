@@ -70,6 +70,7 @@ vi.mock('../../src/services/sse.js', () => ({
 }));
 
 vi.mock('../../src/services/api/analytics.js', () => ({
+  HEALED_REQUESTS_TOOLTIP: 'Successful requests that were healed by Auto-fix or fallback.',
   getErrorBreakdown: (...args: unknown[]) => mockGetErrorBreakdown(...args),
 }));
 

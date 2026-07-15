@@ -271,6 +271,10 @@ export interface ProviderReliabilityRow {
   succeeded: number;
 }
 
+/** One-line definition surfaced by the ⓘ tooltips next to "Healed requests". */
+export const HEALED_REQUESTS_TOOLTIP =
+  'Successful requests that were healed by Auto-fix or fallback.';
+
 /** Self-healed = recovered by Auto-fix + recovered by fallback. */
 export function selfHealedCount(row: { autofixed: number; fallback_saves?: number }): number {
   return row.autofixed + (row.fallback_saves ?? 0);

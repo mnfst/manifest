@@ -18,6 +18,7 @@ vi.mock('../../src/services/api/autofix.js', () => ({
 }));
 
 vi.mock('../../src/services/api/analytics.js', () => ({
+  HEALED_REQUESTS_TOOLTIP: 'Successful requests that were healed by Auto-fix or fallback.',
   getWorkspaceAutofixStatus: (...args: unknown[]) => mockGetStatus(...args),
 }));
 

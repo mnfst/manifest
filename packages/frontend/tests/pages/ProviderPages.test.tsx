@@ -94,6 +94,7 @@ vi.mock('../../src/services/api.js', () => ({
 }));
 
 vi.mock('../../src/services/api/analytics.js', () => ({
+  HEALED_REQUESTS_TOOLTIP: 'Successful requests that were healed by Auto-fix or fallback.',
   getPerProviderReliability: () => Promise.resolve([]),
 }));
 

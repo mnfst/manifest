@@ -183,21 +183,25 @@
   white-space: nowrap;
 }
 /* Status dot in attempt sidebar */
-.attempt-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+/* HTTP status tag on each attempt (sidebar + Status row): binary read —
+   green success, red failure. Recovery is told by the context cards, not here. */
+.attempt-code {
   flex-shrink: 0;
   margin-left: auto;
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
 }
-.attempt-dot--ok {
-  background: hsl(var(--success));
+.attempt-code--ok {
+  background: hsl(var(--success) / 0.15);
+  color: hsl(var(--success));
 }
-.attempt-dot--autofix {
-  background: hsl(222 47% 50%);
-}
-.attempt-dot--error {
-  background: hsl(var(--destructive));
+.attempt-code--error {
+  background: hsl(var(--destructive) / 0.12);
+  color: hsl(var(--destructive));
 }
 
 .attempt-item__empty {

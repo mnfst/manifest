@@ -74,10 +74,11 @@ function statusLabel(status: string): string {
   return 'Failed';
 }
 
-function statusDotClass(status: string): string {
-  if (status === 'ok') return 'attempt-dot--ok';
-  if (status === 'auto_fixed') return 'attempt-dot--autofix';
-  return 'attempt-dot--error';
+/** The attempt's HTTP code as displayed: 200 for success, the provider's
+    error code otherwise, ERR when the failure carried no HTTP response. */
+function attemptCode(att: { status: string; error_http_status?: number }): string {
+  if (att.status === 'ok') return '200';
+  return att.error_http_status != null ? String(att.error_http_status) : 'ERR';
 }
 
 function requestStatusClass(status: string): string {
@@ -350,7 +351,11 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                           )}
                         </span>
                         <span class="attempt-item__model">{att.model}</span>
-                        <span class={`attempt-dot ${statusDotClass(att.status)}`} />
+                        <span
+                          class={`attempt-code ${att.status === 'ok' ? 'attempt-code--ok' : 'attempt-code--error'}`}
+                        >
+                          {attemptCode(att)}
+                        </span>
                       </button>
                     )}
                   </For>
@@ -383,7 +388,14 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                             <div class="drawer-metadata">
                               <div class="drawer-kv">
                                 <span class="drawer-kv__key">Status</span>
-                                <span>{statusLabel(att().status)}</span>
+                                <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                  {statusLabel(att().status)}
+                                  <span
+                                    class={`attempt-code ${att().status === 'ok' ? 'attempt-code--ok' : 'attempt-code--error'}`}
+                                  >
+                                    {attemptCode(att())}
+                                  </span>
+                                </span>
                               </div>
                               <div class="drawer-kv">
                                 <span class="drawer-kv__key">Type</span>

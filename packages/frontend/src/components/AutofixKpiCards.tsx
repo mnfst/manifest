@@ -1,6 +1,7 @@
 import { Show, type Component } from 'solid-js';
+import InfoTooltip from './InfoTooltip.jsx';
 import { formatNumber } from '../services/formatters.js';
-import type { AutofixStats } from '../services/api/analytics.js';
+import { HEALED_REQUESTS_TOOLTIP, type AutofixStats } from '../services/api/analytics.js';
 
 function fmtPct(v: number): string {
   const pct = v * 100;
@@ -65,7 +66,10 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Healed requests</span>
+            <span class="overview-stat-card__label">
+              Healed requests
+              <InfoTooltip text={HEALED_REQUESTS_TOOLTIP} />
+            </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{fmtPct(selfHealedPct())}</span>
               {trendBadge(selfHealedPct(), selfHealedPctPrev())}

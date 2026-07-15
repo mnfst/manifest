@@ -218,6 +218,19 @@ describe('RequestDrawer', () => {
     const { container } = render(() => <RequestDrawer messageId="fb-chain" onClose={vi.fn()} />);
     await waitFor(() => expect(container.querySelectorAll('.attempt-item').length).toBe(2));
 
+    // Sidebar shows binary HTTP-code tags: red 401 on the failure, green 200
+    // on the success — recovery is NOT encoded in the tag color.
+    const codes = [...container.querySelectorAll('.attempt-item .attempt-code')].map((e) => ({
+      code: e.textContent?.trim(),
+      ok: e.classList.contains('attempt-code--ok'),
+    }));
+    expect(codes).toEqual([
+      { code: '401', ok: false },
+      { code: '200', ok: true },
+    ]);
+    // The Details Status row carries the code too.
+    expect(container.querySelector('.drawer-kv .attempt-code')?.textContent?.trim()).toBe('401');
+
     // Attempt 1 (failed): the error card AND the fallback CONSEQUENCE card,
     // together — and in reading order: error first, consequence after.
     expect(screen.getByText('Authentication Fails')).toBeDefined();
