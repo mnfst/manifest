@@ -245,6 +245,57 @@ describe('analytics chart surface components', () => {
     unmount();
   });
 
+  it('snaps the cursor and shows the hover tooltip on the disposition chart', () => {
+    const { container, unmount } = render(() => (
+      <ReliabilityChart
+        timeseries={{
+          range: '7d',
+          by: 'disposition',
+          keys: ['error', 'fallback', 'success', 'healed'],
+          buckets: [{ bucket: '2026-06-04', counts: [4, 3, 1, 2] }],
+        }}
+        range="7d"
+        seriesMode="disposition"
+      />
+    ));
+    buildCapturedChart();
+
+    // Same snapped cursor as the Cost chart.
+    expect(capturedChartOpts.cursor.move).toBeTypeOf('function');
+    expect(
+      capturedChartOpts.cursor.move(
+        { posToIdx: () => 0, data: capturedChartData, valToPos: () => 120 },
+        57,
+        9,
+      ),
+    ).toEqual([120, 9]);
+
+    capturedChartOpts.hooks.setCursor[0]({
+      cursor: { idx: 0 },
+      data: capturedChartData,
+      bbox: { width: 800 },
+      valToPos: () => 120,
+    });
+
+    // Rows keep the fixed legend order (NOT value-sorted), with a Total.
+    const rows = [...container.querySelectorAll('.agent-chart-tooltip__row')].map((r) => ({
+      label: r.querySelector('.agent-chart-tooltip__name')?.textContent,
+      value: r.querySelector('.agent-chart-tooltip__value')?.textContent,
+    }));
+    expect(rows).toEqual([
+      { label: 'Success', value: '1' },
+      { label: 'Success - healed via Auto-fix', value: '2' },
+      { label: 'Success - healed via Fallback', value: '3' },
+      { label: 'Error', value: '4' },
+    ]);
+    expect(container.querySelector('.agent-chart-tooltip__total-value')?.textContent).toBe('10');
+
+    // Cursor off the data hides it.
+    capturedChartOpts.hooks.setCursor[0]({ cursor: { idx: -1 } });
+    expect(container.querySelector('.agent-chart-tooltip')).toBeNull();
+    unmount();
+  });
+
   it('handles an empty reliability series without creating a chart', () => {
     render(() => (
       <ReliabilityChart

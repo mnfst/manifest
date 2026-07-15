@@ -1,7 +1,13 @@
-import { For, type Component } from 'solid-js';
+import { createSignal, For, type Component } from 'solid-js';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
 import '../styles/reliability-card.css';
+import ChartHoverTooltip, {
+  HIDDEN_TOOLTIP,
+  formatTooltipDate,
+  snapToBucket,
+  type HoverTooltipState,
+} from './ChartHoverTooltip.jsx';
 import { getHslA } from '../services/theme.js';
 import { formatNumber } from '../services/formatters.js';
 import {
@@ -10,6 +16,7 @@ import {
   parseTimestamps,
   createTimeScaleRange,
   createFormatLegendTimestamp,
+  isMultiDayRange,
   fillDailyGaps,
 } from '../services/chart-utils.js';
 import type { AutofixTimeseries } from '../services/api/analytics.js';
@@ -105,6 +112,8 @@ function orderTimeseries(d: AutofixTimeseries | undefined): AutofixTimeseries | 
 
 const ReliabilityChart: Component<ReliabilityChartProps> = (props) => {
   let el!: HTMLDivElement;
+  let rawSeries: number[][] = [];
+  const [tooltip, setTooltip] = createSignal<HoverTooltipState>(HIDDEN_TOOLTIP);
 
   const bucketKey = () => (props.range === '24h' ? 'hour' : 'date');
   const ordered = () => orderTimeseries(props.timeseries);
@@ -128,7 +137,7 @@ const ReliabilityChart: Component<ReliabilityChartProps> = (props) => {
     });
 
     const timestamps = parseTimestamps(filled as any[]);
-    const rawSeries = d.keys.map((key) => filled.map((r: any) => Math.max(0, Number(r[key] ?? 0))));
+    rawSeries = d.keys.map((key) => filled.map((r: any) => Math.max(0, Number(r[key] ?? 0))));
 
     // Cumulative stacking (bottom to top)
     const cumulative: number[][] = [];
@@ -171,6 +180,7 @@ const ReliabilityChart: Component<ReliabilityChartProps> = (props) => {
         })),
       ];
 
+      const multiDay = isMultiDayRange(props.range);
       const data = buildData();
       return new uPlot(
         {
@@ -178,7 +188,46 @@ const ReliabilityChart: Component<ReliabilityChartProps> = (props) => {
           height: 260,
           padding: [16, 16, 0, 16],
           legend: { show: false },
-          cursor: { x: true, y: false, points: { show: false }, drag: { x: false, y: false } },
+          cursor: {
+            x: true,
+            y: false,
+            points: { show: false },
+            drag: { x: false, y: false },
+            move: snapToBucket,
+          },
+          hooks: {
+            setCursor: [
+              (u) => {
+                const idx = u.cursor.idx;
+                if (idx == null || idx < 0) {
+                  setTooltip((prev) => ({ ...prev, visible: false }));
+                  return;
+                }
+                // One row per series, in the fixed legend/stacking order
+                // (Success, healed via Auto-fix, via Fallback, Error) — NOT
+                // value-sorted like the per-agent charts.
+                const entries: HoverTooltipState['entries'] = [];
+                let total = 0;
+                d.keys.forEach((key, i) => {
+                  const v = rawSeries[i]?.[idx] ?? 0;
+                  entries.push({ label: keyLabel(key), value: v, color: colorFor(key, mode, i) });
+                  total += v;
+                });
+                const timestamp = u.data[0]?.[idx];
+                const barLeft = timestamp != null ? Math.round(u.valToPos(timestamp, 'x')) : 0;
+                const chartWidth = u.bbox.width / devicePixelRatio;
+                setTooltip({
+                  visible: true,
+                  left: barLeft,
+                  top: 16,
+                  alignRight: barLeft > chartWidth / 2,
+                  date: timestamp != null ? formatTooltipDate(timestamp, multiDay) : '',
+                  entries,
+                  total,
+                });
+              },
+            ],
+          },
           axes: createBaseAxes(axisColor, gridColor, props.range),
           scales: {
             x: { range: createTimeScaleRange(props.range, true) },
@@ -204,7 +253,17 @@ const ReliabilityChart: Component<ReliabilityChartProps> = (props) => {
 
   return (
     <>
-      <div ref={el!} />
+      <div
+        style="position: relative; overflow: visible;"
+        onMouseLeave={() => setTooltip((prev) => ({ ...prev, visible: false }))}
+      >
+        <div ref={el!} />
+        <ChartHoverTooltip
+          state={tooltip()}
+          fmtVal={formatNumber}
+          hostWidth={() => el?.clientWidth ?? 0}
+        />
+      </div>
       <div class="rel-chart__legend">
         <For each={legendItems()}>
           {(item) => (
