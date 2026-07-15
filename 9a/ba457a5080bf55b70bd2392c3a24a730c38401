@@ -1,0 +1,42 @@
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_8e604c15975dfe::t_0204d68096be72 73,563
+  s_8e604c15975dfe::t_c0d3d41ef27de5 72,100-102,134-136,201-203,224-226,562,666-668
+  s_8e604c15975dfe::t_42ed65b7eef8f2 669-671
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_8e604c15975dfe::t_c0d3d41ef27de5 259,280
+  s_8e604c15975dfe::t_685adcb8613b84 287-288
+packages/backend/src/database/backfills/backfill-requests.ts
+  s_8e604c15975dfe::t_c0d3d41ef27de5 23,39-40,180,184-185
+packages/backend/src/database/backfills/backfill-requests.spec.ts
+  s_8e604c15975dfe::t_0754468d852447 18,62,84,132,162,182,195,219,235,264
+  s_8e604c15975dfe::t_3f9e15eb9db08c 96-115
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_8e604c15975dfe::t_c0d3d41ef27de5 23-26,126,137,168-171,175
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_8e604c15975dfe::t_f2a99f60e86f53 342-344
+  s_8e604c15975dfe::t_3f9e15eb9db08c 17-19,86,89-90,103-105,256-341,345,468
+  s_8e604c15975dfe::t_685adcb8613b84 111-117,124-125,449-467
+  s_8e604c15975dfe::t_3405ff8d0b1f11 346
+  s_8e604c15975dfe::t_02e22e4936a39a 469
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_8e604c15975dfe::t_c0d3d41ef27de5 97,129-139
+  s_8e604c15975dfe::t_0754468d852447 7,9
+  s_8e604c15975dfe::t_b35f4ec4533138 140-142
+  s_8e604c15975dfe::t_6c34f8b75b0b9a 143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "9aba457a5080bf55b70bd2392c3a24a730c38401",
+  "prompts": {},
+  "sessions": {
+    "s_8e604c15975dfe": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f65db-3a3a-7062-b4ed-378f1f8bcbe3",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
