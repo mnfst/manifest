@@ -1,0 +1,41 @@
+packages/frontend/src/services/api/analytics.ts
+  s_802a2f13842c2e::t_a85b417bd4109c 164-189,191-196
+  s_802a2f13842c2e::t_fd0aadbc5d7e5c 190
+packages/backend/src/analytics/controllers/attempt-analytics.controller.spec.ts
+  s_802a2f13842c2e::t_ab2e0b726dd4c9 1-53
+packages/backend/src/analytics/services/attempt-stats.service.spec.ts
+  s_802a2f13842c2e::t_1fcd1ad34b0edb 93
+  s_802a2f13842c2e::t_ab2e0b726dd4c9 1-14,23-60,64-89,91-92,94-118
+  s_802a2f13842c2e::t_fd0aadbc5d7e5c 15-22,61-63,90
+packages/backend/src/analytics/analytics.module.ts
+  s_802a2f13842c2e::t_a85b417bd4109c 37-38,71,85
+packages/backend/src/analytics/controllers/attempt-analytics.controller.ts
+  s_802a2f13842c2e::t_a85b417bd4109c 1-32
+packages/frontend/tests/services/api/analytics.test.ts
+  s_802a2f13842c2e::t_ab2e0b726dd4c9 45-76
+packages/backend/test/attempt-analytics.e2e-spec.ts
+  s_802a2f13842c2e::t_ab2e0b726dd4c9 1-73,75-82
+  s_802a2f13842c2e::t_1fcd1ad34b0edb 74
+packages/backend/src/analytics/services/attempt-stats.service.ts
+  s_802a2f13842c2e::t_a85b417bd4109c 1-3,9-24,26-134
+  s_802a2f13842c2e::t_fd0aadbc5d7e5c 4-8
+  s_802a2f13842c2e::t_1fcd1ad34b0edb 25
+.changeset/gentle-attempt-aggregates.md
+  s_802a2f13842c2e::t_a85b417bd4109c 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "990f8a0047da2af2bb846cd1cd8c4fc9a48d1067",
+  "prompts": {},
+  "sessions": {
+    "s_802a2f13842c2e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f64f1-22fc-79b0-b968-531dead5c079",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
