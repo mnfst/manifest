@@ -69,8 +69,8 @@ export const INSERT_LEGACY_FALLBACK_INDEXES_SQL = `
   WHERE "request_id" IS NULL
     AND fallback_from_model IS NOT NULL
     AND fallback_index IS NOT NULL
-    AND fallback_index >= 0;
-  ANALYZE "request_backfill_fallback_indexes"
+    AND fallback_index >= 0
+    AND timestamp < $1
 `;
 
 export const INSERT_LEGACY_FALLBACK_PAIRS_SQL = `
@@ -97,6 +97,9 @@ export const INSERT_LEGACY_FALLBACK_PAIRS_SQL = `
      AND t.timestamp = p.timestamp + (fi.fallback_index + 1) * INTERVAL '100 milliseconds'
      AND t.tenant_id IS NOT DISTINCT FROM p.tenant_id
      AND t.agent_id IS NOT DISTINCT FROM p.agent_id
+     AND t.trace_id IS NOT DISTINCT FROM p.trace_id
+     AND t.session_key IS NOT DISTINCT FROM p.session_key
+     AND t.session_id IS NOT DISTINCT FROM p.session_id
      AND t.caller_attribution IS NOT DISTINCT FROM p.caller_attribution
      AND t.request_headers IS NOT DISTINCT FROM p.request_headers
      AND t.request_params IS NOT DISTINCT FROM p.request_params
@@ -128,6 +131,9 @@ export const INSERT_LEGACY_FALLBACK_PAIRS_SQL = `
      AND t.timestamp = p.timestamp - (fi.fallback_index + 1) * INTERVAL '100 milliseconds'
      AND t.tenant_id IS NOT DISTINCT FROM p.tenant_id
      AND t.agent_id IS NOT DISTINCT FROM p.agent_id
+     AND t.trace_id IS NOT DISTINCT FROM p.trace_id
+     AND t.session_key IS NOT DISTINCT FROM p.session_key
+     AND t.session_id IS NOT DISTINCT FROM p.session_id
      AND t.caller_attribution IS NOT DISTINCT FROM p.caller_attribution
      AND t.request_headers IS NOT DISTINCT FROM p.request_headers
      AND t.request_params IS NOT DISTINCT FROM p.request_params
@@ -192,6 +198,9 @@ export const INSERT_LEGACY_FALLBACK_MEMBERS_SQL = `
      AND pa.fallback_index = fi.fallback_index
      AND pa.tenant_id IS NOT DISTINCT FROM primary_attempt.tenant_id
      AND pa.agent_id IS NOT DISTINCT FROM primary_attempt.agent_id
+     AND pa.trace_id IS NOT DISTINCT FROM primary_attempt.trace_id
+     AND pa.session_key IS NOT DISTINCT FROM primary_attempt.session_key
+     AND pa.session_id IS NOT DISTINCT FROM primary_attempt.session_id
      AND pa.caller_attribution IS NOT DISTINCT FROM primary_attempt.caller_attribution
      AND pa.request_headers IS NOT DISTINCT FROM primary_attempt.request_headers
      AND pa.request_params IS NOT DISTINCT FROM primary_attempt.request_params
@@ -212,6 +221,9 @@ export const INSERT_LEGACY_FALLBACK_MEMBERS_SQL = `
      AND pa.fallback_index = fi.fallback_index
      AND pa.tenant_id IS NOT DISTINCT FROM primary_attempt.tenant_id
      AND pa.agent_id IS NOT DISTINCT FROM primary_attempt.agent_id
+     AND pa.trace_id IS NOT DISTINCT FROM primary_attempt.trace_id
+     AND pa.session_key IS NOT DISTINCT FROM primary_attempt.session_key
+     AND pa.session_id IS NOT DISTINCT FROM primary_attempt.session_id
      AND pa.caller_attribution IS NOT DISTINCT FROM primary_attempt.caller_attribution
      AND pa.request_headers IS NOT DISTINCT FROM primary_attempt.request_headers
      AND pa.request_params IS NOT DISTINCT FROM primary_attempt.request_params
@@ -547,7 +559,8 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
       await runner.query(`SET max_parallel_workers_per_gather = 0`);
       await runner.query(`SET max_parallel_maintenance_workers = 0`);
       await runner.query(CREATE_LEGACY_FALLBACK_STAGING_SQL);
-      await runner.query(INSERT_LEGACY_FALLBACK_INDEXES_SQL);
+      await runner.query(INSERT_LEGACY_FALLBACK_INDEXES_SQL, [before]);
+      await runner.query('ANALYZE "request_backfill_fallback_indexes"');
 
       let afterId = '';
       for (;;) {
@@ -647,6 +660,12 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
       await runner.query(
         'ALTER TABLE "provider_attempts" VALIDATE CONSTRAINT "FK_provider_attempts_request"',
       );
+    });
+  }
+
+  async finalizePending(timeouts: RequestBackfillTimeouts): Promise<void> {
+    await this.inTransaction(timeouts, async (runner) => {
+      await runner.query(FINALIZE_PENDING_REQUESTS_SQL);
     });
   }
 

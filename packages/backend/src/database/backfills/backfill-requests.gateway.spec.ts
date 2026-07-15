@@ -4,7 +4,9 @@ import {
   CREATE_LEGACY_FALLBACK_STAGING_SQL,
   CREATE_LEGACY_FALLBACK_GROUPS_SQL,
   FALLBACK_PRIMARY_WINDOW_END_SQL,
+  FINALIZE_PENDING_REQUESTS_SQL,
   INSERT_LEGACY_FALLBACK_DIRECT_MEMBERS_SQL,
+  INSERT_LEGACY_FALLBACK_INDEXES_SQL,
   INSERT_LEGACY_FALLBACK_MEMBERS_SQL,
   INSERT_LEGACY_FALLBACK_PAIRS_SQL,
   INSERT_LEGACY_FALLBACK_REQUESTS_SQL,
@@ -92,6 +94,7 @@ describe('TypeOrmRequestBackfillGateway', () => {
       attempts: 5,
     });
     expect(runner.query).toHaveBeenCalledWith(CREATE_LEGACY_FALLBACK_STAGING_SQL);
+    expect(runner.query).toHaveBeenCalledWith(INSERT_LEGACY_FALLBACK_INDEXES_SQL, [before]);
     expect(runner.query).toHaveBeenCalledWith(INSERT_LEGACY_FALLBACK_PAIRS_SQL, [
       '',
       'primary-z',
@@ -119,6 +122,21 @@ describe('TypeOrmRequestBackfillGateway', () => {
     expect(runner.query).toHaveBeenCalledWith(
       'ALTER TABLE "provider_attempts" VALIDATE CONSTRAINT "FK_provider_attempts_request"',
     );
+    expect(runner.commitTransaction).toHaveBeenCalled();
+    expect(runner.release).toHaveBeenCalled();
+  });
+
+  it('finalizes pending requests without validating the foreign key', async () => {
+    const runner = mockQueryRunner();
+    runner.query.mockResolvedValue(undefined);
+    const gateway = new TypeOrmRequestBackfillGateway({
+      createQueryRunner: jest.fn(() => runner),
+    } as unknown as DataSource);
+
+    await gateway.finalizePending(timeouts);
+
+    expect(runner.query).toHaveBeenCalledWith(FINALIZE_PENDING_REQUESTS_SQL);
+    expect(runner.query).not.toHaveBeenCalledWith(expect.stringContaining('VALIDATE CONSTRAINT'));
     expect(runner.commitTransaction).toHaveBeenCalled();
     expect(runner.release).toHaveBeenCalled();
   });

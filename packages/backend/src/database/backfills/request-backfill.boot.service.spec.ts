@@ -256,6 +256,7 @@ describe('RequestBackfillBootService', () => {
         _logger: Pick<Logger, 'log'>,
         _options: {
           analyze?: boolean;
+          finalizePending?: boolean;
           finalize?: boolean;
           before?: string;
           fallbackBefore?: string;
@@ -276,12 +277,15 @@ describe('RequestBackfillBootService', () => {
     expect(options).toEqual(
       expect.objectContaining({
         analyze: false,
+        finalizePending: true,
         finalize: false,
         before: expect.any(String),
         fallbackBefore: expect.any(String),
       }),
     );
     expect(Date.parse(options.fallbackBefore!)).toBeGreaterThan(Date.parse(options.before!));
+    expect(query).toHaveBeenNthCalledWith(1, expect.any(String), [options.fallbackBefore]);
+    expect(query).toHaveBeenNthCalledWith(2, expect.any(String), [options.fallbackBefore]);
     expect(lock.query).toHaveBeenCalledWith('SELECT pg_advisory_unlock($1)', [
       REQUEST_BACKFILL_LOCK_KEY,
     ]);
