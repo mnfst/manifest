@@ -1,0 +1,31 @@
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_02f28e248c2d45::t_2dc7e064a2de48 123-124,130,140-141,147-192,765
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_02f28e248c2d45::t_68eb13c800fc37 657,661,695-696
+  s_02f28e248c2d45::t_2dc7e064a2de48 39,58-62,215-238,320-326,662-694
+packages/frontend/src/components/UnifiedChartCard.tsx
+  s_02f28e248c2d45::t_2dc7e064a2de48 1-229
+packages/frontend/src/pages/Overview.tsx
+  s_02f28e248c2d45::t_68eb13c800fc37 514-515
+  s_02f28e248c2d45::t_2dc7e064a2de48 12,44,109,274-307,483-513
+packages/frontend/tests/pages/Overview.test.tsx
+  s_02f28e248c2d45::t_2dc7e064a2de48 449,455,460,471-472,478,480,486
+packages/frontend/src/styles/theme.css
+  s_02f28e248c2d45::t_2dc7e064a2de48 396-433,1619
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "17352ac4ce7e5c4e8fc9d65a6fd0ae204a4f3bab",
+  "prompts": {},
+  "sessions": {
+    "s_02f28e248c2d45": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f651f-32e7-7652-ba1c-50bf40823758",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
