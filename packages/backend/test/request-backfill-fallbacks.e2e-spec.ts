@@ -14,6 +14,9 @@ interface LegacyAttempt {
   autofixGroup?: string;
   errorOrigin?: string;
   requestParams?: object;
+  traceId?: string;
+  sessionKey?: string;
+  sessionId?: string;
 }
 
 describe('request backfill legacy fallback reconstruction (e2e)', () => {
@@ -80,10 +83,11 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
         id, tenant_id, agent_id, agent_name, timestamp, duration_ms, status,
         model, fallback_from_model, fallback_index, superseded,
         autofix_group_id, error_origin, caller_attribution, request_headers,
-        request_params
+        request_params, trace_id, session_key, session_id
       ) VALUES (
         $1, 'tenant-1', 'agent-1', 'Agent', $2, 100, $3, $4, $5, $6, $7,
-        $8, $9, '{"agent":"openai-sdk"}', '{"content-type":"application/json"}', $10
+        $8, $9, '{"agent":"openai-sdk"}', '{"content-type":"application/json"}',
+        $10, $11, $12, $13
       )`,
       [
         attempt.id,
@@ -96,18 +100,29 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
         attempt.autofixGroup ?? null,
         attempt.errorOrigin ?? null,
         attempt.requestParams ?? { model: 'openai/gpt-4o' },
+        attempt.traceId ?? null,
+        attempt.sessionKey ?? null,
+        attempt.sessionId ?? null,
       ],
     );
   }
 
   async function backfill(
-    options: { batchSize?: number; before?: string; fallbackBefore?: string } = {},
+    options: {
+      batchSize?: number;
+      before?: string;
+      fallbackBefore?: string;
+      finalize?: boolean;
+      finalizePending?: boolean;
+    } = {},
   ): Promise<void> {
     await runRequestBackfill(new TypeOrmRequestBackfillGateway(dataSource), {
       batchSize: options.batchSize ?? 2,
       throttleMs: 0,
       before: options.before,
       fallbackBefore: options.fallbackBefore,
+      finalize: options.finalize,
+      finalizePending: options.finalizePending,
     });
   }
 
@@ -238,6 +253,97 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     expect({ requests, parents }).toEqual({ requests: 3, parents: 3 });
   });
 
+  it('does not reconstruct a fallback chain across trace or session identity', async () => {
+    await insertAttempt({
+      id: 'identity-primary',
+      timestamp: '2026-01-01 00:02:30.000',
+      status: 'fallback_error',
+      model: 'openai/gpt-4o',
+      superseded: true,
+      errorOrigin: 'provider',
+      traceId: 'trace-a',
+      sessionKey: 'session-key-a',
+      sessionId: 'session-a',
+    });
+    await insertAttempt({
+      id: 'identity-terminal',
+      timestamp: '2026-01-01 00:02:30.100',
+      status: 'ok',
+      model: 'anthropic/claude-sonnet',
+      fallbackFrom: 'openai/gpt-4o',
+      fallbackIndex: 0,
+      traceId: 'trace-b',
+      sessionKey: 'session-key-b',
+      sessionId: 'session-b',
+    });
+
+    await backfill();
+
+    const [{ requests, parents, fallbackRequests }] = await dataSource.query(
+      `SELECT (SELECT count(*)::int FROM requests) requests,
+              (SELECT count(DISTINCT request_id)::int FROM provider_attempts) parents,
+              (SELECT count(*)::int FROM requests
+               WHERE id LIKE 'legacy-fallback-%') AS "fallbackRequests"`,
+    );
+    expect({ requests, parents, fallbackRequests }).toEqual({
+      requests: 2,
+      parents: 2,
+      fallbackRequests: 0,
+    });
+  });
+
+  it('does not attach a fallback member from another trace or session', async () => {
+    const identity = {
+      traceId: 'trace-a',
+      sessionKey: 'session-key-a',
+      sessionId: 'session-a',
+    };
+    await insertAttempt({
+      id: 'member-primary',
+      timestamp: '2026-01-01 00:02:40.000',
+      status: 'fallback_error',
+      model: 'openai/gpt-4o',
+      superseded: true,
+      errorOrigin: 'provider',
+      ...identity,
+    });
+    await insertAttempt({
+      id: 'foreign-member',
+      timestamp: '2026-01-01 00:02:40.200',
+      status: 'fallback_error',
+      model: 'anthropic/claude-sonnet',
+      fallbackFrom: 'openai/gpt-4o',
+      fallbackIndex: 0,
+      superseded: true,
+      errorOrigin: 'provider',
+      traceId: 'trace-b',
+      sessionKey: 'session-key-b',
+      sessionId: 'session-b',
+    });
+    await insertAttempt({
+      id: 'member-terminal',
+      timestamp: '2026-01-01 00:02:40.300',
+      status: 'ok',
+      model: 'google/gemini-pro',
+      fallbackFrom: 'openai/gpt-4o',
+      fallbackIndex: 2,
+      ...identity,
+    });
+
+    await backfill();
+
+    const rows = (await dataSource.query(
+      `SELECT r.id, count(pa.id)::int AS attempts
+       FROM requests r
+       JOIN provider_attempts pa ON pa.request_id = r.id
+       GROUP BY r.id
+       ORDER BY attempts DESC`,
+    )) as { id: string; attempts: number }[];
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toEqual({ id: expect.stringMatching(/^legacy-fallback-/), attempts: 2 });
+    expect(rows[1]).toEqual({ id: expect.not.stringMatching(/^legacy-fallback-/), attempts: 1 });
+  });
+
   it('rejects member ambiguity that spans separate source batches', async () => {
     await insertAttempt({
       id: 'cross-batch-primary-a',
@@ -338,6 +444,27 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
               (SELECT count(*)::int FROM provider_attempts WHERE request_id IS NULL) unlinked`,
     );
     expect({ requests, parents, unlinked }).toEqual({ requests: 1, parents: 1, unlinked: 0 });
+  });
+
+  it('finalizes an incomplete fallback chain during a tail sweep', async () => {
+    await insertAttempt({
+      id: 'incomplete-primary',
+      timestamp: '2026-01-01 00:06:00.000',
+      status: 'fallback_error',
+      model: 'openai/gpt-4o',
+      superseded: true,
+      errorOrigin: 'provider',
+    });
+
+    await backfill({
+      before: '2026-01-01 00:07:00.000',
+      fallbackBefore: '2026-01-01 00:07:00.000',
+      finalize: false,
+      finalizePending: true,
+    });
+
+    const [request] = await dataSource.query(`SELECT status FROM requests`);
+    expect(request).toEqual({ status: 'fallback_error' });
   });
 
   it('preserves ordinary and Auto-fix grouping behavior', async () => {

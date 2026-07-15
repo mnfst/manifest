@@ -15,6 +15,7 @@ describe('runRequestBackfill', () => {
         .fn()
         .mockResolvedValueOnce({ requests: 2, attempts: 2, rejections: 0 })
         .mockResolvedValueOnce({ requests: 1, attempts: 1, rejections: 1 }),
+      finalizePending: jest.fn().mockResolvedValue(undefined),
       finalize: jest.fn().mockResolvedValue(undefined),
     };
     const sleep = jest.fn().mockResolvedValue(undefined);
@@ -58,6 +59,7 @@ describe('runRequestBackfill', () => {
         .fn()
         .mockRejectedValueOnce(new Error('canceling statement due to statement timeout'))
         .mockResolvedValueOnce({ requests: 1, attempts: 1, rejections: 0 }),
+      finalizePending: jest.fn().mockResolvedValue(undefined),
       finalize: jest.fn().mockResolvedValue(undefined),
     };
     const sleep = jest.fn().mockResolvedValue(undefined);
@@ -79,6 +81,7 @@ describe('runRequestBackfill', () => {
       backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
       nextWindowEnd: jest.fn().mockResolvedValue(null),
       backfillWindow: jest.fn(),
+      finalizePending: jest.fn().mockResolvedValue(undefined),
       finalize: jest.fn().mockResolvedValue(undefined),
     };
 
@@ -88,6 +91,26 @@ describe('runRequestBackfill', () => {
       attempts: 0,
       rejections: 0,
     });
+  });
+
+  it('finalizes pending outcomes in tail mode without validating the foreign key', async () => {
+    const gateway: RequestBackfillGateway = {
+      analyze: jest.fn().mockResolvedValue(undefined),
+      backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
+      nextWindowEnd: jest.fn().mockResolvedValue(null),
+      backfillWindow: jest.fn(),
+      finalizePending: jest.fn().mockResolvedValue(undefined),
+      finalize: jest.fn(),
+    };
+
+    await runRequestBackfill(gateway, {
+      analyze: false,
+      finalize: false,
+      finalizePending: true,
+    });
+
+    expect(gateway.finalizePending).toHaveBeenCalledTimes(1);
+    expect(gateway.finalize).not.toHaveBeenCalled();
   });
 
   it('reports periodic progress and retries finalization', async () => {
@@ -106,6 +129,7 @@ describe('runRequestBackfill', () => {
         .fn()
         .mockRejectedValueOnce('deadlock detected')
         .mockResolvedValue({ requests: 1, attempts: 1, rejections: 0 }),
+      finalizePending: jest.fn().mockResolvedValue(undefined),
       finalize: jest
         .fn()
         .mockRejectedValueOnce(new Error('lock timeout'))
@@ -135,6 +159,7 @@ describe('runRequestBackfill', () => {
       backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
       nextWindowEnd: jest.fn().mockResolvedValueOnce('b').mockResolvedValueOnce(null),
       backfillWindow: jest.fn().mockResolvedValue({ requests: 1, attempts: 1, rejections: 0 }),
+      finalizePending: jest.fn().mockResolvedValue(undefined),
       finalize: jest.fn().mockResolvedValue(undefined),
     };
 
@@ -154,6 +179,7 @@ describe('runRequestBackfill', () => {
       backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
       nextWindowEnd: jest.fn().mockResolvedValue('b'),
       backfillWindow: jest.fn().mockRejectedValue(failure),
+      finalizePending: jest.fn(),
       finalize: jest.fn(),
     };
 
@@ -166,6 +192,7 @@ describe('runRequestBackfill', () => {
       backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
       nextWindowEnd: jest.fn().mockResolvedValue(null),
       backfillWindow: jest.fn(),
+      finalizePending: jest.fn().mockResolvedValue(undefined),
       finalize: jest
         .fn()
         .mockRejectedValueOnce('deadlock detected')
@@ -189,6 +216,7 @@ describe('runRequestBackfill', () => {
       backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
       nextWindowEnd: jest.fn().mockResolvedValue(null),
       backfillWindow: jest.fn(),
+      finalizePending: jest.fn(),
       finalize: jest.fn().mockRejectedValue(failure),
     };
 
@@ -204,6 +232,7 @@ describe('runRequestBackfill', () => {
         .mockResolvedValueOnce({ requests: 1, attempts: 3 }),
       nextWindowEnd: jest.fn().mockResolvedValue(null),
       backfillWindow: jest.fn(),
+      finalizePending: jest.fn().mockResolvedValue(undefined),
       finalize: jest.fn().mockResolvedValue(undefined),
     };
     const sleep = jest.fn().mockResolvedValue(undefined);
@@ -232,6 +261,7 @@ describe('runRequestBackfill', () => {
       backfillFallbackGroups: jest.fn(),
       nextWindowEnd: jest.fn(),
       backfillWindow: jest.fn(),
+      finalizePending: jest.fn(),
       finalize: jest.fn(),
     };
 
