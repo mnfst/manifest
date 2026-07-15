@@ -1,0 +1,62 @@
+packages/backend/src/database/backfills/backfill-requests.spec.ts
+  s_8e604c15975dfe::t_41fd133410d371 226-234,236-246
+  s_8e604c15975dfe::t_f4a5aa199eed31 8,25,56,81,120,159,179,192,216
+  s_8e604c15975dfe::t_145078ae80e0ce 247-249,261
+packages/backend/src/database/backfills/backfill-requests.ts
+  s_8e604c15975dfe::t_906f6af455eeca 10,13,15,119-121,128-145
+  s_8e604c15975dfe::t_1469f8a35d2c7e 146
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_8e604c15975dfe::t_8b0522033f81e7 34-40,81-88,90,92-95,98-99,103-105,107,110-121,123,125-129,132-133,137-139,141,144-147,186-188,192-193,269-270,283-332,544,547,549,614
+  s_8e604c15975dfe::t_80a11260b1dd25 189
+  s_8e604c15975dfe::t_4de433f65996ce 626-627
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_8e604c15975dfe::t_4998e0d8dc7bed 5,12-13,74-75,87-90,93-95,106-107,109
+  s_8e604c15975dfe::t_f3b1fd9da96a38 110-111
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_8e604c15975dfe::t_d09efef281504b 1-16,20-85,87-88,91-102,106-109,119,121,126-166,168-255,470-502
+packages/backend/src/routing/autofix/autofix-cohort.controller.ts
+  s_7b04613e6c1f2a::t_e7a57f9cc4a6a8 1-30
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_7b04613e6c1f2a::t_98aa3177d98edd 7
+  s_7b04613e6c1f2a::t_ee33158599018f 27
+packages/frontend/src/services/api/autofix.ts
+  s_7b04613e6c1f2a::t_0fdb73229f6607 1-24
+packages/frontend/src/index.tsx
+  s_7b04613e6c1f2a::t_d0932aaab2b772 10
+  s_7b04613e6c1f2a::t_0ed3f1c9e97a0d 53-64
+  s_7b04613e6c1f2a::t_ef0a19b50ed7f1 86
+packages/frontend/src/services/api.ts
+  s_7b04613e6c1f2a::t_8998c146cd2614 6
+packages/backend/src/routing/autofix/__tests__/autofix-cohort.controller.spec.ts
+  s_7b04613e6c1f2a::t_7a6099b7667a1d 1-34
+packages/frontend/tests/services/api/autofix.test.ts
+  s_7b04613e6c1f2a::t_6e6c1758ad7d44 1-40
+packages/frontend/tests/components/AutofixCohortGate.test.tsx
+  s_7b04613e6c1f2a::t_189b1b211a3a0d 1-63
+packages/frontend/src/components/AutofixCohortGate.tsx
+  s_7b04613e6c1f2a::t_61d67ab30d9f41 1-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "3071b699ff415066fd8dcef2660d63e8ccc303eb",
+  "prompts": {},
+  "sessions": {
+    "s_7b04613e6c1f2a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1b1af942-3126-4469-a9b1-c9d382c90052",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_8e604c15975dfe": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f65db-3a3a-7062-b4ed-378f1f8bcbe3",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
