@@ -1,0 +1,25 @@
+packages/frontend/src/styles/analytics-overview.css
+  s_02f28e248c2d45::t_93b47614ce76c1 62-81
+packages/frontend/src/pages/Overview.tsx
+  s_02f28e248c2d45::t_93b47614ce76c1 13
+packages/frontend/src/components/AutofixKpiCards.tsx
+  s_02f28e248c2d45::t_93b47614ce76c1 16-23,25-26
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_02f28e248c2d45::t_93b47614ce76c1 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "3e6f1d8007c89aac7c7fea4cec192fce29531566",
+  "prompts": {},
+  "sessions": {
+    "s_02f28e248c2d45": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f651f-32e7-7652-ba1c-50bf40823758",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
