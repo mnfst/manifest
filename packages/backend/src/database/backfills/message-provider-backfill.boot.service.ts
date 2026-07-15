@@ -15,6 +15,7 @@ export const MESSAGE_PROVIDER_BACKFILL_NAME = 'agent_message_provider_attributio
 /** Shared lock key so only one post-deploy backfill runs at once. */
 export const MESSAGE_PROVIDER_BACKFILL_LOCK_KEY = 1792000000;
 const LOCK_RETRY_MS = 30_000;
+export const MESSAGE_PROVIDER_BACKFILL_MAX_LOCK_ATTEMPTS = 10;
 
 const wait = (ms: number): Promise<void> =>
   new Promise((resolve) => {
@@ -68,7 +69,13 @@ export class MessageProviderBackfillBootService implements OnApplicationBootstra
   }
 
   private async runUntilComplete(): Promise<void> {
-    while (!(await this.runOnce())) await wait(LOCK_RETRY_MS);
+    for (let attempt = 1; attempt <= MESSAGE_PROVIDER_BACKFILL_MAX_LOCK_ATTEMPTS; attempt += 1) {
+      if (await this.runOnce()) return;
+      if (attempt < MESSAGE_PROVIDER_BACKFILL_MAX_LOCK_ATTEMPTS) await wait(LOCK_RETRY_MS);
+    }
+    throw new Error(
+      `provider attribution lock stayed busy for ${MESSAGE_PROVIDER_BACKFILL_MAX_LOCK_ATTEMPTS} attempts`,
+    );
   }
 
   /** `runner` is injectable for tests; production uses the real backfill. */

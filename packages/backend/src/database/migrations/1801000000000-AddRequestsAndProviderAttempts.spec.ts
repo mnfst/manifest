@@ -51,4 +51,11 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
     expect(drop).toBeGreaterThan(-1);
     expect(create).toBeGreaterThan(drop);
   });
+
+  it('checks index validity on provider_attempts rather than by global name alone', async () => {
+    await migration.up(runner);
+
+    const validityQuery = queries.find((sql) => sql.includes('i.indisvalid'));
+    expect(validityQuery).toContain("i.indrelid = 'provider_attempts'::regclass");
+  });
 });
