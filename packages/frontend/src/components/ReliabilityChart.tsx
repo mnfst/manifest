@@ -58,11 +58,11 @@ function colorFor(key: string, mode: string, idx: number): string {
 function keyLabel(key: string): string {
   if (key === 'none') return 'No error';
   if (key === 'success') return 'Success';
-  if (key === 'healed') return 'Auto-fixed';
+  if (key === 'healed') return 'Success - healed via Auto-fix';
   if (key === 'error') return 'Error';
   if (key === 'no_fix_found') return 'No fix found';
-  if (key === 'autofix') return 'Recovered by autofix';
-  if (key === 'fallback') return 'Recovered by fallback';
+  if (key === 'autofix') return 'Success - healed via Auto-fix';
+  if (key === 'fallback') return 'Success - healed via Fallback';
   return key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 }
 

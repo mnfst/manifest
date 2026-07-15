@@ -139,8 +139,8 @@ describe('analytics chart surface components', () => {
     await buildLazyChart();
     // Stacked series are reversed (top-of-stack first).
     const labels = capturedChartOpts.series.slice(1).map((s: { label: string }) => s.label);
-    expect(labels).toContain('Auto-fixed');
-    expect(labels).toContain('Recovered by fallback');
+    expect(labels).toContain('Success - healed via Auto-fix');
+    expect(labels).toContain('Success - healed via Fallback');
     unmount();
   });
 
