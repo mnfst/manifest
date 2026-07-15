@@ -26,16 +26,18 @@ const DevAutofixToggle: Component = () => {
       class={`header__mode-badge header__mode-badge--dev header__dev-autofix${
         enabled() ? ' header__dev-autofix--active' : ''
       }`}
-      aria-label={`${enabled() ? 'Deactivate' : 'Activate'} Auto-fix for this tenant`}
+      aria-label={`${enabled() ? 'Revoke' : 'Grant'} the Dr version for this tenant`}
       aria-pressed={enabled()}
       disabled={saving() || unavailable()}
-      title="Toggle the current tenant's Auto-fix cohort access (development only)"
+      title="Toggle the current tenant's Dr version access (development only)"
       onClick={toggle}
     >
       <span>Dev</span>
       <span class="header__dev-autofix-divider" aria-hidden="true" />
       <span class="header__dev-autofix-dot" aria-hidden="true" />
-      <span>Auto-fix {saving() || cohort.loading ? '…' : enabled() ? 'on' : 'off'}</span>
+      <span>
+        Dr version {saving() || cohort.loading ? '…' : enabled() ? 'available' : 'unavailable'}
+      </span>
     </button>
   );
 };

@@ -23,12 +23,12 @@ beforeEach(() => {
 });
 
 describe('DevAutofixToggle', () => {
-  it('activates Auto-fix and reloads the dashboard', async () => {
+  it('grants the Dr version and reloads the dashboard', async () => {
     getAutofixCohort.mockResolvedValue({ eligible: false });
     setDevAutofixCohort.mockResolvedValue({ eligible: true });
     render(() => <DevAutofixToggle />);
 
-    const button = await screen.findByRole('button', { name: 'Activate Auto-fix for this tenant' });
+    const button = await screen.findByRole('button', { name: 'Grant the Dr version for this tenant' });
     expect(button.getAttribute('aria-pressed')).toBe('false');
 
     await fireEvent.click(button);
@@ -37,13 +37,13 @@ describe('DevAutofixToggle', () => {
     expect(reload).toHaveBeenCalledOnce();
   });
 
-  it('deactivates Auto-fix and reloads the dashboard', async () => {
+  it('revokes the Dr version and reloads the dashboard', async () => {
     getAutofixCohort.mockResolvedValue({ eligible: true });
     setDevAutofixCohort.mockResolvedValue({ eligible: false });
     render(() => <DevAutofixToggle />);
 
     const button = await screen.findByRole('button', {
-      name: 'Deactivate Auto-fix for this tenant',
+      name: 'Revoke the Dr version for this tenant',
     });
     expect(button.getAttribute('aria-pressed')).toBe('true');
 
@@ -58,6 +58,6 @@ describe('DevAutofixToggle', () => {
     render(() => <DevAutofixToggle />);
 
     expect(screen.getByRole('button').hasAttribute('disabled')).toBe(true);
-    expect(screen.getByText('Auto-fix …')).toBeDefined();
+    expect(screen.getByText('Dr version …')).toBeDefined();
   });
 });
