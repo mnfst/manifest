@@ -303,7 +303,19 @@ export class AutofixStatsService {
   private requestDimensionExpr(by: AutofixTsDimension): string {
     switch (by) {
       case 'disposition':
-        return `CASE WHEN r.status = 'ok' THEN 'success' ELSE 'error' END`;
+        return `CASE
+          WHEN r.status != 'ok' THEN 'error'
+          WHEN (SELECT COUNT(*) FROM provider_attempts pa WHERE pa.request_id = r.id) <= 1 THEN 'success'
+          WHEN EXISTS (
+            SELECT 1 FROM provider_attempts pa
+            WHERE pa.request_id = r.id AND pa.autofix_applied = true
+          ) THEN 'autofix'
+          WHEN EXISTS (
+            SELECT 1 FROM provider_attempts pa
+            WHERE pa.request_id = r.id AND pa.fallback_from_model IS NOT NULL
+          ) THEN 'fallback'
+          ELSE 'success'
+        END`;
       case 'http_status':
         return `COALESCE(r.error_http_status::text, CASE WHEN r.status = 'ok' THEN '200' ELSE 'No response' END)`;
       case 'provider':

@@ -18,8 +18,10 @@ import type { AutofixTimeseries } from '../services/api/analytics.js';
 // Colors per series mode
 // ---------------------------------------------------------------------------
 const OUTCOME_COLORS: Record<string, string> = {
-  success: '#1cc4bf', // --success teal
-  healed: '#1cc4bf', // teal accent — "the product saved this request"
+  success: '#1cc4bf', // --success teal — direct success
+  healed: '#1cc4bf', // teal accent
+  autofix: '#2632ef', // blue — recovered by autofix
+  fallback: '#f2c79c', // warm yellow — recovered by fallback
   error: '#EF4444', // --destructive red
   no_fix_found: '#F59E0B', // amber
   resolving: '#D1D5DB',
@@ -59,6 +61,8 @@ function keyLabel(key: string): string {
   if (key === 'healed') return 'Auto-fixed';
   if (key === 'error') return 'Error';
   if (key === 'no_fix_found') return 'No fix found';
+  if (key === 'autofix') return 'Recovered by autofix';
+  if (key === 'fallback') return 'Recovered by fallback';
   return key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 }
 
