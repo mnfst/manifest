@@ -1,0 +1,93 @@
+packages/frontend/tests/pages/ProviderPages.test.tsx
+  s_02f28e248c2d45::t_b0a369429bddcc 96-103
+  s_02f28e248c2d45::t_822d19ca025f71 664
+packages/frontend/src/components/RequestDrawer.tsx
+  s_02f28e248c2d45::t_910b8dd1f4fc9b 366
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_02f28e248c2d45::t_c6fb1ff2054b13 23,41,224-225,316,318,320,322,706,730,733,901-903,949-953
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_02f28e248c2d45::t_c2ada638d232ea 40,399,401,403,406,411,548-553,555,575-577,719,721-725
+  s_02f28e248c2d45::t_b521bdafd64ec0 39
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_02f28e248c2d45::t_375944e97771c5 834-836,931,933-935,949-951,984-986,1035,1053
+  s_02f28e248c2d45::t_6a8d9815deec47 40
+  s_02f28e248c2d45::t_822d19ca025f71 308,313,684-685,936-947
+  s_02f28e248c2d45::t_48bfc38b027d2f 61-62,67,198,202,215-217,288,290,292,294,298-304,629,642-643,650,670-680
+packages/frontend/tests/pages/Overview.test.tsx
+  s_02f28e248c2d45::t_afecbc22aa4ad1 472,478,520,528,534
+  s_02f28e248c2d45::t_822d19ca025f71 83-85,87-88
+  s_02f28e248c2d45::t_f43c8756c17ead 483,526
+  s_02f28e248c2d45::t_8ef98b73e0f132 492
+  s_02f28e248c2d45::t_611391172bc4d4 72-73,86,94-96,248-253,484-491,493-505,507-509
+  s_02f28e248c2d45::t_b3a77dbe8d1ffe 78-82,93
+packages/frontend/src/services/api/analytics.ts
+  s_02f28e248c2d45::t_dc452fd967e2e6 195
+packages/frontend/src/pages/Overview.tsx
+  s_02f28e248c2d45::t_6a8d9815deec47 14,473
+  s_02f28e248c2d45::t_48bfc38b027d2f 30-31,50,114,151,261-264,266,269,278,284-286,292-293,455-456,465-466
+  s_02f28e248c2d45::t_822d19ca025f71 279-283,287-291,492-493
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_02f28e248c2d45::t_822d19ca025f71 85-86,88-89
+  s_02f28e248c2d45::t_b3a77dbe8d1ffe 95-98
+packages/frontend/src/components/AutofixKpiCards.tsx
+  s_02f28e248c2d45::t_dc452fd967e2e6 33,35,38,42,44-45,49
+  s_02f28e248c2d45::t_822d19ca025f71 37
+packages/frontend/tests/components/AnalyticsChartSurfaces.test.tsx
+  s_02f28e248c2d45::t_3e6f8f5cd5b807 82,261-272
+  s_02f28e248c2d45::t_b5b9689a01706b 54-61
+  s_02f28e248c2d45::t_1bc8465aa52c13 167,179-197
+  s_02f28e248c2d45::t_13a1dcbefcf7d1 131-136
+  s_02f28e248c2d45::t_2f213dcb9dbd59 138
+  s_02f28e248c2d45::t_58b987adb669ca 168-178
+  s_02f28e248c2d45::t_c124731bf6df5e 7,68-75,79-81,106-130,137,139-166,198-217,237-260,273-327
+  s_02f28e248c2d45::t_875d35baba4f2b 218-236
+packages/frontend/tests/pages/Overview-limits.test.tsx
+  s_02f28e248c2d45::t_822d19ca025f71 69-71,73-74
+  s_02f28e248c2d45::t_b0a369429bddcc 64-68,79-80
+  s_02f28e248c2d45::t_b99be2c524c1e0 81-82
+packages/frontend/src/components/ReliabilityChart.tsx
+  s_02f28e248c2d45::t_f987075cf73ec7 17-18,23,90,93-94,126,129
+  s_02f28e248c2d45::t_dc452fd967e2e6 22
+  s_02f28e248c2d45::t_27c09899d8eb3e 15,30
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_02f28e248c2d45::t_b3a77dbe8d1ffe 67-71,82-83
+  s_02f28e248c2d45::t_822d19ca025f71 72-74,76-77
+  s_02f28e248c2d45::t_51a015a74cc445 84-85
+packages/frontend/src/components/UnifiedChartCard.tsx
+  s_02f28e248c2d45::t_822d19ca025f71 125
+  s_02f28e248c2d45::t_dc452fd967e2e6 4,9,23-25,63-77,83-86,110-124,126-150,197-198,200-230
+packages/backend/src/analytics/controllers/autofix-analytics.controller.spec.ts
+  s_02f28e248c2d45::t_15b1b84ffcfefa 1-63
+packages/frontend/tests/services/api/analytics.test.ts
+  s_02f28e248c2d45::t_f3acfcc5e18f59 77-122
+packages/frontend/tests/components/NotificationBell.test.tsx
+  s_02f28e248c2d45::t_f74e24569f1f1a 2-56,58-89,91-98,100-101,141
+  s_02f28e248c2d45::t_431a9ef6c33c4f 1,57,90,99
+  s_02f28e248c2d45::t_6a975c59aacf41 102-140
+packages/frontend/src/components/NotificationBell.tsx
+  s_02f28e248c2d45::t_c0c2a11735c843 14,64,66-71,91,133
+  s_02f28e248c2d45::t_822d19ca025f71 72
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_02f28e248c2d45::t_29a48f241f6a1d 1-112,114-156,160-177
+  s_02f28e248c2d45::t_b7096916df374a 113
+  s_02f28e248c2d45::t_11c3fe2b427734 157-159
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_02f28e248c2d45::t_b521bdafd64ec0 39-43,128
+  s_02f28e248c2d45::t_fea571129063df 1-38,44-127,129-252
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "9a8b5cecf7ab2f3b82dc78a1a422a6be1acd67b1",
+  "prompts": {},
+  "sessions": {
+    "s_02f28e248c2d45": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f651f-32e7-7652-ba1c-50bf40823758",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
