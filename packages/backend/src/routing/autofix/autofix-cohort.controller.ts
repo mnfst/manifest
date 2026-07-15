@@ -5,12 +5,13 @@ import { AutofixService } from './autofix.service';
 /**
  * Tenant-level Auto-fix beta cohort gate.
  *
- * Returns whether the current tenant is in the Auto-fix early-access allowlist —
- * the same hand-picked cohort (`AutofixService.hasAccess`, driven by
- * `AUTOFIX_ROLLOUT` + `autofix_access_granted_at` / `autofix_waitlist_at`) that
- * gates the Auto-fix feature itself. The dashboard reads this to decide whether
- * to render the redesigned Auto-fix beta UI; every other tenant keeps the
- * existing UI.
+ * Returns whether the current tenant is in the Auto-fix access cohort — resolved
+ * by `AutofixService.hasAccess` (driven by `AUTOFIX_ROLLOUT` +
+ * `autofix_access_granted_at` / `autofix_waitlist_at`), the same gate as the
+ * Auto-fix feature itself. The dashboard shows the same requests / attempts /
+ * fallbacks view to everyone and reads this only to gate the Auto-fix-specific
+ * pieces (auto-fixed KPIs and panels), which are absent for a tenant outside the
+ * cohort.
  *
  * Reusing `hasAccess` keeps a single source of truth for "who is in the beta"
  * and keeps the allowlist entirely backend-driven — the frontend never names a

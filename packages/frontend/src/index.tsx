@@ -7,7 +7,6 @@ import AuthLayout from './layouts/AuthLayout.jsx';
 import Workspace from './pages/Workspace.jsx';
 import RootRedirect from './components/RootRedirect.jsx';
 import AgentGuard from './components/AgentGuard.jsx';
-import AutofixCohortGate from './components/AutofixCohortGate.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
 import GuestGuard from './components/GuestGuard.jsx';
 import NotFound from './pages/NotFound.jsx';
@@ -50,15 +49,6 @@ const GuestLayout: ParentComponent = (props) => (
   </GuestGuard>
 );
 
-// Single entry point for the Auto-fix beta UI: the gate resolves the tenant's
-// access cohort and hands `eligible` to the overview. Today both cohorts see the
-// same overview — rendered once, so the page never remounts (or loses local
-// state) when the async cohort check resolves.
-// TODO(#2485): branch on `eligible()` here to render the redesigned overview.
-const OverviewRoute: ParentComponent = () => (
-  <AutofixCohortGate>{() => <GlobalOverview />}</AutofixCohortGate>
-);
-
 // Remove the static <title> from index.html so @solidjs/meta can manage
 // document.title via its own <title> elements. The static tag is kept in
 // index.html for SEO (pre-JS crawlers / Lighthouse) but must be removed
@@ -80,7 +70,7 @@ render(
       <Router>
         <Route path="/" component={App}>
           <Route path="/" component={RootRedirect} />
-          <Route path="/overview" component={OverviewRoute} />
+          <Route path="/overview" component={GlobalOverview} />
           <Route path="/messages" component={MessageLog} />
           <Route path="/harnesses" component={Workspace} />
           <Route path="/playground" component={Playground} />
