@@ -1,0 +1,33 @@
+packages/frontend/src/services/api/analytics.ts
+  s_02f28e248c2d45::t_752d0be5f49860 276-286
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_02f28e248c2d45::t_752d0be5f49860 190-191
+packages/frontend/src/components/Sidebar.tsx
+  s_02f28e248c2d45::t_752d0be5f49860 119-134
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_02f28e248c2d45::t_752d0be5f49860 191-232
+packages/backend/src/analytics/controllers/autofix-analytics.controller.ts
+  s_02f28e248c2d45::t_752d0be5f49860 53-60
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_02f28e248c2d45::t_752d0be5f49860 89,326
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_02f28e248c2d45::t_752d0be5f49860 66,346-350,677,762,1073-1074,1119-1160
+packages/frontend/src/components/AutofixKpiCards.tsx
+  s_02f28e248c2d45::t_752d0be5f49860 37-41,55-59,63-67,70-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "f3703150a0c0ee01141d03971155c7a4f607416e",
+  "prompts": {},
+  "sessions": {
+    "s_02f28e248c2d45": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f651f-32e7-7652-ba1c-50bf40823758",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
