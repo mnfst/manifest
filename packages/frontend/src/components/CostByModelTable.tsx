@@ -73,9 +73,9 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
             <th>Cost</th>
             {props.reliability && (
               <>
-                <th style="text-align: right;">Total requests</th>
-                <th style="text-align: right;">Healed</th>
-                <th style="text-align: right;">Success rate</th>
+                <th class="rel-col">Total requests</th>
+                <th class="rel-col">Healed</th>
+                <th class="rel-col">Success rate</th>
               </>
             )}
           </tr>
@@ -164,19 +164,19 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
                 </td>
                 {props.reliability && (
                   <>
-                    <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                    <td class="rel-col">
                       {(() => {
                         const rel = relFor(row.model);
                         return rel ? formatNumber(rel.requests) : '\u2014';
                       })()}
                     </td>
-                    <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                    <td class="rel-col">
                       {(() => {
                         const rel = relFor(row.model);
                         return rel ? formatNumber(selfHealedCount(rel)) : '\u2014';
                       })()}
                     </td>
-                    <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                    <td class="rel-col">
                       {(() => {
                         const rel = relFor(row.model);
                         const rate = rel ? successRate(rel) : null;

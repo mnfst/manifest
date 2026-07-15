@@ -575,10 +575,10 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                 <Show when={copy().rowMetricHeading}>
                   <th>{copy().rowMetricHeading}</th>
                 </Show>
-                <th style="text-align: right;">Requests (30d)</th>
+                <th class="rel-col">Requests (30d)</th>
                 <Show when={autofixEligible()}>
-                  <th style="text-align: right;">Self-healed requests (30d)</th>
-                  <th style="text-align: right;">Success rate (30d)</th>
+                  <th class="rel-col">Self-healed requests (30d)</th>
+                  <th class="rel-col">Success rate (30d)</th>
                 </Show>
                 <th>Last used</th>
                 <th />
@@ -720,14 +720,12 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       const rel = () => providerReliability()?.find((r) => r.provider === pKey);
                       return (
                         <>
-                          <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                            {formatNumber(row.summary.consumption_messages)}
-                          </td>
+                          <td class="rel-col">{formatNumber(row.summary.consumption_messages)}</td>
                           <Show when={autofixEligible()}>
-                            <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                            <td class="rel-col">
                               {rel() ? formatNumber(selfHealedCount(rel()!)) : '—'}
                             </td>
-                            <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                            <td class="rel-col">
                               {(() => {
                                 const rate = rel() ? successRate(rel()!) : null;
                                 return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;

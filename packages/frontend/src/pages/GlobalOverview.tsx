@@ -775,9 +775,9 @@ const GlobalOverview: Component = () => {
                   <th style="text-align: right;">Share</th>
                   <th style="text-align: right;">Est. cost</th>
                   <Show when={autofixEligible()}>
-                    <th style="text-align: right;">Total requests</th>
-                    <th style="text-align: right;">Healed</th>
-                    <th style="text-align: right;">Success rate</th>
+                    <th class="rel-col">Total requests</th>
+                    <th class="rel-col">Healed</th>
+                    <th class="rel-col">Success rate</th>
                   </Show>
                 </tr>
               </thead>
@@ -852,17 +852,17 @@ const GlobalOverview: Component = () => {
                           const rel = () => modelReliability()?.find((r) => r.model === row.model);
                           return (
                             <>
-                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                              <td class="rel-col">
                                 <Show when={rel()} fallback="—">
                                   {formatNumber(rel()!.requests)}
                                 </Show>
                               </td>
-                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                              <td class="rel-col">
                                 <Show when={rel()} fallback="—">
                                   {formatNumber(selfHealedCount(rel()!))}
                                 </Show>
                               </td>
-                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                              <td class="rel-col">
                                 {(() => {
                                   const rate = rel() ? successRate(rel()!) : null;
                                   return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
@@ -900,10 +900,10 @@ const GlobalOverview: Component = () => {
                   <th>Provider</th>
                   <th>Type</th>
                   <th>Status</th>
-                  <th style="text-align: right;">Total requests</th>
+                  <th class="rel-col">Total requests</th>
                   <Show when={autofixEligible()}>
-                    <th style="text-align: right;">Healed</th>
-                    <th style="text-align: right;">Success rate</th>
+                    <th class="rel-col">Healed</th>
+                    <th class="rel-col">Success rate</th>
                   </Show>
                 </tr>
               </thead>
@@ -998,16 +998,14 @@ const GlobalOverview: Component = () => {
                           const rel = () => providerReliability()?.find((r) => r.provider === pKey);
                           return (
                             <>
-                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                                {formatNumber(group.consumption_messages)}
-                              </td>
+                              <td class="rel-col">{formatNumber(group.consumption_messages)}</td>
                               <Show when={autofixEligible()}>
-                                <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                <td class="rel-col">
                                   <Show when={rel()} fallback="—">
                                     {formatNumber(selfHealedCount(rel()!))}
                                   </Show>
                                 </td>
-                                <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                <td class="rel-col">
                                   {(() => {
                                     const rate = rel() ? successRate(rel()!) : null;
                                     return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
@@ -1045,10 +1043,10 @@ const GlobalOverview: Component = () => {
                 <tr>
                   <th>Harness</th>
                   <th>Usage (30d)</th>
-                  <th style="text-align: right;">Total requests</th>
+                  <th class="rel-col">Total requests</th>
                   <Show when={autofixEligible()}>
-                    <th style="text-align: right;">Healed requests</th>
-                    <th style="text-align: right;">Success rate</th>
+                    <th class="rel-col">Healed requests</th>
+                    <th class="rel-col">Success rate</th>
                   </Show>
                 </tr>
               </thead>
@@ -1091,20 +1089,18 @@ const GlobalOverview: Component = () => {
                             </span>
                           </div>
                         </td>
-                        <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                          {formatNumber(agent.message_count ?? 0)}
-                        </td>
+                        <td class="rel-col">{formatNumber(agent.message_count ?? 0)}</td>
                         {(() => {
                           const rel = () =>
                             agentReliability()?.find((r) => r.agent_name === agent.agent_name);
                           return (
                             <Show when={autofixEligible()}>
-                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                              <td class="rel-col">
                                 <Show when={rel()} fallback="—">
                                   {formatNumber(selfHealedCount(rel()!))}
                                 </Show>
                               </td>
-                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                              <td class="rel-col">
                                 {(() => {
                                   const rate = rel() ? successRate(rel()!) : null;
                                   return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;

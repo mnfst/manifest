@@ -504,6 +504,20 @@ h6 {
   font-size: var(--font-size-sm);
 }
 
+/* Trailing reliability columns (Total requests · Healed · Success rate):
+   fixed width + right alignment so consecutive tables line up and the trio
+   reads as one continuous block down the page. */
+.data-table th.rel-col,
+.data-table td.rel-col {
+  text-align: right;
+  width: 130px;
+  min-width: 130px;
+  font-variant-numeric: tabular-nums;
+}
+.data-table td.rel-col {
+  white-space: nowrap;
+}
+
 .data-table th {
   text-align: left;
   font-size: var(--font-size-xs);
