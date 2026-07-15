@@ -833,7 +833,7 @@ const GlobalOverview: Component = () => {
                           </span>
                         </div>
                       </td>
-                      <td style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums;">
+                      <td style="text-align: right; font-variant-numeric: tabular-nums;">
                         {formatCost(row.estimated_cost) ?? '$0.00'}
                       </td>
                     </tr>
