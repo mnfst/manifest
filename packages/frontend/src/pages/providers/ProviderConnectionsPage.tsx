@@ -575,9 +575,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                 <Show when={copy().rowMetricHeading}>
                   <th>{copy().rowMetricHeading}</th>
                 </Show>
-                <th class="rel-col">Requests (30d)</th>
+                <th class="rel-col">Total requests (30d)</th>
                 <Show when={autofixEligible()}>
-                  <th class="rel-col">Self-healed requests (30d)</th>
+                  <th class="rel-col">Healed (30d)</th>
                   <th class="rel-col">Success rate (30d)</th>
                 </Show>
                 <th>Last used</th>
