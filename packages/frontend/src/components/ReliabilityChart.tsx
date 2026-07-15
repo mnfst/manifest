@@ -26,16 +26,8 @@ const OUTCOME_COLORS: Record<string, string> = {
   ineffective: '#DC2626',
 };
 
-const RECOVERY_COLORS: Record<string, string> = {
-  direct: '#1cc4bf', // --success teal — succeeded on first attempt
-  fallback: '#f2c79c', // warm yellow — recovered by fallback
-  autofix: '#2632ef', // blue — recovered by autofix
-  error: '#EF4444', // --destructive red — failed
-};
-
 function colorFor(key: string, mode: string, idx: number): string {
   if (mode === 'disposition') return OUTCOME_COLORS[key] ?? '#888';
-  if (mode === 'recovery') return RECOVERY_COLORS[key] ?? '#888';
   if (mode === 'autofix') {
     if (key === 'auto-fixed') return '#1cc4bf';
     return '#EF4444';
@@ -67,9 +59,6 @@ function keyLabel(key: string): string {
   if (key === 'healed') return 'Auto-fixed';
   if (key === 'error') return 'Error';
   if (key === 'no_fix_found') return 'No fix found';
-  if (key === 'direct') return 'Direct success';
-  if (key === 'fallback') return 'Recovered by fallback';
-  if (key === 'autofix') return 'Recovered by autofix';
   return key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 }
 

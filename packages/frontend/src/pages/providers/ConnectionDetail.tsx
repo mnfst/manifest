@@ -20,7 +20,6 @@ import {
   getPerAgentCostTimeseries,
   getWorkspaceAutofixStatus,
   getAutofixStats,
-  getAutofixTimeseries,
 } from '../../services/api/analytics.js';
 import { messagePing } from '../../services/sse.js';
 import { platformIcon } from 'manifest-shared';
@@ -323,16 +322,6 @@ const ConnectionDetail: Component = () => {
   const [autofixStats] = createResource(
     () => (autofixAvailable() ? { range: chartRange(), _ping: messagePing() } : false),
     (p) => getAutofixStats(p.range),
-  );
-
-  // ── Requests group-by (status vs recovery) ───────────────────────────
-  const [requestsGroupBy, setRequestsGroupBy] = createSignal<'status' | 'recovery'>('status');
-
-  // Recovery timeseries (fetched only when the requests chart is in "recovery" mode)
-  const [recoveryTs] = createResource(
-    () =>
-      requestsGroupBy() === 'recovery' ? { range: chartRange(), _ping: messagePing() } : false,
-    (p) => getAutofixTimeseries(p.range, 'recovery'),
   );
 
   // Harness tag selection for chart filtering (persisted in sessionStorage).
@@ -735,9 +724,6 @@ const ConnectionDetail: Component = () => {
                     <UnifiedChartCard
                       activeTab={chartView()}
                       onTabChange={setChartView}
-                      requestsGroupBy={requestsGroupBy()}
-                      onRequestsGroupByChange={setRequestsGroupBy}
-                      requestRecoveryTimeseries={recoveryTs()}
                       requestsValue={
                         autofixStats()?.total_requests.value ?? analytics()!.summary.messages.value
                       }
