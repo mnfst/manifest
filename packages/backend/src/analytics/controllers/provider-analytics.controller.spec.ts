@@ -113,6 +113,14 @@ describe('ProviderAnalyticsController', () => {
       expect(out.token_usage).toEqual([{ hour: '01' }]);
     });
 
+    it('defaults missing provider-attempt reliability aggregates to zero', async () => {
+      messageRepo.createQueryBuilder.mockReturnValueOnce(makeQb({ rawOne: undefined }));
+
+      const out = await controller.getAnalytics(ctx, 'subscription');
+
+      expect(out.attempts).toEqual({ total: 0, successful: 0, success_rate: 0 });
+    });
+
     it('honors 7d range (non-hourly) and agent + provider filters', async () => {
       await controller.getAnalytics(ctx, 'api_key', '7d', 'agent-x', 'openai');
       expect(timeseries.getTimeseries).toHaveBeenCalledWith(

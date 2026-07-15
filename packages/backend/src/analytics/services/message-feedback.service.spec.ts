@@ -206,5 +206,48 @@ describe('MessageFeedbackService', () => {
       });
       expect(messageRepo.update).not.toHaveBeenCalled();
     });
+
+    it('clears feedback on an explicit request', async () => {
+      const requestUpdate = jest.fn().mockResolvedValue({ affected: 1 });
+      const requestService = new MessageFeedbackService(
+        { createQueryBuilder: jest.fn(), update: jest.fn() } as never,
+        {
+          findOne: jest.fn().mockResolvedValue({ id: 'req-1', tenant_id: 'tenant-123' }),
+          update: requestUpdate,
+        } as never,
+      );
+
+      await requestService.clearFeedback('req-1', 'tenant-123');
+
+      expect(requestUpdate).toHaveBeenCalledWith('req-1', {
+        feedback_rating: null,
+        feedback_tags: null,
+        feedback_details: null,
+      });
+    });
+
+    it('rejects a linked attempt whose parent is outside the tenant', async () => {
+      const attemptQb = mockQb({
+        id: 'attempt-1',
+        tenant_id: 'tenant-123',
+        request_id: 'req-missing',
+      });
+      const requestService = new MessageFeedbackService(
+        { createQueryBuilder: jest.fn(() => attemptQb), update: jest.fn() } as never,
+        { findOne: jest.fn().mockResolvedValue(null), update: jest.fn() } as never,
+      );
+
+      await expect(requestService.setFeedback('attempt-1', 'tenant-123', 'like')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('does not query request ownership without a tenant', async () => {
+      const requestRepo = { findOne: jest.fn(), update: jest.fn() };
+      const requestService = new MessageFeedbackService({} as never, requestRepo as never);
+
+      await expect((requestService as any).findOwnedRequest('req-1', null)).resolves.toBeNull();
+      expect(requestRepo.findOne).not.toHaveBeenCalled();
+    });
   });
 });

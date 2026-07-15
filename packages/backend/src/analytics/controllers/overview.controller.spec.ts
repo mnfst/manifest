@@ -148,6 +148,36 @@ describe('OverviewController', () => {
     );
   });
 
+  it('uses request rows for recent activity when the request query service is available', async () => {
+    const requestItems = [{ id: 'request-1', status: 'ok' }];
+    const messagesQuery = { getMessages: jest.fn().mockResolvedValue({ items: requestItems }) };
+    const requestAwareController = new OverviewController(
+      agg as never,
+      ts as never,
+      { getProviders: mockGetProviders } as never,
+      { resolve: mockResolveAgent } as never,
+      { find: mockAccessFind } as never,
+      messagesQuery as never,
+    );
+
+    const result = await requestAwareController.getOverview(
+      { range: '24h', agent_name: 'bot-1' },
+      ctx as never,
+    );
+
+    expect(result.recent_activity).toEqual(requestItems);
+    expect(messagesQuery.getMessages).toHaveBeenCalledWith({
+      range: '24h',
+      tenantId: 'tenant-123',
+      agent_name: 'bot-1',
+      limit: 5,
+      include_total: false,
+      include_filter_options: false,
+      exclude_playground: true,
+    });
+    expect(ts.getRecentActivity).not.toHaveBeenCalled();
+  });
+
   it('returns combined agent usage timeseries', async () => {
     await controller.getOverviewAgentsUsage({ range: '24h' }, ctx as never);
     expect(ts.getAgentUsageTimeseries).toHaveBeenCalledWith('24h', 'tenant-123', true);

@@ -646,7 +646,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       status: 'fallback_error',
       ...autofixColumns(opts?.autofix, 'original'),
       error_message: scrubSecrets(errorBody).slice(0, 2000),
-      error_http_status: opts?.terminalHttpStatus ?? null,
+      error_http_status: null,
       model: canonical.model,
       provider: canonical.provider,
       routing_tier: tier,
@@ -666,6 +666,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       ? {
           ...row,
           status: opts.terminalHttpStatus === 429 ? 'rate_limited' : 'error',
+          error_http_status: opts.terminalHttpStatus,
         }
       : row;
     await this.persistRequest(ctx, requestId, requestOutcome, Boolean(opts?.terminalHttpStatus));
