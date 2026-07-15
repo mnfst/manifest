@@ -779,11 +779,11 @@ describe('AutofixService', () => {
   // maybeHeal — single attempt (no retry budget)
   // -------------------------------------------------------------------------
   describe('maybeHeal single attempt', () => {
-    it('applies the patch once; if the retry still fails, reports it and gives up as unfixable', async () => {
+    it('preserves a failed patched retry as the terminal exhausted attempt', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
       // The patched retry still fails with a repairable 400 — Auto-fix does NOT
-      // re-heal; it reports the retry outcome to Phoenix and returns the original.
+      // re-heal; it reports and returns the retry as the terminal attempt.
       const reforward = reforwardMock('{"error":{"message":"still-broken","code":"dup"}}', 400);
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
@@ -793,7 +793,7 @@ describe('AutofixService', () => {
         makeParams({ forward: makeForward(originalBody, 400), reforward }),
       );
 
-      expect(result!.record.outcome).toBe('unfixable');
+      expect(result!.record.outcome).toBe('exhausted');
       // Exactly one heal + one reforward — there is no retry budget.
       expect(client.heal).toHaveBeenCalledTimes(1);
       expect(reforward).toHaveBeenCalledTimes(1);
@@ -804,14 +804,22 @@ describe('AutofixService', () => {
         error: { message: 'still-broken', type: null, param: null, code: 'dup' },
       });
 
-      // The original entry is marked with the patch that didn't work; no terminal
-      // success entry is appended.
-      expect(result!.record.chain).toHaveLength(1);
+      // The original is linked to the distinct failed retry that Phoenix produced.
+      expect(result!.record.chain).toHaveLength(2);
       expect(result!.record.chain[0].patch_worked).toBe(false);
+      expect(result!.record.chain[1]).toEqual({
+        attempt: 1,
+        origin: 'autofix',
+        request: { model: 'gpt', max_output_tokens: 100 },
+        http_status: 400,
+        error: { message: 'still-broken', type: null, param: null, code: 'dup' },
+      });
 
-      // Falls back to the rebuilt original error, still readable.
+      // Continues with the rebuilt retry error, still readable downstream.
       expect(result!.forward.response.status).toBe(400);
-      await expect(result!.forward.response.text()).resolves.toBe(originalBody);
+      await expect(result!.forward.response.text()).resolves.toBe(
+        '{"error":{"message":"still-broken","code":"dup"}}',
+      );
     });
   });
 

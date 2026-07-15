@@ -866,10 +866,7 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[0][0].routing_reason).toBe('header-match');
     });
 
-    it('stamps the Auto-fix audit onto the superseded row when heal-then-fallback ran', async () => {
-      // Heal failed, a fallback then succeeded: the primary failure is recorded
-      // exactly once here (as fallback_error) carrying the Auto-fix stamp — no
-      // separate auto_fixed row is emitted, so the failure is never double-counted.
+    it('records the superseded patched retry when heal-then-fallback ran', async () => {
       await recorder.recordPrimaryFailure(
         ctx,
         'standard',
@@ -877,13 +874,14 @@ describe('ProxyMessageRecorder', () => {
         'Unknown parameter',
         '2025-01-01T00:00:00.000Z',
         'api_key',
-        { provider: 'openai', autofix: sampleAutofix },
+        { provider: 'openai', autofix: sampleAutofix, httpStatus: 400 },
       );
       const row = insertMock.mock.calls[0][0];
       expect(row.status).toBe('fallback_error');
       expect(row.autofix_applied).toBe(true);
       expect(row.autofix_group_id).toBe('grp-1');
-      expect(row.autofix_role).toBe('original');
+      expect(row.autofix_role).toBe('retry');
+      expect(row.error_http_status).toBe(400);
       expect(row.autofix_operations).toEqual([
         { type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' },
       ]);
@@ -1419,14 +1417,82 @@ describe('ProxyMessageRecorder', () => {
 
   describe('autofix persistence', () => {
     const operations = [{ type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' }];
+    const failedRetryAutofix: AutofixRecord = {
+      ...sampleAutofix,
+      outcome: 'exhausted',
+      chain: [
+        sampleAutofix.chain[0],
+        {
+          attempt: 1,
+          origin: 'autofix',
+          request: { max_output_tokens: 5 },
+          http_status: 400,
+          error: { message: 'Retry also failed' },
+        },
+      ],
+    };
 
-    it('recordProviderError tags an exhausted attempt as the original', async () => {
-      await recorder.recordProviderError(ctx, 400, 'Unknown parameter', { autofix: sampleAutofix });
+    it('recordProviderError records a failed patched request as the retry', async () => {
+      await recorder.recordProviderError(ctx, 400, 'Retry also failed', {
+        autofix: failedRetryAutofix,
+      });
       const row = insertMock.mock.calls.at(-1)![0];
       expect(row.autofix_applied).toBe(true);
       expect(row.autofix_group_id).toBe('grp-1');
-      expect(row.autofix_role).toBe('original');
+      expect(row.autofix_role).toBe('retry');
       expect(row.autofix_operations).toEqual(operations);
+    });
+
+    it('recordProviderError keeps a no-patch Phoenix audit without claiming Auto-fix', async () => {
+      const noPatch: AutofixRecord = {
+        groupId: 'grp-no-patch',
+        outcome: 'unfixable',
+        original_http_status: 400,
+        chain: [
+          {
+            attempt: 0,
+            origin: 'original',
+            request: {},
+            http_status: 400,
+            error: { message: 'Unknown parameter' },
+            issue_id: 'issue-no-patch',
+            patch_id: null,
+            heal_attempt_id: null,
+          },
+        ],
+      };
+
+      await recorder.recordProviderError(ctx, 400, 'Unknown parameter', { autofix: noPatch });
+
+      const row = insertMock.mock.calls.at(-1)![0];
+      expect(row.autofix_applied).toBeUndefined();
+      expect(row.autofix_group_id).toBeUndefined();
+      expect(row.autofix_role).toBeUndefined();
+      expect(row.autofix_phoenix).toEqual({
+        issueId: 'issue-no-patch',
+        patchId: null,
+        healAttemptId: null,
+        explanation: null,
+      });
+    });
+
+    it('recordPrimaryFailure keeps a failed retry identity through fallback', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'gpt-4o',
+        'Retry also failed',
+        '2026-07-15T12:00:00.000Z',
+        'api_key',
+        { autofix: failedRetryAutofix, httpStatus: 400 },
+      );
+
+      const row = insertMock.mock.calls.at(-1)![0];
+      expect(row.status).toBe('fallback_error');
+      expect(row.error_http_status).toBe(400);
+      expect(row.autofix_applied).toBe(true);
+      expect(row.autofix_role).toBe('retry');
+      expect(row.autofix_group_id).toBe('grp-1');
     });
 
     it('recordProviderError leaves autofix columns unset when omitted', async () => {
@@ -1436,20 +1502,19 @@ describe('ProxyMessageRecorder', () => {
       expect(row.autofix_group_id).toBeUndefined();
     });
 
-    it('recordAutofixOriginals writes a linked auto_fixed original row', async () => {
-      await recorder.recordAutofixOriginals(ctx, 'gpt-4o', 'default', sampleAutofix, {
+    it('recordAutofixOriginal writes a linked auto_fixed original row', async () => {
+      await recorder.recordAutofixOriginal(ctx, 'gpt-4o', 'default', sampleAutofix, {
         provider: 'openai',
         reason: 'default',
         authType: 'api_key',
         traceId: 'trace-af',
       });
-      const rows = insertMock.mock.calls.at(-1)![0] as Array<Record<string, unknown>>;
-      expect(rows).toHaveLength(1);
-      expect(rows[0].status).toBe('auto_fixed');
-      expect(rows[0].error_http_status).toBe(400);
+      const row = insertMock.mock.calls.at(-1)![0] as Record<string, unknown>;
+      expect(row.status).toBe('auto_fixed');
+      expect(row.error_http_status).toBe(400);
       // The full provider envelope, like every other error row. Storing the bare message
       // would drop type/param/code — the dimensions that identify the error downstream.
-      expect(JSON.parse(rows[0].error_message as string)).toEqual({
+      expect(JSON.parse(row.error_message as string)).toEqual({
         error: {
           message: 'Unknown parameter',
           type: 'invalid_request_error',
@@ -1457,14 +1522,14 @@ describe('ProxyMessageRecorder', () => {
           code: 'unknown_parameter',
         },
       });
-      expect(rows[0].autofix_applied).toBe(true);
-      expect(rows[0].autofix_group_id).toBe('grp-1');
-      expect(rows[0].autofix_role).toBe('original');
-      expect(rows[0].autofix_operations).toEqual(operations);
+      expect(row.autofix_applied).toBe(true);
+      expect(row.autofix_group_id).toBe('grp-1');
+      expect(row.autofix_role).toBe('original');
+      expect(row.autofix_operations).toEqual(operations);
       // Persist Phoenix's own identifiers for the heal decision. sampleAutofix's
       // failed entry carries only heal_attempt_id, so issueId/patchId fall to
       // null while healAttemptId is preserved (covers the non-null branch).
-      expect(rows[0].autofix_phoenix).toEqual({
+      expect(row.autofix_phoenix).toEqual({
         issueId: null,
         patchId: null,
         healAttemptId: 'heal-1',
@@ -1472,10 +1537,10 @@ describe('ProxyMessageRecorder', () => {
       });
     });
 
-    it('recordAutofixOriginals falls each absent Phoenix id to null while keeping the present one', async () => {
+    it('recordAutofixOriginal falls each absent Phoenix id to null while keeping the present one', async () => {
       // The ternary is entered via patch_id alone, so issueId + healAttemptId
       // exercise the `?? null` fallback (covers the null side of each field).
-      await recorder.recordAutofixOriginals(ctx, 'gpt-4o', 'default', {
+      await recorder.recordAutofixOriginal(ctx, 'gpt-4o', 'default', {
         ...sampleAutofix,
         chain: [
           {
@@ -1489,8 +1554,8 @@ describe('ProxyMessageRecorder', () => {
           { attempt: 1, origin: 'autofix', request: { max_output_tokens: 5 }, http_status: 200 },
         ],
       });
-      const rows = insertMock.mock.calls.at(-1)![0] as Array<Record<string, unknown>>;
-      expect(rows[0].autofix_phoenix).toEqual({
+      const row = insertMock.mock.calls.at(-1)![0] as Record<string, unknown>;
+      expect(row.autofix_phoenix).toEqual({
         issueId: null,
         patchId: 'patch-xyz',
         healAttemptId: null,
@@ -1498,7 +1563,7 @@ describe('ProxyMessageRecorder', () => {
       });
     });
 
-    it('recordAutofixOriginals carries the Phoenix explanation onto autofix_phoenix', async () => {
+    it('recordAutofixOriginal carries the Phoenix explanation onto autofix_phoenix', async () => {
       // Phoenix's human-readable "why" is persisted alongside the ids so the
       // dashboard Auto-fix card can render it (not re-derive it locally).
       const explanation = {
@@ -1511,7 +1576,7 @@ describe('ProxyMessageRecorder', () => {
         ],
         source: 'deterministic' as const,
       };
-      await recorder.recordAutofixOriginals(ctx, 'gpt-4o', 'default', {
+      await recorder.recordAutofixOriginal(ctx, 'gpt-4o', 'default', {
         ...sampleAutofix,
         chain: [
           {
@@ -1527,8 +1592,8 @@ describe('ProxyMessageRecorder', () => {
           { attempt: 1, origin: 'autofix', request: { max_output_tokens: 5 }, http_status: 200 },
         ],
       });
-      const rows = insertMock.mock.calls.at(-1)![0] as Array<Record<string, unknown>>;
-      expect(rows[0].autofix_phoenix).toEqual({
+      const row = insertMock.mock.calls.at(-1)![0] as Record<string, unknown>;
+      expect(row.autofix_phoenix).toEqual({
         issueId: 'issue-9',
         patchId: null,
         healAttemptId: 'heal-9',
@@ -1536,10 +1601,10 @@ describe('ProxyMessageRecorder', () => {
       });
     });
 
-    it('recordAutofixOriginals sets autofix_phoenix to null when the failed entry has no Phoenix ids', async () => {
+    it('recordAutofixOriginal sets autofix_phoenix to null when the failed entry has no Phoenix ids', async () => {
       // A failed chain entry with none of issue_id/patch_id/heal_attempt_id must
       // leave autofix_phoenix null (covers the `: null` branch of the ternary).
-      await recorder.recordAutofixOriginals(ctx, 'gpt-4o', 'default', {
+      await recorder.recordAutofixOriginal(ctx, 'gpt-4o', 'default', {
         ...sampleAutofix,
         chain: [
           {
@@ -1552,15 +1617,23 @@ describe('ProxyMessageRecorder', () => {
           { attempt: 1, origin: 'autofix', request: { max_output_tokens: 5 }, http_status: 200 },
         ],
       });
-      const rows = insertMock.mock.calls.at(-1)![0] as Array<Record<string, unknown>>;
-      expect(rows).toHaveLength(1);
-      expect(rows[0].autofix_phoenix).toBeNull();
+      const row = insertMock.mock.calls.at(-1)![0] as Record<string, unknown>;
+      expect(row.autofix_phoenix).toBeNull();
     });
 
-    it('recordAutofixOriginals is a no-op when the chain has no failed entries', async () => {
-      await recorder.recordAutofixOriginals(ctx, 'gpt-4o', 'default', {
+    it('recordAutofixOriginal is a no-op when the chain has no failed original', async () => {
+      await recorder.recordAutofixOriginal(ctx, 'gpt-4o', 'default', {
         ...sampleAutofix,
         chain: [{ attempt: 1, origin: 'autofix', request: {}, http_status: 200 }],
+      });
+      expect(insertMock).not.toHaveBeenCalled();
+    });
+
+    it('recordAutofixOriginal is a no-op when Phoenix supplied no patch', async () => {
+      await recorder.recordAutofixOriginal(ctx, 'gpt-4o', 'default', {
+        ...sampleAutofix,
+        outcome: 'unfixable',
+        chain: [sampleAutofix.chain[0]],
       });
       expect(insertMock).not.toHaveBeenCalled();
     });
