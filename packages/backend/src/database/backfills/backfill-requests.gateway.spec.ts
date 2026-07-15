@@ -1,6 +1,9 @@
 import { DataSource } from 'typeorm';
 
 import {
+  CREATE_LEGACY_FALLBACK_GROUPS_SQL,
+  INSERT_LEGACY_FALLBACK_REQUESTS_SQL,
+  LINK_LEGACY_FALLBACK_ATTEMPTS_SQL,
   TypeOrmRequestBackfillGateway,
   REQUEST_BACKFILL_WINDOW_END_SQL,
 } from './backfill-requests.gateway';
@@ -58,6 +61,28 @@ describe('TypeOrmRequestBackfillGateway', () => {
     expect(runner.commitTransaction).toHaveBeenCalled();
     expect(runner.rollbackTransaction).not.toHaveBeenCalled();
     expect(runner.release).toHaveBeenCalled();
+  });
+
+  it('reconstructs unambiguous legacy fallback chains transactionally', async () => {
+    const runner = mockQueryRunner();
+    runner.query
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce([{ n: 2 }])
+      .mockResolvedValueOnce([{ n: 5 }]);
+    const gateway = new TypeOrmRequestBackfillGateway({
+      createQueryRunner: jest.fn(() => runner),
+    } as unknown as DataSource);
+
+    await expect(gateway.backfillFallbackGroups(timeouts)).resolves.toEqual({
+      requests: 2,
+      attempts: 5,
+    });
+    expect(runner.query).toHaveBeenCalledWith(CREATE_LEGACY_FALLBACK_GROUPS_SQL);
+    expect(runner.query).toHaveBeenCalledWith(INSERT_LEGACY_FALLBACK_REQUESTS_SQL);
+    expect(runner.query).toHaveBeenCalledWith(LINK_LEGACY_FALLBACK_ATTEMPTS_SQL);
+    expect(runner.commitTransaction).toHaveBeenCalled();
   });
 
   it('finalizes pending requests and validates the foreign key', async () => {

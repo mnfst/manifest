@@ -193,10 +193,14 @@ describe('RequestBackfillBootService', () => {
       commitTransaction: jest.fn().mockResolvedValue(undefined),
       rollbackTransaction: jest.fn().mockResolvedValue(undefined),
       release: jest.fn().mockResolvedValue(undefined),
-      query: jest.fn().mockResolvedValue(undefined),
+      query: jest.fn().mockImplementation(async (sql: string) => {
+        if (sql.includes('INSERT INTO "requests"')) return [{ n: 0 }];
+        if (sql.includes('UPDATE "provider_attempts"')) return [{ n: 0 }];
+        return undefined;
+      }),
     };
     const ds = {
-      createQueryRunner: jest.fn().mockReturnValueOnce(lock).mockReturnValueOnce(transaction),
+      createQueryRunner: jest.fn().mockReturnValueOnce(lock).mockReturnValue(transaction),
       query: jest
         .fn()
         .mockResolvedValueOnce(undefined)
