@@ -47,6 +47,7 @@ export interface AutofixStatsResponse {
 
 export const AUTOFIX_TS_DIMENSIONS = [
   'disposition',
+  'recovery',
   'http_status',
   'provider',
   'error_kind',
@@ -304,10 +305,27 @@ export class AutofixStatsService {
     switch (by) {
       case 'disposition':
         return `CASE WHEN r.status = 'ok' THEN 'success' ELSE 'error' END`;
+      case 'recovery':
+        // Subdivide successes by recovery path, keep errors as one bucket.
+        // A request is "recovered" when it succeeded but needed >1 attempt.
+        // We distinguish fallback vs autofix by checking if any attempt has
+        // autofix_applied=true (autofix path) or fallback_from_model set (fallback path).
+        return `CASE
+          WHEN r.status != 'ok' THEN 'error'
+          WHEN (SELECT COUNT(*) FROM provider_attempts pa WHERE pa.request_id = r.id) <= 1 THEN 'direct'
+          WHEN EXISTS (
+            SELECT 1 FROM provider_attempts pa
+            WHERE pa.request_id = r.id AND pa.autofix_applied = true
+          ) THEN 'autofix'
+          WHEN EXISTS (
+            SELECT 1 FROM provider_attempts pa
+            WHERE pa.request_id = r.id AND pa.fallback_from_model IS NOT NULL
+          ) THEN 'fallback'
+          ELSE 'direct'
+        END`;
       case 'http_status':
         return `COALESCE(r.error_http_status::text, CASE WHEN r.status = 'ok' THEN '200' ELSE 'No response' END)`;
       case 'provider':
-        // Use the winning attempt's provider for request-level grouping
         return `COALESCE((
           SELECT CASE WHEN pa.provider LIKE 'custom:%' THEN 'custom' ELSE pa.provider END
           FROM provider_attempts pa WHERE pa.request_id = r.id

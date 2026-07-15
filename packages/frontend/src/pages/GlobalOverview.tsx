@@ -219,6 +219,9 @@ const GlobalOverview: Component = () => {
   // ── Chart view state ─────────────────────────────────────────────────
   const [chartView, setChartView] = createSignal<'requests' | 'tokens' | 'cost'>('requests');
 
+  // ── Requests group-by (status vs recovery) ───────────────────────────
+  const [requestsGroupBy, setRequestsGroupBy] = createSignal<'status' | 'recovery'>('status');
+
   // Local providers only exist on self-hosted installs; cloud hides the
   // Local stat card and drops the stats grid to three columns.
   const [selfHosted] = createResource(checkIsSelfHosted);
@@ -303,6 +306,15 @@ const GlobalOverview: Component = () => {
   const [requestStatusTs] = createResource(
     () => (groupBy() === 'status' ? { range: effectiveChartRange(), _ping: messagePing() } : false),
     (p) => getAutofixTimeseries(p.range, 'disposition'),
+  );
+
+  // Recovery timeseries (fetched only when the requests chart is in "recovery" mode)
+  const [recoveryTs] = createResource(
+    () =>
+      requestsGroupBy() === 'recovery'
+        ? { range: effectiveChartRange(), _ping: messagePing() }
+        : false,
+    (p) => getAutofixTimeseries(p.range, 'recovery'),
   );
 
   const [agentReliability] = createResource(
@@ -634,6 +646,9 @@ const GlobalOverview: Component = () => {
             <UnifiedChartCard
               activeTab={chartView()}
               onTabChange={setChartView}
+              requestsGroupBy={requestsGroupBy()}
+              onRequestsGroupByChange={setRequestsGroupBy}
+              requestRecoveryTimeseries={recoveryTs()}
               requestsValue={autofixStats()?.total_requests.value ?? o().summary.messages.value}
               requestsTrendPct={
                 autofixStats()?.total_requests.previous != null

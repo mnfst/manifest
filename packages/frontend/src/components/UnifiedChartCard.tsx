@@ -7,6 +7,7 @@ const MultiAgentTokenChart = lazy(() => import('./MultiAgentTokenChart.jsx'));
 const ReliabilityChart = lazy(() => import('./ReliabilityChart.jsx'));
 
 export type ChartTab = 'requests' | 'cost' | 'tokens';
+export type RequestsGroupBy = 'status' | 'recovery';
 
 interface AgentTimeseries {
   agents: string[];
@@ -19,9 +20,13 @@ export interface UnifiedChartCardProps {
   // Requests tab
   requestsValue: number;
   requestsTrendPct: number;
+  requestsGroupBy: RequestsGroupBy;
+  onRequestsGroupByChange: (g: RequestsGroupBy) => void;
   agentRequestTimeseries?: AgentTimeseries;
-  /** When set, the Requests tab shows this (disposition) instead of agentRequestTimeseries */
+  /** Disposition timeseries (success/error) — used when groupBy='status' */
   requestStatusTimeseries?: AutofixTimeseries;
+  /** Recovery timeseries (direct/fallback/autofix/error) — used when groupBy='recovery' */
+  requestRecoveryTimeseries?: AutofixTimeseries;
   // Cost tab
   costValue?: number;
   costTrendPct?: number;
@@ -34,7 +39,7 @@ export interface UnifiedChartCardProps {
   // Shared
   range: string;
   colorMap?: Record<string, string>;
-  /** Filter controls rendered in the subtitle bar */
+  /** Filter controls rendered in the subtitle bar for Cost/Token tabs */
   seriesFilters?: JSX.Element;
 }
 
@@ -70,6 +75,11 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
         return 'Token usage';
     }
   };
+
+  const activeRequestsTs = () =>
+    props.requestsGroupBy === 'recovery'
+      ? props.requestRecoveryTimeseries
+      : props.requestStatusTimeseries;
 
   return (
     <div class="chart-card">
@@ -123,7 +133,25 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
       {/* ── Subtitle bar: title + contextual filters ── */}
       <div class="chart-card__subtitle">
         <span class="chart-card__subtitle-title">{tabTitle()}</span>
-        <Show when={props.seriesFilters}>
+        <Show when={props.activeTab === 'requests'}>
+          <div class="chart-card__filters">
+            <button
+              class="chart-card__filter-btn"
+              classList={{ 'chart-card__filter-btn--active': props.requestsGroupBy === 'status' }}
+              onClick={() => props.onRequestsGroupByChange('status')}
+            >
+              By request status
+            </button>
+            <button
+              class="chart-card__filter-btn"
+              classList={{ 'chart-card__filter-btn--active': props.requestsGroupBy === 'recovery' }}
+              onClick={() => props.onRequestsGroupByChange('recovery')}
+            >
+              By recovery
+            </button>
+          </div>
+        </Show>
+        <Show when={props.activeTab !== 'requests' && props.seriesFilters}>
           <div class="chart-card__filters">{props.seriesFilters}</div>
         </Show>
       </div>
@@ -133,7 +161,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
         <Suspense fallback={EMPTY('Loading chart…')}>
           <Show when={props.activeTab === 'requests'}>
             <Show
-              when={props.requestStatusTimeseries}
+              when={activeRequestsTs()}
               fallback={
                 <Show
                   when={props.agentRequestTimeseries?.agents.length}
@@ -150,13 +178,13 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
               }
             >
               <Show
-                when={props.requestStatusTimeseries!.buckets.length > 0}
+                when={activeRequestsTs()!.buckets.length > 0}
                 fallback={EMPTY('No request data for this time range')}
               >
                 <ReliabilityChart
-                  timeseries={props.requestStatusTimeseries!}
+                  timeseries={activeRequestsTs()!}
                   range={props.range}
-                  seriesMode="disposition"
+                  seriesMode={props.requestsGroupBy === 'recovery' ? 'recovery' : 'disposition'}
                 />
               </Show>
             </Show>

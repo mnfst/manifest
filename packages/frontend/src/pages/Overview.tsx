@@ -43,7 +43,7 @@ import { getBillingStatus } from '../services/api/billing.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/routing.css';
-import { getAutofixStats } from '../services/api/analytics.js';
+import { getAutofixStats, getAutofixTimeseries } from '../services/api/analytics.js';
 import { getAutofix } from '../services/api/routing.js';
 
 const PRO_RANGES = new Set(['30d', '90d', '365d']);
@@ -273,6 +273,16 @@ const Overview: Component = () => {
     (p) => getAutofixStats(p.range, p.agent),
   );
 
+  // ── Requests group-by (status vs recovery) ───────────────────────────
+  const [requestsGroupBy, setRequestsGroupBy] = createSignal<'status' | 'recovery'>('status');
+
+  // Recovery timeseries (fetched only when the requests chart is in "recovery" mode)
+  const [recoveryTs] = createResource(
+    () =>
+      requestsGroupBy() === 'recovery' ? { range: effectiveRange(), _ping: messagePing() } : false,
+    (p) => getAutofixTimeseries(p.range, 'recovery', decodeURIComponent(params.agentName)),
+  );
+
   const allProviders = createMemo(() => {
     const set = new Set<string>([
       ...(providerRequestTs()?.agents ?? []),
@@ -438,6 +448,9 @@ const Overview: Component = () => {
                       <UnifiedChartCard
                         activeTab={activeView()}
                         onTabChange={setActiveView}
+                        requestsGroupBy={requestsGroupBy()}
+                        onRequestsGroupByChange={setRequestsGroupBy}
+                        requestRecoveryTimeseries={recoveryTs()}
                         requestsValue={
                           autofixStats()?.total_requests.value ?? d().summary?.messages?.value ?? 0
                         }
