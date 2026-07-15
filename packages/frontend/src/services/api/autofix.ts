@@ -3,10 +3,10 @@ import { fetchJson } from './core.js';
 /** The current tenant's Auto-fix beta eligibility. */
 export interface AutofixCohort {
   /**
-   * Whether this tenant is in the Auto-fix beta cohort — the hand-picked
-   * early-access allowlist the backend resolves via `AutofixService.hasAccess`.
-   * The dashboard gates the redesigned Auto-fix UI on this; everyone else keeps
-   * the existing UI.
+   * Whether this tenant is in the Auto-fix access cohort, as resolved by the
+   * backend (`AutofixService.hasAccess` — the `AUTOFIX_ROLLOUT` phase plus the
+   * per-tenant access-grant / waitlist columns). The dashboard gates the
+   * redesigned Auto-fix UI on this; everyone else keeps the existing UI.
    */
   eligible: boolean;
 }

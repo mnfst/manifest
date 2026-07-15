@@ -1,30 +1,29 @@
-import { createResource, Show, type Component, type JSX } from 'solid-js';
+import { createResource, type Accessor, type Component, type JSX } from 'solid-js';
 import { getAutofixCohort } from '../services/api.js';
 
 /**
- * Gates the redesigned Auto-fix beta UI behind the backend eligibility cohort —
- * the hand-picked early-access allowlist (`AutofixService.hasAccess`), the same
- * "fewer than five" set that gates the Auto-fix feature itself. Eligible tenants
- * render `children` (the new UI); everyone else renders `fallback` (the existing
- * UI).
+ * Resolves the current tenant's Auto-fix access cohort — decided entirely by the
+ * backend (`AutofixService.hasAccess`, driven by `AUTOFIX_ROLLOUT` plus the
+ * per-tenant access-grant / waitlist columns) — and hands the result to
+ * `children` as an accessor so a consumer can branch its UI on eligibility. The
+ * frontend never names a tenant; membership is whatever the backend reports.
  *
- * The check fails closed: while it is loading, if it errors, or if the tenant is
- * not eligible, the fallback shows — a missing or failed check never yanks the
- * current experience out from under anyone. Eligibility is backend-driven; this
- * component never names a tenant.
+ * `children` is a render function called ONCE, so its subtree mounts a single
+ * time and never remounts when the async cohort check resolves — flipping
+ * `eligible()` must not reset a consumer's local state mid-load (the two branches
+ * are the same overview today, so a swap would be a pure regression).
+ *
+ * Fails closed: `eligible()` stays false while the check is loading, if it errors,
+ * or if the tenant is not in the cohort. Reading an errored resource re-throws,
+ * so it gates on `state === 'ready'` and never touches the resource accessor
+ * otherwise.
  */
-const AutofixCohortGate: Component<{ fallback: JSX.Element; children: JSX.Element }> = (props) => {
+const AutofixCohortGate: Component<{
+  children: (eligible: Accessor<boolean>) => JSX.Element;
+}> = (props) => {
   const [cohort] = createResource(getAutofixCohort);
-  // Reveal `children` only once the check has resolved to eligible. Gating on
-  // `state === 'ready'` also keeps us from reading `cohort()` while errored
-  // (which re-throws), so the error and loading states both land on the
-  // fallback like any other not-yet-eligible tenant.
   const eligible = () => cohort.state === 'ready' && cohort()?.eligible === true;
-  return (
-    <Show when={eligible()} fallback={props.fallback}>
-      {props.children}
-    </Show>
-  );
+  return props.children(eligible);
 };
 
 export default AutofixCohortGate;

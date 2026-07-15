@@ -50,16 +50,13 @@ const GuestLayout: ParentComponent = (props) => (
   </GuestGuard>
 );
 
-// Single conditional entry point for the Auto-fix beta UI. Eligible tenants (the
-// backend early-access cohort) get the redesigned global overview; everyone else
-// keeps the current one. The redesigned overview lands via #2485 — until then
-// both branches render the existing GlobalOverview, so no eligible tenant sees a
-// regression while the cohort gate is in place.
-// TODO(#2485): replace the eligible branch (children) with the redesigned overview.
+// Single entry point for the Auto-fix beta UI: the gate resolves the tenant's
+// access cohort and hands `eligible` to the overview. Today both cohorts see the
+// same overview — rendered once, so the page never remounts (or loses local
+// state) when the async cohort check resolves.
+// TODO(#2485): branch on `eligible()` here to render the redesigned overview.
 const OverviewRoute: ParentComponent = () => (
-  <AutofixCohortGate fallback={<GlobalOverview />}>
-    <GlobalOverview />
-  </AutofixCohortGate>
+  <AutofixCohortGate>{() => <GlobalOverview />}</AutofixCohortGate>
 );
 
 // Remove the static <title> from index.html so @solidjs/meta can manage
