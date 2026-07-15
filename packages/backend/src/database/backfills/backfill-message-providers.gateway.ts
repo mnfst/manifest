@@ -9,7 +9,7 @@ import { BackfillGateway, BackfillTimeouts } from './backfill-message-providers'
 export const WINDOW_END_SQL = `
   SELECT max(id) AS end_id
   FROM (
-    SELECT id FROM "agent_messages" WHERE id > $1 ORDER BY id LIMIT $2
+    SELECT id FROM "provider_attempts" WHERE id > $1 ORDER BY id LIMIT $2
   ) w
 `;
 
@@ -23,7 +23,7 @@ export const WINDOW_END_SQL = `
 function stampingPass(joinAndMatch: string): string {
   return `
     WITH upd AS (
-      UPDATE "agent_messages" am
+      UPDATE "provider_attempts" am
       SET "tenant_provider_id" = m.tp_id
       FROM (
         SELECT am2.id AS msg_id, MIN(tp.id) AS tp_id
@@ -40,7 +40,7 @@ function stampingPass(joinAndMatch: string): string {
 
 // Pass 1 (agent-exact): agent_id + provider + auth_type + label.
 export const PASS_1_SQL = stampingPass(`
-  FROM "agent_messages" am2
+  FROM "provider_attempts" am2
   JOIN "tenant_providers" tp
     ON tp.agent_id = am2.agent_id
    AND LOWER(tp.provider) = LOWER(am2.provider)
@@ -54,7 +54,7 @@ export const PASS_1_SQL = stampingPass(`
 
 // Pass 2 (agent-unique): same agent anchor, ignore label.
 export const PASS_2_SQL = stampingPass(`
-  FROM "agent_messages" am2
+  FROM "provider_attempts" am2
   JOIN "tenant_providers" tp
     ON tp.agent_id = am2.agent_id
    AND LOWER(tp.provider) = LOWER(am2.provider)
@@ -68,7 +68,7 @@ export const PASS_2_SQL = stampingPass(`
 // Pass 3 (user-level): match via tenants.name = tenant_providers.created_by_user_id
 // (created_by_user_id is the renamed, value-preserved user_id).
 export const PASS_3_SQL = stampingPass(`
-  FROM "agent_messages" am2
+  FROM "provider_attempts" am2
   JOIN "tenants" t ON t.id = am2.tenant_id
   JOIN "tenant_providers" tp
     ON tp.created_by_user_id = t.name
@@ -85,10 +85,10 @@ export class TypeOrmBackfillGateway implements BackfillGateway {
   constructor(private readonly dataSource: DataSource) {}
 
   async analyze(): Promise<void> {
-    // Refresh stats for the stamping passes: agent_messages (its
+    // Refresh stats for the stamping passes: provider_attempts (its
     // tenant_provider_id column was just added and is ~100% NULL) and the
     // tenant_providers join target.
-    await this.dataSource.query('ANALYZE "agent_messages"');
+    await this.dataSource.query('ANALYZE "provider_attempts"');
     await this.dataSource.query('ANALYZE "tenant_providers"');
   }
 

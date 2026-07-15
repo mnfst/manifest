@@ -14,13 +14,13 @@ beforeAll(async () => {
   const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
+    `INSERT INTO provider_attempts (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
     [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, now, 'ok', 'claude-opus-4-6', 2000, 1000, 0, 0, 'User query processed', 'agent', 'test-agent', 'test-user-001'],
   );
 
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
+    `INSERT INTO provider_attempts (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
     [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, now, 'ok', 'gpt-4o', 500, 300, 0, 0, 'Browser task completed', 'browser', 'test-agent', 'test-user-001'],
   );

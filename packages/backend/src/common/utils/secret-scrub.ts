@@ -1,5 +1,5 @@
 // Best-effort redaction of provider credentials that may appear in upstream
-// error bodies before we persist them to agent_messages.error_message. Some
+// error bodies before we persist them to provider_attempts.error_message. Some
 // providers (notably Anthropic 401s) echo the offending Authorization or
 // x-api-key header back in the error body; without scrubbing, a single 401
 // can pin a user's API key to our database.

@@ -38,7 +38,7 @@ export interface ErrorPageRelatedLink {
  * marketing site. This table is a READ-OPTIMISED MIRROR: it only ever holds
  * rows that an operator explicitly published from the Peacock CMS (pushed via
  * the secret-guarded internal endpoint). There is no code path from raw
- * `agent_messages` to this table — that is the trust boundary that keeps
+ * `provider_attempts` to this table — that is the trust boundary that keeps
  * un-curated error data private.
  */
 @Entity('public_error_pages')

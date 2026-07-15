@@ -38,7 +38,7 @@ import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import UnifiedChartCard from '../components/UnifiedChartCard.jsx';
 import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
-import ErrorClassCard from '../components/ErrorClassCard.jsx';
+
 import SocialFollowBanner from '../components/SocialFollowBanner.jsx';
 import Sparkline from '../components/Sparkline.jsx';
 import FilterSelect from '../components/FilterSelect.jsx';
@@ -61,7 +61,6 @@ import {
   getWorkspaceAutofixStatus,
   getAutofixStats,
   getAutofixTimeseries,
-  getErrorBreakdown,
   getPerProviderReliability,
   getPerAgentReliability,
   type ProviderReliabilityRow,
@@ -98,6 +97,14 @@ interface OverviewResponse {
     tokens_today: { value: number; trend_pct: number };
     cost_today: { value: number; trend_pct: number };
     messages: { value: number; trend_pct: number };
+  };
+  request_reliability: {
+    total: number;
+    successful: number;
+    success_rate: number;
+    attempt_success_rate: number;
+    manifest_lift_pct: number;
+    recovered: number;
   };
   token_usage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
@@ -210,30 +217,7 @@ const GlobalOverview: Component = () => {
   };
 
   // ── Chart view state ─────────────────────────────────────────────────
-  const [chartView, setChartView] = createSignal<'requests' | 'failed' | 'tokens' | 'cost'>(
-    'requests',
-  );
-
-  // ── Failed filter state (persisted in sessionStorage) ────────────────
-  const loadFailedFilter = (): string => {
-    try {
-      const v = sessionStorage.getItem('manifest_failed_filter');
-      if (v === 'disposition' || v === 'http_status' || v === 'error_kind' || v === 'autofix')
-        return v;
-    } catch {
-      /* ignore */
-    }
-    return 'error_kind';
-  };
-  const [failedFilter, setFailedFilterRaw] = createSignal(loadFailedFilter());
-  const setFailedFilter = (v: string) => {
-    setFailedFilterRaw(v);
-    try {
-      sessionStorage.setItem('manifest_failed_filter', v);
-    } catch {
-      /* ignore */
-    }
-  };
+  const [chartView, setChartView] = createSignal<'requests' | 'tokens' | 'cost'>('requests');
 
   // Local providers only exist on self-hosted installs; cloud hides the
   // Local stat card and drops the stats grid to three columns.
@@ -315,24 +299,10 @@ const GlobalOverview: Component = () => {
     (p) => getAutofixStats(p.range),
   );
 
-  const [failedTs] = createResource(
-    () =>
-      autofixAvailable()
-        ? { range: effectiveChartRange(), by: failedFilter(), _ping: messagePing() }
-        : false,
-    (p) => getAutofixTimeseries(p.range, p.by, undefined, true),
-  );
-
   // Request status timeseries (all requests by disposition — for "By request status" filter)
   const [requestStatusTs] = createResource(
     () => (groupBy() === 'status' ? { range: effectiveChartRange(), _ping: messagePing() } : false),
     (p) => getAutofixTimeseries(p.range, 'disposition'),
-  );
-
-  // Error breakdown for KPI cards (top error + sparkline)
-  const [errorBreakdown] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
-    (p) => getErrorBreakdown(p.range),
   );
 
   const [agentReliability] = createResource(
@@ -344,13 +314,6 @@ const GlobalOverview: Component = () => {
     () => ({ range: effectiveChartRange(), _ping: messagePing() }),
     (p) => getPerProviderReliability(p.range),
   );
-
-  // Sparkline: total errors per bucket from the failed timeseries
-  const errorSparkline = () => {
-    const ts = failedTs();
-    if (!ts || ts.buckets.length === 0) return undefined;
-    return ts.buckets.map((b) => b.counts.reduce((s, c) => s + c, 0));
-  };
 
   // Shimmer the usage cells until the first usage load resolves; SSE refetches
   // keep the prior numbers on screen so the table doesn't flicker.
@@ -664,22 +627,9 @@ const GlobalOverview: Component = () => {
           </Show>
         }
       >
-        {/* ── KPI line (autofix-gated) ── */}
-        <Show when={autofixAvailable()}>
-          <AutofixKpiCards stats={autofixStats()} />
-        </Show>
-
         {/* ── 2. Unified Chart Card ─────────────────────────────────── */}
         {(() => {
           const o = () => overview()!;
-          const failedTrendPct = () => {
-            const s = autofixStats();
-            if (!s) return 0;
-            const cur = s.errors_remaining.value;
-            const prev = s.errors_remaining.previous;
-            if (prev === 0) return 0;
-            return Math.max(-999, Math.min(999, Math.round(((cur - prev) / prev) * 100)));
-          };
           return (
             <UnifiedChartCard
               activeTab={chartView()}
@@ -695,11 +645,6 @@ const GlobalOverview: Component = () => {
                     })()
                   : o().summary.messages.trend_pct
               }
-              failedValue={autofixStats()?.errors_remaining.value ?? 0}
-              failedTrendPct={failedTrendPct()}
-              failedTimeseries={failedTs()}
-              failedFilter={failedFilter()}
-              onFailedFilterChange={setFailedFilter}
               costValue={o().summary.cost_today.value}
               costTrendPct={o().summary.cost_today.trend_pct}
               costInfoTooltip="Actual API key costs only. Subscription usage is not included."
@@ -754,13 +699,6 @@ const GlobalOverview: Component = () => {
             />
           );
         })()}
-
-        {/* ── Error classes (full width) ──────────────────────────── */}
-        <div style="margin-bottom: 24px;">
-          <ErrorClassCard range={effectiveChartRange()} />
-        </div>
-
-        {/* Stat cards removed — info is in Provider connections + Harnesses tables below */}
 
         {/* ── 4. Recent Requests (full width) ──────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
@@ -901,8 +839,7 @@ const GlobalOverview: Component = () => {
                   <th>Provider</th>
                   <th>Type</th>
                   <th>Status</th>
-                  <th style="text-align: right;">Requests</th>
-                  <th style="text-align: right;">Fail requests</th>
+                  <th style="text-align: right;">Total requests</th>
                   <th style="text-align: right;">Auto-fixed</th>
                 </tr>
               </thead>
@@ -1013,25 +950,8 @@ const GlobalOverview: Component = () => {
                                         style={{
                                           height: '100%',
                                           'border-radius': '3px',
-                                          background: 'hsl(var(--destructive))',
-                                          width: `${rel()!.requests > 0 ? (rel()!.failed / rel()!.requests) * 100 : 0}%`,
-                                        }}
-                                      />
-                                    </div>
-                                    <span>{formatNumber(rel()!.failed)}</span>
-                                  </div>
-                                </Show>
-                              </td>
-                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                                <Show when={rel()} fallback="—">
-                                  <div style="display: flex; align-items: center; gap: 6px; justify-content: flex-end;">
-                                    <div style="width: 40px; height: 6px; background: hsl(var(--border)); border-radius: 3px; overflow: hidden;">
-                                      <div
-                                        style={{
-                                          height: '100%',
-                                          'border-radius': '3px',
                                           background: 'hsl(var(--success))',
-                                          width: `${rel()!.failed > 0 ? (rel()!.autofixed / rel()!.failed) * 100 : 0}%`,
+                                          width: `${rel()!.requests > 0 ? (rel()!.autofixed / rel()!.requests) * 100 : 0}%`,
                                         }}
                                       />
                                     </div>
@@ -1071,7 +991,6 @@ const GlobalOverview: Component = () => {
                   <th>Harness</th>
                   <th>Usage (30d)</th>
                   <th style="text-align: right;">Requests</th>
-                  <th style="text-align: right;">Fail requests</th>
                   <th style="text-align: right;">Auto-fixed</th>
                 </tr>
               </thead>
@@ -1130,25 +1049,8 @@ const GlobalOverview: Component = () => {
                                         style={{
                                           height: '100%',
                                           'border-radius': '3px',
-                                          background: 'hsl(var(--destructive))',
-                                          width: `${rel()!.requests > 0 ? (rel()!.failed / rel()!.requests) * 100 : 0}%`,
-                                        }}
-                                      />
-                                    </div>
-                                    <span>{formatNumber(rel()!.failed)}</span>
-                                  </div>
-                                </Show>
-                              </td>
-                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                                <Show when={rel()} fallback="—">
-                                  <div style="display: flex; align-items: center; gap: 6px; justify-content: flex-end;">
-                                    <div style="width: 40px; height: 6px; background: hsl(var(--border)); border-radius: 3px; overflow: hidden;">
-                                      <div
-                                        style={{
-                                          height: '100%',
-                                          'border-radius': '3px',
                                           background: 'hsl(var(--success))',
-                                          width: `${rel()!.failed > 0 ? (rel()!.autofixed / rel()!.failed) * 100 : 0}%`,
+                                          width: `${rel()!.requests > 0 ? (rel()!.autofixed / rel()!.requests) * 100 : 0}%`,
                                         }}
                                       />
                                     </div>

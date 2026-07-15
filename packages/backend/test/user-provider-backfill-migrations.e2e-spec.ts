@@ -6,6 +6,7 @@ import { TenantOwnerColumn1792400000000 } from '../src/database/migrations/17924
 import { TenantProviders1792500000000 } from '../src/database/migrations/1792500000000-TenantProviders';
 import { TenantScopedConfigs1792600000000 } from '../src/database/migrations/1792600000000-TenantScopedConfigs';
 import { DropUserScopeFromRouting1792700000000 } from '../src/database/migrations/1792700000000-DropUserScopeFromRouting';
+import { AddRequestsAndProviderAttempts1801000000000 } from '../src/database/migrations/1801000000000-AddRequestsAndProviderAttempts';
 import { runMessageProviderBackfill } from '../src/database/backfills/backfill-message-providers';
 import { TypeOrmBackfillGateway } from '../src/database/backfills/backfill-message-providers.gateway';
 
@@ -45,6 +46,10 @@ describe('agent-message attribution backfill after provider lift (e2e)', () => {
     });
     await ds.initialize();
     await ds.runMigrations({ transaction: 'each' });
+
+    const schemaQr = ds.createQueryRunner();
+    await new AddRequestsAndProviderAttempts1801000000000().down(schemaQr);
+    await schemaQr.release();
 
     // Clean slate (FK-safe order), then rewind to the pre-lift schema by
     // reverting the relevant migrations in reverse chronological order. The
@@ -112,6 +117,10 @@ describe('agent-message attribution backfill after provider lift (e2e)', () => {
     await new TenantProviders1792500000000().up(upgradeQr);
     await upgradeQr.release();
 
+    const requestSchemaUpQr = ds.createQueryRunner();
+    await new AddRequestsAndProviderAttempts1801000000000().up(requestSchemaUpQr);
+    await requestSchemaUpQr.release();
+
     // The migration leaves the column NULL; the historical stamping runs
     // post-deploy, against the renamed schema. This is the exact code the
     // boot task and `npm run backfill:message-providers` invoke.
@@ -138,7 +147,7 @@ describe('agent-message attribution backfill after provider lift (e2e)', () => {
     // anymore — a user-level backfill would leave BOTH NULL. The agent anchor
     // resolves each to its own agent's key.
     const rows: { id: string; tenant_provider_id: string | null }[] = await ds.query(
-      `SELECT "id","tenant_provider_id" FROM "agent_messages"
+      `SELECT "id","tenant_provider_id" FROM "provider_attempts"
         WHERE "id" IN ('msg-a1-anthropic','msg-a2-anthropic') ORDER BY "id"`,
     );
     expect(rows).toEqual([
@@ -149,21 +158,21 @@ describe('agent-message attribution backfill after provider lift (e2e)', () => {
 
   it('pass 1 stamps a label-exact message even when the agent has multiple keys for the provider', async () => {
     const rows: { tenant_provider_id: string | null }[] = await ds.query(
-      `SELECT "tenant_provider_id" FROM "agent_messages" WHERE "id" = 'msg-a2-openai-work'`,
+      `SELECT "tenant_provider_id" FROM "provider_attempts" WHERE "id" = 'msg-a2-openai-work'`,
     );
     expect(rows).toEqual([{ tenant_provider_id: 'up-a2-openai-work' }]);
   });
 
   it('leaves a genuinely ambiguous message NULL (two keys on the agent, no label match)', async () => {
     const rows: { tenant_provider_id: string | null }[] = await ds.query(
-      `SELECT "tenant_provider_id" FROM "agent_messages" WHERE "id" = 'msg-a2-openai-ambiguous'`,
+      `SELECT "tenant_provider_id" FROM "provider_attempts" WHERE "id" = 'msg-a2-openai-ambiguous'`,
     );
     expect(rows).toEqual([{ tenant_provider_id: null }]);
   });
 
   it('pass 3 still resolves deleted-agent (NULL agent_id) messages via the user-level label match', async () => {
     const rows: { tenant_provider_id: string | null }[] = await ds.query(
-      `SELECT "tenant_provider_id" FROM "agent_messages" WHERE "id" = 'msg-deleted-agent'`,
+      `SELECT "tenant_provider_id" FROM "provider_attempts" WHERE "id" = 'msg-deleted-agent'`,
     );
     expect(rows).toEqual([{ tenant_provider_id: 'up-a3-gemini' }]);
   });
@@ -172,14 +181,14 @@ describe('agent-message attribution backfill after provider lift (e2e)', () => {
     const fks: { confdeltype: string }[] = await ds.query(
       `SELECT confdeltype FROM pg_constraint
         WHERE conname = 'FK_agent_messages_tenant_provider'
-          AND conrelid = '"agent_messages"'::regclass`,
+          AND conrelid = '"provider_attempts"'::regclass`,
     );
     expect(fks).toHaveLength(1);
     expect(fks[0].confdeltype).toBe('n'); // n = SET NULL
 
     const idx: { indexname: string }[] = await ds.query(
       `SELECT indexname FROM pg_indexes
-        WHERE tablename = 'agent_messages'
+        WHERE tablename = 'provider_attempts'
           AND indexname = 'IDX_agent_messages_tenant_provider'`,
     );
     expect(idx).toHaveLength(1);

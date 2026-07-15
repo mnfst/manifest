@@ -54,7 +54,7 @@ interface MultiAgentTokenChartProps {
   range: string;
   colorMap?: Record<string, string>;
   onHoverValues?: (values: Record<string, number> | null) => void;
-  /** When set (e.g. "Messages"), y-axis formats as plain numbers instead of token suffixes. */
+  /** When set (e.g. "Requests"), y-axis formats as plain numbers instead of token suffixes. */
   label?: string;
 }
 

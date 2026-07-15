@@ -157,6 +157,7 @@ export class ProxyController {
     const body = req.body as Record<string, unknown>;
     const sessionKey = this.extractSessionKey(req);
     const traceId = this.extractTraceId(req);
+    const requestId = uuid();
     const callerAttribution = classifyCaller(req.headers);
     const requestHeaders = sanitizeRequestHeaders(req.headers);
     const isStream = body.stream === true;
@@ -171,7 +172,7 @@ export class ProxyController {
 
     // Plan request-limit gate. A 402 must reach ProxyExceptionFilter (friendly
     // upgrade message / real 402), but still gets a Manifest-policy row in
-    // agent_messages so the Messages tab explains why the request never routed.
+    // provider_attempts so the Messages tab explains why the request never routed.
     // Billing counters exclude Manifest-origin rows, so this does not consume
     // quota or push the tenant further over the limit.
     try {
@@ -181,6 +182,7 @@ export class ProxyController {
         this.recordManifestBlockedRequest(
           err,
           req,
+          requestId,
           traceId,
           callerAttribution,
           requestHeaders,
@@ -196,6 +198,7 @@ export class ProxyController {
         res,
         clientAbort,
         headersSent,
+        requestId,
         traceId,
         callerAttribution,
         requestHeaders,
@@ -216,7 +219,7 @@ export class ProxyController {
       const { forward, meta, failedFallbacks, autofix } = await this.proxyService.proxyRequest({
         agentId: req.ingestionContext.agentId,
         tenantId,
-        // Attribution only — the recorder writes it to agent_messages.user_id.
+        // Attribution only — the recorder writes it to provider_attempts.user_id.
         userId: req.ingestionContext.userId,
         body,
         routingBody,
@@ -280,6 +283,7 @@ export class ProxyController {
           callerAttribution,
           requestHeaders,
           autofix,
+          requestId,
         );
         return;
       }
@@ -292,6 +296,7 @@ export class ProxyController {
         callerAttribution,
         requestHeaders,
         autofix,
+        requestId,
       );
 
       let streamUsage = null;
@@ -331,7 +336,15 @@ export class ProxyController {
       // proxy as an HTTP 200 assistant message, so it lands here — but it is a
       // Manifest failure, not a completion. Record it as one.
       if (meta.manifest_error_code) {
-        this.recordManifestStub(req, meta, traceId, sessionKey, callerAttribution, requestHeaders);
+        this.recordManifestStub(
+          req,
+          meta,
+          requestId,
+          traceId,
+          sessionKey,
+          callerAttribution,
+          requestHeaders,
+        );
       } else {
         recordSuccess(
           req.ingestionContext,
@@ -345,6 +358,7 @@ export class ProxyController {
           callerAttribution,
           requestHeaders,
           autofix,
+          requestId,
         );
       }
     } catch (err: unknown) {
@@ -354,6 +368,7 @@ export class ProxyController {
         res,
         clientAbort,
         headersSent,
+        requestId,
         traceId,
         callerAttribution,
         requestHeaders,
@@ -373,6 +388,7 @@ export class ProxyController {
   private recordManifestStub(
     req: Request & { ingestionContext: IngestionContext },
     meta: RoutingMeta,
+    requestId: string,
     traceId: string | undefined,
     sessionKey: string | undefined,
     callerAttribution: ReturnType<typeof classifyCaller>,
@@ -382,6 +398,7 @@ export class ProxyController {
     if (!code || !isRecordableManifestCode(code)) return;
     this.recorder
       .recordManifestBlockedRequest(req.ingestionContext, {
+        requestId,
         errorMessage: meta.manifest_error_message ?? formatManifestError(code),
         errorCode: code,
         reason: MANIFEST_CODE_TO_REASON[code],
@@ -400,6 +417,7 @@ export class ProxyController {
     res: ExpressResponse,
     clientAbort: AbortController,
     headersSent: boolean,
+    requestId: string,
     traceId: string | undefined,
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
@@ -433,6 +451,7 @@ export class ProxyController {
         this.recordManifestBlockedRequest(
           err,
           req,
+          requestId,
           traceId,
           callerAttribution,
           requestHeaders,
@@ -446,6 +465,7 @@ export class ProxyController {
       this.recordManifestBlockedRequest(
         err,
         req,
+        requestId,
         traceId,
         callerAttribution,
         requestHeaders,
@@ -456,6 +476,7 @@ export class ProxyController {
     } else {
       this.recorder
         .recordProviderError(req.ingestionContext, status, providerErrorBody, {
+          requestId,
           ...(meta
             ? {
                 model: meta.model,
@@ -573,6 +594,7 @@ export class ProxyController {
   private recordManifestBlockedRequest(
     err: unknown,
     req: Request & { ingestionContext: IngestionContext },
+    requestId: string,
     traceId: string | undefined,
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
@@ -583,6 +605,7 @@ export class ProxyController {
     const body = req.body as Record<string, unknown> | undefined;
     this.recorder
       .recordManifestBlockedRequest(req.ingestionContext, {
+        requestId,
         httpStatus: httpStatus ?? (err instanceof HttpException ? err.getStatus() : 500),
         // The raw internal message, not the friendly M500 text the caller saw —
         // the dashboard row is where you go to find out what actually broke.

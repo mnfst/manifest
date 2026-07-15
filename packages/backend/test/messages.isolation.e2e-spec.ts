@@ -6,7 +6,7 @@ import { createTestApp, TEST_API_KEY, TEST_TENANT_ID, TEST_AGENT_ID } from './he
 // Cross-tenant isolation boundary test for /api/v1/messages.
 //
 // The MockSessionGuard in test/helpers.ts authenticates every request as
-// TEST_USER_ID ("test-user-001"). We seed agent_messages owned by a SECOND
+// TEST_USER_ID ("test-user-001"). We seed provider_attempts owned by a SECOND
 // tenant/user ("attacker-tenant-002" / "attacker-user-002") and assert that
 // the authenticated user can never see those rows.
 //
@@ -34,7 +34,7 @@ async function insertMessage(
   now: string,
 ): Promise<void> {
   await ds.query(
-    `INSERT INTO agent_messages
+    `INSERT INTO provider_attempts
        (id, tenant_id, agent_id, timestamp, status, model,
         input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens,
         description, service_type, agent_name, user_id)
@@ -150,7 +150,7 @@ describe('Cross-tenant isolation: GET /api/v1/messages', () => {
 
     // Confirm at the DB layer that the attacker row was NOT mutated.
     const dbRow = await ds.query(
-      `SELECT feedback_rating FROM agent_messages WHERE id = $1`,
+      `SELECT feedback_rating FROM provider_attempts WHERE id = $1`,
       [ATTACKER_MESSAGE_ID],
     );
     expect(dbRow).toHaveLength(1);

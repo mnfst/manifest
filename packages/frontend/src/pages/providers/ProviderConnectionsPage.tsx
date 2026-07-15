@@ -434,16 +434,6 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
       )
       .reduce((sum, r) => sum + r.requests, 0),
   );
-  const totalFailed = createMemo(() =>
-    (providerReliability() ?? [])
-      .filter((r) =>
-        connectedSummaries().some((s) => {
-          const pKey = s.provider.startsWith('custom:') ? 'custom' : s.provider;
-          return pKey === r.provider;
-        }),
-      )
-      .reduce((sum, r) => sum + r.failed, 0),
-  );
   const totalAutofixed = createMemo(() =>
     (providerReliability() ?? [])
       .filter((r) =>
@@ -454,9 +444,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
       )
       .reduce((sum, r) => sum + r.autofixed, 0),
   );
-  const successRate = () =>
-    totalRequests() > 0 ? (totalRequests() - totalFailed()) / totalRequests() : 0;
-  const autofixedPct = () => (totalFailed() > 0 ? totalAutofixed() / totalFailed() : 0);
+  const autofixedPct = () => (totalRequests() > 0 ? totalAutofixed() / totalRequests() : 0);
 
   const connectionDenominator = (summary: TenantProviderSummary) =>
     Math.max(
@@ -583,19 +571,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Success rate (30d)</span>
-            <div class="overview-stat-card__value-row">
-              <span class="overview-stat-card__value">
-                {totalRequests() > 0 ? `${(successRate() * 100).toFixed(1)}%` : '—'}
-              </span>
-            </div>
-          </div>
-          <div class="overview-stat-card">
             <span class="overview-stat-card__label">Auto-fixed requests (30d)</span>
             <div class="overview-stat-card__value-row">
-              <span class="overview-stat-card__value">
-                {totalFailed() > 0 ? `${(autofixedPct() * 100).toFixed(1)}%` : '0%'}
-              </span>
+              <span class="overview-stat-card__value">{formatNumber(totalAutofixed())}</span>
             </div>
           </div>
         </div>
@@ -617,7 +595,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                   <th>{copy().rowMetricHeading}</th>
                 </Show>
                 <th style="text-align: right;">Requests (30d)</th>
-                <th style="text-align: right;">Success rate (30d)</th>
+                <th style="text-align: right;">Auto-fixed (30d)</th>
                 <th>Last used</th>
                 <th />
               </tr>
@@ -762,9 +740,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                             {rel() ? formatNumber(rel()!.requests) : '—'}
                           </td>
                           <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                            {rel() && rel()!.requests > 0
-                              ? `${(((rel()!.requests - rel()!.failed) / rel()!.requests) * 100).toFixed(1)}%`
-                              : '—'}
+                            {rel() ? formatNumber(rel()!.autofixed) : '—'}
                           </td>
                         </>
                       );

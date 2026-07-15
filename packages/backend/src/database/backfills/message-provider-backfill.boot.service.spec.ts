@@ -162,7 +162,7 @@ describe('MessageProviderBackfillBootService', () => {
         createQueryRunner: jest.fn(() => lock),
         // gateway.nextWindowEnd → no rows → backfill completes with zero windows
         query: jest.fn(async (sql: string) =>
-          sql.includes('FROM "agent_messages"') ? [{ end_id: null }] : undefined,
+          sql.includes('FROM "provider_attempts"') ? [{ end_id: null }] : undefined,
         ),
       } as unknown as DataSource;
       const state = makeState(false);

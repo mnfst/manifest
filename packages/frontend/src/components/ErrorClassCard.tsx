@@ -1,3 +1,8 @@
+/**
+ * Temporarily removed from dashboards (GlobalOverview + Overview).
+ * Reintroduce when error_class aggregation is available in the backend
+ * and the data is populated. The component itself is intact and ready to use.
+ */
 import { createResource, For, Show, type Component } from 'solid-js';
 import { formatNumber } from '../services/formatters.js';
 import { messagePing } from '../services/sse.js';

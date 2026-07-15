@@ -148,9 +148,9 @@ export function CostCell(item: MessageRow): JSX.Element {
           <span
             title={
               isPerRequestSubscription
-                ? `Per-request subscription cost: $${item.cost!.toFixed(6)}`
-                : item.cost != null && item.cost > 0 && item.cost < 0.01
-                  ? `$${item.cost.toFixed(6)}`
+                ? `Per-request subscription cost: $${Number(item.cost!).toFixed(6)}`
+                : item.cost != null && Number(item.cost) > 0 && Number(item.cost) < 0.01
+                  ? `$${Number(item.cost).toFixed(6)}`
                   : undefined
             }
           >

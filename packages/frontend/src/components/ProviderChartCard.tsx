@@ -4,7 +4,7 @@ import { formatNumber, formatCost } from '../services/formatters.js';
 
 const MultiAgentTokenChart = lazy(() => import('./MultiAgentTokenChart.jsx'));
 
-type ProviderView = 'requests' | 'cost' | 'tokens';
+type ProviderView = 'requests' | 'messages' | 'cost' | 'tokens';
 
 const trendBadge = (pct: number, value: number) => {
   if (pct === 0 || Math.abs(value) < 0.005) return null;
@@ -29,6 +29,10 @@ interface ProviderChartCardProps {
   onViewChange: (view: ProviderView) => void;
   requestsValue: number;
   requestsTrendPct: number;
+  messagesValue: number;
+  messagesTrendPct: number;
+  requestSuccessRate?: number;
+  attemptSuccessRate?: number;
   tokensValue: number;
   tokensTrendPct: number;
   costValue?: number;
@@ -37,8 +41,10 @@ interface ProviderChartCardProps {
   range: string;
   agentTimeseries?: AgentTimeseries;
   agentRequestTimeseries?: AgentTimeseries;
+  agentMessageTimeseries?: AgentTimeseries;
   agentCostTimeseries?: AgentTimeseries;
   colorMap?: Record<string, string>;
+  seriesFilters?: import('solid-js').JSX.Element;
 }
 
 const EMPTY = (msg: string) => (
@@ -87,6 +93,29 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
         <button
           type="button"
           class="chart-card__stat chart-card__stat--clickable"
+          classList={{ 'chart-card__stat--active': props.activeView === 'messages' }}
+          onClick={() => props.onViewChange('messages')}
+        >
+          <span class="chart-card__label">
+            Requests
+            <Show when={props.attemptSuccessRate != null}>
+              <InfoTooltip
+                text={
+                  props.requestSuccessRate == null
+                    ? `Provider-attempt success: ${props.attemptSuccessRate!.toFixed(1)}%.`
+                    : `Caller success: ${props.requestSuccessRate.toFixed(1)}%. Provider-attempt success: ${props.attemptSuccessRate!.toFixed(1)}%. The gap is recovery from fallbacks and Auto-fix.`
+                }
+              />
+            </Show>
+          </span>
+          <div class="chart-card__value-row">
+            <span class="chart-card__value">{props.messagesValue}</span>
+            {trendBadge(props.messagesTrendPct, props.messagesValue)}
+          </div>
+        </button>
+        <button
+          type="button"
+          class="chart-card__stat chart-card__stat--clickable"
           classList={{ 'chart-card__stat--active': props.activeView === 'tokens' }}
           onClick={() => props.onViewChange('tokens')}
         >
@@ -101,7 +130,7 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
         <Suspense fallback={EMPTY('Loading chart…')}>
           <Show when={props.activeView === 'requests'}>
             <Show
-              when={props.agentRequestTimeseries?.agents.length}
+              when={props.agentMessageTimeseries?.agents.length}
               fallback={EMPTY('No request data for this time range')}
             >
               <MultiAgentTokenChart

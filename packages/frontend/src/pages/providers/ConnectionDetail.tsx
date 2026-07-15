@@ -20,7 +20,6 @@ import {
   getPerAgentCostTimeseries,
   getWorkspaceAutofixStatus,
   getAutofixStats,
-  getAutofixTimeseries,
 } from '../../services/api/analytics.js';
 import { messagePing } from '../../services/sse.js';
 import { platformIcon } from 'manifest-shared';
@@ -108,6 +107,7 @@ interface AnalyticsResponse {
   };
   token_usage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
+  attempts: { total: number; successful: number; success_rate: number };
 }
 
 const PRO_RANGES_CD = new Set(['30d', '90d', '365d']);
@@ -207,7 +207,7 @@ const ConnectionDetail: Component = () => {
   const savedView = () => {
     try {
       const v = sessionStorage.getItem(viewKey());
-      if (v === 'tokens' || v === 'cost' || v === 'failed') return v;
+      if (v === 'tokens' || v === 'cost' || v === 'requests') return v;
     } catch {
       /* ignore */
     }
@@ -222,10 +222,8 @@ const ConnectionDetail: Component = () => {
       /* ignore */
     }
   };
-  const [chartView, setChartViewRaw] = createSignal<'requests' | 'failed' | 'tokens' | 'cost'>(
-    savedView(),
-  );
-  const setChartView = (v: 'requests' | 'failed' | 'tokens' | 'cost') => {
+  const [chartView, setChartViewRaw] = createSignal<'requests' | 'tokens' | 'cost'>(savedView());
+  const setChartView = (v: 'requests' | 'tokens' | 'cost') => {
     setChartViewRaw(v);
     try {
       sessionStorage.setItem(viewKey(), v);
@@ -324,34 +322,6 @@ const ConnectionDetail: Component = () => {
   const [autofixStats] = createResource(
     () => (autofixAvailable() ? { range: chartRange(), _ping: messagePing() } : false),
     (p) => getAutofixStats(p.range),
-  );
-
-  // ── Failed filter state (persisted in sessionStorage) ────────────────
-  const loadFailedFilter = (): string => {
-    try {
-      const v = sessionStorage.getItem('manifest_connection_failed_filter');
-      if (v === 'http_status' || v === 'error_kind' || v === 'autofix') return v;
-    } catch {
-      /* ignore */
-    }
-    return 'error_kind';
-  };
-  const [failedFilter, setFailedFilterRaw] = createSignal(loadFailedFilter());
-  const setFailedFilter = (v: string) => {
-    setFailedFilterRaw(v);
-    try {
-      sessionStorage.setItem('manifest_connection_failed_filter', v);
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const [failedTs] = createResource(
-    () =>
-      autofixAvailable()
-        ? { range: chartRange(), by: failedFilter(), _ping: messagePing() }
-        : false,
-    (p) => getAutofixTimeseries(p.range, p.by, undefined, true),
   );
 
   // Harness tag selection for chart filtering (persisted in sessionStorage).
@@ -750,14 +720,6 @@ const ConnectionDetail: Component = () => {
                     }
                     return sum;
                   });
-                  const failedTrendPct = () => {
-                    const s = autofixStats();
-                    if (!s) return 0;
-                    const cur = s.errors_remaining.value;
-                    const prev = s.errors_remaining.previous;
-                    if (prev === 0) return 0;
-                    return Math.max(-999, Math.min(999, Math.round(((cur - prev) / prev) * 100)));
-                  };
                   return (
                     <UnifiedChartCard
                       activeTab={chartView()}
@@ -776,16 +738,11 @@ const ConnectionDetail: Component = () => {
                                 Math.min(999, Math.round(((cur - prev) / prev) * 100)),
                               );
                             })()
-                          : (analytics()!.summary.messages.trend_pct ?? 0)
+                          : analytics()!.summary.messages.trend_pct
                       }
-                      failedValue={autofixStats()?.errors_remaining.value ?? 0}
-                      failedTrendPct={failedTrendPct()}
-                      failedTimeseries={failedTs()}
-                      failedFilter={failedFilter()}
-                      onFailedFilterChange={setFailedFilter}
+                      costValue={isByok() ? (totalCost() ?? 0) : undefined}
                       tokensValue={analytics()!.summary.tokens.value}
                       tokensTrendPct={analytics()!.summary.tokens.trend_pct}
-                      costValue={isByok() ? (totalCost() ?? 0) : undefined}
                       range={chartRange()}
                       agentRequestTimeseries={filteredAgentMessageTimeseries() ?? undefined}
                       agentTimeseries={filteredAgentTimeseries() ?? undefined}
@@ -811,7 +768,7 @@ const ConnectionDetail: Component = () => {
                 })()}
               </Show>
 
-              {/* Recent Messages (full width) */}
+              {/* Recent Requests (full width) */}
               <div class="panel scroll-panel" style="margin-bottom: 24px;">
                 <div
                   class="panel__title"

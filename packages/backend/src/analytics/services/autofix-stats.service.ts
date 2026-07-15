@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { DataSource, IsNull, Repository } from 'typeorm';
 import { Agent } from '../../entities/agent.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { ManifestRequest } from '../../entities/request.entity';
 import { Tenant } from '../../entities/tenant.entity';
 import {
   rangeToInterval,
@@ -10,7 +11,6 @@ import {
   isHourlyRange,
 } from '../../common/utils/range.util';
 import { computeCutoff, sqlHourBucket, sqlDateBucket } from '../../common/utils/postgres-sql';
-import { addTenantFilter, excludePlaygroundAgents } from './query-helpers';
 
 export interface AutofixStatusResponse {
   /** At least one agent has autofix access (tenant is waitlisted or granted). */
@@ -23,8 +23,11 @@ export interface AutofixStatusResponse {
 
 export interface AutofixStatsResponse {
   total_requests: { value: number; previous: number };
+  /** Request-level success rate: requests that ended OK for the caller (incl. recovered). */
   success_rate: { value: number; previous: number };
-  autofix_saves: { value: number; previous: number };
+  /** Requests recovered by Manifest (autofix or fallback — first attempt failed, request succeeded). */
+  recovered_by_manifest: { value: number; previous: number };
+  /** Requests that ultimately failed (caller got an error). */
   errors_remaining: { value: number; previous: number };
   coverage: { rate: number; previous_rate: number };
   dispositions: {
@@ -61,7 +64,7 @@ export interface AutofixTimeseriesResponse {
 interface WindowCounts {
   total: number;
   successes: number;
-  saves: number;
+  recovered: number;
   errors: number;
   healed: number;
   no_fix_found: number;
@@ -76,8 +79,11 @@ export class AutofixStatsService {
     private readonly agentRepo: Repository<Agent>,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
+    @InjectRepository(ManifestRequest)
+    private readonly requestRepo: Repository<ManifestRequest>,
     @InjectRepository(Tenant)
     private readonly tenantRepo: Repository<Tenant>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async getWorkspaceStatus(tenantId: string | null): Promise<AutofixStatusResponse> {
@@ -131,7 +137,7 @@ export class AutofixStatsService {
     return {
       total_requests: { value: current.total, previous: previous.total },
       success_rate: { value: rate(current), previous: rate(previous) },
-      autofix_saves: { value: current.saves, previous: previous.saves },
+      recovered_by_manifest: { value: current.recovered, previous: previous.recovered },
       errors_remaining: { value: current.errors, previous: previous.errors },
       coverage: { rate: covRate(current), previous_rate: covRate(previous) },
       dispositions: {
@@ -148,44 +154,60 @@ export class AutofixStatsService {
     tenantId: string | null;
     range?: string;
     agentName?: string;
-  }): Promise<Array<{ provider: string; requests: number; failed: number; autofixed: number }>> {
+  }): Promise<Array<{ provider: string; requests: number; autofixed: number }>> {
+    if (!params.tenantId) return [];
     const range = params.range ?? '7d';
     const cutoff = computeCutoff(rangeToInterval(range));
-    const qb = this.messageRepo
-      .createQueryBuilder('at')
-      .select(
-        "CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END",
-        'provider',
-      )
-      .addSelect('COUNT(*)', 'requests')
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status IN ('error','fallback_error','rate_limited','auto_fixed'))`,
-        'failed',
-      )
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status = 'auto_fixed' AND at.autofix_group_id IN (
-          SELECT sib.autofix_group_id FROM agent_messages sib
-          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-            AND sib.tenant_id = at.tenant_id
-        ))`,
-        'autofixed',
-      )
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')")
-      .groupBy("CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END");
-    addTenantFilter(qb, params.tenantId, params.agentName);
-    excludePlaygroundAgents(qb);
 
-    const rows = await qb.getRawMany<{
-      provider: string;
-      requests: string;
-      failed: string;
-      autofixed: string;
-    }>();
-    return rows.map((r) => ({
+    // Per-provider stats from the request level: join the "winning" attempt
+    // (the last ok attempt, or the last attempt if the request failed) to get
+    // the provider that served each request.
+    const agentFilter = params.agentName
+      ? `AND r.agent_id = (
+            SELECT a.id FROM agents a
+            WHERE a.tenant_id = $1 AND a.name = $3 AND a.deleted_at IS NULL LIMIT 1
+          )`
+      : '';
+    const cutoffIdx = params.agentName ? '$2' : '$2';
+    const sql = `
+      WITH winning AS (
+        SELECT DISTINCT ON (pa.request_id)
+          pa.request_id,
+          CASE WHEN pa.provider LIKE 'custom:%' THEN 'custom' ELSE pa.provider END AS provider
+        FROM provider_attempts pa
+        JOIN requests r ON r.id = pa.request_id
+        WHERE r.tenant_id = $1
+          AND r.timestamp >= ${cutoffIdx}
+          ${agentFilter}
+        ORDER BY pa.request_id, pa.status = 'ok' DESC, pa.timestamp DESC
+      )
+      SELECT
+        w.provider,
+        COUNT(*)::int AS requests,
+        COUNT(*) FILTER (WHERE r.status = 'ok' AND (
+          SELECT COUNT(*) FROM provider_attempts pa2 WHERE pa2.request_id = r.id
+        ) > 1)::int AS autofixed
+      FROM requests r
+      JOIN winning w ON w.request_id = r.id
+      WHERE r.tenant_id = $1
+        AND r.timestamp >= ${cutoffIdx}
+        ${agentFilter}
+        AND NOT EXISTS (
+          SELECT 1 FROM agents playag
+          WHERE playag.tenant_id = r.tenant_id AND playag.is_playground = true
+            AND (playag.id = r.agent_id OR playag.name = r.agent_name)
+        )
+      GROUP BY w.provider
+    `;
+    const queryParams: unknown[] = [
+      params.tenantId,
+      cutoff,
+      ...(params.agentName ? [params.agentName] : []),
+    ];
+    const rows = await this.dataSource.query(sql, queryParams);
+    return (rows as any[]).map((r) => ({
       provider: r.provider,
       requests: Number(r.requests),
-      failed: Number(r.failed),
       autofixed: Number(r.autofixed),
     }));
   }
@@ -193,41 +215,32 @@ export class AutofixStatsService {
   async getPerAgentStats(params: {
     tenantId: string | null;
     range?: string;
-  }): Promise<Array<{ agent_name: string; requests: number; failed: number; autofixed: number }>> {
+  }): Promise<Array<{ agent_name: string; requests: number; autofixed: number }>> {
+    if (!params.tenantId) return [];
     const range = params.range ?? '7d';
     const cutoff = computeCutoff(rangeToInterval(range));
-    const qb = this.messageRepo
-      .createQueryBuilder('at')
-      .select('at.agent_name', 'agent_name')
-      .addSelect('COUNT(*)', 'requests')
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status IN ('error','fallback_error','rate_limited','auto_fixed'))`,
-        'failed',
-      )
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status = 'auto_fixed' AND at.autofix_group_id IN (
-          SELECT sib.autofix_group_id FROM agent_messages sib
-          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-            AND sib.tenant_id = at.tenant_id
-        ))`,
-        'autofixed',
-      )
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')")
-      .groupBy('at.agent_name');
-    addTenantFilter(qb, params.tenantId);
-    excludePlaygroundAgents(qb);
 
-    const rows = await qb.getRawMany<{
-      agent_name: string;
-      requests: string;
-      failed: string;
-      autofixed: string;
-    }>();
-    return rows.map((r) => ({
+    const sql = `
+      SELECT
+        r.agent_name,
+        COUNT(*)::int AS requests,
+        COUNT(*) FILTER (WHERE r.status = 'ok' AND (
+          SELECT COUNT(*) FROM provider_attempts pa WHERE pa.request_id = r.id
+        ) > 1)::int AS autofixed
+      FROM requests r
+      WHERE r.tenant_id = $1
+        AND r.timestamp >= $2
+        AND NOT EXISTS (
+          SELECT 1 FROM agents playag
+          WHERE playag.tenant_id = r.tenant_id AND playag.is_playground = true
+            AND (playag.id = r.agent_id OR playag.name = r.agent_name)
+        )
+      GROUP BY r.agent_name
+    `;
+    const rows = await this.dataSource.query(sql, [params.tenantId, cutoff]);
+    return (rows as any[]).map((r) => ({
       agent_name: r.agent_name,
       requests: Number(r.requests),
-      failed: Number(r.failed),
       autofixed: Number(r.autofixed),
     }));
   }
@@ -239,50 +252,73 @@ export class AutofixStatsService {
     agentName?: string;
     failedOnly?: boolean;
   }): Promise<AutofixTimeseriesResponse> {
+    if (!params.tenantId)
+      return { range: params.range ?? '7d', by: 'disposition', keys: [], buckets: [] };
     const range = params.range ?? '7d';
     const by = (AUTOFIX_TS_DIMENSIONS as readonly string[]).includes(params.by ?? '')
       ? (params.by as AutofixTsDimension)
       : 'disposition';
     const cutoff = computeCutoff(rangeToInterval(range));
     const hourly = isHourlyRange(range);
-    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
-    const dimExpr = this.dimensionExpr(by);
+    const bucketExpr = hourly ? sqlHourBucket('r.timestamp') : sqlDateBucket('r.timestamp');
+    const dimExpr = this.requestDimensionExpr(by);
 
-    const qb = this.messageRepo
-      .createQueryBuilder('at')
-      .select(bucketExpr, 'bucket')
-      .addSelect(dimExpr, 'dim')
-      .addSelect('COUNT(*)', 'count')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')");
+    const agentFilter = params.agentName
+      ? `AND r.agent_id = (
+            SELECT a.id FROM agents a
+            WHERE a.tenant_id = $1 AND a.name = $3 AND a.deleted_at IS NULL LIMIT 1
+          )`
+      : '';
+    const failedFilter = params.failedOnly ? `AND r.status != 'ok'` : '';
+    const playgroundExclude = `AND NOT EXISTS (
+      SELECT 1 FROM agents playag
+      WHERE playag.tenant_id = r.tenant_id AND playag.is_playground = true
+        AND (playag.id = r.agent_id OR playag.name = r.agent_name)
+    )`;
 
-    if (params.failedOnly) {
-      qb.andWhere("at.status IN ('error','fallback_error','rate_limited','auto_fixed')");
-    }
-
-    qb.groupBy(bucketExpr).addGroupBy(dimExpr).orderBy(bucketExpr, 'ASC');
-    addTenantFilter(qb, params.tenantId, params.agentName);
-    excludePlaygroundAgents(qb);
-
-    const rows = await qb.getRawMany<{ bucket: string; dim: string | null; count: string }>();
+    const sql = `
+      SELECT ${bucketExpr} AS bucket, ${dimExpr} AS dim, COUNT(*)::int AS count
+      FROM requests r
+      WHERE r.tenant_id = $1
+        AND r.timestamp >= $2
+        ${agentFilter}
+        ${failedFilter}
+        ${playgroundExclude}
+      GROUP BY bucket, dim
+      ORDER BY bucket ASC
+    `;
+    const queryParams: unknown[] = [
+      params.tenantId,
+      cutoff,
+      ...(params.agentName ? [params.agentName] : []),
+    ];
+    const rows = (await this.dataSource.query(sql, queryParams)) as Array<{
+      bucket: string;
+      dim: string | null;
+      count: string;
+    }>;
     return this.pivotTimeseries(range, by, rows);
   }
 
-  private dimensionExpr(by: AutofixTsDimension): string {
+  private requestDimensionExpr(by: AutofixTsDimension): string {
     switch (by) {
       case 'disposition':
-        return `CASE
-          WHEN at.status = 'auto_fixed' THEN 'healed'
-          WHEN at.status IN ('error','fallback_error','rate_limited') THEN 'error'
-          ELSE 'success' END`;
+        return `CASE WHEN r.status = 'ok' THEN 'success' ELSE 'error' END`;
       case 'http_status':
-        return `COALESCE(at.error_http_status::text, 'No response')`;
+        return `COALESCE(r.error_http_status::text, CASE WHEN r.status = 'ok' THEN '200' ELSE 'No response' END)`;
       case 'provider':
-        return `CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END`;
+        // Use the winning attempt's provider for request-level grouping
+        return `COALESCE((
+          SELECT CASE WHEN pa.provider LIKE 'custom:%' THEN 'custom' ELSE pa.provider END
+          FROM provider_attempts pa WHERE pa.request_id = r.id
+          ORDER BY pa.status = 'ok' DESC, pa.timestamp DESC LIMIT 1
+        ), 'unknown')`;
       case 'error_kind':
-        return `COALESCE(at.error_class, 'none')`;
+        return `COALESCE(r.error_class, 'none')`;
       case 'autofix':
-        return `CASE WHEN at.autofix_applied = true THEN 'auto-fixed' ELSE 'not fixed' END`;
+        return `CASE WHEN r.status = 'ok' AND (
+          SELECT COUNT(*) FROM provider_attempts pa WHERE pa.request_id = r.id
+        ) > 1 THEN 'recovered' ELSE 'direct' END`;
     }
   }
 
@@ -319,49 +355,69 @@ export class AutofixStatsService {
     tenantId: string | null,
     agentName?: string,
   ): Promise<WindowCounts> {
-    // Exclude autofix_role='retry' rows so each client request counts once.
-    // A healed flow = one 'original' row + one 'retry' row; we count from
-    // the original and check if a successful retry sibling exists.
-    // Query only total, successes, and saves from SQL.
-    // Derive errors = total - successes (guarantees they sum correctly).
-    const qb = this.messageRepo
-      .createQueryBuilder('at')
-      .select('COUNT(*)', 'total')
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status NOT IN ('error','fallback_error','rate_limited')
-          AND (at.status != 'auto_fixed' OR at.autofix_group_id IN (
-            SELECT sib.autofix_group_id FROM agent_messages sib
-            WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-              AND sib.tenant_id = at.tenant_id
-          )))`,
-        'successes',
-      )
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status = 'auto_fixed' AND at.autofix_group_id IN (
-          SELECT sib.autofix_group_id FROM agent_messages sib
-          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-            AND sib.tenant_id = at.tenant_id
-        ))`,
-        'saves',
-      )
-      .where('at.timestamp >= :from', { from })
-      .andWhere('at.timestamp < :to', { to })
-      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')");
-    addTenantFilter(qb, tenantId, agentName);
-    excludePlaygroundAgents(qb);
+    // Request-centric: query from the requests table directly.
+    // A request is "recovered by Manifest" when it succeeded (status='ok')
+    // but needed more than one provider attempt (fallback or autofix).
+    if (tenantId === null) {
+      return {
+        total: 0,
+        successes: 0,
+        recovered: 0,
+        errors: 0,
+        healed: 0,
+        no_fix_found: 0,
+        resolving: 0,
+        ineffective: 0,
+      };
+    }
 
-    const row = await qb.getRawOne<Record<string, string>>();
-    const total = Number(row?.total ?? 0);
-    const successes = Number(row?.successes ?? 0);
-    const saves = Number(row?.saves ?? 0);
+    const agentFilter = agentName
+      ? `AND r.agent_id = (
+            SELECT a.id FROM agents a
+            WHERE a.tenant_id = $1
+              AND a.name = $3
+              AND a.deleted_at IS NULL
+            LIMIT 1
+          )`
+      : '';
+    const playgroundExclude = `AND NOT EXISTS (
+      SELECT 1 FROM agents playag
+      WHERE playag.tenant_id = r.tenant_id
+        AND playag.is_playground = true
+        AND (playag.id = r.agent_id OR playag.name = r.agent_name)
+    )`;
+
+    const params: unknown[] = [tenantId, from, ...(agentName ? [agentName] : []), to];
+    const toIdx = agentName ? '$4' : '$3';
+
+    const sql = `
+      SELECT
+        COUNT(*)::int AS total,
+        COUNT(*) FILTER (WHERE r.status = 'ok')::int AS successes,
+        COUNT(*) FILTER (WHERE r.status = 'ok' AND (
+          SELECT COUNT(*) FROM provider_attempts pa WHERE pa.request_id = r.id
+        ) > 1)::int AS recovered
+      FROM requests r
+      WHERE r.tenant_id = $1
+        AND r.timestamp >= $2
+        AND r.timestamp < ${toIdx}
+        ${agentFilter}
+        ${playgroundExclude}
+    `;
+
+    const rows = await this.dataSource.query(sql, params);
+    const row = rows[0] ?? {};
+    const total = Number(row.total ?? 0);
+    const successes = Number(row.successes ?? 0);
+    const recovered = Number(row.recovered ?? 0);
     const errors = total - successes;
     return {
       total,
       successes,
-      saves,
+      recovered,
       errors,
-      healed: saves,
-      no_fix_found: errors - saves,
+      healed: recovered,
+      no_fix_found: errors,
       resolving: 0,
       ineffective: 0,
     };
@@ -372,39 +428,41 @@ export class AutofixStatsService {
     tenantId: string | null,
     agentName?: string,
   ): Promise<AutofixStatsResponse['needs_attention']> {
-    const qb = this.messageRepo
-      .createQueryBuilder('at')
-      .select('LEFT(at.error_message, 200)', 'error_message')
-      .addSelect('at.provider', 'provider')
-      .addSelect('at.model', 'model')
-      .addSelect('COUNT(*)', 'count')
-      .addSelect("(at.autofix_phoenix->>'issueId')::text", 'phoenix_issue_id')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere("at.status = 'auto_fixed'")
-      .andWhere(
-        `at.autofix_group_id NOT IN (
-          SELECT sib.autofix_group_id FROM agent_messages sib
-          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-            AND sib.tenant_id = at.tenant_id
-        )`,
-      )
-      .groupBy('LEFT(at.error_message, 200)')
-      .addGroupBy('at.provider')
-      .addGroupBy('at.model')
-      .addGroupBy("(at.autofix_phoenix->>'issueId')::text")
-      .orderBy('count', 'DESC')
-      .limit(5);
-    addTenantFilter(qb, tenantId, agentName);
-    excludePlaygroundAgents(qb);
-
-    const rows = await qb.getRawMany<{
-      error_message: string | null;
-      provider: string;
-      model: string;
-      count: string;
-      phoenix_issue_id: string | null;
-    }>();
-
+    if (!tenantId) return [];
+    // Request-level: show requests that ultimately failed for the caller
+    const agentFilter = agentName
+      ? `AND r.agent_id = (
+            SELECT a.id FROM agents a
+            WHERE a.tenant_id = $1 AND a.name = $3 AND a.deleted_at IS NULL LIMIT 1
+          )`
+      : '';
+    const sql = `
+      SELECT
+        LEFT(r.error_message, 200) AS error_message,
+        COALESCE((
+          SELECT CASE WHEN pa.provider LIKE 'custom:%' THEN 'custom' ELSE pa.provider END
+          FROM provider_attempts pa WHERE pa.request_id = r.id
+          ORDER BY pa.timestamp DESC LIMIT 1
+        ), 'unknown') AS provider,
+        COALESCE(r.requested_model, 'unknown') AS model,
+        COUNT(*)::int AS count,
+        NULL::text AS phoenix_issue_id
+      FROM requests r
+      WHERE r.tenant_id = $1
+        AND r.timestamp >= $2
+        AND r.status != 'ok'
+        ${agentFilter}
+        AND NOT EXISTS (
+          SELECT 1 FROM agents playag
+          WHERE playag.tenant_id = r.tenant_id AND playag.is_playground = true
+            AND (playag.id = r.agent_id OR playag.name = r.agent_name)
+        )
+      GROUP BY LEFT(r.error_message, 200), provider, model
+      ORDER BY count DESC
+      LIMIT 5
+    `;
+    const params: unknown[] = [tenantId, cutoff, ...(agentName ? [agentName] : [])];
+    const rows = (await this.dataSource.query(sql, params)) as any[];
     return rows.map((r) => ({
       error_message: r.error_message ?? '',
       provider: r.provider,

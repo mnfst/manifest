@@ -170,6 +170,125 @@ export class AggregationService {
     };
   }
 
+  /** Request-level reliability for the headline KPI and Manifest value gap. */
+  async getRequestReliability(
+    range: string,
+    tenantId: string | null,
+    agentName?: string,
+    excludePlayground = false,
+  ): Promise<{
+    total: number;
+    successful: number;
+    success_rate: number;
+    attempt_success_rate: number;
+    manifest_lift_pct: number;
+    recovered: number;
+    previous_total: number;
+  }> {
+    if (!tenantId) {
+      return {
+        total: 0,
+        successful: 0,
+        success_rate: 0,
+        attempt_success_rate: 0,
+        manifest_lift_pct: 0,
+        recovered: 0,
+        previous_total: 0,
+      };
+    }
+    const { cutoff, prevCutoff } = this.computeWindow(range);
+    const agentPredicate = agentName
+      ? `AND r.agent_id = (
+          SELECT id FROM agents
+          WHERE tenant_id = $1 AND name = $4 AND deleted_at IS NULL
+          LIMIT 1
+        )`
+      : '';
+    const playgroundPredicate = excludePlayground
+      ? `AND NOT EXISTS (SELECT 1 FROM agents a WHERE a.id = r.agent_id AND a.is_playground = true)`
+      : '';
+    const unlinkedAgentPredicate = agentName
+      ? `AND pa.agent_id = (
+          SELECT id FROM agents
+          WHERE tenant_id = $1 AND name = $4 AND deleted_at IS NULL
+          LIMIT 1
+        )`
+      : '';
+    const unlinkedPlaygroundPredicate = excludePlayground
+      ? `AND NOT EXISTS (SELECT 1 FROM agents a WHERE a.id = pa.agent_id AND a.is_playground = true)`
+      : '';
+    const queryParams = agentName
+      ? [tenantId, prevCutoff, cutoff, agentName]
+      : [tenantId, prevCutoff, cutoff];
+    const rows = (await this.turnRepo.query(
+      `WITH scoped_requests AS (
+         SELECT r.id, r.timestamp, r.status
+         FROM requests r
+         WHERE r.tenant_id = $1
+           AND r.timestamp >= $2
+           ${agentPredicate}
+           ${playgroundPredicate}
+         UNION ALL
+         SELECT 'unlinked:' || pa.id, pa.timestamp, pa.status
+         FROM provider_attempts pa
+         WHERE pa.request_id IS NULL
+           AND pa.tenant_id = $1
+           AND pa.timestamp >= $2
+           ${unlinkedAgentPredicate}
+           ${unlinkedPlaygroundPredicate}
+       ), attempt_stats AS (
+         SELECT pa.request_id,
+                COUNT(*) AS attempts,
+                COUNT(*) FILTER (WHERE pa.status = 'ok') AS successful_attempts,
+                BOOL_OR(pa.status <> 'ok') AS had_failure
+         FROM provider_attempts pa
+         JOIN scoped_requests r ON r.id = pa.request_id
+         GROUP BY pa.request_id
+         UNION ALL
+         SELECT r.id,
+                1 AS attempts,
+                CASE WHEN pa.status = 'ok' THEN 1 ELSE 0 END AS successful_attempts,
+                pa.status <> 'ok' AS had_failure
+         FROM provider_attempts pa
+         JOIN scoped_requests r ON r.id = 'unlinked:' || pa.id
+         WHERE pa.request_id IS NULL
+       )
+       SELECT
+         COUNT(*) FILTER (WHERE r.timestamp >= $3)::int AS total,
+         COUNT(*) FILTER (WHERE r.timestamp >= $3 AND r.status = 'ok')::int AS successful,
+         COUNT(*) FILTER (WHERE r.timestamp < $3)::int AS previous_total,
+         COALESCE(SUM(a.attempts) FILTER (WHERE r.timestamp >= $3), 0)::int AS attempts,
+         COALESCE(SUM(a.successful_attempts) FILTER (WHERE r.timestamp >= $3), 0)::int AS successful_attempts,
+         COUNT(*) FILTER (WHERE r.timestamp >= $3 AND r.status = 'ok' AND a.had_failure)::int AS recovered
+       FROM scoped_requests r
+       LEFT JOIN attempt_stats a ON a.request_id = r.id`,
+      queryParams,
+    )) as Array<{
+      total: number;
+      successful: number;
+      previous_total: number;
+      attempts: number;
+      successful_attempts: number;
+      recovered: number;
+    }>;
+    const row = rows[0];
+    const total = Number(row?.total ?? 0);
+    const successful = Number(row?.successful ?? 0);
+    const attempts = Number(row?.attempts ?? 0);
+    const successfulAttempts = Number(row?.successful_attempts ?? 0);
+    const successRate = total === 0 ? 0 : (successful / total) * 100;
+    const attemptSuccessRate = attempts === 0 ? 0 : (successfulAttempts / attempts) * 100;
+    return {
+      total,
+      successful,
+      success_rate: successRate,
+      attempt_success_rate: attemptSuccessRate,
+      manifest_lift_pct: successRate - attemptSuccessRate,
+      recovered: Number(row?.recovered ?? 0),
+      previous_total: Number(row?.previous_total ?? 0),
+    };
+  }
+
   /**
    * Assemble the Overview summary cards (value + trend vs the previous window)
    * from already-computed current totals and previous-window totals. Pure (no

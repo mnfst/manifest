@@ -15,22 +15,22 @@ beforeAll(async () => {
   const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
+    `INSERT INTO provider_attempts (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
     ['ps-msg-1', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 100, 50, 'gpt-4o', 'ok'],
   );
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
+    `INSERT INTO provider_attempts (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
     ['ps-msg-2', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 200, 100, 'gpt-4o', 'ok'],
   );
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
+    `INSERT INTO provider_attempts (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
     ['ps-msg-3', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 150, 75, 'claude-opus-4-6', 'ok'],
   );
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, provider, auth_type, status)
+    `INSERT INTO provider_attempts (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, provider, auth_type, status)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
     [
       'ps-msg-6',
@@ -51,12 +51,12 @@ beforeAll(async () => {
   // Custom-endpoint traffic: two tenant-scoped provider refs from one tenant,
   // exercising the Custom grouping + k-anonymity fold on real SQL.
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
+    `INSERT INTO provider_attempts (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
     ['ps-msg-4', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 400, 200, 'custom:d0c5ce41-0000-4000-8000-000000000001/private-model', 'ok'],
   );
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
+    `INSERT INTO provider_attempts (id, tenant_id, agent_id, agent_name, user_id, timestamp, input_tokens, output_tokens, model, status)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
     ['ps-msg-5', 'test-tenant-001', 'test-agent-001', 'test-agent', 'test-user-001', now, 200, 100, 'custom:d0c5ce41-0000-4000-8000-000000000002/other-private-model', 'ok'],
   );

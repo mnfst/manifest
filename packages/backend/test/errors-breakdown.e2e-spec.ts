@@ -17,7 +17,7 @@ async function insertMessage(
 ) {
   const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, error_origin, error_class, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, agent_name, user_id)
+    `INSERT INTO provider_attempts (id, tenant_id, agent_id, timestamp, status, error_origin, error_class, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, agent_name, user_id)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
     [
       uuid(),

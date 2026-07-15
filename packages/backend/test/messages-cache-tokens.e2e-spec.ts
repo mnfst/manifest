@@ -3,7 +3,7 @@
  *
  * Drives a real Anthropic-Messages-shaped POST through the proxy stack with a
  * stubbed Anthropic upstream that returns deterministic cache token counts.
- * Asserts both the client-visible response usage AND the `agent_messages` row
+ * Asserts both the client-visible response usage AND the `provider_attempts` row
  * surface the cache creation / cache read counts that Anthropic reported.
  *
  * Without the fix:
@@ -161,14 +161,14 @@ async function postMessages(body: Record<string, unknown>): Promise<request.Resp
 
 async function flushRecorder(): Promise<void> {
   // recordSuccess fires off the response handler asynchronously — give it a
-  // tick or two before reading agent_messages.
+  // tick or two before reading provider_attempts.
   await new Promise((r) => setTimeout(r, 200));
 }
 
 describe('/v1/messages cache token round-trip (#1871)', () => {
   it('preserves cache_creation_input_tokens through the response AND the DB row', async () => {
     const ds = app.get(DataSource);
-    await ds.query(`DELETE FROM agent_messages WHERE agent_id = $1`, [TEST_AGENT_ID]);
+    await ds.query(`DELETE FROM provider_attempts WHERE agent_id = $1`, [TEST_AGENT_ID]);
     app.get(RoutingCacheService).invalidateAgent(TEST_AGENT_ID);
 
     nextAnthropicUsage = {
@@ -201,7 +201,7 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
     await flushRecorder();
     const rows = await ds.query(
       `SELECT input_tokens, cache_read_tokens, cache_creation_tokens, status
-         FROM agent_messages WHERE agent_id = $1 ORDER BY timestamp DESC LIMIT 1`,
+         FROM provider_attempts WHERE agent_id = $1 ORDER BY timestamp DESC LIMIT 1`,
       [TEST_AGENT_ID],
     );
     expect(rows).toHaveLength(1);
@@ -214,7 +214,7 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
 
   it('preserves cache_read_input_tokens through the response AND the DB row', async () => {
     const ds = app.get(DataSource);
-    await ds.query(`DELETE FROM agent_messages WHERE agent_id = $1`, [TEST_AGENT_ID]);
+    await ds.query(`DELETE FROM provider_attempts WHERE agent_id = $1`, [TEST_AGENT_ID]);
     app.get(RoutingCacheService).invalidateAgent(TEST_AGENT_ID);
 
     nextAnthropicUsage = {
@@ -247,7 +247,7 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
     await flushRecorder();
     const rows = await ds.query(
       `SELECT input_tokens, cache_read_tokens, cache_creation_tokens
-         FROM agent_messages WHERE agent_id = $1 ORDER BY timestamp DESC LIMIT 1`,
+         FROM provider_attempts WHERE agent_id = $1 ORDER BY timestamp DESC LIMIT 1`,
       [TEST_AGENT_ID],
     );
     expect(rows).toHaveLength(1);
