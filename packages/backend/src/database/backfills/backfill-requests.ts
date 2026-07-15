@@ -8,12 +8,16 @@ export interface RequestBackfillTimeouts {
 export interface RequestBackfillGateway {
   analyze(): Promise<void>;
   backfillFallbackGroups(
+    batchSize: number,
+    before: string,
     timeouts: RequestBackfillTimeouts,
+    pause: () => Promise<void>,
   ): Promise<{ requests: number; attempts: number }>;
-  nextWindowEnd(afterId: string, batchSize: number): Promise<string | null>;
+  nextWindowEnd(afterId: string, batchSize: number, before: string): Promise<string | null>;
   backfillWindow(
     afterId: string,
     endId: string,
+    before: string,
     timeouts: RequestBackfillTimeouts,
   ): Promise<{ requests: number; attempts: number; rejections: number }>;
   finalize(timeouts: RequestBackfillTimeouts): Promise<void>;
@@ -26,6 +30,12 @@ export interface RequestBackfillOptions {
   statementTimeoutMs?: number;
   maxRetries?: number;
   retryBackoffMs?: number;
+  /** Fallback rows may match sooner than generic rows, leaving a safety gap for late terminals. */
+  fallbackBefore?: string;
+  /** Only generic attempts older than this boundary are linked. */
+  before?: string;
+  analyze?: boolean;
+  finalize?: boolean;
   logger?: { log: (message: string) => void };
   sleep?: (ms: number) => Promise<void>;
 }
@@ -68,7 +78,10 @@ export async function runRequestBackfill(
   const maxRetries = options.maxRetries ?? DEFAULT_BACKFILL_OPTIONS.maxRetries;
   const retryBackoffMs = options.retryBackoffMs ?? DEFAULT_BACKFILL_OPTIONS.retryBackoffMs;
   const sleep = options.sleep ?? realSleep;
+  const before = options.before ?? '9999-12-31 23:59:59';
+  const fallbackBefore = options.fallbackBefore ?? before;
   const log = (message: string): void => options.logger?.log(message);
+  const pause = (): Promise<void> => (throttleMs > 0 ? sleep(throttleMs) : Promise.resolve());
   const timeouts: RequestBackfillTimeouts = {
     lockTimeoutMs: options.lockTimeoutMs ?? DEFAULT_BACKFILL_OPTIONS.lockTimeoutMs,
     statementTimeoutMs: options.statementTimeoutMs ?? DEFAULT_BACKFILL_OPTIONS.statementTimeoutMs,
@@ -80,8 +93,17 @@ export async function runRequestBackfill(
   assertNonNegativeFinite('retryBackoffMs', retryBackoffMs);
   assertPositiveFinite('lockTimeoutMs', timeouts.lockTimeoutMs);
   assertPositiveFinite('statementTimeoutMs', timeouts.statementTimeoutMs);
+  const beforeTime = Date.parse(before);
+  const fallbackBeforeTime = Date.parse(fallbackBefore);
+  if (Number.isNaN(beforeTime)) throw new Error('request backfill before must be valid');
+  if (Number.isNaN(fallbackBeforeTime)) {
+    throw new Error('request backfill fallbackBefore must be valid');
+  }
+  if (fallbackBeforeTime < beforeTime) {
+    throw new Error('request backfill fallbackBefore must not precede before');
+  }
 
-  await gateway.analyze();
+  if (options.analyze !== false) await gateway.analyze();
 
   let afterId = '';
   const result: RequestBackfillResult = {
@@ -94,7 +116,12 @@ export async function runRequestBackfill(
   let fallbackAttempt = 0;
   for (;;) {
     try {
-      const grouped = await gateway.backfillFallbackGroups(timeouts);
+      const grouped = await gateway.backfillFallbackGroups(
+        batchSize,
+        fallbackBefore,
+        timeouts,
+        pause,
+      );
       result.requests += grouped.requests;
       result.attempts += grouped.attempts;
       if (grouped.attempts > 0) {
@@ -115,13 +142,13 @@ export async function runRequestBackfill(
   }
 
   for (;;) {
-    const endId = await gateway.nextWindowEnd(afterId, batchSize);
+    const endId = await gateway.nextWindowEnd(afterId, batchSize, before);
     if (endId === null) break;
 
     let attempt = 0;
     for (;;) {
       try {
-        const window = await gateway.backfillWindow(afterId, endId, timeouts);
+        const window = await gateway.backfillWindow(afterId, endId, before, timeouts);
         result.requests += window.requests;
         result.attempts += window.attempts;
         result.rejections += window.rejections;
@@ -147,19 +174,21 @@ export async function runRequestBackfill(
     if (throttleMs > 0) await sleep(throttleMs);
   }
 
-  let finalizeAttempt = 0;
-  for (;;) {
-    try {
-      await gateway.finalize(timeouts);
-      break;
-    } catch (error) {
-      finalizeAttempt += 1;
-      if (finalizeAttempt > maxRetries || !isRetryableBackfillError(error)) throw error;
-      const reason = error instanceof Error ? error.message : String(error);
-      log(
-        `request backfill: finalization failed (attempt ${finalizeAttempt}/${maxRetries}: ${reason}); retrying`,
-      );
-      await sleep(retryBackoffMs * finalizeAttempt);
+  if (options.finalize !== false) {
+    let finalizeAttempt = 0;
+    for (;;) {
+      try {
+        await gateway.finalize(timeouts);
+        break;
+      } catch (error) {
+        finalizeAttempt += 1;
+        if (finalizeAttempt > maxRetries || !isRetryableBackfillError(error)) throw error;
+        const reason = error instanceof Error ? error.message : String(error);
+        log(
+          `request backfill: finalization failed (attempt ${finalizeAttempt}/${maxRetries}: ${reason}); retrying`,
+        );
+        await sleep(retryBackoffMs * finalizeAttempt);
+      }
     }
   }
   log(

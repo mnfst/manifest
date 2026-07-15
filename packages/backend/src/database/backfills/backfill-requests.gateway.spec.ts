@@ -1,7 +1,12 @@
 import { DataSource } from 'typeorm';
 
 import {
+  CREATE_LEGACY_FALLBACK_STAGING_SQL,
   CREATE_LEGACY_FALLBACK_GROUPS_SQL,
+  FALLBACK_PRIMARY_WINDOW_END_SQL,
+  INSERT_LEGACY_FALLBACK_DIRECT_MEMBERS_SQL,
+  INSERT_LEGACY_FALLBACK_MEMBERS_SQL,
+  INSERT_LEGACY_FALLBACK_PAIRS_SQL,
   INSERT_LEGACY_FALLBACK_REQUESTS_SQL,
   LINK_LEGACY_FALLBACK_ATTEMPTS_SQL,
   TypeOrmRequestBackfillGateway,
@@ -20,6 +25,7 @@ function mockQueryRunner() {
 }
 
 const timeouts = { lockTimeoutMs: 5_000, statementTimeoutMs: 60_000 };
+const before = '2026-01-01 00:00:00';
 
 describe('TypeOrmRequestBackfillGateway', () => {
   it('analyzes attempts and finds keyset window ends', async () => {
@@ -31,10 +37,10 @@ describe('TypeOrmRequestBackfillGateway', () => {
     const gateway = new TypeOrmRequestBackfillGateway({ query } as unknown as DataSource);
 
     await gateway.analyze();
-    await expect(gateway.nextWindowEnd('attempt-0', 100)).resolves.toBe('attempt-9');
-    await expect(gateway.nextWindowEnd('attempt-9', 100)).resolves.toBeNull();
+    await expect(gateway.nextWindowEnd('attempt-0', 100, before)).resolves.toBe('attempt-9');
+    await expect(gateway.nextWindowEnd('attempt-9', 100, before)).resolves.toBeNull();
     expect(query).toHaveBeenCalledWith('ANALYZE "provider_attempts"');
-    expect(query).toHaveBeenCalledWith(REQUEST_BACKFILL_WINDOW_END_SQL, ['attempt-0', 100]);
+    expect(query).toHaveBeenCalledWith(REQUEST_BACKFILL_WINDOW_END_SQL, ['attempt-0', 100, before]);
   });
 
   it('backfills a window in one timeout-guarded transaction', async () => {
@@ -51,7 +57,7 @@ describe('TypeOrmRequestBackfillGateway', () => {
       createQueryRunner: jest.fn(() => runner),
     } as unknown as DataSource);
 
-    await expect(gateway.backfillWindow('a', 'b', timeouts)).resolves.toEqual({
+    await expect(gateway.backfillWindow('a', 'b', before, timeouts)).resolves.toEqual({
       requests: 5,
       attempts: 4,
       rejections: 1,
@@ -65,23 +71,38 @@ describe('TypeOrmRequestBackfillGateway', () => {
 
   it('reconstructs unambiguous legacy fallback chains transactionally', async () => {
     const runner = mockQueryRunner();
-    runner.query
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce([{ n: 2 }])
-      .mockResolvedValueOnce([{ n: 5 }]);
+    let primaryWindow = 0;
+    runner.query.mockImplementation(async (sql: string) => {
+      if (sql === FALLBACK_PRIMARY_WINDOW_END_SQL) {
+        primaryWindow += 1;
+        return [{ end_id: primaryWindow === 1 ? 'primary-z' : null }];
+      }
+      if (sql.includes('max(pair_seq)')) return [{ max_seq: 1 }];
+      if (sql === INSERT_LEGACY_FALLBACK_REQUESTS_SQL) return [{ n: 2 }];
+      if (sql === LINK_LEGACY_FALLBACK_ATTEMPTS_SQL) return [{ n: 5 }];
+      return undefined;
+    });
     const gateway = new TypeOrmRequestBackfillGateway({
       createQueryRunner: jest.fn(() => runner),
     } as unknown as DataSource);
 
-    await expect(gateway.backfillFallbackGroups(timeouts)).resolves.toEqual({
+    const pause = jest.fn().mockResolvedValue(undefined);
+    await expect(gateway.backfillFallbackGroups(100, before, timeouts, pause)).resolves.toEqual({
       requests: 2,
       attempts: 5,
     });
-    expect(runner.query).toHaveBeenCalledWith(CREATE_LEGACY_FALLBACK_GROUPS_SQL);
+    expect(runner.query).toHaveBeenCalledWith(CREATE_LEGACY_FALLBACK_STAGING_SQL);
+    expect(runner.query).toHaveBeenCalledWith(INSERT_LEGACY_FALLBACK_PAIRS_SQL, [
+      '',
+      'primary-z',
+      before,
+    ]);
+    expect(runner.query).toHaveBeenCalledWith(INSERT_LEGACY_FALLBACK_MEMBERS_SQL, [0, 1]);
+    expect(runner.query).toHaveBeenCalledWith(INSERT_LEGACY_FALLBACK_DIRECT_MEMBERS_SQL, [0, 1]);
+    expect(runner.query).toHaveBeenCalledWith(CREATE_LEGACY_FALLBACK_GROUPS_SQL, [0, 1]);
     expect(runner.query).toHaveBeenCalledWith(INSERT_LEGACY_FALLBACK_REQUESTS_SQL);
     expect(runner.query).toHaveBeenCalledWith(LINK_LEGACY_FALLBACK_ATTEMPTS_SQL);
+    expect(pause).toHaveBeenCalledTimes(3);
     expect(runner.commitTransaction).toHaveBeenCalled();
   });
 
@@ -113,7 +134,7 @@ describe('TypeOrmRequestBackfillGateway', () => {
       createQueryRunner: jest.fn(() => runner),
     } as unknown as DataSource);
 
-    await expect(gateway.backfillWindow('a', 'b', timeouts)).rejects.toBe(error);
+    await expect(gateway.backfillWindow('a', 'b', before, timeouts)).rejects.toBe(error);
     expect(runner.rollbackTransaction).toHaveBeenCalled();
     expect(runner.commitTransaction).not.toHaveBeenCalled();
     expect(runner.release).toHaveBeenCalled();

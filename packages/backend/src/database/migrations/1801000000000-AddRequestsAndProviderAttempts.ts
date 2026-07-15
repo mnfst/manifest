@@ -94,27 +94,60 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
       `CREATE INDEX IF NOT EXISTS "IDX_requests_tenant_status_timestamp" ON "requests" ("tenant_id", "status", "timestamp")`,
     );
     const requestIndex = (await queryRunner.query(`
-      SELECT i.indisvalid AS valid
+      SELECT i.indisvalid AS valid,
+             pg_get_indexdef(i.indexrelid) AS definition
       FROM pg_class c
       JOIN pg_index i ON i.indexrelid = c.oid
       WHERE c.relname = 'IDX_provider_attempts_request_id'
         AND i.indrelid = 'provider_attempts'::regclass
-    `)) as Array<{ valid: boolean }>;
+    `)) as Array<{ valid: boolean; definition: string }>;
     // PostgreSQL leaves an invalid shell behind when CREATE INDEX
     // CONCURRENTLY is interrupted. IF NOT EXISTS would treat that shell as a
     // usable index, so remove it before retrying the build.
-    if (requestIndex?.[0]?.valid === false) {
+    const expectedRequestIndex = '(request_id, id)';
+    if (
+      requestIndex?.[0] &&
+      (!requestIndex[0].valid || !requestIndex[0].definition.includes(expectedRequestIndex))
+    ) {
       await queryRunner.query(
         `DROP INDEX CONCURRENTLY IF EXISTS "IDX_provider_attempts_request_id"`,
       );
     }
     await queryRunner.query(
-      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_provider_attempts_request_id" ON "provider_attempts" ("request_id") WHERE "request_id" IS NOT NULL`,
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_provider_attempts_request_id" ON "provider_attempts" ("request_id", "id")`,
+    );
+
+    // Temporary migration support: exact fallback reconstruction repeatedly
+    // probes legacy fallback rows by their original model and encoded time.
+    // The partial index empties as the backfill links rows, and new request-aware
+    // writes never enter it. A later cleanup migration can remove the empty shell.
+    const fallbackIndex = (await queryRunner.query(`
+      SELECT i.indisvalid AS valid,
+             pg_get_indexdef(i.indexrelid) AS definition
+      FROM pg_class c
+      JOIN pg_index i ON i.indexrelid = c.oid
+      WHERE c.relname = 'IDX_provider_attempts_unlinked_fallback'
+        AND i.indrelid = 'provider_attempts'::regclass
+    `)) as Array<{ valid: boolean; definition: string }>;
+    const expectedFallbackIndex = '(fallback_from_model, "timestamp", tenant_id, agent_id)';
+    if (
+      fallbackIndex?.[0] &&
+      (!fallbackIndex[0].valid || !fallbackIndex[0].definition.includes(expectedFallbackIndex))
+    ) {
+      await queryRunner.query(
+        `DROP INDEX CONCURRENTLY IF EXISTS "IDX_provider_attempts_unlinked_fallback"`,
+      );
+    }
+    await queryRunner.query(
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_provider_attempts_unlinked_fallback" ON "provider_attempts" ("fallback_from_model", "timestamp", "tenant_id", "agent_id") INCLUDE ("fallback_index", "status", "superseded") WHERE "request_id" IS NULL AND "fallback_from_model" IS NOT NULL`,
     );
     await queryRunner.query(`RESET lock_timeout`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `DROP INDEX CONCURRENTLY IF EXISTS "IDX_provider_attempts_unlinked_fallback"`,
+    );
     await queryRunner.query(`DROP INDEX CONCURRENTLY IF EXISTS "IDX_provider_attempts_request_id"`);
     await queryRunner.query(
       `ALTER TABLE "provider_attempts" DROP CONSTRAINT IF EXISTS "FK_provider_attempts_request"`,

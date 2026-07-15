@@ -130,7 +130,16 @@ describe('RequestBackfillBootService', () => {
     await expect(new RequestBackfillBootService(ds, state.repo).runOnce(runner)).resolves.toBe(
       true,
     );
-    expect(runner).toHaveBeenCalledWith(ds, expect.objectContaining({ log: expect.any(Function) }));
+    expect(runner).toHaveBeenCalledWith(
+      ds,
+      expect.objectContaining({ log: expect.any(Function) }),
+      expect.objectContaining({
+        analyze: true,
+        finalize: true,
+        before: expect.any(String),
+        fallbackBefore: expect.any(String),
+      }),
+    );
     expect(state.values).toHaveBeenCalledWith({ name: REQUEST_BACKFILL_NAME });
     expect(state.execute).toHaveBeenCalled();
     expect(lock.query).toHaveBeenCalledWith('SELECT pg_advisory_unlock($1)', [
@@ -194,6 +203,11 @@ describe('RequestBackfillBootService', () => {
       rollbackTransaction: jest.fn().mockResolvedValue(undefined),
       release: jest.fn().mockResolvedValue(undefined),
       query: jest.fn().mockImplementation(async (sql: string) => {
+        if (sql.includes('FALLBACK_PRIMARY_WINDOW_END_SQL')) return [{ end_id: null }];
+        if (sql.includes("status = 'fallback_error'") && sql.includes('max(id)')) {
+          return [{ end_id: null }];
+        }
+        if (sql.includes('max(pair_seq)')) return [{ max_seq: 0 }];
         if (sql.includes('INSERT INTO "requests"')) return [{ n: 0 }];
         if (sql.includes('UPDATE "provider_attempts"')) return [{ n: 0 }];
         return undefined;
@@ -210,5 +224,66 @@ describe('RequestBackfillBootService', () => {
 
     await expect(new RequestBackfillBootService(ds, state.repo).runOnce()).resolves.toBe(true);
     expect(state.execute).toHaveBeenCalled();
+  });
+
+  it('skips a tail sweep when no grace-aged writes are waiting', async () => {
+    const ds = {
+      query: jest.fn().mockResolvedValue([{ pending: false }]),
+      createQueryRunner: jest.fn(),
+    } as unknown as DataSource;
+    const runner = jest.fn();
+
+    await expect(
+      new RequestBackfillBootService(ds, makeState(true).repo).runTailOnce(runner),
+    ).resolves.toBe(true);
+    expect(ds.createQueryRunner).not.toHaveBeenCalled();
+    expect(runner).not.toHaveBeenCalled();
+  });
+
+  it('tail-sweeps old-replica writes without re-analyzing or re-finalizing', async () => {
+    const lock = makeLock(true);
+    const query = jest
+      .fn()
+      .mockResolvedValueOnce([{ pending: true }])
+      .mockResolvedValueOnce([{ pending: true }]);
+    const ds = {
+      query,
+      createQueryRunner: jest.fn(() => lock),
+    } as unknown as DataSource;
+    const runner = jest.fn(
+      async (
+        _dataSource: DataSource,
+        _logger: Pick<Logger, 'log'>,
+        _options: {
+          analyze?: boolean;
+          finalize?: boolean;
+          before?: string;
+          fallbackBefore?: string;
+        },
+      ) => ({
+        windows: 1,
+        requests: 1,
+        attempts: 2,
+        rejections: 0,
+      }),
+    );
+
+    await expect(
+      new RequestBackfillBootService(ds, makeState(true).repo).runTailOnce(runner),
+    ).resolves.toBe(true);
+
+    const options = runner.mock.calls[0]![2];
+    expect(options).toEqual(
+      expect.objectContaining({
+        analyze: false,
+        finalize: false,
+        before: expect.any(String),
+        fallbackBefore: expect.any(String),
+      }),
+    );
+    expect(Date.parse(options.fallbackBefore!)).toBeGreaterThan(Date.parse(options.before!));
+    expect(lock.query).toHaveBeenCalledWith('SELECT pg_advisory_unlock($1)', [
+      REQUEST_BACKFILL_LOCK_KEY,
+    ]);
   });
 });

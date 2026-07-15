@@ -27,6 +27,10 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
     expect(sql).toContain('ADD COLUMN IF NOT EXISTS "request_id"');
     expect(sql).toContain('NOT VALID');
     expect(sql).toContain('CREATE INDEX CONCURRENTLY IF NOT EXISTS');
+    expect(sql).toContain(
+      '"IDX_provider_attempts_request_id" ON "provider_attempts" ("request_id", "id")',
+    );
+    expect(sql).toContain('"IDX_provider_attempts_unlinked_fallback"');
     expect(sql).not.toMatch(/INSERT\s+INTO\s+"requests"/i);
     expect(sql).not.toMatch(/UPDATE\s+"provider_attempts"/i);
   });
@@ -71,6 +75,32 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
 
     const validityQuery = queries.find((sql) => sql.includes('i.indisvalid'));
     expect(validityQuery).toContain("i.indrelid = 'provider_attempts'::regclass");
+  });
+
+  it('rebuilds a valid fallback index whose key order cannot support the bounded lookup', async () => {
+    (runner as { query: jest.Mock }).query.mockImplementation((sql: string) => {
+      queries.push(sql);
+      if (sql.includes("c.relname = 'IDX_provider_attempts_request_id'")) {
+        return Promise.resolve([{ valid: true, definition: '(request_id, id)' }]);
+      }
+      if (sql.includes("c.relname = 'IDX_provider_attempts_unlinked_fallback'")) {
+        return Promise.resolve([
+          {
+            valid: true,
+            definition: '(tenant_id, agent_id, fallback_from_model, "timestamp")',
+          },
+        ]);
+      }
+      return Promise.resolve();
+    });
+
+    await migration.up(runner);
+
+    expect(
+      queries.some((sql) =>
+        sql.includes('DROP INDEX CONCURRENTLY IF EXISTS "IDX_provider_attempts_unlinked_fallback"'),
+      ),
+    ).toBe(true);
   });
 
   it('drops the compatibility view before restoring the old table name', async () => {
