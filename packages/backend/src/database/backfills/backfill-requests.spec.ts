@@ -23,11 +23,28 @@ describe('runRequestBackfill', () => {
       runRequestBackfill(gateway, { batchSize: 2, throttleMs: 5, sleep }),
     ).resolves.toEqual({ windows: 2, requests: 4, attempts: 5, rejections: 1 });
 
-    expect(gateway.backfillFallbackGroups).toHaveBeenCalledWith(expect.any(Object));
-    expect(gateway.nextWindowEnd).toHaveBeenNthCalledWith(1, '', 2);
-    expect(gateway.nextWindowEnd).toHaveBeenNthCalledWith(2, 'b', 2);
-    expect(gateway.backfillWindow).toHaveBeenNthCalledWith(1, '', 'b', expect.any(Object));
-    expect(gateway.backfillWindow).toHaveBeenNthCalledWith(2, 'b', 'd', expect.any(Object));
+    expect(gateway.backfillFallbackGroups).toHaveBeenCalledWith(
+      2,
+      expect.any(String),
+      expect.any(Object),
+      expect.any(Function),
+    );
+    expect(gateway.nextWindowEnd).toHaveBeenNthCalledWith(1, '', 2, expect.any(String));
+    expect(gateway.nextWindowEnd).toHaveBeenNthCalledWith(2, 'b', 2, expect.any(String));
+    expect(gateway.backfillWindow).toHaveBeenNthCalledWith(
+      1,
+      '',
+      'b',
+      expect.any(String),
+      expect.any(Object),
+    );
+    expect(gateway.backfillWindow).toHaveBeenNthCalledWith(
+      2,
+      'b',
+      'd',
+      expect.any(String),
+      expect.any(Object),
+    );
     expect(sleep).toHaveBeenCalledTimes(2);
     expect(gateway.finalize).toHaveBeenCalledTimes(1);
   });
