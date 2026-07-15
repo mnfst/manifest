@@ -153,12 +153,14 @@ packages/backend/src/routing/proxy/proxy-message-recorder.ts
   s_429b9b7858f465::t_c587315287107c 101,109,117,155,162,172,188
   s_429b9b7858f465::t_28fef4f4f41895 364-365
   s_429b9b7858f465::t_b8aa2af25a7f1a 843
+  s_dc86fda050ffea::t_f96cb30e82a631 431,663,665,973,1002
 packages/backend/src/error-pages/error-cluster-seeder.service.ts
   s_429b9b7858f465::t_c587315287107c 7,223
 packages/backend/src/routing/proxy/proxy-response-handler.ts
   s_429b9b7858f465::t_1c2c8710b26896 2,169,253,337,715
   s_429b9b7858f465::t_3c11e1cc2dc66e 196
   s_429b9b7858f465::t_e84c1d7b9ced5f 203,258,285,373,405,720,745
+  s_dc86fda050ffea::t_f96cb30e82a631 66,77,179,356,777
 packages/backend/src/routing/proxy/proxy.controller.ts
   s_429b9b7858f465::t_f1e295011317e6 160,185,201,340-348,372,392,402,421,455,469,480,598,609
   s_429b9b7858f465::t_c587315287107c 175,222
@@ -238,6 +240,8 @@ packages/backend/src/routing/routing-core/provider-key.service.ts
 packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
   s_429b9b7858f465::t_94c001fa9f6e63 1030
   s_429b9b7858f465::t_688a6898236ae8 1144
+packages/backend/src/routing/autofix/autofix.types.ts
+  s_dc86fda050ffea::t_f96cb30e82a631 48-49
 ---
 {
   "schema_version": "authorship/3.0.0",
@@ -258,6 +262,14 @@ packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
         "tool": "claude",
         "id": "19912b9e-12e8-4764-ab16-bd497ffd3271",
         "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_dc86fda050ffea": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6762-1c1d-7e42-879b-ef2326aedd8c",
+        "model": "gpt-5.6-sol"
       },
       "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
     }
