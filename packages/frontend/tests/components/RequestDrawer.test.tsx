@@ -104,11 +104,11 @@ describe('RequestDrawer', () => {
     await waitFor(() => expect(screen.getByText('Request request-1234')).toBeDefined());
     expect(mockGetMessageDetails).toHaveBeenCalledWith('request-1234567890');
     expect(screen.getAllByText('Auto-fixed').length).toBeGreaterThan(0);
-    // Header badges use the branded logotype (icon square + word).
-    expect(screen.getAllByText('fallback').length).toBeGreaterThan(0);
+    // The header meta row carries NO fallback/autofix badge: that story belongs
+    // to the attempts (sidebar icons + context cards), not the request title.
+    expect(container.querySelector('.drawer__meta-row .trigger-badge')).toBeNull();
+    // The branded badges still exist further down, on the attempt content.
     expect(screen.getAllByText('autofix').length).toBeGreaterThan(0);
-    expect(container.querySelector('.drawer__meta-row .trigger-badge--autofix .autofix-icon')).not.toBeNull();
-    expect(container.querySelector('.drawer__meta-row .trigger-badge--fallback .fallback-icon')).not.toBeNull();
     // Sidebar attempt icons use the same branded squares.
     expect(container.querySelector('.attempt-item__icon .fallback-icon')).not.toBeNull();
     expect(container.querySelector('.attempt-item__icon .autofix-icon')).not.toBeNull();

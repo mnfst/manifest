@@ -239,9 +239,6 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
     onCleanup(() => document.removeEventListener('keydown', handler));
   }
 
-  // Request-level badges
-  const hasFallback = () => m()?.fallback_from_model || m()?.fallback_index;
-  const hasAutofix = () => m()?.autofix_applied;
   const requestStatus = () => {
     const msg = m();
     if (!msg) return 'error';
@@ -295,18 +292,6 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                   <Show when={msg().timestamp}>
                     <span class="drawer__meta-sep">&middot;</span>
                     <span class="drawer__meta-text">{fmtDate(msg().timestamp)}</span>
-                  </Show>
-                  <Show when={hasFallback()}>
-                    <span class="trigger-badge trigger-badge--fallback">
-                      <FallbackIcon />
-                      fallback
-                    </span>
-                  </Show>
-                  <Show when={hasAutofix()}>
-                    <span class="trigger-badge trigger-badge--autofix">
-                      <AutofixIcon />
-                      autofix
-                    </span>
                   </Show>
                 </div>
               </div>
