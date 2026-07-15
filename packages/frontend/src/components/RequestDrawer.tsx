@@ -553,7 +553,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                   >
                                     <table
                                       class="error-autofix-row__meta-table"
-                                      style="border-color: hsl(var(--destructive) / 0.25);"
+                                      style="--meta-table-border: hsl(var(--destructive) / 0.25);"
                                     >
                                       <tbody>
                                         <Show when={att().error_origin}>

@@ -87,6 +87,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
   getPerProviderReliability: () => Promise.resolve([]),
+  getPerModelReliability: () => Promise.resolve([]),
   getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
 }));
 
@@ -372,7 +373,7 @@ describe('Overview', () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('Cost by Model');
+      expect(container.textContent).toContain('Model usage');
       expect(container.textContent).toContain('gpt-4o');
       expect(container.textContent).toContain('claude-3.5-sonnet');
       expect(container.textContent).toContain('60%');
@@ -404,7 +405,7 @@ describe('Overview', () => {
     await vi.waitFor(() => {
       const panels = container.querySelectorAll('.panel');
       // Find the Cost by Model panel
-      const costPanel = Array.from(panels).find((p) => p.textContent?.includes('Cost by Model'));
+      const costPanel = Array.from(panels).find((p) => p.textContent?.includes('Model usage'));
       expect(costPanel).toBeDefined();
       const rows = costPanel!.querySelectorAll('tbody tr');
       expect(rows.length).toBe(2);
@@ -419,7 +420,7 @@ describe('Overview', () => {
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       const panels = container.querySelectorAll('.panel');
-      const costPanel = Array.from(panels).find((p) => p.textContent?.includes('Cost by Model'));
+      const costPanel = Array.from(panels).find((p) => p.textContent?.includes('Model usage'));
       expect(costPanel).toBeDefined();
       const keyBadge = costPanel!.querySelector('.provider-auth-badge--key');
       const subBadge = costPanel!.querySelector('.provider-auth-badge--sub');
@@ -506,7 +507,7 @@ describe('Overview', () => {
     render(() => <Overview />);
 
     await vi.waitFor(() => {
-      expect(screen.getByText('Success rate')).toBeDefined();
+      expect(screen.getAllByText('Success rate').length).toBeGreaterThan(0);
     });
     expect(mockGetAutofixStats).toHaveBeenCalledWith('30d', 'test-agent');
     // Tab + KPI cards share the label; both surfaces are present.
@@ -1014,7 +1015,7 @@ describe('Overview', () => {
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       const panels = container.querySelectorAll('.panel');
-      const costPanel = Array.from(panels).find((p) => p.textContent?.includes('Cost by Model'));
+      const costPanel = Array.from(panels).find((p) => p.textContent?.includes('Model usage'));
       expect(costPanel).toBeDefined();
       // Verify the provider icon SVG is rendered (aria-hidden, not role="img")
       const icon = costPanel!.querySelector('svg[aria-hidden="true"]');

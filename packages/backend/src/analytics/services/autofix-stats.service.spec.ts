@@ -160,6 +160,27 @@ describe('AutofixStatsService', () => {
     await expect(service.getPerAgentStats({ tenantId: 'tenant' })).resolves.toEqual([
       { agent_name: 'demo', requests: 8, failed: 2, autofixed: 1, fallback_saves: 2, succeeded: 7 },
     ]);
+
+    const modelQb = queryBuilder();
+    modelQb.getRawMany.mockResolvedValue([
+      {
+        model: 'gpt-4o',
+        requests: '6',
+        failed: '1',
+        autofixed: '1',
+        fallback_saves: '1',
+        succeeded: '5',
+      },
+    ]);
+    messageRepo.createQueryBuilder.mockReturnValueOnce(modelQb);
+    await expect(
+      service.getPerModelStats({ tenantId: 'tenant', agentName: 'demo' }),
+    ).resolves.toEqual([
+      { model: 'gpt-4o', requests: 6, failed: 1, autofixed: 1, fallback_saves: 1, succeeded: 5 },
+    ]);
+    const modelSql = modelQb.addSelect.mock.calls.flat().join(' ');
+    expect(modelSql).toContain('fallback_saves');
+    expect(modelSql).toContain('succeeded');
     for (const qb of [providerQb, agentQb]) {
       const aggregateSql = qb.addSelect.mock.calls.flat().join(' ');
       expect(aggregateSql).toContain('FROM provider_attempts sib');

@@ -66,4 +66,13 @@ export class AutofixAnalyticsController {
       agentName: query.agent_name,
     });
   }
+
+  @Get('overview/autofix-per-model')
+  async getPerModel(@Query() query: RangeQueryDto, @TenantCtx() ctx: TenantContext) {
+    return this.autofixStats.getPerModelStats({
+      tenantId: ctx.tenantId,
+      range: query.range,
+      agentName: query.agent_name,
+    });
+  }
 }

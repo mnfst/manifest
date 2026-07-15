@@ -307,6 +307,25 @@ export function getPerAgentReliability(range = '7d'): Promise<AgentReliabilityRo
   return fetchJson('/overview/autofix-per-agent', { range }) as Promise<AgentReliabilityRow[]>;
 }
 
+export interface ModelReliabilityRow {
+  model: string;
+  requests: number;
+  failed: number;
+  autofixed: number;
+  fallback_saves: number;
+  succeeded: number;
+}
+
+export function getPerModelReliability(
+  range = '7d',
+  agentName?: string,
+): Promise<ModelReliabilityRow[]> {
+  return fetchJson('/overview/autofix-per-model', {
+    range,
+    ...(agentName ? { agent_name: agentName } : {}),
+  }) as Promise<ModelReliabilityRow[]>;
+}
+
 export interface ErrorBreakdownResponse {
   range: string;
   successful: number;

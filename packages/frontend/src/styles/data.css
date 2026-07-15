@@ -1344,26 +1344,6 @@ table.msg-detail__table td {
   --meta-table-border: hsl(36 80% 50% / 0.3);
 }
 
-/* Contextual table borders — inherit from parent card color */
-.error-autofix-row__error .error-autofix-row__meta-table {
-  border-color: hsl(var(--destructive) / 0.25);
-}
-.error-autofix-row__error .error-autofix-row__meta-table td {
-  border-bottom-color: hsl(var(--destructive) / 0.25);
-}
-.error-autofix-row__autofix--autofix .error-autofix-row__meta-table {
-  border-color: hsl(222 47% 50% / 0.3);
-}
-.error-autofix-row__autofix--autofix .error-autofix-row__meta-table td {
-  border-bottom-color: hsl(222 47% 50% / 0.3);
-}
-.error-autofix-row__autofix--fallback .error-autofix-row__meta-table {
-  border-color: hsl(36 80% 50% / 0.3);
-}
-.error-autofix-row__autofix--fallback .error-autofix-row__meta-table td {
-  border-bottom-color: hsl(36 80% 50% / 0.3);
-}
-
 .error-autofix-row__meta-table td {
   padding: 4px 10px;
   font-size: var(--font-size-xs);

@@ -61,6 +61,7 @@ import {
   getAutofixTimeseries,
   getPerProviderReliability,
   getPerAgentReliability,
+  getPerModelReliability,
   selfHealedCount,
   successRate,
 } from '../services/api/analytics.js';
@@ -325,6 +326,11 @@ const GlobalOverview: Component = () => {
   const [providerReliability] = createResource(
     () => (autofixEligible() ? { range: effectiveChartRange(), _ping: messagePing() } : false),
     (p) => getPerProviderReliability(p.range),
+  );
+
+  const [modelReliability] = createResource(
+    () => (autofixEligible() ? { range: effectiveChartRange(), _ping: messagePing() } : false),
+    (p) => getPerModelReliability(p.range),
   );
 
   // Shimmer the usage cells until the first usage load resolves; SSE refetches
@@ -768,6 +774,11 @@ const GlobalOverview: Component = () => {
                   <th style="text-align: right;">Tokens</th>
                   <th style="text-align: right;">Share</th>
                   <th style="text-align: right;">Est. cost</th>
+                  <Show when={autofixEligible()}>
+                    <th style="text-align: right;">Total requests</th>
+                    <th style="text-align: right;">Healed</th>
+                    <th style="text-align: right;">Success rate</th>
+                  </Show>
                 </tr>
               </thead>
               <tbody>
@@ -836,6 +847,31 @@ const GlobalOverview: Component = () => {
                       <td style="text-align: right; font-variant-numeric: tabular-nums;">
                         {formatCost(row.estimated_cost) ?? '$0.00'}
                       </td>
+                      <Show when={autofixEligible()}>
+                        {(() => {
+                          const rel = () => modelReliability()?.find((r) => r.model === row.model);
+                          return (
+                            <>
+                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                <Show when={rel()} fallback="—">
+                                  {formatNumber(rel()!.requests)}
+                                </Show>
+                              </td>
+                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                <Show when={rel()} fallback="—">
+                                  {formatNumber(selfHealedCount(rel()!))}
+                                </Show>
+                              </td>
+                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                {(() => {
+                                  const rate = rel() ? successRate(rel()!) : null;
+                                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                                })()}
+                              </td>
+                            </>
+                          );
+                        })()}
+                      </Show>
                     </tr>
                   )}
                 </For>

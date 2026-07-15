@@ -22,6 +22,41 @@ describe('CostByModelTable', () => {
     expect(headers).toEqual(['Model', 'Tokens', '% of total', 'Cost']);
   });
 
+  it('is titled "Model usage" and adds reliability columns when data is provided', () => {
+    const { container } = render(() => (
+      <CostByModelTable
+        rows={[row({ model: 'gpt-4o' })]}
+        reliability={[
+          {
+            model: 'gpt-4o',
+            requests: 120,
+            failed: 10,
+            autofixed: 8,
+            fallback_saves: 4,
+            succeeded: 110,
+          },
+        ]}
+      />
+    ));
+    expect(container.textContent).toContain('Model usage');
+    const headers = Array.from(container.querySelectorAll('th')).map((h) => h.textContent?.trim());
+    expect(headers).toEqual([
+      'Model',
+      'Tokens',
+      '% of total',
+      'Cost',
+      'Total requests',
+      'Healed',
+      'Success rate',
+    ]);
+    const cells = Array.from(container.querySelectorAll('tbody td')).map((c) =>
+      c.textContent?.trim(),
+    );
+    expect(cells).toContain('120'); // total requests
+    expect(cells).toContain('12'); // healed = autofixed 8 + fallback 4
+    expect(cells).toContain('91.7%'); // success rate 110/120
+  });
+
   it('sorts rows by estimated_cost descending', () => {
     const { container } = render(() => (
       <CostByModelTable

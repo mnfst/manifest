@@ -291,6 +291,77 @@ export class AutofixStatsService {
     }));
   }
 
+  /** Additive: the per-provider reliability breakdown, grouped by model. */
+  async getPerModelStats(params: {
+    tenantId: string | null;
+    range?: string;
+    agentName?: string;
+  }): Promise<
+    Array<{
+      model: string;
+      requests: number;
+      failed: number;
+      autofixed: number;
+      fallback_saves: number;
+      succeeded: number;
+    }>
+  > {
+    const range = params.range ?? '7d';
+    const cutoff = computeCutoff(rangeToInterval(range));
+    const qb = this.messageRepo
+      .createQueryBuilder('at')
+      .select('at.model', 'model')
+      .addSelect('COUNT(*)', 'requests')
+      .addSelect(
+        `COUNT(*) FILTER (WHERE at.status IN ('error','fallback_error','rate_limited','auto_fixed'))`,
+        'failed',
+      )
+      .addSelect(
+        `COUNT(*) FILTER (WHERE at.status = 'auto_fixed' AND at.autofix_group_id IN (
+          SELECT sib.autofix_group_id FROM provider_attempts sib
+          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
+            AND sib.tenant_id = at.tenant_id
+        ))`,
+        'autofixed',
+      )
+      .addSelect(
+        `COUNT(*) FILTER (WHERE at.status = 'ok' AND at.fallback_from_model IS NOT NULL)`,
+        'fallback_saves',
+      )
+      .addSelect(
+        `COUNT(*) FILTER (WHERE at.status NOT IN ('error','fallback_error','rate_limited')
+          AND (at.status != 'auto_fixed' OR at.autofix_group_id IN (
+            SELECT sib.autofix_group_id FROM provider_attempts sib
+            WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
+              AND sib.tenant_id = at.tenant_id
+          )))`,
+        'succeeded',
+      )
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')")
+      .andWhere('at.model IS NOT NULL')
+      .groupBy('at.model');
+    addTenantFilter(qb, params.tenantId, params.agentName);
+    excludePlaygroundAgents(qb);
+
+    const rows = await qb.getRawMany<{
+      model: string;
+      requests: string;
+      failed: string;
+      autofixed: string;
+      fallback_saves: string;
+      succeeded: string;
+    }>();
+    return rows.map((r) => ({
+      model: r.model,
+      requests: Number(r.requests),
+      failed: Number(r.failed),
+      autofixed: Number(r.autofixed),
+      fallback_saves: Number(r.fallback_saves),
+      succeeded: Number(r.succeeded),
+    }));
+  }
+
   async getTimeseries(params: {
     tenantId: string | null;
     range?: string;

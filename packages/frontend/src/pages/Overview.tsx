@@ -27,6 +27,7 @@ import { PROVIDERS } from '../services/providers.js';
 import { getOverview } from '../services/api.js';
 import {
   getAutofixTimeseries,
+  getPerModelReliability,
   getPerProviderTimeseries,
   getPerProviderMessageTimeseries,
   getPerProviderCostTimeseries,
@@ -286,6 +287,17 @@ const Overview: Component = () => {
         : false,
     (p) => getAutofixTimeseries(p.range, 'disposition', p.agent),
   );
+  const [modelReliability] = createResource(
+    () =>
+      autofixEligible()
+        ? {
+            range: effectiveRange(),
+            agent: decodeURIComponent(params.agentName),
+            _ping: messagePing(),
+          }
+        : false,
+    (p) => getPerModelReliability(p.range, p.agent),
+  );
   const selfHealedTs = () => {
     const ts = statusTimeseries();
     if (!ts) return undefined;
@@ -541,7 +553,10 @@ const Overview: Component = () => {
                     />
                   </div>
 
-                  <CostByModelTable rows={d().cost_by_model ?? []} />
+                  <CostByModelTable
+                    rows={d().cost_by_model ?? []}
+                    reliability={autofixEligible() ? modelReliability() : undefined}
+                  />
                 </>
               );
             }}
