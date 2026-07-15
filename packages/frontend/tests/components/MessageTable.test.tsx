@@ -504,7 +504,7 @@ describe('MessageTable', () => {
           agentName="agent-1"
         />
       ));
-      expect(container.querySelector('.trigger-badge--autofix')).not.toBeNull();
+      expect(container.querySelector('[title="Includes autofix"]')).not.toBeNull();
       expect(container.querySelector('td')!.textContent).toContain('2');
     });
 
@@ -516,7 +516,7 @@ describe('MessageTable', () => {
           agentName="agent-1"
         />
       ));
-      const badge = container.querySelector('.trigger-badge--fallback') as HTMLElement;
+      const badge = container.querySelector('[title="Includes fallback"]') as HTMLElement;
       expect(badge).not.toBeNull();
       // AttemptsCell shows icons only — no text labels like "auto-fix" or "fallback"
       expect(badge.textContent?.trim()).toBe('');

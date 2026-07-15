@@ -334,24 +334,16 @@ export function AttemptsCell(item: MessageRow): JSX.Element {
   const hasFallback = !!item.fallback_from_model;
 
   return (
-    <td>
-      <span style="display: inline-flex; align-items: center; gap: 4px; font-size: var(--font-size-xs); font-family: var(--font-mono, monospace);">
+    <td style={MONO_XS}>
+      <span style="display: inline-flex; align-items: center; gap: 4px;">
         {count}
         {hasAutofix && (
-          <span
-            class="trigger-badge trigger-badge--autofix"
-            title="Includes autofix"
-            style="padding: 1px 3px;"
-          >
+          <span title="Includes autofix" style="display: inline-flex; align-items: center;">
             <AutofixIcon />
           </span>
         )}
         {hasFallback && (
-          <span
-            class="trigger-badge trigger-badge--fallback"
-            title="Includes fallback"
-            style="padding: 1px 3px;"
-          >
+          <span title="Includes fallback" style="display: inline-flex; align-items: center;">
             <FallbackIcon />
           </span>
         )}

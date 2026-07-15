@@ -113,7 +113,7 @@ describe('AttemptsCell', () => {
 
   it('renders the attempt count and autofix icon for a row with autofix_applied', () => {
     const { container } = renderCell(baseRow({ attempt_count: 2, autofix_applied: true }));
-    const badge = container.querySelector('.trigger-badge--autofix');
+    const badge = container.querySelector('[title="Includes autofix"]');
     expect(badge).not.toBeNull();
     expect(badge!.getAttribute('title')).toBe('Includes autofix');
     expect(container.querySelector('td')!.textContent).toContain('2');
@@ -121,7 +121,7 @@ describe('AttemptsCell', () => {
 
   it('renders the fallback icon when fallback_from_model is set', () => {
     const { container } = renderCell(baseRow({ fallback_from_model: 'gpt-4o', attempt_count: 2 }));
-    const badge = container.querySelector('.trigger-badge--fallback');
+    const badge = container.querySelector('[title="Includes fallback"]');
     expect(badge).not.toBeNull();
     expect(badge!.getAttribute('title')).toBe('Includes fallback');
     // AttemptsCell renders icons only — no text labels
@@ -132,13 +132,13 @@ describe('AttemptsCell', () => {
     const { container } = renderCell(
       baseRow({ autofix_applied: true, fallback_from_model: 'gpt-4o', attempt_count: 3 }),
     );
-    expect(container.querySelector('.trigger-badge--autofix')).not.toBeNull();
-    expect(container.querySelector('.trigger-badge--fallback')).not.toBeNull();
+    expect(container.querySelector('[title="Includes autofix"]')).not.toBeNull();
+    expect(container.querySelector('[title="Includes fallback"]')).not.toBeNull();
   });
 
   it('renders only the count with no badges when neither autofix nor fallback applies', () => {
     const { container } = renderCell(baseRow({ attempt_count: 1 }));
-    expect(container.querySelector('.trigger-badge')).toBeNull();
+    expect(container.querySelector('[title]')).toBeNull();
     expect(container.querySelector('td')!.textContent).toContain('1');
   });
 });
