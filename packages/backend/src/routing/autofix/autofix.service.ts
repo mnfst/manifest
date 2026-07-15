@@ -38,7 +38,7 @@ export interface MaybeHealParams {
 }
 
 export interface AutofixAttempt {
-  /** Forward to continue with: a healed 200, or the original error rebuilt. */
+  /** Forward to continue with: the latest provider response, rebuilt if consumed. */
   forward: ForwardResult;
   record: AutofixRecord;
 }
@@ -483,16 +483,25 @@ export class AutofixService {
       };
     }
 
-    // The patch didn't clear the error. Report the retry outcome to Phoenix and
-    // give up — a single attempt, no re-heal.
+    // The patch didn't clear the error. Preserve that retry as its own provider
+    // attempt, report it to Phoenix, and continue with its rebuilt response so
+    // fallback and terminal recording see what actually happened last.
     const retryText = await next.response.text();
+    const retryError = normalizeProviderError(retryText);
+    chain.push({
+      attempt: 1,
+      origin: 'autofix',
+      request: bodyToReforward,
+      http_status: next.response.status,
+      error: retryError,
+    });
     this.reportOutcome(healAttemptId, {
       retryStatusCode: next.response.status,
-      error: normalizeProviderError(retryText),
+      error: retryError,
     });
     return {
-      forward: originalForward,
-      record: { groupId, outcome: 'unfixable', original_http_status: status, chain },
+      forward: rebuildForward(next, retryText, next.response.status),
+      record: { groupId, outcome: 'exhausted', original_http_status: status, chain },
     };
   }
 
