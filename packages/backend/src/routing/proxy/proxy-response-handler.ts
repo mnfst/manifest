@@ -72,7 +72,7 @@ function recordAutofixOriginalIfRetried(
   if (!autofix || !getAutofixRetry(autofix)) return;
   recordSafely(
     recorder.recordAutofixOriginal(ctx, route?.model ?? meta.model, meta.tier, autofix, {
-      provider: route?.provider ?? meta.provider,
+      provider: route ? route.provider : meta.provider,
       reason: meta.reason,
       authType: route?.authType ?? meta.auth_type,
       traceId,

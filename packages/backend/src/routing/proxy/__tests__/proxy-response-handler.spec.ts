@@ -662,6 +662,27 @@ describe('proxy-response-handler', () => {
       );
     });
 
+    it('does not attribute the Auto-fix original to the fallback provider', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        fallbackFromModel: 'gpt-4o',
+        primaryProvider: undefined,
+        provider: 'anthropic',
+        model: 'claude-sonnet',
+      });
+      const autofix = failedAutofixRetry();
+
+      recordFallbackFailures(testCtx, meta, undefined, recorder as any, null, null, autofix);
+
+      expect(recorder.recordAutofixOriginal).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        autofix,
+        expect.objectContaining({ provider: undefined }),
+      );
+    });
+
     it('should not record failed fallbacks when array is empty', () => {
       const recorder = mockRecorder();
       const meta = makeMeta({ fallbackFromModel: 'gpt-4o' });
