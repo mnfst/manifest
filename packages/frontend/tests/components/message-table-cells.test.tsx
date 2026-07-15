@@ -7,7 +7,7 @@ import {
   ModelCell,
   AgentCell,
   StatusCell,
-  TriggerCell,
+  AttemptsCell,
 } from '../../src/components/message-table-cells';
 import { fireEvent } from '@solidjs/testing-library';
 import type { MessageRow } from '../../src/components/message-table-types';
@@ -100,72 +100,46 @@ describe('AutofixIcon', () => {
   });
 });
 
-describe('TriggerCell', () => {
-  function renderCell(row: MessageRow, onTriggerClick?: (id: string) => void) {
+describe('AttemptsCell', () => {
+  function renderCell(row: MessageRow) {
     return render(() => (
       <table>
         <tbody>
-          <tr>{TriggerCell(row, onTriggerClick)}</tr>
+          <tr>{AttemptsCell(row)}</tr>
         </tbody>
       </table>
     ));
   }
 
-  it('renders an auto-fix badge on a healed retry row', () => {
-    const { container } = renderCell(baseRow({ autofix_role: 'retry' }));
+  it('renders the attempt count and autofix icon for a row with autofix_applied', () => {
+    const { container } = renderCell(baseRow({ attempt_count: 2, autofix_applied: true }));
     const badge = container.querySelector('.trigger-badge--autofix');
     expect(badge).not.toBeNull();
-    expect(badge!.textContent).toContain('auto-fix');
-    expect(badge!.getAttribute('title')).toBe('Triggered by Auto-fix');
+    expect(badge!.getAttribute('title')).toBe('Includes autofix');
+    expect(container.querySelector('td')!.textContent).toContain('2');
   });
 
-  it('renders a fallback badge when a non-retry row fell back', () => {
-    const { container } = renderCell(baseRow({ fallback_from_model: 'gpt-4o' }));
+  it('renders the fallback icon when fallback_from_model is set', () => {
+    const { container } = renderCell(baseRow({ fallback_from_model: 'gpt-4o', attempt_count: 2 }));
     const badge = container.querySelector('.trigger-badge--fallback');
     expect(badge).not.toBeNull();
-    expect(badge!.textContent).toContain('fallback');
-    expect(badge!.getAttribute('title')).toBe('Triggered by fallback');
+    expect(badge!.getAttribute('title')).toBe('Includes fallback');
+    // AttemptsCell renders icons only — no text labels
+    expect(badge!.textContent?.trim()).toBe('');
   });
 
-  it('prefers the auto-fix badge over fallback when both apply', () => {
+  it('renders both autofix and fallback icons when both apply', () => {
     const { container } = renderCell(
-      baseRow({ autofix_role: 'retry', fallback_from_model: 'gpt-4o' }),
+      baseRow({ autofix_applied: true, fallback_from_model: 'gpt-4o', attempt_count: 3 }),
     );
     expect(container.querySelector('.trigger-badge--autofix')).not.toBeNull();
-    expect(container.querySelector('.trigger-badge--fallback')).toBeNull();
+    expect(container.querySelector('.trigger-badge--fallback')).not.toBeNull();
   });
 
-  it('renders an em dash when neither auto-fix nor fallback applies', () => {
-    const { container } = renderCell(baseRow({}));
+  it('renders only the count with no badges when neither autofix nor fallback applies', () => {
+    const { container } = renderCell(baseRow({ attempt_count: 1 }));
     expect(container.querySelector('.trigger-badge')).toBeNull();
-    expect(container.textContent).toContain('—');
-  });
-
-  it('fires onTriggerClick with the row id and does not render as a button without the handler', () => {
-    const onTriggerClick = vi.fn();
-    const { container } = renderCell(
-      baseRow({ id: 'row-9', autofix_role: 'retry' }),
-      onTriggerClick,
-    );
-    const badge = container.querySelector('.trigger-badge--autofix') as HTMLElement;
-    expect(badge.getAttribute('role')).toBe('button');
-    fireEvent.click(badge);
-    expect(onTriggerClick).toHaveBeenCalledWith('row-9');
-
-    const { container: plain } = renderCell(baseRow({ autofix_role: 'retry' }));
-    expect(
-      (plain.querySelector('.trigger-badge--autofix') as HTMLElement).getAttribute('role'),
-    ).toBeNull();
-  });
-
-  it('fires onTriggerClick from a fallback badge too', () => {
-    const onTriggerClick = vi.fn();
-    const { container } = renderCell(
-      baseRow({ id: 'row-3', fallback_from_model: 'gpt-4o' }),
-      onTriggerClick,
-    );
-    fireEvent.click(container.querySelector('.trigger-badge--fallback') as HTMLElement);
-    expect(onTriggerClick).toHaveBeenCalledWith('row-3');
+    expect(container.querySelector('td')!.textContent).toContain('1');
   });
 });
 

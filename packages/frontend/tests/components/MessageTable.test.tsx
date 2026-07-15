@@ -125,7 +125,7 @@ describe('MessageTable', () => {
       const headers = container.querySelectorAll('th');
       expect(headers.length).toBe(9);
       expect(headers[0]!.textContent).toContain('Status');
-      expect(headers[1]!.textContent).toContain('Trigger');
+      expect(headers[1]!.textContent).toContain('Attempts');
       expect(headers[2]!.textContent).toContain('Date');
       expect(headers[3]!.textContent).toContain('Model');
       expect(headers[4]!.textContent).toContain('Request');
@@ -147,7 +147,7 @@ describe('MessageTable', () => {
       const headers = container.querySelectorAll('th');
       expect(headers.length).toBe(11);
       expect(headers[0]!.textContent).toContain('Status');
-      expect(headers[1]!.textContent).toContain('Trigger');
+      expect(headers[1]!.textContent).toContain('Attempts');
       expect(headers[2]!.textContent).toContain('Date');
       expect(headers[3]!.textContent).toContain('Model');
       expect(headers[4]!.textContent).toContain('Request');
@@ -495,32 +495,31 @@ describe('MessageTable', () => {
     });
   });
 
-  describe('trigger column', () => {
-    it('renders an auto-fix badge for a healed retry row', () => {
+  describe('attempts column', () => {
+    it('renders the attempt count and autofix icon for a row with autofix_applied', () => {
       const { container } = render(() => (
         <MessageTable
-          items={[makeRow({ autofix_role: 'retry' })]}
-          columns={['trigger']}
+          items={[makeRow({ attempt_count: 2, autofix_applied: true })]}
+          columns={['attempts']}
           agentName="agent-1"
         />
       ));
       expect(container.querySelector('.trigger-badge--autofix')).not.toBeNull();
+      expect(container.querySelector('td')!.textContent).toContain('2');
     });
 
-    it('renders a fallback badge and fires onTriggerClick with the row id', () => {
-      const handler = vi.fn();
+    it('renders the fallback icon when fallback_from_model is set (no text labels, no click handler)', () => {
       const { container } = render(() => (
         <MessageTable
-          items={[makeRow({ id: 'row-77', fallback_from_model: 'gpt-4o' })]}
-          columns={['trigger']}
+          items={[makeRow({ id: 'row-77', fallback_from_model: 'gpt-4o', attempt_count: 2 })]}
+          columns={['attempts']}
           agentName="agent-1"
-          onTriggerClick={handler}
         />
       ));
       const badge = container.querySelector('.trigger-badge--fallback') as HTMLElement;
       expect(badge).not.toBeNull();
-      fireEvent.click(badge);
-      expect(handler).toHaveBeenCalledWith('row-77');
+      // AttemptsCell shows icons only — no text labels like "auto-fix" or "fallback"
+      expect(badge.textContent?.trim()).toBe('');
     });
   });
 

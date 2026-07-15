@@ -1071,11 +1071,10 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(dataWithFallback);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      // Fallback is now shown in the Trigger column, not a Model-cell tier badge.
+      // Fallback is now shown in the Attempts column, not a Model-cell tier badge.
       const badge = container.querySelector('.trigger-badge--fallback');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toContain('fallback');
-      expect(badge!.getAttribute('title')).toBe('Triggered by fallback');
+      expect(badge!.getAttribute('title')).toBe('Includes fallback');
     });
   });
 
@@ -1168,10 +1167,10 @@ describe('MessageLog', () => {
     await vi.waitFor(() => {
       const badge = container.querySelector('.trigger-badge--fallback');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toContain('fallback');
+      expect(badge!.getAttribute('title')).toBe('Includes fallback');
     });
     // The badge lives on the recovered row, and there's exactly one (the failed
-    // original carries no fallback_from_model, so no Trigger badge).
+    // original carries no fallback_from_model, so no Attempts badge).
     expect(container.querySelectorAll('.trigger-badge--fallback').length).toBe(1);
     const successRow = container.querySelector('#msg-success-1')!;
     expect(successRow.querySelector('.trigger-badge--fallback')).not.toBeNull();

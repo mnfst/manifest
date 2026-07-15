@@ -90,7 +90,7 @@ const HEADER_LABELS: Record<MessageColumnKey, string> = {
   cache: 'Cache',
   duration: 'Latency',
   status: 'Status',
-  trigger: 'Trigger',
+  attempts: 'Attempts',
   agent: 'Harness',
 };
 
@@ -328,57 +328,36 @@ export function AgentCell(
   );
 }
 
-export function TriggerCell(item: MessageRow, onTriggerClick?: (id: string) => void): JSX.Element {
-  const isAutofix = item.autofix_role === 'retry';
-  const isFallback = !isAutofix && !!item.fallback_from_model;
+export function AttemptsCell(item: MessageRow): JSX.Element {
+  const count = item.attempt_count ?? 1;
+  const hasAutofix = !!item.autofix_applied;
+  const hasFallback = !!item.fallback_from_model;
 
-  if (isAutofix) {
-    return (
-      <td>
-        <span
-          class="trigger-badge trigger-badge--autofix"
-          title="Triggered by Auto-fix"
-          role={onTriggerClick ? 'button' : undefined}
-          onClick={
-            onTriggerClick
-              ? (e) => {
-                  e.stopPropagation();
-                  onTriggerClick(item.id);
-                }
-              : undefined
-          }
-        >
-          <AutofixIcon />
-          auto-fix
-        </span>
-      </td>
-    );
-  }
-
-  if (isFallback) {
-    return (
-      <td>
-        <span
-          class="trigger-badge trigger-badge--fallback"
-          title="Triggered by fallback"
-          role={onTriggerClick ? 'button' : undefined}
-          onClick={
-            onTriggerClick
-              ? (e) => {
-                  e.stopPropagation();
-                  onTriggerClick(item.id);
-                }
-              : undefined
-          }
-        >
-          <FallbackIcon />
-          fallback
-        </span>
-      </td>
-    );
-  }
-
-  return <td style={MONO_XS}>{'\u2014'}</td>;
+  return (
+    <td>
+      <span style="display: inline-flex; align-items: center; gap: 4px; font-size: var(--font-size-xs); font-family: var(--font-mono, monospace);">
+        {count}
+        {hasAutofix && (
+          <span
+            class="trigger-badge trigger-badge--autofix"
+            title="Includes autofix"
+            style="padding: 1px 3px;"
+          >
+            <AutofixIcon />
+          </span>
+        )}
+        {hasFallback && (
+          <span
+            class="trigger-badge trigger-badge--fallback"
+            title="Includes fallback"
+            style="padding: 1px 3px;"
+          >
+            <FallbackIcon />
+          </span>
+        )}
+      </span>
+    </td>
+  );
 }
 
 /**
@@ -502,8 +481,8 @@ export function renderCell(
       return DurationCell(item);
     case 'status':
       return StatusCell(item, ctx.agentName);
-    case 'trigger':
-      return TriggerCell(item, ctx.onTriggerClick);
+    case 'attempts':
+      return AttemptsCell(item);
     case 'agent':
       return AgentCell(item, ctx.agentPlatformLookup);
   }
