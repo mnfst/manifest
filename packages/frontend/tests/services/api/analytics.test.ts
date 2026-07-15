@@ -42,6 +42,38 @@ describe('analytics API client', () => {
     expect(url).toContain('agent_name=demo');
   });
 
+  it('getAttemptStats uses the stats route and optional agent scope', async () => {
+    const fetchMock = setupFetch({});
+    await analytics.getAttemptStats('30d', 'demo');
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/overview/attempt-stats');
+    expect(url).toContain('range=30d');
+    expect(url).toContain('agent_name=demo');
+  });
+
+  it('getAttemptStats defaults to seven days without an agent scope', async () => {
+    const fetchMock = setupFetch({});
+    await analytics.getAttemptStats();
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('range=7d');
+    expect(url).not.toContain('agent_name=');
+  });
+
+  it('getAttemptTimeseries supports scoped and unscoped requests', async () => {
+    let fetchMock = setupFetch({});
+    await analytics.getAttemptTimeseries();
+    let url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/overview/attempt-timeseries');
+    expect(url).toContain('range=7d');
+    expect(url).not.toContain('agent_name=');
+
+    fetchMock = setupFetch({});
+    await analytics.getAttemptTimeseries('24h', 'demo');
+    url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('range=24h');
+    expect(url).toContain('agent_name=demo');
+  });
+
   it('getHealth GETs /health', async () => {
     const fetchMock = setupFetch({ ok: true });
     await analytics.getHealth();

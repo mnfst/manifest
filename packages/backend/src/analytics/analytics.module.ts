@@ -34,6 +34,8 @@ import { AgentsController } from './controllers/agents.controller';
 import { AgentAnalyticsController } from './controllers/agent-analytics.controller';
 import { ProviderAnalyticsController } from './controllers/provider-analytics.controller';
 import { ErrorsController } from './controllers/errors.controller';
+import { AttemptAnalyticsController } from './controllers/attempt-analytics.controller';
+import { AttemptStatsService } from './services/attempt-stats.service';
 import { BillingModule } from '../billing/billing.module';
 
 @Module({
@@ -66,6 +68,7 @@ import { BillingModule } from '../billing/billing.module';
     ProviderAnalyticsController,
     ProviderUsageController,
     ErrorsController,
+    AttemptAnalyticsController,
   ],
   providers: [
     AggregationService,
@@ -79,6 +82,7 @@ import { BillingModule } from '../billing/billing.module';
     SpecificityFeedbackService,
     AgentAnalyticsService,
     ProviderUsageService,
+    AttemptStatsService,
   ],
   exports: [SpecificityFeedbackService, ProviderUsageService],
 })
