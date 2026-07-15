@@ -161,6 +161,39 @@ export function getOverview(range = '24h', agentName?: string) {
   return fetchJson('/overview', { range, ...(agentName ? { agent_name: agentName } : {}) });
 }
 
+export interface AttemptMetric {
+  value: number;
+  previous: number;
+}
+
+export interface AttemptStats {
+  /** All rows in `provider_attempts`. */
+  total_attempts: AttemptMetric;
+  /** Attempts whose `fallback_from_model` is non-null. */
+  fallbacked_attempts: AttemptMetric;
+}
+
+export interface AttemptTimeseries {
+  range: string;
+  by: 'metric';
+  keys: string[];
+  buckets: Array<{ bucket: string; counts: number[] }>;
+}
+
+export function getAttemptStats(range = '7d', agentName?: string): Promise<AttemptStats> {
+  return fetchJson('/overview/attempt-stats', {
+    range,
+    ...(agentName ? { agent_name: agentName } : {}),
+  }) as Promise<AttemptStats>;
+}
+
+export function getAttemptTimeseries(range = '7d', agentName?: string): Promise<AttemptTimeseries> {
+  return fetchJson('/overview/attempt-timeseries', {
+    range,
+    ...(agentName ? { agent_name: agentName } : {}),
+  }) as Promise<AttemptTimeseries>;
+}
+
 export function getHealth() {
   return fetchJson('/health');
 }
