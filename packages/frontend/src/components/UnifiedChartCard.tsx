@@ -1,13 +1,12 @@
-import { createSignal, Show, Suspense, lazy, type Component, type JSX } from 'solid-js';
+import { Show, Suspense, lazy, type Component, type JSX } from 'solid-js';
 import InfoTooltip from './InfoTooltip.jsx';
 import { formatNumber, formatCost } from '../services/formatters.js';
-import type { AutofixStats, AutofixTimeseries } from '../services/api/analytics.js';
+import type { AutofixTimeseries } from '../services/api/analytics.js';
 
 const MultiAgentTokenChart = lazy(() => import('./MultiAgentTokenChart.jsx'));
 const ReliabilityChart = lazy(() => import('./ReliabilityChart.jsx'));
 
-export type ChartTab = 'requests' | 'failed' | 'cost' | 'tokens';
-type FailedFilter = 'error_kind' | 'http_status' | 'autofix';
+export type ChartTab = 'requests' | 'cost' | 'tokens';
 
 interface AgentTimeseries {
   agents: string[];
@@ -23,12 +22,6 @@ export interface UnifiedChartCardProps {
   agentRequestTimeseries?: AgentTimeseries;
   /** When set, the Requests tab shows this (disposition) instead of agentRequestTimeseries */
   requestStatusTimeseries?: AutofixTimeseries;
-  // Failed requests tab
-  failedValue: number;
-  failedTrendPct: number;
-  failedTimeseries?: AutofixTimeseries;
-  failedFilter: string;
-  onFailedFilterChange: (f: string) => void;
   // Cost tab
   costValue?: number;
   costTrendPct?: number;
@@ -41,7 +34,7 @@ export interface UnifiedChartCardProps {
   // Shared
   range: string;
   colorMap?: Record<string, string>;
-  /** Filter controls rendered in the subtitle bar for Requests/Cost/Token tabs */
+  /** Filter controls rendered in the subtitle bar */
   seriesFilters?: JSX.Element;
 }
 
@@ -64,12 +57,6 @@ const EMPTY = (msg: string) => (
   </div>
 );
 
-const FAILED_FILTERS: Array<{ value: FailedFilter; label: string }> = [
-  { value: 'error_kind', label: 'By error class' },
-  { value: 'http_status', label: 'By HTTP status' },
-  { value: 'autofix', label: 'By auto-fixed' },
-];
-
 const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
   const showCost = () => props.costValue != null;
 
@@ -77,8 +64,6 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
     switch (props.activeTab) {
       case 'requests':
         return 'Requests';
-      case 'failed':
-        return 'Failed requests';
       case 'cost':
         return 'Cost';
       case 'tokens':
@@ -100,18 +85,6 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
           <div class="chart-card__value-row">
             <span class="chart-card__value">{formatNumber(props.requestsValue)}</span>
             {trendBadge(props.requestsTrendPct)}
-          </div>
-        </button>
-        <button
-          type="button"
-          class="chart-card__stat chart-card__stat--clickable"
-          classList={{ 'chart-card__stat--active': props.activeTab === 'failed' }}
-          onClick={() => props.onTabChange('failed')}
-        >
-          <span class="chart-card__label">Failed requests</span>
-          <div class="chart-card__value-row">
-            <span class="chart-card__value">{formatNumber(props.failedValue)}</span>
-            {trendBadge(props.failedTrendPct)}
           </div>
         </button>
         <Show when={showCost()}>
@@ -150,20 +123,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
       {/* ── Subtitle bar: title + contextual filters ── */}
       <div class="chart-card__subtitle">
         <span class="chart-card__subtitle-title">{tabTitle()}</span>
-        <Show when={props.activeTab === 'failed'}>
-          <div class="chart-card__filters">
-            {FAILED_FILTERS.map((f) => (
-              <button
-                class="chart-card__filter-btn"
-                classList={{ 'chart-card__filter-btn--active': props.failedFilter === f.value }}
-                onClick={() => props.onFailedFilterChange(f.value)}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </Show>
-        <Show when={props.activeTab !== 'failed' && props.seriesFilters}>
+        <Show when={props.seriesFilters}>
           <div class="chart-card__filters">{props.seriesFilters}</div>
         </Show>
       </div>
@@ -199,18 +159,6 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
                   seriesMode="disposition"
                 />
               </Show>
-            </Show>
-          </Show>
-          <Show when={props.activeTab === 'failed'}>
-            <Show
-              when={props.failedTimeseries && props.failedTimeseries.buckets.length > 0}
-              fallback={EMPTY('No failed requests in this time range')}
-            >
-              <ReliabilityChart
-                timeseries={props.failedTimeseries!}
-                range={props.range}
-                seriesMode={props.failedFilter}
-              />
             </Show>
           </Show>
           <Show when={props.activeTab === 'cost'}>

@@ -86,7 +86,7 @@ const ReliabilityCard: Component<ReliabilityCardProps> = (props) => {
   const totalRequests = () => {
     const s = stats();
     if (!s) return 0;
-    return s.autofix_saves.value + s.errors_remaining.value;
+    return s.recovered_by_manifest.value + s.errors_remaining.value;
   };
 
   return (

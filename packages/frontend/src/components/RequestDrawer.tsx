@@ -82,44 +82,90 @@ function requestStatusClass(status: string): string {
   return 'drawer-status--error';
 }
 
-function buildAttempts(msg: any): Attempt[] {
-  const attempts: Attempt[] = [];
-  const base: Omit<Attempt, 'index' | 'type'> = {
-    id: msg.id,
-    status: msg.status,
-    provider: msg.provider,
-    model: msg.model || msg.model_id,
-    auth_type: msg.auth_type,
-    error_message: msg.error_message,
-    error_origin: msg.error_origin,
-    error_class: msg.error_class,
-    error_http_status: msg.error_http_status,
-    model_id: msg.model_id,
-    trace_id: msg.trace_id,
-    routing_tier: msg.routing_tier,
-    routing_reason: msg.routing_reason,
-    service_type: msg.service_type,
-    session_key: msg.session_key,
-    description: msg.description,
-    duration_ms: msg.duration_ms,
-    cost: msg.cost,
-    input_tokens: msg.input_tokens,
-    output_tokens: msg.output_tokens,
-    request_headers: msg.request_headers,
-    request_params: msg.request_params,
-    autofix_applied: msg.autofix_applied,
-    autofix_operations: msg.autofix_operations,
-    autofix_phoenix: msg.autofix_phoenix,
-    autofix_role: msg.autofix_role,
-    autofix_sibling: msg.autofix_sibling,
-  };
+function inferType(att: any, index: number, msg: any): Attempt['type'] {
+  if (att.autofix_role === 'retry') return 'auto-fix';
+  if (att.fallback_from_model || att.fallback_index) return 'fallback';
+  // For backend summary attempts (no autofix_role/fallback fields),
+  // use position: first = initial, rest = fallback (unless autofix on the request)
+  if (index > 0 && msg.autofix_applied) return 'auto-fix';
+  if (index > 0) return 'fallback';
+  return 'initial';
+}
 
+function buildAttempts(msg: any): Attempt[] {
+  // When the backend provides a real attempts array, use it
+  if (Array.isArray(msg.attempts) && msg.attempts.length > 0) {
+    return msg.attempts.map((att: any, i: number) => ({
+      id: att.id,
+      index: i + 1,
+      type: inferType(att, i, msg),
+      status: att.status,
+      provider: att.provider ?? msg.provider,
+      model: att.model ?? msg.model ?? msg.model_id,
+      auth_type: att.auth_type ?? msg.auth_type,
+      error_message: att.error_message ?? (att.status !== 'ok' ? msg.error_message : undefined),
+      error_origin: att.error_origin ?? undefined,
+      error_class: att.error_class ?? undefined,
+      error_http_status: att.error_http_status ?? undefined,
+      model_id: att.model_id ?? undefined,
+      trace_id: att.trace_id ?? msg.trace_id,
+      routing_tier: att.routing_tier ?? undefined,
+      routing_reason: att.routing_reason ?? undefined,
+      service_type: att.service_type ?? msg.service_type,
+      session_key: att.session_key ?? msg.session_key,
+      description: att.description ?? msg.description,
+      duration_ms: att.duration_ms ?? undefined,
+      cost: att.cost_usd != null ? Number(att.cost_usd) : undefined,
+      input_tokens: att.input_tokens ?? undefined,
+      output_tokens: att.output_tokens ?? undefined,
+      request_headers: att.request_headers ?? undefined,
+      request_params: att.request_params ?? undefined,
+      autofix_applied: att.autofix_applied ?? false,
+      autofix_operations: att.autofix_operations ?? undefined,
+      autofix_phoenix: att.autofix_phoenix ?? msg.autofix_phoenix,
+      autofix_role: att.autofix_role ?? undefined,
+      autofix_sibling: att.autofix_sibling ?? msg.autofix_sibling,
+    }));
+  }
+
+  // Fallback: single attempt from the message row itself
   let type: Attempt['type'] = 'initial';
   if (msg.fallback_from_model) type = 'fallback';
   if (msg.autofix_role === 'retry') type = 'auto-fix';
 
-  attempts.push({ ...base, index: 1, type });
-  return attempts;
+  return [
+    {
+      id: msg.id,
+      index: 1,
+      type,
+      status: msg.status,
+      provider: msg.provider,
+      model: msg.model || msg.model_id,
+      auth_type: msg.auth_type,
+      error_message: msg.error_message,
+      error_origin: msg.error_origin,
+      error_class: msg.error_class,
+      error_http_status: msg.error_http_status,
+      model_id: msg.model_id,
+      trace_id: msg.trace_id,
+      routing_tier: msg.routing_tier,
+      routing_reason: msg.routing_reason,
+      service_type: msg.service_type,
+      session_key: msg.session_key,
+      description: msg.description,
+      duration_ms: msg.duration_ms,
+      cost: msg.cost,
+      input_tokens: msg.input_tokens,
+      output_tokens: msg.output_tokens,
+      request_headers: msg.request_headers,
+      request_params: msg.request_params,
+      autofix_applied: msg.autofix_applied,
+      autofix_operations: msg.autofix_operations,
+      autofix_phoenix: msg.autofix_phoenix,
+      autofix_role: msg.autofix_role,
+      autofix_sibling: msg.autofix_sibling,
+    },
+  ];
 }
 
 const RequestDrawer: Component<RequestDrawerProps> = (props) => {
@@ -309,6 +355,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                           )}
                         </span>
                         <span class="attempt-item__model">{att.model}</span>
+                        <span class={`attempt-dot ${statusDotClass(att.status)}`} />
                       </button>
                     )}
                   </For>

@@ -27,18 +27,16 @@ export interface AutofixKpiCardsProps {
 }
 
 const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
-  const autofixPct = () => {
+  const recoveredPct = () => {
     const s = props.stats;
-    if (!s) return 0;
-    const total = s.autofix_saves.value + s.errors_remaining.value;
-    return total > 0 ? s.autofix_saves.value / total : 0;
+    if (!s || s.total_requests.value === 0) return 0;
+    return s.recovered_by_manifest.value / s.total_requests.value;
   };
 
-  const autofixPctPrev = () => {
+  const recoveredPctPrev = () => {
     const s = props.stats;
-    if (!s) return 0;
-    const total = s.autofix_saves.previous + s.errors_remaining.previous;
-    return total > 0 ? s.autofix_saves.previous / total : 0;
+    if (!s || s.total_requests.previous === 0) return 0;
+    return s.recovered_by_manifest.previous / s.total_requests.previous;
   };
 
   return (
@@ -53,21 +51,23 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Auto-fixed requests</span>
+            <span class="overview-stat-card__label">Recovered by Manifest</span>
             <div class="overview-stat-card__value-row">
-              <span class="overview-stat-card__value">{fmtPct(autofixPct())}</span>
-              {trendBadge(autofixPct(), autofixPctPrev())}
+              <span class="overview-stat-card__value">{fmtPct(recoveredPct())}</span>
+              {trendBadge(recoveredPct(), recoveredPctPrev())}
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Total auto-fixed</span>
+            <span class="overview-stat-card__label">Total recovered</span>
             <div class="overview-stat-card__value-row">
-              <span class="overview-stat-card__value">{formatNumber(s().autofix_saves.value)}</span>
-              {trendBadge(s().autofix_saves.value, s().autofix_saves.previous)}
+              <span class="overview-stat-card__value">
+                {formatNumber(s().recovered_by_manifest.value)}
+              </span>
+              {trendBadge(s().recovered_by_manifest.value, s().recovered_by_manifest.previous)}
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Total not fixed</span>
+            <span class="overview-stat-card__label">Total errors</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">
                 {formatNumber(s().errors_remaining.value)}

@@ -77,6 +77,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () => Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
   getPerProviderReliability: () => Promise.resolve([]),
+  getPerAgentReliability: vi.fn().mockResolvedValue([]),
   getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
 }));
 
@@ -447,18 +448,18 @@ describe('Overview', () => {
       expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
     });
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
-    fireEvent.click(stats[2]); // cost (Requests=0, Failed=1, Cost=2, Token usage=3)
+    fireEvent.click(stats[1]); // cost (Requests=0, Cost=1, Token usage=2)
     await vi.waitFor(() => {
       expect(mockPerProviderCosts).toHaveBeenCalledWith('test-agent', '30d');
     });
   });
 
-  it('has clickable stat headers for requests, failed, cost and tokens', async () => {
+  it('has clickable stat headers for requests, cost and tokens', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       const clickable = container.querySelectorAll('.chart-card__stat--clickable');
-      expect(clickable.length).toBe(4);
+      expect(clickable.length).toBe(3);
     });
   });
 
@@ -470,24 +471,19 @@ describe('Overview', () => {
     });
     const { container } = render(() => <Overview />);
     // UnifiedChartCard renders the multi-provider chart for every view; the
-    // active stat reflects the selection. Stat order is Requests / Failed / Cost / Tokens.
+    // active stat reflects the selection. Stat order is Requests / Cost / Tokens.
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="multi-agent-chart"]')).not.toBeNull();
     });
 
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
-    expect(stats.length).toBe(4);
+    expect(stats.length).toBe(3);
 
-    fireEvent.click(stats[2]); // cost
+    // Stat order: Requests=0, Cost=1, Token usage=2
+    fireEvent.click(stats[1]); // cost
     await vi.waitFor(() => {
       const active = container.querySelector('.chart-card__stat--active');
       expect(active?.textContent).toContain('Cost');
-    });
-
-    fireEvent.click(stats[1]); // messages
-    await vi.waitFor(() => {
-      const active = container.querySelector('.chart-card__stat--active');
-      expect(active?.textContent).toContain('Requests');
     });
 
     fireEvent.click(stats[2]); // tokens — renders the token-view chart

@@ -98,6 +98,8 @@ describe('analytics chart surface components', () => {
         onViewChange={onViewChange}
         requestsValue={100}
         requestsTrendPct={5}
+        messagesValue={42}
+        messagesTrendPct={3}
         tokensValue={1234}
         tokensTrendPct={5}
         costValue={4.56}
@@ -107,6 +109,10 @@ describe('analytics chart surface components', () => {
         agentRequestTimeseries={{
           agents: ['openai'],
           timeseries: [{ hour: '2026-06-04 10:00:00', openai: 100 }],
+        }}
+        agentMessageTimeseries={{
+          agents: ['openai'],
+          timeseries: [{ hour: '2026-06-04 10:00:00', openai: 42 }],
         }}
         agentTimeseries={{
           agents: ['openai'],
@@ -120,17 +126,20 @@ describe('analytics chart surface components', () => {
       />
     ));
 
-    expect(screen.getByText('Requests')).toBeDefined();
+    // Both the 'requests' and 'messages' view buttons are labeled "Requests".
+    // Verify all four stat headers are present.
+    expect(screen.getAllByText('Requests').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Cost')).toBeDefined();
-    expect(screen.getByText('Requests')).toBeDefined();
     expect(screen.getByText('Token usage')).toBeDefined();
     expect(screen.getByTestId('info-tooltip')).toBeDefined();
     await buildLazyChart();
 
     // Tab controls are semantic <button>s (keyboard/a11y).
-    const messagesTab = screen.getByText('Requests').closest('button');
-    expect(messagesTab).not.toBeNull();
-    fireEvent.click(screen.getByText('Requests'));
+    // Stat order: Requests(requests view)=0, Cost=1, Requests(messages view)=2, Token usage=3.
+    const allStats = document.querySelectorAll('.chart-card__stat--clickable');
+    expect(allStats.length).toBe(4);
+    // The 'messages'-view button is at index 2.
+    fireEvent.click(allStats[2]);
     expect(onViewChange).toHaveBeenCalledWith('messages');
     fireEvent.click(screen.getByText('Token usage'));
     expect(onViewChange).toHaveBeenCalledWith('tokens');
@@ -147,6 +156,8 @@ describe('analytics chart surface components', () => {
         onViewChange={onViewChange}
         requestsValue={100}
         requestsTrendPct={0}
+        messagesValue={0}
+        messagesTrendPct={0}
         tokensValue={1234}
         tokensTrendPct={0}
         costValue={4.56}
@@ -161,7 +172,7 @@ describe('analytics chart surface components', () => {
       />
     ));
 
-    expect(screen.getByText('Requests')).toBeDefined();
+    expect(screen.getAllByText('Requests').length).toBeGreaterThanOrEqual(1);
     await buildLazyChart();
     unmount();
     capturedLifecycleOpts = null;
@@ -172,6 +183,8 @@ describe('analytics chart surface components', () => {
         onViewChange={onViewChange}
         requestsValue={100}
         requestsTrendPct={0}
+        messagesValue={0}
+        messagesTrendPct={0}
         tokensValue={1234}
         tokensTrendPct={0}
         costValue={4.56}
@@ -193,8 +206,10 @@ describe('analytics chart surface components', () => {
   it('renders ProviderChartCard empty states and hides cost when missing', () => {
     const { unmount } = render(() => (
       <ProviderChartCard
-        activeView="messages"
+        activeView="requests"
         onViewChange={vi.fn()}
+        requestsValue={0}
+        requestsTrendPct={0}
         messagesValue={0}
         messagesTrendPct={0}
         tokensValue={0}
@@ -216,6 +231,8 @@ describe('analytics chart surface components', () => {
         onViewChange={vi.fn()}
         requestsValue={0}
         requestsTrendPct={0}
+        messagesValue={0}
+        messagesTrendPct={0}
         tokensValue={0}
         tokensTrendPct={0}
         range="24h"
@@ -234,6 +251,8 @@ describe('analytics chart surface components', () => {
         onViewChange={vi.fn()}
         requestsValue={0}
         requestsTrendPct={0}
+        messagesValue={0}
+        messagesTrendPct={0}
         tokensValue={0}
         tokensTrendPct={0}
         costValue={0}

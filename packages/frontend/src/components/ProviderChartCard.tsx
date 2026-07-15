@@ -4,7 +4,7 @@ import { formatNumber, formatCost } from '../services/formatters.js';
 
 const MultiAgentTokenChart = lazy(() => import('./MultiAgentTokenChart.jsx'));
 
-type ProviderView = 'requests' | 'cost' | 'tokens';
+type ProviderView = 'requests' | 'messages' | 'cost' | 'tokens';
 
 const trendBadge = (pct: number, value: number) => {
   if (pct === 0 || Math.abs(value) < 0.005) return null;
@@ -27,6 +27,8 @@ interface AgentTimeseries {
 interface ProviderChartCardProps {
   activeView: ProviderView;
   onViewChange: (view: ProviderView) => void;
+  requestsValue: number;
+  requestsTrendPct: number;
   messagesValue: number;
   messagesTrendPct: number;
   requestSuccessRate?: number;
@@ -39,8 +41,10 @@ interface ProviderChartCardProps {
   range: string;
   agentTimeseries?: AgentTimeseries;
   agentRequestTimeseries?: AgentTimeseries;
+  agentMessageTimeseries?: AgentTimeseries;
   agentCostTimeseries?: AgentTimeseries;
   colorMap?: Record<string, string>;
+  seriesFilters?: import('solid-js').JSX.Element;
 }
 
 const EMPTY = (msg: string) => (

@@ -174,7 +174,7 @@ export interface AutofixStatus {
 export interface AutofixStats {
   total_requests: { value: number; previous: number };
   success_rate: { value: number; previous: number };
-  autofix_saves: { value: number; previous: number };
+  recovered_by_manifest: { value: number; previous: number };
   errors_remaining: { value: number; previous: number };
   coverage: { rate: number; previous_rate: number };
   dispositions: {
@@ -227,7 +227,6 @@ export function getAutofixTimeseries(
 export interface ProviderReliabilityRow {
   provider: string;
   requests: number;
-  failed: number;
   autofixed: number;
 }
 
@@ -244,7 +243,6 @@ export function getPerProviderReliability(
 export interface AgentReliabilityRow {
   agent_name: string;
   requests: number;
-  failed: number;
   autofixed: number;
 }
 

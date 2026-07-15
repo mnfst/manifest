@@ -11,7 +11,7 @@ import {
 } from 'solid-js';
 import UnifiedChartCard from '../components/UnifiedChartCard.jsx';
 import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
-import ErrorClassCard from '../components/ErrorClassCard.jsx';
+
 import FilterSelect from '../components/FilterSelect.jsx';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import CostByModelTable from '../components/CostByModelTable.jsx';
@@ -29,7 +29,6 @@ import {
   getPerProviderTimeseries,
   getPerProviderMessageTimeseries,
   getPerProviderCostTimeseries,
-  getErrorBreakdown,
 } from '../services/api/analytics.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated, isSetupPending, clearSetupPending } from '../services/recent-agents.js';
@@ -44,7 +43,7 @@ import { getBillingStatus } from '../services/api/billing.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/routing.css';
-import { getAutofixStats, getAutofixTimeseries } from '../services/api/analytics.js';
+import { getAutofixStats } from '../services/api/analytics.js';
 import { getAutofix } from '../services/api/routing.js';
 
 const PRO_RANGES = new Set(['30d', '90d', '365d']);
@@ -109,7 +108,7 @@ type PivotedTimeseries = {
   timeseries: Array<Record<string, number | string>>;
 };
 
-type ProviderView = 'requests' | 'failed' | 'cost' | 'tokens';
+type ProviderView = 'requests' | 'cost' | 'tokens';
 type TimeseriesKey = { range: string; agent: string; _ping: number };
 
 const Overview: Component = () => {
@@ -274,54 +273,6 @@ const Overview: Component = () => {
     (p) => getAutofixStats(p.range, p.agent),
   );
 
-  // ── Failed filter state (persisted in sessionStorage) ────────────────
-  const loadFailedFilter = (): string => {
-    try {
-      const v = sessionStorage.getItem('manifest_failed_filter');
-      if (v === 'disposition' || v === 'http_status' || v === 'error_kind' || v === 'autofix')
-        return v;
-    } catch {
-      /* ignore */
-    }
-    return 'disposition';
-  };
-  const [failedFilter, setFailedFilterRaw] = createSignal(loadFailedFilter());
-  const setFailedFilter = (v: string) => {
-    setFailedFilterRaw(v);
-    try {
-      sessionStorage.setItem('manifest_failed_filter', v);
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const [failedTs] = createResource(
-    () =>
-      autofixAvailable()
-        ? {
-            range: effectiveRange(),
-            by: failedFilter(),
-            agent: decodeURIComponent(params.agentName),
-            _ping: messagePing(),
-          }
-        : false,
-    (p) => getAutofixTimeseries(p.range, p.by, p.agent),
-  );
-
-  const [errorBreakdown] = createResource(
-    () => ({
-      range: effectiveRange(),
-      agent: decodeURIComponent(params.agentName),
-      _ping: messagePing(),
-    }),
-    (p) => getErrorBreakdown(p.range, p.agent),
-  );
-  const errorSparkline = () => {
-    const ts = failedTs();
-    if (!ts || ts.buckets.length === 0) return undefined;
-    return ts.buckets.map((b) => b.counts.reduce((s, c) => s + c, 0));
-  };
-
   const allProviders = createMemo(() => {
     const set = new Set<string>([
       ...(providerRequestTs()?.agents ?? []),
@@ -482,24 +433,53 @@ const Overview: Component = () => {
                       </p>
                     </div>
                   </Show>
-                  <ProviderChartCard
-                    activeView={activeView()}
-                    onViewChange={setActiveView}
-                    costValue={d().summary?.cost_today?.value ?? 0}
-                    costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
-                    tokensValue={d().summary?.tokens_today?.value ?? 0}
-                    tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
-                    messagesValue={d().summary?.messages?.value ?? 0}
-                    messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
-                    requestSuccessRate={d().request_reliability?.success_rate}
-                    attemptSuccessRate={d().request_reliability?.attempt_success_rate}
-                    costInfoTooltip="Actual API key costs only. Subscription usage is not included."
-                    range={effectiveRange()}
-                    agentTimeseries={filteredTokenTs() ?? undefined}
-                    agentMessageTimeseries={filteredMessageTs() ?? undefined}
-                    agentCostTimeseries={filteredCostTs() ?? undefined}
-                    colorMap={providerColorMap()}
-                  />
+                  {(() => {
+                    return (
+                      <UnifiedChartCard
+                        activeTab={activeView()}
+                        onTabChange={setActiveView}
+                        requestsValue={
+                          autofixStats()?.total_requests.value ?? d().summary?.messages?.value ?? 0
+                        }
+                        requestsTrendPct={
+                          autofixStats()?.total_requests.previous != null
+                            ? (() => {
+                                const cur = autofixStats()!.total_requests.value;
+                                const prev = autofixStats()!.total_requests.previous;
+                                if (prev === 0) return 0;
+                                return Math.max(
+                                  -999,
+                                  Math.min(999, Math.round(((cur - prev) / prev) * 100)),
+                                );
+                              })()
+                            : (d().summary?.messages?.trend_pct ?? 0)
+                        }
+                        costValue={d().summary?.cost_today?.value ?? 0}
+                        costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
+                        costInfoTooltip="Actual API key costs only. Subscription usage is not included."
+                        tokensValue={d().summary?.tokens_today?.value ?? 0}
+                        tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
+                        range={effectiveRange()}
+                        agentRequestTimeseries={filteredRequestTs() ?? undefined}
+                        agentTimeseries={filteredTokenTs() ?? undefined}
+                        agentCostTimeseries={filteredCostTs() ?? undefined}
+                        colorMap={providerColorMap()}
+                        seriesFilters={
+                          <Show when={allProviders().length > 1}>
+                            <FilterSelect
+                              noun="providers"
+                              items={allProviders()}
+                              selected={effectiveSelected()}
+                              colorMap={providerColorMap()}
+                              onToggle={toggleProvider}
+                              onSelectAll={() => setAllProviders(true)}
+                              onUnselectAll={() => setAllProviders(false)}
+                            />
+                          </Show>
+                        }
+                      />
+                    );
+                  })()}
 
                   {/* Recent Requests */}
                   <div class="panel">

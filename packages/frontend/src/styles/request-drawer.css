@@ -182,6 +182,24 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Status dot in attempt sidebar */
+.attempt-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.attempt-dot--ok {
+  background: hsl(var(--success));
+}
+.attempt-dot--autofix {
+  background: hsl(222 47% 50%);
+}
+.attempt-dot--error {
+  background: hsl(var(--destructive));
+}
+
 .attempt-item__empty {
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
