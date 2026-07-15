@@ -75,13 +75,42 @@ export interface ReliabilityChartProps {
   seriesMode: string;
 }
 
+/**
+ * Fixed reading order for the disposition series — legend AND bar stacking
+ * (bottom to top): Success, then healed via Auto-fix, then healed via
+ * Fallback, then Error. Unknown keys keep their incoming order, after these.
+ */
+const SERIES_ORDER: Record<string, number> = {
+  success: 0,
+  healed: 1,
+  autofix: 1,
+  fallback: 2,
+  error: 3,
+};
+
+function orderTimeseries(d: AutofixTimeseries | undefined): AutofixTimeseries | undefined {
+  if (!d) return d;
+  const picked = d.keys
+    .map((k, i) => ({ k, i }))
+    .sort((a, b) => (SERIES_ORDER[a.k] ?? 99) - (SERIES_ORDER[b.k] ?? 99) || a.i - b.i);
+  return {
+    ...d,
+    keys: picked.map(({ k }) => k),
+    buckets: d.buckets.map((b) => ({
+      bucket: b.bucket,
+      counts: picked.map(({ i }) => b.counts[i] ?? 0),
+    })),
+  };
+}
+
 const ReliabilityChart: Component<ReliabilityChartProps> = (props) => {
   let el!: HTMLDivElement;
 
   const bucketKey = () => (props.range === '24h' ? 'hour' : 'date');
+  const ordered = () => orderTimeseries(props.timeseries);
 
   const buildData = (): uPlot.AlignedData => {
-    const d = props.timeseries;
+    const d = ordered();
     if (!d || d.buckets.length === 0) return [new Float64Array(0)];
 
     const mapped = d.buckets.map((b) => {
@@ -114,11 +143,11 @@ const ReliabilityChart: Component<ReliabilityChartProps> = (props) => {
     el: () => el,
     data: () => props.timeseries?.buckets,
     buildData,
-    structureKey: () => `${props.range}::${props.seriesMode}::${props.timeseries?.keys.join(',')}`,
+    structureKey: () => `${props.range}::${props.seriesMode}::${ordered()?.keys.join(',')}`,
     buildChart() {
       if (!el || !props.timeseries || props.timeseries.buckets.length === 0) return null;
 
-      const d = props.timeseries;
+      const d = ordered()!;
       const w = el.clientWidth || el.getBoundingClientRect().width;
       if (w === 0) return null;
 
@@ -164,7 +193,7 @@ const ReliabilityChart: Component<ReliabilityChartProps> = (props) => {
   });
 
   const legendItems = () => {
-    const d = props.timeseries;
+    const d = ordered();
     if (!d) return [];
     return d.keys.map((key, i) => ({
       key,

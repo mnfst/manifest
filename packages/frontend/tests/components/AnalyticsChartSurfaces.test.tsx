@@ -209,6 +209,41 @@ describe('analytics chart surface components', () => {
     noTab.unmount();
   });
 
+  it('orders disposition series success → healed → fallback → error (legend and stack)', async () => {
+    // Backend delivers keys in an arbitrary order; the chart must normalize.
+    const { container, unmount } = render(() => (
+      <ReliabilityChart
+        timeseries={{
+          range: '7d',
+          by: 'disposition',
+          keys: ['error', 'fallback', 'success', 'healed'],
+          buckets: [{ bucket: '2026-06-04', counts: [4, 3, 1, 2] }],
+        }}
+        range="7d"
+        seriesMode="disposition"
+      />
+    ));
+
+    // Legend order is the fixed reading order.
+    const legend = [...container.querySelectorAll('.rel-chart__legend-item')].map((e) =>
+      e.textContent?.trim(),
+    );
+    expect(legend).toEqual([
+      'Success',
+      'Success - healed via Auto-fix',
+      'Success - healed via Fallback',
+      'Error',
+    ]);
+
+    // Stack order (bottom → top) follows the same order: the cumulative data
+    // rows are reversed (top first), so the LAST row is the bottom (success=1)
+    // and the first is the full stack (…+error=10).
+    const data = capturedLifecycleOpts.buildData();
+    const stacks = data.slice(1).map((s: number[]) => s[0]);
+    expect(stacks).toEqual([10, 6, 3, 1]); // error top, then fallback, healed, success bottom
+    unmount();
+  });
+
   it('handles an empty reliability series without creating a chart', () => {
     render(() => (
       <ReliabilityChart
