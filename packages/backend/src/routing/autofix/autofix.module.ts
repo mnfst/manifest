@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Agent } from '../../entities/agent.entity';
 import { Tenant } from '../../entities/tenant.entity';
 import { AutofixService } from './autofix.service';
+import { AutofixCohortController } from './autofix-cohort.controller';
 import { AutofixHealthProbe } from './autofix-health-probe';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
 import { HttpHealingClient } from './http-healing-client';
@@ -23,6 +24,7 @@ const DEFAULT_TIMEOUT_MS = 10_000;
  */
 @Module({
   imports: [TypeOrmModule.forFeature([Agent, Tenant])],
+  controllers: [AutofixCohortController],
   providers: [
     AutofixService,
     AutofixHealthProbe,

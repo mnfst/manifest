@@ -7,6 +7,7 @@ import AuthLayout from './layouts/AuthLayout.jsx';
 import Workspace from './pages/Workspace.jsx';
 import RootRedirect from './components/RootRedirect.jsx';
 import AgentGuard from './components/AgentGuard.jsx';
+import AutofixCohortGate from './components/AutofixCohortGate.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
 import GuestGuard from './components/GuestGuard.jsx';
 import NotFound from './pages/NotFound.jsx';
@@ -49,6 +50,18 @@ const GuestLayout: ParentComponent = (props) => (
   </GuestGuard>
 );
 
+// Single conditional entry point for the Auto-fix beta UI. Eligible tenants (the
+// backend early-access cohort) get the redesigned global overview; everyone else
+// keeps the current one. The redesigned overview lands via #2485 — until then
+// both branches render the existing GlobalOverview, so no eligible tenant sees a
+// regression while the cohort gate is in place.
+// TODO(#2485): replace the eligible branch (children) with the redesigned overview.
+const OverviewRoute: ParentComponent = () => (
+  <AutofixCohortGate fallback={<GlobalOverview />}>
+    <GlobalOverview />
+  </AutofixCohortGate>
+);
+
 // Remove the static <title> from index.html so @solidjs/meta can manage
 // document.title via its own <title> elements. The static tag is kept in
 // index.html for SEO (pre-JS crawlers / Lighthouse) but must be removed
@@ -70,7 +83,7 @@ render(
       <Router>
         <Route path="/" component={App}>
           <Route path="/" component={RootRedirect} />
-          <Route path="/overview" component={GlobalOverview} />
+          <Route path="/overview" component={OverviewRoute} />
           <Route path="/messages" component={MessageLog} />
           <Route path="/harnesses" component={Workspace} />
           <Route path="/playground" component={Playground} />
