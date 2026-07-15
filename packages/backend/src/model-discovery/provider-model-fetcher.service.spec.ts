@@ -135,6 +135,52 @@ describe('ProviderModelFetcherService', () => {
         capabilities: ['stream'],
       });
     });
+
+    it('ignores malformed model and provider metadata', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 42, providers: [] },
+            { id: '', providers: [] },
+            { id: 'missing-provider-array', providers: {} },
+            {
+              id: 'mixed/metadata',
+              architecture: {
+                input_modalities: ['text', 42],
+                output_modalities: [],
+              },
+              providers: [
+                null,
+                { status: 'live', throughput: 'unknown' },
+                { status: 'live', throughput: 10 },
+                { status: 'live' },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('huggingface', 'hf_test_token');
+
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'mixed/metadata',
+          capabilities: ['text', 'stream'],
+          inputModalities: ['text'],
+        }),
+      ]);
+      expect(result[0]).not.toHaveProperty('outputModalities');
+    });
+
+    it('returns no models when the catalog data is malformed', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: {} }),
+      });
+
+      await expect(service.fetch('huggingface', 'hf_test_token')).resolves.toEqual([]);
+    });
   });
 
   it('should fetch AWS Bedrock models from the selected Mantle region', async () => {
