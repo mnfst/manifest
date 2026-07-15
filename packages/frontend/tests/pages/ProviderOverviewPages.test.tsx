@@ -26,6 +26,8 @@ const apiMocks = vi.hoisted(() => ({
   getProviderAnalytics: vi.fn(),
   getPerAgentTimeseries: vi.fn(),
   getPerAgentMessageTimeseries: vi.fn(),
+  getConnectionRequestStatusTimeseries: vi.fn(),
+  getAutofixCohort: vi.fn(),
   getPerAgentCostTimeseries: vi.fn(),
 }));
 
@@ -82,6 +84,8 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getPerAgentTimeseries: (...args: unknown[]) => apiMocks.getPerAgentTimeseries(...args),
   getPerAgentMessageTimeseries: (...args: unknown[]) =>
     apiMocks.getPerAgentMessageTimeseries(...args),
+  getConnectionRequestStatusTimeseries: (...args: unknown[]) =>
+    apiMocks.getConnectionRequestStatusTimeseries(...args),
   getPerAgentCostTimeseries: (...args: unknown[]) => apiMocks.getPerAgentCostTimeseries(...args),
   getWorkspaceAutofixStatus: () =>
     Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
@@ -95,7 +99,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
 }));
 
 vi.mock('../../src/services/api/autofix.js', () => ({
-  getAutofixCohort: () => Promise.resolve({ eligible: false }),
+  getAutofixCohort: () => apiMocks.getAutofixCohort(),
 }));
 
 vi.mock('../../src/services/api/billing.js', () => ({
@@ -141,6 +145,10 @@ vi.mock('../../src/components/ProviderChartCard.jsx', () => ({
     agentTimeseries?: { agents: string[]; timeseries: unknown[] };
     agentRequestTimeseries?: { agents: string[]; timeseries: unknown[] };
     agentCostTimeseries?: { agents: string[]; timeseries: unknown[] };
+    requestStatusTimeseries?: { keys: string[] };
+    selfHealedTimeseries?: { keys: string[] };
+    selfHealedValue?: number;
+    seriesFilters?: unknown;
     colorMap?: Record<string, string>;
   }) => (
     <div data-active-view={props.activeView} data-testid="provider-chart-card">
@@ -159,6 +167,10 @@ vi.mock('../../src/components/ProviderChartCard.jsx', () => ({
       <span data-testid="msg-agents">{props.agentRequestTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="cost-agents">{props.agentCostTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="color-keys">{Object.keys(props.colorMap ?? {}).join(',')}</span>
+      <span data-testid="status-keys">{props.requestStatusTimeseries?.keys.join(',') ?? ''}</span>
+      <span data-testid="healed-keys">{props.selfHealedTimeseries?.keys.join(',') ?? ''}</span>
+      <span data-testid="healed-value">{props.selfHealedValue ?? ''}</span>
+      <div data-testid="series-filters">{props.seriesFilters as any}</div>
     </div>
   ),
 }));
@@ -183,6 +195,10 @@ vi.mock('../../src/components/UnifiedChartCard.jsx', () => ({
     agentTimeseries?: { agents: string[]; timeseries: unknown[] };
     agentRequestTimeseries?: { agents: string[]; timeseries: unknown[] };
     agentCostTimeseries?: { agents: string[]; timeseries: unknown[] };
+    requestStatusTimeseries?: { keys: string[] };
+    selfHealedTimeseries?: { keys: string[] };
+    selfHealedValue?: number;
+    seriesFilters?: unknown;
     colorMap?: Record<string, string>;
   }) => (
     <div data-active-view={props.activeTab} data-testid="provider-chart-card">
@@ -204,6 +220,10 @@ vi.mock('../../src/components/UnifiedChartCard.jsx', () => ({
       <span data-testid="msg-agents">{props.agentRequestTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="cost-agents">{props.agentCostTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="color-keys">{Object.keys(props.colorMap ?? {}).join(',')}</span>
+      <span data-testid="status-keys">{props.requestStatusTimeseries?.keys.join(',') ?? ''}</span>
+      <span data-testid="healed-keys">{props.selfHealedTimeseries?.keys.join(',') ?? ''}</span>
+      <span data-testid="healed-value">{props.selfHealedValue ?? ''}</span>
+      <div data-testid="series-filters">{props.seriesFilters as any}</div>
     </div>
   ),
 }));
@@ -708,11 +728,18 @@ beforeEach(() => {
     cancelAtPeriodEnd: false,
     subscriptionPeriodEnd: null,
   });
+  apiMocks.getAutofixCohort.mockResolvedValue({ eligible: false });
   apiMocks.getConnectionDetail.mockResolvedValue(connectionDetail);
   apiMocks.getProviderAnalytics.mockResolvedValue(connectionAnalytics);
   apiMocks.getPerAgentTimeseries.mockResolvedValue(agentTimeseries);
   apiMocks.getPerAgentMessageTimeseries.mockResolvedValue(agentTimeseries);
   apiMocks.getPerAgentCostTimeseries.mockResolvedValue(agentTimeseries);
+  apiMocks.getConnectionRequestStatusTimeseries.mockResolvedValue({
+    range: '7d',
+    by: 'disposition',
+    keys: ['success', 'fallback', 'error', 'healed'],
+    buckets: [{ bucket: '2026-06-04', counts: [10, 2, 3, 1] }],
+  });
 });
 
 afterEach(() => {
@@ -952,6 +979,49 @@ describe('ConnectionDetail (analytics)', () => {
 
     fireEvent.click(screen.getByText('Requests chart'));
     expect(sessionStorage.getItem('chart-view:conn-openai')).toBe('requests');
+  });
+
+  it('defaults the Requests tab to By request status and adds the Healed tab', async () => {
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    fireEvent.click(screen.getByText('Requests chart'));
+
+    // Grouping buttons exist and By request status is the default view.
+    await waitFor(() => expect(screen.getByText('By request status')).toBeDefined());
+    expect(screen.getByText('By request status').className).toContain('--active');
+    expect(screen.getByText('By harness')).toBeDefined();
+
+    // Default view feeds the disposition series to the chart.
+    await waitFor(() =>
+      expect(screen.getByTestId('status-keys').textContent).toBe('success,fallback,error,healed'),
+    );
+    // No Dr version access in this fixture: the Healed tab stays hidden.
+    expect(screen.getByTestId('healed-keys').textContent).toBe('');
+
+    // The disposition series is fetched scoped to this exact connection.
+    expect(apiMocks.getConnectionRequestStatusTimeseries).toHaveBeenCalledWith(
+      'api_key',
+      'openai',
+      expect.any(String),
+      'Default',
+      'conn-openai',
+    );
+
+    // Switching to By harness hands the chart back to the per-agent series.
+    fireEvent.click(screen.getByText('By harness'));
+    await waitFor(() => expect(screen.getByTestId('status-keys').textContent).toBe(''));
+  });
+
+  it('feeds the Healed requests tab when the tenant has the Dr version', async () => {
+    apiMocks.getAutofixCohort.mockResolvedValue({ eligible: true });
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+
+    // Healed tab data: the healed+fallback request subset, count 2+1.
+    await waitFor(() =>
+      expect(screen.getByTestId('healed-keys').textContent).toBe('fallback,healed'),
+    );
+    expect(screen.getByTestId('healed-value').textContent).toBe('3');
   });
 
   it('opens the inline manage modal from the connection detail', async () => {

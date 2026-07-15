@@ -52,6 +52,19 @@ export interface VolumeSeriesRow {
   messages: string | number;
 }
 
+/**
+ * Scope to ONE provider connection, by terminal attribution: a request
+ * belongs to the connection of its CONCLUDING attempt. A request rescued by
+ * another connection's fallback counts there, not here; zero-attempt
+ * rejections belong to no connection and never match.
+ */
+export interface ConnectionScope {
+  tenantProviderId?: string;
+  provider?: string;
+  authType?: string;
+  label?: string;
+}
+
 export interface DimensionVolumeRow {
   key: string;
   requests: number;
@@ -97,7 +110,10 @@ export class RequestVolumeService {
           pa.provider,
           pa.model,
           pa.fallback_from_model,
-          pa.autofix_role
+          pa.autofix_role,
+          pa.auth_type,
+          pa.provider_key_label,
+          pa.tenant_provider_id
         FROM requests r
         LEFT JOIN provider_attempts pa ON pa.request_id = r.id
         WHERE r.tenant_id = $1
@@ -122,7 +138,10 @@ export class RequestVolumeService {
           pa.provider,
           pa.model,
           pa.fallback_from_model,
-          pa.autofix_role
+          pa.autofix_role,
+          pa.auth_type,
+          pa.provider_key_label,
+          pa.tenant_provider_id
         FROM provider_attempts pa
         WHERE pa.request_id IS NULL
           AND pa.tenant_id = $1
@@ -139,6 +158,34 @@ export class RequestVolumeService {
   }
 
   /**
+   * WHERE fragment (over the terminal rows) + appended params for a
+   * connection scope. Prefers the exact tenant_providers id; falls back to
+   * the (provider, auth_type, label) tuple with the legacy-NULL label fold.
+   */
+  private connectionPredicate(scope: ConnectionScope | undefined, params: unknown[]): string {
+    if (!scope) return '';
+    const clauses: string[] = [];
+    if (scope.tenantProviderId) {
+      params.push(scope.tenantProviderId);
+      clauses.push(`t.tenant_provider_id = $${params.length}`);
+    } else {
+      if (scope.provider) {
+        params.push(scope.provider);
+        clauses.push(`t.provider = $${params.length}`);
+      }
+      if (scope.authType) {
+        params.push(scope.authType);
+        clauses.push(`t.auth_type = $${params.length}`);
+      }
+      if (scope.label) {
+        params.push(scope.label);
+        clauses.push(`LOWER(COALESCE(t.provider_key_label, 'Default')) = LOWER($${params.length})`);
+      }
+    }
+    return clauses.length ? `AND ${clauses.join(' AND ')}` : '';
+  }
+
+  /**
    * Request-level disposition timeseries: feeds the "By request status" chart
    * and the Healed requests tab. One count per request, keyed by how it
    * concluded (success / healed / fallback / error).
@@ -149,20 +196,22 @@ export class RequestVolumeService {
     hourly: boolean;
     agentName?: string;
     failedOnly?: boolean;
+    connection?: ConnectionScope;
   }): Promise<DispositionRow[]> {
     if (!params.tenantId) return [];
     const bucketExpr = params.hourly ? sqlHourBucket('t.ts') : sqlDateBucket('t.ts');
-    const failedFilter = params.failedOnly ? `WHERE ${DISPOSITION_EXPR} = 'error'` : '';
+    const sqlParams = this.params(params.tenantId, params.range, params.agentName);
+    const predicates = [
+      params.failedOnly ? `${DISPOSITION_EXPR} = 'error'` : '',
+      this.connectionPredicate(params.connection, sqlParams).replace(/^AND /, ''),
+    ].filter(Boolean);
     const sql = `${this.terminalCte(params.agentName)}
       SELECT ${bucketExpr} AS bucket, ${DISPOSITION_EXPR} AS dim, COUNT(*)::int AS count
       FROM terminal t
-      ${failedFilter}
+      ${predicates.length ? `WHERE ${predicates.join(' AND ')}` : ''}
       GROUP BY 1, 2
       ORDER BY 1 ASC`;
-    return (await this.messageRepo.query(
-      sql,
-      this.params(params.tenantId, params.range, params.agentName),
-    )) as DispositionRow[];
+    return (await this.messageRepo.query(sql, sqlParams)) as DispositionRow[];
   }
 
   /**

@@ -53,6 +53,26 @@ export function getPerAgentTimeseries(
   }) as PivotedTimeseries;
 }
 
+/**
+ * Request-level disposition timeseries for ONE connection (#2511 terminal
+ * attribution): ConnectionDetail's By request status view + Healed tab.
+ */
+export function getConnectionRequestStatusTimeseries(
+  authType: string,
+  provider: string,
+  range = '24h',
+  label?: string,
+  connectionId?: string,
+): Promise<AutofixTimeseries> {
+  return fetchJson('/provider-analytics/request-status-timeseries', {
+    auth_type: authType,
+    provider,
+    range,
+    ...(label !== undefined ? { label } : {}),
+    ...(connectionId ? { connection_id: connectionId } : {}),
+  }) as Promise<AutofixTimeseries>;
+}
+
 export function getPerAgentMessageTimeseries(
   authType: string,
   provider: string,

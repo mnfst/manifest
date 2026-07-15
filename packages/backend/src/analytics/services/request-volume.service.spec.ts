@@ -102,6 +102,31 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     expect(sql).toContain('t.provider IS NOT NULL');
   });
 
+  it('scopes to one connection by terminal attribution', async () => {
+    // Preferred: the exact tenant_providers id.
+    await service.getDispositionTimeseries({
+      tenantId: 't1',
+      range: '7d',
+      hourly: false,
+      connection: { tenantProviderId: 'conn-1', provider: 'openai', authType: 'api_key' },
+    });
+    expect(lastSql()).toContain('t.tenant_provider_id = $3');
+    expect(lastParams()).toEqual(['t1', expect.any(String), 'conn-1']);
+
+    // Fallback: the (provider, auth_type, label) tuple with the legacy fold.
+    await service.getDispositionTimeseries({
+      tenantId: 't1',
+      range: '7d',
+      hourly: false,
+      connection: { provider: 'openai', authType: 'api_key', label: 'Default' },
+    });
+    const sql = lastSql();
+    expect(sql).toContain('t.provider = $3');
+    expect(sql).toContain('t.auth_type = $4');
+    expect(sql).toContain("LOWER(COALESCE(t.provider_key_label, 'Default')) = LOWER($5)");
+    expect(lastParams()).toEqual(['t1', expect.any(String), 'openai', 'api_key', 'Default']);
+  });
+
   it('returns empty without a tenant, never querying', async () => {
     await expect(
       service.getDispositionTimeseries({ tenantId: null, range: '7d', hourly: false }),

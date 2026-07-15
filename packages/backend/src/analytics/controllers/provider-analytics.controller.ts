@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { AggregationService } from '../services/aggregation.service';
+import { AutofixStatsService } from '../services/autofix-stats.service';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
 import { TenantProvider } from '../../entities/tenant-provider.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -24,11 +25,38 @@ export class ProviderAnalyticsController {
   constructor(
     private readonly aggregation: AggregationService,
     private readonly timeseries: TimeseriesQueriesService,
+    private readonly autofixStats: AutofixStatsService,
     @InjectRepository(TenantProvider)
     private readonly providerRepo: Repository<TenantProvider>,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
   ) {}
+
+  /**
+   * Request-level disposition timeseries for ONE connection (#2511 terminal
+   * attribution): the ConnectionDetail chart's By request status view and
+   * Healed requests tab. Same response shape as /overview/autofix-timeseries.
+   */
+  @Get('request-status-timeseries')
+  async getRequestStatusTimeseries(
+    @TenantCtx() ctx: TenantContext,
+    @Query('range') range?: string,
+    @Query('auth_type') authType?: string,
+    @Query('provider') provider?: string,
+    @Query('label') label?: string,
+    @Query('connection_id') connectionId?: string,
+  ) {
+    return this.autofixStats.getConnectionTimeseries({
+      tenantId: ctx.tenantId,
+      range,
+      connection: {
+        tenantProviderId: connectionId,
+        provider,
+        authType,
+        label,
+      },
+    });
+  }
 
   @Get()
   async getAnalytics(

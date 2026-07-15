@@ -19,6 +19,7 @@ import {
   getPerAgentMessageTimeseries,
   getPerAgentCostTimeseries,
   getAutofixStats,
+  getConnectionRequestStatusTimeseries,
 } from '../../services/api/analytics.js';
 import { getAutofixCohort } from '../../services/api/autofix.js';
 import { messagePing } from '../../services/sse.js';
@@ -235,6 +236,27 @@ const ConnectionDetail: Component = () => {
   };
   const [chartAgent] = createSignal('');
 
+  // Requests tab view: By request status (default) or By harness. Persisted
+  // per connection like the range and the active tab.
+  const groupKey = () => `chart-group:${params.connectionId}`;
+  const savedGroup = (): 'status' | 'harness' => {
+    try {
+      const v = sessionStorage.getItem(groupKey());
+      return v === 'harness' ? 'harness' : 'status';
+    } catch {
+      return 'status';
+    }
+  };
+  const [groupBy, setGroupByRaw] = createSignal<'status' | 'harness'>(savedGroup());
+  const setGroupBy = (v: 'status' | 'harness') => {
+    setGroupByRaw(v);
+    try {
+      sessionStorage.setItem(groupKey(), v);
+    } catch {
+      /* ignore */
+    }
+  };
+
   const [analytics] = createResource(
     () => {
       const c = conn();
@@ -294,6 +316,47 @@ const ConnectionDetail: Component = () => {
       );
     },
   );
+
+  // Request-level disposition series for this connection (#2511 terminal
+  // attribution): the By request status view + the Healed requests tab.
+  const [requestStatusTs] = createResource(
+    () => {
+      const c = conn();
+      if (!c) return null;
+      return { range: chartRange(), authType: c.auth_type, provider: c.provider, label: c.label };
+    },
+    (p) => {
+      if (!p) return null;
+      return getConnectionRequestStatusTimeseries(
+        p.authType,
+        p.provider,
+        p.range,
+        p.label,
+        params.connectionId,
+      );
+    },
+  );
+  const selfHealedTs = () => {
+    const ts = requestStatusTs();
+    if (!ts) return undefined;
+    const picked = ts.keys
+      .map((k, i) => ({ k, i }))
+      .filter(({ k }) => k === 'healed' || k === 'fallback');
+    if (picked.length === 0) return { ...ts, keys: [], buckets: [] };
+    return {
+      ...ts,
+      keys: picked.map(({ k }) => k),
+      buckets: ts.buckets.map((b) => ({
+        bucket: b.bucket,
+        counts: picked.map(({ i }) => b.counts[i] ?? 0),
+      })),
+    };
+  };
+  const selfHealedValue = () => {
+    const ts = selfHealedTs();
+    if (!ts) return 0;
+    return ts.buckets.reduce((sum, b) => sum + b.counts.reduce((x, y) => x + y, 0), 0);
+  };
 
   const isByok = () => conn()?.auth_type === 'api_key';
 
@@ -734,22 +797,57 @@ const ConnectionDetail: Component = () => {
                       range={chartRange()}
                       agentTimeseries={filteredAgentTimeseries() ?? undefined}
                       agentRequestTimeseries={filteredAgentMessageTimeseries() ?? undefined}
+                      requestStatusTimeseries={
+                        groupBy() === 'status' ? (requestStatusTs() ?? undefined) : undefined
+                      }
+                      selfHealedTimeseries={autofixEligible() ? selfHealedTs() : undefined}
+                      selfHealedValue={selfHealedValue()}
+                      selfHealedTrendPct={0}
                       agentCostTimeseries={
                         isByok() ? (filteredAgentCostTimeseries() ?? undefined) : undefined
                       }
                       colorMap={agentColorMap()}
                       seriesFilters={
-                        <Show when={allAgents().length > 1}>
-                          <FilterSelect
-                            noun="harnesses"
-                            items={allAgents()}
-                            selected={effectiveSelected()}
-                            colorMap={agentColorMap()}
-                            onToggle={toggleAgent}
-                            onSelectAll={() => persistSelection(new Set(allAgents()))}
-                            onUnselectAll={() => persistSelection(new Set<string>())}
-                          />
-                        </Show>
+                        <>
+                          {/* Status/harness grouping only applies to the
+                              Requests tab; Tokens and Cost stay per-harness. */}
+                          <Show when={chartView() === 'requests'}>
+                            <button
+                              class="chart-card__filter-btn"
+                              classList={{
+                                'chart-card__filter-btn--active': groupBy() === 'status',
+                              }}
+                              onClick={() => setGroupBy('status')}
+                            >
+                              By request status
+                            </button>
+                            <button
+                              class="chart-card__filter-btn"
+                              classList={{
+                                'chart-card__filter-btn--active': groupBy() === 'harness',
+                              }}
+                              onClick={() => setGroupBy('harness')}
+                            >
+                              By harness
+                            </button>
+                          </Show>
+                          <Show
+                            when={
+                              (chartView() !== 'requests' || groupBy() === 'harness') &&
+                              allAgents().length > 1
+                            }
+                          >
+                            <FilterSelect
+                              noun="harnesses"
+                              items={allAgents()}
+                              selected={effectiveSelected()}
+                              colorMap={agentColorMap()}
+                              onToggle={toggleAgent}
+                              onSelectAll={() => persistSelection(new Set(allAgents()))}
+                              onUnselectAll={() => persistSelection(new Set<string>())}
+                            />
+                          </Show>
+                        </>
                       }
                     />
                   );
