@@ -1,0 +1,27 @@
+packages/frontend/src/components/ErrorClassCard.tsx
+  s_02f28e248c2d45::t_3190e1d4c0a12d 1-73
+packages/frontend/src/styles/analytics-overview.css
+  s_02f28e248c2d45::t_3190e1d4c0a12d 82-138
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_02f28e248c2d45::t_3190e1d4c0a12d 41,674-677
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_02f28e248c2d45::t_3190e1d4c0a12d 48
+packages/frontend/src/pages/Overview.tsx
+  s_02f28e248c2d45::t_3190e1d4c0a12d 14,507-514
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "3992fc9fe6513d629cc465f530900563cfd8adb6",
+  "prompts": {},
+  "sessions": {
+    "s_02f28e248c2d45": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f651f-32e7-7652-ba1c-50bf40823758",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
