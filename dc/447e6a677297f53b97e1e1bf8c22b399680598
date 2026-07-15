@@ -1,0 +1,35 @@
+packages/backend/src/database/backfills/backfill-requests.spec.ts
+  s_8e604c15975dfe::t_f4a5aa199eed31 8,24,26,38,62,80,118,137,149,172
+  s_8e604c15975dfe::t_41fd133410d371 181-200
+  s_8e604c15975dfe::t_145078ae80e0ce 201-203,215
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_8e604c15975dfe::t_4998e0d8dc7bed 4-6,66-85
+  s_8e604c15975dfe::t_f3b1fd9da96a38 86-87
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_8e604c15975dfe::t_96ad1acdb071f8 196-200,203
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_8e604c15975dfe::t_4de433f65996ce 409-410
+  s_8e604c15975dfe::t_8b0522033f81e7 17-97,99-110,116-194,396-408
+  s_8e604c15975dfe::t_80a11260b1dd25 98,111-115
+packages/backend/src/database/backfills/backfill-requests.ts
+  s_8e604c15975dfe::t_1469f8a35d2c7e 116
+  s_8e604c15975dfe::t_906f6af455eeca 10-12,94-115
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_8e604c15975dfe::t_d09efef281504b 1-269
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "dc447e6a677297f53b97e1e1bf8c22b399680598",
+  "prompts": {},
+  "sessions": {
+    "s_8e604c15975dfe": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f65db-3a3a-7062-b4ed-378f1f8bcbe3",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null
+    }
+  }
+}
