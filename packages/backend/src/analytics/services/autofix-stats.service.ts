@@ -351,7 +351,17 @@ export class AutofixStatsService {
       }
       m.set(dim, (m.get(dim) ?? 0) + Number(r.count));
     }
-    const keys = [...keySet].sort();
+    // For disposition, use a fixed order: success → autofix → fallback → error.
+    const DISPOSITION_ORDER: Record<string, number> = {
+      success: 0,
+      autofix: 1,
+      fallback: 2,
+      error: 3,
+    };
+    const keys =
+      by === 'disposition'
+        ? [...keySet].sort((a, b) => (DISPOSITION_ORDER[a] ?? 99) - (DISPOSITION_ORDER[b] ?? 99))
+        : [...keySet].sort();
     const buckets = [...bucketMap.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([bucket, m]) => ({
