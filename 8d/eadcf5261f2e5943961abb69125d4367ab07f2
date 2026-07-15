@@ -1,0 +1,70 @@
+packages/frontend/tests/services/providers.test.ts
+  s_8bf0ed82df6f84::t_cbc586667ad1f5 209-217,219-221,223-225,595-606,828-832
+  s_8bf0ed82df6f84::t_17a82ed76714fd 222
+  s_8bf0ed82df6f84::t_9ec16fa941f2da 218
+  s_8bf0ed82df6f84::t_6736f6e909c555 833
+packages/frontend/src/components/ProviderIcon.tsx
+  s_8bf0ed82df6f84::t_ef1d9d4a11ee56 209-221
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_8bf0ed82df6f84::t_718a8deb4a5a29 27-32,47,138-156,178-247,741-744
+  s_f2d8f7f719df85::t_7d6a99452a7ae2 745
+packages/shared/__tests__/providers.spec.ts
+  s_8bf0ed82df6f84::t_44a40593a4bf6b 75-84,170-178
+  s_8bf0ed82df6f84::t_f6856405547ef9 179
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_8bf0ed82df6f84::t_ef1d9d4a11ee56 122,235-236
+  s_8bf0ed82df6f84::t_4a5d15e1449793 237-239
+  s_8bf0ed82df6f84::t_59d98f2393fe59 240-241
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_8bf0ed82df6f84::t_ef1d9d4a11ee56 24
+packages/backend/src/common/constants/providers.spec.ts
+  s_8bf0ed82df6f84::t_44a40593a4bf6b 121-131
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_8bf0ed82df6f84::t_ef1d9d4a11ee56 11
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_8bf0ed82df6f84::t_44a40593a4bf6b 77,105-110,169,230-240
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_8bf0ed82df6f84::t_cbc586667ad1f5 65-73
+.changeset/tidy-pandas-route.md
+  s_8bf0ed82df6f84::t_ef1d9d4a11ee56 1,3-5
+  s_8bf0ed82df6f84::t_04221fdb8d0dc7 2
+packages/shared/src/providers.ts
+  s_8bf0ed82df6f84::t_ef1d9d4a11ee56 163-173
+  s_8bf0ed82df6f84::t_a2f3bc7e77a2a9 162
+packages/frontend/src/services/providers.ts
+  s_8bf0ed82df6f84::t_ef1d9d4a11ee56 283-287,496
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_8bf0ed82df6f84::t_44a40593a4bf6b 3241-3255,3930
+packages/backend/src/routing/proxy/provider-client.ts
+  s_8bf0ed82df6f84::t_ef1d9d4a11ee56 164,172
+README.md
+  s_8bf0ed82df6f84::t_9666262bb88942 118
+  s_8bf0ed82df6f84::t_ef1d9d4a11ee56 84
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_8bf0ed82df6f84::t_44a40593a4bf6b 29,58-137
+  s_8bf0ed82df6f84::t_dfec2a0889add7 138-139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "8deadcf5261f2e5943961abb69125d4367ab07f2",
+  "prompts": {},
+  "sessions": {
+    "s_8bf0ed82df6f84": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f64d5-3d0d-7d91-95c2-7cdad996674f",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_f2d8f7f719df85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "11af9cf6-903c-4d99-853e-ac9ace14c05e",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
