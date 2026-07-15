@@ -5,6 +5,7 @@ describe('runRequestBackfill', () => {
   it('walks bounded windows, throttles, and finalizes only after all rows link', async () => {
     const gateway: RequestBackfillGateway = {
       analyze: jest.fn().mockResolvedValue(undefined),
+      backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 1, attempts: 2 }),
       nextWindowEnd: jest
         .fn()
         .mockResolvedValueOnce('b')
@@ -20,8 +21,9 @@ describe('runRequestBackfill', () => {
 
     await expect(
       runRequestBackfill(gateway, { batchSize: 2, throttleMs: 5, sleep }),
-    ).resolves.toEqual({ windows: 2, requests: 3, attempts: 3, rejections: 1 });
+    ).resolves.toEqual({ windows: 2, requests: 4, attempts: 5, rejections: 1 });
 
+    expect(gateway.backfillFallbackGroups).toHaveBeenCalledWith(expect.any(Object));
     expect(gateway.nextWindowEnd).toHaveBeenNthCalledWith(1, '', 2);
     expect(gateway.nextWindowEnd).toHaveBeenNthCalledWith(2, 'b', 2);
     expect(gateway.backfillWindow).toHaveBeenNthCalledWith(1, '', 'b', expect.any(Object));
@@ -33,6 +35,7 @@ describe('runRequestBackfill', () => {
   it('retries a timeout without advancing the cursor', async () => {
     const gateway: RequestBackfillGateway = {
       analyze: jest.fn().mockResolvedValue(undefined),
+      backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
       nextWindowEnd: jest.fn().mockResolvedValueOnce('b').mockResolvedValueOnce(null),
       backfillWindow: jest
         .fn()
@@ -56,6 +59,7 @@ describe('runRequestBackfill', () => {
   it('uses defaults when options are omitted', async () => {
     const gateway: RequestBackfillGateway = {
       analyze: jest.fn().mockResolvedValue(undefined),
+      backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
       nextWindowEnd: jest.fn().mockResolvedValue(null),
       backfillWindow: jest.fn(),
       finalize: jest.fn().mockResolvedValue(undefined),
@@ -73,6 +77,7 @@ describe('runRequestBackfill', () => {
     const windowEnds = Array.from({ length: 25 }, (_, index) => `id-${index + 1}`);
     const gateway: RequestBackfillGateway = {
       analyze: jest.fn().mockResolvedValue(undefined),
+      backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
       nextWindowEnd: jest
         .fn()
         .mockImplementationOnce(async () => windowEnds[0])
@@ -110,6 +115,7 @@ describe('runRequestBackfill', () => {
     jest.useFakeTimers();
     const gateway: RequestBackfillGateway = {
       analyze: jest.fn().mockResolvedValue(undefined),
+      backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
       nextWindowEnd: jest.fn().mockResolvedValueOnce('b').mockResolvedValueOnce(null),
       backfillWindow: jest.fn().mockResolvedValue({ requests: 1, attempts: 1, rejections: 0 }),
       finalize: jest.fn().mockResolvedValue(undefined),
@@ -128,6 +134,7 @@ describe('runRequestBackfill', () => {
     const failure = new Error('invalid input');
     const gateway: RequestBackfillGateway = {
       analyze: jest.fn().mockResolvedValue(undefined),
+      backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
       nextWindowEnd: jest.fn().mockResolvedValue('b'),
       backfillWindow: jest.fn().mockRejectedValue(failure),
       finalize: jest.fn(),
@@ -139,6 +146,7 @@ describe('runRequestBackfill', () => {
   it('retries a string finalization error', async () => {
     const gateway: RequestBackfillGateway = {
       analyze: jest.fn().mockResolvedValue(undefined),
+      backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
       nextWindowEnd: jest.fn().mockResolvedValue(null),
       backfillWindow: jest.fn(),
       finalize: jest
@@ -161,12 +169,36 @@ describe('runRequestBackfill', () => {
     const failure = new Error('invalid final state');
     const gateway: RequestBackfillGateway = {
       analyze: jest.fn().mockResolvedValue(undefined),
+      backfillFallbackGroups: jest.fn().mockResolvedValue({ requests: 0, attempts: 0 }),
       nextWindowEnd: jest.fn().mockResolvedValue(null),
       backfillWindow: jest.fn(),
       finalize: jest.fn().mockRejectedValue(failure),
     };
 
     await expect(runRequestBackfill(gateway)).rejects.toBe(failure);
+  });
+
+  it('retries legacy fallback regrouping before scanning generic windows', async () => {
+    const gateway: RequestBackfillGateway = {
+      analyze: jest.fn().mockResolvedValue(undefined),
+      backfillFallbackGroups: jest
+        .fn()
+        .mockRejectedValueOnce(new Error('deadlock detected'))
+        .mockResolvedValueOnce({ requests: 1, attempts: 3 }),
+      nextWindowEnd: jest.fn().mockResolvedValue(null),
+      backfillWindow: jest.fn(),
+      finalize: jest.fn().mockResolvedValue(undefined),
+    };
+    const sleep = jest.fn().mockResolvedValue(undefined);
+
+    await expect(runRequestBackfill(gateway, { retryBackoffMs: 2, sleep })).resolves.toEqual({
+      windows: 0,
+      requests: 1,
+      attempts: 3,
+      rejections: 0,
+    });
+    expect(sleep).toHaveBeenCalledWith(2);
+    expect(gateway.nextWindowEnd).toHaveBeenCalledTimes(1);
   });
 
   it.each([
@@ -180,6 +212,7 @@ describe('runRequestBackfill', () => {
   ] as const)('rejects invalid %s before touching the gateway', async (name, value) => {
     const gateway: RequestBackfillGateway = {
       analyze: jest.fn(),
+      backfillFallbackGroups: jest.fn(),
       nextWindowEnd: jest.fn(),
       backfillWindow: jest.fn(),
       finalize: jest.fn(),

@@ -7,6 +7,9 @@ export interface RequestBackfillTimeouts {
 
 export interface RequestBackfillGateway {
   analyze(): Promise<void>;
+  backfillFallbackGroups(
+    timeouts: RequestBackfillTimeouts,
+  ): Promise<{ requests: number; attempts: number }>;
   nextWindowEnd(afterId: string, batchSize: number): Promise<string | null>;
   backfillWindow(
     afterId: string,
@@ -87,6 +90,29 @@ export async function runRequestBackfill(
     attempts: 0,
     rejections: 0,
   };
+
+  let fallbackAttempt = 0;
+  for (;;) {
+    try {
+      const grouped = await gateway.backfillFallbackGroups(timeouts);
+      result.requests += grouped.requests;
+      result.attempts += grouped.attempts;
+      if (grouped.attempts > 0) {
+        log(
+          `request backfill: reconstructed ${grouped.requests} legacy fallback request(s) from ${grouped.attempts} attempt(s)`,
+        );
+      }
+      break;
+    } catch (error) {
+      fallbackAttempt += 1;
+      if (fallbackAttempt > maxRetries || !isRetryableBackfillError(error)) throw error;
+      const reason = error instanceof Error ? error.message : String(error);
+      log(
+        `request backfill: fallback regrouping failed (attempt ${fallbackAttempt}/${maxRetries}: ${reason}); retrying`,
+      );
+      await sleep(retryBackoffMs * fallbackAttempt);
+    }
+  }
 
   for (;;) {
     const endId = await gateway.nextWindowEnd(afterId, batchSize);

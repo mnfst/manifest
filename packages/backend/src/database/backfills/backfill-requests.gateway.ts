@@ -14,6 +14,184 @@ export const REQUEST_BACKFILL_WINDOW_END_SQL = `
 
 const REQUEST_LEVEL_ORIGINS = `'config', 'policy', 'request', 'internal'`;
 
+/**
+ * The legacy recorder encoded fallback chains with exact 100 ms timestamp
+ * offsets but did not stamp a shared id. Recover only chains whose primary,
+ * terminal attempt, fallback indexes, and request metadata match that encoding.
+ * If one attempt can belong to more than one candidate chain, leave the whole
+ * chain to the generic one-attempt fallback rather than merging unrelated calls.
+ */
+export const CREATE_LEGACY_FALLBACK_GROUPS_SQL = `
+  CREATE TEMP TABLE "request_backfill_fallback_groups" ON COMMIT DROP AS
+  WITH recovered_pairs AS (
+    SELECT
+      'legacy-fallback-' || md5(p.id) AS request_id,
+      p.id AS primary_id,
+      t.id AS terminal_id,
+      p.model AS primary_model,
+      p.timestamp AS primary_timestamp,
+      t.fallback_index AS terminal_index,
+      'recovered'::varchar AS outcome,
+      count(*) OVER (PARTITION BY p.id) AS primary_matches,
+      count(*) OVER (PARTITION BY t.id) AS terminal_matches
+    FROM "provider_attempts" p
+    JOIN "provider_attempts" t
+      ON t."request_id" IS NULL
+     AND t.status = 'ok'
+     AND t.fallback_from_model = p.model
+     AND t.fallback_index IS NOT NULL
+     AND t.fallback_index >= 0
+     AND t.timestamp = p.timestamp + (t.fallback_index + 1) * INTERVAL '100 milliseconds'
+     AND t.tenant_id IS NOT DISTINCT FROM p.tenant_id
+     AND t.agent_id IS NOT DISTINCT FROM p.agent_id
+     AND t.caller_attribution IS NOT DISTINCT FROM p.caller_attribution
+     AND t.request_headers IS NOT DISTINCT FROM p.request_headers
+     AND t.request_params IS NOT DISTINCT FROM p.request_params
+    WHERE p."request_id" IS NULL
+      AND p.status = 'fallback_error'
+      AND COALESCE(p.superseded, false)
+      AND p.fallback_from_model IS NULL
+      AND p.model IS NOT NULL
+  ), exhausted_pairs AS (
+    SELECT
+      'legacy-fallback-' || md5(p.id) AS request_id,
+      p.id AS primary_id,
+      t.id AS terminal_id,
+      p.model AS primary_model,
+      p.timestamp AS primary_timestamp,
+      t.fallback_index AS terminal_index,
+      'exhausted'::varchar AS outcome,
+      count(*) OVER (PARTITION BY p.id) AS primary_matches,
+      count(*) OVER (PARTITION BY t.id) AS terminal_matches
+    FROM "provider_attempts" p
+    JOIN "provider_attempts" t
+      ON t."request_id" IS NULL
+     AND t.status NOT IN ('ok', 'fallback_error', 'auto_fixed')
+     AND NOT COALESCE(t.superseded, false)
+     AND t.fallback_from_model = p.model
+     AND t.fallback_index IS NOT NULL
+     AND t.fallback_index >= 0
+     AND t.timestamp = p.timestamp - (t.fallback_index + 1) * INTERVAL '100 milliseconds'
+     AND t.tenant_id IS NOT DISTINCT FROM p.tenant_id
+     AND t.agent_id IS NOT DISTINCT FROM p.agent_id
+     AND t.caller_attribution IS NOT DISTINCT FROM p.caller_attribution
+     AND t.request_headers IS NOT DISTINCT FROM p.request_headers
+     AND t.request_params IS NOT DISTINCT FROM p.request_params
+    WHERE p."request_id" IS NULL
+      AND p.status = 'fallback_error'
+      AND COALESCE(p.superseded, false)
+      AND p.fallback_from_model IS NULL
+      AND p.model IS NOT NULL
+  ), groups AS (
+    SELECT request_id, primary_id, terminal_id, primary_model, primary_timestamp,
+           terminal_index, outcome
+    FROM recovered_pairs
+    WHERE primary_matches = 1 AND terminal_matches = 1
+    UNION ALL
+    SELECT request_id, primary_id, terminal_id, primary_model, primary_timestamp,
+           terminal_index, outcome
+    FROM exhausted_pairs
+    WHERE primary_matches = 1 AND terminal_matches = 1
+  ), member_candidates AS (
+    SELECT g.request_id, pa.id AS attempt_id, g.primary_id, g.terminal_id
+    FROM groups g
+    JOIN "provider_attempts" primary_attempt ON primary_attempt.id = g.primary_id
+    JOIN "provider_attempts" pa
+      ON pa."request_id" IS NULL
+     AND (
+       pa.id = g.primary_id
+       OR pa.id = g.terminal_id
+       OR (
+         pa.status = 'fallback_error'
+         AND COALESCE(pa.superseded, false)
+         AND pa.fallback_from_model = g.primary_model
+         AND pa.fallback_index IS NOT NULL
+         AND pa.fallback_index >= 0
+         AND pa.fallback_index < g.terminal_index
+         AND pa.tenant_id IS NOT DISTINCT FROM primary_attempt.tenant_id
+         AND pa.agent_id IS NOT DISTINCT FROM primary_attempt.agent_id
+         AND pa.caller_attribution IS NOT DISTINCT FROM primary_attempt.caller_attribution
+         AND pa.request_headers IS NOT DISTINCT FROM primary_attempt.request_headers
+         AND pa.request_params IS NOT DISTINCT FROM primary_attempt.request_params
+         AND (
+           (g.outcome = 'recovered' AND
+             pa.timestamp = g.primary_timestamp
+               + (g.terminal_index - pa.fallback_index) * INTERVAL '100 milliseconds')
+           OR
+           (g.outcome = 'exhausted' AND
+             pa.timestamp = g.primary_timestamp
+               - (pa.fallback_index + 1) * INTERVAL '100 milliseconds')
+         )
+       )
+     )
+  ), ambiguous_attempts AS (
+    SELECT attempt_id
+    FROM member_candidates
+    GROUP BY attempt_id
+    HAVING count(DISTINCT request_id) > 1
+  ), valid_groups AS (
+    SELECT DISTINCT m.request_id
+    FROM member_candidates m
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM member_candidates conflict
+      JOIN ambiguous_attempts a ON a.attempt_id = conflict.attempt_id
+      WHERE conflict.request_id = m.request_id
+    )
+  )
+  SELECT m.request_id, m.attempt_id, m.primary_id, m.terminal_id
+  FROM member_candidates m
+  JOIN valid_groups v ON v.request_id = m.request_id
+`;
+
+export const INSERT_LEGACY_FALLBACK_REQUESTS_SQL = `
+  WITH groups AS (
+    SELECT DISTINCT request_id, primary_id, terminal_id
+    FROM "request_backfill_fallback_groups"
+  ), totals AS (
+    SELECT g.request_id,
+           min(pa.timestamp) AS started_at,
+           sum(pa.duration_ms)::int AS duration_ms
+    FROM groups g
+    JOIN "request_backfill_fallback_groups" member ON member.request_id = g.request_id
+    JOIN "provider_attempts" pa ON pa.id = member.attempt_id
+    GROUP BY g.request_id
+  ), ins AS (
+    INSERT INTO "requests" (
+      id, tenant_id, agent_id, user_id, agent_name, trace_id, session_key, session_id,
+      timestamp, duration_ms, status, error_message, error_http_status, error_code,
+      error_origin, error_class, requested_model, caller_attribution, request_headers,
+      request_params, feedback_rating, feedback_tags, feedback_details
+    )
+    SELECT
+      g.request_id, terminal.tenant_id, terminal.agent_id, terminal.user_id,
+      terminal.agent_name, terminal.trace_id, terminal.session_key, terminal.session_id,
+      totals.started_at, totals.duration_ms, terminal.status, terminal.error_message,
+      terminal.error_http_status, terminal.error_code, terminal.error_origin,
+      terminal.error_class, primary_attempt.model, terminal.caller_attribution,
+      terminal.request_headers, terminal.request_params, terminal.feedback_rating,
+      terminal.feedback_tags, terminal.feedback_details
+    FROM groups g
+    JOIN totals ON totals.request_id = g.request_id
+    JOIN "provider_attempts" primary_attempt ON primary_attempt.id = g.primary_id
+    JOIN "provider_attempts" terminal ON terminal.id = g.terminal_id
+    ON CONFLICT (id) DO NOTHING
+    RETURNING 1
+  )
+  SELECT count(*)::int AS n FROM ins
+`;
+
+export const LINK_LEGACY_FALLBACK_ATTEMPTS_SQL = `
+  WITH updated AS (
+    UPDATE "provider_attempts" pa
+    SET "request_id" = grouped.request_id
+    FROM "request_backfill_fallback_groups" grouped
+    WHERE pa.id = grouped.attempt_id AND pa."request_id" IS NULL
+    RETURNING 1
+  )
+  SELECT count(*)::int AS n FROM updated
+`;
+
 // These rows predate the explicit request table but never represented a
 // provider call. Copy them to requests and remove the pseudo-attempt.
 export const INSERT_REJECTIONS_SQL = `
@@ -213,6 +391,21 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
       batchSize,
     ])) as { end_id: string | null }[];
     return rows[0]?.end_id ?? null;
+  }
+
+  async backfillFallbackGroups(
+    timeouts: RequestBackfillTimeouts,
+  ): Promise<{ requests: number; attempts: number }> {
+    return this.inTransaction(timeouts, async (runner) => {
+      await runner.query(CREATE_LEGACY_FALLBACK_GROUPS_SQL);
+      const [{ n: requests }] = (await runner.query(INSERT_LEGACY_FALLBACK_REQUESTS_SQL)) as {
+        n: number;
+      }[];
+      const [{ n: attempts }] = (await runner.query(LINK_LEGACY_FALLBACK_ATTEMPTS_SQL)) as {
+        n: number;
+      }[];
+      return { requests, attempts };
+    });
   }
 
   async backfillWindow(
