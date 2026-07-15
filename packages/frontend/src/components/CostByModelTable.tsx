@@ -137,7 +137,6 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
                   </div>
                 </td>
                 <td
-                  style="font-weight: 600;"
                   title={
                     row.estimated_cost > 0 && row.estimated_cost < 0.01
                       ? `$${row.estimated_cost.toFixed(6)}`

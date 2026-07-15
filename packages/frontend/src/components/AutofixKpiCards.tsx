@@ -51,28 +51,34 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Recovered by Manifest</span>
+            <span class="overview-stat-card__label">Self-healed requests</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{fmtPct(recoveredPct())}</span>
               {trendBadge(recoveredPct(), recoveredPctPrev())}
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Total recovered</span>
+            <span class="overview-stat-card__label">Self-healed via Auto-fix</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">
-                {formatNumber(s().recovered_by_manifest.value)}
+                {formatNumber(s().recovered_by_autofix?.value ?? 0)}
               </span>
-              {trendBadge(s().recovered_by_manifest.value, s().recovered_by_manifest.previous)}
+              {trendBadge(
+                s().recovered_by_autofix?.value ?? 0,
+                s().recovered_by_autofix?.previous ?? 0,
+              )}
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Total errors</span>
+            <span class="overview-stat-card__label">Self-healed via Fallback</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">
-                {formatNumber(s().errors_remaining.value)}
+                {formatNumber(s().recovered_by_fallback?.value ?? 0)}
               </span>
-              {trendBadge(s().errors_remaining.value, s().errors_remaining.previous)}
+              {trendBadge(
+                s().recovered_by_fallback?.value ?? 0,
+                s().recovered_by_fallback?.previous ?? 0,
+              )}
             </div>
           </div>
         </div>

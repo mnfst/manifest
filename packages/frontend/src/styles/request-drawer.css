@@ -243,9 +243,12 @@
 }
 .drawer-kv {
   display: flex;
+  align-items: center;
+  min-height: 36px;
   padding: 6px 0;
   border-bottom: 1px solid hsl(var(--border));
   font-size: var(--font-size-sm);
+  line-height: 1.4;
   gap: 12px;
 }
 .drawer-kv:last-child {
@@ -257,6 +260,12 @@
   min-width: 90px;
   flex-shrink: 0;
   font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+.drawer-kv__provider {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* ── Mobile: sidebar becomes horizontal ── */

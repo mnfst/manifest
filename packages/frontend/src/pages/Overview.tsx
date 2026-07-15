@@ -148,7 +148,10 @@ const Overview: Component = () => {
   const [activeView, setActiveViewRaw] = createSignal<ProviderView>('requests');
   const [tokenChartRequested, setTokenChartRequested] = createSignal(false);
   const [costChartRequested, setCostChartRequested] = createSignal(false);
-  const setActiveView = (view: ProviderView) => {
+  const setActiveView = (view: ProviderView | 'selfheal') => {
+    // This page doesn't render the self-healed tab (no timeseries passed),
+    // so the value can't be emitted — guard keeps the signal type narrow.
+    if (view === 'selfheal') return;
     if (view === 'tokens') setTokenChartRequested(true);
     if (view === 'cost') setCostChartRequested(true);
     setActiveViewRaw(view);

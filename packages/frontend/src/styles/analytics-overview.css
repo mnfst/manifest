@@ -59,6 +59,11 @@
   gap: 6px;
 }
 
+.overview-stat-card__sub {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+}
+
 .afx-kpi-line {
   display: flex;
   align-items: baseline;

@@ -340,8 +340,8 @@ export function SelfHealCell(item: MessageRow): JSX.Element {
   if (!hasAutofix && !hasFallback) return <td style={MONO_XS}>{'\u2014'}</td>;
 
   return (
-    <td>
-      <span style="display: inline-flex; align-items: center; gap: 4px;">
+    <td style="vertical-align: middle;">
+      <span style="display: inline-flex; align-items: center; gap: 4px; vertical-align: middle;">
         {hasAutofix && (
           <span
             class="trigger-badge trigger-badge--autofix"

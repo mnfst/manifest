@@ -419,7 +419,10 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                               </div>
                               <div class="drawer-kv">
                                 <span class="drawer-kv__key">Provider</span>
-                                <span>{att().provider}</span>
+                                <span class="drawer-kv__provider">
+                                  {providerIcon(att().provider, 14)}
+                                  {att().provider}
+                                </span>
                               </div>
                               <Show when={att().auth_type}>
                                 <div class="drawer-kv">
@@ -506,7 +509,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                   >
                                     <table
                                       class="error-autofix-row__meta-table"
-                                      style="border-color: hsl(var(--destructive) / 0.25);"
+                                      style="--meta-table-border: hsl(var(--destructive) / 0.25);"
                                     >
                                       <tbody>
                                         <Show when={att().error_origin}>

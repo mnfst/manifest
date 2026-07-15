@@ -217,7 +217,9 @@ const GlobalOverview: Component = () => {
   };
 
   // ── Chart view state ─────────────────────────────────────────────────
-  const [chartView, setChartView] = createSignal<'requests' | 'tokens' | 'cost'>('requests');
+  const [chartView, setChartView] = createSignal<'requests' | 'selfheal' | 'tokens' | 'cost'>(
+    'requests',
+  );
 
   // Local providers only exist on self-hosted installs; cloud hides the
   // Local stat card and drops the stats grid to three columns.
@@ -299,11 +301,30 @@ const GlobalOverview: Component = () => {
     (p) => getAutofixStats(p.range),
   );
 
-  // Request status timeseries (all requests by disposition — for "By request status" filter)
+  // Request status timeseries (all requests by disposition — feeds both the
+  // "By request status" chart filter AND the Self-healed requests panel).
   const [requestStatusTs] = createResource(
-    () => (groupBy() === 'status' ? { range: effectiveChartRange(), _ping: messagePing() } : false),
+    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
     (p) => getAutofixTimeseries(p.range, 'disposition'),
   );
+
+  // Self-healed requests over time: the recovered subset (autofix + fallback)
+  // of the disposition timeseries. Not a status — a separate panel by design.
+  const selfHealedTs = () => {
+    const ts = requestStatusTs();
+    if (!ts) return undefined;
+    const picked = ts.keys
+      .map((k, i) => ({ k, i }))
+      .filter(({ k }) => k === 'autofix' || k === 'fallback');
+    return {
+      ...ts,
+      keys: picked.map(({ k }) => k),
+      buckets: ts.buckets.map((b) => ({
+        bucket: b.bucket,
+        counts: picked.map(({ i }) => b.counts[i] ?? 0),
+      })),
+    };
+  };
 
   const [agentReliability] = createResource(
     () => ({ range: effectiveChartRange(), _ping: messagePing() }),
@@ -627,7 +648,12 @@ const GlobalOverview: Component = () => {
           </Show>
         }
       >
-        {/* ── 2. Unified Chart Card ─────────────────────────────────── */}
+        {/* ── 2. Reliability story: success rate + self-healed split ──
+             The self-healed chart itself lives as a tab of the chart card
+             below (Requests · Self-healed requests · Cost · Token usage). */}
+        <AutofixKpiCards stats={autofixStats()} />
+
+        {/* ── 3. Unified Chart Card ─────────────────────────────────── */}
         {(() => {
           const o = () => overview()!;
           return (
@@ -645,6 +671,15 @@ const GlobalOverview: Component = () => {
                     })()
                   : o().summary.messages.trend_pct
               }
+              selfHealedValue={autofixStats()?.recovered_by_manifest.value ?? 0}
+              selfHealedTrendPct={(() => {
+                const s = autofixStats();
+                if (!s || s.recovered_by_manifest.previous === 0) return 0;
+                const cur = s.recovered_by_manifest.value;
+                const prev = s.recovered_by_manifest.previous;
+                return Math.max(-999, Math.min(999, Math.round(((cur - prev) / prev) * 100)));
+              })()}
+              selfHealedTimeseries={selfHealedTs()}
               costValue={o().summary.cost_today.value}
               costTrendPct={o().summary.cost_today.trend_pct}
               costInfoTooltip="Actual API key costs only. Subscription usage is not included."
@@ -808,7 +843,7 @@ const GlobalOverview: Component = () => {
                           </span>
                         </div>
                       </td>
-                      <td style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums;">
+                      <td style="text-align: right; font-variant-numeric: tabular-nums;">
                         {formatCost(row.estimated_cost) ?? '$0.00'}
                       </td>
                     </tr>
@@ -990,7 +1025,7 @@ const GlobalOverview: Component = () => {
                 <tr>
                   <th>Harness</th>
                   <th>Usage (30d)</th>
-                  <th style="text-align: right;">Requests</th>
+                  <th style="text-align: right;">Total requests</th>
                   <th style="text-align: right;">Auto-fixed</th>
                 </tr>
               </thead>

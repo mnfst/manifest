@@ -6,7 +6,7 @@ import type { AutofixTimeseries } from '../services/api/analytics.js';
 const MultiAgentTokenChart = lazy(() => import('./MultiAgentTokenChart.jsx'));
 const ReliabilityChart = lazy(() => import('./ReliabilityChart.jsx'));
 
-export type ChartTab = 'requests' | 'cost' | 'tokens';
+export type ChartTab = 'requests' | 'selfheal' | 'cost' | 'tokens';
 
 interface AgentTimeseries {
   agents: string[];
@@ -22,6 +22,11 @@ export interface UnifiedChartCardProps {
   agentRequestTimeseries?: AgentTimeseries;
   /** When set, the Requests tab shows this (disposition) instead of agentRequestTimeseries */
   requestStatusTimeseries?: AutofixTimeseries;
+  // Self-healed requests tab (the recovered subset — autofix + fallback).
+  // The tab renders only when the timeseries is provided.
+  selfHealedValue?: number;
+  selfHealedTrendPct?: number;
+  selfHealedTimeseries?: AutofixTimeseries;
   // Cost tab
   costValue?: number;
   costTrendPct?: number;
@@ -64,6 +69,8 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
     switch (props.activeTab) {
       case 'requests':
         return 'Requests';
+      case 'selfheal':
+        return 'Self-healed requests';
       case 'cost':
         return 'Cost';
       case 'tokens':
@@ -87,6 +94,20 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
             {trendBadge(props.requestsTrendPct)}
           </div>
         </button>
+        <Show when={props.selfHealedTimeseries}>
+          <button
+            type="button"
+            class="chart-card__stat chart-card__stat--clickable"
+            classList={{ 'chart-card__stat--active': props.activeTab === 'selfheal' }}
+            onClick={() => props.onTabChange('selfheal')}
+          >
+            <span class="chart-card__label">Self-healed requests</span>
+            <div class="chart-card__value-row">
+              <span class="chart-card__value">{formatNumber(props.selfHealedValue ?? 0)}</span>
+              {trendBadge(props.selfHealedTrendPct ?? 0)}
+            </div>
+          </button>
+        </Show>
         <Show when={showCost()}>
           <button
             type="button"
@@ -123,7 +144,9 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
       {/* ── Subtitle bar: title + contextual filters ── */}
       <div class="chart-card__subtitle">
         <span class="chart-card__subtitle-title">{tabTitle()}</span>
-        <Show when={props.seriesFilters}>
+        {/* The grouping filters (by status/provider/harness) only apply to the
+            other tabs — self-healed is already a fixed autofix/fallback split. */}
+        <Show when={props.seriesFilters && props.activeTab !== 'selfheal'}>
           <div class="chart-card__filters">{props.seriesFilters}</div>
         </Show>
       </div>
@@ -159,6 +182,18 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
                   seriesMode="disposition"
                 />
               </Show>
+            </Show>
+          </Show>
+          <Show when={props.activeTab === 'selfheal'}>
+            <Show
+              when={props.selfHealedTimeseries && props.selfHealedTimeseries.buckets.length > 0}
+              fallback={EMPTY('No self-healed requests in this time range')}
+            >
+              <ReliabilityChart
+                timeseries={props.selfHealedTimeseries!}
+                range={props.range}
+                seriesMode="disposition"
+              />
             </Show>
           </Show>
           <Show when={props.activeTab === 'cost'}>

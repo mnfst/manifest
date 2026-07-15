@@ -223,7 +223,9 @@ const ConnectionDetail: Component = () => {
     }
   };
   const [chartView, setChartViewRaw] = createSignal<'requests' | 'tokens' | 'cost'>(savedView());
-  const setChartView = (v: 'requests' | 'tokens' | 'cost') => {
+  const setChartView = (v: 'requests' | 'selfheal' | 'tokens' | 'cost') => {
+    // No self-healed tab on this page (no timeseries passed) — can't be emitted.
+    if (v === 'selfheal') return;
     setChartViewRaw(v);
     try {
       sessionStorage.setItem(viewKey(), v);

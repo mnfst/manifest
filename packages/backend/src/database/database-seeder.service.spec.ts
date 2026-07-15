@@ -18,6 +18,7 @@ function makeMockRepo() {
     count: jest.fn().mockResolvedValue(0),
     insert: jest.fn().mockResolvedValue({}),
     update: jest.fn().mockResolvedValue({}),
+    delete: jest.fn().mockResolvedValue({}),
     findOne: jest.fn().mockResolvedValue(null),
   };
 }
@@ -31,6 +32,7 @@ describe('DatabaseSeederService', () => {
   let mockAgentKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockApiKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockMessageRepo: ReturnType<typeof makeMockRepo>;
+  let mockRequestRepo: ReturnType<typeof makeMockRepo>;
   let mockProviderRepo: ReturnType<typeof makeMockRepo>;
   let mockEnabledProviderRepo: ReturnType<typeof makeMockRepo>;
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
@@ -50,6 +52,7 @@ describe('DatabaseSeederService', () => {
     mockAgentKeyRepo = makeMockRepo();
     mockApiKeyRepo = makeMockRepo();
     mockMessageRepo = makeMockRepo();
+    mockRequestRepo = makeMockRepo();
     mockProviderRepo = makeMockRepo();
     mockEnabledProviderRepo = makeMockRepo();
     mockTierRepo = makeMockRepo();
@@ -63,6 +66,7 @@ describe('DatabaseSeederService', () => {
       mockAgentKeyRepo as never,
       mockApiKeyRepo as never,
       mockMessageRepo as never,
+      mockRequestRepo as never,
       mockProviderRepo as never,
       mockEnabledProviderRepo as never,
       mockTierRepo as never,

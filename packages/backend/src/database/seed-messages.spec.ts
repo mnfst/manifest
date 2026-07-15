@@ -1,11 +1,30 @@
 import { Logger } from '@nestjs/common';
-import { classifyMessageError } from 'manifest-shared';
 import { getSeedConnections, seedAgentMessages, seedConnectionId } from './seed-messages';
 
-function makeMockRepo() {
+/**
+ * Gate + insertion behavior of seedAgentMessages. The generated data itself
+ * (chain coherence, taxonomy, determinism) is covered by
+ * seed-request-chains.spec.ts / seed-messages.determinism.spec.ts.
+ */
+
+interface MockRepo {
+  count: jest.Mock;
+  insert: jest.Mock;
+  delete: jest.Mock;
+}
+
+/**
+ * count() is called with a seed-id Like filter first, then with a tenant
+ * filter (the demo-tenant "real traffic" guard).
+ */
+function makeMockRepo(seedCount = 0, tenantCount = 0): MockRepo {
   return {
-    count: jest.fn().mockResolvedValue(0),
+    count: jest.fn().mockImplementation((opts?: { where?: Record<string, unknown> }) => {
+      if (opts?.where && 'tenant_id' in opts.where) return Promise.resolve(tenantCount);
+      return Promise.resolve(seedCount);
+    }),
     insert: jest.fn().mockResolvedValue({}),
+    delete: jest.fn().mockResolvedValue({}),
   };
 }
 
@@ -13,517 +32,153 @@ function makeMockLogger(): Logger & { log: jest.Mock } {
   return { log: jest.fn() } as unknown as Logger & { log: jest.Mock };
 }
 
-/** Collects all messages passed to repo.insert across batched calls. */
-function collectInsertedMessages(
-  mockRepo: ReturnType<typeof makeMockRepo>,
-): Array<Record<string, unknown>> {
-  const messages: Array<Record<string, unknown>> = [];
-  for (const call of mockRepo.insert.mock.calls) {
-    const batch = call[0] as Array<Record<string, unknown>>;
-    messages.push(...batch);
+function collectInserted(repo: MockRepo): Array<Record<string, unknown>> {
+  const rows: Array<Record<string, unknown>> = [];
+  for (const call of repo.insert.mock.calls) {
+    rows.push(...(call[0] as Array<Record<string, unknown>>));
   }
-  return messages;
+  return rows;
 }
 
 describe('seedAgentMessages', () => {
-  let mockRepo: ReturnType<typeof makeMockRepo>;
   let logger: Logger & { log: jest.Mock };
 
   beforeEach(() => {
-    mockRepo = makeMockRepo();
     logger = makeMockLogger();
     jest.clearAllMocks();
   });
 
-  describe('early exit when messages exist', () => {
-    it('should skip seeding when message count > 0', async () => {
-      mockRepo.count.mockResolvedValue(10);
+  describe('seed gate', () => {
+    it('no-ops when a coherent seed (attempts AND requests) is already present', async () => {
+      const messageRepo = makeMockRepo(500, 500);
+      const requestRepo = makeMockRepo(400, 400);
 
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+      await seedAgentMessages(messageRepo as never, requestRepo as never, 'user-1', logger);
 
-      expect(mockRepo.count).toHaveBeenCalledTimes(1);
-      expect(mockRepo.insert).not.toHaveBeenCalled();
-      expect(logger.log).not.toHaveBeenCalled();
+      expect(messageRepo.insert).not.toHaveBeenCalled();
+      expect(requestRepo.insert).not.toHaveBeenCalled();
+      expect(messageRepo.delete).not.toHaveBeenCalled();
     });
 
-    it('should check the message count before proceeding', async () => {
-      mockRepo.count.mockResolvedValue(1);
+    it('seeds even when the demo tenant already holds real (non-seed) traffic', async () => {
+      // SEED_DATA=true is the explicit opt-in; real traffic never collides
+      // with the seed-* id prefixes, so coexistence is safe and the demo data
+      // must be guaranteed on every boot.
+      const messageRepo = makeMockRepo(0, 250);
+      const requestRepo = makeMockRepo(0, 0);
 
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+      await seedAgentMessages(messageRepo as never, requestRepo as never, 'user-1', logger);
 
-      expect(mockRepo.count).toHaveBeenCalled();
-      expect(mockRepo.insert).not.toHaveBeenCalled();
+      expect(requestRepo.insert).toHaveBeenCalled();
+      expect(messageRepo.insert).toHaveBeenCalled();
+    });
+
+    it('seeds an empty DB', async () => {
+      const messageRepo = makeMockRepo(0, 0);
+      const requestRepo = makeMockRepo(0, 0);
+
+      await seedAgentMessages(messageRepo as never, requestRepo as never, 'user-1', logger);
+
+      expect(requestRepo.insert).toHaveBeenCalled();
+      expect(messageRepo.insert).toHaveBeenCalled();
+    });
+
+    it('upgrades a legacy flat seed: wipes seed rows, then re-seeds request-shaped data', async () => {
+      // Legacy state: seed attempts exist, but no seed requests.
+      const messageRepo = makeMockRepo(700, 700);
+      const requestRepo = makeMockRepo(0, 0);
+
+      await seedAgentMessages(messageRepo as never, requestRepo as never, 'user-1', logger);
+
+      expect(messageRepo.delete).toHaveBeenCalled();
+      expect(requestRepo.delete).toHaveBeenCalled();
+      expect(requestRepo.insert).toHaveBeenCalled();
+      expect(messageRepo.insert).toHaveBeenCalled();
+      expect(logger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Replacing legacy flat seed'),
+      );
     });
   });
 
-  describe('seeding when table is empty', () => {
-    it('should insert messages when count is 0', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+  describe('insertion', () => {
+    it('inserts requests before attempts (FK direction) in batches of ≤100', async () => {
+      const messageRepo = makeMockRepo(0, 0);
+      const requestRepo = makeMockRepo(0, 0);
 
-      expect(mockRepo.insert).toHaveBeenCalled();
-    });
+      await seedAgentMessages(messageRepo as never, requestRepo as never, 'user-1', logger);
 
-    it('should log the total number of seeded messages', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+      const firstRequestInsert = requestRepo.insert.mock.invocationCallOrder[0];
+      const firstAttemptInsert = messageRepo.insert.mock.invocationCallOrder[0];
+      expect(firstRequestInsert).toBeLessThan(firstAttemptInsert);
 
-      expect(logger.log).toHaveBeenCalledTimes(1);
-      expect(logger.log).toHaveBeenCalledWith(expect.stringMatching(/^Seeded \d+ agent messages$/));
-    });
-
-    it('should generate approximately 695 messages over 7 days', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-
-      const messages = collectInsertedMessages(mockRepo);
-      // The exact count depends on the PRNG and the current time's UTC hours,
-      // but 168 hours with ~4 msgs/hour should yield several hundred messages.
-      expect(messages.length).toBeGreaterThan(200);
-      expect(messages.length).toBeLessThan(1500);
-    });
-  });
-
-  describe('context parameter', () => {
-    it('should use default context when not provided', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-
-      const messages = collectInsertedMessages(mockRepo);
-      expect(messages.length).toBeGreaterThan(0);
-      for (const msg of messages) {
-        expect(msg.tenant_id).toBe('seed-tenant-001');
-        expect(msg.agent_id).toBe('seed-agent-001');
-        expect(msg.agent_name).toBe('demo-agent');
+      for (const repo of [requestRepo, messageRepo]) {
+        for (const call of repo.insert.mock.calls) {
+          expect((call[0] as unknown[]).length).toBeLessThanOrEqual(100);
+        }
       }
     });
 
-    it('should use custom context when provided', async () => {
-      const customCtx = {
+    it('stamps the context and user on every inserted row', async () => {
+      const messageRepo = makeMockRepo(0, 0);
+      const requestRepo = makeMockRepo(0, 0);
+
+      await seedAgentMessages(messageRepo as never, requestRepo as never, 'user-42', logger);
+
+      for (const row of [...collectInserted(requestRepo), ...collectInserted(messageRepo)]) {
+        expect(row.tenant_id).toBe('seed-tenant-001');
+        expect(row.agent_id).toBe('seed-agent-001');
+        expect(row.agent_name).toBe('demo-agent');
+        expect(row.user_id).toBe('user-42');
+      }
+    });
+
+    it('honours a custom context', async () => {
+      const messageRepo = makeMockRepo(0, 0);
+      const requestRepo = makeMockRepo(0, 0);
+
+      await seedAgentMessages(messageRepo as never, requestRepo as never, 'user-2', logger, {
         tenantId: 'custom-tenant',
         agentId: 'custom-agent-id',
         agentName: 'my-agent',
-      };
+      });
 
-      await seedAgentMessages(mockRepo as never, 'user-2', logger, customCtx);
-
-      const messages = collectInsertedMessages(mockRepo);
-      expect(messages.length).toBeGreaterThan(0);
-      for (const msg of messages) {
-        expect(msg.tenant_id).toBe('custom-tenant');
-        expect(msg.agent_id).toBe('custom-agent-id');
-        expect(msg.agent_name).toBe('my-agent');
+      const rows = collectInserted(messageRepo);
+      expect(rows.length).toBeGreaterThan(0);
+      for (const row of rows) {
+        expect(row.tenant_id).toBe('custom-tenant');
+        expect(row.agent_id).toBe('custom-agent-id');
+        expect(row.agent_name).toBe('my-agent');
       }
     });
 
-    it('should attach the provided userId to all messages', async () => {
-      await seedAgentMessages(mockRepo as never, 'test-user-42', logger);
+    it('logs the seeded request/attempt totals', async () => {
+      const messageRepo = makeMockRepo(0, 0);
+      const requestRepo = makeMockRepo(0, 0);
 
-      const messages = collectInsertedMessages(mockRepo);
-      for (const msg of messages) {
-        expect(msg.user_id).toBe('test-user-42');
-      }
-    });
+      await seedAgentMessages(messageRepo as never, requestRepo as never, 'user-1', logger);
 
-    it('should set the provider inferred from each model so provider-grouped charts see seed data', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-
-      const messages = collectInsertedMessages(mockRepo);
-      const providersByModelPrefix: Record<string, string> = {
-        'claude-': 'anthropic',
-        'gpt-': 'openai',
-        'gemini-': 'gemini',
-      };
-      for (const msg of messages) {
-        const prefix = Object.keys(providersByModelPrefix).find((p) =>
-          (msg.model as string).startsWith(p),
-        );
-        expect(prefix).toBeDefined();
-        expect(msg.provider).toBe(providersByModelPrefix[prefix!]);
-      }
-    });
-
-    it('stamps tenant_provider_id linking each message to its seeded connection', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-
-      const messages = collectInsertedMessages(mockRepo);
-      const connectionIds = new Set(getSeedConnections().map((c) => c.id));
-      expect(connectionIds.size).toBeGreaterThan(0);
-      for (const msg of messages) {
-        // Each message points at the seeded connection for its (provider, auth_type)
-        // so the connection-detail page resolves it by tenant_provider_id.
-        expect(msg.tenant_provider_id).toBe(
-          seedConnectionId(msg.provider as string, msg.auth_type as string),
-        );
-        expect(connectionIds.has(msg.tenant_provider_id as string)).toBe(true);
-      }
-    });
-  });
-
-  describe('determinism', () => {
-    it('should produce identical messages on repeated runs', async () => {
-      // Run 1
-      const repo1 = makeMockRepo();
-      await seedAgentMessages(repo1 as never, 'user-1', logger);
-      const msgs1 = collectInsertedMessages(repo1);
-
-      // Run 2
-      const repo2 = makeMockRepo();
-      await seedAgentMessages(repo2 as never, 'user-1', logger);
-      const msgs2 = collectInsertedMessages(repo2);
-
-      expect(msgs1.length).toBe(msgs2.length);
-      for (let i = 0; i < msgs1.length; i++) {
-        expect(msgs1[i].id).toBe(msgs2[i].id);
-        expect(msgs1[i].model).toBe(msgs2[i].model);
-        expect(msgs1[i].input_tokens).toBe(msgs2[i].input_tokens);
-        expect(msgs1[i].output_tokens).toBe(msgs2[i].output_tokens);
-        expect(msgs1[i].cost_usd).toBe(msgs2[i].cost_usd);
-        expect(msgs1[i].status).toBe(msgs2[i].status);
-        expect(msgs1[i].session_key).toBe(msgs2[i].session_key);
-      }
-    });
-  });
-
-  describe('message field validation', () => {
-    let messages: Array<Record<string, unknown>>;
-
-    beforeEach(async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      messages = collectInsertedMessages(mockRepo);
-    });
-
-    it('should generate unique sequential ids', () => {
-      const ids = messages.map((m) => m.id as string);
-      const uniqueIds = new Set(ids);
-      expect(uniqueIds.size).toBe(ids.length);
-
-      // IDs should follow the seed-msg-NNNN pattern
-      for (const id of ids) {
-        expect(id).toMatch(/^seed-msg-\d{4}$/);
-      }
-    });
-
-    it('should set valid ISO timestamps on all messages', () => {
-      for (const msg of messages) {
-        const ts = msg.timestamp as string;
-        expect(ts).toBeDefined();
-        const parsed = new Date(ts);
-        expect(parsed.getTime()).not.toBeNaN();
-      }
-    });
-
-    it('should generate timestamps within the last 7 days and never in the future', () => {
-      const now = Date.now();
-      const sevenDaysAgo = now - 7 * 24 * 3600000;
-      const margin = 3600000; // hour-level margin for 7-day boundary
-
-      for (const msg of messages) {
-        const ts = new Date(msg.timestamp as string).getTime();
-        expect(ts).toBeGreaterThanOrEqual(sevenDaysAgo - margin);
-        expect(ts).toBeLessThanOrEqual(now);
-      }
-    });
-
-    it('should assign a model from the predefined list', () => {
-      const validModels = new Set([
-        'claude-sonnet-4-5-20250929',
-        'gpt-4o',
-        'claude-haiku-4-5-20251001',
-        'gemini-2.5-flash',
-        'gpt-4.1',
-      ]);
-
-      for (const msg of messages) {
-        expect(validModels.has(msg.model as string)).toBe(true);
-      }
-    });
-
-    it('should span multiple models (not all the same)', () => {
-      const models = new Set(messages.map((m) => m.model as string));
-      expect(models.size).toBe(5);
-    });
-
-    it('should have positive input_tokens and output_tokens', () => {
-      for (const msg of messages) {
-        expect(msg.input_tokens).toBeGreaterThan(0);
-        expect(msg.output_tokens).toBeGreaterThan(0);
-      }
-    });
-
-    it('should have input_tokens larger than output_tokens for the vast majority', () => {
-      // The source ranges overlap slightly at the edges:
-      // input: 800..14800, output: 60..1260. Most messages will have
-      // input >> output, but a few edge cases can be close or inverted.
-      let inputLargerCount = 0;
-      for (const msg of messages) {
-        if ((msg.input_tokens as number) > (msg.output_tokens as number)) {
-          inputLargerCount++;
-        }
-      }
-      expect(inputLargerCount / messages.length).toBeGreaterThan(0.95);
-    });
-
-    it('should have non-negative cache_read_tokens', () => {
-      for (const msg of messages) {
-        expect(msg.cache_read_tokens).toBeGreaterThanOrEqual(0);
-      }
-    });
-
-    it('should set cache_creation_tokens to 0', () => {
-      for (const msg of messages) {
-        expect(msg.cache_creation_tokens).toBe(0);
-      }
-    });
-
-    it('should have positive duration_ms within expected range', () => {
-      for (const msg of messages) {
-        const dur = msg.duration_ms as number;
-        expect(dur).toBeGreaterThanOrEqual(200);
-        expect(dur).toBeLessThan(5000);
-      }
-    });
-
-    it('should assign session keys in the format sess-NNN', () => {
-      for (const msg of messages) {
-        expect(msg.session_key).toMatch(/^sess-\d{3}$/);
-      }
-    });
-  });
-
-  describe('cost calculation', () => {
-    it('should calculate cost_usd for api_key messages and zero for subscription', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-
-      for (const msg of messages) {
-        if (msg.auth_type === 'subscription') {
-          expect(msg.cost_usd).toBe(0);
-        } else {
-          const input = msg.input_tokens as number;
-          const output = msg.output_tokens as number;
-          const expectedCost = input * 0.000003 + output * 0.000015;
-          expect(msg.cost_usd).toBeCloseTo(expectedCost, 10);
-        }
-      }
-    });
-
-    it('should produce non-negative cost for every message', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-
-      for (const msg of messages) {
-        expect(msg.cost_usd as number).toBeGreaterThanOrEqual(0);
-      }
-    });
-  });
-
-  describe('status distribution', () => {
-    it('should set most messages to status ok', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-
-      const okCount = messages.filter((m) => m.status === 'ok').length;
-      const failedCount = messages.filter((m) => m.status !== 'ok').length;
-
-      // The vast majority should be 'ok' (threshold > 0.85 draws a shape for
-      // ~15% of rows, and one drawn shape is itself a recovered success).
-      expect(okCount).toBeGreaterThan(failedCount);
-      expect(okCount / messages.length).toBeGreaterThan(0.8);
-    });
-
-    it('should include some failed messages', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-
-      const failedMsgs = messages.filter((m) => m.status !== 'ok');
-      expect(failedMsgs.length).toBeGreaterThan(0);
-    });
-
-    it('sets error_message on failed rows and leaves ok rows null', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-
-      for (const msg of messages) {
-        if (msg.status === 'ok') {
-          expect(msg.error_message).toBeNull();
-        } else {
-          expect(typeof msg.error_message).toBe('string');
-          expect((msg.error_message as string).length).toBeGreaterThan(0);
-        }
-      }
-    });
-
-    it('only contains statuses drawn from the taxonomy shapes', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-
-      for (const msg of messages) {
-        expect(['ok', 'error', 'rate_limited', 'fallback_error']).toContain(msg.status);
-      }
-    });
-  });
-
-  describe('error taxonomy', () => {
-    it('stamps error_origin/error_class/superseded via the shared classifier', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-
-      for (const msg of messages) {
-        const expected = classifyMessageError({
-          status: msg.status as string,
-          errorHttpStatus: (msg.error_http_status as number | null) ?? null,
-          routingReason: (msg.routing_reason as string | null) ?? null,
-        });
-        expect(msg.error_origin).toBe(expected.error_origin);
-        expect(msg.error_class).toBe(expected.error_class);
-        expect(msg.superseded).toBe(expected.superseded);
-      }
-    });
-
-    it('leaves ok rows unclassified and never superseded', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-
-      for (const msg of messages.filter((m) => m.status === 'ok')) {
-        expect(msg.error_origin).toBeNull();
-        expect(msg.error_class).toBeNull();
-        expect(msg.superseded).toBe(false);
-      }
-    });
-
-    it('spreads seeded failures across provider, config and transport origins', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-
-      const origins = new Set(
-        messages.filter((m) => m.status !== 'ok').map((m) => m.error_origin as string),
+      expect(logger.log).toHaveBeenCalledWith(
+        expect.stringMatching(/^Seeded \d+ requests \(\d+ attempts\)$/),
       );
-      expect(origins.has('provider')).toBe(true);
-      expect(origins.has('config')).toBe(true);
-      expect(origins.has('transport')).toBe(true);
-      // A Manifest software-limit hit (policy) is seeded too, distinct from provider errors.
-      expect(origins.has('policy')).toBe(true);
-    });
-
-    it('marks fallback attempts as superseded and nothing else', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-
-      for (const msg of messages) {
-        expect(msg.superseded).toBe(msg.status === 'fallback_error');
-      }
-    });
-
-    it('surfaces internal (Manifest) errors alongside the other origins', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-      const origins = new Set(messages.map((m) => m.error_origin as string | null));
-      expect(origins.has('internal')).toBe(true);
     });
   });
 
-  describe('fallback scenarios', () => {
-    let messages: Array<Record<string, unknown>>;
-
-    beforeEach(async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      messages = collectInsertedMessages(mockRepo);
-    });
-
-    it('includes HANDLED fallbacks — superseded fallback_error attempts', () => {
-      const handled = messages.filter((m) => m.status === 'fallback_error');
-      expect(handled.length).toBeGreaterThan(0);
-      for (const m of handled) {
-        expect(m.superseded).toBe(true);
-        expect(m.fallback_from_model).toBe('claude-opus-4-6');
+  describe('getSeedConnections', () => {
+    it('yields one connection per distinct (provider, auth_type) pair, ids stable', () => {
+      const connections = getSeedConnections();
+      expect(connections.length).toBeGreaterThan(0);
+      const keys = new Set(connections.map((c) => `${c.provider}:${c.auth_type}`));
+      expect(keys.size).toBe(connections.length);
+      for (const c of connections) {
+        expect(c.id).toBe(seedConnectionId(c.provider, c.auth_type));
       }
     });
 
-    it('never seeds a fallback that fell back from the same model it ran on', () => {
-      for (const m of messages.filter((x) => x.fallback_from_model)) {
-        expect(m.fallback_from_model).not.toBe(m.model);
-      }
-    });
-
-    it('includes RECOVERED successes — ok rows that fell back to another model', () => {
-      const recovered = messages.filter((m) => m.status === 'ok' && m.fallback_from_model);
-      expect(recovered.length).toBeGreaterThan(0);
-      for (const m of recovered) {
-        expect(m.error_origin).toBeNull();
-        expect(m.superseded).toBe(false);
-      }
-    });
-
-    it('includes NOT-HANDLED fallbacks — failed rows that fell back and still failed', () => {
-      const notHandled = messages.filter(
-        (m) => m.status !== 'ok' && m.status !== 'fallback_error' && m.fallback_from_model,
-      );
-      expect(notHandled.length).toBeGreaterThan(0);
-      // These are terminal failures, not superseded attempts.
-      for (const m of notHandled) expect(m.superseded).toBe(false);
-    });
-
-    it('leaves the vast majority of rows without any fallback context', () => {
-      const withFallback = messages.filter((m) => m.fallback_from_model);
-      expect(withFallback.length).toBeGreaterThan(0);
-      expect(withFallback.length).toBeLessThan(messages.length / 2);
-    });
-  });
-
-  describe('batch insertion', () => {
-    it('should insert in batches of 100', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-      const totalCalls = mockRepo.insert.mock.calls.length;
-
-      // All batches except possibly the last should have exactly 100
-      for (let i = 0; i < totalCalls - 1; i++) {
-        const batch = mockRepo.insert.mock.calls[i][0] as unknown[];
-        expect(batch).toHaveLength(100);
-      }
-
-      // Last batch should have the remainder
-      const lastBatch = mockRepo.insert.mock.calls[totalCalls - 1][0] as unknown[];
-      expect(lastBatch.length).toBeGreaterThan(0);
-      expect(lastBatch.length).toBeLessThanOrEqual(100);
-
-      // Total messages across all batches should match
-      let total = 0;
-      for (const call of mockRepo.insert.mock.calls) {
-        total += (call[0] as unknown[]).length;
-      }
-      expect(total).toBe(messages.length);
-    });
-
-    it('should call insert the correct number of times for the data size', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-      const expectedCalls = Math.ceil(messages.length / 100);
-      expect(mockRepo.insert).toHaveBeenCalledTimes(expectedCalls);
-    });
-  });
-
-  describe('day/night pattern', () => {
-    it('should generate fewer messages during night hours (0-7 UTC)', async () => {
-      await seedAgentMessages(mockRepo as never, 'user-1', logger);
-      const messages = collectInsertedMessages(mockRepo);
-
-      let nightCount = 0;
-      let dayCount = 0;
-
-      for (const msg of messages) {
-        const hour = new Date(msg.timestamp as string).getUTCHours();
-        // Messages within an hour window can spill into adjacent hours
-        // due to the random offset, so use a conservative range
-        if (hour >= 1 && hour <= 6) {
-          nightCount++;
-        } else if (hour >= 9 && hour <= 21) {
-          dayCount++;
-        }
-      }
-
-      // Day hours (9-21 = 13 hours) should have more messages per hour
-      // than night hours (1-6 = 6 hours). Compare normalized rates.
-      const nightRate = nightCount / 6;
-      const dayRate = dayCount / 13;
-      expect(dayRate).toBeGreaterThan(nightRate);
+    it('covers the fallback primary model (anthropic subscription)', () => {
+      const connections = getSeedConnections();
+      expect(
+        connections.some((c) => c.provider === 'anthropic' && c.auth_type === 'subscription'),
+      ).toBe(true);
     });
   });
 });

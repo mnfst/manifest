@@ -64,9 +64,29 @@ export interface MessageDetailResponse {
       model: string | null;
       provider: string | null;
       status: string;
+      auth_type: string | null;
+      error_message: string | null;
+      error_origin: string | null;
+      error_class: string | null;
       error_http_status: number | null;
+      trace_id: string | null;
+      routing_tier: string | null;
+      routing_reason: string | null;
+      service_type: string | null;
+      session_key: string | null;
+      description: string | null;
       duration_ms: number | null;
       cost_usd: number | null;
+      input_tokens: number;
+      output_tokens: number;
+      fallback_from_model: string | null;
+      fallback_index: number | null;
+      request_headers: Record<string, string> | null;
+      request_params: object | null;
+      autofix_applied: boolean;
+      autofix_role: string | null;
+      autofix_operations: object | null;
+      autofix_phoenix: object | null;
     }>;
   };
 }
@@ -186,14 +206,36 @@ export class MessageDetailsService {
         autofix_sibling,
         ...(request
           ? {
+              // The drawer renders each attempt's full Details/Headers/Params
+              // tabs — project everything it consumes, not just the summary.
               attempts: attempts.map((attempt) => ({
                 id: attempt.id,
                 model: attempt.model,
                 provider: attempt.provider,
                 status: attempt.status,
+                auth_type: attempt.auth_type,
+                error_message: attempt.error_message,
+                error_origin: attempt.error_origin,
+                error_class: attempt.error_class,
                 error_http_status: attempt.error_http_status,
+                trace_id: attempt.trace_id,
+                routing_tier: attempt.routing_tier,
+                routing_reason: attempt.routing_reason,
+                service_type: attempt.service_type,
+                session_key: attempt.session_key,
+                description: attempt.description,
                 duration_ms: attempt.duration_ms,
                 cost_usd: attempt.cost_usd,
+                input_tokens: attempt.input_tokens,
+                output_tokens: attempt.output_tokens,
+                fallback_from_model: attempt.fallback_from_model,
+                fallback_index: attempt.fallback_index,
+                request_headers: attempt.request_headers,
+                request_params: attempt.request_params,
+                autofix_applied: attempt.autofix_applied,
+                autofix_role: attempt.autofix_role,
+                autofix_operations: attempt.autofix_operations,
+                autofix_phoenix: attempt.autofix_phoenix,
               })),
             }
           : {}),

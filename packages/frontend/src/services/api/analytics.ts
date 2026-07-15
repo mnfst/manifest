@@ -175,6 +175,8 @@ export interface AutofixStats {
   total_requests: { value: number; previous: number };
   success_rate: { value: number; previous: number };
   recovered_by_manifest: { value: number; previous: number };
+  recovered_by_autofix: { value: number; previous: number };
+  recovered_by_fallback: { value: number; previous: number };
   errors_remaining: { value: number; previous: number };
   coverage: { rate: number; previous_rate: number };
   dispositions: {

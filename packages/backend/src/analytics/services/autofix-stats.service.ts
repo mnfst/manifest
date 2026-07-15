@@ -27,6 +27,10 @@ export interface AutofixStatsResponse {
   success_rate: { value: number; previous: number };
   /** Requests recovered by Manifest (autofix or fallback — first attempt failed, request succeeded). */
   recovered_by_manifest: { value: number; previous: number };
+  /** Recovered requests whose chain includes an Auto-fix attempt (precedence over fallback). */
+  recovered_by_autofix: { value: number; previous: number };
+  /** Recovered requests saved by fallback alone (no Auto-fix attempt in the chain). */
+  recovered_by_fallback: { value: number; previous: number };
   /** Requests that ultimately failed (caller got an error). */
   errors_remaining: { value: number; previous: number };
   coverage: { rate: number; previous_rate: number };
@@ -65,6 +69,8 @@ interface WindowCounts {
   total: number;
   successes: number;
   recovered: number;
+  recovered_autofix: number;
+  recovered_fallback: number;
   errors: number;
   healed: number;
   no_fix_found: number;
@@ -138,6 +144,14 @@ export class AutofixStatsService {
       total_requests: { value: current.total, previous: previous.total },
       success_rate: { value: rate(current), previous: rate(previous) },
       recovered_by_manifest: { value: current.recovered, previous: previous.recovered },
+      recovered_by_autofix: {
+        value: current.recovered_autofix,
+        previous: previous.recovered_autofix,
+      },
+      recovered_by_fallback: {
+        value: current.recovered_fallback,
+        previous: previous.recovered_fallback,
+      },
       errors_remaining: { value: current.errors, previous: previous.errors },
       coverage: { rate: covRate(current), previous_rate: covRate(previous) },
       dispositions: {
@@ -186,7 +200,10 @@ export class AutofixStatsService {
         COUNT(*)::int AS requests,
         COUNT(*) FILTER (WHERE r.status = 'ok' AND (
           SELECT COUNT(*) FROM provider_attempts pa2 WHERE pa2.request_id = r.id
-        ) > 1)::int AS autofixed
+        ) > 1 AND EXISTS (
+          SELECT 1 FROM provider_attempts pax
+          WHERE pax.request_id = r.id AND pax.autofix_applied = true
+        ))::int AS autofixed
       FROM requests r
       JOIN winning w ON w.request_id = r.id
       WHERE r.tenant_id = $1
@@ -226,7 +243,10 @@ export class AutofixStatsService {
         COUNT(*)::int AS requests,
         COUNT(*) FILTER (WHERE r.status = 'ok' AND (
           SELECT COUNT(*) FROM provider_attempts pa WHERE pa.request_id = r.id
-        ) > 1)::int AS autofixed
+        ) > 1 AND EXISTS (
+          SELECT 1 FROM provider_attempts pax
+          WHERE pax.request_id = r.id AND pax.autofix_applied = true
+        ))::int AS autofixed
       FROM requests r
       WHERE r.tenant_id = $1
         AND r.timestamp >= $2
@@ -385,6 +405,8 @@ export class AutofixStatsService {
         total: 0,
         successes: 0,
         recovered: 0,
+        recovered_autofix: 0,
+        recovered_fallback: 0,
         errors: 0,
         healed: 0,
         no_fix_found: 0,
@@ -418,7 +440,13 @@ export class AutofixStatsService {
         COUNT(*) FILTER (WHERE r.status = 'ok')::int AS successes,
         COUNT(*) FILTER (WHERE r.status = 'ok' AND (
           SELECT COUNT(*) FROM provider_attempts pa WHERE pa.request_id = r.id
-        ) > 1)::int AS recovered
+        ) > 1)::int AS recovered,
+        COUNT(*) FILTER (WHERE r.status = 'ok' AND (
+          SELECT COUNT(*) FROM provider_attempts pa WHERE pa.request_id = r.id
+        ) > 1 AND EXISTS (
+          SELECT 1 FROM provider_attempts pa
+          WHERE pa.request_id = r.id AND pa.autofix_applied = true
+        ))::int AS recovered_autofix
       FROM requests r
       WHERE r.tenant_id = $1
         AND r.timestamp >= $2
@@ -432,11 +460,16 @@ export class AutofixStatsService {
     const total = Number(row.total ?? 0);
     const successes = Number(row.successes ?? 0);
     const recovered = Number(row.recovered ?? 0);
+    // Autofix takes precedence over fallback (same rule as the disposition
+    // timeseries): a chain that was both auto-fixed and fell back counts as autofix.
+    const recoveredAutofix = Number(row.recovered_autofix ?? 0);
     const errors = total - successes;
     return {
       total,
       successes,
       recovered,
+      recovered_autofix: recoveredAutofix,
+      recovered_fallback: recovered - recoveredAutofix,
       errors,
       healed: recovered,
       no_fix_found: errors,

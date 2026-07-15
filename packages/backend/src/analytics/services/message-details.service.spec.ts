@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { MessageDetailsService } from './message-details.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { ManifestRequest } from '../../entities/request.entity';
 
 function mockQb(result: unknown = null) {
   const qb: Record<string, jest.Mock> = {
@@ -291,5 +292,58 @@ describe('MessageDetailsService', () => {
     expect(result.message.error_origin).toBe('config');
     expect(result.message.error_class).toBe('no_provider_key');
     expect(result.message.superseded).toBe(false);
+  });
+
+  describe('request-level attempts projection', () => {
+    it('projects the per-attempt fields the drawer consumes (tokens, headers, params, autofix)', async () => {
+      const attemptRow = {
+        ...baseMessage,
+        id: 'att-1',
+        request_id: 'req-1',
+        input_tokens: 1234,
+        output_tokens: 567,
+        request_headers: { 'user-agent': 'test-agent' },
+        request_params: { temperature: 0.2 },
+        auth_type: 'api_key',
+        autofix_applied: true,
+        autofix_role: 'retry',
+      };
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          MessageDetailsService,
+          {
+            provide: getRepositoryToken(AgentMessage),
+            useValue: {
+              createQueryBuilder: jest.fn().mockReturnValue(mockQb(null)),
+              find: jest.fn().mockResolvedValue([attemptRow]),
+            },
+          },
+          {
+            provide: getRepositoryToken(ManifestRequest),
+            useValue: {
+              findOne: jest.fn().mockResolvedValue({
+                id: 'req-1',
+                tenant_id: 't1',
+                status: 'ok',
+                timestamp: '2026-02-16 10:00:00',
+              }),
+            },
+          },
+        ],
+      }).compile();
+      const svc = module.get<MessageDetailsService>(MessageDetailsService);
+
+      const result = await svc.getDetails('req-1', 't1');
+      const att = result.message.attempts?.[0];
+
+      expect(att).toBeDefined();
+      expect(att!.input_tokens).toBe(1234);
+      expect(att!.output_tokens).toBe(567);
+      expect(att!.request_headers).toEqual({ 'user-agent': 'test-agent' });
+      expect(att!.request_params).toEqual({ temperature: 0.2 });
+      expect(att!.auth_type).toBe('api_key');
+      expect(att!.autofix_applied).toBe(true);
+      expect(att!.autofix_role).toBe('retry');
+    });
   });
 });
