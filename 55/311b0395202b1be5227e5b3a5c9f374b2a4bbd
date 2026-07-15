@@ -1,0 +1,25 @@
+packages/frontend/src/services/api/autofix.ts
+  s_7b04613e6c1f2a::t_b8f103d0db97d0 6-9
+packages/frontend/tests/components/AutofixCohortGate.test.tsx
+  s_7b04613e6c1f2a::t_9cfb77d64b9e5c 3,12-19,21-24,27,38,40,42-48,51,56,59,64,67,72
+packages/frontend/src/index.tsx
+  s_7b04613e6c1f2a::t_7ddf32724fa96f 53-57,59
+packages/frontend/src/components/AutofixCohortGate.tsx
+  s_7b04613e6c1f2a::t_f4515efe2b454f 1,5-9,11-19,21-23,26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "55311b0395202b1be5227e5b3a5c9f374b2a4bbd",
+  "prompts": {},
+  "sessions": {
+    "s_7b04613e6c1f2a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1b1af942-3126-4469-a9b1-c9d382c90052",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
