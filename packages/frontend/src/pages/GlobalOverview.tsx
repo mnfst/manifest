@@ -866,7 +866,7 @@ const GlobalOverview: Component = () => {
                   <th>Status</th>
                   <th style="text-align: right;">Total requests</th>
                   <Show when={autofixEligible()}>
-                    <th style="text-align: right;">Self-healed</th>
+                    <th style="text-align: right;">Healed</th>
                     <th style="text-align: right;">Success rate</th>
                   </Show>
                 </tr>
@@ -1011,7 +1011,7 @@ const GlobalOverview: Component = () => {
                   <th>Usage (30d)</th>
                   <th style="text-align: right;">Total requests</th>
                   <Show when={autofixEligible()}>
-                    <th style="text-align: right;">Self-healed requests</th>
+                    <th style="text-align: right;">Healed requests</th>
                     <th style="text-align: right;">Success rate</th>
                   </Show>
                 </tr>

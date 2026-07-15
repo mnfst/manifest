@@ -70,7 +70,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
       case 'requests':
         return 'Requests';
       case 'selfheal':
-        return 'Self-healed requests';
+        return 'Healed requests';
       case 'cost':
         return 'Cost';
       case 'tokens':
@@ -101,7 +101,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
             classList={{ 'chart-card__stat--active': props.activeTab === 'selfheal' }}
             onClick={() => props.onTabChange('selfheal')}
           >
-            <span class="chart-card__label">Self-healed requests</span>
+            <span class="chart-card__label">Healed requests</span>
             <div class="chart-card__value-row">
               <span class="chart-card__value">{formatNumber(props.selfHealedValue ?? 0)}</span>
               {trendBadge(props.selfHealedTrendPct ?? 0)}
@@ -187,7 +187,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
           <Show when={props.activeTab === 'selfheal'}>
             <Show
               when={props.selfHealedTimeseries && props.selfHealedTimeseries.buckets.length > 0}
-              fallback={EMPTY('No self-healed requests in this time range')}
+              fallback={EMPTY('No healed requests in this time range')}
             >
               <ReliabilityChart
                 timeseries={props.selfHealedTimeseries!}

@@ -485,7 +485,7 @@ describe('Overview', () => {
       const clickable = container.querySelectorAll('.chart-card__stat--clickable');
       expect(clickable.length).toBe(3);
     });
-    expect(screen.queryByText('Self-healed requests')).toBeNull();
+    expect(screen.queryByText('Healed requests')).toBeNull();
   });
 
   it('hides the self-healed tab and KPI cards for non-cohort tenants', async () => {
@@ -495,7 +495,7 @@ describe('Overview', () => {
     await vi.waitFor(() => {
       expect(screen.getAllByText('Requests').length).toBeGreaterThan(0);
     });
-    expect(screen.queryByText('Self-healed requests')).toBeNull();
+    expect(screen.queryByText('Healed requests')).toBeNull();
     expect(screen.queryByText('Success rate')).toBeNull();
     expect(mockGetAutofixStats).not.toHaveBeenCalled();
   });
@@ -510,9 +510,9 @@ describe('Overview', () => {
     });
     expect(mockGetAutofixStats).toHaveBeenCalledWith('30d', 'test-agent');
     // Tab + KPI cards share the label; both surfaces are present.
-    expect(screen.getAllByText('Self-healed requests').length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText('Self-healed via Auto-fix')).toBeDefined();
-    expect(screen.getByText('Self-healed via Fallback')).toBeDefined();
+    expect(screen.getAllByText('Healed requests').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('Healed via Auto-fix')).toBeDefined();
+    expect(screen.getByText('Healed via Fallback')).toBeDefined();
   });
 
   it('switches chart view when stat header clicked', async () => {

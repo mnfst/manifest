@@ -65,21 +65,21 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Self-healed requests</span>
+            <span class="overview-stat-card__label">Healed requests</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{fmtPct(selfHealedPct())}</span>
               {trendBadge(selfHealedPct(), selfHealedPctPrev())}
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Self-healed via Auto-fix</span>
+            <span class="overview-stat-card__label">Healed via Auto-fix</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{formatNumber(s().autofix_saves.value)}</span>
               {trendBadge(s().autofix_saves.value, s().autofix_saves.previous)}
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Self-healed via Fallback</span>
+            <span class="overview-stat-card__label">Healed via Fallback</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">
                 {formatNumber(s().fallback_saves?.value ?? 0)}

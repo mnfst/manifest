@@ -128,7 +128,7 @@ describe('analytics chart surface components', () => {
 
     expect(
       screen
-        .getAllByText('Self-healed requests')[0]!
+        .getAllByText('Healed requests')[0]!
         .closest('button')
         ?.classList.contains('chart-card__stat--active'),
     ).toBe(true);
@@ -190,7 +190,7 @@ describe('analytics chart surface components', () => {
         range="24h"
       />
     ));
-    expect(screen.getByText('No self-healed requests in this time range')).toBeDefined();
+    expect(screen.getByText('No healed requests in this time range')).toBeDefined();
     unmount();
 
     // Without a timeseries the tab itself is not rendered (ineligible tenants).
@@ -205,7 +205,7 @@ describe('analytics chart surface components', () => {
         range="24h"
       />
     ));
-    expect(screen.queryByText('Self-healed requests')).toBeNull();
+    expect(screen.queryByText('Healed requests')).toBeNull();
     noTab.unmount();
   });
 
@@ -242,11 +242,11 @@ describe('analytics chart surface components', () => {
     expect(screen.getByText('Success rate')).toBeDefined();
     expect(screen.getByText('80.0%')).toBeDefined();
     // Self-healed share = (5 + 3) / 100.
-    expect(screen.getByText('Self-healed requests')).toBeDefined();
+    expect(screen.getByText('Healed requests')).toBeDefined();
     expect(screen.getByText('8.0%')).toBeDefined();
-    expect(screen.getByText('Self-healed via Auto-fix')).toBeDefined();
+    expect(screen.getByText('Healed via Auto-fix')).toBeDefined();
     expect(screen.getByText('5')).toBeDefined();
-    expect(screen.getByText('Self-healed via Fallback')).toBeDefined();
+    expect(screen.getByText('Healed via Fallback')).toBeDefined();
     expect(screen.getByText('3')).toBeDefined();
     unmount();
 
