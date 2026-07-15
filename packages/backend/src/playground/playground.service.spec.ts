@@ -431,6 +431,21 @@ describe('PlaygroundService.runStream', () => {
     expect(res.json).not.toHaveBeenCalled();
   });
 
+  it('does not record a transport failure when the client disconnects before forward resolves', async () => {
+    const { service, mocks } = buildService();
+    const res = mockRes();
+    mocks.providerClient.forward.mockImplementation(async () => {
+      res._closeHandler?.();
+      throw new Error('client aborted');
+    });
+
+    await service.runStream(CTX, makeDto(), asRes(res));
+
+    expect(mocks.messageRepo.insert).not.toHaveBeenCalled();
+    expect(mocks.history.saveColumn).not.toHaveBeenCalled();
+    expect(mocks.eventBus.emit).not.toHaveBeenCalled();
+  });
+
   it('swallows recordError insert failures that throw an Error on the upstream-error path', async () => {
     const { service, mocks } = buildService();
     mocks.messageRepo.insert.mockRejectedValueOnce(new Error('telemetry insert blew up'));

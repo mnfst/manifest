@@ -216,43 +216,45 @@ export class MessagesQueryService {
         requestErrorClass: params.error_class,
       });
     }
-    const matchingAttempt = (predicate: string): string => `EXISTS (
+    const attemptPredicates: string[] = [];
+    const attemptParameters: Record<string, unknown> = {};
+    const matchingAttempt = (predicates: string[]): string => `EXISTS (
       SELECT 1 FROM provider_attempts filtered_attempt
-      WHERE filtered_attempt.request_id = r.id AND ${predicate}
+      WHERE filtered_attempt.request_id = r.id AND ${predicates.join(' AND ')}
     )`;
-    if (params.provider)
-      qb.andWhere(matchingAttempt('filtered_attempt.provider = :requestProvider'), {
-        requestProvider: params.provider,
-      });
-    if (params.service_type) {
-      qb.andWhere(matchingAttempt('filtered_attempt.service_type = :requestServiceType'), {
-        requestServiceType: params.service_type,
-      });
+    if (params.provider) {
+      attemptPredicates.push('filtered_attempt.provider = :requestProvider');
+      attemptParameters['requestProvider'] = params.provider;
     }
-    if (params.routing_tier)
-      qb.andWhere(matchingAttempt('filtered_attempt.routing_tier = :requestTier'), {
-        requestTier: params.routing_tier,
-      });
+    if (params.service_type) {
+      attemptPredicates.push('filtered_attempt.service_type = :requestServiceType');
+      attemptParameters['requestServiceType'] = params.service_type;
+    }
+    if (params.routing_tier) {
+      attemptPredicates.push('filtered_attempt.routing_tier = :requestTier');
+      attemptParameters['requestTier'] = params.routing_tier;
+    }
     if (params.specificity_category) {
-      qb.andWhere(matchingAttempt('filtered_attempt.specificity_category = :requestSpecificity'), {
-        requestSpecificity: params.specificity_category,
-      });
+      attemptPredicates.push('filtered_attempt.specificity_category = :requestSpecificity');
+      attemptParameters['requestSpecificity'] = params.specificity_category;
     }
     if (params.header_tier_id) {
-      qb.andWhere(matchingAttempt('filtered_attempt.header_tier_id = :requestHeaderTier'), {
-        requestHeaderTier: params.header_tier_id,
-      });
+      attemptPredicates.push('filtered_attempt.header_tier_id = :requestHeaderTier');
+      attemptParameters['requestHeaderTier'] = params.header_tier_id;
     }
     if (params.trigger === 'autofix')
-      qb.andWhere(matchingAttempt('filtered_attempt.autofix_applied = true'));
+      attemptPredicates.push('filtered_attempt.autofix_applied = true');
     else if (params.trigger === 'fallback')
-      qb.andWhere(matchingAttempt('filtered_attempt.fallback_from_model IS NOT NULL'));
+      attemptPredicates.push('filtered_attempt.fallback_from_model IS NOT NULL');
     else if (params.trigger === 'none') {
       qb.andWhere(`NOT EXISTS (
         SELECT 1 FROM provider_attempts trigger_attempt
         WHERE trigger_attempt.request_id = r.id
-          AND (trigger_attempt.autofix_applied = true OR trigger_attempt.fallback_from_model IS NOT NULL)
+        AND (trigger_attempt.autofix_applied = true OR trigger_attempt.fallback_from_model IS NOT NULL)
       )`);
+    }
+    if (attemptPredicates.length > 0) {
+      qb.andWhere(matchingAttempt(attemptPredicates), attemptParameters);
     }
     if (params.cursor) {
       const sep = params.cursor.indexOf('|');

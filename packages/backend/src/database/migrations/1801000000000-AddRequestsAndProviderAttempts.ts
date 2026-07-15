@@ -88,6 +88,7 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
       FROM pg_class c
       JOIN pg_index i ON i.indexrelid = c.oid
       WHERE c.relname = 'IDX_provider_attempts_request_id'
+        AND i.indrelid = 'provider_attempts'::regclass
     `)) as Array<{ valid: boolean }>;
     // PostgreSQL leaves an invalid shell behind when CREATE INDEX
     // CONCURRENTLY is interrupted. IF NOT EXISTS would treat that shell as a
