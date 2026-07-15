@@ -13,24 +13,40 @@ packages/frontend/src/pages/GlobalOverview.tsx
   s_429b9b7858f465::t_9d27ef6ba5cf50 1202
 packages/frontend/src/components/DuplicateAgentModal.tsx
   s_429b9b7858f465::t_688a6898236ae8 178
+  s_02f28e248c2d45::t_94599c566becd0 124
 packages/frontend/tests/pages/Workspace.test.tsx
   s_429b9b7858f465::t_94c001fa9f6e63 236
 packages/frontend/src/pages/providers/ConnectionDetail.tsx
   s_429b9b7858f465::t_a4a7399795016d 731
   s_429b9b7858f465::t_688a6898236ae8 737
+  s_02f28e248c2d45::t_94599c566becd0 746
 packages/frontend/src/pages/Workspace.tsx
   s_429b9b7858f465::t_9d27ef6ba5cf50 213
+  s_02f28e248c2d45::t_94599c566becd0 116
 packages/frontend/src/components/Sidebar.tsx
   s_429b9b7858f465::t_d476541753d020 106
 packages/frontend/src/pages/Overview.tsx
   s_429b9b7858f465::t_d476541753d020 456
 packages/frontend/src/components/OverviewSkeleton.tsx
   s_429b9b7858f465::t_d476541753d020 35
+  s_02f28e248c2d45::t_94599c566becd0 44
 packages/frontend/tests/pages/MessageLog.test.tsx
   s_429b9b7858f465::t_94c001fa9f6e63 231,298,318,339,705,927,1035,1624,1650,1795,1804,1840,1860
+  s_02f28e248c2d45::t_94599c566becd0 228
 packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
   s_429b9b7858f465::t_94c001fa9f6e63 1033
   s_429b9b7858f465::t_688a6898236ae8 1147
+  s_02f28e248c2d45::t_94599c566becd0 137,723,1061,1417
+packages/frontend/src/components/MessageDetails.tsx
+  s_02f28e248c2d45::t_94599c566becd0 279
+packages/frontend/tests/components/MessageDetails.test.tsx
+  s_02f28e248c2d45::t_94599c566becd0 251,432,577,590,605,755,768,781
+packages/frontend/tests/components/MessageTable.test.tsx
+  s_02f28e248c2d45::t_94599c566becd0 131,153
+packages/frontend/src/components/message-table-cells.tsx
+  s_02f28e248c2d45::t_94599c566becd0 84
+packages/frontend/tests/components/MessageDetails.autofix.test.tsx
+  s_02f28e248c2d45::t_94599c566becd0 174
 ---
 {
   "schema_version": "authorship/3.0.0",
@@ -38,6 +54,14 @@ packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
   "base_commit_sha": "474c321be3f349b73e24fc8ac519757419c44c77",
   "prompts": {},
   "sessions": {
+    "s_02f28e248c2d45": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f651f-32e7-7652-ba1c-50bf40823758",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
     "s_429b9b7858f465": {
       "agent_id": {
         "tool": "codex",
