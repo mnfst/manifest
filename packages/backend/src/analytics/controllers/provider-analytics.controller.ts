@@ -254,6 +254,33 @@ export class ProviderAnalyticsController {
       .addSelect(sqlCountMessages(), 'messages')
       .addSelect('MAX(at.timestamp)', 'last_used')
       .addSelect('MAX(a.agent_platform)', 'agent_platform')
+      // Additive reliability columns (same semantics as autofix-stats):
+      // one row per client request (retries excluded), self-healed = Auto-fix
+      // saves + successful fallback recoveries, succeeded mirrors the global
+      // Success rate definition.
+      .addSelect(
+        `COUNT(*) FILTER (WHERE at.autofix_role IS NULL OR at.autofix_role != 'retry')`,
+        'requests',
+      )
+      .addSelect(
+        `COUNT(*) FILTER (WHERE (at.status = 'ok' AND at.fallback_from_model IS NOT NULL)
+          OR (at.status = 'auto_fixed' AND at.autofix_group_id IN (
+            SELECT sib.autofix_group_id FROM provider_attempts sib
+            WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
+              AND sib.tenant_id = at.tenant_id
+          )))`,
+        'self_healed',
+      )
+      .addSelect(
+        `COUNT(*) FILTER (WHERE (at.autofix_role IS NULL OR at.autofix_role != 'retry')
+          AND at.status NOT IN ('error','fallback_error','rate_limited')
+          AND (at.status != 'auto_fixed' OR at.autofix_group_id IN (
+            SELECT sib.autofix_group_id FROM provider_attempts sib
+            WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
+              AND sib.tenant_id = at.tenant_id
+          )))`,
+        'succeeded',
+      )
       // Join on agent identity, not name: a soft-deleted agent sharing a slug
       // with a live one would otherwise match twice and double this breakdown's
       // per-agent tokens/cost/message counts. This one-to-(0/1) join is only for
@@ -325,6 +352,9 @@ export class ProviderAnalyticsController {
             tokens_30d: tokens,
             cost_30d: Number(r['cost'] ?? 0),
             messages_30d: Number(r['messages'] ?? 0),
+            requests_30d: Number(r['requests'] ?? 0),
+            self_healed_30d: Number(r['self_healed'] ?? 0),
+            succeeded_30d: Number(r['succeeded'] ?? 0),
             pct_of_total: totalAgentTokens > 0 ? Math.round((tokens / totalAgentTokens) * 100) : 0,
             last_used: r['last_used']
               ? r['last_used'] instanceof Date

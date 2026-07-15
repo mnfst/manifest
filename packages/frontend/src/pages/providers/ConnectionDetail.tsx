@@ -68,6 +68,9 @@ interface AgentRow {
   tokens_30d: number;
   cost_30d: number;
   messages_30d: number;
+  requests_30d?: number;
+  self_healed_30d?: number;
+  succeeded_30d?: number;
   pct_of_total: number;
   last_used: string | null;
 }
@@ -899,7 +902,9 @@ const ConnectionDetail: Component = () => {
                             <th>Cost (30d)</th>
                           </Show>
                           <Show when={autofixEligible()}>
-                            <th style="text-align: right;">Auto-fixed</th>
+                            <th style="text-align: right;">Total requests</th>
+                            <th style="text-align: right;">Self-healed requests</th>
+                            <th style="text-align: right;">Success rate</th>
                           </Show>
                           <th>Last used</th>
                         </tr>
@@ -947,8 +952,18 @@ const ConnectionDetail: Component = () => {
                                 <td>{formatCost(agent.cost_30d) ?? '$0.00'}</td>
                               </Show>
                               <Show when={autofixEligible()}>
-                                <td style="text-align: right; color: hsl(var(--muted-foreground));">
-                                  —
+                                <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                  {formatNumber(agent.requests_30d ?? 0)}
+                                </td>
+                                <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                  {formatNumber(agent.self_healed_30d ?? 0)}
+                                </td>
+                                <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                  {(() => {
+                                    const total = agent.requests_30d ?? 0;
+                                    if (!total || agent.succeeded_30d == null) return '—';
+                                    return `${((agent.succeeded_30d / total) * 100).toFixed(1)}%`;
+                                  })()}
                                 </td>
                               </Show>
                               <td style="color: hsl(var(--muted-foreground));">

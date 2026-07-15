@@ -104,8 +104,14 @@ describe('RequestDrawer', () => {
     await waitFor(() => expect(screen.getByText('Request request-1234')).toBeDefined());
     expect(mockGetMessageDetails).toHaveBeenCalledWith('request-1234567890');
     expect(screen.getAllByText('Auto-fixed').length).toBeGreaterThan(0);
-    expect(screen.getByText('fallback')).toBeDefined();
-    expect(screen.getByText('auto-fix')).toBeDefined();
+    // Header badges use the branded logotype (icon square + word).
+    expect(screen.getAllByText('fallback').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('autofix').length).toBeGreaterThan(0);
+    expect(container.querySelector('.drawer__meta-row .trigger-badge--autofix .autofix-icon')).not.toBeNull();
+    expect(container.querySelector('.drawer__meta-row .trigger-badge--fallback .fallback-icon')).not.toBeNull();
+    // Sidebar attempt icons use the same branded squares.
+    expect(container.querySelector('.attempt-item__icon .fallback-icon')).not.toBeNull();
+    expect(container.querySelector('.attempt-item__icon .autofix-icon')).not.toBeNull();
     expect(screen.getByText('bad parameter')).toBeDefined();
     expect(screen.getByText('invalid_request')).toBeDefined();
     expect(screen.getByText('$0.0123')).toBeDefined();

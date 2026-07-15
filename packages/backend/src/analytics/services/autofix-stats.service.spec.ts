@@ -123,19 +123,42 @@ describe('AutofixStatsService', () => {
   it('maps per-provider and per-agent reliability rows', async () => {
     const providerQb = queryBuilder();
     providerQb.getRawMany.mockResolvedValue([
-      { provider: 'openai', requests: '10', failed: '3', autofixed: '2' },
+      {
+        provider: 'openai',
+        requests: '10',
+        failed: '3',
+        autofixed: '2',
+        fallback_saves: '1',
+        succeeded: '8',
+      },
     ]);
     const agentQb = queryBuilder();
     agentQb.getRawMany.mockResolvedValue([
-      { agent_name: 'demo', requests: '8', failed: '2', autofixed: '1' },
+      {
+        agent_name: 'demo',
+        requests: '8',
+        failed: '2',
+        autofixed: '1',
+        fallback_saves: '2',
+        succeeded: '7',
+      },
     ]);
     messageRepo.createQueryBuilder.mockReturnValueOnce(providerQb).mockReturnValueOnce(agentQb);
 
     await expect(
       service.getPerProviderStats({ tenantId: 'tenant', agentName: 'demo' }),
-    ).resolves.toEqual([{ provider: 'openai', requests: 10, failed: 3, autofixed: 2 }]);
+    ).resolves.toEqual([
+      {
+        provider: 'openai',
+        requests: 10,
+        failed: 3,
+        autofixed: 2,
+        fallback_saves: 1,
+        succeeded: 8,
+      },
+    ]);
     await expect(service.getPerAgentStats({ tenantId: 'tenant' })).resolves.toEqual([
-      { agent_name: 'demo', requests: 8, failed: 2, autofixed: 1 },
+      { agent_name: 'demo', requests: 8, failed: 2, autofixed: 1, fallback_saves: 2, succeeded: 7 },
     ]);
     for (const qb of [providerQb, agentQb]) {
       const aggregateSql = qb.addSelect.mock.calls.flat().join(' ');

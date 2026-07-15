@@ -263,7 +263,23 @@ export function getAutofixTimeseries(
 export interface ProviderReliabilityRow {
   provider: string;
   requests: number;
+  failed: number;
   autofixed: number;
+  /** Requests recovered by a successful fallback attempt (additive field). */
+  fallback_saves: number;
+  /** Same success definition as the global Success rate KPI (additive field). */
+  succeeded: number;
+}
+
+/** Self-healed = recovered by Auto-fix + recovered by fallback. */
+export function selfHealedCount(row: { autofixed: number; fallback_saves?: number }): number {
+  return row.autofixed + (row.fallback_saves ?? 0);
+}
+
+/** Success rate over the row's window; null when there is no traffic. */
+export function successRate(row: { requests: number; succeeded?: number }): number | null {
+  if (!row.requests || row.succeeded == null) return null;
+  return row.succeeded / row.requests;
 }
 
 export function getPerProviderReliability(
@@ -279,7 +295,12 @@ export function getPerProviderReliability(
 export interface AgentReliabilityRow {
   agent_name: string;
   requests: number;
+  failed: number;
   autofixed: number;
+  /** Requests recovered by a successful fallback attempt (additive field). */
+  fallback_saves: number;
+  /** Same success definition as the global Success rate KPI (additive field). */
+  succeeded: number;
 }
 
 export function getPerAgentReliability(range = '7d'): Promise<AgentReliabilityRow[]> {

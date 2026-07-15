@@ -245,7 +245,9 @@
   display: flex;
   padding: 6px 0;
   border-bottom: 1px solid hsl(var(--border));
-  font-size: var(--font-size-sm);
+  /* One size for the whole key/value tables (Details, Request headers,
+     Model params): keys were 12px while values were 14px. */
+  font-size: var(--font-size-xs);
   gap: 12px;
 }
 .drawer-kv:last-child {

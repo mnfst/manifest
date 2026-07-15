@@ -36,7 +36,11 @@ import { toast } from '../../services/toast-store.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
-import { getPerProviderReliability } from '../../services/api/analytics.js';
+import {
+  getPerProviderReliability,
+  selfHealedCount,
+  successRate,
+} from '../../services/api/analytics.js';
 import { getAutofixCohort } from '../../services/api/autofix.js';
 import '../../styles/routing.css';
 import '../../styles/analytics-overview.css';
@@ -418,7 +422,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           return pKey === r.provider;
         }),
       )
-      .reduce((sum, r) => sum + r.autofixed, 0),
+      .reduce((sum, r) => sum + selfHealedCount(r), 0),
   );
 
   const connectionDenominator = (summary: TenantProviderSummary) =>
@@ -547,7 +551,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           </div>
           <Show when={autofixEligible()}>
             <div class="overview-stat-card">
-              <span class="overview-stat-card__label">Auto-fixed requests (30d)</span>
+              <span class="overview-stat-card__label">Self-healed requests (30d)</span>
               <div class="overview-stat-card__value-row">
                 <span class="overview-stat-card__value">{formatNumber(totalAutofixed())}</span>
               </div>
@@ -573,7 +577,8 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                 </Show>
                 <th style="text-align: right;">Requests (30d)</th>
                 <Show when={autofixEligible()}>
-                  <th style="text-align: right;">Auto-fixed (30d)</th>
+                  <th style="text-align: right;">Self-healed requests (30d)</th>
+                  <th style="text-align: right;">Success rate (30d)</th>
                 </Show>
                 <th>Last used</th>
                 <th />
@@ -720,7 +725,13 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                           </td>
                           <Show when={autofixEligible()}>
                             <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                              {rel() ? formatNumber(rel()!.autofixed) : '—'}
+                              {rel() ? formatNumber(selfHealedCount(rel()!)) : '—'}
+                            </td>
+                            <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                              {(() => {
+                                const rate = rel() ? successRate(rel()!) : null;
+                                return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                              })()}
                             </td>
                           </Show>
                         </>

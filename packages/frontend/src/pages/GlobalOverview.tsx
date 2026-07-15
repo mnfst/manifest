@@ -61,6 +61,8 @@ import {
   getAutofixTimeseries,
   getPerProviderReliability,
   getPerAgentReliability,
+  selfHealedCount,
+  successRate,
 } from '../services/api/analytics.js';
 import { getAutofixCohort } from '../services/api/autofix.js';
 
@@ -864,7 +866,8 @@ const GlobalOverview: Component = () => {
                   <th>Status</th>
                   <th style="text-align: right;">Total requests</th>
                   <Show when={autofixEligible()}>
-                    <th style="text-align: right;">Auto-fixed</th>
+                    <th style="text-align: right;">Self-healed</th>
+                    <th style="text-align: right;">Success rate</th>
                   </Show>
                 </tr>
               </thead>
@@ -965,20 +968,14 @@ const GlobalOverview: Component = () => {
                               <Show when={autofixEligible()}>
                                 <td style="text-align: right; font-variant-numeric: tabular-nums;">
                                   <Show when={rel()} fallback="—">
-                                    <div style="display: flex; align-items: center; gap: 6px; justify-content: flex-end;">
-                                      <div style="width: 40px; height: 6px; background: hsl(var(--border)); border-radius: 3px; overflow: hidden;">
-                                        <div
-                                          style={{
-                                            height: '100%',
-                                            'border-radius': '3px',
-                                            background: 'hsl(var(--success))',
-                                            width: `${rel()!.requests > 0 ? (rel()!.autofixed / rel()!.requests) * 100 : 0}%`,
-                                          }}
-                                        />
-                                      </div>
-                                      <span>{formatNumber(rel()!.autofixed)}</span>
-                                    </div>
+                                    {formatNumber(selfHealedCount(rel()!))}
                                   </Show>
+                                </td>
+                                <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                  {(() => {
+                                    const rate = rel() ? successRate(rel()!) : null;
+                                    return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                                  })()}
                                 </td>
                               </Show>
                             </>
@@ -1012,9 +1009,10 @@ const GlobalOverview: Component = () => {
                 <tr>
                   <th>Harness</th>
                   <th>Usage (30d)</th>
-                  <th style="text-align: right;">Requests</th>
+                  <th style="text-align: right;">Total requests</th>
                   <Show when={autofixEligible()}>
-                    <th style="text-align: right;">Auto-fixed</th>
+                    <th style="text-align: right;">Self-healed requests</th>
+                    <th style="text-align: right;">Success rate</th>
                   </Show>
                 </tr>
               </thead>
@@ -1067,20 +1065,14 @@ const GlobalOverview: Component = () => {
                             <Show when={autofixEligible()}>
                               <td style="text-align: right; font-variant-numeric: tabular-nums;">
                                 <Show when={rel()} fallback="—">
-                                  <div style="display: flex; align-items: center; gap: 6px; justify-content: flex-end;">
-                                    <div style="width: 40px; height: 6px; background: hsl(var(--border)); border-radius: 3px; overflow: hidden;">
-                                      <div
-                                        style={{
-                                          height: '100%',
-                                          'border-radius': '3px',
-                                          background: 'hsl(var(--success))',
-                                          width: `${rel()!.requests > 0 ? (rel()!.autofixed / rel()!.requests) * 100 : 0}%`,
-                                        }}
-                                      />
-                                    </div>
-                                    <span>{formatNumber(rel()!.autofixed)}</span>
-                                  </div>
+                                  {formatNumber(selfHealedCount(rel()!))}
                                 </Show>
+                              </td>
+                              <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                                {(() => {
+                                  const rate = rel() ? successRate(rel()!) : null;
+                                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                                })()}
                               </td>
                             </Show>
                           );
