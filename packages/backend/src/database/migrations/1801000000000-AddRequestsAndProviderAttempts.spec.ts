@@ -23,6 +23,7 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
     expect(queries[0]).toContain("SET lock_timeout = '5s'");
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS "requests"');
     expect(sql).toContain('ALTER TABLE "agent_messages" RENAME TO "provider_attempts"');
+    expect(sql).toContain('CREATE VIEW "agent_messages" AS SELECT * FROM "provider_attempts"');
     expect(sql).toContain('ADD COLUMN IF NOT EXISTS "request_id"');
     expect(sql).toContain('NOT VALID');
     expect(sql).toContain('CREATE INDEX CONCURRENTLY IF NOT EXISTS');
@@ -36,6 +37,19 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
     expect(sql).toContain('IF NOT EXISTS "request_id"');
     expect(sql).toContain('IF NOT EXISTS (');
     expect(sql).toContain('IF NOT EXISTS "IDX_provider_attempts_request_id"');
+  });
+
+  it('renames the table and creates its compatibility view atomically', async () => {
+    await migration.up(runner);
+
+    const cutover = queries.find(
+      (sql) => sql.includes('RENAME TO "provider_attempts"') && sql.includes('CREATE VIEW'),
+    );
+    expect(cutover).toContain('CREATE VIEW "agent_messages" AS SELECT * FROM "provider_attempts"');
+
+    const cutoverIndex = queries.indexOf(cutover!);
+    const requestIdIndex = queries.findIndex((sql) => sql.includes('ADD COLUMN IF NOT EXISTS'));
+    expect(cutoverIndex).toBeLessThan(requestIdIndex);
   });
 
   it('drops an invalid concurrent index before rebuilding it', async () => {
@@ -57,5 +71,18 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
 
     const validityQuery = queries.find((sql) => sql.includes('i.indisvalid'));
     expect(validityQuery).toContain("i.indrelid = 'provider_attempts'::regclass");
+  });
+
+  it('drops the compatibility view before restoring the old table name', async () => {
+    await migration.down(runner);
+
+    const rollback = queries.find(
+      (sql) =>
+        sql.includes('DROP VIEW "agent_messages"') && sql.includes('RENAME TO "agent_messages"'),
+    );
+    expect(rollback).toBeDefined();
+    expect(rollback!.indexOf('DROP VIEW "agent_messages"')).toBeLessThan(
+      rollback!.indexOf('RENAME TO "agent_messages"'),
+    );
   });
 });
