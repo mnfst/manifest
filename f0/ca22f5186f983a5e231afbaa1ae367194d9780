@@ -1,0 +1,40 @@
+packages/frontend/tests/services/api/analytics.test.ts
+  s_802a2f13842c2e::t_41f02e3bfb98d5 45-62
+.changeset/lucky-autofix-aggregates.md
+  s_802a2f13842c2e::t_481fd78fc11641 1-5
+packages/backend/test/autofix-analytics.e2e-spec.ts
+  s_802a2f13842c2e::t_481fd78fc11641 1-105
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_802a2f13842c2e::t_4f00d0378803b2 160
+  s_802a2f13842c2e::t_e7e52058a60aa6 15-22,91-93,132,166
+  s_802a2f13842c2e::t_41f02e3bfb98d5 1-14,23-90,94-131,133-159,161-165,167-169
+packages/backend/src/analytics/controllers/autofix-analytics.controller.ts
+  s_802a2f13842c2e::t_d5e2245d2b51d6 1-32
+packages/backend/src/analytics/controllers/autofix-analytics.controller.spec.ts
+  s_802a2f13842c2e::t_41f02e3bfb98d5 1,3-21,23-53
+  s_802a2f13842c2e::t_4f00d0378803b2 2,22
+packages/backend/src/analytics/analytics.module.ts
+  s_802a2f13842c2e::t_d5e2245d2b51d6 37-38,71,85
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_802a2f13842c2e::t_e7e52058a60aa6 4-8
+  s_802a2f13842c2e::t_d5e2245d2b51d6 1-3,9-219
+packages/frontend/src/services/api/analytics.ts
+  s_802a2f13842c2e::t_e7e52058a60aa6 194
+  s_802a2f13842c2e::t_d5e2245d2b51d6 164-193,195-200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "f0ca22f5186f983a5e231afbaa1ae367194d9780",
+  "prompts": {},
+  "sessions": {
+    "s_802a2f13842c2e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f64f1-22fc-79b0-b968-531dead5c079",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
