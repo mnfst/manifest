@@ -62,6 +62,15 @@ describe('providerIcon', () => {
     expect(img!.getAttribute('height')).toBe('24');
   });
 
+  it('returns the Hugging Face logo image for "huggingface"', () => {
+    const { container } = render(() => <div>{providerIcon('huggingface', 24)}</div>);
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute('src')).toBe('/icons/huggingface.svg');
+    expect(img!.getAttribute('width')).toBe('24');
+    expect(img!.getAttribute('height')).toBe('24');
+  });
+
   it('returns the NousResearch logo image for "nous"', () => {
     const { container } = render(() => <div>{providerIcon('nous', 24)}</div>);
     const img = container.querySelector('img');

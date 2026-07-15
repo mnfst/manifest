@@ -8,6 +8,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   gemini: 'https://aistudio.google.com/apikey',
   kiro: 'https://app.kiro.dev',
   groq: 'https://console.groq.com/keys',
+  huggingface: 'https://huggingface.co/settings/tokens',
   kilo: 'https://app.kilo.ai',
   minimax: 'https://platform.minimax.io/user-center/basic-information/interface-key',
   mistral: 'https://console.mistral.ai/api-keys/',

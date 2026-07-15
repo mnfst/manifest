@@ -72,6 +72,16 @@ describe('SHARED_PROVIDER_BY_ID_OR_ALIAS', () => {
     }
   });
 
+  it('resolves Hugging Face aliases to the canonical provider entry', () => {
+    for (const name of ['huggingface', 'hugging-face', 'Hugging Face', 'hf']) {
+      const normalized = normalizeProviderName(name);
+      const entry =
+        SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalized) ??
+        SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name.toLowerCase());
+      expect(entry?.id).toBe('huggingface');
+    }
+  });
+
   it('resolves Command Code aliases to the canonical provider entry', () => {
     for (const name of ['commandcode', 'command-code', 'Command Code', 'cmd']) {
       const normalized = normalizeProviderName(name);
@@ -155,6 +165,16 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     const fireworks = SHARED_PROVIDER_BY_ID.get('fireworks');
     expect(fireworks).toBeDefined();
     expect(fireworks!.openRouterPrefixes).toEqual([]);
+  });
+
+  it('huggingface exposes API-key provider metadata', () => {
+    const huggingface = SHARED_PROVIDER_BY_ID.get('huggingface');
+    expect(huggingface).toBeDefined();
+    expect(huggingface!.displayName).toBe('Hugging Face');
+    expect(huggingface!.openRouterPrefixes).toEqual([]);
+    expect(huggingface!.keyPrefix).toBe('hf_');
+    expect(huggingface!.minKeyLength).toBe(20);
+    expect(huggingface!.keyPlaceholder).toBe('hf_...');
   });
 
   it('commandcode has no openRouter prefixes (native Provider API /models is authoritative)', () => {

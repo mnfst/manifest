@@ -24,7 +24,12 @@ import {
   KIRO_MODELS_TARGET,
   parseKiroModels,
 } from '../routing/proxy/kiro-adapter';
-import { getSubscriptionCapabilities, getSubscriptionKnownModels } from 'manifest-shared';
+import {
+  getSubscriptionCapabilities,
+  getSubscriptionKnownModels,
+  type ModelCapability,
+  type ModelModality,
+} from 'manifest-shared';
 
 const FETCH_TIMEOUT_MS = 5000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
@@ -39,6 +44,7 @@ const QWEN_TOKEN_PLAN_MODELS_URL =
 const QWEN_TOKEN_PLAN_CONTEXT_WINDOW = 991000;
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const FIREWORKS_MODELS_URL = 'https://api.fireworks.ai/v1/accounts/fireworks/models';
+const HUGGING_FACE_MODELS_URL = 'https://router.huggingface.co/v1/models';
 const FIREWORKS_MODELS_PAGE_SIZE = 200;
 const FIREWORKS_MODELS_MAX_PAGES = 20;
 const NOUS_PORTAL_MODELS_URL = 'https://inference-api.nousresearch.com/v1/models';
@@ -129,6 +135,25 @@ interface CommandCodeModelEntry extends OpenAIModelEntry {
   context_length?: number;
 }
 
+interface HuggingFaceProviderEntry {
+  status?: string;
+  context_length?: number;
+  pricing?: {
+    input?: number;
+    output?: number;
+  };
+  supports_tools?: boolean;
+  throughput?: number;
+}
+
+interface HuggingFaceModelEntry extends OpenAIModelEntry {
+  architecture?: {
+    input_modalities?: unknown;
+    output_modalities?: unknown;
+  };
+  providers?: unknown;
+}
+
 const parseOpenAI = createModelParser<OpenAIModelEntry>({
   arrayKey: 'data',
   filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
@@ -148,6 +173,76 @@ function perMillionToPerToken(value: number | null | undefined): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0
     ? value / 1_000_000
     : null;
+}
+
+function parseModalities(value: unknown): readonly ModelModality[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const allowed = new Set<ModelModality>(['text', 'image', 'audio', 'video']);
+  const modalities: ModelModality[] = [];
+  for (const raw of value) {
+    if (typeof raw !== 'string') continue;
+    const modality = raw.toLowerCase() as ModelModality;
+    if (allowed.has(modality) && !modalities.includes(modality)) modalities.push(modality);
+  }
+  return modalities.length > 0 ? modalities : undefined;
+}
+
+function fastestLiveHuggingFaceProvider(value: unknown): HuggingFaceProviderEntry | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const live = value.filter(
+    (provider): provider is HuggingFaceProviderEntry =>
+      !!provider && typeof provider === 'object' && provider.status === 'live',
+  );
+  return live.reduce<HuggingFaceProviderEntry | undefined>((fastest, provider) => {
+    if (!fastest) return provider;
+    const throughput =
+      typeof provider.throughput === 'number' && Number.isFinite(provider.throughput)
+        ? provider.throughput
+        : -1;
+    const fastestThroughput =
+      typeof fastest.throughput === 'number' && Number.isFinite(fastest.throughput)
+        ? fastest.throughput
+        : -1;
+    return throughput > fastestThroughput ? provider : fastest;
+  }, undefined);
+}
+
+function parseHuggingFace(body: unknown, provider: string): DiscoveredModel[] {
+  const data = (body as { data?: unknown[] })?.data;
+  if (!Array.isArray(data)) return [];
+
+  return data.flatMap((raw): DiscoveredModel[] => {
+    const entry = raw as HuggingFaceModelEntry;
+    if (typeof entry.id !== 'string' || entry.id.length === 0) return [];
+    const fastest = fastestLiveHuggingFaceProvider(entry.providers);
+    if (!fastest) return [];
+
+    const inputModalities = parseModalities(entry.architecture?.input_modalities);
+    const outputModalities = parseModalities(entry.architecture?.output_modalities);
+    const capabilities: ModelCapability[] = [];
+    for (const modality of [...(inputModalities ?? []), ...(outputModalities ?? [])]) {
+      if (!capabilities.includes(modality)) capabilities.push(modality);
+    }
+    capabilities.push('stream');
+    if (fastest.supports_tools === true) capabilities.push('tools');
+
+    return [
+      {
+        id: entry.id,
+        displayName: entry.id,
+        provider,
+        contextWindow: fastest.context_length ?? DEFAULT_CONTEXT_WINDOW,
+        inputPricePerToken: perMillionToPerToken(fastest.pricing?.input),
+        outputPricePerToken: perMillionToPerToken(fastest.pricing?.output),
+        capabilityReasoning: false,
+        capabilityCode: fastest.supports_tools === true,
+        capabilities,
+        ...(inputModalities ? { inputModalities } : {}),
+        ...(outputModalities ? { outputModalities } : {}),
+        qualityScore: 3,
+      },
+    ];
+  });
 }
 
 function parsePioneerBaseCatalog(body: unknown): Map<string, PioneerBaseModelEntry> {
@@ -642,6 +737,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.groq.com/openai/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  huggingface: {
+    endpoint: HUGGING_FACE_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseHuggingFace,
   },
   fireworks: {
     endpoint: FIREWORKS_MODELS_URL,
