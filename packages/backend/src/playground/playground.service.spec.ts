@@ -698,6 +698,44 @@ describe('PlaygroundService.runStream', () => {
     expect((res._json as { message: string }).message).toBe('boom');
   });
 
+  it('records a resolved-agent preflight failure as an internal request rejection', async () => {
+    const requestInsert = jest.fn().mockResolvedValue(undefined);
+    const { service, mocks } = buildService({
+      messageRepo: {
+        insert: jest.fn(),
+        manager: { getRepository: jest.fn(() => ({ insert: requestInsert })) },
+      },
+    });
+    mocks.providerKeyService.getProviderKeys.mockRejectedValue(new Error('key service down'));
+    const res = mockRes();
+
+    await service.runStream(CTX, makeDto(), asRes(res));
+
+    expect(res._status).toBe(500);
+    expect(requestInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ error_origin: 'internal', error_http_status: 500 }),
+    );
+  });
+
+  it('keeps responding when preflight rejection telemetry fails', async () => {
+    const requestInsert = jest.fn().mockRejectedValue('telemetry unavailable');
+    const { service, mocks } = buildService({
+      messageRepo: {
+        insert: jest.fn(),
+        manager: { getRepository: jest.fn(() => ({ insert: requestInsert })) },
+      },
+    });
+    mocks.providerKeyService.getProviderKeys.mockRejectedValue(new ForbiddenException('blocked'));
+    const res = mockRes();
+
+    await service.runStream(CTX, makeDto(), asRes(res));
+
+    expect(res._status).toBe(403);
+    expect(requestInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ error_origin: 'config', error_http_status: 403 }),
+    );
+  });
+
   it('stringifies a non-Error preflight rejection', async () => {
     const { service } = buildService({
       playgroundAgent: {

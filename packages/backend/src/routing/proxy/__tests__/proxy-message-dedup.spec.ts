@@ -196,6 +196,38 @@ describe('ProxyMessageDedup', () => {
   /* ── findExistingSuccessMessage ── */
 
   describe('findExistingSuccessMessage', () => {
+    it('returns a request-id match before trying trace or session heuristics', async () => {
+      const existing = {
+        id: 'msg-request',
+        timestamp: new Date().toISOString(),
+        input_tokens: 1,
+        output_tokens: 1,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
+        duration_ms: 1,
+      };
+      const repo = makeMockMessageRepo();
+      repo.findOne.mockResolvedValue(existing);
+
+      const result = await dedup.findExistingSuccessMessage(
+        repo as unknown as any,
+        testCtx,
+        'gpt-4o',
+        { prompt_tokens: 1, completion_tokens: 1 },
+        undefined,
+        undefined,
+        'request-1',
+      );
+
+      expect(result).toBe(existing);
+      expect(repo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ request_id: 'request-1', status: 'ok' }),
+        }),
+      );
+      expect(repo.find).not.toHaveBeenCalled();
+    });
+
     it('should return trace-matched message when traceId is provided', async () => {
       const existing = {
         id: 'msg-1',

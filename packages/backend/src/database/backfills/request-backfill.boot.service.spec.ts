@@ -63,6 +63,22 @@ describe('RequestBackfillBootService', () => {
     );
   });
 
+  it('waits and retries when the shared lock is initially busy', async () => {
+    jest.useFakeTimers();
+    process.env['NODE_ENV'] = 'production';
+    const state = makeState(false);
+    state.countBy.mockResolvedValueOnce(0).mockResolvedValueOnce(1);
+    const lock = makeLock(false);
+    const ds = { createQueryRunner: jest.fn(() => lock) } as unknown as DataSource;
+
+    new RequestBackfillBootService(ds, state.repo).onApplicationBootstrap();
+    await jest.advanceTimersByTimeAsync(30_000);
+
+    expect(state.countBy).toHaveBeenCalledTimes(2);
+    expect(lock.release).toHaveBeenCalled();
+    jest.useRealTimers();
+  });
+
   it('returns true without taking a lock when already complete', async () => {
     const ds = { createQueryRunner: jest.fn() } as unknown as DataSource;
     const runner = jest.fn();
@@ -135,5 +151,44 @@ describe('RequestBackfillBootService', () => {
       REQUEST_BACKFILL_LOCK_KEY,
     ]);
     expect(lock.release).toHaveBeenCalled();
+  });
+
+  it('swallows unlock failures and still releases', async () => {
+    const lock = makeLock(true);
+    lock.query.mockImplementation(async (sql: string) => {
+      if (sql.includes('pg_try_advisory_lock')) return [{ locked: true }];
+      throw new Error('unlock failed');
+    });
+    const ds = { createQueryRunner: jest.fn(() => lock) } as unknown as DataSource;
+
+    await expect(
+      new RequestBackfillBootService(ds, makeState(false).repo).runOnce(
+        jest.fn().mockResolvedValue({ windows: 0, requests: 0, attempts: 0, rejections: 0 }),
+      ),
+    ).resolves.toBe(true);
+    expect(lock.release).toHaveBeenCalled();
+  });
+
+  it('uses the production backfill runner by default', async () => {
+    const lock = makeLock(true);
+    const transaction = {
+      connect: jest.fn().mockResolvedValue(undefined),
+      startTransaction: jest.fn().mockResolvedValue(undefined),
+      commitTransaction: jest.fn().mockResolvedValue(undefined),
+      rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+      release: jest.fn().mockResolvedValue(undefined),
+      query: jest.fn().mockResolvedValue(undefined),
+    };
+    const ds = {
+      createQueryRunner: jest.fn().mockReturnValueOnce(lock).mockReturnValueOnce(transaction),
+      query: jest
+        .fn()
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce([{ end_id: null }]),
+    } as unknown as DataSource;
+    const state = makeState(false);
+
+    await expect(new RequestBackfillBootService(ds, state.repo).runOnce()).resolves.toBe(true);
+    expect(state.execute).toHaveBeenCalled();
   });
 });

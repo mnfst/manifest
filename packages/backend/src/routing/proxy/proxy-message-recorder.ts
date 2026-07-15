@@ -687,6 +687,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       ? {
           ...row,
           status: opts.terminalHttpStatus === 429 ? 'rate_limited' : 'error',
+          error_http_status: opts.terminalHttpStatus,
         }
       : row;
     await this.persistRequest(ctx, requestId, requestOutcome, Boolean(opts?.terminalHttpStatus));

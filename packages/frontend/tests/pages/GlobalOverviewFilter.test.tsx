@@ -31,6 +31,7 @@ let filterSelectProps: {
   onSelectAll: () => void;
   items: string[];
 } | null = null;
+let providerChartProps: Record<string, unknown> | null = null;
 let mockSearchParams: Record<string, string | undefined> = {};
 
 vi.mock('@solidjs/meta', () => ({
@@ -97,7 +98,10 @@ vi.mock('../../src/components/MultiAgentTokenChart.jsx', () => ({
 }));
 
 vi.mock('../../src/components/ProviderChartCard.jsx', () => ({
-  default: () => <div data-testid="provider-chart-card" />,
+  default: (props: Record<string, unknown>) => {
+    providerChartProps = props;
+    return <div data-testid="provider-chart-card" />;
+  },
 }));
 
 vi.mock('../../src/components/Sparkline.jsx', () => ({
@@ -215,6 +219,15 @@ const overviewResponse = {
   recent_activity: [],
   has_data: true,
   has_providers: true,
+  request_reliability: {
+    total: 18,
+    successful: 17,
+    success_rate: 94.4,
+    attempt_success_rate: 88.9,
+    manifest_lift_pct: 5.5,
+    recovered: 1,
+    previous_total: 16,
+  },
 };
 
 const providersResponse = {
@@ -265,6 +278,7 @@ beforeEach(() => {
   sessionStorage.clear();
   mockIsSelfHosted = false;
   filterSelectProps = null;
+  providerChartProps = null;
   mockSearchParams = {};
   sseMocks.reset?.();
 
@@ -289,6 +303,14 @@ afterEach(() => {
 });
 
 describe('GlobalOverview filter onUnselectAll', () => {
+  it('passes request and attempt success rates to the chart card', async () => {
+    render(() => <GlobalOverview />);
+
+    await waitFor(() => expect(providerChartProps).not.toBeNull());
+    expect(providerChartProps?.requestSuccessRate).toBe(94.4);
+    expect(providerChartProps?.attemptSuccessRate).toBe(88.9);
+  });
+
   it('clears the selection and persists an empty set when "unselect all" fires', async () => {
     // Default grouping is "provider" → storageKey is global-agent-filter:provider.
     const { getByTestId } = render(() => <GlobalOverview />);
@@ -360,7 +382,9 @@ describe('GlobalOverview filter onUnselectAll', () => {
       render(() => <GlobalOverview />);
 
       await waitFor(() => expect(localStorage.getItem('manifest_plan_chosen_u1')).toBe('1'));
-      await waitFor(() => expect(document.body.textContent).toContain("You're now on the Pro plan"));
+      await waitFor(() =>
+        expect(document.body.textContent).toContain("You're now on the Pro plan"),
+      );
 
       await waitFor(() => expect(document.querySelector('.modal-backdrop')).not.toBeNull());
       fireEvent.click(document.querySelector('.modal-backdrop')!);
