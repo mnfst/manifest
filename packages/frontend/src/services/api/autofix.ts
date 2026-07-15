@@ -1,4 +1,4 @@
-import { fetchJson } from './core.js';
+import { fetchJson, fetchMutate } from './core.js';
 
 /** The current tenant's Auto-fix access cohort. */
 export interface AutofixCohort {
@@ -23,4 +23,13 @@ export interface AutofixCohort {
  */
 export function getAutofixCohort(): Promise<AutofixCohort> {
   return fetchJson<AutofixCohort>('/autofix/cohort', undefined, { cache: false });
+}
+
+/** Toggle the current tenant's cohort grant. The backend exposes this only in development. */
+export function setDevAutofixCohort(enabled: boolean): Promise<AutofixCohort> {
+  return fetchMutate<AutofixCohort>('/autofix/cohort', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled }),
+  });
 }

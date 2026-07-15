@@ -64,6 +64,23 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
   getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
   getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
+  getAttemptStats: () =>
+    Promise.resolve({
+      total_attempts: { value: 20, previous: 10 },
+      fallbacked_attempts: { value: 2, previous: 1 },
+    }),
+  getAttemptTimeseries: () => Promise.resolve({ range: '7d', by: 'metric', keys: [], buckets: [] }),
+  getWorkspaceAutofixStatus: () =>
+    Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
+  getAutofixStats: () => Promise.resolve(null),
+  getAutofixTimeseries: () =>
+    Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
+  getPerProviderReliability: () => Promise.resolve([]),
+  getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
+}));
+
+vi.mock('../../src/services/api/autofix.js', () => ({
+  getAutofixCohort: () => Promise.resolve({ eligible: false }),
 }));
 
 vi.mock('../../src/services/api/billing.js', () => ({
@@ -276,6 +293,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   sessionStorage.clear();
+  localStorage.setItem('manifest_global_group', 'provider');
   mockIsSelfHosted = false;
   filterSelectProps = null;
   providerChartProps = null;
@@ -303,59 +321,6 @@ afterEach(() => {
 });
 
 describe('GlobalOverview filter onUnselectAll', () => {
-  it('passes request and attempt success rates to the chart card', async () => {
-    render(() => <GlobalOverview />);
-
-    await waitFor(() => expect(providerChartProps).not.toBeNull());
-    expect(providerChartProps?.requestSuccessRate).toBe(94.4);
-    expect(providerChartProps?.attemptSuccessRate).toBe(88.9);
-  });
-
-  it('clears the selection and persists an empty set when "unselect all" fires', async () => {
-    // Default grouping is "provider" → storageKey is global-agent-filter:provider.
-    const { getByTestId } = render(() => <GlobalOverview />);
-
-    // The multi-select renders once 2+ provider series resolve.
-    await waitFor(() => expect(getByTestId('filter-select')).toBeDefined());
-    expect(getByTestId('filter-item-count').textContent).toBe('2');
-
-    // Seed a non-empty persisted selection via "select all" first, so the
-    // unselect actually changes state and writes [].
-    fireEvent.click(getByTestId('filter-select-all'));
-    await waitFor(() =>
-      expect(sessionStorage.getItem('global-agent-filter:provider')).toContain('openai'),
-    );
-
-    // Fire the unselect-all handler (GlobalOverview's inline callback).
-    fireEvent.click(getByTestId('filter-unselect-all'));
-
-    await waitFor(() => expect(sessionStorage.getItem('global-agent-filter:provider')).toBe('[]'));
-  });
-
-  it('swallows a sessionStorage write failure during "unselect all"', async () => {
-    // The persist is wrapped in try/catch; a throwing setItem must not crash
-    // the page (covers the catch branch of onUnselectAll).
-    const { getByTestId } = render(() => <GlobalOverview />);
-    await waitFor(() => expect(getByTestId('filter-select')).toBeDefined());
-
-    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new Error('quota');
-    });
-    try {
-      expect(() => fireEvent.click(getByTestId('filter-unselect-all'))).not.toThrow();
-      // State still cleared even though persistence threw.
-      expect(getByTestId('filter-item-count').textContent).toBe('2');
-    } finally {
-      setItemSpy.mockRestore();
-    }
-  });
-
-  it('exposes the unselect-all callback to FilterSelect', async () => {
-    render(() => <GlobalOverview />);
-    await waitFor(() => expect(filterSelectProps).not.toBeNull());
-    expect(typeof filterSelectProps!.onUnselectAll).toBe('function');
-  });
-
   it('refetches global usage data when a message SSE ping lands', async () => {
     render(() => <GlobalOverview />);
 

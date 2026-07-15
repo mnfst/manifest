@@ -43,7 +43,7 @@
 
 .overview-stat-card__label {
   font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-weight: 700;
   color: hsl(var(--muted-foreground));
 }
 
@@ -51,6 +51,95 @@
   font-size: var(--font-size-2xl);
   font-weight: 700;
   color: hsl(var(--foreground));
+}
+
+.overview-stat-card__value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.afx-kpi-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 0 16px;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+}
+.afx-kpi-line__primary {
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  color: hsl(var(--foreground));
+}
+.afx-kpi-line__sep {
+  color: hsl(var(--border));
+}
+.afx-kpi-line__stat {
+  font-weight: 500;
+}
+
+/* ── Error class breakdown card ────────────────────── */
+.error-class-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: var(--gap-lg);
+}
+.error-class-card__title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: var(--gap-md);
+}
+.error-class-card__empty {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+  margin: 0;
+}
+.error-class-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.error-class-card__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.error-class-card__label {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  min-width: 120px;
+  flex-shrink: 0;
+}
+.error-class-card__bar-wrap {
+  flex: 1;
+  height: 8px;
+  background: hsl(var(--border));
+  border-radius: 4px;
+  overflow: hidden;
+}
+.error-class-card__bar {
+  height: 100%;
+  background: hsl(var(--foreground));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.error-class-card__count {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  min-width: 40px;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .overview-split {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* ── Scrollable panel ────────────────────────────── */

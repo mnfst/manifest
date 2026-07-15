@@ -1,6 +1,24 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Patch,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { IsBoolean } from 'class-validator';
+import { Repository } from 'typeorm';
 import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
+import { Tenant } from '../../entities/tenant.entity';
 import { AutofixService } from './autofix.service';
+import { DevAutofixSeederService } from './dev-autofix-seeder.service';
+
+class SetDevAutofixCohortDto {
+  @IsBoolean()
+  enabled!: boolean;
+}
 
 /**
  * Tenant-level Auto-fix beta cohort gate.
@@ -18,12 +36,42 @@ import { AutofixService } from './autofix.service';
  */
 @Controller('api/v1/autofix')
 export class AutofixCohortController {
-  constructor(private readonly autofix: AutofixService) {}
+  constructor(
+    private readonly autofix: AutofixService,
+    private readonly config: ConfigService,
+    @InjectRepository(Tenant)
+    private readonly tenantRepo: Repository<Tenant>,
+    private readonly devSeeder: DevAutofixSeederService,
+  ) {}
 
   @Get('cohort')
   async getCohort(@TenantCtx() ctx: TenantContext): Promise<{ eligible: boolean }> {
     // `hasAccess` already denies a null tenant (no tenant → no agent to heal),
     // so a fresh account with no tenant yet simply reports not eligible.
+    return { eligible: await this.autofix.hasAccess(ctx.tenantId) };
+  }
+
+  /** Development-only switch for exercising both cohort-gated dashboard states. */
+  @Patch('cohort')
+  async setDevCohort(
+    @TenantCtx() ctx: TenantContext,
+    @Body() body: SetDevAutofixCohortDto,
+  ): Promise<{ eligible: boolean }> {
+    if (this.config.get<string>('NODE_ENV') !== 'development') {
+      throw new NotFoundException();
+    }
+    if (!ctx.tenantId) {
+      throw new BadRequestException('No tenant is available for this session');
+    }
+
+    await this.tenantRepo.update(ctx.tenantId, {
+      autofix_access_granted_at: body.enabled ? new Date().toISOString() : null,
+    });
+    if (body.enabled) {
+      await this.devSeeder.ensureSeeded(ctx.tenantId);
+    }
+    this.autofix.invalidateAccess(ctx.tenantId);
+
     return { eligible: await this.autofix.hasAccess(ctx.tenantId) };
   }
 }

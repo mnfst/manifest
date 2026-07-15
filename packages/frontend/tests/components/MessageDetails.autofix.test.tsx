@@ -189,7 +189,7 @@ describe('MessageDetails Auto-fix section', () => {
 
     await vi.waitFor(() => {
       // Wait for the panel to render at all.
-      expect(container.textContent).toContain('Message');
+      expect(container.textContent).toContain('Request');
     });
 
     // No error/auto-fix row and no auto-fix cards render.

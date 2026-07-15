@@ -79,6 +79,21 @@ describe('seedAgentMessages', () => {
       expect(messages.length).toBeGreaterThan(200);
       expect(messages.length).toBeLessThan(1500);
     });
+
+    it('links attempts to request parents with coherent fallback totals', async () => {
+      const requestRepo = makeMockRepo();
+
+      await seedAgentMessages(mockRepo as never, 'user-1', logger, undefined, requestRepo as never);
+
+      const messages = collectInsertedMessages(mockRepo);
+      const requests = collectInsertedMessages(requestRepo);
+      const fallbackAttempts = messages.filter((message) => message.fallback_from_model != null);
+      expect(requests.length).toBe(messages.length - fallbackAttempts.length);
+      expect(messages.every((message) => message.request_id != null)).toBe(true);
+      expect(new Set(messages.map((message) => message.request_id))).toEqual(
+        new Set(requests.map((request) => request.id)),
+      );
+    });
   });
 
   describe('context parameter', () => {

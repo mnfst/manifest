@@ -69,10 +69,33 @@ const mockPerProvider = vi.fn(() => Promise.resolve({ agents: [], timeseries: []
 const mockPerProviderTokens = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockPerProviderMessages = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockPerProviderCosts = vi.fn((...a: unknown[]) => mockPerProvider(...a));
+const mockGetAutofixStats = vi.fn();
+let mockAutofixEligible = false;
 vi.mock('../../src/services/api/analytics.js', () => ({
   getPerProviderTimeseries: (...a: unknown[]) => mockPerProviderTokens(...a),
   getPerProviderMessageTimeseries: (...a: unknown[]) => mockPerProviderMessages(...a),
   getPerProviderCostTimeseries: (...a: unknown[]) => mockPerProviderCosts(...a),
+  getAttemptStats: () =>
+    Promise.resolve({
+      total_attempts: { value: 50, previous: 40 },
+      fallbacked_attempts: { value: 5, previous: 4 },
+    }),
+  getAttemptTimeseries: () => Promise.resolve({ range: '7d', by: 'metric', keys: [], buckets: [] }),
+  getWorkspaceAutofixStatus: () =>
+    Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
+  getAutofixStats: (...a: unknown[]) => mockGetAutofixStats(...a),
+  getAutofixTimeseries: () =>
+    Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
+  getPerProviderReliability: () => Promise.resolve([]),
+  getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
+}));
+
+vi.mock('../../src/services/api/autofix.js', () => ({
+  getAutofixCohort: () => Promise.resolve({ eligible: mockAutofixEligible }),
+}));
+
+vi.mock('../../src/services/api/routing.js', () => ({
+  getAutofix: () => Promise.resolve({ available: false, enabled: false }),
 }));
 
 const mockGetBillingStatus = vi.fn();
@@ -216,11 +239,21 @@ describe('Overview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    localStorage.setItem('manifest_global_group', 'provider');
     sessionStorage.clear();
     mockIsRecentlyCreated.mockReturnValue(false);
     mockIsSetupPending.mockReturnValue(false);
     mockAgentName = 'test-agent';
     mockLocationState = null;
+    mockAutofixEligible = false;
+    mockGetAutofixStats.mockResolvedValue({
+      success_rate: { value: 0.9, previous: 0.8 },
+      autofix_saves: { value: 7, previous: 5 },
+      fallback_saves: { value: 2, previous: 1 },
+      total_requests: { value: 100, previous: 90 },
+      errors_remaining: { value: 3, previous: 4 },
+      coverage: { rate: 0.7, previous_rate: 5 / 9 },
+    });
     mockGetCustomProviders.mockResolvedValue([]);
     mockPerProvider.mockResolvedValue({ agents: [], timeseries: [] });
     mockGetBillingStatus.mockResolvedValue({
@@ -290,12 +323,12 @@ describe('Overview', () => {
     });
   });
 
-  it('hides trend badges when metric values are zero', async () => {
+  it('shows trend badges even when metric values are zero (trend is still meaningful)', async () => {
     const zeroData = {
       ...overviewData,
       summary: {
         ...overviewData.summary,
-        cost_today: { value: 0, trend_pct: -34497259 },
+        cost_today: { value: 0, trend_pct: -999 },
         tokens_today: { value: 0, trend_pct: 500, sub_values: { input: 0, output: 0 } },
         messages: { value: 0, trend_pct: -100 },
       },
@@ -305,7 +338,7 @@ describe('Overview', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('$0.00');
       const trends = container.querySelectorAll('.trend');
-      expect(trends.length).toBe(0);
+      expect(trends.length).toBeGreaterThan(0);
     });
   });
 
@@ -439,23 +472,47 @@ describe('Overview', () => {
       expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
     });
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
-    fireEvent.click(stats[2]); // tokens
-    await vi.waitFor(() => {
-      expect(mockPerProviderTokens).toHaveBeenCalledWith('test-agent', '30d');
-    });
-    fireEvent.click(stats[0]); // cost
+    fireEvent.click(stats[1]); // cost (non-cohort: Requests=0, Cost=1, Token usage=2)
     await vi.waitFor(() => {
       expect(mockPerProviderCosts).toHaveBeenCalledWith('test-agent', '30d');
     });
   });
 
-  it('has clickable stat headers for cost, tokens and messages', async () => {
+  it('has clickable stat headers for requests, cost and tokens (no self-healed tab off-cohort)', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       const clickable = container.querySelectorAll('.chart-card__stat--clickable');
       expect(clickable.length).toBe(3);
     });
+    expect(screen.queryByText('Self-healed requests')).toBeNull();
+  });
+
+  it('hides the self-healed tab and KPI cards for non-cohort tenants', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    render(() => <Overview />);
+
+    await vi.waitFor(() => {
+      expect(screen.getAllByText('Requests').length).toBeGreaterThan(0);
+    });
+    expect(screen.queryByText('Self-healed requests')).toBeNull();
+    expect(screen.queryByText('Success rate')).toBeNull();
+    expect(mockGetAutofixStats).not.toHaveBeenCalled();
+  });
+
+  it('loads and renders the self-healed KPIs and tab only for cohort tenants', async () => {
+    mockAutofixEligible = true;
+    mockGetOverview.mockResolvedValue(overviewData);
+    render(() => <Overview />);
+
+    await vi.waitFor(() => {
+      expect(screen.getByText('Success rate')).toBeDefined();
+    });
+    expect(mockGetAutofixStats).toHaveBeenCalledWith('30d', 'test-agent');
+    // Tab + KPI cards share the label; both surfaces are present.
+    expect(screen.getAllByText('Self-healed requests').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('Self-healed via Auto-fix')).toBeDefined();
+    expect(screen.getByText('Self-healed via Fallback')).toBeDefined();
   });
 
   it('switches chart view when stat header clicked', async () => {
@@ -465,8 +522,8 @@ describe('Overview', () => {
       timeseries: [{ hour: '1', openai: 5 }],
     });
     const { container } = render(() => <Overview />);
-    // ProviderChartCard renders the multi-provider chart for every view; the
-    // active stat reflects the selection. Stat order is Cost / Messages / Tokens.
+    // UnifiedChartCard renders the multi-provider chart for every view; the
+    // active stat reflects the selection. Off-cohort order: Requests / Cost / Tokens.
     await vi.waitFor(() => {
       expect(container.querySelector('[data-testid="multi-agent-chart"]')).not.toBeNull();
     });
@@ -474,16 +531,10 @@ describe('Overview', () => {
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
     expect(stats.length).toBe(3);
 
-    fireEvent.click(stats[0]); // cost
+    fireEvent.click(stats[1]); // cost
     await vi.waitFor(() => {
       const active = container.querySelector('.chart-card__stat--active');
       expect(active?.textContent).toContain('Cost');
-    });
-
-    fireEvent.click(stats[1]); // messages
-    await vi.waitFor(() => {
-      const active = container.querySelector('.chart-card__stat--active');
-      expect(active?.textContent).toContain('Requests');
     });
 
     fireEvent.click(stats[2]); // tokens — renders the token-view chart
@@ -492,98 +543,6 @@ describe('Overview', () => {
       expect(active?.textContent).toContain('Token usage');
       expect(container.querySelector('[data-testid="multi-agent-chart"]')).not.toBeNull();
     });
-  });
-
-  it('renders the provider multiselect and filters chart series', async () => {
-    mockGetOverview.mockResolvedValue(overviewData);
-    mockPerProvider.mockResolvedValue({
-      agents: ['anthropic', 'openai'],
-      timeseries: [{ hour: '1', anthropic: 3, openai: 5 }],
-    });
-    const { container, getByText } = render(() => <Overview />);
-
-    // Provider multiselect appears (2 providers) and the chart shows both series.
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain('All providers (2)');
-      const chart = container.querySelector('[data-testid="multi-agent-chart"]');
-      expect(chart?.getAttribute('data-series')).toBe('anthropic,openai');
-    });
-
-    // No explicit selection means "all"; toggling a provider off filters it out.
-    fireEvent.click(container.querySelector('.agent-filter-select__trigger')!);
-    fireEvent.click(getByText('Anthropic'));
-    await vi.waitFor(() => {
-      const chart = container.querySelector('[data-testid="multi-agent-chart"]');
-      expect(chart?.getAttribute('data-series')).toBe('openai');
-    });
-    expect(container.textContent).toContain('1 of 2 providers');
-
-    // "Select all" restores every series and resets the label to the all state.
-    fireEvent.click(getByText('Select all'));
-    await vi.waitFor(() => {
-      const chart = container.querySelector('[data-testid="multi-agent-chart"]');
-      expect(chart?.getAttribute('data-series')).toBe('anthropic,openai');
-    });
-    await vi.waitFor(() => {
-      expect(container.textContent).toContain('All providers (2)');
-    });
-  });
-
-  it('re-adds a provider when toggled back on, and closes the dropdown on Escape', async () => {
-    mockGetOverview.mockResolvedValue(overviewData);
-    mockPerProvider.mockResolvedValue({
-      agents: ['anthropic', 'openai'],
-      timeseries: [{ hour: '1', anthropic: 3, openai: 5 }],
-    });
-    const { container, getByText } = render(() => <Overview />);
-    await vi.waitFor(() => expect(container.textContent).toContain('All providers (2)'));
-
-    fireEvent.click(container.querySelector('.agent-filter-select__trigger')!);
-    // Toggle anthropic off (delete branch), then on again (add branch).
-    fireEvent.click(getByText('Anthropic'));
-    await vi.waitFor(() => {
-      expect(
-        container.querySelector('[data-testid="multi-agent-chart"]')?.getAttribute('data-series'),
-      ).toBe('openai');
-    });
-    fireEvent.click(getByText('Anthropic'));
-    await vi.waitFor(() => {
-      expect(
-        container.querySelector('[data-testid="multi-agent-chart"]')?.getAttribute('data-series'),
-      ).toBe('anthropic,openai');
-    });
-
-    // Escape closes the open dropdown.
-    expect(container.querySelector('.agent-filter-select__dropdown')).not.toBeNull();
-    fireEvent.keyDown(document, { key: 'Escape' });
-    await vi.waitFor(() => {
-      expect(container.querySelector('.agent-filter-select__dropdown')).toBeNull();
-    });
-  });
-
-  it('survives sessionStorage failures when loading and persisting the provider filter', async () => {
-    // Corrupt saved value → load catch; setItem throwing → persist catch.
-    sessionStorage.setItem('agent-overview-providers:test-agent', 'not-json{');
-    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new Error('quota');
-    });
-    mockGetOverview.mockResolvedValue(overviewData);
-    mockPerProvider.mockResolvedValue({
-      agents: ['anthropic', 'openai'],
-      timeseries: [{ hour: '1', anthropic: 3, openai: 5 }],
-    });
-    const { container, getByText } = render(() => <Overview />);
-    await vi.waitFor(() => expect(container.textContent).toContain('All providers (2)'));
-
-    // Toggling persists → setItem throws → caught, no crash, filter still applies.
-    fireEvent.click(container.querySelector('.agent-filter-select__trigger')!);
-    fireEvent.click(getByText('Anthropic'));
-    await vi.waitFor(() => {
-      expect(
-        container.querySelector('[data-testid="multi-agent-chart"]')?.getAttribute('data-series'),
-      ).toBe('openai');
-    });
-    setItemSpy.mockRestore();
   });
 
   it('shows View more link to messages page', async () => {
@@ -1154,10 +1113,10 @@ describe('Overview', () => {
     mockGetOverview.mockResolvedValue(dataWithFallback);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      // Fallback is now surfaced in the Trigger column, not a Model-cell badge.
-      const badge = container.querySelector('.trigger-badge--fallback');
+      // Fallback is now surfaced in the Self-heal column, not a Model-cell badge.
+      const badge = container.querySelector('[title="Fallback"]');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toContain('fallback');
+      expect(badge!.getAttribute('title')).toBe('Fallback');
     });
   });
 

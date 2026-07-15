@@ -41,7 +41,7 @@ const OverviewSkeleton = () => (
         <thead>
           <tr>
             <th>Date</th>
-            <th>Message</th>
+            <th>Request</th>
             <th>Cost</th>
             <th>Model</th>
             <th>Tokens</th>

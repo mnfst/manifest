@@ -4,6 +4,7 @@ import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 let capturedLifecycleOpts: any = null;
 let capturedChartOpts: any = null;
 let capturedChartData: any = null;
+const mockGetErrorBreakdown = vi.fn();
 
 vi.mock('uplot', () => ({
   default: class MockUPlot {
@@ -50,16 +51,35 @@ vi.mock('../../src/services/chart-utils.js', () => ({
     _range: string,
     key: string,
     buildMissing: (bucket: string) => unknown,
-  ) => (rows.length ? rows : [buildMissing(key === 'date' ? '2026-06-04' : '2026-06-04 00:00:00')]),
+  ) => {
+    const missingKey = key === 'date' ? '2026-06-04' : '2026-06-04 00:00:00';
+    if (rows.length) {
+      buildMissing(missingKey);
+      return rows;
+    }
+    return [buildMissing(missingKey)];
+  },
 }));
 
 vi.mock('../../src/components/InfoTooltip.jsx', () => ({
   default: (props: { text: string }) => <span data-testid="info-tooltip">{props.text}</span>,
 }));
 
+vi.mock('../../src/services/sse.js', () => ({
+  messagePing: () => 0,
+}));
+
+vi.mock('../../src/services/api/analytics.js', () => ({
+  getErrorBreakdown: (...args: unknown[]) => mockGetErrorBreakdown(...args),
+}));
+
 import GlobalOverviewSkeleton from '../../src/components/GlobalOverviewSkeleton';
 import MultiAgentTokenChart, { AGENT_COLORS } from '../../src/components/MultiAgentTokenChart';
 import ProviderChartCard from '../../src/components/ProviderChartCard';
+import UnifiedChartCard from '../../src/components/UnifiedChartCard';
+import AutofixKpiCards from '../../src/components/AutofixKpiCards';
+import ErrorClassCard from '../../src/components/ErrorClassCard';
+import ReliabilityChart from '../../src/components/ReliabilityChart';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -83,6 +103,184 @@ const buildLazyChart = async () => {
 };
 
 describe('analytics chart surface components', () => {
+  it('renders the self-healed requests tab from the disposition timeseries', async () => {
+    const onTabChange = vi.fn();
+    const selfHealedTimeseries = {
+      range: '7d',
+      by: 'disposition',
+      keys: ['healed', 'fallback'],
+      buckets: [{ bucket: '2026-06-04', counts: [12, 3] }],
+    };
+    const { unmount } = render(() => (
+      <UnifiedChartCard
+        activeTab="selfheal"
+        onTabChange={onTabChange}
+        requestsValue={10}
+        requestsTrendPct={0}
+        selfHealedValue={15}
+        selfHealedTrendPct={20}
+        selfHealedTimeseries={selfHealedTimeseries}
+        tokensValue={100}
+        tokensTrendPct={0}
+        range="7d"
+      />
+    ));
+
+    expect(
+      screen
+        .getAllByText('Self-healed requests')[0]!
+        .closest('button')
+        ?.classList.contains('chart-card__stat--active'),
+    ).toBe(true);
+    expect(screen.getByText('15')).toBeDefined();
+    expect(screen.getByText('+20%')).toBeDefined();
+    fireEvent.click(screen.getAllByText('Requests')[0]!);
+    expect(onTabChange).toHaveBeenCalledWith('requests');
+    await buildLazyChart();
+    // Stacked series are reversed (top-of-stack first).
+    const labels = capturedChartOpts.series.slice(1).map((s: { label: string }) => s.label);
+    expect(labels).toContain('Auto-fixed');
+    expect(labels).toContain('Recovered by fallback');
+    unmount();
+  });
+
+  it.each([
+    [
+      'requests',
+      { agentRequestTimeseries: { agents: ['openai'], timeseries: [{ hour: '1', openai: 2 }] } },
+    ],
+    [
+      'cost',
+      {
+        costValue: 1,
+        agentCostTimeseries: { agents: ['openai'], timeseries: [{ hour: '1', openai: 1 }] },
+      },
+    ],
+    ['tokens', { agentTimeseries: { agents: ['openai'], timeseries: [{ hour: '1', openai: 3 }] } }],
+  ] as const)('passes the %s series to the unified chart', async (activeTab, seriesProps) => {
+    capturedLifecycleOpts = null;
+    const { unmount } = render(() => (
+      <UnifiedChartCard
+        activeTab={activeTab}
+        onTabChange={vi.fn()}
+        requestsValue={2}
+        requestsTrendPct={0}
+        tokensValue={3}
+        tokensTrendPct={0}
+        range="24h"
+        {...seriesProps}
+      />
+    ));
+    await buildLazyChart();
+    unmount();
+  });
+
+  it('renders the self-healed empty state and hides the tab without a timeseries', () => {
+    const { unmount } = render(() => (
+      <UnifiedChartCard
+        activeTab="selfheal"
+        onTabChange={vi.fn()}
+        requestsValue={0}
+        requestsTrendPct={0}
+        selfHealedValue={0}
+        selfHealedTrendPct={0}
+        selfHealedTimeseries={{ range: '24h', by: 'disposition', keys: [], buckets: [] }}
+        tokensValue={0}
+        tokensTrendPct={0}
+        range="24h"
+      />
+    ));
+    expect(screen.getByText('No self-healed requests in this time range')).toBeDefined();
+    unmount();
+
+    // Without a timeseries the tab itself is not rendered (ineligible tenants).
+    const noTab = render(() => (
+      <UnifiedChartCard
+        activeTab="requests"
+        onTabChange={vi.fn()}
+        requestsValue={0}
+        requestsTrendPct={0}
+        tokensValue={0}
+        tokensTrendPct={0}
+        range="24h"
+      />
+    ));
+    expect(screen.queryByText('Self-healed requests')).toBeNull();
+    noTab.unmount();
+  });
+
+  it('handles an empty reliability series without creating a chart', () => {
+    render(() => (
+      <ReliabilityChart
+        timeseries={{ range: '7d', by: 'metric', keys: ['total_attempts'], buckets: [] }}
+        range="7d"
+        seriesMode="attempts"
+      />
+    ));
+    expect(capturedLifecycleOpts.buildData()[0]).toHaveLength(0);
+    expect(capturedLifecycleOpts.buildChart()).toBeNull();
+  });
+
+  it('renders the self-healed KPI cards (rate, share, via Auto-fix, via Fallback)', () => {
+    const base = {
+      success_rate: { value: 0.8, previous: 0.7 },
+      errors_remaining: { value: 0, previous: 0 },
+      coverage: { rate: 0.555, previous_rate: 0.5 },
+      dispositions: { healed: 5, no_fix_found: 2, resolving: 1, ineffective: 0 },
+      needs_attention: [],
+    };
+    const { unmount } = render(() => (
+      <AutofixKpiCards
+        stats={{
+          ...base,
+          autofix_saves: { value: 5, previous: 0 },
+          fallback_saves: { value: 3, previous: 0 },
+          total_requests: { value: 100, previous: 0 },
+        }}
+      />
+    ));
+    expect(screen.getByText('Success rate')).toBeDefined();
+    expect(screen.getByText('80.0%')).toBeDefined();
+    // Self-healed share = (5 + 3) / 100.
+    expect(screen.getByText('Self-healed requests')).toBeDefined();
+    expect(screen.getByText('8.0%')).toBeDefined();
+    expect(screen.getByText('Self-healed via Auto-fix')).toBeDefined();
+    expect(screen.getByText('5')).toBeDefined();
+    expect(screen.getByText('Self-healed via Fallback')).toBeDefined();
+    expect(screen.getByText('3')).toBeDefined();
+    unmount();
+
+    // Trends: previous window present → percentage badges.
+    render(() => (
+      <AutofixKpiCards
+        stats={{
+          ...base,
+          autofix_saves: { value: 1, previous: 2 },
+          fallback_saves: { value: 1, previous: 2 },
+          total_requests: { value: 10, previous: 10 },
+        }}
+      />
+    ));
+    expect(screen.getAllByText('-50%').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('renders and sorts error classes, then renders the empty state', async () => {
+    mockGetErrorBreakdown.mockResolvedValueOnce({
+      by_class: { rate_limited: 2, timeout: 5, ignored: 0 },
+      by_origin: {},
+      auto_fixed: 1,
+    });
+    const { container, unmount } = render(() => <ErrorClassCard range="7d" agentName="demo" />);
+    await waitFor(() => expect(screen.getByText('Timeout')).toBeDefined());
+    expect(mockGetErrorBreakdown).toHaveBeenCalledWith('7d', 'demo');
+    expect(container.querySelector('.error-class-card__label')?.textContent).toBe('Timeout');
+    unmount();
+
+    mockGetErrorBreakdown.mockResolvedValueOnce({ by_class: {}, by_origin: {}, auto_fixed: 0 });
+    render(() => <ErrorClassCard range="24h" />);
+    await waitFor(() => expect(screen.getByText('No errors in this period')).toBeDefined());
+  });
+
   it('renders the global overview skeleton placeholders', () => {
     const { container } = render(() => <GlobalOverviewSkeleton />);
     expect(container.querySelectorAll('.overview-stat-card')).toHaveLength(4);

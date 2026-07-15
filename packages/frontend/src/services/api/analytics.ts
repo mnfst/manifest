@@ -180,6 +180,47 @@ export interface AttemptTimeseries {
   buckets: Array<{ bucket: string; counts: number[] }>;
 }
 
+// ---------------------------------------------------------------------------
+// Auto-fix analytics
+// ---------------------------------------------------------------------------
+
+export interface AutofixStatus {
+  available: boolean;
+  any_enabled: boolean;
+  enabled_agents: string[];
+}
+
+export interface AutofixStats {
+  success_rate: { value: number; previous: number };
+  autofix_saves: { value: number; previous: number };
+  /** Requests recovered by a successful fallback attempt (additive field). */
+  fallback_saves: { value: number; previous: number };
+  /** Window total — denominator for the self-healed share (additive field). */
+  total_requests: { value: number; previous: number };
+  errors_remaining: { value: number; previous: number };
+  coverage: { rate: number; previous_rate: number };
+  dispositions: {
+    healed: number;
+    no_fix_found: number;
+    resolving: number;
+    ineffective: number;
+  };
+  needs_attention: Array<{
+    error_message: string;
+    provider: string;
+    model: string;
+    count: number;
+    phoenix_issue_id: string | null;
+  }>;
+}
+
+export interface AutofixTimeseries {
+  range: string;
+  by: string;
+  keys: string[];
+  buckets: Array<{ bucket: string; counts: number[] }>;
+}
+
 export function getAttemptStats(range = '7d', agentName?: string): Promise<AttemptStats> {
   return fetchJson('/overview/attempt-stats', {
     range,
@@ -192,6 +233,80 @@ export function getAttemptTimeseries(range = '7d', agentName?: string): Promise<
     range,
     ...(agentName ? { agent_name: agentName } : {}),
   }) as Promise<AttemptTimeseries>;
+}
+
+export function getWorkspaceAutofixStatus(): Promise<AutofixStatus> {
+  return fetchJson('/autofix/status') as Promise<AutofixStatus>;
+}
+
+export function getAutofixStats(range = '7d', agentName?: string): Promise<AutofixStats> {
+  return fetchJson('/overview/autofix-stats', {
+    range,
+    ...(agentName ? { agent_name: agentName } : {}),
+  }) as Promise<AutofixStats>;
+}
+
+export function getAutofixTimeseries(
+  range = '7d',
+  by = 'disposition',
+  agentName?: string,
+  failedOnly?: boolean,
+): Promise<AutofixTimeseries> {
+  return fetchJson('/overview/autofix-timeseries', {
+    range,
+    by,
+    ...(agentName ? { agent_name: agentName } : {}),
+    ...(failedOnly ? { failed_only: 'true' } : {}),
+  }) as Promise<AutofixTimeseries>;
+}
+
+export interface ProviderReliabilityRow {
+  provider: string;
+  requests: number;
+  autofixed: number;
+}
+
+export function getPerProviderReliability(
+  range = '7d',
+  agentName?: string,
+): Promise<ProviderReliabilityRow[]> {
+  return fetchJson('/overview/autofix-per-provider', {
+    range,
+    ...(agentName ? { agent_name: agentName } : {}),
+  }) as Promise<ProviderReliabilityRow[]>;
+}
+
+export interface AgentReliabilityRow {
+  agent_name: string;
+  requests: number;
+  autofixed: number;
+}
+
+export function getPerAgentReliability(range = '7d'): Promise<AgentReliabilityRow[]> {
+  return fetchJson('/overview/autofix-per-agent', { range }) as Promise<AgentReliabilityRow[]>;
+}
+
+export interface ErrorBreakdownResponse {
+  range: string;
+  successful: number;
+  total_errors: number;
+  provider_errors: number;
+  transport_errors: number;
+  manifest_errors: number;
+  auto_fixed: number;
+  by_origin: Record<string, number>;
+  by_class: Record<string, number>;
+  provider_error_rate: number;
+}
+
+export function getErrorBreakdown(
+  range = '24h',
+  agentName?: string,
+): Promise<ErrorBreakdownResponse> {
+  return fetchJson('/errors/breakdown', {
+    range,
+    ...(agentName ? { agent_name: agentName } : {}),
+  }) as Promise<ErrorBreakdownResponse>;
 }
 
 export function getHealth() {

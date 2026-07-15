@@ -109,10 +109,12 @@
 .trigger-badge {
   display: inline-flex;
   align-items: center;
+  vertical-align: middle;
   gap: 5px;
   font-family: var(--font-heading);
   font-size: var(--font-size-xs);
   font-weight: 700;
+  line-height: 1;
   white-space: nowrap;
   color: hsl(var(--foreground));
 }
@@ -704,6 +706,10 @@ a.status-badge:hover {
 }
 
 .msg-row--clickable:hover > td {
+  background: hsl(var(--accent));
+}
+
+.msg-row--selected > td {
   background: hsl(var(--accent));
 }
 
@@ -1312,20 +1318,57 @@ table.msg-detail__table td {
 }
 
 .error-autofix-row__meta-table {
+  /* Single source for EVERY border of the table (outer frame, row dividers,
+     label column divider). Contextual cards override the variable so the
+     table always matches its card's border color. */
+  --meta-table-border: hsl(var(--border));
   width: 100%;
   max-width: 100%;
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
   margin-top: 10px;
-  border: 1px solid hsl(var(--border));
+  border: 1px solid var(--meta-table-border);
+}
+
+/* Contextual table borders — inherit from parent card color */
+.error-autofix-row__error .error-autofix-row__meta-table {
+  --meta-table-border: hsl(var(--destructive) / 0.25);
+}
+.error-autofix-row__autofix--autofix .error-autofix-row__meta-table,
+.autofix-card--autofix .error-autofix-row__meta-table {
+  --meta-table-border: hsl(222 47% 50% / 0.3);
+}
+.error-autofix-row__autofix--fallback .error-autofix-row__meta-table,
+.autofix-card--fallback .error-autofix-row__meta-table {
+  --meta-table-border: hsl(36 80% 50% / 0.3);
+}
+
+/* Contextual table borders — inherit from parent card color */
+.error-autofix-row__error .error-autofix-row__meta-table {
+  border-color: hsl(var(--destructive) / 0.25);
+}
+.error-autofix-row__error .error-autofix-row__meta-table td {
+  border-bottom-color: hsl(var(--destructive) / 0.25);
+}
+.error-autofix-row__autofix--autofix .error-autofix-row__meta-table {
+  border-color: hsl(222 47% 50% / 0.3);
+}
+.error-autofix-row__autofix--autofix .error-autofix-row__meta-table td {
+  border-bottom-color: hsl(222 47% 50% / 0.3);
+}
+.error-autofix-row__autofix--fallback .error-autofix-row__meta-table {
+  border-color: hsl(36 80% 50% / 0.3);
+}
+.error-autofix-row__autofix--fallback .error-autofix-row__meta-table td {
+  border-bottom-color: hsl(36 80% 50% / 0.3);
 }
 
 .error-autofix-row__meta-table td {
   padding: 4px 10px;
   font-size: var(--font-size-xs);
   vertical-align: top;
-  border-bottom: 1px solid hsl(var(--border));
+  border-bottom: 1px solid var(--meta-table-border);
   white-space: break-spaces;
 }
 
@@ -1338,7 +1381,7 @@ table.msg-detail__table td {
   color: hsl(var(--foreground));
   width: 60px;
   white-space: nowrap;
-  border-right: 1px solid hsl(var(--border));
+  border-right: 1px solid var(--meta-table-border);
 }
 
 .error-autofix-row__meta-value {

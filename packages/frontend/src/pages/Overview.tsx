@@ -9,7 +9,9 @@ import {
   Show,
   type Component,
 } from 'solid-js';
-import ProviderChartCard from '../components/ProviderChartCard.jsx';
+import UnifiedChartCard from '../components/UnifiedChartCard.jsx';
+import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
+
 import FilterSelect from '../components/FilterSelect.jsx';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import CostByModelTable from '../components/CostByModelTable.jsx';
@@ -24,6 +26,7 @@ import { agentPlatform, agentCategory } from '../services/agent-platform-store.j
 import { PROVIDERS } from '../services/providers.js';
 import { getOverview } from '../services/api.js';
 import {
+  getAutofixTimeseries,
   getPerProviderTimeseries,
   getPerProviderMessageTimeseries,
   getPerProviderCostTimeseries,
@@ -41,6 +44,8 @@ import { getBillingStatus } from '../services/api/billing.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/routing.css';
+import { getAutofixStats } from '../services/api/analytics.js';
+import { getAutofixCohort } from '../services/api/autofix.js';
 
 const PRO_RANGES = new Set(['30d', '90d', '365d']);
 const AGENT_RANGE_OPTIONS = [
@@ -104,7 +109,7 @@ type PivotedTimeseries = {
   timeseries: Array<Record<string, number | string>>;
 };
 
-type ProviderView = 'cost' | 'tokens' | 'messages';
+type ProviderView = 'requests' | 'selfheal' | 'cost' | 'tokens';
 type TimeseriesKey = { range: string; agent: string; _ping: number };
 
 const Overview: Component = () => {
@@ -141,7 +146,7 @@ const Overview: Component = () => {
     markUserSelected: () => setUserSelectedRange(true),
   });
   const effectiveRange = createMemo(() => (isProRangeLocked(range()) ? '7d' : range()));
-  const [activeView, setActiveViewRaw] = createSignal<ProviderView>('messages');
+  const [activeView, setActiveViewRaw] = createSignal<ProviderView>('requests');
   const [tokenChartRequested, setTokenChartRequested] = createSignal(false);
   const [costChartRequested, setCostChartRequested] = createSignal(false);
   const setActiveView = (view: ProviderView) => {
@@ -251,6 +256,52 @@ const Overview: Component = () => {
     (p) => getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
 
+  // ── Auto-fix resources (conditional on tenant cohort) ───────────────
+  const [autofixCohort] = createResource(
+    () => ({ _ping: messagePing() }),
+    () => getAutofixCohort(),
+  );
+  const autofixEligible = () => autofixCohort()?.eligible ?? false;
+  const [autofixStats] = createResource(
+    () =>
+      autofixEligible()
+        ? {
+            range: effectiveRange(),
+            agent: decodeURIComponent(params.agentName),
+            _ping: messagePing(),
+          }
+        : false,
+    (p) => getAutofixStats(p.range, p.agent),
+  );
+  // Disposition timeseries feeds the Self-healed requests tab (healed +
+  // fallback series only), agent-scoped and gated like the KPI cards.
+  const [statusTimeseries] = createResource(
+    () =>
+      autofixEligible()
+        ? {
+            range: effectiveRange(),
+            agent: decodeURIComponent(params.agentName),
+            _ping: messagePing(),
+          }
+        : false,
+    (p) => getAutofixTimeseries(p.range, 'disposition', p.agent),
+  );
+  const selfHealedTs = () => {
+    const ts = statusTimeseries();
+    if (!ts) return undefined;
+    const picked = ts.keys
+      .map((k, i) => ({ k, i }))
+      .filter(({ k }) => k === 'healed' || k === 'fallback');
+    return {
+      ...ts,
+      keys: picked.map(({ k }) => k),
+      buckets: ts.buckets.map((b) => ({
+        bucket: b.bucket,
+        counts: picked.map(({ i }) => b.counts[i] ?? 0),
+      })),
+    };
+  };
+
   const allProviders = createMemo(() => {
     const set = new Set<string>([
       ...(providerTokenTs()?.agents ?? []),
@@ -325,18 +376,6 @@ const Overview: Component = () => {
         style="justify-content: flex-end; border-bottom: none; padding-bottom: 0;"
       >
         <div class="header-controls">
-          <Show when={showDashboard() && allProviders().length > 1}>
-            <FilterSelect
-              noun="providers"
-              items={allProviders()}
-              selected={effectiveSelected()}
-              colorMap={providerColorMap()}
-              displayName={providerDisplayName}
-              onToggle={toggleProvider}
-              onSelectAll={() => setAllProviders(true)}
-              onUnselectAll={() => setAllProviders(false)}
-            />
-          </Show>
           <Show when={showDashboard()}>
             <Select
               value={range()}
@@ -423,24 +462,62 @@ const Overview: Component = () => {
                       </p>
                     </div>
                   </Show>
-                  <ProviderChartCard
-                    activeView={activeView()}
-                    onViewChange={setActiveView}
-                    costValue={d().summary?.cost_today?.value ?? 0}
-                    costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
-                    tokensValue={d().summary?.tokens_today?.value ?? 0}
-                    tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
-                    messagesValue={d().summary?.messages?.value ?? 0}
-                    messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
-                    requestSuccessRate={d().request_reliability?.success_rate}
-                    attemptSuccessRate={d().request_reliability?.attempt_success_rate}
-                    costInfoTooltip="Actual API key costs only. Subscription usage is not included."
-                    range={effectiveRange()}
-                    agentTimeseries={filteredTokenTs() ?? undefined}
-                    agentMessageTimeseries={filteredMessageTs() ?? undefined}
-                    agentCostTimeseries={filteredCostTs() ?? undefined}
-                    colorMap={providerColorMap()}
-                  />
+                  <Show when={autofixEligible()}>
+                    <AutofixKpiCards stats={autofixStats()} />
+                  </Show>
+                  {(() => {
+                    return (
+                      <UnifiedChartCard
+                        activeTab={activeView()}
+                        onTabChange={setActiveView}
+                        requestsValue={d().summary?.messages?.value ?? 0}
+                        requestsTrendPct={d().summary?.messages?.trend_pct ?? 0}
+                        selfHealedValue={
+                          (autofixStats()?.autofix_saves.value ?? 0) +
+                          (autofixStats()?.fallback_saves?.value ?? 0)
+                        }
+                        selfHealedTrendPct={(() => {
+                          const s = autofixStats();
+                          if (!s) return 0;
+                          const cur = s.autofix_saves.value + (s.fallback_saves?.value ?? 0);
+                          const prev = s.autofix_saves.previous + (s.fallback_saves?.previous ?? 0);
+                          if (prev === 0) return 0;
+                          return Math.max(
+                            -999,
+                            Math.min(999, Math.round(((cur - prev) / prev) * 100)),
+                          );
+                        })()}
+                        selfHealedTimeseries={autofixEligible() ? selfHealedTs() : undefined}
+                        costValue={d().summary?.cost_today?.value ?? 0}
+                        costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
+                        costInfoTooltip="Actual API key costs only. Subscription usage is not included."
+                        tokensValue={d().summary?.tokens_today?.value ?? 0}
+                        tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
+                        range={effectiveRange()}
+                        agentRequestTimeseries={filteredMessageTs() ?? undefined}
+                        agentTimeseries={filteredTokenTs() ?? undefined}
+                        agentCostTimeseries={filteredCostTs() ?? undefined}
+                        colorMap={providerColorMap()}
+                        seriesFilters={
+                          <Show when={allProviders().length > 1}>
+                            <FilterSelect
+                              noun="providers"
+                              items={allProviders()}
+                              selected={effectiveSelected()}
+                              colorMap={providerColorMap()}
+                              displayName={providerDisplayName}
+                              onToggle={toggleProvider}
+                              onSelectAll={() => setAllProviders(true)}
+                              onUnselectAll={() => setAllProviders(false)}
+                            />
+                          </Show>
+                        }
+                      />
+                    );
+                  })()}
+
+                  {/* "Error classes by frequency" stays unmounted until the
+                      backend has real error_class data (preservation spec). */}
 
                   {/* Recent Requests */}
                   <div class="panel">

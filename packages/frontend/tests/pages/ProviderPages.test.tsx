@@ -93,6 +93,14 @@ vi.mock('../../src/services/api.js', () => ({
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
 }));
 
+vi.mock('../../src/services/api/analytics.js', () => ({
+  getPerProviderReliability: () => Promise.resolve([]),
+}));
+
+vi.mock('../../src/services/api/autofix.js', () => ({
+  getAutofixCohort: () => Promise.resolve({ eligible: false }),
+}));
+
 // SSE ping signals drive the usage resource's source; stub them to no-op
 // accessors so the page mounts without a live EventSource under jsdom.
 vi.mock('../../src/services/sse.js', () => ({
@@ -653,10 +661,7 @@ describe('provider pages', () => {
           provider: 'openai',
           auth_type: 'subscription',
           connection_count: 2,
-          connections: [
-            connection('sub-1', 'Plan A'),
-            connection('sub-2', 'Plan B'),
-          ],
+          connections: [connection('sub-1', 'Plan A'), connection('sub-2', 'Plan B')],
           total_models: 3,
           consumption_tokens: 42,
           consumption_messages: 2,

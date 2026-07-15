@@ -123,16 +123,17 @@ describe('MessageTable', () => {
         />
       ));
       const headers = container.querySelectorAll('th');
-      expect(headers.length).toBe(9);
+      expect(headers.length).toBe(10);
       expect(headers[0]!.textContent).toContain('Status');
-      expect(headers[1]!.textContent).toContain('Trigger');
-      expect(headers[2]!.textContent).toContain('Date');
-      expect(headers[3]!.textContent).toContain('Model');
-      expect(headers[4]!.textContent).toContain('Message');
-      expect(headers[5]!.textContent).toContain('Cost');
-      expect(headers[6]!.textContent).toContain('Tokens');
-      expect(headers[7]!.textContent).toContain('Cache');
-      expect(headers[8]!.textContent).toContain('Latency');
+      expect(headers[1]!.textContent).toContain('Attempts');
+      expect(headers[2]!.textContent).toContain('Self-heal');
+      expect(headers[3]!.textContent).toContain('Date');
+      expect(headers[4]!.textContent).toContain('Model');
+      expect(headers[5]!.textContent).toContain('Request');
+      expect(headers[6]!.textContent).toContain('Cost');
+      expect(headers[7]!.textContent).toContain('Tokens');
+      expect(headers[8]!.textContent).toContain('Cache');
+      expect(headers[9]!.textContent).toContain('Latency');
     });
 
     it('renders detailed column headers with tooltips', () => {
@@ -145,15 +146,16 @@ describe('MessageTable', () => {
         />
       ));
       const headers = container.querySelectorAll('th');
-      expect(headers.length).toBe(11);
+      expect(headers.length).toBe(12);
       expect(headers[0]!.textContent).toContain('Status');
-      expect(headers[1]!.textContent).toContain('Trigger');
-      expect(headers[2]!.textContent).toContain('Date');
-      expect(headers[3]!.textContent).toContain('Model');
-      expect(headers[4]!.textContent).toContain('Message');
-      expect(headers[6]!.textContent).toContain('Total Tokens');
-      expect(headers[9]!.textContent).toContain('Cache');
-      expect(headers[10]!.textContent).toContain('Latency');
+      expect(headers[1]!.textContent).toContain('Attempts');
+      expect(headers[2]!.textContent).toContain('Self-heal');
+      expect(headers[3]!.textContent).toContain('Date');
+      expect(headers[4]!.textContent).toContain('Model');
+      expect(headers[5]!.textContent).toContain('Request');
+      expect(headers[7]!.textContent).toContain('Total Tokens');
+      expect(headers[10]!.textContent).toContain('Cache');
+      expect(headers[11]!.textContent).toContain('Latency');
       // Tooltips should be present for token columns
       const tooltips = container.querySelectorAll('[data-testid="info-tooltip"]');
       expect(tooltips.length).toBeGreaterThanOrEqual(3);
@@ -167,7 +169,7 @@ describe('MessageTable', () => {
           agentName="agent-1"
         />
       ));
-      const tokensHeader = container.querySelectorAll('th')[6]!; // 'totalTokens' is at index 6 in COMPACT_COLUMNS
+      const tokensHeader = container.querySelectorAll('th')[7]!; // 'totalTokens' is at index 7 in COMPACT_COLUMNS (after selfheal)
       expect(tokensHeader.textContent).toBe('Tokens');
       expect(tokensHeader.querySelector('[data-testid="info-tooltip"]')).toBeNull();
     });
@@ -495,32 +497,70 @@ describe('MessageTable', () => {
     });
   });
 
-  describe('trigger column', () => {
-    it('renders an auto-fix badge for a healed retry row', () => {
+  describe('attempts column', () => {
+    it('renders just the attempt count (no icons) for a row with autofix_applied', () => {
       const { container } = render(() => (
         <MessageTable
-          items={[makeRow({ autofix_role: 'retry' })]}
-          columns={['trigger']}
+          items={[makeRow({ attempt_count: 2, autofix_applied: true })]}
+          columns={['attempts']}
           agentName="agent-1"
         />
       ));
-      expect(container.querySelector('.trigger-badge--autofix')).not.toBeNull();
+      expect(container.querySelector('td')!.textContent).toContain('2');
+      // Icons moved to selfheal column
+      expect(container.querySelector('[title="Autofix"]')).toBeNull();
     });
 
-    it('renders a fallback badge and fires onTriggerClick with the row id', () => {
-      const handler = vi.fn();
+    it('renders just the attempt count (no icons) when fallback_from_model is set', () => {
       const { container } = render(() => (
         <MessageTable
-          items={[makeRow({ id: 'row-77', fallback_from_model: 'gpt-4o' })]}
-          columns={['trigger']}
+          items={[makeRow({ id: 'row-77', fallback_from_model: 'gpt-4o', attempt_count: 2 })]}
+          columns={['attempts']}
           agentName="agent-1"
-          onTriggerClick={handler}
         />
       ));
-      const badge = container.querySelector('.trigger-badge--fallback') as HTMLElement;
+      expect(container.querySelector('td')!.textContent).toContain('2');
+      // Icons moved to selfheal column
+      expect(container.querySelector('[title="Fallback"]')).toBeNull();
+    });
+  });
+
+  describe('selfheal column', () => {
+    it('renders autofix icon with text label when autofix_applied', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ autofix_applied: true })]}
+          columns={['selfheal']}
+          agentName="agent-1"
+        />
+      ));
+      const badge = container.querySelector('[title="Autofix"]') as HTMLElement;
       expect(badge).not.toBeNull();
-      fireEvent.click(badge);
-      expect(handler).toHaveBeenCalledWith('row-77');
+      expect(badge.textContent).toContain('autofix');
+    });
+
+    it('renders fallback icon with text label when fallback_from_model is set', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ fallback_from_model: 'gpt-4o' })]}
+          columns={['selfheal']}
+          agentName="agent-1"
+        />
+      ));
+      const badge = container.querySelector('[title="Fallback"]') as HTMLElement;
+      expect(badge).not.toBeNull();
+      expect(badge.textContent).toContain('fallback');
+    });
+
+    it('renders dash when neither autofix nor fallback applies', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['selfheal']}
+          agentName="agent-1"
+        />
+      ));
+      expect(container.querySelector('td')!.textContent).toContain('\u2014');
     });
   });
 

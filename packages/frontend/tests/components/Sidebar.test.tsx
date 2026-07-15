@@ -186,9 +186,9 @@ describe("Sidebar — global nav links", () => {
     expect(links).toEqual([
       "/overview",
       "/messages",
-      "/providers/subscriptions",
-      "/providers/usage-based",
       "/providers/local",
+      "/providers/usage-based",
+      "/providers/subscriptions",
       "/playground",
     ]);
     // The collapsible section replaces the old static link — there is no

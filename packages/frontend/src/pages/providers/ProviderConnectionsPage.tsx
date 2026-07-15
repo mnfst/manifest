@@ -32,12 +32,14 @@ import {
   formatTimeAgo,
 } from '../../services/formatters.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
-import InfoTooltip from '../../components/InfoTooltip.jsx';
 import { toast } from '../../services/toast-store.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
+import { getPerProviderReliability } from '../../services/api/analytics.js';
+import { getAutofixCohort } from '../../services/api/autofix.js';
 import '../../styles/routing.css';
+import '../../styles/analytics-overview.css';
 
 type ProviderPageKind = 'subscriptions' | 'byok' | 'local';
 type ViewMode = 'list' | 'grid';
@@ -205,19 +207,6 @@ const ListIcon: Component = () => (
 const GridIcon: Component = () => (
   <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
-  </svg>
-);
-
-const CustomProviderIcon: Component = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="14"
-    height="14"
-    fill="currentColor"
-    viewBox="0 0 24 24"
-    aria-hidden="true"
-  >
-    <path d="M7 11h10c.37 0 .72-.21.89-.54s.14-.73-.08-1.04l-5-7c-.38-.53-1.25-.53-1.63 0l-5 7A.997.997 0 0 0 6.99 11Zm5-6.28L15.06 9H8.95l3.06-4.28ZM17.5 13c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5m0 7a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5M3 22h7c.55 0 1-.45 1-1v-7c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v7c0 .55.45 1 1 1m1-7h5v5H4z" />
   </svg>
 );
 
@@ -407,6 +396,31 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     connectedSummaries().reduce((sum, summary) => sum + summary.consumption_cost, 0),
   );
 
+  const [autofixCohort] = createResource(
+    () => ({ _ping: messagePing() }),
+    () => getAutofixCohort(),
+  );
+  const autofixEligible = () => autofixCohort()?.eligible ?? false;
+
+  const [providerReliability] = createResource(
+    () => (autofixEligible() ? { _ping: messagePing() } : false),
+    () => getPerProviderReliability('30d'),
+  );
+
+  const totalRequests = createMemo(() =>
+    connectedSummaries().reduce((sum, summary) => sum + summary.consumption_messages, 0),
+  );
+  const totalAutofixed = createMemo(() =>
+    (providerReliability() ?? [])
+      .filter((r) =>
+        connectedSummaries().some((s) => {
+          const pKey = s.provider.startsWith('custom:') ? 'custom' : s.provider;
+          return pKey === r.provider;
+        }),
+      )
+      .reduce((sum, r) => sum + r.autofixed, 0),
+  );
+
   const connectionDenominator = (summary: TenantProviderSummary) =>
     Math.max(
       summary.connections.filter((connection) => connection.is_active || hasUsage(summary)).length,
@@ -508,24 +522,37 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
         </Show>
       </div>
 
-      <Show when={showMetricCard()}>
-        <div class="chart-card" style="margin-bottom: 24px; padding: 20px 24px;">
-          <span class="chart-card__label" style="display: flex; align-items: center; gap: 0;">
-            {copy().metricLabel}
-            <InfoTooltip text={copy().metricTooltip!} />
-          </span>
-          <div class="chart-card__value-row" style="margin-top: 4px;">
-            <Show
-              when={!usageLoading()}
-              fallback={
-                <span class="chart-card__value">
-                  <UsageShimmer width={72} />
-                </span>
-              }
-            >
-              <span class="chart-card__value">{formatCost(totalApiCost()) ?? '$0.00'}</span>
-            </Show>
+      <Show when={connectedRows().length > 0}>
+        <div
+          class="overview-stats"
+          style={`grid-template-columns: repeat(${showMetricCard() ? 4 : 3}, 1fr); margin-bottom: 24px;`}
+        >
+          <Show when={showMetricCard()}>
+            <div class="overview-stat-card">
+              <span class="overview-stat-card__label">Total API cost (30d)</span>
+              <div class="overview-stat-card__value-row">
+                <Show when={!usageLoading()} fallback={<UsageShimmer width={72} />}>
+                  <span class="overview-stat-card__value">
+                    {formatCost(totalApiCost()) ?? '$0.00'}
+                  </span>
+                </Show>
+              </div>
+            </div>
+          </Show>
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">Total requests (30d)</span>
+            <div class="overview-stat-card__value-row">
+              <span class="overview-stat-card__value">{formatNumber(totalRequests())}</span>
+            </div>
           </div>
+          <Show when={autofixEligible()}>
+            <div class="overview-stat-card">
+              <span class="overview-stat-card__label">Auto-fixed requests (30d)</span>
+              <div class="overview-stat-card__value-row">
+                <span class="overview-stat-card__value">{formatNumber(totalAutofixed())}</span>
+              </div>
+            </div>
+          </Show>
         </div>
       </Show>
 
@@ -539,11 +566,15 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
               <tr>
                 <th>Provider</th>
                 <th>Connection</th>
+                <th>Status</th>
                 <th>Usage (30d)</th>
                 <Show when={copy().rowMetricHeading}>
                   <th>{copy().rowMetricHeading}</th>
                 </Show>
-                <th>Status</th>
+                <th style="text-align: right;">Requests (30d)</th>
+                <Show when={autofixEligible()}>
+                  <th style="text-align: right;">Auto-fixed (30d)</th>
+                </Show>
                 <th>Last used</th>
                 <th />
               </tr>
@@ -656,6 +687,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       </Show>
                     </td>
                     <td>
+                      <StatusBadge active={row.connection.is_active} />
+                    </td>
+                    <td>
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={96} />}>
                         <div style="display: flex; align-items: center; gap: 8px;">
                           <Show when={row.summary.sparkline_7d?.length}>
@@ -674,9 +708,24 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         </Show>
                       </td>
                     </Show>
-                    <td>
-                      <StatusBadge active={row.connection.is_active} />
-                    </td>
+                    {(() => {
+                      const pKey = row.summary.provider.startsWith('custom:')
+                        ? 'custom'
+                        : row.summary.provider;
+                      const rel = () => providerReliability()?.find((r) => r.provider === pKey);
+                      return (
+                        <>
+                          <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                            {formatNumber(row.summary.consumption_messages)}
+                          </td>
+                          <Show when={autofixEligible()}>
+                            <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                              {rel() ? formatNumber(rel()!.autofixed) : '—'}
+                            </td>
+                          </Show>
+                        </>
+                      );
+                    })()}
                     <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
                         {connectionLastUsedAt(row.summary)

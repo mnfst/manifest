@@ -36,6 +36,8 @@ import { ProviderAnalyticsController } from './controllers/provider-analytics.co
 import { ErrorsController } from './controllers/errors.controller';
 import { AttemptAnalyticsController } from './controllers/attempt-analytics.controller';
 import { AttemptStatsService } from './services/attempt-stats.service';
+import { AutofixAnalyticsController } from './controllers/autofix-analytics.controller';
+import { AutofixStatsService } from './services/autofix-stats.service';
 import { BillingModule } from '../billing/billing.module';
 
 @Module({
@@ -69,6 +71,7 @@ import { BillingModule } from '../billing/billing.module';
     ProviderUsageController,
     ErrorsController,
     AttemptAnalyticsController,
+    AutofixAnalyticsController,
   ],
   providers: [
     AggregationService,
@@ -83,6 +86,7 @@ import { BillingModule } from '../billing/billing.module';
     AgentAnalyticsService,
     ProviderUsageService,
     AttemptStatsService,
+    AutofixStatsService,
   ],
   exports: [SpecificityFeedbackService, ProviderUsageService],
 })

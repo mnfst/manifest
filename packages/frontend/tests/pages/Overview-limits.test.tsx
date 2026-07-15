@@ -61,6 +61,27 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getPerProviderTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
   getPerProviderMessageTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
   getPerProviderCostTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
+  getAttemptStats: () =>
+    Promise.resolve({
+      total_attempts: { value: 0, previous: 0 },
+      fallbacked_attempts: { value: 0, previous: 0 },
+    }),
+  getAttemptTimeseries: () => Promise.resolve({ range: '7d', by: 'metric', keys: [], buckets: [] }),
+  getWorkspaceAutofixStatus: () =>
+    Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
+  getAutofixStats: () => Promise.resolve(null),
+  getAutofixTimeseries: () =>
+    Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
+  getPerProviderReliability: () => Promise.resolve([]),
+  getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
+}));
+
+vi.mock('../../src/services/api/autofix.js', () => ({
+  getAutofixCohort: () => Promise.resolve({ eligible: false }),
+}));
+
+vi.mock('../../src/services/api/routing.js', () => ({
+  getAutofix: () => Promise.resolve({ available: false, enabled: false }),
 }));
 vi.mock('../../src/components/MultiAgentTokenChart.jsx', () => ({
   AGENT_COLORS: ['#111111', '#222222'],
@@ -127,6 +148,7 @@ describe('Overview - trend badges and status display', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    localStorage.setItem('manifest_global_group', 'provider');
     mockAgentName = 'test-agent';
   });
 

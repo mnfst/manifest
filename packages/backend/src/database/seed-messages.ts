@@ -2,6 +2,7 @@ import { Repository } from 'typeorm';
 import { Logger } from '@nestjs/common';
 import { classifyMessageError, inferProviderFromModel, normalizeStatus } from 'manifest-shared';
 import { AgentMessage } from '../entities/agent-message.entity';
+import { ManifestRequest } from '../entities/request.entity';
 
 /**
  * The model a fallback chain fell back FROM (a premium model that dropped to a
@@ -189,6 +190,7 @@ export async function seedAgentMessages(
     agentId: 'seed-agent-001',
     agentName: 'demo-agent',
   },
+  requestRepo?: Repository<ManifestRequest>,
 ): Promise<void> {
   const count = await messageRepo.count();
   if (count > 0) return;
@@ -268,6 +270,58 @@ export async function seedAgentMessages(
         superseded: classification.superseded,
         session_key: `sess-${String((idx % 40) + 1).padStart(3, '0')}`,
       });
+    }
+  }
+
+  if (requestRepo) {
+    const requests: Array<Partial<ManifestRequest>> = [];
+    let currentRequest: Partial<ManifestRequest> | null = null;
+    let requestIndex = 0;
+
+    for (const message of messages) {
+      const isFallbackAttempt = message.fallback_from_model != null && currentRequest != null;
+      if (!isFallbackAttempt) {
+        requestIndex++;
+        const requestId = `seed-req-${String(requestIndex).padStart(4, '0')}`;
+        const traceId = `seed-trace-${String(requestIndex).padStart(4, '0')}`;
+        message.request_id = requestId;
+        message.trace_id = traceId;
+        currentRequest = {
+          id: requestId,
+          tenant_id: ctx.tenantId,
+          agent_id: ctx.agentId,
+          user_id: userId,
+          agent_name: ctx.agentName,
+          trace_id: traceId,
+          session_key: message.session_key ?? null,
+          timestamp: message.timestamp!,
+          duration_ms: message.duration_ms ?? null,
+          status: message.status === 'ok' ? 'ok' : 'error',
+          error_message: message.status === 'ok' ? null : (message.error_message ?? null),
+          error_http_status: message.status === 'ok' ? null : (message.error_http_status ?? null),
+          error_origin: message.status === 'ok' ? null : (message.error_origin ?? null),
+          error_class: message.status === 'ok' ? null : (message.error_class ?? null),
+          requested_model: message.model ?? null,
+        };
+        requests.push(currentRequest);
+        continue;
+      }
+
+      message.request_id = currentRequest!.id!;
+      message.trace_id = currentRequest!.trace_id!;
+      currentRequest!.duration_ms = (currentRequest!.duration_ms ?? 0) + (message.duration_ms ?? 0);
+      currentRequest!.status = message.status === 'ok' ? 'ok' : 'error';
+      currentRequest!.error_message =
+        message.status === 'ok' ? null : (message.error_message ?? null);
+      currentRequest!.error_http_status =
+        message.status === 'ok' ? null : (message.error_http_status ?? null);
+      currentRequest!.error_origin =
+        message.status === 'ok' ? null : (message.error_origin ?? null);
+      currentRequest!.error_class = message.status === 'ok' ? null : (message.error_class ?? null);
+    }
+
+    for (let i = 0; i < requests.length; i += 100) {
+      await requestRepo.insert(requests.slice(i, i + 100));
     }
   }
 

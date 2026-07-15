@@ -8,6 +8,7 @@ import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { ApiKey } from '../entities/api-key.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
+import { ManifestRequest } from '../entities/request.entity';
 import { TenantProvider } from '../entities/tenant-provider.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
@@ -33,6 +34,8 @@ export class DatabaseSeederService implements OnModuleInit {
     @InjectRepository(AgentApiKey) private readonly agentKeyRepo: Repository<AgentApiKey>,
     @InjectRepository(ApiKey) private readonly apiKeyRepo: Repository<ApiKey>,
     @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
+    @InjectRepository(ManifestRequest)
+    private readonly requestRepo: Repository<ManifestRequest>,
     @InjectRepository(TenantProvider) private readonly providerRepo: Repository<TenantProvider>,
     @InjectRepository(AgentEnabledProvider)
     private readonly enabledProviderRepo: Repository<AgentEnabledProvider>,
@@ -221,7 +224,7 @@ export class DatabaseSeederService implements OnModuleInit {
   private async seedAgentMessages() {
     const userId = await this.getAdminUserId();
     if (!userId) return;
-    await seedAgentMessages(this.messageRepo, userId, this.logger);
+    await seedAgentMessages(this.messageRepo, userId, this.logger, undefined, this.requestRepo);
   }
 
   private async seedDemoCohorts() {

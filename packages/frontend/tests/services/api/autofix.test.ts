@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getAutofixCohort } from '../../../src/services/api/autofix';
+import { getAutofixCohort, setDevAutofixCohort } from '../../../src/services/api/autofix';
 
 describe('getAutofixCohort', () => {
   beforeEach(() => {
@@ -36,5 +36,24 @@ describe('getAutofixCohort', () => {
     } as Response);
 
     expect(await getAutofixCohort()).toEqual({ eligible: false });
+  });
+
+  it('toggles development cohort access', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ eligible: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    await expect(setDevAutofixCohort(true)).resolves.toEqual({ eligible: true });
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/v1/autofix/cohort',
+      expect.objectContaining({
+        method: 'PATCH',
+        credentials: 'include',
+        body: JSON.stringify({ enabled: true }),
+      }),
+    );
   });
 });

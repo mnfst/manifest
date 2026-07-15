@@ -34,6 +34,7 @@ export interface MessageRow {
   feedback_rating?: string | null;
   autofix_applied?: boolean;
   autofix_role?: string | null;
+  attempt_count?: number;
 }
 
 export function routingTierLabel(tier: string | null | undefined): string | undefined {
@@ -52,12 +53,14 @@ export type MessageColumnKey =
   | 'cache'
   | 'duration'
   | 'status'
-  | 'trigger'
+  | 'attempts'
+  | 'selfheal'
   | 'agent';
 
 export const COMPACT_COLUMNS: MessageColumnKey[] = [
   'status',
-  'trigger',
+  'attempts',
+  'selfheal',
   'date',
   'model',
   'message',
@@ -69,7 +72,8 @@ export const COMPACT_COLUMNS: MessageColumnKey[] = [
 
 export const DETAILED_COLUMNS: MessageColumnKey[] = [
   'status',
-  'trigger',
+  'attempts',
+  'selfheal',
   'date',
   'model',
   'message',

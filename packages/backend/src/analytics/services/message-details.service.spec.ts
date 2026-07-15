@@ -344,6 +344,11 @@ describe('MessageDetailsService', () => {
         cost_usd: 0.12,
         duration_ms: 400,
         autofix_applied: true,
+        autofix_role: 'retry',
+        fallback_from_model: 'gpt-4o',
+        fallback_index: 0,
+        request_headers: { 'user-agent': 'test-agent' },
+        request_params: { temperature: 0.2 },
       },
     ];
     const requestAware = new MessageDetailsService(
@@ -374,6 +379,28 @@ describe('MessageDetailsService', () => {
       expect.objectContaining({ id: 'attempt-1', provider: 'openai' }),
       expect.objectContaining({ id: 'attempt-2', provider: 'anthropic' }),
     ]);
+    // The drawer tells each attempt's full story — the projection must carry
+    // the error, fallback, autofix, token and headers/params surface.
+    expect(result.message.attempts![0]).toEqual(
+      expect.objectContaining({
+        status: 'error',
+        input_tokens: 10,
+        output_tokens: 5,
+        error_message: null,
+      }),
+    );
+    expect(result.message.attempts![1]).toEqual(
+      expect.objectContaining({
+        autofix_applied: true,
+        autofix_role: 'retry',
+        fallback_from_model: 'gpt-4o',
+        fallback_index: 0,
+        input_tokens: 20,
+        output_tokens: 8,
+        request_headers: { 'user-agent': 'test-agent' },
+        request_params: { temperature: 0.2 },
+      }),
+    );
   });
 
   it('returns a zero-attempt request with request-level fallbacks', async () => {

@@ -19,6 +19,14 @@ export interface ErrorBreakdownResponse {
   transport_errors: number;
   /** Manifest's OWN config/policy/internal rejections — NOT a provider failure. */
   manifest_errors: number;
+  /**
+   * Requests healed by Auto-fix in the window — one per healed request, counted
+   * from the failed-original row (`status='auto_fixed'`). NOT additive with
+   * `total_errors`: the healed original is a superseded attempt that is already
+   * included in `total_errors`/`by_origin`, so treat this as "of those errors,
+   * this many were auto-fixed", never as a separate error bucket to sum.
+   */
+  auto_fixed: number;
   by_origin: Record<string, number>;
   by_class: Record<string, number>;
   /** provider_errors / (provider_errors + successful), 0..1. */
@@ -46,12 +54,13 @@ export class ErrorBreakdownService {
     const range = params.range ?? '30d';
     const cutoff = computeCutoff(rangeToInterval(range));
 
-    const [groups, successful] = await Promise.all([
+    const [groups, successful, autoFixed] = await Promise.all([
       this.queryErrorGroups(cutoff, params.tenantId, params.agentName),
       this.querySuccessful(cutoff, params.tenantId, params.agentName),
+      this.queryAutoFixed(cutoff, params.tenantId, params.agentName),
     ]);
 
-    return this.assemble(range, groups, successful);
+    return this.assemble(range, groups, successful, autoFixed);
   }
 
   private async queryErrorGroups(
@@ -97,10 +106,32 @@ export class ErrorBreakdownService {
     return Number(row?.count ?? 0);
   }
 
+  /**
+   * Count of requests healed by Auto-fix. The failed original of a healed pair
+   * carries `status='auto_fixed'` (its successful retry is a separate `ok` row),
+   * so one `auto_fixed` row == one healed request — no double-counting.
+   */
+  private async queryAutoFixed(
+    cutoff: string,
+    tenantId: string | null,
+    agentName?: string,
+  ): Promise<number> {
+    const qb = this.messageRepo
+      .createQueryBuilder('at')
+      .select('COUNT(*)', 'count')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.status = :autoFixedStatus', { autoFixedStatus: 'auto_fixed' });
+    addTenantFilter(qb, tenantId, agentName);
+    excludePlaygroundAgents(qb);
+    const row = await qb.getRawOne<{ count: string }>();
+    return Number(row?.count ?? 0);
+  }
+
   private assemble(
     range: string,
     groups: ErrorGroupRow[],
     successful: number,
+    autoFixed: number,
   ): ErrorBreakdownResponse {
     const by_origin: Record<string, number> = Object.fromEntries(ERROR_ORIGINS.map((o) => [o, 0]));
     const by_class: Record<string, number> = {};
@@ -120,6 +151,7 @@ export class ErrorBreakdownService {
       provider_errors: provider,
       transport_errors: by_origin['transport'] ?? 0,
       manifest_errors: manifest,
+      auto_fixed: autoFixed,
       by_origin,
       by_class,
       provider_error_rate: denom > 0 ? provider / denom : 0,

@@ -120,6 +120,10 @@ vi.mock('../../src/components/InfoTooltip.jsx', () => ({
   default: () => <span data-testid="info-tooltip" />,
 }));
 
+vi.mock('../../src/components/RequestDrawer.jsx', () => ({
+  default: () => null,
+}));
+
 vi.mock('../../src/components/Select.jsx', () => ({
   default: (props: any) => (
     <select
@@ -225,7 +229,7 @@ describe('MessageLog', () => {
     mockListHeaderTiers.mockResolvedValue([]);
   });
 
-  it('renders Messages heading', () => {
+  it('renders Requests heading', () => {
     mockGetMessages.mockResolvedValue(messagesData);
     render(() => <MessageLog />);
     expect(screen.getByText('Requests')).toBeDefined();
@@ -1067,11 +1071,10 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(dataWithFallback);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      // Fallback is now shown in the Trigger column, not a Model-cell tier badge.
-      const badge = container.querySelector('.trigger-badge--fallback');
+      // Fallback is now shown in the Self-heal column, not a Model-cell tier badge.
+      const badge = container.querySelector('[title="Fallback"]');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toContain('fallback');
-      expect(badge!.getAttribute('title')).toBe('Triggered by fallback');
+      expect(badge!.getAttribute('title')).toBe('Fallback');
     });
   });
 
@@ -1162,152 +1165,15 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(dataWithChain);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      const badge = container.querySelector('.trigger-badge--fallback');
+      const badge = container.querySelector('[title="Fallback"]');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toContain('fallback');
+      expect(badge!.getAttribute('title')).toBe('Fallback');
     });
     // The badge lives on the recovered row, and there's exactly one (the failed
-    // original carries no fallback_from_model, so no Trigger badge).
-    expect(container.querySelectorAll('.trigger-badge--fallback').length).toBe(1);
+    // original carries no fallback_from_model, so no Self-heal badge).
+    expect(container.querySelectorAll('[title="Fallback"]').length).toBe(1);
     const successRow = container.querySelector('#msg-success-1')!;
-    expect(successRow.querySelector('.trigger-badge--fallback')).not.toBeNull();
-  });
-
-  it('scrolls to the Auto-fix sibling when the link in an expanded row is clicked', async () => {
-    // The failed original (msg-12345678) links to its successful retry
-    // (msg-87654321). Expanding the original renders the real MessageDetails,
-    // whose Auto-fix link calls MessageLog's scrollToMessage(sibling.id).
-    mockGetMessages.mockResolvedValue(messagesData);
-    mockGetMessageDetails.mockResolvedValue({
-      message: {
-        id: 'msg-12345678',
-        timestamp: '2026-02-18T10:00:00Z',
-        agent_name: 'test-agent',
-        model: 'gpt-4o',
-        status: 'error',
-        error_message: 'Unknown parameter: max_tokens',
-        description: null,
-        service_type: 'agent',
-        input_tokens: 100,
-        output_tokens: 50,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        cost_usd: 0.01,
-        duration_ms: 1200,
-        trace_id: null,
-        routing_tier: 'standard',
-        routing_reason: null,
-        specificity_category: null,
-        specificity_miscategorized: false,
-        auth_type: 'api_key',
-        provider_key_label: null,
-        skill_name: null,
-        fallback_from_model: null,
-        fallback_index: null,
-        session_key: null,
-        feedback_rating: null,
-        feedback_tags: null,
-        feedback_details: null,
-        request_headers: null,
-        request_params: null,
-        header_tier_id: null,
-        header_tier_name: null,
-        header_tier_color: null,
-        caller_attribution: null,
-        autofix_applied: true,
-        autofix_role: 'original',
-        autofix_operations: [{ type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' }],
-        autofix_sibling: { id: 'msg-87654321', role: 'retry', status: 'ok' },
-      },
-    });
-    const { container } = render(() => <MessageLog />);
-    await vi.waitFor(() => {
-      expect(container.querySelector('.msg-detail__chevron-btn')).not.toBeNull();
-    });
-
-    // The sibling row is the target scrollToMessage() looks up by id.
-    const siblingRow = container.querySelector('#msg-msg-87654321') as HTMLElement;
-    expect(siblingRow).not.toBeNull();
-    const scrollSpy = vi.fn();
-    siblingRow.scrollIntoView = scrollSpy;
-
-    // Expand the failed original's row.
-    const chevron = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
-    fireEvent.click(chevron);
-
-    // Wait for the real MessageDetails to render the Auto-fix link, then click it.
-    const link = await vi.waitFor(() => {
-      const el = container.querySelector('.error-autofix-row__autofix-btn');
-      expect(el).not.toBeNull();
-      return el as HTMLButtonElement;
-    });
-    fireEvent.click(link);
-
-    expect(scrollSpy).toHaveBeenCalled();
-    expect(siblingRow.classList.contains('msg-highlight')).toBe(true);
-  });
-
-  it('scrollToMessage is a no-op when the sibling row is not in the DOM', async () => {
-    // The Auto-fix sibling points at a row that isn't on this page. The lookup
-    // misses and scrollToMessage bails without throwing.
-    mockGetMessages.mockResolvedValue(messagesData);
-    mockGetMessageDetails.mockResolvedValue({
-      message: {
-        id: 'msg-12345678',
-        timestamp: '2026-02-18T10:00:00Z',
-        agent_name: 'test-agent',
-        model: 'gpt-4o',
-        status: 'error',
-        error_message: 'Unknown parameter: max_tokens',
-        description: null,
-        service_type: 'agent',
-        input_tokens: 100,
-        output_tokens: 50,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        cost_usd: 0.01,
-        duration_ms: 1200,
-        trace_id: null,
-        routing_tier: 'standard',
-        routing_reason: null,
-        specificity_category: null,
-        specificity_miscategorized: false,
-        auth_type: 'api_key',
-        provider_key_label: null,
-        skill_name: null,
-        fallback_from_model: null,
-        fallback_index: null,
-        session_key: null,
-        feedback_rating: null,
-        feedback_tags: null,
-        feedback_details: null,
-        request_headers: null,
-        request_params: null,
-        header_tier_id: null,
-        header_tier_name: null,
-        header_tier_color: null,
-        caller_attribution: null,
-        autofix_applied: true,
-        autofix_role: 'original',
-        autofix_operations: null,
-        autofix_sibling: { id: 'not-on-this-page', role: 'retry', status: 'ok' },
-      },
-    });
-    const { container } = render(() => <MessageLog />);
-    await vi.waitFor(() => {
-      expect(container.querySelector('.msg-detail__chevron-btn')).not.toBeNull();
-    });
-
-    const chevron = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
-    fireEvent.click(chevron);
-    const link = await vi.waitFor(() => {
-      const el = container.querySelector('.error-autofix-row__autofix-btn');
-      expect(el).not.toBeNull();
-      return el as HTMLButtonElement;
-    });
-    // No matching #msg-not-on-this-page element — click must not throw.
-    expect(() => fireEvent.click(link)).not.toThrow();
-    expect(container.querySelector('#msg-not-on-this-page')).toBeNull();
+    expect(successRow.querySelector('[title="Fallback"]')).not.toBeNull();
   });
 
   describe('Tier filter', () => {
