@@ -267,7 +267,7 @@ export function ModelCell(item: MessageRow): JSX.Element {
             {(item.routing_tier === 'direct' || item.routing_tier === 'default') && (
               <span class="tier-badge-tooltip__bubble">
                 {item.routing_tier === 'direct'
-                  ? 'The caller requested a specific model — no routing applied.'
+                  ? 'The caller requested a specific model. No routing applied.'
                   : 'Routed through the default tier.'}
               </span>
             )}

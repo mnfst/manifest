@@ -381,7 +381,7 @@ const Overview: Component = () => {
       </Title>
       <Meta
         name="description"
-        content={`Monitor ${agentDisplayName() ?? decodeURIComponent(params.agentName)} performance — costs, tokens, and activity.`}
+        content={`Monitor ${agentDisplayName() ?? decodeURIComponent(params.agentName)} performance, costs, tokens, and activity.`}
       />
       <div
         class="page-header"

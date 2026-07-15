@@ -479,7 +479,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: 8px;">
-                                    This is the healed retry — the request was auto-fixed and
+                                    This is the healed retry. The request was auto-fixed and
                                     re-sent.
                                   </div>
                                   <Show when={(att().autofix_phoenix as any)?.explanation?.summary}>
@@ -525,7 +525,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                                    Recovered by fallback — fell back from{' '}
+                                    Recovered by fallback. Fell back from{' '}
                                     {att().fallback_from_model}.
                                   </div>
                                 </div>
@@ -590,11 +590,11 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: 8px;">
-                                    {`This attempt failed and was auto-fixed${
+                                    {`This attempt failed and was auto-fixed.${
                                       attempts().length > att().index
-                                        ? ` — retried as attempt ${att().index + 1}`
+                                        ? ` Retried as attempt ${att().index + 1}.`
                                         : ''
-                                    }.`}
+                                    }`}
                                   </div>
                                   <Show when={(att().autofix_phoenix as any)?.explanation?.summary}>
                                     <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
@@ -647,7 +647,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                                    This attempt failed — recovered by fallback to{' '}
+                                    This attempt failed. Recovered by fallback to{' '}
                                     {attempts()[att().index]?.model} (attempt {att().index + 1}).
                                   </div>
                                 </div>

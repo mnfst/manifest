@@ -422,11 +422,11 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                                 <strong>{formatErrorClass(m.error_class)}</strong>
                                 <span class="error-autofix-row__meta-hint">
                                   {m.error_class === 'invalid_request' &&
-                                    'The request is malformed — wrong parameter, unsupported value, or missing field.'}
+                                    'The request is malformed. Wrong parameter, unsupported value, or missing field.'}
                                   {m.error_class === 'rate_limit' &&
-                                    'Too many requests — the provider is throttling.'}
+                                    'Too many requests. The provider is throttling.'}
                                   {m.error_class === 'auth' &&
-                                    'Authentication failed — invalid or expired API key.'}
+                                    'Authentication failed. Invalid or expired API key.'}
                                   {m.error_class === 'billing' &&
                                     'The provider rejected the request for billing or quota reasons.'}
                                   {m.error_class === 'timeout' &&

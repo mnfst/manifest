@@ -237,7 +237,7 @@ describe('RequestDrawer', () => {
     expect(screen.getByText('Error')).toBeDefined();
     const text = container.textContent!;
     const errorIdx = text.indexOf('Authentication Fails');
-    const consequenceIdx = text.indexOf('recovered by fallback to gpt-4.1-nano');
+    const consequenceIdx = text.indexOf('Recovered by fallback to gpt-4.1-nano');
     expect(consequenceIdx).toBeGreaterThan(errorIdx);
     // Branded title: the little logotype badge, not an uppercase word.
     expect(container.querySelector('.trigger-badge--fallback .fallback-icon')).not.toBeNull();
@@ -246,7 +246,7 @@ describe('RequestDrawer', () => {
     const attempts = container.querySelectorAll('.attempt-item');
     fireEvent.click(attempts[1]!);
     await waitFor(() =>
-      expect(container.textContent).toContain('fell back from deepseek-chat'),
+      expect(container.textContent).toContain('Fell back from deepseek-chat'),
     );
     expect(screen.queryByText('Error')).toBeNull();
   });
