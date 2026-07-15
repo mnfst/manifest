@@ -1,0 +1,23 @@
+packages/frontend/src/components/UnifiedChartCard.tsx
+  s_02f28e248c2d45::t_1f58c01d446b79 1,42-43,164-165
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_02f28e248c2d45::t_1f58c01d446b79 453-461,679-694
+packages/frontend/src/pages/Overview.tsx
+  s_02f28e248c2d45::t_89e0f952876deb 503-516
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "752472f213d866525db4883671398a82d82f7d61",
+  "prompts": {},
+  "sessions": {
+    "s_02f28e248c2d45": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f651f-32e7-7652-ba1c-50bf40823758",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
