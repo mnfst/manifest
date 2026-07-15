@@ -45,12 +45,22 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
       )
     `);
 
+    // Keep the old relation name as an automatically updatable view while
+    // Railway drains replicas from the previous release. The rename and view
+    // creation share one statement transaction, so old connections never
+    // observe a committed schema where agent_messages is missing. Creating the
+    // view before request_id is added also freezes the legacy column shape.
     await queryRunner.query(`
       DO $$
       BEGIN
         IF to_regclass('public.provider_attempts') IS NULL
            AND to_regclass('public.agent_messages') IS NOT NULL THEN
           ALTER TABLE "agent_messages" RENAME TO "provider_attempts";
+        END IF;
+
+        IF to_regclass('public.agent_messages') IS NULL
+           AND to_regclass('public.provider_attempts') IS NOT NULL THEN
+          CREATE VIEW "agent_messages" AS SELECT * FROM "provider_attempts";
         END IF;
       END $$
     `);
@@ -110,9 +120,21 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
       `ALTER TABLE "provider_attempts" DROP CONSTRAINT IF EXISTS "FK_provider_attempts_request"`,
     );
     await queryRunner.query(`ALTER TABLE "provider_attempts" DROP COLUMN IF EXISTS "request_id"`);
+    // Drop the compatibility view and restore the table name atomically.
     await queryRunner.query(`
       DO $$
       BEGIN
+        IF EXISTS (
+          SELECT 1
+          FROM pg_class c
+          JOIN pg_namespace n ON n.oid = c.relnamespace
+          WHERE n.nspname = 'public'
+            AND c.relname = 'agent_messages'
+            AND c.relkind = 'v'
+        ) THEN
+          DROP VIEW "agent_messages";
+        END IF;
+
         IF to_regclass('public.agent_messages') IS NULL
            AND to_regclass('public.provider_attempts') IS NOT NULL THEN
           ALTER TABLE "provider_attempts" RENAME TO "agent_messages";
