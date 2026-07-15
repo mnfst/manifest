@@ -245,16 +245,18 @@ export class PlaygroundService {
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      await this.recordError(
-        ctx.userId,
-        agent,
-        dto,
-        authType,
-        502,
-        message,
-        Date.now() - startedAt,
-        'transport',
-      );
+      if (!abort.signal.aborted) {
+        await this.recordError(
+          ctx.userId,
+          agent,
+          dto,
+          authType,
+          502,
+          message,
+          Date.now() - startedAt,
+          'transport',
+        );
+      }
       return this.sendPreStreamError(res, 502, `Provider request failed: ${message}`);
     }
 

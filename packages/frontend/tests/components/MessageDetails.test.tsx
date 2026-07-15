@@ -279,9 +279,7 @@ describe('MessageDetails', () => {
 
     const { container } = render(() => <MessageDetails messageId="request-1" />);
 
-    await vi.waitFor(() =>
-      expect(screen.getByRole('table', { name: 'Provider attempts' })).toBeDefined(),
-    );
+    await screen.findByRole('table', { name: 'Provider attempts' });
     const rows = container.querySelectorAll('table[aria-label="Provider attempts"] tbody tr');
     expect(rows).toHaveLength(2);
     expect(rows[0]?.textContent).toContain('1Unknown—error—');

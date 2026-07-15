@@ -4,6 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import { BackfillState } from '../../entities/backfill-state.entity';
 import {
   MESSAGE_PROVIDER_BACKFILL_LOCK_KEY,
+  MESSAGE_PROVIDER_BACKFILL_MAX_LOCK_ATTEMPTS,
   MESSAGE_PROVIDER_BACKFILL_NAME,
   MessageProviderBackfillBootService,
 } from './message-provider-backfill.boot.service';
@@ -81,6 +82,23 @@ describe('MessageProviderBackfillBootService', () => {
 
       expect(state.countBy).toHaveBeenCalledTimes(2);
       expect(lock.release).toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it('stops retrying when the advisory lock remains busy', async () => {
+      jest.useFakeTimers();
+      process.env['NODE_ENV'] = 'production';
+      const state = makeState(false);
+      const lock = makeLock(false);
+      const ds = { createQueryRunner: jest.fn(() => lock) } as unknown as DataSource;
+
+      new MessageProviderBackfillBootService(ds, state.repo).onApplicationBootstrap();
+      await jest.advanceTimersByTimeAsync(
+        30_000 * (MESSAGE_PROVIDER_BACKFILL_MAX_LOCK_ATTEMPTS - 1),
+      );
+
+      expect(state.countBy).toHaveBeenCalledTimes(MESSAGE_PROVIDER_BACKFILL_MAX_LOCK_ATTEMPTS);
+      expect(errSpy).toHaveBeenCalledWith(expect.stringContaining('lock stayed busy'));
       jest.useRealTimers();
     });
   });
