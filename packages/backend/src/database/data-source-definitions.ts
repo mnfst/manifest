@@ -4,6 +4,7 @@
 // the exact same migration set. Using an explicit array (not a dist glob) keeps
 // stale compiled .js from deleted migrations out of the run (deleteOutDir is off).
 import { AgentMessage } from '../entities/agent-message.entity';
+import { ManifestRequest } from '../entities/request.entity';
 import { ApiKey } from '../entities/api-key.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { Agent } from '../entities/agent.entity';
@@ -145,9 +146,12 @@ import { AddAutofixMessageFields1799000100000 } from './migrations/1799000100000
 import { AddAutofixPhoenixIds1799000200000 } from './migrations/1799000200000-AddAutofixPhoenixIds';
 import { MakeAutofixEnabledNullable1799000300000 } from './migrations/1799000300000-MakeAutofixEnabledNullable';
 import { AddAutofixAccessGrant1799000400000 } from './migrations/1799000400000-AddAutofixAccessGrant';
+import { AddRequestsAndProviderAttempts1801000000000 } from './migrations/1801000000000-AddRequestsAndProviderAttempts';
+import { DropAgentMessagesCompatibilityView1801100000000 } from './migrations/1801100000000-DropAgentMessagesCompatibilityView';
 
 export const entities = [
   AgentMessage,
+  ManifestRequest,
   ApiKey,
   Tenant,
   Agent,
@@ -292,4 +296,6 @@ export const migrations = [
   ReclassifyPlanRequestLimitMessages1800100000000,
   AddMessageErrorCode1800200000000,
   DropUnusedAgentMessageIndexes1800300000000,
+  AddRequestsAndProviderAttempts1801000000000,
+  DropAgentMessagesCompatibilityView1801100000000,
 ];

@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm';
  * migrations (the pre-deploy step, Railway replicas across regions, overlapping
  * deployments) contends on this one key, so migrations run strictly one at a
  * time instead of deadlocking while acquiring DDL locks on the high-churn
- * agent_messages table (the multi-replica deploy deadlock this guards against).
+ * provider_attempts table (the multi-replica deploy deadlock this guards against).
  */
 export const MIGRATION_ADVISORY_LOCK_KEY = 4011985;
 

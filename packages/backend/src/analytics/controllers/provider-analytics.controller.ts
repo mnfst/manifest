@@ -11,9 +11,12 @@ import {
   filterByTenantProviderId,
   excludePlaygroundAgents,
   sqlCountMessages,
+  addTenantFilter,
+  scopeToConnection,
 } from '../services/query-helpers';
 import { computeCutoff } from '../../common/utils/postgres-sql';
 import { sqlCastFloat, sqlSanitizeCost } from '../../common/utils/postgres-sql';
+import { rangeToInterval } from '../../common/utils/range.util';
 
 @Controller('api/v1/provider-analytics')
 export class ProviderAnalyticsController {
@@ -43,7 +46,7 @@ export class ProviderAnalyticsController {
     const hourly = validRange === '24h';
     const agent = agentName || undefined;
 
-    const [summary, ts] = await Promise.all([
+    const [summary, ts, attempts] = await Promise.all([
       // excludePlayground=true: Playground (is_playground) usage must not pollute
       // provider analytics aggregates.
       this.aggregation.getSummaryMetrics(
@@ -67,6 +70,15 @@ export class ProviderAnalyticsController {
         label,
         connectionId,
       ),
+      this.getAttemptReliability(
+        validRange,
+        ctx.tenantId,
+        agent,
+        authType,
+        provider,
+        label,
+        connectionId,
+      ),
     ]);
 
     return {
@@ -76,6 +88,38 @@ export class ProviderAnalyticsController {
       },
       token_usage: ts.tokenUsage,
       message_usage: ts.messageUsage,
+      attempts,
+    };
+  }
+
+  private async getAttemptReliability(
+    range: string,
+    tenantId: string | null,
+    agentName?: string,
+    authType?: string,
+    provider?: string,
+    label?: string,
+    connectionId?: string,
+  ): Promise<{ total: number; successful: number; success_rate: number }> {
+    const qb = this.messageRepo
+      .createQueryBuilder('at')
+      .select('COUNT(*)', 'total')
+      .addSelect("COUNT(*) FILTER (WHERE at.status = 'ok')", 'successful')
+      .where('at.timestamp >= :attemptCutoff', {
+        attemptCutoff: computeCutoff(rangeToInterval(range)),
+      });
+    addTenantFilter(qb, tenantId, agentName);
+    if (authType) qb.andWhere('at.auth_type = :attemptAuthType', { attemptAuthType: authType });
+    if (provider) qb.andWhere('at.provider = :attemptProvider', { attemptProvider: provider });
+    excludePlaygroundAgents(qb);
+    scopeToConnection(qb, connectionId, label);
+    const row = await qb.getRawOne();
+    const total = Number(row?.total ?? 0);
+    const successful = Number(row?.successful ?? 0);
+    return {
+      total,
+      successful,
+      success_rate: total === 0 ? 0 : (successful / total) * 100,
     };
   }
 
@@ -88,7 +132,7 @@ export class ProviderAnalyticsController {
     @Query('label') label?: string,
     @Query('connection_id') connectionId?: string,
   ) {
-    const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
+    const validRange = this.validateRange(range);
     const hourly = validRange === '24h';
 
     return this.timeseries.getPerAgentTimeseries(
@@ -111,7 +155,7 @@ export class ProviderAnalyticsController {
     @Query('label') label?: string,
     @Query('connection_id') connectionId?: string,
   ) {
-    const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
+    const validRange = this.validateRange(range);
     const hourly = validRange === '24h';
 
     return this.timeseries.getPerAgentMessageTimeseries(
@@ -134,7 +178,7 @@ export class ProviderAnalyticsController {
     @Query('label') label?: string,
     @Query('connection_id') connectionId?: string,
   ) {
-    const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
+    const validRange = this.validateRange(range);
     const hourly = validRange === '24h';
 
     return this.timeseries.getPerAgentCostTimeseries(
@@ -178,7 +222,7 @@ export class ProviderAnalyticsController {
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
 
     // A connection is identified by its tenant_providers row id, stamped on
-    // agent_messages.tenant_provider_id at proxy time. Filtering on it pins every
+    // provider_attempts.tenant_provider_id at proxy time. Filtering on it pins every
     // widget below to the exact key that served each message — unlike the old
     // (provider, auth_type, label) tuple, two keys that share a label no longer
     // merge. Pre-upgrade rows the backfill could not disambiguate carry a NULL
@@ -304,6 +348,6 @@ export class ProviderAnalyticsController {
   }
 
   private validateRange(range?: string): string {
-    return range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
+    return range === '7d' || range === '30d' || range === '90d' || range === '365d' ? range : '24h';
   }
 }

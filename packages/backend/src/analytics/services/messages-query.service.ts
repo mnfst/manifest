@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, In, Repository, SelectQueryBuilder } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -10,6 +10,9 @@ import {
   selectMessageRowColumns,
   ERROR_MESSAGE_STATUSES,
   MANIFEST_ORIGIN_PREDICATE,
+  CUSTOM_PROVIDER_JOIN_CONDITION,
+  excludePlaygroundAgents,
+  sqlExcludePlayground,
 } from './query-helpers';
 import type {
   MessageOriginFilter,
@@ -19,6 +22,7 @@ import type {
 import { computeCutoff, sqlCastFloat, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 import { inferProviderFromModel } from '../../common/utils/provider-inference';
 import { TtlCache } from '../../common/utils/ttl-cache';
+import { ManifestRequest } from '../../entities/request.entity';
 
 // The Messages-log "failed"/"errors" filters and every "messages" KPI count
 // share one definition of an error status (see query-helpers.sqlCountMessages).
@@ -38,11 +42,11 @@ const MAX_CACHE_ENTRIES = 5_000;
 // $1 (tenant_id) is reused by position across all three references.
 const DISTINCT_MODELS_SKIP_SCAN_SQL = `
 WITH RECURSIVE t AS (
-  (SELECT model FROM agent_messages
+  (SELECT model FROM provider_attempts
      WHERE tenant_id = $1 AND model IS NOT NULL AND model <> ''
      ORDER BY model LIMIT 1)
   UNION ALL
-  SELECT (SELECT model FROM agent_messages
+  SELECT (SELECT model FROM provider_attempts
             WHERE tenant_id = $1 AND model > t.model AND model IS NOT NULL AND model <> ''
             ORDER BY model LIMIT 1)
   FROM t WHERE t.model IS NOT NULL
@@ -50,14 +54,14 @@ WITH RECURSIVE t AS (
 SELECT model FROM t WHERE model IS NOT NULL`;
 
 // Same technique for distinct providers, backed by the partial
-// IDX_agent_messages_tenant_provider_value (tenant_id, provider) index.
+// IDX_provider_attempts_tenant_provider_value (tenant_id, provider) index.
 const DISTINCT_PROVIDERS_SKIP_SCAN_SQL = `
 WITH RECURSIVE p AS (
-  (SELECT provider FROM agent_messages
+  (SELECT provider FROM provider_attempts
      WHERE tenant_id = $1 AND provider IS NOT NULL AND provider <> ''
      ORDER BY provider LIMIT 1)
   UNION ALL
-  SELECT (SELECT provider FROM agent_messages
+  SELECT (SELECT provider FROM provider_attempts
             WHERE tenant_id = $1 AND provider > p.provider AND provider IS NOT NULL AND provider <> ''
             ORDER BY provider LIMIT 1)
   FROM p WHERE p.provider IS NOT NULL
@@ -86,6 +90,7 @@ interface MessageQueryParams extends MessageFilterParams {
   header_tier_id?: string;
   include_total?: boolean;
   include_filter_options?: boolean;
+  exclude_playground?: boolean;
 }
 
 @Injectable()
@@ -104,9 +109,13 @@ export class MessagesQueryService {
     private readonly turnRepo: Repository<AgentMessage>,
     @InjectRepository(CustomProvider)
     private readonly customProviderRepo: Repository<CustomProvider>,
+    @Optional()
+    @InjectRepository(ManifestRequest)
+    private readonly requestRepo?: Repository<ManifestRequest>,
   ) {}
 
   async getMessages(params: MessageQueryParams) {
+    if (this.requestRepo) return this.getRequests(params);
     const baseQb = await this.buildBaseMessageQuery(params);
 
     const includeTotal = params.include_total !== false;
@@ -161,6 +170,220 @@ export class MessagesQueryService {
       items,
       next_cursor: nextCursor,
       total_count: totalCount,
+      total_count_exact: includeTotal,
+      providers: filterOptions.providers,
+      provider_labels: filterOptions.provider_labels,
+    };
+  }
+
+  /** Request-first log. Attempts are aggregated into their parent row. */
+  private async getRequests(params: MessageQueryParams) {
+    const qb = this.requestRepo!.createQueryBuilder('r').leftJoin(
+      AgentMessage,
+      'at',
+      'at.request_id = r.id',
+    );
+    const cutoff = params.range ? computeCutoff(rangeToInterval(params.range)) : undefined;
+    if (cutoff) qb.where('r.timestamp >= :requestCutoff', { requestCutoff: cutoff });
+    if (params.tenantId)
+      qb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: params.tenantId });
+    else qb.andWhere('1 = 0');
+    if (params.agent_name) {
+      qb.andWhere(
+        `r.agent_id = (
+          SELECT id FROM agents
+          WHERE tenant_id = r.tenant_id AND name = :requestAgentName AND deleted_at IS NULL
+          LIMIT 1
+        )`,
+        { requestAgentName: params.agent_name },
+      );
+    }
+    if (params.exclude_playground) {
+      qb.andWhere(sqlExcludePlayground('r'));
+    }
+    if (params.status === 'failed' || params.status === 'errors') {
+      qb.andWhere("r.status <> 'ok'");
+    } else if (params.status) {
+      qb.andWhere('r.status = :requestStatus', { requestStatus: params.status });
+    }
+    if (params.origin === 'manifest') {
+      qb.andWhere(`r.error_origin IN ('config', 'policy', 'internal', 'request')`);
+    } else if (params.origin) {
+      qb.andWhere('r.error_origin = :requestOrigin', { requestOrigin: params.origin });
+    }
+    if (params.error_class) {
+      qb.andWhere('r.error_class = :requestErrorClass', {
+        requestErrorClass: params.error_class,
+      });
+    }
+    const attemptPredicates: string[] = [];
+    const attemptParameters: Record<string, unknown> = {};
+    const matchingAttempt = (predicates: string[]): string => `EXISTS (
+      SELECT 1 FROM provider_attempts filtered_attempt
+      WHERE filtered_attempt.request_id = r.id AND ${predicates.join(' AND ')}
+    )`;
+    if (params.provider) {
+      attemptPredicates.push('filtered_attempt.provider = :requestProvider');
+      attemptParameters['requestProvider'] = params.provider;
+    }
+    if (params.service_type) {
+      attemptPredicates.push('filtered_attempt.service_type = :requestServiceType');
+      attemptParameters['requestServiceType'] = params.service_type;
+    }
+    if (params.routing_tier) {
+      attemptPredicates.push('filtered_attempt.routing_tier = :requestTier');
+      attemptParameters['requestTier'] = params.routing_tier;
+    }
+    if (params.specificity_category) {
+      attemptPredicates.push('filtered_attempt.specificity_category = :requestSpecificity');
+      attemptParameters['requestSpecificity'] = params.specificity_category;
+    }
+    if (params.header_tier_id) {
+      attemptPredicates.push('filtered_attempt.header_tier_id = :requestHeaderTier');
+      attemptParameters['requestHeaderTier'] = params.header_tier_id;
+    }
+    if (params.trigger === 'autofix')
+      attemptPredicates.push('filtered_attempt.autofix_applied = true');
+    else if (params.trigger === 'fallback')
+      attemptPredicates.push('filtered_attempt.fallback_from_model IS NOT NULL');
+    else if (params.trigger === 'none') {
+      qb.andWhere(`NOT EXISTS (
+        SELECT 1 FROM provider_attempts trigger_attempt
+        WHERE trigger_attempt.request_id = r.id
+        AND (trigger_attempt.autofix_applied = true OR trigger_attempt.fallback_from_model IS NOT NULL)
+      )`);
+    }
+    if (attemptPredicates.length > 0) {
+      qb.andWhere(matchingAttempt(attemptPredicates), attemptParameters);
+    }
+    if (params.cursor) {
+      const sep = params.cursor.indexOf('|');
+      if (sep !== -1) {
+        const cursorTs = params.cursor.slice(0, sep);
+        const cursorId = params.cursor.slice(sep + 1);
+        qb.andWhere(
+          new Brackets((sub) => {
+            sub.where('r.timestamp < :requestCursorTs', { requestCursorTs: cursorTs }).orWhere(
+              new Brackets((inner) => {
+                inner
+                  .where('r.timestamp = :requestCursorTsEqual', {
+                    requestCursorTsEqual: cursorTs,
+                  })
+                  .andWhere('r.id < :requestCursorId', { requestCursorId: cursorId });
+              }),
+            );
+          }),
+        );
+      }
+    }
+
+    const countQb = qb.clone().select('COUNT(DISTINCT r.id)', 'total');
+    const rank = `CASE WHEN at.status = 'ok' THEN 3 WHEN NOT COALESCE(at.superseded, false) AND at.status NOT IN ('fallback_error', 'auto_fixed') THEN 2 ELSE 1 END`;
+    const picked = (column: string): string =>
+      `(ARRAY_AGG(${column} ORDER BY ${rank} DESC, at.timestamp DESC, at.id DESC) FILTER (WHERE at.id IS NOT NULL))[1]`;
+    const safeCost = sqlSanitizeCost('at.cost_usd');
+    qb.leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
+      .select('r.id', 'id')
+      .addSelect('r.timestamp', 'timestamp')
+      .addSelect('r.agent_name', 'agent_name')
+      .addSelect(`COALESCE(${picked('at.model')}, r.requested_model)`, 'model')
+      .addSelect(picked('at.provider'), 'provider')
+      .addSelect(`COALESCE(${picked('at.model')}, r.requested_model)`, 'display_name')
+      .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'input_tokens')
+      .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output_tokens')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total_tokens')
+      .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
+      .addSelect('r.status', 'status')
+      .addSelect('r.error_message', 'error_message')
+      .addSelect('r.error_code', 'error_code')
+      .addSelect('r.error_origin', 'error_origin')
+      .addSelect('r.error_class', 'error_class')
+      .addSelect('r.error_http_status', 'error_http_status')
+      // Latency, like tokens and cost, is attempt-derived. The parent value is
+      // only needed for zero-attempt rejections.
+      .addSelect('COALESCE(SUM(at.duration_ms), r.duration_ms)::int', 'duration_ms')
+      .addSelect(picked('at.routing_tier'), 'routing_tier')
+      .addSelect(picked('at.routing_reason'), 'routing_reason')
+      .addSelect(picked('at.specificity_category'), 'specificity_category')
+      .addSelect(picked('at.auth_type'), 'auth_type')
+      .addSelect(picked('at.fallback_from_model'), 'fallback_from_model')
+      .addSelect(picked('at.fallback_index'), 'fallback_index')
+      .addSelect('r.feedback_rating', 'feedback_rating')
+      .addSelect(picked('at.header_tier_id'), 'header_tier_id')
+      .addSelect(picked('at.header_tier_name'), 'header_tier_name')
+      .addSelect(picked('at.header_tier_color'), 'header_tier_color')
+      .addSelect(picked('at.provider_key_label'), 'provider_key_label')
+      .addSelect(picked('cp.name'), 'custom_provider_name')
+      .addSelect('COALESCE(BOOL_OR(at.autofix_applied), false)', 'autofix_applied')
+      .addSelect(
+        `CASE WHEN COALESCE(BOOL_OR(at.autofix_applied), false) THEN 'retry' ELSE NULL END`,
+        'autofix_role',
+      )
+      .addSelect('COALESCE(SUM(at.cache_read_tokens), 0)', 'cache_read_tokens')
+      .addSelect('COALESCE(SUM(at.cache_creation_tokens), 0)', 'cache_creation_tokens')
+      .addSelect('COUNT(at.id)::int', 'attempt_count')
+      .groupBy('r.id');
+    if (params.cost_min !== undefined) {
+      qb.having(`COALESCE(SUM(${safeCost}), 0) >= :requestCostMin`, {
+        requestCostMin: params.cost_min,
+      });
+    }
+    if (params.cost_max !== undefined) {
+      qb.andHaving(`COALESCE(SUM(${safeCost}), 0) <= :requestCostMax`, {
+        requestCostMax: params.cost_max,
+      });
+    }
+
+    const includeTotal = params.include_total !== false;
+    // Keep the log complete while the online backfill is running. Each still-
+    // unlinked attempt is temporarily its own synthetic request; it disappears
+    // from this branch as soon as the backfill links it to a real parent.
+    const legacyBase = await this.buildBaseMessageQuery(params);
+    legacyBase.andWhere('at.request_id IS NULL');
+    if (params.exclude_playground) excludePlaygroundAgents(legacyBase);
+    const legacyCountQb = legacyBase.clone().select('COUNT(*)', 'total');
+    const legacyDataQb = selectMessageRowColumns(
+      legacyBase.clone(),
+      sqlCastFloat(sqlSanitizeCost('at.cost_usd')),
+    )
+      .addSelect('at.description', 'description')
+      .addSelect('at.service_type', 'service_type')
+      .addSelect('at.cache_read_tokens', 'cache_read_tokens')
+      .addSelect('at.cache_creation_tokens', 'cache_creation_tokens')
+      .addSelect('at.duration_ms', 'duration_ms')
+      .addSelect('1', 'attempt_count');
+    this.applyCursor(legacyDataQb, params.cursor);
+
+    const [count, legacyCount, requestRows, legacyRows, filterOptions] = await Promise.all([
+      includeTotal ? countQb.getRawOne() : Promise.resolve(null),
+      includeTotal ? legacyCountQb.getRawOne() : Promise.resolve(null),
+      qb
+        .orderBy('r.timestamp', 'DESC')
+        .addOrderBy('r.id', 'DESC')
+        .limit(params.limit + 1)
+        .getRawMany(),
+      legacyDataQb
+        .orderBy('at.timestamp', 'DESC')
+        .addOrderBy('at.id', 'DESC')
+        .limit(params.limit + 1)
+        .getRawMany(),
+      params.include_filter_options !== false
+        ? this.getMessageFilterOptions(params)
+        : Promise.resolve({ providers: [] as string[], provider_labels: {} }),
+    ]);
+    const rows = [...requestRows, ...legacyRows].sort((a, b) => {
+      const byTime = new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+      return byTime || String(b.id).localeCompare(String(a.id));
+    });
+    const hasMore = rows.length > params.limit;
+    const items = rows.slice(0, params.limit);
+    const last = items[items.length - 1] as Record<string, unknown> | undefined;
+    return {
+      items,
+      next_cursor: hasMore && last ? this.encodeCursor(last) : null,
+      total_count: includeTotal
+        ? Number(count?.total ?? 0) + Number(legacyCount?.total ?? 0)
+        : items.length + (hasMore ? 1 : 0),
       total_count_exact: includeTotal,
       providers: filterOptions.providers,
       provider_labels: filterOptions.provider_labels,
@@ -404,7 +627,7 @@ export class MessagesQueryService {
 
     // Fast path: the tenant-global filter dropdown (no agent constraint, tenant
     // resolved). A recursive loose-index-scan jumps value-to-value through
-    // IDX_agent_messages_tenant_model / IDX_agent_messages_tenant_provider_value
+    // IDX_provider_attempts_tenant_model / IDX_provider_attempts_tenant_provider_value
     // — roughly one index seek per distinct value, versus scanning and
     // disk-sorting the tenant's entire history (measured 2.2s -> ~10ms on a
     // 322k-row tenant). The window is intentionally all-time: cost is now bounded
@@ -439,7 +662,7 @@ export class MessagesQueryService {
     agentName: string | undefined,
   ): Promise<{ models: string[]; providers: string[] }> {
     // Bound the scan: when the caller doesn't constrain the range, default to
-    // the last 90 days. The DISTINCT covers the entire agent_messages table
+    // the last 90 days. The DISTINCT covers the entire provider_attempts table
     // otherwise, which scales poorly as ingest grows.
     const cutoff = range
       ? computeCutoff(rangeToInterval(range))

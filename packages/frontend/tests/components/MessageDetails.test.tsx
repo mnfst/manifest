@@ -254,6 +254,38 @@ describe('MessageDetails', () => {
     });
   });
 
+  it('lists every provider attempt with its status and cost', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        attempts: [
+          {
+            id: 'attempt-1',
+            provider: null,
+            model: null,
+            status: 'error',
+            cost_usd: null,
+          },
+          {
+            id: 'attempt-2',
+            provider: 'openai',
+            model: 'gpt-4o',
+            status: 'ok',
+            cost_usd: 0.0123456,
+          },
+        ],
+      },
+    });
+
+    const { container } = render(() => <MessageDetails messageId="request-1" />);
+
+    await screen.findByRole('table', { name: 'Provider attempts' });
+    const rows = container.querySelectorAll('table[aria-label="Provider attempts"] tbody tr');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]?.textContent).toContain('1Unknown—error—');
+    expect(rows[1]?.textContent).toContain('2openaiGPT-4ook$0.012346');
+  });
+
   it('shows error state on API failure', async () => {
     mockGetMessageDetails.mockImplementation(() => Promise.reject(new Error('Network error')));
     const { container } = render(() => <MessageDetails messageId="msg-1" />);

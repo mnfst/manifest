@@ -45,7 +45,7 @@ describe('TypeOrmBackfillGateway', () => {
     it('refreshes statistics on the stamped table and its join target', async () => {
       const query = jest.fn(async () => undefined);
       await new TypeOrmBackfillGateway({ query } as unknown as DataSource).analyze();
-      expect(query).toHaveBeenCalledWith('ANALYZE "agent_messages"');
+      expect(query).toHaveBeenCalledWith('ANALYZE "provider_attempts"');
       expect(query).toHaveBeenCalledWith('ANALYZE "tenant_providers"');
     });
   });

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -12,8 +12,10 @@ import {
   sqlCountMessages,
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
+  sqlExcludePlayground,
 } from './query-helpers';
 import { CustomProvider } from '../../entities/custom-provider.entity';
+import { ManifestRequest } from '../../entities/request.entity';
 import {
   computeCutoff,
   sqlHourBucket,
@@ -49,6 +51,9 @@ export class TimeseriesQueriesService {
     private readonly turnRepo: Repository<AgentMessage>,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
+    @Optional()
+    @InjectRepository(ManifestRequest)
+    private readonly requestRepo?: Repository<ManifestRequest>,
   ) {}
 
   async getTimeseries(
@@ -82,7 +87,48 @@ export class TimeseriesQueriesService {
     // Scope to this connection: pin to the tenant_providers id when present,
     // else the provider+auth_type+label tuple (see scopeToConnection).
     scopeToConnection(qb, tenantProviderId, label);
-    const rows = await qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
+    const attemptsPromise = qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
+    const useRequestCounts =
+      this.requestRepo && !authType && !provider && !label && !tenantProviderId;
+    let requestRowsPromise: Promise<Array<Record<string, unknown>>> = Promise.resolve([]);
+    let unlinkedRowsPromise: Promise<Array<Record<string, unknown>>> = Promise.resolve([]);
+    if (useRequestCounts) {
+      const requestQb = this.requestRepo!.createQueryBuilder('r')
+        .select(hourly ? sqlHourBucket('r.timestamp') : sqlDateBucket('r.timestamp'), bucketAlias)
+        .addSelect('COUNT(*)', 'count')
+        .where('r.timestamp >= :requestCutoff', { requestCutoff: cutoff });
+      if (tenantId)
+        requestQb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: tenantId });
+      else requestQb.andWhere('1 = 0');
+      if (agentName && tenantId) {
+        requestQb.andWhere(
+          `r.agent_id = (SELECT id FROM agents WHERE tenant_id = :requestTenantId AND name = :requestAgentName AND deleted_at IS NULL LIMIT 1)`,
+          { requestAgentName: agentName },
+        );
+      }
+      if (excludePlayground) {
+        requestQb.andWhere(sqlExcludePlayground('r'));
+      }
+      requestRowsPromise = requestQb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
+
+      const unlinkedQb = this.turnRepo
+        .createQueryBuilder('at')
+        .select(bucketExpr, bucketAlias)
+        .addSelect('COUNT(*)', 'count')
+        .where('at.request_id IS NULL')
+        .andWhere('at.timestamp >= :unlinkedCutoff', { unlinkedCutoff: cutoff });
+      addTenantFilter(unlinkedQb, tenantId, agentName);
+      if (excludePlayground) excludePlaygroundAgents(unlinkedQb);
+      unlinkedRowsPromise = unlinkedQb
+        .groupBy(bucketAlias)
+        .orderBy(bucketAlias, 'ASC')
+        .getRawMany();
+    }
+    const [rows, requestRows, unlinkedRows] = await Promise.all([
+      attemptsPromise,
+      requestRowsPromise,
+      unlinkedRowsPromise,
+    ]);
 
     const tokenUsage: {
       hour?: string;
@@ -103,6 +149,18 @@ export class TimeseriesQueriesService {
       });
       costUsage.push({ ...bucketKey, cost: parsed.cost });
       messageUsage.push({ ...bucketKey, count: parsed.count });
+    }
+
+    if (useRequestCounts) {
+      const counts = new Map<string, number>();
+      for (const row of [...requestRows, ...unlinkedRows]) {
+        const value = String(row[bucketAlias] ?? '');
+        counts.set(value, (counts.get(value) ?? 0) + Number(row['count'] ?? 0));
+      }
+      messageUsage.length = 0;
+      for (const [bucket, count] of [...counts].sort(([a], [b]) => a.localeCompare(b))) {
+        messageUsage.push(hourly ? { hour: bucket, count } : { date: bucket, count });
+      }
     }
 
     return { tokenUsage, costUsage, messageUsage };
@@ -246,7 +304,32 @@ export class TimeseriesQueriesService {
       .setParameter('sparkCutoff', sparkCutoff);
     addTenantFilter(bucketsQb, tenantId);
 
-    const [agents, bucketRows] = await Promise.all([
+    let requestCountRowsPromise: Promise<Array<Record<string, unknown>>> = Promise.resolve([]);
+    let unlinkedCountRowsPromise: Promise<Array<Record<string, unknown>>> = Promise.resolve([]);
+    if (this.requestRepo) {
+      const requestCountsQb = this.requestRepo
+        .createQueryBuilder('r')
+        .select('r.agent_id', 'agent_id')
+        .addSelect('COUNT(*)', 'message_count')
+        .addSelect('MAX(r.timestamp)', 'last_active')
+        .where('r.agent_id IS NOT NULL')
+        .andWhere('r.timestamp >= :requestStatsCutoff', { requestStatsCutoff: statsCutoff });
+      requestCountsQb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: tenantId });
+      requestCountRowsPromise = requestCountsQb.groupBy('r.agent_id').getRawMany();
+
+      const unlinkedCountsQb = this.turnRepo
+        .createQueryBuilder('at')
+        .select('at.agent_id', 'agent_id')
+        .addSelect('COUNT(*)', 'message_count')
+        .addSelect('MAX(at.timestamp)', 'last_active')
+        .where('at.request_id IS NULL')
+        .andWhere('at.agent_id IS NOT NULL')
+        .andWhere('at.timestamp >= :legacyStatsCutoff', { legacyStatsCutoff: statsCutoff });
+      addTenantFilter(unlinkedCountsQb, tenantId);
+      unlinkedCountRowsPromise = unlinkedCountsQb.groupBy('at.agent_id').getRawMany();
+    }
+
+    const [agents, bucketRows, requestCountRows, unlinkedCountRows] = await Promise.all([
       agentQb.andWhere('a.is_active = true').orderBy('a.created_at', 'DESC').getMany(),
       bucketsQb
         .groupBy('at.agent_id')
@@ -254,6 +337,8 @@ export class TimeseriesQueriesService {
         .orderBy('at.agent_id', 'ASC')
         .addOrderBy('date', 'ASC')
         .getRawMany(),
+      requestCountRowsPromise,
+      unlinkedCountRowsPromise,
     ]);
 
     const sparkCutoffIso = String(sparkCutoff);
@@ -261,6 +346,23 @@ export class TimeseriesQueriesService {
       string,
       { message_count: number; total_cost: number; total_tokens: number; last_active: string }
     >();
+    const requestStatsMap = new Map<string, { count: number; last_active: string }>();
+    for (const r of [...requestCountRows, ...unlinkedCountRows]) {
+      const id = String(r['agent_id']);
+      const rawLastActive = r['last_active'];
+      const lastActive =
+        rawLastActive instanceof Date ? rawLastActive.toISOString() : String(rawLastActive ?? '');
+      const existing = requestStatsMap.get(id);
+      if (existing) {
+        existing.count += Number(r['message_count'] ?? 0);
+        if (lastActive > existing.last_active) existing.last_active = lastActive;
+      } else {
+        requestStatsMap.set(id, {
+          count: Number(r['message_count'] ?? 0),
+          last_active: lastActive,
+        });
+      }
+    }
     const sparkMap = new Map<string, number[]>();
     for (const r of bucketRows) {
       const id = String(r['agent_id']);
@@ -297,13 +399,16 @@ export class TimeseriesQueriesService {
 
     return agents.map((a) => {
       const stats = statsMap.get(a.id);
+      const requestStats = requestStatsMap.get(a.id);
       return {
         agent_name: a.name,
         display_name: a.display_name ?? a.name,
         agent_category: a.agent_category ?? null,
         agent_platform: a.agent_platform ?? null,
-        message_count: stats?.message_count ?? 0,
-        last_active: stats?.last_active || String(a.created_at ?? ''),
+        message_count: requestStats?.count ?? stats?.message_count ?? 0,
+        last_active:
+          [requestStats?.last_active, stats?.last_active].filter(Boolean).sort().at(-1) ||
+          String(a.created_at ?? ''),
         total_cost: stats?.total_cost ?? 0,
         total_tokens: stats?.total_tokens ?? 0,
         sparkline: sparkMap.get(a.id) ?? [],
@@ -365,6 +470,59 @@ export class TimeseriesQueriesService {
     const cutoff = computeCutoff(interval);
     const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
     const bucketAlias = hourly ? 'hour' : 'date';
+
+    const useRequestCounts =
+      this.requestRepo && !authType && !provider && !label && !tenantProviderId;
+    if (useRequestCounts) {
+      const requestBucketExpr = hourly
+        ? sqlHourBucket('r.timestamp')
+        : sqlDateBucket('r.timestamp');
+      const requestQb = this.requestRepo!.createQueryBuilder('r')
+        .select(requestBucketExpr, bucketAlias)
+        .addSelect('r.agent_name', 'agent_name')
+        .addSelect('COUNT(*)', 'messages')
+        .where('r.timestamp >= :requestCutoff', { requestCutoff: cutoff })
+        .andWhere('r.agent_name IS NOT NULL')
+        .andWhere(sqlExcludePlayground('r'));
+      if (tenantId)
+        requestQb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: tenantId });
+      else requestQb.andWhere('1 = 0');
+
+      const unlinkedQb = this.turnRepo
+        .createQueryBuilder('at')
+        .select(bucketExpr, bucketAlias)
+        .addSelect('at.agent_name', 'agent_name')
+        .addSelect('COUNT(*)', 'messages')
+        .where('at.request_id IS NULL')
+        .andWhere('at.timestamp >= :unlinkedCutoff', { unlinkedCutoff: cutoff })
+        .andWhere('at.agent_name IS NOT NULL');
+      addTenantFilter(unlinkedQb, tenantId);
+      excludePlaygroundAgents(unlinkedQb);
+
+      const [requestRows, unlinkedRows] = await Promise.all([
+        requestQb
+          .groupBy(bucketAlias)
+          .addGroupBy('r.agent_name')
+          .orderBy(bucketAlias, 'ASC')
+          .getRawMany(),
+        unlinkedQb
+          .groupBy(bucketAlias)
+          .addGroupBy('at.agent_name')
+          .orderBy(bucketAlias, 'ASC')
+          .getRawMany(),
+      ]);
+      const combined = new Map<string, Record<string, unknown>>();
+      for (const row of [...requestRows, ...unlinkedRows]) {
+        const key = `${String(row[bucketAlias])}\0${String(row['agent_name'])}`;
+        const current = combined.get(key);
+        if (current) current['messages'] = Number(current['messages']) + Number(row['messages']);
+        else combined.set(key, { ...row, messages: Number(row['messages'] ?? 0) });
+      }
+      const rows = [...combined.values()].sort((a, b) =>
+        String(a[bucketAlias]).localeCompare(String(b[bucketAlias])),
+      );
+      return pivotByKey(rows, bucketAlias, 'agent_name', 'messages');
+    }
 
     const qb = this.turnRepo
       .createQueryBuilder('at')

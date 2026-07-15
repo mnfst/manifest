@@ -121,20 +121,55 @@ describe('analytics chart surface components', () => {
     ));
 
     expect(screen.getByText('Cost')).toBeDefined();
-    expect(screen.getByText('Messages')).toBeDefined();
+    expect(screen.getByText('Requests')).toBeDefined();
     expect(screen.getByText('Token usage')).toBeDefined();
     expect(screen.getByTestId('info-tooltip')).toBeDefined();
     await buildLazyChart();
 
     // Tab controls are semantic <button>s (keyboard/a11y).
-    const messagesTab = screen.getByText('Messages').closest('button');
+    const messagesTab = screen.getByText('Requests').closest('button');
     expect(messagesTab).not.toBeNull();
-    fireEvent.click(screen.getByText('Messages'));
+    fireEvent.click(screen.getByText('Requests'));
     expect(onViewChange).toHaveBeenCalledWith('messages');
     fireEvent.click(screen.getByText('Token usage'));
     expect(onViewChange).toHaveBeenCalledWith('tokens');
     fireEvent.click(screen.getByText('Cost'));
     expect(onViewChange).toHaveBeenCalledWith('cost');
+  });
+
+  it('explains provider-attempt reliability and Manifest recovery', () => {
+    const { unmount } = render(() => (
+      <ProviderChartCard
+        activeView="messages"
+        onViewChange={vi.fn()}
+        messagesValue={20}
+        messagesTrendPct={0}
+        requestSuccessRate={95}
+        attemptSuccessRate={80}
+        tokensValue={0}
+        tokensTrendPct={0}
+        range="24h"
+      />
+    ));
+
+    expect(screen.getByTestId('info-tooltip').textContent).toBe(
+      'Caller success: 95.0%. Provider-attempt success: 80.0%. The gap is recovery from fallbacks and Auto-fix.',
+    );
+    unmount();
+
+    render(() => (
+      <ProviderChartCard
+        activeView="messages"
+        onViewChange={vi.fn()}
+        messagesValue={20}
+        messagesTrendPct={0}
+        attemptSuccessRate={80}
+        tokensValue={0}
+        tokensTrendPct={0}
+        range="24h"
+      />
+    ));
+    expect(screen.getByTestId('info-tooltip').textContent).toBe('Provider-attempt success: 80.0%.');
   });
 
   it('renders ProviderChartCard message and cost chart branches', async () => {
@@ -164,7 +199,7 @@ describe('analytics chart surface components', () => {
       />
     ));
 
-    expect(screen.getByText('Messages')).toBeDefined();
+    expect(screen.getByText('Requests')).toBeDefined();
     await buildLazyChart();
     unmount();
     capturedLifecycleOpts = null;
@@ -210,7 +245,7 @@ describe('analytics chart surface components', () => {
       />
     ));
 
-    expect(screen.getByText('No message data for this time range')).toBeDefined();
+    expect(screen.getByText('No request data for this time range')).toBeDefined();
     expect(screen.queryByText('Cost')).toBeNull();
     unmount();
 
@@ -296,7 +331,11 @@ describe('analytics chart surface components', () => {
     // Token axis uses formatLegendTokens (mocked to String()).
     expect(capturedChartOpts.axes[1].values({}, [1234])).toEqual(['1234']);
     expect(
-      capturedChartOpts.cursor.move({ posToIdx: () => 0, data: [[1700000000]], valToPos: () => 5 }, 7, 3),
+      capturedChartOpts.cursor.move(
+        { posToIdx: () => 0, data: [[1700000000]], valToPos: () => 5 },
+        7,
+        3,
+      ),
     ).toEqual([5, 3]);
   });
 
@@ -348,9 +387,7 @@ describe('analytics chart surface components', () => {
     // Series are rendered in reverse agent order; each must get the default
     // color for its ORIGINAL index, so colors don't all collapse onto index 0.
     // reversed = ['anthropic'(idx1), 'openai'(idx0)] → AGENT_COLORS[1], [0].
-    const strokes = capturedChartOpts.series
-      .slice(1)
-      .map((s: { stroke: string }) => s.stroke);
+    const strokes = capturedChartOpts.series.slice(1).map((s: { stroke: string }) => s.stroke);
     expect(strokes).toEqual([AGENT_COLORS[1], AGENT_COLORS[0]]);
     // A real per-series distinction: the two strokes differ.
     expect(strokes[0]).not.toBe(strokes[1]);
@@ -376,9 +413,7 @@ describe('analytics chart surface components', () => {
 
     buildCapturedChart();
     // reversed order: anthropic (no map → AGENT_COLORS[1]), openai (mapped).
-    const strokes = capturedChartOpts.series
-      .slice(1)
-      .map((s: { stroke: string }) => s.stroke);
+    const strokes = capturedChartOpts.series.slice(1).map((s: { stroke: string }) => s.stroke);
     expect(strokes).toEqual([AGENT_COLORS[1], '#abcdef']);
   });
 });

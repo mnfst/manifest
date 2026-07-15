@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { AgentMessage } from '../entities/agent-message.entity';
 
 /**
- * Seeds realistic error `agent_messages` (dev/test only) so the live discovery
+ * Seeds realistic error `provider_attempts` (dev/test only) so the live discovery
  * endpoint produces real GROUP BY clusters instead of a hardcoded list. Each
  * spec fans out across `tenants` distinct synthetic tenants with a recovered
  * fraction (an `ok` sibling sharing the trace) and rotates through several
@@ -220,7 +220,7 @@ export class ErrorClusterSeederService implements OnModuleInit {
       await this.repo.insert(rows.slice(i, i + 500));
     }
     this.logger.log(
-      `Seeded ${rows.length} error/recovery agent_messages across ${SPECS.length} clusters (with message variants)`,
+      `Seeded ${rows.length} error/recovery provider_attempts across ${SPECS.length} clusters (with message variants)`,
     );
   }
 }

@@ -55,7 +55,7 @@ export class SeenHeadersService {
     const sql = `
       WITH expanded AS (
         SELECT hdr.key, hdr.value, (at.caller_attribution::json->>'sdk') AS sdk
-        FROM agent_messages at,
+        FROM provider_attempts at,
              LATERAL jsonb_each_text(at.request_headers::jsonb) AS hdr(key, value)
         WHERE ${filters.join(' AND ')}
       ),
