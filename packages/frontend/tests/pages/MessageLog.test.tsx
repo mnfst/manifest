@@ -1071,10 +1071,10 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(dataWithFallback);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      // Fallback is now shown in the Attempts column, not a Model-cell tier badge.
-      const badge = container.querySelector('[title="Includes fallback"]');
+      // Fallback is now shown in the Self-heal column, not a Model-cell tier badge.
+      const badge = container.querySelector('[title="Fallback"]');
       expect(badge).not.toBeNull();
-      expect(badge!.getAttribute('title')).toBe('Includes fallback');
+      expect(badge!.getAttribute('title')).toBe('Fallback');
     });
   });
 
@@ -1165,15 +1165,15 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(dataWithChain);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      const badge = container.querySelector('[title="Includes fallback"]');
+      const badge = container.querySelector('[title="Fallback"]');
       expect(badge).not.toBeNull();
-      expect(badge!.getAttribute('title')).toBe('Includes fallback');
+      expect(badge!.getAttribute('title')).toBe('Fallback');
     });
     // The badge lives on the recovered row, and there's exactly one (the failed
-    // original carries no fallback_from_model, so no Attempts badge).
-    expect(container.querySelectorAll('[title="Includes fallback"]').length).toBe(1);
+    // original carries no fallback_from_model, so no Self-heal badge).
+    expect(container.querySelectorAll('[title="Fallback"]').length).toBe(1);
     const successRow = container.querySelector('#msg-success-1')!;
-    expect(successRow.querySelector('[title="Includes fallback"]')).not.toBeNull();
+    expect(successRow.querySelector('[title="Fallback"]')).not.toBeNull();
   });
 
   describe('Tier filter', () => {

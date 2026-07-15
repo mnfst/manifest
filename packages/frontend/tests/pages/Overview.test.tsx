@@ -1062,10 +1062,10 @@ describe('Overview', () => {
     mockGetOverview.mockResolvedValue(dataWithFallback);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      // Fallback is now surfaced in the Attempts column, not a Model-cell badge.
-      const badge = container.querySelector('[title="Includes fallback"]');
+      // Fallback is now surfaced in the Self-heal column, not a Model-cell badge.
+      const badge = container.querySelector('[title="Fallback"]');
       expect(badge).not.toBeNull();
-      expect(badge!.getAttribute('title')).toBe('Includes fallback');
+      expect(badge!.getAttribute('title')).toBe('Fallback');
     });
   });
 

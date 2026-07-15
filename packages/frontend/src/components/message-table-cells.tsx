@@ -91,6 +91,7 @@ const HEADER_LABELS: Record<MessageColumnKey, string> = {
   duration: 'Latency',
   status: 'Status',
   attempts: 'Attempts',
+  selfheal: 'Self-heal',
   agent: 'Harness',
 };
 
@@ -329,22 +330,36 @@ export function AgentCell(
 }
 
 export function AttemptsCell(item: MessageRow): JSX.Element {
-  const count = item.attempt_count ?? 1;
+  return <td style={MONO_XS}>{item.attempt_count ?? 1}</td>;
+}
+
+export function SelfHealCell(item: MessageRow): JSX.Element {
   const hasAutofix = !!item.autofix_applied;
   const hasFallback = !!item.fallback_from_model;
 
+  if (!hasAutofix && !hasFallback) return <td style={MONO_XS}>{'\u2014'}</td>;
+
   return (
-    <td style={MONO_XS}>
+    <td>
       <span style="display: inline-flex; align-items: center; gap: 4px;">
-        {count}
         {hasAutofix && (
-          <span title="Includes autofix" style="display: inline-flex; align-items: center;">
+          <span
+            class="trigger-badge trigger-badge--autofix"
+            title="Autofix"
+            style="padding: 1px 3px;"
+          >
             <AutofixIcon />
+            autofix
           </span>
         )}
         {hasFallback && (
-          <span title="Includes fallback" style="display: inline-flex; align-items: center;">
+          <span
+            class="trigger-badge trigger-badge--fallback"
+            title="Fallback"
+            style="padding: 1px 3px;"
+          >
             <FallbackIcon />
+            fallback
           </span>
         )}
       </span>
@@ -475,6 +490,8 @@ export function renderCell(
       return StatusCell(item, ctx.agentName);
     case 'attempts':
       return AttemptsCell(item);
+    case 'selfheal':
+      return SelfHealCell(item);
     case 'agent':
       return AgentCell(item, ctx.agentPlatformLookup);
   }

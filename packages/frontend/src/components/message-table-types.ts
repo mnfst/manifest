@@ -54,11 +54,13 @@ export type MessageColumnKey =
   | 'duration'
   | 'status'
   | 'attempts'
+  | 'selfheal'
   | 'agent';
 
 export const COMPACT_COLUMNS: MessageColumnKey[] = [
   'status',
   'attempts',
+  'selfheal',
   'date',
   'model',
   'message',
@@ -71,6 +73,7 @@ export const COMPACT_COLUMNS: MessageColumnKey[] = [
 export const DETAILED_COLUMNS: MessageColumnKey[] = [
   'status',
   'attempts',
+  'selfheal',
   'date',
   'model',
   'message',

@@ -8,6 +8,7 @@ import {
   AgentCell,
   StatusCell,
   AttemptsCell,
+  SelfHealCell,
 } from '../../src/components/message-table-cells';
 import { fireEvent } from '@solidjs/testing-library';
 import type { MessageRow } from '../../src/components/message-table-types';
@@ -111,35 +112,66 @@ describe('AttemptsCell', () => {
     ));
   }
 
-  it('renders the attempt count and autofix icon for a row with autofix_applied', () => {
+  it('renders just the attempt count (no icons) for a row with autofix_applied', () => {
     const { container } = renderCell(baseRow({ attempt_count: 2, autofix_applied: true }));
-    const badge = container.querySelector('[title="Includes autofix"]');
-    expect(badge).not.toBeNull();
-    expect(badge!.getAttribute('title')).toBe('Includes autofix');
     expect(container.querySelector('td')!.textContent).toContain('2');
+    // Icons moved to SelfHealCell
+    expect(container.querySelector('[title="Autofix"]')).toBeNull();
   });
 
-  it('renders the fallback icon when fallback_from_model is set', () => {
+  it('renders just the attempt count (no icons) when fallback_from_model is set', () => {
     const { container } = renderCell(baseRow({ fallback_from_model: 'gpt-4o', attempt_count: 2 }));
-    const badge = container.querySelector('[title="Includes fallback"]');
-    expect(badge).not.toBeNull();
-    expect(badge!.getAttribute('title')).toBe('Includes fallback');
-    // AttemptsCell renders icons only — no text labels
-    expect(badge!.textContent?.trim()).toBe('');
-  });
-
-  it('renders both autofix and fallback icons when both apply', () => {
-    const { container } = renderCell(
-      baseRow({ autofix_applied: true, fallback_from_model: 'gpt-4o', attempt_count: 3 }),
-    );
-    expect(container.querySelector('[title="Includes autofix"]')).not.toBeNull();
-    expect(container.querySelector('[title="Includes fallback"]')).not.toBeNull();
+    expect(container.querySelector('td')!.textContent).toContain('2');
+    // Icons moved to SelfHealCell
+    expect(container.querySelector('[title="Fallback"]')).toBeNull();
   });
 
   it('renders only the count with no badges when neither autofix nor fallback applies', () => {
     const { container } = renderCell(baseRow({ attempt_count: 1 }));
     expect(container.querySelector('[title]')).toBeNull();
     expect(container.querySelector('td')!.textContent).toContain('1');
+  });
+});
+
+describe('SelfHealCell', () => {
+  function renderCell(row: MessageRow) {
+    return render(() => (
+      <table>
+        <tbody>
+          <tr>{SelfHealCell(row)}</tr>
+        </tbody>
+      </table>
+    ));
+  }
+
+  it('renders a dash when neither autofix nor fallback applies', () => {
+    const { container } = renderCell(baseRow());
+    expect(container.querySelector('td')!.textContent).toContain('\u2014');
+    expect(container.querySelector('[title]')).toBeNull();
+  });
+
+  it('renders autofix badge with icon and text when autofix_applied', () => {
+    const { container } = renderCell(baseRow({ autofix_applied: true }));
+    const badge = container.querySelector('[title="Autofix"]') as HTMLElement;
+    expect(badge).not.toBeNull();
+    expect(badge.className).toContain('trigger-badge--autofix');
+    expect(badge.textContent).toContain('autofix');
+  });
+
+  it('renders fallback badge with icon and text when fallback_from_model is set', () => {
+    const { container } = renderCell(baseRow({ fallback_from_model: 'gpt-4o' }));
+    const badge = container.querySelector('[title="Fallback"]') as HTMLElement;
+    expect(badge).not.toBeNull();
+    expect(badge.className).toContain('trigger-badge--fallback');
+    expect(badge.textContent).toContain('fallback');
+  });
+
+  it('renders both badges when both autofix and fallback apply', () => {
+    const { container } = renderCell(
+      baseRow({ autofix_applied: true, fallback_from_model: 'gpt-4o' }),
+    );
+    expect(container.querySelector('[title="Autofix"]')).not.toBeNull();
+    expect(container.querySelector('[title="Fallback"]')).not.toBeNull();
   });
 });
 
