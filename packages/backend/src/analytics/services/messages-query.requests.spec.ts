@@ -167,7 +167,9 @@ describe('MessagesQueryService request-first queries', () => {
         clause.includes('filtered_attempt.provider = :requestProvider') &&
         clause.includes('filtered_attempt.service_type = :requestServiceType'),
     );
-    expect(combinedAttemptClause).toContain('filtered_attempt.routing_tier = :requestTier');
+    expect(combinedAttemptClause).toEqual(
+      expect.stringContaining('filtered_attempt.routing_tier = :requestTier'),
+    );
     expect(
       clauses.filter((clause) =>
         clause.includes('SELECT 1 FROM provider_attempts filtered_attempt'),
