@@ -11,6 +11,7 @@ import {
 } from '../../common/utils/range.util';
 import { computeCutoff, sqlHourBucket, sqlDateBucket } from '../../common/utils/postgres-sql';
 import { addTenantFilter, excludePlaygroundAgents } from './query-helpers';
+import { RequestVolumeService, DimensionVolumeRow } from './request-volume.service';
 
 export interface AutofixStatusResponse {
   /** At least one agent has autofix access (tenant is waitlisted or granted). */
@@ -82,7 +83,36 @@ export class AutofixStatsService {
     private readonly messageRepo: Repository<AgentMessage>,
     @InjectRepository(Tenant)
     private readonly tenantRepo: Repository<Tenant>,
+    private readonly requestVolume: RequestVolumeService,
   ) {}
+
+  /**
+   * Override a per-dimension stats row's volume columns with the request-level
+   * counts (#2511): requests / failed / succeeded become logical-request
+   * totals attributed to the terminal attempt, while the save counters
+   * (autofixed / fallback_saves) keep their per-request save semantics.
+   */
+  private mergeVolume<T extends { requests: number; failed: number; succeeded: number }>(
+    rows: Array<T & Record<string, unknown>>,
+    volume: DimensionVolumeRow[],
+    keyOf: (row: T) => string,
+    build: (vol: DimensionVolumeRow) => T,
+  ): T[] {
+    const byKey = new Map(volume.map((v) => [v.key, v]));
+    const seen = new Set<string>();
+    const merged = rows.map((row) => {
+      const vol = byKey.get(keyOf(row));
+      if (!vol) return row;
+      seen.add(vol.key);
+      return { ...row, requests: vol.requests, failed: vol.failed, succeeded: vol.succeeded };
+    });
+    // Volume-only keys (e.g. a provider that only ever failed) still surface,
+    // with zero save counters.
+    for (const vol of volume) {
+      if (!seen.has(vol.key)) merged.push(build(vol));
+    }
+    return merged;
+  }
 
   async getWorkspaceStatus(tenantId: string | null): Promise<AutofixStatusResponse> {
     if (!tenantId) {
@@ -214,7 +244,7 @@ export class AutofixStatsService {
       fallback_saves: string;
       succeeded: string;
     }>();
-    return rows.map((r) => ({
+    const mapped = rows.map((r) => ({
       provider: r.provider,
       requests: Number(r.requests),
       failed: Number(r.failed),
@@ -222,6 +252,21 @@ export class AutofixStatsService {
       fallback_saves: Number(r.fallback_saves),
       succeeded: Number(r.succeeded),
     }));
+    // #2511: volume columns become request-level (terminal attribution).
+    const volume = await this.requestVolume.getVolumeByDimension('provider', params);
+    return this.mergeVolume(
+      mapped,
+      volume,
+      (r) => r.provider,
+      (v) => ({
+        provider: v.key,
+        requests: v.requests,
+        failed: v.failed,
+        autofixed: 0,
+        fallback_saves: 0,
+        succeeded: v.succeeded,
+      }),
+    );
   }
 
   async getPerAgentStats(params: { tenantId: string | null; range?: string }): Promise<
@@ -281,7 +326,7 @@ export class AutofixStatsService {
       fallback_saves: string;
       succeeded: string;
     }>();
-    return rows.map((r) => ({
+    const mapped = rows.map((r) => ({
       agent_name: r.agent_name,
       requests: Number(r.requests),
       failed: Number(r.failed),
@@ -289,6 +334,21 @@ export class AutofixStatsService {
       fallback_saves: Number(r.fallback_saves),
       succeeded: Number(r.succeeded),
     }));
+    // #2511: volume columns become request-level (terminal attribution).
+    const volume = await this.requestVolume.getVolumeByDimension('agent_name', params);
+    return this.mergeVolume(
+      mapped,
+      volume,
+      (r) => r.agent_name,
+      (v) => ({
+        agent_name: v.key,
+        requests: v.requests,
+        failed: v.failed,
+        autofixed: 0,
+        fallback_saves: 0,
+        succeeded: v.succeeded,
+      }),
+    );
   }
 
   /** Additive: the per-provider reliability breakdown, grouped by model. */
@@ -352,7 +412,7 @@ export class AutofixStatsService {
       fallback_saves: string;
       succeeded: string;
     }>();
-    return rows.map((r) => ({
+    const mapped = rows.map((r) => ({
       model: r.model,
       requests: Number(r.requests),
       failed: Number(r.failed),
@@ -360,6 +420,21 @@ export class AutofixStatsService {
       fallback_saves: Number(r.fallback_saves),
       succeeded: Number(r.succeeded),
     }));
+    // #2511: volume columns become request-level (terminal attribution).
+    const volume = await this.requestVolume.getVolumeByDimension('model', params);
+    return this.mergeVolume(
+      mapped,
+      volume,
+      (r) => r.model,
+      (v) => ({
+        model: v.key,
+        requests: v.requests,
+        failed: v.failed,
+        autofixed: 0,
+        fallback_saves: 0,
+        succeeded: v.succeeded,
+      }),
+    );
   }
 
   async getTimeseries(params: {
@@ -375,6 +450,22 @@ export class AutofixStatsService {
       : 'disposition';
     const cutoff = computeCutoff(rangeToInterval(range));
     const hourly = isHourlyRange(range);
+
+    // Disposition counts LOGICAL REQUESTS (terminal-attempt attribution,
+    // #2511) so the By request status bars stack to the same total as the
+    // Requests KPI and the by-provider/by-harness views. The other dimensions
+    // keep their historical per-attempt semantics.
+    if (by === 'disposition') {
+      const rows = await this.requestVolume.getDispositionTimeseries({
+        tenantId: params.tenantId,
+        range,
+        hourly,
+        agentName: params.agentName,
+        failedOnly: params.failedOnly,
+      });
+      return this.pivotTimeseries(range, by, rows);
+    }
+
     const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
     const dimExpr = this.dimensionExpr(by);
 

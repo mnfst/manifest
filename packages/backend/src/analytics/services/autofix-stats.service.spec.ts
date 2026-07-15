@@ -32,14 +32,23 @@ describe('AutofixStatsService', () => {
   const agentRepo = { find: jest.fn() };
   const tenantRepo = { findOne: jest.fn() };
   const messageRepo = { createQueryBuilder: jest.fn() };
+  const requestVolume = {
+    getDispositionTimeseries: jest.fn().mockResolvedValue([]),
+    getVolumeByDimension: jest.fn().mockResolvedValue([]),
+    getVolumeByProviderTimeseries: jest.fn().mockResolvedValue([]),
+    getVolumeByAgentTimeseries: jest.fn().mockResolvedValue([]),
+  };
   let service: AutofixStatsService;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    requestVolume.getDispositionTimeseries.mockResolvedValue([]);
+    requestVolume.getVolumeByDimension.mockResolvedValue([]);
     service = new AutofixStatsService(
       agentRepo as never,
       messageRepo as never,
       tenantRepo as never,
+      requestVolume as never,
     );
   });
 
@@ -189,14 +198,14 @@ describe('AutofixStatsService', () => {
   });
 
   it('builds hourly failed-only timeseries and preserves disposition order', async () => {
-    const qb = queryBuilder();
-    qb.getRawMany.mockResolvedValue([
+    // #2511: the disposition dimension counts logical requests via the
+    // request-volume service (terminal-attempt attribution), not attempts.
+    requestVolume.getDispositionTimeseries.mockResolvedValue([
       { bucket: '2026-01-01 10:00:00', dim: 'error', count: '2' },
       { bucket: '2026-01-01 10:00:00', dim: 'success', count: '5' },
       { bucket: '2026-01-01 11:00:00', dim: 'success', count: '1' },
       { bucket: '2026-01-01 10:00:00', dim: null, count: '3' },
     ]);
-    messageRepo.createQueryBuilder.mockReturnValue(qb);
 
     await expect(
       service.getTimeseries({
@@ -214,9 +223,15 @@ describe('AutofixStatsService', () => {
         { bucket: '2026-01-01 11:00:00', counts: [1, 0, 0] },
       ],
     });
-    expect(qb.andWhere).toHaveBeenCalledWith(
-      "at.status IN ('error','fallback_error','rate_limited','auto_fixed')",
-    );
+    expect(requestVolume.getDispositionTimeseries).toHaveBeenCalledWith({
+      tenantId: 'tenant',
+      range: '24h',
+      hourly: true,
+      agentName: undefined,
+      failedOnly: true,
+    });
+    // The disposition path never scans attempts directly anymore.
+    expect(messageRepo.createQueryBuilder).not.toHaveBeenCalled();
   });
 
   it.each(['http_status', 'provider', 'error_kind', 'autofix'])(

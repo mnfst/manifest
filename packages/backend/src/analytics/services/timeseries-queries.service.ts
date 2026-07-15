@@ -2,6 +2,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { RequestVolumeService } from './request-volume.service';
 import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
 import {
@@ -54,6 +55,8 @@ export class TimeseriesQueriesService {
     @Optional()
     @InjectRepository(ManifestRequest)
     private readonly requestRepo?: Repository<ManifestRequest>,
+    @Optional()
+    private readonly requestVolume?: RequestVolumeService,
   ) {}
 
   async getTimeseries(
@@ -623,7 +626,20 @@ export class TimeseriesQueriesService {
       .orderBy(bucketAlias, 'ASC')
       .getRawMany();
 
-    return pivotUsageRows(rows, bucketAlias, 'agent_name');
+    const usage = pivotUsageRows(rows, bucketAlias, 'agent_name');
+    // #2511: same request-level Requests series as the by-provider view, but
+    // ONLY for the unscoped Overview chart. Connection-scoped calls (authType/
+    // provider/label/tenantProviderId) are usage surfaces: served-only stays.
+    const scoped = authType || provider || label || tenantProviderId;
+    if (this.requestVolume && !scoped) {
+      const volumeRows = await this.requestVolume.getVolumeByAgentTimeseries(
+        range,
+        tenantId,
+        hourly,
+      );
+      usage.messageUsage = pivotByKey(volumeRows, bucketAlias, 'agent_name', 'messages');
+    }
+    return usage;
   }
 
   async getPerProviderTimeseries(
@@ -822,7 +838,21 @@ export class TimeseriesQueriesService {
       .addGroupBy(PROVIDER_SERIES_KEY_EXPR)
       .orderBy(bucketAlias, 'ASC')
       .getRawMany();
-    return pivotUsageRows(rows, bucketAlias, 'provider');
+    const usage = pivotUsageRows(rows, bucketAlias, 'provider');
+    // #2511: the Requests series counts logical requests (terminal-attempt
+    // attribution, failures included) so the by-provider view stacks to the
+    // same total as By request status and the Requests KPI. Tokens and cost
+    // keep summing every attempt: you pay for what burned.
+    if (this.requestVolume) {
+      const volumeRows = await this.requestVolume.getVolumeByProviderTimeseries(
+        range,
+        tenantId,
+        hourly,
+        agentName,
+      );
+      usage.messageUsage = pivotByKey(volumeRows, bucketAlias, 'provider', 'messages');
+    }
+    return usage;
   }
 
   async getPerModelCostTimeseries(

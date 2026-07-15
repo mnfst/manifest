@@ -38,6 +38,7 @@ import { AttemptAnalyticsController } from './controllers/attempt-analytics.cont
 import { AttemptStatsService } from './services/attempt-stats.service';
 import { AutofixAnalyticsController } from './controllers/autofix-analytics.controller';
 import { AutofixStatsService } from './services/autofix-stats.service';
+import { RequestVolumeService } from './services/request-volume.service';
 import { BillingModule } from '../billing/billing.module';
 
 @Module({
@@ -87,6 +88,7 @@ import { BillingModule } from '../billing/billing.module';
     ProviderUsageService,
     AttemptStatsService,
     AutofixStatsService,
+    RequestVolumeService,
   ],
   exports: [SpecificityFeedbackService, ProviderUsageService],
 })
