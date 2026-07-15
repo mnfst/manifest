@@ -1,0 +1,45 @@
+packages/backend/src/analytics/controllers/autofix-analytics.controller.ts
+  s_02f28e248c2d45::t_49751204e93d6a 1-47
+packages/frontend/src/styles/reliability-card.css
+  s_02f28e248c2d45::t_49751204e93d6a 1-157
+packages/frontend/tests/pages/Overview-limits.test.tsx
+  s_02f28e248c2d45::t_49751204e93d6a 64-70
+packages/backend/src/analytics/analytics.module.ts
+  s_02f28e248c2d45::t_49751204e93d6a 39-40,74,89
+packages/frontend/src/pages/Overview.tsx
+  s_02f28e248c2d45::t_49751204e93d6a 44,427-430
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_02f28e248c2d45::t_49751204e93d6a 84-86
+dashboard-redesign-brief.md
+  s_02f28e248c2d45::t_49751204e93d6a 1-208
+packages/frontend/tests/pages/Overview.test.tsx
+  s_02f28e248c2d45::t_49751204e93d6a 76-82
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_02f28e248c2d45::t_49751204e93d6a 1-338
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_02f28e248c2d45::t_49751204e93d6a 58,611-613
+packages/frontend/src/components/ReliabilityChart.tsx
+  s_02f28e248c2d45::t_49751204e93d6a 1-184
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_02f28e248c2d45::t_49751204e93d6a 67-69
+packages/frontend/src/services/api/analytics.ts
+  s_02f28e248c2d45::t_49751204e93d6a 183-219,234-255
+packages/frontend/src/components/ReliabilityCard.tsx
+  s_02f28e248c2d45::t_49751204e93d6a 1-209
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "57b29e59584a171821d85f3d14e33e9e74d0143f",
+  "prompts": {},
+  "sessions": {
+    "s_02f28e248c2d45": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f651f-32e7-7652-ba1c-50bf40823758",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
