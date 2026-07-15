@@ -126,7 +126,7 @@ describe('MessageTable', () => {
       expect(headers.length).toBe(10);
       expect(headers[0]!.textContent).toContain('Status');
       expect(headers[1]!.textContent).toContain('Attempts');
-      expect(headers[2]!.textContent).toContain('Self-heal');
+      expect(headers[2]!.textContent).toContain('Applied Methods');
       expect(headers[3]!.textContent).toContain('Date');
       expect(headers[4]!.textContent).toContain('Model');
       expect(headers[5]!.textContent).toContain('Request');
@@ -149,7 +149,7 @@ describe('MessageTable', () => {
       expect(headers.length).toBe(12);
       expect(headers[0]!.textContent).toContain('Status');
       expect(headers[1]!.textContent).toContain('Attempts');
-      expect(headers[2]!.textContent).toContain('Self-heal');
+      expect(headers[2]!.textContent).toContain('Applied Methods');
       expect(headers[3]!.textContent).toContain('Date');
       expect(headers[4]!.textContent).toContain('Model');
       expect(headers[5]!.textContent).toContain('Request');

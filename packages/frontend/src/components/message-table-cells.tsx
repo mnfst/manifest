@@ -91,7 +91,7 @@ const HEADER_LABELS: Record<MessageColumnKey, string> = {
   duration: 'Latency',
   status: 'Status',
   attempts: 'Attempts',
-  selfheal: 'Self-heal',
+  selfheal: 'Applied Methods',
   agent: 'Harness',
 };
 
