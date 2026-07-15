@@ -314,11 +314,7 @@ export class TimeseriesQueriesService {
         .addSelect('MAX(r.timestamp)', 'last_active')
         .where('r.agent_id IS NOT NULL')
         .andWhere('r.timestamp >= :requestStatsCutoff', { requestStatsCutoff: statsCutoff });
-      if (tenantId) {
-        requestCountsQb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: tenantId });
-      } else {
-        requestCountsQb.andWhere('1 = 0');
-      }
+      requestCountsQb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: tenantId });
       requestCountRowsPromise = requestCountsQb.groupBy('r.agent_id').getRawMany();
 
       const unlinkedCountsQb = this.turnRepo

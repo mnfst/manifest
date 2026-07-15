@@ -67,6 +67,22 @@ describe('MessageProviderBackfillBootService', () => {
 
       expect(errSpy).toHaveBeenCalledWith(expect.stringContaining('post-deploy backfill failed'));
     });
+
+    it('waits and retries after advisory-lock contention', async () => {
+      jest.useFakeTimers();
+      process.env['NODE_ENV'] = 'production';
+      const state = makeState(false);
+      state.countBy.mockResolvedValueOnce(0).mockResolvedValueOnce(1);
+      const lock = makeLock(false);
+      const ds = { createQueryRunner: jest.fn(() => lock) } as unknown as DataSource;
+
+      new MessageProviderBackfillBootService(ds, state.repo).onApplicationBootstrap();
+      await jest.advanceTimersByTimeAsync(30_000);
+
+      expect(state.countBy).toHaveBeenCalledTimes(2);
+      expect(lock.release).toHaveBeenCalled();
+      jest.useRealTimers();
+    });
   });
 
   describe('runOnce', () => {

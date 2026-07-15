@@ -411,6 +411,125 @@ describe('TimeseriesQueriesService', () => {
       const result = await service.getTimeseries('24h', 'tenant-123', true, 'bot-1');
       expect(result.tokenUsage).toEqual([]);
     });
+
+    it('uses parent requests plus unlinked attempts for request buckets', async () => {
+      const makeQb = (rows: unknown[]) => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue(rows),
+      });
+      const attemptQb = makeQb([
+        {
+          hour: '2026-07-14T10:00:00Z',
+          input_tokens: '10',
+          output_tokens: '5',
+          cost: '0.2',
+          count: '1',
+        },
+      ]);
+      const requestQb = makeQb([{ hour: '2026-07-14T10:00:00Z', count: '2' }]);
+      const unlinkedQb = makeQb([{ hour: '2026-07-14T10:00:00Z', count: '1' }]);
+      const requestAware = new TimeseriesQueriesService(
+        {
+          createQueryBuilder: jest
+            .fn()
+            .mockReturnValueOnce(attemptQb)
+            .mockReturnValueOnce(unlinkedQb),
+        } as never,
+        {} as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      const result = await requestAware.getTimeseries(
+        '24h',
+        'tenant-1',
+        true,
+        'agent-1',
+        undefined,
+        undefined,
+        true,
+      );
+
+      expect(result.tokenUsage).toEqual([
+        {
+          hour: '2026-07-14T10:00:00Z',
+          input_tokens: 10,
+          output_tokens: 5,
+        },
+      ]);
+      expect(result.messageUsage).toEqual([{ hour: '2026-07-14T10:00:00Z', count: 3 }]);
+      expect(requestQb.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('deleted_at IS NULL'),
+        expect.objectContaining({ requestAgentName: 'agent-1' }),
+      );
+      expect(requestQb.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('playag.is_playground = true'),
+      );
+    });
+
+    it('uses daily request buckets and tolerates missing aggregate values', async () => {
+      const makeQb = (rows: unknown[]) => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue(rows),
+      });
+      const attemptQb = makeQb([
+        { date: '2026-07-14', input_tokens: null, output_tokens: null, cost: null, count: null },
+      ]);
+      const requestQb = makeQb([{ date: '2026-07-14', count: null }]);
+      const unlinkedQb = makeQb([{ date: '2026-07-14', count: '2' }]);
+      const requestAware = new TimeseriesQueriesService(
+        {
+          createQueryBuilder: jest
+            .fn()
+            .mockReturnValueOnce(attemptQb)
+            .mockReturnValueOnce(unlinkedQb),
+        } as never,
+        {} as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      const result = await requestAware.getTimeseries('7d', 'tenant-1', false);
+
+      expect(result.messageUsage).toEqual([{ date: '2026-07-14', count: 2 }]);
+    });
+
+    it('returns no request buckets when tenant scope is absent', async () => {
+      const makeQb = () => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([]),
+      });
+      const attemptQb = makeQb();
+      const unlinkedQb = makeQb();
+      const requestQb = makeQb();
+      const requestAware = new TimeseriesQueriesService(
+        {
+          createQueryBuilder: jest
+            .fn()
+            .mockReturnValueOnce(attemptQb)
+            .mockReturnValueOnce(unlinkedQb),
+        } as never,
+        {} as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      await requestAware.getTimeseries('7d', null, false);
+
+      expect(requestQb.andWhere).toHaveBeenCalledWith('1 = 0');
+    });
   });
 
   describe('getAgentList', () => {
@@ -493,12 +612,13 @@ describe('TimeseriesQueriesService', () => {
           last_active: recentIso,
         },
       ]);
-      const requestLastActive = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+      const requestLastActive = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+      const unlinkedLastActive = new Date(Date.now() - 12 * 60 * 60 * 1000);
       const requestQb = makeQb([
-        { agent_id: 'agent-1', message_count: '2', last_active: requestLastActive },
+        { agent_id: 'agent-1', message_count: null, last_active: requestLastActive },
       ]);
       const unlinkedQb = makeQb([
-        { agent_id: 'agent-1', message_count: '1', last_active: recentIso },
+        { agent_id: 'agent-1', message_count: '3', last_active: unlinkedLastActive },
       ]);
       const requestAware = new TimeseriesQueriesService(
         {
@@ -518,7 +638,7 @@ describe('TimeseriesQueriesService', () => {
           message_count: 3,
           total_cost: 2,
           total_tokens: 300,
-          last_active: requestLastActive,
+          last_active: unlinkedLastActive.toISOString(),
         }),
       );
       expect(unlinkedQb.where).toHaveBeenCalledWith('at.request_id IS NULL');
@@ -697,6 +817,35 @@ describe('TimeseriesQueriesService', () => {
       expect(requestQb.andWhere).toHaveBeenCalledWith(
         expect.stringContaining('playag.name = r.agent_name'),
       );
+    });
+
+    it('uses daily request buckets without a tenant and defaults missing counts to zero', async () => {
+      const makeRequestQb = (rows: unknown[]) => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        addGroupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue(rows),
+      });
+      const requestQb = makeRequestQb([
+        { date: '2026-07-14', agent_name: 'alpha', messages: null },
+      ]);
+      const unlinkedQb = makeRequestQb([
+        { date: '2026-07-14', agent_name: 'alpha', messages: '2' },
+      ]);
+      const requestAware = new TimeseriesQueriesService(
+        { createQueryBuilder: jest.fn(() => unlinkedQb) } as never,
+        {} as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      const out = await requestAware.getPerAgentMessageTimeseries('7d', null, false);
+
+      expect(out.timeseries).toEqual([{ date: '2026-07-14', alpha: 2 }]);
+      expect(requestQb.andWhere).toHaveBeenCalledWith('1 = 0');
     });
 
     it('getPerAgentCostTimeseries pivots cost (non-hourly date bucket)', async () => {

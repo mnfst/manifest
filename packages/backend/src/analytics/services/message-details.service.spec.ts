@@ -292,4 +292,130 @@ describe('MessageDetailsService', () => {
     expect(result.message.error_class).toBe('no_provider_key');
     expect(result.message.superseded).toBe(false);
   });
+
+  it('rolls up all provider attempts into a request detail', async () => {
+    const requestRow = {
+      id: 'request-1',
+      tenant_id: 't1',
+      timestamp: '2026-07-14T10:00:00Z',
+      agent_name: 'my-agent',
+      requested_model: 'requested-model',
+      status: 'ok',
+      error_message: null,
+      error_code: null,
+      error_http_status: null,
+      error_origin: null,
+      error_class: null,
+      duration_ms: 900,
+      trace_id: 'trace-request',
+      session_key: 'session-request',
+      feedback_rating: 'like',
+      feedback_tags: 'Accurate,Fast',
+      feedback_details: 'good',
+      request_headers: { 'x-test': 'yes' },
+      request_params: { temperature: 0.2 },
+      caller_attribution: { sdk: 'openai-js' },
+    };
+    const attempts = [
+      {
+        ...baseMessage,
+        id: 'attempt-1',
+        status: 'error',
+        provider: 'openai',
+        input_tokens: 10,
+        output_tokens: 5,
+        cache_read_tokens: 1,
+        cache_creation_tokens: 2,
+        cost_usd: null,
+        duration_ms: null,
+      },
+      {
+        ...baseMessage,
+        id: 'attempt-2',
+        status: 'ok',
+        provider: 'anthropic',
+        model: 'claude',
+        input_tokens: 20,
+        output_tokens: 8,
+        cache_read_tokens: 3,
+        cache_creation_tokens: 4,
+        cost_usd: 0.12,
+        duration_ms: 400,
+        autofix_applied: true,
+      },
+    ];
+    const requestAware = new MessageDetailsService(
+      { find: jest.fn().mockResolvedValue(attempts) } as never,
+      { findOne: jest.fn().mockResolvedValue(requestRow) } as never,
+    );
+
+    const result = await requestAware.getDetails('request-1', 't1');
+
+    expect(result.message).toEqual(
+      expect.objectContaining({
+        id: 'request-1',
+        model: 'claude',
+        input_tokens: 30,
+        output_tokens: 13,
+        cache_read_tokens: 4,
+        cache_creation_tokens: 6,
+        cost_usd: 0.12,
+        duration_ms: 400,
+        trace_id: 'trace-request',
+        session_key: 'session-request',
+        feedback_tags: ['Accurate', 'Fast'],
+        autofix_applied: true,
+      }),
+    );
+    expect(result.message.attempts).toEqual([
+      expect.objectContaining({ id: 'attempt-1', provider: 'openai' }),
+      expect.objectContaining({ id: 'attempt-2', provider: 'anthropic' }),
+    ]);
+  });
+
+  it('returns a zero-attempt request with request-level fallbacks', async () => {
+    const requestAware = new MessageDetailsService(
+      { find: jest.fn().mockResolvedValue([]) } as never,
+      {
+        findOne: jest.fn().mockResolvedValue({
+          id: 'request-zero',
+          tenant_id: 't1',
+          timestamp: '2026-07-14T10:00:00Z',
+          agent_name: null,
+          requested_model: 'gpt-4o',
+          status: 'error',
+          error_message: 'No provider',
+          error_code: 'MNFST001',
+          error_http_status: 400,
+          error_origin: 'config',
+          error_class: 'no_provider',
+          duration_ms: 15,
+          trace_id: null,
+          session_key: null,
+          feedback_rating: null,
+          feedback_tags: null,
+          feedback_details: null,
+          request_headers: null,
+          request_params: null,
+          caller_attribution: null,
+        }),
+      } as never,
+    );
+
+    const result = await requestAware.getDetails('request-zero', 't1');
+
+    expect(result.message).toEqual(
+      expect.objectContaining({
+        id: 'request-zero',
+        model: 'gpt-4o',
+        status: 'error',
+        error_code: 'MNFST001',
+        input_tokens: 0,
+        output_tokens: 0,
+        cost_usd: 0,
+        duration_ms: 15,
+        attempts: [],
+      }),
+    );
+  });
 });

@@ -79,7 +79,7 @@ describe('ProxyMessageRecorder request parents', () => {
   });
 
   it('uses the rebuilt primary response as an exhausted fallback outcome', async () => {
-    const { recorder, requestValues } = setup();
+    const { recorder, insert, requestValues } = setup();
     await recorder.recordFailedFallbacks(
       ctx,
       'standard',
@@ -116,6 +116,13 @@ describe('ProxyMessageRecorder request parents', () => {
         status: 'error',
         error_http_status: 503,
         error_message: 'primary unavailable',
+      }),
+    );
+    expect(insert).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        request_id: 'request-3',
+        status: 'fallback_error',
+        error_http_status: null,
       }),
     );
     recorder.onModuleDestroy();
