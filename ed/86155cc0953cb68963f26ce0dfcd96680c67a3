@@ -1,0 +1,70 @@
+packages/frontend/src/styles/controls.css
+  s_02f28e248c2d45::t_9626a219dc2566 377-423
+packages/backend/src/database/seed-messages.ts
+  s_02f28e248c2d45::t_6f99a3755ab703 5,193,274-298,300-309,311-317,319-323
+  s_02f28e248c2d45::t_5f9bbc83fc26a9 299,310,318
+  s_02f28e248c2d45::t_109ffac90eae21 324-325
+packages/frontend/src/components/DevAutofixToggle.tsx
+  s_02f28e248c2d45::t_9626a219dc2566 1-43
+packages/backend/src/database/database-seeder.service.spec.ts
+  s_02f28e248c2d45::t_6f99a3755ab703 34,54,68
+packages/frontend/tests/components/DevAutofixToggle.test.tsx
+  s_02f28e248c2d45::t_6dc21bf2888ef1 1-63
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_02f28e248c2d45::t_4dc2860940e632 16,35
+  s_02f28e248c2d45::t_800d1623e42350 7,29
+  s_02f28e248c2d45::t_25b2d1a9038cfe 5
+packages/frontend/tests/components/Header.test.tsx
+  s_02f28e248c2d45::t_57d89877c01047 63-65
+  s_02f28e248c2d45::t_221d8a007d8f26 62
+packages/frontend/tests/services/api/autofix.test.ts
+  s_02f28e248c2d45::t_6dc21bf2888ef1 2,40-57
+  s_02f28e248c2d45::t_111cd31a743968 58
+packages/backend/src/routing/autofix/dev-autofix-seeder.service.ts
+  s_02f28e248c2d45::t_4dc2860940e632 1-5,7-18,21-35,37-40,42-51,70-71,73-100,102-124,126-129
+  s_02f28e248c2d45::t_800d1623e42350 6,19-20,36,41,52-69,72,101,125
+packages/frontend/src/components/Header.tsx
+  s_02f28e248c2d45::t_9626a219dc2566 7,30,164
+  s_02f28e248c2d45::t_1ca30e27b42ae6 29
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_02f28e248c2d45::t_b0f7ed2ba2bcdd 165,207,341,349,394
+packages/frontend/src/services/api/autofix.ts
+  s_02f28e248c2d45::t_9626a219dc2566 1,27-34
+  s_02f28e248c2d45::t_046d0510556d1b 35
+packages/backend/src/routing/autofix/__tests__/autofix-cohort.controller.spec.ts
+  s_02f28e248c2d45::t_6dc21bf2888ef1 4-6,11-13,18-20,22-25,27,49-59,61-68,70-78,80-87
+  s_02f28e248c2d45::t_4dc2860940e632 7,14,21,26,60,69,79
+packages/backend/src/routing/autofix/__tests__/dev-autofix-seeder.service.spec.ts
+  s_02f28e248c2d45::t_800d1623e42350 6,13,15-19,30,38-42,51,59
+  s_02f28e248c2d45::t_4dc2860940e632 1-5,7-12,14,20-29,31-37,43-50,52-58,60-61
+packages/backend/src/routing/autofix/__tests__/autofix.module.spec.ts
+  s_02f28e248c2d45::t_e96d704348385c 5,31
+  s_02f28e248c2d45::t_800d1623e42350 7,32-34
+packages/backend/src/database/seed-messages.spec.ts
+  s_02f28e248c2d45::t_6f99a3755ab703 82-96
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_02f28e248c2d45::t_6dc21bf2888ef1 136-140,226-228,259-261
+packages/backend/src/database/database-seeder.service.ts
+  s_02f28e248c2d45::t_6f99a3755ab703 11,37-38,227
+packages/backend/src/routing/autofix/autofix-cohort.controller.ts
+  s_02f28e248c2d45::t_1ca30e27b42ae6 1-8
+  s_02f28e248c2d45::t_4dc2860940e632 16,46,72-74
+  s_02f28e248c2d45::t_b0f7ed2ba2bcdd 9-12,14,18-21,41-45,47,55-71,75-76
+  s_02f28e248c2d45::t_ae07d2cc9c09cd 17,77-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "ed86155cc0953cb68963f26ce0dfcd96680c67a3",
+  "prompts": {},
+  "sessions": {
+    "s_02f28e248c2d45": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f651f-32e7-7652-ba1c-50bf40823758",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
