@@ -1455,6 +1455,7 @@ describe('ProxyMessageRecorder', () => {
             request: {},
             http_status: 400,
             error: { message: 'Unknown parameter' },
+            phoenix_status: 'no_patch',
             issue_id: 'issue-no-patch',
             patch_id: null,
             heal_attempt_id: null,
@@ -1468,7 +1469,8 @@ describe('ProxyMessageRecorder', () => {
       expect(row.autofix_applied).toBeUndefined();
       expect(row.autofix_group_id).toBeUndefined();
       expect(row.autofix_role).toBeUndefined();
-      expect(row.autofix_phoenix).toEqual({
+      expect(row.autofix_decision).toEqual({
+        status: 'no_patch',
         issueId: 'issue-no-patch',
         patchId: null,
         healAttemptId: null,
@@ -1529,7 +1531,8 @@ describe('ProxyMessageRecorder', () => {
       // Persist Phoenix's own identifiers for the heal decision. sampleAutofix's
       // failed entry carries only heal_attempt_id, so issueId/patchId fall to
       // null while healAttemptId is preserved (covers the non-null branch).
-      expect(row.autofix_phoenix).toEqual({
+      expect(row.autofix_decision).toEqual({
+        status: null,
         issueId: null,
         patchId: null,
         healAttemptId: 'heal-1',
@@ -1555,7 +1558,8 @@ describe('ProxyMessageRecorder', () => {
         ],
       });
       const row = insertMock.mock.calls.at(-1)![0] as Record<string, unknown>;
-      expect(row.autofix_phoenix).toEqual({
+      expect(row.autofix_decision).toEqual({
+        status: null,
         issueId: null,
         patchId: 'patch-xyz',
         healAttemptId: null,
@@ -1563,7 +1567,7 @@ describe('ProxyMessageRecorder', () => {
       });
     });
 
-    it('recordAutofixOriginal carries the Phoenix explanation onto autofix_phoenix', async () => {
+    it('recordAutofixOriginal carries the Phoenix explanation onto autofix_decision', async () => {
       // Phoenix's human-readable "why" is persisted alongside the ids so the
       // dashboard Auto-fix card can render it (not re-derive it locally).
       const explanation = {
@@ -1593,7 +1597,8 @@ describe('ProxyMessageRecorder', () => {
         ],
       });
       const row = insertMock.mock.calls.at(-1)![0] as Record<string, unknown>;
-      expect(row.autofix_phoenix).toEqual({
+      expect(row.autofix_decision).toEqual({
+        status: null,
         issueId: 'issue-9',
         patchId: null,
         healAttemptId: 'heal-9',
@@ -1601,9 +1606,9 @@ describe('ProxyMessageRecorder', () => {
       });
     });
 
-    it('recordAutofixOriginal sets autofix_phoenix to null when the failed entry has no Phoenix ids', async () => {
+    it('recordAutofixOriginal sets autofix_decision to null when the failed entry has no Phoenix ids', async () => {
       // A failed chain entry with none of issue_id/patch_id/heal_attempt_id must
-      // leave autofix_phoenix null (covers the `: null` branch of the ternary).
+      // leave autofix_decision null (covers the `: null` branch of the ternary).
       await recorder.recordAutofixOriginal(ctx, 'gpt-4o', 'default', {
         ...sampleAutofix,
         chain: [
@@ -1618,7 +1623,7 @@ describe('ProxyMessageRecorder', () => {
         ],
       });
       const row = insertMock.mock.calls.at(-1)![0] as Record<string, unknown>;
-      expect(row.autofix_phoenix).toBeNull();
+      expect(row.autofix_decision).toBeNull();
     });
 
     it('recordAutofixOriginal is a no-op when the chain has no failed original', async () => {

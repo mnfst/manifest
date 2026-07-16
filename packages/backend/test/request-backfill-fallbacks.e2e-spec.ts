@@ -12,6 +12,9 @@ interface LegacyAttempt {
   fallbackIndex?: number;
   superseded?: boolean;
   autofixGroup?: string;
+  autofixApplied?: boolean;
+  autofixRole?: string;
+  autofixDecision?: object;
   errorOrigin?: string;
   requestParams?: object;
   traceId?: string;
@@ -64,6 +67,9 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
         feedback_tags varchar,
         feedback_details text,
         autofix_group_id varchar,
+        autofix_applied boolean DEFAULT false,
+        autofix_role varchar,
+        autofix_phoenix jsonb,
         superseded boolean DEFAULT false,
         fallback_from_model varchar,
         fallback_index integer
@@ -82,12 +88,13 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
       `INSERT INTO provider_attempts (
         id, tenant_id, agent_id, agent_name, timestamp, duration_ms, status,
         model, fallback_from_model, fallback_index, superseded,
-        autofix_group_id, error_origin, caller_attribution, request_headers,
+        autofix_group_id, autofix_applied, autofix_role, autofix_decision,
+        error_origin, caller_attribution, request_headers,
         request_params, trace_id, session_key, session_id
       ) VALUES (
         $1, 'tenant-1', 'agent-1', 'Agent', $2, 100, $3, $4, $5, $6, $7,
-        $8, $9, '{"agent":"openai-sdk"}', '{"content-type":"application/json"}',
-        $10, $11, $12, $13
+        $8, $9, $10, $11, $12, '{"agent":"openai-sdk"}',
+        '{"content-type":"application/json"}', $13, $14, $15, $16
       )`,
       [
         attempt.id,
@@ -98,6 +105,9 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
         attempt.fallbackIndex ?? null,
         attempt.superseded ?? false,
         attempt.autofixGroup ?? null,
+        attempt.autofixApplied ?? false,
+        attempt.autofixRole ?? null,
+        attempt.autofixDecision ?? null,
         attempt.errorOrigin ?? null,
         attempt.requestParams ?? { model: 'openai/gpt-4o' },
         attempt.traceId ?? null,
@@ -446,6 +456,25 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     expect({ requests, parents, unlinked }).toEqual({ requests: 1, parents: 1, unlinked: 0 });
   });
 
+  it('keeps the old Auto-fix column writable through the compatibility view', async () => {
+    await dataSource.query(`
+      INSERT INTO agent_messages (
+        id, tenant_id, agent_id, agent_name, timestamp, status, model, autofix_phoenix
+      ) VALUES (
+        'old-replica', 'tenant-1', 'agent-1', 'Agent',
+        '2026-01-01 00:05:00.000', 'error', 'openai/gpt-4o',
+        '{"status":"no_patch","issueId":"issue-1"}'::jsonb
+      )
+    `);
+
+    const [attempt] = await dataSource.query(
+      `SELECT autofix_decision FROM provider_attempts WHERE id = 'old-replica'`,
+    );
+    expect(attempt).toEqual({
+      autofix_decision: { status: 'no_patch', issueId: 'issue-1' },
+    });
+  });
+
   it('finalizes an incomplete fallback chain during a tail sweep', async () => {
     await insertAttempt({
       id: 'incomplete-primary',
@@ -498,5 +527,76 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
               (SELECT count(DISTINCT request_id)::int FROM provider_attempts) parents`,
     );
     expect({ requests, parents }).toEqual({ requests: 2, parents: 2 });
+  });
+
+  it('backfills each recorded Auto-fix outcome onto its request', async () => {
+    const base = {
+      timestamp: '2026-01-01 00:03:00.000',
+      status: 'error',
+      model: 'openai/gpt-4o',
+      errorOrigin: 'provider',
+      autofixApplied: true,
+    };
+    await insertAttempt({
+      ...base,
+      id: 'no-patch',
+      autofixDecision: { status: 'no_patch', issueId: 'issue-no-patch' },
+    });
+    await insertAttempt({
+      ...base,
+      id: 'resolving',
+      autofixDecision: { status: 'resolving', issueId: 'issue-resolving' },
+    });
+    await insertAttempt({ ...base, id: 'service-error' });
+    await insertAttempt({
+      ...base,
+      id: 'legacy-no-patch',
+      autofixDecision: { issueId: 'legacy-issue' },
+    });
+    await insertAttempt({
+      ...base,
+      id: 'retry-success-original',
+      status: 'auto_fixed',
+      superseded: true,
+      autofixGroup: 'success-group',
+      autofixRole: 'original',
+      autofixDecision: { status: 'patched', healAttemptId: 'heal-success' },
+    });
+    await insertAttempt({
+      ...base,
+      id: 'retry-success',
+      timestamp: '2026-01-01 00:03:00.100',
+      status: 'ok',
+      autofixGroup: 'success-group',
+      autofixRole: 'retry',
+    });
+    await insertAttempt({
+      ...base,
+      id: 'retry-failed',
+      autofixGroup: 'failed-group',
+      autofixRole: 'retry',
+      autofixDecision: { status: 'patched', healAttemptId: 'heal-failed' },
+    });
+
+    await backfill({ batchSize: 1 });
+
+    const rows = await dataSource.query(`
+      SELECT pa.id, r.autofix_status
+      FROM provider_attempts pa
+      JOIN requests r ON r.id = pa.request_id
+      WHERE pa.id IN (
+        'no-patch', 'resolving', 'service-error', 'legacy-no-patch',
+        'retry-success', 'retry-failed'
+      )
+      ORDER BY pa.id
+    `);
+    expect(rows).toEqual([
+      { id: 'legacy-no-patch', autofix_status: 'no_patch' },
+      { id: 'no-patch', autofix_status: 'no_patch' },
+      { id: 'resolving', autofix_status: 'resolving' },
+      { id: 'retry-failed', autofix_status: 'retry_failed' },
+      { id: 'retry-success', autofix_status: 'retry_succeeded' },
+      { id: 'service-error', autofix_status: 'service_error' },
+    ]);
   });
 });

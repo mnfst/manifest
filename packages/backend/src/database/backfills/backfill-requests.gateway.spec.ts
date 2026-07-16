@@ -10,7 +10,9 @@ import {
   INSERT_LEGACY_FALLBACK_MEMBERS_SQL,
   INSERT_LEGACY_FALLBACK_PAIRS_SQL,
   INSERT_LEGACY_FALLBACK_REQUESTS_SQL,
+  INSERT_ATTEMPT_REQUESTS_SQL,
   LINK_LEGACY_FALLBACK_ATTEMPTS_SQL,
+  REFRESH_ATTEMPT_REQUESTS_SQL,
   TypeOrmRequestBackfillGateway,
   REQUEST_BACKFILL_WINDOW_END_SQL,
 } from './backfill-requests.gateway';
@@ -30,6 +32,21 @@ const timeouts = { lockTimeoutMs: 5_000, statementTimeoutMs: 60_000 };
 const before = '2026-01-01 00:00:00';
 
 describe('TypeOrmRequestBackfillGateway', () => {
+  it('derives every request-level Auto-fix status during historical backfill', () => {
+    const sql = `${INSERT_ATTEMPT_REQUESTS_SQL}\n${REFRESH_ATTEMPT_REQUESTS_SQL}`;
+    for (const status of [
+      'no_patch',
+      'resolving',
+      'retry_succeeded',
+      'retry_failed',
+      'service_error',
+    ]) {
+      expect(sql).toContain(`'${status}'`);
+    }
+    expect(sql).toContain("autofix_decision->>'status'");
+    expect(sql).toContain("autofix_decision->>'healAttemptId'");
+  });
+
   it('analyzes attempts and finds keyset window ends', async () => {
     const query = jest
       .fn()
