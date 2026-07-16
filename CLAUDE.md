@@ -429,14 +429,12 @@ See `packages/backend/.env.example` for all variables. Key ones:
 
 Manifest terminology is directional:
 
-- A **Manifest Request** is one logical request from an agent to Manifest. It lives in `requests`, has one caller-visible outcome, and may have zero or many attempts.
-- A **Manifest Attempt** is one request from Manifest to an AI provider. It lives in `provider_attempts` and links to its Request through `provider_attempts.request_id`.
-- The **Last Attempt** is the final provider attempt made for a Request. It is derived from the attempt chain; a zero-attempt Request has none. `requests.status` remains the authoritative Request outcome.
-- A **Recovered Request** is a successful Request after a fallback or Auto-fix attempt. Recovery is a Request-only concept: an applied method that fails does not make the Request recovered.
+- A **Manifest Request** is one logical request from an agent to Manifest and lives in `requests`.
+- A **Provider Attempt** is one request from Manifest to an AI provider and lives in `provider_attempts`.
+- A **Tenant** is a user's data boundary. It is created from `user.id` on first agent creation.
+- An **Agent** is an AI agent owned by a tenant. It has a unique OTLP ingest key.
 
-Request-level analytics count `requests`; provider, connection, and model analytics count `provider_attempts`. Do not group Request totals by provider-level fields when a Request may span several Attempts.
-
-See [`docs/analytics-glossary.md`](docs/analytics-glossary.md) for the complete glossary, database mapping, and counting rules.
+[`docs/analytics-dashboard-spec.md`](docs/analytics-dashboard-spec.md) is the canonical contract for statuses, ordering, recovery, database mapping, and counting rules. Do not duplicate those definitions in agent guides.
 
 ### Legacy message/attempt projection contract
 
