@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { AggregationService } from '../services/aggregation.service';
 import { AutofixStatsService } from '../services/autofix-stats.service';
+import { AttemptStatsService } from '../services/attempt-stats.service';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
 import { TenantProvider } from '../../entities/tenant-provider.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -26,6 +27,7 @@ export class ProviderAnalyticsController {
     private readonly aggregation: AggregationService,
     private readonly timeseries: TimeseriesQueriesService,
     private readonly autofixStats: AutofixStatsService,
+    private readonly attemptStats: AttemptStatsService,
     @InjectRepository(TenantProvider)
     private readonly providerRepo: Repository<TenantProvider>,
     @InjectRepository(AgentMessage)
@@ -55,6 +57,49 @@ export class ProviderAnalyticsController {
         authType,
         label,
       },
+    });
+  }
+
+  /**
+   * Attempt-status timeseries for ONE connection: the Attempts chart's
+   * By attempt status view. Every provider call counts where it ran.
+   */
+  @Get('attempt-status-timeseries')
+  async getAttemptStatusTimeseries(
+    @TenantCtx() ctx: TenantContext,
+    @Query('range') range?: string,
+    @Query('auth_type') authType?: string,
+    @Query('provider') provider?: string,
+    @Query('label') label?: string,
+    @Query('connection_id') connectionId?: string,
+  ) {
+    return this.attemptStats.getConnectionStatusTimeseries({
+      tenantId: ctx.tenantId,
+      range,
+      authType,
+      provider,
+      label,
+      tenantProviderId: connectionId,
+    });
+  }
+
+  /** Attempts per harness over time for ONE connection (By harness view). */
+  @Get('attempts-by-agent-timeseries')
+  async getAttemptsByAgentTimeseries(
+    @TenantCtx() ctx: TenantContext,
+    @Query('range') range?: string,
+    @Query('auth_type') authType?: string,
+    @Query('provider') provider?: string,
+    @Query('label') label?: string,
+    @Query('connection_id') connectionId?: string,
+  ) {
+    return this.attemptStats.getConnectionAttemptsByAgentTimeseries({
+      tenantId: ctx.tenantId,
+      range,
+      authType,
+      provider,
+      label,
+      tenantProviderId: connectionId,
     });
   }
 

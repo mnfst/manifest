@@ -50,6 +50,10 @@ describe('ProviderAnalyticsController', () => {
   };
   let providerRepo: { findOne: jest.Mock };
   let autofixStats: { getConnectionTimeseries: jest.Mock };
+  let attemptStats: {
+    getConnectionStatusTimeseries: jest.Mock;
+    getConnectionAttemptsByAgentTimeseries: jest.Mock;
+  };
   let messageRepo: { createQueryBuilder: jest.Mock };
   let controller: ProviderAnalyticsController;
 
@@ -75,6 +79,14 @@ describe('ProviderAnalyticsController', () => {
         .fn()
         .mockResolvedValue({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
     };
+    attemptStats = {
+      getConnectionStatusTimeseries: jest
+        .fn()
+        .mockResolvedValue({ range: '7d', by: 'metric', keys: ['success', 'error'], buckets: [] }),
+      getConnectionAttemptsByAgentTimeseries: jest
+        .fn()
+        .mockResolvedValue({ agents: [], timeseries: [] }),
+    };
     messageRepo = {
       createQueryBuilder: jest
         .fn()
@@ -85,6 +97,7 @@ describe('ProviderAnalyticsController', () => {
       aggregation as unknown as AggregationService,
       timeseries as unknown as TimeseriesQueriesService,
       autofixStats as never,
+      attemptStats as never,
       providerRepo as unknown as Repository<TenantProvider>,
       messageRepo as unknown as Repository<AgentMessage>,
     );

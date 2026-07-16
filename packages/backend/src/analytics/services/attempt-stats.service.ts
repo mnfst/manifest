@@ -8,7 +8,7 @@ import {
 } from '../../common/utils/range.util';
 import { computeCutoff, sqlDateBucket, sqlHourBucket } from '../../common/utils/postgres-sql';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { addTenantFilter, excludePlaygroundAgents } from './query-helpers';
+import { addTenantFilter, excludePlaygroundAgents, scopeToConnection } from './query-helpers';
 
 export interface AttemptMetric {
   value: number;
@@ -106,6 +106,105 @@ export class AttemptStatsService {
         counts: [Number(row['attempts'] ?? 0), Number(row['fallbacked_attempts'] ?? 0)],
       })),
     };
+  }
+
+  /**
+   * Attempt-status timeseries scoped to ONE provider connection: every
+   * provider call counts where it ran (retries and fallback attempts
+   * included), keyed by its OWN outcome. Success = ok, error = everything
+   * else. No healing notion: that belongs to requests.
+   */
+  async getConnectionStatusTimeseries(params: {
+    tenantId: string | null;
+    range?: string;
+    authType?: string;
+    provider?: string;
+    label?: string;
+    tenantProviderId?: string;
+  }): Promise<AttemptTimeseriesResponse> {
+    const range = params.range ?? '7d';
+    if (!params.tenantId) return { range, by: 'metric', keys: [], buckets: [] };
+    const bucketExpression = isHourlyRange(range)
+      ? sqlHourBucket('at.timestamp')
+      : sqlDateBucket('at.timestamp');
+    const cutoff = computeCutoff(rangeToInterval(range));
+    const qb = this.attemptRepo
+      .createQueryBuilder('at')
+      .select(bucketExpression, 'bucket')
+      .addSelect(`COUNT(*) FILTER (WHERE at.status = 'ok' OR at.status IS NULL)`, 'success')
+      .addSelect(`COUNT(*) FILTER (WHERE at.status IS NOT NULL AND at.status <> 'ok')`, 'error')
+      .where('at.timestamp >= :cutoff', { cutoff });
+    addTenantFilter(qb, params.tenantId);
+    excludePlaygroundAgents(qb);
+    if (params.authType) qb.andWhere('at.auth_type = :authType', { authType: params.authType });
+    if (params.provider) qb.andWhere('at.provider = :provider', { provider: params.provider });
+    scopeToConnection(qb, params.tenantProviderId, params.label);
+
+    const rows = (await qb.groupBy('bucket').orderBy('bucket', 'ASC').getRawMany()) as Array<
+      Record<string, unknown>
+    >;
+    return {
+      range,
+      by: 'metric',
+      keys: ['success', 'error'],
+      buckets: rows.map((row) => ({
+        bucket: String(row['bucket']),
+        counts: [Number(row['success'] ?? 0), Number(row['error'] ?? 0)],
+      })),
+    };
+  }
+
+  /**
+   * Attempts per harness over time, scoped to ONE provider connection. The
+   * By harness view of the connection's Attempts chart: same universe as the
+   * status view, so both stack to the same totals.
+   */
+  async getConnectionAttemptsByAgentTimeseries(params: {
+    tenantId: string | null;
+    range?: string;
+    authType?: string;
+    provider?: string;
+    label?: string;
+    tenantProviderId?: string;
+  }): Promise<{ agents: string[]; timeseries: Array<Record<string, number | string>> }> {
+    const range = params.range ?? '7d';
+    if (!params.tenantId) return { agents: [], timeseries: [] };
+    const hourly = isHourlyRange(range);
+    const bucketExpression = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+    const cutoff = computeCutoff(rangeToInterval(range));
+    const qb = this.attemptRepo
+      .createQueryBuilder('at')
+      .select(bucketExpression, 'bucket')
+      .addSelect("COALESCE(at.agent_name, 'Unknown')", 'agent_name')
+      .addSelect('COUNT(*)', 'attempts')
+      .where('at.timestamp >= :cutoff', { cutoff });
+    addTenantFilter(qb, params.tenantId);
+    excludePlaygroundAgents(qb);
+    if (params.authType) qb.andWhere('at.auth_type = :authType', { authType: params.authType });
+    if (params.provider) qb.andWhere('at.provider = :provider', { provider: params.provider });
+    scopeToConnection(qb, params.tenantProviderId, params.label);
+
+    const rows = (await qb
+      .groupBy('bucket')
+      .addGroupBy("COALESCE(at.agent_name, 'Unknown')")
+      .orderBy('bucket', 'ASC')
+      .getRawMany()) as Array<Record<string, unknown>>;
+
+    const agents = new Set<string>();
+    const byBucket = new Map<string, Record<string, number | string>>();
+    for (const row of rows) {
+      const bucket = String(row['bucket']);
+      const agent = String(row['agent_name']);
+      agents.add(agent);
+      let entry = byBucket.get(bucket);
+      if (!entry) {
+        entry = { [bucketAlias]: bucket };
+        byBucket.set(bucket, entry);
+      }
+      entry[agent] = Number(row['attempts'] ?? 0);
+    }
+    return { agents: [...agents].sort(), timeseries: [...byBucket.values()] };
   }
 
   private async queryWindow(

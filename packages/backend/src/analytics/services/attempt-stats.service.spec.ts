@@ -8,6 +8,7 @@ function mockQueryBuilder(options: { rawOne?: unknown; rawMany?: unknown[] } = {
     where: jest.fn(),
     andWhere: jest.fn(),
     groupBy: jest.fn(),
+    addGroupBy: jest.fn(),
     orderBy: jest.fn(),
     getRawOne: jest.fn().mockResolvedValue(options.rawOne),
     getRawMany: jest.fn().mockResolvedValue(options.rawMany ?? []),
@@ -18,6 +19,7 @@ function mockQueryBuilder(options: { rawOne?: unknown; rawMany?: unknown[] } = {
     'where',
     'andWhere',
     'groupBy',
+    'addGroupBy',
     'orderBy',
   ] as const) {
     qb[method].mockReturnValue(qb);
@@ -114,5 +116,75 @@ describe('AttemptStatsService', () => {
     expect(
       qb.andWhere.mock.calls.some(([clause]) => String(clause).includes('liveAgentName')),
     ).toBe(true);
+  });
+
+  it('buckets a connection attempt-status timeseries as success/error', async () => {
+    const qb = mockQueryBuilder({
+      rawMany: [
+        { bucket: '2026-06-04', success: '9', error: '1' },
+        { bucket: '2026-06-05', success: '4', error: '2' },
+      ],
+    });
+    const service = makeService([qb]);
+
+    const out = await service.getConnectionStatusTimeseries({
+      tenantId: 't1',
+      range: '7d',
+      authType: 'api_key',
+      provider: 'openai',
+      label: 'Default',
+      tenantProviderId: 'conn-1',
+    });
+
+    expect(out).toEqual({
+      range: '7d',
+      by: 'metric',
+      keys: ['success', 'error'],
+      buckets: [
+        { bucket: '2026-06-04', counts: [9, 1] },
+        { bucket: '2026-06-05', counts: [4, 2] },
+      ],
+    });
+    const selects = qb.addSelect.mock.calls.flat().join(' ');
+    // Every attempt counts by its OWN outcome; a NULL legacy status reads ok.
+    expect(selects).toContain("WHERE at.status = 'ok' OR at.status IS NULL");
+    expect(selects).toContain("at.status IS NOT NULL AND at.status <> 'ok'");
+    const wheres = qb.andWhere.mock.calls.flat();
+    // Connection id wins over the (provider, auth_type, label) tuple.
+    expect(wheres).toContain('at.tenant_provider_id = :tenantProviderId');
+    expect(wheres).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+  });
+
+  it('pivots connection attempts per harness', async () => {
+    const qb = mockQueryBuilder({
+      rawMany: [
+        { bucket: '2026-06-04', agent_name: 'demo-agent', attempts: '7' },
+        { bucket: '2026-06-04', agent_name: 'other', attempts: '2' },
+        { bucket: '2026-06-05', agent_name: 'demo-agent', attempts: '3' },
+      ],
+    });
+    const service = makeService([qb]);
+
+    const out = await service.getConnectionAttemptsByAgentTimeseries({
+      tenantId: 't1',
+      range: '7d',
+      provider: 'openai',
+    });
+
+    expect(out.agents).toEqual(['demo-agent', 'other']);
+    expect(out.timeseries).toEqual([
+      { date: '2026-06-04', 'demo-agent': 7, other: 2 },
+      { date: '2026-06-05', 'demo-agent': 3 },
+    ]);
+  });
+
+  it('answers empty without a tenant', async () => {
+    const service = makeService([]);
+    await expect(
+      service.getConnectionStatusTimeseries({ tenantId: null, range: '7d' }),
+    ).resolves.toEqual({ range: '7d', by: 'metric', keys: [], buckets: [] });
+    await expect(
+      service.getConnectionAttemptsByAgentTimeseries({ tenantId: null, range: '7d' }),
+    ).resolves.toEqual({ agents: [], timeseries: [] });
   });
 });
