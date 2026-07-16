@@ -23,6 +23,8 @@ vi.mock('@solidjs/meta', () => ({
 
 const mockUpgrade = vi.fn();
 const mockBillingPortal = vi.fn();
+const mockListAccounts = vi.fn();
+const mockChangePassword = vi.fn();
 
 vi.mock('../../src/services/auth-client.js', () => ({
   authClient: {
@@ -34,6 +36,8 @@ vi.mock('../../src/services/auth-client.js', () => ({
       upgrade: (...a: unknown[]) => mockUpgrade(...a),
       billingPortal: (...a: unknown[]) => mockBillingPortal(...a),
     },
+    listAccounts: (...a: unknown[]) => mockListAccounts(...a),
+    changePassword: (...a: unknown[]) => mockChangePassword(...a),
   },
 }));
 
@@ -120,6 +124,8 @@ describe('Account', () => {
     mockUpdateBillingEmailPreferences.mockResolvedValue({ usageAlerts: true });
     mockUpgrade.mockResolvedValue(undefined);
     mockBillingPortal.mockResolvedValue({ data: { url: 'https://billing.stripe.com/session' } });
+    mockListAccounts.mockResolvedValue({ data: [{ providerId: 'credential' }], error: null });
+    mockChangePassword.mockResolvedValue({ data: {}, error: null });
     fakeTab = { location: { href: '' }, opener: {}, close: vi.fn() };
     vi.spyOn(window, 'open').mockImplementation(() => fakeTab as unknown as Window);
   });
@@ -161,6 +167,29 @@ describe('Account', () => {
   it('shows profile information section', () => {
     render(() => <Account />);
     expect(screen.getByText('Profile information')).toBeDefined();
+  });
+
+  it('shows Security section for a credential account', async () => {
+    mockListAccounts.mockResolvedValue({ data: [{ providerId: 'credential' }], error: null });
+    render(() => <Account />);
+    expect(await screen.findByText('Security')).toBeDefined();
+    expect(screen.getByLabelText('Current password')).toBeDefined();
+    expect(screen.getByLabelText('New password')).toBeDefined();
+    expect(screen.getByLabelText('Confirm new password')).toBeDefined();
+  });
+
+  it('hides Security section for an OAuth-only account', async () => {
+    mockListAccounts.mockResolvedValue({ data: [{ providerId: 'google' }], error: null });
+    render(() => <Account />);
+    await screen.findByText('Profile information');
+    expect(screen.queryByText('Security')).toBeNull();
+  });
+
+  it('hides Security section when listAccounts returns no data', async () => {
+    mockListAccounts.mockResolvedValue({ data: null, error: { message: 'boom' } });
+    render(() => <Account />);
+    await screen.findByText('Profile information');
+    expect(screen.queryByText('Security')).toBeNull();
   });
 
   it('shows appearance section', () => {

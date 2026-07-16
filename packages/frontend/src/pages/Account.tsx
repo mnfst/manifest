@@ -21,7 +21,19 @@ const Account: Component = () => {
   const session = authClient.useSession();
   const [copied, setCopied] = createSignal(false);
   const [theme, setTheme] = createSignal<'light' | 'dark' | 'system'>('system');
+  const [currentPassword, setCurrentPassword] = createSignal('');
+  const [newPassword, setNewPassword] = createSignal('');
+  const [confirmPassword, setConfirmPassword] = createSignal('');
+  const [pwError, setPwError] = createSignal('');
+  const [pwBusy, setPwBusy] = createSignal(false);
+
+  const handleChangePassword = async (e: Event) => {
+    e.preventDefault();
+  };
   const [billing, { refetch: refetchBilling }] = createResource(() => getBillingStatus());
+  const [accounts] = createResource(() => authClient.listAccounts());
+  const hasCredentialAccount = () =>
+    (accounts()?.data ?? []).some((a) => a.providerId === 'credential');
   const [searchParams, setSearchParams] = useSearchParams();
   const [billingBusy, setBillingBusy] = createSignal(false);
   const [emailPrefsBusy, setEmailPrefsBusy] = createSignal(false);
@@ -201,6 +213,62 @@ const Account: Component = () => {
             </span>
           </div>
         </div>
+
+        {/* Security */}
+        <Show when={hasCredentialAccount()}>
+          <h2 class="settings-section__title">Security</h2>
+
+          <div class="settings-card">
+            <form class="auth-form" onSubmit={handleChangePassword}>
+              {pwError() && (
+                <div class="auth-form__error" role="alert">
+                  {pwError()}
+                </div>
+              )}
+              <label class="auth-form__label">
+                Current password
+                <input
+                  class="auth-form__input"
+                  type="password"
+                  autocomplete="current-password"
+                  aria-label="Current password"
+                  value={currentPassword()}
+                  onInput={(e) => setCurrentPassword(e.currentTarget.value)}
+                  required
+                />
+              </label>
+              <label class="auth-form__label">
+                New password
+                <input
+                  class="auth-form__input"
+                  type="password"
+                  autocomplete="new-password"
+                  aria-label="New password"
+                  value={newPassword()}
+                  onInput={(e) => setNewPassword(e.currentTarget.value)}
+                  required
+                  minLength={8}
+                />
+              </label>
+              <label class="auth-form__label">
+                Confirm new password
+                <input
+                  class="auth-form__input"
+                  type="password"
+                  autocomplete="new-password"
+                  aria-label="Confirm new password"
+                  value={confirmPassword()}
+                  onInput={(e) => setConfirmPassword(e.currentTarget.value)}
+                  required
+                  minLength={8}
+                />
+              </label>
+              <button class="btn btn--primary btn--sm" type="submit" disabled={pwBusy()}>
+                {pwBusy() ? <span class="spinner" /> : 'Change password'}
+              </button>
+            </form>
+          </div>
+        </Show>
 
         {/* Workspace ID */}
         <h2 class="settings-section__title">Workspace</h2>
