@@ -31,7 +31,7 @@ configuration on the production (Railway) service.
 | `EMAIL_PROVIDER` | `mailgun` | The generic send path (`send-email.ts`). |
 | `EMAIL_API_KEY` | Mailgun API key | |
 | `EMAIL_DOMAIN` | Mailgun sending domain | |
-| `EMAIL_FROM` | e.g. `Manifest <hello@…>` | Falls back to `NOTIFICATION_FROM_EMAIL` if unset. |
+| `EMAIL_FROM` | bare address, e.g. `hello@manifest.build` | The Mailgun provider wraps it as `Manifest <address>` itself; a display-name value here produces an invalid doubled `from` and Mailgun rejects the send with a 400. |
 
 The migration `1801100000000-AddAnnouncementSends` creates the
 `announcement_sends` ledger; it runs with the deploy's normal migration

@@ -19,6 +19,8 @@ export interface DoctorReleaseProps {
   /** The tutorial article (blog). Optional until published. */
   tutorialUrl?: string;
   logoUrl?: string;
+  /** The Auto-fix gradient sparkle mark (hosted PNG). */
+  autofixIconUrl?: string;
 }
 
 /**
@@ -27,7 +29,12 @@ export interface DoctorReleaseProps {
  * retry, an auto-fix produces an attempt), no em dashes, short sentences.
  */
 export function DoctorReleaseEmail(props: DoctorReleaseProps) {
-  const { appUrl, tutorialUrl, logoUrl = 'https://app.manifest.build/manifest-logo.png' } = props;
+  const {
+    appUrl,
+    tutorialUrl,
+    logoUrl = 'https://app.manifest.build/manifest-logo.png',
+    autofixIconUrl = 'https://app.manifest.build/autofix-icon-email.png',
+  } = props;
 
   return (
     <Html>
@@ -43,7 +50,11 @@ export function DoctorReleaseEmail(props: DoctorReleaseProps) {
 
           <Section style={card}>
             <Section style={badgeContainer}>
-              <Text style={badge}>New</Text>
+              <Text style={newLine}>
+                <span style={newLabel}>New:</span>{' '}
+                <Img src={autofixIconUrl} alt="" width="18" height="18" style={autofixIcon} />{' '}
+                <span style={autofixName}>Auto-fix</span>
+              </Text>
             </Section>
 
             <Text style={heading}>Auto-fix is live on your account</Text>
@@ -66,20 +77,15 @@ export function DoctorReleaseEmail(props: DoctorReleaseProps) {
             </Text>
 
             <Section style={buttonSection}>
-              <Button href={appUrl} style={button}>
+              <Button href={appUrl} style={buttonPrimary}>
                 Open your dashboard
               </Button>
+              {tutorialUrl ? (
+                <Button href={tutorialUrl} style={buttonSecondary}>
+                  How Auto-fix works
+                </Button>
+              ) : null}
             </Section>
-
-            {tutorialUrl ? (
-              <Text style={secondary}>
-                Five minutes to see it in action:{' '}
-                <Link href={tutorialUrl} style={link}>
-                  how Auto-fix works
-                </Link>
-                .
-              </Text>
-            ) : null}
 
             <Hr style={hr} />
 
@@ -100,7 +106,6 @@ const brandFont =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 const brandInk = '#1a1a1a';
 const brandMuted = '#6b6b6b';
-const brandAccent = '#0d9488';
 
 const body: React.CSSProperties = {
   backgroundColor: brandBg,
@@ -135,17 +140,27 @@ const badgeContainer: React.CSSProperties = {
   marginBottom: '16px',
 };
 
-const badge: React.CSSProperties = {
-  display: 'inline-block',
-  fontSize: '11px',
-  fontWeight: 600,
-  textTransform: 'uppercase' as const,
-  letterSpacing: '0.05em',
-  padding: '4px 10px',
-  borderRadius: '6px',
-  color: brandAccent,
-  backgroundColor: '#f0fdfa',
+const newLine: React.CSSProperties = {
+  fontSize: '14px',
   margin: 0,
+  lineHeight: '18px',
+};
+
+const newLabel: React.CSSProperties = {
+  color: brandInk,
+  fontWeight: 600,
+};
+
+const autofixIcon: React.CSSProperties = {
+  display: 'inline-block',
+  verticalAlign: 'middle',
+  borderRadius: '4px',
+  margin: '0 2px',
+};
+
+const autofixName: React.CSSProperties = {
+  color: brandInk,
+  fontWeight: 700,
 };
 
 const heading: React.CSSProperties = {
@@ -164,13 +179,11 @@ const paragraph: React.CSSProperties = {
 };
 
 const buttonSection: React.CSSProperties = {
-  textAlign: 'center' as const,
+  textAlign: 'left' as const,
   margin: '28px 0 20px',
 };
 
-const button: React.CSSProperties = {
-  backgroundColor: brandAccent,
-  color: '#ffffff',
+const buttonBase: React.CSSProperties = {
   fontSize: '14px',
   fontWeight: 600,
   borderRadius: '8px',
@@ -178,16 +191,18 @@ const button: React.CSSProperties = {
   textDecoration: 'none',
 };
 
-const secondary: React.CSSProperties = {
-  fontSize: '13px',
-  color: brandMuted,
-  textAlign: 'center' as const,
-  margin: '0 0 8px',
+const buttonPrimary: React.CSSProperties = {
+  ...buttonBase,
+  backgroundColor: brandInk,
+  color: '#ffffff',
+  marginRight: '12px',
 };
 
-const link: React.CSSProperties = {
-  color: brandAccent,
-  textDecoration: 'underline',
+const buttonSecondary: React.CSSProperties = {
+  ...buttonBase,
+  backgroundColor: brandCardBg,
+  color: brandInk,
+  border: `1px solid ${brandBorder}`,
 };
 
 const hr: React.CSSProperties = {

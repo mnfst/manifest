@@ -10,7 +10,7 @@ function renderEmail(props: Parameters<typeof DoctorReleaseEmail>[0]): string {
 }
 
 describe('DoctorReleaseEmail', () => {
-  it('renders the announcement with the dashboard CTA and waitlist footer', () => {
+  it('renders the announcement with the two CTAs and waitlist footer', () => {
     const html = renderEmail({
       appUrl: 'https://app.manifest.build',
       tutorialUrl: 'https://manifest.build/blog/auto-fix',
@@ -19,15 +19,19 @@ describe('DoctorReleaseEmail', () => {
     expect(html).toContain('already running on your account');
     expect(html).toContain('https://app.manifest.build');
     expect(html).toContain('Open your dashboard');
+    expect(html).toContain('How Auto-fix works');
     expect(html).toContain('https://manifest.build/blog/auto-fix');
     expect(html).toContain('because you joined the Auto-fix');
+    // The header reads "New: <icon> Auto-fix", not the old green badge.
+    expect(html).toContain('New:');
+    expect(html).toContain('autofix-icon-email.png');
     // House copy rules: no em dashes in user-facing sentences.
     expect(html).not.toContain('\u2014');
   });
 
-  it('omits the tutorial link until the article URL exists', () => {
+  it('omits the tutorial button until the article URL exists', () => {
     const html = renderEmail({ appUrl: 'https://app.manifest.build' });
-    expect(html).not.toContain('how Auto-fix works');
+    expect(html).not.toContain('How Auto-fix works');
     expect(html).toContain('Open your dashboard');
   });
 });
