@@ -9,6 +9,7 @@ import {
   formatTimestamp,
   selectMessageRowColumns,
   ERROR_MESSAGE_STATUSES,
+  SUCCESS_STATUS_SQL_LIST,
   MANIFEST_ORIGIN_PREDICATE,
   CUSTOM_PROVIDER_JOIN_CONDITION,
   excludePlaygroundAgents,
@@ -202,7 +203,11 @@ export class MessagesQueryService {
       qb.andWhere(sqlExcludePlayground('r'));
     }
     if (params.status === 'failed' || params.status === 'errors') {
-      qb.andWhere("r.status <> 'ok'");
+      // "Not a success" across both vocabularies: a normalized `success` row must
+      // never leak into the failed filter just because it is not literally `ok`.
+      qb.andWhere(`r.status NOT IN (${SUCCESS_STATUS_SQL_LIST})`);
+    } else if (params.status === 'ok' || params.status === 'success') {
+      qb.andWhere(`r.status IN (${SUCCESS_STATUS_SQL_LIST})`);
     } else if (params.status) {
       qb.andWhere('r.status = :requestStatus', { requestStatus: params.status });
     }
@@ -278,7 +283,7 @@ export class MessagesQueryService {
     }
 
     const countQb = qb.clone().select('COUNT(DISTINCT r.id)', 'total');
-    const rank = `CASE WHEN at.status = 'ok' THEN 3 WHEN NOT COALESCE(at.superseded, false) AND at.status NOT IN ('fallback_error', 'auto_fixed') THEN 2 ELSE 1 END`;
+    const rank = `CASE WHEN at.status IN (${SUCCESS_STATUS_SQL_LIST}) THEN 3 WHEN NOT COALESCE(at.superseded, false) AND at.status NOT IN ('fallback_error', 'auto_fixed') THEN 2 ELSE 1 END`;
     const picked = (column: string): string =>
       `(ARRAY_AGG(${column} ORDER BY ${rank} DESC, at.timestamp DESC, at.id DESC) FILTER (WHERE at.id IS NOT NULL))[1]`;
     const safeCost = sqlSanitizeCost('at.cost_usd');

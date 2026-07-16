@@ -153,7 +153,7 @@ describe('MessagesQueryService request-first queries', () => {
     const clauses = requestQb.andWhere.mock.calls.map((call) => String(call[0]));
     expect(clauses).toEqual(
       expect.arrayContaining([
-        expect.stringContaining("r.status <> 'ok'"),
+        expect.stringContaining("r.status NOT IN ('ok', 'success')"),
         expect.stringContaining("r.error_origin IN ('config', 'policy', 'internal', 'request')"),
         expect.stringContaining('filtered_attempt.service_type = :requestServiceType'),
         expect.stringContaining('filtered_attempt.routing_tier = :requestTier'),

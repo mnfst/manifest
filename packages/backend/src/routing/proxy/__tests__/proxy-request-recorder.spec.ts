@@ -59,7 +59,7 @@ describe('ProxyMessageRecorder request parents', () => {
     expect(requestValues).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'request-1',
-        status: 'error',
+        status: 'failed',
         autofix_status: null,
         error_origin: 'transport',
       }),
@@ -126,7 +126,7 @@ describe('ProxyMessageRecorder request parents', () => {
     });
 
     expect(requestValues).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'request-2', status: 'error', error_origin: 'config' }),
+      expect.objectContaining({ id: 'request-2', status: 'failed', error_origin: 'config' }),
     );
     expect(insert).not.toHaveBeenCalled();
     recorder.onModuleDestroy();
@@ -167,7 +167,7 @@ describe('ProxyMessageRecorder request parents', () => {
       2,
       expect.objectContaining({
         id: 'request-3',
-        status: 'error',
+        status: 'failed',
         error_http_status: 503,
         error_message: 'primary unavailable',
       }),
@@ -175,7 +175,8 @@ describe('ProxyMessageRecorder request parents', () => {
     expect(insert).toHaveBeenLastCalledWith(
       expect.objectContaining({
         request_id: 'request-3',
-        status: 'fallback_error',
+        status: 'failed',
+        superseded: true,
         error_http_status: null,
       }),
     );

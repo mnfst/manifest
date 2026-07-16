@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import type { CallerAttribution } from '../../routing/proxy/caller-classifier';
 import type { PhoenixExplanation, PhoenixOperation } from '../../routing/autofix/phoenix.types';
-import type { AutofixStatus, RequestParamDefaults } from 'manifest-shared';
+import { isSuccessStatus, type AutofixStatus, type RequestParamDefaults } from 'manifest-shared';
 import { ManifestRequest } from '../../entities/request.entity';
 
 export interface MessageDetailResponse {
@@ -98,7 +98,7 @@ export class MessageDetailsService {
         })
       : [];
     const message = request
-      ? ([...attempts].reverse().find((attempt) => attempt.status === 'ok') ??
+      ? ([...attempts].reverse().find((attempt) => isSuccessStatus(attempt.status)) ??
         attempts[attempts.length - 1] ??
         null)
       : await this.messageRepo

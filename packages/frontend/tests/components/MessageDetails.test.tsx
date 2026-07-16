@@ -241,6 +241,50 @@ describe('MessageDetails', () => {
     expect(container.textContent).toContain('Server error');
   });
 
+  it('renders the fallback-recovery panel for a normalized failed + superseded attempt', async () => {
+    // After status normalization the superseded primary stores the canonical
+    // `failed` and carries the recovery signal on the `superseded` boolean, not
+    // the legacy `fallback_error` status. The next-action card must still show.
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'failed',
+        error_message: 'Overloaded',
+        error_origin: 'provider',
+        error_class: 'server_error',
+        superseded: true,
+        autofix_applied: false,
+        autofix_role: null,
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Overloaded');
+      expect(container.textContent).toContain('A fallback was triggered after this error.');
+    });
+  });
+
+  it('does not treat a normalized superseded Auto-fix original as a fallback error', async () => {
+    // A superseded row that is the Auto-fix original must route to its own
+    // next-action panel, never the fallback one — the `!isAutofixOriginal`
+    // guard on the new superseded branch.
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'failed',
+        error_message: 'Bad request',
+        superseded: true,
+        autofix_applied: true,
+        autofix_role: 'original',
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Bad request');
+    });
+    expect(container.textContent).not.toContain('A fallback was triggered after this error.');
+  });
+
   it('shows message summary', async () => {
     const summaryResponse = {
       message: { ...detailsResponse.message, error_message: null },

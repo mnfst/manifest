@@ -19,7 +19,7 @@ import { PROVIDERS } from '../services/providers.js';
 import { getModelDisplayName } from '../services/model-display.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.jsx';
 import { authBadgeFor, authLabel } from './AuthBadge.js';
-import { platformIcon } from 'manifest-shared';
+import { platformIcon, isSuccessStatus } from 'manifest-shared';
 import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
 
 const MONO = 'font-family: var(--font-mono);';
@@ -404,15 +404,17 @@ function statusErrorDescriptor(item: MessageRow): string | null {
 
 /**
  * Two-state status pill: Success or Failed (with optional origin descriptor).
- * Everything that isn't `ok` is a failure — `fallback_error`, `auto_fixed`,
- * `rate_limited` are now expressed through the Trigger column, not here.
+ * Everything that isn't a success is a failure — the legacy `fallback_error`,
+ * `auto_fixed`, `rate_limited` values (and the canonical `failed`) are expressed
+ * through the Trigger column, not here. `isSuccessStatus` accepts both the legacy
+ * `ok` and the canonical `success`.
  */
 function describeStatusPill(item: MessageRow): {
   label: string;
   cls: string;
   limitAgent: string | null;
 } {
-  const isSuccess = item.status === 'ok';
+  const isSuccess = isSuccessStatus(item.status);
   if (isSuccess) {
     return { label: 'Success', cls: 'status-badge status-badge--ok', limitAgent: null };
   }

@@ -263,27 +263,27 @@ export class AggregationService {
        ), attempt_stats AS (
          SELECT pa.request_id,
                 COUNT(*) AS attempts,
-                COUNT(*) FILTER (WHERE pa.status = 'ok') AS successful_attempts,
-                BOOL_OR(pa.status <> 'ok') AS had_failure
+                COUNT(*) FILTER (WHERE pa.status IN ('ok', 'success')) AS successful_attempts,
+                BOOL_OR(pa.status NOT IN ('ok', 'success')) AS had_failure
          FROM provider_attempts pa
          JOIN scoped_requests r ON r.id = pa.request_id
          GROUP BY pa.request_id
          UNION ALL
          SELECT r.id,
                 1 AS attempts,
-                CASE WHEN pa.status = 'ok' THEN 1 ELSE 0 END AS successful_attempts,
-                pa.status <> 'ok' AS had_failure
+                CASE WHEN pa.status IN ('ok', 'success') THEN 1 ELSE 0 END AS successful_attempts,
+                pa.status NOT IN ('ok', 'success') AS had_failure
          FROM provider_attempts pa
          JOIN scoped_requests r ON r.id = 'unlinked:' || pa.id
          WHERE pa.request_id IS NULL
        )
        SELECT
          COUNT(*) FILTER (WHERE r.timestamp >= $3)::int AS total,
-         COUNT(*) FILTER (WHERE r.timestamp >= $3 AND r.status = 'ok')::int AS successful,
+         COUNT(*) FILTER (WHERE r.timestamp >= $3 AND r.status IN ('ok', 'success'))::int AS successful,
          COUNT(*) FILTER (WHERE r.timestamp < $3)::int AS previous_total,
          COALESCE(SUM(a.attempts) FILTER (WHERE r.timestamp >= $3), 0)::int AS attempts,
          COALESCE(SUM(a.successful_attempts) FILTER (WHERE r.timestamp >= $3), 0)::int AS successful_attempts,
-         COUNT(*) FILTER (WHERE r.timestamp >= $3 AND r.status = 'ok' AND a.had_failure)::int AS recovered
+         COUNT(*) FILTER (WHERE r.timestamp >= $3 AND r.status IN ('ok', 'success') AND a.had_failure)::int AS recovered
        FROM scoped_requests r
        LEFT JOIN attempt_stats a ON a.request_id = r.id`,
       queryParams,

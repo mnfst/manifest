@@ -83,9 +83,9 @@ export class ErrorDiscoveryService {
              (array_agg(e.error_message ORDER BY e.timestamp DESC))[1] AS sample
       FROM provider_attempts e
       LEFT JOIN (
-        SELECT DISTINCT trace_id FROM provider_attempts WHERE status = 'ok' AND trace_id IS NOT NULL
+        SELECT DISTINCT trace_id FROM provider_attempts WHERE status IN ('ok', 'success') AND trace_id IS NOT NULL
       ) ok ON ok.trace_id = e.trace_id
-      WHERE e.status IN ('error','fallback_error','rate_limited')
+      WHERE e.status IN ('error','fallback_error','rate_limited','failed')
         AND e.tenant_id IS NOT NULL
         AND e.provider IS NOT NULL
         AND e.provider NOT LIKE 'custom:%'

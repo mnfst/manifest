@@ -510,6 +510,7 @@ describe('sqlCountMessages', () => {
       'fallback_error',
       'rate_limited',
       'auto_fixed',
+      'failed',
     ]);
   });
 });
