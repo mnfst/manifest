@@ -61,6 +61,27 @@ number.
 counted where it ran. Not deduplicated per request: a request that retried 3
 times on a model contributes 3.
 
+**Recovered by Auto-fix.** A successful request whose auto-fix retry
+concluded in success: the request failed, Phoenix provided a patch, Manifest
+re-sent the corrected request, and THAT retry succeeded. Technical
+definition, the single source of truth: `requests.autofix_status =
+'retry_succeeded'`, written once by the gateway when the request concludes.
+
+**Recovered by Fallback.** A successful request rescued by a model change:
+the initial attempt failed, Manifest rerouted to a fallback model, and that
+attempt succeeded. Technically: the terminal attempt is `ok` and carries a
+`fallback_from_model`.
+
+**`requests.autofix_status`** (one verdict per request, five values):
+
+| Value | Meaning |
+|---|---|
+| `no_patch` | Phoenix was consulted, no known patch: the failure stays a failure |
+| `resolving` | Phoenix is still investigating |
+| `retry_succeeded` | Patch applied, retry succeeded: THE marker for Recovered by Auto-fix |
+| `retry_failed` | Patch applied, but the retry failed too |
+| `service_error` | Phoenix itself was unreachable |
+
 ## Per-page specification
 
 ### Overview (global)
