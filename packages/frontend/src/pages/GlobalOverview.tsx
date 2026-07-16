@@ -325,8 +325,27 @@ const GlobalOverview: Component = () => {
     };
   };
 
+  // Harness table usage, driven by the page range selector (the workspace
+  // agents endpoint is a fixed window; this table must follow the filter).
+  const [harnessUsage] = createResource(
+    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    (p) => getOverviewAgentUsage(p.range) as Promise<UsageTSResult>,
+  );
+  const harnessUsageFor = (agentName: string) => {
+    const ts = harnessUsage()?.tokenUsage;
+    if (!ts || !ts.agents.includes(agentName)) return null;
+    const spark: number[] = [];
+    let total = 0;
+    for (const row of ts.timeseries) {
+      const v = Number(row[agentName] ?? 0);
+      spark.push(v);
+      total += v;
+    }
+    return { total, spark };
+  };
+
   const [agentReliability] = createResource(
-    () => (autofixEligible() ? { range: effectiveChartRange(), _ping: messagePing() } : false),
+    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
     (p) => getPerAgentReliability(p.range),
   );
 
@@ -1069,7 +1088,7 @@ const GlobalOverview: Component = () => {
               <thead>
                 <tr>
                   <th>Harness</th>
-                  <th>Usage (30d)</th>
+                  <th>Usage</th>
                   <th class="rel-col">
                     Total requests
                     <InfoTooltip text={HARNESS_TOTAL_REQUESTS_TOOLTIP} />
@@ -1111,18 +1130,30 @@ const GlobalOverview: Component = () => {
                           </div>
                         </td>
                         <td>
-                          <div style="display: flex; align-items: center; gap: 8px;">
-                            <Show when={(agent.sparkline ?? []).length > 0}>
-                              <span style="flex-shrink: 0;">
-                                <Sparkline data={agent.sparkline} width={60} height={24} />
-                              </span>
-                            </Show>
-                            <span style="font-variant-numeric: tabular-nums;">
-                              {formatNumber(agent.total_tokens ?? 0)} tokens
-                            </span>
-                          </div>
+                          {(() => {
+                            const usage = () => harnessUsageFor(agent.agent_name);
+                            return (
+                              <div style="display: flex; align-items: center; gap: 8px;">
+                                <Show when={(usage()?.spark ?? []).length > 0}>
+                                  <span style="flex-shrink: 0;">
+                                    <Sparkline data={usage()!.spark} width={60} height={24} />
+                                  </span>
+                                </Show>
+                                <span style="font-variant-numeric: tabular-nums;">
+                                  {formatNumber(usage()?.total ?? 0)} tokens
+                                </span>
+                              </div>
+                            );
+                          })()}
                         </td>
-                        <td class="rel-col">{formatNumber(agent.message_count ?? 0)}</td>
+                        <td class="rel-col">
+                          {(() => {
+                            const rel = agentReliability()?.find(
+                              (r) => r.agent_name === agent.agent_name,
+                            );
+                            return formatNumber(rel?.requests ?? 0);
+                          })()}
+                        </td>
                         {(() => {
                           const rel = () =>
                             agentReliability()?.find((r) => r.agent_name === agent.agent_name);
