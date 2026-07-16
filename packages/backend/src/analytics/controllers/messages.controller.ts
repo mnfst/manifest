@@ -9,7 +9,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { MessagesQueryDto } from '../dto/messages-query.dto';
+import { MessagesQueryDto, type MessageTriggerFilter } from '../dto/messages-query.dto';
 import { MessageFeedbackDto } from '../dto/message-feedback.dto';
 import { MessagesQueryService } from '../services/messages-query.service';
 import { MessageDetailsService } from '../services/message-details.service';
@@ -46,7 +46,9 @@ export class MessagesController {
       cursor: query.cursor,
       agent_name: query.agent_name,
       status: query.status,
-      trigger: query.trigger,
+      triggers: query.trigger
+        ? ([...new Set(query.trigger.split(','))] as MessageTriggerFilter[])
+        : undefined,
       origin: query.origin,
       error_class: query.error_class,
       routing_tier: query.routing_tier,

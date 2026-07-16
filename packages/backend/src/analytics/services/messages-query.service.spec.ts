@@ -761,7 +761,7 @@ describe('MessagesQueryService', () => {
       range: '24h',
       tenantId: 'test-user',
       limit: 20,
-      trigger,
+      triggers: trigger ? [trigger] : undefined,
       include_filter_options: false,
     });
 
@@ -1003,7 +1003,7 @@ describe('MessagesQueryService', () => {
       range: '24h',
       tenantId: 'test-user',
       limit: 20,
-      trigger: 'fallback',
+      triggers: ['fallback'],
       include_filter_options: false,
     });
 
@@ -1016,7 +1016,7 @@ describe('MessagesQueryService', () => {
       range: '24h',
       tenantId: 'test-user',
       limit: 20,
-      trigger: 'autofix',
+      triggers: ['autofix'],
       cursor: '2026-02-16 10:00:00|msg-1',
       include_filter_options: false,
     });

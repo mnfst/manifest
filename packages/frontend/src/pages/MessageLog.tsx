@@ -71,7 +71,6 @@ type MessageStatusFilter = (typeof MESSAGE_STATUS_FILTERS)[number];
 type MessageStatusFilterValue = '' | MessageStatusFilter;
 const MESSAGE_TRIGGER_FILTERS = ['none', 'fallback', 'autofix'] as const;
 type MessageTriggerFilter = (typeof MESSAGE_TRIGGER_FILTERS)[number];
-type MessageTriggerFilterValue = '' | MessageTriggerFilter;
 
 const isMessageStatusFilter = (value: unknown): value is MessageStatusFilter =>
   typeof value === 'string' && (MESSAGE_STATUS_FILTERS as readonly string[]).includes(value);
@@ -94,8 +93,8 @@ const normalizeRangeFilter = (value: unknown): MessageRangeFilterValue =>
 const isMessageTriggerFilter = (value: unknown): value is MessageTriggerFilter =>
   typeof value === 'string' && (MESSAGE_TRIGGER_FILTERS as readonly string[]).includes(value);
 
-const normalizeTriggerFilter = (value: unknown): MessageTriggerFilterValue =>
-  isMessageTriggerFilter(value) ? value : '';
+const normalizeTriggerFilters = (value: unknown): MessageTriggerFilter[] =>
+  typeof value === 'string' ? value.split(',').filter(isMessageTriggerFilter) : [];
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -105,6 +104,7 @@ const MessageLog: Component = () => {
     request?: string;
     provider?: string;
     connections?: string;
+    trigger?: string;
     range?: string;
   }>();
   const navigate = useNavigate();
@@ -210,7 +210,10 @@ const MessageLog: Component = () => {
       { replace: true },
     );
   });
-  const [triggerFilter, setTriggerFilter] = createSignal<MessageTriggerFilterValue>('');
+  // Multiselect: several recovery-attempt kinds OR together (?trigger=autofix,fallback).
+  const [triggerFilter, setTriggerFilter] = createSignal<MessageTriggerFilter[]>(
+    normalizeTriggerFilters(searchParams.trigger),
+  );
   // `?range=` scopes the log to a rolling window; deep links from dashboard
   // cards carry it so the list total can match the card that sent us here.
   const [rangeFilter, setRangeFilterValue] = createSignal<MessageRangeFilterValue>(
@@ -280,7 +283,11 @@ const MessageLog: Component = () => {
     setStatusFilterValue(next);
     setSearchParams({ status: next || undefined }, { replace: true });
   };
-  const setTriggerFilterValue = (value: string) => setTriggerFilter(normalizeTriggerFilter(value));
+  const setTriggerFilterValues = (values: string[]) => {
+    const next = values.filter(isMessageTriggerFilter);
+    setTriggerFilter(next);
+    setSearchParams({ trigger: next.length ? next.join(',') : undefined }, { replace: true });
+  };
   const setRangeFilter = (value: string) => {
     if (isProRangeLocked(value)) return;
     const next = normalizeRangeFilter(value);
@@ -342,7 +349,7 @@ const MessageLog: Component = () => {
     (p) => {
       const q: Record<string, string> = {};
       if (p.connections.length) q.connections = p.connections.join(',');
-      if (p.trigger) q.trigger = p.trigger;
+      if (p.trigger.length) q.trigger = p.trigger.join(',');
       if (p.tier) {
         if (p.tier.startsWith(SPECIFICITY_FILTER_PREFIX)) {
           q.specificity_category = p.tier.slice(SPECIFICITY_FILTER_PREFIX.length);
@@ -396,7 +403,7 @@ const MessageLog: Component = () => {
   const hasActiveFilters = () =>
     agentFilter() !== '' ||
     connectionsFilter().length > 0 ||
-    triggerFilter() !== '' ||
+    triggerFilter().length > 0 ||
     tierFilter() !== '' ||
     originFilter() !== '' ||
     statusFilterValue() !== '' ||
@@ -423,7 +430,7 @@ const MessageLog: Component = () => {
   const clearFilters = () => {
     setAgentFilter('');
     setConnectionsFilter([]);
-    setTriggerFilter('');
+    setTriggerFilterValues([]);
     setTierFilter('');
     setOriginFilter('');
     setStatusFilter('');
@@ -512,7 +519,6 @@ const MessageLog: Component = () => {
   ];
 
   const triggerOptions = [
-    { label: 'All recovery attempts', value: '' },
     { label: 'No recovery attempt', value: 'none' },
     { label: 'Fallback', value: 'fallback' },
     { label: 'Auto-fix', value: 'autofix' },
@@ -601,11 +607,12 @@ const MessageLog: Component = () => {
               placeholder="All connections"
               label="Connection filter"
             />
-            <Select
-              value={triggerFilter()}
-              onChange={setTriggerFilterValue}
+            <MultiSelect
+              values={triggerFilter()}
+              onChange={setTriggerFilterValues}
               options={triggerOptions}
-              label="Trigger filter"
+              placeholder="All recovery attempts"
+              label="Recovery attempts filter"
             />
             <Select
               value={statusFilterValue()}

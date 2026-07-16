@@ -86,7 +86,7 @@ interface MessageQueryParams extends MessageFilterParams {
   limit: number;
   cursor?: string;
   status?: MessageStatusFilter;
-  trigger?: MessageTriggerFilter;
+  triggers?: MessageTriggerFilter[];
   origin?: MessageOriginFilter;
   error_class?: string;
   routing_tier?: string;
@@ -304,16 +304,42 @@ export class MessagesQueryService {
       attemptPredicates.push('filtered_attempt.header_tier_id = :requestHeaderTier');
       attemptParameters['requestHeaderTier'] = params.header_tier_id;
     }
-    if (params.trigger === 'autofix')
-      attemptPredicates.push('filtered_attempt.autofix_applied = true');
-    else if (params.trigger === 'fallback')
-      attemptPredicates.push('filtered_attempt.fallback_from_model IS NOT NULL');
-    else if (params.trigger === 'none') {
-      qb.andWhere(`NOT EXISTS (
+    if (params.triggers?.length) {
+      // Several recovery-attempt kinds OR together (a multiselect facet). When
+      // a connections filter is active, the recovery attempt must be ON one of
+      // the selected connections, so a connection card's "fallback retries"
+      // link lands on exactly the requests it counted.
+      const triggerParameters: Record<string, unknown> = {};
+      const connScope = resolvedConnections?.length
+        ? ' AND (' +
+          resolvedConnections
+            .map((c, i) =>
+              connectionAttemptPredicate(
+                'trigger_attempt',
+                c,
+                i + resolvedConnections.length,
+                triggerParameters,
+              ),
+            )
+            .join(' OR ') +
+          ')'
+        : '';
+      const triggerExists = (condition: string): string => `EXISTS (
         SELECT 1 FROM provider_attempts trigger_attempt
-        WHERE trigger_attempt.request_id = r.id
-        AND (trigger_attempt.autofix_applied = true OR trigger_attempt.fallback_from_model IS NOT NULL)
-      )`);
+        WHERE trigger_attempt.request_id = r.id AND ${condition}${connScope}
+      )`;
+      const parts = params.triggers.map((trigger) => {
+        if (trigger === 'autofix') return triggerExists('trigger_attempt.autofix_applied = true');
+        if (trigger === 'fallback')
+          return triggerExists('trigger_attempt.fallback_from_model IS NOT NULL');
+        // 'none': no recovery attempt anywhere on the request.
+        return `NOT EXISTS (
+          SELECT 1 FROM provider_attempts trigger_attempt
+          WHERE trigger_attempt.request_id = r.id
+          AND (trigger_attempt.autofix_applied = true OR trigger_attempt.fallback_from_model IS NOT NULL)
+        )`;
+      });
+      qb.andWhere(`(${parts.join(' OR ')})`, triggerParameters);
     }
     if (attemptPredicates.length > 0) {
       qb.andWhere(matchingAttempt(attemptPredicates), attemptParameters);
@@ -524,7 +550,7 @@ export class MessagesQueryService {
     cost_max?: number;
     agent_name?: string;
     status?: MessageStatusFilter;
-    trigger?: MessageTriggerFilter;
+    triggers?: MessageTriggerFilter[];
     origin?: MessageOriginFilter;
     error_class?: string;
     routing_tier?: string;
@@ -564,7 +590,7 @@ export class MessagesQueryService {
       qb.andWhere('at.status = :statusFilter', { statusFilter: params.status });
     }
 
-    this.applyTriggerFilter(qb, params.trigger);
+    this.applyTriggerFilter(qb, params.triggers);
 
     // Error-origin scope. Nothing is hidden by default: the log is the complete
     // event listing, and a Manifest setup error is exactly the row a user needs
@@ -609,9 +635,21 @@ export class MessagesQueryService {
 
   private applyTriggerFilter(
     qb: SelectQueryBuilder<AgentMessage>,
-    trigger: MessageTriggerFilter | undefined,
+    triggers: MessageTriggerFilter[] | undefined,
   ): void {
-    if (!trigger) return;
+    if (!triggers?.length) return;
+    if (triggers.length > 1) {
+      // Attempt-grain OR of the selected kinds.
+      const conditions = triggers.map((t) => {
+        if (t === 'autofix') return 'at.autofix_role = :triggerAutofixRole';
+        if (t === 'fallback')
+          return "(COALESCE(at.autofix_role, '') != :triggerAutofixRole AND at.fallback_from_model IS NOT NULL AND at.fallback_from_model != '')";
+        return "(COALESCE(at.autofix_role, '') != :triggerAutofixRole AND (at.fallback_from_model IS NULL OR at.fallback_from_model = ''))";
+      });
+      qb.andWhere(`(${conditions.join(' OR ')})`, { triggerAutofixRole: AUTOFIX_TRIGGER_ROLE });
+      return;
+    }
+    const trigger = triggers[0];
 
     if (trigger === 'autofix') {
       qb.andWhere('at.autofix_role = :triggerAutofixRole', {
@@ -792,7 +830,7 @@ export class MessagesQueryService {
     cost_min?: number;
     cost_max?: number;
     status?: MessageStatusFilter;
-    trigger?: MessageTriggerFilter;
+    triggers?: MessageTriggerFilter[];
     origin?: MessageOriginFilter;
     error_class?: string;
     routing_tier?: string;
@@ -808,7 +846,7 @@ export class MessagesQueryService {
       params.cost_min ?? '',
       params.cost_max ?? '',
       params.status ?? '',
-      params.trigger ?? '',
+      params.triggers?.join(',') ?? '',
       params.origin ?? '',
       params.error_class ?? '',
       params.routing_tier ?? '',

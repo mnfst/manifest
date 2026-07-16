@@ -1,5 +1,14 @@
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Matches,
+  Max,
+  Min,
+} from 'class-validator';
 import {
   ALL_TIERS,
   ERROR_CLASSES,
@@ -93,11 +102,12 @@ export class MessagesQueryDto {
   })
   status?: MessageStatusFilter;
 
+  /** One or several (comma-separated) of: none, fallback, autofix. */
   @IsOptional()
-  @IsIn(MESSAGE_TRIGGER_FILTER_VALUES, {
-    message: `trigger must be one of: ${MESSAGE_TRIGGER_FILTER_VALUES.join(', ')}`,
+  @Matches(/^(none|fallback|autofix)(,(none|fallback|autofix))*$/, {
+    message: `trigger must be a comma-separated list of: ${MESSAGE_TRIGGER_FILTER_VALUES.join(', ')}`,
   })
-  trigger?: MessageTriggerFilter;
+  trigger?: string;
 
   @IsOptional()
   @IsIn(MESSAGE_ORIGIN_FILTER_VALUES, {

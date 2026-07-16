@@ -129,6 +129,7 @@ vi.mock('../../src/components/MultiSelect.jsx', () => ({
   default: (props: any) => (
     <select
       data-testid="multiselect"
+      aria-label={props.label}
       value={props.values?.[0] ?? ''}
       onChange={(e: any) => {
         const value = e.target.value;
@@ -307,7 +308,14 @@ const selectWithOption = (container: HTMLElement, optionText: string): HTMLSelec
 };
 
 const connectionMultiselect = (container: HTMLElement) =>
-  container.querySelector('[data-testid="multiselect"]') as HTMLSelectElement;
+  container.querySelector(
+    '[data-testid="multiselect"][aria-label="Connection filter"]',
+  ) as HTMLSelectElement;
+
+const triggerMultiselect = (container: HTMLElement) =>
+  container.querySelector(
+    '[data-testid="multiselect"][aria-label="Recovery attempts filter"]',
+  ) as HTMLSelectElement;
 
 describe('MessageLog', () => {
   beforeEach(() => {
@@ -671,14 +679,15 @@ describe('MessageLog', () => {
     expect(mockSetSearchParams).toHaveBeenCalledWith({ range: '7d' }, { replace: true });
   });
 
-  it('filters messages by trigger', async () => {
+  it('filters messages by recovery attempts (multiselect, URL-synced)', async () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(selectWithOption(container, 'All recovery attempts')).toBeDefined();
+      expect(triggerMultiselect(container)).not.toBeNull();
     });
 
-    const triggerSelect = selectWithOption(container, 'All recovery attempts');
+    const triggerSelect = triggerMultiselect(container);
+    expect(triggerSelect.textContent).toContain('All recovery attempts');
     expect(triggerSelect.textContent).toContain('No recovery attempt');
     expect(triggerSelect.textContent).toContain('Fallback');
     expect(triggerSelect.textContent).toContain('Auto-fix');
@@ -691,6 +700,7 @@ describe('MessageLog', () => {
         expect.objectContaining({ trigger: 'fallback' }),
       );
     });
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ trigger: 'fallback' }, { replace: true });
   });
 
   it('seeds the status filter from the status search param', async () => {
@@ -1485,9 +1495,9 @@ describe('MessageLog', () => {
       await vi.waitFor(() => {
         const selects = container.querySelectorAll('[data-testid="select"]');
         // In agent mode, no harness select renders; the first Select is the
-        // recovery-attempts filter (connections live in their own multiselect).
+        // status filter (connections and recovery attempts are multiselects).
         expect(selects[0].textContent).not.toContain('All harnesses');
-        expect(selects[0].textContent).toContain('All recovery attempts');
+        expect(selects[0].textContent).toContain('All statuses');
       });
     });
 

@@ -157,6 +157,48 @@ describe('MessagesQueryService request-first queries', () => {
     expect(clauses).toContain('1 = 0');
   });
 
+  it('ORs several recovery-attempt kinds, scoped to the selected connections', async () => {
+    const requestQb = makeQb();
+    requestQb.clone.mockReturnValue(makeQb());
+    const legacyBase = makeQb();
+    legacyBase.clone.mockReturnValueOnce(makeQb()).mockReturnValueOnce(makeQb());
+
+    const service = new MessagesQueryService(
+      {
+        createQueryBuilder: jest.fn(() => legacyBase),
+        query: jest.fn().mockResolvedValue([]),
+      } as never,
+      { find: jest.fn() } as never,
+      { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      {
+        find: jest
+          .fn()
+          .mockResolvedValue([
+            { id: 'conn-1', provider: 'openai', auth_type: 'api_key', label: 'Default' },
+          ]),
+      } as never,
+    );
+
+    await service.getMessages({
+      tenantId: 'tenant-1',
+      limit: 10,
+      connections: ['conn-1'],
+      triggers: ['autofix', 'fallback'],
+      include_total: false,
+      include_filter_options: false,
+    });
+
+    const clause = requestQb.andWhere.mock.calls
+      .map((call) => String(call[0]))
+      .find((c) => c.includes('trigger_attempt.autofix_applied'));
+    expect(clause).toBeDefined();
+    // Both kinds OR together...
+    expect(clause).toContain('trigger_attempt.fallback_from_model IS NOT NULL');
+    expect(clause).toContain(' OR ');
+    // ...and each recovery attempt must be ON a selected connection.
+    expect(clause).toContain('trigger_attempt.tenant_provider_id');
+  });
+
   it('uses tenant-scoped id-or-name Playground exclusion for request rows', async () => {
     const requestQb = makeQb();
     requestQb.clone.mockReturnValue(makeQb());
@@ -216,7 +258,7 @@ describe('MessagesQueryService request-first queries', () => {
       routing_tier: 'balanced',
       specificity_category: 'specific',
       header_tier_id: 'tier-1',
-      trigger: 'none',
+      triggers: ['none'],
       cursor: '2026-07-14T13:00:00Z|r-3',
       cost_min: 1,
       cost_max: 10,
@@ -259,9 +301,23 @@ describe('MessagesQueryService request-first queries', () => {
   });
 
   it.each([
-    [{ tenantId: null, status: 'ok', origin: 'provider', trigger: 'autofix' }],
-    [{ tenantId: 'tenant-1', status: 'error', origin: 'transport', trigger: 'fallback' }],
-  ] as const)('covers alternate request status, origin, and trigger filters', async (filters) => {
+    [
+      {
+        tenantId: null,
+        status: 'ok' as const,
+        origin: 'provider' as const,
+        triggers: ['autofix' as const],
+      },
+    ],
+    [
+      {
+        tenantId: 'tenant-1',
+        status: 'error' as const,
+        origin: 'transport' as const,
+        triggers: ['fallback' as const],
+      },
+    ],
+  ])('covers alternate request status, origin, and trigger filters', async (filters) => {
     const requestQb = makeQb();
     requestQb.clone.mockReturnValue(makeQb());
     const legacyBase = makeQb();

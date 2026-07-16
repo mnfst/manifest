@@ -85,7 +85,13 @@ describe('MessagesQueryDto', () => {
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
     const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
-    expect(flat.join('\n')).toMatch(/trigger must be one of/);
+    expect(flat.join('\n')).toMatch(/trigger must be a comma-separated list of/);
+  });
+
+  it('accepts a comma-separated trigger list', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { trigger: 'autofix,fallback' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
   });
 
   it('coerces include_total and include_filter_options flags', async () => {
