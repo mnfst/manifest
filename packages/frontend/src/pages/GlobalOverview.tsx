@@ -782,6 +782,8 @@ const GlobalOverview: Component = () => {
                   items={overview()?.recent_activity ?? []}
                   columns={cols()}
                   customProviderName={() => undefined}
+                  expandable
+                  onRowSelect={(id) => navigate(`/messages?request=${id}`)}
                 />
               );
             })()}

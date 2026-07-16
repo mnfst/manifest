@@ -1161,4 +1161,18 @@ describe('Overview', () => {
       expect(badge!.textContent).toContain('Failed');
     });
   });
+
+  it('recent request rows navigate to the Requests page with the request selected', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.querySelector('.msg-row--clickable')).not.toBeNull();
+    });
+    fireEvent.click(container.querySelector('.msg-row--clickable')!);
+    // No inline accordion: the click deep-links into the Requests page drawer.
+    expect(container.querySelector('.msg-row--expanded')).toBeNull();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      expect.stringMatching(/^\/harnesses\/test-agent\/messages\?request=/),
+    );
+  });
 });

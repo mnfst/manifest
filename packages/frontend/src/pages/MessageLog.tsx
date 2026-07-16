@@ -84,7 +84,11 @@ const normalizeTriggerFilter = (value: unknown): MessageTriggerFilterValue =>
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
-  const [searchParams, setSearchParams] = useSearchParams<{ agent?: string; status?: string }>();
+  const [searchParams, setSearchParams] = useSearchParams<{
+    agent?: string;
+    status?: string;
+    request?: string;
+  }>();
   const navigate = useNavigate();
 
   preloadModelDisplayNames();
@@ -406,10 +410,16 @@ const MessageLog: Component = () => {
     setTimeout(() => el.classList.remove('msg-highlight'), 2000);
   };
 
-  // Drawer state
-  const [selectedMessageId, setSelectedMessageId] = createSignal<string | null>(null);
+  // Drawer state. `?request=<id>` deep-links a request into the side panel
+  // (the Recent Requests lists navigate here instead of expanding inline).
+  const [selectedMessageId, setSelectedMessageId] = createSignal<string | null>(
+    typeof searchParams.request === 'string' && searchParams.request ? searchParams.request : null,
+  );
   const openDrawer = (id: string) => setSelectedMessageId(id);
-  const closeDrawer = () => setSelectedMessageId(null);
+  const closeDrawer = () => {
+    setSelectedMessageId(null);
+    if (searchParams.request) setSearchParams({ request: undefined });
+  };
   const handleOpenMessageInDrawer = (id: string) => {
     closeDrawer();
     setTimeout(() => openDrawer(id), 100);

@@ -17,6 +17,9 @@ vi.mock('@solidjs/router', () => ({
       get status() {
         return mockSearchParams.status;
       },
+      get request() {
+        return mockSearchParams.request;
+      },
     },
     mockSetSearchParams,
   ],
@@ -121,7 +124,9 @@ vi.mock('../../src/components/InfoTooltip.jsx', () => ({
 }));
 
 vi.mock('../../src/components/RequestDrawer.jsx', () => ({
-  default: () => null,
+  default: (props: { messageId: string | null }) => (
+    <div data-testid="request-drawer" data-message-id={props.messageId ?? ''} />
+  ),
 }));
 
 vi.mock('../../src/components/Select.jsx', () => ({
@@ -1731,6 +1736,18 @@ describe('MessageLog', () => {
         expect.stringContaining('undefined'),
         expect.anything(),
       );
+    });
+  });
+
+  describe('drawer deep-link (?request=)', () => {
+    it('opens the side panel for the request named in the URL', async () => {
+      mockSearchParams = { request: 'msg-deeplink-1' };
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const drawer = screen.getByTestId('request-drawer');
+        expect(drawer.getAttribute('data-message-id')).toBe('msg-deeplink-1');
+      });
+      mockSearchParams = {};
     });
   });
 });

@@ -542,9 +542,15 @@ const Overview: Component = () => {
                       columns={columns()}
                       agentName={params.agentName}
                       customProviderName={() => undefined}
-                      // A row you can see is a row you can open: without this the
-                      // panel showed failures whose detail was unreachable.
+                      // No inline accordion here: a click lands on the Requests
+                      // page with the request opened in the side panel.
+                      // (`expandable` keeps the rows clickable; `onRowSelect`
+                      // switches them to drawer mode, which we point at the
+                      // Requests page.)
                       expandable
+                      onRowSelect={(id) =>
+                        navigate(`/harnesses/${params.agentName}/messages?request=${id}`)
+                      }
                     />
                   </div>
 
