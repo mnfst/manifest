@@ -54,23 +54,41 @@ export function getPerAgentTimeseries(
 }
 
 /**
- * Request-level disposition timeseries for ONE connection (#2511 terminal
- * attribution): ConnectionDetail's By request status view + Healed tab.
+ * Attempt-status timeseries for ONE connection: every provider call counts
+ * where it ran, keyed by its own outcome (success / error). The Attempts
+ * chart's default view on ConnectionDetail.
  */
-export function getConnectionRequestStatusTimeseries(
+export function getConnectionAttemptStatusTimeseries(
   authType: string,
   provider: string,
   range = '24h',
   label?: string,
   connectionId?: string,
 ): Promise<AutofixTimeseries> {
-  return fetchJson('/provider-analytics/request-status-timeseries', {
+  return fetchJson('/provider-analytics/attempt-status-timeseries', {
     auth_type: authType,
     provider,
     range,
     ...(label !== undefined ? { label } : {}),
     ...(connectionId ? { connection_id: connectionId } : {}),
   }) as Promise<AutofixTimeseries>;
+}
+
+/** Attempts per harness over time for ONE connection (By harness view). */
+export function getConnectionAttemptsByAgentTimeseries(
+  authType: string,
+  provider: string,
+  range = '24h',
+  label?: string,
+  connectionId?: string,
+): Promise<{ agents: string[]; timeseries: Array<Record<string, number | string>> }> {
+  return fetchJson('/provider-analytics/attempts-by-agent-timeseries', {
+    auth_type: authType,
+    provider,
+    range,
+    ...(label !== undefined ? { label } : {}),
+    ...(connectionId ? { connection_id: connectionId } : {}),
+  }) as Promise<{ agents: string[]; timeseries: Array<Record<string, number | string>> }>;
 }
 
 export function getPerAgentMessageTimeseries(

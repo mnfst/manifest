@@ -18,8 +18,11 @@ import {
   getPerAgentTimeseries,
   getPerAgentMessageTimeseries,
   getPerAgentCostTimeseries,
-  getAutofixStats,
-  getConnectionRequestStatusTimeseries,
+  getConnectionAttemptStatusTimeseries,
+  getConnectionAttemptsByAgentTimeseries,
+  attemptSuccessRate,
+  TOTAL_ATTEMPTS_TOOLTIP,
+  ATTEMPT_SUCCESS_RATE_TOOLTIP,
 } from '../../services/api/analytics.js';
 import { getAutofixCohort } from '../../services/api/autofix.js';
 import { messagePing } from '../../services/sse.js';
@@ -40,7 +43,7 @@ import {
   refreshModels,
 } from '../../services/api/routing.js';
 import UnifiedChartCard, { type ChartTab } from '../../components/UnifiedChartCard.jsx';
-import AutofixKpiCards from '../../components/AutofixKpiCards.jsx';
+import InfoTooltip from '../../components/InfoTooltip.jsx';
 import { AGENT_COLORS } from '../../components/MultiAgentTokenChart.jsx';
 import Select from '../../components/Select.jsx';
 import { setConnectionBreadcrumb } from '../../services/connection-breadcrumb-store.js';
@@ -69,8 +72,7 @@ interface AgentRow {
   tokens_30d: number;
   cost_30d: number;
   messages_30d: number;
-  requests_30d?: number;
-  self_healed_30d?: number;
+  attempts_30d?: number;
   succeeded_30d?: number;
   pct_of_total: number;
   last_used: string | null;
@@ -236,7 +238,7 @@ const ConnectionDetail: Component = () => {
   };
   const [chartAgent] = createSignal('');
 
-  // Requests tab view: By request status (default) or By harness. Persisted
+  // Attempts tab view: By attempt status (default) or By harness. Persisted
   // per connection like the range and the active tab.
   const groupKey = () => `chart-group:${params.connectionId}`;
   const savedGroup = (): 'status' | 'harness' => {
@@ -317,9 +319,10 @@ const ConnectionDetail: Component = () => {
     },
   );
 
-  // Request-level disposition series for this connection (#2511 terminal
-  // attribution): the By request status view + the Healed requests tab.
-  const [requestStatusTs] = createResource(
+  // Attempt world: every provider call on this connection, by its own
+  // outcome. Default view of the Attempts chart; the harness view shares the
+  // same universe so both stack to the same totals.
+  const [attemptStatusTs] = createResource(
     () => {
       const c = conn();
       if (!c) return null;
@@ -327,7 +330,7 @@ const ConnectionDetail: Component = () => {
     },
     (p) => {
       if (!p) return null;
-      return getConnectionRequestStatusTimeseries(
+      return getConnectionAttemptStatusTimeseries(
         p.authType,
         p.provider,
         p.range,
@@ -336,26 +339,36 @@ const ConnectionDetail: Component = () => {
       );
     },
   );
-  const selfHealedTs = () => {
-    const ts = requestStatusTs();
-    if (!ts) return undefined;
-    const picked = ts.keys
-      .map((k, i) => ({ k, i }))
-      .filter(({ k }) => k === 'healed' || k === 'fallback');
-    if (picked.length === 0) return { ...ts, keys: [], buckets: [] };
-    return {
-      ...ts,
-      keys: picked.map(({ k }) => k),
-      buckets: ts.buckets.map((b) => ({
-        bucket: b.bucket,
-        counts: picked.map(({ i }) => b.counts[i] ?? 0),
-      })),
-    };
-  };
-  const selfHealedValue = () => {
-    const ts = selfHealedTs();
-    if (!ts) return 0;
-    return ts.buckets.reduce((sum, b) => sum + b.counts.reduce((x, y) => x + y, 0), 0);
+  const [attemptsByAgentTs] = createResource(
+    () => {
+      const c = conn();
+      if (!c) return null;
+      return { range: chartRange(), authType: c.auth_type, provider: c.provider, label: c.label };
+    },
+    (p) => {
+      if (!p) return null;
+      return getConnectionAttemptsByAgentTimeseries(
+        p.authType,
+        p.provider,
+        p.range,
+        p.label,
+        params.connectionId,
+      );
+    },
+  );
+  const attemptTotals = () => {
+    const ts = attemptStatusTs();
+    if (!ts) return { attempts: 0, succeeded: 0 };
+    const successIdx = ts.keys.indexOf('success');
+    let attempts = 0;
+    let succeeded = 0;
+    for (const b of ts.buckets) {
+      for (let i = 0; i < b.counts.length; i++) {
+        attempts += b.counts[i] ?? 0;
+        if (i === successIdx) succeeded += b.counts[i] ?? 0;
+      }
+    }
+    return { attempts, succeeded };
   };
 
   const isByok = () => conn()?.auth_type === 'api_key';
@@ -384,11 +397,6 @@ const ConnectionDetail: Component = () => {
     () => getAutofixCohort(),
   );
   const autofixEligible = () => autofixCohort()?.eligible ?? false;
-  const [autofixStats] = createResource(
-    () => (autofixEligible() ? { range: chartRange(), _ping: messagePing() } : false),
-    (p) => getAutofixStats(p.range),
-  );
-
   // Harness tag selection for chart filtering (persisted in sessionStorage).
   // `null` means "no persisted preference" (→ default to all selected); a Set
   // — even an empty one — means an explicit user choice, so a genuine
@@ -768,10 +776,25 @@ const ConnectionDetail: Component = () => {
                 </div>
               </div>
 
-              {/* KPI cards (autofix) */}
-              <Show when={autofixEligible()}>
-                <AutofixKpiCards stats={autofixStats()} />
-              </Show>
+              {/* Attempt world: one card. Success rate = successful attempts
+                  over all attempts on this connection, filtered period. */}
+              <div class="overview-stats-row" style="margin-bottom: 16px;">
+                <div class="overview-stat-card">
+                  <span class="overview-stat-card__label">
+                    Success rate
+                    <InfoTooltip text={ATTEMPT_SUCCESS_RATE_TOOLTIP} />
+                  </span>
+                  <div class="overview-stat-card__value-row">
+                    <span class="overview-stat-card__value">
+                      {(() => {
+                        const t = attemptTotals();
+                        const rate = attemptSuccessRate(t);
+                        return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                      })()}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
               {/* Chart */}
               <Show when={analytics()}>
@@ -789,20 +812,21 @@ const ConnectionDetail: Component = () => {
                     <UnifiedChartCard
                       activeTab={chartView()}
                       onTabChange={setChartView}
-                      requestsValue={analytics()!.summary.messages.value}
-                      requestsTrendPct={analytics()!.summary.messages.trend_pct ?? 0}
+                      requestsLabel="Attempts"
+                      requestsInfoTooltip={TOTAL_ATTEMPTS_TOOLTIP}
+                      requestsValue={attemptTotals().attempts}
+                      requestsTrendPct={0}
                       tokensValue={analytics()!.summary.tokens.value}
                       tokensTrendPct={analytics()!.summary.tokens.trend_pct}
                       costValue={isByok() ? (totalCost() ?? 0) : undefined}
                       range={chartRange()}
                       agentTimeseries={filteredAgentTimeseries() ?? undefined}
-                      agentRequestTimeseries={filteredAgentMessageTimeseries() ?? undefined}
-                      requestStatusTimeseries={
-                        groupBy() === 'status' ? (requestStatusTs() ?? undefined) : undefined
+                      agentRequestTimeseries={
+                        groupBy() === 'harness' ? (attemptsByAgentTs() ?? undefined) : undefined
                       }
-                      selfHealedTimeseries={autofixEligible() ? selfHealedTs() : undefined}
-                      selfHealedValue={selfHealedValue()}
-                      selfHealedTrendPct={0}
+                      requestStatusTimeseries={
+                        groupBy() === 'status' ? (attemptStatusTs() ?? undefined) : undefined
+                      }
                       agentCostTimeseries={
                         isByok() ? (filteredAgentCostTimeseries() ?? undefined) : undefined
                       }
@@ -819,7 +843,7 @@ const ConnectionDetail: Component = () => {
                               }}
                               onClick={() => setGroupBy('status')}
                             >
-                              By request status
+                              By attempt status
                             </button>
                             <button
                               class="chart-card__filter-btn"
@@ -999,11 +1023,11 @@ const ConnectionDetail: Component = () => {
                           <Show when={isByok()}>
                             <th>Cost (30d)</th>
                           </Show>
-                          <Show when={autofixEligible()}>
-                            <th class="rel-col">Total requests</th>
-                            <th class="rel-col">Self-healed requests</th>
-                            <th class="rel-col">Success rate</th>
-                          </Show>
+                          <th class="rel-col">
+                            Total attempts
+                            <InfoTooltip text={TOTAL_ATTEMPTS_TOOLTIP} />
+                          </th>
+                          <th class="rel-col">Success rate</th>
                           <th>Last used</th>
                         </tr>
                       </thead>
@@ -1049,17 +1073,16 @@ const ConnectionDetail: Component = () => {
                               <Show when={isByok()}>
                                 <td>{formatCost(agent.cost_30d) ?? '$0.00'}</td>
                               </Show>
-                              <Show when={autofixEligible()}>
-                                <td class="rel-col">{formatNumber(agent.requests_30d ?? 0)}</td>
-                                <td class="rel-col">{formatNumber(agent.self_healed_30d ?? 0)}</td>
-                                <td class="rel-col">
-                                  {(() => {
-                                    const total = agent.requests_30d ?? 0;
-                                    if (!total || agent.succeeded_30d == null) return '—';
-                                    return `${((agent.succeeded_30d / total) * 100).toFixed(1)}%`;
-                                  })()}
-                                </td>
-                              </Show>
+                              <td class="rel-col">{formatNumber(agent.attempts_30d ?? 0)}</td>
+                              <td class="rel-col">
+                                {(() => {
+                                  const rate = attemptSuccessRate({
+                                    attempts: agent.attempts_30d ?? 0,
+                                    succeeded: agent.succeeded_30d,
+                                  });
+                                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                                })()}
+                              </td>
                               <td style="color: hsl(var(--muted-foreground));">
                                 {agent.last_used ? formatTimeAgo(agent.last_used) : '—'}
                               </td>

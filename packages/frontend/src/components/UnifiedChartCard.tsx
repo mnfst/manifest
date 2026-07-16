@@ -17,6 +17,10 @@ export interface UnifiedChartCardProps {
   activeTab: ChartTab;
   onTabChange: (tab: ChartTab) => void;
   // Requests tab
+  /** Tab label override: the connection pages count ATTEMPTS, not requests. */
+  requestsLabel?: string;
+  /** Optional ⓘ next to the requests/attempts tab label. */
+  requestsInfoTooltip?: string;
   requestsValue: number;
   requestsTrendPct: number;
   agentRequestTimeseries?: AgentTimeseries;
@@ -68,7 +72,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
   const tabTitle = (): string => {
     switch (props.activeTab) {
       case 'requests':
-        return 'Requests';
+        return props.requestsLabel ?? 'Requests';
       case 'selfheal':
         return 'Healed requests';
       case 'cost':
@@ -88,7 +92,12 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
           classList={{ 'chart-card__stat--active': props.activeTab === 'requests' }}
           onClick={() => props.onTabChange('requests')}
         >
-          <span class="chart-card__label">Requests</span>
+          <span class="chart-card__label">
+            {props.requestsLabel ?? 'Requests'}
+            <Show when={props.requestsInfoTooltip}>
+              <InfoTooltip text={props.requestsInfoTooltip!} />
+            </Show>
+          </span>
           <div class="chart-card__value-row">
             <span class="chart-card__value">{formatNumber(props.requestsValue)}</span>
             {trendBadge(props.requestsTrendPct)}

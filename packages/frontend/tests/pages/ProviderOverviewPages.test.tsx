@@ -26,7 +26,8 @@ const apiMocks = vi.hoisted(() => ({
   getProviderAnalytics: vi.fn(),
   getPerAgentTimeseries: vi.fn(),
   getPerAgentMessageTimeseries: vi.fn(),
-  getConnectionRequestStatusTimeseries: vi.fn(),
+  getConnectionAttemptStatusTimeseries: vi.fn(),
+  getConnectionAttemptsByAgentTimeseries: vi.fn(),
   getAutofixCohort: vi.fn(),
   getPerAgentCostTimeseries: vi.fn(),
 }));
@@ -88,8 +89,10 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getPerAgentTimeseries: (...args: unknown[]) => apiMocks.getPerAgentTimeseries(...args),
   getPerAgentMessageTimeseries: (...args: unknown[]) =>
     apiMocks.getPerAgentMessageTimeseries(...args),
-  getConnectionRequestStatusTimeseries: (...args: unknown[]) =>
-    apiMocks.getConnectionRequestStatusTimeseries(...args),
+  getConnectionAttemptStatusTimeseries: (...args: unknown[]) =>
+    apiMocks.getConnectionAttemptStatusTimeseries(...args),
+  getConnectionAttemptsByAgentTimeseries: (...args: unknown[]) =>
+    apiMocks.getConnectionAttemptsByAgentTimeseries(...args),
   getPerAgentCostTimeseries: (...args: unknown[]) => apiMocks.getPerAgentCostTimeseries(...args),
   getWorkspaceAutofixStatus: () =>
     Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
@@ -738,11 +741,15 @@ beforeEach(() => {
   apiMocks.getPerAgentTimeseries.mockResolvedValue(agentTimeseries);
   apiMocks.getPerAgentMessageTimeseries.mockResolvedValue(agentTimeseries);
   apiMocks.getPerAgentCostTimeseries.mockResolvedValue(agentTimeseries);
-  apiMocks.getConnectionRequestStatusTimeseries.mockResolvedValue({
+  apiMocks.getConnectionAttemptStatusTimeseries.mockResolvedValue({
     range: '7d',
-    by: 'disposition',
-    keys: ['success', 'fallback', 'error', 'healed'],
-    buckets: [{ bucket: '2026-06-04', counts: [10, 2, 3, 1] }],
+    by: 'metric',
+    keys: ['success', 'error'],
+    buckets: [{ bucket: '2026-06-04', counts: [9, 3] }],
+  });
+  apiMocks.getConnectionAttemptsByAgentTimeseries.mockResolvedValue({
+    agents: ['demo-agent'],
+    timeseries: [{ date: '2026-06-04', 'demo-agent': 12 }],
   });
 });
 
@@ -985,25 +992,26 @@ describe('ConnectionDetail (analytics)', () => {
     expect(sessionStorage.getItem('chart-view:conn-openai')).toBe('requests');
   });
 
-  it('defaults the Requests tab to By request status and adds the Healed tab', async () => {
+  it('shows the Attempts tab, By attempt status default, and no Healed tab', async () => {
     render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     fireEvent.click(screen.getByText('Requests chart'));
 
-    // Grouping buttons exist and By request status is the default view.
-    await waitFor(() => expect(screen.getByText('By request status')).toBeDefined());
-    expect(screen.getByText('By request status').className).toContain('--active');
+    // Grouping buttons: attempt status (default) or harness. No provider
+    // grouping and no request notion on a connection page.
+    await waitFor(() => expect(screen.getByText('By attempt status')).toBeDefined());
+    expect(screen.getByText('By attempt status').className).toContain('--active');
     expect(screen.getByText('By harness')).toBeDefined();
 
-    // Default view feeds the disposition series to the chart.
+    // Default view feeds the attempt-status series (success/error).
     await waitFor(() =>
-      expect(screen.getByTestId('status-keys').textContent).toBe('success,fallback,error,healed'),
+      expect(screen.getByTestId('status-keys').textContent).toBe('success,error'),
     );
-    // No Dr version access in this fixture: the Healed tab stays hidden.
+    // The healed tab is gone: healing belongs to requests, not connections.
     expect(screen.getByTestId('healed-keys').textContent).toBe('');
 
-    // The disposition series is fetched scoped to this exact connection.
-    expect(apiMocks.getConnectionRequestStatusTimeseries).toHaveBeenCalledWith(
+    // Scoped fetch to this exact connection.
+    expect(apiMocks.getConnectionAttemptStatusTimeseries).toHaveBeenCalledWith(
       'api_key',
       'openai',
       expect.any(String),
@@ -1011,21 +1019,23 @@ describe('ConnectionDetail (analytics)', () => {
       'conn-openai',
     );
 
-    // Switching to By harness hands the chart back to the per-agent series.
+    // Switching to By harness hands the chart the attempts-per-agent series.
     fireEvent.click(screen.getByText('By harness'));
     await waitFor(() => expect(screen.getByTestId('status-keys').textContent).toBe(''));
+    expect(screen.getByTestId('msg-agents').textContent).toBe('demo-agent');
   });
 
-  it('feeds the Healed requests tab when the tenant has the Dr version', async () => {
-    apiMocks.getAutofixCohort.mockResolvedValue({ eligible: true });
-    render(() => <ConnectionDetail />);
+  it('shows a single attempt Success rate card (9 ok / 12 attempts)', async () => {
+    const { container } = render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
-
-    // Healed tab data: the healed+fallback request subset, count 2+1.
-    await waitFor(() =>
-      expect(screen.getByTestId('healed-keys').textContent).toBe('fallback,healed'),
-    );
-    expect(screen.getByTestId('healed-value').textContent).toBe('3');
+    await waitFor(() => {
+      const card = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
+        c.textContent?.includes('Success rate'),
+      );
+      expect(card?.textContent).toContain('75.0%');
+    });
+    // The four request-world KPI cards are gone from this page.
+    expect(screen.queryByText('Healed via Auto-fix')).toBeNull();
   });
 
   it('opens the inline manage modal from the connection detail', async () => {

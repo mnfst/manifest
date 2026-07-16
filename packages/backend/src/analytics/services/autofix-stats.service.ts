@@ -11,11 +11,7 @@ import {
 } from '../../common/utils/range.util';
 import { computeCutoff, sqlHourBucket, sqlDateBucket } from '../../common/utils/postgres-sql';
 import { addTenantFilter, excludePlaygroundAgents } from './query-helpers';
-import {
-  RequestVolumeService,
-  DimensionVolumeRow,
-  ConnectionScope,
-} from './request-volume.service';
+import { RequestVolumeService, DimensionVolumeRow } from './request-volume.service';
 
 export interface AutofixStatusResponse {
   /** At least one agent has autofix access (tenant is waitlisted or granted). */
@@ -407,26 +403,6 @@ export class AutofixStatsService {
 
     const rows = await qb.getRawMany<{ bucket: string; dim: string | null; count: string }>();
     return this.pivotTimeseries(range, by, rows);
-  }
-
-  /**
-   * Request-level disposition timeseries scoped to ONE provider connection
-   * (terminal attribution, #2511): powers the ConnectionDetail chart's
-   * "By request status" view and its Healed requests tab.
-   */
-  async getConnectionTimeseries(params: {
-    tenantId: string | null;
-    range?: string;
-    connection: ConnectionScope;
-  }): Promise<AutofixTimeseriesResponse> {
-    const range = params.range ?? '7d';
-    const rows = await this.requestVolume.getDispositionTimeseries({
-      tenantId: params.tenantId,
-      range,
-      hourly: isHourlyRange(range),
-      connection: params.connection,
-    });
-    return this.pivotTimeseries(range, 'disposition', rows);
   }
 
   private dimensionExpr(by: AutofixTsDimension): string {
