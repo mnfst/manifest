@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { runRequestBackfill } from '../src/database/backfills/backfill-requests';
 import { TypeOrmRequestBackfillGateway } from '../src/database/backfills/backfill-requests.gateway';
 import { AddRequestsAndProviderAttempts1801000000000 } from '../src/database/migrations/1801000000000-AddRequestsAndProviderAttempts';
+import { AddProviderAttemptOrdering1801100000000 } from '../src/database/migrations/1801100000000-AddProviderAttemptOrdering';
 
 interface LegacyAttempt {
   id: string;
@@ -78,6 +79,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     const runner = dataSource.createQueryRunner();
     try {
       await new AddRequestsAndProviderAttempts1801000000000().up(runner);
+      await new AddProviderAttemptOrdering1801100000000().up(runner);
     } finally {
       await runner.release();
     }
@@ -522,11 +524,18 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
 
     await backfill();
 
-    const [{ requests, parents }] = await dataSource.query(
+    const [{ requests, parents, ordered }] = await dataSource.query(
       `SELECT (SELECT count(*)::int FROM requests) requests,
-              (SELECT count(DISTINCT request_id)::int FROM provider_attempts) parents`,
+              (SELECT count(DISTINCT request_id)::int FROM provider_attempts) parents,
+              (SELECT array_agg(attempt_number ORDER BY attempt_number)
+               FROM provider_attempts
+               WHERE autofix_group_id = 'heal-1') ordered`,
     );
-    expect({ requests, parents }).toEqual({ requests: 2, parents: 2 });
+    expect({ requests, parents, ordered }).toEqual({
+      requests: 2,
+      parents: 2,
+      ordered: [1, 2],
+    });
   });
 
   it('backfills each recorded Auto-fix outcome onto its request', async () => {

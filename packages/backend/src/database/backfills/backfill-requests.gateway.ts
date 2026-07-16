@@ -490,11 +490,27 @@ export const INSERT_ATTEMPT_REQUESTS_SQL = `
 
 export const LINK_ATTEMPTS_SQL = `
   WITH updated AS (
-    UPDATE "provider_attempts"
+    UPDATE "provider_attempts" pa
     SET "request_id" = ${LEGACY_REQUEST_ID},
         "attempt_number" = CASE
-          WHEN autofix_group_id IS NOT NULL AND autofix_role = 'original' THEN 1
-          WHEN autofix_group_id IS NOT NULL AND autofix_role = 'retry' THEN 2
+          WHEN autofix_group_id IS NOT NULL THEN CASE
+            WHEN autofix_role = 'original' THEN 1
+            WHEN autofix_role = 'retry' THEN 2
+            WHEN (
+              SELECT count(*) = 2
+                AND count(*) FILTER (
+                  WHERE other.status = 'auto_fixed' AND COALESCE(other.superseded, false)
+                ) = 1
+              FROM "provider_attempts" other
+              WHERE COALESCE(other.tenant_id, '') = COALESCE(pa.tenant_id, '')
+                AND COALESCE(other.agent_id, '') = COALESCE(pa.agent_id, '')
+                AND other.autofix_group_id = pa.autofix_group_id
+            ) THEN CASE
+              WHEN status = 'auto_fixed' AND COALESCE(superseded, false) THEN 1
+              ELSE 2
+            END
+            ELSE NULL
+          END
           WHEN trace_id IS NULL THEN 1
           ELSE NULL
         END
