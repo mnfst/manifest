@@ -1,4 +1,8 @@
-import { runRequestBackfill, type RequestBackfillGateway } from './backfill-requests';
+import {
+  runRequestBackfill,
+  type RequestBackfillGateway,
+  type RequestBackfillTimeouts,
+} from './backfill-requests';
 import { FINALIZE_PENDING_REQUESTS_SQL } from './backfill-requests.gateway';
 
 describe('runRequestBackfill', () => {
@@ -172,6 +176,32 @@ describe('runRequestBackfill', () => {
     jest.useRealTimers();
   });
 
+  it('uses the configured throttle while staging legacy fallback groups', async () => {
+    const sleep = jest.fn().mockResolvedValue(undefined);
+    const gateway: RequestBackfillGateway = {
+      analyze: jest.fn().mockResolvedValue(undefined),
+      backfillFallbackGroups: jest.fn(
+        async (
+          _batchSize: number,
+          _before: string,
+          _timeouts: RequestBackfillTimeouts,
+          pause: () => Promise<void>,
+        ) => {
+          await pause();
+          return { requests: 0, attempts: 0 };
+        },
+      ),
+      nextWindowEnd: jest.fn().mockResolvedValue(null),
+      backfillWindow: jest.fn(),
+      finalizePending: jest.fn().mockResolvedValue(undefined),
+      finalize: jest.fn().mockResolvedValue(undefined),
+    };
+
+    await runRequestBackfill(gateway, { throttleMs: 5, sleep });
+
+    expect(sleep).toHaveBeenCalledWith(5);
+  });
+
   it('does not retry a non-retryable failure', async () => {
     const failure = new Error('invalid input');
     const gateway: RequestBackfillGateway = {
@@ -266,6 +296,29 @@ describe('runRequestBackfill', () => {
     };
 
     await expect(runRequestBackfill(gateway, { [name]: value })).rejects.toThrow(name);
+    expect(gateway.analyze).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['before', 'not-a-date', undefined, 'before'],
+    ['fallbackBefore', '2026-01-01T00:00:00.000Z', 'not-a-date', 'fallbackBefore'],
+    [
+      'fallbackBefore ordering',
+      '2026-01-02T00:00:00.000Z',
+      '2026-01-01T00:00:00.000Z',
+      'must not precede',
+    ],
+  ])('rejects invalid %s dates', async (_name, before, fallbackBefore, message) => {
+    const gateway: RequestBackfillGateway = {
+      analyze: jest.fn(),
+      backfillFallbackGroups: jest.fn(),
+      nextWindowEnd: jest.fn(),
+      backfillWindow: jest.fn(),
+      finalizePending: jest.fn(),
+      finalize: jest.fn(),
+    };
+
+    await expect(runRequestBackfill(gateway, { before, fallbackBefore })).rejects.toThrow(message);
     expect(gateway.analyze).not.toHaveBeenCalled();
   });
 });

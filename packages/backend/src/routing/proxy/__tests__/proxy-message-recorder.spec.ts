@@ -49,11 +49,17 @@ describe('ProxyMessageRecorder', () => {
     updateMock = jest.fn();
     getByModelMock = jest.fn().mockReturnValue(undefined);
     emitMock = jest.fn();
-    const repo = { insert: insertMock, update: updateMock } as never;
+    const repo = {
+      insert: insertMock,
+      update: updateMock,
+      manager: { getRepository: jest.fn(() => ({})) },
+    } as never;
     const pricingCache = {
       getByModel: getByModelMock,
     } as unknown as ModelPricingCacheService;
-    const dedup = {} as ProxyMessageDedup;
+    const dedup = {
+      normalizeSessionKey: jest.fn((sessionKey: string | undefined) => sessionKey),
+    } as unknown as ProxyMessageDedup;
     const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
     const customProviders = {
       canonicalizeAgentMessageKeys: jest
@@ -84,6 +90,56 @@ describe('ProxyMessageRecorder', () => {
   });
 
   describe('pending Attempt lifecycle', () => {
+    it('inserts pending connection metadata and completes the same row', async () => {
+      const attempt: ProviderAttemptRef = {
+        id: 'attempt-pending',
+        attemptNumber: 2,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        completedAtMs: 1_125,
+        pendingWrite: Promise.resolve(true),
+      };
+
+      await expect(
+        recorder.recordPendingProviderAttempt(ctx, 'request-1', attempt, {
+          provider: 'openai',
+          model: 'gpt-4o',
+          authType: 'api_key',
+          tenantProviderId: 'connection-1',
+        }),
+      ).resolves.toBe(true);
+      await recorder.completePendingProviderFailure(attempt, 429, 'rate limited', true);
+
+      expect(insertMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'attempt-pending',
+          request_id: 'request-1',
+          attempt_number: 2,
+          status: 'pending',
+          auth_type: 'api_key',
+          tenant_provider_id: 'connection-1',
+        }),
+      );
+      expect(updateMock).toHaveBeenCalledWith(
+        { id: 'attempt-pending' },
+        expect.objectContaining({ status: 'failed', duration_ms: 125, superseded: true }),
+      );
+    });
+
+    it('does not complete an attempt whose pending insert failed', async () => {
+      const attempt: ProviderAttemptRef = {
+        id: 'attempt-missing',
+        attemptNumber: 1,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        pendingWrite: Promise.reject(new Error('insert failed')),
+      };
+
+      await recorder.completePendingProviderFailure(attempt, 500, 'failed', false);
+
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
     it('updates the same pending row with terminal status and measured duration', async () => {
       const attempt: ProviderAttemptRef = {
         id: 'attempt-1',
@@ -112,6 +168,32 @@ describe('ProxyMessageRecorder', () => {
           status: 'failed',
         }),
       );
+    });
+
+    it('finishes a successful request by updating its pending attempt', async () => {
+      const attempt: ProviderAttemptRef = {
+        id: 'attempt-success',
+        attemptNumber: 1,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        completedAtMs: 1_050,
+        pendingWrite: Promise.resolve(true),
+      };
+
+      await recorder.recordSuccessMessage(
+        ctx,
+        'gpt-4o',
+        'standard',
+        'scored',
+        { prompt_tokens: 2, completion_tokens: 1 },
+        { requestId: 'request-success', provider: 'openai', attempt },
+      );
+
+      expect(updateMock).toHaveBeenCalledWith(
+        { id: 'attempt-success' },
+        expect.objectContaining({ status: 'success', duration_ms: 50 }),
+      );
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
   });
 
@@ -640,6 +722,42 @@ describe('ProxyMessageRecorder', () => {
   });
 
   describe('recordFailedFallbacks', () => {
+    it('updates the measured pending rows when fallback attempts are available', async () => {
+      const attempts: ProviderAttemptRef[] = [0, 1].map((index) => ({
+        id: `fallback-attempt-${index + 1}`,
+        attemptNumber: index + 2,
+        startedAtMs: 1_000 + index * 100,
+        startedAt: new Date(1_000 + index * 100).toISOString(),
+        completedAtMs: 1_050 + index * 100,
+        pendingWrite: Promise.resolve(true),
+      }));
+      const failures = attempts.map((attempt, index) => ({
+        model: `fallback-${index + 1}`,
+        provider: 'openai',
+        status: 500,
+        errorBody: 'failed',
+        fallbackIndex: index,
+        attempt,
+      }));
+
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
+        requestId: 'request-fallbacks',
+      });
+
+      expect(insertMock).not.toHaveBeenCalled();
+      expect(updateMock).toHaveBeenCalledTimes(2);
+      expect(updateMock).toHaveBeenNthCalledWith(
+        1,
+        { id: 'fallback-attempt-1' },
+        expect.objectContaining({ request_id: 'request-fallbacks', attempt_number: 2 }),
+      );
+      expect(updateMock).toHaveBeenNthCalledWith(
+        2,
+        { id: 'fallback-attempt-2' },
+        expect.objectContaining({ request_id: 'request-fallbacks', attempt_number: 3 }),
+      );
+    });
+
     it('records all failures and emits SSE event once', async () => {
       const failures = [
         { model: 'gpt-4o', provider: 'openai', status: 500, errorBody: 'fail-1', fallbackIndex: 0 },

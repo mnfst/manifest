@@ -5,6 +5,7 @@ import {
   REQUEST_BACKFILL_LOCK_KEY,
   REQUEST_BACKFILL_MAX_LOCK_ATTEMPTS,
   REQUEST_BACKFILL_NAME,
+  REQUEST_BACKFILL_TAIL_INTERVAL_MS,
   RequestBackfillBootService,
 } from './request-backfill.boot.service';
 
@@ -289,5 +290,107 @@ describe('RequestBackfillBootService', () => {
     expect(lock.query).toHaveBeenCalledWith('SELECT pg_advisory_unlock($1)', [
       REQUEST_BACKFILL_LOCK_KEY,
     ]);
+  });
+
+  it('uses the default tail runner only after eligible attempts are found', async () => {
+    const ds = {
+      query: jest.fn().mockResolvedValue([{ pending: false }]),
+      createQueryRunner: jest.fn(),
+    } as unknown as DataSource;
+
+    await expect(
+      new RequestBackfillBootService(ds, makeState(true).repo).runTailOnce(),
+    ).resolves.toBe(true);
+    expect(ds.createQueryRunner).not.toHaveBeenCalled();
+  });
+
+  it('returns false when the tail sweep cannot acquire the shared lock', async () => {
+    const lock = makeLock(false);
+    const ds = {
+      query: jest.fn().mockResolvedValue([{ pending: true }]),
+      createQueryRunner: jest.fn(() => lock),
+    } as unknown as DataSource;
+
+    await expect(
+      new RequestBackfillBootService(ds, makeState(true).repo).runTailOnce(jest.fn()),
+    ).resolves.toBe(false);
+    expect(lock.release).toHaveBeenCalled();
+  });
+
+  it('rechecks tail eligibility after acquiring the lock', async () => {
+    const lock = makeLock(true);
+    const ds = {
+      query: jest
+        .fn()
+        .mockResolvedValueOnce([{ pending: true }])
+        .mockResolvedValueOnce([{ pending: false }]),
+      createQueryRunner: jest.fn(() => lock),
+    } as unknown as DataSource;
+    const runner = jest.fn();
+
+    await expect(
+      new RequestBackfillBootService(ds, makeState(true).repo).runTailOnce(runner),
+    ).resolves.toBe(true);
+    expect(runner).not.toHaveBeenCalled();
+    expect(lock.release).toHaveBeenCalled();
+  });
+
+  it('swallows tail unlock failures and still releases', async () => {
+    const lock = makeLock(true);
+    lock.query.mockImplementation(async (sql: string) => {
+      if (sql.includes('pg_try_advisory_lock')) return [{ locked: true }];
+      throw new Error('unlock failed');
+    });
+    const ds = {
+      query: jest.fn().mockResolvedValue([{ pending: true }]),
+      createQueryRunner: jest.fn(() => lock),
+    } as unknown as DataSource;
+
+    await expect(
+      new RequestBackfillBootService(ds, makeState(true).repo).runTailOnce(
+        jest.fn().mockResolvedValue({ windows: 0, requests: 0, attempts: 0, rejections: 0 }),
+      ),
+    ).resolves.toBe(true);
+    expect(lock.release).toHaveBeenCalled();
+  });
+
+  it('starts, reports, and stops the compatibility tail timer', async () => {
+    jest.useFakeTimers();
+    process.env['NODE_ENV'] = 'production';
+    const ds = {
+      query: jest.fn().mockResolvedValue([{ present: true }]),
+      createQueryRunner: jest.fn(),
+    } as unknown as DataSource;
+    const service = new RequestBackfillBootService(ds, makeState(true).repo);
+    const tail = jest.spyOn(service, 'runTailOnce').mockRejectedValue(new Error('tail failed'));
+
+    service.onApplicationBootstrap();
+    await jest.advanceTimersByTimeAsync(0);
+    await jest.advanceTimersByTimeAsync(REQUEST_BACKFILL_TAIL_INTERVAL_MS);
+
+    expect(tail).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('request backfill tail sweep failed'),
+    );
+    service.onApplicationShutdown();
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  it('does not schedule tail sweeps after the compatibility view is removed', async () => {
+    process.env['NODE_ENV'] = 'production';
+    const ds = {
+      query: jest.fn().mockResolvedValue([{ present: false }]),
+      createQueryRunner: jest.fn(),
+    } as unknown as DataSource;
+    const service = new RequestBackfillBootService(ds, makeState(true).repo);
+    const tail = jest.spyOn(service, 'runTailOnce');
+
+    service.onApplicationBootstrap();
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(ds.query).toHaveBeenCalledTimes(1);
+    expect(tail).not.toHaveBeenCalled();
+    service.onApplicationShutdown();
   });
 });
