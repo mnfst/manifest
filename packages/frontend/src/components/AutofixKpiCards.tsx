@@ -39,24 +39,7 @@ export interface AutofixKpiCardsProps {
   range?: string;
 }
 
-const viewEye = (): JSX.Element => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    aria-hidden="true"
-    style="opacity: 0.55; flex-shrink: 0;"
-  >
-    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
+const viewMore = (): JSX.Element => <span class="view-more-link">View more</span>;
 
 /**
  * The reliability story, request-first: Success rate · Self-healed requests %
@@ -68,7 +51,7 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
   const requestsLink = (extra: string) => {
     if (!props.agentName) return null;
     const range = props.range ? `&range=${props.range}` : '';
-    return `/messages?agent=${encodeURIComponent(props.agentName)}${range}&status=ok${extra}`;
+    return `/messages?agent=${encodeURIComponent(props.agentName)}${range}${extra}`;
   };
   const linkProps = (link: string | null, title: string) =>
     link
@@ -102,7 +85,7 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
   return (
     <Show when={props.stats}>
       {(s) => (
-        <div class="overview-stats" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="overview-stats" style="grid-template-columns: repeat(5, 1fr);">
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">
               Success rate
@@ -115,51 +98,62 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
           </div>
           <div
             class="overview-stat-card"
+            {...linkProps(requestsLink('&status=failed'), "View this harness's failed requests")}
+          >
+            <span class="overview-stat-card__label">Failed requests</span>
+            <div class="overview-stat-card__value-row">
+              <span class="overview-stat-card__value">
+                {formatNumber(s().errors_remaining.value)}
+              </span>
+              {trendBadge(s().errors_remaining.value, s().errors_remaining.previous)}
+              <Show when={requestsLink('')}>{viewMore()}</Show>
+            </div>
+          </div>
+          <div
+            class="overview-stat-card"
             {...linkProps(
-              requestsLink('&trigger=autofix,fallback'),
+              requestsLink('&status=ok&trigger=autofix,fallback'),
               "View this harness's recovered requests",
             )}
           >
             <span class="overview-stat-card__label">
               Recovered requests
               <InfoTooltip text={RECOVERED_REQUESTS_TOOLTIP} />
-              <Show when={requestsLink('')}>{viewEye()}</Show>
             </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{fmtPct(selfHealedPct())}</span>
               {trendBadge(selfHealedPct(), selfHealedPctPrev())}
+              <Show when={requestsLink('')}>{viewMore()}</Show>
             </div>
           </div>
           <div
             class="overview-stat-card"
             {...linkProps(
-              requestsLink('&trigger=autofix'),
+              requestsLink('&status=ok&trigger=autofix'),
               'View the successful requests holding an auto-fixed attempt',
             )}
           >
-            <span class="overview-stat-card__label">
-              Recovered by Auto-fix <Show when={requestsLink('')}>{viewEye()}</Show>
-            </span>
+            <span class="overview-stat-card__label">Recovered by Auto-fix</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{formatNumber(s().autofix_saves.value)}</span>
               {trendBadge(s().autofix_saves.value, s().autofix_saves.previous)}
+              <Show when={requestsLink('')}>{viewMore()}</Show>
             </div>
           </div>
           <div
             class="overview-stat-card"
             {...linkProps(
-              requestsLink('&trigger=fallback'),
+              requestsLink('&status=ok&trigger=fallback'),
               'View the successful requests holding a fallback retry',
             )}
           >
-            <span class="overview-stat-card__label">
-              Recovered by Fallback <Show when={requestsLink('')}>{viewEye()}</Show>
-            </span>
+            <span class="overview-stat-card__label">Recovered by Fallback</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">
                 {formatNumber(s().fallback_saves?.value ?? 0)}
               </span>
               {trendBadge(s().fallback_saves?.value ?? 0, s().fallback_saves?.previous ?? 0)}
+              <Show when={requestsLink('')}>{viewMore()}</Show>
             </div>
           </div>
         </div>

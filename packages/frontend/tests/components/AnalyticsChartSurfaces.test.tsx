@@ -337,6 +337,7 @@ describe('analytics chart surface components', () => {
     // Self-healed share = (5 + 3) / 100.
     expect(screen.getByText('Recovered requests')).toBeDefined();
     expect(screen.getByText('8.0%')).toBeDefined();
+    expect(screen.getByText('Failed requests')).toBeDefined();
     expect(screen.getByText('Recovered by Auto-fix')).toBeDefined();
     expect(screen.getByText('5')).toBeDefined();
     expect(screen.getByText('Recovered by Fallback')).toBeDefined();
@@ -377,6 +378,8 @@ describe('analytics chart surface components', () => {
         range="7d"
       />
     ));
+    fireEvent.click(screen.getByText('Failed requests').closest('.overview-stat-card')!);
+    expect(routerNavigate).toHaveBeenCalledWith('/messages?agent=demo-agent&range=7d&status=failed');
     fireEvent.click(screen.getByText('Recovered by Auto-fix').closest('.overview-stat-card')!);
     expect(routerNavigate).toHaveBeenCalledWith(
       '/messages?agent=demo-agent&range=7d&status=ok&trigger=autofix',

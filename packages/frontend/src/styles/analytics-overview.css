@@ -59,6 +59,16 @@
   gap: 6px;
 }
 
+/* The visible drill-through on a clickable stat card: plain ink, bold, no
+   underline, pushed to the right end of the value row. */
+.view-more-link {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+}
+
 .afx-kpi-line {
   display: flex;
   align-items: baseline;

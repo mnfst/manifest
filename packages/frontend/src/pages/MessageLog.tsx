@@ -417,7 +417,9 @@ const MessageLog: Component = () => {
       if (p.agentName) q.agent_name = p.agentName;
       if (p.cursor) q.cursor = p.cursor;
       q.limit = String(p.limit);
-      q.include_total = 'false';
+      // The dashboard cards deep-link here promising "the N you counted";
+      // an exact total is what makes that promise checkable at a glance.
+      q.include_total = 'true';
       q.include_filter_options = 'false';
       return getMessages(q) as Promise<MessagesData>;
     },
