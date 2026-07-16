@@ -8,7 +8,8 @@ import {
   onCleanup,
   type Component,
 } from 'solid-js';
-import { getMessageDetails } from '../services/api/messages.js';
+import { getMessageDetails, type AutofixDecision } from '../services/api/messages.js';
+import { AUTOFIX_STATUS_LABELS, type AutofixStatus } from 'manifest-shared';
 import { formatParamValue } from './MessageDetailsSections.jsx';
 import { providerIcon } from './ProviderIcon.jsx';
 import { AutofixIcon, FallbackIcon } from './message-table-cells.jsx';
@@ -52,7 +53,7 @@ interface Attempt {
   request_params?: Record<string, unknown>;
   autofix_applied?: boolean;
   autofix_operations?: any;
-  autofix_phoenix?: any;
+  autofix_decision?: AutofixDecision;
   autofix_role?: string;
   autofix_sibling?: any;
 }
@@ -128,7 +129,7 @@ function buildAttempts(msg: any): Attempt[] {
       request_params: att.request_params ?? undefined,
       autofix_applied: att.autofix_applied ?? false,
       autofix_operations: att.autofix_operations ?? undefined,
-      autofix_phoenix: att.autofix_phoenix ?? msg.autofix_phoenix,
+      autofix_decision: att.autofix_decision ?? msg.autofix_decision,
       autofix_role: att.autofix_role ?? undefined,
       autofix_sibling: att.autofix_sibling ?? msg.autofix_sibling,
     }));
@@ -169,7 +170,7 @@ function buildAttempts(msg: any): Attempt[] {
       request_params: msg.request_params,
       autofix_applied: msg.autofix_applied,
       autofix_operations: msg.autofix_operations,
-      autofix_phoenix: msg.autofix_phoenix,
+      autofix_decision: msg.autofix_decision,
       autofix_role: msg.autofix_role,
       autofix_sibling: msg.autofix_sibling,
     },
@@ -276,6 +277,16 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                   <span class={`drawer-status ${requestStatusClass(requestStatus())}`}>
                     {statusLabel(requestStatus())}
                   </span>
+                  <Show when={msg().autofix_status as AutofixStatus | null}>
+                    {(autofixStatus) => (
+                      <>
+                        <span class="drawer__meta-sep">&middot;</span>
+                        <span class="drawer__meta-text">
+                          Auto-fix: {AUTOFIX_STATUS_LABELS[autofixStatus()]}
+                        </span>
+                      </>
+                    )}
+                  </Show>
                   <Show when={msg().provider}>
                     <span class="drawer__meta-sep">&middot;</span>
                     <span
@@ -482,9 +493,9 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                     This is the healed retry. The request was auto-fixed and
                                     re-sent.
                                   </div>
-                                  <Show when={(att().autofix_phoenix as any)?.explanation?.summary}>
+                                  <Show when={att().autofix_decision?.explanation?.summary}>
                                     <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
-                                      {(att().autofix_phoenix as any).explanation.summary}
+                                      {att().autofix_decision!.explanation!.summary}
                                     </div>
                                   </Show>
                                   <Show when={att().autofix_operations}>
@@ -596,9 +607,9 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                         : ''
                                     }`}
                                   </div>
-                                  <Show when={(att().autofix_phoenix as any)?.explanation?.summary}>
+                                  <Show when={att().autofix_decision?.explanation?.summary}>
                                     <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
-                                      {(att().autofix_phoenix as any).explanation.summary}
+                                      {att().autofix_decision!.explanation!.summary}
                                     </div>
                                   </Show>
                                   <Show when={att().autofix_operations}>

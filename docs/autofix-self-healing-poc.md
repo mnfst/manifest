@@ -15,8 +15,10 @@
 >   OFF in self-hosted); an explicit `true`/`false` wins.
 > - **Production default client is `NoopHealingClient`** (inert), not the mock —
 >   the mock runs only in dev/test. See §4.
-> - **`agent_messages` also has `autofix_phoenix`** (jsonb — the Phoenix
->   `{issueId, patchId, healAttemptId}`), in addition to the columns listed in §5.2.
+> - **The current request/provider-attempt model records the logical outcome in
+>   nullable `requests.autofix_status`** and the Phoenix response in
+>   `provider_attempts.autofix_decision`. The legacy `agent_messages` view exposes
+>   that decision as `autofix_phoenix` for old replicas during rolling deploys.
 > - A per-**tenant** early-access gate (`AUTOFIX_ROLLOUT` + `autofix_access_granted_at`
 >   / `autofix_waitlist_at`) sits above the per-agent toggle.
 
@@ -248,8 +250,11 @@ whole budget.
 @Column('varchar', { nullable: true })  autofix_group_id!: string | null; // links original ↔ retry (indexed)
 @Column('varchar', { nullable: true })  autofix_role!: string | null;     // 'original' | 'retry'
 @Column('jsonb',   { nullable: true })  autofix_operations!: object | null; // the Phoenix edits that fixed it
-@Column('jsonb',   { nullable: true })  autofix_phoenix!: object | null;    // Phoenix ids {issueId, patchId, healAttemptId}
+@Column('jsonb',   { nullable: true })  autofix_decision!: object | null;   // Phoenix decision + ids
 ```
+
+The parent `requests` row has nullable `autofix_status`; non-null values are
+`no_patch`, `resolving`, `retry_succeeded`, `retry_failed`, or `service_error`.
 
 | Row | `status` | `autofix_role` | Notes |
 |---|---|---|---|

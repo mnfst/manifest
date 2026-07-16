@@ -38,10 +38,11 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
   it('maps dispositions from how the request CONCLUDED, one count each', async () => {
     await service.getDispositionTimeseries({ tenantId: 't1', range: '24h', hourly: true });
     const sql = lastSql();
-    // Method rides the terminal attempt; a rescued request counts once.
+    // Method is the request-level Auto-fix outcome; a rescued request counts once.
     expect(sql).toContain(
-      "WHEN t.request_status = 'ok' AND t.autofix_role = 'retry' THEN 'healed'",
+      "WHEN t.request_status = 'ok' AND t.autofix_status = 'retry_succeeded' THEN 'healed'",
     );
+    expect(sql).toContain('r.autofix_status');
     expect(sql).toContain(
       "WHEN t.request_status = 'ok' AND t.fallback_from_model IS NOT NULL THEN 'fallback'",
     );

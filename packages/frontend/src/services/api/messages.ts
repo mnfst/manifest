@@ -8,6 +8,19 @@ export interface AutofixOperation {
   to?: string;
 }
 
+export interface AutofixDecision {
+  status: string | null;
+  issueId: string | null;
+  patchId: string | null;
+  healAttemptId: string | null;
+  /** Phoenix's human-readable "why" for the fix (null for pre-explanation rows). */
+  explanation?: {
+    summary: string;
+    operations: Array<{ type: string; detail: string }>;
+    source: string;
+  } | null;
+}
+
 export interface MessageDetailResponse {
   message: {
     id: string;
@@ -73,18 +86,7 @@ export interface MessageDetailResponse {
     autofix_role: string | null;
     autofix_operations: AutofixOperation[] | null;
     /** Phoenix's decision behind this provider attempt. */
-    autofix_decision: {
-      status: string | null;
-      issueId: string | null;
-      patchId: string | null;
-      healAttemptId: string | null;
-      /** Phoenix's human-readable "why" for the fix (null for pre-explanation rows). */
-      explanation?: {
-        summary: string;
-        operations: Array<{ type: string; detail: string }>;
-        source: string;
-      } | null;
-    } | null;
+    autofix_decision: AutofixDecision | null;
     /** The paired row (failed original ↔ successful retry), for the visual link. */
     autofix_sibling: { id: string; role: string | null; status: string } | null;
     attempts?: Array<{
@@ -92,9 +94,23 @@ export interface MessageDetailResponse {
       model: string | null;
       provider: string | null;
       status: string;
+      auth_type: string | null;
+      error_message: string | null;
+      error_origin: string | null;
+      error_class: string | null;
       error_http_status: number | null;
       duration_ms: number | null;
       cost_usd: number | null;
+      input_tokens: number;
+      output_tokens: number;
+      fallback_from_model: string | null;
+      fallback_index: number | null;
+      request_headers: Record<string, string> | null;
+      request_params: Record<string, unknown> | null;
+      autofix_applied: boolean;
+      autofix_role: string | null;
+      autofix_operations: AutofixOperation[] | null;
+      autofix_decision: AutofixDecision | null;
     }>;
   };
 }

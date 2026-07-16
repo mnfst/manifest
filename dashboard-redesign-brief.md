@@ -123,7 +123,7 @@ Each request is a row in `agent_messages` with:
 | `autofix_role` | `original`/`retry`/null | If autofix: the failed request or the patched retry |
 | `autofix_group_id` | uuid | Links the original and retry rows |
 | `autofix_operations` | jsonb | What Phoenix changed (rename_param, etc.) |
-| `autofix_phoenix` | jsonb `{issueId, patchId, healAttemptId}` | Phoenix cross-references |
+| `autofix_decision` | jsonb `{status, issueId, patchId, healAttemptId, explanation?}` | Phoenix decision; the legacy view exposes it as `autofix_phoenix` |
 | `cost` | float | Dollar cost of the request |
 | `input_tokens`, `output_tokens` | int | Token counts |
 | `timestamp` | datetime | When it happened |
@@ -133,6 +133,9 @@ When auto-fix heals a request, **two rows** are written:
 2. `status='ok', autofix_role='retry'` — the patched retry that succeeded
 
 Both share the same `autofix_group_id`.
+
+The logical `requests` row records nullable `autofix_status`: `no_patch`,
+`resolving`, `retry_succeeded`, `retry_failed`, or `service_error`.
 
 ---
 

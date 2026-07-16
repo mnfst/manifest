@@ -30,12 +30,12 @@ const TERMINAL_RANK = `CASE WHEN pa.status = 'ok' THEN 3
        ELSE 1 END`;
 
 /**
- * How the request CONCLUDED, from its terminal attempt. "Healed"/"fallback"
- * mark the method that produced the concluding attempt, never mere attempts
- * along the way — a rescued request counts once, under its rescue method.
+ * How the request CONCLUDED. Auto-fix comes from the request outcome; fallback
+ * comes from the terminal attempt. These mark the method that produced the
+ * conclusion, never mere attempts along the way.
  */
 const DISPOSITION_EXPR = `CASE
-    WHEN t.request_status = 'ok' AND t.autofix_role = 'retry' THEN 'healed'
+    WHEN t.request_status = 'ok' AND t.autofix_status = 'retry_succeeded' THEN 'healed'
     WHEN t.request_status = 'ok' AND t.fallback_from_model IS NOT NULL THEN 'fallback'
     WHEN t.request_status = 'ok' THEN 'success'
     ELSE 'error'
@@ -106,11 +106,11 @@ export class RequestVolumeService {
           r.id,
           r.timestamp AS ts,
           r.status AS request_status,
+          r.autofix_status,
           r.agent_name,
           pa.provider,
           pa.model,
           pa.fallback_from_model,
-          pa.autofix_role,
           pa.auth_type,
           pa.provider_key_label,
           pa.tenant_provider_id
@@ -134,11 +134,12 @@ export class RequestVolumeService {
           pa.id,
           pa.timestamp,
           pa.status,
+          CASE WHEN pa.autofix_role = 'retry' AND pa.status = 'ok'
+            THEN 'retry_succeeded' ELSE NULL END,
           pa.agent_name,
           pa.provider,
           pa.model,
           pa.fallback_from_model,
-          pa.autofix_role,
           pa.auth_type,
           pa.provider_key_label,
           pa.tenant_provider_id

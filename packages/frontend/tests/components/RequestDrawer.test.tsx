@@ -37,7 +37,13 @@ const fullMessage = {
   fallback_from_model: 'old-model',
   fallback_index: 1,
   autofix_applied: true,
-  autofix_phoenix: { issueId: 'issue' },
+  autofix_status: 'retry_succeeded',
+  autofix_decision: {
+    status: 'patched',
+    issueId: 'issue',
+    patchId: null,
+    healAttemptId: 'heal',
+  },
   attempts: [
     {
       id: 'attempt-1',
@@ -64,7 +70,12 @@ const fullMessage = {
       request_params: { temperature: 0.2, nested: { ok: true } },
       autofix_applied: true,
       autofix_operations: [{ type: 'rename', from: 'old', to: 'new' }, { type: 'remove' }],
-      autofix_phoenix: { issueId: 'attempt-issue' },
+      autofix_decision: {
+        status: 'patched',
+        issueId: 'attempt-issue',
+        patchId: null,
+        healAttemptId: 'attempt-heal',
+      },
       autofix_sibling: { id: 'sibling' },
     },
     {
@@ -104,6 +115,7 @@ describe('RequestDrawer', () => {
     await waitFor(() => expect(screen.getByText('Request request-1234')).toBeDefined());
     expect(mockGetMessageDetails).toHaveBeenCalledWith('request-1234567890');
     expect(screen.getAllByText('Auto-fixed').length).toBeGreaterThan(0);
+    expect(screen.getByText('Auto-fix: Retry succeeded')).toBeDefined();
     // The header meta row carries NO fallback/autofix badge: that story belongs
     // to the attempts (sidebar icons + context cards), not the request title.
     expect(container.querySelector('.drawer__meta-row .trigger-badge')).toBeNull();
@@ -137,6 +149,21 @@ describe('RequestDrawer', () => {
     expect(onClose).toHaveBeenCalled();
     fireEvent.click(screen.getByLabelText('Close'));
     expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    ['no_patch', 'No patch'],
+    ['resolving', 'Resolving'],
+    ['retry_succeeded', 'Retry succeeded'],
+    ['retry_failed', 'Retry failed'],
+    ['service_error', 'Service error'],
+  ] as const)('labels the %s request outcome as %s', async (autofix_status, label) => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: { ...fullMessage, autofix_status },
+    });
+    render(() => <RequestDrawer messageId={`status-${autofix_status}`} onClose={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByText(`Auto-fix: ${label}`)).toBeDefined());
   });
 
   it.each([
@@ -245,9 +272,7 @@ describe('RequestDrawer', () => {
     // Attempt 2 (recovery): fallback ORIGIN card explaining where it came from.
     const attempts = container.querySelectorAll('.attempt-item');
     fireEvent.click(attempts[1]!);
-    await waitFor(() =>
-      expect(container.textContent).toContain('Fell back from deepseek-chat'),
-    );
+    await waitFor(() => expect(container.textContent).toContain('Fell back from deepseek-chat'));
     expect(screen.queryByText('Error')).toBeNull();
   });
 });

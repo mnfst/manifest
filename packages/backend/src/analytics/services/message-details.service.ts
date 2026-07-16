@@ -83,7 +83,7 @@ export interface MessageDetailResponse {
       autofix_applied: boolean;
       autofix_role: string | null;
       autofix_operations: object | null;
-      autofix_phoenix: object | null;
+      autofix_decision: object | null;
     }>;
   };
 }
@@ -230,7 +230,7 @@ export class MessageDetailsService {
                 autofix_applied: attempt.autofix_applied,
                 autofix_role: attempt.autofix_role,
                 autofix_operations: attempt.autofix_operations,
-                autofix_phoenix: attempt.autofix_phoenix,
+                autofix_decision: attempt.autofix_decision,
               })),
             }
           : {}),

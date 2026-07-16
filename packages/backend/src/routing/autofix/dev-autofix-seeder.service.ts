@@ -44,6 +44,7 @@ export class DevAutofixSeederService {
       const model = provider === 'openai' ? 'gpt-4o' : 'claude-sonnet-4-5-20250929';
       const operations = [{ type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' }];
       const phoenix = {
+        status: 'patched',
         issueId: `dev-issue-${index + 1}`,
         patchId: `dev-patch-${index + 1}`,
         healAttemptId: `dev-heal-${index + 1}`,
@@ -58,6 +59,7 @@ export class DevAutofixSeederService {
         timestamp: new Date(timestamp).toISOString(),
         duration_ms: healed ? 1200 : 420,
         status: healed ? 'ok' : 'error',
+        autofix_status: healed ? 'retry_succeeded' : 'retry_failed',
         error_message: healed
           ? null
           : 'Invalid request: max_tokens is not supported for this model',
@@ -91,7 +93,7 @@ export class DevAutofixSeederService {
         autofix_group_id: groupId,
         autofix_role: 'original',
         autofix_operations: operations,
-        autofix_phoenix: phoenix,
+        autofix_decision: phoenix,
         superseded: healed,
       });
 
@@ -116,7 +118,7 @@ export class DevAutofixSeederService {
           autofix_group_id: groupId,
           autofix_role: 'retry',
           autofix_operations: operations,
-          autofix_phoenix: phoenix,
+          autofix_decision: phoenix,
           superseded: false,
         });
       }

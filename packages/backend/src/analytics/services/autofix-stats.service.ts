@@ -642,7 +642,7 @@ export class AutofixStatsService {
       .addSelect('at.provider', 'provider')
       .addSelect('at.model', 'model')
       .addSelect('COUNT(*)', 'count')
-      .addSelect("(at.autofix_phoenix->>'issueId')::text", 'phoenix_issue_id')
+      .addSelect("(at.autofix_decision->>'issueId')::text", 'phoenix_issue_id')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere("at.status = 'auto_fixed'")
       .andWhere(
@@ -655,7 +655,7 @@ export class AutofixStatsService {
       .groupBy('LEFT(at.error_message, 200)')
       .addGroupBy('at.provider')
       .addGroupBy('at.model')
-      .addGroupBy("(at.autofix_phoenix->>'issueId')::text")
+      .addGroupBy("(at.autofix_decision->>'issueId')::text")
       .orderBy('count', 'DESC')
       .limit(5);
     addTenantFilter(qb, tenantId, agentName);
