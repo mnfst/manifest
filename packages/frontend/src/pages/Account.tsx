@@ -258,17 +258,15 @@ const Account: Component = () => {
         <Show when={hasCredentialAccount()}>
           <h2 class="settings-section__title">Security</h2>
 
-          <div class="settings-card">
-            <form class="auth-form" onSubmit={handleChangePassword}>
-              {pwError() && (
-                <div class="auth-form__error" role="alert">
-                  {pwError()}
-                </div>
-              )}
-              <label class="auth-form__label">
-                Current password
+          <form class="settings-card" onSubmit={handleChangePassword}>
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Current password</span>
+                <span class="settings-card__label-desc">Confirm the password you use today.</span>
+              </div>
+              <div class="settings-card__control">
                 <input
-                  class="auth-form__input"
+                  class="settings-card__input"
                   type="password"
                   autocomplete="current-password"
                   aria-label="Current password"
@@ -276,11 +274,16 @@ const Account: Component = () => {
                   onInput={(e) => setCurrentPassword(e.currentTarget.value)}
                   required
                 />
-              </label>
-              <label class="auth-form__label">
-                New password
+              </div>
+            </div>
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">New password</span>
+                <span class="settings-card__label-desc">At least 8 characters.</span>
+              </div>
+              <div class="settings-card__control">
                 <input
-                  class="auth-form__input"
+                  class="settings-card__input"
                   type="password"
                   autocomplete="new-password"
                   aria-label="New password"
@@ -289,11 +292,16 @@ const Account: Component = () => {
                   required
                   minLength={8}
                 />
-              </label>
-              <label class="auth-form__label">
-                Confirm new password
+              </div>
+            </div>
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Confirm new password</span>
+                <span class="settings-card__label-desc">Re-enter the new password to confirm.</span>
+              </div>
+              <div class="settings-card__control">
                 <input
-                  class="auth-form__input"
+                  class="settings-card__input"
                   type="password"
                   autocomplete="new-password"
                   aria-label="Confirm new password"
@@ -302,12 +310,17 @@ const Account: Component = () => {
                   required
                   minLength={8}
                 />
-              </label>
+              </div>
+            </div>
+            <div class="settings-card__footer account-security-footer">
+              <span class="account-security-error" role="alert">
+                {pwError()}
+              </span>
               <button class="btn btn--primary btn--sm" type="submit" disabled={pwBusy()}>
                 {pwBusy() ? <span class="spinner" /> : 'Change password'}
               </button>
-            </form>
-          </div>
+            </div>
+          </form>
         </Show>
 
         {/* Workspace ID */}
