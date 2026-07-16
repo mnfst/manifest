@@ -1,0 +1,23 @@
+CLAUDE.md
+  s_5bb8e955b067d5::t_67c51aa105452b 418
+AGENTS.md
+  s_5bb8e955b067d5::t_8c06111b3ec09a 10
+docs/glossary.md
+  s_5bb8e955b067d5::t_abddf52b5bc7de 1,3,131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "82dfc3a084ffe15c4f9196bdc2e45482c4ce55d7",
+  "prompts": {},
+  "sessions": {
+    "s_5bb8e955b067d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "394cdc16-2b3f-4dca-aa20-92ae31340052",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
