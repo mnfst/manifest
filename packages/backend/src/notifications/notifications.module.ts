@@ -4,6 +4,7 @@ import { NotificationsController } from './notifications.controller';
 import { NotificationRulesService } from './services/notification-rules.service';
 import { NotificationCronService } from './services/notification-cron.service';
 import { NotificationEmailService } from './services/notification-email.service';
+import { DoctorReleaseAnnouncementService } from './services/doctor-release-announcement.service';
 import { EmailProviderConfigService } from './services/email-provider-config.service';
 import { NotificationLogService } from './services/notification-log.service';
 import { LimitCheckService } from './services/limit-check.service';
@@ -22,6 +23,7 @@ import { Tenant } from '../entities/tenant.entity';
     NotificationRulesService,
     NotificationCronService,
     NotificationEmailService,
+    DoctorReleaseAnnouncementService,
     EmailProviderConfigService,
     NotificationLogService,
     LimitCheckService,
