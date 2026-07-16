@@ -1,0 +1,44 @@
+packages/frontend/src/components/RequestDrawer.tsx
+  s_406bd622891248::t_457c4de7af8cde 11-12,56,132,173,280-289,496-498,500,612
+  s_406bd622891248::t_0bab57470f1458 613-614,616
+packages/backend/src/analytics/services/request-volume.service.spec.ts
+  s_406bd622891248::t_d5567dabaf55a0 41,43,45
+docs/autofix-self-healing-poc.md
+  s_406bd622891248::t_4d845052cc0e3f 18-21,253,256-257
+  s_406bd622891248::t_829fefdefe549d 258
+CLAUDE.md
+  s_406bd622891248::t_4d845052cc0e3f 624
+packages/backend/src/routing/autofix/dev-autofix-seeder.service.ts
+  s_406bd622891248::t_457c4de7af8cde 47,62,96,121
+packages/backend/src/analytics/services/request-volume.service.ts
+  s_406bd622891248::t_0769273798bc99 33-35
+  s_406bd622891248::t_d5567dabaf55a0 38,109,137-138
+dashboard-redesign-brief.md
+  s_406bd622891248::t_d2c53a46f03860 126,137-138
+  s_406bd622891248::t_e8994a19617e74 139
+packages/frontend/src/services/api/messages.ts
+  s_406bd622891248::t_457c4de7af8cde 11-23,89,97-100,104-113
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_406bd622891248::t_457c4de7af8cde 40-46,73-78,118,154-166
+  s_406bd622891248::t_1faf513a8118ce 167-168,275
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_406bd622891248::t_12d618bbc19e7e 645,658
+packages/backend/src/analytics/services/message-details.service.ts
+  s_406bd622891248::t_d586c8e798e51e 86,233
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "90f3508f4df97428f84feb6dc2004d6f4041066f",
+  "prompts": {},
+  "sessions": {
+    "s_406bd622891248": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f69a4-8f78-71b0-9180-53e5898f4ed5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
