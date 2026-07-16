@@ -188,7 +188,7 @@ describe('Playground E2E — POST /api/v1/playground/run (SSE)', () => {
     expect(rows[0]).toMatchObject({
       routing_tier: 'playground',
       routing_reason: null,
-      status: 'ok',
+      status: 'success',
       provider: 'openai',
       model: 'gpt-4o-mini',
       input_tokens: 7,
