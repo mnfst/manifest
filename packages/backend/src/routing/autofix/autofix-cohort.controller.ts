@@ -8,10 +8,8 @@ import { AutofixService } from './autofix.service';
  * Returns whether the current tenant is in the Auto-fix access cohort — resolved
  * by `AutofixService.hasAccess` (driven by `AUTOFIX_ROLLOUT` +
  * `autofix_access_granted_at` / `autofix_waitlist_at`), the same gate as the
- * Auto-fix feature itself. The dashboard shows the same requests / attempts /
- * fallbacks view to everyone and reads this only to gate the Auto-fix-specific
- * pieces (auto-fixed KPIs and panels), which are absent for a tenant outside the
- * cohort.
+ * Auto-fix feature itself. This endpoint provides eligibility infrastructure
+ * for Auto-fix-specific dashboard pieces.
  *
  * Reusing `hasAccess` keeps a single source of truth for "who is in the beta"
  * and keeps the allowlist entirely backend-driven — the frontend never names a
