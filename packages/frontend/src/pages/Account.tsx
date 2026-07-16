@@ -48,22 +48,27 @@ const Account: Component = () => {
     }
 
     setPwBusy(true);
-    const { error } = await authClient.changePassword({
-      currentPassword: current,
-      newPassword: next,
-      revokeOtherSessions: true,
-    });
-    setPwBusy(false);
+    try {
+      const { error } = await authClient.changePassword({
+        currentPassword: current,
+        newPassword: next,
+        revokeOtherSessions: true,
+      });
 
-    if (error) {
-      setPwError(error.message ?? 'Failed to change password');
-      return;
+      if (error) {
+        setPwError(error.message ?? 'Failed to change password');
+        return;
+      }
+
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      toast.success('Password changed. Other devices have been signed out.');
+    } catch {
+      setPwError('Failed to change password');
+    } finally {
+      setPwBusy(false);
     }
-
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    toast.success('Password changed. Other devices have been signed out.');
   };
   const [billing, { refetch: refetchBilling }] = createResource(() => getBillingStatus());
   const [accounts] = createResource(() => authClient.listAccounts());

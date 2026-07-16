@@ -270,6 +270,17 @@ describe('Account', () => {
     expect(await screen.findByText('Failed to change password')).toBeDefined();
   });
 
+  it('recovers and re-enables the button when changePassword rejects', async () => {
+    mockChangePassword.mockRejectedValue(new Error('network down'));
+    render(() => <Account />);
+    await screen.findByText('Security');
+    fillPw('oldpass1', 'newpass12', 'newpass12');
+    const button = screen.getByText('Change password') as HTMLButtonElement;
+    fireEvent.click(button);
+    expect(await screen.findByText('Failed to change password')).toBeDefined();
+    await waitFor(() => expect(button.disabled).toBe(false));
+  });
+
   it('shows appearance section', () => {
     render(() => <Account />);
     expect(screen.getByText('Appearance')).toBeDefined();
