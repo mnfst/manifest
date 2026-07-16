@@ -953,6 +953,10 @@ const GlobalOverview: Component = () => {
                     <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
                   </th>
                   <th class="rel-col">
+                    Failed attempts
+                    <InfoTooltip text="Attempts this connection failed on the filtered period. Click a count to see the requests holding them." />
+                  </th>
+                  <th class="rel-col">
                     Success rate
                     <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP} />
                   </th>
@@ -1071,6 +1075,32 @@ const GlobalOverview: Component = () => {
                               </td>
                               <td class="rel-col">
                                 {(() => {
+                                  const r = rel();
+                                  const failed =
+                                    r && r.succeeded != null ? r.attempts - r.succeeded : null;
+                                  if (failed == null) return '—';
+                                  if (failed === 0 || !connection.id) return formatNumber(failed);
+                                  return (
+                                    <a
+                                      href={`/messages?connections=${encodeURIComponent(connection.id)}&range=${effectiveChartRange()}&attempts=has_failed`}
+                                      title="View the requests holding these failed attempts"
+                                      onClick={(e) => {
+                                        // The row navigates to the connection; this cell
+                                        // drills into the Requests log instead.
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        navigate(
+                                          `/messages?connections=${encodeURIComponent(connection.id)}&range=${effectiveChartRange()}&attempts=has_failed`,
+                                        );
+                                      }}
+                                    >
+                                      {formatNumber(failed)}
+                                    </a>
+                                  );
+                                })()}
+                              </td>
+                              <td class="rel-col">
+                                {(() => {
                                   const rate = rel() ? attemptSuccessRate(rel()!) : null;
                                   return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
                                 })()}
@@ -1085,7 +1115,7 @@ const GlobalOverview: Component = () => {
                 <Show when={providerList().length === 0}>
                   <tr>
                     <td
-                      colspan="6"
+                      colspan="7"
                       style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
                     >
                       No connections yet

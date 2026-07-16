@@ -95,7 +95,10 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
-  getPerProviderReliability: () => Promise.resolve([]),
+  getPerProviderReliability: () =>
+    Promise.resolve([
+      { provider: 'openai', auth_type: 'api_key', key_label: 'Default', attempts: 10, succeeded: 7 },
+    ]),
   getPerModelReliability: () => Promise.resolve([]),
   getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
 }));
@@ -358,6 +361,21 @@ describe('GlobalOverview filter onUnselectAll', () => {
     expect(apiMocks.getGlobalProviders).toHaveBeenCalledTimes(1);
     expect(apiMocks.getGlobalProviderUsage).toHaveBeenCalledTimes(2);
     expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalledTimes(2);
+  });
+
+  it('links the connection failed-attempts count to the scoped Requests log', async () => {
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() => {
+      const link = [...container.querySelectorAll('a')].find((a) =>
+        a.getAttribute('href')?.includes('attempts=has_failed'),
+      );
+      expect(link).toBeDefined();
+      // failed = attempts - succeeded = 3, scoped to the connection + window.
+      expect(link!.textContent).toContain('3');
+      expect(link!.getAttribute('href')).toBe(
+        '/messages?connections=conn-openai&range=7d&attempts=has_failed',
+      );
+    });
   });
 
   it('opens the Pro success modal when upgraded=1 is present', async () => {
