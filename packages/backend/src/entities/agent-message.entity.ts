@@ -225,9 +225,9 @@ export class AgentMessage {
   @Column('jsonb', { nullable: true })
   autofix_operations!: object | null;
 
-  // Phoenix's own identifiers for the heal decision behind this row
-  // ({ issueId, patchId, healAttemptId }) — lets a Manifest message be
-  // cross-referenced with the healing service's issue/patch timeline.
+  // Phoenix's decision behind this attempt ({ status, issueId, patchId,
+  // healAttemptId, explanation }). The rolling-deploy agent_messages view keeps
+  // exposing this same column to old replicas as `autofix_phoenix`.
   @Column('jsonb', { nullable: true })
-  autofix_phoenix!: object | null;
+  autofix_decision!: object | null;
 }

@@ -8,7 +8,7 @@ import {
 } from '../services/api.js';
 import { inferProviderName } from '../services/routing-utils.js';
 import { getModelDisplayName } from '../services/model-display.js';
-import { manifestErrorDocsUrl } from 'manifest-shared';
+import { AUTOFIX_STATUS_LABELS, manifestErrorDocsUrl } from 'manifest-shared';
 import { formatErrorClass, formatErrorOrigin } from '../services/formatters.js';
 import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
 import { ModelParamsSection, RequestHeadersSection } from './MessageDetailsSections.jsx';
@@ -113,6 +113,7 @@ function AutofixSection(props: {
   role: string | null;
   operations: AutofixOperation[] | null;
   phoenix: {
+    status: string | null;
     issueId: string | null;
     patchId: string | null;
     healAttemptId: string | null;
@@ -282,6 +283,10 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                     <span class="msg-detail__meta-label">Status</span>
                     <span class={displayStatus().cls}>{displayStatus().label}</span>
                   </span>
+                  <MetaField
+                    label="Auto-fix"
+                    value={m.autofix_status ? AUTOFIX_STATUS_LABELS[m.autofix_status] : null}
+                  />
                   <MetaField label="ID" value={m.id} />
                   <MetaField label="Provider" value={provider} />
                   <MetaField label="Auth" value={m.auth_type} />
@@ -669,7 +674,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                       <AutofixSection
                         role={m.autofix_role}
                         operations={m.autofix_operations}
-                        phoenix={m.autofix_phoenix}
+                        phoenix={m.autofix_decision}
                         sibling={m.autofix_sibling}
                         onOpenMessage={props.onOpenMessage}
                       />

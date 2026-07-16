@@ -22,8 +22,20 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
     expect(migration.transaction).toBe(false);
     expect(queries[0]).toContain("SET lock_timeout = '5s'");
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS "requests"');
+    expect(sql).toContain('"autofix_status" varchar');
+    expect(sql).toContain('CONSTRAINT "CHK_requests_autofix_status"');
+    for (const status of [
+      'no_patch',
+      'resolving',
+      'retry_succeeded',
+      'retry_failed',
+      'service_error',
+    ]) {
+      expect(sql).toContain(`'${status}'`);
+    }
     expect(sql).toContain('ALTER TABLE "agent_messages" RENAME TO "provider_attempts"');
     expect(sql).toContain('CREATE VIEW "agent_messages" AS SELECT * FROM "provider_attempts"');
+    expect(sql).toContain('RENAME COLUMN "autofix_phoenix" TO "autofix_decision"');
     expect(sql).toContain('ADD COLUMN IF NOT EXISTS "request_id"');
     expect(sql).toContain('NOT VALID');
     expect(sql).toContain('CREATE INDEX CONCURRENTLY IF NOT EXISTS');
@@ -54,6 +66,17 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
     const cutoverIndex = queries.indexOf(cutover!);
     const requestIdIndex = queries.findIndex((sql) => sql.includes('ADD COLUMN IF NOT EXISTS'));
     expect(cutoverIndex).toBeLessThan(requestIdIndex);
+  });
+
+  it('freezes the old Auto-fix column name before renaming the base column', async () => {
+    await migration.up(runner);
+
+    const viewIndex = queries.findIndex((sql) => sql.includes('CREATE VIEW "agent_messages"'));
+    const renameIndex = queries.findIndex((sql) =>
+      sql.includes('RENAME COLUMN "autofix_phoenix" TO "autofix_decision"'),
+    );
+    expect(viewIndex).toBeGreaterThan(-1);
+    expect(renameIndex).toBeGreaterThan(viewIndex);
   });
 
   it('drops an invalid concurrent index before rebuilding it', async () => {
@@ -114,5 +137,6 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
     expect(rollback!.indexOf('DROP VIEW "agent_messages"')).toBeLessThan(
       rollback!.indexOf('RENAME TO "agent_messages"'),
     );
+    expect(queries.join('\n')).toContain('RENAME COLUMN "autofix_decision" TO "autofix_phoenix"');
   });
 });

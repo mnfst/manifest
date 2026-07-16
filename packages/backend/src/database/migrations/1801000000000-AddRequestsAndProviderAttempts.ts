@@ -29,6 +29,7 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
         "timestamp" timestamp NOT NULL,
         "duration_ms" integer,
         "status" varchar NOT NULL,
+        "autofix_status" varchar,
         "error_message" varchar,
         "error_http_status" integer,
         "error_code" varchar(8),
@@ -41,6 +42,11 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
         "feedback_rating" varchar,
         "feedback_tags" varchar,
         "feedback_details" text,
+        CONSTRAINT "CHK_requests_autofix_status" CHECK (
+          "autofix_status" IN (
+            'no_patch', 'resolving', 'retry_succeeded', 'retry_failed', 'service_error'
+          )
+        ),
         CONSTRAINT "PK_requests" PRIMARY KEY ("id")
       )
     `);
@@ -61,6 +67,28 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
         IF to_regclass('public.agent_messages') IS NULL
            AND to_regclass('public.provider_attempts') IS NOT NULL THEN
           CREATE VIEW "agent_messages" AS SELECT * FROM "provider_attempts";
+        END IF;
+      END $$
+    `);
+    // The compatibility view was frozen before this rename. PostgreSQL keeps
+    // its public column name (`autofix_phoenix`) while mapping old-replica
+    // writes to provider_attempts.autofix_decision by column identity.
+    await queryRunner.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'provider_attempts'
+            AND column_name = 'autofix_phoenix'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'provider_attempts'
+            AND column_name = 'autofix_decision'
+        ) THEN
+          ALTER TABLE "provider_attempts"
+            RENAME COLUMN "autofix_phoenix" TO "autofix_decision";
         END IF;
       END $$
     `);
@@ -171,6 +199,25 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
         IF to_regclass('public.agent_messages') IS NULL
            AND to_regclass('public.provider_attempts') IS NOT NULL THEN
           ALTER TABLE "provider_attempts" RENAME TO "agent_messages";
+        END IF;
+      END $$
+    `);
+    await queryRunner.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'agent_messages'
+            AND column_name = 'autofix_decision'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'agent_messages'
+            AND column_name = 'autofix_phoenix'
+        ) THEN
+          ALTER TABLE "agent_messages"
+            RENAME COLUMN "autofix_decision" TO "autofix_phoenix";
         END IF;
       END $$
     `);

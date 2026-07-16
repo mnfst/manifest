@@ -1,4 +1,5 @@
 import { fetchJson, fetchMutate } from './core.js';
+import type { AutofixStatus } from 'manifest-shared';
 
 /** A deterministic edit Phoenix applied to heal a request. */
 export interface AutofixOperation {
@@ -14,6 +15,7 @@ export interface MessageDetailResponse {
     agent_name: string | null;
     model: string | null;
     status: string;
+    autofix_status: AutofixStatus | null;
     error_message: string | null;
     /** Documented Manifest error code ('M100', 'M300', …). Null for provider failures. */
     error_code: string | null;
@@ -70,8 +72,9 @@ export interface MessageDetailResponse {
     autofix_applied: boolean;
     autofix_role: string | null;
     autofix_operations: AutofixOperation[] | null;
-    /** Phoenix's own identifiers for the heal decision behind this row. */
-    autofix_phoenix: {
+    /** Phoenix's decision behind this provider attempt. */
+    autofix_decision: {
+      status: string | null;
       issueId: string | null;
       patchId: string | null;
       healAttemptId: string | null;

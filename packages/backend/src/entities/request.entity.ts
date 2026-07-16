@@ -1,6 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 import { timestampType } from '../common/utils/postgres-sql';
 import type { CallerAttribution } from '../routing/proxy/caller-classifier';
+import type { AutofixStatus } from 'manifest-shared';
 
 /**
  * One request made by a caller to Manifest.
@@ -49,6 +50,10 @@ export class ManifestRequest {
   /** The terminal outcome experienced by the caller. */
   @Column('varchar')
   status!: string;
+
+  /** How Auto-fix ended for this request. NULL means it was not recorded. */
+  @Column('varchar', { nullable: true })
+  autofix_status!: AutofixStatus | null;
 
   @Column('varchar', { nullable: true })
   error_message!: string | null;

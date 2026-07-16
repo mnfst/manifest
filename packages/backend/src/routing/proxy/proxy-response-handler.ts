@@ -735,6 +735,7 @@ export function recordSuccess(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
+        autofix,
       }),
       'fallback success',
     );

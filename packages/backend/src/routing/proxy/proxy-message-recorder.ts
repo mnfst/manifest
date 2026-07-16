@@ -2,7 +2,11 @@ import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
-import { classifyMessageError, type RequestParamDefaults } from 'manifest-shared';
+import {
+  classifyMessageError,
+  deriveAutofixStatus,
+  type RequestParamDefaults,
+} from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ManifestRequest } from '../../entities/request.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
@@ -31,15 +35,17 @@ import { serializeProviderError } from '../autofix/provider-error-normalizer';
  * plus the human-readable "why" ({@link AutofixChainEntry.explanation}). Null when
  * the entry carries none (e.g. the heal call never reached Phoenix).
  */
-function buildAutofixPhoenix(entry: AutofixChainEntry | undefined): object | null {
+function buildAutofixDecision(entry: AutofixChainEntry | undefined): object | null {
   if (!entry) return null;
   const present =
+    entry.phoenix_status != null ||
     entry.issue_id != null ||
     entry.patch_id != null ||
     entry.heal_attempt_id != null ||
     entry.explanation != null;
   if (!present) return null;
   return {
+    status: entry.phoenix_status ?? null,
     issueId: entry.issue_id ?? null,
     patchId: entry.patch_id ?? null,
     healAttemptId: entry.heal_attempt_id ?? null,
@@ -64,16 +70,16 @@ function autofixColumns(
       e.heal_attempt_id != null ||
       e.explanation != null,
   );
-  const phoenixAudit = buildAutofixPhoenix(healEntry);
+  const decision = buildAutofixDecision(healEntry);
   if (!getAutofixRetry(autofix)) {
-    return phoenixAudit ? { autofix_phoenix: phoenixAudit } : {};
+    return decision ? { autofix_decision: decision } : {};
   }
   return {
     autofix_applied: true,
     autofix_group_id: autofix.groupId,
     autofix_role: role,
     autofix_operations: (healEntry?.operations as object | null) ?? null,
-    autofix_phoenix: buildAutofixPhoenix(healEntry),
+    autofix_decision: buildAutofixDecision(healEntry),
   };
 }
 
@@ -172,6 +178,8 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
    * known params apply. Persisted to `provider_attempts.request_params`.
    */
   requestParams?: RequestParamDefaults | null;
+  /** Request-level Auto-fix outcome when a failed retry later fell back. */
+  autofix?: AutofixRecord;
 }
 
 export interface SuccessMessageOpts extends HeaderTierRef {
@@ -238,6 +246,7 @@ function buildRequestRow(
   requestId: string,
   attempt: Partial<AgentMessage>,
   terminal: boolean,
+  autofix?: AutofixRecord,
 ): ManifestRequest {
   const classified = classifyRow(attempt);
   const status = terminal ? (attempt.status ?? 'ok') : 'pending';
@@ -253,6 +262,7 @@ function buildRequestRow(
     timestamp: attempt.timestamp ?? new Date().toISOString(),
     duration_ms: attempt.duration_ms ?? null,
     status,
+    autofix_status: deriveAutofixStatus(autofix),
     error_message: terminal ? (attempt.error_message ?? null) : null,
     error_http_status: terminal ? (attempt.error_http_status ?? null) : null,
     error_code: terminal ? (attempt.error_code ?? null) : null,
@@ -323,6 +333,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     requestId: string,
     attempt: Partial<AgentMessage>,
     terminal: boolean,
+    autofix?: AutofixRecord,
   ): Promise<boolean> {
     // Unit-test repository doubles predate the request table. Production
     // repositories always expose manager.getRepository().
@@ -330,7 +341,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     if (!getRepository) return false;
     const repo = getRepository(ManifestRequest);
     if (typeof repo.createQueryBuilder !== 'function') return false;
-    const row = buildRequestRow(ctx, requestId, attempt, terminal);
+    const row = buildRequestRow(ctx, requestId, attempt, terminal, autofix);
     const insert = repo.createQueryBuilder().insert().into(ManifestRequest).values(row);
     if (terminal) {
       await insert
@@ -344,6 +355,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             'timestamp',
             'duration_ms',
             'status',
+            'autofix_status',
             'error_message',
             'error_http_status',
             'error_code',
@@ -446,7 +458,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       header_tier_name: headerTierName ?? null,
       header_tier_color: headerTierColor ?? null,
     });
-    await this.persistRequest(ctx, requestId, row, true);
+    await this.persistRequest(ctx, requestId, row, true, autofix);
     await this.messageRepo.insert(row);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
@@ -690,7 +702,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           error_http_status: opts.terminalHttpStatus,
         }
       : row;
-    await this.persistRequest(ctx, requestId, requestOutcome, Boolean(opts?.terminalHttpStatus));
+    await this.persistRequest(
+      ctx,
+      requestId,
+      requestOutcome,
+      Boolean(opts?.terminalHttpStatus),
+      opts?.autofix,
+    );
     await this.messageRepo.insert(row);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
@@ -719,6 +737,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierId,
       headerTierName,
       headerTierColor,
+      autofix,
     } = opts ?? {};
 
     const inputTokens = usage?.prompt_tokens ?? 0;
@@ -773,7 +792,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       header_tier_name: headerTierName ?? null,
       header_tier_color: headerTierColor ?? null,
     });
-    await this.persistRequest(ctx, requestId, row, true);
+    await this.persistRequest(ctx, requestId, row, true, autofix);
     await this.messageRepo.insert(row);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
@@ -851,7 +870,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       request_headers: requestHeaders ?? null,
       request_params: requestParams ?? null,
     });
-    await this.persistRequest(ctx, requestId, requestRow, true);
+    await this.persistRequest(ctx, requestId, requestRow, true, autofix);
 
     let wrote = false;
     await this.dedup.withSuccessWriteLock(
@@ -1009,9 +1028,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       autofix_group_id: autofix.groupId,
       autofix_role: 'original',
       autofix_operations: (original.operations as object | null) ?? null,
-      autofix_phoenix: buildAutofixPhoenix(original),
+      autofix_decision: buildAutofixDecision(original),
     });
-    await this.persistRequest(ctx, requestId, row, false);
+    await this.persistRequest(ctx, requestId, row, false, autofix);
     await this.messageRepo.insert(row);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }

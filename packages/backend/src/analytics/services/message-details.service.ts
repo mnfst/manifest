@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import type { CallerAttribution } from '../../routing/proxy/caller-classifier';
-import type { PhoenixOperation } from '../../routing/autofix/phoenix.types';
-import type { RequestParamDefaults } from 'manifest-shared';
+import type { PhoenixExplanation, PhoenixOperation } from '../../routing/autofix/phoenix.types';
+import type { AutofixStatus, RequestParamDefaults } from 'manifest-shared';
 import { ManifestRequest } from '../../entities/request.entity';
 
 export interface MessageDetailResponse {
@@ -14,6 +14,7 @@ export interface MessageDetailResponse {
     agent_name: string | null;
     model: string | null;
     status: string;
+    autofix_status: AutofixStatus | null;
     error_message: string | null;
     error_code: string | null;
     error_http_status: number | null;
@@ -51,11 +52,13 @@ export interface MessageDetailResponse {
     autofix_applied: boolean;
     autofix_role: string | null;
     autofix_operations: PhoenixOperation[] | null;
-    /** Phoenix's own identifiers for the heal decision behind this row. */
-    autofix_phoenix: {
+    /** Phoenix's decision behind this provider attempt. */
+    autofix_decision: {
+      status: string | null;
       issueId: string | null;
       patchId: string | null;
       healAttemptId: string | null;
+      explanation?: PhoenixExplanation | null;
     } | null;
     /** The paired row (failed original ↔ successful retry), for the visual link. */
     autofix_sibling: { id: string; role: string | null; status: string } | null;
@@ -137,6 +140,7 @@ export class MessageDetailsService {
         agent_name: request?.agent_name ?? message?.agent_name ?? null,
         model: message?.model ?? request?.requested_model ?? null,
         status: request?.status ?? message!.status,
+        autofix_status: request?.autofix_status ?? null,
         error_message: request?.error_message ?? message?.error_message ?? null,
         error_code: request ? (request.error_code ?? null) : message!.error_code,
         error_http_status: request?.error_http_status ?? message?.error_http_status ?? null,
@@ -177,11 +181,13 @@ export class MessageDetailsService {
           (message?.autofix_applied ?? false),
         autofix_role: message?.autofix_role ?? null,
         autofix_operations: (message?.autofix_operations as PhoenixOperation[] | null) ?? null,
-        autofix_phoenix:
-          (message?.autofix_phoenix as {
+        autofix_decision:
+          (message?.autofix_decision as {
+            status: string | null;
             issueId: string | null;
             patchId: string | null;
             healAttemptId: string | null;
+            explanation?: PhoenixExplanation | null;
           } | null) ?? null,
         autofix_sibling,
         ...(request

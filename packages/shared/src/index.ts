@@ -156,3 +156,5 @@ export type {
   Plan,
   PlanLimits,
 } from './plan-limits';
+export { AUTOFIX_STATUSES, AUTOFIX_STATUS_LABELS, deriveAutofixStatus } from './autofix-status';
+export type { AutofixStatus, AutofixStatusChainEntry, AutofixStatusRecord } from './autofix-status';
