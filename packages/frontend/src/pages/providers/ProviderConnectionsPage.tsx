@@ -413,9 +413,6 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     () => getPerProviderReliability('30d'),
   );
 
-  const totalRequests = createMemo(() =>
-    connectedSummaries().reduce((sum, summary) => sum + summary.consumption_messages, 0),
-  );
   // Attempt-world totals for the header cards: every provider call counts.
   const scopedReliability = createMemo(() =>
     (providerReliability() ?? []).filter((r) =>
