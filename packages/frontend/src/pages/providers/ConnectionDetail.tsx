@@ -247,9 +247,9 @@ const ConnectionDetail: Component = () => {
   const savedGroup = (): 'status' | 'http' | 'harness' => {
     try {
       const v = sessionStorage.getItem(groupKey());
-      return v === 'harness' || v === 'http' ? v : 'status';
+      return v === 'harness' || v === 'status' ? v : 'http';
     } catch {
-      return 'status';
+      return 'http';
     }
   };
   const [groupBy, setGroupByRaw] = createSignal<'status' | 'http' | 'harness'>(savedGroup());
@@ -943,20 +943,20 @@ const ConnectionDetail: Component = () => {
                             <button
                               class="chart-card__filter-btn"
                               classList={{
-                                'chart-card__filter-btn--active': groupBy() === 'status',
-                              }}
-                              onClick={() => setGroupBy('status')}
-                            >
-                              By attempt status
-                            </button>
-                            <button
-                              class="chart-card__filter-btn"
-                              classList={{
                                 'chart-card__filter-btn--active': groupBy() === 'http',
                               }}
                               onClick={() => setGroupBy('http')}
                             >
                               By HTTP status
+                            </button>
+                            <button
+                              class="chart-card__filter-btn"
+                              classList={{
+                                'chart-card__filter-btn--active': groupBy() === 'status',
+                              }}
+                              onClick={() => setGroupBy('status')}
+                            >
+                              By attempt status
                             </button>
                             <button
                               class="chart-card__filter-btn"

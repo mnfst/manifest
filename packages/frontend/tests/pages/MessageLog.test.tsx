@@ -541,10 +541,10 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(selectWithOption(container, 'All triggers')).toBeDefined();
+      expect(selectWithOption(container, 'All recovery methods')).toBeDefined();
     });
 
-    const triggerSelect = selectWithOption(container, 'All triggers');
+    const triggerSelect = selectWithOption(container, 'All recovery methods');
     expect(triggerSelect.textContent).toContain('No trigger');
     expect(triggerSelect.textContent).toContain('Fallback');
     expect(triggerSelect.textContent).toContain('Auto-fix');

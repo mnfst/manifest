@@ -1027,18 +1027,26 @@ describe('ConnectionDetail (analytics)', () => {
     expect(sessionStorage.getItem('chart-view:conn-openai')).toBe('requests');
   });
 
-  it('shows the Attempts tab, By attempt status default, and no Healed tab', async () => {
+  it('shows the Attempts tab, By HTTP status default, and no Healed tab', async () => {
     render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     fireEvent.click(screen.getByText('Requests chart'));
 
-    // Grouping buttons: attempt status (default) or harness. No provider
-    // grouping and no request notion on a connection page.
-    await waitFor(() => expect(screen.getByText('By attempt status')).toBeDefined());
-    expect(screen.getByText('By attempt status').className).toContain('--active');
-    expect(screen.getByText('By harness')).toBeDefined();
+    // Grouping buttons, in order: HTTP status (default), attempt status,
+    // harness. No provider grouping and no request notion here.
+    await waitFor(() => expect(screen.getByText('By HTTP status')).toBeDefined());
+    expect(screen.getByText('By HTTP status').className).toContain('--active');
+    const buttons = screen
+      .getAllByRole('button')
+      .map((b) => b.textContent?.trim())
+      .filter((t) => t?.startsWith('By '));
+    expect(buttons).toEqual(['By HTTP status', 'By attempt status', 'By harness']);
 
-    // Default view feeds the attempt-status series (success/error).
+    // Default view feeds the HTTP-status series.
+    await waitFor(() => expect(screen.getByTestId('status-keys').textContent).toBe('200,429'));
+
+    // Switching to attempt status feeds the success/error series.
+    fireEvent.click(screen.getByText('By attempt status'));
     await waitFor(() =>
       expect(screen.getByTestId('status-keys').textContent).toBe('success,error'),
     );
