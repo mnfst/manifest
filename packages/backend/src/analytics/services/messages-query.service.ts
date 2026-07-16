@@ -285,7 +285,7 @@ export class MessagesQueryService {
     const countQb = qb.clone().select('COUNT(DISTINCT r.id)', 'total');
     const rank = `CASE WHEN at.status IN (${SUCCESS_STATUS_SQL_LIST}) THEN 3 WHEN NOT COALESCE(at.superseded, false) AND at.status NOT IN ('fallback_error', 'auto_fixed') THEN 2 ELSE 1 END`;
     const picked = (column: string): string =>
-      `(ARRAY_AGG(${column} ORDER BY ${rank} DESC, at.timestamp DESC, at.id DESC) FILTER (WHERE at.id IS NOT NULL))[1]`;
+      `(ARRAY_AGG(${column} ORDER BY at.attempt_number DESC NULLS LAST, ${rank} DESC, at.timestamp DESC, at.id DESC) FILTER (WHERE at.id IS NOT NULL))[1]`;
     const safeCost = sqlSanitizeCost('at.cost_usd');
     qb.leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
       .select('r.id', 'id')

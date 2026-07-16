@@ -97,6 +97,7 @@ export interface HeaderTierRef {
 
 export interface ProviderErrorOpts extends HeaderTierRef {
   requestId?: string;
+  attemptNumber?: number;
   model?: string;
   provider?: string;
   tier?: string;
@@ -150,8 +151,19 @@ export interface ManifestBlockedRequestOpts {
   requestHeaders?: Record<string, string> | null;
 }
 
+export interface PendingRequestOpts {
+  requestId: string;
+  timestamp: string;
+  traceId?: string;
+  sessionKey?: string;
+  requestedModel?: string;
+  callerAttribution?: CallerAttribution | null;
+  requestHeaders?: Record<string, string> | null;
+}
+
 export interface FallbackSuccessOpts extends HeaderTierRef {
   requestId?: string;
+  attemptNumber?: number;
   traceId?: string;
   provider?: string;
   fallbackFromModel?: string;
@@ -186,6 +198,7 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
 
 export interface SuccessMessageOpts extends HeaderTierRef {
   requestId?: string;
+  attemptNumber?: number;
   traceId?: string;
   provider?: string;
   authType?: string;
@@ -208,6 +221,7 @@ export interface SuccessMessageOpts extends HeaderTierRef {
 
 export interface AutofixOriginalOpts extends HeaderTierRef {
   requestId?: string;
+  attemptNumber?: number;
   provider?: string;
   reason?: string;
   authType?: string;
@@ -361,7 +375,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             'trace_id',
             'session_key',
             'session_id',
-            'timestamp',
             'duration_ms',
             'status',
             'autofix_status',
@@ -401,6 +414,24 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     return false;
   }
 
+  /** Persist the accepted Request before routing or provider work begins. */
+  async recordPendingRequest(ctx: IngestionContext, opts: PendingRequestOpts): Promise<void> {
+    await this.persistRequest(
+      ctx,
+      opts.requestId,
+      {
+        trace_id: opts.traceId ?? null,
+        session_key: opts.sessionKey ?? null,
+        timestamp: opts.timestamp,
+        status: PENDING_STATUS,
+        model: opts.requestedModel ?? null,
+        caller_attribution: opts.callerAttribution ?? null,
+        request_headers: opts.requestHeaders ?? null,
+      },
+      false,
+    );
+  }
+
   async recordProviderError(
     ctx: IngestionContext,
     httpStatus: number,
@@ -409,6 +440,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
   ): Promise<void> {
     const {
       requestId = uuid(),
+      attemptNumber,
       model,
       provider,
       tier,
@@ -444,6 +476,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const row = buildMessageRow(ctx, {
       request_id: requestId,
+      attempt_number: attemptNumber ?? null,
       trace_id: traceId ?? null,
       timestamp: new Date().toISOString(),
       status: messageStatus,
@@ -552,6 +585,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     opts?: {
       traceId?: string;
       requestId?: string;
+      firstAttemptNumber?: number;
       baseTimeMs?: number;
       markHandled?: boolean;
       lastAsError?: boolean;
@@ -568,6 +602,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const {
       traceId,
       requestId = uuid(),
+      firstAttemptNumber,
       baseTimeMs,
       markHandled = false,
       lastAsError = false,
@@ -615,6 +650,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       rows.push(
         buildMessageRow(ctx, {
           request_id: requestId,
+          attempt_number: firstAttemptNumber == null ? null : firstAttemptNumber + i,
           trace_id: traceId ?? null,
           timestamp: ts,
           status,
@@ -656,6 +692,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     opts?: {
       provider?: string;
       requestId?: string;
+      attemptNumber?: number;
       reason?: string;
       tenantProviderId?: string | null;
       callerAttribution?: CallerAttribution | null;
@@ -684,6 +721,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const requestId = opts?.requestId ?? uuid();
     const row = buildMessageRow(ctx, {
       request_id: requestId,
+      attempt_number: opts?.attemptNumber ?? null,
       timestamp,
       status: 'fallback_error',
       ...autofixColumns(opts?.autofix, terminalAutofixRole(opts?.autofix)),
@@ -730,6 +768,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
   ): Promise<void> {
     const {
       requestId = uuid(),
+      attemptNumber,
       traceId,
       provider,
       fallbackFromModel,
@@ -777,6 +816,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const row = buildMessageRow(ctx, {
       request_id: requestId,
+      attempt_number: attemptNumber ?? null,
       trace_id: traceId ?? null,
       timestamp: timestamp ?? new Date().toISOString(),
       status: 'ok',
@@ -816,6 +856,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
   ): Promise<void> {
     const {
       requestId: providedRequestId,
+      attemptNumber,
       traceId,
       provider,
       authType,
@@ -865,6 +906,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const requestRow = buildMessageRow(ctx, {
       request_id: requestId,
+      attempt_number: attemptNumber ?? null,
       trace_id: traceId ?? null,
       session_key: normalizedSessionKey,
       timestamp: new Date().toISOString(),
@@ -909,6 +951,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
             const updatePayload: Partial<AgentMessage> = {
               request_id: requestId,
+              attempt_number: attemptNumber ?? null,
               status,
               ...autofixColumns(autofix, 'retry'),
               error_message: errorMessage,
@@ -949,6 +992,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             buildMessageRow(ctx, {
               id: newId,
               request_id: requestId,
+              attempt_number: attemptNumber ?? null,
               ...autofixColumns(autofix, 'retry'),
               trace_id: traceId ?? null,
               session_key: normalizedSessionKey,
@@ -1011,6 +1055,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const requestId = opts?.requestId ?? uuid();
     const row = buildMessageRow(ctx, {
       request_id: requestId,
+      attempt_number: opts?.attemptNumber ?? null,
       trace_id: opts?.traceId ?? null,
       timestamp: new Date(Date.now() - 1000).toISOString(),
       status: 'auto_fixed',

@@ -31,6 +31,13 @@ export class AgentMessage {
   @Column('varchar', { nullable: true })
   request_id!: string | null;
 
+  /**
+   * Positive provider-call start order within the parent Request. NULL only for
+   * legacy rows that have not been assigned an unambiguous order.
+   */
+  @Column('integer', { nullable: true })
+  attempt_number!: number | null;
+
   @Column('varchar', { nullable: true })
   tenant_id!: string | null;
 
@@ -67,7 +74,7 @@ export class AgentMessage {
   @Column('decimal', { precision: 10, scale: 6, nullable: true })
   cost_usd!: number | null;
 
-  @Column('varchar', { default: 'ok' })
+  @Column('varchar', { default: 'pending' })
   status!: string;
 
   @Column('varchar', { nullable: true })

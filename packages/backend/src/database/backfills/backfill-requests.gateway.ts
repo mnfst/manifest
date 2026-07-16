@@ -367,7 +367,12 @@ export const INSERT_LEGACY_FALLBACK_REQUESTS_SQL = `
 export const LINK_LEGACY_FALLBACK_ATTEMPTS_SQL = `
   WITH updated AS (
     UPDATE "provider_attempts" pa
-    SET "request_id" = grouped.request_id
+    SET "request_id" = grouped.request_id,
+        "attempt_number" = CASE
+          WHEN pa.id = grouped.primary_id THEN 1
+          WHEN pa.fallback_index IS NOT NULL THEN pa.fallback_index + 2
+          ELSE NULL
+        END
     FROM "request_backfill_fallback_groups" grouped
     WHERE pa.id = grouped.attempt_id AND pa."request_id" IS NULL
     RETURNING 1
@@ -487,7 +492,13 @@ export const INSERT_ATTEMPT_REQUESTS_SQL = `
 export const LINK_ATTEMPTS_SQL = `
   WITH updated AS (
     UPDATE "provider_attempts"
-    SET "request_id" = ${LEGACY_REQUEST_ID}
+    SET "request_id" = ${LEGACY_REQUEST_ID},
+        "attempt_number" = CASE
+          WHEN autofix_group_id IS NOT NULL AND autofix_role = 'original' THEN 1
+          WHEN autofix_group_id IS NOT NULL AND autofix_role = 'retry' THEN 2
+          WHEN trace_id IS NULL THEN 1
+          ELSE NULL
+        END
     WHERE "request_id" IS NULL AND id > $1 AND id <= $2
       AND timestamp < $3
     RETURNING 1
@@ -520,6 +531,7 @@ export const REFRESH_ATTEMPT_REQUESTS_SQL = `
     FROM "provider_attempts" pa
     JOIN affected a ON a.request_id = pa.request_id
     ORDER BY pa.request_id,
+      pa.attempt_number DESC NULLS LAST,
       CASE
         WHEN pa.status IN ('ok', 'success') THEN 3
         WHEN NOT COALESCE(pa.superseded, false)
@@ -567,7 +579,7 @@ export const FINALIZE_PENDING_REQUESTS_SQL = `
     SELECT DISTINCT ON (pa.request_id) pa.*
     FROM "provider_attempts" pa
     JOIN pending p ON p.id = pa.request_id
-    ORDER BY pa.request_id, pa.timestamp DESC, pa.id DESC
+    ORDER BY pa.request_id, pa.attempt_number DESC NULLS LAST, pa.timestamp DESC, pa.id DESC
   )
   UPDATE "requests" r
   SET status = COALESCE(${normalizeAttemptStatusSql('last_attempt.status')}, 'failed'),
