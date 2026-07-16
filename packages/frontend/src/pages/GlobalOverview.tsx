@@ -1082,6 +1082,7 @@ const GlobalOverview: Component = () => {
                                   if (failed === 0 || !connection.id) return formatNumber(failed);
                                   return (
                                     <a
+                                      class="count-link"
                                       href={`/messages?connections=${encodeURIComponent(connection.id)}&range=${effectiveChartRange()}&attempts=has_failed`}
                                       title="View the requests holding these failed attempts"
                                       onClick={(e) => {
@@ -1201,6 +1202,7 @@ const GlobalOverview: Component = () => {
                             const link = `/messages?agent=${encodeURIComponent(agent.agent_name)}&range=${effectiveChartRange()}`;
                             return (
                               <a
+                                class="count-link"
                                 href={link}
                                 title="View this harness's requests"
                                 onClick={(e) => {
@@ -1228,6 +1230,7 @@ const GlobalOverview: Component = () => {
                                       const link = `/messages?agent=${encodeURIComponent(agent.agent_name)}&range=${effectiveChartRange()}&status=ok&trigger=autofix,fallback`;
                                       return (
                                         <a
+                                          class="count-link"
                                           href={link}
                                           title="View this harness's recovered requests"
                                           onClick={(e) => {

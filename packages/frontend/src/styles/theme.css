@@ -260,6 +260,17 @@ h6 {
   justify-content: flex-start;
 }
 
+/* Clickable counts inside tables: table ink, not browser blue. */
+.count-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.count-link:hover {
+  color: hsl(var(--foreground));
+}
+
 .header-controls {
   display: flex;
   gap: var(--gap-sm);

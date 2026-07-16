@@ -123,12 +123,23 @@
 
 .custom-select__option--top {
   align-items: flex-start !important;
+  /* Explicit so the checkbox/icon centering below is exact: form controls
+     don't share the text's `normal` line box, so the math needs a number. */
+  line-height: 18px;
 }
 
 .custom-select__option--top > input[type='checkbox'],
 .custom-select__option--top > svg,
 .custom-select__option--top > img {
-  margin-top: 3px;
+  /* Center on the FIRST text line (half the gap between the 18px line box
+     and the element's height): exact on the common one-line option, still
+     first-line-anchored if a long label wraps. */
+  margin-top: calc((18px - 13px) / 2);
+}
+
+.custom-select__option--top > svg,
+.custom-select__option--top > img {
+  margin-top: calc((18px - 14px) / 2);
 }
 
 .custom-select__option-text--inline {

@@ -93,7 +93,7 @@ const MultiSelect: Component<MultiSelectProps> = (props) => {
               checked={props.values.length === 0}
               tabIndex={-1}
               aria-hidden="true"
-              style="pointer-events: none; margin: 0;"
+              style="pointer-events: none;"
             />
             <span class="custom-select__option-text custom-select__option-text--inline">
               <span>{props.placeholder}</span>
@@ -115,7 +115,7 @@ const MultiSelect: Component<MultiSelectProps> = (props) => {
                   checked={isSelected(opt.value)}
                   tabIndex={-1}
                   aria-hidden="true"
-                  style="pointer-events: none; margin: 0;"
+                  style="pointer-events: none;"
                 />
                 <Show when={opt.icon}>{opt.icon}</Show>
                 <span class="custom-select__option-text custom-select__option-text--inline">
