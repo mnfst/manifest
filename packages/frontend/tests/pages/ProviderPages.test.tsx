@@ -95,6 +95,7 @@ vi.mock('../../src/services/api.js', () => ({
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   HEALED_REQUESTS_TOOLTIP: 'Successful requests that were healed by Auto-fix or fallback.',
+  REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
   TOTAL_ATTEMPTS_TOOLTIP: 'Every provider call counts here, including fallback attempts and auto-fix retries. One request can produce several attempts.',
   ATTEMPT_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts, on the filtered period.',
   attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>

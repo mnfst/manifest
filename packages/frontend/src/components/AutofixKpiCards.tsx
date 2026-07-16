@@ -1,7 +1,11 @@
 import { Show, type Component } from 'solid-js';
 import InfoTooltip from './InfoTooltip.jsx';
 import { formatNumber } from '../services/formatters.js';
-import { HEALED_REQUESTS_TOOLTIP, type AutofixStats } from '../services/api/analytics.js';
+import {
+  HEALED_REQUESTS_TOOLTIP,
+  REQUEST_SUCCESS_RATE_TOOLTIP,
+  type AutofixStats,
+} from '../services/api/analytics.js';
 
 function fmtPct(v: number): string {
   const pct = v * 100;
@@ -59,7 +63,10 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
       {(s) => (
         <div class="overview-stats" style="grid-template-columns: repeat(4, 1fr);">
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Success rate</span>
+            <span class="overview-stat-card__label">
+              Success rate
+              <InfoTooltip text={REQUEST_SUCCESS_RATE_TOOLTIP} />
+            </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{fmtPct(s().success_rate.value)}</span>
               {trendBadge(s().success_rate.value, s().success_rate.previous)}

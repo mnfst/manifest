@@ -215,35 +215,6 @@ export class RequestVolumeService {
     return (await this.messageRepo.query(sql, sqlParams)) as DispositionRow[];
   }
 
-  /**
-   * Request volume per provider bucket, attributed to the terminal attempt's
-   * provider. Zero-attempt rejections surface as 'No provider' so the series
-   * still stack to the request total.
-   */
-  async getVolumeByProviderTimeseries(
-    range: string,
-    tenantId: string | null,
-    hourly: boolean,
-    agentName?: string,
-  ): Promise<Array<Record<string, unknown>>> {
-    if (!tenantId) return [];
-    const bucketExpr = hourly ? sqlHourBucket('t.ts') : sqlDateBucket('t.ts');
-    const bucketAlias = hourly ? 'hour' : 'date';
-    const sql = `${this.terminalCte(agentName)}
-      SELECT ${bucketExpr} AS ${bucketAlias},
-        CASE WHEN t.provider LIKE 'custom:%' THEN COALESCE(cp.name, 'Deleted provider')
-             WHEN t.provider IS NULL THEN 'No provider'
-             ELSE t.provider END AS provider,
-        COUNT(*)::int AS messages
-      FROM terminal t
-      LEFT JOIN custom_providers cp ON t.provider = 'custom:' || cp.id
-      GROUP BY 1, 2
-      ORDER BY 1 ASC`;
-    return (await this.messageRepo.query(sql, this.params(tenantId, range, agentName))) as Array<
-      Record<string, unknown>
-    >;
-  }
-
   /** Request volume per harness bucket (terminal attribution, requests level). */
   async getVolumeByAgentTimeseries(
     range: string,

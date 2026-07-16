@@ -838,21 +838,9 @@ export class TimeseriesQueriesService {
       .addGroupBy(PROVIDER_SERIES_KEY_EXPR)
       .orderBy(bucketAlias, 'ASC')
       .getRawMany();
-    const usage = pivotUsageRows(rows, bucketAlias, 'provider');
-    // #2511: the Requests series counts logical requests (terminal-attempt
-    // attribution, failures included) so the by-provider view stacks to the
-    // same total as By request status and the Requests KPI. Tokens and cost
-    // keep summing every attempt: you pay for what burned.
-    if (this.requestVolume) {
-      const volumeRows = await this.requestVolume.getVolumeByProviderTimeseries(
-        range,
-        tenantId,
-        hourly,
-        agentName,
-      );
-      usage.messageUsage = pivotByKey(volumeRows, bucketAlias, 'provider', 'messages');
-    }
-    return usage;
+    // The by-provider REQUESTS view was removed from the Overview (a request
+    // may touch several providers); this series now only feeds tokens/cost.
+    return pivotUsageRows(rows, bucketAlias, 'provider');
   }
 
   async getPerModelCostTimeseries(

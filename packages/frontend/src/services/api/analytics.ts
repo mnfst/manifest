@@ -335,6 +335,8 @@ export const TOTAL_ATTEMPTS_TOOLTIP =
   'Every provider call counts here, including fallback attempts and auto-fix retries. One request can produce several attempts.';
 export const ATTEMPT_SUCCESS_RATE_TOOLTIP =
   'Successful attempts over all attempts, on the filtered period.';
+export const REQUEST_SUCCESS_RATE_TOOLTIP =
+  'Successful requests over all requests. Recovered requests count as successful.';
 
 export function getPerProviderReliability(
   range = '7d',

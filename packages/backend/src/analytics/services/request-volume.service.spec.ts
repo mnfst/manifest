@@ -74,15 +74,6 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     expect(lastParams()).toEqual(['t1', expect.any(String), 'demo-agent']);
   });
 
-  it('buckets zero-attempt rejections under No provider so stacks stay total', async () => {
-    await service.getVolumeByProviderTimeseries('7d', 't1', false);
-    const sql = lastSql();
-    expect(sql).toContain("WHEN t.provider IS NULL THEN 'No provider'");
-    // Custom providers keep their display-name fold, like the tokens series.
-    expect(sql).toContain("COALESCE(cp.name, 'Deleted provider')");
-    expect(sql).toContain('AS date');
-  });
-
   it('keys the harness volume by agent name', async () => {
     await service.getVolumeByAgentTimeseries('24h', 't1', true);
     const sql = lastSql();
@@ -132,7 +123,6 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     await expect(
       service.getDispositionTimeseries({ tenantId: null, range: '7d', hourly: false }),
     ).resolves.toEqual([]);
-    await expect(service.getVolumeByProviderTimeseries('7d', null, false)).resolves.toEqual([]);
     await expect(service.getVolumeByAgentTimeseries('7d', null, false)).resolves.toEqual([]);
     await expect(service.getVolumeByDimension('model', { tenantId: null })).resolves.toEqual([]);
     expect(messageRepo.query).not.toHaveBeenCalled();
