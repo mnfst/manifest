@@ -1,0 +1,88 @@
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_2dca526c582c19::t_80eada55f5fe53 331-340,367,372-378
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_2dca526c582c19::t_b7956a2caa343c 216,305,399,746,751-752
+  s_2dca526c582c19::t_a7a7988fa305a1 79-80,217,306
+  s_2dca526c582c19::t_24ef65ef6b503a 85,178,206,215,268,304,398,780
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_2dca526c582c19::t_f4ecb0c7946973 102,174,211,235,276-288,426-430,438,440-441,443-444,591,614,645,658,726,762-765,817,846,848,882,895-896,944,947,971,986,1036,1050-1062,1066-1071
+  s_2dca526c582c19::t_1f6376198747c5 435,529-532
+  s_2dca526c582c19::t_c3b84ffa891b61 431,437,439,442
+  s_2dca526c582c19::t_f8c6dcb92f56bd 23,338-340,445,482-508
+  s_2dca526c582c19::t_7bdde643f32194 796-799
+  s_2dca526c582c19::t_a903ff8025de98 105,175
+  s_2dca526c582c19::t_c8d81dfa55382f 432-434,436
+  s_2dca526c582c19::t_1024e88399573f 571-573
+  s_2dca526c582c19::t_7da039f4c345ff 510-528,533-534
+  s_2dca526c582c19::t_d16dc31bfc9e3d 157-158
+  s_2dca526c582c19::t_a7a7988fa305a1 103-104,574
+  s_2dca526c582c19::t_74436fec1050c5 446,509,544-546,568-570,588,793-795,814-816,1204,1234
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_2dca526c582c19::t_7ec6ae862f70c3 223-246
+packages/backend/src/error-pages/error-cluster-seeder.service.spec.ts
+  s_2dca526c582c19::t_e7942db45cf3ac 98
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_2dca526c582c19::t_7e82f4a186731c 535-536
+  s_2dca526c582c19::t_7da039f4c345ff 204-207
+  s_2dca526c582c19::t_3ee4a696f9690f 48,188-203,208-210,273
+  s_2dca526c582c19::t_3767cfebb870ee 330
+  s_2dca526c582c19::t_7a67fb2f55095c 230,244-245,423,444,459,475,512,527,537,557,661,678
+  s_2dca526c582c19::t_e41aa802cfdce8 391
+packages/backend/src/routing/proxy/provider-client.ts
+  s_2dca526c582c19::t_ba6124f0579f90 27,38-39
+  s_2dca526c582c19::t_a7a7988fa305a1 36-37
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.failures.spec.ts
+  s_2dca526c582c19::t_7ec6ae862f70c3 217,219
+packages/shared/src/error-taxonomy.ts
+  s_2dca526c582c19::t_05723f3aacb7ca 215-217
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_2dca526c582c19::t_3193c08475a211 7,43,49,52,86-115
+  s_2dca526c582c19::t_6326b574adc342 622,637-638
+  s_2dca526c582c19::t_54c1d9738c6981 116-117
+packages/backend/src/routing/proxy/__tests__/proxy-request-recorder.spec.ts
+  s_2dca526c582c19::t_2d4ca8a2bc38b1 47,71-80
+  s_2dca526c582c19::t_f980aa2ef44590 81-82,101-124
+  s_2dca526c582c19::t_7ec6ae862f70c3 84-100
+  s_2dca526c582c19::t_4142418f062bd3 180,184-189
+  s_2dca526c582c19::t_e65cabacb3daab 83
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_2dca526c582c19::t_1f6376198747c5 45
+  s_2dca526c582c19::t_f8c6dcb92f56bd 32-44,46,52-55,120-121
+  s_2dca526c582c19::t_7da039f4c345ff 47-51
+packages/backend/src/playground/playground.service.truncation.spec.ts
+  s_2dca526c582c19::t_e7942db45cf3ac 216
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_2dca526c582c19::t_041f69717b8655 444,533,907,963
+  s_2dca526c582c19::t_3e0cd84ef7a5f1 505
+  s_2dca526c582c19::t_4347027dfa00e0 48,144-145,148-149,152-153,373,446-448,454-456,487,489,535-537,543-545,557,559,573,575,1009,1011,1069,1071
+  s_2dca526c582c19::t_a7a7988fa305a1 146-147,150-151,154-155,374,449-453,478,488,490,513,538-542,558,560,574,576,1010,1012,1070,1072
+  s_2dca526c582c19::t_4945eb2e9567e7 49,189-190,220-230,370-371,414-415,637-638,691-692
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_2dca526c582c19::t_ba6124f0579f90 45-46,76-82,120,382
+  s_2dca526c582c19::t_7da039f4c345ff 556-565,569-572,575-579,682
+  s_2dca526c582c19::t_7ec6ae862f70c3 574
+  s_2dca526c582c19::t_a7a7988fa305a1 121-122,383,420,459,712
+  s_2dca526c582c19::t_6c65a07d906d78 98-104,419,573,684,686-710,713,715-719,721
+  s_2dca526c582c19::t_4945eb2e9567e7 195,351-352
+  s_2dca526c582c19::t_1f6376198747c5 711,714
+  s_2dca526c582c19::t_bcf96f82c8dd43 580-582,680,720,722
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_2dca526c582c19::t_05723f3aacb7ca 68-74,233
+  s_2dca526c582c19::t_cd486a53e58cd4 232,234-236
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "ab43a21ced4545934c204118f60d4cc1b6011763",
+  "prompts": {},
+  "sessions": {
+    "s_2dca526c582c19": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6a6e-0441-7612-b8b2-95bc5175e975",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
