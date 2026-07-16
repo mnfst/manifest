@@ -74,7 +74,11 @@ const MultiSelect: Component<MultiSelectProps> = (props) => {
         <span class="custom-select__chevron" aria-hidden="true" />
       </button>
       <Show when={open()}>
-        <div class="custom-select__dropdown" role="listbox" aria-multiselectable="true">
+        <div
+          class="custom-select__dropdown custom-select__dropdown--wide"
+          role="listbox"
+          aria-multiselectable="true"
+        >
           <Show when={props.values.length > 0}>
             <button class="custom-select__option" type="button" onClick={() => props.onChange([])}>
               <span class="custom-select__option-text">
@@ -85,13 +89,13 @@ const MultiSelect: Component<MultiSelectProps> = (props) => {
           <For each={props.options}>
             {(opt) => (
               <button
-                class="custom-select__option"
+                class="custom-select__option custom-select__option--top"
                 classList={{ 'custom-select__option--selected': isSelected(opt.value) }}
                 onClick={() => toggle(opt.value)}
                 type="button"
                 role="option"
                 aria-selected={isSelected(opt.value)}
-                style="display: flex; align-items: center; gap: 6px;"
+                style="display: flex; gap: 6px;"
               >
                 <input
                   type="checkbox"
@@ -101,7 +105,7 @@ const MultiSelect: Component<MultiSelectProps> = (props) => {
                   style="pointer-events: none; margin: 0;"
                 />
                 <Show when={opt.icon}>{opt.icon}</Show>
-                <span class="custom-select__option-text">
+                <span class="custom-select__option-text custom-select__option-text--inline">
                   <span>{opt.label}</span>
                   <Show when={opt.description}>
                     <span class="custom-select__option-desc">{opt.description}</span>

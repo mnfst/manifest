@@ -112,6 +112,32 @@
   color: hsl(var(--muted-foreground));
 }
 
+/* Multiselect (connection filter): options read on one line, so the panel
+   widens to its content instead of clipping. If a long label still wraps,
+   the checkbox and icon stay centered on the FIRST line, not the block. */
+.custom-select__dropdown--wide {
+  width: max-content;
+  min-width: max(100%, 140px);
+  max-width: 480px;
+}
+
+.custom-select__option--top {
+  align-items: flex-start !important;
+}
+
+.custom-select__option--top > input[type='checkbox'],
+.custom-select__option--top > svg,
+.custom-select__option--top > img {
+  margin-top: 3px;
+}
+
+.custom-select__option-text--inline {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .pro-range-badge {
   margin-left: auto;
   padding: 1px 5px;
