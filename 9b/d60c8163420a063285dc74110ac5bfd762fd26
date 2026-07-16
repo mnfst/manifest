@@ -1,0 +1,19 @@
+docs/glossary.md
+  s_2dca526c582c19::t_902d9b52b9d23f 59,61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "9bd60c8163420a063285dc74110ac5bfd762fd26",
+  "prompts": {},
+  "sessions": {
+    "s_2dca526c582c19": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6a6e-0441-7612-b8b2-95bc5175e975",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

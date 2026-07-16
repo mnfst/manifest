@@ -1,0 +1,38 @@
+CLAUDE.md
+  s_2dca526c582c19::t_170bc22826ec2f 439
+  s_2dca526c582c19::t_91d3f491fe5aa0 3,85,90,221,322,438,441-443
+  s_2dca526c582c19::t_c637f3e9d96ad7 458,460,464,470,499,632,712
+  s_2dca526c582c19::t_dc81a229a83c5c 430,432-435,437
+  s_2dca526c582c19::t_e06eda52feb4ba 7,152,352-353
+  s_1defa4e24de0e5::t_a6c3fd8d03de59 440
+AGENTS.md
+  s_2dca526c582c19::t_91d3f491fe5aa0 1-2,4,6,11
+  s_2dca526c582c19::t_dc81a229a83c5c 3,5,7-10,12-13
+  s_2dca526c582c19::t_170bc22826ec2f 14
+docs/analytics-glossary.md
+  s_2dca526c582c19::t_170bc22826ec2f 1-107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "e406408d7b683bbe330fefe1d7051926c21a5d2d",
+  "prompts": {},
+  "sessions": {
+    "s_1defa4e24de0e5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f69ec-3e2d-7a03-9bde-06a0ebdcf7a3",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_2dca526c582c19": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6a6e-0441-7612-b8b2-95bc5175e975",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
