@@ -27,6 +27,8 @@ const apiMocks = vi.hoisted(() => ({
   getPerAgentTimeseries: vi.fn(),
   getPerAgentMessageTimeseries: vi.fn(),
   getConnectionAttemptStatusTimeseries: vi.fn(),
+  getConnectionAttemptHttpStatusTimeseries: vi.fn(),
+  getConnectionAttemptBreakdown: vi.fn(),
   getConnectionAttemptsByAgentTimeseries: vi.fn(),
   getAutofixCohort: vi.fn(),
   getPerAgentCostTimeseries: vi.fn(),
@@ -105,6 +107,10 @@ vi.mock('../../src/services/api/analytics.js', () => ({
     apiMocks.getPerAgentMessageTimeseries(...args),
   getConnectionAttemptStatusTimeseries: (...args: unknown[]) =>
     apiMocks.getConnectionAttemptStatusTimeseries(...args),
+  getConnectionAttemptHttpStatusTimeseries: (...args: unknown[]) =>
+    apiMocks.getConnectionAttemptHttpStatusTimeseries(...args),
+  getConnectionAttemptBreakdown: (...args: unknown[]) =>
+    apiMocks.getConnectionAttemptBreakdown(...args),
   getConnectionAttemptsByAgentTimeseries: (...args: unknown[]) =>
     apiMocks.getConnectionAttemptsByAgentTimeseries(...args),
   getPerAgentCostTimeseries: (...args: unknown[]) => apiMocks.getPerAgentCostTimeseries(...args),
@@ -765,6 +771,21 @@ beforeEach(() => {
     agents: ['demo-agent'],
     timeseries: [{ date: '2026-06-04', 'demo-agent': 12 }],
   });
+  apiMocks.getConnectionAttemptHttpStatusTimeseries.mockResolvedValue({
+    range: '7d',
+    by: 'metric',
+    keys: ['200', '429'],
+    buckets: [{ bucket: '2026-06-04', counts: [9, 3] }],
+  });
+  apiMocks.getConnectionAttemptBreakdown.mockResolvedValue({
+    attempts: 12,
+    succeeded: 9,
+    failed: 3,
+    fallback_retries: 10,
+    fallback_retries_succeeded: 8,
+    autofix_attempts: 5,
+    autofix_attempts_succeeded: 4,
+  });
 });
 
 afterEach(() => {
@@ -1039,17 +1060,52 @@ describe('ConnectionDetail (analytics)', () => {
     expect(screen.getByTestId('msg-agents').textContent).toBe('demo-agent');
   });
 
-  it('shows a single attempt Success rate card (9 ok / 12 attempts)', async () => {
+  it('shows the attempt cards row: rate, counts and both retry families', async () => {
+    const { container } = render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    await waitFor(() => {
+      const cards = [...container.querySelectorAll('.overview-stat-card')].map((c) =>
+        c.textContent?.trim(),
+      );
+      // 9 ok / 12 attempts = 75.0%.
+      expect(cards.join(' | ')).toContain('75.0%');
+      expect(cards.find((c) => c?.includes('Succeeded attempts'))).toContain('9');
+      expect(cards.find((c) => c?.includes('Failed attempts'))).toContain('3');
+      // A fallback is a retry: 10 sent, 8 of them succeeded.
+      const fb = cards.find((c) => c?.includes('Fallback retries'));
+      expect(fb).toContain('10');
+      expect(fb).toContain('8 succeeded');
+    });
+    // No Doctor version in this fixture: no auto-fixed card, no recovered cards.
+    expect(screen.queryByText('Auto-fixed attempts')).toBeNull();
+    expect(screen.queryByText('Recovered by Auto-fix')).toBeNull();
+  });
+
+  it('shows the auto-fixed attempts card with the Doctor version', async () => {
+    apiMocks.getAutofixCohort.mockResolvedValue({ eligible: true });
     const { container } = render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     await waitFor(() => {
       const card = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
-        c.textContent?.includes('Success rate'),
+        c.textContent?.includes('Auto-fixed attempts'),
       );
-      expect(card?.textContent).toContain('75.0%');
+      expect(card?.textContent).toContain('5');
+      expect(card?.textContent).toContain('4 succeeded');
     });
-    // The four request-world KPI cards are gone from this page.
-    expect(screen.queryByText('Recovered by Auto-fix')).toBeNull();
+  });
+
+  it('navigates to the pre-filtered Requests log from the Failed card', async () => {
+    const { container } = render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    const failed = await waitFor(() => {
+      const card = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
+        c.textContent?.includes('Failed attempts'),
+      );
+      expect(card).toBeDefined();
+      return card!;
+    });
+    fireEvent.click(failed);
+    expect(routerState.navigate).toHaveBeenCalledWith('/messages?status=failed&provider=openai');
   });
 
   it('opens the inline manage modal from the connection detail', async () => {

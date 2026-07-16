@@ -88,6 +88,7 @@ const MessageLog: Component = () => {
     agent?: string;
     status?: string;
     request?: string;
+    provider?: string;
   }>();
   const navigate = useNavigate();
 
@@ -151,7 +152,11 @@ const MessageLog: Component = () => {
       };
     }),
   ]);
-  const [providerFilter, setProviderFilter] = createSignal('');
+  // `?provider=` deep-links a pre-filtered log (the connection pages link
+  // their Failed attempts card here).
+  const [providerFilter, setProviderFilter] = createSignal(
+    typeof searchParams.provider === 'string' ? searchParams.provider : '',
+  );
   const [triggerFilter, setTriggerFilter] = createSignal<MessageTriggerFilterValue>('');
   const [tierFilter, setTierFilter] = createSignal('');
   const [originFilter, setOriginFilter] = createSignal('');

@@ -243,6 +243,137 @@ export class AttemptStatsService {
     return { agents: [...agents].sort(), timeseries: [...byBucket.values()] };
   }
 
+  /**
+   * Attempts by HTTP status over time, scoped to ONE connection. Successful
+   * attempts read '200' by convention (their code is not stored); failures
+   * read their own code, or 'No response' when the provider never answered.
+   */
+  async getConnectionHttpStatusTimeseries(params: {
+    tenantId: string | null;
+    range?: string;
+    authType?: string;
+    provider?: string;
+    label?: string;
+    tenantProviderId?: string;
+  }): Promise<AttemptTimeseriesResponse> {
+    const range = params.range ?? '7d';
+    if (!params.tenantId) return { range, by: 'metric', keys: [], buckets: [] };
+    const bucketExpression = isHourlyRange(range)
+      ? sqlHourBucket('at.timestamp')
+      : sqlDateBucket('at.timestamp');
+    const codeExpr = `CASE
+      WHEN at.status = 'ok' OR at.status IS NULL THEN '200'
+      ELSE COALESCE(at.error_http_status::text, 'No response') END`;
+    const cutoff = computeCutoff(rangeToInterval(range));
+    const qb = this.attemptRepo
+      .createQueryBuilder('at')
+      .select(bucketExpression, 'bucket')
+      .addSelect(codeExpr, 'code')
+      .addSelect('COUNT(*)', 'attempts')
+      .where('at.timestamp >= :cutoff', { cutoff });
+    addTenantFilter(qb, params.tenantId);
+    excludePlaygroundAgents(qb);
+    this.scopeToConnectionWithLegacyFold(qb, params);
+
+    const rows = (await qb
+      .groupBy('bucket')
+      .addGroupBy(codeExpr)
+      .orderBy('bucket', 'ASC')
+      .getRawMany()) as Array<Record<string, unknown>>;
+
+    const keys = [...new Set(rows.map((r) => String(r['code'])))].sort((a, b) => {
+      // Success first, then numeric codes ascending, 'No response' last.
+      if (a === '200') return -1;
+      if (b === '200') return 1;
+      if (a === 'No response') return 1;
+      if (b === 'No response') return -1;
+      return Number(a) - Number(b);
+    });
+    const byBucket = new Map<string, number[]>();
+    for (const row of rows) {
+      const bucket = String(row['bucket']);
+      let counts = byBucket.get(bucket);
+      if (!counts) {
+        counts = new Array(keys.length).fill(0);
+        byBucket.set(bucket, counts);
+      }
+      counts[keys.indexOf(String(row['code']))] = Number(row['attempts'] ?? 0);
+    }
+    return {
+      range,
+      by: 'metric',
+      keys,
+      buckets: [...byBucket.entries()].map(([bucket, counts]) => ({ bucket, counts })),
+    };
+  }
+
+  /**
+   * The connection's attempt breakdown for the header cards: totals, and the
+   * two retry families with their own outcomes. Fallback retries exist for
+   * everyone; auto-fixed attempts only exist with the Doctor version.
+   */
+  async getConnectionBreakdown(params: {
+    tenantId: string | null;
+    range?: string;
+    authType?: string;
+    provider?: string;
+    label?: string;
+    tenantProviderId?: string;
+  }): Promise<{
+    attempts: number;
+    succeeded: number;
+    failed: number;
+    fallback_retries: number;
+    fallback_retries_succeeded: number;
+    autofix_attempts: number;
+    autofix_attempts_succeeded: number;
+  }> {
+    const empty = {
+      attempts: 0,
+      succeeded: 0,
+      failed: 0,
+      fallback_retries: 0,
+      fallback_retries_succeeded: 0,
+      autofix_attempts: 0,
+      autofix_attempts_succeeded: 0,
+    };
+    if (!params.tenantId) return empty;
+    const range = params.range ?? '7d';
+    const cutoff = computeCutoff(rangeToInterval(range));
+    const okExpr = `(at.status = 'ok' OR at.status IS NULL)`;
+    const qb = this.attemptRepo
+      .createQueryBuilder('at')
+      .select('COUNT(*)', 'attempts')
+      .addSelect(`COUNT(*) FILTER (WHERE ${okExpr})`, 'succeeded')
+      .addSelect(`COUNT(*) FILTER (WHERE at.fallback_from_model IS NOT NULL)`, 'fallback_retries')
+      .addSelect(
+        `COUNT(*) FILTER (WHERE at.fallback_from_model IS NOT NULL AND ${okExpr})`,
+        'fallback_retries_succeeded',
+      )
+      .addSelect(`COUNT(*) FILTER (WHERE at.autofix_role = 'retry')`, 'autofix_attempts')
+      .addSelect(
+        `COUNT(*) FILTER (WHERE at.autofix_role = 'retry' AND ${okExpr})`,
+        'autofix_attempts_succeeded',
+      )
+      .where('at.timestamp >= :cutoff', { cutoff });
+    addTenantFilter(qb, params.tenantId);
+    excludePlaygroundAgents(qb);
+    this.scopeToConnectionWithLegacyFold(qb, params);
+
+    const row = await qb.getRawOne<Record<string, string>>();
+    const attempts = Number(row?.attempts ?? 0);
+    const succeeded = Number(row?.succeeded ?? 0);
+    return {
+      attempts,
+      succeeded,
+      failed: attempts - succeeded,
+      fallback_retries: Number(row?.fallback_retries ?? 0),
+      fallback_retries_succeeded: Number(row?.fallback_retries_succeeded ?? 0),
+      autofix_attempts: Number(row?.autofix_attempts ?? 0),
+      autofix_attempts_succeeded: Number(row?.autofix_attempts_succeeded ?? 0),
+    };
+  }
+
   private async queryWindow(
     from: string,
     to: string | undefined,

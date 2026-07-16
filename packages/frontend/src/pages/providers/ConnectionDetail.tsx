@@ -20,6 +20,8 @@ import {
   getPerAgentCostTimeseries,
   getConnectionAttemptStatusTimeseries,
   getConnectionAttemptsByAgentTimeseries,
+  getConnectionAttemptHttpStatusTimeseries,
+  getConnectionAttemptBreakdown,
   attemptSuccessRate,
   totalAttemptsTooltip,
   CONNECTION_SUCCESS_RATE_TOOLTIP,
@@ -242,16 +244,16 @@ const ConnectionDetail: Component = () => {
   // Attempts tab view: By attempt status (default) or By harness. Persisted
   // per connection like the range and the active tab.
   const groupKey = () => `chart-group:${params.connectionId}`;
-  const savedGroup = (): 'status' | 'harness' => {
+  const savedGroup = (): 'status' | 'http' | 'harness' => {
     try {
       const v = sessionStorage.getItem(groupKey());
-      return v === 'harness' ? 'harness' : 'status';
+      return v === 'harness' || v === 'http' ? v : 'status';
     } catch {
       return 'status';
     }
   };
-  const [groupBy, setGroupByRaw] = createSignal<'status' | 'harness'>(savedGroup());
-  const setGroupBy = (v: 'status' | 'harness') => {
+  const [groupBy, setGroupByRaw] = createSignal<'status' | 'http' | 'harness'>(savedGroup());
+  const setGroupBy = (v: 'status' | 'http' | 'harness') => {
     setGroupByRaw(v);
     try {
       sessionStorage.setItem(groupKey(), v);
@@ -357,6 +359,41 @@ const ConnectionDetail: Component = () => {
       );
     },
   );
+  const [httpStatusTs] = createResource(
+    () => {
+      const c = conn();
+      if (!c) return null;
+      return { range: chartRange(), authType: c.auth_type, provider: c.provider, label: c.label };
+    },
+    (p) => {
+      if (!p) return null;
+      return getConnectionAttemptHttpStatusTimeseries(
+        p.authType,
+        p.provider,
+        p.range,
+        p.label,
+        params.connectionId,
+      );
+    },
+  );
+  const [breakdown] = createResource(
+    () => {
+      const c = conn();
+      if (!c) return null;
+      return { range: chartRange(), authType: c.auth_type, provider: c.provider, label: c.label };
+    },
+    (p) => {
+      if (!p) return null;
+      return getConnectionAttemptBreakdown(
+        p.authType,
+        p.provider,
+        p.range,
+        p.label,
+        params.connectionId,
+      );
+    },
+  );
+
   const attemptTotals = () => {
     const ts = attemptStatusTs();
     if (!ts) return { attempts: 0, succeeded: 0 };
@@ -777,9 +814,13 @@ const ConnectionDetail: Component = () => {
                 </div>
               </div>
 
-              {/* Attempt world: one card. Success rate = successful attempts
-                  over all attempts on this connection, filtered period. */}
-              <div class="overview-stats-row" style="margin-bottom: 16px;">
+              {/* Attempt world cards: the connection's own numbers on the
+                  filtered period. Fallback retries exist for everyone;
+                  auto-fixed attempts only exist with the Doctor version. */}
+              <div
+                class="overview-stats"
+                style={`grid-template-columns: repeat(${autofixEligible() ? 5 : 4}, 1fr); margin-bottom: 16px;`}
+              >
                 <div class="overview-stat-card">
                   <span class="overview-stat-card__label">
                     Success rate
@@ -788,13 +829,70 @@ const ConnectionDetail: Component = () => {
                   <div class="overview-stat-card__value-row">
                     <span class="overview-stat-card__value">
                       {(() => {
-                        const t = attemptTotals();
-                        const rate = attemptSuccessRate(t);
+                        const b = breakdown();
+                        const rate = b
+                          ? attemptSuccessRate({ attempts: b.attempts, succeeded: b.succeeded })
+                          : null;
                         return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
                       })()}
                     </span>
                   </div>
                 </div>
+                <div class="overview-stat-card">
+                  <span class="overview-stat-card__label">Succeeded attempts</span>
+                  <div class="overview-stat-card__value-row">
+                    <span class="overview-stat-card__value">
+                      {formatNumber(breakdown()?.succeeded ?? 0)}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  class="overview-stat-card"
+                  style="cursor: pointer;"
+                  title="Open the Requests log filtered on this provider's failures"
+                  onClick={() =>
+                    navigate(
+                      `/messages?status=failed&provider=${encodeURIComponent(
+                        conn()?.provider ?? '',
+                      )}`,
+                    )
+                  }
+                >
+                  <span class="overview-stat-card__label">Failed attempts</span>
+                  <div class="overview-stat-card__value-row">
+                    <span class="overview-stat-card__value">
+                      {formatNumber(breakdown()?.failed ?? 0)}
+                    </span>
+                  </div>
+                </div>
+                <div class="overview-stat-card">
+                  <span class="overview-stat-card__label">Fallback retries</span>
+                  <div class="overview-stat-card__value-row">
+                    <span class="overview-stat-card__value">
+                      {formatNumber(breakdown()?.fallback_retries ?? 0)}
+                    </span>
+                    <Show when={(breakdown()?.fallback_retries ?? 0) > 0}>
+                      <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                        {formatNumber(breakdown()?.fallback_retries_succeeded ?? 0)} succeeded
+                      </span>
+                    </Show>
+                  </div>
+                </div>
+                <Show when={autofixEligible()}>
+                  <div class="overview-stat-card">
+                    <span class="overview-stat-card__label">Auto-fixed attempts</span>
+                    <div class="overview-stat-card__value-row">
+                      <span class="overview-stat-card__value">
+                        {formatNumber(breakdown()?.autofix_attempts ?? 0)}
+                      </span>
+                      <Show when={(breakdown()?.autofix_attempts ?? 0) > 0}>
+                        <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                          {formatNumber(breakdown()?.autofix_attempts_succeeded ?? 0)} succeeded
+                        </span>
+                      </Show>
+                    </div>
+                  </div>
+                </Show>
               </div>
 
               {/* Chart */}
@@ -826,8 +924,13 @@ const ConnectionDetail: Component = () => {
                         groupBy() === 'harness' ? (attemptsByAgentTs() ?? undefined) : undefined
                       }
                       requestStatusTimeseries={
-                        groupBy() === 'status' ? (attemptStatusTs() ?? undefined) : undefined
+                        groupBy() === 'status'
+                          ? (attemptStatusTs() ?? undefined)
+                          : groupBy() === 'http'
+                            ? (httpStatusTs() ?? undefined)
+                            : undefined
                       }
+                      requestStatusSeriesMode={groupBy() === 'http' ? 'http_status' : 'disposition'}
                       agentCostTimeseries={
                         isByok() ? (filteredAgentCostTimeseries() ?? undefined) : undefined
                       }
@@ -845,6 +948,15 @@ const ConnectionDetail: Component = () => {
                               onClick={() => setGroupBy('status')}
                             >
                               By attempt status
+                            </button>
+                            <button
+                              class="chart-card__filter-btn"
+                              classList={{
+                                'chart-card__filter-btn--active': groupBy() === 'http',
+                              }}
+                              onClick={() => setGroupBy('http')}
+                            >
+                              By HTTP status
                             </button>
                             <button
                               class="chart-card__filter-btn"

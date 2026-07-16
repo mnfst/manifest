@@ -26,6 +26,8 @@ export interface UnifiedChartCardProps {
   agentRequestTimeseries?: AgentTimeseries;
   /** When set, the Requests tab shows this (disposition) instead of agentRequestTimeseries */
   requestStatusTimeseries?: AutofixTimeseries;
+  /** Series mode for the status chart (colors/labels): disposition by default. */
+  requestStatusSeriesMode?: string;
   // Self-healed requests tab (the recovered subset — autofix + fallback).
   // The tab renders only when the timeseries is provided.
   selfHealedValue?: number;
@@ -191,7 +193,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
                 <ReliabilityChart
                   timeseries={props.requestStatusTimeseries!}
                   range={props.range}
-                  seriesMode="disposition"
+                  seriesMode={props.requestStatusSeriesMode ?? 'disposition'}
                 />
               </Show>
             </Show>

@@ -120,9 +120,14 @@ Attempt world, exclusively.
 - Chart tabs: **Attempts** (views: By attempt status, default, and By
   harness), Cost, Token usage. No Requests tab, no recovery tab: this page
   counts provider calls, and recovery belongs to requests.
-- Attempt status series: Success / Failed. An auto-fix retry or a fallback
-  attempt is just an attempt here; its trigger is visible on the request's
-  own page.
+- Attempt status series: Success / Failed. A third view, **By HTTP status**,
+  splits attempts by their own code (successes read 200 by convention, their
+  code is not stored; failures read their code or 'No response').
+- Header cards: Success rate, Succeeded attempts, Failed attempts (links to
+  the Requests log pre-filtered on this provider's failures), Fallback
+  retries with their own success count, and, with the Doctor version,
+  Auto-fixed attempts with theirs. Sent is not fixed: only a succeeded retry
+  fixed anything.
 - Tokens and cost: everything this connection burned, failed attempts
   included.
 - Harness breakdown table: Total attempts, Success rate (attempts) per

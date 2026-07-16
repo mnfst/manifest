@@ -42,10 +42,10 @@ function colorFor(key: string, mode: string, idx: number): string {
     return '#EF4444';
   }
   if (mode === 'http_status') {
-    if (key.startsWith('2')) return '#9CA3AF';
+    if (key.startsWith('2')) return '#1cc4bf'; // success teal, like every chart
     if (key.startsWith('4')) return '#F59E0B';
     if (key.startsWith('5')) return '#EF4444';
-    return '#888';
+    return '#9CA3AF'; // 'No response' and other non-codes: neutral grey
   }
   // error_kind: use a palette
   const palette = [

@@ -192,4 +192,57 @@ describe('AttemptStatsService', () => {
       service.getConnectionAttemptsByAgentTimeseries({ tenantId: null, range: '7d' }),
     ).resolves.toEqual({ agents: [], timeseries: [] });
   });
+
+  it('buckets attempts by HTTP status, success reading 200 by convention', async () => {
+    const qb = mockQueryBuilder({
+      rawMany: [
+        { bucket: '2026-06-04', code: '200', attempts: '9' },
+        { bucket: '2026-06-04', code: '429', attempts: '2' },
+        { bucket: '2026-06-04', code: 'No response', attempts: '1' },
+        { bucket: '2026-06-05', code: '400', attempts: '3' },
+      ],
+    });
+    const service = makeService([qb]);
+
+    const out = await service.getConnectionHttpStatusTimeseries({
+      tenantId: 't1',
+      range: '7d',
+      provider: 'openai',
+    });
+    // Success first, numeric codes ascending, No response last.
+    expect(out.keys).toEqual(['200', '400', '429', 'No response']);
+    expect(out.buckets).toEqual([
+      { bucket: '2026-06-04', counts: [9, 0, 2, 1] },
+      { bucket: '2026-06-05', counts: [0, 3, 0, 0] },
+    ]);
+  });
+
+  it('computes the connection breakdown with both retry families', async () => {
+    const qb = mockQueryBuilder({
+      rawOne: {
+        attempts: '216',
+        succeeded: '162',
+        fallback_retries: '10',
+        fallback_retries_succeeded: '8',
+        autofix_attempts: '12',
+        autofix_attempts_succeeded: '10',
+      },
+    });
+    const service = makeService([qb]);
+    await expect(
+      service.getConnectionBreakdown({ tenantId: 't1', range: '7d', provider: 'openai' }),
+    ).resolves.toEqual({
+      attempts: 216,
+      succeeded: 162,
+      failed: 54,
+      fallback_retries: 10,
+      fallback_retries_succeeded: 8,
+      autofix_attempts: 12,
+      autofix_attempts_succeeded: 10,
+    });
+    const selects = qb.addSelect.mock.calls.flat().join(' ');
+    // A fallback is a retry; an auto-fix produces an attempt (autofix_role).
+    expect(selects).toContain('at.fallback_from_model IS NOT NULL');
+    expect(selects).toContain("at.autofix_role = 'retry'");
+  });
 });

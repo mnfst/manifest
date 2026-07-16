@@ -57,6 +57,46 @@ export class ProviderAnalyticsController {
     });
   }
 
+  /** Attempts by HTTP status over time for ONE connection. */
+  @Get('attempt-http-status-timeseries')
+  async getAttemptHttpStatusTimeseries(
+    @TenantCtx() ctx: TenantContext,
+    @Query('range') range?: string,
+    @Query('auth_type') authType?: string,
+    @Query('provider') provider?: string,
+    @Query('label') label?: string,
+    @Query('connection_id') connectionId?: string,
+  ) {
+    return this.attemptStats.getConnectionHttpStatusTimeseries({
+      tenantId: ctx.tenantId,
+      range,
+      authType,
+      provider,
+      label,
+      tenantProviderId: connectionId,
+    });
+  }
+
+  /** Header-card breakdown for ONE connection (totals + retry families). */
+  @Get('attempt-breakdown')
+  async getAttemptBreakdown(
+    @TenantCtx() ctx: TenantContext,
+    @Query('range') range?: string,
+    @Query('auth_type') authType?: string,
+    @Query('provider') provider?: string,
+    @Query('label') label?: string,
+    @Query('connection_id') connectionId?: string,
+  ) {
+    return this.attemptStats.getConnectionBreakdown({
+      tenantId: ctx.tenantId,
+      range,
+      authType,
+      provider,
+      label,
+      tenantProviderId: connectionId,
+    });
+  }
+
   /** Attempts per harness over time for ONE connection (By harness view). */
   @Get('attempts-by-agent-timeseries')
   async getAttemptsByAgentTimeseries(

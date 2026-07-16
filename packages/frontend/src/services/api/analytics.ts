@@ -74,6 +74,50 @@ export function getConnectionAttemptStatusTimeseries(
   }) as Promise<AutofixTimeseries>;
 }
 
+/** Attempts by HTTP status over time for ONE connection. */
+export function getConnectionAttemptHttpStatusTimeseries(
+  authType: string,
+  provider: string,
+  range = '24h',
+  label?: string,
+  connectionId?: string,
+): Promise<AutofixTimeseries> {
+  return fetchJson('/provider-analytics/attempt-http-status-timeseries', {
+    auth_type: authType,
+    provider,
+    range,
+    ...(label !== undefined ? { label } : {}),
+    ...(connectionId ? { connection_id: connectionId } : {}),
+  }) as Promise<AutofixTimeseries>;
+}
+
+export interface ConnectionAttemptBreakdown {
+  attempts: number;
+  succeeded: number;
+  failed: number;
+  fallback_retries: number;
+  fallback_retries_succeeded: number;
+  autofix_attempts: number;
+  autofix_attempts_succeeded: number;
+}
+
+/** Header-card breakdown for ONE connection (totals + retry families). */
+export function getConnectionAttemptBreakdown(
+  authType: string,
+  provider: string,
+  range = '24h',
+  label?: string,
+  connectionId?: string,
+): Promise<ConnectionAttemptBreakdown> {
+  return fetchJson('/provider-analytics/attempt-breakdown', {
+    auth_type: authType,
+    provider,
+    range,
+    ...(label !== undefined ? { label } : {}),
+    ...(connectionId ? { connection_id: connectionId } : {}),
+  }) as Promise<ConnectionAttemptBreakdown>;
+}
+
 /** Attempts per harness over time for ONE connection (By harness view). */
 export function getConnectionAttemptsByAgentTimeseries(
   authType: string,
