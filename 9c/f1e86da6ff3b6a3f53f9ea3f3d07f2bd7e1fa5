@@ -1,0 +1,80 @@
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_406bd622891248::t_4218b857ee863e 32,73-94,205-223
+  s_406bd622891248::t_762ec85187bcb8 45-49
+packages/shared/__tests__/autofix-status.spec.ts
+  s_406bd622891248::t_db73ff028fd0b3 48-49,53-57
+  s_406bd622891248::t_0a721876d5a173 18
+  s_406bd622891248::t_72b8b5d6f1ea4c 1-17,19-47,58-70
+  s_406bd622891248::t_0a97e327ba209b 50-52
+packages/frontend/src/services/api/messages.ts
+  s_406bd622891248::t_36d61bddfe5788 2,18,75-77
+packages/backend/src/routing/proxy/__tests__/proxy-request-recorder.spec.ts
+  s_406bd622891248::t_bfc20e4263c294 2,60-65,71-73,83-85,98-115
+  s_406bd622891248::t_0a721876d5a173 74-82,86-97
+  s_406bd622891248::t_86044ab1210d9c 116-118
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_406bd622891248::t_762ec85187bcb8 26-35
+  s_406bd622891248::t_0a721876d5a173 140
+  s_406bd622891248::t_4218b857ee863e 25,38,71-81
+packages/backend/src/playground/playground.service.ts
+  s_406bd622891248::t_c7541ad39f2f7e 556,603
+  s_406bd622891248::t_870a37f2bcc6c9 482
+packages/shared/src/autofix-status.ts
+  s_406bd622891248::t_72b8b5d6f1ea4c 1-38,40-54
+  s_406bd622891248::t_0a721876d5a173 39
+packages/shared/src/index.ts
+  s_406bd622891248::t_72b8b5d6f1ea4c 159
+  s_406bd622891248::t_0a721876d5a173 160
+packages/backend/src/entities/agent-message.entity.ts
+  s_406bd622891248::t_72b8b5d6f1ea4c 228-230,232
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_406bd622891248::t_572545563f2a80 35-65,324-325,334,341,379,385,435,445,458,518-522,528,536
+  s_406bd622891248::t_bfb7cdd45b6532 34
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_406bd622891248::t_fb21067b67794b 15-17,70-72,91-92,96-97,108-110,459-477,531-601
+packages/frontend/src/components/MessageDetails.tsx
+  s_406bd622891248::t_0a721876d5a173 11
+  s_406bd622891248::t_080be8c359c514 286-289
+  s_406bd622891248::t_cb83adb9d5dccd 677
+  s_406bd622891248::t_36d61bddfe5788 116
+packages/backend/src/analytics/services/message-details.service.ts
+  s_406bd622891248::t_89889762cdb7ac 61,190
+  s_406bd622891248::t_36d61bddfe5788 7,17,55-57,143,184-186
+  s_406bd622891248::t_0a721876d5a173 6
+packages/frontend/tests/components/MessageDetails.autofix.test.tsx
+  s_406bd622891248::t_14d0b0b757c1c6 77,340,346,373,391-392,417
+  s_406bd622891248::t_0a721876d5a173 409,422-423
+  s_406bd622891248::t_186a69c19d728f 44,88,103,120-132
+  s_406bd622891248::t_8141e548dd1fd9 133-134
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_406bd622891248::t_34d959df46ba2e 1458,1472-1473,1534-1535,1561-1562,1570,1600-1601,1609,1611,1626
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_406bd622891248::t_c7541ad39f2f7e 68,121,158,163,165,167-168,170
+  s_406bd622891248::t_52ffc3a94f31df 305,370,390
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_406bd622891248::t_988e0a88fbdee7 13,15,35-49
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_406bd622891248::t_762ec85187bcb8 41,73,75
+  s_406bd622891248::t_2a79f3d49a2b63 5-9,38,48,82,181-182,249,265,336,344,358,461,705-711,740,795,873,1031,1033
+packages/backend/src/entities/request.entity.ts
+  s_406bd622891248::t_72b8b5d6f1ea4c 4,54-56
+  s_406bd622891248::t_a9d8540925f1d5 57
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_406bd622891248::t_2039c80dc0a735 738
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "9cf1e86da6ff3b6a3f53f9ea3f3d07f2bd7e1fa5",
+  "prompts": {},
+  "sessions": {
+    "s_406bd622891248": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f69a4-8f78-71b0-9180-53e5898f4ed5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
