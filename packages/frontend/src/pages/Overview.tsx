@@ -470,7 +470,11 @@ const Overview: Component = () => {
                     </div>
                   </Show>
                   <Show when={autofixEligible()}>
-                    <AutofixKpiCards stats={autofixStats()} />
+                    <AutofixKpiCards
+                      stats={autofixStats()}
+                      agentName={decodeURIComponent(params.agentName)}
+                      range={effectiveRange()}
+                    />
                   </Show>
                   {(() => {
                     return (

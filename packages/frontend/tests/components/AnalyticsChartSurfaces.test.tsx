@@ -6,6 +6,11 @@ let capturedChartOpts: any = null;
 let capturedChartData: any = null;
 const mockGetErrorBreakdown = vi.fn();
 
+const routerNavigate = vi.hoisted(() => vi.fn());
+vi.mock('@solidjs/router', () => ({
+  useNavigate: () => routerNavigate,
+}));
+
 vi.mock('uplot', () => ({
   default: class MockUPlot {
     static paths = {
@@ -350,6 +355,40 @@ describe('analytics chart surface components', () => {
       />
     ));
     expect(screen.getAllByText('-50%').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('deep-links the recovered KPI cards when an agent scope is given', () => {
+    const base = {
+      success_rate: { value: 0.8, previous: 0.7 },
+      errors_remaining: { value: 0, previous: 0 },
+      coverage: { rate: 0.555, previous_rate: 0.5 },
+      dispositions: { healed: 5, no_fix_found: 2, resolving: 1, ineffective: 0 },
+      needs_attention: [],
+    };
+    render(() => (
+      <AutofixKpiCards
+        stats={{
+          ...base,
+          autofix_saves: { value: 5, previous: 0 },
+          fallback_saves: { value: 3, previous: 0 },
+          total_requests: { value: 100, previous: 0 },
+        }}
+        agentName="demo-agent"
+        range="7d"
+      />
+    ));
+    fireEvent.click(screen.getByText('Recovered by Auto-fix').closest('.overview-stat-card')!);
+    expect(routerNavigate).toHaveBeenCalledWith(
+      '/messages?agent=demo-agent&range=7d&status=ok&trigger=autofix',
+    );
+    fireEvent.click(screen.getByText('Recovered by Fallback').closest('.overview-stat-card')!);
+    expect(routerNavigate).toHaveBeenCalledWith(
+      '/messages?agent=demo-agent&range=7d&status=ok&trigger=fallback',
+    );
+    fireEvent.click(screen.getByText('Recovered requests').closest('.overview-stat-card')!);
+    expect(routerNavigate).toHaveBeenCalledWith(
+      '/messages?agent=demo-agent&range=7d&status=ok&trigger=autofix,fallback',
+    );
   });
 
   it('renders and sorts error classes, then renders the empty state', async () => {

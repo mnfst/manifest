@@ -363,6 +363,16 @@ describe('GlobalOverview filter onUnselectAll', () => {
     expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalledTimes(2);
   });
 
+  it('links the harness total-requests count to the agent-scoped Requests log', async () => {
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() => {
+      const link = [...container.querySelectorAll('a')].find(
+        (a) => a.getAttribute('href') === '/messages?agent=demo-agent&range=7d',
+      );
+      expect(link).toBeDefined();
+    });
+  });
+
   it('links the connection failed-attempts count to the scoped Requests log', async () => {
     const { container } = render(() => <GlobalOverview />);
     await waitFor(() => {

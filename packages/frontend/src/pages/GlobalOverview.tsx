@@ -1198,7 +1198,20 @@ const GlobalOverview: Component = () => {
                             const rel = agentReliability()?.find(
                               (r) => r.agent_name === agent.agent_name,
                             );
-                            return formatNumber(rel?.requests ?? 0);
+                            const link = `/messages?agent=${encodeURIComponent(agent.agent_name)}&range=${effectiveChartRange()}`;
+                            return (
+                              <a
+                                href={link}
+                                title="View this harness's requests"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  navigate(link);
+                                }}
+                              >
+                                {formatNumber(rel?.requests ?? 0)}
+                              </a>
+                            );
                           })()}
                         </td>
                         {(() => {
@@ -1209,7 +1222,24 @@ const GlobalOverview: Component = () => {
                               <Show when={autofixEligible()}>
                                 <td class="rel-col">
                                   <Show when={rel()} fallback="—">
-                                    {formatNumber(selfHealedCount(rel()!))}
+                                    {(() => {
+                                      // Recovered = successful requests holding a
+                                      // recovery attempt (auto-fix or fallback).
+                                      const link = `/messages?agent=${encodeURIComponent(agent.agent_name)}&range=${effectiveChartRange()}&status=ok&trigger=autofix,fallback`;
+                                      return (
+                                        <a
+                                          href={link}
+                                          title="View this harness's recovered requests"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            navigate(link);
+                                          }}
+                                        >
+                                          {formatNumber(selfHealedCount(rel()!))}
+                                        </a>
+                                      );
+                                    })()}
                                   </Show>
                                 </td>
                               </Show>
