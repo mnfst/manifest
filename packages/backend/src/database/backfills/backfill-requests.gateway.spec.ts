@@ -11,6 +11,7 @@ import {
   INSERT_LEGACY_FALLBACK_PAIRS_SQL,
   INSERT_LEGACY_FALLBACK_REQUESTS_SQL,
   INSERT_ATTEMPT_REQUESTS_SQL,
+  LINK_ATTEMPTS_SQL,
   LINK_LEGACY_FALLBACK_ATTEMPTS_SQL,
   REFRESH_ATTEMPT_REQUESTS_SQL,
   TypeOrmRequestBackfillGateway,
@@ -51,6 +52,13 @@ describe('TypeOrmRequestBackfillGateway', () => {
     const sql = `${INSERT_ATTEMPT_REQUESTS_SQL}\n${REFRESH_ATTEMPT_REQUESTS_SQL}`;
     expect(sql).toContain("WHEN terminal.status = 'pending' THEN 'pending'");
     expect(sql).toContain("WHEN status = 'pending' THEN 'pending'");
+  });
+
+  it('precomputes legacy Auto-fix group sizes once per window', () => {
+    expect(LINK_ATTEMPTS_SQL).toContain('target_autofix_groups AS MATERIALIZED');
+    expect(LINK_ATTEMPTS_SQL).toContain('autofix_group_stats AS MATERIALIZED');
+    expect(LINK_ATTEMPTS_SQL).toContain('LEFT JOIN autofix_group_stats stats');
+    expect(LINK_ATTEMPTS_SQL).not.toMatch(/WHEN \(\s*SELECT count\(\*\)/);
   });
 
   it('analyzes attempts and finds keyset window ends', async () => {
