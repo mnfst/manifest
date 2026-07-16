@@ -679,20 +679,18 @@ describe('MessageLog', () => {
     expect(mockSetSearchParams).toHaveBeenCalledWith({ range: '7d' }, { replace: true });
   });
 
-  it('filters messages by attempt status (AND facet, URL-synced)', async () => {
+  it('filters messages by attempt status (plain select, URL-synced)', async () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);
-    const attemptSelect = () =>
-      container.querySelector(
-        '[data-testid="multiselect"][aria-label="Attempt status filter"]',
-      ) as HTMLSelectElement;
-    await vi.waitFor(() => expect(attemptSelect()).not.toBeNull());
-    expect(attemptSelect().textContent).toContain('All attempt statuses');
-    expect(attemptSelect().textContent).toContain('With a failed attempt');
-    expect(attemptSelect().textContent).toContain('With a succeeded attempt');
+    await vi.waitFor(() => {
+      expect(selectWithOption(container, 'All attempt statuses')).toBeDefined();
+    });
+    const attemptSelect = selectWithOption(container, 'All attempt statuses');
+    expect(attemptSelect.textContent).toContain('With a failed attempt');
+    expect(attemptSelect.textContent).toContain('With a succeeded attempt');
 
     mockGetMessages.mockClear();
-    await fireEvent.change(attemptSelect(), { target: { value: 'has_failed' } });
+    await fireEvent.change(attemptSelect, { target: { value: 'has_failed' } });
     await vi.waitFor(() => {
       expect(mockGetMessages).toHaveBeenCalledWith(
         expect.objectContaining({ attempts: 'has_failed' }),
@@ -1520,9 +1518,10 @@ describe('MessageLog', () => {
       await vi.waitFor(() => {
         const selects = container.querySelectorAll('[data-testid="select"]');
         // In agent mode, no harness select renders; the first Select is the
-        // status filter (connections and recovery attempts are multiselects).
+        // attempt-status filter (connections and recovery attempts are
+        // multiselects, which render separately).
         expect(selects[0].textContent).not.toContain('All harnesses');
-        expect(selects[0].textContent).toContain('All statuses');
+        expect(selects[0].textContent).toContain('All attempt statuses');
       });
     });
 

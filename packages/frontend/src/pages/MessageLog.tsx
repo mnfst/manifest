@@ -224,15 +224,17 @@ const MessageLog: Component = () => {
   const [triggerFilter, setTriggerFilter] = createSignal<MessageTriggerFilter[]>(
     normalizeTriggerFilters(searchParams.trigger),
   );
-  // Attempt-status facet (AND semantics): ?attempts=has_failed,has_succeeded
-  // keeps requests holding at least one attempt of EACH checked kind.
-  const [attemptStatusFilter, setAttemptStatusFilterValue] = createSignal<AttemptStatusFilter[]>(
-    normalizeAttemptStatusFilters(searchParams.attempts),
+  // Attempt-status facet: a plain select (all / with a failed attempt / with
+  // a succeeded attempt). The API accepts a comma list, but combining the two
+  // reads poorly in a dropdown, so the UI keeps one value; deep links carrying
+  // several still work.
+  const [attemptStatusFilter, setAttemptStatusFilterValue] = createSignal<'' | AttemptStatusFilter>(
+    normalizeAttemptStatusFilters(searchParams.attempts)[0] ?? '',
   );
-  const setAttemptStatusFilter = (values: string[]) => {
-    const next = values.filter(isAttemptStatusFilter);
+  const setAttemptStatusFilter = (value: string) => {
+    const next = isAttemptStatusFilter(value) ? value : '';
     setAttemptStatusFilterValue(next);
-    setSearchParams({ attempts: next.length ? next.join(',') : undefined }, { replace: true });
+    setSearchParams({ attempts: next || undefined }, { replace: true });
   };
   // `?range=` scopes the log to a rolling window; deep links from dashboard
   // cards carry it so the list total can match the card that sent us here.
@@ -372,7 +374,7 @@ const MessageLog: Component = () => {
       const q: Record<string, string> = {};
       if (p.connections.length) q.connections = p.connections.join(',');
       if (p.trigger.length) q.trigger = p.trigger.join(',');
-      if (p.attempts.length) q.attempts = p.attempts.join(',');
+      if (p.attempts) q.attempts = p.attempts;
       if (p.tier) {
         if (p.tier.startsWith(SPECIFICITY_FILTER_PREFIX)) {
           q.specificity_category = p.tier.slice(SPECIFICITY_FILTER_PREFIX.length);
@@ -427,7 +429,7 @@ const MessageLog: Component = () => {
     agentFilter() !== '' ||
     connectionsFilter().length > 0 ||
     triggerFilter().length > 0 ||
-    attemptStatusFilter().length > 0 ||
+    attemptStatusFilter() !== '' ||
     tierFilter() !== '' ||
     originFilter() !== '' ||
     statusFilterValue() !== '' ||
@@ -455,7 +457,7 @@ const MessageLog: Component = () => {
     setAgentFilter('');
     setConnectionsFilter([]);
     setTriggerFilterValues([]);
-    setAttemptStatusFilter([]);
+    setAttemptStatusFilter('');
     setTierFilter('');
     setOriginFilter('');
     setStatusFilter('');
@@ -550,6 +552,7 @@ const MessageLog: Component = () => {
   ];
 
   const attemptStatusOptions = [
+    { label: 'All attempt statuses', value: '' },
     { label: 'With a failed attempt', value: 'has_failed' },
     { label: 'With a succeeded attempt', value: 'has_succeeded' },
   ];
@@ -644,11 +647,10 @@ const MessageLog: Component = () => {
               placeholder="All recovery attempts"
               label="Recovery attempts filter"
             />
-            <MultiSelect
-              values={attemptStatusFilter()}
+            <Select
+              value={attemptStatusFilter()}
               onChange={setAttemptStatusFilter}
               options={attemptStatusOptions}
-              placeholder="All attempt statuses"
               label="Attempt status filter"
             />
             <Select
