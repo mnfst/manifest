@@ -72,8 +72,8 @@ export type AttemptStatus = (typeof ATTEMPT_STATUSES)[number];
 /**
  * Collapse any status value — legacy (`ok`/`error`/`rate_limited`/
  * `fallback_error`/`auto_fixed`) or canonical — onto the canonical vocabulary.
- * A nullish or unrecognized value is treated as `success`, matching the legacy
- * writer convention where an absent status meant `ok`.
+ * A nullish value is treated as `success`, matching the legacy writer convention
+ * where an absent status meant `ok`. Unknown non-null values fail closed.
  */
 export function normalizeStatus(status: string | null | undefined): RequestStatus {
   if (status === PENDING_STATUS) return PENDING_STATUS;

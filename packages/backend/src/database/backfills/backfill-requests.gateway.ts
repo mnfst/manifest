@@ -37,11 +37,10 @@ const REQUEST_LEVEL_ORIGINS = `'config', 'policy', 'request', 'internal'`;
  * `requests` table is coherent regardless of which side created a row. Historical
  * `provider_attempts.status` still holds the legacy values (`ok` / `error` /
  * `rate_limited` / `fallback_error` / `auto_fixed`); this collapses a terminal
- * attempt status onto the request outcome. It is only applied to terminal attempt
- * statuses (never `pending`), so the two-way success/failed split is complete.
+ * attempt status onto the request outcome while preserving in-flight work.
  */
 const normalizeAttemptStatusSql = (expr: string): string =>
-  `CASE WHEN ${expr} IN ('ok', 'success') THEN 'success' ELSE 'failed' END`;
+  `CASE WHEN ${expr} = 'pending' THEN 'pending' WHEN ${expr} IN ('ok', 'success') THEN 'success' ELSE 'failed' END`;
 
 /**
  * Historical decisions written before this migration have no JSON `status`.

@@ -179,7 +179,7 @@ describe('ProxyMessageRecorder', () => {
       });
     });
 
-    it('inserts a message with status "ok" and correct metadata', async () => {
+    it('inserts a fallback success with correct metadata', async () => {
       await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard', {
         traceId: 'trace-abc',
         fallbackFromModel: 'claude-opus',
@@ -1298,7 +1298,7 @@ describe('ProxyMessageRecorder', () => {
       });
     });
 
-    it('keeps status=ok on the dedup-update path', async () => {
+    it('normalizes success status on the dedup-update path', async () => {
       const updateMock = jest.fn();
       (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
         (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
@@ -1322,7 +1322,7 @@ describe('ProxyMessageRecorder', () => {
       expect(updateMock).toHaveBeenCalledTimes(1);
       expect(updateMock.mock.calls[0][0]).toEqual({ id: 'existing-row' });
       expect(updateMock.mock.calls[0][1]).toMatchObject({
-        status: 'ok',
+        status: 'success',
         error_message: null,
         error_origin: null,
         error_class: null,

@@ -47,6 +47,12 @@ describe('TypeOrmRequestBackfillGateway', () => {
     expect(sql).toContain("autofix_decision->>'healAttemptId'");
   });
 
+  it('preserves pending attempts when deriving request status', () => {
+    const sql = `${INSERT_ATTEMPT_REQUESTS_SQL}\n${REFRESH_ATTEMPT_REQUESTS_SQL}`;
+    expect(sql).toContain("WHEN terminal.status = 'pending' THEN 'pending'");
+    expect(sql).toContain("WHEN status = 'pending' THEN 'pending'");
+  });
+
   it('analyzes attempts and finds keyset window ends', async () => {
     const query = jest
       .fn()
