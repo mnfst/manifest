@@ -260,11 +260,11 @@ function handleFallbackExhausted(
   errorBody: string,
   failedFallbacks: FailedFallback[],
   recorder: ProxyMessageRecorder,
-  traceId?: string,
-  callerAttribution?: CallerAttribution | null,
-  requestHeaders?: Record<string, string> | null,
-  autofix?: AutofixRecord,
-  requestId: string = uuid(),
+  traceId: string | undefined,
+  callerAttribution: CallerAttribution | null | undefined,
+  requestHeaders: Record<string, string> | null | undefined,
+  autofix: AutofixRecord | undefined,
+  requestId: string,
   requestDurationMs?: number,
 ): void {
   const baseTime = Date.now();

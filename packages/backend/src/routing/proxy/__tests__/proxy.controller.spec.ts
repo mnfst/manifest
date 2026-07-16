@@ -10,6 +10,7 @@ import { ThinkingBlockCache } from '../thinking-block-cache';
 import { ReasoningContentCache } from '../reasoning-content-cache';
 import { ResponsesSseError } from '../chatgpt-adapter';
 import type { DiscoveredModel } from '../../../model-discovery/model-fetcher';
+import type { StartProviderAttempt } from '../proxy-types';
 
 /**
  * Flush enough microtasks for the recorder's fire-and-forget chain to
@@ -297,6 +298,117 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     expect(headers['X-Manifest-Confidence']).toBe('0.9');
     expect(headers['X-Manifest-Reason']).toBe('scored');
+  });
+
+  it('keeps routing when pending Request recording fails and tracks the provider attempt', async () => {
+    jest.spyOn(recorder, 'recordPendingRequest').mockRejectedValueOnce(new Error('request write'));
+    proxyService.proxyRequest.mockImplementation(
+      async (opts: {
+        startProviderAttempt: (start: {
+          provider: string;
+          model: string;
+          authType?: string;
+          tenantProviderId?: string;
+        }) => {
+          pendingWrite: Promise<boolean>;
+          completeFailure?: (failure: {
+            status: number;
+            errorBody: string;
+            superseded: boolean;
+          }) => Promise<void>;
+        };
+      }) => {
+        const attempt = opts.startProviderAttempt({
+          provider: 'openai',
+          model: 'gpt-4o',
+          authType: 'api_key',
+          tenantProviderId: 'connection-1',
+        });
+        await attempt.pendingWrite;
+        await attempt.completeFailure?.({
+          status: 429,
+          errorBody: 'retrying',
+          superseded: true,
+        });
+        return {
+          forward: {
+            response: new Response('{"choices":[]}', {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            }),
+            isGoogle: false,
+            isAnthropic: false,
+            isChatGpt: false,
+          },
+          meta: {
+            tier: 'simple',
+            model: 'gpt-4o',
+            provider: 'openai',
+            confidence: 0.9,
+            reason: 'scored',
+          },
+        };
+      },
+    );
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'pending',
+        auth_type: 'api_key',
+        tenant_provider_id: 'connection-1',
+      }),
+    );
+    expect(mockMessageRepo.update).toHaveBeenCalledWith(
+      expect.objectContaining({ id: expect.any(String) }),
+      expect.objectContaining({ status: 'failed', error_http_status: 429, superseded: true }),
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  it('keeps routing when pending Attempt writes and completion writes fail', async () => {
+    jest
+      .spyOn(recorder, 'recordPendingProviderAttempt')
+      .mockRejectedValueOnce(new Error('attempt insert'));
+    jest
+      .spyOn(recorder, 'completePendingProviderFailure')
+      .mockRejectedValueOnce(new Error('attempt update'));
+    proxyService.proxyRequest.mockImplementation(
+      async (opts: { startProviderAttempt: StartProviderAttempt }) => {
+        const attempt = opts.startProviderAttempt({ provider: 'openai', model: 'gpt-4o' });
+        await attempt.pendingWrite;
+        await attempt.completeFailure?.({ status: 500, errorBody: 'failed', superseded: false });
+        return {
+          forward: {
+            response: new Response('{"choices":[]}', {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            }),
+            isGoogle: false,
+            isAnthropic: false,
+            isChatGpt: false,
+          },
+          meta: {
+            tier: 'simple',
+            model: 'gpt-4o',
+            provider: 'openai',
+            confidence: 0.9,
+            reason: 'scored',
+          },
+        };
+      },
+    );
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 
   it('enforces the plan request limit before routing and records a Manifest policy row', async () => {

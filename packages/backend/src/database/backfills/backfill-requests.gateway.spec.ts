@@ -132,6 +132,48 @@ describe('TypeOrmRequestBackfillGateway', () => {
     expect(runner.commitTransaction).toHaveBeenCalled();
   });
 
+  it('handles empty fallback staging results and cleanup failures', async () => {
+    const runner = mockQueryRunner();
+    runner.query.mockImplementation(async (sql: string) => {
+      if (sql === FALLBACK_PRIMARY_WINDOW_END_SQL || sql.includes('max(pair_seq)')) return [];
+      if (sql.startsWith('DROP TABLE')) throw new Error('cleanup failed');
+      return undefined;
+    });
+    const gateway = new TypeOrmRequestBackfillGateway({
+      createQueryRunner: jest.fn(() => runner),
+    } as unknown as DataSource);
+
+    await expect(gateway.backfillFallbackGroups(100, before, timeouts, jest.fn())).resolves.toEqual(
+      { requests: 0, attempts: 0 },
+    );
+    expect(runner.release).toHaveBeenCalled();
+  });
+
+  it('rolls back a fallback group transaction when grouping fails', async () => {
+    const runner = mockQueryRunner();
+    const failure = new Error('grouping failed');
+    let primaryWindow = 0;
+    runner.query.mockImplementation(async (sql: string) => {
+      if (sql === FALLBACK_PRIMARY_WINDOW_END_SQL) {
+        primaryWindow += 1;
+        return [{ end_id: primaryWindow === 1 ? 'primary-z' : null }];
+      }
+      if (sql.includes('max(pair_seq)')) return [{ max_seq: 1 }];
+      if (sql === CREATE_LEGACY_FALLBACK_GROUPS_SQL) throw failure;
+      return undefined;
+    });
+    const gateway = new TypeOrmRequestBackfillGateway({
+      createQueryRunner: jest.fn(() => runner),
+    } as unknown as DataSource);
+
+    await expect(gateway.backfillFallbackGroups(100, before, timeouts, jest.fn())).rejects.toBe(
+      failure,
+    );
+    expect(runner.rollbackTransaction).toHaveBeenCalled();
+    expect(runner.commitTransaction).not.toHaveBeenCalled();
+    expect(runner.release).toHaveBeenCalled();
+  });
+
   it('finalizes pending requests and validates the foreign key', async () => {
     const runner = mockQueryRunner();
     runner.query.mockResolvedValue(undefined);
