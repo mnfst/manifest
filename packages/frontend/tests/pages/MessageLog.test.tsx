@@ -59,6 +59,11 @@ vi.mock('../../src/services/api.js', () => ({
   clearMessageFeedback: (...args: unknown[]) => mockClearMessageFeedback(...args),
 }));
 
+const mockGetBillingStatus = vi.fn().mockResolvedValue({ enabled: false, plan: 'free' });
+vi.mock('../../src/services/api/billing.js', () => ({
+  getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
+}));
+
 vi.mock('../../src/services/sse.js', () => ({
   pingCount: () => 0,
   messagePing: () => 0,
@@ -535,6 +540,27 @@ describe('MessageLog', () => {
       expect(mockGetMessages).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }));
     });
     expect(mockSetSearchParams).toHaveBeenCalledWith({ status: 'failed' }, { replace: true });
+  });
+
+  it('filters messages by period range', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(selectWithOption(container, 'All time')).toBeDefined();
+    });
+
+    const rangeSelect = selectWithOption(container, 'All time');
+    expect(rangeSelect.textContent).toContain('Last 24 hours');
+    expect(rangeSelect.textContent).toContain('Last 7 days');
+    expect(rangeSelect.textContent).toContain('Last 365 days');
+
+    mockGetMessages.mockClear();
+    await fireEvent.change(rangeSelect, { target: { value: '7d' } });
+
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(expect.objectContaining({ range: '7d' }));
+    });
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ range: '7d' }, { replace: true });
   });
 
   it('filters messages by trigger', async () => {

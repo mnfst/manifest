@@ -29,6 +29,7 @@ import {
   listHeaderTiers,
 } from '../services/api.js';
 import { createCursorPagination } from '../services/cursor-pagination.js';
+import { getBillingStatus } from '../services/api/billing.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS, SPECIFICITY_STAGES } from '../services/providers.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
@@ -76,6 +77,18 @@ const isMessageStatusFilter = (value: unknown): value is MessageStatusFilter =>
 const normalizeStatusFilter = (value: unknown): MessageStatusFilterValue =>
   isMessageStatusFilter(value) ? value : '';
 
+const MESSAGE_RANGE_FILTERS = ['24h', '7d', '30d', '90d', '365d'] as const;
+type MessageRangeFilter = (typeof MESSAGE_RANGE_FILTERS)[number];
+type MessageRangeFilterValue = '' | MessageRangeFilter;
+// Same Pro gating as the Overview range selector: long windows are paid.
+const PRO_RANGES = new Set(['30d', '90d', '365d']);
+
+const isMessageRangeFilter = (value: unknown): value is MessageRangeFilter =>
+  typeof value === 'string' && (MESSAGE_RANGE_FILTERS as readonly string[]).includes(value);
+
+const normalizeRangeFilter = (value: unknown): MessageRangeFilterValue =>
+  isMessageRangeFilter(value) ? value : '';
+
 const isMessageTriggerFilter = (value: unknown): value is MessageTriggerFilter =>
   typeof value === 'string' && (MESSAGE_TRIGGER_FILTERS as readonly string[]).includes(value);
 
@@ -89,6 +102,7 @@ const MessageLog: Component = () => {
     status?: string;
     request?: string;
     provider?: string;
+    range?: string;
   }>();
   const navigate = useNavigate();
 
@@ -158,6 +172,21 @@ const MessageLog: Component = () => {
     typeof searchParams.provider === 'string' ? searchParams.provider : '',
   );
   const [triggerFilter, setTriggerFilter] = createSignal<MessageTriggerFilterValue>('');
+  // `?range=` scopes the log to a rolling window; deep links from dashboard
+  // cards carry it so the list total can match the card that sent us here.
+  const [rangeFilter, setRangeFilterValue] = createSignal<MessageRangeFilterValue>(
+    normalizeRangeFilter(searchParams.range),
+  );
+  const [billing] = createResource(async () => {
+    try {
+      return await getBillingStatus();
+    } catch {
+      return null;
+    }
+  });
+  const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
+  const shouldLockProRanges = () => billing.loading || isFreePlan();
+  const isProRangeLocked = (value: string) => shouldLockProRanges() && PRO_RANGES.has(value);
   const [tierFilter, setTierFilter] = createSignal('');
   const [originFilter, setOriginFilter] = createSignal('');
   const [statusFilterValue, setStatusFilterValue] = createSignal<MessageStatusFilterValue>(
@@ -213,6 +242,20 @@ const MessageLog: Component = () => {
     setSearchParams({ status: next || undefined }, { replace: true });
   };
   const setTriggerFilterValue = (value: string) => setTriggerFilter(normalizeTriggerFilter(value));
+  const setRangeFilter = (value: string) => {
+    if (isProRangeLocked(value)) return;
+    const next = normalizeRangeFilter(value);
+    setRangeFilterValue(next);
+    setSearchParams({ range: next || undefined }, { replace: true });
+  };
+
+  createEffect(
+    on(
+      () => searchParams.range,
+      (range) => setRangeFilterValue(normalizeRangeFilter(range)),
+      { defer: true },
+    ),
+  );
 
   createEffect(
     on(
@@ -231,6 +274,7 @@ const MessageLog: Component = () => {
         tierFilter,
         originFilter,
         statusFilterValue,
+        rangeFilter,
         costMin,
         costMax,
       ],
@@ -248,6 +292,7 @@ const MessageLog: Component = () => {
       tier: tierFilter(),
       origin: originFilter(),
       status: statusFilterValue(),
+      range: rangeFilter(),
       costMin: costMin(),
       costMax: costMax(),
       agentName: agentFilter() || params.agentName,
@@ -269,6 +314,7 @@ const MessageLog: Component = () => {
         }
       }
       if (p.status) q.status = p.status;
+      if (p.range) q.range = p.range;
       if (p.origin) q.origin = p.origin;
       if (p.costMin) q.cost_min = p.costMin;
       if (p.costMax) q.cost_max = p.costMax;
@@ -282,10 +328,15 @@ const MessageLog: Component = () => {
   );
 
   const [messageFilterOptions] = createResource(
-    () => ({ agentName: agentFilter() || params.agentName, _ping: messagePing() }),
+    () => ({
+      agentName: agentFilter() || params.agentName,
+      range: rangeFilter(),
+      _ping: messagePing(),
+    }),
     (p) => {
       const q: Record<string, string> = {};
       if (p.agentName) q.agent_name = p.agentName;
+      if (p.range) q.range = p.range;
       return getMessageFilterOptions(q) as Promise<MessageFilterOptionsData>;
     },
   );
@@ -310,6 +361,7 @@ const MessageLog: Component = () => {
     tierFilter() !== '' ||
     originFilter() !== '' ||
     statusFilterValue() !== '' ||
+    rangeFilter() !== '' ||
     costMin() !== '' ||
     costMax() !== '';
 
@@ -336,6 +388,7 @@ const MessageLog: Component = () => {
     setTierFilter('');
     setOriginFilter('');
     setStatusFilter('');
+    setRangeFilter('');
     setCostMin('');
     setCostMax('');
   };
@@ -381,6 +434,24 @@ const MessageLog: Component = () => {
       icon: providerIcon(id, 14) ?? undefined,
       value: id,
     })),
+  ]);
+
+  const proBadge = () => (
+    <span class="pro-range-badge" aria-label="Pro plan required">
+      PRO
+    </span>
+  );
+  const rangeOptions = createMemo(() => [
+    { label: 'All time', value: '' },
+    ...[
+      { label: 'Last 24 hours', value: '24h' },
+      { label: 'Last 7 days', value: '7d' },
+      { label: 'Last 30 days', value: '30d' },
+      { label: 'Last 90 days', value: '90d' },
+      { label: 'Last 365 days', value: '365d' },
+    ].map((opt) =>
+      isProRangeLocked(opt.value) ? { ...opt, disabled: true, badge: proBadge() } : opt,
+    ),
   ]);
 
   const statusOptions = [
@@ -496,6 +567,12 @@ const MessageLog: Component = () => {
               label="Origin filter"
             />
             <Select value={tierFilter()} onChange={setTierFilter} options={tierOptions()} />
+            <Select
+              value={rangeFilter()}
+              onChange={setRangeFilter}
+              options={rangeOptions()}
+              label="Period filter"
+            />
             <div class="cost-range-filter">
               <input
                 type="number"

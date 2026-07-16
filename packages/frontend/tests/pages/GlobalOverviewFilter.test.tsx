@@ -80,6 +80,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
     'Logical requests from this harness, one per call, whatever the number of attempts.',
   attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
     !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
+  getPerAgentReliability: () => Promise.resolve([]),
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
   getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
   getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
