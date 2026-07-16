@@ -1,0 +1,146 @@
+packages/backend/src/analytics/dto/messages-query.dto.ts
+  s_5bb8e955b067d5::t_c9bf5112b96b2c 13-16,18
+packages/backend/src/analytics/services/error-breakdown.service.ts
+  s_5bb8e955b067d5::t_1c3f8f460c1f2d 8
+  s_5bb8e955b067d5::t_414f2f1cf3a33a 92
+packages/backend/src/analytics/services/messages-query.service.spec.ts
+  s_5bb8e955b067d5::t_1eccfa6b22e7a2 714,719
+packages/shared/src/index.ts
+  s_5bb8e955b067d5::t_d3435796cd2b16 34-40,46-48,56-57
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_5bb8e955b067d5::t_9498a3f85ab149 110
+  s_5bb8e955b067d5::t_60b0436c2cbed9 364,372-373
+  s_5bb8e955b067d5::t_da778cd5264840 744-754
+  s_5bb8e955b067d5::t_1f9381284c636b 1241
+  s_5bb8e955b067d5::t_5ac57d187371ab 700-702
+  s_5bb8e955b067d5::t_e874c62b469347 164
+  s_5bb8e955b067d5::t_1b8a5422d90338 94
+  s_5bb8e955b067d5::t_2e7a7a5be57c5f 457
+  s_5bb8e955b067d5::t_dfa940fbc958bd 718-720
+  s_5bb8e955b067d5::t_ba0508b8a7be85 1526-1527
+  s_5bb8e955b067d5::t_619c83fb564f18 353
+  s_5bb8e955b067d5::t_b1a257f49d7eb8 1503-1504
+  s_5bb8e955b067d5::t_e6680f5d2b3685 827
+  s_5bb8e955b067d5::t_6ed795e3512a17 1005
+  s_5bb8e955b067d5::t_965bb8709b6c42 577
+  s_5bb8e955b067d5::t_accccc800f5d99 555
+  s_5bb8e955b067d5::t_576fd157cc5050 889-890
+  s_5bb8e955b067d5::t_f1f4e4a3d53a4a 1260
+  s_5bb8e955b067d5::t_98aabc0d160411 488
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_5bb8e955b067d5::t_276062e49d2788 206-210
+  s_5bb8e955b067d5::t_b4ee8ba6420483 286
+  s_5bb8e955b067d5::t_c9ccce4607555c 12
+packages/backend/src/analytics/services/message-details.service.ts
+  s_5bb8e955b067d5::t_3297847bee700b 7
+  s_5bb8e955b067d5::t_2dbf3e199de105 101
+packages/backend/src/database/seed-messages.spec.ts
+  s_5bb8e955b067d5::t_1c90cc2db9a347 388,392,404
+  s_5bb8e955b067d5::t_6622b923919a58 358-360
+  s_5bb8e955b067d5::t_6f3381cbb5e6cf 461-462,471-472,474
+  s_5bb8e955b067d5::t_484c4059ad1d4c 417-419,421-424,426-427
+  s_5bb8e955b067d5::t_565735021984df 318,323,325-326
+  s_5bb8e955b067d5::t_19bb082e39c2f5 344
+  s_5bb8e955b067d5::t_fdf418a01ab37d 339
+  s_5bb8e955b067d5::t_740ae2c5188878 446-448
+  s_5bb8e955b067d5::t_b4b1cc091c9114 322
+  s_5bb8e955b067d5::t_968b2998e706ca 335
+  s_5bb8e955b067d5::t_092f8d4bb66a3c 371-376,378
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_5bb8e955b067d5::t_03070ac22ee35e 8-9
+  s_5bb8e955b067d5::t_1320ba5b082c42 259-261
+  s_5bb8e955b067d5::t_de15324712cf3b 243-248
+packages/shared/src/error-taxonomy.ts
+  s_5bb8e955b067d5::t_563a4f45760aee 215-219
+  s_5bb8e955b067d5::t_7a92a9625ec83a 42-93
+packages/backend/src/database/seed-messages.ts
+  s_5bb8e955b067d5::t_aa868be525303e 258-260
+  s_5bb8e955b067d5::t_fc8057fedb2a6c 3
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_5bb8e955b067d5::t_9c4a5104605838 277
+packages/backend/src/routing/proxy/__tests__/proxy-request-recorder.spec.ts
+  s_5bb8e955b067d5::t_c3761c62c74832 62
+  s_5bb8e955b067d5::t_9a1b4380de0bb0 129
+  s_5bb8e955b067d5::t_7e617245917ead 170,178-179
+packages/backend/src/routing/proxy/__tests__/proxy-message-dedup.spec.ts
+  s_5bb8e955b067d5::t_e3ba43033f2e54 226-229
+  s_5bb8e955b067d5::t_8fbc918a5efea5 1
+  s_5bb8e955b067d5::t_168818aa91b535 259
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_5bb8e955b067d5::t_336c0fb6b083d8 156
+packages/backend/src/analytics/controllers/provider-analytics.controller.ts
+  s_5bb8e955b067d5::t_21bdfc5fd0a97d 14
+  s_5bb8e955b067d5::t_9f16959605a249 108
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_5bb8e955b067d5::t_2257fdc3d0334c 817
+  s_5bb8e955b067d5::t_e871fc3a011c5d 339
+  s_5bb8e955b067d5::t_52eabebbc60a92 3258
+  s_5bb8e955b067d5::t_0abe3188326410 669
+  s_5bb8e955b067d5::t_0d2aeafe85e8cf 851
+  s_5bb8e955b067d5::t_125ccc761b991a 852-856,897,946,1175-1176,1197,1214,1416,1481,1582,1629,1670-1671,1709,1831,2821-2822,2833,2899-2900,2906-2907,2947,3034-3035,3042,3250-3251,3257,3263,3319-3320
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_5bb8e955b067d5::t_c4066323cb8603 427
+  s_5bb8e955b067d5::t_240a4367691188 35-45
+  s_5bb8e955b067d5::t_1cc9985b14eaf0 453
+  s_5bb8e955b067d5::t_52748785a25c2a 385,396
+  s_5bb8e955b067d5::t_94e55a08838d86 540
+  s_5bb8e955b067d5::t_fd14be634a38f4 54
+  s_5bb8e955b067d5::t_a538a4b4f1f8ba 352
+  s_5bb8e955b067d5::t_01a170893c2da6 466-467,472,474,476,478,480
+  s_5bb8e955b067d5::t_65a12126ab12ef 411
+  s_5bb8e955b067d5::t_8d9cb494e1a24e 65
+  s_5bb8e955b067d5::t_45f18b76ca0468 524
+  s_5bb8e955b067d5::t_89babbeaec0ca1 573
+  s_84970db1957fd3::t_b84c48e36f9842 34
+packages/frontend/src/components/MessageDetails.tsx
+  s_5bb8e955b067d5::t_844192a13b28fc 11
+  s_5bb8e955b067d5::t_0893b47565db3c 276
+  s_5bb8e955b067d5::t_22ba5eb48f0e63 262-264,266,272-275
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_5bb8e955b067d5::t_70e1ea9f2654eb 282
+  s_5bb8e955b067d5::t_349c4017315299 266-267
+  s_5bb8e955b067d5::t_e44fd6a2486cab 274-275
+  s_5bb8e955b067d5::t_80981424548ce0 286
+packages/backend/src/routing/proxy/proxy-message-dedup.ts
+  s_5bb8e955b067d5::t_0d1f9f69283844 2,7-9
+  s_5bb8e955b067d5::t_56eaf711129b67 10,53,67,81
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_5bb8e955b067d5::t_56fcb8894c10db 513
+packages/frontend/src/components/message-table-cells.tsx
+  s_5bb8e955b067d5::t_be41214b0b7466 22
+  s_5bb8e955b067d5::t_5684302d731b01 407-410,417
+packages/backend/src/error-pages/error-discovery.service.ts
+  s_5bb8e955b067d5::t_ce18b44913debd 86,88
+packages/frontend/tests/components/MessageDetails.test.tsx
+  s_5bb8e955b067d5::t_48e5fb3dcc2abc 244-287
+packages/backend/src/analytics/services/query-helpers.ts
+  s_5bb8e955b067d5::t_ed6ffc50761f74 38-43,49,52-60
+  s_84970db1957fd3::t_c8a6f1f02c354c 61
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_5bb8e955b067d5::t_f1334e86c15982 10-17
+  s_5bb8e955b067d5::t_b17e430df173fe 220-276
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "d8191e76bcd8dd98db9893b0641e3aac028a3ec9",
+  "prompts": {},
+  "sessions": {
+    "s_5bb8e955b067d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "394cdc16-2b3f-4dca-aa20-92ae31340052",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_84970db1957fd3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "92c6e800-8b90-4579-860e-f466ab08aae6",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
