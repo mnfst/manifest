@@ -390,8 +390,8 @@ const MessageLog: Component = () => {
   ];
 
   const triggerOptions = [
-    { label: 'All recovery methods', value: '' },
-    { label: 'No trigger', value: 'none' },
+    { label: 'All recovery attempts', value: '' },
+    { label: 'No recovery attempt', value: 'none' },
     { label: 'Fallback', value: 'fallback' },
     { label: 'Auto-fix', value: 'autofix' },
   ];

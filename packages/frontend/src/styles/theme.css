@@ -1642,7 +1642,7 @@ h6 {
 
 /* ── Requests tables: pinned lead-column widths ──
    Status is sized for its longest pill ("Failed: Manifest error"), Date for
-   the short timestamp, Attempts for its own header, Applied Methods for both
+   the short timestamp, Attempts for its own header, Recovery attempts for both
    method badges side by side. Trailing usage columns (cache, latency) flex. */
 .data-table th[data-col='status'] {
   width: 158px;

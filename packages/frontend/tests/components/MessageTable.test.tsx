@@ -129,7 +129,7 @@ describe('MessageTable', () => {
       expect(headers[1]!.textContent).toContain('Date');
       expect(headers[2]!.textContent).toContain('Model');
       expect(headers[3]!.textContent).toContain('Attempts');
-      expect(headers[4]!.textContent).toContain('Applied Methods');
+      expect(headers[4]!.textContent).toContain('Recovery attempts');
       expect(headers[5]!.textContent).toContain('Request');
       expect(headers[6]!.textContent).toContain('Cost');
       expect(headers[7]!.textContent).toContain('Tokens');
@@ -152,7 +152,7 @@ describe('MessageTable', () => {
       expect(headers[1]!.textContent).toContain('Date');
       expect(headers[2]!.textContent).toContain('Model');
       expect(headers[3]!.textContent).toContain('Attempts');
-      expect(headers[4]!.textContent).toContain('Applied Methods');
+      expect(headers[4]!.textContent).toContain('Recovery attempts');
       expect(headers[5]!.textContent).toContain('Request');
       expect(headers[7]!.textContent).toContain('Total Tokens');
       expect(headers[10]!.textContent).toContain('Cache');

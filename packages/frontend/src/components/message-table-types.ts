@@ -58,7 +58,7 @@ export type MessageColumnKey =
   | 'agent';
 
 // Reading order: identity first (status, when, who, what), THEN the
-// mechanics (attempts, applied methods), then payload and usage. The global
+// mechanics (attempts, recovery attempts), then payload and usage. The global
 // Requests page inserts the harness column before 'model'.
 export const COMPACT_COLUMNS: MessageColumnKey[] = [
   'status',
