@@ -12,6 +12,8 @@ import { addTenantFilter, sqlCountMessages } from './query-helpers';
 export interface ProviderUsageSummary {
   provider: string;
   auth_type: string;
+  /** Folded key label (NULL reads 'Default'): the connection identity. */
+  key_label: string;
   /** Summed input+output tokens over the last 30 days. */
   consumption_tokens: number;
   /** Message count over the last 30 days. */
@@ -37,6 +39,7 @@ const SPARKLINE_DAYS = 7;
 interface DailyBucketRow {
   provider: string | null;
   auth_type: string | null;
+  key_label: string | null;
   /** UTC day label `YYYY-MM-DD`. */
   day: string;
   tokens: string | number | null;
@@ -96,6 +99,7 @@ export class ProviderUsageService {
       .createQueryBuilder('at')
       .select('at.provider', 'provider')
       .addSelect('at.auth_type', 'auth_type')
+      .addSelect("COALESCE(at.provider_key_label, 'Default')", 'key_label')
       .addSelect(`to_char(${dayExpr}, 'YYYY-MM-DD')`, 'day')
       .addSelect('SUM(COALESCE(at.input_tokens, 0) + COALESCE(at.output_tokens, 0))', 'tokens')
       // Sum the RAW numeric cost (not a pre-rounded per-row value) so totals stay
@@ -111,6 +115,7 @@ export class ProviderUsageService {
       .where("at.timestamp >= NOW() - INTERVAL '30 days'")
       .groupBy('at.provider')
       .addGroupBy('at.auth_type')
+      .addGroupBy("COALESCE(at.provider_key_label, 'Default')")
       .addGroupBy('day');
     addTenantFilter(qb, tenantId);
 
@@ -122,6 +127,7 @@ export class ProviderUsageService {
     interface Acc {
       provider: string;
       auth_type: string;
+      key_label: string;
       tokens: number;
       messages: number;
       cost: number;
@@ -138,13 +144,15 @@ export class ProviderUsageService {
       // 'api_key' so subscription/api_key keys with legacy NULLs still group.
       if (!row.provider) continue;
       const authType = row.auth_type ?? 'api_key';
-      const key = `${row.provider}::${authType}`;
+      const keyLabel = row.key_label ?? 'Default';
+      const key = `${row.provider}::${authType}::${keyLabel.toLowerCase()}`;
 
       let acc = byKey.get(key);
       if (!acc) {
         acc = {
           provider: row.provider,
           auth_type: authType,
+          key_label: keyLabel,
           tokens: 0,
           messages: 0,
           cost: 0,
@@ -182,6 +190,7 @@ export class ProviderUsageService {
     return Array.from(byKey.values()).map((acc) => ({
       provider: acc.provider,
       auth_type: acc.auth_type,
+      key_label: acc.key_label,
       consumption_tokens: acc.tokens,
       consumption_messages: acc.messages,
       consumption_cost: acc.cost,

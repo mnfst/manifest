@@ -304,6 +304,10 @@ export function getAutofixTimeseries(
  */
 export interface ProviderReliabilityRow {
   provider: string;
+  /** Folded auth type (NULL reads api_key): half of the connection identity. */
+  auth_type: string;
+  /** Folded key label (NULL reads Default): the other half. */
+  key_label: string;
   attempts: number;
   failed: number;
   succeeded: number;

@@ -36,6 +36,8 @@ export interface TenantProviderConfig {
 export interface TenantProviderUsage {
   provider: string;
   auth_type: AuthType;
+  /** Folded key label (NULL reads 'Default'): the connection identity. */
+  key_label: string;
   consumption_tokens: number;
   consumption_messages: number;
   consumption_cost: number;
@@ -74,6 +76,7 @@ export function getProviderUsage() {
 }
 
 const USAGE_ZERO: Omit<TenantProviderUsage, 'provider' | 'auth_type'> = {
+  key_label: 'Default',
   consumption_tokens: 0,
   consumption_messages: 0,
   consumption_cost: 0,
@@ -89,6 +92,26 @@ function usageKey(provider: string, authType: string): string {
 }
 
 /**
+ * Per-connection usage lookup: rows arrive at (provider, auth_type, label)
+ * grain, labels folded case-insensitively with NULL reading 'Default'. Two
+ * connections of the same provider and auth type never share numbers.
+ */
+export function connectionUsage(
+  usageList: TenantProviderUsage[] | undefined,
+  provider: string,
+  authType: string,
+  label: string | null | undefined,
+): TenantProviderUsage | undefined {
+  const wanted = (label ?? 'Default').toLowerCase();
+  return (usageList ?? []).find(
+    (u) =>
+      u.provider === provider &&
+      u.auth_type === authType &&
+      (u.key_label ?? 'Default').toLowerCase() === wanted,
+  );
+}
+
+/**
  * Merge a usage list into a config list, keyed by (provider, auth_type). Every
  * config row gets a usage block: its matching usage when present, else zeros.
  * A missing/undefined `usageList` (still loading) yields all-zero usage, so
@@ -99,20 +122,47 @@ export function mergeUsage(
   configList: TenantProviderConfig[],
   usageList: TenantProviderUsage[] | undefined,
 ): TenantProviderSummary[] {
-  const usageByKey = new Map<string, TenantProviderUsage>();
-  for (const u of usageList ?? []) usageByKey.set(usageKey(u.provider, u.auth_type), u);
+  // Usage rows arrive per connection (label grain); a config group row sums
+  // every label of its (provider, auth_type) pair.
+  const byGroup = new Map<string, TenantProviderUsage[]>();
+  for (const u of usageList ?? []) {
+    const k = usageKey(u.provider, u.auth_type);
+    const list = byGroup.get(k);
+    if (list) list.push(u);
+    else byGroup.set(k, [u]);
+  }
 
   return configList.map((config) => {
-    const usage = usageByKey.get(usageKey(config.provider, config.auth_type));
+    const rows = byGroup.get(usageKey(config.provider, config.auth_type)) ?? [];
+    const sum = (pick: (u: TenantProviderUsage) => number) =>
+      rows.reduce((total, u) => total + pick(u), 0);
+    const lastUsed = rows
+      .map((u) => u.last_used_at)
+      .filter((v): v is string => v != null)
+      .sort()
+      .at(-1);
+    const spark =
+      rows.length === 0
+        ? USAGE_ZERO.sparkline_7d
+        : rows
+            .map((u) => u.sparkline_7d)
+            .reduce((acc, sp) => {
+              const out = [...acc];
+              sp.forEach((v, i) => {
+                out[i] = (out[i] ?? 0) + v;
+              });
+              return out;
+            }, [] as number[]);
     return {
       ...config,
-      consumption_tokens: usage?.consumption_tokens ?? USAGE_ZERO.consumption_tokens,
-      consumption_messages: usage?.consumption_messages ?? USAGE_ZERO.consumption_messages,
-      consumption_cost: usage?.consumption_cost ?? USAGE_ZERO.consumption_cost,
-      attempts_30d: usage?.attempts_30d ?? USAGE_ZERO.attempts_30d,
-      succeeded_30d: usage?.succeeded_30d ?? USAGE_ZERO.succeeded_30d,
-      last_used_at: usage?.last_used_at ?? USAGE_ZERO.last_used_at,
-      sparkline_7d: usage?.sparkline_7d ?? USAGE_ZERO.sparkline_7d,
+      key_label: rows[0]?.key_label ?? 'Default',
+      consumption_tokens: rows.length ? sum((u) => u.consumption_tokens) : 0,
+      consumption_messages: rows.length ? sum((u) => u.consumption_messages) : 0,
+      consumption_cost: rows.length ? sum((u) => u.consumption_cost) : 0,
+      attempts_30d: rows.length ? sum((u) => u.attempts_30d) : 0,
+      succeeded_30d: rows.length ? sum((u) => u.succeeded_30d) : 0,
+      last_used_at: lastUsed ?? null,
+      sparkline_7d: spark,
     };
   });
 }

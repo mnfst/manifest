@@ -18,6 +18,7 @@ import {
   getProviders as getGlobalProviders,
   getProviderUsage,
   mergeUsage,
+  connectionUsage,
   type TenantProviderSummary,
 } from '../../services/api/providers.js';
 import { messagePing, routingPing } from '../../services/sse.js';
@@ -424,14 +425,34 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
       1,
     );
 
-  const perConnectionTokens = (summary: TenantProviderSummary) =>
+  // Per-connection usage at the (provider, auth_type, label) grain: two
+  // connections of the same provider and type never share numbers. Falls back
+  // to the group's even split only while the label rows are missing.
+  const usageForConnection = (
+    summary: TenantProviderSummary,
+    connection: { label?: string | null },
+  ) => connectionUsage(usage(), summary.provider, summary.auth_type, connection.label);
+
+  const perConnectionTokens = (
+    summary: TenantProviderSummary,
+    connection: { label?: string | null },
+  ) =>
+    usageForConnection(summary, connection)?.consumption_tokens ??
     Math.round(summary.consumption_tokens / connectionDenominator(summary));
 
-  const perConnectionCost = (summary: TenantProviderSummary) =>
+  const perConnectionCost = (
+    summary: TenantProviderSummary,
+    connection: { label?: string | null },
+  ) =>
+    usageForConnection(summary, connection)?.consumption_cost ??
     summary.consumption_cost / connectionDenominator(summary);
 
-  const connectionLastUsedAt = (summary: TenantProviderSummary) =>
-    summary.connections.length === 1 ? summary.last_used_at : null;
+  const connectionLastUsedAt = (
+    summary: TenantProviderSummary,
+    connection: { label?: string | null },
+  ) =>
+    usageForConnection(summary, connection)?.last_used_at ??
+    (summary.connections.length === 1 ? summary.last_used_at : null);
 
   const showMetricCard = () =>
     !!copy().metricLabel && (connectedRows().length > 0 || totalApiCost() > 0);
@@ -704,19 +725,30 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                     <td>
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={96} />}>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                          <Show when={row.summary.sparkline_7d?.length}>
-                            <span style="flex-shrink: 0;">
-                              <Sparkline data={row.summary.sparkline_7d} width={60} height={20} />
-                            </span>
-                          </Show>
-                          <span>{formatNumber(perConnectionTokens(row.summary))} tokens</span>
+                          {(() => {
+                            const u = usageForConnection(row.summary, row.connection);
+                            const spark = u?.sparkline_7d ?? row.summary.sparkline_7d;
+                            return (
+                              <>
+                                <Show when={spark?.length}>
+                                  <span style="flex-shrink: 0;">
+                                    <Sparkline data={spark} width={60} height={20} />
+                                  </span>
+                                </Show>
+                                <span>
+                                  {formatNumber(perConnectionTokens(row.summary, row.connection))}{' '}
+                                  tokens
+                                </span>
+                              </>
+                            );
+                          })()}
                         </div>
                       </Show>
                     </td>
                     <Show when={copy().rowMetricHeading}>
                       <td>
                         <Show when={!usageLoading()} fallback={<UsageShimmer />}>
-                          {formatCost(perConnectionCost(row.summary)) ?? '$0.00'}
+                          {formatCost(perConnectionCost(row.summary, row.connection)) ?? '$0.00'}
                         </Show>
                       </td>
                     </Show>
@@ -725,15 +757,19 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         blended with the provider's api_key traffic. */}
                     <td class="rel-col">
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
-                        {formatNumber(row.summary.attempts_30d)}
+                        {formatNumber(
+                          usageForConnection(row.summary, row.connection)?.attempts_30d ??
+                            row.summary.attempts_30d,
+                        )}
                       </Show>
                     </td>
                     <td class="rel-col">
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
                         {(() => {
+                          const u = usageForConnection(row.summary, row.connection);
                           const rate = attemptSuccessRate({
-                            attempts: row.summary.attempts_30d,
-                            succeeded: row.summary.succeeded_30d,
+                            attempts: u?.attempts_30d ?? row.summary.attempts_30d,
+                            succeeded: u?.succeeded_30d ?? row.summary.succeeded_30d,
                           });
                           return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
                         })()}
@@ -741,8 +777,8 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                     </td>
                     <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
-                        {connectionLastUsedAt(row.summary)
-                          ? formatTimeAgo(connectionLastUsedAt(row.summary)!)
+                        {connectionLastUsedAt(row.summary, row.connection)
+                          ? formatTimeAgo(connectionLastUsedAt(row.summary, row.connection)!)
                           : '-'}
                       </Show>
                     </td>

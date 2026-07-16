@@ -69,6 +69,7 @@ import {
   totalAttemptsTooltip,
   MODEL_SUCCESS_RATE_TOOLTIP,
   PROVIDER_SUCCESS_RATE_TOOLTIP,
+  CONNECTION_SUCCESS_RATE_TOOLTIP,
   HARNESS_SUCCESS_RATE_TOOLTIP,
   HARNESS_TOTAL_REQUESTS_TOOLTIP,
 } from '../services/api/analytics.js';
@@ -944,6 +945,7 @@ const GlobalOverview: Component = () => {
               <thead>
                 <tr>
                   <th>Provider</th>
+                  <th>Connection name</th>
                   <th>Type</th>
                   <th>Status</th>
                   <th class="rel-col">
@@ -952,21 +954,26 @@ const GlobalOverview: Component = () => {
                   </th>
                   <th class="rel-col">
                     Success rate
-                    <InfoTooltip text={PROVIDER_SUCCESS_RATE_TOOLTIP} />
+                    <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP} />
                   </th>
                 </tr>
               </thead>
               <tbody>
-                <For each={providerList()}>
-                  {(group) => {
-                    const firstId = () => group.connections[0]?.id;
-                    const isActive = () => group.connections.some((c) => c.is_active);
+                <For
+                  each={providerList().flatMap((group) =>
+                    (group.connections.length
+                      ? group.connections
+                      : [{ id: '', label: 'Default', is_active: false }]
+                    ).map((connection) => ({ group, connection })),
+                  )}
+                >
+                  {({ group, connection }) => {
+                    const isActive = () => connection.is_active;
                     return (
                       <tr
                         style="cursor: pointer;"
                         onClick={() => {
-                          const id = firstId();
-                          if (id) navigate(`/providers/connections/${id}`);
+                          if (connection.id) navigate(`/providers/connections/${connection.id}`);
                         }}
                       >
                         <td>
@@ -1015,6 +1022,9 @@ const GlobalOverview: Component = () => {
                             })()}
                           </div>
                         </td>
+                        <td style="color: hsl(var(--muted-foreground));">
+                          {connection.label || 'Default'}
+                        </td>
                         <td>
                           <span
                             style={{
@@ -1044,7 +1054,14 @@ const GlobalOverview: Component = () => {
                           const pKey = group.provider.startsWith('custom:')
                             ? 'custom'
                             : group.provider;
-                          const rel = () => providerReliability()?.find((r) => r.provider === pKey);
+                          const wantedLabel = (connection.label || 'Default').toLowerCase();
+                          const rel = () =>
+                            providerReliability()?.find(
+                              (r) =>
+                                r.provider === pKey &&
+                                r.auth_type === group.auth_type &&
+                                (r.key_label ?? 'Default').toLowerCase() === wantedLabel,
+                            );
                           return (
                             <>
                               <td class="rel-col">
@@ -1068,7 +1085,7 @@ const GlobalOverview: Component = () => {
                 <Show when={providerList().length === 0}>
                   <tr>
                     <td
-                      colspan="5"
+                      colspan="6"
                       style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
                     >
                       No connections yet

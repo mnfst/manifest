@@ -8,6 +8,7 @@ describe('ProviderUsageController', () => {
       {
         provider: 'openai',
         auth_type: 'api_key',
+        key_label: 'Default',
         consumption_tokens: 100,
         consumption_messages: 4,
         attempts_30d: 10,

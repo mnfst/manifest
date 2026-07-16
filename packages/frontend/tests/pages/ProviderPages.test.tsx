@@ -84,6 +84,7 @@ vi.mock('../../src/services/api/providers.js', async () => {
     getProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
     getProviderUsage: (...args: unknown[]) => mockGetProviderUsage(...args),
     mergeUsage: actual.mergeUsage,
+    connectionUsage: actual.connectionUsage,
   };
 });
 
@@ -220,6 +221,7 @@ describe('provider pages', () => {
       providers: globalProvidersResponse.providers.map((p) => ({
         provider: p.provider,
         auth_type: p.auth_type,
+        key_label: 'Default',
         consumption_tokens: p.consumption_tokens,
         consumption_messages: p.consumption_messages,
         consumption_cost: p.consumption_cost,

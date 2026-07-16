@@ -144,7 +144,14 @@ describe('AutofixStatsService', () => {
     // call counts by its own outcome, no retry exclusion, no healing fields.
     const providerQb = queryBuilder();
     providerQb.getRawMany.mockResolvedValue([
-      { provider: 'openai', attempts: '12', failed: '3', succeeded: '9' },
+      {
+        provider: 'openai',
+        auth_type: 'subscription',
+        key_label: 'Default',
+        attempts: '12',
+        failed: '3',
+        succeeded: '9',
+      },
     ]);
     const agentQb = queryBuilder();
     agentQb.getRawMany.mockResolvedValue([
@@ -161,7 +168,20 @@ describe('AutofixStatsService', () => {
 
     await expect(
       service.getPerProviderStats({ tenantId: 'tenant', agentName: 'demo' }),
-    ).resolves.toEqual([{ provider: 'openai', attempts: 12, failed: 3, succeeded: 9 }]);
+    ).resolves.toEqual([
+      {
+        provider: 'openai',
+        auth_type: 'subscription',
+        key_label: 'Default',
+        attempts: 12,
+        failed: 3,
+        succeeded: 9,
+      },
+    ]);
+    // Connection grain: grouped by provider + folded auth_type + folded label.
+    const providerGroupSql = providerQb.addGroupBy.mock.calls.flat().join(' ');
+    expect(providerGroupSql).toContain("COALESCE(at.auth_type, 'api_key')");
+    expect(providerGroupSql).toContain("COALESCE(at.provider_key_label, 'Default')");
     const providerSql = providerQb.addSelect.mock.calls.flat().join(' ');
     // A NULL legacy status reads as success; failures are non-ok statuses.
     expect(providerSql).toContain("at.status = 'ok' OR at.status IS NULL");

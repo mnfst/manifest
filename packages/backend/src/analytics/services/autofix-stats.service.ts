@@ -180,10 +180,11 @@ export class AutofixStatsService {
   }
 
   /**
-   * Attempt-world reliability per provider: every provider call counts where
-   * it ran (retries and fallback attempts included), by its own outcome.
-   * Feeds the Overview provider table and the connection lists. Healing is a
-   * request concept and deliberately absent here.
+   * Attempt-world reliability per CONNECTION: every provider call counts
+   * where it ran, by its own outcome, at the grain the dashboards render a
+   * row for — (provider, auth_type, key label). Legacy folds match the usage
+   * lists: NULL auth_type reads api_key, NULL label reads Default. Healing is
+   * a request concept and deliberately absent here.
    */
   async getPerProviderStats(params: {
     tenantId: string | null;
@@ -192,6 +193,8 @@ export class AutofixStatsService {
   }): Promise<
     Array<{
       provider: string;
+      auth_type: string;
+      key_label: string;
       attempts: number;
       failed: number;
       succeeded: number;
@@ -199,28 +202,36 @@ export class AutofixStatsService {
   > {
     const range = params.range ?? '7d';
     const cutoff = computeCutoff(rangeToInterval(range));
+    const providerExpr = "CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END";
+    const authExpr = "COALESCE(at.auth_type, 'api_key')";
+    const labelExpr = "COALESCE(at.provider_key_label, 'Default')";
     const qb = this.messageRepo
       .createQueryBuilder('at')
-      .select(
-        "CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END",
-        'provider',
-      )
+      .select(providerExpr, 'provider')
+      .addSelect(authExpr, 'auth_type')
+      .addSelect(labelExpr, 'key_label')
       .addSelect('COUNT(*)', 'attempts')
       .addSelect(`COUNT(*) FILTER (WHERE at.status = 'ok' OR at.status IS NULL)`, 'succeeded')
       .addSelect(`COUNT(*) FILTER (WHERE at.status IS NOT NULL AND at.status <> 'ok')`, 'failed')
       .where('at.timestamp >= :cutoff', { cutoff })
-      .groupBy("CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END");
+      .groupBy(providerExpr)
+      .addGroupBy(authExpr)
+      .addGroupBy(labelExpr);
     addTenantFilter(qb, params.tenantId, params.agentName);
     excludePlaygroundAgents(qb);
 
     const rows = await qb.getRawMany<{
       provider: string;
+      auth_type: string;
+      key_label: string;
       attempts: string;
       failed: string;
       succeeded: string;
     }>();
     return rows.map((r) => ({
       provider: r.provider,
+      auth_type: r.auth_type,
+      key_label: r.key_label,
       attempts: Number(r.attempts),
       failed: Number(r.failed),
       succeeded: Number(r.succeeded),
