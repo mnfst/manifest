@@ -1127,6 +1127,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             // This update path bypasses buildMessageRow, so classify inline to
             // keep every write site stamping the same orthogonal error axes.
             Object.assign(updatePayload, classifyRow(updatePayload));
+            updatePayload.status = normalizeStatus(updatePayload.status);
 
             await messageRepo.update({ id: existing.id }, updatePayload);
             wrote = true;

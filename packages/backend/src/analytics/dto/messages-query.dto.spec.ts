@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { MessagesQueryDto } from './messages-query.dto';
+import { MESSAGE_STATUS_FILTER_VALUES, MessagesQueryDto } from './messages-query.dto';
 
 describe('MessagesQueryDto', () => {
   it('allows omitting all fields', async () => {
@@ -57,7 +57,7 @@ describe('MessagesQueryDto', () => {
   });
 
   it('accepts each known status value', async () => {
-    for (const status of ['ok', 'failed', 'error', 'rate_limited', 'fallback_error', 'errors']) {
+    for (const status of MESSAGE_STATUS_FILTER_VALUES) {
       const dto = plainToInstance(MessagesQueryDto, { status });
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);

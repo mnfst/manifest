@@ -101,7 +101,7 @@ export class ErrorDiscoveryService {
                to_char(date_trunc('day', e.timestamp), 'YYYY-MM-DD') AS day,
                COUNT(*)::int AS cnt
         FROM provider_attempts e
-        WHERE e.status IN ('error','fallback_error','rate_limited')
+        WHERE e.status IN ('error','fallback_error','rate_limited','failed')
           AND e.timestamp >= NOW() - INTERVAL '14 days'
           AND e.provider IS NOT NULL
           AND e.provider NOT LIKE 'custom:%'
@@ -125,7 +125,7 @@ export class ErrorDiscoveryService {
                e.error_message AS msg,
                COUNT(*)::int AS cnt
         FROM provider_attempts e
-        WHERE e.status IN ('error','fallback_error','rate_limited')
+        WHERE e.status IN ('error','fallback_error','rate_limited','failed')
           AND e.error_message IS NOT NULL
           AND e.tenant_id IS NOT NULL
           AND e.provider IS NOT NULL
