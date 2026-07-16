@@ -44,7 +44,7 @@ describe('ProxyMessageRecorder request parents', () => {
       } as never,
       {} as never,
     );
-    return { recorder, insert, requestValues, execute };
+    return { recorder, insert, requestValues, execute, requestQb };
   }
 
   it('creates a terminal request before its provider attempt', async () => {
@@ -65,6 +65,60 @@ describe('ProxyMessageRecorder request parents', () => {
       }),
     );
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({ request_id: 'request-1' }));
+    recorder.onModuleDestroy();
+  });
+
+  it('does not overwrite the model originally requested at ingress', async () => {
+    const { recorder, requestQb } = setup();
+    await recorder.recordProviderError(ctx, 503, 'upstream down', {
+      requestId: 'request-routed-model',
+      provider: 'openai',
+      model: 'routed-model',
+    });
+
+    const updatedColumns = requestQb.orUpdate.mock.calls[0][0] as string[];
+    expect(updatedColumns).not.toContain('requested_model');
+    recorder.onModuleDestroy();
+  });
+
+  it('finishes a locally rejected Request without inserting a Provider Attempt', async () => {
+    const { recorder, insert, requestValues, execute } = setup();
+    await recorder.recordProviderError(ctx, 429, 'route cooling down', {
+      requestId: 'request-local-rejection',
+      provider: 'openai',
+      model: 'gpt-4o',
+      skipAttempt: true,
+    });
+
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(requestValues).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'request-local-rejection', status: 'failed' }),
+    );
+    expect(insert).not.toHaveBeenCalled();
+    recorder.onModuleDestroy();
+  });
+
+  it('creates the Request as pending at ingress', async () => {
+    const { recorder, insert, requestValues, execute } = setup();
+
+    await recorder.recordPendingRequest(ctx, {
+      requestId: 'request-pending',
+      timestamp: '2026-07-16T12:00:00.000Z',
+      traceId: 'trace-1',
+      sessionKey: 'session-1',
+      requestedModel: 'gpt-4o',
+    });
+
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(requestValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'request-pending',
+        status: 'pending',
+        timestamp: '2026-07-16T12:00:00.000Z',
+        requested_model: 'gpt-4o',
+      }),
+    );
+    expect(insert).not.toHaveBeenCalled();
     recorder.onModuleDestroy();
   });
 
@@ -123,10 +177,16 @@ describe('ProxyMessageRecorder request parents', () => {
       reason: 'no_provider_key',
       errorMessage: 'No provider key',
       errorCode: 'M100',
+      durationMs: 42,
     });
 
     expect(requestValues).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'request-2', status: 'failed', error_origin: 'config' }),
+      expect.objectContaining({
+        id: 'request-2',
+        status: 'failed',
+        error_origin: 'config',
+        duration_ms: 42,
+      }),
     );
     expect(insert).not.toHaveBeenCalled();
     recorder.onModuleDestroy();

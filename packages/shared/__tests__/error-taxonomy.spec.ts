@@ -65,6 +65,13 @@ describe('classifyHttpErrorClass', () => {
 });
 
 describe('classifyMessageError', () => {
+  it('does not classify a pending operation as an error', () => {
+    expect(classifyMessageError({ status: 'pending' })).toEqual({
+      error_origin: null,
+      error_class: null,
+      superseded: false,
+    });
+  });
   it('classifies an ok row as no error and never superseded', () => {
     expect(classifyMessageError({ status: 'ok', errorHttpStatus: 200 })).toEqual({
       error_origin: null,
@@ -222,7 +229,11 @@ describe('canonical status vocabulary', () => {
   it('pins the canonical request and attempt statuses', () => {
     expect(REQUEST_STATUSES).toEqual([PENDING_STATUS, SUCCESS_STATUS, FAILED_STATUS]);
     expect(ATTEMPT_STATUSES).toEqual([PENDING_STATUS, SUCCESS_STATUS, FAILED_STATUS]);
-    expect([PENDING_STATUS, SUCCESS_STATUS, FAILED_STATUS]).toEqual(['pending', 'success', 'failed']);
+    expect([PENDING_STATUS, SUCCESS_STATUS, FAILED_STATUS]).toEqual([
+      'pending',
+      'success',
+      'failed',
+    ]);
   });
 
   describe('normalizeStatus', () => {

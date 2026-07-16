@@ -328,6 +328,16 @@ describe('ProxyFallbackService', () => {
       'refreshes and retries rejected $provider OAuth subscription tokens',
       async ({ provider, rawBlob, setup, unwrap, expectedApiKey, expectedProviderResource }) => {
         setup();
+        const completeFailure = jest.fn().mockResolvedValue(undefined);
+        let attemptNumber = 0;
+        const startProviderAttempt = jest.fn(() => ({
+          id: `attempt-${attemptNumber + 1}`,
+          attemptNumber: ++attemptNumber,
+          startedAtMs: Date.now(),
+          startedAt: new Date().toISOString(),
+          pendingWrite: Promise.resolve(true),
+          completeFailure,
+        }));
         providerClient.forward
           .mockResolvedValueOnce({
             response: new Response('unauthorized', { status: 401 }),
@@ -354,10 +364,18 @@ describe('ProxyFallbackService', () => {
           stream: false,
           sessionKey: 'sess-1',
           authType: 'subscription',
+          startProviderAttempt,
         });
 
         expect(result.response.status).toBe(200);
         expect(providerClient.forward).toHaveBeenCalledTimes(2);
+        expect(startProviderAttempt).toHaveBeenCalledTimes(2);
+        expect(result.attempt?.attemptNumber).toBe(2);
+        expect(completeFailure).toHaveBeenCalledWith({
+          status: 401,
+          errorBody: 'unauthorized',
+          superseded: true,
+        });
         expect(providerClient.forward.mock.calls[0][0].apiKey).toBe('old-access-token');
         expect(providerClient.forward.mock.calls[1][0].apiKey).toBe(expectedApiKey);
         expect(providerClient.forward.mock.calls[1][0].providerResource).toBe(

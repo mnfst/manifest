@@ -212,6 +212,9 @@ export interface MessageErrorClassification {
  * response (the fetch failed before the provider replied ⇒ transport/network).
  */
 export function classifyMessageError(signals: MessageErrorSignals): MessageErrorClassification {
+  if (signals.status === PENDING_STATUS) {
+    return { error_origin: null, error_class: null, superseded: false };
+  }
   // Accepts both the legacy `ok` and the canonical `success`, so re-classifying
   // an already-normalized row (buildRequestRow reads a collapsed attempt status)
   // still short-circuits as a success rather than falling through to the error
