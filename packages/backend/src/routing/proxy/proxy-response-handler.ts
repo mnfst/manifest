@@ -76,11 +76,13 @@ function recordAutofixOriginalIfRetried(
     tenantProviderId?: string | null;
   },
 ): void {
-  if (!autofix || !getAutofixRetry(autofix)) return;
+  if (!autofix || !getAutofixRetry(autofix) || meta.autofixOriginalProviderCallStarted === false)
+    return;
   recordSafely(
     recorder.recordAutofixOriginal(ctx, route?.model ?? meta.model, meta.tier, autofix, {
       requestId,
       attemptNumber: 1,
+      attempt: meta.autofixOriginalAttempt,
       provider: route ? route.provider : meta.provider,
       reason: meta.reason,
       authType: route?.authType ?? meta.auth_type,
@@ -173,6 +175,7 @@ export async function handleProviderError(
   requestHeaders?: Record<string, string> | null,
   autofix?: AutofixRecord,
   requestId: string = uuid(),
+  requestDurationMs?: number,
 ): Promise<void> {
   recordAutofixOriginalIfRetried(
     ctx,
@@ -200,6 +203,7 @@ export async function handleProviderError(
       requestHeaders,
       autofix,
       requestId,
+      requestDurationMs,
     );
     return;
   }
@@ -208,6 +212,9 @@ export async function handleProviderError(
     recorder.recordProviderError(ctx, errorStatus, errorBody, {
       requestId,
       attemptNumber: currentPrimaryAttemptNumber(autofix),
+      attempt: meta.attempt,
+      skipAttempt: meta.providerCallStarted === false,
+      requestDurationMs,
       model: meta.model,
       provider: meta.provider,
       tier: meta.tier,
@@ -258,6 +265,7 @@ function handleFallbackExhausted(
   requestHeaders?: Record<string, string> | null,
   autofix?: AutofixRecord,
   requestId: string = uuid(),
+  requestDurationMs?: number,
 ): void {
   const baseTime = Date.now();
   const primaryAttemptNumber = currentPrimaryAttemptNumber(autofix);
@@ -293,6 +301,9 @@ function handleFallbackExhausted(
       {
         requestId,
         attemptNumber: primaryAttemptNumber,
+        attempt: meta.primaryAttempt,
+        skipAttempt: meta.primaryProviderCallStarted === false,
+        requestDurationMs,
         provider: meta.provider,
         reason: meta.reason,
         // Exhausted chain: primary connection (meta.tenantProviderId holds it here).
@@ -384,6 +395,8 @@ export function recordFallbackFailures(
       {
         requestId,
         attemptNumber: primaryAttemptNumber,
+        attempt: meta.primaryAttempt,
+        skipAttempt: meta.primaryProviderCallStarted === false,
         // Use the primary provider explicitly — meta.provider holds the
         // succeeding fallback's provider in this flow, not the primary's.
         provider: meta.primaryProvider,
@@ -730,10 +743,13 @@ export function recordSuccess(
   attemptNumber: number = currentPrimaryAttemptNumber(autofix),
 ): void {
   if (meta.fallbackFromModel && fallbackSuccessTs) {
+    const requestDurationMs = startTime == null ? undefined : Date.now() - startTime;
     recordSafely(
       recorder.recordFallbackSuccess(ctx, meta.model, meta.tier, {
         requestId,
         attemptNumber,
+        attempt: meta.attempt,
+        requestDurationMs,
         traceId,
         provider: meta.provider,
         fallbackFromModel: meta.fallbackFromModel,
@@ -761,6 +777,7 @@ export function recordSuccess(
       recorder.recordSuccessMessage(ctx, meta.model, meta.tier, meta.reason, usage, {
         requestId,
         attemptNumber,
+        attempt: meta.attempt,
         traceId,
         provider: meta.provider,
         authType: meta.auth_type,

@@ -45,6 +45,8 @@ import {
   SignatureLookup,
   ThinkingBlockLookup,
   ReasoningContentLookup,
+  ProviderAttemptRef,
+  StartProviderAttempt,
 } from './proxy-types';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
@@ -139,6 +141,18 @@ export interface RoutingMeta {
   output_modality?: OutputModality;
   /** Effective response transport configured on the resolved routing chain. */
   response_mode?: ResponseMode;
+  /** Internal persisted identity of the response-producing Attempt. */
+  attempt?: ProviderAttemptRef;
+  /** False when the response was produced without invoking provider transport. */
+  providerCallStarted?: boolean;
+  /** Internal identity of the failed primary/retry that triggered fallback. */
+  primaryAttempt?: ProviderAttemptRef;
+  /** Whether the primary/retry actually crossed the provider transport boundary. */
+  primaryProviderCallStarted?: boolean;
+  /** Internal identity of the original failure before an Auto-fix retry. */
+  autofixOriginalAttempt?: ProviderAttemptRef;
+  /** Whether the pre-Auto-fix original actually invoked provider transport. */
+  autofixOriginalProviderCallStarted?: boolean;
 }
 
 export interface ProxyResult {
@@ -172,6 +186,8 @@ interface HealedReforwardContext {
   signatureLookup: SignatureLookup;
   thinkingLookup: ThinkingBlockLookup;
   reasoningContentLookup: ReasoningContentLookup;
+  tenantProviderId: string | null;
+  startProviderAttempt?: StartProviderAttempt;
 }
 
 @Injectable()
@@ -201,8 +217,17 @@ export class ProxyService {
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
-    const { agentId, tenantId, body, sessionKey, agentName, signal, specificityOverride, headers } =
-      opts;
+    const {
+      agentId,
+      tenantId,
+      body,
+      sessionKey,
+      agentName,
+      signal,
+      specificityOverride,
+      headers,
+      startProviderAttempt,
+    } = opts;
     const apiMode = opts.apiMode ?? 'chat_completions';
     const routingSource = opts.routingBody ?? body;
     const chatBody = this.toChatBody(apiMode, body);
@@ -342,7 +367,11 @@ export class ProxyService {
       thinkingLookup,
       reasoningContentLookup,
       paramMergeContext,
+      tenantProviderId: credentials.tenantProviderId,
+      startProviderAttempt,
     });
+    const autofixOriginalAttempt = forward.attempt;
+    const autofixOriginalProviderCallStarted = forward.providerCallStarted;
 
     // Auto-fix runs BEFORE the fallback chain: heal a repairable 4xx and retry
     // the patched request, so a fixable request isn't sprayed across every
@@ -382,6 +411,8 @@ export class ProxyService {
           signatureLookup,
           thinkingLookup,
           reasoningContentLookup,
+          tenantProviderId: credentials.tenantProviderId,
+          startProviderAttempt,
         }),
     });
     const autofixRecord = autofixAttempt?.record;
@@ -410,8 +441,19 @@ export class ProxyService {
         apiMode,
         paramMergeContext,
         primaryTenantProviderId: credentials.tenantProviderId,
+        startProviderAttempt,
       });
-      if (fallbackResult) return { ...fallbackResult, autofix: autofixRecord };
+      if (fallbackResult) {
+        return {
+          ...fallbackResult,
+          meta: {
+            ...fallbackResult.meta,
+            autofixOriginalAttempt,
+            autofixOriginalProviderCallStarted,
+          },
+          autofix: autofixRecord,
+        };
+      }
     }
 
     // Stream warm-up: for streaming 200 responses, verify the provider
@@ -433,6 +475,7 @@ export class ProxyService {
           isCodeAssist: forward.isCodeAssist,
           structuredOutputToolName: forward.structuredOutputToolName,
           responsesTextFormat: forward.responsesTextFormat,
+          providerCallStarted: forward.providerCallStarted,
         };
         this.recordTierIfScoring(sessionKey, resolved.tier);
         this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
@@ -441,6 +484,10 @@ export class ProxyService {
           meta: this.buildBaseMeta(resolved, primaryModel, {
             request_params: primaryRequestParams,
             tenantProviderId: credentials.tenantProviderId,
+            attempt: forward.attempt,
+            providerCallStarted: forward.providerCallStarted,
+            autofixOriginalAttempt,
+            autofixOriginalProviderCallStarted,
           }),
           autofix: autofixRecord,
         };
@@ -455,6 +502,7 @@ export class ProxyService {
           JSON.stringify({ error: { message: `Stream warmup failed: ${warmup.message}` } }),
           { status: 502, headers: { 'content-type': 'application/json' } },
         ),
+        attempt: forward.attempt,
         isGoogle: forward.isGoogle,
         isAnthropic: forward.isAnthropic,
         isChatGpt: forward.isChatGpt,
@@ -462,6 +510,7 @@ export class ProxyService {
         isCodeAssist: forward.isCodeAssist,
         structuredOutputToolName: forward.structuredOutputToolName,
         responsesTextFormat: forward.responsesTextFormat,
+        providerCallStarted: forward.providerCallStarted,
       };
       if (!explicitModelOverride && paramMergeContext) {
         const fallbackResult = await this.tryFallbackChain({
@@ -481,8 +530,19 @@ export class ProxyService {
           apiMode,
           paramMergeContext,
           primaryTenantProviderId: credentials.tenantProviderId,
+          startProviderAttempt,
         });
-        if (fallbackResult) return { ...fallbackResult, autofix: autofixRecord };
+        if (fallbackResult) {
+          return {
+            ...fallbackResult,
+            meta: {
+              ...fallbackResult.meta,
+              autofixOriginalAttempt,
+              autofixOriginalProviderCallStarted,
+            },
+            autofix: autofixRecord,
+          };
+        }
       }
 
       // Warmup failed and no fallbacks available: return the synthetic 502
@@ -494,6 +554,10 @@ export class ProxyService {
         meta: this.buildBaseMeta(resolved, primaryModel, {
           request_params: primaryRequestParams,
           tenantProviderId: credentials.tenantProviderId,
+          attempt: forward.attempt,
+          providerCallStarted: forward.providerCallStarted,
+          autofixOriginalAttempt,
+          autofixOriginalProviderCallStarted,
         }),
         autofix: autofixRecord,
       };
@@ -506,6 +570,10 @@ export class ProxyService {
       meta: this.buildBaseMeta(resolved, primaryModel, {
         request_params: primaryRequestParams,
         tenantProviderId: credentials.tenantProviderId,
+        attempt: forward.attempt,
+        providerCallStarted: forward.providerCallStarted,
+        autofixOriginalAttempt,
+        autofixOriginalProviderCallStarted,
       }),
       autofix: autofixRecord,
     };
@@ -566,6 +634,8 @@ export class ProxyService {
       thinkingLookup: ctx.thinkingLookup,
       reasoningContentLookup: ctx.reasoningContentLookup,
       paramMergeContext: ctx.paramMergeContext,
+      tenantProviderId: ctx.tenantProviderId,
+      startProviderAttempt: ctx.startProviderAttempt,
     });
   }
 
@@ -618,6 +688,8 @@ export class ProxyService {
       thinkingLookup: ctx.thinkingLookup,
       reasoningContentLookup: ctx.reasoningContentLookup,
       paramMergeContext: explicitModelOverride ? undefined : { agentId: ctx.agentId, scopeKey },
+      tenantProviderId: credentials.tenantProviderId,
+      startProviderAttempt: ctx.startProviderAttempt,
     });
   }
 
@@ -832,6 +904,7 @@ export class ProxyService {
     /** Primary connection id, carried so a fallback-success flow can attribute
      * its recorded primary-failure row to the connection that actually failed. */
     primaryTenantProviderId: string | null;
+    startProviderAttempt?: StartProviderAttempt;
   }): Promise<ProxyResult | null> {
     const {
       agentId,
@@ -887,6 +960,7 @@ export class ProxyService {
       fallbackRoutes,
       args.paramMergeContext,
       args.reasoningContentLookup,
+      args.startProviderAttempt,
     );
 
     this.recordTierIfScoring(sessionKey, resolved.tier);
@@ -932,6 +1006,10 @@ export class ProxyService {
           primaryProvider,
           primaryAuthType: primaryAuth,
           primaryTenantProviderId: args.primaryTenantProviderId,
+          primaryAttempt: forward.attempt,
+          primaryProviderCallStarted: forward.providerCallStarted,
+          attempt: success.forward.attempt,
+          providerCallStarted: success.forward.providerCallStarted,
           tenantProviderId: success.tenantProviderId,
           request_params: fallbackRequestParams,
         }),
@@ -988,6 +1066,10 @@ export class ProxyService {
         request_params: exhaustedRequestParams,
         // Exhausted chain is recorded against the primary connection.
         tenantProviderId: args.primaryTenantProviderId,
+        primaryAttempt: forward.attempt,
+        primaryProviderCallStarted: forward.providerCallStarted,
+        attempt: failures[failures.length - 1]?.attempt,
+        providerCallStarted: failures[failures.length - 1]?.providerCallStarted,
       }),
       failedFallbacks: failures,
     };

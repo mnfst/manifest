@@ -20,6 +20,7 @@ import { ProxyMessageDedup } from './proxy-message-dedup';
 import { computeTokenCost } from '../../common/utils/cost-calculator';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
+import type { ProviderAttemptRef, ProviderAttemptStart } from './proxy-types';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
@@ -98,6 +99,10 @@ export interface HeaderTierRef {
 export interface ProviderErrorOpts extends HeaderTierRef {
   requestId?: string;
   attemptNumber?: number;
+  attempt?: ProviderAttemptRef;
+  /** Finish the Request without creating a Provider Attempt. */
+  skipAttempt?: boolean;
+  requestDurationMs?: number;
   model?: string;
   provider?: string;
   tier?: string;
@@ -149,6 +154,8 @@ export interface ManifestBlockedRequestOpts {
   sessionKey?: string;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
+  /** End-to-end time until Manifest returned the rejection. */
+  durationMs?: number;
 }
 
 export interface PendingRequestOpts {
@@ -164,6 +171,8 @@ export interface PendingRequestOpts {
 export interface FallbackSuccessOpts extends HeaderTierRef {
   requestId?: string;
   attemptNumber?: number;
+  attempt?: ProviderAttemptRef;
+  requestDurationMs?: number;
   traceId?: string;
   provider?: string;
   fallbackFromModel?: string;
@@ -199,6 +208,7 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
 export interface SuccessMessageOpts extends HeaderTierRef {
   requestId?: string;
   attemptNumber?: number;
+  attempt?: ProviderAttemptRef;
   traceId?: string;
   provider?: string;
   authType?: string;
@@ -222,6 +232,7 @@ export interface SuccessMessageOpts extends HeaderTierRef {
 export interface AutofixOriginalOpts extends HeaderTierRef {
   requestId?: string;
   attemptNumber?: number;
+  attempt?: ProviderAttemptRef;
   provider?: string;
   reason?: string;
   authType?: string;
@@ -260,6 +271,19 @@ function buildMessageRow(
   // failed now lives entirely on those orthogonal columns.
   const classified = classifyRow(row);
   return { ...row, ...classified, status: normalizeStatus(row.status) };
+}
+
+function attemptIdentity(
+  attempt: ProviderAttemptRef | undefined,
+  attemptNumber: number | undefined,
+): Partial<AgentMessage> {
+  return attempt
+    ? {
+        id: attempt.id,
+        attempt_number: attempt.attemptNumber,
+        timestamp: attempt.startedAt,
+      }
+    : { attempt_number: attemptNumber ?? null };
 }
 
 function buildRequestRow(
@@ -311,6 +335,9 @@ function classifyRow(row: Partial<AgentMessage>): {
   error_class: string | null;
   superseded: boolean;
 } {
+  if (normalizeStatus(row.status) === PENDING_STATUS) {
+    return { error_origin: null, error_class: null, superseded: false };
+  }
   return classifyMessageError({
     status: row.status ?? 'ok',
     errorHttpStatus: row.error_http_status,
@@ -383,7 +410,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
             'error_code',
             'error_origin',
             'error_class',
-            'requested_model',
             'caller_attribution',
             'request_headers',
             'request_params',
@@ -395,6 +421,27 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       await insert.orIgnore().execute();
     }
     return true;
+  }
+
+  /** Update the pending row when present; retain insert-only legacy/test paths. */
+  private async persistAttempt(
+    row: Partial<AgentMessage>,
+    attempt?: ProviderAttemptRef,
+  ): Promise<void> {
+    const terminalRow = attempt
+      ? {
+          ...row,
+          ...attemptIdentity(attempt, attempt.attemptNumber),
+          duration_ms: Math.max(0, (attempt.completedAtMs ?? Date.now()) - attempt.startedAtMs),
+        }
+      : row;
+    if (!attempt || !(await attempt.pendingWrite.catch(() => false))) {
+      await this.messageRepo.insert(terminalRow);
+      return;
+    }
+    const payload = { ...terminalRow };
+    delete payload.id;
+    await this.messageRepo.update({ id: attempt.id }, payload);
   }
 
   private shouldSkipRateLimitRecord(ctx: IngestionContext, scope?: string): boolean {
@@ -432,6 +479,59 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     );
   }
 
+  /** Insert the Attempt as pending at the provider-call boundary. */
+  async recordPendingProviderAttempt(
+    ctx: IngestionContext,
+    requestId: string,
+    attempt: ProviderAttemptRef,
+    start: ProviderAttemptStart,
+  ): Promise<boolean> {
+    const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
+      ctx.tenantId,
+      start.provider,
+      start.model,
+    );
+    await this.messageRepo.insert(
+      buildMessageRow(ctx, {
+        id: attempt.id,
+        request_id: requestId,
+        attempt_number: attempt.attemptNumber,
+        timestamp: attempt.startedAt,
+        status: PENDING_STATUS,
+        model: canonical.model,
+        provider: canonical.provider,
+        auth_type: start.authType ?? null,
+        tenant_provider_id: start.tenantProviderId ?? null,
+      }),
+    );
+    return true;
+  }
+
+  /** Complete an intermediate provider call that is retried below the proxy layer. */
+  async completePendingProviderFailure(
+    attempt: ProviderAttemptRef,
+    status: number,
+    errorBody: string,
+    superseded: boolean,
+  ): Promise<void> {
+    if (!(await attempt.pendingWrite.catch(() => false))) return;
+    const richStatus = superseded ? 'fallback_error' : status === 429 ? 'rate_limited' : 'error';
+    const classified = classifyRow({
+      status: richStatus,
+      error_http_status: status,
+    });
+    await this.messageRepo.update(
+      { id: attempt.id },
+      {
+        status: normalizeStatus(richStatus),
+        error_message: scrubSecrets(errorBody).slice(0, 2000),
+        error_http_status: status,
+        duration_ms: Math.max(0, (attempt.completedAtMs ?? Date.now()) - attempt.startedAtMs),
+        ...classified,
+      },
+    );
+  }
+
   async recordProviderError(
     ctx: IngestionContext,
     httpStatus: number,
@@ -441,6 +541,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const {
       requestId = uuid(),
       attemptNumber,
+      attempt,
+      skipAttempt = false,
+      requestDurationMs,
       model,
       provider,
       tier,
@@ -462,7 +565,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     } = opts ?? {};
     // A real Auto-fix retry must never disappear behind the generic 429
     // deduplication window; it is required to complete the linked attempt story.
-    if (httpStatus === 429 && !getAutofixRetry(autofix) && this.shouldSkipRateLimitRecord(ctx)) {
+    if (
+      httpStatus === 429 &&
+      !attempt &&
+      !skipAttempt &&
+      !getAutofixRetry(autofix) &&
+      this.shouldSkipRateLimitRecord(ctx)
+    ) {
       return;
     }
 
@@ -476,9 +585,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const row = buildMessageRow(ctx, {
       request_id: requestId,
-      attempt_number: attemptNumber ?? null,
+      ...attemptIdentity(attempt, attemptNumber),
       trace_id: traceId ?? null,
       timestamp: new Date().toISOString(),
+      duration_ms: requestDurationMs ?? null,
       status: messageStatus,
       error_message: scrubSecrets(errorMessage).slice(0, 2000),
       error_http_status: httpStatus,
@@ -501,7 +611,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       header_tier_color: headerTierColor ?? null,
     });
     await this.persistRequest(ctx, requestId, row, true, autofix);
-    await this.messageRepo.insert(row);
+    if (!skipAttempt) await this.persistAttempt(row, attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
@@ -532,11 +642,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       sessionKey,
       callerAttribution,
       requestHeaders,
+      durationMs,
     } = opts;
-
-    // Cooldown per reason, not per tenant: a per-IP limit firing must not
-    // suppress the row for a concurrency limit hit in the same minute.
-    if (httpStatus === 429 && this.shouldSkipRateLimitRecord(ctx, `manifest:${reason}`)) return;
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
       ctx.tenantId,
@@ -548,6 +655,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       trace_id: traceId ?? null,
       session_key: sessionKey ?? null,
       timestamp: new Date().toISOString(),
+      duration_ms: durationMs ?? null,
       status: httpStatus === 429 ? 'rate_limited' : 'error',
       error_message: scrubSecrets(errorMessage).slice(0, 2000),
       error_code: errorCode ?? null,
@@ -615,6 +723,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierName,
       headerTierColor,
     } = opts ?? {};
+    failures = failures.filter((failure) => failure.providerCallStarted !== false);
     if (failures.length === 0) return;
     // primaryModel is loop-invariant — canonicalize once.
     const canonicalPrimary = await this.customProviders.canonicalizeAgentMessageKeys(
@@ -650,7 +759,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       rows.push(
         buildMessageRow(ctx, {
           request_id: requestId,
-          attempt_number: firstAttemptNumber == null ? null : firstAttemptNumber + i,
+          ...attemptIdentity(
+            f.attempt,
+            firstAttemptNumber == null ? undefined : firstAttemptNumber + i,
+          ),
           trace_id: traceId ?? null,
           timestamp: ts,
           status,
@@ -678,7 +790,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     // Exhausted chains persist the rebuilt primary response as the terminal
     // parent in recordPrimaryFailure; recovered chains finish on success.
     await this.persistRequest(ctx, requestId, rows[rows.length - 1], false);
-    await this.messageRepo.insert(rows);
+    if (failures.every((failure) => !failure.attempt)) {
+      await this.messageRepo.insert(rows);
+    } else {
+      await Promise.all(
+        rows.map((row, index) => this.persistAttempt(row, failures[index].attempt)),
+      );
+    }
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
@@ -693,6 +811,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       provider?: string;
       requestId?: string;
       attemptNumber?: number;
+      attempt?: ProviderAttemptRef;
+      /** Finish/update the Request without creating a Provider Attempt. */
+      skipAttempt?: boolean;
+      requestDurationMs?: number;
       reason?: string;
       tenantProviderId?: string | null;
       callerAttribution?: CallerAttribution | null;
@@ -721,8 +843,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const requestId = opts?.requestId ?? uuid();
     const row = buildMessageRow(ctx, {
       request_id: requestId,
-      attempt_number: opts?.attemptNumber ?? null,
+      ...attemptIdentity(opts?.attempt, opts?.attemptNumber),
       timestamp,
+      duration_ms: opts?.requestDurationMs ?? null,
       status: 'fallback_error',
       ...autofixColumns(opts?.autofix, terminalAutofixRole(opts?.autofix)),
       error_message: scrubSecrets(errorBody).slice(0, 2000),
@@ -756,7 +879,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       Boolean(opts?.terminalHttpStatus),
       opts?.autofix,
     );
-    await this.messageRepo.insert(row);
+    if (!opts?.skipAttempt) await this.persistAttempt(row, opts?.attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
@@ -769,6 +892,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const {
       requestId = uuid(),
       attemptNumber,
+      attempt,
+      requestDurationMs,
       traceId,
       provider,
       fallbackFromModel,
@@ -816,9 +941,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const row = buildMessageRow(ctx, {
       request_id: requestId,
-      attempt_number: attemptNumber ?? null,
+      ...attemptIdentity(attempt, attemptNumber),
       trace_id: traceId ?? null,
       timestamp: timestamp ?? new Date().toISOString(),
+      duration_ms: requestDurationMs ?? null,
       status: 'ok',
       model: canonical.model,
       provider: canonical.provider,
@@ -842,7 +968,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       header_tier_color: headerTierColor ?? null,
     });
     await this.persistRequest(ctx, requestId, row, true, autofix);
-    await this.messageRepo.insert(row);
+    await this.persistAttempt(row, attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
@@ -857,6 +983,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const {
       requestId: providedRequestId,
       attemptNumber,
+      attempt,
       traceId,
       provider,
       authType,
@@ -906,7 +1033,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const requestRow = buildMessageRow(ctx, {
       request_id: requestId,
-      attempt_number: attemptNumber ?? null,
+      ...attemptIdentity(attempt, attemptNumber),
       trace_id: traceId ?? null,
       session_key: normalizedSessionKey,
       timestamp: new Date().toISOString(),
@@ -920,8 +1047,27 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       caller_attribution: callerAttribution ?? null,
       request_headers: requestHeaders ?? null,
       request_params: requestParams ?? null,
+      input_tokens: usage.prompt_tokens,
+      output_tokens: usage.completion_tokens,
+      cache_read_tokens: usage.cache_read_tokens ?? 0,
+      cache_creation_tokens: usage.cache_creation_tokens ?? 0,
+      cost_usd: costUsd,
+      auth_type: authType ?? null,
+      specificity_category: specificityCategory ?? null,
+      provider_key_label: providerKeyLabel ?? null,
+      tenant_provider_id: tenantProviderId ?? null,
+      header_tier_id: headerTierId ?? null,
+      header_tier_name: headerTierName ?? null,
+      header_tier_color: headerTierColor ?? null,
+      ...autofixColumns(autofix, 'retry'),
     });
     await this.persistRequest(ctx, requestId, requestRow, true, autofix);
+
+    if (attempt) {
+      await this.persistAttempt(requestRow, attempt);
+      this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
+      return;
+    }
 
     let wrote = false;
     await this.dedup.withSuccessWriteLock(
@@ -1055,7 +1201,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const requestId = opts?.requestId ?? uuid();
     const row = buildMessageRow(ctx, {
       request_id: requestId,
-      attempt_number: opts?.attemptNumber ?? null,
+      ...attemptIdentity(opts?.attempt, opts?.attemptNumber),
       trace_id: opts?.traceId ?? null,
       timestamp: new Date(Date.now() - 1000).toISOString(),
       status: 'auto_fixed',
@@ -1085,7 +1231,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       autofix_decision: buildAutofixDecision(original),
     });
     await this.persistRequest(ctx, requestId, row, false, autofix);
-    await this.messageRepo.insert(row);
+    await this.persistAttempt(row, opts?.attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 

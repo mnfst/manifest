@@ -220,6 +220,30 @@ describe('proxy-response-handler', () => {
       );
     });
 
+    it('finishes a locally rejected Request without recording a Provider Attempt', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ providerCallStarted: false });
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        429,
+        'route cooling down',
+        undefined,
+        recorder as any,
+      );
+
+      expect(recorder.recordProviderError).toHaveBeenCalledWith(
+        testCtx,
+        429,
+        'route cooling down',
+        expect.objectContaining({ skipAttempt: true }),
+      );
+    });
+
     it('records the original and terminal retry when a patched request fails', async () => {
       const { res } = mockResponse();
       const recorder = mockRecorder();

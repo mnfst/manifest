@@ -4,6 +4,7 @@ import { ModelPricingCacheService } from '../../../model-prices/model-pricing-ca
 import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../../otlp/interfaces/ingestion-context.interface';
 import type { AutofixRecord } from '../../autofix/autofix.types';
+import type { ProviderAttemptRef } from '../proxy-types';
 
 const sampleAutofix: AutofixRecord = {
   groupId: 'grp-1',
@@ -39,14 +40,16 @@ const ctx: IngestionContext = {
 describe('ProxyMessageRecorder', () => {
   let recorder: ProxyMessageRecorder;
   let insertMock: jest.Mock;
+  let updateMock: jest.Mock;
   let getByModelMock: jest.Mock;
   let emitMock: jest.Mock;
 
   beforeEach(() => {
     insertMock = jest.fn();
+    updateMock = jest.fn();
     getByModelMock = jest.fn().mockReturnValue(undefined);
     emitMock = jest.fn();
-    const repo = { insert: insertMock } as never;
+    const repo = { insert: insertMock, update: updateMock } as never;
     const pricingCache = {
       getByModel: getByModelMock,
     } as unknown as ModelPricingCacheService;
@@ -78,6 +81,38 @@ describe('ProxyMessageRecorder', () => {
 
   afterEach(() => {
     recorder.onModuleDestroy();
+  });
+
+  describe('pending Attempt lifecycle', () => {
+    it('updates the same pending row with terminal status and measured duration', async () => {
+      const attempt: ProviderAttemptRef = {
+        id: 'attempt-1',
+        attemptNumber: 1,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        completedAtMs: 1_125,
+        pendingWrite: Promise.resolve(true),
+      };
+
+      await recorder.recordProviderError(ctx, 500, 'upstream failed', {
+        requestId: 'request-1',
+        attempt,
+        model: 'gpt-4o',
+        provider: 'openai',
+      });
+
+      expect(insertMock).not.toHaveBeenCalled();
+      expect(updateMock).toHaveBeenCalledWith(
+        { id: 'attempt-1' },
+        expect.objectContaining({
+          request_id: 'request-1',
+          attempt_number: 1,
+          timestamp: '1970-01-01T00:00:01.000Z',
+          duration_ms: 125,
+          status: 'failed',
+        }),
+      );
+    });
   });
 
   describe('recordFallbackSuccess', () => {
@@ -584,7 +619,7 @@ describe('ProxyMessageRecorder', () => {
       });
     });
 
-    it('deduplicates repeated local proxy rate limits during cooldown', async () => {
+    it('records each rate-limited Manifest Request independently', async () => {
       await recorder.recordManifestBlockedRequest(ctx, {
         httpStatus: 429,
         errorMessage: 'Too many requests',
@@ -599,8 +634,8 @@ describe('ProxyMessageRecorder', () => {
         reason: 'manifest_rate_limited',
       });
 
-      expect(insertMock).not.toHaveBeenCalled();
-      expect(emitMock).not.toHaveBeenCalled();
+      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(emitMock).toHaveBeenCalledTimes(1);
     });
   });
 
