@@ -18,6 +18,10 @@ export interface ProviderUsageSummary {
   consumption_messages: number;
   /** Summed cost (USD) over the last 30 days. Raw numeric sum, not rounded per-row. */
   consumption_cost: number;
+  /** Every provider call over the last 30 days (retries and fallbacks included). */
+  attempts_30d: number;
+  /** Attempts that returned success over the last 30 days. */
+  succeeded_30d: number;
   /** Max message timestamp within the 30-day window, ISO-8601, or null. */
   last_used_at: string | null;
   /** Dense 7-element daily token series for the last 7 UTC days (oldest → today). */
@@ -38,6 +42,8 @@ interface DailyBucketRow {
   tokens: string | number | null;
   cost: string | number | null;
   messages: string | number | null;
+  attempts: string | number | null;
+  succeeded: string | number | null;
   last_used_at: Date | string | null;
 }
 
@@ -96,6 +102,11 @@ export class ProviderUsageService {
       // precise; rounding for display happens client-side.
       .addSelect('SUM(COALESCE(at.cost_usd, 0))', 'cost')
       .addSelect(sqlCountMessages(), 'messages')
+      // Attempt-world reliability at the SAME grain as this row (provider +
+      // auth_type): the connection lists must not blend a subscription's
+      // rate with an api_key connection's rate for the same provider.
+      .addSelect('COUNT(*)', 'attempts')
+      .addSelect(`COUNT(*) FILTER (WHERE at.status = 'ok' OR at.status IS NULL)`, 'succeeded')
       .addSelect('MAX(at.timestamp)', 'last_used_at')
       .where("at.timestamp >= NOW() - INTERVAL '30 days'")
       .groupBy('at.provider')
@@ -114,6 +125,8 @@ export class ProviderUsageService {
       tokens: number;
       messages: number;
       cost: number;
+      attempts: number;
+      succeeded: number;
       lastUsed: number | null;
       sparkline: number[];
     }
@@ -135,6 +148,8 @@ export class ProviderUsageService {
           tokens: 0,
           messages: 0,
           cost: 0,
+          attempts: 0,
+          succeeded: 0,
           lastUsed: null,
           sparkline: new Array(SPARKLINE_DAYS).fill(0),
         };
@@ -145,6 +160,8 @@ export class ProviderUsageService {
       acc.tokens += tokens;
       acc.messages += Number(row.messages) || 0;
       acc.cost += Number(row.cost) || 0;
+      acc.attempts += Number(row.attempts) || 0;
+      acc.succeeded += Number(row.succeeded) || 0;
 
       const lastUsedMs =
         row.last_used_at instanceof Date
@@ -168,6 +185,8 @@ export class ProviderUsageService {
       consumption_tokens: acc.tokens,
       consumption_messages: acc.messages,
       consumption_cost: acc.cost,
+      attempts_30d: acc.attempts,
+      succeeded_30d: acc.succeeded,
       last_used_at: acc.lastUsed === null ? null : new Date(acc.lastUsed).toISOString(),
       sparkline_7d: acc.sparkline,
     }));

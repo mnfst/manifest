@@ -38,7 +38,6 @@ import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
 import {
-  getPerProviderReliability,
   attemptSuccessRate,
   TOTAL_ATTEMPTS_TOOLTIP,
   ATTEMPT_SUCCESS_RATE_TOOLTIP,
@@ -408,25 +407,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   );
   const autofixEligible = () => autofixCohort()?.eligible ?? false;
 
-  const [providerReliability] = createResource(
-    () => (autofixEligible() ? { _ping: messagePing() } : false),
-    () => getPerProviderReliability('30d'),
-  );
-
-  // Attempt-world totals for the header cards: every provider call counts.
-  const scopedReliability = createMemo(() =>
-    (providerReliability() ?? []).filter((r) =>
-      connectedSummaries().some((s) => {
-        const pKey = s.provider.startsWith('custom:') ? 'custom' : s.provider;
-        return pKey === r.provider;
-      }),
-    ),
-  );
+  // Attempt-world totals for the header cards: summed over THIS page's rows
+  // (provider + auth_type grain), so the Subscriptions page never blends an
+  // api_key connection's failures into its numbers, and vice versa.
   const totalAttempts = createMemo(() =>
-    scopedReliability().reduce((sum, r) => sum + r.attempts, 0),
+    connectedSummaries().reduce((sum, s) => sum + s.attempts_30d, 0),
   );
   const totalAttemptsSucceeded = createMemo(() =>
-    scopedReliability().reduce((sum, r) => sum + r.succeeded, 0),
+    connectedSummaries().reduce((sum, s) => sum + s.succeeded_30d, 0),
   );
 
   const connectionDenominator = (summary: TenantProviderSummary) =>
@@ -729,23 +717,25 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         </Show>
                       </td>
                     </Show>
-                    {(() => {
-                      const pKey = row.summary.provider.startsWith('custom:')
-                        ? 'custom'
-                        : row.summary.provider;
-                      const rel = () => providerReliability()?.find((r) => r.provider === pKey);
-                      return (
-                        <>
-                          <td class="rel-col">{rel() ? formatNumber(rel()!.attempts) : '—'}</td>
-                          <td class="rel-col">
-                            {(() => {
-                              const rate = rel() ? attemptSuccessRate(rel()!) : null;
-                              return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
-                            })()}
-                          </td>
-                        </>
-                      );
-                    })()}
+                    {/* Attempt reliability at the row's own grain (provider +
+                        auth_type): a subscription row never shows a rate
+                        blended with the provider's api_key traffic. */}
+                    <td class="rel-col">
+                      <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
+                        {formatNumber(row.summary.attempts_30d)}
+                      </Show>
+                    </td>
+                    <td class="rel-col">
+                      <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
+                        {(() => {
+                          const rate = attemptSuccessRate({
+                            attempts: row.summary.attempts_30d,
+                            succeeded: row.summary.succeeded_30d,
+                          });
+                          return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                        })()}
+                      </Show>
+                    </td>
                     <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
                         {connectionLastUsedAt(row.summary)

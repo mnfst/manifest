@@ -210,6 +210,8 @@ describe('provider pages', () => {
         consumption_tokens: p.consumption_tokens,
         consumption_messages: p.consumption_messages,
         consumption_cost: p.consumption_cost,
+        attempts_30d: p.auth_type === 'subscription' ? 129 : 188,
+        succeeded_30d: p.auth_type === 'subscription' ? 119 : 148,
         last_used_at: p.last_used_at,
         sparkline_7d: p.sparkline_7d,
       })),
@@ -243,6 +245,21 @@ describe('provider pages', () => {
       ).toBe(true),
     );
   };
+
+  it('shows each connection its OWN attempt rate, never the provider blend', async () => {
+    // The bug this pins: OpenAI subscription at 92.2% was displayed as ~83%
+    // because the list read a provider-level rate blending in the api_key
+    // connection's failures. Rows must read their (provider, auth_type) grain.
+    render(() => <Subscriptions />);
+    await waitFor(() => expect(screen.getByText('ChatGPT')).toBeDefined());
+
+    // 119 / 129 = 92.2%, the subscription connection's own rate.
+    // Appears on the header card AND the row: both read the same grain.
+    await waitFor(() => expect(screen.getAllByText('92.2%').length).toBeGreaterThan(0));
+    expect(screen.getAllByText('129').length).toBeGreaterThan(0);
+    // The blended provider rate (267/317 = 84.2%) must appear nowhere.
+    expect(screen.queryByText('84.2%')).toBeNull();
+  });
 
   it('renders the subscriptions page and opens the connect modal', async () => {
     render(() => <Subscriptions />);

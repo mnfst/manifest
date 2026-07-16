@@ -39,6 +39,10 @@ export interface TenantProviderUsage {
   consumption_tokens: number;
   consumption_messages: number;
   consumption_cost: number;
+  /** Every provider call over the last 30 days, at THIS row's grain. */
+  attempts_30d: number;
+  /** Attempts that returned success over the last 30 days. */
+  succeeded_30d: number;
   last_used_at: string | null;
   sparkline_7d: number[];
 }
@@ -73,6 +77,8 @@ const USAGE_ZERO: Omit<TenantProviderUsage, 'provider' | 'auth_type'> = {
   consumption_tokens: 0,
   consumption_messages: 0,
   consumption_cost: 0,
+  attempts_30d: 0,
+  succeeded_30d: 0,
   last_used_at: null,
   sparkline_7d: [],
 };
@@ -103,6 +109,8 @@ export function mergeUsage(
       consumption_tokens: usage?.consumption_tokens ?? USAGE_ZERO.consumption_tokens,
       consumption_messages: usage?.consumption_messages ?? USAGE_ZERO.consumption_messages,
       consumption_cost: usage?.consumption_cost ?? USAGE_ZERO.consumption_cost,
+      attempts_30d: usage?.attempts_30d ?? USAGE_ZERO.attempts_30d,
+      succeeded_30d: usage?.succeeded_30d ?? USAGE_ZERO.succeeded_30d,
       last_used_at: usage?.last_used_at ?? USAGE_ZERO.last_used_at,
       sparkline_7d: usage?.sparkline_7d ?? USAGE_ZERO.sparkline_7d,
     };
