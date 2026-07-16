@@ -274,28 +274,23 @@ const Overview: Component = () => {
         : false,
     (p) => getAutofixStats(p.range, p.agent),
   );
-  // Disposition timeseries feeds the Self-healed requests tab (healed +
-  // fallback series only), agent-scoped and gated like the KPI cards.
+  // Disposition timeseries: the Requests chart's ONLY view on this page (an
+  // agent is the harness, and a request may touch several providers, so no
+  // other grouping is meaningful) + the Healed requests tab subset.
   const [statusTimeseries] = createResource(
-    () =>
-      autofixEligible()
-        ? {
-            range: effectiveRange(),
-            agent: decodeURIComponent(params.agentName),
-            _ping: messagePing(),
-          }
-        : false,
+    () => ({
+      range: effectiveRange(),
+      agent: decodeURIComponent(params.agentName),
+      _ping: messagePing(),
+    }),
     (p) => getAutofixTimeseries(p.range, 'disposition', p.agent),
   );
   const [modelReliability] = createResource(
-    () =>
-      autofixEligible()
-        ? {
-            range: effectiveRange(),
-            agent: decodeURIComponent(params.agentName),
-            _ping: messagePing(),
-          }
-        : false,
+    () => ({
+      range: effectiveRange(),
+      agent: decodeURIComponent(params.agentName),
+      _ping: messagePing(),
+    }),
     (p) => getPerModelReliability(p.range, p.agent),
   );
   const selfHealedTs = () => {
@@ -506,12 +501,12 @@ const Overview: Component = () => {
                         tokensValue={d().summary?.tokens_today?.value ?? 0}
                         tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
                         range={effectiveRange()}
-                        agentRequestTimeseries={filteredMessageTs() ?? undefined}
+                        requestStatusTimeseries={statusTimeseries()}
                         agentTimeseries={filteredTokenTs() ?? undefined}
                         agentCostTimeseries={filteredCostTs() ?? undefined}
                         colorMap={providerColorMap()}
                         seriesFilters={
-                          <Show when={allProviders().length > 1}>
+                          <Show when={activeView() !== 'requests' && allProviders().length > 1}>
                             <FilterSelect
                               noun="providers"
                               items={allProviders()}
@@ -555,7 +550,7 @@ const Overview: Component = () => {
 
                   <CostByModelTable
                     rows={d().cost_by_model ?? []}
-                    reliability={autofixEligible() ? modelReliability() : undefined}
+                    reliability={modelReliability()}
                   />
                 </>
               );

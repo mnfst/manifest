@@ -528,14 +528,15 @@ describe('Overview', () => {
       timeseries: [{ hour: '1', openai: 5 }],
     });
     const { container } = render(() => <Overview />);
-    // UnifiedChartCard renders the multi-provider chart for every view; the
-    // active stat reflects the selection. Off-cohort order: Requests / Cost / Tokens.
+    // The Requests view is status-only now (no per-provider request chart);
+    // usage views render the multi-provider chart. Off-cohort order:
+    // Requests / Cost / Tokens.
     await vi.waitFor(() => {
-      expect(container.querySelector('[data-testid="multi-agent-chart"]')).not.toBeNull();
+      expect(container.querySelectorAll('.chart-card__stat--clickable').length).toBe(3);
     });
+    expect(container.querySelector('[data-testid="multi-agent-chart"]')).toBeNull();
 
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
-    expect(stats.length).toBe(3);
 
     fireEvent.click(stats[1]); // cost
     await vi.waitFor(() => {
