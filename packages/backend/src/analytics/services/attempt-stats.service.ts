@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ObjectLiteral, Repository, SelectQueryBuilder } from 'typeorm';
 import {
   rangeToInterval,
   rangeToPreviousInterval,
@@ -109,6 +109,46 @@ export class AttemptStatsService {
   }
 
   /**
+   * Connection filters with the SAME legacy folds as the usage list rows
+   * (provider-usage.service): a NULL auth_type reads as 'api_key', and an
+   * orphan attempt (NULL tenant_provider_id, from before connections were
+   * stamped) belongs to the connection whose label folds to its own
+   * (NULL label reads as 'Default'). Without these folds the detail page
+   * excludes rows the list counts, and the two disagree.
+   */
+  private scopeToConnectionWithLegacyFold<T extends ObjectLiteral>(
+    qb: SelectQueryBuilder<T>,
+    params: { authType?: string; provider?: string; label?: string; tenantProviderId?: string },
+  ): void {
+    if (params.provider) {
+      qb.andWhere('at.provider = :provider', { provider: params.provider });
+    }
+    if (params.authType) {
+      if (params.authType === 'api_key') {
+        qb.andWhere('(at.auth_type = :authType OR at.auth_type IS NULL)', {
+          authType: params.authType,
+        });
+      } else {
+        qb.andWhere('at.auth_type = :authType', { authType: params.authType });
+      }
+    }
+    if (params.tenantProviderId) {
+      const labelFold = params.label
+        ? "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:connLabel)"
+        : "COALESCE(at.provider_key_label, 'Default') = 'Default'";
+      qb.andWhere(
+        `(at.tenant_provider_id = :tenantProviderId OR (at.tenant_provider_id IS NULL AND ${labelFold}))`,
+        {
+          tenantProviderId: params.tenantProviderId,
+          ...(params.label ? { connLabel: params.label } : {}),
+        },
+      );
+    } else {
+      scopeToConnection(qb, undefined, params.label);
+    }
+  }
+
+  /**
    * Attempt-status timeseries scoped to ONE provider connection: every
    * provider call counts where it ran (retries and fallback attempts
    * included), keyed by its OWN outcome. Success = ok, error = everything
@@ -136,9 +176,7 @@ export class AttemptStatsService {
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, params.tenantId);
     excludePlaygroundAgents(qb);
-    if (params.authType) qb.andWhere('at.auth_type = :authType', { authType: params.authType });
-    if (params.provider) qb.andWhere('at.provider = :provider', { provider: params.provider });
-    scopeToConnection(qb, params.tenantProviderId, params.label);
+    this.scopeToConnectionWithLegacyFold(qb, params);
 
     const rows = (await qb.groupBy('bucket').orderBy('bucket', 'ASC').getRawMany()) as Array<
       Record<string, unknown>
@@ -181,9 +219,7 @@ export class AttemptStatsService {
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, params.tenantId);
     excludePlaygroundAgents(qb);
-    if (params.authType) qb.andWhere('at.auth_type = :authType', { authType: params.authType });
-    if (params.provider) qb.andWhere('at.provider = :provider', { provider: params.provider });
-    scopeToConnection(qb, params.tenantProviderId, params.label);
+    this.scopeToConnectionWithLegacyFold(qb, params);
 
     const rows = (await qb
       .groupBy('bucket')

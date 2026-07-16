@@ -149,9 +149,14 @@ describe('AttemptStatsService', () => {
     // Every attempt counts by its OWN outcome; a NULL legacy status reads ok.
     expect(selects).toContain("WHERE at.status = 'ok' OR at.status IS NULL");
     expect(selects).toContain("at.status IS NOT NULL AND at.status <> 'ok'");
-    const wheres = qb.andWhere.mock.calls.flat();
-    // Connection id wins over the (provider, auth_type, label) tuple.
-    expect(wheres).toContain('at.tenant_provider_id = :tenantProviderId');
+    const wheres = qb.andWhere.mock.calls.flat().filter((w) => typeof w === 'string');
+    // Same legacy folds as the usage list rows: NULL auth_type reads api_key,
+    // and orphan attempts (NULL tenant_provider_id) fold onto the connection
+    // whose label matches (NULL label reads 'Default').
+    expect(wheres.join(' ')).toContain('at.auth_type = :authType OR at.auth_type IS NULL');
+    expect(wheres.join(' ')).toContain(
+      'at.tenant_provider_id = :tenantProviderId OR (at.tenant_provider_id IS NULL',
+    );
     expect(wheres).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
   });
 
