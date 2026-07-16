@@ -20,6 +20,7 @@ import MultiSelect, { type MultiSelectOption } from '../components/MultiSelect.j
 import { getProviders as getProviderConnections } from '../services/api/providers.js';
 import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
+import { AutofixIcon, FallbackIcon } from '../components/message-table-cells.jsx';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import {
@@ -569,12 +570,55 @@ const MessageLog: Component = () => {
     { label: 'Failed', value: 'failed' },
   ];
 
+  const noRecoveryIcon = () => (
+    <span class="recovery-opt-icon recovery-opt-icon__none" aria-hidden="true">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      >
+        <circle cx="12" cy="12" r="9" />
+        <line x1="5.6" y1="5.6" x2="18.4" y2="18.4" />
+      </svg>
+    </span>
+  );
   const triggerOptions = [
     { label: 'All attempts', value: '' },
-    { label: 'With any recovery attempt', value: 'any' },
-    { label: 'With an auto-fix attempt', value: 'autofix' },
-    { label: 'With a fallback attempt', value: 'fallback' },
-    { label: 'No recovery attempt', value: 'none' },
+    {
+      label: 'With any recovery attempt',
+      value: 'any',
+      icon: (
+        <span class="recovery-opt-icon" aria-hidden="true">
+          <AutofixIcon />
+          <span class="recovery-opt-icon__plus">+</span>
+          <FallbackIcon />
+        </span>
+      ),
+    },
+    {
+      label: 'With an auto-fix attempt',
+      value: 'autofix',
+      icon: (
+        <span class="recovery-opt-icon" aria-hidden="true">
+          <AutofixIcon />
+        </span>
+      ),
+    },
+    {
+      label: 'With a fallback attempt',
+      value: 'fallback',
+      icon: (
+        <span class="recovery-opt-icon" aria-hidden="true">
+          <FallbackIcon />
+        </span>
+      ),
+    },
+    { label: 'No recovery attempt', value: 'none', icon: noRecoveryIcon() },
   ];
 
   const attemptStatusOptions = [

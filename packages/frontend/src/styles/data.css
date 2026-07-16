@@ -160,6 +160,41 @@
   color: #fff;
 }
 
+/* Compact recovery marks for the Requests filter options: the same table
+   squares (shared classes above, so the gradients stay single-source),
+   shrunk so a dropdown row keeps its exact height. */
+.recovery-opt-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.recovery-opt-icon .autofix-icon,
+.recovery-opt-icon .fallback-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.recovery-opt-icon .autofix-icon svg,
+.recovery-opt-icon .fallback-icon svg {
+  width: 9px;
+  height: 9px;
+}
+
+.recovery-opt-icon__plus {
+  font-size: 10px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  line-height: 1;
+}
+
+.recovery-opt-icon__none {
+  color: hsl(var(--destructive));
+  display: inline-flex;
+}
+
 /* When a status badge is itself a link (a Manifest limit → the limits page)
    keep the badge look: inherit the badge colour, no underline until hover. */
 a.status-badge {
