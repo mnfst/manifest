@@ -489,33 +489,59 @@ export const INSERT_ATTEMPT_REQUESTS_SQL = `
 `;
 
 export const LINK_ATTEMPTS_SQL = `
-  WITH updated AS (
-    UPDATE "provider_attempts" pa
-    SET "request_id" = ${LEGACY_REQUEST_ID},
-        "attempt_number" = CASE
-          WHEN autofix_group_id IS NOT NULL THEN CASE
-            WHEN autofix_role = 'original' THEN 1
-            WHEN autofix_role = 'retry' THEN 2
-            WHEN (
-              SELECT count(*) = 2
-                AND count(*) FILTER (
-                  WHERE other.status = 'auto_fixed' AND COALESCE(other.superseded, false)
-                ) = 1
-              FROM "provider_attempts" other
-              WHERE COALESCE(other.tenant_id, '') = COALESCE(pa.tenant_id, '')
-                AND COALESCE(other.agent_id, '') = COALESCE(pa.agent_id, '')
-                AND other.autofix_group_id = pa.autofix_group_id
-            ) THEN CASE
-              WHEN status = 'auto_fixed' AND COALESCE(superseded, false) THEN 1
-              ELSE 2
-            END
-            ELSE NULL
-          END
-          WHEN trace_id IS NULL THEN 1
-          ELSE NULL
-        END
+  WITH target_autofix_groups AS MATERIALIZED (
+    SELECT DISTINCT
+      COALESCE(tenant_id, '') AS tenant_key,
+      COALESCE(agent_id, '') AS agent_key,
+      autofix_group_id AS group_id
+    FROM "provider_attempts"
     WHERE "request_id" IS NULL AND id > $1 AND id <= $2
       AND timestamp < $3
+      AND autofix_group_id IS NOT NULL
+      AND autofix_role IS NULL
+  ), autofix_group_stats AS MATERIALIZED (
+    SELECT target.tenant_key,
+           target.agent_key,
+           target.group_id,
+           count(*)::int AS attempt_count,
+           count(*) FILTER (
+             WHERE other.status = 'auto_fixed' AND COALESCE(other.superseded, false)
+           )::int AS original_count
+    FROM target_autofix_groups target
+    JOIN "provider_attempts" other
+      ON COALESCE(other.tenant_id, '') = target.tenant_key
+     AND COALESCE(other.agent_id, '') = target.agent_key
+     AND other.autofix_group_id = target.group_id
+    GROUP BY target.tenant_key, target.agent_key, target.group_id
+  ), batch AS (
+    SELECT pa.id,
+           ${LEGACY_REQUEST_ID} AS legacy_request_id,
+           CASE
+             WHEN pa.autofix_group_id IS NOT NULL THEN CASE
+               WHEN pa.autofix_role = 'original' THEN 1
+               WHEN pa.autofix_role = 'retry' THEN 2
+               WHEN stats.attempt_count = 2 AND stats.original_count = 1 THEN CASE
+                 WHEN pa.status = 'auto_fixed' AND COALESCE(pa.superseded, false) THEN 1
+                 ELSE 2
+               END
+               ELSE NULL
+             END
+             WHEN pa.trace_id IS NULL THEN 1
+             ELSE NULL
+           END AS attempt_number
+    FROM "provider_attempts" pa
+    LEFT JOIN autofix_group_stats stats
+      ON stats.tenant_key = COALESCE(pa.tenant_id, '')
+     AND stats.agent_key = COALESCE(pa.agent_id, '')
+     AND stats.group_id = pa.autofix_group_id
+    WHERE pa."request_id" IS NULL AND pa.id > $1 AND pa.id <= $2
+      AND pa.timestamp < $3
+  ), updated AS (
+    UPDATE "provider_attempts" pa
+    SET "request_id" = batch.legacy_request_id,
+        "attempt_number" = batch.attempt_number
+    FROM batch
+    WHERE pa.id = batch.id AND pa."request_id" IS NULL
     RETURNING 1
   )
   SELECT count(*)::int AS n FROM updated
