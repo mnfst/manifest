@@ -292,9 +292,11 @@ export class AutofixStatsService {
       fallback_saves: Number(r.fallback_saves),
       succeeded: Number(r.succeeded),
     }));
-    // #2511: volume columns become request-level (terminal attribution).
+    // #2511: every column reads the request-level reducer (one definition):
+    // volume from the terminal attribution, recovery from autofix_status.
     const volume = await this.requestVolume.getVolumeByDimension('agent_name', params);
-    return this.mergeVolume(
+    const byKey = new Map(volume.map((v) => [v.key, v]));
+    const merged = this.mergeVolume(
       mapped,
       volume,
       (r) => r.agent_name,
@@ -302,11 +304,16 @@ export class AutofixStatsService {
         agent_name: v.key,
         requests: v.requests,
         failed: v.failed,
-        autofixed: 0,
-        fallback_saves: 0,
+        autofixed: v.healed,
+        fallback_saves: v.fallback,
         succeeded: v.succeeded,
       }),
     );
+    return merged.map((row) => {
+      const vol = byKey.get(row.agent_name);
+      if (!vol) return row;
+      return { ...row, autofixed: vol.healed, fallback_saves: vol.fallback };
+    });
   }
 
   /**
@@ -461,63 +468,32 @@ export class AutofixStatsService {
     return { range, by, keys, buckets };
   }
 
+  /**
+   * KPI window counts, read from the SAME request-level reducer as the
+   * By request status chart (one request, one disposition; Recovered by
+   * Auto-fix = requests.autofix_status = 'retry_succeeded'). One definition,
+   * every surface.
+   */
   private async queryWindow(
     from: string,
     to: string,
     tenantId: string | null,
     agentName?: string,
   ): Promise<WindowCounts> {
-    // Exclude autofix_role='retry' rows so each client request counts once.
-    // A healed flow = one 'original' row + one 'retry' row; we count from
-    // the original and check if a successful retry sibling exists.
-    // Query only total, successes, and saves from SQL.
-    // Derive errors = total - successes (guarantees they sum correctly).
-    const qb = this.messageRepo
-      .createQueryBuilder('at')
-      .select('COUNT(*)', 'total')
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status NOT IN ('error','fallback_error','rate_limited')
-          AND (at.status != 'auto_fixed' OR at.autofix_group_id IN (
-            SELECT sib.autofix_group_id FROM provider_attempts sib
-            WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-              AND sib.tenant_id = at.tenant_id
-          )))`,
-        'successes',
-      )
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status = 'auto_fixed' AND at.autofix_group_id IN (
-          SELECT sib.autofix_group_id FROM provider_attempts sib
-          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-            AND sib.tenant_id = at.tenant_id
-        ))`,
-        'saves',
-      )
-      .addSelect(
-        // Additive: a successful fallback attempt = one request recovered by
-        // fallback (the failed primary is a separate, superseded row).
-        `COUNT(*) FILTER (WHERE at.status = 'ok' AND at.fallback_from_model IS NOT NULL)`,
-        'fallback_saves',
-      )
-      .where('at.timestamp >= :from', { from })
-      .andWhere('at.timestamp < :to', { to })
-      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')");
-    addTenantFilter(qb, tenantId, agentName);
-    excludePlaygroundAgents(qb);
-
-    const row = await qb.getRawOne<Record<string, string>>();
-    const total = Number(row?.total ?? 0);
-    const successes = Number(row?.successes ?? 0);
-    const saves = Number(row?.saves ?? 0);
-    const fallbackSaves = Number(row?.fallback_saves ?? 0);
-    const errors = total - successes;
+    const t = await this.requestVolume.getDispositionTotals({
+      tenantId,
+      from,
+      to,
+      agentName,
+    });
     return {
-      total,
-      successes,
-      saves,
-      fallback_saves: fallbackSaves,
-      errors,
-      healed: saves,
-      no_fix_found: errors - saves,
+      total: t.total,
+      successes: t.success + t.healed + t.fallback,
+      saves: t.healed,
+      fallback_saves: t.fallback,
+      errors: t.error,
+      healed: t.healed,
+      no_fix_found: t.error,
       resolving: 0,
       ineffective: 0,
     };

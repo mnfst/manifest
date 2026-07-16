@@ -34,6 +34,9 @@ describe('AutofixStatsService', () => {
   const messageRepo = { createQueryBuilder: jest.fn() };
   const requestVolume = {
     getDispositionTimeseries: jest.fn().mockResolvedValue([]),
+    getDispositionTotals: jest
+      .fn()
+      .mockResolvedValue({ total: 0, success: 0, healed: 0, fallback: 0, error: 0 }),
     getVolumeByDimension: jest.fn().mockResolvedValue([]),
     getVolumeByProviderTimeseries: jest.fn().mockResolvedValue([]),
     getVolumeByAgentTimeseries: jest.fn().mockResolvedValue([]),
@@ -43,6 +46,13 @@ describe('AutofixStatsService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     requestVolume.getDispositionTimeseries.mockResolvedValue([]);
+    requestVolume.getDispositionTotals.mockResolvedValue({
+      total: 0,
+      success: 0,
+      healed: 0,
+      fallback: 0,
+      error: 0,
+    });
     requestVolume.getVolumeByDimension.mockResolvedValue([]);
     service = new AutofixStatsService(
       agentRepo as never,
@@ -228,7 +238,7 @@ describe('AutofixStatsService', () => {
     },
   );
 
-  it('derives coherent window counts from query results and zero defaults', async () => {
+  it('derives window counts from the request-level disposition totals', async () => {
     const internals = service as unknown as {
       queryWindow: (
         from: string,
@@ -237,38 +247,33 @@ describe('AutofixStatsService', () => {
         agentName?: string,
       ) => Promise<unknown>;
     };
-    const qb = queryBuilder();
-    qb.getRawOne.mockResolvedValue({ total: '7', successes: '5', saves: '1', fallback_saves: '2' });
-    messageRepo.createQueryBuilder.mockReturnValueOnce(qb);
+    // ONE definition: the KPI window reads the same reducer as the chart.
+    requestVolume.getDispositionTotals.mockResolvedValue({
+      total: 100,
+      success: 70,
+      healed: 4,
+      fallback: 6,
+      error: 20,
+    });
     await expect(internals.queryWindow('from', 'to', 'tenant', 'demo')).resolves.toEqual({
-      total: 7,
-      successes: 5,
-      saves: 1,
-      fallback_saves: 2,
-      errors: 2,
-      healed: 1,
-      no_fix_found: 1,
+      total: 100,
+      successes: 80, // success + recovered by Auto-fix + recovered by fallback
+      saves: 4, // autofix_status = retry_succeeded
+      fallback_saves: 6,
+      errors: 20,
+      healed: 4,
+      no_fix_found: 20,
       resolving: 0,
       ineffective: 0,
     });
-
-    const emptyQb = queryBuilder();
-    emptyQb.getRawOne.mockResolvedValue(undefined);
-    messageRepo.createQueryBuilder.mockReturnValueOnce(emptyQb);
-    await expect(internals.queryWindow('from', 'to', null)).resolves.toEqual({
-      total: 0,
-      successes: 0,
-      saves: 0,
-      fallback_saves: 0,
-      errors: 0,
-      healed: 0,
-      no_fix_found: 0,
-      resolving: 0,
-      ineffective: 0,
+    expect(requestVolume.getDispositionTotals).toHaveBeenCalledWith({
+      tenantId: 'tenant',
+      from: 'from',
+      to: 'to',
+      agentName: 'demo',
     });
-    const aggregateSql = qb.addSelect.mock.calls.flat().join(' ');
-    expect(aggregateSql).toContain('FROM provider_attempts sib');
-    expect(aggregateSql).not.toContain('FROM agent_messages sib');
+    // No attempt-table scan and no sibling join anymore.
+    expect(messageRepo.createQueryBuilder).not.toHaveBeenCalled();
   });
 
   it('maps needs-attention failures and defaults nullable fields', async () => {

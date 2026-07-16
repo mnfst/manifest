@@ -70,6 +70,10 @@ export interface DimensionVolumeRow {
   requests: number;
   failed: number;
   succeeded: number;
+  /** Requests recovered by Auto-fix (autofix_status = retry_succeeded). */
+  healed: number;
+  /** Requests recovered by fallback (terminal ok attempt with a fallback origin). */
+  fallback: number;
 }
 
 @Injectable()
@@ -85,18 +89,21 @@ export class RequestVolumeService {
    * (only when scoped). In-flight requests (`pending`) are excluded — they
    * have no outcome to chart yet.
    */
-  private terminalCte(agentName?: string): string {
+  private terminalCte(agentName?: string, hasTo = false): string {
+    const agentIdx = hasTo ? 4 : 3;
+    const toR = hasTo ? 'AND r.timestamp < $3' : '';
+    const toPa = hasTo ? 'AND pa.timestamp < $3' : '';
     const agentPredicateR = agentName
       ? `AND r.agent_id = (
            SELECT id FROM agents
-           WHERE tenant_id = $1 AND name = $3 AND deleted_at IS NULL
+           WHERE tenant_id = $1 AND name = $${agentIdx} AND deleted_at IS NULL
            LIMIT 1
          )`
       : '';
     const agentPredicatePa = agentName
       ? `AND pa.agent_id = (
            SELECT id FROM agents
-           WHERE tenant_id = $1 AND name = $3 AND deleted_at IS NULL
+           WHERE tenant_id = $1 AND name = $${agentIdx} AND deleted_at IS NULL
            LIMIT 1
          )`
       : '';
@@ -118,6 +125,7 @@ export class RequestVolumeService {
         LEFT JOIN provider_attempts pa ON pa.request_id = r.id
         WHERE r.tenant_id = $1
           AND r.timestamp >= $2
+          ${toR}
           AND r.status <> 'pending'
           ${agentPredicateR}
           AND ${sqlExcludePlayground('r')}
@@ -147,6 +155,7 @@ export class RequestVolumeService {
         WHERE pa.request_id IS NULL
           AND pa.tenant_id = $1
           AND pa.timestamp >= $2
+          ${toPa}
           ${agentPredicatePa}
           AND ${sqlExcludePlayground('pa')}
       )
@@ -184,6 +193,42 @@ export class RequestVolumeService {
       }
     }
     return clauses.length ? `AND ${clauses.join(' AND ')}` : '';
+  }
+
+  /**
+   * Request-level disposition totals over an explicit [from, to) window: the
+   * SINGLE definition behind the KPI cards, the Recovered tab count and the
+   * By request status chart. One request, one disposition.
+   */
+  async getDispositionTotals(params: {
+    tenantId: string | null;
+    from: string;
+    to?: string;
+    agentName?: string;
+  }): Promise<{ total: number; success: number; healed: number; fallback: number; error: number }> {
+    const empty = { total: 0, success: 0, healed: 0, fallback: 0, error: 0 };
+    if (!params.tenantId) return empty;
+    const sqlParams: unknown[] = [params.tenantId, params.from];
+    if (params.to) sqlParams.push(params.to);
+    if (params.agentName) sqlParams.push(params.agentName);
+    const sql = `${this.terminalCte(params.agentName, !!params.to)}
+      SELECT ${DISPOSITION_EXPR} AS dim, COUNT(*)::int AS count
+      FROM terminal t
+      GROUP BY 1`;
+    const rows = (await this.messageRepo.query(sql, sqlParams)) as Array<{
+      dim: string;
+      count: number;
+    }>;
+    const totals = { ...empty };
+    for (const r of rows) {
+      const n = Number(r.count);
+      totals.total += n;
+      if (r.dim === 'success') totals.success += n;
+      else if (r.dim === 'healed') totals.healed += n;
+      else if (r.dim === 'fallback') totals.fallback += n;
+      else totals.error += n;
+    }
+    return totals;
   }
 
   /**
@@ -256,19 +301,30 @@ export class RequestVolumeService {
       SELECT ${keyExpr} AS key,
         COUNT(*)::int AS requests,
         COUNT(*) FILTER (WHERE t.request_status <> 'ok')::int AS failed,
-        COUNT(*) FILTER (WHERE t.request_status = 'ok')::int AS succeeded
+        COUNT(*) FILTER (WHERE t.request_status = 'ok')::int AS succeeded,
+        COUNT(*) FILTER (WHERE ${DISPOSITION_EXPR} = 'healed')::int AS healed,
+        COUNT(*) FILTER (WHERE ${DISPOSITION_EXPR} = 'fallback')::int AS fallback
       FROM terminal t
       WHERE ${dim === 'provider' ? 't.provider' : `t.${dim}`} IS NOT NULL
       GROUP BY 1`;
     const rows = (await this.messageRepo.query(
       sql,
       this.params(params.tenantId, range, params.agentName),
-    )) as Array<{ key: string; requests: number; failed: number; succeeded: number }>;
+    )) as Array<{
+      key: string;
+      requests: number;
+      failed: number;
+      succeeded: number;
+      healed: number;
+      fallback: number;
+    }>;
     return rows.map((r) => ({
       key: r.key,
       requests: Number(r.requests),
       failed: Number(r.failed),
       succeeded: Number(r.succeeded),
+      healed: Number(r.healed),
+      fallback: Number(r.fallback),
     }));
   }
 }
