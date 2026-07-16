@@ -72,7 +72,7 @@ const mockPerProviderCosts = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockGetAutofixStats = vi.fn();
 let mockAutofixEligible = false;
 vi.mock('../../src/services/api/analytics.js', () => ({
-  HEALED_REQUESTS_TOOLTIP: 'Successful requests that were healed by Auto-fix or fallback.',
+  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
   REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
   TOTAL_ATTEMPTS_TOOLTIP: 'Every provider call counts here, including fallback attempts and auto-fix retries. One request can produce several attempts.',
   ATTEMPT_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts, on the filtered period.',
@@ -492,7 +492,7 @@ describe('Overview', () => {
       const clickable = container.querySelectorAll('.chart-card__stat--clickable');
       expect(clickable.length).toBe(3);
     });
-    expect(screen.queryByText('Healed requests')).toBeNull();
+    expect(screen.queryByText('Recovered requests')).toBeNull();
   });
 
   it('hides the self-healed tab and KPI cards for non-cohort tenants', async () => {
@@ -502,7 +502,7 @@ describe('Overview', () => {
     await vi.waitFor(() => {
       expect(screen.getAllByText('Requests').length).toBeGreaterThan(0);
     });
-    expect(screen.queryByText('Healed requests')).toBeNull();
+    expect(screen.queryByText('Recovered requests')).toBeNull();
     expect(screen.queryByText('Success rate')).toBeNull();
     expect(mockGetAutofixStats).not.toHaveBeenCalled();
   });
@@ -517,9 +517,9 @@ describe('Overview', () => {
     });
     expect(mockGetAutofixStats).toHaveBeenCalledWith('30d', 'test-agent');
     // Tab + KPI cards share the label; both surfaces are present.
-    expect(screen.getAllByText('Healed requests').length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText('Healed via Auto-fix')).toBeDefined();
-    expect(screen.getByText('Healed via Fallback')).toBeDefined();
+    expect(screen.getAllByText('Recovered requests').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText('Recovered by Auto-fix')).toBeDefined();
+    expect(screen.getByText('Recovered by Fallback')).toBeDefined();
   });
 
   it('switches chart view when stat header clicked', async () => {

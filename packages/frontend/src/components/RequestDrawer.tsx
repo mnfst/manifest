@@ -490,8 +490,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: 8px;">
-                                    This is the healed retry. The request was auto-fixed and
-                                    re-sent.
+                                    This retry recovered the request. It was auto-fixed and re-sent.
                                   </div>
                                   <Show when={att().autofix_decision?.explanation?.summary}>
                                     <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">

@@ -76,7 +76,7 @@ vi.mock('../../src/services/api/routing.js', () => ({
 }));
 
 vi.mock('../../src/services/api/analytics.js', () => ({
-  HEALED_REQUESTS_TOOLTIP: 'Successful requests that were healed by Auto-fix or fallback.',
+  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
   REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
   TOTAL_ATTEMPTS_TOOLTIP: 'Every provider call counts here, including fallback attempts and auto-fix retries. One request can produce several attempts.',
   ATTEMPT_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts, on the filtered period.',
@@ -1036,7 +1036,7 @@ describe('ConnectionDetail (analytics)', () => {
       expect(card?.textContent).toContain('75.0%');
     });
     // The four request-world KPI cards are gone from this page.
-    expect(screen.queryByText('Healed via Auto-fix')).toBeNull();
+    expect(screen.queryByText('Recovered by Auto-fix')).toBeNull();
   });
 
   it('opens the inline manage modal from the connection detail', async () => {

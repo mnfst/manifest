@@ -70,7 +70,7 @@ vi.mock('../../src/services/sse.js', () => ({
 }));
 
 vi.mock('../../src/services/api/analytics.js', () => ({
-  HEALED_REQUESTS_TOOLTIP: 'Successful requests that were healed by Auto-fix or fallback.',
+  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
   REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
   getErrorBreakdown: (...args: unknown[]) => mockGetErrorBreakdown(...args),
 }));
@@ -130,7 +130,7 @@ describe('analytics chart surface components', () => {
 
     expect(
       screen
-        .getAllByText('Healed requests')[0]!
+        .getAllByText('Recovered requests')[0]!
         .closest('button')
         ?.classList.contains('chart-card__stat--active'),
     ).toBe(true);
@@ -141,8 +141,8 @@ describe('analytics chart surface components', () => {
     await buildLazyChart();
     // Stacked series are reversed (top-of-stack first).
     const labels = capturedChartOpts.series.slice(1).map((s: { label: string }) => s.label);
-    expect(labels).toContain('Success - healed via Auto-fix');
-    expect(labels).toContain('Success - healed via Fallback');
+    expect(labels).toContain('Success - recovered by Auto-fix');
+    expect(labels).toContain('Success - recovered by Fallback');
     unmount();
   });
 
@@ -192,7 +192,7 @@ describe('analytics chart surface components', () => {
         range="24h"
       />
     ));
-    expect(screen.getByText('No healed requests in this time range')).toBeDefined();
+    expect(screen.getByText('No recovered requests in this time range')).toBeDefined();
     unmount();
 
     // Without a timeseries the tab itself is not rendered (ineligible tenants).
@@ -207,7 +207,7 @@ describe('analytics chart surface components', () => {
         range="24h"
       />
     ));
-    expect(screen.queryByText('Healed requests')).toBeNull();
+    expect(screen.queryByText('Recovered requests')).toBeNull();
     noTab.unmount();
   });
 
@@ -232,8 +232,8 @@ describe('analytics chart surface components', () => {
     );
     expect(legend).toEqual([
       'Success',
-      'Success - healed via Auto-fix',
-      'Success - healed via Fallback',
+      'Success - recovered by Auto-fix',
+      'Success - recovered by Fallback',
       'Error',
     ]);
 
@@ -285,8 +285,8 @@ describe('analytics chart surface components', () => {
     }));
     expect(rows).toEqual([
       { label: 'Success', value: '1' },
-      { label: 'Success - healed via Auto-fix', value: '2' },
-      { label: 'Success - healed via Fallback', value: '3' },
+      { label: 'Success - recovered by Auto-fix', value: '2' },
+      { label: 'Success - recovered by Fallback', value: '3' },
       { label: 'Error', value: '4' },
     ]);
     expect(container.querySelector('.agent-chart-tooltip__total-value')?.textContent).toBe('10');
@@ -330,11 +330,11 @@ describe('analytics chart surface components', () => {
     expect(screen.getByText('Success rate')).toBeDefined();
     expect(screen.getByText('80.0%')).toBeDefined();
     // Self-healed share = (5 + 3) / 100.
-    expect(screen.getByText('Healed requests')).toBeDefined();
+    expect(screen.getByText('Recovered requests')).toBeDefined();
     expect(screen.getByText('8.0%')).toBeDefined();
-    expect(screen.getByText('Healed via Auto-fix')).toBeDefined();
+    expect(screen.getByText('Recovered by Auto-fix')).toBeDefined();
     expect(screen.getByText('5')).toBeDefined();
-    expect(screen.getByText('Healed via Fallback')).toBeDefined();
+    expect(screen.getByText('Recovered by Fallback')).toBeDefined();
     expect(screen.getByText('3')).toBeDefined();
     unmount();
 

@@ -2,7 +2,7 @@ import { Show, type Component } from 'solid-js';
 import InfoTooltip from './InfoTooltip.jsx';
 import { formatNumber } from '../services/formatters.js';
 import {
-  HEALED_REQUESTS_TOOLTIP,
+  RECOVERED_REQUESTS_TOOLTIP,
   REQUEST_SUCCESS_RATE_TOOLTIP,
   type AutofixStats,
 } from '../services/api/analytics.js';
@@ -74,8 +74,8 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
           </div>
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">
-              Healed requests
-              <InfoTooltip text={HEALED_REQUESTS_TOOLTIP} />
+              Recovered requests
+              <InfoTooltip text={RECOVERED_REQUESTS_TOOLTIP} />
             </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{fmtPct(selfHealedPct())}</span>
@@ -83,14 +83,14 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Healed via Auto-fix</span>
+            <span class="overview-stat-card__label">Recovered by Auto-fix</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{formatNumber(s().autofix_saves.value)}</span>
               {trendBadge(s().autofix_saves.value, s().autofix_saves.previous)}
             </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Healed via Fallback</span>
+            <span class="overview-stat-card__label">Recovered by Fallback</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">
                 {formatNumber(s().fallback_saves?.value ?? 0)}

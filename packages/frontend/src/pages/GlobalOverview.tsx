@@ -1062,7 +1062,7 @@ const GlobalOverview: Component = () => {
                   <th>Usage (30d)</th>
                   <th class="rel-col">Total requests</th>
                   <Show when={autofixEligible()}>
-                    <th class="rel-col">Healed requests</th>
+                    <th class="rel-col">Recovered requests</th>
                     <th class="rel-col">Success rate</th>
                   </Show>
                 </tr>

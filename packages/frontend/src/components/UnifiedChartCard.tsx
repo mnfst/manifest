@@ -1,7 +1,7 @@
 import { Show, Suspense, lazy, type Component, type JSX } from 'solid-js';
 import InfoTooltip from './InfoTooltip.jsx';
 import { formatNumber, formatCost } from '../services/formatters.js';
-import { HEALED_REQUESTS_TOOLTIP, type AutofixTimeseries } from '../services/api/analytics.js';
+import { RECOVERED_REQUESTS_TOOLTIP, type AutofixTimeseries } from '../services/api/analytics.js';
 
 const MultiAgentTokenChart = lazy(() => import('./MultiAgentTokenChart.jsx'));
 const ReliabilityChart = lazy(() => import('./ReliabilityChart.jsx'));
@@ -74,7 +74,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
       case 'requests':
         return props.requestsLabel ?? 'Requests';
       case 'selfheal':
-        return 'Healed requests';
+        return 'Recovered requests';
       case 'cost':
         return 'Cost';
       case 'tokens':
@@ -111,8 +111,8 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
             onClick={() => props.onTabChange('selfheal')}
           >
             <span class="chart-card__label">
-              Healed requests
-              <InfoTooltip text={HEALED_REQUESTS_TOOLTIP} />
+              Recovered requests
+              <InfoTooltip text={RECOVERED_REQUESTS_TOOLTIP} />
             </span>
             <div class="chart-card__value-row">
               <span class="chart-card__value">{formatNumber(props.selfHealedValue ?? 0)}</span>
@@ -199,7 +199,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
           <Show when={props.activeTab === 'selfheal'}>
             <Show
               when={props.selfHealedTimeseries && props.selfHealedTimeseries.buckets.length > 0}
-              fallback={EMPTY('No healed requests in this time range')}
+              fallback={EMPTY('No recovered requests in this time range')}
             >
               <ReliabilityChart
                 timeseries={props.selfHealedTimeseries!}
