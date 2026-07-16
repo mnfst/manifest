@@ -1112,11 +1112,11 @@ const GlobalOverview: Component = () => {
                   </th>
                   <Show when={autofixEligible()}>
                     <th class="rel-col">Recovered requests</th>
-                    <th class="rel-col">
-                      Success rate
-                      <InfoTooltip text={HARNESS_SUCCESS_RATE_TOOLTIP} />
-                    </th>
                   </Show>
+                  <th class="rel-col">
+                    Success rate
+                    <InfoTooltip text={HARNESS_SUCCESS_RATE_TOOLTIP} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -1175,19 +1175,21 @@ const GlobalOverview: Component = () => {
                           const rel = () =>
                             agentReliability()?.find((r) => r.agent_name === agent.agent_name);
                           return (
-                            <Show when={autofixEligible()}>
-                              <td class="rel-col">
-                                <Show when={rel()} fallback="—">
-                                  {formatNumber(selfHealedCount(rel()!))}
-                                </Show>
-                              </td>
+                            <>
+                              <Show when={autofixEligible()}>
+                                <td class="rel-col">
+                                  <Show when={rel()} fallback="—">
+                                    {formatNumber(selfHealedCount(rel()!))}
+                                  </Show>
+                                </td>
+                              </Show>
                               <td class="rel-col">
                                 {(() => {
                                   const rate = rel() ? successRate(rel()!) : null;
                                   return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
                                 })()}
                               </td>
-                            </Show>
+                            </>
                           );
                         })()}
                       </tr>
