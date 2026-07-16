@@ -31,6 +31,7 @@ import {
   formatNumber,
   formatTimeAgo,
 } from '../../services/formatters.js';
+import InfoTooltip from '../../components/InfoTooltip.jsx';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
 import { toast } from '../../services/toast-store.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
@@ -38,8 +39,9 @@ import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
 import {
   getPerProviderReliability,
-  selfHealedCount,
-  successRate,
+  attemptSuccessRate,
+  TOTAL_ATTEMPTS_TOOLTIP,
+  ATTEMPT_SUCCESS_RATE_TOOLTIP,
 } from '../../services/api/analytics.js';
 import { getAutofixCohort } from '../../services/api/autofix.js';
 import '../../styles/routing.css';
@@ -414,15 +416,20 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const totalRequests = createMemo(() =>
     connectedSummaries().reduce((sum, summary) => sum + summary.consumption_messages, 0),
   );
-  const totalAutofixed = createMemo(() =>
-    (providerReliability() ?? [])
-      .filter((r) =>
-        connectedSummaries().some((s) => {
-          const pKey = s.provider.startsWith('custom:') ? 'custom' : s.provider;
-          return pKey === r.provider;
-        }),
-      )
-      .reduce((sum, r) => sum + selfHealedCount(r), 0),
+  // Attempt-world totals for the header cards: every provider call counts.
+  const scopedReliability = createMemo(() =>
+    (providerReliability() ?? []).filter((r) =>
+      connectedSummaries().some((s) => {
+        const pKey = s.provider.startsWith('custom:') ? 'custom' : s.provider;
+        return pKey === r.provider;
+      }),
+    ),
+  );
+  const totalAttempts = createMemo(() =>
+    scopedReliability().reduce((sum, r) => sum + r.attempts, 0),
+  );
+  const totalAttemptsSucceeded = createMemo(() =>
+    scopedReliability().reduce((sum, r) => sum + r.succeeded, 0),
   );
 
   const connectionDenominator = (summary: TenantProviderSummary) =>
@@ -544,19 +551,31 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
             </div>
           </Show>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Total requests (30d)</span>
+            <span class="overview-stat-card__label">
+              Total attempts (30d)
+              <InfoTooltip text={TOTAL_ATTEMPTS_TOOLTIP} />
+            </span>
             <div class="overview-stat-card__value-row">
-              <span class="overview-stat-card__value">{formatNumber(totalRequests())}</span>
+              <span class="overview-stat-card__value">{formatNumber(totalAttempts())}</span>
             </div>
           </div>
-          <Show when={autofixEligible()}>
-            <div class="overview-stat-card">
-              <span class="overview-stat-card__label">Self-healed requests (30d)</span>
-              <div class="overview-stat-card__value-row">
-                <span class="overview-stat-card__value">{formatNumber(totalAutofixed())}</span>
-              </div>
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">
+              Success rate (30d)
+              <InfoTooltip text={ATTEMPT_SUCCESS_RATE_TOOLTIP} />
+            </span>
+            <div class="overview-stat-card__value-row">
+              <span class="overview-stat-card__value">
+                {(() => {
+                  const rate = attemptSuccessRate({
+                    attempts: totalAttempts(),
+                    succeeded: totalAttemptsSucceeded(),
+                  });
+                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                })()}
+              </span>
             </div>
-          </Show>
+          </div>
         </div>
       </Show>
 
@@ -575,11 +594,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                 <Show when={copy().rowMetricHeading}>
                   <th>{copy().rowMetricHeading}</th>
                 </Show>
-                <th class="rel-col">Total requests (30d)</th>
-                <Show when={autofixEligible()}>
-                  <th class="rel-col">Healed (30d)</th>
-                  <th class="rel-col">Success rate (30d)</th>
-                </Show>
+                <th class="rel-col">
+                  Total attempts (30d)
+                  <InfoTooltip text={TOTAL_ATTEMPTS_TOOLTIP} />
+                </th>
+                <th class="rel-col">Success rate (30d)</th>
                 <th>Last used</th>
                 <th />
               </tr>
@@ -720,18 +739,13 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       const rel = () => providerReliability()?.find((r) => r.provider === pKey);
                       return (
                         <>
-                          <td class="rel-col">{formatNumber(row.summary.consumption_messages)}</td>
-                          <Show when={autofixEligible()}>
-                            <td class="rel-col">
-                              {rel() ? formatNumber(selfHealedCount(rel()!)) : '—'}
-                            </td>
-                            <td class="rel-col">
-                              {(() => {
-                                const rate = rel() ? successRate(rel()!) : null;
-                                return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
-                              })()}
-                            </td>
-                          </Show>
+                          <td class="rel-col">{rel() ? formatNumber(rel()!.attempts) : '—'}</td>
+                          <td class="rel-col">
+                            {(() => {
+                              const rate = rel() ? attemptSuccessRate(rel()!) : null;
+                              return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                            })()}
+                          </td>
                         </>
                       );
                     })()}

@@ -129,17 +129,12 @@ describe('AutofixStatsService', () => {
     });
   });
 
-  it('maps per-provider and per-agent reliability rows', async () => {
+  it('maps per-provider, per-agent and per-model reliability rows', async () => {
+    // Provider and model tables live in the ATTEMPT world: every provider
+    // call counts by its own outcome, no retry exclusion, no healing fields.
     const providerQb = queryBuilder();
     providerQb.getRawMany.mockResolvedValue([
-      {
-        provider: 'openai',
-        requests: '10',
-        failed: '3',
-        autofixed: '2',
-        fallback_saves: '1',
-        succeeded: '8',
-      },
+      { provider: 'openai', attempts: '12', failed: '3', succeeded: '9' },
     ]);
     const agentQb = queryBuilder();
     agentQb.getRawMany.mockResolvedValue([
@@ -156,45 +151,28 @@ describe('AutofixStatsService', () => {
 
     await expect(
       service.getPerProviderStats({ tenantId: 'tenant', agentName: 'demo' }),
-    ).resolves.toEqual([
-      {
-        provider: 'openai',
-        requests: 10,
-        failed: 3,
-        autofixed: 2,
-        fallback_saves: 1,
-        succeeded: 8,
-      },
-    ]);
+    ).resolves.toEqual([{ provider: 'openai', attempts: 12, failed: 3, succeeded: 9 }]);
+    const providerSql = providerQb.addSelect.mock.calls.flat().join(' ');
+    // A NULL legacy status reads as success; failures are non-ok statuses.
+    expect(providerSql).toContain("at.status = 'ok' OR at.status IS NULL");
+    // No retry exclusion: an auto-fix retry is a real provider call here.
+    expect(providerQb.andWhere.mock.calls.flat()).not.toContain(
+      "(at.autofix_role IS NULL OR at.autofix_role != 'retry')",
+    );
+
+    // The harness table stays in the REQUEST world (unchanged shape).
     await expect(service.getPerAgentStats({ tenantId: 'tenant' })).resolves.toEqual([
       { agent_name: 'demo', requests: 8, failed: 2, autofixed: 1, fallback_saves: 2, succeeded: 7 },
     ]);
 
     const modelQb = queryBuilder();
     modelQb.getRawMany.mockResolvedValue([
-      {
-        model: 'gpt-4o',
-        requests: '6',
-        failed: '1',
-        autofixed: '1',
-        fallback_saves: '1',
-        succeeded: '5',
-      },
+      { model: 'gpt-4o', attempts: '6', failed: '1', succeeded: '5' },
     ]);
     messageRepo.createQueryBuilder.mockReturnValueOnce(modelQb);
     await expect(
       service.getPerModelStats({ tenantId: 'tenant', agentName: 'demo' }),
-    ).resolves.toEqual([
-      { model: 'gpt-4o', requests: 6, failed: 1, autofixed: 1, fallback_saves: 1, succeeded: 5 },
-    ]);
-    const modelSql = modelQb.addSelect.mock.calls.flat().join(' ');
-    expect(modelSql).toContain('fallback_saves');
-    expect(modelSql).toContain('succeeded');
-    for (const qb of [providerQb, agentQb]) {
-      const aggregateSql = qb.addSelect.mock.calls.flat().join(' ');
-      expect(aggregateSql).toContain('FROM provider_attempts sib');
-      expect(aggregateSql).not.toContain('FROM agent_messages sib');
-    }
+    ).resolves.toEqual([{ model: 'gpt-4o', attempts: 6, failed: 1, succeeded: 5 }]);
   });
 
   it('builds hourly failed-only timeseries and preserves disposition order', async () => {

@@ -10,9 +10,10 @@ import {
   stripCustomPrefix,
 } from '../services/routing-utils.js';
 import { PROVIDERS } from '../services/providers.js';
+import InfoTooltip from './InfoTooltip.jsx';
 import {
-  selfHealedCount,
-  successRate,
+  attemptSuccessRate,
+  TOTAL_ATTEMPTS_TOOLTIP,
   type ModelReliabilityRow,
 } from '../services/api/analytics.js';
 
@@ -29,7 +30,7 @@ interface CostByModelRow {
 
 interface CostByModelTableProps {
   rows: CostByModelRow[];
-  /** Per-model reliability (Total requests · Healed · Success rate) — the
+  /** Per-model reliability (Total attempts · Success rate) — the
       three columns render only when provided (autofix-eligible tenants). */
   reliability?: ModelReliabilityRow[];
 }
@@ -73,8 +74,10 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
             <th>Cost</th>
             {props.reliability && (
               <>
-                <th class="rel-col">Total requests</th>
-                <th class="rel-col">Healed</th>
+                <th class="rel-col">
+                  Total attempts
+                  <InfoTooltip text={TOTAL_ATTEMPTS_TOOLTIP} />
+                </th>
                 <th class="rel-col">Success rate</th>
               </>
             )}
@@ -167,19 +170,13 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
                     <td class="rel-col">
                       {(() => {
                         const rel = relFor(row.model);
-                        return rel ? formatNumber(rel.requests) : '\u2014';
+                        return rel ? formatNumber(rel.attempts) : '\u2014';
                       })()}
                     </td>
                     <td class="rel-col">
                       {(() => {
                         const rel = relFor(row.model);
-                        return rel ? formatNumber(selfHealedCount(rel)) : '\u2014';
-                      })()}
-                    </td>
-                    <td class="rel-col">
-                      {(() => {
-                        const rel = relFor(row.model);
-                        const rate = rel ? successRate(rel) : null;
+                        const rate = rel ? attemptSuccessRate(rel) : null;
                         return rate == null ? '\u2014' : `${(rate * 100).toFixed(1)}%`;
                       })()}
                     </td>

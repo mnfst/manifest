@@ -22,6 +22,10 @@ import { render, screen, waitFor } from '@solidjs/testing-library';
 const breakdown = vi.fn();
 vi.mock('../../src/services/api/analytics.js', () => ({
   HEALED_REQUESTS_TOOLTIP: 'Successful requests that were healed by Auto-fix or fallback.',
+  TOTAL_ATTEMPTS_TOOLTIP: 'Every provider call counts here, including fallback attempts and auto-fix retries. One request can produce several attempts.',
+  ATTEMPT_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts, on the filtered period.',
+  attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
+    !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
   getErrorBreakdown: (...args: unknown[]) => breakdown(...args),
 }));
 vi.mock('../../src/services/sse.js', () => ({ messagePing: () => 0 }));

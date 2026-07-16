@@ -35,6 +35,7 @@ import { providerIcon } from '../components/ProviderIcon.jsx';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
+import InfoTooltip from '../components/InfoTooltip.jsx';
 import UnifiedChartCard from '../components/UnifiedChartCard.jsx';
 import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
 
@@ -64,6 +65,8 @@ import {
   getPerModelReliability,
   selfHealedCount,
   successRate,
+  attemptSuccessRate,
+  TOTAL_ATTEMPTS_TOOLTIP,
 } from '../services/api/analytics.js';
 import { getAutofixCohort } from '../services/api/autofix.js';
 
@@ -324,12 +327,12 @@ const GlobalOverview: Component = () => {
   );
 
   const [providerReliability] = createResource(
-    () => (autofixEligible() ? { range: effectiveChartRange(), _ping: messagePing() } : false),
+    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
     (p) => getPerProviderReliability(p.range),
   );
 
   const [modelReliability] = createResource(
-    () => (autofixEligible() ? { range: effectiveChartRange(), _ping: messagePing() } : false),
+    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
     (p) => getPerModelReliability(p.range),
   );
 
@@ -652,6 +655,11 @@ const GlobalOverview: Component = () => {
         {/* ── 2. Unified Chart Card ─────────────────────────────────── */}
         {(() => {
           const o = () => overview()!;
+          // A request can touch several providers, so the Requests tab only
+          // groups by status or harness; usage tabs (tokens/cost) only group
+          // by provider or harness. One stored groupBy, coerced per tab.
+          const requestsGroup = () => (groupBy() === 'agent' ? 'agent' : 'status');
+          const usageGroup = () => (groupBy() === 'provider' ? 'provider' : 'agent');
           return (
             <UnifiedChartCard
               activeTab={chartView()}
@@ -677,37 +685,54 @@ const GlobalOverview: Component = () => {
               tokensValue={o().summary.tokens_today.value}
               tokensTrendPct={o().summary.tokens_today.trend_pct}
               range={effectiveChartRange()}
-              requestStatusTimeseries={groupBy() === 'status' ? requestStatusTs() : undefined}
+              requestStatusTimeseries={requestsGroup() === 'status' ? requestStatusTs() : undefined}
               agentRequestTimeseries={
-                groupBy() !== 'status' ? (filteredAgentMessageTimeseries() ?? undefined) : undefined
+                requestsGroup() === 'agent'
+                  ? (filteredAgentMessageTimeseries() ?? undefined)
+                  : undefined
               }
               agentTimeseries={filteredAgentTimeseries() ?? undefined}
               agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
               colorMap={agentColorMap()}
               seriesFilters={
                 <>
-                  <button
-                    class="chart-card__filter-btn"
-                    classList={{ 'chart-card__filter-btn--active': groupBy() === 'status' }}
-                    onClick={() => setGroupBy('status')}
-                  >
-                    By request status
-                  </button>
-                  <button
-                    class="chart-card__filter-btn"
-                    classList={{ 'chart-card__filter-btn--active': groupBy() === 'provider' }}
-                    onClick={() => setGroupBy('provider')}
-                  >
-                    By provider
-                  </button>
-                  <button
-                    class="chart-card__filter-btn"
-                    classList={{ 'chart-card__filter-btn--active': groupBy() === 'agent' }}
-                    onClick={() => setGroupBy('agent')}
-                  >
-                    By harness
-                  </button>
-                  <Show when={groupBy() !== 'status'}>
+                  <Show when={chartView() === 'requests'}>
+                    <button
+                      class="chart-card__filter-btn"
+                      classList={{
+                        'chart-card__filter-btn--active': requestsGroup() === 'status',
+                      }}
+                      onClick={() => setGroupBy('status')}
+                    >
+                      By request status
+                    </button>
+                    <button
+                      class="chart-card__filter-btn"
+                      classList={{ 'chart-card__filter-btn--active': requestsGroup() === 'agent' }}
+                      onClick={() => setGroupBy('agent')}
+                    >
+                      By harness
+                    </button>
+                  </Show>
+                  <Show when={chartView() !== 'requests'}>
+                    <button
+                      class="chart-card__filter-btn"
+                      classList={{
+                        'chart-card__filter-btn--active': usageGroup() === 'provider',
+                      }}
+                      onClick={() => setGroupBy('provider')}
+                    >
+                      By provider
+                    </button>
+                    <button
+                      class="chart-card__filter-btn"
+                      classList={{ 'chart-card__filter-btn--active': usageGroup() === 'agent' }}
+                      onClick={() => setGroupBy('agent')}
+                    >
+                      By harness
+                    </button>
+                  </Show>
+                  <Show when={chartView() !== 'requests' || requestsGroup() === 'agent'}>
                     <div style="min-width: 140px;">
                       <FilterSelect
                         noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}
@@ -774,11 +799,11 @@ const GlobalOverview: Component = () => {
                   <th style="text-align: right;">Tokens</th>
                   <th style="text-align: right;">Share</th>
                   <th style="text-align: right;">Est. cost</th>
-                  <Show when={autofixEligible()}>
-                    <th class="rel-col">Total requests</th>
-                    <th class="rel-col">Healed</th>
-                    <th class="rel-col">Success rate</th>
-                  </Show>
+                  <th class="rel-col">
+                    Total attempts
+                    <InfoTooltip text={TOTAL_ATTEMPTS_TOOLTIP} />
+                  </th>
+                  <th class="rel-col">Success rate</th>
                 </tr>
               </thead>
               <tbody>
@@ -847,31 +872,24 @@ const GlobalOverview: Component = () => {
                       <td style="text-align: right; font-variant-numeric: tabular-nums;">
                         {formatCost(row.estimated_cost) ?? '$0.00'}
                       </td>
-                      <Show when={autofixEligible()}>
-                        {(() => {
-                          const rel = () => modelReliability()?.find((r) => r.model === row.model);
-                          return (
-                            <>
-                              <td class="rel-col">
-                                <Show when={rel()} fallback="—">
-                                  {formatNumber(rel()!.requests)}
-                                </Show>
-                              </td>
-                              <td class="rel-col">
-                                <Show when={rel()} fallback="—">
-                                  {formatNumber(selfHealedCount(rel()!))}
-                                </Show>
-                              </td>
-                              <td class="rel-col">
-                                {(() => {
-                                  const rate = rel() ? successRate(rel()!) : null;
-                                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
-                                })()}
-                              </td>
-                            </>
-                          );
-                        })()}
-                      </Show>
+                      {(() => {
+                        const rel = () => modelReliability()?.find((r) => r.model === row.model);
+                        return (
+                          <>
+                            <td class="rel-col">
+                              <Show when={rel()} fallback="—">
+                                {formatNumber(rel()!.attempts)}
+                              </Show>
+                            </td>
+                            <td class="rel-col">
+                              {(() => {
+                                const rate = rel() ? attemptSuccessRate(rel()!) : null;
+                                return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                              })()}
+                            </td>
+                          </>
+                        );
+                      })()}
                     </tr>
                   )}
                 </For>
@@ -900,11 +918,11 @@ const GlobalOverview: Component = () => {
                   <th>Provider</th>
                   <th>Type</th>
                   <th>Status</th>
-                  <th class="rel-col">Total requests</th>
-                  <Show when={autofixEligible()}>
-                    <th class="rel-col">Healed</th>
-                    <th class="rel-col">Success rate</th>
-                  </Show>
+                  <th class="rel-col">
+                    Total attempts
+                    <InfoTooltip text={TOTAL_ATTEMPTS_TOOLTIP} />
+                  </th>
+                  <th class="rel-col">Success rate</th>
                 </tr>
               </thead>
               <tbody>
@@ -998,20 +1016,17 @@ const GlobalOverview: Component = () => {
                           const rel = () => providerReliability()?.find((r) => r.provider === pKey);
                           return (
                             <>
-                              <td class="rel-col">{formatNumber(group.consumption_messages)}</td>
-                              <Show when={autofixEligible()}>
-                                <td class="rel-col">
-                                  <Show when={rel()} fallback="—">
-                                    {formatNumber(selfHealedCount(rel()!))}
-                                  </Show>
-                                </td>
-                                <td class="rel-col">
-                                  {(() => {
-                                    const rate = rel() ? successRate(rel()!) : null;
-                                    return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
-                                  })()}
-                                </td>
-                              </Show>
+                              <td class="rel-col">
+                                <Show when={rel()} fallback="—">
+                                  {formatNumber(rel()!.attempts)}
+                                </Show>
+                              </td>
+                              <td class="rel-col">
+                                {(() => {
+                                  const rate = rel() ? attemptSuccessRate(rel()!) : null;
+                                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                                })()}
+                              </td>
                             </>
                           );
                         })()}

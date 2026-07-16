@@ -22,39 +22,24 @@ describe('CostByModelTable', () => {
     expect(headers).toEqual(['Model', 'Tokens', '% of total', 'Cost']);
   });
 
-  it('is titled "Model usage" and adds reliability columns when data is provided', () => {
+  it('is titled "Model usage" and adds attempt reliability columns when data is provided', () => {
     const { container } = render(() => (
       <CostByModelTable
         rows={[row({ model: 'gpt-4o' })]}
-        reliability={[
-          {
-            model: 'gpt-4o',
-            requests: 120,
-            failed: 10,
-            autofixed: 8,
-            fallback_saves: 4,
-            succeeded: 110,
-          },
-        ]}
+        reliability={[{ model: 'gpt-4o', attempts: 120, failed: 10, succeeded: 110 }]}
       />
     ));
     expect(container.textContent).toContain('Model usage');
     const headers = Array.from(container.querySelectorAll('th')).map((h) => h.textContent?.trim());
-    expect(headers).toEqual([
-      'Model',
-      'Tokens',
-      '% of total',
-      'Cost',
-      'Total requests',
-      'Healed',
-      'Success rate',
-    ]);
+    // Attempt world: a model is not healed, it acts. Total attempts counts
+    // every provider call on the model; Success rate is attempt-level.
+    expect(headers).toEqual(['Model', 'Tokens', '% of total', 'Cost', 'Total attempts', 'Success rate']);
     const cells = Array.from(container.querySelectorAll('tbody td')).map((c) =>
       c.textContent?.trim(),
     );
-    expect(cells).toContain('120'); // total requests
-    expect(cells).toContain('12'); // healed = autofixed 8 + fallback 4
-    expect(cells).toContain('91.7%'); // success rate 110/120
+    expect(cells).toContain('120'); // total attempts
+    expect(cells).toContain('91.7%'); // 110 / 120
+    expect(container.textContent).not.toContain('Healed');
   });
 
   it('sorts rows by estimated_cost descending', () => {

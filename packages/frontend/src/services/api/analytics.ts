@@ -280,14 +280,14 @@ export function getAutofixTimeseries(
   }) as Promise<AutofixTimeseries>;
 }
 
+/**
+ * Attempt-world reliability for a provider: every provider call counts where
+ * it ran (retries and fallback attempts included), by its own outcome.
+ */
 export interface ProviderReliabilityRow {
   provider: string;
-  requests: number;
+  attempts: number;
   failed: number;
-  autofixed: number;
-  /** Requests recovered by a successful fallback attempt (additive field). */
-  fallback_saves: number;
-  /** Same success definition as the global Success rate KPI (additive field). */
   succeeded: number;
 }
 
@@ -300,11 +300,23 @@ export function selfHealedCount(row: { autofixed: number; fallback_saves?: numbe
   return row.autofixed + (row.fallback_saves ?? 0);
 }
 
-/** Success rate over the row's window; null when there is no traffic. */
+/** Request success rate over the row's window; null when there is no traffic. */
 export function successRate(row: { requests: number; succeeded?: number }): number | null {
   if (!row.requests || row.succeeded == null) return null;
   return row.succeeded / row.requests;
 }
+
+/** Attempt success rate: successful attempts over all attempts; null when idle. */
+export function attemptSuccessRate(row: { attempts: number; succeeded?: number }): number | null {
+  if (!row.attempts || row.succeeded == null) return null;
+  return row.succeeded / row.attempts;
+}
+
+/** One-line definitions surfaced by the attempt-world ⓘ tooltips. */
+export const TOTAL_ATTEMPTS_TOOLTIP =
+  'Every provider call counts here, including fallback attempts and auto-fix retries. One request can produce several attempts.';
+export const ATTEMPT_SUCCESS_RATE_TOOLTIP =
+  'Successful attempts over all attempts, on the filtered period.';
 
 export function getPerProviderReliability(
   range = '7d',
@@ -331,12 +343,11 @@ export function getPerAgentReliability(range = '7d'): Promise<AgentReliabilityRo
   return fetchJson('/overview/autofix-per-agent', { range }) as Promise<AgentReliabilityRow[]>;
 }
 
+/** Attempt-world reliability for a model: a model is not healed, it acts. */
 export interface ModelReliabilityRow {
   model: string;
-  requests: number;
+  attempts: number;
   failed: number;
-  autofixed: number;
-  fallback_saves: number;
   succeeded: number;
 }
 

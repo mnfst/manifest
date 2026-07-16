@@ -183,6 +183,12 @@ export class AutofixStatsService {
     };
   }
 
+  /**
+   * Attempt-world reliability per provider: every provider call counts where
+   * it ran (retries and fallback attempts included), by its own outcome.
+   * Feeds the Overview provider table and the connection lists. Healing is a
+   * request concept and deliberately absent here.
+   */
   async getPerProviderStats(params: {
     tenantId: string | null;
     range?: string;
@@ -190,10 +196,8 @@ export class AutofixStatsService {
   }): Promise<
     Array<{
       provider: string;
-      requests: number;
+      attempts: number;
       failed: number;
-      autofixed: number;
-      fallback_saves: number;
       succeeded: number;
     }>
   > {
@@ -205,72 +209,26 @@ export class AutofixStatsService {
         "CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END",
         'provider',
       )
-      .addSelect('COUNT(*)', 'requests')
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status IN ('error','fallback_error','rate_limited','auto_fixed'))`,
-        'failed',
-      )
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status = 'auto_fixed' AND at.autofix_group_id IN (
-          SELECT sib.autofix_group_id FROM provider_attempts sib
-          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-            AND sib.tenant_id = at.tenant_id
-        ))`,
-        'autofixed',
-      )
-      .addSelect(
-        // Additive: requests recovered by a successful fallback attempt.
-        `COUNT(*) FILTER (WHERE at.status = 'ok' AND at.fallback_from_model IS NOT NULL)`,
-        'fallback_saves',
-      )
-      .addSelect(
-        // Additive: same success definition as the global queryWindow, so the
-        // per-row Success rate matches the Success rate KPI's semantics.
-        `COUNT(*) FILTER (WHERE at.status NOT IN ('error','fallback_error','rate_limited')
-          AND (at.status != 'auto_fixed' OR at.autofix_group_id IN (
-            SELECT sib.autofix_group_id FROM provider_attempts sib
-            WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-              AND sib.tenant_id = at.tenant_id
-          )))`,
-        'succeeded',
-      )
+      .addSelect('COUNT(*)', 'attempts')
+      .addSelect(`COUNT(*) FILTER (WHERE at.status = 'ok' OR at.status IS NULL)`, 'succeeded')
+      .addSelect(`COUNT(*) FILTER (WHERE at.status IS NOT NULL AND at.status <> 'ok')`, 'failed')
       .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')")
       .groupBy("CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END");
     addTenantFilter(qb, params.tenantId, params.agentName);
     excludePlaygroundAgents(qb);
 
     const rows = await qb.getRawMany<{
       provider: string;
-      requests: string;
+      attempts: string;
       failed: string;
-      autofixed: string;
-      fallback_saves: string;
       succeeded: string;
     }>();
-    const mapped = rows.map((r) => ({
+    return rows.map((r) => ({
       provider: r.provider,
-      requests: Number(r.requests),
+      attempts: Number(r.attempts),
       failed: Number(r.failed),
-      autofixed: Number(r.autofixed),
-      fallback_saves: Number(r.fallback_saves),
       succeeded: Number(r.succeeded),
     }));
-    // #2511: volume columns become request-level (terminal attribution).
-    const volume = await this.requestVolume.getVolumeByDimension('provider', params);
-    return this.mergeVolume(
-      mapped,
-      volume,
-      (r) => r.provider,
-      (v) => ({
-        provider: v.key,
-        requests: v.requests,
-        failed: v.failed,
-        autofixed: 0,
-        fallback_saves: 0,
-        succeeded: v.succeeded,
-      }),
-    );
   }
 
   async getPerAgentStats(params: { tenantId: string | null; range?: string }): Promise<
@@ -355,7 +313,10 @@ export class AutofixStatsService {
     );
   }
 
-  /** Additive: the per-provider reliability breakdown, grouped by model. */
+  /**
+   * Attempt-world reliability per model: total attempts and their outcomes.
+   * A model is not healed; it acts. Feeds the Model usage tables.
+   */
   async getPerModelStats(params: {
     tenantId: string | null;
     range?: string;
@@ -363,10 +324,8 @@ export class AutofixStatsService {
   }): Promise<
     Array<{
       model: string;
-      requests: number;
+      attempts: number;
       failed: number;
-      autofixed: number;
-      fallback_saves: number;
       succeeded: number;
     }>
   > {
@@ -375,34 +334,10 @@ export class AutofixStatsService {
     const qb = this.messageRepo
       .createQueryBuilder('at')
       .select('at.model', 'model')
-      .addSelect('COUNT(*)', 'requests')
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status IN ('error','fallback_error','rate_limited','auto_fixed'))`,
-        'failed',
-      )
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status = 'auto_fixed' AND at.autofix_group_id IN (
-          SELECT sib.autofix_group_id FROM provider_attempts sib
-          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-            AND sib.tenant_id = at.tenant_id
-        ))`,
-        'autofixed',
-      )
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status = 'ok' AND at.fallback_from_model IS NOT NULL)`,
-        'fallback_saves',
-      )
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status NOT IN ('error','fallback_error','rate_limited')
-          AND (at.status != 'auto_fixed' OR at.autofix_group_id IN (
-            SELECT sib.autofix_group_id FROM provider_attempts sib
-            WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-              AND sib.tenant_id = at.tenant_id
-          )))`,
-        'succeeded',
-      )
+      .addSelect('COUNT(*)', 'attempts')
+      .addSelect(`COUNT(*) FILTER (WHERE at.status = 'ok' OR at.status IS NULL)`, 'succeeded')
+      .addSelect(`COUNT(*) FILTER (WHERE at.status IS NOT NULL AND at.status <> 'ok')`, 'failed')
       .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')")
       .andWhere('at.model IS NOT NULL')
       .groupBy('at.model');
     addTenantFilter(qb, params.tenantId, params.agentName);
@@ -410,35 +345,16 @@ export class AutofixStatsService {
 
     const rows = await qb.getRawMany<{
       model: string;
-      requests: string;
+      attempts: string;
       failed: string;
-      autofixed: string;
-      fallback_saves: string;
       succeeded: string;
     }>();
-    const mapped = rows.map((r) => ({
+    return rows.map((r) => ({
       model: r.model,
-      requests: Number(r.requests),
+      attempts: Number(r.attempts),
       failed: Number(r.failed),
-      autofixed: Number(r.autofixed),
-      fallback_saves: Number(r.fallback_saves),
       succeeded: Number(r.succeeded),
     }));
-    // #2511: volume columns become request-level (terminal attribution).
-    const volume = await this.requestVolume.getVolumeByDimension('model', params);
-    return this.mergeVolume(
-      mapped,
-      volume,
-      (r) => r.model,
-      (v) => ({
-        model: v.key,
-        requests: v.requests,
-        failed: v.failed,
-        autofixed: 0,
-        fallback_saves: 0,
-        succeeded: v.succeeded,
-      }),
-    );
   }
 
   async getTimeseries(params: {
