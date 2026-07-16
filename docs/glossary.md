@@ -1,6 +1,6 @@
-# Analytics dashboards: concepts and per-page specification
+# Analytics glossary and metric definitions
 
-This document is the canonical contract for Manifest analytics terminology and dashboard behavior. Schema, API, analytics, and UI code must use these definitions consistently.
+This document is the canonical contract for Manifest analytics terminology and metrics. Schema, API, analytics, and UI code must use these definitions consistently. It defines the concepts and counting rules only; it does not specify page layout or frontend behavior.
 
 ## The two worlds
 
@@ -128,7 +128,7 @@ Dashboard metrics use completed Requests and Attempts within the selected tenant
 | Total Attempts       | Count each completed `provider_attempts.id`; do not deduplicate by Request.                            |
 | Attempt success rate | Attempts with `status = 'success'` divided by completed Attempts.                                      |
 
-Request-level surfaces such as the global Overview, agent Overview, and Requests log count Requests. Provider, Connection, and model surfaces count Attempts. The two totals answer different questions and are not expected to match.
+Request-level surfaces count Requests; Provider-, Connection-, and model-level surfaces count Attempts. The two totals answer different questions and are not expected to match.
 
 ## Auto-fix outcomes
 
@@ -157,43 +157,6 @@ Only `retry_succeeded` means the Request was recovered by Auto-fix.
 | Every Provider Attempt fails                   |                1 |                N | `failed`       | `failed` × N                  | None     |
 
 The Counted Requests and Counted Attempts columns show how many rows the completed dashboard metrics count for each scenario; pending rows are excluded.
-
-## Per-page specification
-
-### Overview (global)
-
-- KPI cards: Request world. Success rate, Recovered Requests, Recovered by Auto-fix, and Recovered by fallback.
-- Requests chart: one count per Request. Views: **By Request status** (Success / Recovered by Auto-fix / Recovered by fallback / Failed) and **By agent**. There is no by-Provider view because one Request may touch several Providers.
-- Recovered Requests chart tab: the recovered subset of Requests.
-- Model usage table: Attempt world. Columns: Total Attempts and Attempt success rate. There is no recovery column because models are not recovered.
-- Provider Connections table: Attempt world. Total Attempts and Attempt success rate.
-- Agents table: Request world. Total Requests, Recovered Requests, and Request success rate.
-
-### Agent Overview
-
-- The same Request-world KPI cards, scoped to the agent. A new agent has zero traffic and no success rate.
-- Requests chart: **By Request status** only. A Provider grouping is not meaningful because one Request may span Providers.
-- Recovered Requests tab: the agent's recovered subset.
-- Model usage table: Attempt world.
-- Recent Requests: clicking a row navigates to the Requests page with that Request open in the side panel.
-
-### Connection detail
-
-This page is exclusively in the Attempt world.
-
-- KPI card: **Attempt success rate** over the filtered period.
-- Chart tabs: **Attempts** (By Attempt status by default, or By agent), Cost, and Token usage. There is no Requests or recovery tab.
-- Attempt status series: Success / Failed. An Auto-fix retry or fallback Attempt is still an Attempt; its trigger is visible on the Request page.
-- Tokens and cost: everything this Connection used, including failed Attempts.
-- Agent breakdown table: Total Attempts and Attempt success rate per agent on this Connection.
-
-### Usage-based and Subscription Connections
-
-These lists are in the Attempt world. Each Connection shows Total Attempts, Attempt success rate, usage, and cost where applicable. They have no recovery metric.
-
-### Requests page
-
-The Requests page is in the Request world. It lists completed Requests, including failures and zero-attempt rejections. The side panel shows the full Attempt chain with each Attempt's own status and the Auto-fix or fallback context explaining how the chain unfolded.
 
 ## Reading rules
 

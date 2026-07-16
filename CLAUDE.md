@@ -434,7 +434,7 @@ Manifest terminology is directional:
 - A **Tenant** is a user's data boundary. It is created from `user.id` on first agent creation.
 - An **Agent** is an AI agent owned by a tenant. It has a unique OTLP ingest key.
 
-[`docs/analytics-dashboard-spec.md`](docs/analytics-dashboard-spec.md) is the canonical contract for statuses, ordering, recovery, database mapping, and counting rules. Do not duplicate those definitions in agent guides.
+[`docs/glossary.md`](docs/glossary.md) is the canonical contract for statuses, ordering, recovery, database mapping, and counting rules. Do not duplicate those definitions in agent guides.
 
 ### Legacy message/attempt projection contract
 
