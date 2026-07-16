@@ -30,6 +30,7 @@ import { sanitizeRequestHeaders } from './request-headers';
 import {
   buildMetaHeaders,
   buildOpenAiCompatibleError,
+  currentPrimaryAttemptNumber,
   handleProviderError,
   recordFallbackFailures,
   handleStreamResponse,
@@ -169,6 +170,20 @@ export class ProxyController {
     const clientAbort = new AbortController();
     res.once('close', () => clientAbort.abort());
     const startTime = Date.now();
+
+    // The Request exists as pending from ingress, before Manifest routes it or
+    // starts any provider call. A recording failure must not reject user traffic.
+    await this.recorder
+      .recordPendingRequest(req.ingestionContext, {
+        requestId,
+        timestamp: new Date(startTime).toISOString(),
+        traceId,
+        sessionKey,
+        requestedModel: this.extractRequestedModel(body),
+        callerAttribution,
+        requestHeaders,
+      })
+      .catch((e) => this.logger.warn(`Failed to record pending Request: ${e}`));
 
     // Plan request-limit gate. A 402 must reach ProxyExceptionFilter (friendly
     // upgrade message / real 402), but still gets a Manifest-policy row in
@@ -360,6 +375,8 @@ export class ProxyController {
           requestHeaders,
           autofix,
           requestId,
+          currentPrimaryAttemptNumber(autofix) +
+            (meta.fallbackFromModel ? (failedFallbacks?.length ?? 0) + 1 : 0),
         );
       }
     } catch (err: unknown) {

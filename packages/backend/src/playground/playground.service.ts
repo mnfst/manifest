@@ -448,13 +448,14 @@ export class PlaygroundService {
         {
           id: uuid(),
           request_id: requestId,
+          attempt_number: 1,
           tenant_id: agent.tenant_id,
           agent_id: agent.id,
           agent_name: agent.name,
           // Informational attribution only — never used for scoping.
           user_id: createdByUserId,
           timestamp,
-          status: 'ok',
+          status: 'success',
           model: dto.model,
           provider: dto.provider,
           routing_tier: 'playground',
@@ -478,7 +479,7 @@ export class PlaygroundService {
           session_id: null,
           timestamp,
           duration_ms: metrics.durationMs,
-          status: 'ok',
+          status: 'success',
           autofix_status: null,
           error_message: null,
           error_http_status: null,
@@ -522,13 +523,14 @@ export class PlaygroundService {
         {
           id: uuid(),
           request_id: requestId,
+          attempt_number: 1,
           tenant_id: agent.tenant_id,
           agent_id: agent.id,
           agent_name: agent.name,
           // Informational attribution only — never used for scoping.
           user_id: createdByUserId,
           timestamp,
-          status: 'error',
+          status: 'failed',
           // Some providers echo the submitted key back in their error body, so
           // scrub before persisting — mirrors the proxy recorder's hardening.
           error_message: errorMessage,
@@ -552,7 +554,7 @@ export class PlaygroundService {
           session_id: null,
           timestamp,
           duration_ms: durationMs,
-          status: 'error',
+          status: 'failed',
           autofix_status: null,
           error_message: errorMessage,
           error_http_status: status,
@@ -599,7 +601,7 @@ export class PlaygroundService {
         session_id: null,
         timestamp: new Date().toISOString(),
         duration_ms: 0,
-        status: 'error',
+        status: 'failed',
         autofix_status: null,
         error_message: errorMessage,
         error_http_status: status,

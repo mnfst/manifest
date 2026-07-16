@@ -51,6 +51,11 @@ import {
 
 const logger = new Logger('ProxyResponseHandler');
 
+/** The current primary is attempt 2 only when Auto-fix actually sent a retry. */
+export function currentPrimaryAttemptNumber(autofix: AutofixRecord | undefined): number {
+  return getAutofixRetry(autofix) ? 2 : 1;
+}
+
 function recordSafely(promise: Promise<unknown>, label: string): void {
   promise.catch((e) => logger.warn(`Failed to record ${label}: ${e}`));
 }
@@ -75,6 +80,7 @@ function recordAutofixOriginalIfRetried(
   recordSafely(
     recorder.recordAutofixOriginal(ctx, route?.model ?? meta.model, meta.tier, autofix, {
       requestId,
+      attemptNumber: 1,
       provider: route ? route.provider : meta.provider,
       reason: meta.reason,
       authType: route?.authType ?? meta.auth_type,
@@ -201,6 +207,7 @@ export async function handleProviderError(
   recordSafely(
     recorder.recordProviderError(ctx, errorStatus, errorBody, {
       requestId,
+      attemptNumber: currentPrimaryAttemptNumber(autofix),
       model: meta.model,
       provider: meta.provider,
       tier: meta.tier,
@@ -253,9 +260,11 @@ function handleFallbackExhausted(
   requestId: string = uuid(),
 ): void {
   const baseTime = Date.now();
+  const primaryAttemptNumber = currentPrimaryAttemptNumber(autofix);
   recordSafely(
     recorder.recordFailedFallbacks(ctx, meta.tier, meta.model, failedFallbacks, {
       requestId,
+      firstAttemptNumber: primaryAttemptNumber + 1,
       traceId,
       baseTimeMs: baseTime,
       markHandled: true,
@@ -283,6 +292,7 @@ function handleFallbackExhausted(
       meta.auth_type,
       {
         requestId,
+        attemptNumber: primaryAttemptNumber,
         provider: meta.provider,
         reason: meta.reason,
         // Exhausted chain: primary connection (meta.tenantProviderId holds it here).
@@ -341,6 +351,7 @@ export function recordFallbackFailures(
 
   const fallbackBaseTime = Date.now();
   const failures = failedFallbacks ?? [];
+  const primaryAttemptNumber = currentPrimaryAttemptNumber(autofix);
 
   // The primary's auth_type is preserved separately on a fallback-success flow
   // (see RoutingMeta.primaryAuthType / #1173). Older meta shapes only carry
@@ -372,6 +383,7 @@ export function recordFallbackFailures(
       primaryAuthType,
       {
         requestId,
+        attemptNumber: primaryAttemptNumber,
         // Use the primary provider explicitly — meta.provider holds the
         // succeeding fallback's provider in this flow, not the primary's.
         provider: meta.primaryProvider,
@@ -404,6 +416,7 @@ export function recordFallbackFailures(
     recordSafely(
       recorder.recordFailedFallbacks(ctx, meta.tier, meta.fallbackFromModel, failures, {
         requestId,
+        firstAttemptNumber: primaryAttemptNumber + 1,
         baseTimeMs: fallbackBaseTime,
         markHandled: true,
         authType: primaryAuthType,
@@ -714,11 +727,13 @@ export function recordSuccess(
   requestHeaders?: Record<string, string> | null,
   autofix?: AutofixRecord,
   requestId: string = uuid(),
+  attemptNumber: number = currentPrimaryAttemptNumber(autofix),
 ): void {
   if (meta.fallbackFromModel && fallbackSuccessTs) {
     recordSafely(
       recorder.recordFallbackSuccess(ctx, meta.model, meta.tier, {
         requestId,
+        attemptNumber,
         traceId,
         provider: meta.provider,
         fallbackFromModel: meta.fallbackFromModel,
@@ -745,6 +760,7 @@ export function recordSuccess(
     recordSafely(
       recorder.recordSuccessMessage(ctx, meta.model, meta.tier, meta.reason, usage, {
         requestId,
+        attemptNumber,
         traceId,
         provider: meta.provider,
         authType: meta.auth_type,

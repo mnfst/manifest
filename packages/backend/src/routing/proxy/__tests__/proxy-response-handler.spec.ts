@@ -593,6 +593,42 @@ describe('proxy-response-handler', () => {
       expect(recorder.recordFailedFallbacks).toHaveBeenCalled();
     });
 
+    it('numbers an Auto-fix retry before its fallback attempts', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta({ fallbackFromModel: 'gpt-4o' });
+      const failedFallbacks: FailedFallback[] = [
+        { model: 'claude', provider: 'anthropic', fallbackIndex: 0, status: 500, errorBody: '' },
+      ];
+      const autofix: AutofixRecord = {
+        groupId: 'grp-order',
+        outcome: 'exhausted',
+        original_http_status: 400,
+        chain: [
+          { attempt: 0, origin: 'original', request: {}, http_status: 400 },
+          { attempt: 1, origin: 'autofix', request: {}, http_status: 400 },
+        ],
+      };
+
+      recordFallbackFailures(testCtx, meta, failedFallbacks, recorder as any, null, null, autofix);
+
+      expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
+        testCtx,
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        undefined,
+        expect.objectContaining({ attemptNumber: 2 }),
+      );
+      expect(recorder.recordFailedFallbacks).toHaveBeenCalledWith(
+        testCtx,
+        expect.anything(),
+        expect.anything(),
+        failedFallbacks,
+        expect.objectContaining({ firstAttemptNumber: 3 }),
+      );
+    });
+
     it('passes a no-patch audit to the plain primary failure', () => {
       const recorder = mockRecorder();
       const meta = makeMeta({ fallbackFromModel: 'gpt-4o', primaryErrorStatus: 400 });
@@ -2133,6 +2169,12 @@ describe('proxy-response-handler', () => {
         recorder as any,
         'trace-1',
         'session-1',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'request-order',
+        4,
       );
 
       expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(
@@ -2140,7 +2182,8 @@ describe('proxy-response-handler', () => {
         'gpt-4o',
         'standard',
         expect.objectContaining({
-          requestId: expect.any(String),
+          requestId: 'request-order',
+          attemptNumber: 4,
           traceId: 'trace-1',
           provider: 'openai',
           fallbackFromModel: 'gpt-4o',
@@ -2168,6 +2211,7 @@ describe('proxy-response-handler', () => {
         usage,
         expect.objectContaining({
           requestId: expect.any(String),
+          attemptNumber: 1,
           traceId: 'trace-1',
           provider: 'openai',
           authType: undefined,

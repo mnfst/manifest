@@ -279,7 +279,7 @@ describe('PlaygroundService.runStream', () => {
     expect(row).toMatchObject({
       routing_tier: 'playground',
       routing_reason: null,
-      status: 'ok',
+      status: 'success',
       provider: 'openai',
       model: 'openai/gpt-4o',
       input_tokens: 10,
@@ -509,7 +509,7 @@ describe('PlaygroundService.runStream', () => {
     expect((res._json as { message: string }).message).toContain('not connected');
     expect(res.write).not.toHaveBeenCalled();
     expect(requestInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'error', error_origin: 'config' }),
+      expect.objectContaining({ status: 'failed', error_origin: 'config' }),
     );
     expect(mocks.messageRepo.insert).not.toHaveBeenCalled();
   });
@@ -781,10 +781,10 @@ describe('PlaygroundService.runStream', () => {
     expect(res._status).toBe(502);
     expect((res._json as { message: string }).message).toContain('connection refused');
     expect(requestInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'error', error_origin: 'transport' }),
+      expect.objectContaining({ status: 'failed', error_origin: 'transport' }),
     );
     expect(mocks.messageRepo.insert).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'error', error_origin: 'transport' }),
+      expect.objectContaining({ status: 'failed', error_origin: 'transport' }),
     );
   });
 
@@ -822,7 +822,7 @@ describe('PlaygroundService.runStream', () => {
     expect(mocks.messageRepo.insert).toHaveBeenCalledTimes(1);
     expect(mocks.messageRepo.insert.mock.calls[0][0]).toMatchObject({
       routing_tier: 'playground',
-      status: 'error',
+      status: 'failed',
       error_http_status: 429,
     });
     expect(mocks.history.saveColumn).toHaveBeenCalledTimes(1);
@@ -903,7 +903,7 @@ describe('PlaygroundService.runStream', () => {
     const errEvent = events.find((e) => e.type === 'error') as Record<string, unknown>;
     expect(errEvent.message).toContain('stream blew up mid-flight');
     expect(mocks.messageRepo.insert).toHaveBeenCalledTimes(1);
-    expect(mocks.messageRepo.insert.mock.calls[0][0]).toMatchObject({ status: 'error' });
+    expect(mocks.messageRepo.insert.mock.calls[0][0]).toMatchObject({ status: 'failed' });
     expect(mocks.history.saveColumn).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'error' }),
     );
