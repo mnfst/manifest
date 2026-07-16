@@ -96,6 +96,14 @@ const isMessageTriggerFilter = (value: unknown): value is MessageTriggerFilter =
 const normalizeTriggerFilters = (value: unknown): MessageTriggerFilter[] =>
   typeof value === 'string' ? value.split(',').filter(isMessageTriggerFilter) : [];
 
+/** The recovery select's states: default, any kind, one kind, or none at all. */
+const TRIGGER_CHOICES = ['any', 'autofix', 'fallback', 'none'] as const;
+type TriggerChoice = '' | (typeof TRIGGER_CHOICES)[number];
+
+const isTriggerChoice = (value: unknown): value is TriggerChoice =>
+  value === '' ||
+  (typeof value === 'string' && (TRIGGER_CHOICES as readonly string[]).includes(value));
+
 const ATTEMPT_STATUS_FILTERS = ['has_failed', 'has_succeeded'] as const;
 type AttemptStatusFilter = (typeof ATTEMPT_STATUS_FILTERS)[number];
 
@@ -220,9 +228,22 @@ const MessageLog: Component = () => {
       { replace: true },
     );
   });
-  // Multiselect: several recovery-attempt kinds OR together (?trigger=autofix,fallback).
-  const [triggerFilter, setTriggerFilter] = createSignal<MessageTriggerFilter[]>(
-    normalizeTriggerFilters(searchParams.trigger),
+  // A plain select over the useful recovery readings. The wire stays a comma
+  // list (?trigger=autofix,fallback), so 'any' folds both kinds and existing
+  // deep links keep working.
+  const triggerListToChoice = (list: MessageTriggerFilter[]): TriggerChoice => {
+    if (list.includes('autofix') && list.includes('fallback')) return 'any';
+    if (list.includes('autofix')) return 'autofix';
+    if (list.includes('fallback')) return 'fallback';
+    if (list.includes('none')) return 'none';
+    return '';
+  };
+  const triggerChoiceToParam = (choice: TriggerChoice): string | undefined => {
+    if (choice === 'any') return 'autofix,fallback';
+    return choice || undefined;
+  };
+  const [triggerFilter, setTriggerFilter] = createSignal<TriggerChoice>(
+    triggerListToChoice(normalizeTriggerFilters(searchParams.trigger)),
   );
   // Attempt-status facet: a plain select (all / with a failed attempt / with
   // a succeeded attempt). The API accepts a comma list, but combining the two
@@ -305,10 +326,10 @@ const MessageLog: Component = () => {
     setStatusFilterValue(next);
     setSearchParams({ status: next || undefined }, { replace: true });
   };
-  const setTriggerFilterValues = (values: string[]) => {
-    const next = values.filter(isMessageTriggerFilter);
+  const setTriggerFilterValue = (value: string) => {
+    const next = isTriggerChoice(value) ? value : '';
     setTriggerFilter(next);
-    setSearchParams({ trigger: next.length ? next.join(',') : undefined }, { replace: true });
+    setSearchParams({ trigger: triggerChoiceToParam(next) }, { replace: true });
   };
   const setRangeFilter = (value: string) => {
     if (isProRangeLocked(value)) return;
@@ -373,7 +394,10 @@ const MessageLog: Component = () => {
     (p) => {
       const q: Record<string, string> = {};
       if (p.connections.length) q.connections = p.connections.join(',');
-      if (p.trigger.length) q.trigger = p.trigger.join(',');
+      {
+        const triggerParam = triggerChoiceToParam(p.trigger);
+        if (triggerParam) q.trigger = triggerParam;
+      }
       if (p.attempts) q.attempts = p.attempts;
       if (p.tier) {
         if (p.tier.startsWith(SPECIFICITY_FILTER_PREFIX)) {
@@ -428,7 +452,7 @@ const MessageLog: Component = () => {
   const hasActiveFilters = () =>
     agentFilter() !== '' ||
     connectionsFilter().length > 0 ||
-    triggerFilter().length > 0 ||
+    triggerFilter() !== '' ||
     attemptStatusFilter() !== '' ||
     tierFilter() !== '' ||
     originFilter() !== '' ||
@@ -456,7 +480,7 @@ const MessageLog: Component = () => {
   const clearFilters = () => {
     setAgentFilter('');
     setConnectionsFilter([]);
-    setTriggerFilterValues([]);
+    setTriggerFilterValue('');
     setAttemptStatusFilter('');
     setTierFilter('');
     setOriginFilter('');
@@ -546,9 +570,11 @@ const MessageLog: Component = () => {
   ];
 
   const triggerOptions = [
+    { label: 'All attempts', value: '' },
+    { label: 'With any recovery attempt', value: 'any' },
+    { label: 'With an auto-fix attempt', value: 'autofix' },
+    { label: 'With a fallback attempt', value: 'fallback' },
     { label: 'No recovery attempt', value: 'none' },
-    { label: 'Fallback', value: 'fallback' },
-    { label: 'Auto-fix', value: 'autofix' },
   ];
 
   const attemptStatusOptions = [
@@ -617,8 +643,8 @@ const MessageLog: Component = () => {
             : 'Browse all requests across all harnesses. Filter by provider, status, or cost.'
         }
       />
-      <div class="page-header">
-        <div>
+      <div class="page-header page-header--wrap">
+        <div class="page-header__intro">
           <h1>Requests</h1>
           <span class="breadcrumb">
             Full log of requests from your app. Provider calls appear as attempts.
@@ -640,11 +666,10 @@ const MessageLog: Component = () => {
               placeholder="All connections"
               label="Connection filter"
             />
-            <MultiSelect
-              values={triggerFilter()}
-              onChange={setTriggerFilterValues}
+            <Select
+              value={triggerFilter()}
+              onChange={setTriggerFilterValue}
               options={triggerOptions}
-              placeholder="All recovery attempts"
               label="Recovery attempts filter"
             />
             <Select

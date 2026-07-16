@@ -312,10 +312,6 @@ const connectionMultiselect = (container: HTMLElement) =>
     '[data-testid="multiselect"][aria-label="Connection filter"]',
   ) as HTMLSelectElement;
 
-const triggerMultiselect = (container: HTMLElement) =>
-  container.querySelector(
-    '[data-testid="multiselect"][aria-label="Recovery attempts filter"]',
-  ) as HTMLSelectElement;
 
 describe('MessageLog', () => {
   beforeEach(() => {
@@ -702,28 +698,39 @@ describe('MessageLog', () => {
     );
   });
 
-  it('filters messages by recovery attempts (multiselect, URL-synced)', async () => {
+  it('filters messages by recovery reading (plain select, URL-synced)', async () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(triggerMultiselect(container)).not.toBeNull();
+      expect(selectWithOption(container, 'All attempts')).toBeDefined();
     });
 
-    const triggerSelect = triggerMultiselect(container);
-    expect(triggerSelect.textContent).toContain('All recovery attempts');
+    const triggerSelect = selectWithOption(container, 'All attempts');
+    expect(triggerSelect.textContent).toContain('With any recovery attempt');
+    expect(triggerSelect.textContent).toContain('With an auto-fix attempt');
+    expect(triggerSelect.textContent).toContain('With a fallback attempt');
     expect(triggerSelect.textContent).toContain('No recovery attempt');
-    expect(triggerSelect.textContent).toContain('Fallback');
-    expect(triggerSelect.textContent).toContain('Auto-fix');
 
     mockGetMessages.mockClear();
     await fireEvent.change(triggerSelect, { target: { value: 'fallback' } });
-
     await vi.waitFor(() => {
       expect(mockGetMessages).toHaveBeenCalledWith(
         expect.objectContaining({ trigger: 'fallback' }),
       );
     });
     expect(mockSetSearchParams).toHaveBeenCalledWith({ trigger: 'fallback' }, { replace: true });
+
+    // 'With any recovery attempt' folds both kinds on the wire, so it matches
+    // exactly what the recovered-requests deep links send.
+    mockGetMessages.mockClear();
+    await fireEvent.change(selectWithOption(container, 'All attempts'), {
+      target: { value: 'any' },
+    });
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(
+        expect.objectContaining({ trigger: 'autofix,fallback' }),
+      );
+    });
   });
 
   it('seeds the status filter from the status search param', async () => {
@@ -1518,10 +1525,9 @@ describe('MessageLog', () => {
       await vi.waitFor(() => {
         const selects = container.querySelectorAll('[data-testid="select"]');
         // In agent mode, no harness select renders; the first Select is the
-        // attempt-status filter (connections and recovery attempts are
-        // multiselects, which render separately).
+        // recovery filter (connections stay a multiselect, rendered apart).
         expect(selects[0].textContent).not.toContain('All harnesses');
-        expect(selects[0].textContent).toContain('All attempt statuses');
+        expect(selects[0].textContent).toContain('All attempts');
       });
     });
 

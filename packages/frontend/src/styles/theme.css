@@ -237,6 +237,29 @@ h6 {
   margin-top: 2px;
 }
 
+/* Filter-heavy pages (Requests log): when the intro text would touch the
+   filter row, the header breaks into two rows — intro full width on top,
+   filters wrapping freely below so every control stays reachable on a
+   small screen. */
+.page-header--wrap {
+  flex-wrap: wrap;
+  row-gap: var(--gap-sm);
+}
+
+.page-header--wrap .page-header__intro {
+  /* flex-basis stays auto: a small-screen media query flips the header to a
+     column, where a length basis would become a forced HEIGHT. min-width
+     triggers the row-mode wrap instead. */
+  flex: 1 1 auto;
+  min-width: min(260px, 100%);
+}
+
+.page-header--wrap .header-controls {
+  flex-wrap: wrap;
+  row-gap: var(--gap-sm);
+  justify-content: flex-start;
+}
+
 .header-controls {
   display: flex;
   gap: var(--gap-sm);

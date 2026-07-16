@@ -79,13 +79,26 @@ const MultiSelect: Component<MultiSelectProps> = (props) => {
           role="listbox"
           aria-multiselectable="true"
         >
-          <Show when={props.values.length > 0}>
-            <button class="custom-select__option" type="button" onClick={() => props.onChange([])}>
-              <span class="custom-select__option-text">
-                <span>{props.placeholder}</span>
-              </span>
-            </button>
-          </Show>
+          <button
+            class="custom-select__option custom-select__option--top"
+            classList={{ 'custom-select__option--selected': props.values.length === 0 }}
+            type="button"
+            role="option"
+            aria-selected={props.values.length === 0}
+            onClick={() => props.onChange([])}
+            style="display: flex; gap: 6px;"
+          >
+            <input
+              type="checkbox"
+              checked={props.values.length === 0}
+              tabIndex={-1}
+              aria-hidden="true"
+              style="pointer-events: none; margin: 0;"
+            />
+            <span class="custom-select__option-text custom-select__option-text--inline">
+              <span>{props.placeholder}</span>
+            </span>
+          </button>
           <For each={props.options}>
             {(opt) => (
               <button
