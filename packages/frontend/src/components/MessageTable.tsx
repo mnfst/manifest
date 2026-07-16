@@ -136,7 +136,7 @@ export default function MessageTable(props: MessageTableProps): JSX.Element {
       <thead>
         <tr>
           <For each={props.columns}>
-            {(col) => <th>{columnHeader(col, props.showHeaderTooltips)}</th>}
+            {(col) => <th data-col={col}>{columnHeader(col, props.showHeaderTooltips)}</th>}
           </For>
           <Show when={props.expandable}>
             <th class="msg-detail__chevron-th" />

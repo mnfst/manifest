@@ -124,11 +124,12 @@ describe('MessageTable', () => {
       ));
       const headers = container.querySelectorAll('th');
       expect(headers.length).toBe(10);
+      // Identity first (status, when, what), then mechanics.
       expect(headers[0]!.textContent).toContain('Status');
-      expect(headers[1]!.textContent).toContain('Attempts');
-      expect(headers[2]!.textContent).toContain('Applied Methods');
-      expect(headers[3]!.textContent).toContain('Date');
-      expect(headers[4]!.textContent).toContain('Model');
+      expect(headers[1]!.textContent).toContain('Date');
+      expect(headers[2]!.textContent).toContain('Model');
+      expect(headers[3]!.textContent).toContain('Attempts');
+      expect(headers[4]!.textContent).toContain('Applied Methods');
       expect(headers[5]!.textContent).toContain('Request');
       expect(headers[6]!.textContent).toContain('Cost');
       expect(headers[7]!.textContent).toContain('Tokens');
@@ -148,10 +149,10 @@ describe('MessageTable', () => {
       const headers = container.querySelectorAll('th');
       expect(headers.length).toBe(12);
       expect(headers[0]!.textContent).toContain('Status');
-      expect(headers[1]!.textContent).toContain('Attempts');
-      expect(headers[2]!.textContent).toContain('Applied Methods');
-      expect(headers[3]!.textContent).toContain('Date');
-      expect(headers[4]!.textContent).toContain('Model');
+      expect(headers[1]!.textContent).toContain('Date');
+      expect(headers[2]!.textContent).toContain('Model');
+      expect(headers[3]!.textContent).toContain('Attempts');
+      expect(headers[4]!.textContent).toContain('Applied Methods');
       expect(headers[5]!.textContent).toContain('Request');
       expect(headers[7]!.textContent).toContain('Total Tokens');
       expect(headers[10]!.textContent).toContain('Cache');

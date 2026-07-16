@@ -1639,3 +1639,23 @@ h6 {
 .dark img[src$='/icons/hermes.svg'] {
   filter: brightness(0) invert(1);
 }
+
+/* ── Requests tables: pinned lead-column widths ──
+   Status is sized for its longest pill ("Failed: Manifest error"), Date for
+   the short timestamp, Attempts for its own header, Applied Methods for both
+   method badges side by side. Trailing usage columns (cache, latency) flex. */
+.data-table th[data-col='status'] {
+  width: 158px;
+}
+.data-table th[data-col='date'] {
+  width: 118px;
+}
+.data-table th[data-col='attempts'] {
+  width: 72px;
+}
+.data-table th[data-col='selfheal'] {
+  width: 138px;
+}
+.data-table th[data-col] {
+  white-space: nowrap;
+}
