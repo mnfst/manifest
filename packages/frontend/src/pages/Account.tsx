@@ -29,6 +29,41 @@ const Account: Component = () => {
 
   const handleChangePassword = async (e: Event) => {
     e.preventDefault();
+    setPwError('');
+
+    const current = currentPassword();
+    const next = newPassword();
+
+    if (next !== confirmPassword()) {
+      setPwError('New passwords do not match');
+      return;
+    }
+    if (next.length < 8) {
+      setPwError('New password must be at least 8 characters');
+      return;
+    }
+    if (next === current) {
+      setPwError('New password must differ from the current password');
+      return;
+    }
+
+    setPwBusy(true);
+    const { error } = await authClient.changePassword({
+      currentPassword: current,
+      newPassword: next,
+      revokeOtherSessions: true,
+    });
+    setPwBusy(false);
+
+    if (error) {
+      setPwError(error.message ?? 'Failed to change password');
+      return;
+    }
+
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    toast.success('Password changed. Other devices have been signed out.');
   };
   const [billing, { refetch: refetchBilling }] = createResource(() => getBillingStatus());
   const [accounts] = createResource(() => authClient.listAccounts());
