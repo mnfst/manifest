@@ -66,7 +66,11 @@ import {
   selfHealedCount,
   successRate,
   attemptSuccessRate,
-  TOTAL_ATTEMPTS_TOOLTIP,
+  totalAttemptsTooltip,
+  MODEL_SUCCESS_RATE_TOOLTIP,
+  PROVIDER_SUCCESS_RATE_TOOLTIP,
+  HARNESS_SUCCESS_RATE_TOOLTIP,
+  HARNESS_TOTAL_REQUESTS_TOOLTIP,
 } from '../services/api/analytics.js';
 import { getAutofixCohort } from '../services/api/autofix.js';
 
@@ -803,9 +807,12 @@ const GlobalOverview: Component = () => {
                   <th style="text-align: right;">Est. cost</th>
                   <th class="rel-col">
                     Total attempts
-                    <InfoTooltip text={TOTAL_ATTEMPTS_TOOLTIP} />
+                    <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
                   </th>
-                  <th class="rel-col">Success rate</th>
+                  <th class="rel-col">
+                    Success rate
+                    <InfoTooltip text={MODEL_SUCCESS_RATE_TOOLTIP} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -922,9 +929,12 @@ const GlobalOverview: Component = () => {
                   <th>Status</th>
                   <th class="rel-col">
                     Total attempts
-                    <InfoTooltip text={TOTAL_ATTEMPTS_TOOLTIP} />
+                    <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
                   </th>
-                  <th class="rel-col">Success rate</th>
+                  <th class="rel-col">
+                    Success rate
+                    <InfoTooltip text={PROVIDER_SUCCESS_RATE_TOOLTIP} />
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -1060,10 +1070,16 @@ const GlobalOverview: Component = () => {
                 <tr>
                   <th>Harness</th>
                   <th>Usage (30d)</th>
-                  <th class="rel-col">Total requests</th>
+                  <th class="rel-col">
+                    Total requests
+                    <InfoTooltip text={HARNESS_TOTAL_REQUESTS_TOOLTIP} />
+                  </th>
                   <Show when={autofixEligible()}>
                     <th class="rel-col">Recovered requests</th>
-                    <th class="rel-col">Success rate</th>
+                    <th class="rel-col">
+                      Success rate
+                      <InfoTooltip text={HARNESS_SUCCESS_RATE_TOOLTIP} />
+                    </th>
                   </Show>
                 </tr>
               </thead>

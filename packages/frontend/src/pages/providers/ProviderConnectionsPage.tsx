@@ -39,8 +39,8 @@ import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
 import {
   attemptSuccessRate,
-  TOTAL_ATTEMPTS_TOOLTIP,
-  ATTEMPT_SUCCESS_RATE_TOOLTIP,
+  totalAttemptsTooltip,
+  CONNECTION_SUCCESS_RATE_TOOLTIP_30D,
 } from '../../services/api/analytics.js';
 import { getAutofixCohort } from '../../services/api/autofix.js';
 import '../../styles/routing.css';
@@ -538,7 +538,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">
               Total attempts (30d)
-              <InfoTooltip text={TOTAL_ATTEMPTS_TOOLTIP} />
+              <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
             </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{formatNumber(totalAttempts())}</span>
@@ -547,7 +547,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">
               Success rate (30d)
-              <InfoTooltip text={ATTEMPT_SUCCESS_RATE_TOOLTIP} />
+              <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP_30D} />
             </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">
@@ -581,9 +581,12 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                 </Show>
                 <th class="rel-col">
                   Total attempts (30d)
-                  <InfoTooltip text={TOTAL_ATTEMPTS_TOOLTIP} />
+                  <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
                 </th>
-                <th class="rel-col">Success rate (30d)</th>
+                <th class="rel-col">
+                  Success rate (30d)
+                  <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP_30D} />
+                </th>
                 <th>Last used</th>
                 <th />
               </tr>

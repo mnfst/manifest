@@ -21,8 +21,9 @@ import {
   getConnectionAttemptStatusTimeseries,
   getConnectionAttemptsByAgentTimeseries,
   attemptSuccessRate,
-  TOTAL_ATTEMPTS_TOOLTIP,
-  ATTEMPT_SUCCESS_RATE_TOOLTIP,
+  totalAttemptsTooltip,
+  CONNECTION_SUCCESS_RATE_TOOLTIP,
+  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP,
 } from '../../services/api/analytics.js';
 import { getAutofixCohort } from '../../services/api/autofix.js';
 import { messagePing } from '../../services/sse.js';
@@ -782,7 +783,7 @@ const ConnectionDetail: Component = () => {
                 <div class="overview-stat-card">
                   <span class="overview-stat-card__label">
                     Success rate
-                    <InfoTooltip text={ATTEMPT_SUCCESS_RATE_TOOLTIP} />
+                    <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP} />
                   </span>
                   <div class="overview-stat-card__value-row">
                     <span class="overview-stat-card__value">
@@ -813,7 +814,7 @@ const ConnectionDetail: Component = () => {
                       activeTab={chartView()}
                       onTabChange={setChartView}
                       requestsLabel="Attempts"
-                      requestsInfoTooltip={TOTAL_ATTEMPTS_TOOLTIP}
+                      requestsInfoTooltip={totalAttemptsTooltip(autofixEligible())}
                       requestsValue={attemptTotals().attempts}
                       requestsTrendPct={0}
                       tokensValue={analytics()!.summary.tokens.value}
@@ -1025,9 +1026,12 @@ const ConnectionDetail: Component = () => {
                           </Show>
                           <th class="rel-col">
                             Total attempts
-                            <InfoTooltip text={TOTAL_ATTEMPTS_TOOLTIP} />
+                            <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
                           </th>
-                          <th class="rel-col">Success rate</th>
+                          <th class="rel-col">
+                            Success rate
+                            <InfoTooltip text={CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP} />
+                          </th>
                           <th>Last used</th>
                         </tr>
                       </thead>

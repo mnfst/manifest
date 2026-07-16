@@ -330,11 +330,31 @@ export function attemptSuccessRate(row: { attempts: number; succeeded?: number }
   return row.succeeded / row.attempts;
 }
 
-/** One-line definitions surfaced by the attempt-world ⓘ tooltips. */
-export const TOTAL_ATTEMPTS_TOOLTIP =
-  'Every provider call counts here, including fallback attempts and auto-fix retries. One request can produce several attempts.';
-export const ATTEMPT_SUCCESS_RATE_TOOLTIP =
-  'Successful attempts over all attempts, on the filtered period.';
+/**
+ * Total attempts ⓘ: the Doctor version (Auto-fix) owns the auto-fixed
+ * vocabulary, so tenants without it get the same sentence minus Auto-fix.
+ * House vocabulary: a FALLBACK is a retry; an AUTO-FIX produces an attempt.
+ */
+export function totalAttemptsTooltip(doctorAvailable: boolean): string {
+  return doctorAvailable
+    ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
+    : 'Every provider call counts here, including fallback retries. One request can produce several attempts.';
+}
+
+/** Success rate ⓘ texts, one per surface grain. */
+export const MODEL_SUCCESS_RATE_TOOLTIP = 'Successful attempts over all attempts for this model.';
+export const PROVIDER_SUCCESS_RATE_TOOLTIP =
+  'Successful attempts over all attempts for this provider.';
+export const CONNECTION_SUCCESS_RATE_TOOLTIP_30D =
+  'Successful attempts over all attempts for this connection, over the last 30 days.';
+export const CONNECTION_SUCCESS_RATE_TOOLTIP =
+  'Successful attempts over all attempts for this connection, on the filtered period.';
+export const CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP =
+  'Successful attempts over all attempts for this harness on this connection.';
+export const HARNESS_SUCCESS_RATE_TOOLTIP =
+  'Successful requests over all requests for this harness.';
+export const HARNESS_TOTAL_REQUESTS_TOOLTIP =
+  'Logical requests from this harness, one per call, whatever the number of attempts.';
 export const REQUEST_SUCCESS_RATE_TOOLTIP =
   'Successful requests over all requests. Recovered requests count as successful.';
 

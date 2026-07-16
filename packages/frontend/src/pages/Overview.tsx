@@ -557,6 +557,7 @@ const Overview: Component = () => {
                   <CostByModelTable
                     rows={d().cost_by_model ?? []}
                     reliability={modelReliability()}
+                    doctorAvailable={autofixEligible()}
                   />
                 </>
               );

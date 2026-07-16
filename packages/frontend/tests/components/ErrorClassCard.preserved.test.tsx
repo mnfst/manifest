@@ -23,8 +23,21 @@ const breakdown = vi.fn();
 vi.mock('../../src/services/api/analytics.js', () => ({
   RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
   REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
-  TOTAL_ATTEMPTS_TOOLTIP: 'Every provider call counts here, including fallback attempts and auto-fix retries. One request can produce several attempts.',
-  ATTEMPT_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts, on the filtered period.',
+  totalAttemptsTooltip: (doctor: boolean) =>
+    doctor
+      ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
+      : 'Every provider call counts here, including fallback retries. One request can produce several attempts.',
+  MODEL_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this model.',
+  PROVIDER_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this provider.',
+  CONNECTION_SUCCESS_RATE_TOOLTIP_30D:
+    'Successful attempts over all attempts for this connection, over the last 30 days.',
+  CONNECTION_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this connection, on the filtered period.',
+  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this harness on this connection.',
+  HARNESS_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this harness.',
+  HARNESS_TOTAL_REQUESTS_TOOLTIP:
+    'Logical requests from this harness, one per call, whatever the number of attempts.',
   attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
     !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
   getErrorBreakdown: (...args: unknown[]) => breakdown(...args),

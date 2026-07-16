@@ -279,4 +279,33 @@ describe('CostByModelTable', () => {
       expect(cell?.getAttribute('title')).toBeNull();
     });
   });
+
+  it('words the Total attempts tooltip by Doctor availability', () => {
+    const { container, unmount } = render(() => (
+      <CostByModelTable
+        rows={[row({ model: 'gpt-4o' })]}
+        reliability={[{ model: 'gpt-4o', attempts: 10, failed: 1, succeeded: 9 }]}
+        doctorAvailable
+      />
+    ));
+    const labels = () =>
+      [...container.querySelectorAll('.info-tooltip')].map((e) => e.getAttribute('aria-label'));
+    expect(labels().join(' ')).toContain('including fallback retries and auto-fixed attempts');
+    unmount();
+
+    const { container: c2 } = render(() => (
+      <CostByModelTable
+        rows={[row({ model: 'gpt-4o' })]}
+        reliability={[{ model: 'gpt-4o', attempts: 10, failed: 1, succeeded: 9 }]}
+      />
+    ));
+    // Without the Doctor version the sentence never mentions Auto-fix.
+    const labels2 = [...c2.querySelectorAll('.info-tooltip')]
+      .map((e) => e.getAttribute('aria-label'))
+      .join(' ');
+    expect(labels2).toContain('including fallback retries.');
+    expect(labels2).not.toContain('auto-fixed');
+    // Success rate carries the model-grain definition.
+    expect(labels2).toContain('Successful attempts over all attempts for this model.');
+  });
 });
