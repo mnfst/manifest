@@ -1,0 +1,23 @@
+packages/frontend/src/index.tsx
+  s_7b04613e6c1f2a::t_98fac0358d7d97 73
+packages/backend/src/routing/autofix/autofix-cohort.controller.ts
+  s_7b04613e6c1f2a::t_2fefc6c3c65300 8-14
+packages/frontend/src/services/api/autofix.ts
+  s_7b04613e6c1f2a::t_09f044e8a7e25c 3,8-11,17,21-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "f7772d0999ecc1482dada269906b9eecc087d2db",
+  "prompts": {},
+  "sessions": {
+    "s_7b04613e6c1f2a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1b1af942-3126-4469-a9b1-c9d382c90052",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
