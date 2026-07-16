@@ -1102,18 +1102,42 @@ describe('ConnectionDetail (analytics)', () => {
     });
   });
 
-  it('navigates to the pre-filtered Requests log from the Failed card', async () => {
+  it.each([
+    ['Failed attempts', '&attempts=has_failed'],
+    ['Succeeded attempts', '&attempts=has_succeeded'],
+    ['Fallback retries', '&trigger=fallback'],
+  ])('links the %s card to the connection-scoped Requests log', async (label, extra) => {
     const { container } = render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
-    const failed = await waitFor(() => {
-      const card = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
-        c.textContent?.includes('Failed attempts'),
+    const card = await waitFor(() => {
+      const found = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
+        c.textContent?.includes(label),
       );
-      expect(card).toBeDefined();
-      return card!;
+      expect(found).toBeDefined();
+      return found!;
     });
-    fireEvent.click(failed);
-    expect(routerState.navigate).toHaveBeenCalledWith('/messages?status=failed&provider=openai');
+    fireEvent.click(card);
+    // Scoped to THIS connection and the card's window, never the whole provider.
+    expect(routerState.navigate).toHaveBeenCalledWith(
+      `/messages?connections=conn-openai&range=7d${extra}`,
+    );
+  });
+
+  it('links the Auto-fixed attempts card when the Doctor version is available', async () => {
+    apiMocks.getAutofixCohort.mockResolvedValue({ eligible: true });
+    const { container } = render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    const card = await waitFor(() => {
+      const found = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
+        c.textContent?.includes('Auto-fixed attempts'),
+      );
+      expect(found).toBeDefined();
+      return found!;
+    });
+    fireEvent.click(card);
+    expect(routerState.navigate).toHaveBeenCalledWith(
+      '/messages?connections=conn-openai&range=7d&trigger=autofix',
+    );
   });
 
   it('opens the inline manage modal from the connection detail', async () => {

@@ -185,6 +185,29 @@ const ConnectionDetail: Component = () => {
     return conn()?.provider ?? '';
   };
 
+  // Deep links into the Requests log, scoped to THIS connection and the
+  // card's current window, so the list matches what the card counted.
+  const requestsLink = (extra: string) =>
+    `/messages?connections=${encodeURIComponent(params.connectionId)}&range=${chartRange()}${extra}`;
+  const viewEye = () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+      style="opacity: 0.55; flex-shrink: 0;"
+    >
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+
   const backLink = () =>
     BACK_LINKS[conn()?.auth_type ?? 'subscription'] ?? '/providers/subscriptions';
   const backLabel = () => AUTH_TYPE_LABELS[conn()?.auth_type ?? 'subscription'] ?? 'Providers';
@@ -838,8 +861,13 @@ const ConnectionDetail: Component = () => {
                     </span>
                   </div>
                 </div>
-                <div class="overview-stat-card">
-                  <span class="overview-stat-card__label">Succeeded attempts</span>
+                <div
+                  class="overview-stat-card"
+                  style="cursor: pointer;"
+                  title="View the requests holding these succeeded attempts"
+                  onClick={() => navigate(requestsLink('&attempts=has_succeeded'))}
+                >
+                  <span class="overview-stat-card__label">Succeeded attempts {viewEye()}</span>
                   <div class="overview-stat-card__value-row">
                     <span class="overview-stat-card__value">
                       {formatNumber(breakdown()?.succeeded ?? 0)}
@@ -849,24 +877,23 @@ const ConnectionDetail: Component = () => {
                 <div
                   class="overview-stat-card"
                   style="cursor: pointer;"
-                  title="Open the Requests log filtered on this provider's failures"
-                  onClick={() =>
-                    navigate(
-                      `/messages?status=failed&provider=${encodeURIComponent(
-                        conn()?.provider ?? '',
-                      )}`,
-                    )
-                  }
+                  title="View the requests holding these failed attempts"
+                  onClick={() => navigate(requestsLink('&attempts=has_failed'))}
                 >
-                  <span class="overview-stat-card__label">Failed attempts</span>
+                  <span class="overview-stat-card__label">Failed attempts {viewEye()}</span>
                   <div class="overview-stat-card__value-row">
                     <span class="overview-stat-card__value">
                       {formatNumber(breakdown()?.failed ?? 0)}
                     </span>
                   </div>
                 </div>
-                <div class="overview-stat-card">
-                  <span class="overview-stat-card__label">Fallback retries</span>
+                <div
+                  class="overview-stat-card"
+                  style="cursor: pointer;"
+                  title="View the requests where this connection ran a fallback retry"
+                  onClick={() => navigate(requestsLink('&trigger=fallback'))}
+                >
+                  <span class="overview-stat-card__label">Fallback retries {viewEye()}</span>
                   <div class="overview-stat-card__value-row">
                     <span class="overview-stat-card__value">
                       {formatNumber(breakdown()?.fallback_retries ?? 0)}
@@ -879,8 +906,13 @@ const ConnectionDetail: Component = () => {
                   </div>
                 </div>
                 <Show when={autofixEligible()}>
-                  <div class="overview-stat-card">
-                    <span class="overview-stat-card__label">Auto-fixed attempts</span>
+                  <div
+                    class="overview-stat-card"
+                    style="cursor: pointer;"
+                    title="View the requests where this connection ran an auto-fixed attempt"
+                    onClick={() => navigate(requestsLink('&trigger=autofix'))}
+                  >
+                    <span class="overview-stat-card__label">Auto-fixed attempts {viewEye()}</span>
                     <div class="overview-stat-card__value-row">
                       <span class="overview-stat-card__value">
                         {formatNumber(breakdown()?.autofix_attempts ?? 0)}
