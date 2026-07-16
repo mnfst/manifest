@@ -45,6 +45,16 @@ export class MessagesQueryDto {
   @IsString()
   provider?: string;
 
+  /**
+   * Comma-separated tenant_providers ids. Filters the log to requests that
+   * touched at least one of these provider connections (legacy attempts with
+   * no stamped connection fold onto the Default-label connection, matching
+   * the dashboard's connection scoping).
+   */
+  @IsOptional()
+  @IsString()
+  connections?: string;
+
   @IsOptional()
   @IsString()
   service_type?: string;

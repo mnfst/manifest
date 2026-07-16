@@ -59,6 +59,90 @@ vi.mock('../../src/services/api.js', () => ({
   clearMessageFeedback: (...args: unknown[]) => mockClearMessageFeedback(...args),
 }));
 
+const mockGetProviderConnections = vi.fn().mockResolvedValue({
+  providers: [
+    {
+      provider: 'openai',
+      auth_type: 'api_key',
+      display_name: null,
+      connection_count: 1,
+      total_models: 0,
+      connections: [
+        {
+          id: 'conn-openai-1',
+          label: 'Default',
+          key_prefix: null,
+          priority: 0,
+          connected_at: '',
+          models_fetched_at: null,
+          cached_model_count: 0,
+          is_active: true,
+        },
+      ],
+    },
+    {
+      provider: 'anthropic',
+      auth_type: 'subscription',
+      display_name: null,
+      connection_count: 1,
+      total_models: 0,
+      connections: [
+        {
+          id: 'conn-anthropic-1',
+          label: 'Team',
+          key_prefix: null,
+          priority: 0,
+          connected_at: '',
+          models_fetched_at: null,
+          cached_model_count: 0,
+          is_active: false,
+        },
+      ],
+    },
+    {
+      provider: 'custom:abc-123',
+      auth_type: 'api_key',
+      display_name: 'Cohere',
+      connection_count: 1,
+      total_models: 0,
+      connections: [
+        {
+          id: 'conn-custom-1',
+          label: 'Default',
+          key_prefix: null,
+          priority: 0,
+          connected_at: '',
+          models_fetched_at: null,
+          cached_model_count: 0,
+          is_active: true,
+        },
+      ],
+    },
+  ],
+  model_counts: {},
+});
+vi.mock('../../src/services/api/providers.js', () => ({
+  getProviders: (...args: unknown[]) => mockGetProviderConnections(...args),
+}));
+
+vi.mock('../../src/components/MultiSelect.jsx', () => ({
+  default: (props: any) => (
+    <select
+      data-testid="multiselect"
+      value={props.values?.[0] ?? ''}
+      onChange={(e: any) => {
+        const value = e.target.value;
+        props.onChange(value ? [value] : []);
+      }}
+    >
+      <option value="">{props.placeholder}</option>
+      {props.options?.map((o: any) => (
+        <option value={o.value}>{o.label}</option>
+      ))}
+    </select>
+  ),
+}));
+
 const mockGetBillingStatus = vi.fn().mockResolvedValue({ enabled: false, plan: 'free' });
 vi.mock('../../src/services/api/billing.js', () => ({
   getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
@@ -222,6 +306,9 @@ const selectWithOption = (container: HTMLElement, optionText: string): HTMLSelec
   return select!;
 };
 
+const connectionMultiselect = (container: HTMLElement) =>
+  container.querySelector('[data-testid="multiselect"]') as HTMLSelectElement;
+
 describe('MessageLog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -320,14 +407,18 @@ describe('MessageLog', () => {
       const selects = container.querySelectorAll('[data-testid="select"]');
       expect(selects.length).toBeGreaterThanOrEqual(1);
     });
-    const selects = container.querySelectorAll('[data-testid="select"]');
     mockGetMessages.mockResolvedValue({
       items: [],
       next_cursor: null,
       total_count: 0,
       providers: ['openai'],
     });
-    await fireEvent.change(selects[0], { target: { value: 'openai' } });
+    await vi.waitFor(() =>
+      expect(connectionMultiselect(container)?.textContent).toContain('OpenAI · Default'),
+    );
+    await fireEvent.change(connectionMultiselect(container), {
+      target: { value: 'conn-openai-1' },
+    });
     await vi.waitFor(() => {
       expect(container.textContent).toContain('No requests match your filters');
     });
@@ -363,22 +454,39 @@ describe('MessageLog', () => {
     });
   });
 
-  it('renders provider display names in the filter dropdown', async () => {
+  it('lists every connection in the filter, inactive ones included', async () => {
     mockGetMessages.mockResolvedValue(messagesData);
-    mockGetMessageFilterOptions.mockResolvedValue({
-      providers: ['anthropic', 'openai', 'unknown-provider'],
-    });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      const select = container.querySelector('[data-testid="select"]');
-      expect(select).not.toBeNull();
-      // Known providers resolve to display names
-      expect(select!.textContent).toContain('Anthropic');
-      expect(select!.textContent).toContain('OpenAI');
-      // Unknown providers fall back to the raw ID
-      expect(select!.textContent).toContain('unknown-provider');
-      expect(select!.textContent).toContain('All providers');
+      const ms = connectionMultiselect(container);
+      expect(ms).not.toBeNull();
+      // Connection labels are "<provider display name> · <key label>".
+      expect(ms.textContent).toContain('OpenAI · Default');
+      // Inactive connections stay listed: the log keeps their history.
+      expect(ms.textContent).toContain('Anthropic · Team');
+      expect(ms.textContent).toContain('All connections');
     });
+  });
+
+  it('sends the selected connection ids to the API', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() =>
+      expect(connectionMultiselect(container)?.textContent).toContain('OpenAI · Default'),
+    );
+    mockGetMessages.mockClear();
+    await fireEvent.change(connectionMultiselect(container), {
+      target: { value: 'conn-openai-1' },
+    });
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(
+        expect.objectContaining({ connections: 'conn-openai-1' }),
+      );
+    });
+    expect(mockSetSearchParams).toHaveBeenCalledWith(
+      { connections: 'conn-openai-1' },
+      { replace: true },
+    );
   });
 
   it('debounces cost filter inputs', async () => {
@@ -728,14 +836,18 @@ describe('MessageLog', () => {
       expect(selects.length).toBeGreaterThanOrEqual(1);
     });
     // Set a filter to trigger filtered empty state
-    const selects = container.querySelectorAll('[data-testid="select"]');
     mockGetMessages.mockResolvedValue({
       items: [],
       next_cursor: null,
       total_count: 0,
       providers: ['openai'],
     });
-    await fireEvent.change(selects[0], { target: { value: 'openai' } });
+    await vi.waitFor(() =>
+      expect(connectionMultiselect(container)?.textContent).toContain('OpenAI · Default'),
+    );
+    await fireEvent.change(connectionMultiselect(container), {
+      target: { value: 'conn-openai-1' },
+    });
     await vi.waitFor(() => {
       expect(container.textContent).toContain('No requests match your filters');
     });
@@ -897,15 +1009,11 @@ describe('MessageLog', () => {
       });
     });
 
-    it('labels the provider filter option with the custom provider name', async () => {
+    it('labels the connection filter option with the custom provider name', async () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
-      mockGetMessageFilterOptions.mockResolvedValue({
-        providers: ['custom:abc-123'],
-        provider_labels: { 'custom:abc-123': 'Cohere' },
-      });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('Cohere');
+        expect(connectionMultiselect(container)?.textContent).toContain('Cohere · Default');
       });
     });
 
@@ -949,14 +1057,18 @@ describe('MessageLog', () => {
       });
 
       // Set a filter
-      const selects = container.querySelectorAll('[data-testid="select"]');
       mockGetMessages.mockResolvedValue({
         items: [],
         next_cursor: null,
         total_count: 0,
         providers: ['openai'],
       });
-      await fireEvent.change(selects[0], { target: { value: 'openai' } });
+      await vi.waitFor(() =>
+      expect(connectionMultiselect(container)?.textContent).toContain('OpenAI · Default'),
+    );
+      await fireEvent.change(connectionMultiselect(container), {
+        target: { value: 'conn-openai-1' },
+      });
 
       await vi.waitFor(() => {
         expect(container.textContent).toContain('No requests match your filters');
@@ -1372,9 +1484,10 @@ describe('MessageLog', () => {
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         const selects = container.querySelectorAll('[data-testid="select"]');
-        // In agent mode, first select is provider filter (no "All harnesses" option)
+        // In agent mode, no harness select renders; the first Select is the
+        // recovery-attempts filter (connections live in their own multiselect).
         expect(selects[0].textContent).not.toContain('All harnesses');
-        expect(selects[0].textContent).toContain('All providers');
+        expect(selects[0].textContent).toContain('All recovery attempts');
       });
     });
 

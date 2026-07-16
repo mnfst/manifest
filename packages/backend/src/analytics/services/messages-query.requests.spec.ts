@@ -81,6 +81,82 @@ describe('MessagesQueryService request-first queries', () => {
     expect(result.items.map((row) => row.id)).toEqual(['legacy-1', 'request-1']);
   });
 
+  it('filters by connection with the legacy folds, OR-ing several connections', async () => {
+    const requestQb = makeQb();
+    requestQb.clone.mockReturnValue(makeQb());
+    const legacyBase = makeQb();
+    legacyBase.clone.mockReturnValueOnce(makeQb()).mockReturnValueOnce(makeQb());
+    const tenantProviderFind = jest.fn().mockResolvedValue([
+      { id: 'conn-1', provider: 'openai', auth_type: 'api_key', label: 'Default' },
+      { id: 'conn-2', provider: 'openai', auth_type: 'subscription', label: 'Team' },
+    ]);
+
+    const service = new MessagesQueryService(
+      {
+        createQueryBuilder: jest.fn(() => legacyBase),
+        query: jest.fn().mockResolvedValue([]),
+      } as never,
+      { find: jest.fn() } as never,
+      { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      { find: tenantProviderFind } as never,
+    );
+
+    await service.getMessages({
+      tenantId: 'tenant-1',
+      limit: 10,
+      connections: ['conn-1', 'conn-2'],
+      include_total: false,
+      include_filter_options: false,
+    });
+
+    // The lookup is tenant-scoped: another tenant's connection id resolves to nothing.
+    expect(tenantProviderFind).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ tenant_id: 'tenant-1' }) }),
+    );
+    const clause = requestQb.andWhere.mock.calls
+      .map((call) => String(call[0]))
+      .find((c) => c.includes('connProvider0'));
+    expect(clause).toBeDefined();
+    // Both connections OR-ed inside ONE EXISTS over the request's attempts.
+    expect(clause).toContain('EXISTS');
+    expect(clause).toContain('connProvider1');
+    expect(clause).toContain(' OR ');
+    // Legacy folds: api_key matches NULL auth_type; orphan attempts fold by label.
+    expect(clause).toContain('filtered_attempt.auth_type IS NULL');
+    expect(clause).toContain(
+      "LOWER(COALESCE(filtered_attempt.provider_key_label, 'Default')) = LOWER(:connLabel0)",
+    );
+    expect(clause).toContain('filtered_attempt.tenant_provider_id IS NULL');
+  });
+
+  it('matches nothing when the connections filter resolves to no owned connection', async () => {
+    const requestQb = makeQb();
+    requestQb.clone.mockReturnValue(makeQb());
+    const legacyBase = makeQb();
+    legacyBase.clone.mockReturnValueOnce(makeQb()).mockReturnValueOnce(makeQb());
+
+    const service = new MessagesQueryService(
+      {
+        createQueryBuilder: jest.fn(() => legacyBase),
+        query: jest.fn().mockResolvedValue([]),
+      } as never,
+      { find: jest.fn() } as never,
+      { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      { find: jest.fn().mockResolvedValue([]) } as never,
+    );
+
+    await service.getMessages({
+      tenantId: 'tenant-1',
+      limit: 10,
+      connections: ['someone-elses-conn'],
+      include_total: false,
+      include_filter_options: false,
+    });
+
+    const clauses = requestQb.andWhere.mock.calls.map((call) => String(call[0]));
+    expect(clauses).toContain('1 = 0');
+  });
+
   it('uses tenant-scoped id-or-name Playground exclusion for request rows', async () => {
     const requestQb = makeQb();
     requestQb.clone.mockReturnValue(makeQb());

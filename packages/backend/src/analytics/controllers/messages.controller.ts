@@ -32,6 +32,13 @@ export class MessagesController {
       range: query.range,
       tenantId: ctx.tenantId,
       provider: query.provider,
+      connections: query.connections
+        ? query.connections
+            .split(',')
+            .map((id) => id.trim())
+            .filter(Boolean)
+            .slice(0, 50)
+        : undefined,
       service_type: query.service_type,
       cost_min: query.cost_min,
       cost_max: query.cost_max,

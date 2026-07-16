@@ -16,6 +16,8 @@ import MessageTable from '../components/MessageTable.jsx';
 import RequestDrawer from '../components/RequestDrawer.jsx';
 import Pagination from '../components/Pagination.jsx';
 import Select from '../components/Select.jsx';
+import MultiSelect, { type MultiSelectOption } from '../components/MultiSelect.jsx';
+import { getProviders as getProviderConnections } from '../services/api/providers.js';
 import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
@@ -102,6 +104,7 @@ const MessageLog: Component = () => {
     status?: string;
     request?: string;
     provider?: string;
+    connections?: string;
     range?: string;
   }>();
   const navigate = useNavigate();
@@ -166,11 +169,47 @@ const MessageLog: Component = () => {
       };
     }),
   ]);
-  // `?provider=` deep-links a pre-filtered log (the connection pages link
-  // their Failed attempts card here).
-  const [providerFilter, setProviderFilter] = createSignal(
-    typeof searchParams.provider === 'string' ? searchParams.provider : '',
+  // `?connections=` deep-links a pre-filtered log (dashboard connection cards
+  // link here); `?provider=` is the legacy form and folds into it below.
+  const [connectionsFilter, setConnectionsFilterValue] = createSignal<string[]>(
+    typeof searchParams.connections === 'string' && searchParams.connections
+      ? searchParams.connections.split(',').filter(Boolean)
+      : [],
   );
+  const setConnectionsFilter = (values: string[]) => {
+    setConnectionsFilterValue(values);
+    setSearchParams(
+      { connections: values.length ? values.join(',') : undefined },
+      { replace: true },
+    );
+  };
+  const [connectionConfig] = createResource(async () => {
+    try {
+      return await getProviderConnections();
+    } catch {
+      return null;
+    }
+  });
+  // Legacy `?provider=openai` deep links select every connection of that
+  // provider once the connection list is known.
+  createEffect(() => {
+    const provider = searchParams.provider;
+    const groups = connectionConfig()?.providers;
+    if (typeof provider !== 'string' || !provider || !groups) return;
+    if (connectionsFilter().length === 0) {
+      const ids = groups
+        .filter((g) => g.provider === provider)
+        .flatMap((g) => g.connections.map((c) => c.id));
+      if (ids.length > 0) setConnectionsFilterValue(ids);
+    }
+    setSearchParams(
+      {
+        provider: undefined,
+        connections: connectionsFilter().length ? connectionsFilter().join(',') : undefined,
+      },
+      { replace: true },
+    );
+  });
   const [triggerFilter, setTriggerFilter] = createSignal<MessageTriggerFilterValue>('');
   // `?range=` scopes the log to a rolling window; deep links from dashboard
   // cards carry it so the list total can match the card that sent us here.
@@ -269,7 +308,7 @@ const MessageLog: Component = () => {
     on(
       [
         agentFilter,
-        providerFilter,
+        connectionsFilter,
         triggerFilter,
         tierFilter,
         originFilter,
@@ -287,7 +326,7 @@ const MessageLog: Component = () => {
 
   const [data, { refetch }] = createResource(
     () => ({
-      provider: providerFilter(),
+      connections: connectionsFilter(),
       trigger: triggerFilter(),
       tier: tierFilter(),
       origin: originFilter(),
@@ -302,7 +341,7 @@ const MessageLog: Component = () => {
     }),
     (p) => {
       const q: Record<string, string> = {};
-      if (p.provider) q.provider = p.provider;
+      if (p.connections.length) q.connections = p.connections.join(',');
       if (p.trigger) q.trigger = p.trigger;
       if (p.tier) {
         if (p.tier.startsWith(SPECIFICITY_FILTER_PREFIX)) {
@@ -356,7 +395,7 @@ const MessageLog: Component = () => {
 
   const hasActiveFilters = () =>
     agentFilter() !== '' ||
-    providerFilter() !== '' ||
+    connectionsFilter().length > 0 ||
     triggerFilter() !== '' ||
     tierFilter() !== '' ||
     originFilter() !== '' ||
@@ -383,7 +422,7 @@ const MessageLog: Component = () => {
 
   const clearFilters = () => {
     setAgentFilter('');
-    setProviderFilter('');
+    setConnectionsFilter([]);
     setTriggerFilter('');
     setTierFilter('');
     setOriginFilter('');
@@ -427,14 +466,26 @@ const MessageLog: Component = () => {
     return messageFilterOptions()?.provider_labels?.[id] ?? id;
   };
 
-  const providerOptions = createMemo(() => [
-    { label: 'All providers', value: '' },
-    ...(messageFilterOptions()?.providers ?? []).map((id) => ({
-      label: providerDisplayName(id),
-      icon: providerIcon(id, 14) ?? undefined,
-      value: id,
-    })),
-  ]);
+  const AUTH_TYPE_LABELS: Record<string, string> = {
+    subscription: 'Subscription',
+    api_key: 'Usage-based',
+    local: 'Local',
+  };
+  // Every connection the tenant has, active or not: the log keeps history for
+  // connections that were since disabled.
+  const connectionOptions = createMemo<MultiSelectOption[]>(() => {
+    const groups = connectionConfig()?.providers ?? [];
+    return groups.flatMap((group) =>
+      group.connections.map((conn) => ({
+        value: conn.id,
+        label: `${group.display_name ?? providerDisplayName(group.provider)} · ${conn.label}`,
+        icon: providerIcon(group.provider, 14) ?? undefined,
+        description:
+          (AUTH_TYPE_LABELS[group.auth_type] ?? group.auth_type) +
+          (conn.is_active ? '' : ' · inactive'),
+      })),
+    );
+  });
 
   const proBadge = () => (
     <span class="pro-range-badge" aria-label="Pro plan required">
@@ -543,10 +594,12 @@ const MessageLog: Component = () => {
                 options={agentFilterOptions()}
               />
             </Show>
-            <Select
-              value={providerFilter()}
-              onChange={setProviderFilter}
-              options={providerOptions()}
+            <MultiSelect
+              values={connectionsFilter()}
+              onChange={setConnectionsFilter}
+              options={connectionOptions()}
+              placeholder="All connections"
+              label="Connection filter"
             />
             <Select
               value={triggerFilter()}

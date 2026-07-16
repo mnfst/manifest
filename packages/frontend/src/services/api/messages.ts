@@ -119,6 +119,8 @@ export function getMessages(
   params: {
     range?: string;
     provider?: string;
+    /** Comma-separated tenant_providers ids (connection filter). */
+    connections?: string;
     service_type?: string;
     cursor?: string;
     limit?: string;

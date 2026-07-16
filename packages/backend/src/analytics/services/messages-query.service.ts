@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, In, Repository, SelectQueryBuilder } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
+import { TenantProvider } from '../../entities/tenant-provider.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
 import {
   addTenantFilter,
@@ -77,6 +78,8 @@ interface MessageFilterParams {
 
 interface MessageQueryParams extends MessageFilterParams {
   provider?: string;
+  /** tenant_providers ids; requests must have touched one of these connections. */
+  connections?: string[];
   service_type?: string;
   cost_min?: number;
   cost_max?: number;
@@ -92,6 +95,44 @@ interface MessageQueryParams extends MessageFilterParams {
   include_total?: boolean;
   include_filter_options?: boolean;
   exclude_playground?: boolean;
+}
+
+interface ConnectionIdentity {
+  id: string;
+  provider: string;
+  authType: string;
+  label: string;
+}
+
+/**
+ * One connection's attempt predicate, with the SAME legacy folds as the
+ * dashboard's connection scoping (attempt-stats.service): a NULL auth_type
+ * reads as 'api_key', and an orphan attempt (NULL tenant_provider_id) belongs
+ * to the connection whose label folds to its own (NULL label = 'Default').
+ */
+function connectionAttemptPredicate(
+  alias: string,
+  conn: ConnectionIdentity,
+  index: number,
+  parameters: Record<string, unknown>,
+): string {
+  const p = `connProvider${index}`;
+  const a = `connAuthType${index}`;
+  const id = `connId${index}`;
+  const l = `connLabel${index}`;
+  parameters[p] = conn.provider;
+  parameters[a] = conn.authType;
+  parameters[id] = conn.id;
+  parameters[l] = conn.label;
+  const authFold =
+    conn.authType === 'api_key'
+      ? `(${alias}.auth_type = :${a} OR ${alias}.auth_type IS NULL)`
+      : `${alias}.auth_type = :${a}`;
+  return (
+    `(${alias}.provider = :${p} AND ${authFold} AND ` +
+    `(${alias}.tenant_provider_id = :${id} OR (${alias}.tenant_provider_id IS NULL ` +
+    `AND LOWER(COALESCE(${alias}.provider_key_label, 'Default')) = LOWER(:${l}))))`
+  );
 }
 
 @Injectable()
@@ -113,6 +154,9 @@ export class MessagesQueryService {
     @Optional()
     @InjectRepository(ManifestRequest)
     private readonly requestRepo?: Repository<ManifestRequest>,
+    @Optional()
+    @InjectRepository(TenantProvider)
+    private readonly tenantProviderRepo?: Repository<TenantProvider>,
   ) {}
 
   async getMessages(params: MessageQueryParams) {
@@ -231,6 +275,19 @@ export class MessagesQueryService {
       attemptPredicates.push('filtered_attempt.provider = :requestProvider');
       attemptParameters['requestProvider'] = params.provider;
     }
+    const resolvedConnections = params.connections?.length
+      ? await this.resolveConnections(params.tenantId, params.connections)
+      : null;
+    if (resolvedConnections) {
+      // No resolvable connection: the filter names nothing this tenant owns.
+      if (resolvedConnections.length === 0) qb.andWhere('1 = 0');
+      else {
+        const parts = resolvedConnections.map((c, i) =>
+          connectionAttemptPredicate('filtered_attempt', c, i, attemptParameters),
+        );
+        attemptPredicates.push(`(${parts.join(' OR ')})`);
+      }
+    }
     if (params.service_type) {
       attemptPredicates.push('filtered_attempt.service_type = :requestServiceType');
       attemptParameters['requestServiceType'] = params.service_type;
@@ -345,6 +402,16 @@ export class MessagesQueryService {
     // from this branch as soon as the backfill links it to a real parent.
     const legacyBase = await this.buildBaseMessageQuery(params);
     legacyBase.andWhere('at.request_id IS NULL');
+    if (resolvedConnections) {
+      if (resolvedConnections.length === 0) legacyBase.andWhere('1 = 0');
+      else {
+        const legacyParams: Record<string, unknown> = {};
+        const parts = resolvedConnections.map((c, i) =>
+          connectionAttemptPredicate('at', c, i, legacyParams),
+        );
+        legacyBase.andWhere(`(${parts.join(' OR ')})`, legacyParams);
+      }
+    }
     if (params.exclude_playground) excludePlaygroundAgents(legacyBase);
     const legacyCountQb = legacyBase.clone().select('COUNT(*)', 'total');
     const legacyDataQb = selectMessageRowColumns(
@@ -393,6 +460,24 @@ export class MessagesQueryService {
       providers: filterOptions.providers,
       provider_labels: filterOptions.provider_labels,
     };
+  }
+
+  /** Resolve connection ids to their identity triple, tenant-scoped. */
+  private async resolveConnections(
+    tenantId: string | null,
+    ids: string[],
+  ): Promise<ConnectionIdentity[]> {
+    if (!tenantId || ids.length === 0 || !this.tenantProviderRepo) return [];
+    const rows = await this.tenantProviderRepo.find({
+      where: { tenant_id: tenantId, id: In(ids) },
+      select: ['id', 'provider', 'auth_type', 'label'],
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      provider: r.provider,
+      authType: r.auth_type,
+      label: r.label ?? 'Default',
+    }));
   }
 
   async getMessageFilterOptions(params: MessageFilterParams): Promise<{
