@@ -140,6 +140,41 @@ rejections. The side panel shows the full attempt chain of a request: each
 attempt with its own status, and the auto-fix / fallback context cards
 telling how the chain unfolded.
 
+## Vocabulary rule: fallback retries, auto-fixed attempts
+
+In every user-facing sentence, a FALLBACK is a "retry" and an AUTO-FIX
+produces an "attempt": "fallback retries", "auto-fixed attempts". Tooltips
+mentioning Auto-fix only do so for tenants with the Doctor version; without
+it, the same sentence drops the Auto-fix clause.
+
+## Tenants without the Doctor version
+
+No special gating exists on the request-status chart: it is data-driven.
+A tenant without the Doctor version can never produce
+`autofix_status = 'retry_succeeded'`, so the "recovered by Auto-fix" series
+simply never appears for them. The "recovered by Fallback" series CAN appear:
+fallback is core routing, not a Doctor feature, and their rescued traffic is
+real. A former cohort member keeps their historical Auto-fix series; history
+stays honest.
+
+## Where each surface reads its data (the grain map)
+
+| Surface | Element | Grain |
+| --- | --- | --- |
+| Overview | Tokens / Cost chart, By provider view | Provider (all connections and auth types merged) |
+| Overview | Provider connections table | Connection (provider + auth type + key label), range-driven |
+| Overview | Model usage table | Model, tenant-wide |
+| Overview | Harnesses table | Harness, request world, range-driven (all columns follow the page selector) |
+| Requests (list, recent lists) | Model column and provider logo | The request's terminal attempt |
+| Requests (side panel) | Per-attempt providers | Attempt |
+| Agent overview | Model usage table | Model, scoped to the agent's attempts |
+| Usage-based / Subscriptions lists | Rows and header cards | Connection, fixed 30-day window |
+| Connection detail | Card, Attempts chart, models and harness tables | The exact connection (with legacy folds) |
+
+Legacy folds, everywhere a connection is matched: a NULL `auth_type` reads
+`api_key`, a NULL key label reads `Default`, and an orphan attempt (NULL
+`tenant_provider_id`) belongs to the connection whose folded label matches.
+
 ## Reading rules (the invariants)
 
 1. **Grouping is a lens, never a filter.** Within one chart, switching the
