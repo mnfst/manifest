@@ -1,3 +1,4 @@
+import { In } from 'typeorm';
 import { ProxyMessageDedup, SUCCESS_SESSION_DEDUP_WINDOW_MS } from '../proxy-message-dedup';
 import { IngestionContext } from '../../../otlp/interfaces/ingestion-context.interface';
 
@@ -222,7 +223,10 @@ describe('ProxyMessageDedup', () => {
       expect(result).toBe(existing);
       expect(repo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({ request_id: 'request-1', status: 'ok' }),
+          where: expect.objectContaining({
+            request_id: 'request-1',
+            status: In(['ok', 'success']),
+          }),
         }),
       );
       expect(repo.find).not.toHaveBeenCalled();
@@ -252,7 +256,7 @@ describe('ProxyMessageDedup', () => {
       expect(result).toBe(existing);
       expect(repo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({ trace_id: 'trace-abc', status: 'ok' }),
+          where: expect.objectContaining({ trace_id: 'trace-abc', status: In(['ok', 'success']) }),
         }),
       );
     });

@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
 import { Logger } from '@nestjs/common';
-import { classifyMessageError, inferProviderFromModel } from 'manifest-shared';
+import { classifyMessageError, inferProviderFromModel, normalizeStatus } from 'manifest-shared';
 import { AgentMessage } from '../entities/agent-message.entity';
 
 /**
@@ -255,7 +255,9 @@ export async function seedAgentMessages(
         cost_usd:
           entry.auth_type === 'subscription' ? 0 : inputBase * 0.000003 + outputBase * 0.000015,
         duration_ms: 200 + Math.floor(seededRandom(idx * 13) * 4800),
-        status: outcome?.status ?? 'ok',
+        // Classify from the rich shape above, then store the canonical status —
+        // exactly the classify-then-normalize the live recorder does.
+        status: normalizeStatus(outcome?.status),
         error_message: outcome?.error_message ?? null,
         error_http_status: outcome?.error_http_status ?? null,
         routing_reason: outcome?.routing_reason ?? null,

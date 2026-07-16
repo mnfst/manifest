@@ -91,7 +91,7 @@ describe('ProxyMessageRecorder', () => {
       });
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0]).toMatchObject({
-        status: 'ok',
+        status: 'success',
         input_tokens: 0,
         output_tokens: 0,
         fallback_from_model: 'claude-opus',
@@ -107,7 +107,7 @@ describe('ProxyMessageRecorder', () => {
       });
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0]).toMatchObject({
-        status: 'ok',
+        status: 'success',
         input_tokens: 0,
         output_tokens: 0,
       });
@@ -161,7 +161,7 @@ describe('ProxyMessageRecorder', () => {
         agent_name: 'test-agent',
         user_id: 'user-1',
         trace_id: 'trace-abc',
-        status: 'ok',
+        status: 'success',
         model: 'gpt-4o',
         routing_tier: 'standard',
         input_tokens: 100,
@@ -350,7 +350,7 @@ describe('ProxyMessageRecorder', () => {
       });
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0]).toMatchObject({
-        status: 'error',
+        status: 'failed',
         error_message: 'Internal error',
         error_http_status: 500,
         model: 'gpt-4o',
@@ -361,7 +361,7 @@ describe('ProxyMessageRecorder', () => {
     it('stores the HTTP status code for 400 errors', async () => {
       await recorder.recordProviderError(ctx, 400, 'Bad request');
       expect(insertMock.mock.calls[0][0]).toMatchObject({
-        status: 'error',
+        status: 'failed',
         error_http_status: 400,
       });
     });
@@ -369,7 +369,8 @@ describe('ProxyMessageRecorder', () => {
     it('records rate_limited status for 429 and emits SSE event', async () => {
       await recorder.recordProviderError(ctx, 429, 'Rate limited');
       expect(insertMock).toHaveBeenCalledTimes(1);
-      expect(insertMock.mock.calls[0][0].status).toBe('rate_limited');
+      expect(insertMock.mock.calls[0][0].status).toBe('failed');
+      expect(insertMock.mock.calls[0][0].error_class).toBe('rate_limit');
       expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
@@ -453,7 +454,7 @@ describe('ProxyMessageRecorder', () => {
       });
 
       expect(insertMock.mock.calls[0][0]).toMatchObject({
-        status: 'error',
+        status: 'failed',
         error_code: 'M100',
         error_message:
           '[🦚 Manifest M100] No anthropic API key yet. Add one here: https://x/routing',
@@ -484,7 +485,7 @@ describe('ProxyMessageRecorder', () => {
       });
 
       expect(insertMock.mock.calls[0][0]).toMatchObject({
-        status: 'error',
+        status: 'failed',
         error_code: 'M300',
         error_http_status: 400,
         error_origin: 'request',
@@ -551,7 +552,7 @@ describe('ProxyMessageRecorder', () => {
         agent_name: 'test-agent',
         trace_id: 'trace-1',
         session_key: 'session-1',
-        status: 'error',
+        status: 'failed',
         error_message: 'Free plan request limit reached',
         error_http_status: 402,
         routing_reason: 'plan_request_limit_exceeded',
@@ -573,7 +574,7 @@ describe('ProxyMessageRecorder', () => {
 
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0]).toMatchObject({
-        status: 'rate_limited',
+        status: 'failed',
         error_message: 'Too many requests',
         error_http_status: 429,
         routing_reason: 'manifest_rate_limited',
@@ -696,8 +697,9 @@ describe('ProxyMessageRecorder', () => {
       // markHandled=false is the default → the !useHandledStatus branch runs,
       // so `f.status === 429 ? 'rate_limited' : 'error'` is exercised.
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
-      const rows = insertMock.mock.calls[0][0] as Array<{ status: string }>;
-      expect(rows[0].status).toBe('rate_limited');
+      const rows = insertMock.mock.calls[0][0] as Array<{ status: string; error_class: string }>;
+      expect(rows[0].status).toBe('failed');
+      expect(rows[0].error_class).toBe('rate_limit');
     });
 
     it('marks fallback_error status when markHandled=true and lastAsError=false', async () => {
@@ -713,8 +715,9 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
         markHandled: true,
       });
-      const rows = insertMock.mock.calls[0][0] as Array<{ status: string }>;
-      expect(rows[0].status).toBe('fallback_error');
+      const rows = insertMock.mock.calls[0][0] as Array<{ status: string; superseded: boolean }>;
+      expect(rows[0].status).toBe('failed');
+      expect(rows[0].superseded).toBe(true);
     });
 
     it('marks the LAST failure as error when lastAsError=true and markHandled=true', async () => {
@@ -738,11 +741,17 @@ describe('ProxyMessageRecorder', () => {
         markHandled: true,
         lastAsError: true,
       });
-      const rows = insertMock.mock.calls[0][0] as Array<{ status: string }>;
-      // First failure uses fallback_error (handled), last is the real error.
-      expect(rows[0].status).toBe('fallback_error');
-      // Last failure with status 429 → rate_limited.
-      expect(rows[1].status).toBe('rate_limited');
+      const rows = insertMock.mock.calls[0][0] as Array<{
+        status: string;
+        superseded: boolean;
+        error_class: string;
+      }>;
+      // First failure uses fallback_error (handled) → superseded.
+      expect(rows[0].status).toBe('failed');
+      expect(rows[0].superseded).toBe(true);
+      // Last failure with status 429 → rate-limit error class.
+      expect(rows[1].status).toBe('failed');
+      expect(rows[1].error_class).toBe('rate_limit');
     });
 
     it('uses baseTimeMs to stagger timestamps when provided', async () => {
@@ -815,7 +824,7 @@ describe('ProxyMessageRecorder', () => {
       );
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0]).toMatchObject({
-        status: 'fallback_error',
+        status: 'failed',
         model: 'gpt-4o',
         // A recovered primary is a superseded attempt, classified by its cause
         // (no HTTP status here ⇒ transport/network), not a terminal outcome.
@@ -877,7 +886,8 @@ describe('ProxyMessageRecorder', () => {
         { provider: 'openai', autofix: sampleAutofix, httpStatus: 400 },
       );
       const row = insertMock.mock.calls[0][0];
-      expect(row.status).toBe('fallback_error');
+      expect(row.status).toBe('failed');
+      expect(row.superseded).toBe(true);
       expect(row.autofix_applied).toBe(true);
       expect(row.autofix_group_id).toBe('grp-1');
       expect(row.autofix_role).toBe('retry');
@@ -992,7 +1002,7 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[0][0]).toMatchObject({
         input_tokens: 0,
         output_tokens: 0,
-        status: 'ok',
+        status: 'success',
       });
       expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
@@ -1228,7 +1238,7 @@ describe('ProxyMessageRecorder', () => {
       });
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0]).toMatchObject({
-        status: 'ok',
+        status: 'success',
         error_message: null,
         routing_reason: 'scored',
         error_origin: null,
@@ -1247,7 +1257,7 @@ describe('ProxyMessageRecorder', () => {
         completion_tokens: 0,
       });
       expect(insertMock.mock.calls[0][0]).toMatchObject({
-        status: 'ok',
+        status: 'success',
         error_message: null,
         error_origin: null,
       });
@@ -1490,7 +1500,8 @@ describe('ProxyMessageRecorder', () => {
       );
 
       const row = insertMock.mock.calls.at(-1)![0];
-      expect(row.status).toBe('fallback_error');
+      expect(row.status).toBe('failed');
+      expect(row.superseded).toBe(true);
       expect(row.error_http_status).toBe(400);
       expect(row.autofix_applied).toBe(true);
       expect(row.autofix_role).toBe('retry');
@@ -1512,7 +1523,8 @@ describe('ProxyMessageRecorder', () => {
         traceId: 'trace-af',
       });
       const row = insertMock.mock.calls.at(-1)![0] as Record<string, unknown>;
-      expect(row.status).toBe('auto_fixed');
+      expect(row.status).toBe('failed');
+      expect(row.superseded).toBe(true);
       expect(row.error_http_status).toBe(400);
       // The full provider envelope, like every other error row. Storing the bare message
       // would drop type/param/code — the dimensions that identify the error downstream.

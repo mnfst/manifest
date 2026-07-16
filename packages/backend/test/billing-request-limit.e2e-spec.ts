@@ -156,7 +156,7 @@ describe('request limit gate (/v1 proxy)', () => {
     expect(manifestBlocksAfter).toBe(manifestBlocksBefore[0].n + 1);
     expect(latestBlock[0]).toEqual(
       expect.objectContaining({
-        status: 'error',
+        status: 'failed',
         error_origin: 'policy',
         error_class: 'plan_request_limit_exceeded',
         error_http_status: 402,

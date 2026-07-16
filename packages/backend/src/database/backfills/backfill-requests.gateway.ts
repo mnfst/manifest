@@ -32,6 +32,18 @@ export const FALLBACK_PRIMARY_WINDOW_END_SQL = `
 const REQUEST_LEVEL_ORIGINS = `'config', 'policy', 'request', 'internal'`;
 
 /**
+ * The requests this backfill materializes must use the canonical
+ * `success` / `failed` vocabulary, same as the live recorder now writes, so the
+ * `requests` table is coherent regardless of which side created a row. Historical
+ * `provider_attempts.status` still holds the legacy values (`ok` / `error` /
+ * `rate_limited` / `fallback_error` / `auto_fixed`); this collapses a terminal
+ * attempt status onto the request outcome. It is only applied to terminal attempt
+ * statuses (never `pending`), so the two-way success/failed split is complete.
+ */
+const normalizeAttemptStatusSql = (expr: string): string =>
+  `CASE WHEN ${expr} IN ('ok', 'success') THEN 'success' ELSE 'failed' END`;
+
+/**
  * Historical decisions written before this migration have no JSON `status`.
  * With no retry evidence those rows are necessarily no-patch or resolving, but
  * the two cannot be distinguished retrospectively; use the terminal no_patch
@@ -39,7 +51,7 @@ const REQUEST_LEVEL_ORIGINS = `'config', 'policy', 'request', 'internal'`;
  */
 const autofixStatusFromAttempt = (alias: string): string => `CASE
   WHEN ${alias}.autofix_role = 'retry' THEN
-    CASE WHEN ${alias}.status = 'ok' THEN 'retry_succeeded' ELSE 'retry_failed' END
+    CASE WHEN ${alias}.status IN ('ok', 'success') THEN 'retry_succeeded' ELSE 'retry_failed' END
   WHEN COALESCE(${alias}.autofix_applied, false)
     AND ${alias}.autofix_decision->>'healAttemptId' IS NOT NULL THEN 'retry_failed'
   WHEN ${alias}.autofix_decision->>'status' = 'resolving' THEN 'resolving'
@@ -50,7 +62,7 @@ const autofixStatusFromAttempt = (alias: string): string => `CASE
 END`;
 
 const autofixStatusFromAttempts = (alias: string): string => `CASE
-  WHEN BOOL_OR(${alias}.autofix_role = 'retry' AND ${alias}.status = 'ok')
+  WHEN BOOL_OR(${alias}.autofix_role = 'retry' AND ${alias}.status IN ('ok', 'success'))
     THEN 'retry_succeeded'
   WHEN BOOL_OR(${alias}.autofix_role = 'retry')
     OR BOOL_OR(COALESCE(${alias}.autofix_applied, false)
@@ -337,7 +349,7 @@ export const INSERT_LEGACY_FALLBACK_REQUESTS_SQL = `
     SELECT
       g.request_id, terminal.tenant_id, terminal.agent_id, terminal.user_id,
       terminal.agent_name, terminal.trace_id, terminal.session_key, terminal.session_id,
-      totals.started_at, totals.duration_ms, terminal.status, terminal.error_message,
+      totals.started_at, totals.duration_ms, ${normalizeAttemptStatusSql('terminal.status')}, terminal.error_message,
       terminal.error_http_status, terminal.error_code, totals.autofix_status, terminal.error_origin,
       terminal.error_class, primary_attempt.model, terminal.caller_attribution,
       terminal.request_headers, terminal.request_params, terminal.feedback_rating,
@@ -370,7 +382,7 @@ export const INSERT_REJECTIONS_SQL = `
     SELECT * FROM "provider_attempts"
     WHERE "request_id" IS NULL AND id > $1 AND id <= $2
       AND timestamp < $3
-      AND status <> 'ok'
+      AND status NOT IN ('ok', 'success')
       AND error_origin IN (${REQUEST_LEVEL_ORIGINS})
   ), ins AS (
     INSERT INTO "requests" (
@@ -381,7 +393,7 @@ export const INSERT_REJECTIONS_SQL = `
     )
     SELECT
       id, tenant_id, agent_id, user_id, agent_name, trace_id, session_key, session_id,
-      timestamp, duration_ms, status, error_message, error_http_status, error_code,
+      timestamp, duration_ms, ${normalizeAttemptStatusSql('status')}, error_message, error_http_status, error_code,
       ${autofixStatusFromAttempt('batch')}, error_origin, error_class, model, caller_attribution, request_headers,
       request_params, feedback_rating, feedback_tags, feedback_details
     FROM batch
@@ -396,7 +408,7 @@ export const DELETE_REJECTIONS_SQL = `
     DELETE FROM "provider_attempts"
     WHERE "request_id" IS NULL AND id > $1 AND id <= $2
       AND timestamp < $3
-      AND status <> 'ok'
+      AND status NOT IN ('ok', 'success')
       AND error_origin IN (${REQUEST_LEVEL_ORIGINS})
     RETURNING 1
   )
@@ -412,7 +424,7 @@ const LEGACY_REQUEST_ID = `CASE
 END`;
 
 const OUTCOME_RANK = `CASE
-  WHEN status = 'ok' THEN 3
+  WHEN status IN ('ok', 'success') THEN 3
   WHEN NOT COALESCE(superseded, false)
     AND status NOT IN ('fallback_error', 'auto_fixed') THEN 2
   ELSE 1
@@ -438,7 +450,7 @@ export const INSERT_ATTEMPT_REQUESTS_SQL = `
     SELECT
       legacy_request_id, tenant_id, agent_id, user_id, agent_name, trace_id,
       session_key, session_id, timestamp, duration_ms,
-      CASE WHEN outcome_rank = 1 THEN 'pending' ELSE status END,
+      CASE WHEN outcome_rank = 1 THEN 'pending' ELSE ${normalizeAttemptStatusSql('status')} END,
       CASE WHEN outcome_rank = 1 THEN NULL ELSE error_message END,
       CASE WHEN outcome_rank = 1 THEN NULL ELSE error_http_status END,
       CASE WHEN outcome_rank = 1 THEN NULL ELSE error_code END,
@@ -451,20 +463,21 @@ export const INSERT_ATTEMPT_REQUESTS_SQL = `
     ON CONFLICT (id) DO UPDATE SET
       timestamp = LEAST(requests.timestamp, EXCLUDED.timestamp),
       status = CASE
-        WHEN requests.status = 'ok' OR EXCLUDED.status = 'ok' THEN 'ok'
+        WHEN requests.status IN ('ok', 'success') OR EXCLUDED.status IN ('ok', 'success')
+          THEN 'success'
         WHEN EXCLUDED.status = 'pending' THEN requests.status
         ELSE EXCLUDED.status
       END,
       autofix_status = COALESCE(EXCLUDED.autofix_status, requests.autofix_status),
-      error_message = CASE WHEN requests.status = 'ok' OR EXCLUDED.status = 'pending'
+      error_message = CASE WHEN requests.status IN ('ok', 'success') OR EXCLUDED.status = 'pending'
         THEN requests.error_message ELSE EXCLUDED.error_message END,
-      error_http_status = CASE WHEN requests.status = 'ok' OR EXCLUDED.status = 'pending'
+      error_http_status = CASE WHEN requests.status IN ('ok', 'success') OR EXCLUDED.status = 'pending'
         THEN requests.error_http_status ELSE EXCLUDED.error_http_status END,
-      error_code = CASE WHEN requests.status = 'ok' OR EXCLUDED.status = 'pending'
+      error_code = CASE WHEN requests.status IN ('ok', 'success') OR EXCLUDED.status = 'pending'
         THEN requests.error_code ELSE EXCLUDED.error_code END,
-      error_origin = CASE WHEN requests.status = 'ok' OR EXCLUDED.status = 'pending'
+      error_origin = CASE WHEN requests.status IN ('ok', 'success') OR EXCLUDED.status = 'pending'
         THEN requests.error_origin ELSE EXCLUDED.error_origin END,
-      error_class = CASE WHEN requests.status = 'ok' OR EXCLUDED.status = 'pending'
+      error_class = CASE WHEN requests.status IN ('ok', 'success') OR EXCLUDED.status = 'pending'
         THEN requests.error_class ELSE EXCLUDED.error_class END
     RETURNING (xmax = 0) AS inserted
   )
@@ -508,7 +521,7 @@ export const REFRESH_ATTEMPT_REQUESTS_SQL = `
     JOIN affected a ON a.request_id = pa.request_id
     ORDER BY pa.request_id,
       CASE
-        WHEN pa.status = 'ok' THEN 3
+        WHEN pa.status IN ('ok', 'success') THEN 3
         WHEN NOT COALESCE(pa.superseded, false)
           AND pa.status NOT IN ('fallback_error', 'auto_fixed') THEN 2
         ELSE 1
@@ -524,7 +537,7 @@ export const REFRESH_ATTEMPT_REQUESTS_SQL = `
   UPDATE "requests" r
   SET timestamp = totals.started_at,
       duration_ms = totals.duration_ms,
-      status = terminal.status,
+      status = ${normalizeAttemptStatusSql('terminal.status')},
       autofix_status = autofix.autofix_status,
       error_message = terminal.error_message,
       error_http_status = terminal.error_http_status,
@@ -557,7 +570,7 @@ export const FINALIZE_PENDING_REQUESTS_SQL = `
     ORDER BY pa.request_id, pa.timestamp DESC, pa.id DESC
   )
   UPDATE "requests" r
-  SET status = COALESCE(last_attempt.status, 'error'),
+  SET status = COALESCE(${normalizeAttemptStatusSql('last_attempt.status')}, 'failed'),
       error_message = last_attempt.error_message,
       error_http_status = last_attempt.error_http_status,
       error_code = last_attempt.error_code,

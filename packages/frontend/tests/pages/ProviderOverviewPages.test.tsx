@@ -274,6 +274,7 @@ vi.mock('manifest-shared', () => ({
   // these at module scope.
   SHARED_PROVIDERS: [],
   inferProviderFromModel: (m: string) => (m.startsWith('custom:') ? 'custom' : null),
+  isSuccessStatus: (s: string | null | undefined) => s == null || s === 'ok' || s === 'success',
 }));
 
 // Local providers only exist on self-hosted installs; GlobalOverview hides

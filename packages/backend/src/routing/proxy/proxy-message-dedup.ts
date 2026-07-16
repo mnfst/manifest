@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { StreamUsage } from './stream-writer';
+
+// A prior success may have been written as legacy `ok` or canonical `success`
+// (rolling deploy / in-flight status backfill), so dedup must match either.
+const SUCCESS_STATUS_MATCH = In(['ok', 'success']);
 
 export const SUCCESS_SESSION_DEDUP_WINDOW_MS = 30_000;
 export const SUCCESS_END_TIME_GRACE_MS = 5_000;
@@ -46,7 +50,7 @@ export class ProxyMessageDedup {
         where: {
           tenant_id: ctx.tenantId,
           request_id: requestId,
-          status: 'ok',
+          status: SUCCESS_STATUS_MATCH,
         },
         select: DEDUP_SELECT,
         order: { timestamp: 'DESC' },
@@ -60,7 +64,7 @@ export class ProxyMessageDedup {
           tenant_id: ctx.tenantId,
           agent_id: ctx.agentId,
           trace_id: traceId,
-          status: 'ok',
+          status: SUCCESS_STATUS_MATCH,
         },
         select: DEDUP_SELECT,
         order: { timestamp: 'DESC' },
@@ -74,7 +78,7 @@ export class ProxyMessageDedup {
         tenant_id: ctx.tenantId,
         agent_id: ctx.agentId,
         model,
-        status: 'ok',
+        status: SUCCESS_STATUS_MATCH,
         ...(sessionKey ? { session_key: sessionKey } : {}),
       },
       select: DEDUP_SELECT,

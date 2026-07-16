@@ -5,6 +5,8 @@ import { v4 as uuid } from 'uuid';
 import {
   classifyMessageError,
   deriveAutofixStatus,
+  normalizeStatus,
+  PENDING_STATUS,
   type RequestParamDefaults,
 } from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -238,7 +240,12 @@ function buildMessageRow(
   };
   // Stamp the orthogonal error axes from this row's own signals so every insert
   // site is classified identically (and identically to the backfill migration).
-  return { ...row, ...classifyRow(row) };
+  // classifyRow reads the *rich* status (`rate_limited` / `fallback_error` /
+  // `auto_fixed`) to derive error_class + superseded, then the stored status is
+  // collapsed onto the canonical `success`/`failed` vocabulary — the reason it
+  // failed now lives entirely on those orthogonal columns.
+  const classified = classifyRow(row);
+  return { ...row, ...classified, status: normalizeStatus(row.status) };
 }
 
 function buildRequestRow(
@@ -249,7 +256,9 @@ function buildRequestRow(
   autofix?: AutofixRecord,
 ): ManifestRequest {
   const classified = classifyRow(attempt);
-  const status = terminal ? (attempt.status ?? 'ok') : 'pending';
+  // classifyRow above reads the rich attempt status; the request row stores the
+  // collapsed canonical outcome. A non-terminal request is still `pending`.
+  const status = terminal ? normalizeStatus(attempt.status) : PENDING_STATUS;
   return {
     id: requestId,
     tenant_id: ctx.tenantId,

@@ -11,6 +11,7 @@ import {
   filterByTenantProviderId,
   excludePlaygroundAgents,
   sqlCountMessages,
+  SUCCESS_STATUS_SQL_LIST,
   addTenantFilter,
   scopeToConnection,
 } from '../services/query-helpers';
@@ -104,7 +105,7 @@ export class ProviderAnalyticsController {
     const qb = this.messageRepo
       .createQueryBuilder('at')
       .select('COUNT(*)', 'total')
-      .addSelect("COUNT(*) FILTER (WHERE at.status = 'ok')", 'successful')
+      .addSelect(`COUNT(*) FILTER (WHERE at.status IN (${SUCCESS_STATUS_SQL_LIST}))`, 'successful')
       .where('at.timestamp >= :attemptCutoff', {
         attemptCutoff: computeCutoff(rangeToInterval(range)),
       });

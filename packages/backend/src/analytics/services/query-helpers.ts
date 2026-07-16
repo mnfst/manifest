@@ -35,12 +35,29 @@ export function computeTrend(current: number, previous: number): number {
 // `auto_fixed` is the failed-original row of a healed Auto-fix pair; its paired
 // `ok` retry row is the real success, so the original is excluded here to avoid
 // double-counting one logical request.
+//
+// Both vocabularies are listed on purpose: `error`/`rate_limited`/`fallback_error`/
+// `auto_fixed` are the legacy values still present on historical rows and on writes
+// from not-yet-drained replicas, while `failed` is the canonical value new writes
+// use. Listing both keeps the "real message" count correct across the transition —
+// the reason a row failed now lives on `error_class` / `superseded`, not on `status`.
 export const ERROR_MESSAGE_STATUSES = [
   'error',
   'fallback_error',
   'rate_limited',
   'auto_fixed',
+  'failed',
 ] as const;
+
+/**
+ * Status values that mean "terminal success", across both the legacy (`ok`) and
+ * canonical (`success`) vocabularies. Use in SQL as `status IN (...)` so success
+ * detection survives the rolling deploy and the in-flight status backfill.
+ */
+export const SUCCESS_MESSAGE_STATUSES = ['ok', 'success'] as const;
+
+/** `'ok', 'success'` — ready to splice into a SQL `IN (...)`/`NOT IN (...)`. */
+export const SUCCESS_STATUS_SQL_LIST = SUCCESS_MESSAGE_STATUSES.map((s) => `'${s}'`).join(', ');
 
 /**
  * SQL `COUNT(*)` expression that counts only real (non-error) messages.

@@ -8,7 +8,7 @@ import {
 } from '../services/api.js';
 import { inferProviderName } from '../services/routing-utils.js';
 import { getModelDisplayName } from '../services/model-display.js';
-import { AUTOFIX_STATUS_LABELS, manifestErrorDocsUrl } from 'manifest-shared';
+import { AUTOFIX_STATUS_LABELS, manifestErrorDocsUrl, isSuccessStatus } from 'manifest-shared';
 import { formatErrorClass, formatErrorOrigin } from '../services/formatters.js';
 import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
 import { ModelParamsSection, RequestHeadersSection } from './MessageDetailsSections.jsx';
@@ -259,15 +259,21 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
           const d = data()!;
           const m = d.message;
           const provider = m.model ? inferProviderName(m.model) : null;
-          // Normalize status for display: auto_fixed/fallback_error → the real outcome
+          // Normalize status for display: a superseded failure (fallback / auto-fix
+          // original) still renders its real two-state outcome. isSuccessStatus
+          // accepts both the legacy `ok` and the canonical `success`.
           const displayStatus = () => {
-            if (m.status === 'ok')
+            if (isSuccessStatus(m.status))
               return { label: 'Success', cls: 'status-badge status-badge--ok' };
             return { label: 'Failed', cls: 'status-badge status-badge--error' };
           };
           const isAutofixOriginal = m.autofix_applied && m.autofix_role === 'original';
           const isAutofixRetry = m.autofix_applied && m.autofix_role === 'retry';
-          const isFallbackError = m.status === 'fallback_error';
+          // The superseded primary of a fallback flow (legacy status `fallback_error`,
+          // now the canonical `failed` + `superseded`), excluding the Auto-fix original
+          // which has its own next-action panel.
+          const isFallbackError =
+            m.status === 'fallback_error' || (m.superseded === true && !isAutofixOriginal);
           const isFallbackTrigger = !!m.fallback_from_model && !isFallbackError;
           const hasTrigger = isAutofixRetry || isFallbackTrigger;
           const hasNextAction = isAutofixOriginal || isFallbackError;

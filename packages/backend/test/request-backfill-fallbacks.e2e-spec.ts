@@ -184,7 +184,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
        FROM provider_attempts`,
     );
     expect({ ...request, parents, attempts }).toEqual({
-      status: 'ok',
+      status: 'success',
       requested_model: 'openai/gpt-4o',
       duration_ms: 400,
       parents: 1,
@@ -228,7 +228,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
       `SELECT count(DISTINCT request_id)::int parents FROM provider_attempts`,
     );
     expect({ ...request, parents }).toEqual({
-      status: 'error',
+      status: 'failed',
       requested_model: 'openai/gpt-4o',
       parents: 1,
     });
@@ -493,7 +493,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     });
 
     const [request] = await dataSource.query(`SELECT status FROM requests`);
-    expect(request).toEqual({ status: 'fallback_error' });
+    expect(request).toEqual({ status: 'failed' });
   });
 
   it('preserves ordinary and Auto-fix grouping behavior', async () => {

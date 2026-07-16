@@ -10,7 +10,12 @@ import {
   type SpecificityCategory,
 } from 'manifest-shared';
 
+// `success` / `failed` are the canonical filter values; `ok` and the specific
+// legacy error values (`error` / `rate_limited` / `fallback_error`) plus `errors`
+// stay accepted so links and saved filters minted before the status normalization
+// keep working. The query service maps them onto the canonical vocabulary.
 export const MESSAGE_STATUS_FILTER_VALUES = [
+  'success',
   'ok',
   'failed',
   'error',
