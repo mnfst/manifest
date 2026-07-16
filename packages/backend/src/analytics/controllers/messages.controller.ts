@@ -46,6 +46,9 @@ export class MessagesController {
       cursor: query.cursor,
       agent_name: query.agent_name,
       status: query.status,
+      attemptStatus: query.attempts
+        ? ([...new Set(query.attempts.split(','))] as ('has_failed' | 'has_succeeded')[])
+        : undefined,
       triggers: query.trigger
         ? ([...new Set(query.trigger.split(','))] as MessageTriggerFilter[])
         : undefined,

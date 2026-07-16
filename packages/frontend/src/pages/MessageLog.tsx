@@ -96,6 +96,15 @@ const isMessageTriggerFilter = (value: unknown): value is MessageTriggerFilter =
 const normalizeTriggerFilters = (value: unknown): MessageTriggerFilter[] =>
   typeof value === 'string' ? value.split(',').filter(isMessageTriggerFilter) : [];
 
+const ATTEMPT_STATUS_FILTERS = ['has_failed', 'has_succeeded'] as const;
+type AttemptStatusFilter = (typeof ATTEMPT_STATUS_FILTERS)[number];
+
+const isAttemptStatusFilter = (value: unknown): value is AttemptStatusFilter =>
+  typeof value === 'string' && (ATTEMPT_STATUS_FILTERS as readonly string[]).includes(value);
+
+const normalizeAttemptStatusFilters = (value: unknown): AttemptStatusFilter[] =>
+  typeof value === 'string' ? value.split(',').filter(isAttemptStatusFilter) : [];
+
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
   const [searchParams, setSearchParams] = useSearchParams<{
@@ -105,6 +114,7 @@ const MessageLog: Component = () => {
     provider?: string;
     connections?: string;
     trigger?: string;
+    attempts?: string;
     range?: string;
   }>();
   const navigate = useNavigate();
@@ -214,6 +224,16 @@ const MessageLog: Component = () => {
   const [triggerFilter, setTriggerFilter] = createSignal<MessageTriggerFilter[]>(
     normalizeTriggerFilters(searchParams.trigger),
   );
+  // Attempt-status facet (AND semantics): ?attempts=has_failed,has_succeeded
+  // keeps requests holding at least one attempt of EACH checked kind.
+  const [attemptStatusFilter, setAttemptStatusFilterValue] = createSignal<AttemptStatusFilter[]>(
+    normalizeAttemptStatusFilters(searchParams.attempts),
+  );
+  const setAttemptStatusFilter = (values: string[]) => {
+    const next = values.filter(isAttemptStatusFilter);
+    setAttemptStatusFilterValue(next);
+    setSearchParams({ attempts: next.length ? next.join(',') : undefined }, { replace: true });
+  };
   // `?range=` scopes the log to a rolling window; deep links from dashboard
   // cards carry it so the list total can match the card that sent us here.
   const [rangeFilter, setRangeFilterValue] = createSignal<MessageRangeFilterValue>(
@@ -317,6 +337,7 @@ const MessageLog: Component = () => {
         agentFilter,
         connectionsFilter,
         triggerFilter,
+        attemptStatusFilter,
         tierFilter,
         originFilter,
         statusFilterValue,
@@ -335,6 +356,7 @@ const MessageLog: Component = () => {
     () => ({
       connections: connectionsFilter(),
       trigger: triggerFilter(),
+      attempts: attemptStatusFilter(),
       tier: tierFilter(),
       origin: originFilter(),
       status: statusFilterValue(),
@@ -350,6 +372,7 @@ const MessageLog: Component = () => {
       const q: Record<string, string> = {};
       if (p.connections.length) q.connections = p.connections.join(',');
       if (p.trigger.length) q.trigger = p.trigger.join(',');
+      if (p.attempts.length) q.attempts = p.attempts.join(',');
       if (p.tier) {
         if (p.tier.startsWith(SPECIFICITY_FILTER_PREFIX)) {
           q.specificity_category = p.tier.slice(SPECIFICITY_FILTER_PREFIX.length);
@@ -404,6 +427,7 @@ const MessageLog: Component = () => {
     agentFilter() !== '' ||
     connectionsFilter().length > 0 ||
     triggerFilter().length > 0 ||
+    attemptStatusFilter().length > 0 ||
     tierFilter() !== '' ||
     originFilter() !== '' ||
     statusFilterValue() !== '' ||
@@ -431,6 +455,7 @@ const MessageLog: Component = () => {
     setAgentFilter('');
     setConnectionsFilter([]);
     setTriggerFilterValues([]);
+    setAttemptStatusFilter([]);
     setTierFilter('');
     setOriginFilter('');
     setStatusFilter('');
@@ -524,6 +549,11 @@ const MessageLog: Component = () => {
     { label: 'Auto-fix', value: 'autofix' },
   ];
 
+  const attemptStatusOptions = [
+    { label: 'With a failed attempt', value: 'has_failed' },
+    { label: 'With a succeeded attempt', value: 'has_succeeded' },
+  ];
+
   // Who failed. `manifest` collapses every Manifest-authored origin (setup,
   // limits, bad requests, internal errors) into one choice, since from a user's
   // point of view they share a fix path that has nothing to do with a provider.
@@ -613,6 +643,13 @@ const MessageLog: Component = () => {
               options={triggerOptions}
               placeholder="All recovery attempts"
               label="Recovery attempts filter"
+            />
+            <MultiSelect
+              values={attemptStatusFilter()}
+              onChange={setAttemptStatusFilter}
+              options={attemptStatusOptions}
+              placeholder="All attempt statuses"
+              label="Attempt status filter"
             />
             <Select
               value={statusFilterValue()}

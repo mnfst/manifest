@@ -88,6 +88,19 @@ describe('MessagesQueryDto', () => {
     expect(flat.join('\n')).toMatch(/trigger must be a comma-separated list of/);
   });
 
+  it('rejects an unknown attempts facet value', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { attempts: 'has_exploded' });
+    const errors = await validate(dto);
+    const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+    expect(flat.join('\n')).toMatch(/attempts must be a comma-separated list of/);
+  });
+
+  it('accepts the attempts facet list', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { attempts: 'has_failed,has_succeeded' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
   it('accepts a comma-separated trigger list', async () => {
     const dto = plainToInstance(MessagesQueryDto, { trigger: 'autofix,fallback' });
     const errors = await validate(dto);

@@ -102,6 +102,17 @@ export class MessagesQueryDto {
   })
   status?: MessageStatusFilter;
 
+  /**
+   * Attempt-status facet, AND semantics: `has_failed` keeps requests holding
+   * at least one failed attempt, `has_succeeded` at least one succeeded
+   * attempt; both together require both. Scoped to `connections` when set.
+   */
+  @IsOptional()
+  @Matches(/^(has_failed|has_succeeded)(,(has_failed|has_succeeded))*$/, {
+    message: 'attempts must be a comma-separated list of: has_failed, has_succeeded',
+  })
+  attempts?: string;
+
   /** One or several (comma-separated) of: none, fallback, autofix. */
   @IsOptional()
   @Matches(/^(none|fallback|autofix)(,(none|fallback|autofix))*$/, {

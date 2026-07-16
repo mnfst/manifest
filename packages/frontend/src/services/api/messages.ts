@@ -121,6 +121,8 @@ export function getMessages(
     provider?: string;
     /** Comma-separated tenant_providers ids (connection filter). */
     connections?: string;
+    /** Comma-separated attempt-status facets: has_failed, has_succeeded. */
+    attempts?: string;
     service_type?: string;
     cursor?: string;
     limit?: string;

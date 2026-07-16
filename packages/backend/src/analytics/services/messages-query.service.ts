@@ -86,6 +86,8 @@ interface MessageQueryParams extends MessageFilterParams {
   limit: number;
   cursor?: string;
   status?: MessageStatusFilter;
+  /** AND facet: the request must hold at least one attempt of each kind. */
+  attemptStatus?: ('has_failed' | 'has_succeeded')[];
   triggers?: MessageTriggerFilter[];
   origin?: MessageOriginFilter;
   error_class?: string;
@@ -340,6 +342,38 @@ export class MessagesQueryService {
         )`;
       });
       qb.andWhere(`(${parts.join(' OR ')})`, triggerParameters);
+    }
+    if (params.attemptStatus?.length) {
+      // Same succeeded/failed reading as the connection dashboards:
+      // succeeded = status 'ok' (or the legacy NULL), failed = anything else.
+      const outcomeParameters: Record<string, unknown> = {};
+      const connScope = resolvedConnections?.length
+        ? ' AND (' +
+          resolvedConnections
+            .map((c, i) =>
+              connectionAttemptPredicate(
+                'outcome_attempt',
+                c,
+                i + 2 * resolvedConnections.length,
+                outcomeParameters,
+              ),
+            )
+            .join(' OR ') +
+          ')'
+        : '';
+      for (const kind of params.attemptStatus) {
+        const condition =
+          kind === 'has_succeeded'
+            ? "(outcome_attempt.status = 'ok' OR outcome_attempt.status IS NULL)"
+            : "(outcome_attempt.status IS NOT NULL AND outcome_attempt.status <> 'ok')";
+        qb.andWhere(
+          `EXISTS (
+            SELECT 1 FROM provider_attempts outcome_attempt
+            WHERE outcome_attempt.request_id = r.id AND ${condition}${connScope}
+          )`,
+          outcomeParameters,
+        );
+      }
     }
     if (attemptPredicates.length > 0) {
       qb.andWhere(matchingAttempt(attemptPredicates), attemptParameters);

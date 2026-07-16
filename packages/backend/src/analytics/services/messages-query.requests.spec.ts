@@ -199,6 +199,53 @@ describe('MessagesQueryService request-first queries', () => {
     expect(clause).toContain('trigger_attempt.tenant_provider_id');
   });
 
+  it('ANDs the attempt-status facets, scoped to the selected connections', async () => {
+    const requestQb = makeQb();
+    requestQb.clone.mockReturnValue(makeQb());
+    const legacyBase = makeQb();
+    legacyBase.clone.mockReturnValueOnce(makeQb()).mockReturnValueOnce(makeQb());
+
+    const service = new MessagesQueryService(
+      {
+        createQueryBuilder: jest.fn(() => legacyBase),
+        query: jest.fn().mockResolvedValue([]),
+      } as never,
+      { find: jest.fn() } as never,
+      { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      {
+        find: jest
+          .fn()
+          .mockResolvedValue([
+            { id: 'conn-1', provider: 'openai', auth_type: 'api_key', label: 'Default' },
+          ]),
+      } as never,
+    );
+
+    await service.getMessages({
+      tenantId: 'tenant-1',
+      limit: 10,
+      connections: ['conn-1'],
+      attemptStatus: ['has_failed', 'has_succeeded'],
+      include_total: false,
+      include_filter_options: false,
+    });
+
+    const clauses = requestQb.andWhere.mock.calls.map((call) => String(call[0]));
+    const failed = clauses.find((c) =>
+      c.includes("outcome_attempt.status IS NOT NULL AND outcome_attempt.status <> 'ok'"),
+    );
+    const succeeded = clauses.find((c) =>
+      c.includes("outcome_attempt.status = 'ok' OR outcome_attempt.status IS NULL"),
+    );
+    // AND semantics: each facet is its own EXISTS condition...
+    expect(failed).toBeDefined();
+    expect(succeeded).toBeDefined();
+    expect(failed).not.toBe(succeeded);
+    // ...and each attempt must be ON a selected connection.
+    expect(failed).toContain('outcome_attempt.tenant_provider_id');
+    expect(succeeded).toContain('outcome_attempt.tenant_provider_id');
+  });
+
   it('uses tenant-scoped id-or-name Playground exclusion for request rows', async () => {
     const requestQb = makeQb();
     requestQb.clone.mockReturnValue(makeQb());

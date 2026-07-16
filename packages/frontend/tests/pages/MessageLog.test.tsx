@@ -679,6 +679,31 @@ describe('MessageLog', () => {
     expect(mockSetSearchParams).toHaveBeenCalledWith({ range: '7d' }, { replace: true });
   });
 
+  it('filters messages by attempt status (AND facet, URL-synced)', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    const attemptSelect = () =>
+      container.querySelector(
+        '[data-testid="multiselect"][aria-label="Attempt status filter"]',
+      ) as HTMLSelectElement;
+    await vi.waitFor(() => expect(attemptSelect()).not.toBeNull());
+    expect(attemptSelect().textContent).toContain('All attempt statuses');
+    expect(attemptSelect().textContent).toContain('With a failed attempt');
+    expect(attemptSelect().textContent).toContain('With a succeeded attempt');
+
+    mockGetMessages.mockClear();
+    await fireEvent.change(attemptSelect(), { target: { value: 'has_failed' } });
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(
+        expect.objectContaining({ attempts: 'has_failed' }),
+      );
+    });
+    expect(mockSetSearchParams).toHaveBeenCalledWith(
+      { attempts: 'has_failed' },
+      { replace: true },
+    );
+  });
+
   it('filters messages by recovery attempts (multiselect, URL-synced)', async () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);
