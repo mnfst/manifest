@@ -219,23 +219,24 @@ describe('StatusCell merged pill', () => {
     return badges[0]!;
   }
 
-  it('merges a provider error into a single red "Failed: Provider" pill', () => {
+  it('renders a provider error as a plain "Failed" pill with the cause as title', () => {
     const { container } = renderCell(
       baseRow({ status: 'error', error_message: 'boom', error_origin: 'provider' }),
     );
     const badge = onlyBadge(container);
-    expect(badge.textContent).toContain('Failed: Provider');
+    expect(badge.textContent).toContain('Failed');
+    expect(badge.getAttribute('title')).toBe('Provider');
     expect(badge.className).toContain('status-badge--error');
   });
 
-  it('merges a transport error into "Failed: Transport"', () => {
+  it('carries a transport error cause in the pill title', () => {
     const { container } = renderCell(
       baseRow({ status: 'error', error_message: 'net', error_origin: 'transport' }),
     );
-    expect(onlyBadge(container).textContent).toContain('Failed: Transport');
+    expect(onlyBadge(container).getAttribute('title')).toBe('Transport');
   });
 
-  it('labels a malformed caller body "Failed: Bad request", not "Failed: Provider"', () => {
+  it('titles a malformed caller body "Bad request", not "Provider"', () => {
     const { container } = renderCell(
       baseRow({
         status: 'error',
@@ -245,27 +246,29 @@ describe('StatusCell merged pill', () => {
       }),
     );
     const badge = onlyBadge(container);
-    expect(badge.textContent).toContain('Failed: Bad request');
+    expect(badge.textContent).toContain('Failed');
+    expect(badge.getAttribute('title')).toBe('Bad request');
     // `request` is not a policy origin, so no limits link is rendered.
     expect(container.querySelector('a')).toBeNull();
   });
 
-  it('renders a provider rate limit as "Failed: Provider" with no limits link', () => {
+  it('renders a provider rate limit as plain "Failed" with no limits link', () => {
     const { container } = renderCell(
       baseRow({ status: 'rate_limited', error_message: 'rl', error_origin: 'provider' }),
     );
     expect(container.querySelector('a')).toBeNull();
-    expect(onlyBadge(container).textContent).toContain('Failed: Provider');
+    expect(onlyBadge(container).getAttribute('title')).toBe('Provider');
   });
 
-  it('renders a non-ok fallback_error row as a plain "Failed: Provider" pill', () => {
+  it('renders a non-ok fallback_error row as a plain "Failed" pill', () => {
     // fallback_error is no longer a distinct status pill — anything that isn't
     // `ok` is a failure, and the fallback itself is surfaced in the Trigger column.
     const { container } = renderCell(
       baseRow({ status: 'fallback_error', error_message: 'overloaded', error_origin: 'provider' }),
     );
     const badge = onlyBadge(container);
-    expect(badge.textContent).toContain('Failed: Provider');
+    expect(badge.textContent).toContain('Failed');
+    expect(badge.getAttribute('title')).toBe('Provider');
     expect(badge.className).toContain('status-badge--error');
   });
 
@@ -276,7 +279,7 @@ describe('StatusCell merged pill', () => {
     expect(container.querySelector('a')).toBeNull();
   });
 
-  it("merges a Manifest limit into one red 'Failed: Custom limit' pill linking to its agent's limits", () => {
+  it("merges a Manifest limit into one red 'Failed' pill linking to its agent's limits", () => {
     const { container } = renderCell(
       baseRow({
         agent_name: 'billing-bot',
@@ -289,7 +292,7 @@ describe('StatusCell merged pill', () => {
     const link = container.querySelector('a');
     expect(link).not.toBeNull();
     expect(link!.getAttribute('href')).toContain('/harnesses/billing-bot/limits');
-    expect(link!.textContent).toContain('Failed: Custom limit');
+    expect(link!.textContent).toContain('Failed');
     expect(link!.className).toContain('status-badge--error');
     expect(container.querySelectorAll('a').length).toBe(1);
   });
@@ -305,7 +308,8 @@ describe('StatusCell merged pill', () => {
       }),
     );
     expect(container.querySelector('a')).toBeNull();
-    expect(onlyBadge(container).textContent).toContain('Failed: Custom limit');
+    expect(onlyBadge(container).textContent).toContain('Failed');
+    expect(onlyBadge(container).getAttribute('title')).toBe('Custom limit');
   });
 });
 

@@ -397,6 +397,7 @@ function statusErrorDescriptor(item: MessageRow): string | null {
  */
 function describeStatusPill(item: MessageRow): {
   label: string;
+  title?: string;
   cls: string;
   limitAgent: string | null;
 } {
@@ -404,10 +405,12 @@ function describeStatusPill(item: MessageRow): {
   if (isSuccess) {
     return { label: 'Success', cls: 'status-badge status-badge--ok', limitAgent: null };
   }
-  const descriptor = statusErrorDescriptor(item);
-  const label = descriptor ? `Failed: ${descriptor}` : 'Failed';
+  // The pill stays a plain "Failed": the cause (provider, setup, custom
+  // limit...) lives in the drawer's error message, and rides here only as a
+  // hover title so the column reads binary at a glance.
   return {
-    label,
+    label: 'Failed',
+    title: statusErrorDescriptor(item) ?? undefined,
     cls: 'status-badge status-badge--error',
     limitAgent: item.error_origin === 'policy' ? item.agent_name : null,
   };
@@ -449,7 +452,11 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
     );
   }
 
-  const badge = <span class={pill.cls}>{pill.label}</span>;
+  const badge = (
+    <span class={pill.cls} title={pill.title}>
+      {pill.label}
+    </span>
+  );
 
   return <td>{badge}</td>;
 }

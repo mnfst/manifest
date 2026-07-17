@@ -1692,11 +1692,12 @@ h6 {
 }
 
 /* ── Requests tables: pinned lead-column widths ──
-   Status is sized for its longest pill ("Failed: Manifest error"), Date for
-   the short timestamp, Attempts for its own header, Recovery attempts for both
-   method badges side by side. Trailing usage columns (cache, latency) flex. */
+   Status is binary now (Success / Failed; the failure cause lives in the
+   drawer), Date is sized for the short timestamp, Attempts for its own
+   header, Recovery attempts for both method badges side by side. Trailing
+   usage columns (cache, latency) flex. */
 .data-table th[data-col='status'] {
-  width: 158px;
+  width: 96px;
 }
 .data-table th[data-col='date'] {
   width: 118px;

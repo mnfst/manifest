@@ -621,7 +621,7 @@ describe('MessageTable', () => {
       expect(container.querySelector('.status-badge--fallback_error')).toBeNull();
       const badge = container.querySelector('.status-badge--error');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toContain('Failed: Provider');
+      expect(badge!.textContent).toContain('Failed');
     });
   });
 
