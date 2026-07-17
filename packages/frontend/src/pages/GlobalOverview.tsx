@@ -673,7 +673,7 @@ const GlobalOverview: Component = () => {
       >
         {/* ── Auto-fix KPI cards (autofix-gated) ── */}
         <Show when={autofixEligible()}>
-          <AutofixKpiCards stats={autofixStats()} />
+          <AutofixKpiCards stats={autofixStats()} range={effectiveChartRange()} />
         </Show>
 
         {/* ── 2. Unified Chart Card ─────────────────────────────────── */}

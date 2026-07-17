@@ -33,10 +33,12 @@ function trendBadge(current: number, previous: number) {
 
 export interface AutofixKpiCardsProps {
   stats: AutofixStats | undefined;
-  /** When set, the recovered cards deep-link the Requests log for this harness. */
+  /** Scopes the deep links to one harness; omitted, they cover every harness. */
   agentName?: string;
   /** The page's current window, carried on the deep links. */
   range?: string;
+  /** Hide the deep links entirely (no Requests log to point at). */
+  noLinks?: boolean;
 }
 
 const viewMore = (): JSX.Element => <span class="view-more-link">View more</span>;
@@ -49,9 +51,15 @@ const viewMore = (): JSX.Element => <span class="view-more-link">View more</span
 const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
   const navigate = useNavigate();
   const requestsLink = (extra: string) => {
-    if (!props.agentName) return null;
-    const range = props.range ? `&range=${props.range}` : '';
-    return `/messages?agent=${encodeURIComponent(props.agentName)}${range}${extra}`;
+    if (props.noLinks) return null;
+    const params = [
+      props.agentName ? `agent=${encodeURIComponent(props.agentName)}` : '',
+      props.range ? `range=${props.range}` : '',
+      extra.replace(/^&/, ''),
+    ]
+      .filter(Boolean)
+      .join('&');
+    return params ? `/messages?${params}` : '/messages';
   };
   const linkProps = (link: string | null, title: string) =>
     link
