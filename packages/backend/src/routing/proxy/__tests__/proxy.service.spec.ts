@@ -977,6 +977,46 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
+    it('keeps Claude Permission Auto classifier calls on the requested Anthropic model', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({
+          id: 'claude-sonnet-5',
+          provider: 'anthropic',
+          authType: 'subscription',
+        }),
+        discoveredModel({
+          id: 'claude-sonnet-5',
+          provider: 'anthropic',
+          authType: 'api_key',
+        }),
+      ]);
+
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          headers: {
+            'user-agent': 'claude-cli/2.1.212 (external, claude-vscode)',
+            'x-stainless-timeout': '60',
+            'anthropic-beta': 'claude-code-20250219,context-1m-2025-08-07',
+          },
+          body: {
+            model: 'claude-sonnet-5',
+            max_tokens: 256,
+            messages: [{ role: 'user', content: 'classify' }],
+          },
+        }),
+      );
+
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-sonnet-5',
+        }),
+      );
+    });
+
     it('does not trigger Manifest fallbacks for explicit model failures', async () => {
       modelDiscovery.getModelsForAgent.mockResolvedValue([
         discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),

@@ -77,6 +77,32 @@ type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>> & {
 const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
 
+/**
+ * Claude Code's Permission Auto classifier is a separate control-plane call.
+ * Current clients give it a 60-second Stainless timeout and omit the
+ * `afk-mode` beta flag carried by the main Auto session. Letting Manifest
+ * complexity-route that call to a non-Anthropic model breaks the classifier's
+ * private response contract and Claude reports the requested Claude model as
+ * "temporarily unavailable".
+ */
+function isClaudeAutoClassifierRequest(
+  apiMode: ProxyApiMode,
+  headers: ProxyRequestOptions['headers'],
+): boolean {
+  if (apiMode !== 'messages' || !headers) return false;
+  const first = (value: string | string[] | undefined): string | undefined =>
+    Array.isArray(value) ? value[0] : value;
+  const userAgent = first(headers['user-agent'])?.toLowerCase();
+  const timeout = first(headers['x-stainless-timeout']);
+  const beta = first(headers['anthropic-beta'])?.toLowerCase() ?? '';
+  return (
+    userAgent?.startsWith('claude-cli/') === true &&
+    timeout === '60' &&
+    beta.includes('claude-code-') &&
+    !beta.includes('afk-mode-')
+  );
+}
+
 export interface RoutingMeta {
   tier: TierSlot | 'direct';
   model: string;
@@ -679,6 +705,21 @@ export class ProxyService {
     apiMode: ProxyApiMode,
   ): Promise<ResolvedRouting> {
     const requestedModel = typeof body.model === 'string' ? body.model : undefined;
+    const preserveClaudeClassifierModel = isClaudeAutoClassifierRequest(apiMode, headers);
+    if (preserveClaudeClassifierModel && requestedModel) {
+      const explicit = await this.resolveClaudeClassifierModel(agentId, tenantId, requestedModel);
+      if (explicit) return explicit;
+      return {
+        tier: 'default' as const,
+        route: null,
+        fallback_routes: null,
+        response_mode: DEFAULT_RESPONSE_MODE,
+        confidence: 0,
+        score: 0,
+        reason: 'default' as const,
+        explicit_model_unavailable: requestedModel,
+      };
+    }
     // Anthropic Messages requests require a provider-native model field; only
     // OpenAI-compatible surfaces use /v1/models IDs as route overrides.
     if (apiMode !== 'messages' && requestedModel && requestedModel !== OPENAI_MODEL_ID_AUTO) {
@@ -723,6 +764,43 @@ export class ProxyService {
         ));
 
     return baseResolved;
+  }
+
+  /** Keep Claude's Permission Auto classifier on a native Anthropic connection. */
+  private async resolveClaudeClassifierModel(
+    agentId: string,
+    tenantId: string,
+    requestedModel: string,
+  ): Promise<ResolvedRouting | null> {
+    const models = await this.modelDiscovery.getModelsForAgent(tenantId, agentId);
+    const candidates = models.filter(
+      (model) =>
+        model.provider.toLowerCase() === 'anthropic' &&
+        model.id === requestedModel &&
+        model.authType,
+    );
+    const model =
+      candidates.find((candidate) => candidate.authType === 'subscription') ?? candidates[0];
+    if (!model?.authType) {
+      this.logger.warn(
+        `Claude Auto classifier model "${requestedModel}" is unavailable for agent=${agentId}`,
+      );
+      return null;
+    }
+
+    this.logger.debug(
+      `Claude Auto classifier: preserving model=${requestedModel} provider=anthropic auth_type=${model.authType}`,
+    );
+    return {
+      tier: 'default' as const,
+      route: { provider: model.provider, authType: model.authType, model: model.id },
+      fallback_routes: null,
+      response_mode: DEFAULT_RESPONSE_MODE,
+      confidence: 1,
+      score: 0,
+      reason: 'default' as const,
+      explicit_model_override: true,
+    };
   }
 
   /**
