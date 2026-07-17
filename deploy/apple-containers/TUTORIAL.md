@@ -15,6 +15,20 @@ Confirm the CLI is available:
 container --version
 ```
 
+### After upgrading Apple Containers
+
+The CLI and its persistent background services must run the same version. Homebrew or package upgrades can replace the CLI while leaving an older `container-apiserver` running. That mismatch may surface as `builtin network is not present`, decoding errors, or missing default-network state.
+
+After every Apple Containers upgrade, restart its services once:
+
+```bash
+container system stop
+container system start --enable-kernel-install
+container system version
+```
+
+The `container` and `container-apiserver` rows should report the same version. Startup also checks this and prints these recovery commands instead of continuing with mismatched components.
+
 ## Configure Manifest
 
 The script reads `docker/.env`, the same configuration file used by Docker Compose.
@@ -167,6 +181,19 @@ container volume delete mnfst-postgres-data
 Deleting the volume permanently deletes the bundled PostgreSQL database. Back up important data before removing it.
 
 ## Troubleshooting
+
+### `builtin network is not present`
+
+This usually means Apple Containers was upgraded while its older background services kept running. Compare component versions and restart the services:
+
+```bash
+container system version
+container system stop
+container system start --enable-kernel-install
+container network inspect default
+```
+
+If `container system stop` prints protocol or decoding errors, continue with `container system start --enable-kernel-install`; the stop command still unloads the old services after attempting to stop containers. The final inspect command should show the recreated builtin `default` network.
 
 ### View logs
 

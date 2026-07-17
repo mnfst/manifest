@@ -107,6 +107,19 @@ fi
 validate_positive_integer PROVIDER_TIMEOUT_MS "$PROVIDER_TIMEOUT_MS"
 validate_positive_integer STREAM_WARMUP_MS "$STREAM_WARMUP_MS"
 
+component_version() {
+  local component="$1"
+  if [[ "$component" == "container" ]]; then
+    container system version 2>/dev/null \
+      | sed -n 's/^container[[:space:]]*\([^[:space:]]*\).*/\1/p' \
+      | head -n1
+  else
+    container system version 2>/dev/null \
+      | sed -n 's/^container-apiserver.* version \([^[:space:]]*\).*/\1/p' \
+      | head -n1
+  fi
+}
+
 require_cli() {
   if ! command -v container >/dev/null 2>&1; then
     echo "error: Apple 'container' CLI not found." >&2
@@ -114,12 +127,31 @@ require_cli() {
     exit 1
   fi
   # Idempotent: starts the API server / VM services if not already running.
-  if ! container system start >/dev/null 2>&1; then
+  if ! container system start --enable-kernel-install >/dev/null 2>&1; then
     # A healthy, already-running service may make `system start` non-zero.
     container list >/dev/null 2>&1 || {
       echo "error: Apple Containers service could not be started." >&2
       exit 1
     }
+  fi
+
+  local cli_version server_version
+  cli_version="$(component_version container)"
+  server_version="$(component_version container-apiserver)"
+  if [[ -n "$cli_version" && -n "$server_version" && "$cli_version" != "$server_version" ]]; then
+    echo "error: Apple Containers CLI ($cli_version) and services ($server_version) do not match." >&2
+    echo "After upgrading Apple Containers, restart its services:" >&2
+    echo "  container system stop" >&2
+    echo "  container system start --enable-kernel-install" >&2
+    exit 1
+  fi
+
+  if ! container network inspect default >/dev/null 2>&1; then
+    echo "error: Apple Containers builtin network is not present." >&2
+    echo "Restart the services to recreate it:" >&2
+    echo "  container system stop" >&2
+    echo "  container system start --enable-kernel-install" >&2
+    exit 1
   fi
 }
 
@@ -143,7 +175,10 @@ gateway_ip() {
 }
 
 is_running() {
-  container inspect "$1" 2>/dev/null | grep -q '"status"[[:space:]]*:[[:space:]]*"running"'
+  # 1.x nests lifecycle state under status.state; older releases exposed a
+  # top-level status string.
+  container inspect "$1" 2>/dev/null \
+    | grep -Eq '"(state|status)"[[:space:]]*:[[:space:]]*"running"'
 }
 
 cmd_up() {
