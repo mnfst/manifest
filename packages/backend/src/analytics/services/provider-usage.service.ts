@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { addTenantFilter, sqlCountMessages } from './query-helpers';
+import {
+  addTenantFilter,
+  sqlCountMessages,
+  sqlIsCompletedStatus,
+  sqlIsSuccessStatus,
+} from './query-helpers';
 
 /**
  * Per (provider, auth_type) usage summary surfaced to the dashboard provider
@@ -110,9 +115,10 @@ export class ProviderUsageService {
       // auth_type): the connection lists must not blend a subscription's
       // rate with an api_key connection's rate for the same provider.
       .addSelect('COUNT(*)', 'attempts')
-      .addSelect(`COUNT(*) FILTER (WHERE at.status = 'ok' OR at.status IS NULL)`, 'succeeded')
+      .addSelect(`COUNT(*) FILTER (WHERE ${sqlIsSuccessStatus('at.status')})`, 'succeeded')
       .addSelect('MAX(at.timestamp)', 'last_used_at')
       .where("at.timestamp >= NOW() - INTERVAL '30 days'")
+      .andWhere(sqlIsCompletedStatus('at.status'))
       .groupBy('at.provider')
       .addGroupBy('at.auth_type')
       .addGroupBy("COALESCE(at.provider_key_label, 'Default')")

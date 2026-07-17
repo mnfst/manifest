@@ -9,6 +9,14 @@ import { sendEmail } from './email-providers/send-email';
 
 export const DOCTOR_RELEASE_ANNOUNCEMENT_KEY = 'doctor-release-2026-07';
 const SUBJECT = 'Auto-fix is live on your account';
+const DEFAULT_DELAY_MS = 10 * 60 * 1000;
+const MAX_TIMEOUT_MS = 2_147_483_647;
+
+export function announcementDelayMs(raw: string | undefined): number {
+  if (!raw || !/^[1-9]\d*$/.test(raw)) return DEFAULT_DELAY_MS;
+  const parsed = Number(raw);
+  return Number.isSafeInteger(parsed) && parsed <= MAX_TIMEOUT_MS ? parsed : DEFAULT_DELAY_MS;
+}
 
 /**
  * One-shot release announcement to the Auto-fix waitlist.
@@ -19,9 +27,8 @@ const SUBJECT = 'Auto-fix is live on your account';
  * announcement through the configured email provider.
  *
  * Guarantees:
- * - One email per address, ever: an `announcement_sends` ledger row is
- *   written per (announcement, email) and checked before each send, so
- *   redeploys and restarts never double-send.
+ * - At most one email per address: an `announcement_sends` row is claimed
+ *   atomically before sending, so concurrent replicas cannot both send it.
  * - `ANNOUNCE_DRY_RUN=true` logs the audience and subject, sends nothing,
  *   writes nothing.
  * - `ANNOUNCE_TEST_RECIPIENT=someone@x` replaces the audience with that one
@@ -39,7 +46,7 @@ export class DoctorReleaseAnnouncementService implements OnApplicationBootstrap 
 
   onApplicationBootstrap(): void {
     if (process.env['ANNOUNCE_DOCTOR_RELEASE'] !== 'true') return;
-    const delayMs = Number(process.env['ANNOUNCE_DELAY_MS'] ?? 10 * 60 * 1000);
+    const delayMs = announcementDelayMs(process.env['ANNOUNCE_DELAY_MS']);
     this.logger.log(`Doctor release announcement armed: sending in ${Math.round(delayMs / 1000)}s`);
     this.timer = setTimeout(() => {
       void this.run().catch((error) =>
@@ -60,7 +67,7 @@ export class DoctorReleaseAnnouncementService implements OnApplicationBootstrap 
         WHERE t.autofix_waitlist_at IS NOT NULL AND t.email IS NOT NULL
        UNION
        SELECT LOWER(s.email) AS email
-         FROM autofix_waitlist_signups s
+         FROM waitlist_claims s
         WHERE s.email IS NOT NULL`,
     )) as Array<{ email: string }>;
     return [...new Set(rows.map((r) => r.email).filter(Boolean))];
@@ -92,7 +99,7 @@ export class DoctorReleaseAnnouncementService implements OnApplicationBootstrap 
     let sent = 0;
     let skipped = 0;
     for (const email of recipients) {
-      if (!testMode && (await this.alreadySent(email))) {
+      if (!testMode && !(await this.claim(email))) {
         skipped++;
         continue;
       }
@@ -101,6 +108,7 @@ export class DoctorReleaseAnnouncementService implements OnApplicationBootstrap 
         sent++;
         if (!testMode) await this.markSent(email);
       } else {
+        if (!testMode) await this.releaseClaim(email);
         this.logger.warn(`Doctor release announcement: send failed for ${email}`);
       }
       // Gentle pace for the provider's rate limits.
@@ -110,9 +118,12 @@ export class DoctorReleaseAnnouncementService implements OnApplicationBootstrap 
     return { sent, skipped, dryRun: false };
   }
 
-  private async alreadySent(email: string): Promise<boolean> {
+  private async claim(email: string): Promise<boolean> {
     const rows = (await this.tenantRepo.query(
-      `SELECT 1 FROM announcement_sends WHERE announcement = $1 AND email = $2 LIMIT 1`,
+      `INSERT INTO announcement_sends (announcement, email)
+       VALUES ($1, $2)
+       ON CONFLICT (announcement, email) DO NOTHING
+       RETURNING 1`,
       [DOCTOR_RELEASE_ANNOUNCEMENT_KEY, email],
     )) as unknown[];
     return rows.length > 0;
@@ -120,9 +131,16 @@ export class DoctorReleaseAnnouncementService implements OnApplicationBootstrap 
 
   private async markSent(email: string): Promise<void> {
     await this.tenantRepo.query(
-      `INSERT INTO announcement_sends (announcement, email, sent_at)
-       VALUES ($1, $2, NOW())
-       ON CONFLICT (announcement, email) DO NOTHING`,
+      `UPDATE announcement_sends SET sent_at = NOW()
+       WHERE announcement = $1 AND email = $2`,
+      [DOCTOR_RELEASE_ANNOUNCEMENT_KEY, email],
+    );
+  }
+
+  private async releaseClaim(email: string): Promise<void> {
+    await this.tenantRepo.query(
+      `DELETE FROM announcement_sends
+       WHERE announcement = $1 AND email = $2 AND sent_at IS NULL`,
       [DOCTOR_RELEASE_ANNOUNCEMENT_KEY, email],
     );
   }

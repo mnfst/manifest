@@ -16,6 +16,7 @@ function makeQb(rows: Array<Record<string, unknown>> = []) {
     limit: jest.fn(),
     distinct: jest.fn(),
     clone: jest.fn(),
+    getQueryAndParameters: jest.fn().mockReturnValue(['SELECT r.id FROM requests r', []]),
     getRawOne: jest.fn().mockResolvedValue({ total: 0 }),
     getRawMany: jest.fn().mockResolvedValue(rows),
   };
@@ -232,15 +233,16 @@ describe('MessagesQueryService request-first queries', () => {
 
     const clauses = requestQb.andWhere.mock.calls.map((call) => String(call[0]));
     const failed = clauses.find((c) =>
-      c.includes("outcome_attempt.status IS NOT NULL AND outcome_attempt.status <> 'ok'"),
+      c.includes("outcome_attempt.status NOT IN ('ok', 'success')"),
     );
     const succeeded = clauses.find((c) =>
-      c.includes("outcome_attempt.status = 'ok' OR outcome_attempt.status IS NULL"),
+      c.includes("outcome_attempt.status IN ('ok', 'success')"),
     );
     // AND semantics: each facet is its own EXISTS condition...
     expect(failed).toBeDefined();
     expect(succeeded).toBeDefined();
     expect(failed).not.toBe(succeeded);
+    expect(failed).toContain("outcome_attempt.status <> 'pending'");
     // ...and each attempt must be ON a selected connection.
     expect(failed).toContain('outcome_attempt.tenant_provider_id');
     expect(succeeded).toContain('outcome_attempt.tenant_provider_id');
@@ -277,7 +279,6 @@ describe('MessagesQueryService request-first queries', () => {
     ];
     const requestQb = makeQb(requestRows);
     const requestCountQb = makeQb();
-    requestCountQb.getRawOne.mockResolvedValue({ total: '7' });
     requestQb.clone.mockReturnValue(requestCountQb);
     const legacyBase = makeQb();
     const legacyCountQb = makeQb();
@@ -290,7 +291,10 @@ describe('MessagesQueryService request-first queries', () => {
         query: jest.fn().mockResolvedValue([]),
       } as never,
       { find: jest.fn() } as never,
-      { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      {
+        createQueryBuilder: jest.fn(() => requestQb),
+        query: jest.fn().mockResolvedValue([{ total: '7' }]),
+      } as never,
     );
 
     const result = await service.getMessages({
@@ -342,9 +346,41 @@ describe('MessagesQueryService request-first queries', () => {
     ).toHaveLength(1);
     expect(requestQb.having).toHaveBeenCalled();
     expect(requestQb.andHaving).toHaveBeenCalled();
+    // The exact request total wraps the grouped query after cost HAVING.
+    expect(requestQb.clone).toHaveBeenCalled();
+    expect(requestCountQb.select).toHaveBeenCalledWith('r.id', 'id');
     expect(result.total_count).toBe(9);
     expect(result.items).toHaveLength(2);
     expect(result.next_cursor).toBeTruthy();
+  });
+
+  it('keeps the exact total when the requested page has no request rows', async () => {
+    const requestQb = makeQb([]);
+    requestQb.clone.mockReturnValue(makeQb());
+    const legacyBase = makeQb();
+    legacyBase.clone.mockReturnValueOnce(makeQb()).mockReturnValueOnce(makeQb());
+    const service = new MessagesQueryService(
+      {
+        createQueryBuilder: jest.fn(() => legacyBase),
+        query: jest.fn().mockResolvedValue([]),
+      } as never,
+      { find: jest.fn() } as never,
+      {
+        createQueryBuilder: jest.fn(() => requestQb),
+        query: jest.fn().mockResolvedValue([{ total: '7' }]),
+      } as never,
+    );
+
+    const result = await service.getMessages({
+      tenantId: 'tenant-1',
+      cursor: '2026-07-14T13:00:00Z|r-3',
+      limit: 10,
+      include_total: true,
+      include_filter_options: false,
+    });
+
+    expect(result.total_count).toBe(7);
+    expect(result.items).toEqual([]);
   });
 
   it.each([

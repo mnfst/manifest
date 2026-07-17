@@ -22,8 +22,8 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     const sql = lastSql();
     // One row per logical request.
     expect(sql).toContain('DISTINCT ON (r.id)');
-    // The Requests list's ranking: ok wins, else the terminal failure.
-    expect(sql).toContain("WHEN pa.status = 'ok' THEN 3");
+    // The Requests list's ranking: canonical/legacy success wins, else the terminal failure.
+    expect(sql).toContain("pa.status IN ('ok', 'success')");
     expect(sql).toContain("pa.status NOT IN ('fallback_error', 'auto_fixed') THEN 2");
     // In-flight requests have no outcome to chart.
     expect(sql).toContain("r.status <> 'pending'");
@@ -39,14 +39,11 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     await service.getDispositionTimeseries({ tenantId: 't1', range: '24h', hourly: true });
     const sql = lastSql();
     // Method is the request-level Auto-fix outcome; a rescued request counts once.
-    expect(sql).toContain(
-      "WHEN t.request_status = 'ok' AND t.autofix_status = 'retry_succeeded' THEN 'healed'",
-    );
+    expect(sql).toContain("t.request_status IN ('ok', 'success')");
+    expect(sql).toContain("t.autofix_status = 'retry_succeeded' THEN 'healed'");
     expect(sql).toContain('r.autofix_status');
-    expect(sql).toContain(
-      "WHEN t.request_status = 'ok' AND t.fallback_from_model IS NOT NULL THEN 'fallback'",
-    );
-    expect(sql).toContain("WHEN t.request_status = 'ok' THEN 'success'");
+    expect(sql).toContain("t.fallback_from_model IS NOT NULL THEN 'fallback'");
+    expect(sql).toContain("THEN 'success'");
     expect(sql).toContain("ELSE 'error'");
     // Hourly bucket on the request's own timestamp.
     expect(sql).toContain('t.ts');
@@ -92,8 +89,9 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     const sql = lastSql();
     // The trio fold: custom:<uuid> providers group as 'custom'.
     expect(sql).toContain("THEN 'custom'");
-    expect(sql).toContain("FILTER (WHERE t.request_status <> 'ok')");
-    expect(sql).toContain('t.provider IS NOT NULL');
+    expect(sql).toContain("t.request_status NOT IN ('ok', 'success')");
+    // Zero-attempt failures remain visible and are attributed to Manifest.
+    expect(sql).toContain("COALESCE(t.provider, 'manifest')");
   });
 
   it('scopes to one connection by terminal attribution', async () => {
@@ -116,7 +114,7 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     });
     const sql = lastSql();
     expect(sql).toContain('t.provider = $3');
-    expect(sql).toContain('t.auth_type = $4');
+    expect(sql).toContain('(t.auth_type = $4 OR t.auth_type IS NULL)');
     expect(sql).toContain("LOWER(COALESCE(t.provider_key_label, 'Default')) = LOWER($5)");
     expect(lastParams()).toEqual(['t1', expect.any(String), 'openai', 'api_key', 'Default']);
   });

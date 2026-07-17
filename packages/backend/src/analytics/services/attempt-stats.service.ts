@@ -8,7 +8,14 @@ import {
 } from '../../common/utils/range.util';
 import { computeCutoff, sqlDateBucket, sqlHourBucket } from '../../common/utils/postgres-sql';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { addTenantFilter, excludePlaygroundAgents, scopeToConnection } from './query-helpers';
+import {
+  addTenantFilter,
+  excludePlaygroundAgents,
+  scopeToConnection,
+  sqlIsCompletedStatus,
+  sqlIsFailedStatus,
+  sqlIsSuccessStatus,
+} from './query-helpers';
 
 export interface AttemptMetric {
   value: number;
@@ -90,7 +97,8 @@ export class AttemptStatsService {
         'COUNT(*) FILTER (WHERE at.fallback_from_model IS NOT NULL)',
         'fallbacked_attempts',
       )
-      .where('at.timestamp >= :cutoff', { cutoff });
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere(sqlIsCompletedStatus('at.status'));
     addTenantFilter(qb, params.tenantId, params.agentName);
     excludePlaygroundAgents(qb);
 
@@ -171,9 +179,10 @@ export class AttemptStatsService {
     const qb = this.attemptRepo
       .createQueryBuilder('at')
       .select(bucketExpression, 'bucket')
-      .addSelect(`COUNT(*) FILTER (WHERE at.status = 'ok' OR at.status IS NULL)`, 'success')
-      .addSelect(`COUNT(*) FILTER (WHERE at.status IS NOT NULL AND at.status <> 'ok')`, 'error')
-      .where('at.timestamp >= :cutoff', { cutoff });
+      .addSelect(`COUNT(*) FILTER (WHERE ${sqlIsSuccessStatus('at.status')})`, 'success')
+      .addSelect(`COUNT(*) FILTER (WHERE ${sqlIsFailedStatus('at.status')})`, 'error')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere(sqlIsCompletedStatus('at.status'));
     addTenantFilter(qb, params.tenantId);
     excludePlaygroundAgents(qb);
     this.scopeToConnectionWithLegacyFold(qb, params);
@@ -216,7 +225,8 @@ export class AttemptStatsService {
       .select(bucketExpression, 'bucket')
       .addSelect("COALESCE(at.agent_name, 'Unknown')", 'agent_name')
       .addSelect('COUNT(*)', 'attempts')
-      .where('at.timestamp >= :cutoff', { cutoff });
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere(sqlIsCompletedStatus('at.status'));
     addTenantFilter(qb, params.tenantId);
     excludePlaygroundAgents(qb);
     this.scopeToConnectionWithLegacyFold(qb, params);
@@ -262,7 +272,7 @@ export class AttemptStatsService {
       ? sqlHourBucket('at.timestamp')
       : sqlDateBucket('at.timestamp');
     const codeExpr = `CASE
-      WHEN at.status = 'ok' OR at.status IS NULL THEN '200'
+      WHEN ${sqlIsSuccessStatus('at.status')} THEN '200'
       ELSE COALESCE(at.error_http_status::text, 'No response') END`;
     const cutoff = computeCutoff(rangeToInterval(range));
     const qb = this.attemptRepo
@@ -270,7 +280,8 @@ export class AttemptStatsService {
       .select(bucketExpression, 'bucket')
       .addSelect(codeExpr, 'code')
       .addSelect('COUNT(*)', 'attempts')
-      .where('at.timestamp >= :cutoff', { cutoff });
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere(sqlIsCompletedStatus('at.status'));
     addTenantFilter(qb, params.tenantId);
     excludePlaygroundAgents(qb);
     this.scopeToConnectionWithLegacyFold(qb, params);
@@ -340,7 +351,7 @@ export class AttemptStatsService {
     if (!params.tenantId) return empty;
     const range = params.range ?? '7d';
     const cutoff = computeCutoff(rangeToInterval(range));
-    const okExpr = `(at.status = 'ok' OR at.status IS NULL)`;
+    const okExpr = sqlIsSuccessStatus('at.status');
     const qb = this.attemptRepo
       .createQueryBuilder('at')
       .select('COUNT(*)', 'attempts')
@@ -355,7 +366,8 @@ export class AttemptStatsService {
         `COUNT(*) FILTER (WHERE at.autofix_role = 'retry' AND ${okExpr})`,
         'autofix_attempts_succeeded',
       )
-      .where('at.timestamp >= :cutoff', { cutoff });
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere(sqlIsCompletedStatus('at.status'));
     addTenantFilter(qb, params.tenantId);
     excludePlaygroundAgents(qb);
     this.scopeToConnectionWithLegacyFold(qb, params);
@@ -387,7 +399,8 @@ export class AttemptStatsService {
         'COUNT(*) FILTER (WHERE at.fallback_from_model IS NOT NULL)',
         'fallbacked_attempts',
       )
-      .where('at.timestamp >= :from', { from });
+      .where('at.timestamp >= :from', { from })
+      .andWhere(sqlIsCompletedStatus('at.status'));
     if (to) qb.andWhere('at.timestamp < :to', { to });
     addTenantFilter(qb, tenantId, agentName);
     excludePlaygroundAgents(qb);

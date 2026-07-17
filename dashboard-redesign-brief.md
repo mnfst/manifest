@@ -21,12 +21,14 @@ occur? is auto-fix helping?) without losing the consumption data entirely.
 ### Global Overview (`/overview`)
 
 **Header area:**
+
 - Page title "Overview" + subtitle
 - Filters (top-right): `By provider` / `By harness` toggle + multi-select
   dropdown (pick which providers/harnesses to show) + range selector
   (24h/7d/30d/90d/365d)
 
 **Main chart card (`ProviderChartCard`):**
+
 - 3 tabs across the top: **Cost** / **Messages** / **Token usage**
 - Each tab shows a summary stat (total + trend %) as a clickable header
 - Below: a **stacked bar chart** (uPlot) where:
@@ -37,6 +39,7 @@ occur? is auto-fix helping?) without losing the consumption data entirely.
 - The multi-select filter controls which series are visible
 
 **Below the chart:**
+
 - 4 stat cards: Subscriptions / Usage-based / Local / Harnesses (counts + lists)
 - Provider connections table (provider, type, usage, sparkline, status)
 - Model usage table (model, tokens, share %, cost)
@@ -46,6 +49,7 @@ occur? is auto-fix helping?) without losing the consumption data entirely.
 ### Agent Overview (`/harnesses/:agentName/`)
 
 Same structure as Global but scoped to one agent:
+
 - Same chart card with same 3 tabs (Cost/Messages/Tokens)
 - Same range selector
 - Filters: `By provider` toggle + provider multi-select
@@ -99,7 +103,9 @@ By HTTP status   ABSURD      meh         ABSURD       ok
 - "Cost by HTTP status" makes no sense — cost is per-model, not per-status.
 - "Token usage by HTTP status" is technically possible but not useful.
 - "Requests by HTTP status" is the only combination that works.
-- "Requests by provider" is valid but is essentially the Messages tab already.
+- "Requests by provider" is a request-level attribution lens: each logical
+  request belongs to its terminal provider once. The Messages log exposes the
+  underlying Provider Attempts, so fallbacks and Auto-fix make the views differ.
 
 So the new dimension (HTTP status) is not orthogonal to the existing ones. It
 creates invalid cells in the matrix.
@@ -108,34 +114,54 @@ creates invalid cells in the matrix.
 
 ## What data we have (from the database)
 
-Each request is a row in `agent_messages` with:
+The data is split into two grains. One logical request lives in `requests`; each
+upstream provider call lives in `provider_attempts`. `agent_messages` is only a
+temporary compatibility view over Provider Attempts and must not be used for
+request totals.
 
-| Column | Example values | Notes |
-|--------|---------------|-------|
-| `status` | `ok`, `error`, `fallback_error`, `rate_limited`, `auto_fixed` | Manifest's own status |
-| `error_http_status` | `200`, `400`, `401`, `404`, `422`, `429`, `500`, `503` | The provider's HTTP response code |
-| `error_class` | `rate_limit`, `auth`, `invalid_request`, `server_error`, `timeout`, `not_found` | Manifest's error classification |
-| `error_origin` | `provider`, `transport`, `config`, `policy`, `internal`, `request` | Where the error came from |
-| `provider` | `openai`, `anthropic`, `gemini`, `custom:uuid` | Which provider |
-| `model` | `gpt-4o`, `claude-sonnet-4-20250514` | Which model |
-| `agent_name` | `demo-agent` | Which harness |
-| `autofix_applied` | `true`/`false` | Was auto-fix triggered? |
-| `autofix_role` | `original`/`retry`/null | If autofix: the failed request or the patched retry |
-| `autofix_group_id` | uuid | Links the original and retry rows |
-| `autofix_operations` | jsonb | What Phoenix changed (rename_param, etc.) |
-| `autofix_decision` | jsonb `{status, issueId, patchId, healAttemptId, explanation?}` | Phoenix decision; the legacy view exposes it as `autofix_phoenix` |
-| `cost` | float | Dollar cost of the request |
-| `input_tokens`, `output_tokens` | int | Token counts |
-| `timestamp` | datetime | When it happened |
+Request outcomes come from:
 
-When auto-fix heals a request, **two rows** are written:
-1. `status='auto_fixed', autofix_role='original'` — the request that failed
-2. `status='ok', autofix_role='retry'` — the patched retry that succeeded
+| Column                       | Notes                                                              |
+| ---------------------------- | ------------------------------------------------------------------ |
+| `requests.status`            | Canonical caller-visible `pending`, `success`, or `failed` outcome |
+| `requests.error_http_status` | HTTP status for failed requests when one exists                    |
+| `requests.error_origin`      | Distinguishes provider, transport, and Manifest failures           |
+| `requests.autofix_status`    | Request-level Auto-fix outcome                                     |
+
+Provider Attempt details come from:
+
+| Column                          | Example values                                                                  | Notes                                                                             |
+| ------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `status`                        | `pending`, `success`, `failed` (plus legacy values during transition)           | Attempt outcome                                                                   |
+| `error_http_status`             | `400`, `401`, `404`, `422`, `429`, `500`, `503`                                 | Failed provider response code; successful rows use status rather than storing 200 |
+| `error_class`                   | `rate_limit`, `auth`, `invalid_request`, `server_error`, `timeout`, `not_found` | Manifest's error classification                                                   |
+| `error_origin`                  | `provider`, `transport`, `config`, `policy`, `internal`, `request`              | Where the error came from                                                         |
+| `provider`                      | `openai`, `anthropic`, `gemini`, `custom:uuid`                                  | Which provider                                                                    |
+| `model`                         | `gpt-4o`, `claude-sonnet-4-20250514`                                            | Which model                                                                       |
+| `agent_name`                    | `demo-agent`                                                                    | Which harness                                                                     |
+| `autofix_applied`               | `true`/`false`                                                                  | Was auto-fix triggered?                                                           |
+| `autofix_role`                  | `original`/`retry`/null                                                         | If autofix: the failed request or the patched retry                               |
+| `autofix_group_id`              | uuid                                                                            | Links the original and retry rows                                                 |
+| `autofix_operations`            | jsonb                                                                           | What Phoenix changed (rename_param, etc.)                                         |
+| `autofix_decision`              | jsonb `{status, issueId, patchId, healAttemptId, explanation?}`                 | Phoenix decision; the legacy view exposes it as `autofix_phoenix`                 |
+| `cost`                          | float                                                                           | Dollar cost of the request                                                        |
+| `input_tokens`, `output_tokens` | int                                                                             | Token counts                                                                      |
+| `timestamp`                     | datetime                                                                        | When it happened                                                                  |
+
+When Auto-fix heals a request, **two Provider Attempts** are written:
+
+1. `status='failed', autofix_role='original', superseded=true`
+2. `status='success', autofix_role='retry'`
 
 Both share the same `autofix_group_id`.
 
-The logical `requests` row records nullable `autofix_status`: `no_patch`,
+The logical `requests` row is successful and records nullable `autofix_status`: `no_patch`,
 `resolving`, `retry_succeeded`, `retry_failed`, or `service_error`.
+
+An HTTP-status chart derives successful requests from `requests.status =
+'success'` (displayed as 200 by convention). Failed rows use
+`error_http_status`, and provider reliability must split by `error_origin` so
+Manifest-generated failures are not blamed on an upstream provider.
 
 ---
 
@@ -184,6 +210,7 @@ dashboard.
 ## The question for the UX agent
 
 Given:
+
 - A dashboard that currently shows Cost/Messages/Tokens grouped by
   provider or harness
 - A need to add reliability data (HTTP status distribution, auto-fix coverage,
@@ -197,6 +224,7 @@ Given:
 integrate reliability data alongside consumption data?**
 
 Specific sub-questions:
+
 1. Should the existing chart card be modified, replaced, split into two cards, or
    left as-is with a new card alongside/below it?
 2. What should the filter/grouping UX be if we have two different kinds of

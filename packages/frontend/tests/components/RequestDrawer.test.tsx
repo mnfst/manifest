@@ -174,8 +174,8 @@ describe('RequestDrawer', () => {
     mockGetMessageDetails.mockResolvedValue({
       ...fullMessage,
       ...extra,
-      attempts: [],
-      status: 'ok',
+      attempts: undefined,
+      status: 'success',
       autofix_applied: false,
       fallback_index: undefined,
       fallback_from_model: (extra as { fallback_from_model?: string }).fallback_from_model,
@@ -192,6 +192,28 @@ describe('RequestDrawer', () => {
     ));
     await waitFor(() => expect(container.querySelector('.attempt-item')).not.toBeNull());
     expect(container.querySelector('.drawer-kv:nth-child(2)')?.textContent).toContain(type);
+  });
+
+  it('treats a present empty attempts array as an authoritative zero-attempt request', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...fullMessage,
+        attempts: [],
+        status: 'failed',
+        provider: null,
+        model: null,
+        auth_type: null,
+      },
+    });
+    const { container } = render(() => (
+      <RequestDrawer messageId="zero-attempt" onClose={vi.fn()} />
+    ));
+
+    await waitFor(() => expect(screen.getByText('No provider attempts')).toBeDefined());
+    expect(container.querySelector('.attempt-item')).toBeNull();
+    expect(
+      screen.getByText('Manifest rejected this request before contacting a provider.'),
+    ).toBeDefined();
   });
 
   it('shows loading state while an open request is unresolved and stays closed for null', () => {

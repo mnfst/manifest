@@ -6,6 +6,7 @@ const queryBuilder = () => {
     addSelect: jest.fn(),
     where: jest.fn(),
     andWhere: jest.fn(),
+    leftJoin: jest.fn(),
     groupBy: jest.fn(),
     addGroupBy: jest.fn(),
     orderBy: jest.fn(),
@@ -18,6 +19,7 @@ const queryBuilder = () => {
     'addSelect',
     'where',
     'andWhere',
+    'leftJoin',
     'groupBy',
     'addGroupBy',
     'orderBy',
@@ -45,6 +47,7 @@ describe('AutofixStatsService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    messageRepo.createQueryBuilder.mockReset();
     requestVolume.getDispositionTimeseries.mockResolvedValue([]);
     requestVolume.getDispositionTotals.mockResolvedValue({
       total: 0,
@@ -153,18 +156,17 @@ describe('AutofixStatsService', () => {
         succeeded: '9',
       },
     ]);
-    const agentQb = queryBuilder();
-    agentQb.getRawMany.mockResolvedValue([
+    requestVolume.getVolumeByDimension.mockResolvedValue([
       {
-        agent_name: 'demo',
-        requests: '8',
-        failed: '2',
-        autofixed: '1',
-        fallback_saves: '2',
-        succeeded: '7',
+        key: 'demo',
+        requests: 8,
+        failed: 2,
+        healed: 1,
+        fallback: 2,
+        succeeded: 7,
       },
     ]);
-    messageRepo.createQueryBuilder.mockReturnValueOnce(providerQb).mockReturnValueOnce(agentQb);
+    messageRepo.createQueryBuilder.mockReturnValueOnce(providerQb);
 
     await expect(
       service.getPerProviderStats({ tenantId: 'tenant', agentName: 'demo' }),
@@ -183,8 +185,9 @@ describe('AutofixStatsService', () => {
     expect(providerGroupSql).toContain("COALESCE(at.auth_type, 'api_key')");
     expect(providerGroupSql).toContain("COALESCE(at.provider_key_label, 'Default')");
     const providerSql = providerQb.addSelect.mock.calls.flat().join(' ');
-    // A NULL legacy status reads as success; failures are non-ok statuses.
-    expect(providerSql).toContain("at.status = 'ok' OR at.status IS NULL");
+    // Canonical success and legacy NULL/ok remain compatible.
+    expect(providerSql).toContain("at.status IN ('ok', 'success')");
+    expect(providerSql).toContain("at.status <> 'pending'");
     // No retry exclusion: an auto-fix retry is a real provider call here.
     expect(providerQb.andWhere.mock.calls.flat()).not.toContain(
       "(at.autofix_role IS NULL OR at.autofix_role != 'retry')",
@@ -194,6 +197,9 @@ describe('AutofixStatsService', () => {
     await expect(service.getPerAgentStats({ tenantId: 'tenant' })).resolves.toEqual([
       { agent_name: 'demo', requests: 8, failed: 2, autofixed: 1, fallback_saves: 2, succeeded: 7 },
     ]);
+    expect(requestVolume.getVolumeByDimension).toHaveBeenCalledWith('agent_name', {
+      tenantId: 'tenant',
+    });
 
     const modelQb = queryBuilder();
     modelQb.getRawMany.mockResolvedValue([
@@ -325,6 +331,8 @@ describe('AutofixStatsService', () => {
       },
     ]);
     const filterSql = qb.andWhere.mock.calls.flat().join(' ');
+    expect(qb.leftJoin).toHaveBeenCalled();
+    expect(filterSql).toContain("r.autofix_status <> 'retry_succeeded'");
     expect(filterSql).toContain('FROM provider_attempts sib');
     expect(filterSql).not.toContain('FROM agent_messages sib');
   });

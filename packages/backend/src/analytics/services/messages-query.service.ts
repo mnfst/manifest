@@ -15,6 +15,8 @@ import {
   CUSTOM_PROVIDER_JOIN_CONDITION,
   excludePlaygroundAgents,
   sqlExcludePlayground,
+  sqlIsFailedStatus,
+  sqlIsSuccessStatus,
 } from './query-helpers';
 import type {
   MessageOriginFilter,
@@ -345,7 +347,7 @@ export class MessagesQueryService {
     }
     if (params.attemptStatus?.length) {
       // Same succeeded/failed reading as the connection dashboards:
-      // succeeded = status 'ok' (or the legacy NULL), failed = anything else.
+      // Both canonical and legacy outcomes are accepted during the transition.
       const outcomeParameters: Record<string, unknown> = {};
       const connScope = resolvedConnections?.length
         ? ' AND (' +
@@ -364,8 +366,8 @@ export class MessagesQueryService {
       for (const kind of params.attemptStatus) {
         const condition =
           kind === 'has_succeeded'
-            ? "(outcome_attempt.status = 'ok' OR outcome_attempt.status IS NULL)"
-            : "(outcome_attempt.status IS NOT NULL AND outcome_attempt.status <> 'ok')";
+            ? sqlIsSuccessStatus('outcome_attempt.status')
+            : sqlIsFailedStatus('outcome_attempt.status');
         qb.andWhere(
           `EXISTS (
             SELECT 1 FROM provider_attempts outcome_attempt
@@ -399,8 +401,8 @@ export class MessagesQueryService {
       }
     }
 
-    const countQb = qb.clone().select('COUNT(DISTINCT r.id)', 'total');
-    const rank = `CASE WHEN at.status IN (${SUCCESS_STATUS_SQL_LIST}) THEN 3 WHEN NOT COALESCE(at.superseded, false) AND at.status NOT IN ('fallback_error', 'auto_fixed') THEN 2 ELSE 1 END`;
+    const includeTotal = params.include_total !== false;
+    const rank = `CASE WHEN ${sqlIsSuccessStatus('at.status')} THEN 3 WHEN NOT COALESCE(at.superseded, false) AND at.status NOT IN ('fallback_error', 'auto_fixed') THEN 2 ELSE 1 END`;
     const picked = (column: string): string =>
       `(ARRAY_AGG(${column} ORDER BY at.attempt_number DESC NULLS LAST, ${rank} DESC, at.timestamp DESC, at.id DESC) FILTER (WHERE at.id IS NOT NULL))[1]`;
     const safeCost = sqlSanitizeCost('at.cost_usd');
@@ -456,7 +458,19 @@ export class MessagesQueryService {
       });
     }
 
-    const includeTotal = params.include_total !== false;
+    // Count the grouped request rows after cost HAVING has been applied. A
+    // window count on the page query would disappear on an empty page, making
+    // an exact non-zero total look like zero after the last cursor.
+    let requestCountPromise: Promise<Array<{ total: string }>> = Promise.resolve([]);
+    if (includeTotal) {
+      const countSource = qb.clone().select('r.id', 'id').orderBy();
+      const [countSql, countParameters] = countSource.getQueryAndParameters();
+      requestCountPromise = this.requestRepo!.query(
+        `SELECT COUNT(*) AS total FROM (${countSql}) "filtered_requests"`,
+        countParameters,
+      ) as Promise<Array<{ total: string }>>;
+    }
+
     // Keep the log complete while the online backfill is running. Each still-
     // unlinked attempt is temporarily its own synthetic request; it disappears
     // from this branch as soon as the backfill links it to a real parent.
@@ -486,23 +500,24 @@ export class MessagesQueryService {
       .addSelect('1', 'attempt_count');
     this.applyCursor(legacyDataQb, params.cursor);
 
-    const [count, legacyCount, requestRows, legacyRows, filterOptions] = await Promise.all([
-      includeTotal ? countQb.getRawOne() : Promise.resolve(null),
-      includeTotal ? legacyCountQb.getRawOne() : Promise.resolve(null),
-      qb
-        .orderBy('r.timestamp', 'DESC')
-        .addOrderBy('r.id', 'DESC')
-        .limit(params.limit + 1)
-        .getRawMany(),
-      legacyDataQb
-        .orderBy('at.timestamp', 'DESC')
-        .addOrderBy('at.id', 'DESC')
-        .limit(params.limit + 1)
-        .getRawMany(),
-      params.include_filter_options !== false
-        ? this.getMessageFilterOptions(params)
-        : Promise.resolve({ providers: [] as string[], provider_labels: {} }),
-    ]);
+    const [requestCountRows, legacyCount, requestRows, legacyRows, filterOptions] =
+      await Promise.all([
+        requestCountPromise,
+        includeTotal ? legacyCountQb.getRawOne() : Promise.resolve(null),
+        qb
+          .orderBy('r.timestamp', 'DESC')
+          .addOrderBy('r.id', 'DESC')
+          .limit(params.limit + 1)
+          .getRawMany(),
+        legacyDataQb
+          .orderBy('at.timestamp', 'DESC')
+          .addOrderBy('at.id', 'DESC')
+          .limit(params.limit + 1)
+          .getRawMany(),
+        params.include_filter_options !== false
+          ? this.getMessageFilterOptions(params)
+          : Promise.resolve({ providers: [] as string[], provider_labels: {} }),
+      ]);
     const rows = [...requestRows, ...legacyRows].sort((a, b) => {
       const byTime = new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
       return byTime || String(b.id).localeCompare(String(a.id));
@@ -514,7 +529,7 @@ export class MessagesQueryService {
       items,
       next_cursor: hasMore && last ? this.encodeCursor(last) : null,
       total_count: includeTotal
-        ? Number(count?.total ?? 0) + Number(legacyCount?.total ?? 0)
+        ? Number(requestCountRows[0]?.total ?? 0) + Number(legacyCount?.total ?? 0)
         : items.length + (hasMore ? 1 : 0),
       total_count_exact: includeTotal,
       providers: filterOptions.providers,
@@ -620,6 +635,8 @@ export class MessagesQueryService {
       qb.andWhere('at.status IN (:...failedStatuses)', { failedStatuses: FAILED_STATUSES });
     } else if (params.status === 'errors') {
       qb.andWhere('at.status IN (:...errorStatuses)', { errorStatuses: ERROR_STATUSES });
+    } else if (params.status === 'ok' || params.status === 'success') {
+      qb.andWhere(sqlIsSuccessStatus('at.status'));
     } else if (params.status) {
       qb.andWhere('at.status = :statusFilter', { statusFilter: params.status });
     }

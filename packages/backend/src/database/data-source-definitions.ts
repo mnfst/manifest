@@ -147,6 +147,8 @@ import { AddAutofixPhoenixIds1799000200000 } from './migrations/1799000200000-Ad
 import { MakeAutofixEnabledNullable1799000300000 } from './migrations/1799000300000-MakeAutofixEnabledNullable';
 import { AddAutofixAccessGrant1799000400000 } from './migrations/1799000400000-AddAutofixAccessGrant';
 import { AddRequestsAndProviderAttempts1801000000000 } from './migrations/1801000000000-AddRequestsAndProviderAttempts';
+import { AddProviderAttemptOrdering1801100000000 } from './migrations/1801100000000-AddProviderAttemptOrdering';
+import { AddAnnouncementSends1801200000000 } from './migrations/1801200000000-AddAnnouncementSends';
 
 export const entities = [
   AgentMessage,
@@ -296,4 +298,6 @@ export const migrations = [
   AddMessageErrorCode1800200000000,
   DropUnusedAgentMessageIndexes1800300000000,
   AddRequestsAndProviderAttempts1801000000000,
+  AddProviderAttemptOrdering1801100000000,
+  AddAnnouncementSends1801200000000,
 ];

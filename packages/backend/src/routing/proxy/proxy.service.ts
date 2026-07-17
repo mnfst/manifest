@@ -1068,8 +1068,9 @@ export class ProxyService {
         tenantProviderId: args.primaryTenantProviderId,
         primaryAttempt: forward.attempt,
         primaryProviderCallStarted: forward.providerCallStarted,
-        attempt: failures[failures.length - 1]?.attempt,
-        providerCallStarted: failures[failures.length - 1]?.providerCallStarted,
+        attempt: failures[failures.length - 1]?.attempt ?? forward.attempt,
+        providerCallStarted:
+          failures[failures.length - 1]?.providerCallStarted ?? forward.providerCallStarted,
       }),
       failedFallbacks: failures,
     };

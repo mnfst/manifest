@@ -3,9 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ERROR_ORIGINS, MANIFEST_ERROR_ORIGINS } from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { ManifestRequest } from '../../entities/request.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
 import { computeCutoff } from '../../common/utils/postgres-sql';
-import { addTenantFilter, excludePlaygroundAgents, SUCCESS_STATUS_SQL_LIST } from './query-helpers';
+import { addTenantFilter, excludePlaygroundAgents, sqlIsSuccessStatus } from './query-helpers';
 
 export interface ErrorBreakdownResponse {
   range: string;
@@ -20,8 +21,7 @@ export interface ErrorBreakdownResponse {
   /** Manifest's OWN config/policy/internal rejections — NOT a provider failure. */
   manifest_errors: number;
   /**
-   * Requests healed by Auto-fix in the window — one per healed request, counted
-   * from the failed-original row (`status='auto_fixed'`). NOT additive with
+   * Requests healed by Auto-fix in the window — one per healed request. NOT additive with
    * `total_errors`: the healed original is a superseded attempt that is already
    * included in `total_errors`/`by_origin`, so treat this as "of those errors,
    * this many were auto-fixed", never as a separate error bucket to sum.
@@ -98,7 +98,7 @@ export class ErrorBreakdownService {
   ): Promise<number> {
     const qb = this.messageRepo
       .createQueryBuilder('at')
-      .select(`COUNT(*) FILTER (WHERE at.status IN (${SUCCESS_STATUS_SQL_LIST}))`, 'count')
+      .select(`COUNT(*) FILTER (WHERE ${sqlIsSuccessStatus('at.status')})`, 'count')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, tenantId, agentName);
     excludePlaygroundAgents(qb);
@@ -106,11 +106,7 @@ export class ErrorBreakdownService {
     return Number(row?.count ?? 0);
   }
 
-  /**
-   * Count of requests healed by Auto-fix. The failed original of a healed pair
-   * carries `status='auto_fixed'` (its successful retry is a separate `ok` row),
-   * so one `auto_fixed` row == one healed request — no double-counting.
-   */
+  /** Count each request whose Auto-fix retry actually succeeded. */
   private async queryAutoFixed(
     cutoff: string,
     tenantId: string | null,
@@ -118,9 +114,23 @@ export class ErrorBreakdownService {
   ): Promise<number> {
     const qb = this.messageRepo
       .createQueryBuilder('at')
-      .select('COUNT(*)', 'count')
+      .leftJoin(ManifestRequest, 'r', 'r.id = at.request_id')
+      .select('COUNT(DISTINCT COALESCE(at.request_id, at.autofix_group_id, at.id))', 'count')
       .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.status = :autoFixedStatus', { autoFixedStatus: 'auto_fixed' });
+      .andWhere("(at.autofix_role = 'original' OR at.status = 'auto_fixed')")
+      .andWhere(
+        `(r.autofix_status = 'retry_succeeded' OR (
+          r.id IS NULL
+          AND at.status = 'auto_fixed'
+          AND EXISTS (
+            SELECT 1 FROM provider_attempts retry
+            WHERE retry.autofix_group_id = at.autofix_group_id
+              AND retry.tenant_id = at.tenant_id
+              AND retry.autofix_role = 'retry'
+              AND ${sqlIsSuccessStatus('retry.status')}
+          )
+        ))`,
+      );
     addTenantFilter(qb, tenantId, agentName);
     excludePlaygroundAgents(qb);
     const row = await qb.getRawOne<{ count: string }>();

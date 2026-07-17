@@ -3,7 +3,6 @@ import { DataSource, Repository } from 'typeorm';
 import { BackfillState } from '../../entities/backfill-state.entity';
 import {
   REQUEST_BACKFILL_LOCK_KEY,
-  REQUEST_BACKFILL_MAX_LOCK_ATTEMPTS,
   REQUEST_BACKFILL_NAME,
   REQUEST_BACKFILL_TAIL_INTERVAL_MS,
   RequestBackfillBootService,
@@ -81,7 +80,7 @@ describe('RequestBackfillBootService', () => {
     jest.useRealTimers();
   });
 
-  it('stops retrying when the shared lock remains busy', async () => {
+  it('keeps retrying until the competing backfill completes', async () => {
     jest.useFakeTimers();
     process.env['NODE_ENV'] = 'production';
     const state = makeState(false);
@@ -89,10 +88,12 @@ describe('RequestBackfillBootService', () => {
     const ds = { createQueryRunner: jest.fn(() => lock) } as unknown as DataSource;
 
     new RequestBackfillBootService(ds, state.repo).onApplicationBootstrap();
-    await jest.advanceTimersByTimeAsync(30_000 * (REQUEST_BACKFILL_MAX_LOCK_ATTEMPTS - 1));
+    await jest.advanceTimersByTimeAsync(30_000 * 12);
 
-    expect(state.countBy).toHaveBeenCalledTimes(REQUEST_BACKFILL_MAX_LOCK_ATTEMPTS);
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('lock stayed busy'));
+    expect(state.countBy.mock.calls.length).toBeGreaterThan(10);
+    expect(errorSpy).not.toHaveBeenCalled();
+    state.countBy.mockResolvedValue(1);
+    await jest.advanceTimersByTimeAsync(30_000);
     jest.useRealTimers();
   });
 

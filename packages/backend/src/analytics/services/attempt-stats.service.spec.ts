@@ -146,9 +146,10 @@ describe('AttemptStatsService', () => {
       ],
     });
     const selects = qb.addSelect.mock.calls.flat().join(' ');
-    // Every attempt counts by its OWN outcome; a NULL legacy status reads ok.
-    expect(selects).toContain("WHERE at.status = 'ok' OR at.status IS NULL");
-    expect(selects).toContain("at.status IS NOT NULL AND at.status <> 'ok'");
+    // Every completed attempt counts by its own outcome; legacy NULL/ok remain compatible.
+    expect(selects).toContain("at.status IN ('ok', 'success')");
+    expect(selects).toContain("at.status NOT IN ('ok', 'success')");
+    expect(selects).toContain("at.status <> 'pending'");
     const wheres = qb.andWhere.mock.calls.flat().filter((w) => typeof w === 'string');
     // Same legacy folds as the usage list rows: NULL auth_type reads api_key,
     // and orphan attempts (NULL tenant_provider_id) fold onto the connection

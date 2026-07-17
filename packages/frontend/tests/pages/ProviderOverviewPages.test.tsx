@@ -79,7 +79,8 @@ vi.mock('../../src/services/api/routing.js', () => ({
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
-  REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
   totalAttemptsTooltip: (doctor: boolean) =>
     doctor
       ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
@@ -1066,6 +1067,27 @@ describe('ConnectionDetail (analytics)', () => {
     fireEvent.click(screen.getByText('By harness'));
     await waitFor(() => expect(screen.getByTestId('status-keys').textContent).toBe(''));
     expect(screen.getByTestId('msg-agents').textContent).toBe('demo-agent');
+  });
+
+  it('applies the harness selection to the attempts-by-harness series', async () => {
+    const emptySeries = { agents: [], timeseries: [] };
+    apiMocks.getPerAgentTimeseries.mockResolvedValue(emptySeries);
+    apiMocks.getPerAgentMessageTimeseries.mockResolvedValue(emptySeries);
+    apiMocks.getPerAgentCostTimeseries.mockResolvedValue(emptySeries);
+    apiMocks.getConnectionAttemptsByAgentTimeseries.mockResolvedValue({
+      agents: ['alpha', 'beta'],
+      timeseries: [{ date: '2026-06-04', alpha: 7, beta: 5 }],
+    });
+
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    fireEvent.click(screen.getByText('Requests chart'));
+    fireEvent.click(screen.getByText('By harness'));
+    await waitFor(() => expect(screen.getByTestId('msg-agents').textContent).toBe('alpha,beta'));
+
+    fireEvent.click(screen.getAllByText('All harnesses (2)').at(-1)!);
+    fireEvent.click(screen.getByText('beta'));
+    await waitFor(() => expect(screen.getByTestId('msg-agents').textContent).toBe('alpha'));
   });
 
   it('shows the attempt cards row: rate, counts and both retry families', async () => {

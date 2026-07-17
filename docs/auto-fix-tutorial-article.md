@@ -20,8 +20,9 @@ error, Manifest repairs the request and sends it again. Your agent gets
 its answer. You get the whole story in your dashboard: the failure, the
 fix, the retry.
 
-It shipped today. If you are on the waitlist, it is already running on
-your account. You have nothing to turn on.
+It shipped today. If your workspace has been granted access and Auto-fix is
+enabled for a harness, eligible provider errors can be repaired automatically.
+The deployment must also have a configured Auto-fix service.
 
 ## Watch it happen
 
@@ -53,13 +54,13 @@ Auto-fix targets request-side rejections: the 4xx family where the
 provider is telling you, in its error message, exactly what it wants
 instead. Some examples from real traffic:
 
-| The provider says | Auto-fix does |
-| --- | --- |
-| `Unknown parameter: max_output_tokens` | Renames it to the name this model actually uses |
-| `Range of max_tokens should be [1, 8192]` | Clamps the value into the stated range |
-| `property 'thinking' is unsupported` | Drops the parameter |
-| `Model gpt-4-32k has been deprecated` | Swaps in the documented successor |
-| `extra_forbidden: cache_control` | Strips the field from your messages |
+| The provider says                         | Auto-fix does                                   |
+| ----------------------------------------- | ----------------------------------------------- |
+| `Unknown parameter: max_output_tokens`    | Renames it to the name this model actually uses |
+| `Range of max_tokens should be [1, 8192]` | Clamps the value into the stated range          |
+| `property 'thinking' is unsupported`      | Drops the parameter                             |
+| `Model gpt-4-32k has been deprecated`     | Swaps in the documented successor               |
+| `extra_forbidden: cache_control`          | Strips the field from your messages             |
 
 Every fix is deterministic. Auto-fix does not ask a model to guess what
 your request meant. It applies a known, tested correction for a known

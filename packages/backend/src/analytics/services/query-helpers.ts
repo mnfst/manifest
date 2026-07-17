@@ -59,6 +59,21 @@ export const SUCCESS_MESSAGE_STATUSES = ['ok', 'success'] as const;
 /** `'ok', 'success'` — ready to splice into a SQL `IN (...)`/`NOT IN (...)`. */
 export const SUCCESS_STATUS_SQL_LIST = SUCCESS_MESSAGE_STATUSES.map((s) => `'${s}'`).join(', ');
 
+/** SQL predicate for a successful legacy or canonical status. */
+export function sqlIsSuccessStatus(column: string): string {
+  return `(${column} IS NULL OR ${column} IN (${SUCCESS_STATUS_SQL_LIST}))`;
+}
+
+/** SQL predicate for a completed failure, excluding in-flight rows. */
+export function sqlIsFailedStatus(column: string): string {
+  return `(${column} IS NOT NULL AND ${column} <> 'pending' AND ${column} NOT IN (${SUCCESS_STATUS_SQL_LIST}))`;
+}
+
+/** SQL predicate for any completed row. Legacy NULL statuses mean success. */
+export function sqlIsCompletedStatus(column: string): string {
+  return `(${column} IS NULL OR ${column} <> 'pending')`;
+}
+
 /**
  * SQL `COUNT(*)` expression that counts only real (non-error) messages.
  *
@@ -77,7 +92,7 @@ export function sqlCountMessages(alias = 'at'): string {
   // COALESCE keeps dashboards correct while the online backfill is in flight:
   // linked attempts collapse to one request, while an unlinked historical row
   // temporarily remains its own synthetic request.
-  return `COUNT(DISTINCT COALESCE(${alias}.request_id, ${alias}.id)) FILTER (WHERE ${alias}.status IS NULL OR ${alias}.status NOT IN (${list}))`;
+  return `COUNT(DISTINCT COALESCE(${alias}.request_id, ${alias}.id)) FILTER (WHERE ${alias}.status IS NULL OR (${alias}.status <> 'pending' AND ${alias}.status NOT IN (${list})))`;
 }
 
 /** Comma-quoted list of Manifest-originated error origins, e.g. `'config', 'policy', …`. */

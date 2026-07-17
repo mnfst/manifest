@@ -20,6 +20,9 @@ vi.mock('@solidjs/router', () => ({
       get request() {
         return mockSearchParams.request;
       },
+      get range() {
+        return mockSearchParams.range;
+      },
     },
     mockSetSearchParams,
   ],
@@ -312,7 +315,6 @@ const connectionMultiselect = (container: HTMLElement) =>
     '[data-testid="multiselect"][aria-label="Connection filter"]',
   ) as HTMLSelectElement;
 
-
 describe('MessageLog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -328,6 +330,7 @@ describe('MessageLog', () => {
     mockGetSpecificityAssignments.mockResolvedValue([]);
     mockGetRoutingStatus.mockResolvedValue({ enabled: false });
     mockListHeaderTiers.mockResolvedValue([]);
+    mockGetBillingStatus.mockResolvedValue({ enabled: false, plan: 'free' });
   });
 
   it('renders Requests heading', () => {
@@ -675,6 +678,22 @@ describe('MessageLog', () => {
     expect(mockSetSearchParams).toHaveBeenCalledWith({ range: '7d' }, { replace: true });
   });
 
+  it('clamps a Pro-range deep link before loading data for a free plan', async () => {
+    mockSearchParams = { range: '365d' };
+    mockGetBillingStatus.mockResolvedValue({ enabled: true, plan: 'free' });
+    mockGetMessages.mockResolvedValue(messagesData);
+
+    render(() => <MessageLog />);
+
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(expect.objectContaining({ range: '7d' }));
+    });
+    expect(mockGetMessages).not.toHaveBeenCalledWith(expect.objectContaining({ range: '365d' }));
+    await vi.waitFor(() => {
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ range: '7d' }, { replace: true });
+    });
+  });
+
   it('filters messages by attempt status (plain select, URL-synced)', async () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);
@@ -692,10 +711,7 @@ describe('MessageLog', () => {
         expect.objectContaining({ attempts: 'has_failed' }),
       );
     });
-    expect(mockSetSearchParams).toHaveBeenCalledWith(
-      { attempts: 'has_failed' },
-      { replace: true },
-    );
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ attempts: 'has_failed' }, { replace: true });
   });
 
   it('filters messages by recovery reading (plain select, URL-synced)', async () => {
@@ -1104,8 +1120,8 @@ describe('MessageLog', () => {
         providers: ['openai'],
       });
       await vi.waitFor(() =>
-      expect(connectionMultiselect(container)?.textContent).toContain('OpenAI · Default'),
-    );
+        expect(connectionMultiselect(container)?.textContent).toContain('OpenAI · Default'),
+      );
       await fireEvent.change(connectionMultiselect(container), {
         target: { value: 'conn-openai-1' },
       });

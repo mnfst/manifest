@@ -4,7 +4,12 @@ import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
 import { computeCutoff, sqlDateBucket, sqlHourBucket } from '../../common/utils/postgres-sql';
-import { sqlExcludePlayground } from './query-helpers';
+import {
+  sqlExcludePlayground,
+  sqlIsCompletedStatus,
+  sqlIsFailedStatus,
+  sqlIsSuccessStatus,
+} from './query-helpers';
 
 /**
  * Request-level volume metrics (mnfst/manifest#2511).
@@ -24,10 +29,12 @@ import { sqlExcludePlayground } from './query-helpers';
  */
 
 /** Same ranking as the Requests list: success wins, else the terminal failure. */
-const TERMINAL_RANK = `CASE WHEN pa.status = 'ok' THEN 3
+const TERMINAL_RANK = `CASE WHEN ${sqlIsSuccessStatus('pa.status')} THEN 3
        WHEN NOT COALESCE(pa.superseded, false)
             AND pa.status NOT IN ('fallback_error', 'auto_fixed') THEN 2
        ELSE 1 END`;
+
+const REQUEST_SUCCEEDED = sqlIsSuccessStatus('t.request_status');
 
 /**
  * How the request CONCLUDED. Auto-fix comes from the request outcome; fallback
@@ -35,9 +42,9 @@ const TERMINAL_RANK = `CASE WHEN pa.status = 'ok' THEN 3
  * conclusion, never mere attempts along the way.
  */
 const DISPOSITION_EXPR = `CASE
-    WHEN t.request_status = 'ok' AND t.autofix_status = 'retry_succeeded' THEN 'healed'
-    WHEN t.request_status = 'ok' AND t.fallback_from_model IS NOT NULL THEN 'fallback'
-    WHEN t.request_status = 'ok' THEN 'success'
+    WHEN ${REQUEST_SUCCEEDED} AND t.autofix_status = 'retry_succeeded' THEN 'healed'
+    WHEN ${REQUEST_SUCCEEDED} AND t.fallback_from_model IS NOT NULL THEN 'fallback'
+    WHEN ${REQUEST_SUCCEEDED} THEN 'success'
     ELSE 'error'
   END`;
 
@@ -126,7 +133,7 @@ export class RequestVolumeService {
         WHERE r.tenant_id = $1
           AND r.timestamp >= $2
           ${toR}
-          AND r.status <> 'pending'
+          AND ${sqlIsCompletedStatus('r.status')}
           ${agentPredicateR}
           AND ${sqlExcludePlayground('r')}
         ORDER BY r.id,
@@ -142,7 +149,7 @@ export class RequestVolumeService {
           pa.id,
           pa.timestamp,
           pa.status,
-          CASE WHEN pa.autofix_role = 'retry' AND pa.status = 'ok'
+          CASE WHEN pa.autofix_role = 'retry' AND ${sqlIsSuccessStatus('pa.status')}
             THEN 'retry_succeeded' ELSE NULL END,
           pa.agent_name,
           pa.provider,
@@ -156,6 +163,7 @@ export class RequestVolumeService {
           AND pa.tenant_id = $1
           AND pa.timestamp >= $2
           ${toPa}
+          AND ${sqlIsCompletedStatus('pa.status')}
           ${agentPredicatePa}
           AND ${sqlExcludePlayground('pa')}
       )
@@ -185,7 +193,11 @@ export class RequestVolumeService {
       }
       if (scope.authType) {
         params.push(scope.authType);
-        clauses.push(`t.auth_type = $${params.length}`);
+        clauses.push(
+          scope.authType === 'api_key'
+            ? `(t.auth_type = $${params.length} OR t.auth_type IS NULL)`
+            : `t.auth_type = $${params.length}`,
+        );
       }
       if (scope.label) {
         params.push(scope.label);
@@ -295,17 +307,17 @@ export class RequestVolumeService {
     const range = params.range ?? '7d';
     const keyExpr =
       dim === 'provider'
-        ? `CASE WHEN t.provider LIKE 'custom:%' THEN 'custom' ELSE t.provider END`
+        ? `CASE WHEN t.provider LIKE 'custom:%' THEN 'custom' ELSE COALESCE(t.provider, 'manifest') END`
         : `t.${dim}`;
     const sql = `${this.terminalCte(params.agentName)}
       SELECT ${keyExpr} AS key,
         COUNT(*)::int AS requests,
-        COUNT(*) FILTER (WHERE t.request_status <> 'ok')::int AS failed,
-        COUNT(*) FILTER (WHERE t.request_status = 'ok')::int AS succeeded,
+        COUNT(*) FILTER (WHERE ${sqlIsFailedStatus('t.request_status')})::int AS failed,
+        COUNT(*) FILTER (WHERE ${REQUEST_SUCCEEDED})::int AS succeeded,
         COUNT(*) FILTER (WHERE ${DISPOSITION_EXPR} = 'healed')::int AS healed,
         COUNT(*) FILTER (WHERE ${DISPOSITION_EXPR} = 'fallback')::int AS fallback
       FROM terminal t
-      WHERE ${dim === 'provider' ? 't.provider' : `t.${dim}`} IS NOT NULL
+      ${dim === 'provider' ? '' : `WHERE t.${dim} IS NOT NULL`}
       GROUP BY 1`;
     const rows = (await this.messageRepo.query(
       sql,

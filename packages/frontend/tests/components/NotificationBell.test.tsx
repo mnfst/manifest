@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let cohortEligible = false;
+const mockGetCohort = vi.fn();
 const mockGetStatus = vi.fn();
 const mockGetAgents = vi.fn();
 
@@ -14,12 +15,13 @@ vi.mock('@solidjs/router', () => ({
 }));
 
 vi.mock('../../src/services/api/autofix.js', () => ({
-  getAutofixCohort: () => Promise.resolve({ eligible: cohortEligible }),
+  getAutofixCohort: (...args: unknown[]) => mockGetCohort(...args),
 }));
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
-  REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
   totalAttemptsTooltip: (doctor: boolean) =>
     doctor
       ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
@@ -57,6 +59,7 @@ describe('NotificationBell', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     localStorage.clear();
     cohortEligible = false;
+    mockGetCohort.mockImplementation(() => Promise.resolve({ eligible: cohortEligible }));
     mockGetStatus.mockResolvedValue({
       available: true,
       any_enabled: false,
@@ -116,6 +119,21 @@ describe('NotificationBell', () => {
     mockGetAgents.mockRejectedValue(new Error('offline'));
     render(() => <NotificationBell />);
     await waitFor(() => expect(mockGetAgents).toHaveBeenCalled());
+    expect(screen.queryByLabelText('Notifications')).toBeNull();
+  });
+
+  it('hides itself when loading cohort eligibility fails', async () => {
+    mockGetCohort.mockRejectedValue(new Error('offline'));
+    render(() => <NotificationBell />);
+    await waitFor(() => expect(mockGetCohort).toHaveBeenCalled());
+    expect(screen.queryByLabelText('Notifications')).toBeNull();
+  });
+
+  it('hides itself when loading workspace Auto-fix status fails', async () => {
+    cohortEligible = true;
+    mockGetStatus.mockRejectedValue(new Error('offline'));
+    render(() => <NotificationBell />);
+    await waitFor(() => expect(mockGetStatus).toHaveBeenCalled());
     expect(screen.queryByLabelText('Notifications')).toBeNull();
   });
 

@@ -14,6 +14,7 @@ import {
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
   sqlExcludePlayground,
+  sqlIsCompletedStatus,
 } from './query-helpers';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { ManifestRequest } from '../../entities/request.entity';
@@ -99,7 +100,8 @@ export class TimeseriesQueriesService {
       const requestQb = this.requestRepo!.createQueryBuilder('r')
         .select(hourly ? sqlHourBucket('r.timestamp') : sqlDateBucket('r.timestamp'), bucketAlias)
         .addSelect('COUNT(*)', 'count')
-        .where('r.timestamp >= :requestCutoff', { requestCutoff: cutoff });
+        .where('r.timestamp >= :requestCutoff', { requestCutoff: cutoff })
+        .andWhere(sqlIsCompletedStatus('r.status'));
       if (tenantId)
         requestQb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: tenantId });
       else requestQb.andWhere('1 = 0');
@@ -119,7 +121,8 @@ export class TimeseriesQueriesService {
         .select(bucketExpr, bucketAlias)
         .addSelect('COUNT(*)', 'count')
         .where('at.request_id IS NULL')
-        .andWhere('at.timestamp >= :unlinkedCutoff', { unlinkedCutoff: cutoff });
+        .andWhere('at.timestamp >= :unlinkedCutoff', { unlinkedCutoff: cutoff })
+        .andWhere(sqlIsCompletedStatus('at.status'));
       addTenantFilter(unlinkedQb, tenantId, agentName);
       if (excludePlayground) excludePlaygroundAgents(unlinkedQb);
       unlinkedRowsPromise = unlinkedQb
@@ -316,7 +319,8 @@ export class TimeseriesQueriesService {
         .addSelect('COUNT(*)', 'message_count')
         .addSelect('MAX(r.timestamp)', 'last_active')
         .where('r.agent_id IS NOT NULL')
-        .andWhere('r.timestamp >= :requestStatsCutoff', { requestStatsCutoff: statsCutoff });
+        .andWhere('r.timestamp >= :requestStatsCutoff', { requestStatsCutoff: statsCutoff })
+        .andWhere(sqlIsCompletedStatus('r.status'));
       requestCountsQb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: tenantId });
       requestCountRowsPromise = requestCountsQb.groupBy('r.agent_id').getRawMany();
 
@@ -327,7 +331,8 @@ export class TimeseriesQueriesService {
         .addSelect('MAX(at.timestamp)', 'last_active')
         .where('at.request_id IS NULL')
         .andWhere('at.agent_id IS NOT NULL')
-        .andWhere('at.timestamp >= :legacyStatsCutoff', { legacyStatsCutoff: statsCutoff });
+        .andWhere('at.timestamp >= :legacyStatsCutoff', { legacyStatsCutoff: statsCutoff })
+        .andWhere(sqlIsCompletedStatus('at.status'));
       addTenantFilter(unlinkedCountsQb, tenantId);
       unlinkedCountRowsPromise = unlinkedCountsQb.groupBy('at.agent_id').getRawMany();
     }
@@ -485,6 +490,7 @@ export class TimeseriesQueriesService {
         .addSelect('r.agent_name', 'agent_name')
         .addSelect('COUNT(*)', 'messages')
         .where('r.timestamp >= :requestCutoff', { requestCutoff: cutoff })
+        .andWhere(sqlIsCompletedStatus('r.status'))
         .andWhere('r.agent_name IS NOT NULL')
         .andWhere(sqlExcludePlayground('r'));
       if (tenantId)
@@ -498,6 +504,7 @@ export class TimeseriesQueriesService {
         .addSelect('COUNT(*)', 'messages')
         .where('at.request_id IS NULL')
         .andWhere('at.timestamp >= :unlinkedCutoff', { unlinkedCutoff: cutoff })
+        .andWhere(sqlIsCompletedStatus('at.status'))
         .andWhere('at.agent_name IS NOT NULL');
       addTenantFilter(unlinkedQb, tenantId);
       excludePlaygroundAgents(unlinkedQb);

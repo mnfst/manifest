@@ -96,7 +96,8 @@ vi.mock('../../src/services/api.js', () => ({
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
-  REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
   totalAttemptsTooltip: (doctor: boolean) =>
     doctor
       ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
@@ -837,9 +838,12 @@ describe('provider pages', () => {
         {
           provider: 'openai',
           auth_type: 'subscription',
+          key_label: 'Sparkly',
           consumption_tokens: 1200,
           consumption_messages: 5,
           consumption_cost: 0,
+          attempts_30d: 5,
+          succeeded_30d: 5,
           last_used_at: '2026-06-01T00:00:00Z',
           sparkline_7d: [1, 2, 3, 4],
         },

@@ -469,7 +469,8 @@ const ConnectionDetail: Component = () => {
     const tokenAgents = agentTimeseries()?.agents ?? [];
     const msgAgents = agentMessageTimeseries()?.agents ?? [];
     const costAgents = agentCostTimeseries()?.agents ?? [];
-    const set = new Set([...tokenAgents, ...msgAgents, ...costAgents]);
+    const attemptAgents = attemptsByAgentTs()?.agents ?? [];
+    const set = new Set([...tokenAgents, ...msgAgents, ...costAgents, ...attemptAgents]);
     return [...set].sort();
   });
 
@@ -521,6 +522,7 @@ const ConnectionDetail: Component = () => {
   const filteredAgentTimeseries = createMemo(() => filterSeries(agentTimeseries()));
   const filteredAgentMessageTimeseries = createMemo(() => filterSeries(agentMessageTimeseries()));
   const filteredAgentCostTimeseries = createMemo(() => filterSeries(agentCostTimeseries()));
+  const filteredAttemptsByAgentTimeseries = createMemo(() => filterSeries(attemptsByAgentTs()));
 
   // Manage modal state
   const [showManageModal, setShowManageModal] = createSignal(false);
@@ -940,7 +942,7 @@ const ConnectionDetail: Component = () => {
                       range={chartRange()}
                       agentTimeseries={filteredAgentTimeseries() ?? undefined}
                       agentRequestTimeseries={
-                        groupBy() === 'harness' ? (attemptsByAgentTs() ?? undefined) : undefined
+                        groupBy() === 'harness' ? filteredAttemptsByAgentTimeseries() : undefined
                       }
                       requestStatusTimeseries={
                         groupBy() === 'status'

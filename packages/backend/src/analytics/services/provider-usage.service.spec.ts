@@ -272,8 +272,9 @@ describe('ProviderUsageService', () => {
     expect(sub.succeeded_30d).toBe(119);
     expect(byok.attempts_30d).toBe(188);
     expect(byok.succeeded_30d).toBe(148);
-    // A NULL legacy status reads as success in the SQL aggregate.
+    // Canonical success and legacy NULL/ok all read as successful attempts.
     const selects = (qb.sql as string[]).join(' ');
-    expect(selects).toContain("WHERE at.status = 'ok' OR at.status IS NULL");
+    expect(selects).toContain("at.status IN ('ok', 'success')");
+    expect(selects).toContain("at.status <> 'pending'");
   });
 });

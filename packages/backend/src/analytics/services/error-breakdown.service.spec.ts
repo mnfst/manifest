@@ -14,6 +14,7 @@ function makeQb(groups: GroupRow[], successful: number, autoFixed: number) {
     addSelect: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
+    leftJoin: jest.fn().mockReturnThis(),
     groupBy: jest.fn().mockReturnThis(),
     addGroupBy: jest.fn().mockReturnThis(),
     getRawMany: jest.fn().mockResolvedValue(groups),
@@ -96,7 +97,7 @@ describe('ErrorBreakdownService', () => {
     expect(result.provider_error_rate).toBeCloseTo(3 / 10, 10);
   });
 
-  it('counts healed requests via status=auto_fixed, independent of the error groups', async () => {
+  it('counts requests whose Auto-fix retry succeeded, independent of the error groups', async () => {
     const { service, qb } = makeService(GROUPS, 81, 7);
     const result = await service.getBreakdown({ tenantId: 't1', range: '7d' });
 
@@ -104,12 +105,12 @@ describe('ErrorBreakdownService', () => {
     // The heal count must not inflate the error totals — it is a view over rows
     // already inside total_errors, not a new bucket.
     expect(result.total_errors).toBe(21);
-    // The dedicated count query filters on status='auto_fixed'.
-    const filtersAutoFixed = (qb.andWhere as jest.Mock).mock.calls.some(
-      ([clause, params]) =>
-        clause === 'at.status = :autoFixedStatus' && params?.autoFixedStatus === 'auto_fixed',
-    );
-    expect(filtersAutoFixed).toBe(true);
+    const filtersAutoFixed = (qb.andWhere as jest.Mock).mock.calls
+      .flat()
+      .filter((clause): clause is string => typeof clause === 'string')
+      .join(' ');
+    expect(filtersAutoFixed).toContain("r.autofix_status = 'retry_succeeded'");
+    expect(filtersAutoFixed).toContain("retry.status IN ('ok', 'success')");
   });
 
   it('reports auto_fixed as 0 when nothing was healed', async () => {

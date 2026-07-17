@@ -13,9 +13,10 @@ import {
   filterByTenantProviderId,
   excludePlaygroundAgents,
   sqlCountMessages,
-  SUCCESS_STATUS_SQL_LIST,
   addTenantFilter,
   scopeToConnection,
+  sqlIsCompletedStatus,
+  sqlIsSuccessStatus,
 } from '../services/query-helpers';
 import { computeCutoff } from '../../common/utils/postgres-sql';
 import { sqlCastFloat, sqlSanitizeCost } from '../../common/utils/postgres-sql';
@@ -192,10 +193,11 @@ export class ProviderAnalyticsController {
     const qb = this.messageRepo
       .createQueryBuilder('at')
       .select('COUNT(*)', 'total')
-      .addSelect(`COUNT(*) FILTER (WHERE at.status IN (${SUCCESS_STATUS_SQL_LIST}))`, 'successful')
+      .addSelect(`COUNT(*) FILTER (WHERE ${sqlIsSuccessStatus('at.status')})`, 'successful')
       .where('at.timestamp >= :attemptCutoff', {
         attemptCutoff: computeCutoff(rangeToInterval(range)),
-      });
+      })
+      .andWhere(sqlIsCompletedStatus('at.status'));
     addTenantFilter(qb, tenantId, agentName);
     if (authType) qb.andWhere('at.auth_type = :attemptAuthType', { attemptAuthType: authType });
     if (provider) qb.andWhere('at.provider = :attemptProvider', { attemptProvider: provider });
@@ -345,7 +347,7 @@ export class ProviderAnalyticsController {
       // connection served for the harness counts, by its own outcome.
       // Healing is a request concept and does not belong here.
       .addSelect('COUNT(*)', 'attempts')
-      .addSelect(`COUNT(*) FILTER (WHERE at.status = 'ok' OR at.status IS NULL)`, 'succeeded')
+      .addSelect(`COUNT(*) FILTER (WHERE ${sqlIsSuccessStatus('at.status')})`, 'succeeded')
       // Join on agent identity, not name: a soft-deleted agent sharing a slug
       // with a live one would otherwise match twice and double this breakdown's
       // per-agent tokens/cost/message counts. This one-to-(0/1) join is only for
@@ -355,6 +357,7 @@ export class ProviderAnalyticsController {
       .leftJoin('agents', 'a', 'a.id = at.agent_id')
       .where('at.tenant_id = :tid', { tid: tenantId })
       .andWhere('at.timestamp >= :cutoff', { cutoff: cutoff30d })
+      .andWhere(sqlIsCompletedStatus('at.status'))
       .andWhere('at.agent_name IS NOT NULL');
     // Exclude the reserved Playground (is_playground) agent from the breakdown.
     excludePlaygroundAgents(agentQb);

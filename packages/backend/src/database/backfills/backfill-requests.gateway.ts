@@ -134,7 +134,7 @@ export const INSERT_LEGACY_FALLBACK_PAIRS_SQL = `
     JOIN "request_backfill_fallback_indexes" fi ON true
     JOIN "provider_attempts" t
       ON t."request_id" IS NULL
-     AND t.status = 'ok'
+     AND t.status IN ('ok', 'success')
      AND t.fallback_from_model = p.model
      AND t.fallback_index = fi.fallback_index
      AND t.timestamp = p.timestamp + (fi.fallback_index + 1) * INTERVAL '100 milliseconds'

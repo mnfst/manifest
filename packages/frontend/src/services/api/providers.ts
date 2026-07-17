@@ -99,15 +99,23 @@ function usageKey(provider: string, authType: string): string {
 export function connectionUsage(
   usageList: TenantProviderUsage[] | undefined,
   provider: string,
-  authType: string,
+  authType: TenantProviderUsage['auth_type'],
   label: string | null | undefined,
 ): TenantProviderUsage | undefined {
+  if (usageList === undefined) return undefined;
   const wanted = (label ?? 'Default').toLowerCase();
-  return (usageList ?? []).find(
-    (u) =>
-      u.provider === provider &&
-      u.auth_type === authType &&
-      (u.key_label ?? 'Default').toLowerCase() === wanted,
+  return (
+    usageList.find(
+      (u) =>
+        u.provider === provider &&
+        u.auth_type === authType &&
+        (u.key_label ?? 'Default').toLowerCase() === wanted,
+    ) ?? {
+      ...USAGE_ZERO,
+      provider,
+      auth_type: authType,
+      key_label: label ?? 'Default',
+    }
   );
 }
 

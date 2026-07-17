@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Agent } from '../../entities/agent.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { ManifestRequest } from '../../entities/request.entity';
 import { Tenant } from '../../entities/tenant.entity';
 import {
   rangeToInterval,
@@ -10,8 +11,14 @@ import {
   isHourlyRange,
 } from '../../common/utils/range.util';
 import { computeCutoff, sqlHourBucket, sqlDateBucket } from '../../common/utils/postgres-sql';
-import { addTenantFilter, excludePlaygroundAgents } from './query-helpers';
-import { RequestVolumeService, DimensionVolumeRow } from './request-volume.service';
+import {
+  addTenantFilter,
+  excludePlaygroundAgents,
+  sqlIsCompletedStatus,
+  sqlIsFailedStatus,
+  sqlIsSuccessStatus,
+} from './query-helpers';
+import { RequestVolumeService } from './request-volume.service';
 
 export interface AutofixStatusResponse {
   /** At least one agent has autofix access (tenant is waitlisted or granted). */
@@ -85,34 +92,6 @@ export class AutofixStatsService {
     private readonly tenantRepo: Repository<Tenant>,
     private readonly requestVolume: RequestVolumeService,
   ) {}
-
-  /**
-   * Override a per-dimension stats row's volume columns with the request-level
-   * counts (#2511): requests / failed / succeeded become logical-request
-   * totals attributed to the terminal attempt, while the save counters
-   * (autofixed / fallback_saves) keep their per-request save semantics.
-   */
-  private mergeVolume<T extends { requests: number; failed: number; succeeded: number }>(
-    rows: Array<T & Record<string, unknown>>,
-    volume: DimensionVolumeRow[],
-    keyOf: (row: T) => string,
-    build: (vol: DimensionVolumeRow) => T,
-  ): T[] {
-    const byKey = new Map(volume.map((v) => [v.key, v]));
-    const seen = new Set<string>();
-    const merged = rows.map((row) => {
-      const vol = byKey.get(keyOf(row));
-      if (!vol) return row;
-      seen.add(vol.key);
-      return { ...row, requests: vol.requests, failed: vol.failed, succeeded: vol.succeeded };
-    });
-    // Volume-only keys (e.g. a provider that only ever failed) still surface,
-    // with zero save counters.
-    for (const vol of volume) {
-      if (!seen.has(vol.key)) merged.push(build(vol));
-    }
-    return merged;
-  }
 
   async getWorkspaceStatus(tenantId: string | null): Promise<AutofixStatusResponse> {
     if (!tenantId) {
@@ -211,9 +190,10 @@ export class AutofixStatsService {
       .addSelect(authExpr, 'auth_type')
       .addSelect(labelExpr, 'key_label')
       .addSelect('COUNT(*)', 'attempts')
-      .addSelect(`COUNT(*) FILTER (WHERE at.status = 'ok' OR at.status IS NULL)`, 'succeeded')
-      .addSelect(`COUNT(*) FILTER (WHERE at.status IS NOT NULL AND at.status <> 'ok')`, 'failed')
+      .addSelect(`COUNT(*) FILTER (WHERE ${sqlIsSuccessStatus('at.status')})`, 'succeeded')
+      .addSelect(`COUNT(*) FILTER (WHERE ${sqlIsFailedStatus('at.status')})`, 'failed')
       .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere(sqlIsCompletedStatus('at.status'))
       .groupBy(providerExpr)
       .addGroupBy(authExpr)
       .addGroupBy(labelExpr);
@@ -248,83 +228,15 @@ export class AutofixStatsService {
       succeeded: number;
     }>
   > {
-    const range = params.range ?? '7d';
-    const cutoff = computeCutoff(rangeToInterval(range));
-    const qb = this.messageRepo
-      .createQueryBuilder('at')
-      .select('at.agent_name', 'agent_name')
-      .addSelect('COUNT(*)', 'requests')
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status IN ('error','fallback_error','rate_limited','auto_fixed'))`,
-        'failed',
-      )
-      .addSelect(
-        `COUNT(*) FILTER (WHERE at.status = 'auto_fixed' AND at.autofix_group_id IN (
-          SELECT sib.autofix_group_id FROM provider_attempts sib
-          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-            AND sib.tenant_id = at.tenant_id
-        ))`,
-        'autofixed',
-      )
-      .addSelect(
-        // Additive: requests recovered by a successful fallback attempt.
-        `COUNT(*) FILTER (WHERE at.status = 'ok' AND at.fallback_from_model IS NOT NULL)`,
-        'fallback_saves',
-      )
-      .addSelect(
-        // Additive: same success definition as the global queryWindow.
-        `COUNT(*) FILTER (WHERE at.status NOT IN ('error','fallback_error','rate_limited')
-          AND (at.status != 'auto_fixed' OR at.autofix_group_id IN (
-            SELECT sib.autofix_group_id FROM provider_attempts sib
-            WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
-              AND sib.tenant_id = at.tenant_id
-          )))`,
-        'succeeded',
-      )
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')")
-      .groupBy('at.agent_name');
-    addTenantFilter(qb, params.tenantId);
-    excludePlaygroundAgents(qb);
-
-    const rows = await qb.getRawMany<{
-      agent_name: string;
-      requests: string;
-      failed: string;
-      autofixed: string;
-      fallback_saves: string;
-      succeeded: string;
-    }>();
-    const mapped = rows.map((r) => ({
-      agent_name: r.agent_name,
-      requests: Number(r.requests),
-      failed: Number(r.failed),
-      autofixed: Number(r.autofixed),
-      fallback_saves: Number(r.fallback_saves),
-      succeeded: Number(r.succeeded),
-    }));
-    // #2511: every column reads the request-level reducer (one definition):
-    // volume from the terminal attribution, recovery from autofix_status.
     const volume = await this.requestVolume.getVolumeByDimension('agent_name', params);
-    const byKey = new Map(volume.map((v) => [v.key, v]));
-    const merged = this.mergeVolume(
-      mapped,
-      volume,
-      (r) => r.agent_name,
-      (v) => ({
-        agent_name: v.key,
-        requests: v.requests,
-        failed: v.failed,
-        autofixed: v.healed,
-        fallback_saves: v.fallback,
-        succeeded: v.succeeded,
-      }),
-    );
-    return merged.map((row) => {
-      const vol = byKey.get(row.agent_name);
-      if (!vol) return row;
-      return { ...row, autofixed: vol.healed, fallback_saves: vol.fallback };
-    });
+    return volume.map((v) => ({
+      agent_name: v.key,
+      requests: v.requests,
+      failed: v.failed,
+      autofixed: v.healed,
+      fallback_saves: v.fallback,
+      succeeded: v.succeeded,
+    }));
   }
 
   /**
@@ -349,9 +261,10 @@ export class AutofixStatsService {
       .createQueryBuilder('at')
       .select('at.model', 'model')
       .addSelect('COUNT(*)', 'attempts')
-      .addSelect(`COUNT(*) FILTER (WHERE at.status = 'ok' OR at.status IS NULL)`, 'succeeded')
-      .addSelect(`COUNT(*) FILTER (WHERE at.status IS NOT NULL AND at.status <> 'ok')`, 'failed')
+      .addSelect(`COUNT(*) FILTER (WHERE ${sqlIsSuccessStatus('at.status')})`, 'succeeded')
+      .addSelect(`COUNT(*) FILTER (WHERE ${sqlIsFailedStatus('at.status')})`, 'failed')
       .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere(sqlIsCompletedStatus('at.status'))
       .andWhere('at.model IS NOT NULL')
       .groupBy('at.model');
     addTenantFilter(qb, params.tenantId, params.agentName);
@@ -409,10 +322,11 @@ export class AutofixStatsService {
       .addSelect(dimExpr, 'dim')
       .addSelect('COUNT(*)', 'count')
       .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere(sqlIsCompletedStatus('at.status'))
       .andWhere("(at.autofix_role IS NULL OR at.autofix_role != 'retry')");
 
     if (params.failedOnly) {
-      qb.andWhere("at.status IN ('error','fallback_error','rate_limited','auto_fixed')");
+      qb.andWhere(sqlIsFailedStatus('at.status'));
     }
 
     qb.groupBy(bucketExpr).addGroupBy(dimExpr).orderBy(bucketExpr, 'ASC');
@@ -429,10 +343,11 @@ export class AutofixStatsService {
         return `CASE
           WHEN at.status = 'auto_fixed' THEN 'healed'
           WHEN at.status IN ('error','fallback_error','rate_limited') THEN 'error'
-          WHEN at.status = 'ok' AND at.fallback_from_model IS NOT NULL THEN 'fallback'
+          WHEN ${sqlIsSuccessStatus('at.status')} AND at.fallback_from_model IS NOT NULL THEN 'fallback'
           ELSE 'success' END`;
       case 'http_status':
-        return `COALESCE(at.error_http_status::text, 'No response')`;
+        return `CASE WHEN ${sqlIsSuccessStatus('at.status')} THEN '200'
+          ELSE COALESCE(at.error_http_status::text, 'No response') END`;
       case 'provider':
         return `CASE WHEN at.provider LIKE 'custom:%' THEN 'custom' ELSE at.provider END`;
       case 'error_kind':
@@ -517,19 +432,24 @@ export class AutofixStatsService {
   ): Promise<AutofixStatsResponse['needs_attention']> {
     const qb = this.messageRepo
       .createQueryBuilder('at')
+      .leftJoin(ManifestRequest, 'r', 'r.id = at.request_id')
       .select('LEFT(at.error_message, 200)', 'error_message')
       .addSelect('at.provider', 'provider')
       .addSelect('at.model', 'model')
       .addSelect('COUNT(*)', 'count')
       .addSelect("(at.autofix_decision->>'issueId')::text", 'phoenix_issue_id')
       .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere("at.status = 'auto_fixed'")
+      .andWhere("(at.autofix_role = 'original' OR at.status = 'auto_fixed')")
+      .andWhere(sqlIsFailedStatus('at.status'))
+      .andWhere("(r.autofix_status IS NULL OR r.autofix_status <> 'retry_succeeded')")
       .andWhere(
-        `at.autofix_group_id NOT IN (
-          SELECT sib.autofix_group_id FROM provider_attempts sib
-          WHERE sib.autofix_role = 'retry' AND sib.status = 'ok'
+        `(r.id IS NOT NULL OR NOT EXISTS (
+          SELECT 1 FROM provider_attempts sib
+          WHERE sib.autofix_group_id = at.autofix_group_id
             AND sib.tenant_id = at.tenant_id
-        )`,
+            AND sib.autofix_role = 'retry'
+            AND ${sqlIsSuccessStatus('sib.status')}
+        ))`,
       )
       .groupBy('LEFT(at.error_message, 200)')
       .addGroupBy('at.provider')

@@ -747,7 +747,9 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                             <td>{attempt.model ? getModelDisplayName(attempt.model) : '—'}</td>
                             <td>{attempt.status}</td>
                             <td>
-                              {attempt.cost_usd == null ? '—' : `$${attempt.cost_usd.toFixed(6)}`}
+                              {attempt.cost_usd == null
+                                ? '—'
+                                : `$${Number(attempt.cost_usd).toFixed(6)}`}
                             </td>
                           </tr>
                         )}

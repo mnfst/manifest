@@ -273,6 +273,9 @@ const MessageLog: Component = () => {
   const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
   const shouldLockProRanges = () => billing.loading || isFreePlan();
   const isProRangeLocked = (value: string) => shouldLockProRanges() && PRO_RANGES.has(value);
+  const effectiveRange = createMemo<MessageRangeFilterValue>(() =>
+    isProRangeLocked(rangeFilter()) ? '7d' : rangeFilter(),
+  );
   const [tierFilter, setTierFilter] = createSignal('');
   const [originFilter, setOriginFilter] = createSignal('');
   const [statusFilterValue, setStatusFilterValue] = createSignal<MessageStatusFilterValue>(
@@ -339,6 +342,10 @@ const MessageLog: Component = () => {
     setSearchParams({ range: next || undefined }, { replace: true });
   };
 
+  createEffect(() => {
+    if (isFreePlan() && PRO_RANGES.has(rangeFilter())) setRangeFilter('7d');
+  });
+
   createEffect(
     on(
       () => searchParams.range,
@@ -384,7 +391,7 @@ const MessageLog: Component = () => {
       tier: tierFilter(),
       origin: originFilter(),
       status: statusFilterValue(),
-      range: rangeFilter(),
+      range: effectiveRange(),
       costMin: costMin(),
       costMax: costMax(),
       agentName: agentFilter() || params.agentName,
@@ -428,7 +435,7 @@ const MessageLog: Component = () => {
   const [messageFilterOptions] = createResource(
     () => ({
       agentName: agentFilter() || params.agentName,
-      range: rangeFilter(),
+      range: effectiveRange(),
       _ping: messagePing(),
     }),
     (p) => {

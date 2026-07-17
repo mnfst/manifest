@@ -9,7 +9,7 @@ import {
   type Component,
 } from 'solid-js';
 import { getMessageDetails, type AutofixDecision } from '../services/api/messages.js';
-import { AUTOFIX_STATUS_LABELS, type AutofixStatus } from 'manifest-shared';
+import { AUTOFIX_STATUS_LABELS, isSuccessStatus, type AutofixStatus } from 'manifest-shared';
 import { formatParamValue } from './MessageDetailsSections.jsx';
 import { providerIcon } from './ProviderIcon.jsx';
 import { AutofixIcon, FallbackIcon } from './message-table-cells.jsx';
@@ -69,7 +69,7 @@ function fmtDate(iso: string): string {
 }
 
 function statusLabel(status: string): string {
-  if (status === 'ok') return 'Success';
+  if (isSuccessStatus(status)) return 'Success';
   if (status === 'auto_fixed') return 'Auto-fixed';
   if (status === 'rate_limited') return 'Rate limited';
   return 'Failed';
@@ -78,12 +78,12 @@ function statusLabel(status: string): string {
 /** The attempt's HTTP code as displayed: 200 for success, the provider's
     error code otherwise, ERR when the failure carried no HTTP response. */
 function attemptCode(att: { status: string; error_http_status?: number }): string {
-  if (att.status === 'ok') return '200';
+  if (isSuccessStatus(att.status)) return '200';
   return att.error_http_status != null ? String(att.error_http_status) : 'ERR';
 }
 
 function requestStatusClass(status: string): string {
-  if (status === 'ok') return 'drawer-status--success';
+  if (isSuccessStatus(status)) return 'drawer-status--success';
   return 'drawer-status--error';
 }
 
@@ -99,7 +99,7 @@ function inferType(att: any, index: number, msg: any): Attempt['type'] {
 
 function buildAttempts(msg: any): Attempt[] {
   // When the backend provides a real attempts array, use it
-  if (Array.isArray(msg.attempts) && msg.attempts.length > 0) {
+  if (Array.isArray(msg.attempts)) {
     return msg.attempts.map((att: any, i: number) => ({
       id: att.id,
       index: i + 1,
@@ -108,7 +108,8 @@ function buildAttempts(msg: any): Attempt[] {
       provider: att.provider ?? msg.provider,
       model: att.model ?? msg.model ?? msg.model_id,
       auth_type: att.auth_type ?? msg.auth_type,
-      error_message: att.error_message ?? (att.status !== 'ok' ? msg.error_message : undefined),
+      error_message:
+        att.error_message ?? (!isSuccessStatus(att.status) ? msg.error_message : undefined),
       error_origin: att.error_origin ?? undefined,
       error_class: att.error_class ?? undefined,
       error_http_status: att.error_http_status ?? undefined,
@@ -243,9 +244,13 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
   const requestStatus = () => {
     const msg = m();
     if (!msg) return 'error';
-    if (msg.autofix_role === 'retry' && msg.status === 'ok') return 'ok';
+    if (msg.autofix_role === 'retry' && isSuccessStatus(msg.status)) return 'success';
     return msg.status;
   };
+
+  const headerProvider = () => currentAttempt()?.provider ?? m()?.provider;
+  const headerAuthType = () => currentAttempt()?.auth_type ?? m()?.auth_type;
+  const headerModel = () => currentAttempt()?.model ?? m()?.model ?? m()?.model_id;
 
   return (
     <>
@@ -287,17 +292,17 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                       </>
                     )}
                   </Show>
-                  <Show when={msg().provider}>
+                  <Show when={headerProvider()}>
                     <span class="drawer__meta-sep">&middot;</span>
                     <span
                       class="drawer__meta-text"
                       style="display: inline-flex; align-items: center; gap: 4px;"
                     >
                       <span style="display: inline-flex; position: relative; flex-shrink: 0; width: 14px; height: 14px;">
-                        {providerIcon(msg().provider, 14)}
-                        {authBadgeFor(msg().auth_type, 8)}
+                        {providerIcon(headerProvider(), 14)}
+                        {authBadgeFor(headerAuthType(), 8)}
                       </span>
-                      {msg().model || msg().model_id}
+                      {headerModel()}
                     </span>
                   </Show>
                   <Show when={msg().timestamp}>
@@ -312,54 +317,66 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                 {/* Attempts sidebar */}
                 <div class="drawer__sidebar">
                   <div class="drawer__sidebar-title">Attempts</div>
-                  <For each={attempts()}>
-                    {(att, idx) => (
-                      <button
-                        class="attempt-item"
-                        classList={{ 'attempt-item--active': selectedAttempt() === idx() }}
-                        onClick={() => {
-                          setSelectedAttempt(idx());
-                          setTab('details');
-                        }}
-                      >
-                        <span class="attempt-item__num">{att.index}</span>
-                        <span class="attempt-item__icon">
-                          {att.type === 'fallback' ? (
-                            <FallbackIcon />
-                          ) : att.type === 'auto-fix' ? (
-                            <AutofixIcon />
-                          ) : (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="14"
-                              height="14"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              viewBox="0 0 24 24"
-                              aria-hidden="true"
-                            >
-                              <path d="M5 12h14" />
-                              <path d="m12 5 7 7-7 7" />
-                            </svg>
-                          )}
-                        </span>
-                        <span class="attempt-item__model">{att.model}</span>
-                        <span
-                          class={`attempt-code ${att.status === 'ok' ? 'attempt-code--ok' : 'attempt-code--error'}`}
+                  <Show
+                    when={attempts().length > 0}
+                    fallback={<div class="drawer__empty">No provider attempts</div>}
+                  >
+                    <For each={attempts()}>
+                      {(att, idx) => (
+                        <button
+                          class="attempt-item"
+                          classList={{ 'attempt-item--active': selectedAttempt() === idx() }}
+                          onClick={() => {
+                            setSelectedAttempt(idx());
+                            setTab('details');
+                          }}
                         >
-                          {attemptCode(att)}
-                        </span>
-                      </button>
-                    )}
-                  </For>
+                          <span class="attempt-item__num">{att.index}</span>
+                          <span class="attempt-item__icon">
+                            {att.type === 'fallback' ? (
+                              <FallbackIcon />
+                            ) : att.type === 'auto-fix' ? (
+                              <AutofixIcon />
+                            ) : (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="14"
+                                height="14"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <path d="M5 12h14" />
+                                <path d="m12 5 7 7-7 7" />
+                              </svg>
+                            )}
+                          </span>
+                          <span class="attempt-item__model">{att.model}</span>
+                          <span
+                            class={`attempt-code ${isSuccessStatus(att.status) ? 'attempt-code--ok' : 'attempt-code--error'}`}
+                          >
+                            {attemptCode(att)}
+                          </span>
+                        </button>
+                      )}
+                    </For>
+                  </Show>
                 </div>
 
                 {/* Attempt content */}
                 <div class="drawer__content">
-                  <Show when={currentAttempt()}>
+                  <Show
+                    when={currentAttempt()}
+                    fallback={
+                      <div class="drawer__body" style="color: hsl(var(--muted-foreground));">
+                        Manifest rejected this request before contacting a provider.
+                      </div>
+                    }
+                  >
                     {(att) => (
                       <>
                         {/* Tabs */}
@@ -387,7 +404,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                 <span style="display: inline-flex; align-items: center; gap: 6px;">
                                   {statusLabel(att().status)}
                                   <span
-                                    class={`attempt-code ${att().status === 'ok' ? 'attempt-code--ok' : 'attempt-code--error'}`}
+                                    class={`attempt-code ${isSuccessStatus(att().status) ? 'attempt-code--ok' : 'attempt-code--error'}`}
                                   >
                                     {attemptCode(att())}
                                   </span>
@@ -490,7 +507,9 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: 8px;">
-                                    This retry recovered the request. It was auto-fixed and re-sent.
+                                    {isSuccessStatus(att().status)
+                                      ? 'This Auto-fix retry recovered the request.'
+                                      : 'Manifest applied a fix and retried, but this attempt failed.'}
                                   </div>
                                   <Show when={att().autofix_decision?.explanation?.summary}>
                                     <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
@@ -535,8 +554,10 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                                    Recovered by fallback. Fell back from{' '}
-                                    {att().fallback_from_model}.
+                                    {isSuccessStatus(att().status)
+                                      ? 'This fallback recovered the request.'
+                                      : 'This fallback attempt failed.'}{' '}
+                                    Fell back from {att().fallback_from_model}.
                                   </div>
                                 </div>
                               </Show>
@@ -643,7 +664,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                   a LATER fallback attempt */}
                               <Show
                                 when={
-                                  att().status !== 'ok' &&
+                                  !isSuccessStatus(att().status) &&
                                   !(att().autofix_applied && att().autofix_role !== 'retry') &&
                                   attempts().length > att().index &&
                                   attempts()[att().index]?.fallback_from_model
@@ -657,7 +678,10 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                                    This attempt failed. Recovered by fallback to{' '}
+                                    This attempt failed.{' '}
+                                    {isSuccessStatus(attempts()[att().index]?.status)
+                                      ? 'Recovered by fallback to'
+                                      : 'Continued with fallback to'}{' '}
                                     {attempts()[att().index]?.model} (attempt {att().index + 1}).
                                   </div>
                                 </div>

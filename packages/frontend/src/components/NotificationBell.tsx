@@ -63,14 +63,26 @@ const NotificationBell: Component = () => {
 
   const [cohort] = createResource(
     () => ({ _a: agentPing(), _m: messagePing(), _r: routingPing(), _t: tick() }),
-    () => getAutofixCohort(),
+    async () => {
+      try {
+        return await getAutofixCohort();
+      } catch {
+        return null;
+      }
+    },
   );
   const eligible = () => cohort()?.eligible ?? false;
 
   const [status] = createResource(
     () =>
       eligible() ? { _a: agentPing(), _m: messagePing(), _r: routingPing(), _t: tick() } : false,
-    () => getWorkspaceAutofixStatus(),
+    async () => {
+      try {
+        return await getWorkspaceAutofixStatus();
+      } catch {
+        return null;
+      }
+    },
   );
 
   const [agentList] = createResource(

@@ -1,6 +1,11 @@
 import { Repository } from 'typeorm';
 import { Logger } from '@nestjs/common';
-import { classifyMessageError, inferProviderFromModel, normalizeStatus } from 'manifest-shared';
+import {
+  classifyMessageError,
+  inferProviderFromModel,
+  isSuccessStatus,
+  normalizeStatus,
+} from 'manifest-shared';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { ManifestRequest } from '../entities/request.entity';
 
@@ -286,6 +291,7 @@ export async function seedAgentMessages(
         const traceId = `seed-trace-${String(requestIndex).padStart(4, '0')}`;
         message.request_id = requestId;
         message.trace_id = traceId;
+        const succeeded = isSuccessStatus(message.status);
         currentRequest = {
           id: requestId,
           tenant_id: ctx.tenantId,
@@ -296,11 +302,11 @@ export async function seedAgentMessages(
           session_key: message.session_key ?? null,
           timestamp: message.timestamp!,
           duration_ms: message.duration_ms ?? null,
-          status: message.status === 'ok' ? 'ok' : 'error',
-          error_message: message.status === 'ok' ? null : (message.error_message ?? null),
-          error_http_status: message.status === 'ok' ? null : (message.error_http_status ?? null),
-          error_origin: message.status === 'ok' ? null : (message.error_origin ?? null),
-          error_class: message.status === 'ok' ? null : (message.error_class ?? null),
+          status: succeeded ? 'success' : 'failed',
+          error_message: succeeded ? null : (message.error_message ?? null),
+          error_http_status: succeeded ? null : (message.error_http_status ?? null),
+          error_origin: succeeded ? null : (message.error_origin ?? null),
+          error_class: succeeded ? null : (message.error_class ?? null),
           requested_model: message.model ?? null,
         };
         requests.push(currentRequest);
@@ -310,14 +316,12 @@ export async function seedAgentMessages(
       message.request_id = currentRequest!.id!;
       message.trace_id = currentRequest!.trace_id!;
       currentRequest!.duration_ms = (currentRequest!.duration_ms ?? 0) + (message.duration_ms ?? 0);
-      currentRequest!.status = message.status === 'ok' ? 'ok' : 'error';
-      currentRequest!.error_message =
-        message.status === 'ok' ? null : (message.error_message ?? null);
-      currentRequest!.error_http_status =
-        message.status === 'ok' ? null : (message.error_http_status ?? null);
-      currentRequest!.error_origin =
-        message.status === 'ok' ? null : (message.error_origin ?? null);
-      currentRequest!.error_class = message.status === 'ok' ? null : (message.error_class ?? null);
+      const succeeded = isSuccessStatus(message.status);
+      currentRequest!.status = succeeded ? 'success' : 'failed';
+      currentRequest!.error_message = succeeded ? null : (message.error_message ?? null);
+      currentRequest!.error_http_status = succeeded ? null : (message.error_http_status ?? null);
+      currentRequest!.error_origin = succeeded ? null : (message.error_origin ?? null);
+      currentRequest!.error_class = succeeded ? null : (message.error_class ?? null);
     }
 
     for (let i = 0; i < requests.length; i += 100) {

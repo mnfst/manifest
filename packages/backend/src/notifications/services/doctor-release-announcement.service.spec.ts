@@ -1,4 +1,7 @@
-import { DoctorReleaseAnnouncementService } from './doctor-release-announcement.service';
+import {
+  announcementDelayMs,
+  DoctorReleaseAnnouncementService,
+} from './doctor-release-announcement.service';
 
 jest.mock('./email-providers/send-email', () => ({
   sendEmail: jest.fn().mockResolvedValue(true),
@@ -20,6 +23,7 @@ describe('DoctorReleaseAnnouncementService', () => {
     delete process.env['ANNOUNCE_DOCTOR_RELEASE'];
     delete process.env['ANNOUNCE_DRY_RUN'];
     delete process.env['ANNOUNCE_TEST_RECIPIENT'];
+    delete process.env['ANNOUNCE_DELAY_MS'];
     service = new DoctorReleaseAnnouncementService({ query } as never);
   });
 
@@ -37,15 +41,15 @@ describe('DoctorReleaseAnnouncementService', () => {
     query.mockResolvedValueOnce([{ email: 'a@x.com' }, { email: 'b@x.com' }, { email: 'a@x.com' }]);
     await expect(service.resolveRecipients()).resolves.toEqual(['a@x.com', 'b@x.com']);
     expect(query.mock.calls[0][0]).toContain('autofix_waitlist_at IS NOT NULL');
-    expect(query.mock.calls[0][0]).toContain('autofix_waitlist_signups');
+    expect(query.mock.calls[0][0]).toContain('waitlist_claims');
   });
 
-  it('sends once per address and records the ledger', async () => {
+  it('claims each address atomically before sending', async () => {
     query
       .mockResolvedValueOnce([{ email: 'new@x.com' }, { email: 'seen@x.com' }]) // audience
-      .mockResolvedValueOnce([]) // new@x.com not in ledger
-      .mockResolvedValueOnce(undefined) // mark new@x.com
-      .mockResolvedValueOnce([1]); // seen@x.com already in ledger
+      .mockResolvedValueOnce([{ '?column?': 1 }]) // new@x.com claimed
+      .mockResolvedValueOnce(undefined) // mark new@x.com sent
+      .mockResolvedValueOnce([]); // seen@x.com already claimed
 
     const out = await service.run();
     expect(out).toEqual({ sent: 1, skipped: 1, dryRun: false });
@@ -56,9 +60,21 @@ describe('DoctorReleaseAnnouncementService', () => {
         subject: 'Auto-fix is live on your account',
       }),
     );
-    // The ledger insert never double-sends across redeploys.
+    // The claim insert is the concurrency boundary across replicas.
     const insert = query.mock.calls.find(([sql]) => String(sql).includes('INSERT INTO'));
     expect(String(insert?.[0])).toContain('ON CONFLICT (announcement, email) DO NOTHING');
+    expect(String(insert?.[0])).toContain('RETURNING 1');
+  });
+
+  it('releases an unaccepted claim so a later run can retry', async () => {
+    (sendEmail as jest.Mock).mockResolvedValueOnce(false);
+    query
+      .mockResolvedValueOnce([{ email: 'retry@x.com' }])
+      .mockResolvedValueOnce([{ '?column?': 1 }])
+      .mockResolvedValueOnce(undefined);
+
+    await expect(service.run()).resolves.toEqual({ sent: 0, skipped: 0, dryRun: false });
+    expect(query.mock.calls.some(([sql]) => String(sql).includes('DELETE FROM'))).toBe(true);
   });
 
   it('dry run lists the audience and sends nothing', async () => {
@@ -76,5 +92,16 @@ describe('DoctorReleaseAnnouncementService', () => {
     expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'seb@test.com' }));
     // No audience query, no ledger read/write: rerunnable rehearsals.
     expect(query).not.toHaveBeenCalled();
+  });
+
+  it.each([undefined, '', '0', '-1', '1.5', 'abc', '9007199254740992', '2147483648'])(
+    'uses the safe default for ANNOUNCE_DELAY_MS=%p',
+    (raw) => {
+      expect(announcementDelayMs(raw)).toBe(600_000);
+    },
+  );
+
+  it('accepts a positive integer delay within the Node timer range', () => {
+    expect(announcementDelayMs('30000')).toBe(30_000);
   });
 });

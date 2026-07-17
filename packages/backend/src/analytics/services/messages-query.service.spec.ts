@@ -707,7 +707,7 @@ describe('MessagesQueryService', () => {
     expect(tierCall?.[1]).toEqual({ tierFilter: 'playground' });
   });
 
-  it.each<[MessageStatusFilter, string, Record<string, unknown>]>([
+  it.each<[MessageStatusFilter, string, Record<string, unknown> | undefined]>([
     [
       'failed',
       'at.status IN (:...failedStatuses)',
@@ -718,7 +718,7 @@ describe('MessagesQueryService', () => {
       'at.status IN (:...errorStatuses)',
       { errorStatuses: ['error', 'fallback_error', 'rate_limited', 'auto_fixed', 'failed'] },
     ],
-    ['ok', 'at.status = :statusFilter', { statusFilter: 'ok' }],
+    ['ok', "at.status IN ('ok', 'success')", undefined],
   ])('passes %s status filter through to the query builder', async (status, clause, bindings) => {
     mockGetRawOne.mockResolvedValueOnce({ total: 1 });
     mockGetRawMany
@@ -741,7 +741,9 @@ describe('MessagesQueryService', () => {
     });
 
     expect(result.total_count).toBe(1);
-    const statusCall = andWhereSpy.mock.calls.find(([candidate]) => candidate === clause);
+    const statusCall = andWhereSpy.mock.calls.find(
+      ([candidate]) => typeof candidate === 'string' && candidate.includes(clause),
+    );
     expect(statusCall).toBeDefined();
     expect(statusCall?.[1]).toEqual(bindings);
   });

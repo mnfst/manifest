@@ -314,8 +314,8 @@ describe('MessageDetails', () => {
             id: 'attempt-2',
             provider: 'openai',
             model: 'gpt-4o',
-            status: 'ok',
-            cost_usd: 0.0123456,
+            status: 'success',
+            cost_usd: '0.0123456',
           },
         ],
       },
@@ -327,7 +327,7 @@ describe('MessageDetails', () => {
     const rows = container.querySelectorAll('table[aria-label="Provider attempts"] tbody tr');
     expect(rows).toHaveLength(2);
     expect(rows[0]?.textContent).toContain('1Unknown—error—');
-    expect(rows[1]?.textContent).toContain('2openaiGPT-4ook$0.012346');
+    expect(rows[1]?.textContent).toContain('2openaiGPT-4osuccess$0.012346');
   });
 
   it('shows error state on API failure', async () => {

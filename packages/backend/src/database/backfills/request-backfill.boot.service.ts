@@ -30,7 +30,6 @@ const defaultRunner: RequestBackfillRunner = (dataSource, logger, options) =>
   runRequestBackfill(new TypeOrmRequestBackfillGateway(dataSource), { logger, ...options });
 
 const LOCK_RETRY_MS = 30_000;
-export const REQUEST_BACKFILL_MAX_LOCK_ATTEMPTS = 10;
 export const REQUEST_BACKFILL_TAIL_INTERVAL_MS = 60_000;
 export const REQUEST_BACKFILL_FALLBACK_GRACE_MS = 5 * 60_000;
 export const REQUEST_BACKFILL_GENERIC_GRACE_MS = 10 * 60_000;
@@ -69,13 +68,9 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   }
 
   private async runUntilComplete(): Promise<void> {
-    for (let attempt = 1; attempt <= REQUEST_BACKFILL_MAX_LOCK_ATTEMPTS; attempt += 1) {
-      if (await this.runOnce()) return;
-      if (attempt < REQUEST_BACKFILL_MAX_LOCK_ATTEMPTS) await wait(LOCK_RETRY_MS);
+    while (!(await this.runOnce())) {
+      await wait(LOCK_RETRY_MS);
     }
-    throw new Error(
-      `request backfill lock stayed busy for ${REQUEST_BACKFILL_MAX_LOCK_ATTEMPTS} attempts`,
-    );
   }
 
   async runOnce(runner: RequestBackfillRunner = defaultRunner): Promise<boolean> {
