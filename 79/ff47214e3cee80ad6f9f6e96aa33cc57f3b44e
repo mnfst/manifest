@@ -1,0 +1,27 @@
+packages/backend/src/database/seed-messages.spec.ts
+  s_2dca526c582c19::t_db329a04f1b9cc 134
+  s_2dca526c582c19::t_06262a10685eac 91,96-133,135-150
+packages/backend/src/database/seed-messages.ts
+  s_2dca526c582c19::t_06262a10685eac 21-26,28-53,55-56,58-59,61,63-65,67-69,71,73-74,76-78,80,82-84,86-88,90,92-93,95-97,99-103,105-106,134-142,228,241-248,252-266,269-293,296-300,304
+  s_2dca526c582c19::t_db329a04f1b9cc 66,70,72,75,79,81,85,89,91,94,98,104,121,226,230,249-250,268,294-295,301-303,305,313-319,322-323,326-345
+  s_2dca526c582c19::t_33944878b9f2be 133,144
+  s_2dca526c582c19::t_421b6e3a4a9c49 143
+.gitignore
+  s_2dca526c582c19::t_23a1cc69f59ac9 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "79ff47214e3cee80ad6f9f6e96aa33cc57f3b44e",
+  "prompts": {},
+  "sessions": {
+    "s_2dca526c582c19": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6a6e-0441-7612-b8b2-95bc5175e975",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
