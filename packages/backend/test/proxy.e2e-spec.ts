@@ -188,7 +188,7 @@ describe('Proxy E2E — /v1/chat/completions', () => {
     try {
       const res = await bearer(api().post('/v1/responses'))
         .send({ model: 'auto', input: 'Hello', store: false })
-        .expect(200);
+        .expect(503);
       const body = JSON.stringify(res.body);
 
       expect(body).toContain('M101');
