@@ -87,12 +87,66 @@ describe('seedAgentMessages', () => {
 
       const messages = collectInsertedMessages(mockRepo);
       const requests = collectInsertedMessages(requestRepo);
-      const fallbackAttempts = messages.filter((message) => message.fallback_from_model != null);
-      expect(requests.length).toBe(messages.length - fallbackAttempts.length);
       expect(messages.every((message) => message.request_id != null)).toBe(true);
+      expect(requests).toHaveLength(new Set(messages.map((message) => message.request_id)).size);
       expect(new Set(messages.map((message) => message.request_id))).toEqual(
         new Set(requests.map((request) => request.id)),
       );
+    });
+
+    it('seeds coherent ordered Attempt chains and Request outcomes', async () => {
+      const requestRepo = makeMockRepo();
+
+      await seedAgentMessages(mockRepo as never, 'user-1', logger, undefined, requestRepo as never);
+
+      const messages = collectInsertedMessages(mockRepo);
+      const requests = collectInsertedMessages(requestRepo);
+      const attemptsByRequest = new Map<string, Array<Record<string, unknown>>>();
+      for (const message of messages) {
+        const requestId = message.request_id as string;
+        const attempts = attemptsByRequest.get(requestId) ?? [];
+        attempts.push(message);
+        attemptsByRequest.set(requestId, attempts);
+      }
+
+      for (const request of requests) {
+        const attempts = attemptsByRequest.get(request.id as string)!;
+        expect(attempts.map((attempt) => attempt.attempt_number)).toEqual(
+          attempts.map((_, index) => index + 1),
+        );
+        const lastAttempt = attempts.at(-1)!;
+        expect(request.status).toBe(lastAttempt.status);
+
+        for (const supersededAttempt of attempts.slice(0, -1)) {
+          expect(supersededAttempt.status).toBe('failed');
+          expect(supersededAttempt.superseded).toBe(true);
+        }
+      }
+    });
+
+    it('never recovers a Request from a successful or HTTP 200 Attempt', async () => {
+      const requestRepo = makeMockRepo();
+
+      await seedAgentMessages(mockRepo as never, 'user-1', logger, undefined, requestRepo as never);
+
+      const messages = collectInsertedMessages(mockRepo);
+      const recoveredAttempts = messages.filter(
+        (message) => message.status === 'success' && message.fallback_index != null,
+      );
+      expect(recoveredAttempts.length).toBeGreaterThan(0);
+
+      for (const recoveredAttempt of recoveredAttempts) {
+        const earlierAttempts = messages.filter(
+          (message) =>
+            message.request_id === recoveredAttempt.request_id &&
+            (message.attempt_number as number) < (recoveredAttempt.attempt_number as number),
+        );
+        expect(earlierAttempts.length).toBeGreaterThan(0);
+        for (const earlierAttempt of earlierAttempts) {
+          expect(earlierAttempt.status).toBe('failed');
+          expect(earlierAttempt.error_http_status).not.toBe(200);
+        }
+      }
     });
   });
 
@@ -435,7 +489,6 @@ describe('seedAgentMessages', () => {
       for (const msg of messages) {
         if (msg.superseded) {
           expect(msg.status).toBe('failed');
-          expect(msg.fallback_from_model).toBeTruthy();
         }
       }
       const superseded = messages.filter((m) => m.superseded);
@@ -462,9 +515,6 @@ describe('seedAgentMessages', () => {
       // Formerly the `fallback_error` status; now a failed row flagged superseded.
       const handled = messages.filter((m) => m.status === 'failed' && m.superseded);
       expect(handled.length).toBeGreaterThan(0);
-      for (const m of handled) {
-        expect(m.fallback_from_model).toBe('claude-opus-4-6');
-      }
     });
 
     it('never seeds a fallback that fell back from the same model it ran on', () => {
