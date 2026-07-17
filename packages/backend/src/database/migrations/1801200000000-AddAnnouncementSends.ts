@@ -5,8 +5,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * (announcement, email): the announcement services check it before sending,
  * so restarts and redeploys never double-send.
  */
-export class AddAnnouncementSends1801100000000 implements MigrationInterface {
-  name = 'AddAnnouncementSends1801100000000';
+export class AddAnnouncementSends1801200000000 implements MigrationInterface {
+  name = 'AddAnnouncementSends1801200000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
