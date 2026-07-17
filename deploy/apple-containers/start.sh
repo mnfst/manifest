@@ -17,9 +17,9 @@
 #   - healthchecks / depends_on: replaced by explicit readiness polls
 #
 # Usage:
-#   ./scripts/start-apple-containers.sh up      # start the stack (default)
-#   ./scripts/start-apple-containers.sh down    # stop and remove containers (data kept)
-#   ./scripts/start-apple-containers.sh status  # show container state and URLs
+#   ./deploy/apple-containers/start.sh up      # start the stack (default)
+#   ./deploy/apple-containers/start.sh down    # stop and remove containers (data kept)
+#   ./deploy/apple-containers/start.sh status  # show container state and URLs
 #
 # Configuration comes from docker/.env (the same file as Docker Compose).
 # Override its path with MANIFEST_ENV_FILE. BETTER_AUTH_SECRET is required:
@@ -37,7 +37,7 @@ elif [[ -f "$SCRIPT_DIR/.env" ]]; then
   # Backward compatibility with early versions of this script.
   ENV_FILE="$SCRIPT_DIR/.env"
 else
-  ENV_FILE="$SCRIPT_DIR/../docker/.env"
+  ENV_FILE="$SCRIPT_DIR/../../docker/.env"
 fi
 load_env_file() {
   local line key value
