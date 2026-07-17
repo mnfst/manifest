@@ -11,6 +11,15 @@ AGENTS.md
   s_2dca526c582c19::t_170bc22826ec2f 14
 docs/analytics-glossary.md
   s_2dca526c582c19::t_170bc22826ec2f 1-107
+package-lock.json
+  s_51364d2d573b88::t_0280ff75a955ee 11053
+packages/backend/src/playground/playground.service.ts
+  s_429b9b7858f465::t_e0313545d5cb28 468-470,471,474,475,479,486-489,491
+  s_429b9b7858f465::t_656d63ceafd33b 492-494
+packages/backend/test/seed-playground-agents-migrations.e2e-spec.ts
+  s_429b9b7858f465::t_b75843cb0be671 40
+packages/backend/src/analytics/services/query-helpers.ts
+  s_429b9b7858f465::t_9fd4279e09de4c 59
 ---
 {
   "schema_version": "authorship/3.0.0",
@@ -18,6 +27,14 @@ docs/analytics-glossary.md
   "base_commit_sha": "74b1dc160fb4aeb4d0ae1eb8a2447f5e2c089f34",
   "prompts": {},
   "sessions": {
+    "s_1544253ee011e8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b7bbb77d-d1c8-4b51-bb16-14b9668ab28a",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
     "s_1defa4e24de0e5": {
       "agent_id": {
         "tool": "codex",
@@ -30,6 +47,54 @@ docs/analytics-glossary.md
       "agent_id": {
         "tool": "codex",
         "id": "019f6a6e-0441-7612-b8b2-95bc5175e975",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_429b9b7858f465": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f60f7-390c-7fa3-a91a-edc913000679",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_51364d2d573b88": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f600b-f612-7c02-9de9-2a1d3c575856",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null
+    },
+    "s_c3416aae8d67ee": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "19912b9e-12e8-4764-ab16-bd497ffd3271",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_cae45fafb45c81": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e6b79e57-b2e9-482e-93d5-f91f1b0c8c8c",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_dc86fda050ffea": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6762-1c1d-7e42-879b-ef2326aedd8c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_e8156cce0170cb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f602c-d100-70f1-b733-a7973706f7e3",
         "model": "gpt-5.6-sol"
       },
       "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"

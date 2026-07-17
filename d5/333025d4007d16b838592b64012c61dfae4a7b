@@ -7,6 +7,18 @@ AGENTS.md
   s_2dca526c582c19::t_91cb0b6ec2be26 10
 CLAUDE.md
   s_2dca526c582c19::t_24f19062d04572 413-416,418
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_406bd622891248::t_2a79f3d49a2b63 556
+packages/backend/src/analytics/services/message-feedback.service.ts
+  s_429b9b7858f465::t_d36f0ceb51a7a5 34
+  s_429b9b7858f465::t_fb89c40e6acb94 35-36
+packages/backend/src/playground/playground.service.ts
+  s_429b9b7858f465::t_e0313545d5cb28 468-470,471,474,475,479,486-489,491
+  s_429b9b7858f465::t_656d63ceafd33b 492-494
+packages/backend/src/analytics/services/query-helpers.ts
+  s_429b9b7858f465::t_9fd4279e09de4c 59
+packages/backend/test/seed-playground-agents-migrations.e2e-spec.ts
+  s_429b9b7858f465::t_b75843cb0be671 40
 ---
 {
   "schema_version": "authorship/3.0.0",
@@ -19,6 +31,46 @@ CLAUDE.md
         "tool": "codex",
         "id": "019f6a6e-0441-7612-b8b2-95bc5175e975",
         "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_406bd622891248": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f69a4-8f78-71b0-9180-53e5898f4ed5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_429b9b7858f465": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f60f7-390c-7fa3-a91a-edc913000679",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_7b04613e6c1f2a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1b1af942-3126-4469-a9b1-c9d382c90052",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_8e604c15975dfe": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f65db-3a3a-7062-b4ed-378f1f8bcbe3",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null
+    },
+    "s_c3416aae8d67ee": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "19912b9e-12e8-4764-ab16-bd497ffd3271",
+        "model": "claude-opus-4-8"
       },
       "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
     }
