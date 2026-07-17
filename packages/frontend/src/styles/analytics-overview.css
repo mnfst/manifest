@@ -71,7 +71,7 @@
 }
 
 .overview-stat-card--fallback {
-  /* Green card (the fallback mark's dominant teal), warm yellow value on top. */
+  /* Green card (the fallback mark's dominant teal) with the success value on top. */
   background: rgba(73, 207, 202, 0.1);
 }
 
