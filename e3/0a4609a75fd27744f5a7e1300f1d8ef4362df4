@@ -1,0 +1,62 @@
+packages/frontend/src/pages/ResetPassword.tsx
+  s_ca80a0e256e55a::t_ac85423252de26 3,5,12-15,19-21
+  s_ca80a0e256e55a::t_eb73b7b4f85448 48-52,56-69
+  s_ca80a0e256e55a::t_26475e39a9383a 22
+packages/backend/src/setup/setup.controller.ts
+  s_ca80a0e256e55a::t_a8397feb5fc834 18,28
+packages/backend/src/setup/setup.controller.spec.ts
+  s_ca80a0e256e55a::t_ac0ef9c071e007 128-134
+  s_ca80a0e256e55a::t_3f4289b7ad22c2 101
+  s_ca80a0e256e55a::t_ab43ce42bd0603 17,26,40
+  s_ca80a0e256e55a::t_0f2edd6fc44d67 59
+  s_ca80a0e256e55a::t_727e4edc5a69fe 86
+  s_ca80a0e256e55a::t_dbab48e1e023e8 72
+  s_ca80a0e256e55a::t_4bf2e8286359d5 116
+packages/backend/src/notifications/services/email-providers/send-email.spec.ts
+  s_ca80a0e256e55a::t_25a587e33d4d8d 5,8-43
+  s_ca80a0e256e55a::t_6c04dfb5aa23b6 44
+packages/frontend/tests/services/setup-status.test.ts
+  s_ca80a0e256e55a::t_22a64e7c0c6363 259-303
+  s_ca80a0e256e55a::t_5c8876902be37c 8
+packages/backend/test/setup.e2e-spec.ts
+  s_ca80a0e256e55a::t_911c55919b01b6 44
+.changeset/reset-password-email-notice.md
+  s_ca80a0e256e55a::t_d3cd6747b9472a 1-5
+packages/frontend/tests/pages/ResetPassword.test.tsx
+  s_ca80a0e256e55a::t_73be4b68b1ae19 147
+  s_ca80a0e256e55a::t_d82d9b74a78381 111-143
+  s_ca80a0e256e55a::t_713d0669bf6076 7,26-27
+  s_ca80a0e256e55a::t_3c496d5c3c6437 35
+  s_ca80a0e256e55a::t_39933bf55701c0 28-29
+packages/backend/src/setup/setup.service.ts
+  s_ca80a0e256e55a::t_efa0ca498cdf3d 6
+  s_ca80a0e256e55a::t_616188e2a8bad7 55-63
+  s_ca80a0e256e55a::t_e173f8f09f9414 54
+packages/backend/src/setup/setup.service.spec.ts
+  s_ca80a0e256e55a::t_42e0cc4f7755f5 225-267
+packages/frontend/src/styles/auth.css
+  s_ca80a0e256e55a::t_01462ba919ba00 176-191,365,424
+  s_ca80a0e256e55a::t_0e0d8e250148a5 364,366,423
+packages/backend/src/notifications/services/email-providers/send-email.ts
+  s_ca80a0e256e55a::t_21da3967093c24 66-76
+packages/frontend/src/services/setup-status.ts
+  s_ca80a0e256e55a::t_5de2df93252908 12,21
+  s_ca80a0e256e55a::t_4fd3bccb95b8f9 39,48-50,59
+  s_ca80a0e256e55a::t_a0b33e9339c98c 91-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "e30a4609a75fd27744f5a7e1300f1d8ef4362df4",
+  "prompts": {},
+  "sessions": {
+    "s_ca80a0e256e55a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "86d20d0a-a91c-45b9-97e8-ab4cac4d6d01",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
