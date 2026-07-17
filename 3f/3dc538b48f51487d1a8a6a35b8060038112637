@@ -1,0 +1,20 @@
+.github/workflows/modelparams-sync.yml
+  s_3627a09fa5f102::t_d881322386a403 1-17,19-32,45-46,48-53,55-59,61-66,68-72,74-82,84-103,105-120
+  s_3627a09fa5f102::t_bacb9ef4d01897 18,33-44,47,54,60,67,73,83,104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "3f3dc538b48f51487d1a8a6a35b8060038112637",
+  "prompts": {},
+  "sessions": {
+    "s_3627a09fa5f102": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "67e56a9a-7d14-45f2-a8d0-6d3971fd256c",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
