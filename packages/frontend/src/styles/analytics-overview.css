@@ -71,7 +71,8 @@
 }
 
 .overview-stat-card--fallback {
-  background: rgba(201, 138, 53, 0.07);
+  /* Green card (the fallback mark's dominant teal), warm yellow value on top. */
+  background: rgba(73, 207, 202, 0.1);
 }
 
 .overview-stat-card--fallback .overview-stat-card__value {
