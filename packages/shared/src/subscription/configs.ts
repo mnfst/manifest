@@ -154,10 +154,13 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionLabel: 'Kimi Coding Plan',
     subscriptionAuthMode: 'token' as const,
     subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
-    knownModels: Object.freeze(['kimi-for-coding']),
+    knownModels: Object.freeze(['kimi-for-coding', 'kimi-k3']),
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 262144,
+      modelContextWindows: Object.freeze({
+        'kimi-k3': 1048576,
+      }),
       supportsPromptCaching: true,
       supportsBatching: false,
     }),
