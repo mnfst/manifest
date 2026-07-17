@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@solidjs/testing-library';
+import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
 import { describe, expect, it, vi } from 'vitest';
 import MultiSelect from '../../src/components/MultiSelect';
@@ -77,9 +77,11 @@ describe('MultiSelect', () => {
     await fireEvent.click(screen.getByRole('option', { name: 'All providers' }));
 
     expect(onChange).toHaveBeenLastCalledWith([]);
-    expect(
-      screen.getByRole('option', { name: 'All providers' }).getAttribute('aria-selected'),
-    ).toBe('true');
+    await waitFor(() =>
+      expect(
+        screen.getByRole('option', { name: 'All providers' }).getAttribute('aria-selected'),
+      ).toBe('true'),
+    );
   });
 
   it('falls back to the placeholder for an unknown selected value', () => {

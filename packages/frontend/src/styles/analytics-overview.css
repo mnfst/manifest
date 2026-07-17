@@ -70,7 +70,7 @@
    recovered by Auto-fix, teal green = recovered by fallback) and the failed
    card reads destructive, label included.
 
-   The backgrounds are three layers in one `background` (the house recipe —
+   The backgrounds are three layers in one `background-image` (the house recipe —
    the auto-fix/fallback icon squares are built the same way, card-sized):
    1. a diagonal fade of the card's colour toward transparent,
    2. a denser, darker glow anchored in the top-right corner (the "blurred
@@ -78,7 +78,8 @@
    3. a faint echo in the opposite corner for mesh-like depth.
    The glow sits opposite the text, so values keep their contrast. */
 .overview-stat-card--autofix {
-  background:
+  background-color: hsl(var(--card));
+  background-image:
     radial-gradient(ellipse 90% 95% at 100% 0%, rgba(21, 30, 180, 0.2), transparent 55%),
     radial-gradient(ellipse 70% 80% at 0% 100%, rgba(38, 50, 239, 0.07), transparent 50%),
     linear-gradient(135deg, rgba(38, 50, 239, 0.13), rgba(38, 50, 239, 0));
@@ -94,7 +95,8 @@
 }
 
 .overview-stat-card--fallback {
-  background:
+  background-color: hsl(var(--card));
+  background-image:
     radial-gradient(ellipse 90% 95% at 100% 0%, rgba(23, 138, 134, 0.22), transparent 55%),
     radial-gradient(ellipse 70% 80% at 0% 100%, rgba(73, 207, 202, 0.08), transparent 50%),
     linear-gradient(135deg, rgba(73, 207, 202, 0.16), rgba(73, 207, 202, 0));
@@ -110,7 +112,8 @@
 }
 
 .overview-stat-card--destructive {
-  background:
+  background-color: hsl(var(--card));
+  background-image:
     radial-gradient(ellipse 90% 95% at 100% 0%, rgba(185, 28, 28, 0.16), transparent 55%),
     radial-gradient(ellipse 70% 80% at 0% 100%, hsl(var(--destructive) / 0.06), transparent 50%),
     linear-gradient(135deg, hsl(var(--destructive) / 0.12), hsl(var(--destructive) / 0));
@@ -128,7 +131,8 @@
 /* Dark mode: quieter fades (the dark card does the work), brighter glows
    (on a dark ground it is the glow that carries the colour). */
 .dark .overview-stat-card--autofix {
-  background:
+  background-color: hsl(var(--card));
+  background-image:
     radial-gradient(ellipse 90% 95% at 100% 0%, rgba(80, 95, 255, 0.28), transparent 55%),
     radial-gradient(ellipse 70% 80% at 0% 100%, rgba(38, 50, 239, 0.1), transparent 50%),
     linear-gradient(135deg, rgba(38, 50, 239, 0.16), rgba(38, 50, 239, 0));
@@ -140,7 +144,8 @@
 }
 
 .dark .overview-stat-card--fallback {
-  background:
+  background-color: hsl(var(--card));
+  background-image:
     radial-gradient(ellipse 90% 95% at 100% 0%, rgba(40, 190, 183, 0.24), transparent 55%),
     radial-gradient(ellipse 70% 80% at 0% 100%, rgba(73, 207, 202, 0.09), transparent 50%),
     linear-gradient(135deg, rgba(73, 207, 202, 0.13), rgba(73, 207, 202, 0));
@@ -148,7 +153,8 @@
 }
 
 .dark .overview-stat-card--destructive {
-  background:
+  background-color: hsl(var(--card));
+  background-image:
     radial-gradient(ellipse 90% 95% at 100% 0%, rgba(248, 90, 90, 0.22), transparent 55%),
     radial-gradient(ellipse 70% 80% at 0% 100%, hsl(var(--destructive) / 0.09), transparent 50%),
     linear-gradient(135deg, hsl(var(--destructive) / 0.14), hsl(var(--destructive) / 0));

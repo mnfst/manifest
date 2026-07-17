@@ -266,16 +266,26 @@ h6 {
 .count-link {
   display: inline-block;
   padding: 1px 8px;
+  border: 1px solid hsl(var(--border));
   border-radius: var(--radius-sm);
   background: hsl(var(--muted));
   color: hsl(var(--foreground));
+  cursor: pointer;
   font-weight: 600;
   text-decoration: none;
-  transition: background-color 0.12s ease;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease;
 }
 
 .count-link:hover {
   background: hsl(var(--border));
+  border-color: hsl(var(--foreground) / 0.35);
+}
+
+.count-link:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 .header-controls {
