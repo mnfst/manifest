@@ -1,0 +1,19 @@
+CLAUDE.md
+  s_2dca526c582c19::t_4f5128d82a8834 3,7,85,90,152,221,322,352-354,430,432-435,437-441,456,458,462,468,497,630,710
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "7e260e694c00c35c12601aa1f175a47175e87ffd",
+  "prompts": {},
+  "sessions": {
+    "s_2dca526c582c19": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6a6e-0441-7612-b8b2-95bc5175e975",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
