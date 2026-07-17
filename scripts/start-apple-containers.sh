@@ -50,11 +50,26 @@ load_env_file() {
     fi
     key="${BASH_REMATCH[1]}"
     value="${BASH_REMATCH[2]}"
-    if [[ "$value" =~ ^\"(.*)\"$ || "$value" =~ ^\'(.*)\'$ ]]; then
+
+    # Match Docker Compose dotenv semantics for the forms used by the bundled
+    # config: comments are literal inside quotes, and start after whitespace in
+    # unquoted values. A caller-exported value takes precedence over .env.
+    if [[ "$value" =~ ^[[:space:]]*\"(.*)\"[[:space:]]*(#.*)?$ ]]; then
       value="${BASH_REMATCH[1]}"
+    elif [[ "$value" =~ ^[[:space:]]*\'(.*)\'[[:space:]]*(#.*)?$ ]]; then
+      value="${BASH_REMATCH[1]}"
+    else
+      if [[ "$value" =~ ^(.*)[[:space:]]+#.*$ ]]; then
+        value="${BASH_REMATCH[1]}"
+      fi
+      value="${value#"${value%%[![:space:]]*}"}"
+      value="${value%"${value##*[![:space:]]}"}"
     fi
-    printf -v "$key" '%s' "$value"
-    export "$key"
+
+    if ! printenv "$key" >/dev/null 2>&1; then
+      printf -v "$key" '%s' "$value"
+      export "$key"
+    fi
   done < "$ENV_FILE"
 }
 
@@ -84,6 +99,11 @@ validate_positive_integer() {
 
 PROVIDER_TIMEOUT_MS="${PROVIDER_TIMEOUT_MS:-180000}"
 STREAM_WARMUP_MS="${STREAM_WARMUP_MS:-15000}"
+validate_positive_integer PORT "$PORT"
+if ((PORT > 65535)); then
+  echo "error: PORT must be at most 65535, got '$PORT'." >&2
+  exit 1
+fi
 validate_positive_integer PROVIDER_TIMEOUT_MS "$PROVIDER_TIMEOUT_MS"
 validate_positive_integer STREAM_WARMUP_MS "$STREAM_WARMUP_MS"
 
