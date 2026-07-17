@@ -111,7 +111,7 @@ describe('MinimaxOauthService', () => {
               access_token: 'access-123',
               refresh_token: 'refresh-456',
               expired_in: 3600,
-              resource_url: 'https://api.minimax.io/anthropic',
+              resource_url: 'https://api.minimax.io/anthropic/v1',
             }),
         });
 
@@ -167,7 +167,7 @@ describe('MinimaxOauthService', () => {
           t: 'old-access',
           r: 'old-refresh',
           e: now + 7200,
-          u: { host: 'https://api.minimax.io/anthropic' },
+          u: { host: 'https://api.minimax.io/anthropic/v1' },
         }),
         'agent-1',
         'user-1',
@@ -195,7 +195,7 @@ describe('MinimaxOauthService', () => {
           t: 'old-access',
           r: 'old-refresh',
           e: Date.now() - 1000,
-          u: 'https://api.minimax.io/anthropic',
+          u: 'https://api.minimax.io/anthropic/v1',
         }),
         'agent-1',
         'user-1',
@@ -205,7 +205,7 @@ describe('MinimaxOauthService', () => {
         expect.objectContaining({
           t: 'new-access',
           r: 'new-refresh',
-          u: 'https://api.minimax.io/anthropic',
+          u: 'https://api.minimax.io/anthropic/v1',
         }),
       );
       expect(providerService.upsertProvider).toHaveBeenCalled();
@@ -250,7 +250,7 @@ describe('MinimaxOauthService', () => {
 
       const result = await service.refreshAccessToken(
         'refresh-token',
-        'https://api.minimax.io/anthropic',
+        'https://api.minimax.io/anthropic/v1',
       );
 
       expect(result.e).toBe(now + 7200);
@@ -274,7 +274,7 @@ describe('MinimaxOauthService', () => {
         'https://evil.example/anthropic',
       );
 
-      expect(result.u).toBe('https://api.minimax.io/anthropic');
+      expect(result.u).toBe('https://api.minimax.io/anthropic/v1');
     });
   });
 });

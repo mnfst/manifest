@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import { Response as ExpressResponse } from 'express';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { RoutingMeta } from './proxy.service';
-import type { AutofixRecord } from '../autofix/autofix.types';
+import { getAutofixRetry, type AutofixRecord } from '../autofix/autofix.types';
 import { FailedFallback } from './proxy-fallback.service';
 import { ForwardResult } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
@@ -53,6 +53,43 @@ const logger = new Logger('ProxyResponseHandler');
 
 function recordSafely(promise: Promise<unknown>, label: string): void {
   promise.catch((e) => logger.warn(`Failed to record ${label}: ${e}`));
+}
+
+function recordAutofixOriginalIfRetried(
+  ctx: IngestionContext,
+  meta: RoutingMeta,
+  recorder: ProxyMessageRecorder,
+  autofix: AutofixRecord | undefined,
+  traceId?: string,
+  callerAttribution?: CallerAttribution | null,
+  requestHeaders?: Record<string, string> | null,
+  route?: {
+    model?: string;
+    provider?: string;
+    authType?: string;
+    tenantProviderId?: string | null;
+  },
+): void {
+  if (!autofix || !getAutofixRetry(autofix)) return;
+  recordSafely(
+    recorder.recordAutofixOriginal(ctx, route?.model ?? meta.model, meta.tier, autofix, {
+      provider: route ? route.provider : meta.provider,
+      reason: meta.reason,
+      authType: route?.authType ?? meta.auth_type,
+      traceId,
+      callerAttribution,
+      requestHeaders,
+      requestParams: meta.request_params,
+      specificityCategory: meta.specificity_category,
+      providerKeyLabel: meta.provider_key_label,
+      tenantProviderId:
+        route?.tenantProviderId === undefined ? meta.tenantProviderId : route.tenantProviderId,
+      headerTierId: meta.header_tier_id,
+      headerTierName: meta.header_tier_name,
+      headerTierColor: meta.header_tier_color,
+    }),
+    'autofix original',
+  );
 }
 
 function thinkingRouteContext(meta: RoutingMeta): ThinkingBlockRouteContext {
@@ -239,6 +276,16 @@ export async function handleProviderError(
   autofix?: AutofixRecord,
   responseContext?: ProviderErrorResponseContext,
 ): Promise<void> {
+  recordAutofixOriginalIfRetried(
+    ctx,
+    meta,
+    recorder,
+    autofix,
+    traceId,
+    callerAttribution,
+    requestHeaders,
+  );
+
   if (failedFallbacks && failedFallbacks.length > 0 && !meta.fallbackFromModel) {
     await handleFallbackExhausted(
       res,
@@ -342,8 +389,9 @@ function handleFallbackExhausted(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
-        // Auto-fix ran on this primary before the chain exhausted — stamp its
-        // audit onto the single primary-failure row (no separate `auto_fixed`).
+        httpStatus: errorStatus,
+        // When a patched retry exists this row is that retry; otherwise it is
+        // the plain original failure carrying only Phoenix's audit.
         autofix,
       },
     ),
@@ -386,6 +434,21 @@ export function recordFallbackFailures(
   // (see RoutingMeta.primaryAuthType / #1173). Older meta shapes only carry
   // `auth_type`, so fall back to it when primaryAuthType is absent.
   const primaryAuthType = meta.primaryAuthType ?? meta.auth_type;
+  recordAutofixOriginalIfRetried(
+    ctx,
+    meta,
+    recorder,
+    autofix,
+    undefined,
+    callerAttribution,
+    requestHeaders,
+    {
+      model: meta.fallbackFromModel,
+      provider: meta.primaryProvider,
+      authType: primaryAuthType,
+      tenantProviderId: meta.primaryTenantProviderId,
+    },
+  );
   recordSafely(
     recorder.recordPrimaryFailure(
       ctx,
@@ -414,9 +477,9 @@ export function recordFallbackFailures(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
-        // Heal-then-fallback: stamp the Auto-fix audit onto the single primary
-        // row here; `recordAutofixOriginals` is guarded on outcome==='healed'
-        // so it no longer emits a duplicate `auto_fixed` row for this failure.
+        httpStatus: meta.primaryErrorStatus,
+        // A failed patched retry is the primary failure that triggered fallback.
+        // No-patch consultations remain an unmarked original with audit only.
         autofix,
       },
     ),
@@ -787,35 +850,17 @@ export function recordSuccess(
     );
   }
 
-  // Record the failed original as its own `auto_fixed` row ONLY when healing
-  // actually succeeded — that row is linked to the retry above via groupId and
-  // is the sole record of the pre-heal failure. When healing did NOT heal, the
-  // primary failure is already recorded exactly once elsewhere (the terminal
-  // error row, or the `fallback_error` row when a fallback took over), both of
-  // which carry the Auto-fix stamp — so emitting an `auto_fixed` row here too
-  // would double-count the same failure (and under the wrong, fallback model).
-  // `!meta.fallbackFromModel`: if a fallback took over after the heal, `meta.model`
-  // here is the fallback route, and the fallback path already stamps the pre-heal
-  // failure with the Auto-fix audit — so recording a standalone `auto_fixed` row
-  // now would double-count it under the wrong model.
-  if (autofix && autofix.outcome === 'healed' && !meta.fallbackFromModel) {
-    recordSafely(
-      recorder.recordAutofixOriginals(ctx, meta.model, meta.tier, autofix, {
-        provider: meta.provider,
-        reason: meta.reason,
-        authType: meta.auth_type,
-        traceId,
-        callerAttribution,
-        requestHeaders,
-        requestParams: meta.request_params,
-        specificityCategory: meta.specificity_category,
-        providerKeyLabel: meta.provider_key_label,
-        tenantProviderId: meta.tenantProviderId,
-        headerTierId: meta.header_tier_id,
-        headerTierName: meta.header_tier_name,
-        headerTierColor: meta.header_tier_color,
-      }),
-      'autofix originals',
+  // Fallback-success flows recorded the original and failed retry above in
+  // recordFallbackFailures. A direct Auto-fix success records its original here.
+  if (!meta.fallbackFromModel) {
+    recordAutofixOriginalIfRetried(
+      ctx,
+      meta,
+      recorder,
+      autofix,
+      traceId,
+      callerAttribution,
+      requestHeaders,
     );
   }
 }

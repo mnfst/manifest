@@ -43,7 +43,7 @@ const UpgradeSuccessModal: Component<UpgradeSuccessModalProps> = (props) => {
                   <path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z" />
                 </svg>
               </div>
-              <h2 class="upgrade-success-modal__title">You're on the Pro plan</h2>
+              <h2 class="upgrade-success-modal__title">You're now on the Pro plan</h2>
               <p class="upgrade-success-modal__subtitle">
                 Your workspace has been upgraded. Here's what you now have access to:
               </p>

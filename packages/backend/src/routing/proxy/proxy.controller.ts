@@ -277,12 +277,13 @@ export class ProxyController {
         // fallback model it is a different provider/model failing and Phoenix has
         // never seen it — skipping on `autofix` alone would hide it.
         const alreadyReportedByAutofix = Boolean(autofix) && !meta.fallbackFromModel;
-        if (!alreadyReportedByAutofix) {
+        if (!alreadyReportedByAutofix && meta.auth_type) {
           this.observationReporter.report({
             traceId: traceId ?? uuid(),
             tenantId,
             agentId: req.ingestionContext.agentId,
             provider: meta.provider,
+            authType: meta.auth_type,
             apiMode,
             requestBody: routingBody,
             resolvedModel: meta.model,

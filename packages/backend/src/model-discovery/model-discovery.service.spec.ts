@@ -1633,7 +1633,7 @@ describe('ModelDiscoveryService', () => {
         'minimax',
         'sk-cp-cn-token',
         'subscription',
-        'https://api.minimaxi.com/anthropic',
+        'https://api.minimaxi.com/anthropic/v1',
       );
     });
 

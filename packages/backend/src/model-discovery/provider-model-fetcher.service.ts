@@ -871,7 +871,7 @@ export class ProviderModelFetcherService {
     if (endpointOverride && configKey === 'minimax-subscription') {
       const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(endpointOverride);
       if (minimaxBaseUrl) {
-        url = `${minimaxBaseUrl}/v1/models?limit=100`;
+        url = `${minimaxBaseUrl}/models?limit=100`;
       } else {
         this.logger.warn('Ignoring invalid MiniMax subscription endpoint override');
       }

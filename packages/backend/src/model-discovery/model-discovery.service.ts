@@ -177,7 +177,7 @@ export class ModelDiscoveryService {
         // region column so CN tokens discover models against the CN host
         // instead of incorrectly probing api.minimax.io.
         if (lowerProvider === 'minimax' && !endpointOverride && provider.region === 'cn') {
-          endpointOverride = `${MINIMAX_BASE_URLS.cn}/anthropic`;
+          endpointOverride = `${MINIMAX_BASE_URLS.cn}/anthropic/v1`;
         }
       } else if (lowerProvider === 'copilot' && this.copilotTokenService) {
         try {

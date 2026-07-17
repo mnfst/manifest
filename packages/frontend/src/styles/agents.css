@@ -349,6 +349,17 @@
   color: hsl(var(--muted-foreground));
 }
 
+.account-security-footer {
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gap-lg);
+}
+
+.account-security-error {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--destructive));
+}
+
 @media (max-width: 640px) {
   .billing-stats {
     flex-direction: column;

@@ -712,7 +712,6 @@ const ModelPickerModal: Component<Props> = (props) => {
               <Show when={!search().trim() && !showFreeOnly() && props.onConnectProviders}>
                 <button
                   class="btn btn--primary btn--sm"
-                  style="margin-top: 12px;"
                   onClick={() => props.onConnectProviders?.()}
                 >
                   Connect provider

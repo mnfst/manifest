@@ -109,6 +109,23 @@ export class ProviderKeyService {
     return keys[0];
   }
 
+  /**
+   * Cheap gateway-path check for a persisted route. This deliberately reuses
+   * the provider-key cache instead of assembling the full discovered-model
+   * list: the proxy must resolve the same key before forwarding anyway, so a
+   * successful check makes that later lookup a cache hit and adds no separate
+   * discovery query to automatic routing.
+   */
+  async hasRouteCredentials(
+    tenantId: string,
+    route: ModelRoute,
+    agentId?: string,
+  ): Promise<boolean> {
+    if (!route.provider) return false;
+    const keys = await this.getProviderKeys(tenantId, route.provider, route.authType, agentId);
+    return keys.length > 0;
+  }
+
   async getProviderApiKey(
     tenantId: string,
     provider: string,

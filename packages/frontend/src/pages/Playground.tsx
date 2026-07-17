@@ -177,6 +177,7 @@ const Playground: Component = () => {
   // Best pick for a run shown read-only as an overlay (store isn't loaded in
   // that path, so its best state is tracked separately).
   const [overlayBestId, setOverlayBestId] = createSignal<string | null>(null);
+  let promptRef: HTMLTextAreaElement | undefined;
 
   const effectiveBestId = () => (viewingHistory() ? overlayBestId() : store().bestColumnId());
 
@@ -207,6 +208,7 @@ const Playground: Component = () => {
     setSearchParams({ run: undefined });
     sessionStorage.removeItem('manifest.playground.lastRun');
     // pickDefaults will fire via the existing createEffect since columns are now empty
+    requestAnimationFrame(() => promptRef?.focus());
   };
 
   // Cmd+K (Mac) / Ctrl+K (Windows) opens the model picker
@@ -532,6 +534,7 @@ const Playground: Component = () => {
           }
         >
           <PlaygroundPrompt
+            ref={(el) => { promptRef = el; }}
             value={store().prompt()}
             onChange={store().setPrompt}
             onSubmit={handleSubmit}

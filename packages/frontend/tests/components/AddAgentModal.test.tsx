@@ -24,6 +24,11 @@ vi.mock('../../src/services/recent-agents.js', () => ({
   markSetupPending: (...args: unknown[]) => mockMarkSetupPending(...args),
 }));
 
+const mockRefreshAgents = vi.fn();
+vi.mock('../../src/services/sse.js', () => ({
+  refreshAgents: (...args: unknown[]) => mockRefreshAgents(...args),
+}));
+
 vi.mock('../../src/components/AgentTypeSelect.jsx', () => ({
   default: (props: any) => (
     <div
@@ -108,6 +113,16 @@ describe('AddAgentModal', () => {
     // Persistent flag set so the setup modal survives a refresh on landing.
     expect(mockMarkSetupPending).toHaveBeenCalledWith('new-agent');
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('refreshes the harness list as soon as creation succeeds', async () => {
+    const { input, createBtn } = renderOpen();
+    fireEvent.input(input, { target: { value: 'agent-a' } });
+    fireEvent.click(createBtn);
+
+    await vi.waitFor(() => {
+      expect(mockRefreshAgents).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('adds openProviders when the tenant has no providers yet', async () => {

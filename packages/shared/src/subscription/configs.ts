@@ -154,10 +154,13 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionLabel: 'Kimi Coding Plan',
     subscriptionAuthMode: 'token' as const,
     subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
-    knownModels: Object.freeze(['kimi-for-coding']),
+    knownModels: Object.freeze(['kimi-for-coding', 'kimi-k3']),
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 262144,
+      modelContextWindows: Object.freeze({
+        'kimi-k3': 1048576,
+      }),
       supportsPromptCaching: true,
       supportsBatching: false,
     }),
@@ -213,6 +216,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionAuthMode: 'token' as const,
     subscriptionKeyPlaceholder: 'Paste your Z.ai API key',
     knownModels: Object.freeze([
+      'glm-5.2',
       'glm-5.1',
       'glm-5-turbo',
       'glm-5',
@@ -270,7 +274,13 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     supportsSubscription: true as const,
     subscriptionLabel: 'Grok subscription',
     subscriptionAuthMode: 'popup_oauth' as const,
-    // Model list is fetched dynamically from xAI's OpenAI-compatible /v1/models endpoint.
+    knownModels: Object.freeze([
+      'grok-4.5',
+      'grok-4.3',
+      'grok-4.20-0309-reasoning',
+      'grok-4.20-0309-non-reasoning',
+      'grok-build-0.1',
+    ]),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 128000,
       supportsPromptCaching: true,

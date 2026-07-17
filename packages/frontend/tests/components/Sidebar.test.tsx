@@ -39,11 +39,6 @@ vi.mock("../../src/services/api/billing.js", () => ({
   getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
 }));
 
-// The SSE ping signal drives the agents resource refetch — a stable 0 is fine.
-vi.mock("../../src/services/sse.js", () => ({
-  agentPing: () => 0,
-}));
-
 // Local providers only exist on self-hosted installs; the Sidebar hides the
 // Local nav entry in cloud. Default to self-hosted so the legacy link
 // assertions keep applying; cloud tests flip the flag.
@@ -92,6 +87,7 @@ vi.mock("../../src/components/AutofixModal.jsx", async () => {
 });
 
 import Sidebar from "../../src/components/Sidebar";
+import { refreshAgents } from "../../src/services/sse";
 
 const SAMPLE_AGENTS = [
   {
@@ -330,6 +326,24 @@ describe("Sidebar — harness switcher list", () => {
     await waitFor(() => {
       expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(2);
     });
+  });
+
+  it("refetches when a harness is created locally", async () => {
+    mockGetAgents.mockResolvedValueOnce({ agents: [] }).mockResolvedValueOnce({
+      agents: [{ agent_name: "new-harness", display_name: "New Harness" }],
+    });
+    const { container } = render(() => <Sidebar />);
+
+    await waitFor(() => {
+      expect(container.querySelector(".sidebar__agents-empty")).not.toBeNull();
+    });
+
+    refreshAgents();
+
+    await waitFor(() => {
+      expect(container.querySelector('a[href="/harnesses/new-harness"]')).not.toBeNull();
+    });
+    expect(mockGetAgents).toHaveBeenCalledTimes(2);
   });
 
   it("renders the empty state only once the resource resolves empty (not while loading)", async () => {

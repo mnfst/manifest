@@ -11,6 +11,7 @@ const baseInput: ObservationInput = {
   tenantId: 'tenant-1',
   agentId: 'agent-1',
   provider: 'openai',
+  authType: 'api_key',
   apiMode: 'chat_completions',
   requestBody: { model: 'gpt-5.1', temperature: 5, messages: [{ role: 'user', content: 'hi' }] },
   status: 400,
@@ -104,6 +105,7 @@ describe('toObservation', () => {
     expect(obs!.traceId).toBe('trace-1');
     expect(obs!.tenantId).toBe('tenant-1');
     expect(obs!.provider).toBe('openai');
+    expect(obs!.authType).toBe('api_key');
     expect(obs!.api).toBe('chat_completions');
     expect(obs!.request).toMatchObject({ model: 'gpt-5.1', temperature: 5 });
     expect(obs!.response.statusCode).toBe(400);
