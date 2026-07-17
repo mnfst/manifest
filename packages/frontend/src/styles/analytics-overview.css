@@ -59,6 +59,34 @@
   gap: 6px;
 }
 
+/* Accent variants: each recovery KPI wears its chart series colour (blue =
+   recovered by Auto-fix, warm yellow = recovered by fallback — text darkened
+   for contrast), and the failed card reads destructive, label included. */
+.overview-stat-card--autofix {
+  background: rgba(38, 50, 239, 0.05);
+}
+
+.overview-stat-card--autofix .overview-stat-card__value {
+  color: #2632ef;
+}
+
+.overview-stat-card--fallback {
+  background: rgba(201, 138, 53, 0.07);
+}
+
+.overview-stat-card--fallback .overview-stat-card__value {
+  color: #c98a35;
+}
+
+.overview-stat-card--destructive {
+  background: hsl(var(--destructive) / 0.05);
+}
+
+.overview-stat-card--destructive .overview-stat-card__label,
+.overview-stat-card--destructive .overview-stat-card__value {
+  color: hsl(var(--destructive));
+}
+
 /* The visible drill-through on a clickable stat card: plain ink, bold, no
    underline, pushed to the right end of the value row. */
 .view-more-link {

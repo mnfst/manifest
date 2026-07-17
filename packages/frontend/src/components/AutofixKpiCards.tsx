@@ -98,19 +98,6 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
           </div>
           <div
             class="overview-stat-card"
-            {...linkProps(requestsLink('&status=failed'), "View this harness's failed requests")}
-          >
-            <span class="overview-stat-card__label">Failed requests</span>
-            <div class="overview-stat-card__value-row">
-              <span class="overview-stat-card__value">
-                {formatNumber(s().errors_remaining.value)}
-              </span>
-              {trendBadge(s().errors_remaining.value, s().errors_remaining.previous)}
-              <Show when={requestsLink('')}>{viewMore()}</Show>
-            </div>
-          </div>
-          <div
-            class="overview-stat-card"
             {...linkProps(
               requestsLink('&status=ok&trigger=autofix,fallback'),
               "View this harness's recovered requests",
@@ -127,7 +114,7 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
             </div>
           </div>
           <div
-            class="overview-stat-card"
+            class="overview-stat-card overview-stat-card--autofix"
             {...linkProps(
               requestsLink('&status=ok&trigger=autofix'),
               'View the successful requests holding an auto-fixed attempt',
@@ -141,7 +128,7 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
             </div>
           </div>
           <div
-            class="overview-stat-card"
+            class="overview-stat-card overview-stat-card--fallback"
             {...linkProps(
               requestsLink('&status=ok&trigger=fallback'),
               'View the successful requests holding a fallback retry',
@@ -153,6 +140,19 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
                 {formatNumber(s().fallback_saves?.value ?? 0)}
               </span>
               {trendBadge(s().fallback_saves?.value ?? 0, s().fallback_saves?.previous ?? 0)}
+              <Show when={requestsLink('')}>{viewMore()}</Show>
+            </div>
+          </div>
+          <div
+            class="overview-stat-card overview-stat-card--destructive"
+            {...linkProps(requestsLink('&status=failed'), "View this harness's failed requests")}
+          >
+            <span class="overview-stat-card__label">Failed requests</span>
+            <div class="overview-stat-card__value-row">
+              <span class="overview-stat-card__value">
+                {formatNumber(s().errors_remaining.value)}
+              </span>
+              {trendBadge(s().errors_remaining.value, s().errors_remaining.previous)}
               <Show when={requestsLink('')}>{viewMore()}</Show>
             </div>
           </div>
