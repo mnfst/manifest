@@ -503,7 +503,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                   <div style="margin-bottom: 8px;">
                                     <span class="trigger-badge trigger-badge--autofix">
                                       <AutofixIcon />
-                                      autofix
+                                      auto-fix
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: 8px;">
@@ -617,7 +617,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                   <div style="margin-bottom: 8px;">
                                     <span class="trigger-badge trigger-badge--autofix">
                                       <AutofixIcon />
-                                      autofix
+                                      auto-fix
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: 8px;">

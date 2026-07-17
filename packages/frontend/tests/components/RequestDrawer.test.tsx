@@ -120,7 +120,7 @@ describe('RequestDrawer', () => {
     // to the attempts (sidebar icons + context cards), not the request title.
     expect(container.querySelector('.drawer__meta-row .trigger-badge')).toBeNull();
     // The branded badges still exist further down, on the attempt content.
-    expect(screen.getAllByText('autofix').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('auto-fix').length).toBeGreaterThan(0);
     // Sidebar attempt icons use the same branded squares.
     expect(container.querySelector('.attempt-item__icon .fallback-icon')).not.toBeNull();
     expect(container.querySelector('.attempt-item__icon .autofix-icon')).not.toBeNull();

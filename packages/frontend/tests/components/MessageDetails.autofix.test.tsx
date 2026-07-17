@@ -151,7 +151,7 @@ describe('MessageDetails Auto-fix section', () => {
     // The forward link to the successful retry.
     const link = container.querySelector('.error-autofix-row__autofix-btn');
     expect(link).not.toBeNull();
-    expect(link!.textContent).toContain('View autofix retry');
+    expect(link!.textContent).toContain('View Auto-fix retry');
 
     // Clicking it opens the sibling (retry) row.
     fireEvent.click(link!);
