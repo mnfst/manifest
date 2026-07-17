@@ -59,6 +59,13 @@
   gap: 6px;
 }
 
+/* The trend pill ("new", "+12%") sits a touch high so its bottom edge reads
+   aligned with the big value's text bottom instead of hanging below it. */
+.overview-stat-card__value-row .trend {
+  position: relative;
+  top: -5px;
+}
+
 /* Accent variants: each recovery KPI wears its chart series colour (blue =
    recovered by Auto-fix, teal green = recovered by fallback) and the failed
    card reads destructive, label included.
@@ -114,7 +121,6 @@
   border-color: hsl(var(--destructive) / 0.45);
 }
 
-.overview-stat-card--destructive .overview-stat-card__label,
 .overview-stat-card--destructive .overview-stat-card__value {
   color: hsl(var(--destructive));
 }
