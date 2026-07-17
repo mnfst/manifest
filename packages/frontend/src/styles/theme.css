@@ -260,15 +260,22 @@ h6 {
   justify-content: flex-start;
 }
 
-/* Clickable counts inside tables: table ink, not browser blue. */
+/* Clickable counts inside tables: a small tag, the same pill language as
+   the status badges beside them. Theme variables keep it right in both
+   light and dark modes. */
 .count-link {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: var(--radius-sm);
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.12s ease;
 }
 
 .count-link:hover {
-  color: hsl(var(--foreground));
+  background: hsl(var(--border));
 }
 
 .header-controls {

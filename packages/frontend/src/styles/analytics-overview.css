@@ -76,7 +76,7 @@
 }
 
 .overview-stat-card--fallback .overview-stat-card__value {
-  color: #c98a35;
+  color: hsl(var(--success));
 }
 
 .overview-stat-card--destructive {
