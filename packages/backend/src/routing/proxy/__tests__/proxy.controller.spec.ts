@@ -212,6 +212,7 @@ describe('ProxyController', () => {
           owned_by: 'manifest',
         },
       ],
+      models: [],
     });
     expect(modelDiscovery.getModelsForAgent).toHaveBeenCalledWith('tenant-1', 'agent-1');
   });
@@ -259,6 +260,7 @@ describe('ProxyController', () => {
           owned_by: 'custom:provider-1',
         },
       ],
+      models: [],
     });
   });
 

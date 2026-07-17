@@ -72,6 +72,13 @@ interface OpenAiModelObject {
 interface OpenAiModelList {
   object: 'list';
   data: OpenAiModelObject[];
+  /**
+   * Codex uses the same endpoint but expects a top-level `models` field with
+   * Codex-specific metadata. Keep this empty so Codex retains its bundled
+   * model metadata while OpenAI-compatible clients use the authoritative
+   * Manifest routes in `data`.
+   */
+  models: [];
 }
 
 @Controller('v1')
@@ -129,6 +136,7 @@ export class ProxyController {
     return {
       object: 'list',
       data,
+      models: [],
     };
   }
 
