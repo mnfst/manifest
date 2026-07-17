@@ -7,6 +7,7 @@
 import { randomUUID } from 'crypto';
 
 import { OpenAIMessage } from './proxy-types';
+import { anthropicErrorTypeForStatus } from './proxy-protocol-error';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -681,15 +682,6 @@ function buildMessageStartEvent(state: StreamState, data: JsonRecord): string {
   });
 }
 
-const ANTHROPIC_ERROR_TYPE_BY_STATUS: Record<number, string> = {
-  400: 'invalid_request_error',
-  401: 'authentication_error',
-  403: 'permission_error',
-  404: 'not_found_error',
-  429: 'rate_limit_error',
-  529: 'overloaded_error',
-};
-
 function buildStreamErrorEvent(state: StreamState, error: JsonRecord): string {
   // Marking the message ended makes closeStream a no-op, so the error event is
   // the terminal event the client sees (matching Anthropic's own stream
@@ -700,7 +692,7 @@ function buildStreamErrorEvent(state: StreamState, error: JsonRecord): string {
       ? error.message
       : 'Upstream provider stream failed';
   const status = typeof error.status === 'number' ? error.status : undefined;
-  const errorType = (status && ANTHROPIC_ERROR_TYPE_BY_STATUS[status]) || 'api_error';
+  const errorType = anthropicErrorTypeForStatus(status);
   return formatMessagesEvent('error', {
     type: 'error',
     error: { type: errorType, message },

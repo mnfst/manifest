@@ -30,7 +30,10 @@ import { toNativeResponsesRequest, type ResponsesToolCallType } from './response
 import { forwardKiroChat } from './kiro-adapter';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { ProviderModelRegistryService } from '../../model-discovery/provider-model-registry.service';
-import { buildEndpointAwareUpstreamHeaders } from './agent-request-context';
+import {
+  buildEndpointAwareUpstreamHeaders,
+  reapplyProviderOwnedHeaders,
+} from './agent-request-context';
 import { extractOpenAiSubscriptionMetadata } from '../oauth/openai/openai-token-metadata';
 import { stripAnthropicServerToolsForFallback } from './anthropic-messages-adapter';
 
@@ -319,6 +322,7 @@ export class ProviderClient {
       affinity || extraHeaders
         ? { ...protocolHeaders, ...extraHeaders, ...affinity?.headers }
         : protocolHeaders;
+    reapplyProviderOwnedHeaders(finalHeaders, headers);
 
     this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 
@@ -548,7 +552,7 @@ export class ProviderClient {
         endpointKey === 'anthropic' &&
         ctx.requestContext?.caller === 'claude-code';
       const injectSubscriptionIdentity =
-        authType === 'subscription' && !endpoint.skipSubscriptionIdentity && !preserveNativeBody;
+        authType === 'subscription' && !endpoint.skipSubscriptionIdentity;
       const thinkingRouteContext = ctx.thinkingRouteContext ?? {
         provider: ctx.provider,
         authType,

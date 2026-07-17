@@ -191,6 +191,23 @@ describe('ProxyExceptionFilter', () => {
         },
       });
     });
+
+    it('explains how to remove conflicting credentials for coding clients', () => {
+      const { host, res, req } = createMockHost({ stream: true });
+      req.originalUrl = '/v1/messages';
+
+      filter.catch(new UnauthorizedException('Conflicting API credentials'), host);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        error: {
+          type: 'authentication_error',
+          message: expect.stringContaining('remove either Authorization or x-api-key'),
+        },
+      });
+      expect(JSON.stringify(res.json.mock.calls[0][0])).not.toContain('start with');
+    });
   });
 
   describe('recording an expired key (M004)', () => {

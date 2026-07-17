@@ -165,6 +165,22 @@ describe('agent request context', () => {
       expect(Object.keys(byteBounded.anthropicHeaders)).toHaveLength(3);
       expect(byteBounded.anthropicHeaders).not.toHaveProperty('anthropic-budget-3');
     });
+
+    it('reserves the header budget for required Anthropic capability headers', () => {
+      const noisyHeaders: IncomingHttpHeaders = {};
+      for (let index = 0; index < 70; index++) {
+        noisyHeaders[`anthropic-extension-${index}`] = 'enabled';
+      }
+      noisyHeaders['anthropic-version'] = '2023-06-01';
+      noisyHeaders['anthropic-beta'] = 'claude-code-20250219';
+
+      const context = extractAgentRequestContext(noisyHeaders);
+
+      expect(Object.keys(context.anthropicHeaders)).toHaveLength(64);
+      expect(context.anthropicHeaders['anthropic-version']).toBe('2023-06-01');
+      expect(context.anthropicHeaders['anthropic-beta']).toBe('claude-code-20250219');
+      expect(context.anthropicHeaders).not.toHaveProperty('anthropic-extension-62');
+    });
   });
 
   describe('chooseAgentSessionKey', () => {

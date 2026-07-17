@@ -438,7 +438,8 @@ export function extractThinkingBlocksFromMessagesResponse(
  * what Anthropic would see natively, and Anthropic-only fields don't leak
  * through a chat-completions stencil. Normalized proxy calls may apply all
  * mutations below; native Claude Code passthrough sets `preserveNativeBody`
- * and returns an unmodified shallow copy:
+ * and applies only the subscription identity/cache mutation required by the
+ * OAuth endpoint:
  *
  * - Default `max_tokens` to 4096 if unset.
  * - Inject the subscription-identity system block for OAuth tokens.
@@ -453,7 +454,7 @@ export function applyAnthropicMessagesMutations(
 ): Record<string, unknown> {
   const result: Record<string, unknown> = { ...body };
   const preserveNativeBody = options?.preserveNativeBody === true;
-  if (preserveNativeBody) return result;
+  if (preserveNativeBody && !options?.injectSubscriptionIdentity) return result;
   const cacheBudget = {
     remaining: Math.max(0, MAX_CACHE_CONTROL_BLOCKS - countCacheControlBlocks(body)),
   };
@@ -472,16 +473,21 @@ export function applyAnthropicMessagesMutations(
     } else if (Array.isArray(body.system)) {
       systemBlocks = (body.system as ContentBlock[]).map((b) => ({ ...b }));
     }
-    tryAddCacheControl(systemBlocks[systemBlocks.length - 1], cacheBudget);
     if (options?.injectSubscriptionIdentity) {
       systemBlocks.unshift({ ...SUBSCRIPTION_IDENTITY_BLOCK });
     }
+    tryAddCacheControl(systemBlocks[systemBlocks.length - 1], cacheBudget);
     if (systemBlocks.length > 0) {
       result.system = systemBlocks;
     } else {
       delete result.system;
     }
   }
+
+  // Native Claude Code payloads keep every other field and content block
+  // untouched. In particular, do not normalize tools, max_tokens, output
+  // config, or thinking history after adding the OAuth identity system block.
+  if (preserveNativeBody) return result;
 
   // Tools: shallow-clone the array + last entry so the cache_control mutation
   // doesn't bleed back into the inbound body. Server tools' `type` tag and

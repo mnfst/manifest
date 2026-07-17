@@ -29,6 +29,7 @@ import {
   createMessagesStreamTransformer,
 } from './anthropic-messages-adapter';
 import type { ProxyApiMode } from './proxy-types';
+import { anthropicErrorTypeForStatus } from './proxy-protocol-error';
 import type { ThoughtSignatureCache } from './thought-signature-cache';
 import type {
   ThinkingBlockCache,
@@ -120,16 +121,6 @@ function copySafeProviderResponseHeaders(
   }
 }
 
-const ANTHROPIC_ERROR_TYPE_BY_STATUS: Record<number, string> = {
-  400: 'invalid_request_error',
-  401: 'authentication_error',
-  403: 'permission_error',
-  404: 'not_found_error',
-  413: 'request_too_large',
-  429: 'rate_limit_error',
-  529: 'overloaded_error',
-};
-
 function isAnthropicErrorEnvelope(errorBody: string): boolean {
   try {
     const parsed = JSON.parse(errorBody) as unknown;
@@ -186,7 +177,7 @@ function sendProviderError(
     res.json({
       type: 'error',
       error: {
-        type: ANTHROPIC_ERROR_TYPE_BY_STATUS[status] ?? 'api_error',
+        type: anthropicErrorTypeForStatus(status),
         message:
           classified?.message ?? sanitizeProviderError(status, errorBody, process.env.NODE_ENV),
       },

@@ -230,7 +230,7 @@ describe('ProviderClient — strict header contract on auth-critical paths', () 
     expect(sentHeaders).not.toHaveProperty('anthropic-version');
   });
 
-  it('preserves current Claude Code protocol headers and native Messages body', async () => {
+  it('preserves current Claude Code protocol fields while adding the subscription identity', async () => {
     mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
     const nativeBody = {
       model: 'claude-sonnet-4-6',
@@ -277,9 +277,22 @@ describe('ProviderClient — strict header contract on auth-critical paths', () 
     expect(sentHeaders['anthropic-beta']).toBe(
       'claude-code-20250219,future-capability-2099-01-01,oauth-2025-04-20',
     );
-    expect(sentBody).toEqual(nativeBody);
-    expect(sentBody.system[0].text).toBe('Claude Code attribution');
+    expect(sentBody).toMatchObject({
+      model: nativeBody.model,
+      max_tokens: nativeBody.max_tokens,
+      stream: nativeBody.stream,
+      messages: nativeBody.messages,
+      context_management: nativeBody.context_management,
+    });
+    expect(sentBody.system).toHaveLength(3);
+    expect(sentBody.system[0].text).toMatch(/Claude agent/);
+    expect(sentBody.system[1]).toEqual(nativeBody.system[0]);
+    expect(sentBody.system[2]).toEqual({
+      ...nativeBody.system[1],
+      cache_control: { type: 'ephemeral' },
+    });
     expect(sentBody).not.toHaveProperty('cache_control');
+    expect(nativeBody.system).toHaveLength(2);
   });
 
   it('uses native Codex metadata while provider-owned OAuth account headers remain authoritative', async () => {
@@ -348,6 +361,35 @@ describe('ProviderClient — strict header contract on auth-critical paths', () 
     expect(sentHeaders.Authorization).toBe('Bearer opaque-access-token');
     expect(sentHeaders['ChatGPT-Account-ID']).toBe('stored-workspace');
     expect(sentHeaders['X-OpenAI-Fedramp']).toBe('true');
+  });
+
+  it('keeps provider credentials and workspace routing authoritative over extraHeaders', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await client.forward({
+      provider: 'openai',
+      apiKey: 'opaque-access-token',
+      model: 'gpt-5.4',
+      body: { model: 'gpt-5.4', input: 'Hello', stream: true },
+      stream: true,
+      authType: 'subscription',
+      apiMode: 'responses',
+      subscriptionMetadata: { accountId: 'stored-workspace', fedramp: true },
+      extraHeaders: {
+        authorization: 'Bearer caller-override',
+        'chatgpt-account-id': 'caller-workspace',
+        'x-openai-fedramp': 'false',
+        'x-observability': 'keep-me',
+      },
+    });
+
+    const sentHeaders = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+    expect(sentHeaders.Authorization).toBe('Bearer opaque-access-token');
+    expect(sentHeaders['ChatGPT-Account-ID']).toBe('stored-workspace');
+    expect(sentHeaders['X-OpenAI-Fedramp']).toBe('true');
+    expect(sentHeaders['x-observability']).toBe('keep-me');
+    expect(JSON.stringify(sentHeaders)).not.toContain('caller-override');
+    expect(JSON.stringify(sentHeaders)).not.toContain('caller-workspace');
   });
 
   it('retains only named Responses function and custom tool types for response restoration', async () => {

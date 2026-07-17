@@ -41,7 +41,10 @@ export class OpenaiOauthService extends RedirectPkceOauthBaseService {
   }
 
   protected extractTokenMetadata(response: OAuthTokenResponse): string | undefined {
-    const metadata = extractOpenAiSubscriptionMetadata(response.id_token ?? response.access_token);
+    const metadata = {
+      ...extractOpenAiSubscriptionMetadata(response.access_token),
+      ...extractOpenAiSubscriptionMetadata(response.id_token ?? ''),
+    };
     return serializeOpenAiSubscriptionMetadata(metadata);
   }
 

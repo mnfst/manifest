@@ -13,6 +13,10 @@ const ANTHROPIC_ERROR_TYPE_BY_STATUS: Record<number, string> = {
   529: 'overloaded_error',
 };
 
+export function anthropicErrorTypeForStatus(status: number | undefined): string {
+  return (status && ANTHROPIC_ERROR_TYPE_BY_STATUS[status]) || 'api_error';
+}
+
 export function proxyApiModeFromRequest(req: Request): ProxyApiMode {
   const rawPath = req.path || req.originalUrl || req.url || '';
   const path = rawPath.split('?')[0].replace(/\/+$/, '');
@@ -37,7 +41,7 @@ export function sendProxyProtocolError(
     res.json({
       type: 'error',
       error: {
-        type: ANTHROPIC_ERROR_TYPE_BY_STATUS[status] ?? 'api_error',
+        type: anthropicErrorTypeForStatus(status),
         message,
       },
     });

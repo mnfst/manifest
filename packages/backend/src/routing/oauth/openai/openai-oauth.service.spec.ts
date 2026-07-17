@@ -167,6 +167,36 @@ describe('OpenaiOauthService', () => {
       expect(storedRaw).not.toContain(idToken);
     });
 
+    it('merges access-token routing claims with an id_token that has only partial metadata', async () => {
+      const url = await service.generateAuthorizationUrl('agent-1', 'tenant-1');
+      const state = new URL(url).searchParams.get('state')!;
+      const accessToken = jwt({
+        'https://api.openai.com/auth': { chatgpt_account_id: 'workspace-from-access' },
+      });
+      const idToken = jwt({
+        'https://api.openai.com/auth': { chatgpt_account_is_fedramp: true },
+      });
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          access_token: accessToken,
+          refresh_token: 'refresh-token',
+          expires_in: 3600,
+          id_token: idToken,
+        }),
+      });
+
+      await service.exchangeCode(state, 'auth-code');
+
+      const storedBlob = JSON.parse(
+        providerService.upsertProvider.mock.calls[0][3] as string,
+      ) as OAuthTokenBlob;
+      expect(parseOpenAiSubscriptionMetadata(storedBlob.m)).toEqual({
+        accountId: 'workspace-from-access',
+        fedramp: true,
+      });
+    });
+
     it('throws for invalid state', async () => {
       await expect(service.exchangeCode('bad-state', 'code')).rejects.toThrow(
         'Invalid or expired OAuth state',

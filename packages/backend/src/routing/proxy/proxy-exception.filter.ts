@@ -26,6 +26,9 @@ const AUTH_ERROR_CODES: Record<string, ManifestErrorCode> = {
 /** Status codes that should pass through as normal HTTP errors. */
 const PASSTHROUGH_STATUSES = new Set([429]);
 
+const CONFLICTING_CREDENTIALS_MESSAGE =
+  'Conflicting API credentials: remove either Authorization or x-api-key, or make both headers use the same Manifest key.';
+
 /**
  * Decide whether the caller is a chat-rendering client (streaming SDK or chat
  * UI) versus a tool/monitor/CI pipeline. Chat clients render the assistant
@@ -149,7 +152,10 @@ export class ProxyExceptionFilter implements ExceptionFilter {
 
     const errorCode = AUTH_ERROR_CODES[message];
     if (errorCode) {
-      const friendly = formatManifestError(errorCode);
+      const friendly =
+        message === 'Conflicting API credentials'
+          ? CONFLICTING_CREDENTIALS_MESSAGE
+          : formatManifestError(errorCode);
       const dashboardUrl = getDashboardUrl(this.config);
       const content =
         errorCode === 'M004'

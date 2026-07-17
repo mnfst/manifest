@@ -2208,7 +2208,7 @@ describe('Anthropic Adapter', () => {
   });
 
   describe('applyAnthropicMessagesMutations', () => {
-    it('preserves a native Claude body exactly even when thinking replay is available', () => {
+    it('adds only subscription identity/cache fields to a native Claude body', () => {
       const inbound = {
         model: 'claude-sonnet-4-6',
         stream: true,
@@ -2234,8 +2234,19 @@ describe('Anthropic Adapter', () => {
         thinkingLookup: lookup,
       });
 
-      expect(result).toEqual(inbound);
+      expect(result).toMatchObject({
+        model: inbound.model,
+        stream: inbound.stream,
+        context_management: inbound.context_management,
+        messages: inbound.messages,
+      });
+      expect(result.system).toEqual([
+        expect.objectContaining({ type: 'text', text: expect.stringMatching(/Claude agent/) }),
+        { type: 'text', text: 'Native system', cache_control: { type: 'ephemeral' } },
+      ]);
+      expect(result).not.toHaveProperty('max_tokens');
       expect(result).not.toBe(inbound);
+      expect(inbound.system).toBe('Native system');
       expect(lookup).not.toHaveBeenCalled();
     });
 
@@ -2323,7 +2334,7 @@ describe('Anthropic Adapter', () => {
       const system = result.system as Array<Record<string, unknown>>;
       expect(system).toHaveLength(1);
       expect(system[0].text).toMatch(/Claude agent/);
-      expect(system[0].cache_control).toBeUndefined();
+      expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
     });
 
     it('drops system when input has none and no mutations need it', () => {

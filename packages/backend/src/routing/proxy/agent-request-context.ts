@@ -39,6 +39,10 @@ const EXPLICIT_SECRET_HEADERS = new Set([
   'chatgpt-account-id',
 ]);
 
+const PROVIDER_OWNED_HEADER_NAMES = new Set([...EXPLICIT_SECRET_HEADERS, 'x-openai-fedramp']);
+
+const PRIORITY_ANTHROPIC_HEADERS = new Set(['anthropic-version', 'anthropic-beta']);
+
 export type AgentCaller = 'claude-code' | 'codex' | 'unknown';
 
 /**
@@ -107,7 +111,16 @@ export function extractAgentRequestContext(headers: IncomingHttpHeaders): AgentR
   let count = 0;
   let totalBytes = 0;
 
-  for (const [rawName, rawValue] of Object.entries(headers)) {
+  // Capability headers define the wire contract and must not be displaced by
+  // a noisy set of open-ended extension headers that happens to appear first
+  // in object iteration order.
+  const entries = Object.entries(headers).sort(([left], [right]) => {
+    const leftPriority = PRIORITY_ANTHROPIC_HEADERS.has(left.toLowerCase()) ? 0 : 1;
+    const rightPriority = PRIORITY_ANTHROPIC_HEADERS.has(right.toLowerCase()) ? 0 : 1;
+    return leftPriority - rightPriority;
+  });
+
+  for (const [rawName, rawValue] of entries) {
     if (count >= MAX_FORWARDED_HEADER_COUNT) break;
     if (rawValue == null) continue;
 
@@ -217,11 +230,23 @@ export function buildEndpointAwareUpstreamHeaders(
 
   // Provider-created credentials and account routing always win over caller
   // context, even if a future extraction rule becomes too permissive.
-  for (const [name, value] of Object.entries(providerHeaders)) {
-    if (isSensitiveHeaderName(name.toLowerCase())) setHeader(result, name, value);
-  }
+  reapplyProviderOwnedHeaders(result, providerHeaders);
 
   return result;
+}
+
+/**
+ * Reapply provider-generated credential and account-routing headers after any
+ * caller-controlled header merge. Matching is case-insensitive so alternate
+ * casing cannot shadow the authoritative value in Node's fetch layer.
+ */
+export function reapplyProviderOwnedHeaders(
+  target: Record<string, string>,
+  providerHeaders: Readonly<Record<string, string>>,
+): void {
+  for (const [name, value] of Object.entries(providerHeaders)) {
+    if (PROVIDER_OWNED_HEADER_NAMES.has(name.toLowerCase())) setHeader(target, name, value);
+  }
 }
 
 function hasAnyHeader(headers: IncomingHttpHeaders, names: readonly string[]): boolean {
