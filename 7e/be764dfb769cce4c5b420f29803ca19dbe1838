@@ -1,0 +1,25 @@
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_429b9b7858f465::t_a5af1a6137a898 307-324,327,332,334-336,344-345,353-369,406,412-415
+  s_429b9b7858f465::t_00e0303e3e149e 325-326,328-331,333
+packages/backend/test/message-count-consistency.e2e-spec.ts
+  s_429b9b7858f465::t_00e0303e3e149e 19,21-36,39
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_429b9b7858f465::t_4b2e1e1bfa08f7 467-480,485-526
+  s_429b9b7858f465::t_2d9ea0c03006cb 481-484
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "7ebe764dfb769cce4c5b420f29803ca19dbe1838",
+  "prompts": {},
+  "sessions": {
+    "s_429b9b7858f465": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f60f7-390c-7fa3-a91a-edc913000679",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

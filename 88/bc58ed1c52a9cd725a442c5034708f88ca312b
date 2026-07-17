@@ -1,0 +1,22 @@
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_429b9b7858f465::t_b9d96da403ba37 48,80-81
+  s_429b9b7858f465::t_c07840413663fe 26,42-47,49-54,75-79,82-87
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_429b9b7858f465::t_c07840413663fe 48-52,60-64,123,127-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "88bc58ed1c52a9cd725a442c5034708f88ca312b",
+  "prompts": {},
+  "sessions": {
+    "s_429b9b7858f465": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f60f7-390c-7fa3-a91a-edc913000679",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

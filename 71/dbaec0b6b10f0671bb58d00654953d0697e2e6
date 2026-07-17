@@ -1,0 +1,62 @@
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_8e604c15975dfe::t_95886a88a74c1e 104,321-322,332-333
+  s_8e604c15975dfe::t_71e9286287e18e 103,105,107,109-110,152,241-320,323-331,334-341
+  s_8e604c15975dfe::t_529d7c94c36a0d 342
+packages/backend/src/database/backfills/backfill-requests.ts
+  s_8e604c15975dfe::t_0b01c6038caa11 11,33,35,37-38,82,100-101,103-104,106,145,151,177-191
+  s_8e604c15975dfe::t_f5ebd3a34e42b8 12,16,20,34,36,81,96-99,102
+  s_8e604c15975dfe::t_e2afb9dd7c0164 14,84,119-124
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_8e604c15975dfe::t_8ac54f3fc2e42f 133-138,141-142,206,208-210
+  s_8e604c15975dfe::t_95886a88a74c1e 139-140
+  s_8e604c15975dfe::t_380fd5113f3bdd 228-252,270-283,285-288
+  s_8e604c15975dfe::t_98e4c06b9275bc 207,253-269,284
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_8e604c15975dfe::t_05a55039197695 30-33,80-103
+  s_8e604c15975dfe::t_f1038967c5ff3c 104-105
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_8e604c15975dfe::t_ae737f12d985e4 158-174,188-191,193-198,201,208,218,571-572
+  s_8e604c15975dfe::t_e2afb9dd7c0164 523,536,561,573,592-594,599
+  s_8e604c15975dfe::t_16cf3de2289544 527,533,538-549,551-560,562-569,574-591,595-598,600,602-605,608-612,622,673-689
+  s_8e604c15975dfe::t_eb7b94028b6e0c 327,353,381,432,445-450
+  s_8e604c15975dfe::t_11d3b8164444e7 534,618
+  s_8e604c15975dfe::t_7163c1b8143a98 42-44,63-73,91,96-97,121,127-128,184-185,192,199,204-205,212,219,550,570,606-607
+  s_8e604c15975dfe::t_ce8dcef56577db 9-26,41,45-62,74-80,89,103,105-106,119,134,136-137,142-157,175-179,202-203,206-207,209-211,213-217,220-256,259-270
+  s_8e604c15975dfe::t_ad986879404426 200,690
+packages/backend/src/database/backfills/backfill-requests.spec.ts
+  s_8e604c15975dfe::t_add2d2f731b6ee 30
+  s_8e604c15975dfe::t_8c141c8fe5cc2d 26-27,29,31,34-37,39-44,46-47
+  s_8e604c15975dfe::t_95886a88a74c1e 28,32-33,38,45
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_8e604c15975dfe::t_0d3a179a91f6e4 125-126,131-136
+  s_8e604c15975dfe::t_04452027dd8f12 97-98,103,107-111,117-124,127-130,137-138,141,148-150
+  s_8e604c15975dfe::t_0ff110b16fcf04 142
+  s_8e604c15975dfe::t_20df2bbde4adcb 139-140
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_8e604c15975dfe::t_3f67ae7106a273 1,8-10,23,26-27,31-33,57-65,94,116-172,177-179,181-198
+  s_8e604c15975dfe::t_df27fbc5cbf2ed 6,173-176,180
+  s_8e604c15975dfe::t_3e9dac4febb244 45
+  s_8e604c15975dfe::t_b9bcd259b21ef9 4,7,43,55-56
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_8e604c15975dfe::t_add2d2f731b6ee 43,89-90
+  s_8e604c15975dfe::t_f6e69ad246c72b 7,100
+  s_8e604c15975dfe::t_95886a88a74c1e 28
+  s_8e604c15975dfe::t_507e7ae917465d 4,6,8-9,40-41,60,74-84,94-99,101
+  s_8e604c15975dfe::t_7d6bd9e986cf66 102,105,137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "71dbaec0b6b10f0671bb58d00654953d0697e2e6",
+  "prompts": {},
+  "sessions": {
+    "s_8e604c15975dfe": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f65db-3a3a-7062-b4ed-378f1f8bcbe3",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

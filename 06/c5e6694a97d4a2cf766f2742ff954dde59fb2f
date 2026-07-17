@@ -1,0 +1,24 @@
+packages/backend/test/playground-flow.e2e-spec.ts
+  s_2dca526c582c19::t_eef319afcb05a4 191
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_2dca526c582c19::t_eef319afcb05a4 5,82
+  s_2dca526c582c19::t_77e7952d164efc 527,529-532,534-538
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_2dca526c582c19::t_77e7952d164efc 493,496-513
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "06c5e6694a97d4a2cf766f2742ff954dde59fb2f",
+  "prompts": {},
+  "sessions": {
+    "s_2dca526c582c19": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6a6e-0441-7612-b8b2-95bc5175e975",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

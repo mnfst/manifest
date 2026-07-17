@@ -1,0 +1,48 @@
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_2dca526c582c19::t_e72df88c60b890 370-375,495-501,534,582
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_2dca526c582c19::t_d9a8d381635a70 54-58,83,210,263,267,295,354,386,419,730,736,763
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_2dca526c582c19::t_e72df88c60b890 288
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.spec.ts
+  s_2dca526c582c19::t_cbf4ec7af24fbe 1-23
+packages/backend/src/playground/playground.service.ts
+  s_2dca526c582c19::t_a6ea8f0529e50f 451,458,482,526,533,557,604
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_2dca526c582c19::t_1c6cd7023203d7 378-379
+  s_2dca526c582c19::t_6934fe915a9e47 33
+  s_2dca526c582c19::t_eb6dae96cc026e 174-187
+packages/backend/src/error-pages/error-cluster-seeder.service.ts
+  s_2dca526c582c19::t_a6ea8f0529e50f 4,193,208
+packages/backend/src/playground/playground.service.spec.ts
+  s_2dca526c582c19::t_542386d3a32ec1 787
+  s_2dca526c582c19::t_fc7b6da711028e 282,512,784,825,906
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_2dca526c582c19::t_20d1560178ca31 596-619,621-631,2172-2177,2185-2186,2214
+  s_2dca526c582c19::t_80a049a5574f22 620
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_2dca526c582c19::t_eb6dae96cc026e 154-163,417-432
+  s_2dca526c582c19::t_1c6cd7023203d7 954
+  s_2dca526c582c19::t_21d5c71a5f4f69 100,166,201,224,443,479,588,605,653,695,724,771,819,859,909,995,1058
+  s_2dca526c582c19::t_74219b3e5c18bf 433-434
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.ts
+  s_2dca526c582c19::t_cbf4ec7af24fbe 1-67
+packages/backend/src/entities/agent-message.entity.ts
+  s_2dca526c582c19::t_cbf4ec7af24fbe 34-40,77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "50df23bf5ab4f97f07af11755492c35d4fe360e6",
+  "prompts": {},
+  "sessions": {
+    "s_2dca526c582c19": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6a6e-0441-7612-b8b2-95bc5175e975",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
