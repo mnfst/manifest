@@ -1,0 +1,21 @@
+packages/frontend/tests/components/MultiSelect.test.tsx
+  s_2dca526c582c19::t_13cf12361c51e5 61
+  s_2dca526c582c19::t_455f206444e7ba 70
+  s_2dca526c582c19::t_f5832271a5622b 1-60,62-69,71-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "62eaed070c78c590221771d35b1605d3d4fd0a72",
+  "prompts": {},
+  "sessions": {
+    "s_2dca526c582c19": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6a6e-0441-7612-b8b2-95bc5175e975",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
