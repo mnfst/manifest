@@ -39,18 +39,53 @@ elif [[ -f "$SCRIPT_DIR/.env" ]]; then
 else
   ENV_FILE="$SCRIPT_DIR/../docker/.env"
 fi
+load_env_file() {
+  local line key value
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
+    [[ "$line" =~ ^[[:space:]]*$ || "$line" =~ ^[[:space:]]*# ]] && continue
+    if [[ ! "$line" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+      echo "error: invalid entry in $ENV_FILE: $line" >&2
+      exit 1
+    fi
+    key="${BASH_REMATCH[1]}"
+    value="${BASH_REMATCH[2]}"
+    if [[ "$value" =~ ^\"(.*)\"$ || "$value" =~ ^\'(.*)\'$ ]]; then
+      value="${BASH_REMATCH[1]}"
+    fi
+    printf -v "$key" '%s' "$value"
+    export "$key"
+  done < "$ENV_FILE"
+}
+
 if [[ -f "$ENV_FILE" ]]; then
-  set -a
-  # The bundled .env template contains shell-compatible KEY=VALUE entries.
-  # shellcheck source=/dev/null
-  source "$ENV_FILE"
-  set +a
+  # Parse dotenv assignments as data; never execute the configuration file.
+  load_env_file
 fi
 
 PORT="${PORT:-2099}"
 POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-manifest}"
 PG_VOLUME="${MANIFEST_PG_VOLUME:-mnfst-postgres-data}"
 POSTGRES_IMAGE="postgres:16-alpine@sha256:20edbde7749f822887a1a022ad526fde0a47d6b2be9a8364433605cf65099416"
+
+if [[ "$POSTGRES_PASSWORD" != "manifest" && -z "${DATABASE_URL:-}" ]]; then
+  echo "error: DATABASE_URL must be set when POSTGRES_PASSWORD is customized." >&2
+  echo "Percent-encode special characters in its password; see docker/.env.example." >&2
+  exit 1
+fi
+
+validate_positive_integer() {
+  local name="$1" value="$2"
+  if [[ ! "$value" =~ ^[1-9][0-9]*$ ]]; then
+    echo "error: $name must be a positive integer, got '$value'." >&2
+    exit 1
+  fi
+}
+
+PROVIDER_TIMEOUT_MS="${PROVIDER_TIMEOUT_MS:-180000}"
+STREAM_WARMUP_MS="${STREAM_WARMUP_MS:-15000}"
+validate_positive_integer PROVIDER_TIMEOUT_MS "$PROVIDER_TIMEOUT_MS"
+validate_positive_integer STREAM_WARMUP_MS "$STREAM_WARMUP_MS"
 
 require_cli() {
   if ! command -v container >/dev/null 2>&1; then
@@ -159,16 +194,9 @@ cmd_up() {
 
   # The compose file uses the service name `postgres` as the DB host; Apple
   # Containers has no inter-container DNS by default, so use the IP. Translate
-  # the bundled compose URL when present; custom URLs are left untouched. When
-  # DATABASE_URL is omitted, require a URL-safe password rather than silently
-  # producing a malformed connection string.
+  # the bundled compose URL when present; custom URLs are left untouched.
   local database_url
-  if [[ -z "${DATABASE_URL:-}" && "$POSTGRES_PASSWORD" =~ [^A-Za-z0-9._~-] ]]; then
-    echo "error: DATABASE_URL must be set when POSTGRES_PASSWORD contains URL-special characters." >&2
-    echo "Percent-encode its password; see docker/.env.example." >&2
-    exit 1
-  fi
-  database_url="${DATABASE_URL:-postgresql://manifest:${POSTGRES_PASSWORD}@${pg_ip}:5432/manifest}"
+  database_url="${DATABASE_URL:-postgresql://manifest:manifest@${pg_ip}:5432/manifest}"
   database_url="${database_url/@postgres:5432/@${pg_ip}:5432}"
 
   # The gateway reaches host services bound beyond loopback. Ollama and LM
@@ -178,10 +206,9 @@ cmd_up() {
 
   if is_running "$APP_CONTAINER"; then
     echo "manifest already running, recreating to pick up postgres address..."
-    container delete --force "$APP_CONTAINER" >/dev/null 2>&1 || true
-  else
-    container delete "$APP_CONTAINER" >/dev/null 2>&1 || true
+    container stop --time 15 "$APP_CONTAINER" >/dev/null
   fi
+  container delete "$APP_CONTAINER" >/dev/null 2>&1 || true
 
   echo "starting manifest..."
   container run --detach --name "$APP_CONTAINER" \
@@ -194,8 +221,8 @@ cmd_up() {
     --env MANIFEST_ENCRYPTION_KEY="${MANIFEST_ENCRYPTION_KEY:-}" \
     --env BETTER_AUTH_URL="${BETTER_AUTH_URL:-http://localhost:${PORT}}" \
     --env OLLAMA_HOST="$ollama_host" \
-    --env PROVIDER_TIMEOUT_MS="${PROVIDER_TIMEOUT_MS:-180000}" \
-    --env STREAM_WARMUP_MS="${STREAM_WARMUP_MS:-15000}" \
+    --env PROVIDER_TIMEOUT_MS="$PROVIDER_TIMEOUT_MS" \
+    --env STREAM_WARMUP_MS="$STREAM_WARMUP_MS" \
     --env SEED_DATA=false \
     --env NODE_ENV=production \
     --env MANIFEST_MODE="${MANIFEST_MODE:-selfhosted}" \
