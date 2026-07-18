@@ -134,6 +134,17 @@ describe('ProviderParamSpecService', () => {
     );
   });
 
+  it('resolves the output-token field from ModelParams for custom OpenAI-compatible routes', async () => {
+    const service = new ProviderParamSpecService();
+
+    await expect(
+      service.getOutputTokenParameter('custom:azure', 'api_key', 'gpt-5.4-mini'),
+    ).resolves.toBe('max_completion_tokens');
+    await expect(
+      service.getOutputTokenParameter('custom:azure', 'api_key', 'o1-mini'),
+    ).resolves.toBe('max_tokens');
+  });
+
   it('falls back to package API-key specs for subscription routes without subscription specs', async () => {
     const service = new ProviderParamSpecService();
 

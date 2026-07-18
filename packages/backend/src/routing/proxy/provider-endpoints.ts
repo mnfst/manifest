@@ -34,6 +34,12 @@ export interface ProviderEndpoint {
    */
   streamUsageReporting?: 'openai_stream_options';
   /**
+   * This endpoint accepts the model-native output-token parameter declared by
+   * ModelParams. Gate the aliasing here because gateways such as OpenRouter
+   * expose their own public request grammar even when they serve OpenAI models.
+   */
+  usesModelParamOutputTokenField?: boolean;
+  /**
    * Set to `true` for endpoints whose `baseUrl` is user-supplied (custom
    * providers, subscription resource URLs). The proxy re-runs SSRF
    * validation against this URL immediately before each forward to defend
@@ -133,6 +139,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    usesModelParamOutputTokenField: true,
     ...openaiStreamUsage,
   },
   'openai-subscription': {
@@ -387,6 +394,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     }),
     buildPath: () => '/chat/completions',
     format: 'openai',
+    usesModelParamOutputTokenField: true,
     ...openaiStreamUsage,
   },
   // Codex variants (e.g. gpt-5-codex, gpt-5.2-codex, gpt-5.3-codex) only accept
@@ -503,6 +511,7 @@ export function buildCustomEndpoint(
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    usesModelParamOutputTokenField: true,
     ...openaiStreamUsage,
     requiresSsrfRevalidation: true,
   };
