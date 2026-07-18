@@ -389,6 +389,13 @@ describe('getSubscriptionKnownModels', () => {
     expect(getSubscriptionKnownModels('moonshot')).toEqual(['kimi-for-coding', 'kimi-k3']);
   });
 
+  it('returns known models for cline-pass including Kimi K3', () => {
+    const models = getSubscriptionKnownModels('cline-pass');
+    expect(models).toContain('cline-pass/kimi-k3');
+    expect(models).toContain('cline-pass/kimi-k2.7-code');
+    expect(models).toContain('cline-pass/glm-5.2');
+  });
+
   it('returns null known models for ollama-cloud (relies on live /api/tags discovery)', () => {
     const models = getSubscriptionKnownModels('ollama-cloud');
     expect(models).toBeNull();
