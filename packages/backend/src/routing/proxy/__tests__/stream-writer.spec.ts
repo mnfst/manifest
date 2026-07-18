@@ -469,6 +469,26 @@ describe('pipeStream', () => {
     expect(res.end).toHaveBeenCalled();
   });
 
+  it('writes a terminal protocol error when a source error handler is provided', async () => {
+    const { res, written } = mockResponse();
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.error(Object.assign(new Error('deadline'), { name: 'TimeoutError' }));
+      },
+    });
+    const trailer =
+      'event: error\ndata: {"type":"error","error":{"type":"api_error","message":"timed out"}}\n\n';
+    const onSourceError = jest.fn(() => trailer);
+
+    await expect(
+      pipeStream(stream, res as never, undefined, undefined, undefined, onSourceError),
+    ).resolves.toBeNull();
+
+    expect(onSourceError).toHaveBeenCalledWith(expect.objectContaining({ name: 'TimeoutError' }));
+    expect(written.join('')).toContain(trailer);
+    expect(res.end).toHaveBeenCalled();
+  });
+
   it('should not write remaining whitespace-only buffer through transform', async () => {
     const { res, written } = mockResponse();
     // Stream ends with only whitespace remaining (no actual event data)

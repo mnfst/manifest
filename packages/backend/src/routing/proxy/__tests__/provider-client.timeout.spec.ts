@@ -146,7 +146,7 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
     expect(abortObserved).toBe(true);
   }, 5000);
 
-  it('does not abort a streaming response body after headers arrive', async () => {
+  it('keeps the timeout active through a streaming response body', async () => {
     process.env.PROVIDER_TIMEOUT_MS = '25';
 
     let fetchSignal: AbortSignal | undefined;
@@ -157,6 +157,9 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
           new ReadableStream<Uint8Array>({
             start(controller) {
               controller.enqueue(new TextEncoder().encode('data: {"choices":[]}\n\n'));
+              fetchSignal!.addEventListener('abort', () => controller.error(fetchSignal!.reason), {
+                once: true,
+              });
             },
           }),
           { status: 200, headers: { 'content-type': 'text/event-stream' } },
@@ -167,17 +170,19 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
     await jest.isolateModulesAsync(async () => {
       const { ProviderClient: FreshClient } = await import('../provider-client');
       const fresh = new FreshClient();
-      await fresh.forward({
+      const forward = await fresh.forward({
         provider: 'openai',
         apiKey: 'sk-test',
         model: 'gpt-4o',
         body,
         stream: true,
       });
+      const reader = forward.response.body!.getReader();
+      await expect(reader.read()).resolves.toMatchObject({ done: false });
+      await expect(reader.read()).rejects.toMatchObject({ name: 'TimeoutError' });
     });
 
-    await new Promise((r) => setTimeout(r, 50));
     expect(fetchSignal).toBeDefined();
-    expect(fetchSignal!.aborted).toBe(false);
+    expect(fetchSignal!.aborted).toBe(true);
   }, 5000);
 });

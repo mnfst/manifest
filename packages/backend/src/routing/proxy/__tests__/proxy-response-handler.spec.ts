@@ -956,6 +956,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         undefined,
         undefined,
+        expect.any(Function),
       );
     });
 
@@ -1044,6 +1045,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         undefined,
         expect.any(Function),
+        expect.any(Function),
       );
       const wrappedTap = pipePassthroughSpy.mock.calls[0][2] as (event: string) => string | null;
       wrappedTap('event: ping\ndata: {"type":"ping"}\n\n');
@@ -1099,6 +1101,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         undefined,
         undefined,
+        expect.any(Function),
       );
     });
 
@@ -1139,6 +1142,7 @@ describe('proxy-response-handler', () => {
         undefined,
         undefined,
         undefined,
+        expect.any(Function),
       );
     });
 
@@ -1162,6 +1166,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         undefined,
         undefined,
+        expect.any(Function),
       );
     });
 
@@ -1189,6 +1194,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         expect.any(Function),
         undefined,
+        expect.any(Function),
       );
     });
 
@@ -1281,6 +1287,7 @@ describe('proxy-response-handler', () => {
         undefined,
         undefined,
         undefined,
+        expect.any(Function),
       );
     });
 
@@ -1454,6 +1461,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         undefined,
         undefined,
+        expect.any(Function),
       );
     });
 

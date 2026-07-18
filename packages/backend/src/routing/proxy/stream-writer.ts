@@ -13,6 +13,8 @@ export interface StreamUsage {
   reported_cost_usd?: number;
 }
 
+export type StreamSourceErrorHandler = (error: unknown) => string | null;
+
 /**
  * Read a usage block in either OpenAI-compat (`prompt_tokens`/`completion_tokens`)
  * or Anthropic-native (`input_tokens`/`output_tokens`) shape and normalise it
@@ -202,6 +204,7 @@ export async function pipePassthrough(
   tap: (parsedEvent: string) => string | null,
   onClientChunk?: (text: string) => void,
   finalize?: () => string | null,
+  onSourceError?: StreamSourceErrorHandler,
 ): Promise<StreamUsage | null> {
   const reader = source.getReader();
   const decoder = new TextDecoder();
@@ -253,6 +256,13 @@ export async function pipePassthrough(
         if (onClientChunk) onClientChunk(trailing);
       }
     }
+  } catch (error) {
+    if (!onSourceError) throw error;
+    const trailing = onSourceError(error);
+    if (trailing && !dest.writableEnded) {
+      dest.write(trailing);
+      if (onClientChunk) onClientChunk(trailing);
+    }
   } finally {
     if (!dest.writableEnded) dest.end();
     reader.releaseLock();
@@ -267,6 +277,7 @@ export async function pipeStream(
   transform?: (chunk: string) => string | null,
   finalize?: () => string | null,
   onClientChunk?: (text: string) => void,
+  onSourceError?: StreamSourceErrorHandler,
 ): Promise<StreamUsage | null> {
   const reader = source.getReader();
   const decoder = new TextDecoder();
@@ -350,6 +361,10 @@ export async function pipeStream(
         writeOut('data: [DONE]\n\n');
       }
     }
+  } catch (error) {
+    if (!onSourceError) throw error;
+    const trailing = onSourceError(error);
+    if (trailing && !dest.writableEnded) writeOut(trailing);
   } finally {
     reader.releaseLock();
     if (!dest.writableEnded) dest.end();

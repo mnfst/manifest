@@ -51,6 +51,7 @@ import {
   unwrapCodeAssistResponse,
   unwrapCodeAssistStreamPayload,
 } from '../oauth/gemini/codeassist-envelope';
+import { isTimeoutError } from './proxy-transport';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -66,6 +67,44 @@ function upstreamProtocolError(message: string): ResponsesSseError {
       },
     }),
   );
+}
+
+function streamSourceFailure(error: unknown): MessagesStreamFailure {
+  if (isTimeoutError(error)) {
+    return { status: 504, message: 'Upstream provider stream timed out' };
+  }
+  return { status: 502, message: 'Upstream provider stream was interrupted' };
+}
+
+function formatClientStreamFailure(apiMode: ProxyApiMode, failure: MessagesStreamFailure): string {
+  if (apiMode === 'messages') {
+    return `event: error\ndata: ${JSON.stringify({
+      type: 'error',
+      error: {
+        type: anthropicErrorTypeForStatus(failure.status),
+        message: failure.message,
+      },
+    })}\n\n`;
+  }
+
+  const code = failure.status === 504 ? 'upstream_timeout' : 'upstream_stream_error';
+  if (apiMode === 'responses') {
+    return `event: error\ndata: ${JSON.stringify({
+      type: 'error',
+      code,
+      message: failure.message,
+      param: null,
+    })}\n\ndata: [DONE]\n\n`;
+  }
+
+  return `data: ${JSON.stringify({
+    error: {
+      type: code,
+      code,
+      status: failure.status,
+      message: failure.message,
+    },
+  })}\n\ndata: [DONE]\n\n`;
 }
 
 async function readProviderJson(response: Response): Promise<unknown> {
@@ -625,6 +664,15 @@ export async function handleStreamResponse(
   initSseHeaders(res, metaHeaders, 200);
 
   const onClient = undefined;
+  let sourceFailure: MessagesStreamFailure | null = null;
+  const onSourceError = (error: unknown): string => {
+    // A caller disconnect aborts the same upstream fetch. Preserve the
+    // existing cancellation path: rethrow so the controller sees its
+    // clientAbort signal and records neither provider failure nor success.
+    if (res.destroyed) throw error;
+    sourceFailure = streamSourceFailure(error);
+    return formatClientStreamFailure(apiMode, sourceFailure);
+  };
 
   const messagesTransformer =
     apiMode === 'messages' ? createMessagesStreamTransformer(meta.model) : null;
@@ -652,13 +700,15 @@ export async function handleStreamResponse(
       messagesTransformer?.getFailure() ?? null,
   ): Promise<StreamUsage | null> => {
     const usage = await stream;
-    const failure = getFailure();
+    const failure = sourceFailure ?? getFailure();
     if (failure) onIntegrityFailure?.(failure);
     return usage;
   };
 
   if (apiMode === 'responses' && forward.isResponses) {
-    return complete(pipeStream(forward.response.body!, res, undefined, undefined, onClient));
+    return complete(
+      pipeStream(forward.response.body!, res, undefined, undefined, onClient, onSourceError),
+    );
   }
 
   if (forward.isGoogle) {
@@ -681,6 +731,7 @@ export async function handleStreamResponse(
         },
         finalize,
         onClient,
+        onSourceError,
       ),
     );
   }
@@ -714,6 +765,7 @@ export async function handleStreamResponse(
           },
           onClient,
           () => validator.finalize(),
+          onSourceError,
         ),
         () => validator.getFailure(),
       );
@@ -728,6 +780,7 @@ export async function handleStreamResponse(
         },
         finalize,
         onClient,
+        onSourceError,
       ),
     );
   }
@@ -743,6 +796,7 @@ export async function handleStreamResponse(
         },
         finalize,
         onClient,
+        onSourceError,
       ),
     );
   }
@@ -768,13 +822,18 @@ export async function handleStreamResponse(
         },
         finalize,
         onClient,
+        onSourceError,
       ),
     );
   }
   if (apiMode === 'responses' || apiMode === 'messages') {
-    return complete(pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient));
+    return complete(
+      pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient, onSourceError),
+    );
   }
-  return complete(pipeStream(forward.response.body!, res, undefined, undefined, onClient));
+  return complete(
+    pipeStream(forward.response.body!, res, undefined, undefined, onClient, onSourceError),
+  );
 }
 
 function cacheReasoningContent(

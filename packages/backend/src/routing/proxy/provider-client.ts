@@ -702,19 +702,14 @@ export class ProviderClient {
       responsesToolTypesByName?: Readonly<Record<string, ResponsesToolCallType>>;
     },
   ): Promise<ForwardResult> {
-    let fetchSignal: AbortSignal;
-    let timeout: ReturnType<typeof setTimeout> | undefined;
-    let timeoutController: AbortController | undefined;
-    if (stream) {
-      timeoutController = new AbortController();
-      timeout = setTimeout(() => timeoutController?.abort(), PROVIDER_TIMEOUT_MS);
-      fetchSignal = signal
-        ? AbortSignal.any([timeoutController.signal, signal])
-        : timeoutController.signal;
-    } else {
-      const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
-      fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
-    }
+    // Keep the provider deadline attached for the complete response body, not
+    // only until fetch() resolves its headers. Streaming fetches resolve as
+    // soon as HTTP 200 headers arrive; clearing their timer at that point let
+    // body reads run past Cloudflare's proxy window and surface downstream as
+    // a truncated HTTP 200. AbortSignal.timeout remains active while the body
+    // is consumed, so reader.read() rejects with TimeoutError at the deadline.
+    const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
+    const fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
 
     let response: Response;
     try {
@@ -730,8 +725,6 @@ export class ProviderClient {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       throw new Error(message.replace(/key=[^&\s]+/gi, 'key=***'));
-    } finally {
-      if (timeout) clearTimeout(timeout);
     }
 
     return { response, ...formatFlags };

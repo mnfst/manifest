@@ -2813,6 +2813,71 @@ describe('ProxyController', () => {
       );
     });
 
+    it('returns an Anthropic timeout event and failed telemetry when the body read aborts', async () => {
+      const encoder = new TextEncoder();
+      let pullCount = 0;
+      const mockProviderResp = new Response(
+        new ReadableStream<Uint8Array>({
+          pull(controller) {
+            if (pullCount++ === 0) {
+              controller.enqueue(
+                encoder.encode('data: {"choices":[{"delta":{"content":"partial"}}]}\n\n'),
+              );
+              return;
+            }
+            controller.error(Object.assign(new Error('deadline'), { name: 'TimeoutError' }));
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'text/event-stream' } },
+      );
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-5.6-sol',
+          provider: 'openai',
+          confidence: 0.8,
+          reason: 'auto',
+          auth_type: 'subscription',
+        },
+      });
+
+      const req = mockRequest({
+        model: 'default',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'test' }],
+        stream: true,
+      });
+      const { res, written } = mockResponse();
+
+      await controller.messages(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(written.join('')).toContain('"text":"partial"');
+      expect(written.join('')).toContain('event: error');
+      expect(written.join('')).toContain('Upstream provider stream timed out');
+      expect(written.join('')).not.toContain('message_stop');
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'error',
+          error_http_status: 504,
+          error_message: 'Upstream provider stream timed out',
+          provider: 'openai',
+          model: 'gpt-5.6-sol',
+          auth_type: 'subscription',
+        }),
+      );
+      expect(mockMessageRepo.insert).not.toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'ok' }),
+      );
+    });
+
     it('rejects a truncated native Anthropic passthrough stream and records provider failure', async () => {
       const mockProviderResp = createMockStreamResponse([
         'event: message_start\ndata: {"type":"message_start","message":{"usage":{"input_tokens":5}}}\n\n',
