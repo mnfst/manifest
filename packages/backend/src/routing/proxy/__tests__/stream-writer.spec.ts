@@ -973,6 +973,22 @@ describe('pipePassthrough', () => {
     expect(res.end).toHaveBeenCalled();
   });
 
+  it('writes a passthrough finalizer trailer before ending the client response', async () => {
+    const { res, written } = mockResponse();
+    const stream = createReadableStream(['data: {"type":"message_start"}\n\n']);
+    const onClientChunk = jest.fn();
+    const trailer =
+      'event: error\ndata: {"type":"error","error":{"type":"api_error","message":"truncated"}}\n\n';
+    const finalize = jest.fn(() => trailer);
+
+    await pipePassthrough(stream, res as never, () => null, onClientChunk, finalize);
+
+    expect(finalize).toHaveBeenCalledTimes(1);
+    expect(written.join('')).toContain(trailer);
+    expect(onClientChunk).toHaveBeenLastCalledWith(trailer);
+    expect(res.end).toHaveBeenCalled();
+  });
+
   it('throws when the SSE buffer exceeds the safety limit', async () => {
     const { res } = mockResponse();
     const huge = 'x'.repeat(1_048_577); // 1 MiB + 1 byte

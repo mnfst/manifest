@@ -468,6 +468,71 @@ describe('ProxyController', () => {
     expect(json.usage).toMatchObject({ input_tokens: 4, output_tokens: 2 });
   });
 
+  it('serves /v1/messages/count_tokens locally without consuming an inference slot', () => {
+    const req = mockRequest({
+      model: 'claude-sonnet-4',
+      system: 'You are a coding assistant.',
+      messages: [{ role: 'user', content: 'Inspect this change.' }],
+      tools: [{ name: 'read_file', input_schema: { type: 'object' } }],
+    });
+
+    const result = controller.countMessageTokens(req as never);
+
+    expect(result.input_tokens).toBeGreaterThan(1);
+    expect(proxyService.proxyRequest).not.toHaveBeenCalled();
+    expect(rateLimiter.acquireSlot).not.toHaveBeenCalled();
+  });
+
+  it('turns an empty non-streaming provider HTTP 200 into an Anthropic error and failed row', async () => {
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: new Response('', {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'standard',
+        model: 'gpt-5.6-sol',
+        provider: 'openai',
+        confidence: 0.9,
+        reason: 'auto',
+        auth_type: 'subscription',
+      },
+    });
+
+    const req = mockRequest({
+      model: 'default',
+      max_tokens: 64,
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+    const { res } = mockResponse();
+
+    await controller.messages(req as never, res as never);
+    await flushRecorderMicrotasks();
+
+    expect(res.status).toHaveBeenCalledWith(502);
+    expect(res.json).toHaveBeenCalledWith({
+      type: 'error',
+      error: { type: 'api_error', message: 'Upstream provider returned an empty response' },
+    });
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'error',
+        error_http_status: 502,
+        provider: 'openai',
+        model: 'gpt-5.6-sol',
+        auth_type: 'subscription',
+      }),
+    );
+    expect(mockMessageRepo.insert).not.toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'ok' }),
+    );
+  });
+
   it('should pass through native Responses JSON bodies', async () => {
     const responseBody = {
       id: 'resp_1',
@@ -2648,6 +2713,158 @@ describe('ProxyController', () => {
       expect(headers['Content-Type']).toBe('text/event-stream');
       expect(headers['X-Manifest-Tier']).toBe('standard');
       expect(written.length).toBeGreaterThan(0);
+    });
+
+    it('returns an Anthropic error and records failed telemetry for an empty HTTP 200 stream', async () => {
+      const mockProviderResp = createMockStreamResponse(['data: [DONE]\n\n']);
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-5.6-sol',
+          provider: 'openai',
+          confidence: 0.8,
+          reason: 'auto',
+          auth_type: 'subscription',
+        },
+      });
+
+      const req = mockRequest({
+        model: 'default',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'test' }],
+        stream: true,
+      });
+      const { res, written } = mockResponse();
+
+      await controller.messages(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(written.join('')).toContain('event: error');
+      expect(written.join('')).toContain('Upstream provider returned an empty completion');
+      expect(written.join('')).not.toContain('message_stop');
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'error',
+          error_http_status: 502,
+          error_message: 'Upstream provider returned an empty completion',
+          provider: 'openai',
+          model: 'gpt-5.6-sol',
+          auth_type: 'subscription',
+        }),
+      );
+      expect(mockMessageRepo.insert).not.toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'ok' }),
+      );
+    });
+
+    it('returns an Anthropic error and records failure when SSE ends before finish_reason', async () => {
+      const mockProviderResp = createMockStreamResponse([
+        'data: {"choices":[{"delta":{"content":"partial"}}]}\n\n',
+      ]);
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-5.6-sol',
+          provider: 'openai',
+          confidence: 0.8,
+          reason: 'auto',
+          auth_type: 'subscription',
+        },
+      });
+
+      const req = mockRequest({
+        model: 'default',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'test' }],
+        stream: true,
+      });
+      const { res, written } = mockResponse();
+
+      await controller.messages(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(written.join('')).toContain('"text":"partial"');
+      expect(written.join('')).toContain('event: error');
+      expect(written.join('')).toContain('Upstream provider stream ended before a terminal event');
+      expect(written.join('')).not.toContain('message_stop');
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'error',
+          error_http_status: 502,
+          error_message: 'Upstream provider stream ended before a terminal event',
+        }),
+      );
+      expect(mockMessageRepo.insert).not.toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'ok' }),
+      );
+    });
+
+    it('rejects a truncated native Anthropic passthrough stream and records provider failure', async () => {
+      const mockProviderResp = createMockStreamResponse([
+        'event: message_start\ndata: {"type":"message_start","message":{"usage":{"input_tokens":5}}}\n\n',
+        'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"partial"}}\n\n',
+      ]);
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: true,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'standard',
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          confidence: 0.8,
+          reason: 'requested-model',
+          auth_type: 'subscription',
+        },
+      });
+      (providerClient as Record<string, jest.Mock>).createAnthropicStreamTransformer = jest
+        .fn()
+        .mockReturnValue(jest.fn(() => null));
+
+      const req = mockRequest({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'test' }],
+        stream: true,
+      });
+      const { res, written } = mockResponse();
+
+      await controller.messages(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(written.join('')).toContain('"text":"partial"');
+      expect(written.join('')).toContain('event: error');
+      expect(written.join('')).toContain('Upstream provider stream ended before a terminal event');
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'error',
+          error_http_status: 502,
+          provider: 'anthropic',
+          model: 'claude-sonnet-4-6',
+          auth_type: 'subscription',
+        }),
+      );
+      expect(mockMessageRepo.insert).not.toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'ok' }),
+      );
     });
 
     it('should transform Anthropic streaming through createAnthropicStreamTransformer', async () => {

@@ -94,12 +94,20 @@ function isClaudeAutoClassifierRequest(
     Array.isArray(value) ? value[0] : value;
   const userAgent = first(headers['user-agent'])?.toLowerCase();
   const timeout = first(headers['x-stainless-timeout']);
-  const beta = first(headers['anthropic-beta'])?.toLowerCase() ?? '';
+  const betaFlags = (
+    Array.isArray(headers['anthropic-beta'])
+      ? headers['anthropic-beta']
+      : [headers['anthropic-beta']]
+  )
+    .filter((value): value is string => typeof value === 'string')
+    .flatMap((value) => value.toLowerCase().split(','))
+    .map((flag) => flag.trim())
+    .filter(Boolean);
   return (
     userAgent?.startsWith('claude-cli/') === true &&
     timeout === '60' &&
-    beta.includes('claude-code-') &&
-    !beta.includes('afk-mode-')
+    betaFlags.some((flag) => flag.startsWith('claude-code-')) &&
+    !betaFlags.some((flag) => flag.startsWith('afk-mode-'))
   );
 }
 

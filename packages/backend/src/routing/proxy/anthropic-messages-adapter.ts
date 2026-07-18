@@ -432,12 +432,27 @@ interface StreamState {
   nextBlockIndexCounter: number;
   finalUsage: JsonRecord | null;
   stopReason: string | null;
+  hasMeaningfulOutput: boolean;
+  sawTerminalEvent: boolean;
+  failure: MessagesStreamFailure | null;
   endedMessage: boolean;
+}
+
+export interface MessagesStreamFailure {
+  status: number;
+  message: string;
 }
 
 export interface MessagesStreamTransformer {
   transform: (chunk: string) => string | null;
   finalize: () => string | null;
+  getFailure: () => MessagesStreamFailure | null;
+}
+
+export interface AnthropicPassthroughStreamValidator {
+  observe: (event: string) => void;
+  finalize: () => string | null;
+  getFailure: () => MessagesStreamFailure | null;
 }
 
 export function createMessagesStreamTransformer(model: string): MessagesStreamTransformer {
@@ -453,6 +468,9 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
     nextBlockIndexCounter: 0,
     finalUsage: null,
     stopReason: null,
+    hasMeaningfulOutput: false,
+    sawTerminalEvent: false,
+    failure: null,
     endedMessage: false,
   };
 
@@ -462,7 +480,100 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
       const events = closeStream(state);
       return events.length > 0 ? events.join('') : null;
     },
+    getFailure: () => state.failure,
   };
+}
+
+export function createAnthropicPassthroughStreamValidator(): AnthropicPassthroughStreamValidator {
+  let hasMeaningfulOutput = false;
+  let sawMessageStop = false;
+  let ended = false;
+  let failure: MessagesStreamFailure | null = null;
+
+  const fail = (nextFailure: MessagesStreamFailure): string => {
+    failure = nextFailure;
+    ended = true;
+    return formatMessagesEvent('error', {
+      type: 'error',
+      error: {
+        type: anthropicErrorTypeForStatus(nextFailure.status),
+        message: nextFailure.message,
+      },
+    });
+  };
+
+  return {
+    observe: (event: string) => {
+      for (const payload of extractDataPayloads(event)) {
+        const data = safeParse(payload);
+        if (!data) continue;
+        const type = typeof data.type === 'string' ? data.type : '';
+
+        if (type === 'error' && isRecord(data.error)) {
+          const errorType = typeof data.error.type === 'string' ? data.error.type : '';
+          failure = {
+            status: anthropicErrorStatus(errorType),
+            message:
+              typeof data.error.message === 'string' && data.error.message
+                ? data.error.message
+                : 'Upstream provider stream failed',
+          };
+          ended = true;
+          continue;
+        }
+
+        if (type === 'content_block_start' && isRecord(data.content_block)) {
+          const block = data.content_block;
+          if (
+            (typeof block.text === 'string' && block.text.trim()) ||
+            (typeof block.thinking === 'string' && block.thinking.trim()) ||
+            (typeof block.data === 'string' && block.data.trim()) ||
+            (typeof block.name === 'string' && block.name.trim()) ||
+            (Array.isArray(block.content) && block.content.length > 0)
+          ) {
+            hasMeaningfulOutput = true;
+          }
+        }
+
+        if (type === 'content_block_delta' && isRecord(data.delta)) {
+          const delta = data.delta;
+          if (
+            (typeof delta.text === 'string' && delta.text.trim()) ||
+            (typeof delta.thinking === 'string' && delta.thinking.trim())
+          ) {
+            hasMeaningfulOutput = true;
+          }
+        }
+
+        if (type === 'message_stop') sawMessageStop = true;
+      }
+    },
+    finalize: () => {
+      if (ended) return null;
+      if (!hasMeaningfulOutput) {
+        return fail({ status: 502, message: 'Upstream provider returned an empty completion' });
+      }
+      if (!sawMessageStop) {
+        return fail({
+          status: 502,
+          message: 'Upstream provider stream ended before a terminal event',
+        });
+      }
+      ended = true;
+      return null;
+    },
+    getFailure: () => failure,
+  };
+}
+
+function anthropicErrorStatus(type: string): number {
+  const normalized = type.toLowerCase();
+  if (normalized.includes('rate_limit')) return 429;
+  if (normalized.includes('authentication')) return 401;
+  if (normalized.includes('permission')) return 403;
+  if (normalized.includes('invalid_request')) return 400;
+  if (normalized.includes('overloaded')) return 529;
+  return 502;
 }
 
 function transformStreamChunk(chunk: string, state: StreamState): string | null {
@@ -478,6 +589,14 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     // Anthropic `error` event instead of dropping them — otherwise closeStream
     // would fabricate a successful empty `end_turn` message.
     if (isRecord(data.error)) {
+      const status = validErrorStatus(data.error.status) ?? 502;
+      state.failure = {
+        status,
+        message:
+          typeof data.error.message === 'string' && data.error.message
+            ? data.error.message
+            : 'Upstream provider stream failed',
+      };
       events.push(buildStreamErrorEvent(state, data.error));
       break;
     }
@@ -513,6 +632,7 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     // defensible tradeoff than surfacing a fragment that breaks replay.
     if (typeof delta.reasoning_content === 'string' && delta.reasoning_content.length > 0) {
       if (!hasOpenToolCall(state)) {
+        if (delta.reasoning_content.trim().length > 0) state.hasMeaningfulOutput = true;
         closeTextBlock(state, events);
         if (!state.thinkingOpened) {
           state.thinkingIndex = nextBlockIndex(state);
@@ -537,6 +657,7 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     }
 
     if (typeof delta.content === 'string' && delta.content.length > 0) {
+      if (delta.content.trim().length > 0) state.hasMeaningfulOutput = true;
       closeThinkingBlock(state, events);
       closeOpenToolCalls(state, events);
       if (!state.textOpened) {
@@ -576,6 +697,9 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
           state.toolCalls.set(callIndex, entry);
         }
         const fn = isRecord(call.function) ? call.function : {};
+        if (typeof fn.name === 'string' && fn.name.trim().length > 0) {
+          state.hasMeaningfulOutput = true;
+        }
         if (!entry.opened) {
           events.push(
             formatMessagesEvent('content_block_start', {
@@ -605,6 +729,7 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     }
 
     if (choice.finish_reason) {
+      state.sawTerminalEvent = true;
       state.stopReason = toAnthropicStopReason(choice.finish_reason);
       if (isRecord(data.usage) && !state.finalUsage) {
         state.finalUsage = toAnthropicUsage(data.usage);
@@ -699,8 +824,45 @@ function buildStreamErrorEvent(state: StreamState, error: JsonRecord): string {
   });
 }
 
+function validErrorStatus(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 400 && value <= 599
+    ? value
+    : null;
+}
+
+function buildIntegrityFailureEvent(state: StreamState, failure: MessagesStreamFailure): string {
+  state.failure = failure;
+  state.endedMessage = true;
+  return formatMessagesEvent('error', {
+    type: 'error',
+    error: {
+      type: anthropicErrorTypeForStatus(failure.status),
+      message: failure.message,
+    },
+  });
+}
+
 function closeStream(state: StreamState): string[] {
   if (state.endedMessage) return [];
+
+  if (!state.hasMeaningfulOutput) {
+    return [
+      buildIntegrityFailureEvent(state, {
+        status: 502,
+        message: 'Upstream provider returned an empty completion',
+      }),
+    ];
+  }
+
+  if (!state.sawTerminalEvent) {
+    return [
+      buildIntegrityFailureEvent(state, {
+        status: 502,
+        message: 'Upstream provider stream ended before a terminal event',
+      }),
+    ];
+  }
+
   const events: string[] = [];
 
   closeThinkingBlock(state, events);
@@ -726,7 +888,18 @@ function extractDataPayloads(chunk: string): string[] {
   const lines = chunk.split('\n').map((line) => line.trim());
   const dataLines = lines.filter((line) => line.startsWith('data:'));
   if (dataLines.length > 0) return dataLines.map((line) => line.slice(5).trim());
-  return [chunk.trim()].filter(Boolean);
+  const payload = lines
+    .filter(
+      (line) =>
+        line &&
+        !line.startsWith('event:') &&
+        !line.startsWith('id:') &&
+        !line.startsWith('retry:') &&
+        !line.startsWith(':'),
+    )
+    .join('\n')
+    .trim();
+  return [payload].filter(Boolean);
 }
 
 function safeParse(data: string): JsonRecord | null {

@@ -1,5 +1,6 @@
 import {
   chatCompletionsResponseToMessages,
+  createAnthropicPassthroughStreamValidator,
   createMessagesStreamTransformer,
   messagesToChatCompletionsRequest,
   stripAnthropicServerToolsForFallback,
@@ -756,6 +757,48 @@ describe('Anthropic Messages adapter', () => {
       // No fabricated message_start / message_delta / message_stop around the error.
       expect(sse).not.toContain('message_start');
       expect(sse).not.toContain('message_stop');
+      expect(t.getFailure()).toEqual({ status: 429, message: 'Too many requests' });
+    });
+
+    it('turns an empty HTTP 200 stream into an Anthropic error', () => {
+      const t = createMessagesStreamTransformer('gpt-5');
+
+      expect(t.finalize()).toBe(
+        'event: error\ndata: {"type":"error","error":{"type":"api_error","message":"Upstream provider returned an empty completion"}}\n\n',
+      );
+      expect(t.getFailure()).toEqual({
+        status: 502,
+        message: 'Upstream provider returned an empty completion',
+      });
+      expect(t.finalize()).toBeNull();
+    });
+
+    it('rejects a terminal completion that contains no meaningful output', () => {
+      const t = createMessagesStreamTransformer('gpt-5');
+      const sse = flushChunks(t, [
+        'data: {"choices":[{"delta":{}}]}\n\n',
+        'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n',
+        'data: [DONE]\n\n',
+      ]);
+
+      expect(sse).toContain('event: message_start');
+      expect(sse).toContain('event: error');
+      expect(sse).toContain('Upstream provider returned an empty completion');
+      expect(sse).not.toContain('message_stop');
+    });
+
+    it('rejects a truncated SSE stream that emitted content without a terminal event', () => {
+      const t = createMessagesStreamTransformer('gpt-5');
+      const sse = flushChunks(t, ['data: {"choices":[{"delta":{"content":"partial"}}]}\n\n']);
+
+      expect(sse).toContain('"text":"partial"');
+      expect(sse).toContain('event: error');
+      expect(sse).toContain('Upstream provider stream ended before a terminal event');
+      expect(sse).not.toContain('message_stop');
+      expect(t.getFailure()).toEqual({
+        status: 502,
+        message: 'Upstream provider stream ended before a terminal event',
+      });
     });
 
     it('ignores later stream payloads after a terminal error event', () => {
@@ -1234,12 +1277,11 @@ describe('Anthropic Messages adapter', () => {
       });
     });
 
-    it('finalize closes an incomplete tool_use block opened mid-stream', () => {
+    it('finalize rejects an incomplete tool_use stream without a terminal event', () => {
       // The stream opens a tool_use and emits a partial input_json_delta, then
       // the upstream cuts off (no finish_reason, no second arg chunk, no usage).
-      // finalize() must emit the matching content_block_stop for the open
-      // tool_use plus the terminal message_delta / message_stop so clients
-      // don't hang on an orphan content_block_start.
+      // Fabricating message_stop here would turn a truncated provider response
+      // into a successful Claude turn.
       const t = createMessagesStreamTransformer('m');
       const opened = t.transform(
         'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"tc_partial","function":{"name":"search","arguments":"{\\"arg\\""}}]}}]}\n\n',
@@ -1260,15 +1302,60 @@ describe('Anthropic Messages adapter', () => {
           };
         });
 
-      expect(events.map((e) => e.event)).toEqual([
-        'content_block_stop',
-        'message_delta',
-        'message_stop',
-      ]);
-      // Stop must reference the tool_use's index (0, the first/only block).
-      expect(events[0].data).toEqual({ type: 'content_block_stop', index: 0 });
-      // No finish_reason was ever seen, so stop_reason defaults to end_turn.
-      expect(events[1].data.delta.stop_reason).toBe('end_turn');
+      expect(events.map((e) => e.event)).toEqual(['error']);
+      expect(events[0].data).toEqual({
+        type: 'error',
+        error: {
+          type: 'api_error',
+          message: 'Upstream provider stream ended before a terminal event',
+        },
+      });
+      expect(t.getFailure()?.status).toBe(502);
+    });
+  });
+
+  describe('createAnthropicPassthroughStreamValidator', () => {
+    it('rejects an empty native Anthropic stream', () => {
+      const validator = createAnthropicPassthroughStreamValidator();
+
+      expect(validator.finalize()).toContain('Upstream provider returned an empty completion');
+      expect(validator.getFailure()).toEqual({
+        status: 502,
+        message: 'Upstream provider returned an empty completion',
+      });
+    });
+
+    it('rejects native Anthropic content when message_stop is missing', () => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe(
+        'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"partial"}}\n\n',
+      );
+
+      expect(validator.finalize()).toContain(
+        'Upstream provider stream ended before a terminal event',
+      );
+      expect(validator.getFailure()?.status).toBe(502);
+    });
+
+    it('accepts native Anthropic content followed by message_stop', () => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe(
+        'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"done"}}\n\n',
+      );
+      validator.observe('event: message_stop\ndata: {"type":"message_stop"}\n\n');
+
+      expect(validator.finalize()).toBeNull();
+      expect(validator.getFailure()).toBeNull();
+    });
+
+    it('marks an upstream Anthropic error event as failed telemetry', () => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe(
+        'event: error\ndata: {"type":"error","error":{"type":"rate_limit_error","message":"Slow down"}}\n\n',
+      );
+
+      expect(validator.finalize()).toBeNull();
+      expect(validator.getFailure()).toEqual({ status: 429, message: 'Slow down' });
     });
   });
 });

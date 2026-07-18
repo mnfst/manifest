@@ -201,6 +201,7 @@ export async function pipePassthrough(
   dest: ExpressResponse,
   tap: (parsedEvent: string) => string | null,
   onClientChunk?: (text: string) => void,
+  finalize?: () => string | null,
 ): Promise<StreamUsage | null> {
   const reader = source.getReader();
   const decoder = new TextDecoder();
@@ -243,6 +244,13 @@ export async function pipePassthrough(
       if (tapped) {
         const usage = extractUsageFromSse(tapped);
         if (usage) capturedUsage = usage;
+      }
+    }
+    if (finalize && !dest.writableEnded) {
+      const trailing = finalize();
+      if (trailing && !dest.writableEnded) {
+        dest.write(trailing);
+        if (onClientChunk) onClientChunk(trailing);
       }
     }
   } finally {

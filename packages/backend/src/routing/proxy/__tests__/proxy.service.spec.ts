@@ -1017,6 +1017,27 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
+    it('does not pin ordinary Messages requests when claude-code is only a beta substring', async () => {
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          headers: {
+            'user-agent': 'claude-cli/2.1.212 (external, claude-vscode)',
+            'x-stainless-timeout': '60',
+            'anthropic-beta': 'future-claude-code-compatibility-20260718',
+          },
+          body: {
+            model: 'claude-sonnet-5',
+            max_tokens: 256,
+            messages: [{ role: 'user', content: 'normal turn' }],
+          },
+        }),
+      );
+
+      expect(resolveService.resolve).toHaveBeenCalled();
+      expect(modelDiscovery.getModelsForAgent).not.toHaveBeenCalled();
+    });
+
     it('does not trigger Manifest fallbacks for explicit model failures', async () => {
       modelDiscovery.getModelsForAgent.mockResolvedValue([
         discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),

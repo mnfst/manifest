@@ -1038,7 +1038,16 @@ describe('proxy-response-handler', () => {
       // Dispatched to pipePassthrough, not pipeStream. Tap is the Anthropic
       // stream transformer so thinking-block extraction + OpenAI-shape
       // usage parsing still happen as a side effect.
-      expect(pipePassthroughSpy).toHaveBeenCalledWith(forward.response.body, res, tap, undefined);
+      expect(pipePassthroughSpy).toHaveBeenCalledWith(
+        forward.response.body,
+        res,
+        expect.any(Function),
+        undefined,
+        expect.any(Function),
+      );
+      const wrappedTap = pipePassthroughSpy.mock.calls[0][2] as (event: string) => string | null;
+      wrappedTap('event: ping\ndata: {"type":"ping"}\n\n');
+      expect(tap).toHaveBeenCalledWith('event: ping\ndata: {"type":"ping"}\n\n');
       expect(pipeStreamSpy).not.toHaveBeenCalled();
       expect(usage).toBeNull();
     });
@@ -1503,6 +1512,102 @@ describe('proxy-response-handler', () => {
       };
     }
 
+    it('rejects an empty HTTP 200 body as an upstream protocol error', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward('');
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          forward as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({
+        status: 502,
+        message: 'Upstream provider returned an empty response',
+      });
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it('rejects malformed JSON in an HTTP 200 body as an upstream protocol error', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward('{not json');
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          forward as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({
+        status: 502,
+        message: 'Upstream provider returned malformed JSON',
+      });
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it('rejects a non-streaming completion with no meaningful output', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({
+        choices: [{ message: { role: 'assistant', content: '   ' }, finish_reason: 'stop' }],
+      });
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          forward as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({
+        status: 502,
+        message: 'Upstream provider returned an empty completion',
+      });
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it('rejects a non-streaming completion without a terminal finish reason', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({
+        choices: [{ message: { role: 'assistant', content: 'partial' } }],
+      });
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          forward as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({
+        status: 502,
+        message: 'Upstream provider response omitted a terminal finish reason',
+      });
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
     it('should convert Google response and extract usage', async () => {
       const { res } = mockResponse();
       const client = mockProviderClient();
@@ -1585,6 +1690,7 @@ describe('proxy-response-handler', () => {
           },
           { type: 'text', text: 'Found some cats.' },
         ],
+        stop_reason: 'end_turn',
         usage: { input_tokens: 50, output_tokens: 12, cache_read_input_tokens: 0 },
       };
       const forward = mockForward(body, { isAnthropic: true });
@@ -1630,6 +1736,7 @@ describe('proxy-response-handler', () => {
           { type: 'thinking', thinking: 'searching...', signature: 'sig' },
           { type: 'tool_use', id: 'toolu_1', name: 'web_search', input: { q: 'x' } },
         ],
+        stop_reason: 'tool_use',
         usage: { input_tokens: 1, output_tokens: 1 },
       };
       const forward = mockForward(body, { isAnthropic: true });

@@ -24,9 +24,12 @@ import {
   createResponsesStreamTransformer,
   fromChatCompletionResponse,
 } from './responses-adapter';
+import { ResponsesSseError } from './chatgpt-adapter';
 import {
   chatCompletionsResponseToMessages,
+  createAnthropicPassthroughStreamValidator,
   createMessagesStreamTransformer,
+  type MessagesStreamFailure,
 } from './anthropic-messages-adapter';
 import type { ProxyApiMode } from './proxy-types';
 import { anthropicErrorTypeForStatus } from './proxy-protocol-error';
@@ -50,6 +53,104 @@ import {
 } from '../oauth/gemini/codeassist-envelope';
 
 const logger = new Logger('ProxyResponseHandler');
+
+function upstreamProtocolError(message: string): ResponsesSseError {
+  return new ResponsesSseError(
+    message,
+    502,
+    JSON.stringify({
+      error: {
+        type: 'upstream_protocol_error',
+        code: 'invalid_upstream_response',
+        message,
+      },
+    }),
+  );
+}
+
+async function readProviderJson(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text.trim()) throw upstreamProtocolError('Upstream provider returned an empty response');
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw upstreamProtocolError('Upstream provider returned malformed JSON');
+  }
+}
+
+function hasMeaningfulChatCompletion(message: unknown): boolean {
+  if (!message || typeof message !== 'object' || Array.isArray(message)) return false;
+  const record = message as Record<string, unknown>;
+  if (typeof record.content === 'string' && record.content.trim()) return true;
+  if (typeof record.reasoning_content === 'string' && record.reasoning_content.trim()) return true;
+  if (
+    Array.isArray(record.content) &&
+    record.content.some(
+      (block) =>
+        !!block &&
+        typeof block === 'object' &&
+        !Array.isArray(block) &&
+        typeof (block as Record<string, unknown>).text === 'string' &&
+        Boolean(((block as Record<string, unknown>).text as string).trim()),
+    )
+  ) {
+    return true;
+  }
+  return (
+    Array.isArray(record.tool_calls) &&
+    record.tool_calls.some((call) => {
+      if (!call || typeof call !== 'object' || Array.isArray(call)) return false;
+      const fn = (call as Record<string, unknown>).function;
+      return (
+        !!fn &&
+        typeof fn === 'object' &&
+        !Array.isArray(fn) &&
+        typeof (fn as Record<string, unknown>).name === 'string' &&
+        Boolean(((fn as Record<string, unknown>).name as string).trim())
+      );
+    })
+  );
+}
+
+function assertChatCompletionIntegrity(responseBody: unknown): void {
+  const body = responseBody as Record<string, unknown> | null;
+  const choices = Array.isArray(body?.choices) ? body.choices : [];
+  const choice = choices[0];
+  if (!choice || typeof choice !== 'object' || Array.isArray(choice)) {
+    throw upstreamProtocolError('Upstream provider returned an empty completion');
+  }
+  const record = choice as Record<string, unknown>;
+  if (!hasMeaningfulChatCompletion(record.message)) {
+    throw upstreamProtocolError('Upstream provider returned an empty completion');
+  }
+  if (typeof record.finish_reason !== 'string' || !record.finish_reason.trim()) {
+    throw upstreamProtocolError('Upstream provider response omitted a terminal finish reason');
+  }
+}
+
+function hasMeaningfulAnthropicContent(content: unknown): boolean {
+  if (typeof content === 'string') return Boolean(content.trim());
+  if (!Array.isArray(content)) return false;
+  return content.some((block) => {
+    if (!block || typeof block !== 'object' || Array.isArray(block)) return false;
+    const record = block as Record<string, unknown>;
+    if (typeof record.text === 'string' && record.text.trim()) return true;
+    if (typeof record.thinking === 'string' && record.thinking.trim()) return true;
+    if (typeof record.data === 'string' && record.data.trim()) return true;
+    if (typeof record.name === 'string' && record.name.trim()) return true;
+    return Array.isArray(record.content) && record.content.length > 0;
+  });
+}
+
+function assertAnthropicCompletionIntegrity(responseBody: unknown): void {
+  const body = responseBody as Record<string, unknown> | null;
+  if (!hasMeaningfulAnthropicContent(body?.content)) {
+    throw upstreamProtocolError('Upstream provider returned an empty completion');
+  }
+  if (typeof body?.stop_reason !== 'string' || !body.stop_reason.trim()) {
+    throw upstreamProtocolError('Upstream provider response omitted a terminal stop reason');
+  }
+}
 
 function recordSafely(promise: Promise<unknown>, label: string): void {
   promise.catch((e) => logger.warn(`Failed to record ${label}: ${e}`));
@@ -518,6 +619,7 @@ export async function handleStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
+  onIntegrityFailure?: (failure: MessagesStreamFailure) => void,
 ): Promise<StreamUsage | null> {
   copySafeProviderResponseHeaders(res, forward.response.headers, apiMode);
   initSseHeaders(res, metaHeaders, 200);
@@ -544,30 +646,42 @@ export async function handleStreamResponse(
   const toClientChunk = streamTransformer
     ? (chunk: string) => streamTransformer.transform(chunk)
     : (chunk: string) => chunk;
+  const complete = async (
+    stream: Promise<StreamUsage | null>,
+    getFailure: () => MessagesStreamFailure | null = () =>
+      messagesTransformer?.getFailure() ?? null,
+  ): Promise<StreamUsage | null> => {
+    const usage = await stream;
+    const failure = getFailure();
+    if (failure) onIntegrityFailure?.(failure);
+    return usage;
+  };
 
   if (apiMode === 'responses' && forward.isResponses) {
-    return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
+    return complete(pipeStream(forward.response.body!, res, undefined, undefined, onClient));
   }
 
   if (forward.isGoogle) {
-    return pipeStream(
-      forward.response.body!,
-      res,
-      (chunk) => {
-        const innerChunk = forward.isCodeAssist ? unwrapCodeAssistStreamPayload(chunk) : chunk;
-        const { chunk: out, signatures } = providerClient.convertGoogleStreamChunk(
-          innerChunk,
-          meta.model,
-        );
-        if (signatureCache && sessionKey) {
-          for (const s of signatures) {
-            signatureCache.store(sessionKey, s.toolCallId, s.signature);
+    return complete(
+      pipeStream(
+        forward.response.body!,
+        res,
+        (chunk) => {
+          const innerChunk = forward.isCodeAssist ? unwrapCodeAssistStreamPayload(chunk) : chunk;
+          const { chunk: out, signatures } = providerClient.convertGoogleStreamChunk(
+            innerChunk,
+            meta.model,
+          );
+          if (signatureCache && sessionKey) {
+            for (const s of signatures) {
+              signatureCache.store(sessionKey, s.toolCallId, s.signature);
+            }
           }
-        }
-        return out ? toClientChunk(out) : null;
-      },
-      finalize,
-      onClient,
+          return out ? toClientChunk(out) : null;
+        },
+        finalize,
+        onClient,
+      ),
     );
   }
   if (forward.isAnthropic) {
@@ -589,30 +703,47 @@ export async function handleStreamResponse(
     // transformer runs purely as a tap — thinking-block cache via callback
     // and OpenAI-shape usage parsed off its return value by pipePassthrough.
     if (apiMode === 'messages') {
-      return pipePassthrough(forward.response.body!, res, anthropicTransformer, onClient);
+      const validator = createAnthropicPassthroughStreamValidator();
+      return complete(
+        pipePassthrough(
+          forward.response.body!,
+          res,
+          (event) => {
+            validator.observe(event);
+            return anthropicTransformer(event);
+          },
+          onClient,
+          () => validator.finalize(),
+        ),
+        () => validator.getFailure(),
+      );
     }
-    return pipeStream(
-      forward.response.body!,
-      res,
-      (chunk) => {
-        const out = anthropicTransformer(chunk);
-        return out ? toClientChunk(out) : null;
-      },
-      finalize,
-      onClient,
+    return complete(
+      pipeStream(
+        forward.response.body!,
+        res,
+        (chunk) => {
+          const out = anthropicTransformer(chunk);
+          return out ? toClientChunk(out) : null;
+        },
+        finalize,
+        onClient,
+      ),
     );
   }
   if (forward.isChatGpt) {
-    return pipeStream(
-      forward.response.body!,
-      res,
-      (chunk) => {
-        const out = providerClient.convertChatGptStreamChunk(chunk, meta.model);
-        if (!messagesTransformer) return out;
-        return out ? toClientChunk(out) : null;
-      },
-      finalize,
-      onClient,
+    return complete(
+      pipeStream(
+        forward.response.body!,
+        res,
+        (chunk) => {
+          const out = providerClient.convertChatGptStreamChunk(chunk, meta.model);
+          if (!messagesTransformer) return out;
+          return out ? toClientChunk(out) : null;
+        },
+        finalize,
+        onClient,
+      ),
     );
   }
   const reasoningStreamFormat = getOpenAiReasoningStreamFormat(meta.provider, meta.model);
@@ -627,21 +758,23 @@ export async function handleStreamResponse(
       onReasoningContent,
       reasoningStreamFormat,
     );
-    return pipeStream(
-      forward.response.body!,
-      res,
-      (chunk) => {
-        const out = transformer(chunk);
-        return out ? toClientChunk(out) : null;
-      },
-      finalize,
-      onClient,
+    return complete(
+      pipeStream(
+        forward.response.body!,
+        res,
+        (chunk) => {
+          const out = transformer(chunk);
+          return out ? toClientChunk(out) : null;
+        },
+        finalize,
+        onClient,
+      ),
     );
   }
   if (apiMode === 'responses' || apiMode === 'messages') {
-    return pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient);
+    return complete(pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient));
   }
-  return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
+  return complete(pipeStream(forward.response.body!, res, undefined, undefined, onClient));
 }
 
 function cacheReasoningContent(
@@ -693,7 +826,7 @@ export async function handleNonStreamResponse(
   if (apiMode === 'responses' && forward.isResponses) {
     responseBody = await readNativeResponsesBody(forward.response);
   } else if (forward.isGoogle) {
-    const rawData = (await forward.response.json()) as Record<string, unknown>;
+    const rawData = (await readProviderJson(forward.response)) as Record<string, unknown>;
     const googleData = forward.isCodeAssist ? unwrapCodeAssistResponse(rawData) : rawData;
     responseBody = providerClient.convertGoogleResponse(googleData, meta.model);
     const sigs = (responseBody as Record<string, unknown>)?._extractedSignatures as
@@ -711,7 +844,7 @@ export async function handleNonStreamResponse(
     // (`server_tool_use`, `web_search_tool_result`, etc.) survive. The
     // OpenAI-shaped converter only knows `text` / `thinking` / `tool_use`
     // and would silently drop the rest.
-    const anthropicData = (await forward.response.json()) as Record<string, unknown>;
+    const anthropicData = (await readProviderJson(forward.response)) as Record<string, unknown>;
     const extracted = extractThinkingBlocksFromMessagesResponse(anthropicData);
     if (extracted && thinkingCache && sessionKey) {
       thinkingCache.store(
@@ -723,7 +856,7 @@ export async function handleNonStreamResponse(
     }
     responseBody = anthropicData;
   } else if (forward.isAnthropic) {
-    const anthropicData = (await forward.response.json()) as Record<string, unknown>;
+    const anthropicData = (await readProviderJson(forward.response)) as Record<string, unknown>;
     responseBody = providerClient.convertAnthropicResponse(anthropicData, meta.model);
     const extracted = (responseBody as Record<string, unknown>)?._extractedThinkingBlocks as
       | ExtractedThinkingBlocks
@@ -743,10 +876,15 @@ export async function handleNonStreamResponse(
     const sseText = await forward.response.text();
     responseBody = providerClient.collectChatGptSseResponse(sseText, meta.model);
   } else {
-    responseBody = await forward.response.json();
+    responseBody = await readProviderJson(forward.response);
     if (supportsReasoningContent(meta.provider, meta.model)) {
       cacheReasoningContent(responseBody, reasoningCache, sessionKey);
     }
+  }
+
+  if (apiMode === 'messages') {
+    if (forward.isAnthropic) assertAnthropicCompletionIntegrity(responseBody);
+    else assertChatCompletionIntegrity(responseBody);
   }
 
   if (apiMode === 'responses' && !forward.isResponses) {

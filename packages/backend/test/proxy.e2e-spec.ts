@@ -114,6 +114,30 @@ describe('Proxy E2E — /v1/models', () => {
   });
 });
 
+describe('Proxy E2E — /v1/messages/count_tokens', () => {
+  it('rejects unauthenticated token counts with HTTP 401', async () => {
+    await api()
+      .post('/v1/messages/count_tokens?beta=true')
+      .send({ messages: [{ role: 'user', content: 'hello' }] })
+      .expect(401);
+  });
+
+  it('returns an authenticated local estimate with HTTP 200', async () => {
+    const res = await bearer(api().post('/v1/messages/count_tokens?beta=true'))
+      .set('anthropic-version', '2023-06-01')
+      .send({
+        model: 'claude-sonnet-4-6',
+        system: 'You are a coding assistant.',
+        messages: [{ role: 'user', content: 'Inspect this repository.' }],
+        tools: [{ name: 'read_file', input_schema: { type: 'object' } }],
+      })
+      .expect(200);
+
+    expect(res.body).toEqual({ input_tokens: expect.any(Number) });
+    expect(res.body.input_tokens).toBeGreaterThan(1);
+  });
+});
+
 describe('Proxy E2E — /v1/chat/completions', () => {
   // Supertest doesn't set Accept by default, and these requests omit
   // `stream: true`, so the exception filter classifies them as non-chat

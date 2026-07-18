@@ -7,6 +7,7 @@ import {
   UseGuards,
   UseFilters,
   Logger,
+  HttpCode,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
@@ -51,6 +52,8 @@ import { redactInlineImageDataUrls } from './inline-image-redaction';
 import { openAiModelId } from './openai-model-id';
 import { PlanService } from '../../billing/plan.service';
 import { isCodingClientApiMode, sendProxyProtocolError } from './proxy-protocol-error';
+import type { MessagesStreamFailure } from './anthropic-messages-adapter';
+import { countAnthropicInputTokens } from './anthropic-token-count';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
@@ -162,6 +165,12 @@ export class ProxyController {
     @Res() res: ExpressResponse,
   ): Promise<void> {
     await this.handleProxyRequest(req, res, 'messages');
+  }
+
+  @Post('messages/count_tokens')
+  @HttpCode(HttpStatus.OK)
+  countMessageTokens(@Req() req: Request): { input_tokens: number } {
+    return { input_tokens: countAnthropicInputTokens(req.body) };
   }
 
   private async handleProxyRequest(
@@ -333,6 +342,7 @@ export class ProxyController {
       );
 
       let streamUsage = null;
+      let streamIntegrityFailure: MessagesStreamFailure | null = null;
 
       const shouldStreamResponse = isStream || meta.response_mode === 'stream';
 
@@ -349,6 +359,9 @@ export class ProxyController {
           this.thinkingCache,
           apiMode,
           this.reasoningCache,
+          (failure) => {
+            streamIntegrityFailure = failure;
+          },
         );
       } else {
         streamUsage = await handleNonStreamResponse(
@@ -370,6 +383,33 @@ export class ProxyController {
       // Manifest failure, not a completion. Record it as one.
       if (meta.manifest_error_code) {
         this.recordManifestStub(req, meta, traceId, sessionKey, callerAttribution, requestHeaders);
+      } else if (streamIntegrityFailure) {
+        const failure: MessagesStreamFailure = streamIntegrityFailure;
+        this.logger.error(
+          `Upstream stream integrity failure: provider=${meta.provider} model=${meta.model} ${failure.message}`,
+        );
+        this.recorder
+          .recordProviderError(req.ingestionContext, failure.status, failure.message, {
+            model: meta.model,
+            provider: meta.provider,
+            tier: meta.tier,
+            traceId,
+            fallbackFromModel: meta.fallbackFromModel,
+            fallbackIndex: meta.fallbackIndex,
+            authType: meta.auth_type,
+            reason: meta.reason,
+            specificityCategory: meta.specificity_category,
+            providerKeyLabel: meta.provider_key_label,
+            tenantProviderId: meta.tenantProviderId,
+            callerAttribution,
+            requestHeaders,
+            requestParams: meta.request_params,
+            headerTierId: meta.header_tier_id,
+            headerTierName: meta.header_tier_name,
+            headerTierColor: meta.header_tier_color,
+            autofix,
+          })
+          .catch((e) => this.logger.warn(`Failed to record stream integrity error: ${e}`));
       } else {
         recordSuccess(
           req.ingestionContext,
