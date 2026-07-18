@@ -73,6 +73,14 @@ const PROVIDER_TIMEOUT_MS =
   Number.isFinite(parsedProviderTimeout) && parsedProviderTimeout > 0
     ? parsedProviderTimeout
     : 180_000;
+const parsedProviderStreamTimeout = Number.parseInt(
+  process.env.PROVIDER_STREAM_TIMEOUT_MS ?? '',
+  10,
+);
+const PROVIDER_STREAM_TIMEOUT_MS =
+  Number.isFinite(parsedProviderStreamTimeout) && parsedProviderStreamTimeout > 0
+    ? parsedProviderStreamTimeout
+    : 180_000;
 const QWEN_TOKEN_PLAN_RESPONSES_RE = /^qwen3\.7-max$/i;
 const COPILOT_CHAT_COMPLETIONS_ENDPOINT = '/chat/completions';
 const COPILOT_RESPONSES_ENDPOINTS = new Set(['/responses', 'ws:/responses']);
@@ -256,7 +264,7 @@ export class ProviderClient {
         body: requestSource,
         stream,
         signal,
-        timeoutMs: PROVIDER_TIMEOUT_MS,
+        timeoutMs: stream ? PROVIDER_STREAM_TIMEOUT_MS : PROVIDER_TIMEOUT_MS,
         extraHeaders,
       });
       return {
@@ -706,9 +714,11 @@ export class ProviderClient {
     // only until fetch() resolves its headers. Streaming fetches resolve as
     // soon as HTTP 200 headers arrive; clearing their timer at that point let
     // body reads run past Cloudflare's proxy window and surface downstream as
-    // a truncated HTTP 200. AbortSignal.timeout remains active while the body
-    // is consumed, so reader.read() rejects with TimeoutError at the deadline.
-    const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
+    // a truncated HTTP 200. Streaming gets its own bounded deadline because
+    // the response writer sends SSE heartbeats while the provider is quiet;
+    // buffered calls still use the shorter general provider deadline.
+    const timeoutMs = stream ? PROVIDER_STREAM_TIMEOUT_MS : PROVIDER_TIMEOUT_MS;
+    const timeoutSignal = AbortSignal.timeout(timeoutMs);
     const fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
 
     let response: Response;

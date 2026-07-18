@@ -184,12 +184,27 @@ export function initSseHeaders(
 }
 
 const MAX_SSE_BUFFER_SIZE = DEFAULT_MAX_SSE_BUFFER_SIZE;
+export const SSE_HEARTBEAT_INTERVAL_MS = 15_000;
+const SSE_HEARTBEAT = ': manifest-keepalive\n\n';
+
+function startSseHeartbeat(dest: ExpressResponse): ReturnType<typeof setInterval> {
+  const timer = setInterval(() => {
+    if (dest.writableEnded || dest.destroyed) return;
+    // SSE comments are ignored by Anthropic/OpenAI clients and by our content
+    // validators, but they keep named Cloudflare Tunnel responses streaming
+    // while an upstream provider is quiet for a long reasoning interval.
+    dest.write(SSE_HEARTBEAT);
+  }, SSE_HEARTBEAT_INTERVAL_MS);
+  if (typeof timer === 'object' && 'unref' in timer) timer.unref();
+  return timer;
+}
 
 /**
- * Forward an SSE stream byte-for-byte from `source` to `dest` while running a
- * `tap` parser over the parsed events for telemetry side effects. The wire
- * bytes are written unchanged, so SSE framing (`event:` headers, multi-line
- * `data:` payloads, blank-line separators) is preserved end-to-end. Used by
+ * Forward provider SSE bytes unchanged from `source` to `dest` while running a
+ * `tap` parser over the parsed events for telemetry side effects. Gateway-owned
+ * keepalive comments may be interleaved while the provider is quiet; provider
+ * SSE framing (`event:` headers, multi-line `data:` payloads, blank-line
+ * separators) is preserved end-to-end. Used by
  * the `/v1/messages` → Anthropic passthrough path where translation must
  * NOT touch the wire format but Manifest still needs to extract usage and
  * cache thinking blocks.
@@ -210,6 +225,7 @@ export async function pipePassthrough(
   const decoder = new TextDecoder();
   let capturedUsage: StreamUsage | null = null;
   const parser = createSsePayloadParser({ maxBufferSize: MAX_SSE_BUFFER_SIZE });
+  const heartbeat = startSseHeartbeat(dest);
 
   try {
     let done = false;
@@ -264,6 +280,7 @@ export async function pipePassthrough(
       if (onClientChunk) onClientChunk(trailing);
     }
   } finally {
+    clearInterval(heartbeat);
     if (!dest.writableEnded) dest.end();
     reader.releaseLock();
   }
@@ -282,6 +299,7 @@ export async function pipeStream(
   const reader = source.getReader();
   const decoder = new TextDecoder();
   let capturedUsage: StreamUsage | null = null;
+  const heartbeat = startSseHeartbeat(dest);
 
   const writeOut = (s: string): void => {
     dest.write(s);
@@ -366,6 +384,7 @@ export async function pipeStream(
     const trailing = onSourceError(error);
     if (trailing && !dest.writableEnded) writeOut(trailing);
   } finally {
+    clearInterval(heartbeat);
     reader.releaseLock();
     if (!dest.writableEnded) dest.end();
   }

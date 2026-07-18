@@ -4,6 +4,7 @@ import {
   pipeStream,
   extractUsageFromSse,
   parseUsageObject,
+  SSE_HEARTBEAT_INTERVAL_MS,
 } from '../stream-writer';
 import { createSsePayloadParser } from '../sse-parser';
 
@@ -78,6 +79,36 @@ describe('initSseHeaders', () => {
 
     expect(headers['Content-Type']).toBe('text/event-stream');
     expect(res.flushHeaders).toHaveBeenCalled();
+  });
+});
+
+describe('SSE heartbeats', () => {
+  it('keeps a quiet stream active without counting the comment as client content', async () => {
+    jest.useFakeTimers();
+    try {
+      const { res, written } = mockResponse();
+      const onClientChunk = jest.fn();
+      let controller!: ReadableStreamDefaultController<Uint8Array>;
+      const stream = new ReadableStream<Uint8Array>({
+        start(value) {
+          controller = value;
+        },
+      });
+
+      const pending = pipeStream(stream, res as never, undefined, undefined, onClientChunk);
+      await Promise.resolve();
+
+      jest.advanceTimersByTime(SSE_HEARTBEAT_INTERVAL_MS);
+      expect(written).toEqual([': manifest-keepalive\n\n']);
+      expect(onClientChunk).not.toHaveBeenCalled();
+
+      controller.close();
+      await pending;
+      jest.advanceTimersByTime(SSE_HEARTBEAT_INTERVAL_MS);
+      expect(written).toHaveLength(1);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
 

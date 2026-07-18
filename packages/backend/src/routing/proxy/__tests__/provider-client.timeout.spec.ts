@@ -1,10 +1,10 @@
-// Tests that the PROVIDER_TIMEOUT_MS abort signal actually fires and
+// Tests that the provider abort signals actually fire and
 // aborts the in-flight fetch. The existing AbortSignal passthrough
 // tests in provider-client.spec.ts only verify the signal is *created*
 // and combined — they mock fetch to resolve immediately, so the timeout
 // behavior is never exercised.
 //
-// PROVIDER_TIMEOUT_MS is captured at module import time, so each test
+// Provider timeout values are captured at module import time, so each test
 // imports a fresh copy of the module under jest.isolateModulesAsync
 // with a short timeout override. The fetch mock returns a promise that
 // only settles when the signal aborts — if the timeout doesn't fire,
@@ -23,6 +23,7 @@ const body = {
 
 describe('ProviderClient — timeout signal actually aborts the in-flight fetch', () => {
   const originalEnv = process.env.PROVIDER_TIMEOUT_MS;
+  const originalStreamEnv = process.env.PROVIDER_STREAM_TIMEOUT_MS;
 
   beforeEach(() => {
     mockFetch.mockReset();
@@ -31,6 +32,8 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
   afterEach(() => {
     if (originalEnv === undefined) delete process.env.PROVIDER_TIMEOUT_MS;
     else process.env.PROVIDER_TIMEOUT_MS = originalEnv;
+    if (originalStreamEnv === undefined) delete process.env.PROVIDER_STREAM_TIMEOUT_MS;
+    else process.env.PROVIDER_STREAM_TIMEOUT_MS = originalStreamEnv;
   });
 
   it('fires PROVIDER_TIMEOUT_MS abort on pending fetch and surfaces the error', async () => {
@@ -147,7 +150,8 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
   }, 5000);
 
   it('keeps the timeout active through a streaming response body', async () => {
-    process.env.PROVIDER_TIMEOUT_MS = '25';
+    process.env.PROVIDER_TIMEOUT_MS = '5';
+    process.env.PROVIDER_STREAM_TIMEOUT_MS = '25';
 
     let fetchSignal: AbortSignal | undefined;
     mockFetch.mockImplementation((_url: string, init: RequestInit) => {
