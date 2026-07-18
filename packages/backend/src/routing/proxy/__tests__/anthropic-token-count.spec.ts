@@ -58,4 +58,16 @@ describe('countAnthropicInputTokens', () => {
       countAnthropicInputTokens({ messages: [{ role: 'user', content: [content, content] }] }),
     ).toBeGreaterThan(1);
   });
+
+  it('counts scalar metadata and tolerates cyclic arrays', () => {
+    const cyclic: unknown[] = [42, true];
+    cyclic.push(cyclic);
+
+    const count = countAnthropicInputTokens({
+      system: cyclic,
+      messages: [{ role: 'user', content: false }],
+    });
+
+    expect(count).toBeGreaterThan(1);
+  });
 });

@@ -1416,6 +1416,13 @@ describe('proxy-response-handler', () => {
       const sessionKey = 'sess-reasoning-stream';
       const transformer = jest.fn((chunk: string) => `data: ${chunk}\n\n`);
       client.createReasoningContentStreamTransformer.mockReturnValue(transformer);
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_body: unknown, _res: unknown, transform?: (chunk: string) => string | null) => {
+          capturedTransform = transform;
+          return null;
+        },
+      );
 
       await handleStreamResponse(
         res as any,
@@ -1438,6 +1445,9 @@ describe('proxy-response-handler', () => {
         'call_1',
         'streamed reasoning',
       );
+      expect(capturedTransform!('reasoning')).toBe('data: reasoning\n\n');
+      transformer.mockReturnValueOnce(null as unknown as string);
+      expect(capturedTransform!('empty')).toBeNull();
       expect(pipeStreamSpy).toHaveBeenCalledWith(
         forward.response.body,
         res,
@@ -1606,6 +1616,136 @@ describe('proxy-response-handler', () => {
         message: 'Upstream provider response omitted a terminal finish reason',
       });
       expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['reasoning content', { role: 'assistant', content: '', reasoning_content: 'worked it out' }],
+      [
+        'content blocks',
+        { role: 'assistant', content: [null, [], {}, { type: 'text', text: 'answer' }] },
+      ],
+      [
+        'a named tool call',
+        {
+          role: 'assistant',
+          content: null,
+          tool_calls: [null, [], {}, { function: null }, { function: { name: 'read_file' } }],
+        },
+      ],
+    ])('accepts a terminal chat completion with meaningful %s', async (_label, message) => {
+      const { res } = mockResponse();
+      const forward = mockForward({ choices: [{ message, finish_reason: 'stop' }] });
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          forward as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).resolves.toMatchObject({ prompt_tokens: 0, completion_tokens: 0 });
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it.each([
+      ['no choices', { choices: [] }],
+      ['an array message', { choices: [{ message: [], finish_reason: 'stop' }] }],
+      [
+        'only malformed content blocks',
+        { choices: [{ message: { content: [null, [], {}] }, finish_reason: 'stop' }] },
+      ],
+    ])('rejects a chat completion with %s', async (_label, body) => {
+      const { res } = mockResponse();
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          mockForward(body) as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({
+        status: 502,
+        message: 'Upstream provider returned an empty completion',
+      });
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['string text', 'answer'],
+      ['text block', [{ type: 'text', text: 'answer' }]],
+      ['thinking block', [{ type: 'thinking', thinking: 'working' }]],
+      ['data block', [{ type: 'document', data: 'payload' }]],
+      ['named tool block', [{ type: 'tool_use', name: 'read_file' }]],
+      ['nested content block', [{ type: 'container', content: [{ type: 'text', text: 'x' }] }]],
+    ])('accepts a terminal native Anthropic completion with %s', async (_label, content) => {
+      const { res } = mockResponse();
+      const body = { content, stop_reason: 'end_turn' };
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          mockForward(body, { isAnthropic: true }) as any,
+          makeMeta({ provider: 'anthropic', model: 'claude-sonnet-4-6' }),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).resolves.toBeNull();
+      expect(res.json).toHaveBeenCalledWith(body);
+    });
+
+    it('rejects malformed native Anthropic content and a missing stop reason', async () => {
+      const malformed = mockForward(
+        { content: [null, [], {}], stop_reason: 'end_turn' },
+        { isAnthropic: true },
+      );
+      const truncated = mockForward(
+        { content: [{ type: 'text', text: 'partial' }] },
+        { isAnthropic: true },
+      );
+
+      await expect(
+        handleNonStreamResponse(
+          mockResponse().res as any,
+          malformed as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({ message: 'Upstream provider returned an empty completion' });
+      await expect(
+        handleNonStreamResponse(
+          mockResponse().res as any,
+          truncated as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({
+        message: 'Upstream provider response omitted a terminal stop reason',
+      });
     });
 
     it('should convert Google response and extract usage', async () => {

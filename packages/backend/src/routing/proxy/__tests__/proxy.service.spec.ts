@@ -1017,6 +1017,66 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
+    it('uses an Anthropic API key for the classifier when no subscription is connected', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({
+          id: 'claude-sonnet-5',
+          provider: 'anthropic',
+          authType: 'api_key',
+        }),
+      ]);
+
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          headers: {
+            'user-agent': 'claude-cli/2.1.212 (external, claude-vscode)',
+            'anthropic-beta': 'claude-code-20250219',
+          },
+          body: {
+            model: 'claude-sonnet-5',
+            max_tokens: 256,
+            messages: [{ role: 'user', content: 'classify' }],
+          },
+        }),
+      );
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'anthropic', authType: 'api_key' }),
+      );
+    });
+
+    it('returns model-not-available when the classifier model has no Anthropic route', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-5.6-sol', provider: 'openai', authType: 'subscription' }),
+      ]);
+
+      const result = await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          headers: {
+            'user-agent': ['claude-cli/2.1.212 (external, claude-vscode)'] as never,
+            'x-stainless-timeout': '60',
+            'anthropic-beta': ['claude-code-20250219'] as never,
+          },
+          body: {
+            model: 'claude-sonnet-5',
+            max_tokens: 256,
+            messages: [{ role: 'user', content: 'classify' }],
+          },
+        }),
+      );
+      const body = await result.forward.response.text();
+
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(body).toContain('M302');
+      expect(body).toContain('claude-sonnet-5');
+      expect(result.meta).toMatchObject({
+        reason: 'model_not_available',
+        manifest_error_code: 'M302',
+      });
+    });
+
     it('does not pin ordinary Messages requests when claude-code is only a beta substring', async () => {
       await svc.proxyRequest(
         baseOpts({

@@ -415,7 +415,8 @@ export function extractThinkingBlocksFromMessagesResponse(
   if (!Array.isArray(content)) return undefined;
   let firstToolUseId: string | null = null;
   const blocks: ThinkingBlock[] = [];
-  for (const block of content as Array<Record<string, unknown>>) {
+  for (const block of content) {
+    if (!isObjectRecord(block)) continue;
     if (block.type === 'thinking' || block.type === 'redacted_thinking') {
       blocks.push(block as ThinkingBlock);
     } else if (

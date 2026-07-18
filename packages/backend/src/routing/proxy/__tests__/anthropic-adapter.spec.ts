@@ -2208,6 +2208,20 @@ describe('Anthropic Adapter', () => {
   });
 
   describe('applyAnthropicMessagesMutations', () => {
+    it('returns a shallow native-body copy when no subscription identity mutation is needed', () => {
+      const inbound = {
+        model: 'claude-sonnet-4-6',
+        system: 'Native system',
+        messages: [{ role: 'user', content: 'hello' }],
+      };
+
+      const result = applyAnthropicMessagesMutations(inbound, { preserveNativeBody: true });
+
+      expect(result).toEqual(inbound);
+      expect(result).not.toBe(inbound);
+      expect(result.system).toBe('Native system');
+    });
+
     it('adds only subscription identity/cache fields to a native Claude body', () => {
       const inbound = {
         model: 'claude-sonnet-4-6',

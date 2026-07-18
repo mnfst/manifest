@@ -1357,5 +1357,59 @@ describe('Anthropic Messages adapter', () => {
       expect(validator.finalize()).toBeNull();
       expect(validator.getFailure()).toEqual({ status: 429, message: 'Slow down' });
     });
+
+    it.each([
+      ['text', { type: 'text', text: 'hello' }],
+      ['thinking', { type: 'thinking', thinking: 'working' }],
+      ['data', { type: 'document', data: 'payload' }],
+      ['tool name', { type: 'tool_use', name: 'read_file' }],
+      ['nested content', { type: 'container', content: [{ type: 'text', text: 'inside' }] }],
+    ])('accepts meaningful native content_block_start output from %s', (_label, block) => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe(
+        `event: content_block_start\ndata: ${JSON.stringify({
+          type: 'content_block_start',
+          index: 0,
+          content_block: block,
+        })}\n\n`,
+      );
+      validator.observe('event: message_stop\ndata: {"type":"message_stop"}\n\n');
+
+      expect(validator.finalize()).toBeNull();
+      expect(validator.getFailure()).toBeNull();
+    });
+
+    it.each([
+      ['authentication_error', 401],
+      ['permission_error', 403],
+      ['invalid_request_error', 400],
+      ['overloaded_error', 529],
+      ['unknown_provider_error', 502],
+    ])('maps native Anthropic %s events to HTTP %i telemetry', (type, status) => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe(
+        `event: error\ndata: ${JSON.stringify({
+          type: 'error',
+          error: { type, message: 'provider failed' },
+        })}\n\n`,
+      );
+
+      expect(validator.finalize()).toBeNull();
+      expect(validator.getFailure()).toEqual({ status, message: 'provider failed' });
+    });
+
+    it('ignores malformed events and uses safe defaults for malformed native errors', () => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe('event: ping\ndata: {not-json}\n\ndata: {"type":123}\n\n');
+      validator.observe(
+        'event: error\ndata: {"type":"error","error":{"type":123,"message":false}}\n\n',
+      );
+
+      expect(validator.finalize()).toBeNull();
+      expect(validator.getFailure()).toEqual({
+        status: 502,
+        message: 'Upstream provider stream failed',
+      });
+    });
   });
 });
