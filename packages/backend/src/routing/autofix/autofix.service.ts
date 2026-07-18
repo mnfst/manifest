@@ -8,6 +8,7 @@ import { Tenant } from '../../entities/tenant.entity';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import type { ForwardResult } from '../proxy/provider-client';
 import type { ProxyApiMode } from '../proxy/proxy-types';
+import type { AuthType } from 'manifest-shared';
 import { HEALING_CLIENT, HealContractError, type HealingClient } from './healing-client';
 import { normalizeProviderError } from './provider-error-normalizer';
 import type { AutofixChainEntry, AutofixRecord } from './autofix.types';
@@ -18,6 +19,7 @@ export interface MaybeHealParams {
   agentId: string;
   tenantId: string;
   provider: string;
+  authType: AuthType;
   apiMode: ProxyApiMode;
   /** The request body that was actually forwarded and failed. */
   requestBody: Record<string, unknown>;
@@ -36,7 +38,7 @@ export interface MaybeHealParams {
 }
 
 export interface AutofixAttempt {
-  /** Forward to continue with: a healed 200, or the original error rebuilt. */
+  /** Forward to continue with: the latest provider response, rebuilt if consumed. */
   forward: ForwardResult;
   record: AutofixRecord;
 }
@@ -382,6 +384,7 @@ export class AutofixService {
         traceId: groupId,
         tenantId: params.tenantId,
         provider: params.provider,
+        authType: params.authType,
         api: params.apiMode,
         url: params.url,
         request: phoenixRequest,
@@ -480,16 +483,25 @@ export class AutofixService {
       };
     }
 
-    // The patch didn't clear the error. Report the retry outcome to Phoenix and
-    // give up — a single attempt, no re-heal.
+    // The patch didn't clear the error. Preserve that retry as its own provider
+    // attempt, report it to Phoenix, and continue with its rebuilt response so
+    // fallback and terminal recording see what actually happened last.
     const retryText = await next.response.text();
+    const retryError = normalizeProviderError(retryText);
+    chain.push({
+      attempt: 1,
+      origin: 'autofix',
+      request: bodyToReforward,
+      http_status: next.response.status,
+      error: retryError,
+    });
     this.reportOutcome(healAttemptId, {
       retryStatusCode: next.response.status,
-      error: normalizeProviderError(retryText),
+      error: retryError,
     });
     return {
-      forward: originalForward,
-      record: { groupId, outcome: 'unfixable', original_http_status: status, chain },
+      forward: rebuildForward(next, retryText, next.response.status),
+      record: { groupId, outcome: 'exhausted', original_http_status: status, chain },
     };
   }
 

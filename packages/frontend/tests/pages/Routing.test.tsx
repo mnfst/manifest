@@ -191,7 +191,6 @@ vi.mock('../../src/components/RoutingModals.js', () => ({
       props.specificityAssignments,
       props.customProviders,
       props.connectedProviders,
-      props.onOpenProviderModal,
       props.onProviderPoll,
     ];
     void _read;
@@ -274,12 +273,6 @@ vi.mock('../../src/components/RoutingModals.js', () => ({
           }
         >
           spec-override
-        </button>
-        <button
-          data-testid="modal-trigger-open-provider"
-          onClick={() => (props.onOpenProviderModal as () => void)?.()}
-        >
-          open-provider
         </button>
         <button
           data-testid="modal-trigger-provider-update"
@@ -1108,20 +1101,6 @@ describe('Routing page', () => {
     });
   });
 
-  it('opens the provider modal via the modals onOpenProviderModal handler', async () => {
-    // The standalone "Connect providers" button was removed; the modal is now
-    // opened through the onOpenProviderModal callback (fired by the pickers'
-    // "connect providers" affordance), which RoutingModals receives.
-    render(() => <Routing />);
-    await waitFor(() => {
-      expect(screen.getByTestId('modal-trigger-open-provider')).toBeDefined();
-    });
-    fireEvent.click(screen.getByTestId('modal-trigger-open-provider'));
-    await waitFor(() => {
-      expect((lastModalsProps?.showProviderModal as () => boolean)()).toBe(true);
-    });
-  });
-
   it('provides a lightweight onProviderPoll that only refetches providers', async () => {
     render(() => <Routing />);
     await waitFor(() => {
@@ -1429,23 +1408,6 @@ describe('Routing page', () => {
     });
   });
 
-  it('closes the provider modal via the modals onProviderModalClose handler', async () => {
-    render(() => <Routing />);
-    await waitFor(() => {
-      expect(screen.getByTestId('modal-trigger-open-provider')).toBeDefined();
-    });
-    fireEvent.click(screen.getByTestId('modal-trigger-open-provider'));
-    // After opening, showProviderModal accessor reports true.
-    await waitFor(() => {
-      expect((lastModalsProps?.showProviderModal as () => boolean)()).toBe(true);
-    });
-    fireEvent.click(screen.getByTestId('modal-trigger-provider-close'));
-    // After close, the signal flips back to false.
-    await waitFor(() => {
-      expect((lastModalsProps?.showProviderModal as () => boolean)()).toBe(false);
-    });
-  });
-
   it('closes the instruction modal via onInstructionClose', async () => {
     render(() => <Routing />);
     await waitFor(() => {
@@ -1664,41 +1626,6 @@ describe('Routing page', () => {
       baseUrl: undefined,
       apiKey: undefined,
       models: undefined,
-    });
-  });
-
-  it('opens the instruction modal when closing the provider modal after a fresh enable', async () => {
-    // Step 1: render with a connected-but-inactive provider.
-    mockGetProviders.mockResolvedValueOnce([
-      {
-        ...baseProvider,
-        is_active: false,
-      },
-    ]);
-    render(() => <Routing />);
-    // Wait until the providers resource has resolved with the inactive
-    // provider. The empty-state ("No providers connected") only renders once
-    // loading is done, which guarantees the openProviderModal snapshot below
-    // sees hadProviders=true (a connected-but-inactive provider exists).
-    await waitFor(() => {
-      expect(screen.getByText('No providers connected')).toBeDefined();
-    });
-    // Step 2: open the provider modal (snapshots wasEnabled=false, hadProviders=true).
-    fireEvent.click(screen.getByTestId('modal-trigger-open-provider'));
-    // Step 3: simulate the modal closing AFTER provider became active.
-    mockGetProviders.mockResolvedValue([baseProvider]); // active provider
-    // Trigger a refetch path so connectedProviders updates to is_active=true.
-    fireEvent.click(screen.getByTestId('modal-trigger-provider-update'));
-    await waitFor(() => {
-      expect(mockGetProviders).toHaveBeenCalledTimes(2);
-    });
-    fireEvent.click(screen.getByTestId('modal-trigger-provider-close'));
-    // closeProviderModal sets instructionModal to 'enable' because
-    // wasEnabledBeforeModal()=false, isEnabled()=true now, hadProvidersBeforeModal()=true.
-    await waitFor(() => {
-      expect((lastModalsProps?.instructionModal as () => string | null)()).toBe('enable');
-      // And the provider modal flipped back to closed.
-      expect((lastModalsProps?.showProviderModal as () => boolean)()).toBe(false);
     });
   });
 

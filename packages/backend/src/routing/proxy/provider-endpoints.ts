@@ -108,7 +108,7 @@ const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
 const BYTEPLUS_CODING_BASE = 'https://ark.ap-southeast.bytepluses.com/api/coding';
 const COMMAND_CODE_PROVIDER_BASE = 'https://api.commandcode.ai/provider';
 const KIMI_CODING_SUBSCRIPTION_BASE = 'https://api.kimi.com/coding';
-const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
+const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic/v1';
 const XIAOMI_MIMO_BASE = 'https://api.xiaomimimo.com';
 const XIAOMI_TOKEN_PLAN_BASE = getXiaomiTokenPlanBaseUrl();
 const QWEN_TOKEN_PLAN_BASE = 'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode';
@@ -275,7 +275,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   'minimax-subscription': {
     baseUrl: MINIMAX_SUBSCRIPTION_BASE,
     buildHeaders: anthropicBearerHeaders,
-    buildPath: () => '/v1/messages',
+    buildPath: () => '/messages',
     format: 'anthropic',
   },
   xiaomi: {
@@ -515,7 +515,10 @@ export function buildEndpointOverride(baseUrl: string, templateKey: string): Pro
   }
   return {
     ...template,
-    baseUrl: normalizeProviderBaseUrl(baseUrl),
+    baseUrl:
+      templateKey === 'minimax-subscription'
+        ? baseUrl.replace(/\/+$/, '')
+        : normalizeProviderBaseUrl(baseUrl),
     // The base URL came from a user-supplied source (Qwen region selector,
     // MiniMax OAuth resource URL). Treat it as an SSRF candidate and
     // re-validate before each forward.

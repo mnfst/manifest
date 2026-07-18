@@ -14,7 +14,7 @@ describe('UpgradeSuccessModal', () => {
     const onClose = vi.fn();
     render(() => <UpgradeSuccessModal open onClose={onClose} />);
 
-    expect(screen.getByText("You're on the Pro plan")).toBeDefined();
+    expect(screen.getByText("You're now on the Pro plan")).toBeDefined();
     expect(screen.getByText('Unlimited routed requests')).toBeDefined();
     expect(screen.getByText('365 days dashboard retention')).toBeDefined();
 

@@ -12,6 +12,12 @@ const [routingPing, setRoutingPing] = createSignal(0);
 
 export { pingCount, messagePing, agentPing, routingPing };
 
+/** Refresh views derived from the harness list after a local mutation. */
+export function refreshAgents(): void {
+  invalidateGroup('agent');
+  setAgentPing((n) => n + 1);
+}
+
 export function connectSse(): () => void {
   const es = new EventSource('/api/v1/events');
 
@@ -50,8 +56,7 @@ export function connectSse(): () => void {
   });
   es.addEventListener('agent', () => {
     // Drop agent-list/per-agent GET cache before the agentPing refetch reads it.
-    invalidateGroup('agent');
-    setAgentPing((n) => n + 1);
+    refreshAgents();
     bumpPing();
   });
   es.addEventListener('routing', () => {

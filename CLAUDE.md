@@ -1,12 +1,12 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-06-15
+Last updated: 2026-07-13
 
 ## What Manifest Is
 
 Manifest is a smart model router for **AI agents**. It sits between an agent and its LLM providers, scores each request, and routes it to the cheapest model that can handle it. The dashboard tracks costs, tokens, and messages across any agent that speaks OpenAI-compatible HTTP.
 
-**Supported agents** (configured in `packages/shared/src/agent-type.ts`): OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL, and a generic `other` slot. OpenClaw remains the deepest integration, but no new code or copy should frame Manifest as OpenClaw-only. When adding examples, prefer "AI agent" as the noun and pick OpenClaw as the worked example rather than the sole target. Manifest is consumed as a generic OpenAI-compatible HTTP endpoint — there are no first-party OpenClaw plugins in this repo anymore.
+**Supported agents**: see `AGENT_PLATFORMS` in `packages/shared/src/agent-type.ts` for the current list (OpenClaw, Hermes, Claude Code, OpenCode, generic OpenAI/Anthropic SDK slots, and others — don't duplicate the list here, it grows independently of this doc). OpenClaw remains the deepest integration, but no new code or copy should frame Manifest as OpenClaw-only. When adding examples, prefer "AI agent" as the noun and pick OpenClaw as the worked example rather than the sole target. Manifest is consumed as a generic OpenAI-compatible HTTP endpoint — there are no first-party OpenClaw plugins in this repo anymore.
 
 Wingman — the gateway tester for sending requests against a Manifest backend while impersonating any of the supported agents (useful for routing/header-classifier reproductions) — lives in its own repo at [`mnfst/wingman`](https://github.com/mnfst/wingman) and is hosted at [`wingman.manifest.build`](https://wingman.manifest.build). The dashboard embeds it as an iframe drawer **in dev mode only** — it is dead-code-eliminated from production / self-hosted bundles via `__DEV_MODE__`. The backend allows the hosted Wingman origin through CORS in both dev and production (production also honors `WINGMAN_CORS_ORIGINS`), while the CSP `frame-src` that permits the drawer iframe stays dev-only; both are wired in `packages/backend/src/cors-csp-config.ts`.
 
@@ -83,7 +83,7 @@ packages/
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
 │   │   │   └── seed-messages.ts             # Demo agent message seed data
-│   │   ├── entities/                        # TypeORM entities (20 files)
+│   │   ├── entities/                        # TypeORM entities (22 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
@@ -126,6 +126,10 @@ packages/
 │   │   ├── public-stats/                    # Public aggregate usage endpoints (opt-in)
 │   │   ├── free-models/                     # Free LLM model catalog
 │   │   ├── model-discovery/                 # Per-provider model fetching + fallback
+│   │   ├── billing/                         # Stripe billing status + plan limits
+│   │   ├── error-pages/                     # Custom error-page config (internal + public)
+│   │   ├── waitlist/                        # Early-access waitlist signup (e.g. Auto-fix)
+│   │   ├── cors-csp-config.ts               # Wingman CORS/CSP origin allowlists
 │   │   └── telemetry/                       # Anonymous self-hosted telemetry
 │   └── test/                                # E2E tests (supertest)
 ├── frontend/
@@ -143,17 +147,19 @@ packages/
 │   │   │   ├── Login.tsx, Register.tsx       # Auth pages
 │   │   │   ├── ResetPassword.tsx            # Password reset flow
 │   │   │   ├── Workspace.tsx                # Agent grid + create agent
-│   │   │   ├── Overview.tsx                 # Agent dashboard
+│   │   │   ├── GlobalOverview.tsx, AgentOverview.tsx # Cross-agent + per-agent dashboards (split from one Overview.tsx)
+│   │   │   ├── AgentDetail.tsx, AgentProviders.tsx   # Per-agent detail + provider connections
 │   │   │   ├── MessageLog.tsx               # Paginated messages
 │   │   │   ├── Account.tsx                  # User profile (session data)
-│   │   │   ├── Settings.tsx                 # Agent settings
-│   │   │   ├── Routing.tsx                  # LLM routing config
+│   │   │   ├── Settings.tsx, SettingsAutofixSection.tsx # Agent settings + Auto-fix toggle
+│   │   │   ├── Routing.tsx, RoutingPanels.tsx, RoutingActions.tsx, RoutingDefaultTierSection.tsx, RoutingHeaderTiersSection.tsx, RoutingSpecificitySection.tsx, RoutingTierCard.tsx # LLM routing config (split by concern)
 │   │   │   ├── Limits.tsx                   # Alert rule management (token/cost thresholds)
 │   │   │   ├── ModelPrices.tsx              # Model pricing table
 │   │   │   ├── Playground.tsx               # Prompt playground
-│   │   │   ├── ConnectProvider.tsx          # Provider connection flow
+│   │   │   ├── ConnectProvider.tsx, providers/       # Provider connection flow
 │   │   │   ├── FreeModels.tsx               # Free model catalog
 │   │   │   ├── Setup.tsx                    # First-run setup wizard
+│   │   │   ├── Upgrade.tsx                  # Billing/plan upgrade page
 │   │   │   ├── Help.tsx                     # Help page
 │   │   │   └── NotFound.tsx                 # 404 page
 │   │   ├── services/
@@ -257,7 +263,7 @@ npm test --workspace=packages/frontend         # Vitest tests
 
 ### Database Migrations
 
-TypeORM migrations run automatically on app startup (`migrationsRun: true`). Schema sync (`synchronize`) is permanently disabled — all schema changes must go through migrations.
+TypeORM migrations run automatically on app startup by default (gated by `RUN_MIGRATIONS_ON_BOOT`, default `true`). Schema sync (`synchronize`) is permanently disabled — all schema changes must go through migrations.
 
 **Dev workflow:** modify entity → generate migration → commit both.
 
@@ -284,7 +290,7 @@ New migrations must be imported in `database.module.ts` and added to the `migrat
 Three global guards run on every request (order matters):
 
 1. **SessionGuard** (`auth/session.guard.ts`) — Checks `@Public()` first. If not public, validates the Better Auth cookie session via `auth.api.getSession()`. Attaches `request.user` and `request.session`.
-2. **ApiKeyGuard** (`common/guards/api-key.guard.ts`) — Falls through if session already set. Otherwise checks `X-API-Key` header against `API_KEY` env var (timing-safe compare). Use `@Public()` to skip both guards.
+2. **ApiKeyGuard** (`common/guards/api-key.guard.ts`) — Falls through if session already set. Otherwise reads the `X-API-Key` header and first looks it up against the tenant-scoped `ApiKey` entity (`api_keys` table, hashed with scrypt) — this is the primary multi-tenant credential path. Only if no DB match is found does it fall back to a timing-safe compare against the single `API_KEY` env var. Use `@Public()` to skip both guards.
 3. **ThrottlerGuard** — Rate limiting.
 
 ### Better Auth Setup
@@ -319,6 +325,7 @@ User (Better Auth) ──→ Tenant ──→ Agent ──→ AgentApiKey (mnfst
 - **Tenant** (`tenants` table): Created automatically on first agent creation. `tenant.owner_user_id` = `user.id` is the ONLY user→tenant link (resolved through `TenantCacheService`); `tenant.name` mirrors it for display until repurposed as a slug.
 - **Agent** (`agents` table): Belongs to a tenant. Unique constraint on `[tenant_id, name]`.
 - **AgentApiKey** (`agent_api_keys` table): One-to-one with agent. `mnfst_*` format key for OTLP ingestion.
+- **ApiKey** (`api_keys` table): A separate, tenant-scoped credential (not per-agent) used for dashboard/API access — the primary key `ApiKeyGuard` checks. Distinct from `AgentApiKey`.
 - **Onboarding flow**: `ApiKeyGeneratorService.onboardAgent()` creates tenant (if new) + agent + API key in one transaction.
 
 ### Data Isolation
@@ -344,15 +351,22 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | PATCH | `/api/v1/agents/:agentName` | Session/API Key | Rename agent |
 | GET | `/api/v1/messages` | Session/API Key | Paginated message log |
 | GET/PATCH/DELETE | `/api/v1/messages/:id/*` | Session/API Key | Message details, feedback, miscategorized flag |
-| GET | `/api/v1/security` | Session/API Key | Security score + events |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
 | GET | `/api/v1/free-models` | Session/API Key | Free LLM model catalog |
-| GET | `/api/v1/savings/*` | Session/API Key | Savings analytics (summary, timeseries, baseline candidates) |
 | GET | `/api/v1/agent/:agentName/usage` | Session/API Key | Per-agent token usage |
 | GET | `/api/v1/agent/:agentName/costs` | Session/API Key | Per-agent cost data |
+| GET | `/api/v1/overview/*` | Session/API Key | Overview timeseries/breakdown sub-endpoints |
+| GET | `/api/v1/providers` / `/api/v1/providers/usage` | Session/API Key | Connected provider list + usage |
+| GET | `/api/v1/provider-analytics/*` | Session/API Key | Per-provider analytics |
+| GET | `/api/v1/errors/breakdown` | Session/API Key | Error breakdown analytics |
+| GET/PATCH | `/api/v1/billing/*` | Session/API Key | Billing status + email preferences (Stripe) |
+| GET/POST | `/api/v1/waitlist/autofix*` | Session/API Key (GET/POST), Public (`/claim`) | Auto-fix early-access waitlist |
+| GET/POST/DELETE | `/api/v1/internal/error-pages*` | Session/API Key | Custom error-page config |
 | GET/POST/PATCH/DELETE | `/api/v1/notifications/*` | Session/API Key | Notification rules CRUD + email provider config |
-| GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*` | Session/API Key | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, etc.) |
+| GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*` | Session/API Key | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, etc.) |
 | POST | `/api/v1/routing/ollama/sync` | Session/API Key | Sync Ollama models |
+| GET | `/api/v1/routing/pricing-health` | Session/API Key | OpenRouter pricing sync health |
+| POST | `/api/v1/routing/pricing/refresh` | Session/API Key | Force pricing cache refresh |
 | GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows (Gemini, OpenAI, Kiro, MiniMax) |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
 | POST | `/api/v1/routing/subscription-providers` | Bearer (mnfst_*) | Subscription provider config |
@@ -363,6 +377,7 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
 | POST | `/v1/responses` | Bearer (mnfst_*) | LLM proxy (OpenAI Responses API) |
 | POST | `/v1/messages` | Bearer (mnfst_*) | LLM proxy (Anthropic Messages API) |
+| POST | `/chat/completions` | Bearer (mnfst_*) | Legacy root-level OTLP-compatible proxy alias |
 | GET/POST/PATCH | `/api/v1/playground/*` | Session/API Key | Playground runs (run, list, star, mark best) |
 | GET | `/api/v1/events` | Session | SSE real-time events |
 | GET | `/api/v1/github/stars` | Public | GitHub star count |
@@ -372,7 +387,7 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 See `packages/backend/.env.example` for all variables. Key ones:
 
 - `BETTER_AUTH_SECRET` — **Required.** Secret for Better Auth session signing (min 32 chars). Generate with `openssl rand -hex 32`.
-- `DATABASE_URL` — **Required in production.** PostgreSQL connection string. Format: `postgresql://user:password@host:port/database`. Defaults to `postgresql://myuser:mypassword@localhost:5432/mydatabase` (matches the local Docker command).
+- `DATABASE_URL` — **Required** in every environment except `NODE_ENV=test` (which falls back to `postgresql://myuser:mypassword@localhost:5432/mydatabase`, matching the local Docker command). Dev and production both throw on boot if unset. Format: `postgresql://user:password@host:port/database`.
 - `MANIFEST_ENCRYPTION_KEY` — Recommended. AES-256-GCM key (min 32 chars) for encrypting stored provider API keys and OAuth tokens. Defaults to `BETTER_AUTH_SECRET` if unset — set this independently so a session-cookie leak doesn't also expose provider credentials.
 - `PORT` — Server port. Default: `3001`
 - `BIND_ADDRESS` — Bind address. Default: `127.0.0.1` (use `0.0.0.0` for Railway/Docker)
@@ -384,7 +399,8 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `API_KEY` — Secret for programmatic API access (X-API-Key header).
 - `THROTTLE_TTL` — Rate limit window in ms. Default: `60000`
 - `THROTTLE_LIMIT` — Max requests per window. Default: `100`
-- `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `20`
+- `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `30`
+- `RUN_MIGRATIONS_ON_BOOT` — Whether the app runs pending migrations at startup. Default: `true`; set `false` for multi-replica deploys where only one instance should migrate.
 - `PROVIDER_TIMEOUT_MS` — Per-attempt timeout (ms) for upstream provider requests. Default: `180000`
 - `STREAM_WARMUP_MS` — Timeout (ms) to wait for the first chunk of a streaming response before trying a fallback. Default: `15000`
 - `EMAIL_PROVIDER` — Unified email provider: `resend` (recommended), `mailgun`, or `sendgrid`. Used for Better Auth transactional emails and threshold alerts.
@@ -395,7 +411,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth (optional)
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` — GitHub OAuth (optional)
 - `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` — Discord OAuth (optional)
-- `SEED_DATA` — Set `true` to seed demo data on startup.
+- `SEED_DATA` — Set `true` to seed demo data on startup. Dev/test only — ignored when `NODE_ENV=production` (use the first-run setup wizard instead).
 - `MANIFEST_MODE` — `selfhosted` or `cloud` (default: `cloud`; auto-detected as `selfhosted` inside Docker via `/.dockerenv` or Podman via `/run/.containerenv`). Self-hosted mode enables loopback auth shortcuts and allows custom-provider URLs with `http://` / private IPs. `local` is accepted as a legacy alias for `selfhosted`.
 - `MANIFEST_TELEMETRY_DISABLED` — Set `1` to opt out of anonymous telemetry (self-hosted only).
 - `MANIFEST_PUBLIC_STATS` — Set `true` to expose `/api/v1/public/*` aggregate stats without auth (cloud-only marketing use).
@@ -405,6 +421,8 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `AUTOFIX_GLOBAL_ENABLED` — Set `false` to disable Auto-fix for all agents (default on). Companions: `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
 - `AUTOFIX_ROLLOUT` — Three-phase early-access gate: `selected` (default — only tenants we hand-picked via `tenants.autofix_access_granted_at`), `waitlist` (+ anyone who joined `tenants.autofix_waitlist_at`), or `everyone` (GA). See [Auto-fix](#auto-fix-self-healing-via-phoenix).
 - `AUTOFIX_REPORT_ALL_4XX` — Set `true` to stream an agent's request-side 4xx (4xx except 401/402/403/429) to Phoenix's `POST /api/heal/observe` as evidence, carrying the full request body. Serves no fix and creates no heal attempt; it only lets Phoenix see the body that failed. Wider than the heal path in scope (not limited to `AUTOFIX_REPAIRABLE_STATUSES`, and it catches fallback-model failures the heal path never reports) but **gated to agents with Auto-fix on** — `AutofixService.isActiveFor()`, the same tenant early-access + per-agent flag that healing clears. Turning Auto-fix on is what consents to sending failing requests to the healing service; the gate fails closed. Off by default: a second, deployment-level switch on top. Manifest persists nothing; the body is secret-scrubbed, capped at 256 KB, batched, and dropped under backpressure. Skipped when Auto-fix already reported the same failure via `/api/heal`. See `routing/autofix/observation-reporter.ts`.
+- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `STRIPE_PRO_PRICE_ID` — Billing (cloud only). See `packages/backend/src/billing/`.
+- `PLAN_LIMIT_FREE_REQUESTS` / `PLAN_LIMIT_PRO_REQUESTS` / `PLAN_REQUEST_QUOTA_RESET_AT` — Per-plan request quotas enforced by `plan.service.ts`.
 
 ## Domain Terminology
 
@@ -450,7 +468,7 @@ Helmet enforces a strict CSP in `main.ts`. The policy only allows `'self'` origi
 **Rule: Never load external resources from CDNs.** All assets (fonts, icons, stylesheets) must be self-hosted under `packages/frontend/public/`. This keeps the CSP strict and avoids third-party dependencies at runtime.
 
 Current self-hosted assets:
-- **Boxicons Duotone** — `public/fonts/boxicons/` (CSS + woff/ttf font files)
+- **Boxicons Duotone** — `public/fonts/boxicons/` (CSS + `.woff2` font file)
 - **DM Sans**, **Bricolage Grotesque**, **JetBrains Mono** — individual `.woff2` files in `public/fonts/`
 
 To add a new font or icon library:
@@ -475,7 +493,8 @@ send one aggregate usage report per 24h to `TELEMETRY_ENDPOINT` (default
   values collapse to `"custom"`, NULL to `"unknown"`), `messages_by_tier`
   (`simple` / `standard` / `complex` / `reasoning`, NULL → `"unknown"`),
   `messages_by_auth_type` (`api_key` / `subscription`), `tokens_input_total`,
-  `tokens_output_total`
+  `tokens_output_total`, `cost_usd_total`, `cost_usd_by_provider` (rounded to
+  cents)
 - Configuration: `agents_total`, `agents_by_platform`
 - Runtime: `platform` (`process.platform`), `arch` (`process.arch`)
 
@@ -497,6 +516,32 @@ because it survives restarts without missing windows.
 additively — the ingest (peacock-backend) rejects unknown `schema_version`
 values with 400, so downgrades stay safe.
 
+## Error Monitoring (Sentry, opt-in)
+
+The backend integrates the Sentry NestJS SDK for optional error monitoring. It
+is disabled unless the process environment provides `SENTRY_DSN`. This applies
+equally to Cloud and self-hosted deployments; the bundled self-hosted
+configuration simply leaves it unset by default.
+
+- **Init**: `packages/backend/src/instrument.ts` is imported on the very first
+  line of `main.ts` (before any other import). It calls
+  `Sentry.init(buildSentryInitOptions(process.env))` only when the builder
+  returns non-null. The option-building logic lives in
+  `src/sentry/sentry-options.ts` (fully unit-tested); `instrument.ts` is a thin
+  boot shell excluded from coverage like `main.ts`.
+- **Scope**: error monitoring only. Performance tracing is explicitly disabled
+  and the profiling package is not installed. Request headers, cookies, query
+  parameters, bodies, user data, GenAI inputs/outputs, local variables, and
+  breadcrumbs are disabled through the SDK's `dataCollection` options.
+- **Error capture**: when enabled, `SentryModule.forRoot()` and
+  `SentryGlobalFilter` are registered in `app.module.ts` for otherwise-unhandled
+  errors. When disabled, neither is part of the Nest application.
+- **Setup check**: when Sentry is enabled outside production,
+  `GET /api/v1/debug-sentry` throws a test error. The controller is not
+  registered in production.
+- **Optional tags**: `SENTRY_ENVIRONMENT` and `SENTRY_RELEASE` may be supplied
+  alongside `SENTRY_DSN`.
+
 ## Architecture Notes
 
 - **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/` with SPA fallback. API routes (`/api/*`, `/otlp/*`) are excluded.
@@ -508,7 +553,7 @@ values with 400, so downgrades stay safe.
 - **PostgreSQL container**: `docker run -d --name postgres_db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5432:5432 postgres:16`
 - **Validation**: Global `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`. Explicit `@Type()` decorators on numeric DTO fields.
 - **Agent key auth caching**: `AgentKeyAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.
-- **Database migrations**: TypeORM migrations are version-controlled in `src/database/migrations/`. `synchronize` is permanently `false`. Migrations auto-run on boot (`migrationsRun: true`) wrapped in a single transaction. The CLI DataSource is at `src/database/datasource.ts`. Better Auth manages its own tables separately via `ctx.runMigrations()`.
+- **Database migrations**: TypeORM migrations are version-controlled in `src/database/migrations/`. `synchronize` is permanently `false`. Migrations auto-run on boot by default, gated by `RUN_MIGRATIONS_ON_BOOT` (default `true`; disable for multi-replica deploys). `migrationsTransactionMode` is `'each'` (one transaction per migration, not one for the whole run) because some `agent_messages` index migrations run `CONCURRENTLY`, which PostgreSQL forbids inside a shared transaction. The CLI DataSource is at `src/database/datasource.ts`. Better Auth manages its own tables separately via `ctx.runMigrations()`.
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
 - **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SendGrid email providers.
 - **LLM Routing**: Two-layer routing system with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`:
@@ -588,7 +633,7 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 
 ### Provider Registry (Single Source of Truth)
 
-All provider definitions live in `common/constants/providers.ts` (`PROVIDER_REGISTRY`). This is the **only** place to define provider IDs, display names, aliases, and OpenRouter prefix mappings. Never hardcode provider names elsewhere — always import from the registry.
+All provider definitions live in `packages/shared/src/` (`SHARED_PROVIDERS`); `common/constants/providers.ts` (`PROVIDER_REGISTRY`) re-exports it for backend use. This is the **only** place to define provider IDs, display names, aliases, and OpenRouter prefix mappings. Never hardcode provider names elsewhere — always import from the registry.
 
 The registry exports derived maps used throughout the codebase:
 - `PROVIDER_BY_ID` — lookup by canonical ID (e.g. `anthropic`, `gemini`)
@@ -612,7 +657,7 @@ The `specificity_assignments` table and UI components handle new categories auto
 
 ### Adding a New Provider
 
-1. Add entry to `PROVIDER_REGISTRY` in `common/constants/providers.ts`
+1. Add entry to `SHARED_PROVIDERS` in `packages/shared/src/` (re-exported to the backend as `PROVIDER_REGISTRY` in `common/constants/providers.ts`)
 2. Add `FetcherConfig` in `model-discovery/provider-model-fetcher.service.ts`
 3. Add `ProviderEndpoint` in `routing/proxy/provider-endpoints.ts`
 4. Add `ProviderDef` in `frontend/src/services/providers.ts`
@@ -738,5 +783,3 @@ This applies to:
 ### E2E Test Entities
 
 When adding new TypeORM entities to `database.module.ts`, also add them to the E2E test helper (`packages/backend/test/helpers.ts`) entities array. Missing entities cause `EntityMetadataNotFoundError` in services that depend on them.
-
-**Known gap (code bug):** `ReasoningContentCacheEntry` is registered in `database.module.ts` but is absent from the `entities` array in `packages/backend/test/helpers.ts`. Add it there to avoid E2E failures in services that touch that entity.
