@@ -564,9 +564,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         status: 'fallback_error',
         ...autofixColumns(opts?.autofix, terminalAutofixRole(opts?.autofix)),
         error_message: scrubSecrets(
-          opts?.httpStatus == null
-            ? errorBody
-            : normalizeProviderErrorForStorage(opts.httpStatus, errorBody),
+          normalizeProviderErrorForStorage(opts?.httpStatus, errorBody),
         ).slice(0, 2000),
         error_http_status: opts?.httpStatus ?? null,
         model: canonical.model,

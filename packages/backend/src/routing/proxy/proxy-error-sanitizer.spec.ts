@@ -144,6 +144,20 @@ describe('normalizeProviderErrorForStorage', () => {
     );
   });
 
+  it('collapses HTML error pages even when no HTTP status was captured', () => {
+    expect(normalizeProviderErrorForStorage(undefined, '<html><p>Tunnel failed</p></html>')).toBe(
+      'Upstream endpoint returned an HTML error page',
+    );
+  });
+
+  it('preserves an offline ngrok diagnostic when no HTTP status was captured', () => {
+    const body =
+      '<!DOCTYPE html><html><noscript>The endpoint example.ngrok-free.dev is offline. (ERR_NGROK_3200)</noscript></html>';
+    expect(normalizeProviderErrorForStorage(null, body)).toBe(
+      'Tunnel endpoint is offline (ERR_NGROK_3200)',
+    );
+  });
+
   it('keeps structured and plain-text provider errors unchanged', () => {
     const json = '{"error":{"message":"bad model"}}';
     expect(normalizeProviderErrorForStorage(400, json)).toBe(json);

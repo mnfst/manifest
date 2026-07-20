@@ -60,13 +60,15 @@ function isHtmlErrorBody(rawBody: string): boolean {
   return /^\s*(?:<!doctype\s+html|<html)\b/i.test(rawBody);
 }
 
-function htmlEndpointError(status: number, rawBody: string): string | null {
+function htmlEndpointError(status: number | null | undefined, rawBody: string): string | null {
   if (!isHtmlErrorBody(rawBody)) return null;
   const ngrokCode = rawBody.match(/\bERR_NGROK_\d+\b/i)?.[0]?.toUpperCase();
   if (ngrokCode && /\bendpoint\b[\s\S]{0,300}\bis offline\b/i.test(rawBody)) {
     return `Tunnel endpoint is offline (${ngrokCode})`;
   }
-  return `Upstream endpoint returned HTTP ${status}`;
+  return status == null
+    ? 'Upstream endpoint returned an HTML error page'
+    : `Upstream endpoint returned HTTP ${status}`;
 }
 
 function extractProviderErrorCode(rawBody: string): string | null {
@@ -136,6 +138,9 @@ export function sanitizeProviderError(status: number, rawBody: string, nodeEnv?:
   return generic;
 }
 
-export function normalizeProviderErrorForStorage(status: number, rawBody: string): string {
-  return isHtmlErrorBody(rawBody) ? sanitizeProviderError(status, rawBody, 'production') : rawBody;
+export function normalizeProviderErrorForStorage(
+  status: number | null | undefined,
+  rawBody: string,
+): string {
+  return htmlEndpointError(status, rawBody) ?? rawBody;
 }
