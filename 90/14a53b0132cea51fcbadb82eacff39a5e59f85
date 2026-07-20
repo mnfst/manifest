@@ -1,0 +1,19 @@
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_481ec57e999739::t_683375cd753611 212
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "9014a53b0132cea51fcbadb82eacff39a5e59f85",
+  "prompts": {},
+  "sessions": {
+    "s_481ec57e999739": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f805b-afb5-7132-8849-018ea286b156",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
