@@ -1,0 +1,43 @@
+integrations/n8n-nodes-manifest/dist/package.json
+  s_6c9ca7fc8edb9e::t_04fa788bcf7c12 3
+integrations/n8n-nodes-manifest/CHANGELOG.md
+  s_6d8a2aeb292c0d::t_92073fa56542cc 3-6
+nodes/Manifest/Manifest.node.ts
+  s_6d8a2aeb292c0d::t_1273b9591f74e8 1-289
+nodes/Manifest/Manifest.node.json
+  s_6d8a2aeb292c0d::t_1273b9591f74e8 1-21
+nodes/Manifest/manifest-logo.dark.svg
+  s_6d8a2aeb292c0d::t_1273b9591f74e8 1-80
+integrations/n8n-nodes-manifest/package.json
+  s_6d8a2aeb292c0d::t_66a95c6a536707 3
+nodes/Manifest/manifest-logo.svg
+  s_6d8a2aeb292c0d::t_1273b9591f74e8 1-80
+credentials/ManifestApi.credentials.ts
+  s_6d8a2aeb292c0d::t_1273b9591f74e8 1-48
+integrations/n8n-nodes-manifest/package-lock.json
+  s_6d8a2aeb292c0d::t_140c853f6a16d2 3,9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "a09781551ea8ee1fdfb7c3f2e1b589410635aa49",
+  "prompts": {},
+  "sessions": {
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6d8a2aeb292c0d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f418a-9e60-7fb0-b308-cfbdef64b9a7",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
