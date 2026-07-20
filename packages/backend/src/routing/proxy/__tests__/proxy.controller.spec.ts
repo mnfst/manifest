@@ -2213,7 +2213,7 @@ describe('ProxyController', () => {
       );
     });
 
-    it('should emit a terminal Responses API error when its upstream stream dies', async () => {
+    it('should emit a sequenced Responses error when a converted chat stream dies', async () => {
       proxyService.proxyRequest.mockResolvedValue({
         forward: {
           response: makeInterruptedSseResponse(
@@ -2237,10 +2237,38 @@ describe('ProxyController', () => {
       expect(payload).toContain('"type":"error"');
       expect(payload).toContain('"code":"stream_interrupted"');
       expect(payload).toContain('Upstream provider stream was interrupted.');
+      expect(payload).toContain('"sequence_number":5');
       expect(res.end).toHaveBeenCalled();
     });
 
-    it('should emit a terminal Anthropic error when its upstream stream dies', async () => {
+    it('should continue the upstream sequence for a native Responses stream error', async () => {
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: makeInterruptedSseResponse(
+            'event: response.output_text.delta\n' +
+              'data: {"type":"response.output_text.delta","sequence_number":41,"delta":"hello"}\n\n',
+          ),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+          isResponses: true,
+        },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
+      });
+
+      const req = mockRequest({ input: 'hi', stream: true });
+      const { res, written } = mockResponse();
+
+      await controller.responses(req as never, res as never);
+
+      const payload = written.join('');
+      expect(payload).toContain('"sequence_number":41');
+      expect(payload).toContain('event: error');
+      expect(payload).toContain('"sequence_number":42');
+      expect(res.end).toHaveBeenCalled();
+    });
+
+    it('should emit an Anthropic error when a converted chat stream dies', async () => {
       proxyService.proxyRequest.mockResolvedValue({
         forward: {
           response: makeInterruptedSseResponse(

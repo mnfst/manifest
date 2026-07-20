@@ -14,6 +14,7 @@ import {
   pipeStream,
   StreamUsage,
 } from './stream-writer';
+import { createSsePayloadParser } from './sse-parser';
 import {
   classifyProviderError,
   openAiErrorTypeForStatus,
@@ -49,6 +50,48 @@ import {
 } from '../oauth/gemini/codeassist-envelope';
 
 const logger = new Logger('ProxyResponseHandler');
+
+interface ResponsesSequenceTracker {
+  feed(chunk: string): void;
+  next(): number;
+}
+
+function createResponsesSequenceTracker(): ResponsesSequenceTracker {
+  const parser = createSsePayloadParser();
+  let nextSequenceNumber = 0;
+
+  const feed = (chunk: string): void => {
+    for (const event of parser.feed(chunk)) {
+      const payload = event
+        .split('\n')
+        .filter((line) => !line.startsWith('event:') && !line.startsWith('id:'))
+        .join('\n');
+      try {
+        const data = JSON.parse(payload) as { sequence_number?: unknown };
+        const sequenceNumber = data.sequence_number;
+        if (
+          typeof sequenceNumber === 'number' &&
+          Number.isInteger(sequenceNumber) &&
+          sequenceNumber >= 0
+        ) {
+          nextSequenceNumber = Math.max(nextSequenceNumber, sequenceNumber + 1);
+        } else {
+          nextSequenceNumber += 1;
+        }
+      } catch {
+        nextSequenceNumber += 1;
+      }
+    }
+  };
+
+  return { feed, next: () => nextSequenceNumber };
+}
+
+const responsesSequenceTrackers = new WeakMap<ExpressResponse, ResponsesSequenceTracker>();
+
+export function nextResponsesSequenceNumber(res: ExpressResponse): number {
+  return responsesSequenceTrackers.get(res)?.next() ?? 0;
+}
 
 function recordSafely(promise: Promise<unknown>, label: string): void {
   promise.catch((e) => logger.warn(`Failed to record ${label}: ${e}`));
@@ -421,7 +464,12 @@ export async function handleStreamResponse(
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders, 200);
 
-  const onClient = undefined;
+  const responsesSequenceTracker =
+    apiMode === 'responses' ? createResponsesSequenceTracker() : null;
+  if (responsesSequenceTracker) responsesSequenceTrackers.set(res, responsesSequenceTracker);
+  const onClient = responsesSequenceTracker
+    ? (chunk: string) => responsesSequenceTracker.feed(chunk)
+    : undefined;
 
   const messagesTransformer =
     apiMode === 'messages' ? createMessagesStreamTransformer(meta.model) : null;

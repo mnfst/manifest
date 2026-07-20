@@ -34,6 +34,7 @@ import {
   recordFallbackFailures,
   handleStreamResponse,
   handleNonStreamResponse,
+  nextResponsesSequenceNumber,
   recordSuccess,
 } from './proxy-response-handler';
 import { ProxyExceptionFilter, isChatRenderingClient } from './proxy-exception.filter';
@@ -53,6 +54,7 @@ import { UpstreamStreamError } from './stream-writer';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
+const STREAM_INTERRUPTED_MESSAGE = 'Upstream provider stream was interrupted.';
 const MODEL_CREATED_UNKNOWN = 0;
 
 interface OpenAiModelObject {
@@ -495,7 +497,7 @@ export class ProxyController {
     if (headersSent) {
       if (!res.writableEnded) {
         if (err instanceof UpstreamStreamError) {
-          this.writeStreamError(res, apiMode, status, meta);
+          this.writeStreamError(res, apiMode, err, meta);
         } else {
           res.end();
         }
@@ -550,22 +552,22 @@ export class ProxyController {
   private writeStreamError(
     res: ExpressResponse,
     apiMode: ProxyApiMode,
-    status: number,
+    streamError: UpstreamStreamError,
     meta: RoutingMeta | undefined,
   ): void {
-    const error = buildOpenAiCompatibleError(status, 'Upstream provider stream was interrupted.', {
+    const error = buildOpenAiCompatibleError(streamError.status, STREAM_INTERRUPTED_MESSAGE, {
       source: 'provider',
       code: 'stream_interrupted',
       provider: meta?.provider,
       model: meta?.model,
     });
-    error.message = 'Upstream provider stream was interrupted.';
+    error.message = STREAM_INTERRUPTED_MESSAGE;
 
     if (apiMode === 'messages') {
       res.write(
         `event: error\ndata: ${JSON.stringify({
           type: 'error',
-          error: { type: 'api_error', message: error.message },
+          error: { type: 'api_error', message: STREAM_INTERRUPTED_MESSAGE },
         })}\n\n`,
       );
     } else if (apiMode === 'responses') {
@@ -573,9 +575,9 @@ export class ProxyController {
         `event: error\ndata: ${JSON.stringify({
           type: 'error',
           code: error.code ?? 'server_error',
-          message: error.message,
+          message: STREAM_INTERRUPTED_MESSAGE,
           param: null,
-          sequence_number: 0,
+          sequence_number: nextResponsesSequenceNumber(res),
         })}\n\n`,
       );
     } else {
