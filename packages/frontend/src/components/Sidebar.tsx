@@ -244,7 +244,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
               <span class="sidebar-autofix__title">Discover Auto-fix</span>
             </div>
             <p class="sidebar-autofix__desc">
-              Failing requests are automatically fixed before reaching the model.
+              Auto-fix can repair eligible failing requests before they reach the model.
             </p>
             <a
               class="sidebar-autofix__btn"

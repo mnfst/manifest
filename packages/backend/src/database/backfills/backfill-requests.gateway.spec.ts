@@ -140,6 +140,49 @@ describe('TypeOrmRequestBackfillGateway', () => {
     expect(runner.commitTransaction).toHaveBeenCalled();
   });
 
+  it('shrinks a timed-out fallback link batch without rebuilding staged candidates', async () => {
+    const runner = mockQueryRunner();
+    let primaryWindow = 0;
+    let linkAttempt = 0;
+    runner.query.mockImplementation(async (sql: string) => {
+      if (sql === FALLBACK_PRIMARY_WINDOW_END_SQL) {
+        primaryWindow += 1;
+        return [{ end_id: primaryWindow === 1 ? 'primary-z' : null }];
+      }
+      if (sql.includes('max(pair_seq)')) return [{ max_seq: 100 }];
+      if (sql === INSERT_LEGACY_FALLBACK_REQUESTS_SQL) return [{ n: 1 }];
+      if (sql === LINK_LEGACY_FALLBACK_ATTEMPTS_SQL) {
+        linkAttempt += 1;
+        if (linkAttempt === 1) {
+          throw new Error('canceling statement due to statement timeout');
+        }
+        return [{ n: 2 }];
+      }
+      return undefined;
+    });
+    const gateway = new TypeOrmRequestBackfillGateway({
+      createQueryRunner: jest.fn(() => runner),
+    } as unknown as DataSource);
+    const progress = jest.fn();
+
+    await expect(
+      gateway.backfillFallbackGroups(100, before, timeouts, jest.fn(), progress),
+    ).resolves.toEqual({ requests: 2, attempts: 4 });
+
+    expect(runner.query).toHaveBeenCalledWith(CREATE_LEGACY_FALLBACK_STAGING_SQL);
+    expect(runner.query).toHaveBeenCalledWith(CREATE_LEGACY_FALLBACK_GROUPS_SQL, [0, 100]);
+    expect(runner.query).toHaveBeenCalledWith(CREATE_LEGACY_FALLBACK_GROUPS_SQL, [0, 50]);
+    expect(runner.query).toHaveBeenCalledWith(CREATE_LEGACY_FALLBACK_GROUPS_SQL, [50, 100]);
+    expect(runner.rollbackTransaction).toHaveBeenCalledTimes(1);
+    expect(runner.commitTransaction).toHaveBeenCalledTimes(2);
+    expect(progress).toHaveBeenCalledWith(
+      expect.stringContaining('reducing batch size from 100 to 50'),
+    );
+    expect(progress).toHaveBeenCalledWith(
+      expect.stringContaining('linked 100/100 fallback candidate chain(s)'),
+    );
+  });
+
   it('handles empty fallback staging results and cleanup failures', async () => {
     const runner = mockQueryRunner();
     runner.query.mockImplementation(async (sql: string) => {
@@ -194,6 +237,9 @@ describe('TypeOrmRequestBackfillGateway', () => {
     expect(runner.query).toHaveBeenCalledWith("SET LOCAL statement_timeout = '0'");
     expect(runner.query).toHaveBeenCalledWith(
       'ALTER TABLE "provider_attempts" VALIDATE CONSTRAINT "FK_provider_attempts_request"',
+    );
+    expect(runner.query).toHaveBeenCalledWith(
+      'ALTER TABLE "provider_attempts" VALIDATE CONSTRAINT "CHK_provider_attempts_attempt_number_positive"',
     );
     expect(runner.commitTransaction).toHaveBeenCalled();
     expect(runner.release).toHaveBeenCalled();

@@ -3,35 +3,16 @@ import { DataSource } from 'typeorm';
 
 import { BackfillState } from '../../entities/backfill-state.entity';
 import {
+  createRequestBackfillDataSource,
+  resolveRequestBackfillDatabaseUrl,
+} from './request-backfill.datasource';
+import {
   REQUEST_BACKFILL_GENERIC_GRACE_MS,
   REQUEST_BACKFILL_LOCK_RETRY_MS,
   RequestBackfillBootService,
 } from './request-backfill.boot.service';
 
-const DEFAULT_DATABASE_URL = 'postgresql://myuser:mypassword@localhost:5432/mydatabase';
-
-export function resolveRequestBackfillDatabaseUrl(env: NodeJS.ProcessEnv): string {
-  const directUrl =
-    env['BACKFILL_DATABASE_URL'] ?? env['MIGRATION_DATABASE_URL'] ?? env['DATABASE_UNPOOLED_URL'];
-  if (directUrl) return directUrl;
-
-  if (env['NODE_ENV'] === 'production') {
-    throw new Error(
-      'A direct PostgreSQL URL is required in production; set BACKFILL_DATABASE_URL or MIGRATION_DATABASE_URL',
-    );
-  }
-  return env['DATABASE_URL'] ?? DEFAULT_DATABASE_URL;
-}
-
-/** Two direct connections: one holds the advisory lock, one runs backfill SQL. */
-export function createRequestBackfillDataSource(env: NodeJS.ProcessEnv): DataSource {
-  return new DataSource({
-    type: 'postgres',
-    url: resolveRequestBackfillDatabaseUrl(env),
-    entities: [BackfillState],
-    extra: { max: 2 },
-  });
-}
+export { createRequestBackfillDataSource, resolveRequestBackfillDatabaseUrl };
 
 interface BackfillCoordinator {
   runUntilComplete(): Promise<void>;
@@ -45,6 +26,7 @@ export interface MainDeps {
   dataSource?: DataSource;
   coordinator?: BackfillCoordinator;
   sleep?: (ms: number) => Promise<void>;
+  initialOnly?: boolean;
 }
 
 const realSleep = (ms: number): Promise<void> =>
@@ -65,6 +47,12 @@ export async function main(deps: MainDeps = {}): Promise<void> {
       deps.coordinator ??
       new RequestBackfillBootService(dataSource, dataSource.getRepository(BackfillState));
     await coordinator.runUntilComplete();
+    if (deps.initialOnly === true) {
+      logger.log(
+        'request/provider-attempt historical backfill complete; live-write delta deferred',
+      );
+      return;
+    }
 
     // Old replicas can write through the compatibility view during the rolling
     // handover. If any remain after the historical pass, give the last one a
@@ -84,7 +72,7 @@ export async function main(deps: MainDeps = {}): Promise<void> {
 
 /* istanbul ignore next -- thin process entrypoint, exercised by the Railway worker */
 if (require.main === module) {
-  main().catch((error) => {
+  main({ initialOnly: process.argv.slice(2).includes('--initial-only') }).catch((error) => {
     console.error(error);
     process.exit(1);
   });

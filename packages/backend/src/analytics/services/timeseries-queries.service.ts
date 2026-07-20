@@ -1,6 +1,6 @@
 import { Injectable, Optional } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, QueryRunner, Repository, SelectQueryBuilder } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { RequestVolumeService } from './request-volume.service';
 import { Agent } from '../../entities/agent.entity';
@@ -58,6 +58,9 @@ export class TimeseriesQueriesService {
     private readonly requestRepo?: Repository<ManifestRequest>,
     @Optional()
     private readonly requestVolume?: RequestVolumeService,
+    @Optional()
+    @InjectDataSource()
+    private readonly dataSource?: DataSource,
   ) {}
 
   async getTimeseries(
@@ -91,11 +94,11 @@ export class TimeseriesQueriesService {
     // Scope to this connection: pin to the tenant_providers id when present,
     // else the provider+auth_type+label tuple (see scopeToConnection).
     scopeToConnection(qb, tenantProviderId, label);
-    const attemptsPromise = qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
+    const attemptsQb = qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC');
     const useRequestCounts =
       this.requestRepo && !authType && !provider && !label && !tenantProviderId;
-    let requestRowsPromise: Promise<Array<Record<string, unknown>>> = Promise.resolve([]);
-    let unlinkedRowsPromise: Promise<Array<Record<string, unknown>>> = Promise.resolve([]);
+    let requestRowsQb: SelectQueryBuilder<ManifestRequest> | undefined;
+    let unlinkedRowsQb: SelectQueryBuilder<AgentMessage> | undefined;
     if (useRequestCounts) {
       const requestQb = this.requestRepo!.createQueryBuilder('r')
         .select(hourly ? sqlHourBucket('r.timestamp') : sqlDateBucket('r.timestamp'), bucketAlias)
@@ -114,7 +117,7 @@ export class TimeseriesQueriesService {
       if (excludePlayground) {
         requestQb.andWhere(sqlExcludePlayground('r'));
       }
-      requestRowsPromise = requestQb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
+      requestRowsQb = requestQb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC');
 
       const unlinkedQb = this.turnRepo
         .createQueryBuilder('at')
@@ -125,15 +128,22 @@ export class TimeseriesQueriesService {
         .andWhere(sqlIsCompletedStatus('at.status'));
       addTenantFilter(unlinkedQb, tenantId, agentName);
       if (excludePlayground) excludePlaygroundAgents(unlinkedQb);
-      unlinkedRowsPromise = unlinkedQb
-        .groupBy(bucketAlias)
-        .orderBy(bucketAlias, 'ASC')
-        .getRawMany();
+      unlinkedRowsQb = unlinkedQb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC');
     }
-    const [rows, requestRows, unlinkedRows] = await Promise.all([
-      attemptsPromise,
-      requestRowsPromise,
-      unlinkedRowsPromise,
+    const readCompatibilityRows = async (runner?: QueryRunner) => {
+      if (runner) {
+        requestRowsQb?.setQueryRunner(runner);
+        unlinkedRowsQb?.setQueryRunner(runner);
+      }
+      const requestRows = requestRowsQb ? await requestRowsQb.getRawMany() : [];
+      const unlinkedRows = unlinkedRowsQb ? await unlinkedRowsQb.getRawMany() : [];
+      return [requestRows, unlinkedRows] as const;
+    };
+    const [rows, [requestRows, unlinkedRows]] = await Promise.all([
+      attemptsQb.getRawMany(),
+      useRequestCounts
+        ? this.withCompatibilitySnapshot(readCompatibilityRows)
+        : readCompatibilityRows(),
     ]);
 
     const tokenUsage: {
@@ -310,10 +320,10 @@ export class TimeseriesQueriesService {
       .setParameter('sparkCutoff', sparkCutoff);
     addTenantFilter(bucketsQb, tenantId);
 
-    let requestCountRowsPromise: Promise<Array<Record<string, unknown>>> = Promise.resolve([]);
-    let unlinkedCountRowsPromise: Promise<Array<Record<string, unknown>>> = Promise.resolve([]);
+    let requestCountsQb: SelectQueryBuilder<ManifestRequest> | undefined;
+    let unlinkedCountsQb: SelectQueryBuilder<AgentMessage> | undefined;
     if (this.requestRepo) {
-      const requestCountsQb = this.requestRepo
+      requestCountsQb = this.requestRepo
         .createQueryBuilder('r')
         .select('r.agent_id', 'agent_id')
         .addSelect('COUNT(*)', 'message_count')
@@ -322,9 +332,9 @@ export class TimeseriesQueriesService {
         .andWhere('r.timestamp >= :requestStatsCutoff', { requestStatsCutoff: statsCutoff })
         .andWhere(sqlIsCompletedStatus('r.status'));
       requestCountsQb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: tenantId });
-      requestCountRowsPromise = requestCountsQb.groupBy('r.agent_id').getRawMany();
+      requestCountsQb.groupBy('r.agent_id');
 
-      const unlinkedCountsQb = this.turnRepo
+      unlinkedCountsQb = this.turnRepo
         .createQueryBuilder('at')
         .select('at.agent_id', 'agent_id')
         .addSelect('COUNT(*)', 'message_count')
@@ -334,19 +344,29 @@ export class TimeseriesQueriesService {
         .andWhere('at.timestamp >= :legacyStatsCutoff', { legacyStatsCutoff: statsCutoff })
         .andWhere(sqlIsCompletedStatus('at.status'));
       addTenantFilter(unlinkedCountsQb, tenantId);
-      unlinkedCountRowsPromise = unlinkedCountsQb.groupBy('at.agent_id').getRawMany();
+      unlinkedCountsQb.groupBy('at.agent_id');
     }
 
-    const [agents, bucketRows, requestCountRows, unlinkedCountRows] = await Promise.all([
-      agentQb.andWhere('a.is_active = true').orderBy('a.created_at', 'DESC').getMany(),
-      bucketsQb
-        .groupBy('at.agent_id')
-        .addGroupBy('date')
-        .orderBy('at.agent_id', 'ASC')
-        .addOrderBy('date', 'ASC')
-        .getRawMany(),
-      requestCountRowsPromise,
-      unlinkedCountRowsPromise,
+    agentQb.andWhere('a.is_active = true').orderBy('a.created_at', 'DESC');
+    bucketsQb
+      .groupBy('at.agent_id')
+      .addGroupBy('date')
+      .orderBy('at.agent_id', 'ASC')
+      .addOrderBy('date', 'ASC');
+    const readCompatibilityRows = async (runner?: QueryRunner) => {
+      if (runner) {
+        requestCountsQb?.setQueryRunner(runner);
+        unlinkedCountsQb?.setQueryRunner(runner);
+      }
+      const requestCountRows = requestCountsQb ? await requestCountsQb.getRawMany() : [];
+      const unlinkedCountRows = unlinkedCountsQb ? await unlinkedCountsQb.getRawMany() : [];
+      return [requestCountRows, unlinkedCountRows] as const;
+    };
+    const [[agents, bucketRows], [requestCountRows, unlinkedCountRows]] = await Promise.all([
+      Promise.all([agentQb.getMany(), bucketsQb.getRawMany()]),
+      this.requestRepo
+        ? this.withCompatibilitySnapshot(readCompatibilityRows)
+        : readCompatibilityRows(),
     ]);
 
     const sparkCutoffIso = String(sparkCutoff);
@@ -509,18 +529,17 @@ export class TimeseriesQueriesService {
       addTenantFilter(unlinkedQb, tenantId);
       excludePlaygroundAgents(unlinkedQb);
 
-      const [requestRows, unlinkedRows] = await Promise.all([
-        requestQb
-          .groupBy(bucketAlias)
-          .addGroupBy('r.agent_name')
-          .orderBy(bucketAlias, 'ASC')
-          .getRawMany(),
-        unlinkedQb
-          .groupBy(bucketAlias)
-          .addGroupBy('at.agent_name')
-          .orderBy(bucketAlias, 'ASC')
-          .getRawMany(),
-      ]);
+      requestQb.groupBy(bucketAlias).addGroupBy('r.agent_name').orderBy(bucketAlias, 'ASC');
+      unlinkedQb.groupBy(bucketAlias).addGroupBy('at.agent_name').orderBy(bucketAlias, 'ASC');
+      const [requestRows, unlinkedRows] = await this.withCompatibilitySnapshot(async (runner) => {
+        if (runner) {
+          requestQb.setQueryRunner(runner);
+          unlinkedQb.setQueryRunner(runner);
+        }
+        const requestRows = await requestQb.getRawMany();
+        const unlinkedRows = await unlinkedQb.getRawMany();
+        return [requestRows, unlinkedRows] as const;
+      });
       const combined = new Map<string, Record<string, unknown>>();
       for (const row of [...requestRows, ...unlinkedRows]) {
         const key = `${String(row[bucketAlias])}\0${String(row['agent_name'])}`;
@@ -894,6 +913,30 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, tenantId);
     const rows = await qb.orderBy('at.agent_name', 'ASC').getRawMany();
     return rows.map((r: Record<string, unknown>) => String(r['agent_name']));
+  }
+
+  /** Keep request parents and still-unlinked compatibility rows on one MVCC snapshot. */
+  private async withCompatibilitySnapshot<T>(
+    read: (runner?: QueryRunner) => Promise<T>,
+  ): Promise<T> {
+    const dataSource = this.dataSource ?? this.turnRepo.manager?.connection;
+    if (!dataSource) return read();
+    const runner = dataSource.createQueryRunner();
+    await runner.connect();
+    try {
+      await runner.startTransaction('REPEATABLE READ');
+      try {
+        await runner.query('SET TRANSACTION READ ONLY');
+        const result = await read(runner);
+        await runner.commitTransaction();
+        return result;
+      } catch (error) {
+        await runner.rollbackTransaction();
+        throw error;
+      }
+    } finally {
+      await runner.release();
+    }
   }
 
   private parseBucketRow(

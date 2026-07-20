@@ -519,12 +519,13 @@ describe("Sidebar — structure and interaction", () => {
 });
 
 describe("Sidebar — Auto-fix card", () => {
-  it("renders the Auto-fix discovery card with title, description, and external link", () => {
+  it("describes Auto-fix without claiming it is already enabled", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector(".sidebar-autofix")).not.toBeNull();
     expect(container.querySelector(".sidebar-autofix__new-badge")).toBeNull();
     expect(container.querySelector(".sidebar-autofix__title")?.textContent).toBe("Discover Auto-fix");
-    expect(container.textContent).toContain("Failing requests are automatically fixed");
+    expect(container.textContent).toContain("Auto-fix can repair eligible failing requests");
+    expect(container.textContent).not.toContain("Failing requests are automatically fixed");
     const link = container.querySelector(".sidebar-autofix__btn") as HTMLAnchorElement;
     expect(link?.textContent).toBe("Learn more");
     expect(link?.getAttribute("href")).toBe("https://manifest.build/autofix/");

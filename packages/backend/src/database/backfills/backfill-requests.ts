@@ -12,6 +12,7 @@ export interface RequestBackfillGateway {
     before: string,
     timeouts: RequestBackfillTimeouts,
     pause: () => Promise<void>,
+    reportProgress?: (message: string) => void,
   ): Promise<{ requests: number; attempts: number }>;
   nextWindowEnd(afterId: string, batchSize: number, before: string): Promise<string | null>;
   backfillWindow(
@@ -119,11 +120,13 @@ export async function runRequestBackfill(
   let fallbackAttempt = 0;
   for (;;) {
     try {
+      log('request backfill: reconstructing legacy fallback chains');
       const grouped = await gateway.backfillFallbackGroups(
         batchSize,
         fallbackBefore,
         timeouts,
         pause,
+        (message) => log(`request backfill: ${message}`),
       );
       result.requests += grouped.requests;
       result.attempts += grouped.attempts;

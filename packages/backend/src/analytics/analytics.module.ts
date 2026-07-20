@@ -40,6 +40,7 @@ import { AutofixAnalyticsController } from './controllers/autofix-analytics.cont
 import { AutofixStatsService } from './services/autofix-stats.service';
 import { RequestVolumeService } from './services/request-volume.service';
 import { BillingModule } from '../billing/billing.module';
+import { AutofixModule } from '../routing/autofix/autofix.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { BillingModule } from '../billing/billing.module';
     RoutingCoreModule,
     ModelPricesModule,
     BillingModule,
+    AutofixModule,
   ],
   controllers: [
     OverviewController,

@@ -471,6 +471,53 @@ describe('TimeseriesQueriesService', () => {
       );
     });
 
+    it('pins request and unlinked buckets to one repeatable-read transaction', async () => {
+      const makeQb = () => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        setQueryRunner: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([]),
+      });
+      const attemptQb = makeQb();
+      const requestQb = makeQb();
+      const unlinkedQb = makeQb();
+      const runner = {
+        connect: jest.fn().mockResolvedValue(undefined),
+        startTransaction: jest.fn().mockResolvedValue(undefined),
+        commitTransaction: jest.fn().mockResolvedValue(undefined),
+        rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+        release: jest.fn().mockResolvedValue(undefined),
+        query: jest.fn().mockResolvedValue(undefined),
+      };
+      const requestAware = new TimeseriesQueriesService(
+        {
+          createQueryBuilder: jest
+            .fn()
+            .mockReturnValueOnce(attemptQb)
+            .mockReturnValueOnce(unlinkedQb),
+        } as never,
+        {} as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+        undefined,
+        { createQueryRunner: jest.fn(() => runner) } as never,
+      );
+
+      await requestAware.getTimeseries('7d', 'tenant-1', false);
+
+      expect(runner.startTransaction).toHaveBeenCalledWith('REPEATABLE READ');
+      expect(runner.query).toHaveBeenCalledWith('SET TRANSACTION READ ONLY');
+      expect(attemptQb.setQueryRunner).not.toHaveBeenCalled();
+      expect(requestQb.setQueryRunner).toHaveBeenCalledWith(runner);
+      expect(unlinkedQb.setQueryRunner).toHaveBeenCalledWith(runner);
+      expect(runner.commitTransaction).toHaveBeenCalledTimes(1);
+      expect(runner.rollbackTransaction).not.toHaveBeenCalled();
+      expect(runner.release).toHaveBeenCalledTimes(1);
+    });
+
     it('uses daily request buckets and tolerates missing aggregate values', async () => {
       const makeQb = (rows: unknown[]) => ({
         select: jest.fn().mockReturnThis(),

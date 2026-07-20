@@ -100,7 +100,7 @@ const NotificationBell: Component = () => {
   const disabledAgents = createMemo(() => {
     const s = status();
     const list = agentList() ?? [];
-    if (!eligible() || !s) return [];
+    if (!eligible() || !s?.available) return [];
     const enabledSet = new Set(s.enabled_agents);
     return list
       .filter((a) => !enabledSet.has(a.agent_name))

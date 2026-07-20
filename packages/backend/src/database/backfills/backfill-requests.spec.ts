@@ -33,6 +33,7 @@ describe('runRequestBackfill', () => {
       expect.any(String),
       expect.any(Object),
       expect.any(Function),
+      expect.any(Function),
     );
     expect(gateway.nextWindowEnd).toHaveBeenNthCalledWith(1, '', 2, expect.any(String));
     expect(gateway.nextWindowEnd).toHaveBeenNthCalledWith(2, 'b', 2, expect.any(String));

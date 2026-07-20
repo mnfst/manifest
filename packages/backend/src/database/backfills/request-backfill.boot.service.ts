@@ -11,7 +11,9 @@ import {
 } from './backfill-requests';
 import { TypeOrmRequestBackfillGateway } from './backfill-requests.gateway';
 import { MESSAGE_PROVIDER_BACKFILL_LOCK_KEY } from './message-provider-backfill.boot.service';
+import { createRequestBackfillDataSource } from './request-backfill.datasource';
 
+/** Initial historical pass marker; old-replica delta is tracked by unlinked rows. */
 export const REQUEST_BACKFILL_NAME = 'requests_provider_attempts_v1';
 // Both post-deploy jobs update provider_attempts. Sharing the lock guarantees
 // that Cloud never runs their batches concurrently; a contending job releases
@@ -42,15 +44,17 @@ const wait = (ms: number): Promise<void> =>
   });
 
 /**
- * Runs historical regrouping automatically for self-hosted installs, whose
- * DATABASE_URL is normally a direct PostgreSQL connection. Cloud runs the same
- * coordinator through request-backfill.cli over an explicit direct URL so
- * session locks and temporary tables never cross transaction-mode PgBouncer.
+ * Runs historical regrouping without blocking application readiness. Self-hosted
+ * reuses its DATABASE_URL-backed app connection. Cloud opens a separate direct
+ * connection so session locks and temporary tables never cross PgBouncer.
  */
 @Injectable()
 export class RequestBackfillBootService implements OnApplicationBootstrap, OnApplicationShutdown {
   private readonly logger = new Logger(RequestBackfillBootService.name);
   private tailTimer: ReturnType<typeof setInterval> | undefined;
+  private stopping = false;
+  private managedCoordinator: RequestBackfillBootService | undefined;
+  private ownedDataSource: DataSource | undefined;
 
   constructor(
     private readonly dataSource: DataSource,
@@ -59,18 +63,72 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   ) {}
 
   onApplicationBootstrap(): void {
-    if (process.env['NODE_ENV'] !== 'production' || !isSelfHosted()) return;
-    void this.runUntilComplete()
-      .then(() => this.startTailSweep())
-      .catch((error) => {
-        this.logger.error(
-          `post-deploy request backfill failed: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      });
+    if (process.env['NODE_ENV'] !== 'production') return;
+    this.stopping = false;
+    void this.runManagedBackfill();
   }
 
-  onApplicationShutdown(): void {
+  async onApplicationShutdown(): Promise<void> {
+    this.stopping = true;
     if (this.tailTimer) clearInterval(this.tailTimer);
+    if (this.managedCoordinator && this.managedCoordinator !== this) {
+      this.managedCoordinator.stopTailSweep();
+    }
+    const ownedDataSource = this.ownedDataSource;
+    this.ownedDataSource = undefined;
+    if (ownedDataSource?.isInitialized) await ownedDataSource.destroy();
+  }
+
+  /**
+   * Self-hosted reuses its DATABASE_URL-backed application DataSource. Cloud
+   * creates a separate direct pool so advisory locks and temporary staging
+   * tables never cross transaction-mode PgBouncer.
+   */
+  private async runManagedBackfill(): Promise<void> {
+    while (!this.stopping) {
+      try {
+        const coordinator = isSelfHosted() ? this : await this.createCloudCoordinator();
+        if (!coordinator || this.stopping) return;
+        this.managedCoordinator = coordinator;
+        await coordinator.runUntilComplete();
+        if (this.stopping) return;
+        await coordinator.startTailSweep();
+        return;
+      } catch (error) {
+        await this.releaseCloudCoordinator();
+        if (this.stopping) return;
+        this.logger.error(
+          `post-deploy request backfill failed: ${error instanceof Error ? error.message : String(error)}; retrying in ${REQUEST_BACKFILL_LOCK_RETRY_MS / 1000}s`,
+        );
+        await wait(REQUEST_BACKFILL_LOCK_RETRY_MS);
+      }
+    }
+  }
+
+  private async createCloudCoordinator(): Promise<RequestBackfillBootService | null> {
+    const dataSource = createRequestBackfillDataSource(process.env);
+    await dataSource.initialize();
+    if (this.stopping) {
+      await dataSource.destroy();
+      return null;
+    }
+    this.ownedDataSource = dataSource;
+    return new RequestBackfillBootService(dataSource, dataSource.getRepository(BackfillState));
+  }
+
+  private async releaseCloudCoordinator(): Promise<void> {
+    if (this.managedCoordinator && this.managedCoordinator !== this) {
+      this.managedCoordinator.stopTailSweep();
+    }
+    this.managedCoordinator = undefined;
+    const dataSource = this.ownedDataSource;
+    this.ownedDataSource = undefined;
+    if (dataSource?.isInitialized) await dataSource.destroy().catch(() => undefined);
+  }
+
+  private stopTailSweep(): void {
+    if (this.tailTimer) clearInterval(this.tailTimer);
+    this.tailTimer = undefined;
   }
 
   async runUntilComplete(): Promise<void> {

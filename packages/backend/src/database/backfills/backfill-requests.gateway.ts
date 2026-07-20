@@ -1,6 +1,12 @@
 import { DataSource, QueryRunner } from 'typeorm';
 import type { RequestBackfillGateway, RequestBackfillTimeouts } from './backfill-requests';
 
+const RETRYABLE_STAGED_BATCH_ERROR = /statement timeout|lock timeout|deadlock/i;
+
+function canResizeStagedBatch(error: unknown): boolean {
+  return RETRYABLE_STAGED_BATCH_ERROR.test(error instanceof Error ? error.message : String(error));
+}
+
 export const REQUEST_BACKFILL_WINDOW_END_SQL = `
   SELECT max(id) AS end_id
   FROM (
@@ -654,6 +660,7 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
     before: string,
     timeouts: RequestBackfillTimeouts,
     pause: () => Promise<void>,
+    reportProgress?: (message: string) => void,
   ): Promise<{ requests: number; attempts: number }> {
     const runner = this.dataSource.createQueryRunner();
     await runner.connect();
@@ -671,6 +678,7 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
       await runner.query('ANALYZE "request_backfill_fallback_indexes"');
 
       let afterId = '';
+      let primaryWindows = 0;
       for (;;) {
         const [{ end_id: endId = null } = { end_id: null }] = (await runner.query(
           FALLBACK_PRIMARY_WINDOW_END_SQL,
@@ -679,6 +687,10 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
         if (endId === null) break;
         await runner.query(INSERT_LEGACY_FALLBACK_PAIRS_SQL, [afterId, endId, before]);
         afterId = endId;
+        primaryWindows += 1;
+        if (primaryWindows % 25 === 0) {
+          reportProgress?.(`scanned ${primaryWindows} fallback-primary window(s)`);
+        }
         await pause();
       }
 
@@ -687,10 +699,19 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
          FROM "request_backfill_fallback_pairs"`,
       )) as { max_seq: number }[];
 
+      reportProgress?.(`staged ${maxPairSeq} fallback candidate chain(s)`);
+
+      let memberWindows = 0;
       for (let afterSeq = 0; afterSeq < maxPairSeq; afterSeq += batchSize) {
         const params = [afterSeq, Math.min(afterSeq + batchSize, maxPairSeq)];
         await runner.query(INSERT_LEGACY_FALLBACK_DIRECT_MEMBERS_SQL, params);
         await runner.query(INSERT_LEGACY_FALLBACK_MEMBERS_SQL, params);
+        memberWindows += 1;
+        if (memberWindows % 25 === 0 || params[1] === maxPairSeq) {
+          reportProgress?.(
+            `staged members for ${params[1]}/${maxPairSeq} fallback candidate chain(s)`,
+          );
+        }
         await pause();
       }
 
@@ -703,21 +724,44 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
       await runner.query(LEGACY_FALLBACK_STAGING_INDEX_SQL);
       await runner.query(`SET statement_timeout = '${timeouts.statementTimeoutMs}ms'`);
 
-      for (let afterSeq = 0; afterSeq < maxPairSeq; afterSeq += batchSize) {
-        const endSeq = Math.min(afterSeq + batchSize, maxPairSeq);
-        const grouped = await this.inRunnerTransaction(runner, timeouts, async () => {
-          await runner.query(CREATE_LEGACY_FALLBACK_GROUPS_SQL, [afterSeq, endSeq]);
-          const [{ n: requestCount }] = (await runner.query(
-            INSERT_LEGACY_FALLBACK_REQUESTS_SQL,
-          )) as { n: number }[];
-          const [{ n: attemptCount }] = (await runner.query(LINK_LEGACY_FALLBACK_ATTEMPTS_SQL)) as {
-            n: number;
-          }[];
-          return { requests: requestCount, attempts: attemptCount };
-        });
-        requests += grouped.requests;
-        attempts += grouped.attempts;
-        await pause();
+      let afterSeq = 0;
+      let linkBatchSize = batchSize;
+      let linkWindows = 0;
+      while (afterSeq < maxPairSeq) {
+        const endSeq = Math.min(afterSeq + linkBatchSize, maxPairSeq);
+        try {
+          const grouped = await this.inRunnerTransaction(runner, timeouts, async () => {
+            await runner.query(CREATE_LEGACY_FALLBACK_GROUPS_SQL, [afterSeq, endSeq]);
+            const [{ n: requestCount }] = (await runner.query(
+              INSERT_LEGACY_FALLBACK_REQUESTS_SQL,
+            )) as { n: number }[];
+            const [{ n: attemptCount }] = (await runner.query(
+              LINK_LEGACY_FALLBACK_ATTEMPTS_SQL,
+            )) as { n: number }[];
+            return { requests: requestCount, attempts: attemptCount };
+          });
+          requests += grouped.requests;
+          attempts += grouped.attempts;
+          afterSeq = endSeq;
+          linkWindows += 1;
+          if (linkWindows % 25 === 0 || afterSeq === maxPairSeq) {
+            reportProgress?.(
+              `linked ${afterSeq}/${maxPairSeq} fallback candidate chain(s) ` +
+                `into ${requests} request(s) and ${attempts} attempt(s)`,
+            );
+          }
+          await pause();
+        } catch (error) {
+          if (!canResizeStagedBatch(error) || linkBatchSize === 1) throw error;
+          const smallerBatchSize = Math.max(1, Math.floor(linkBatchSize / 2));
+          const reason = error instanceof Error ? error.message : String(error);
+          reportProgress?.(
+            `fallback batch after ${afterSeq} failed (${reason}); ` +
+              `reducing batch size from ${linkBatchSize} to ${smallerBatchSize}`,
+          );
+          linkBatchSize = smallerBatchSize;
+          await pause();
+        }
       }
       return { requests, attempts };
     } finally {
@@ -767,6 +811,9 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
       await runner.query(`SET LOCAL statement_timeout = '0'`);
       await runner.query(
         'ALTER TABLE "provider_attempts" VALIDATE CONSTRAINT "FK_provider_attempts_request"',
+      );
+      await runner.query(
+        'ALTER TABLE "provider_attempts" VALIDATE CONSTRAINT "CHK_provider_attempts_attempt_number_positive"',
       );
     });
   }

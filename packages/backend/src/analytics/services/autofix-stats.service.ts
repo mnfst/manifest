@@ -4,7 +4,7 @@ import { IsNull, Repository } from 'typeorm';
 import { Agent } from '../../entities/agent.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ManifestRequest } from '../../entities/request.entity';
-import { Tenant } from '../../entities/tenant.entity';
+import { AutofixService } from '../../routing/autofix/autofix.service';
 import {
   rangeToInterval,
   rangeToPreviousInterval,
@@ -21,11 +21,11 @@ import {
 import { RequestVolumeService } from './request-volume.service';
 
 export interface AutofixStatusResponse {
-  /** At least one agent has autofix access (tenant is waitlisted or granted). */
+  /** The tenant passes the same rollout gate used by request healing. */
   available: boolean;
-  /** At least one agent has autofix explicitly enabled. */
+  /** At least one agent is effectively enabled after deployment-mode defaults. */
   any_enabled: boolean;
-  /** Names of agents with autofix explicitly enabled. */
+  /** Names of agents effectively enabled after deployment-mode defaults. */
   enabled_agents: string[];
 }
 
@@ -88,8 +88,7 @@ export class AutofixStatsService {
     private readonly agentRepo: Repository<Agent>,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
-    @InjectRepository(Tenant)
-    private readonly tenantRepo: Repository<Tenant>,
+    private readonly autofix: AutofixService,
     private readonly requestVolume: RequestVolumeService,
   ) {}
 
@@ -98,24 +97,22 @@ export class AutofixStatsService {
       return { available: false, any_enabled: false, enabled_agents: [] };
     }
 
-    const tenant = await this.tenantRepo.findOne({ where: { id: tenantId } });
-    const available =
-      !!tenant &&
-      (tenant.autofix_access_granted_at !== null || tenant.autofix_waitlist_at !== null);
-
-    if (!available) {
+    if (!(await this.autofix.hasAccess(tenantId))) {
       return { available: false, any_enabled: false, enabled_agents: [] };
     }
 
     const agents = await this.agentRepo.find({
-      where: { tenant_id: tenantId, autofix_enabled: true, deleted_at: IsNull() },
-      select: ['name'],
+      where: { tenant_id: tenantId, deleted_at: IsNull() },
+      select: ['name', 'autofix_enabled'],
     });
+    const enabledAgents = agents
+      .filter((agent) => this.autofix.resolveEnabled(agent.autofix_enabled))
+      .map((agent) => agent.name);
 
     return {
       available: true,
-      any_enabled: agents.length > 0,
-      enabled_agents: agents.map((a) => a.name),
+      any_enabled: enabledAgents.length > 0,
+      enabled_agents: enabledAgents,
     };
   }
 

@@ -102,16 +102,16 @@ export class MessageDetailsService {
     // No tenant → no messages, so any id is unknown.
     if (!tenantId) throw new NotFoundException('Message not found');
 
-    const request = this.requestRepo
+    let request = this.requestRepo
       ? await this.requestRepo.findOne({ where: { id: messageId, tenant_id: tenantId } })
       : null;
-    const attempts = request
+    let attempts = request
       ? await this.messageRepo.find({
           where: { request_id: request.id, tenant_id: tenantId },
           order: { timestamp: 'ASC' },
         })
       : [];
-    const message = request
+    let message = request
       ? ([...attempts].reverse().find((attempt) => isSuccessStatus(attempt.status)) ??
         attempts[attempts.length - 1] ??
         null)
@@ -120,6 +120,26 @@ export class MessageDetailsService {
           .where('m.id = :id', { id: messageId })
           .andWhere('m.tenant_id = :tenantId', { tenantId })
           .getOne();
+
+    // A Messages row fetched before the online backfill may still link to its
+    // old synthetic attempt id. If the user opens it after that row has been
+    // grouped, follow request_id and render the complete request instead of a
+    // misleading one-attempt detail.
+    if (!request && message?.request_id && this.requestRepo) {
+      request = await this.requestRepo.findOne({
+        where: { id: message.request_id, tenant_id: tenantId },
+      });
+      if (request) {
+        attempts = await this.messageRepo.find({
+          where: { request_id: request.id, tenant_id: tenantId },
+          order: { timestamp: 'ASC' },
+        });
+        message =
+          [...attempts].reverse().find((attempt) => isSuccessStatus(attempt.status)) ??
+          attempts[attempts.length - 1] ??
+          message;
+      }
+    }
     if (!message && !request) throw new NotFoundException('Message not found');
 
     const autofix_sibling = message?.autofix_group_id

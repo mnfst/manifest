@@ -9,9 +9,11 @@ startCommand = "npm start"
 # lock, so overlapping deployments serialize instead of deadlocking on agent_messages.
 preDeployCommand = "npm run migration:run:prod --workspace=packages/backend"
 # Historical request regrouping is intentionally not part of pre-deploy or API
-# bootstrap. After this deployment is healthy, run one worker with the direct
-# MIGRATION_DATABASE_URL (or a dedicated BACKFILL_DATABASE_URL):
-# npm run backfill:requests:prod --workspace=packages/backend
+# readiness. The backend starts a non-blocking worker over the direct
+# MIGRATION_DATABASE_URL (or BACKFILL_DATABASE_URL) and catches up legacy writes
+# after the previous deployment drains. Before the first rollout, operators can
+# pre-group history without waiting for the live-write delta:
+# npm run backfill:requests:prod --workspace=packages/backend -- --initial-only
 healthcheckPath = "/api/v1/health"
 healthcheckTimeout = 300
 # Zero-downtime rolling deploys. The new deployment runs alongside the old one

@@ -15,6 +15,7 @@ function makeQb(rows: Array<Record<string, unknown>> = []) {
     addOrderBy: jest.fn(),
     limit: jest.fn(),
     distinct: jest.fn(),
+    setQueryRunner: jest.fn(),
     clone: jest.fn(),
     getQueryAndParameters: jest.fn().mockReturnValue(['SELECT r.id FROM requests r', []]),
     getRawOne: jest.fn().mockResolvedValue({ total: 0 }),
@@ -34,6 +35,7 @@ function makeQb(rows: Array<Record<string, unknown>> = []) {
     'addOrderBy',
     'limit',
     'distinct',
+    'setQueryRunner',
   ]) {
     qb[name].mockReturnValue(qb);
   }
@@ -47,6 +49,46 @@ function makeQb(rows: Array<Record<string, unknown>> = []) {
 }
 
 describe('MessagesQueryService request-first queries', () => {
+  it('reads request parents and unlinked attempts from one repeatable snapshot', async () => {
+    const requestQb = makeQb();
+    requestQb.clone.mockReturnValue(makeQb());
+    const legacyCountQb = makeQb();
+    const legacyDataQb = makeQb();
+    const legacyBase = makeQb();
+    legacyBase.clone.mockReturnValueOnce(legacyCountQb).mockReturnValueOnce(legacyDataQb);
+    const runner = {
+      connect: jest.fn().mockResolvedValue(undefined),
+      startTransaction: jest.fn().mockResolvedValue(undefined),
+      commitTransaction: jest.fn().mockResolvedValue(undefined),
+      rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+      release: jest.fn().mockResolvedValue(undefined),
+      query: jest.fn().mockResolvedValue([]),
+    };
+    const service = new MessagesQueryService(
+      { createQueryBuilder: jest.fn(() => legacyBase), query: jest.fn() } as never,
+      { find: jest.fn() } as never,
+      { createQueryBuilder: jest.fn(() => requestQb), query: jest.fn() } as never,
+      undefined,
+      { createQueryRunner: jest.fn(() => runner) } as never,
+    );
+
+    await service.getMessages({
+      tenantId: 'tenant-1',
+      limit: 10,
+      include_total: false,
+      include_filter_options: false,
+    });
+
+    expect(runner.startTransaction).toHaveBeenCalledWith('REPEATABLE READ');
+    expect(runner.query).toHaveBeenCalledWith('SET TRANSACTION READ ONLY');
+    expect(requestQb.setQueryRunner).toHaveBeenCalledWith(runner);
+    expect(legacyCountQb.setQueryRunner).toHaveBeenCalledWith(runner);
+    expect(legacyDataQb.setQueryRunner).toHaveBeenCalledWith(runner);
+    expect(runner.commitTransaction).toHaveBeenCalledTimes(1);
+    expect(runner.rollbackTransaction).not.toHaveBeenCalled();
+    expect(runner.release).toHaveBeenCalledTimes(1);
+  });
+
   it('filters by matching attempts without truncating the request rollup', async () => {
     const requestRows = [
       { id: 'request-1', timestamp: new Date('2026-07-14T10:00:00Z'), attempt_count: 2 },

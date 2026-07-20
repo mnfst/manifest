@@ -1,6 +1,6 @@
 import { Injectable, Optional } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, In, Repository, SelectQueryBuilder } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { Brackets, DataSource, In, QueryRunner, Repository, SelectQueryBuilder } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { TenantProvider } from '../../entities/tenant-provider.entity';
@@ -161,6 +161,9 @@ export class MessagesQueryService {
     @Optional()
     @InjectRepository(TenantProvider)
     private readonly tenantProviderRepo?: Repository<TenantProvider>,
+    @Optional()
+    @InjectDataSource()
+    private readonly dataSource?: DataSource,
   ) {}
 
   async getMessages(params: MessageQueryParams) {
@@ -461,14 +464,14 @@ export class MessagesQueryService {
     // Count the grouped request rows after cost HAVING has been applied. A
     // window count on the page query would disappear on an empty page, making
     // an exact non-zero total look like zero after the last cursor.
-    let requestCountPromise: Promise<Array<{ total: string }>> = Promise.resolve([]);
+    let requestCountQuery: { sql: string; parameters: unknown[] } | null = null;
     if (includeTotal) {
       const countSource = qb.clone().select('r.id', 'id').orderBy();
       const [countSql, countParameters] = countSource.getQueryAndParameters();
-      requestCountPromise = this.requestRepo!.query(
-        `SELECT COUNT(*) AS total FROM (${countSql}) "filtered_requests"`,
-        countParameters,
-      ) as Promise<Array<{ total: string }>>;
+      requestCountQuery = {
+        sql: `SELECT COUNT(*) AS total FROM (${countSql}) "filtered_requests"`,
+        parameters: countParameters,
+      };
     }
 
     // Keep the log complete while the online backfill is running. Each still-
@@ -500,20 +503,40 @@ export class MessagesQueryService {
       .addSelect('1', 'attempt_count');
     this.applyCursor(legacyDataQb, params.cursor);
 
-    const [requestCountRows, legacyCount, requestRows, legacyRows, filterOptions] =
+    const readRows = async (runner?: QueryRunner) => {
+      if (runner) {
+        qb.setQueryRunner(runner);
+        legacyCountQb.setQueryRunner(runner);
+        legacyDataQb.setQueryRunner(runner);
+      }
+      const requestCountPromise = requestCountQuery
+        ? ((runner
+            ? runner.query(requestCountQuery.sql, requestCountQuery.parameters)
+            : this.requestRepo!.query(
+                requestCountQuery.sql,
+                requestCountQuery.parameters,
+              )) as Promise<Array<{ total: string }>>)
+        : Promise.resolve([] as Array<{ total: string }>);
+      // QueryRunner owns one pg client. Await each statement rather than
+      // issuing concurrent client.query calls (deprecated in pg); all four
+      // statements still share this transaction snapshot.
+      const requestCountRows = await requestCountPromise;
+      const legacyCount = includeTotal ? await legacyCountQb.getRawOne() : null;
+      const requestRows = await qb
+        .orderBy('r.timestamp', 'DESC')
+        .addOrderBy('r.id', 'DESC')
+        .limit(params.limit + 1)
+        .getRawMany();
+      const legacyRows = await legacyDataQb
+        .orderBy('at.timestamp', 'DESC')
+        .addOrderBy('at.id', 'DESC')
+        .limit(params.limit + 1)
+        .getRawMany();
+      return [requestCountRows, legacyCount, requestRows, legacyRows] as const;
+    };
+    const [[requestCountRows, legacyCount, requestRows, legacyRows], filterOptions] =
       await Promise.all([
-        requestCountPromise,
-        includeTotal ? legacyCountQb.getRawOne() : Promise.resolve(null),
-        qb
-          .orderBy('r.timestamp', 'DESC')
-          .addOrderBy('r.id', 'DESC')
-          .limit(params.limit + 1)
-          .getRawMany(),
-        legacyDataQb
-          .orderBy('at.timestamp', 'DESC')
-          .addOrderBy('at.id', 'DESC')
-          .limit(params.limit + 1)
-          .getRawMany(),
+        this.withCompatibilitySnapshot(readRows),
         params.include_filter_options !== false
           ? this.getMessageFilterOptions(params)
           : Promise.resolve({ providers: [] as string[], provider_labels: {} }),
@@ -553,6 +576,39 @@ export class MessagesQueryService {
       authType: r.auth_type,
       label: r.label ?? 'Default',
     }));
+  }
+
+  /**
+   * The request backfill inserts a parent and links its attempts atomically, but
+   * request and unlinked compatibility branches are separate SELECTs. Pin them
+   * to one repeatable-read transaction so a row cannot disappear from one
+   * branch before becoming visible in the other (or appear in both).
+   *
+   * A transaction works through Railway's transaction-mode PgBouncer: PgBouncer
+   * keeps one server connection for BEGIN→COMMIT. Unlike the backfill itself,
+   * this read path does not depend on session locks or temporary tables.
+   */
+  private async withCompatibilitySnapshot<T>(
+    read: (runner?: QueryRunner) => Promise<T>,
+  ): Promise<T> {
+    const dataSource = this.dataSource ?? this.turnRepo.manager?.connection;
+    if (!dataSource) return read();
+    const runner = dataSource.createQueryRunner();
+    await runner.connect();
+    try {
+      await runner.startTransaction('REPEATABLE READ');
+      try {
+        await runner.query('SET TRANSACTION READ ONLY');
+        const result = await read(runner);
+        await runner.commitTransaction();
+        return result;
+      } catch (error) {
+        await runner.rollbackTransaction();
+        throw error;
+      }
+    } finally {
+      await runner.release();
+    }
   }
 
   async getMessageFilterOptions(params: MessageFilterParams): Promise<{

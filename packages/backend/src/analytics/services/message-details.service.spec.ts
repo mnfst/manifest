@@ -403,6 +403,43 @@ describe('MessageDetailsService', () => {
     );
   });
 
+  it('follows a linked attempt to its request after the online backfill', async () => {
+    const linkedAttempt = {
+      ...baseMessage,
+      id: 'attempt-1',
+      request_id: 'request-1',
+    };
+    const attempts = [linkedAttempt, { ...baseMessage, id: 'attempt-2', request_id: 'request-1' }];
+    const request = {
+      id: 'request-1',
+      tenant_id: 't1',
+      timestamp: baseMessage.timestamp,
+      agent_name: baseMessage.agent_name,
+      requested_model: baseMessage.model,
+      status: 'success',
+      duration_ms: baseMessage.duration_ms,
+    };
+    const requestRepo = {
+      findOne: jest.fn().mockResolvedValueOnce(null).mockResolvedValueOnce(request),
+    };
+    const messageRepo = {
+      createQueryBuilder: jest.fn(() => mockQb(linkedAttempt)),
+      find: jest.fn().mockResolvedValue(attempts),
+    };
+    const requestAware = new MessageDetailsService(messageRepo as never, requestRepo as never);
+
+    const result = await requestAware.getDetails('attempt-1', 't1');
+
+    expect(requestRepo.findOne).toHaveBeenNthCalledWith(2, {
+      where: { id: 'request-1', tenant_id: 't1' },
+    });
+    expect(result.message.id).toBe('request-1');
+    expect(result.message.attempts?.map((attempt) => attempt.id)).toEqual([
+      'attempt-1',
+      'attempt-2',
+    ]);
+  });
+
   it('returns a zero-attempt request with request-level fallbacks', async () => {
     const requestAware = new MessageDetailsService(
       { find: jest.fn().mockResolvedValue([]) } as never,

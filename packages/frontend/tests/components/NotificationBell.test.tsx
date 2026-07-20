@@ -137,6 +137,18 @@ describe('NotificationBell', () => {
     expect(screen.queryByLabelText('Notifications')).toBeNull();
   });
 
+  it('hides itself when status reports unavailable despite a stale eligible response', async () => {
+    cohortEligible = true;
+    mockGetStatus.mockResolvedValue({
+      available: false,
+      any_enabled: false,
+      enabled_agents: [],
+    });
+    render(() => <NotificationBell />);
+    await waitFor(() => expect(mockGetStatus).toHaveBeenCalled());
+    expect(screen.queryByLabelText('Notifications')).toBeNull();
+  });
+
   it('recovers from unread-state storage failures', async () => {
     const getItem = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('blocked');

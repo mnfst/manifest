@@ -36,7 +36,7 @@ describe('resolveRequestBackfillDatabaseUrl', () => {
         NODE_ENV: 'production',
         DATABASE_URL: 'postgres://pgbouncer/db',
       }),
-    ).toThrow('A direct PostgreSQL URL is required in production');
+    ).toThrow('A direct PostgreSQL URL is required in Cloud production');
   });
 
   it('allows the application URL or local default outside production', () => {
@@ -107,6 +107,26 @@ describe('main', () => {
     expect(coordinator.runTailOnce).toHaveBeenCalledTimes(2);
     expect(logger.log).toHaveBeenLastCalledWith(
       'request/provider-attempt backfill and catch-up complete',
+    );
+    expect(dataSource.destroy).toHaveBeenCalled();
+  });
+
+  it('can stop after the historical pass while live writes continue', async () => {
+    const dataSource = fakeDataSource();
+    const coordinator = {
+      runUntilComplete: jest.fn(async () => undefined),
+      runTailOnce: jest.fn(),
+      hasUnlinkedAttempts: jest.fn(),
+    };
+    const logger = { log: jest.fn(), error: jest.fn() };
+
+    await main({ dataSource, coordinator, logger, initialOnly: true });
+
+    expect(coordinator.runUntilComplete).toHaveBeenCalledTimes(1);
+    expect(coordinator.hasUnlinkedAttempts).not.toHaveBeenCalled();
+    expect(coordinator.runTailOnce).not.toHaveBeenCalled();
+    expect(logger.log).toHaveBeenLastCalledWith(
+      'request/provider-attempt historical backfill complete; live-write delta deferred',
     );
     expect(dataSource.destroy).toHaveBeenCalled();
   });
