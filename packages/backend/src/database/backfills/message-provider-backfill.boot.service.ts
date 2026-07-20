@@ -12,8 +12,15 @@ import { TypeOrmBackfillGateway } from './backfill-message-providers.gateway';
 
 /** Marker name in `backfill_state`; presence == this backfill has finished. */
 export const MESSAGE_PROVIDER_BACKFILL_NAME = 'agent_message_provider_attribution';
-/** Stable advisory-lock key so only one app instance runs the backfill at once. */
+/** Shared lock key so only one post-deploy backfill runs at once. */
 export const MESSAGE_PROVIDER_BACKFILL_LOCK_KEY = 1792000000;
+const LOCK_RETRY_MS = 30_000;
+
+const wait = (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    if (typeof timer === 'object' && 'unref' in timer) timer.unref();
+  });
 
 export type BackfillRunner = (
   dataSource: DataSource,
@@ -53,17 +60,23 @@ export class MessageProviderBackfillBootService implements OnApplicationBootstra
     if (process.env['NODE_ENV'] !== 'production') {
       return;
     }
-    void this.runOnce().catch((error) => {
+    void this.runUntilComplete().catch((error) => {
       this.logger.error(
         `post-deploy backfill failed: ${error instanceof Error ? error.message : String(error)}`,
       );
     });
   }
 
+  private async runUntilComplete(): Promise<void> {
+    while (!(await this.runOnce())) {
+      await wait(LOCK_RETRY_MS);
+    }
+  }
+
   /** `runner` is injectable for tests; production uses the real backfill. */
-  async runOnce(runner: BackfillRunner = defaultRunner): Promise<void> {
+  async runOnce(runner: BackfillRunner = defaultRunner): Promise<boolean> {
     if (await this.isCompleted()) {
-      return;
+      return true;
     }
     const lock = this.dataSource.createQueryRunner();
     await lock.connect();
@@ -74,13 +87,13 @@ export class MessageProviderBackfillBootService implements OnApplicationBootstra
       ])) as { locked: boolean }[];
       acquired = rows[0]?.locked === true;
       if (!acquired) {
-        this.logger.log('another instance is running the backfill; skipping');
-        return;
+        this.logger.log('another backfill is running; retrying provider attribution later');
+        return false;
       }
       // Re-check under the lock: a peer may have finished between the first
       // check and acquiring the lock.
       if (await this.isCompleted()) {
-        return;
+        return true;
       }
       this.logger.log('running post-deploy agent-message attribution backfill…');
       const result = await runner(this.dataSource, { logger: this.logger });
@@ -88,6 +101,7 @@ export class MessageProviderBackfillBootService implements OnApplicationBootstra
       this.logger.log(
         `post-deploy backfill complete: stamped ${result.stamped} message(s) across ${result.windows} window(s)`,
       );
+      return true;
     } finally {
       if (acquired) {
         await lock

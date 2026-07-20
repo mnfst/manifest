@@ -67,6 +67,39 @@ describe('MessageProviderBackfillBootService', () => {
 
       expect(errSpy).toHaveBeenCalledWith(expect.stringContaining('post-deploy backfill failed'));
     });
+
+    it('waits and retries after advisory-lock contention', async () => {
+      jest.useFakeTimers();
+      process.env['NODE_ENV'] = 'production';
+      const state = makeState(false);
+      state.countBy.mockResolvedValueOnce(0).mockResolvedValueOnce(1);
+      const lock = makeLock(false);
+      const ds = { createQueryRunner: jest.fn(() => lock) } as unknown as DataSource;
+
+      new MessageProviderBackfillBootService(ds, state.repo).onApplicationBootstrap();
+      await jest.advanceTimersByTimeAsync(30_000);
+
+      expect(state.countBy).toHaveBeenCalledTimes(2);
+      expect(lock.release).toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it('keeps retrying until the competing backfill completes', async () => {
+      jest.useFakeTimers();
+      process.env['NODE_ENV'] = 'production';
+      const state = makeState(false);
+      const lock = makeLock(false);
+      const ds = { createQueryRunner: jest.fn(() => lock) } as unknown as DataSource;
+
+      new MessageProviderBackfillBootService(ds, state.repo).onApplicationBootstrap();
+      await jest.advanceTimersByTimeAsync(30_000 * 12);
+
+      expect(state.countBy.mock.calls.length).toBeGreaterThan(10);
+      expect(errSpy).not.toHaveBeenCalled();
+      state.countBy.mockResolvedValue(1);
+      await jest.advanceTimersByTimeAsync(30_000);
+      jest.useRealTimers();
+    });
   });
 
   describe('runOnce', () => {
@@ -74,7 +107,9 @@ describe('MessageProviderBackfillBootService', () => {
       const state = makeState(true);
       const ds = { createQueryRunner: jest.fn() } as unknown as DataSource;
       const runner = jest.fn();
-      await new MessageProviderBackfillBootService(ds, state.repo).runOnce(runner);
+      await expect(
+        new MessageProviderBackfillBootService(ds, state.repo).runOnce(runner),
+      ).resolves.toBe(true);
       expect(ds.createQueryRunner).not.toHaveBeenCalled();
       expect(runner).not.toHaveBeenCalled();
     });
@@ -83,7 +118,9 @@ describe('MessageProviderBackfillBootService', () => {
       const lock = makeLock(false);
       const ds = { createQueryRunner: jest.fn(() => lock) } as unknown as DataSource;
       const runner = jest.fn();
-      await new MessageProviderBackfillBootService(ds, makeState(false).repo).runOnce(runner);
+      await expect(
+        new MessageProviderBackfillBootService(ds, makeState(false).repo).runOnce(runner),
+      ).resolves.toBe(false);
       expect(lock.query).toHaveBeenCalledWith(TRYLOCK, [MESSAGE_PROVIDER_BACKFILL_LOCK_KEY]);
       expect(runner).not.toHaveBeenCalled();
       expect(lock.query).not.toHaveBeenCalledWith(UNLOCK, [MESSAGE_PROVIDER_BACKFILL_LOCK_KEY]);
@@ -96,7 +133,9 @@ describe('MessageProviderBackfillBootService', () => {
       const state = makeState(false);
       const runner = jest.fn(async () => ({ windows: 3, stamped: 42 }));
 
-      await new MessageProviderBackfillBootService(ds, state.repo).runOnce(runner);
+      await expect(
+        new MessageProviderBackfillBootService(ds, state.repo).runOnce(runner),
+      ).resolves.toBe(true);
 
       expect(runner).toHaveBeenCalledWith(
         ds,
@@ -115,7 +154,9 @@ describe('MessageProviderBackfillBootService', () => {
       state.countBy.mockResolvedValueOnce(0).mockResolvedValueOnce(1); // free, then taken
       const runner = jest.fn();
 
-      await new MessageProviderBackfillBootService(ds, state.repo).runOnce(runner);
+      await expect(
+        new MessageProviderBackfillBootService(ds, state.repo).runOnce(runner),
+      ).resolves.toBe(true);
 
       expect(runner).not.toHaveBeenCalled();
       expect(lock.query).toHaveBeenCalledWith(UNLOCK, [MESSAGE_PROVIDER_BACKFILL_LOCK_KEY]);
@@ -152,7 +193,7 @@ describe('MessageProviderBackfillBootService', () => {
 
       await expect(
         new MessageProviderBackfillBootService(ds, makeState(false).repo).runOnce(runner),
-      ).resolves.toBeUndefined();
+      ).resolves.toBe(true);
       expect(lock.release).toHaveBeenCalled();
     });
 
