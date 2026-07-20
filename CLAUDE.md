@@ -1,10 +1,10 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-07-13
+Last updated: 2026-07-20
 
 ## What Manifest Is
 
-Manifest is a smart model router for **AI agents**. It sits between an agent and its LLM providers, scores each request, and routes it to the cheapest model that can handle it. The dashboard tracks costs, tokens, and messages across any agent that speaks OpenAI-compatible HTTP.
+Manifest is a smart model router for **AI agents**. It sits between an agent and its LLM providers, scores each request, and routes it to the cheapest model that can handle it. The dashboard tracks logical requests and their provider attempts, costs, and tokens across any agent that speaks OpenAI-compatible HTTP.
 
 **Supported agents**: see `AGENT_PLATFORMS` in `packages/shared/src/agent-type.ts` for the current list (OpenClaw, Hermes, Claude Code, OpenCode, generic OpenAI/Anthropic SDK slots, and others — don't duplicate the list here, it grows independently of this doc). OpenClaw remains the deepest integration, but no new code or copy should frame Manifest as OpenClaw-only. When adding examples, prefer "AI agent" as the noun and pick OpenClaw as the worked example rather than the sole target. Manifest is consumed as a generic OpenAI-compatible HTTP endpoint — there are no first-party OpenClaw plugins in this repo anymore.
 
@@ -57,7 +57,7 @@ The `AgentKeyAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in the
 
 - **Backend**: NestJS 11, TypeORM 0.3, PostgreSQL 16, Better Auth, class-validator, class-transformer, Helmet
 - **Frontend**: SolidJS, Vite, uPlot (charts), Better Auth client, custom CSS theme
-- **Runtime**: TypeScript 5.x (strict mode), Node.js 24.x
+- **Runtime**: TypeScript 5.x (strict mode). CI pins Node.js 24 (`.github/workflows/release.yml`); no `engines` field enforces this locally.
 - **Monorepo**: npm workspaces + Turborepo
 - **Release**: Changesets for version management + GitHub Actions for Docker image release
 
@@ -67,6 +67,7 @@ The `AgentKeyAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in the
 packages/
 ├── backend/
 │   ├── src/
+│   │   ├── instrument.ts                    # Sentry init, imported first (before any other import)
 │   │   ├── main.ts                          # Bootstrap: Helmet, ValidationPipe, Better Auth mount, CORS
 │   │   ├── app.module.ts                    # Root module (guards: ApiKey, Session, Throttler)
 │   │   ├── config/app.config.ts             # Environment variable config
@@ -82,12 +83,12 @@ packages/
 │   │   │   ├── pricing-sync.service.ts      # OpenRouter pricing data sync
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
-│   │   │   └── seed-messages.ts             # Demo agent message seed data
+│   │   │   └── seed-messages.ts             # Demo request/provider-attempt seed data
 │   │   ├── entities/                        # TypeORM entities (22 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
-│   │   │   └── ...                          # agent-message, tenant-provider, tier-assignment, header-tier, specificity-assignment, playground-run/column, reasoning-content-cache-entry, etc.
+│   │   │   └── ...                          # request, agent-message (provider attempt), tenant-provider, tier-assignment, header-tier, etc.
 │   │   ├── common/
 │   │   │   ├── guards/api-key.guard.ts      # X-API-Key header auth (timing-safe)
 │   │   │   ├── decorators/public.decorator.ts
@@ -130,6 +131,7 @@ packages/
 │   │   ├── error-pages/                     # Custom error-page config (internal + public)
 │   │   ├── waitlist/                        # Early-access waitlist signup (e.g. Auto-fix)
 │   │   ├── cors-csp-config.ts               # Wingman CORS/CSP origin allowlists
+│   │   ├── sentry/                          # Sentry init-options builder (SENTRY_DSN-gated)
 │   │   └── telemetry/                       # Anonymous self-hosted telemetry
 │   └── test/                                # E2E tests (supertest)
 ├── frontend/
@@ -149,7 +151,7 @@ packages/
 │   │   │   ├── Workspace.tsx                # Agent grid + create agent
 │   │   │   ├── GlobalOverview.tsx, AgentOverview.tsx # Cross-agent + per-agent dashboards (split from one Overview.tsx)
 │   │   │   ├── AgentDetail.tsx, AgentProviders.tsx   # Per-agent detail + provider connections
-│   │   │   ├── MessageLog.tsx               # Paginated messages
+│   │   │   ├── MessageLog.tsx               # Paginated Requests log (legacy filename)
 │   │   │   ├── Account.tsx                  # User profile (session data)
 │   │   │   ├── Settings.tsx, SettingsAutofixSection.tsx # Agent settings + Auto-fix toggle
 │   │   │   ├── Routing.tsx, RoutingPanels.tsx, RoutingActions.tsx, RoutingDefaultTierSection.tsx, RoutingHeaderTiersSection.tsx, RoutingSpecificitySection.tsx, RoutingTierCard.tsx # LLM routing config (split by concern)
@@ -218,7 +220,7 @@ Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test onl
 - **Agent**: `demo-agent` with OTLP key `dev-otlp-key-001`
 - **API key**: `dev-api-key-manifest-001`
 - **Security events**: 12 sample events for the security dashboard
-- **Agent messages**: Sample telemetry messages for the demo agent
+- **Requests and provider attempts**: Sample telemetry for the demo agent
 
 Seeding is idempotent — it checks for existing records before inserting.
 
@@ -319,14 +321,14 @@ async handler(@CurrentUser() user: AuthUser) {
 ```
 User (Better Auth) ──→ Tenant ──→ Agent ──→ AgentApiKey (mnfst_*)
                                     │
-                                    └──→ agent_messages (telemetry data)
+                                    └──→ requests ──→ provider_attempts (telemetry data)
 ```
 
 - **Tenant** (`tenants` table): Created automatically on first agent creation. `tenant.owner_user_id` = `user.id` is the ONLY user→tenant link (resolved through `TenantCacheService`); `tenant.name` mirrors it for display until repurposed as a slug.
 - **Agent** (`agents` table): Belongs to a tenant. Unique constraint on `[tenant_id, name]`.
 - **AgentApiKey** (`agent_api_keys` table): One-to-one with agent. `mnfst_*` format key for OTLP ingestion.
 - **ApiKey** (`api_keys` table): A separate, tenant-scoped credential (not per-agent) used for dashboard/API access — the primary key `ApiKeyGuard` checks. Distinct from `AgentApiKey`.
-- **Onboarding flow**: `ApiKeyGeneratorService.onboardAgent()` creates tenant (if new) + agent + API key in one transaction.
+- **Onboarding flow**: `ApiKeyGeneratorService.onboardAgent()` creates tenant (if new) + agent + API key via three sequential inserts.
 
 ### Data Isolation
 
@@ -349,25 +351,27 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET | `/api/v1/agents/:agentName/key` | Session/API Key | Get agent API key |
 | POST | `/api/v1/agents/:agentName/rotate-key` | Session/API Key | Rotate API key |
 | PATCH | `/api/v1/agents/:agentName` | Session/API Key | Rename agent |
-| GET | `/api/v1/messages` | Session/API Key | Paginated message log |
-| GET/PATCH/DELETE | `/api/v1/messages/:id/*` | Session/API Key | Message details, feedback, miscategorized flag |
+| GET | `/api/v1/messages` | Session/API Key | Paginated Requests log (legacy route name) |
+| GET/PATCH/DELETE | `/api/v1/messages/:id/*` | Session/API Key | Request details, feedback, miscategorized flag (legacy route name) |
+| GET | `/api/v1/security` | Session/API Key | Security score + events |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
 | GET | `/api/v1/free-models` | Session/API Key | Free LLM model catalog |
-| GET | `/api/v1/agent/:agentName/usage` | Session/API Key | Per-agent token usage |
-| GET | `/api/v1/agent/:agentName/costs` | Session/API Key | Per-agent cost data |
+| GET | `/api/v1/agent/usage` | Bearer (mnfst_*) | Token usage for the calling agent |
+| GET | `/api/v1/agent/costs` | Bearer (mnfst_*) | Cost data for the calling agent |
 | GET | `/api/v1/overview/*` | Session/API Key | Overview timeseries/breakdown sub-endpoints |
 | GET | `/api/v1/providers` / `/api/v1/providers/usage` | Session/API Key | Connected provider list + usage |
 | GET | `/api/v1/provider-analytics/*` | Session/API Key | Per-provider analytics |
 | GET | `/api/v1/errors/breakdown` | Session/API Key | Error breakdown analytics |
 | GET/PATCH | `/api/v1/billing/*` | Session/API Key | Billing status + email preferences (Stripe) |
 | GET/POST | `/api/v1/waitlist/autofix*` | Session/API Key (GET/POST), Public (`/claim`) | Auto-fix early-access waitlist |
-| GET/POST/DELETE | `/api/v1/internal/error-pages*` | Session/API Key | Custom error-page config |
+| GET/POST/DELETE | `/api/v1/internal/error-pages*` | Public (`x-internal-secret` header) | Custom error-page config (Peacock CMS push API) |
+| GET/PUT/DELETE | `/api/v1/agents/:agentName/enabled-providers*` | Session/API Key | Per-agent provider enable/disable + impact preview |
 | GET/POST/PATCH/DELETE | `/api/v1/notifications/*` | Session/API Key | Notification rules CRUD + email provider config |
 | GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*` | Session/API Key | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, etc.) |
 | POST | `/api/v1/routing/ollama/sync` | Session/API Key | Sync Ollama models |
 | GET | `/api/v1/routing/pricing-health` | Session/API Key | OpenRouter pricing sync health |
 | POST | `/api/v1/routing/pricing/refresh` | Session/API Key | Force pricing cache refresh |
-| GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows (Gemini, OpenAI, Kiro, MiniMax) |
+| GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows (Gemini, OpenAI, Anthropic, xAI, Kiro, MiniMax) |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
 | POST | `/api/v1/routing/subscription-providers` | Bearer (mnfst_*) | Subscription provider config |
 | GET | `/api/v1/setup/status` | Public | First-run setup status |
@@ -415,6 +419,10 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `MANIFEST_MODE` — `selfhosted` or `cloud` (default: `cloud`; auto-detected as `selfhosted` inside Docker via `/.dockerenv` or Podman via `/run/.containerenv`). Self-hosted mode enables loopback auth shortcuts and allows custom-provider URLs with `http://` / private IPs. `local` is accepted as a legacy alias for `selfhosted`.
 - `MANIFEST_TELEMETRY_DISABLED` — Set `1` to opt out of anonymous telemetry (self-hosted only).
 - `MANIFEST_PUBLIC_STATS` — Set `true` to expose `/api/v1/public/*` aggregate stats without auth (cloud-only marketing use).
+- `TELEMETRY_ENDPOINT` — Where self-hosted installs POST the anonymous usage report. Default: `https://telemetry.manifest.build/v1/report`. See [Telemetry](#anonymous-usage-telemetry-self-hosted).
+- `SENTRY_DSN` / `SENTRY_ENVIRONMENT` / `SENTRY_RELEASE` — Opt-in Sentry error monitoring. Unset `SENTRY_DSN` disables Sentry entirely; `SENTRY_ENVIRONMENT` defaults to `NODE_ENV`. See [Error Monitoring](#error-monitoring-sentry-opt-in).
+- `WINGMAN_PORT` — Dev-only. Port a locally-running Wingman build listens on, allowed through CSP `frame-src` and CORS alongside the hosted Wingman origin. Default: backend `PORT` + 1.
+- `AUTH_DB_POOL_MAX` — Connection pool size for Better Auth's own `pg.Pool`, separate from `DB_POOL_MAX`. Default: `10`.
 - `OLLAMA_HOST` — Ollama endpoint for the built-in tile. Defaults to `http://localhost:11434` outside Docker and `http://host.docker.internal:11434` inside the bundled `docker/docker-compose.yml`.
 - `AUTOFIX_HEALING_URL` — Base URL of the Phoenix healing service for Auto-fix. Unset → inert Noop client in production (never mutates traffic), in-process mock in dev/test. See [Auto-fix](#auto-fix-self-healing-via-phoenix).
 - `AUTOFIX_HEALING_API_KEY` — Sent as `x-api-key` on every call to Phoenix. Phoenix guards `/api/heal*` and fails closed in production, so this is required when `AUTOFIX_HEALING_URL` points at a production Phoenix; omit it for a keyless dev/test Phoenix.
@@ -426,17 +434,22 @@ See `packages/backend/.env.example` for all variables. Key ones:
 
 ## Domain Terminology
 
-- **Message**: The primary entity in the system. Every row in `agent_messages` is a Message. The UI labels them "Messages" everywhere. Key routing columns: `routing_tier` (complexity tier used), `routing_reason` (why — `scored`, `specificity`, `heartbeat`, etc.), `specificity_category` (which task-type category, null if complexity-routed). Failure columns: `error_origin` / `error_class` / `superseded` (the orthogonal axes, see `error-taxonomy.ts`) and `error_code` (the documented `M###` when Manifest itself failed — see [Manifest's own errors](#manifests-own-errors-m)). A healed request is two linked rows (`status='auto_fixed'` original + `status='ok'` retry) — see [Auto-fix](#auto-fix-self-healing-via-phoenix).
-- **Tenant**: A user's data boundary. Created from `user.id` on first agent creation.
-- **Agent**: An AI agent owned by a tenant. Has a unique OTLP ingest key.
+Manifest terminology is directional:
 
-### Message list endpoints (shared projection contract)
+- A **Manifest Request** is one logical request from an agent to Manifest and lives in `requests`.
+- A **Provider Attempt** is one request from Manifest to an AI provider and lives in `provider_attempts`.
+- A **Tenant** is a user's data boundary. It is created from `user.id` on first agent creation.
+- An **Agent** is an AI agent owned by a tenant. It has a unique OTLP ingest key.
 
-Any backend endpoint that returns rows rendered by the frontend `MessageTable` / `ModelCell` component **must** project its SELECT through `selectMessageRowColumns()` in `packages/backend/src/analytics/services/query-helpers.ts`. The helper is the single source of truth for the columns the shared badge/provider/auth rendering reads (including `specificity_category`, `routing_tier`, `routing_reason`, `auth_type`, `fallback_from_model`).
+[`docs/glossary.md`](docs/glossary.md) is the canonical contract for statuses, ordering, recovery, database mapping, and counting rules. Do not duplicate those definitions in agent guides.
+
+### Legacy message/attempt projection contract
+
+Any backend endpoint that returns provider-attempt fields rendered by the frontend `MessageTable` / `ModelCell` component **must** project its SELECT through `selectMessageRowColumns()` in `packages/backend/src/analytics/services/query-helpers.ts`. The helper assumes the `provider_attempts` alias `at` and is the single source of truth for the columns the shared badge/provider/auth rendering reads (including `specificity_category`, `routing_tier`, `routing_reason`, `auth_type`, `fallback_from_model`). Request-level fields still come from `requests`; do not copy attempt fields onto requests to satisfy this legacy UI contract.
 
 - Adding a new column the UI needs → edit the helper once, never duplicate the projection across query services.
 - Endpoint-specific fields that don't belong to the shared `MessageRow` contract (e.g. `description`, `service_type`, `cache_read_tokens`, `duration_ms` for the full Messages log) stay as explicit `.addSelect` chained after the helper call.
-- Current call sites: `getRecentActivity()` in `timeseries-queries.service.ts` (Overview "Recent Messages") and `getMessages()` in `messages-query.service.ts` (Messages log).
+- Current call sites: `getRecentActivity()` in `timeseries-queries.service.ts` (Overview "Recent Messages"), `getMessages()` in `messages-query.service.ts` (Messages log), and `provider-analytics.controller.ts` (provider-scoped message list).
 - A `query-helpers.spec.ts` test pins the required alias set — it fails loudly if anyone drops a field from the helper. Don't bypass it by hand-rolling a new SELECT chain.
 
 This rule exists because the Overview and Messages pages previously drifted and the Recent Messages badge read `STANDARD` instead of the specificity category (`CODING` etc.) — the frontend already shares the rendering code, so the divergence was purely backend projection drift.
@@ -447,19 +460,19 @@ Every failure Manifest itself produces — as opposed to one a provider returned
 
 **Raise them with `ManifestError`** (`common/errors/manifest-error.ts`), never a bare `HttpException`. The type is what lets `proxy.controller.ts` tell "Manifest refused this request" from "the provider returned a 4xx". Before it existed, a malformed body (M300) and a Manifest bug (M500) were both recorded as *provider* errors and counted against `provider_error_rate`.
 
-**Every code is recorded as a Message**, with four exceptions. `M001`, `M002`, `M003`, and `M005` are raised by `AgentKeyAuthGuard` before a key resolves to a tenant, so there is no agent to attribute a row to — they're listed in `UNRECORDABLE_MANIFEST_CODES` and write nothing. (`M004`, an expired key, *does* resolve an agent, so the guard stashes it on `request.manifestErrorContext` and `ProxyExceptionFilter` records it.) `__tests__/manifest-error.spec.ts` fails if a new code is neither mapped in `MANIFEST_CODE_TO_REASON` nor declared unrecordable.
+**Every code is recorded on a Manifest Request**, with four exceptions. `M001`, `M002`, `M003`, and `M005` are raised by `AgentKeyAuthGuard` before a key resolves to a tenant, so there is no agent to attribute a row to — they're listed in `UNRECORDABLE_MANIFEST_CODES` and write nothing. (`M004`, an expired key, *does* resolve an agent, so the guard stashes it on `request.manifestErrorContext` and `ProxyExceptionFilter` records it.) `__tests__/manifest-error.spec.ts` fails if a new code is neither mapped in `MANIFEST_CODE_TO_REASON` nor declared unrecordable.
 
-**`ProxyMessageRecorder.recordManifestBlockedRequest()` is the only writer of Manifest rows.** It stamps `error_code`, the *rendered* message (the `[🦚 Manifest M100] No anthropic API key yet. Add one here: …` text the caller saw — not a generic stand-in), and leaves `provider` / `routing_tier` NULL because no provider was contacted and no tier chosen. Do not route these through `recordSuccessMessage`; it used to detect canned reasons and flip its own status to `error`, which stamped a phantom `provider='manifest'` / `routing_tier='simple'` on every setup error.
+**`ProxyMessageRecorder.recordManifestBlockedRequest()` is the only writer of Manifest-authored rejected requests.** It creates one `requests` row, stamps `requests.error_code` plus the *rendered* message (the `[🦚 Manifest M100] No anthropic API key yet. Add one here: …` text the caller saw — not a generic stand-in), and creates zero `provider_attempts` rows because no provider was contacted. Do not route these through `recordSuccessMessage` or manufacture a `provider='manifest'` attempt.
 
 `M500` is the deliberate exception to "store what the caller saw": the caller gets the friendly "Something broke on our end", while the row stores the raw internal error message. The dashboard is where you go to find out what actually broke, so don't "fix" it to match.
 
-**The Messages log hides no origin.** `getMessages()` applies an origin filter only when the caller passes `?origin=`. It previously hid `config` rows by default on the theory that "a Manifest config error is not a message", while the Overview's Recent Messages panel showed them — so a user who saw a "Failed: Setup" row and clicked through found nothing, with no filter anywhere to bring it back. `messages-manifest-errors.e2e-spec.ts` pins the fix.
+**The Requests log hides no origin.** The legacy `getMessages()` API method applies an origin filter only when the caller passes `?origin=`. It previously hid `config` requests by default while the Overview showed them — so a user who saw a "Failed: Setup" request and clicked through found nothing, with no filter anywhere to bring it back. `messages-manifest-errors.e2e-spec.ts` pins the fix.
 
 ### The `request` error origin
 
 `ERROR_ORIGINS` (in `packages/shared/src/error-taxonomy.ts`) has six values. `request` means the caller sent a body Manifest could not route — not the operator's setup (`config`), not a limit they set (`policy`), and not a Manifest bug (`internal`).
 
-`request` is a member of `MANIFEST_ERROR_ORIGINS`. That membership is load-bearing: it keeps these rows out of `provider_error_rate` in `error-breakdown.service.ts`, out of billing counters in `plan.service.ts`, and inside the `origin=manifest` filter shorthand. Any new origin that isn't a provider round-trip belongs there too.
+`request` is a member of `MANIFEST_ERROR_ORIGINS`. Do not confuse the error-origin value with the `requests` table: it classifies who caused an error. That membership is load-bearing because it keeps caller-caused failures out of provider reliability metrics and inside the `origin=manifest` filter shorthand. Any new origin that is not a provider round-trip belongs there too.
 
 ## Content Security Policy (CSP)
 
@@ -488,7 +501,7 @@ send one aggregate usage report per 24h to `TELEMETRY_ENDPOINT` (default
 
 - `schema_version`, `install_id` (random UUIDv4, persisted once in
   `install_metadata`), `manifest_version`
-- Last 24h aggregates from `agent_messages`: `messages_total`,
+- Last 24h aggregates from `provider_attempts` (payload field names remain legacy for protocol compatibility): `messages_total`,
   `messages_by_provider` (bucketed via `PROVIDER_BY_ID_OR_ALIAS` — unknown
   values collapse to `"custom"`, NULL to `"unknown"`), `messages_by_tier`
   (`simple` / `standard` / `complex` / `reasoning`, NULL → `"unknown"`),
@@ -621,7 +634,7 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 - `PATCH /api/heal-attempts/{healAttemptId}` — report the retry outcome `{retryStatusCode, error?}` (`error` required when ≥400). Fire-and-forget; Phoenix decides succeeded/failed. Only possible when a patch handed out a `healAttemptId` — `no_patch`/`resolving` carry none, so those outcomes are **not** reported.
 - `traceId` is stable across the logical request (Manifest reuses the internal `groupId`).
 
-**Recording — a healed request is TWO linked `agent_messages` rows:** the failed original (`status='auto_fixed'`, orange badge, `autofix_role='original'`, carries the error + `autofix_operations` + `autofix_phoenix` ids) and the successful retry (`status='ok'`, `autofix_role='retry'`), sharing `autofix_group_id`. The original's `error_message` holds the full provider `{"error":{…}}` envelope (`serializeProviderError`), like every other error row, so the `type`/`param`/`code` that identify the error survive for whatever reads the row back. `auto_fixed` is in `ERROR_MESSAGE_STATUSES` (excluded from KPI counts — the retry is the counted success). Columns on `agent_messages`: `autofix_applied` (bool), `autofix_group_id` (varchar, indexed), `autofix_role`, `autofix_operations` (jsonb), `autofix_phoenix` (jsonb `{issueId,patchId,healAttemptId}`). The message-detail panel links the two rows and shows the operations + Phoenix ids.
+**Recording separates the request verdict from attempt audit.** `requests.autofix_status` is the one outcome for the logical request; only `retry_succeeded` means the request was recovered by Auto-fix. Actual provider calls remain `provider_attempts` rows with their own `status`. When Manifest sends a patched retry, the related attempt rows use `autofix_applied`, `autofix_group_id`, `autofix_role`, and `autofix_operations`; Phoenix's decision metadata lives in `autofix_decision` (`{status,issueId,patchId,healAttemptId,explanation}`). A Phoenix consultation that produces no patched retry must not create a fake provider attempt. The rolling-deploy `agent_messages` view exposes `autofix_decision` under its old alias `autofix_phoenix`; new code must not use that alias.
 
 **Frontend:** `pages/SettingsAutofixSection.tsx` — a single on/off toggle in the per-agent **Settings** page (shown for every agent; `services/api/routing.ts` `getAutofix`/`updateAutofix`; `.settings-switch` styling). `components/MessageDetails.tsx` renders the Auto-fix panel + sibling link.
 
@@ -700,8 +713,8 @@ All pricing comes from a single source:
 |------|--------|-------------|
 | **Model Prices** | `ModelPricingCacheService.getAll()` | All models from OpenRouter cache, attributed to real providers |
 | **Routing (available models)** | `ModelDiscoveryService.getModelsForAgent()` | Only models from user's connected providers (discovered via native API) |
-| **Routing (tier assignments)** | `TierAutoAssignService.recalculate()` | Auto-assigned from discovered models based on quality/price scoring |
-| **Messages / Overview** | Stored in `agent_messages.model` column | Raw model name from telemetry, display name resolved via `model-display.ts` cache |
+| **Routing (tier assignments)** | `TierService` (`routing-core/route-helpers.ts` `effectiveRoute`/`unambiguousRoute`) | Auto-assigned from discovered models based on quality/price scoring |
+| **Requests / Overview attempt details** | Stored in `provider_attempts.model` column | Raw model name from telemetry, display name resolved via `model-display.ts` cache |
 
 ## Releases
 
@@ -782,4 +795,4 @@ This applies to:
 
 ### E2E Test Entities
 
-When adding new TypeORM entities to `database.module.ts`, also add them to the E2E test helper (`packages/backend/test/helpers.ts`) entities array. Missing entities cause `EntityMetadataNotFoundError` in services that depend on them.
+When adding new TypeORM entities to `database/data-source-definitions.ts` (the entities array `database.module.ts` imports from), also add them to the E2E test helper (`packages/backend/test/helpers.ts`) entities array. Missing entities cause `EntityMetadataNotFoundError` in services that depend on them.
