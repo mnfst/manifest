@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Manifest = void 0;
+exports.withoutRouteManagedStream = withoutRouteManagedStream;
+exports.parseServerSentEvents = parseServerSentEvents;
+exports.parseManifestResponse = parseManifestResponse;
 const n8n_workflow_1 = require("n8n-workflow");
 function trimTrailingSlash(value) {
     return value.replace(/\/+$/, '');
@@ -41,6 +44,78 @@ function toOutputJson(value) {
     }
     return { data: value };
 }
+function withoutRouteManagedStream(body) {
+    const requestBody = { ...body };
+    delete requestBody.stream;
+    return requestBody;
+}
+function responseContentType(headers) {
+    const entry = Object.entries(headers).find(([name]) => name.toLowerCase() === 'content-type');
+    if (!entry)
+        return '';
+    const value = entry[1];
+    return Array.isArray(value) ? value.join(',') : String(value);
+}
+function parseEventData(value) {
+    if (value === '[DONE]')
+        return value;
+    try {
+        return JSON.parse(value);
+    }
+    catch {
+        return value;
+    }
+}
+function parseServerSentEvents(body) {
+    const events = [];
+    const normalized = body.replace(/\r\n?/g, '\n');
+    for (const block of normalized.split(/\n\n+/)) {
+        let eventName = 'message';
+        let eventId;
+        const dataLines = [];
+        for (const line of block.split('\n')) {
+            if (!line || line.startsWith(':'))
+                continue;
+            const separatorIndex = line.indexOf(':');
+            const field = separatorIndex === -1 ? line : line.slice(0, separatorIndex);
+            const rawValue = separatorIndex === -1 ? '' : line.slice(separatorIndex + 1);
+            const value = rawValue.startsWith(' ') ? rawValue.slice(1) : rawValue;
+            if (field === 'event' && value)
+                eventName = value;
+            if (field === 'id')
+                eventId = value;
+            if (field === 'data')
+                dataLines.push(value);
+        }
+        if (dataLines.length === 0)
+            continue;
+        const event = {
+            event: eventName,
+            data: parseEventData(dataLines.join('\n')),
+        };
+        if (eventId !== undefined)
+            event.id = eventId;
+        events.push(event);
+    }
+    return { responseMode: 'stream', events };
+}
+function parseManifestResponse(response) {
+    const body = response.body;
+    if (typeof body !== 'string')
+        return body;
+    if (responseContentType(response.headers).toLowerCase().includes('text/event-stream')) {
+        return parseServerSentEvents(body);
+    }
+    const trimmed = body.trim();
+    if (!trimmed)
+        return {};
+    try {
+        return JSON.parse(trimmed);
+    }
+    catch {
+        return body;
+    }
+}
 async function executeManifestOperation(executeFunctions, operation, itemIndex) {
     if (operation === 'listModels') {
         return await requestManifest(executeFunctions, 'GET', '/v1/models');
@@ -48,23 +123,21 @@ async function executeManifestOperation(executeFunctions, operation, itemIndex) 
     if (operation === 'chatCompletion') {
         const model = executeFunctions.getNodeParameter('model', itemIndex);
         const messages = parseJsonArray(executeFunctions.getNodeParameter('messages', itemIndex), 'Messages', itemIndex, executeFunctions.getNode());
-        const additionalBody = parseJsonObject(executeFunctions.getNodeParameter('additionalBody', itemIndex, '{}'), 'Additional Body', itemIndex, executeFunctions.getNode());
+        const additionalBody = withoutRouteManagedStream(parseJsonObject(executeFunctions.getNodeParameter('additionalBody', itemIndex, '{}'), 'Additional Body', itemIndex, executeFunctions.getNode()));
         return await requestManifest(executeFunctions, 'POST', '/v1/chat/completions', {
             ...additionalBody,
             model,
             messages,
-            stream: false,
         });
     }
     if (operation === 'createResponse') {
         const model = executeFunctions.getNodeParameter('model', itemIndex);
         const input = executeFunctions.getNodeParameter('input', itemIndex);
-        const additionalBody = parseJsonObject(executeFunctions.getNodeParameter('additionalBody', itemIndex, '{}'), 'Additional Body', itemIndex, executeFunctions.getNode());
+        const additionalBody = withoutRouteManagedStream(parseJsonObject(executeFunctions.getNodeParameter('additionalBody', itemIndex, '{}'), 'Additional Body', itemIndex, executeFunctions.getNode()));
         return await requestManifest(executeFunctions, 'POST', '/v1/responses', {
             ...additionalBody,
             model,
             input,
-            stream: false,
         });
     }
     throw new n8n_workflow_1.NodeOperationError(executeFunctions.getNode(), `Unsupported operation: ${operation}`, {
@@ -80,12 +153,15 @@ async function requestManifest(executeFunctions, method, path, body) {
         headers: {
             Authorization: `Bearer ${String(credentials.apiKey)}`,
         },
+        encoding: 'text',
+        returnFullResponse: true,
         json: true,
     };
     if (body !== undefined) {
         options.body = body;
     }
-    return await executeFunctions.helpers.httpRequest(options);
+    const response = (await executeFunctions.helpers.httpRequest(options));
+    return parseManifestResponse(response);
 }
 class Manifest {
     constructor() {
@@ -181,7 +257,7 @@ class Manifest {
                     name: 'additionalBody',
                     type: 'json',
                     default: '{}',
-                    description: 'Additional JSON fields to merge into the request body. Streaming is disabled for these operations.',
+                    description: 'Additional JSON fields to merge into the request body. Manifest routing controls streaming, so the stream field is ignored.',
                     displayOptions: {
                         show: {
                             operation: ['chatCompletion', 'createResponse'],

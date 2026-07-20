@@ -1,7 +1,9 @@
 import type {
+	GenericValue,
 	IDataObject,
 	IExecuteFunctions,
 	IHttpRequestOptions,
+	IN8nHttpFullResponse,
 	INode,
 	INodeExecutionData,
 	INodeType,
@@ -76,6 +78,83 @@ function toOutputJson(value: unknown): JsonObject {
 	return { data: value } as JsonObject;
 }
 
+export function withoutRouteManagedStream(body: IDataObject): IDataObject {
+	const requestBody = { ...body };
+	delete requestBody.stream;
+	return requestBody;
+}
+
+function responseContentType(headers: IDataObject): string {
+	const entry = Object.entries(headers).find(([name]) => name.toLowerCase() === 'content-type');
+	if (!entry) return '';
+
+	const value = entry[1];
+	return Array.isArray(value) ? value.join(',') : String(value);
+}
+
+function parseEventData(value: string): GenericValue {
+	if (value === '[DONE]') return value;
+
+	try {
+		return JSON.parse(value) as GenericValue;
+	} catch {
+		return value;
+	}
+}
+
+export function parseServerSentEvents(body: string): IDataObject {
+	const events: IDataObject[] = [];
+	const normalized = body.replace(/\r\n?/g, '\n');
+
+	for (const block of normalized.split(/\n\n+/)) {
+		let eventName = 'message';
+		let eventId: string | undefined;
+		const dataLines: string[] = [];
+
+		for (const line of block.split('\n')) {
+			if (!line || line.startsWith(':')) continue;
+
+			const separatorIndex = line.indexOf(':');
+			const field = separatorIndex === -1 ? line : line.slice(0, separatorIndex);
+			const rawValue = separatorIndex === -1 ? '' : line.slice(separatorIndex + 1);
+			const value = rawValue.startsWith(' ') ? rawValue.slice(1) : rawValue;
+
+			if (field === 'event' && value) eventName = value;
+			if (field === 'id') eventId = value;
+			if (field === 'data') dataLines.push(value);
+		}
+
+		if (dataLines.length === 0) continue;
+
+		const event: IDataObject = {
+			event: eventName,
+			data: parseEventData(dataLines.join('\n')),
+		};
+		if (eventId !== undefined) event.id = eventId;
+		events.push(event);
+	}
+
+	return { responseMode: 'stream', events };
+}
+
+export function parseManifestResponse(response: IN8nHttpFullResponse): unknown {
+	const body = response.body;
+	if (typeof body !== 'string') return body;
+
+	if (responseContentType(response.headers).toLowerCase().includes('text/event-stream')) {
+		return parseServerSentEvents(body);
+	}
+
+	const trimmed = body.trim();
+	if (!trimmed) return {};
+
+	try {
+		return JSON.parse(trimmed) as unknown;
+	} catch {
+		return body;
+	}
+}
+
 async function executeManifestOperation(
 	executeFunctions: IExecuteFunctions,
 	operation: ManifestOperation,
@@ -93,36 +172,38 @@ async function executeManifestOperation(
 			itemIndex,
 			executeFunctions.getNode(),
 		);
-		const additionalBody = parseJsonObject(
-			executeFunctions.getNodeParameter('additionalBody', itemIndex, '{}'),
-			'Additional Body',
-			itemIndex,
-			executeFunctions.getNode(),
+		const additionalBody = withoutRouteManagedStream(
+			parseJsonObject(
+				executeFunctions.getNodeParameter('additionalBody', itemIndex, '{}'),
+				'Additional Body',
+				itemIndex,
+				executeFunctions.getNode(),
+			),
 		);
 
 		return await requestManifest(executeFunctions, 'POST', '/v1/chat/completions', {
 			...additionalBody,
 			model,
 			messages,
-			stream: false,
 		});
 	}
 
 	if (operation === 'createResponse') {
 		const model = executeFunctions.getNodeParameter('model', itemIndex) as string;
 		const input = executeFunctions.getNodeParameter('input', itemIndex) as string;
-		const additionalBody = parseJsonObject(
-			executeFunctions.getNodeParameter('additionalBody', itemIndex, '{}'),
-			'Additional Body',
-			itemIndex,
-			executeFunctions.getNode(),
+		const additionalBody = withoutRouteManagedStream(
+			parseJsonObject(
+				executeFunctions.getNodeParameter('additionalBody', itemIndex, '{}'),
+				'Additional Body',
+				itemIndex,
+				executeFunctions.getNode(),
+			),
 		);
 
 		return await requestManifest(executeFunctions, 'POST', '/v1/responses', {
 			...additionalBody,
 			model,
 			input,
-			stream: false,
 		});
 	}
 
@@ -145,6 +226,8 @@ async function requestManifest(
 		headers: {
 			Authorization: `Bearer ${String(credentials.apiKey)}`,
 		},
+		encoding: 'text',
+		returnFullResponse: true,
 		json: true,
 	};
 
@@ -152,7 +235,8 @@ async function requestManifest(
 		options.body = body;
 	}
 
-	return await executeFunctions.helpers.httpRequest(options);
+	const response = (await executeFunctions.helpers.httpRequest(options)) as IN8nHttpFullResponse;
+	return parseManifestResponse(response);
 }
 
 export class Manifest implements INodeType {
@@ -249,7 +333,7 @@ export class Manifest implements INodeType {
 				type: 'json',
 				default: '{}',
 				description:
-					'Additional JSON fields to merge into the request body. Streaming is disabled for these operations.',
+					'Additional JSON fields to merge into the request body. Manifest routing controls streaming, so the stream field is ignored.',
 				displayOptions: {
 					show: {
 						operation: ['chatCompletion', 'createResponse'],

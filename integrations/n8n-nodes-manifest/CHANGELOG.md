@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+- Respect the response mode configured by Manifest routing.
+- Parse streaming responses into n8n workflow output.
+
 ## 0.1.2
 
 - Mirror node source files at the repository root for n8n Creator Portal verification.
