@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Mirror node source files at the repository root for n8n Creator Portal verification.
+
 ## 0.1.1
 
 - Include build artifacts required by the n8n Creator Portal repository checks.
