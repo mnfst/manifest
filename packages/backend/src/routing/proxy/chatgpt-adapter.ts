@@ -490,14 +490,16 @@ export function collectChatGptSseResponse(sseText: string, model: string): Recor
       const output = responseOutputItems(response);
       hasFunctionCalls = output.some((item) => item.type === 'function_call');
       if (hasResponseOutput(response)) {
-        reasoningContent = reasoningContentFromOutput(output);
+        const terminalReasoningContent = reasoningContentFromOutput(output);
+        if (terminalReasoningContent) reasoningContent = terminalReasoningContent;
       }
     } else if (eventType === 'response.incomplete') {
       const response = isObjectRecord(data.response) ? data.response : undefined;
       usage = extractResponseUsage(response) ?? usage;
       finishReasonOverride = incompleteFinishReason(response);
       if (hasResponseOutput(response)) {
-        reasoningContent = reasoningContentFromOutput(responseOutputItems(response));
+        const terminalReasoningContent = reasoningContentFromOutput(responseOutputItems(response));
+        if (terminalReasoningContent) reasoningContent = terminalReasoningContent;
       }
     }
   }
