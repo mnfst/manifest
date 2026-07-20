@@ -386,7 +386,8 @@ export const LINK_LEGACY_FALLBACK_ATTEMPTS_SQL = `
 `;
 
 // These rows predate the explicit request table but never represented a
-// provider call. Copy them to requests and remove the pseudo-attempt.
+// provider call. Copy them to requests while the legacy dashboard still reads
+// agent_messages; #2485 can remove the preserved row after switching readers.
 export const INSERT_REJECTIONS_SQL = `
   WITH batch AS (
     SELECT * FROM "agent_messages"
@@ -413,16 +414,19 @@ export const INSERT_REJECTIONS_SQL = `
   SELECT count(*)::int AS n FROM ins
 `;
 
-export const DELETE_REJECTIONS_SQL = `
-  WITH deleted AS (
-    DELETE FROM "agent_messages"
+// Mark the preserved legacy row as staged so subsequent tail sweeps skip it.
+// attempt_number remains NULL because no provider call occurred.
+export const MARK_REJECTIONS_SQL = `
+  WITH marked AS (
+    UPDATE "agent_messages"
+    SET "request_id" = id
     WHERE "request_id" IS NULL AND id > $1 AND id <= $2
       AND timestamp < $3
       AND status NOT IN ('ok', 'success')
       AND error_origin IN (${REQUEST_LEVEL_ORIGINS})
     RETURNING 1
   )
-  SELECT count(*)::int AS n FROM deleted
+  SELECT count(*)::int AS n FROM marked
 `;
 
 const LEGACY_REQUEST_ID = `CASE
@@ -639,6 +643,27 @@ export const FINALIZE_PENDING_REQUESTS_SQL = `
   WHERE r.id = last_attempt.request_id
 `;
 
+export const DELETE_STAGED_REJECTIONS_SQL = `
+  WITH batch AS (
+    SELECT pa.id
+    FROM "agent_messages" pa
+    JOIN "requests" r ON r.id = pa.request_id
+    WHERE pa.request_id = pa.id
+      AND pa.attempt_number IS NULL
+      AND pa.status NOT IN ('ok', 'success')
+      AND pa.error_origin IN (${REQUEST_LEVEL_ORIGINS})
+    ORDER BY pa.id
+    LIMIT $1
+    FOR UPDATE OF pa SKIP LOCKED
+  ), deleted AS (
+    DELETE FROM "agent_messages" pa
+    USING batch
+    WHERE pa.id = batch.id
+    RETURNING 1
+  )
+  SELECT count(*)::int AS n FROM deleted
+`;
+
 export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
   constructor(private readonly dataSource: DataSource) {}
 
@@ -788,7 +813,7 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
       const [{ n: requests }] = (await runner.query(INSERT_REJECTIONS_SQL, params)) as {
         n: number;
       }[];
-      const [{ n: rejections }] = (await runner.query(DELETE_REJECTIONS_SQL, params)) as {
+      const [{ n: rejections }] = (await runner.query(MARK_REJECTIONS_SQL, params)) as {
         n: number;
       }[];
       const [{ n: attemptRequests }] = (await runner.query(
@@ -806,8 +831,28 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
   async finalize(timeouts: RequestBackfillTimeouts): Promise<void> {
     await this.inTransaction(timeouts, async (runner) => {
       await runner.query(FINALIZE_PENDING_REQUESTS_SQL);
-      // Validation scans the table under SHARE UPDATE EXCLUSIVE: reads and
-      // writes continue, unlike adding a validated FK in the deploy migration.
+    });
+  }
+
+  async finalizeTransition(
+    batchSize: number,
+    timeouts: RequestBackfillTimeouts,
+    reportProgress?: (deleted: number) => void,
+  ): Promise<number> {
+    let deleted = 0;
+    for (;;) {
+      const batch = await this.inTransaction(timeouts, async (runner) => {
+        const [{ n = 0 } = { n: 0 }] = (await runner.query(DELETE_STAGED_REJECTIONS_SQL, [
+          batchSize,
+        ])) as { n: number }[];
+        return n;
+      });
+      if (batch === 0) break;
+      deleted += batch;
+      reportProgress?.(deleted);
+    }
+
+    await this.inTransaction(timeouts, async (runner) => {
       await runner.query(`SET LOCAL statement_timeout = '0'`);
       await runner.query(
         'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "FK_agent_messages_request"',
@@ -816,12 +861,7 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
         'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "CHK_agent_messages_attempt_number_positive"',
       );
     });
-  }
-
-  async finalizePending(timeouts: RequestBackfillTimeouts): Promise<void> {
-    await this.inTransaction(timeouts, async (runner) => {
-      await runner.query(FINALIZE_PENDING_REQUESTS_SQL);
-    });
+    return deleted;
   }
 
   private async inTransaction<T>(

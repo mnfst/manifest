@@ -125,7 +125,6 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
       before?: string;
       fallbackBefore?: string;
       finalize?: boolean;
-      finalizePending?: boolean;
     } = {},
   ): Promise<void> {
     await runRequestBackfill(new TypeOrmRequestBackfillGateway(dataSource), {
@@ -134,9 +133,95 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
       before: options.before,
       fallbackBefore: options.fallbackBefore,
       finalize: options.finalize,
-      finalizePending: options.finalizePending,
     });
   }
+
+  it('stages Manifest rejections without deleting their legacy rows', async () => {
+    const expected = [
+      { id: 'manifest-config', error_code: 'M100', error_origin: 'config' },
+      { id: 'manifest-internal', error_code: 'M500', error_origin: 'internal' },
+      { id: 'manifest-policy', error_code: 'M201', error_origin: 'policy' },
+      { id: 'manifest-request', error_code: 'M300', error_origin: 'request' },
+    ];
+    await dataSource.query(`
+      INSERT INTO agent_messages (
+        id, tenant_id, agent_id, agent_name, timestamp, duration_ms, status,
+        error_code, error_origin, error_class, model
+      ) VALUES
+        ('manifest-config', 'tenant-1', 'agent-1', 'Agent',
+         '2026-01-01 00:00:00.000', 0, 'error', 'M100', 'config', 'no_provider_key', 'auto'),
+        ('manifest-policy', 'tenant-1', 'agent-1', 'Agent',
+         '2026-01-01 00:00:01.000', 0, 'rate_limited', 'M201', 'policy', 'rate_limit', 'auto'),
+        ('manifest-request', 'tenant-1', 'agent-1', 'Agent',
+         '2026-01-01 00:00:02.000', 0, 'error', 'M300', 'request', 'invalid_request', 'auto'),
+        ('manifest-internal', 'tenant-1', 'agent-1', 'Agent',
+         '2026-01-01 00:00:03.000', 0, 'error', 'M500', 'internal', 'internal_error', 'auto')
+    `);
+
+    await backfill({ batchSize: 1 });
+    const legacyRows = await dataSource.query(`
+      SELECT id, request_id, attempt_number, error_code, error_origin
+      FROM agent_messages
+      ORDER BY id
+    `);
+    const requestRows = await dataSource.query(`
+      SELECT id, status, error_code, error_origin
+      FROM requests
+      ORDER BY id
+    `);
+
+    expect(legacyRows).toEqual(
+      expected.map((row) => ({ ...row, request_id: row.id, attempt_number: null })),
+    );
+    expect(requestRows).toEqual(expected.map((row) => ({ ...row, status: 'failed' })));
+  });
+
+  it('removes staged Manifest rejections and validates constraints at transition completion', async () => {
+    await dataSource.query(`
+      INSERT INTO agent_messages (
+        id, tenant_id, agent_id, agent_name, timestamp, duration_ms, status,
+        error_code, error_origin, error_class, model
+      ) VALUES
+        ('manifest-config', 'tenant-1', 'agent-1', 'Agent',
+         '2026-01-01 00:00:00.000', 0, 'error', 'M100', 'config', 'no_provider_key', 'auto'),
+        ('provider-error', 'tenant-1', 'agent-1', 'Agent',
+         '2026-01-01 00:00:01.000', 100, 'error', NULL, 'provider', 'server_error', 'gpt-4o')
+    `);
+    await backfill({ batchSize: 1 });
+
+    const gateway = new TypeOrmRequestBackfillGateway(dataSource);
+    await expect(
+      gateway.finalizeTransition(1, {
+        lockTimeoutMs: 5_000,
+        statementTimeoutMs: 30_000,
+      }),
+    ).resolves.toBe(1);
+
+    const attempts = await dataSource.query(`
+      SELECT id, request_id, attempt_number
+      FROM agent_messages
+      ORDER BY id
+    `);
+    const [{ requests }] = await dataSource.query(`SELECT count(*)::int AS requests FROM requests`);
+    const constraints = await dataSource.query(`
+      SELECT conname, convalidated
+      FROM pg_constraint
+      WHERE conname IN (
+        'FK_agent_messages_request',
+        'CHK_agent_messages_attempt_number_positive'
+      )
+      ORDER BY conname
+    `);
+
+    expect(attempts).toEqual([
+      { id: 'provider-error', request_id: 'provider-error', attempt_number: 1 },
+    ]);
+    expect(requests).toBe(2);
+    expect(constraints).toEqual([
+      { conname: 'CHK_agent_messages_attempt_number_positive', convalidated: true },
+      { conname: 'FK_agent_messages_request', convalidated: true },
+    ]);
+  });
 
   it('groups a recovered fallback chain without traceparent', async () => {
     await insertAttempt({
@@ -508,8 +593,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     await backfill({
       before: '2026-01-01 00:07:00.000',
       fallbackBefore: '2026-01-01 00:07:00.000',
-      finalize: false,
-      finalizePending: true,
+      finalize: true,
     });
 
     const [request] = await dataSource.query(`SELECT status FROM requests`);

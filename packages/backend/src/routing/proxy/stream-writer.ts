@@ -1,4 +1,5 @@
 import { Response as ExpressResponse } from 'express';
+import { TRANSPORT_NETWORK_HTTP_STATUS } from 'manifest-shared';
 import {
   createSsePayloadParser,
   DEFAULT_MAX_SSE_BUFFER_SIZE,
@@ -11,6 +12,25 @@ export interface StreamUsage {
   cache_read_tokens?: number;
   cache_creation_tokens?: number;
   reported_cost_usd?: number;
+}
+
+export class UpstreamStreamError extends Error {
+  readonly status = TRANSPORT_NETWORK_HTTP_STATUS;
+
+  constructor(cause: unknown) {
+    super(cause instanceof Error ? cause.message : 'Upstream stream interrupted', { cause });
+    this.name = 'UpstreamStreamError';
+  }
+}
+
+async function readUpstreamChunk(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+): Promise<ReadableStreamReadResult<Uint8Array>> {
+  try {
+    return await reader.read();
+  } catch (cause) {
+    throw new UpstreamStreamError(cause);
+  }
 }
 
 /**
@@ -205,13 +225,14 @@ export async function pipePassthrough(
   const reader = source.getReader();
   const decoder = new TextDecoder();
   let capturedUsage: StreamUsage | null = null;
+  let upstreamStreamFailed = false;
   const parser = createSsePayloadParser({ maxBufferSize: MAX_SSE_BUFFER_SIZE });
 
   try {
     let done = false;
     while (!done) {
       if (dest.writableEnded) break;
-      const result = await reader.read();
+      const result = await readUpstreamChunk(reader);
       done = result.done;
       if (result.value) {
         // Write the upstream bytes through unchanged so the client sees
@@ -245,9 +266,12 @@ export async function pipePassthrough(
         if (usage) capturedUsage = usage;
       }
     }
+  } catch (error) {
+    upstreamStreamFailed = error instanceof UpstreamStreamError;
+    throw error;
   } finally {
-    if (!dest.writableEnded) dest.end();
     reader.releaseLock();
+    if (!upstreamStreamFailed && !dest.writableEnded) dest.end();
   }
 
   return capturedUsage;
@@ -263,6 +287,7 @@ export async function pipeStream(
   const reader = source.getReader();
   const decoder = new TextDecoder();
   let capturedUsage: StreamUsage | null = null;
+  let upstreamStreamFailed = false;
 
   const writeOut = (s: string): void => {
     dest.write(s);
@@ -314,7 +339,7 @@ export async function pipeStream(
     while (!done) {
       if (dest.writableEnded) break;
 
-      const result = await reader.read();
+      const result = await readUpstreamChunk(reader);
       done = result.done;
 
       if (result.value) {
@@ -342,9 +367,12 @@ export async function pipeStream(
         writeOut('data: [DONE]\n\n');
       }
     }
+  } catch (error) {
+    upstreamStreamFailed = error instanceof UpstreamStreamError;
+    throw error;
   } finally {
     reader.releaseLock();
-    if (!dest.writableEnded) dest.end();
+    if (!upstreamStreamFailed && !dest.writableEnded) dest.end();
   }
 
   return capturedUsage;

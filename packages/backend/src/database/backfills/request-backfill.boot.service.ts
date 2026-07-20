@@ -9,12 +9,18 @@ import {
   type RequestBackfillOptions,
   type RequestBackfillResult,
 } from './backfill-requests';
+import { DEFAULT_BACKFILL_OPTIONS } from './backfill-message-providers';
 import { TypeOrmRequestBackfillGateway } from './backfill-requests.gateway';
-import { MESSAGE_PROVIDER_BACKFILL_LOCK_KEY } from './message-provider-backfill.boot.service';
+import {
+  MESSAGE_PROVIDER_BACKFILL_LOCK_KEY,
+  MessageProviderBackfillBootService,
+} from './message-provider-backfill.boot.service';
 import { createRequestBackfillDataSource } from './request-backfill.datasource';
 
 /** Initial historical pass marker; legacy-writer delta is tracked by unlinked rows. */
 export const REQUEST_BACKFILL_NAME = 'requests_agent_messages_v1';
+/** Post-reader cleanup and deferred constraint-validation marker. */
+export const REQUEST_TRANSITION_FINALIZATION_NAME = 'requests_agent_messages_v2';
 // Both post-deploy jobs update agent_messages. Sharing the lock guarantees
 // that Cloud never runs their batches concurrently; a contending job releases
 // its connection and retries until both completion markers exist.
@@ -23,11 +29,13 @@ export const REQUEST_BACKFILL_LOCK_KEY = MESSAGE_PROVIDER_BACKFILL_LOCK_KEY;
 type RequestBackfillRunner = (
   dataSource: DataSource,
   logger: Pick<Logger, 'log'>,
-  options: Pick<
-    RequestBackfillOptions,
-    'analyze' | 'before' | 'fallbackBefore' | 'finalizePending' | 'finalize'
-  >,
+  options: Pick<RequestBackfillOptions, 'analyze' | 'before' | 'fallbackBefore' | 'finalize'>,
 ) => Promise<RequestBackfillResult>;
+
+type RequestTransitionFinalizer = (
+  dataSource: DataSource,
+  logger: Pick<Logger, 'log'>,
+) => Promise<{ rejections: number }>;
 
 const defaultRunner: RequestBackfillRunner = (dataSource, logger, options) =>
   runRequestBackfill(new TypeOrmRequestBackfillGateway(dataSource), { logger, ...options });
@@ -43,6 +51,19 @@ const wait = (ms: number): Promise<void> =>
     if (typeof timer === 'object' && 'unref' in timer) timer.unref();
   });
 
+const defaultTransitionFinalizer: RequestTransitionFinalizer = async (dataSource, logger) => {
+  const gateway = new TypeOrmRequestBackfillGateway(dataSource);
+  const rejections = await gateway.finalizeTransition(
+    DEFAULT_BACKFILL_OPTIONS.batchSize,
+    {
+      lockTimeoutMs: DEFAULT_BACKFILL_OPTIONS.lockTimeoutMs,
+      statementTimeoutMs: DEFAULT_BACKFILL_OPTIONS.statementTimeoutMs,
+    },
+    (deleted) => logger.log(`request transition: removed ${deleted} staged rejection(s)`),
+  );
+  return { rejections };
+};
+
 /**
  * Runs historical regrouping without blocking application readiness. Self-hosted
  * reuses its DATABASE_URL-backed app connection. Cloud opens a separate direct
@@ -55,6 +76,7 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   private stopping = false;
   private managedCoordinator: RequestBackfillBootService | undefined;
   private ownedDataSource: DataSource | undefined;
+  private readonly transitionReadyAt = Date.now() + REQUEST_BACKFILL_GENERIC_GRACE_MS;
 
   constructor(
     private readonly dataSource: DataSource,
@@ -114,7 +136,11 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
       return null;
     }
     this.ownedDataSource = dataSource;
-    return new RequestBackfillBootService(dataSource, dataSource.getRepository(BackfillState));
+    const stateRepo = dataSource.getRepository(BackfillState);
+    // The older provider-attribution task uses the same direct connection in
+    // Cloud. Its session advisory lock must never cross transaction PgBouncer.
+    await new MessageProviderBackfillBootService(dataSource, stateRepo).runUntilComplete();
+    return new RequestBackfillBootService(dataSource, stateRepo);
   }
 
   private async releaseCloudCoordinator(): Promise<void> {
@@ -225,7 +251,7 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   private async startTailSweep(): Promise<void> {
     if (!(await this.hasAttemptTable())) return;
     this.tailTimer = setInterval(() => {
-      void this.runTailOnce().catch((error) => {
+      void this.runMaintenanceOnce().catch((error) => {
         this.logger.error(
           `request backfill tail sweep failed: ${error instanceof Error ? error.message : String(error)}`,
         );
@@ -234,17 +260,59 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
     if (typeof this.tailTimer === 'object' && 'unref' in this.tailTimer) this.tailTimer.unref();
   }
 
+  private async runMaintenanceOnce(): Promise<void> {
+    if (!(await this.runTailOnce())) return;
+    if (Date.now() < this.transitionReadyAt) return;
+    await this.runTransitionFinalizeOnce();
+  }
+
+  async runTransitionFinalizeOnce(
+    runner: RequestTransitionFinalizer = defaultTransitionFinalizer,
+  ): Promise<boolean> {
+    if (await this.isTransitionFinalized()) return true;
+    if (await this.hasUnlinkedAttempts()) return false;
+
+    const lock = this.dataSource.createQueryRunner();
+    await lock.connect();
+    let acquired = false;
+    try {
+      const rows = (await lock.query('SELECT pg_try_advisory_lock($1) AS locked', [
+        REQUEST_BACKFILL_LOCK_KEY,
+      ])) as { locked: boolean }[];
+      acquired = rows[0]?.locked === true;
+      if (!acquired) return false;
+      if (await this.isTransitionFinalized()) return true;
+      if (await this.hasUnlinkedAttempts()) return false;
+
+      const result = await runner(this.dataSource, this.logger);
+      await this.stateRepo
+        .createQueryBuilder()
+        .insert()
+        .into(BackfillState)
+        .values({ name: REQUEST_TRANSITION_FINALIZATION_NAME })
+        .orIgnore()
+        .execute();
+      this.logger.log(
+        `request transition complete: removed ${result.rejections} staged rejection(s) and validated constraints`,
+      );
+      return true;
+    } finally {
+      if (acquired) {
+        await lock
+          .query('SELECT pg_advisory_unlock($1)', [REQUEST_BACKFILL_LOCK_KEY])
+          .catch(() => undefined);
+      }
+      await lock.release();
+    }
+  }
+
   private runOptions(
     initial: boolean,
-  ): Pick<
-    RequestBackfillOptions,
-    'analyze' | 'before' | 'fallbackBefore' | 'finalizePending' | 'finalize'
-  > {
+  ): Pick<RequestBackfillOptions, 'analyze' | 'before' | 'fallbackBefore' | 'finalize'> {
     const now = Date.now();
     return {
       analyze: initial,
-      finalizePending: !initial,
-      finalize: initial,
+      finalize: true,
       fallbackBefore: toLocalSqlTimestamp(new Date(now - REQUEST_BACKFILL_FALLBACK_GRACE_MS)),
       before: toLocalSqlTimestamp(new Date(now - REQUEST_BACKFILL_GENERIC_GRACE_MS)),
     };
@@ -278,5 +346,9 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
 
   private async isCompleted(): Promise<boolean> {
     return (await this.stateRepo.countBy({ name: REQUEST_BACKFILL_NAME })) > 0;
+  }
+
+  private async isTransitionFinalized(): Promise<boolean> {
+    return (await this.stateRepo.countBy({ name: REQUEST_TRANSITION_FINALIZATION_NAME })) > 0;
   }
 }

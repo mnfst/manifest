@@ -83,6 +83,7 @@ describe('classifyMessageError', () => {
   it.each([
     ['no_provider', 'config', 'no_provider'],
     ['no_provider_key', 'config', 'no_provider_key'],
+    ['local_provider_unavailable', 'config', 'local_provider_unavailable'],
     ['key_expired', 'config', 'auth'],
     ['limit_exceeded', 'policy', 'limit_exceeded'],
     ['plan_request_limit_exceeded', 'policy', 'plan_request_limit_exceeded'],

@@ -41,7 +41,7 @@ describe('resolveRequestBackfillDatabaseUrl', () => {
       }),
     ).toThrow('A direct PostgreSQL URL is required');
     expect(() => resolveRequestBackfillDatabaseUrl({})).toThrow(
-      'A direct PostgreSQL URL is required',
+      'set MIGRATION_DATABASE_URL, DATABASE_UNPOOLED_URL, or BACKFILL_DATABASE_URL',
     );
   });
 });

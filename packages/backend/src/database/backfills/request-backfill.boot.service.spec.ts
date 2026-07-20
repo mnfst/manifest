@@ -2,11 +2,14 @@ import { Logger } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { BackfillState } from '../../entities/backfill-state.entity';
 import * as requestBackfillDataSource from './request-backfill.datasource';
+import { MessageProviderBackfillBootService } from './message-provider-backfill.boot.service';
 import {
+  REQUEST_BACKFILL_GENERIC_GRACE_MS,
   REQUEST_BACKFILL_LOCK_KEY,
   REQUEST_BACKFILL_LOCK_RETRY_MS,
   REQUEST_BACKFILL_NAME,
   REQUEST_BACKFILL_TAIL_INTERVAL_MS,
+  REQUEST_TRANSITION_FINALIZATION_NAME,
   RequestBackfillBootService,
 } from './request-backfill.boot.service';
 
@@ -20,14 +23,17 @@ function makeLock(locked: boolean) {
   };
 }
 
-function makeState(completed: boolean) {
+function makeState(completed: boolean, transitionFinalized = false) {
   const execute = jest.fn(async () => undefined);
   const orIgnore = jest.fn(() => ({ execute }));
   const values = jest.fn(() => ({ orIgnore }));
   const into = jest.fn(() => ({ values }));
   const insert = jest.fn(() => ({ into }));
   const createQueryBuilder = jest.fn(() => ({ insert }));
-  const countBy = jest.fn(async () => (completed ? 1 : 0));
+  const countBy = jest.fn(async ({ name }: { name: string }) => {
+    if (name === REQUEST_TRANSITION_FINALIZATION_NAME) return transitionFinalized ? 1 : 0;
+    return completed ? 1 : 0;
+  });
   const repo = { countBy, createQueryBuilder } as unknown as Repository<BackfillState>;
   return { repo, countBy, values, execute };
 }
@@ -81,6 +87,9 @@ describe('RequestBackfillBootService', () => {
     const factory = jest
       .spyOn(requestBackfillDataSource, 'createRequestBackfillDataSource')
       .mockReturnValue(directDataSource);
+    const providerBackfill = jest
+      .spyOn(MessageProviderBackfillBootService.prototype, 'runUntilComplete')
+      .mockResolvedValue(undefined);
     const service = new RequestBackfillBootService(appDataSource, makeState(false).repo);
 
     service.onApplicationBootstrap();
@@ -89,6 +98,7 @@ describe('RequestBackfillBootService', () => {
     expect(factory).toHaveBeenCalledWith(process.env);
     expect(directDataSource.initialize).toHaveBeenCalled();
     expect(directDataSource.getRepository).toHaveBeenCalledWith(BackfillState);
+    expect(providerBackfill).toHaveBeenCalledTimes(1);
     expect(appDataSource.createQueryRunner).not.toHaveBeenCalled();
     await service.onApplicationShutdown();
     expect(directDataSource.destroy).toHaveBeenCalled();
@@ -284,6 +294,42 @@ describe('RequestBackfillBootService', () => {
     }
   });
 
+  it('stops a managed Cloud coordinator when tail setup fails', async () => {
+    jest.useFakeTimers();
+    process.env['NODE_ENV'] = 'production';
+    process.env['MANIFEST_MODE'] = 'cloud';
+    process.env['MIGRATION_DATABASE_URL'] = 'postgres://direct/cloud';
+    const directState = makeState(true);
+    const directDataSource = {
+      initialize: jest.fn(async () => undefined),
+      destroy: jest.fn(async () => undefined),
+      isInitialized: true,
+      getRepository: jest.fn(() => directState.repo),
+      query: jest.fn().mockRejectedValue(new Error('compatibility check failed')),
+    } as unknown as DataSource;
+    jest
+      .spyOn(requestBackfillDataSource, 'createRequestBackfillDataSource')
+      .mockReturnValue(directDataSource);
+    const service = new RequestBackfillBootService(
+      { createQueryRunner: jest.fn() } as unknown as DataSource,
+      makeState(false).repo,
+    );
+
+    try {
+      service.onApplicationBootstrap();
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(directDataSource.destroy).toHaveBeenCalledTimes(1);
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('compatibility check failed; retrying in 30s'),
+      );
+      await service.onApplicationShutdown();
+    } finally {
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    }
+  });
+
   it('waits and retries when the shared lock is initially busy', async () => {
     jest.useFakeTimers();
     const state = makeState(false);
@@ -293,7 +339,7 @@ describe('RequestBackfillBootService', () => {
 
     try {
       const result = new RequestBackfillBootService(ds, state.repo).runUntilComplete();
-      await jest.advanceTimersByTimeAsync(30_000);
+      await jest.advanceTimersByTimeAsync(REQUEST_BACKFILL_LOCK_RETRY_MS);
       await result;
 
       expect(state.countBy).toHaveBeenCalledTimes(2);
@@ -311,12 +357,12 @@ describe('RequestBackfillBootService', () => {
 
     try {
       const result = new RequestBackfillBootService(ds, state.repo).runUntilComplete();
-      await jest.advanceTimersByTimeAsync(30_000 * 12);
+      await jest.advanceTimersByTimeAsync(REQUEST_BACKFILL_LOCK_RETRY_MS * 12);
 
       expect(state.countBy.mock.calls.length).toBeGreaterThan(10);
       expect(errorSpy).not.toHaveBeenCalled();
       state.countBy.mockResolvedValue(1);
-      await jest.advanceTimersByTimeAsync(30_000);
+      await jest.advanceTimersByTimeAsync(REQUEST_BACKFILL_LOCK_RETRY_MS);
       await result;
     } finally {
       jest.useRealTimers();
@@ -480,7 +526,7 @@ describe('RequestBackfillBootService', () => {
     await expect(service.hasUnlinkedAttempts()).resolves.toBe(false);
   });
 
-  it('tail-sweeps old-replica writes without re-analyzing or re-finalizing', async () => {
+  it('tail-sweeps old-replica writes without re-analyzing', async () => {
     const lock = makeLock(true);
     const query = jest
       .fn()
@@ -496,7 +542,6 @@ describe('RequestBackfillBootService', () => {
         _logger: Pick<Logger, 'log'>,
         _options: {
           analyze?: boolean;
-          finalizePending?: boolean;
           finalize?: boolean;
           before?: string;
           fallbackBefore?: string;
@@ -517,8 +562,7 @@ describe('RequestBackfillBootService', () => {
     expect(options).toEqual(
       expect.objectContaining({
         analyze: false,
-        finalizePending: true,
-        finalize: false,
+        finalize: true,
         before: expect.any(String),
         fallbackBefore: expect.any(String),
       }),
@@ -593,6 +637,166 @@ describe('RequestBackfillBootService', () => {
     expect(lock.release).toHaveBeenCalled();
   });
 
+  it('skips transition finalization when it is complete or unlinked attempts remain', async () => {
+    const completedDataSource = { createQueryRunner: jest.fn() } as unknown as DataSource;
+    await expect(
+      new RequestBackfillBootService(
+        completedDataSource,
+        makeState(true, true).repo,
+      ).runTransitionFinalizeOnce(jest.fn()),
+    ).resolves.toBe(true);
+    expect(completedDataSource.createQueryRunner).not.toHaveBeenCalled();
+
+    const pendingDataSource = {
+      query: jest.fn().mockResolvedValue([{ pending: true }]),
+      createQueryRunner: jest.fn(),
+    } as unknown as DataSource;
+    await expect(
+      new RequestBackfillBootService(
+        pendingDataSource,
+        makeState(true).repo,
+      ).runTransitionFinalizeOnce(jest.fn()),
+    ).resolves.toBe(false);
+    expect(pendingDataSource.createQueryRunner).not.toHaveBeenCalled();
+  });
+
+  it('rechecks transition readiness under the shared lock', async () => {
+    const busyLock = makeLock(false);
+    const busyDataSource = {
+      query: jest.fn().mockResolvedValue([{ pending: false }]),
+      createQueryRunner: jest.fn(() => busyLock),
+    } as unknown as DataSource;
+    await expect(
+      new RequestBackfillBootService(
+        busyDataSource,
+        makeState(true).repo,
+      ).runTransitionFinalizeOnce(jest.fn()),
+    ).resolves.toBe(false);
+    expect(busyLock.release).toHaveBeenCalled();
+
+    const completedLock = makeLock(true);
+    const completedState = makeState(true);
+    completedState.countBy.mockResolvedValueOnce(0).mockResolvedValueOnce(1);
+    const completedDataSource = {
+      query: jest.fn().mockResolvedValue([{ pending: false }]),
+      createQueryRunner: jest.fn(() => completedLock),
+    } as unknown as DataSource;
+    const completedRunner = jest.fn();
+    await expect(
+      new RequestBackfillBootService(
+        completedDataSource,
+        completedState.repo,
+      ).runTransitionFinalizeOnce(completedRunner),
+    ).resolves.toBe(true);
+    expect(completedRunner).not.toHaveBeenCalled();
+    expect(completedLock.release).toHaveBeenCalled();
+
+    const pendingLock = makeLock(true);
+    const pendingDataSource = {
+      query: jest
+        .fn()
+        .mockResolvedValueOnce([{ pending: false }])
+        .mockResolvedValueOnce([{ pending: true }]),
+      createQueryRunner: jest.fn(() => pendingLock),
+    } as unknown as DataSource;
+    await expect(
+      new RequestBackfillBootService(
+        pendingDataSource,
+        makeState(true).repo,
+      ).runTransitionFinalizeOnce(jest.fn()),
+    ).resolves.toBe(false);
+    expect(pendingLock.release).toHaveBeenCalled();
+  });
+
+  it('marks transition cleanup complete under the shared lock', async () => {
+    const lock = makeLock(true);
+    lock.query.mockImplementation(async (sql: string) => {
+      if (sql.includes('pg_try_advisory_lock')) return [{ locked: true }];
+      throw new Error('unlock failed');
+    });
+    const ds = {
+      query: jest.fn().mockResolvedValue([{ pending: false }]),
+      createQueryRunner: jest.fn(() => lock),
+    } as unknown as DataSource;
+    const state = makeState(true);
+    const runner = jest.fn().mockResolvedValue({ rejections: 4 });
+
+    await expect(
+      new RequestBackfillBootService(ds, state.repo).runTransitionFinalizeOnce(runner),
+    ).resolves.toBe(true);
+
+    expect(runner).toHaveBeenCalledWith(ds, expect.objectContaining({ log: expect.any(Function) }));
+    expect(state.values).toHaveBeenCalledWith({ name: REQUEST_TRANSITION_FINALIZATION_NAME });
+    expect(state.execute).toHaveBeenCalled();
+    expect(lock.query).toHaveBeenCalledWith('SELECT pg_advisory_unlock($1)', [
+      REQUEST_BACKFILL_LOCK_KEY,
+    ]);
+    expect(lock.release).toHaveBeenCalled();
+  });
+
+  it('uses the production transition finalizer by default', async () => {
+    const lock = makeLock(true);
+    const transaction = {
+      connect: jest.fn().mockResolvedValue(undefined),
+      startTransaction: jest.fn().mockResolvedValue(undefined),
+      commitTransaction: jest.fn().mockResolvedValue(undefined),
+      rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+      release: jest.fn().mockResolvedValue(undefined),
+      query: jest.fn(),
+    };
+    let cleanupBatch = 0;
+    transaction.query.mockImplementation(async (sql: string) => {
+      if (sql.includes('DELETE FROM "agent_messages"')) {
+        cleanupBatch += 1;
+        return cleanupBatch === 1 ? [{ n: 1 }] : [];
+      }
+      return undefined;
+    });
+    const ds = {
+      query: jest.fn().mockResolvedValue([{ pending: false }]),
+      createQueryRunner: jest.fn().mockReturnValueOnce(lock).mockReturnValue(transaction),
+    } as unknown as DataSource;
+    const state = makeState(true);
+    const logSpy = jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
+
+    await expect(
+      new RequestBackfillBootService(ds, state.repo).runTransitionFinalizeOnce(),
+    ).resolves.toBe(true);
+
+    expect(logSpy).toHaveBeenCalledWith('request transition: removed 1 staged rejection(s)');
+    expect(transaction.query).toHaveBeenCalledWith(
+      'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "FK_agent_messages_request"',
+    );
+    expect(state.execute).toHaveBeenCalled();
+  });
+
+  it('waits through the rolling-deploy grace window before finalizing the transition', async () => {
+    jest.useFakeTimers();
+    process.env['NODE_ENV'] = 'production';
+    process.env['MANIFEST_MODE'] = 'selfhosted';
+    const ds = {
+      query: jest.fn().mockResolvedValue([{ present: true }]),
+      createQueryRunner: jest.fn(),
+    } as unknown as DataSource;
+    const service = new RequestBackfillBootService(ds, makeState(true).repo);
+    const tail = jest.spyOn(service, 'runTailOnce').mockResolvedValue(true);
+    const finalize = jest.spyOn(service, 'runTransitionFinalizeOnce').mockResolvedValue(true);
+
+    service.onApplicationBootstrap();
+    await jest.advanceTimersByTimeAsync(0);
+    await jest.advanceTimersByTimeAsync(
+      REQUEST_BACKFILL_GENERIC_GRACE_MS - REQUEST_BACKFILL_TAIL_INTERVAL_MS,
+    );
+    expect(tail).toHaveBeenCalled();
+    expect(finalize).not.toHaveBeenCalled();
+
+    await jest.advanceTimersByTimeAsync(REQUEST_BACKFILL_TAIL_INTERVAL_MS);
+    expect(finalize).toHaveBeenCalledTimes(1);
+    await service.onApplicationShutdown();
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
   it('starts, reports, and stops the delta tail timer while agent_messages exists', async () => {
     jest.useFakeTimers();
     process.env['NODE_ENV'] = 'production';
@@ -612,7 +816,7 @@ describe('RequestBackfillBootService', () => {
     expect(errorSpy).toHaveBeenCalledWith(
       expect.stringContaining('request backfill tail sweep failed'),
     );
-    service.onApplicationShutdown();
+    await service.onApplicationShutdown();
     jest.clearAllTimers();
     jest.useRealTimers();
   });
@@ -632,6 +836,6 @@ describe('RequestBackfillBootService', () => {
 
     expect(ds.query).toHaveBeenCalledTimes(1);
     expect(tail).not.toHaveBeenCalled();
-    service.onApplicationShutdown();
+    await service.onApplicationShutdown();
   });
 });

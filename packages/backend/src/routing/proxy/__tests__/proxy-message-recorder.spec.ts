@@ -1015,6 +1015,20 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[0][0].provider).toBeNull();
     });
 
+    it('does not persist an HTML error page when no HTTP status was captured', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'gpt-4o',
+        '<html><body>Tunnel failed</body></html>',
+        '2025-01-01T00:00:00.000Z',
+      );
+
+      expect(insertMock.mock.calls[0][0].error_message).toBe(
+        'Upstream endpoint returned an HTML error page',
+      );
+    });
+
     it('persists routing_reason when passed via opts', async () => {
       await recorder.recordPrimaryFailure(
         ctx,

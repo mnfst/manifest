@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -24,6 +25,9 @@ import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
+import { resolveModelCapabilityMetadata } from '../../model-discovery/model-capabilities';
 import { classifyCaller } from './caller-classifier';
 import { ObservationReporter } from '../autofix/observation-reporter';
 import { sanitizeRequestHeaders } from './request-headers';
@@ -35,6 +39,7 @@ import {
   recordFallbackFailures,
   handleStreamResponse,
   handleNonStreamResponse,
+  nextResponsesSequenceNumber,
   recordSuccess,
 } from './proxy-response-handler';
 import { ProxyExceptionFilter, isChatRenderingClient } from './proxy-exception.filter';
@@ -49,10 +54,13 @@ import type { ProviderAttemptRef, ProxyApiMode, StartProviderAttempt } from './p
 import { ResponsesSseError } from './chatgpt-adapter';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
 import { openAiModelId } from './openai-model-id';
+import { openAiModelCapabilities, type OpenAiModelCapabilities } from './openai-model-capabilities';
 import { PlanService } from '../../billing/plan.service';
+import { UpstreamStreamError } from './stream-writer';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
+const STREAM_INTERRUPTED_MESSAGE = 'Upstream provider stream was interrupted.';
 const MODEL_CREATED_UNKNOWN = 0;
 
 interface OpenAiModelObject {
@@ -60,6 +68,7 @@ interface OpenAiModelObject {
   object: 'model';
   created: number;
   owned_by: string;
+  capabilities?: OpenAiModelCapabilities;
 }
 
 interface OpenAiModelList {
@@ -87,16 +96,22 @@ export class ProxyController {
     private readonly modelDiscovery: ModelDiscoveryService,
     private readonly planService: PlanService,
     private readonly observationReporter: ObservationReporter,
+    private readonly providerParamSpecs: ProviderParamSpecService,
+    private readonly modelsDevSync: ModelsDevSyncService,
   ) {}
 
   @Get('models')
   async models(
     @Req() req: Request & { ingestionContext: IngestionContext },
+    @Query('capabilities') capabilities?: string,
   ): Promise<OpenAiModelList> {
+    const includeCapabilities = capabilities === 'true';
     const models = await this.modelDiscovery.getModelsForAgent(
       req.ingestionContext.tenantId,
       req.ingestionContext.agentId,
     );
+    // The synthetic `auto` route never carries capabilities — it resolves to a
+    // different concrete model per request, so any claim would be wrong.
     const data: OpenAiModelObject[] = [
       {
         id: 'auto',
@@ -111,12 +126,24 @@ export class ProxyController {
       const id = openAiModelId(model);
       if (seen.has(id)) continue;
       seen.add(id);
-      data.push({
+      const entry: OpenAiModelObject = {
         id,
         object: 'model',
         created: MODEL_CREATED_UNKNOWN,
         owned_by: model.provider,
-      });
+      };
+      if (includeCapabilities) {
+        // Same resolution as the dashboard's model picker, so agents and the
+        // routing UI report identical capability facts.
+        const resolved = await resolveModelCapabilityMetadata(
+          model,
+          this.providerParamSpecs,
+          this.modelsDevSync,
+        );
+        const modelCapabilities = openAiModelCapabilities({ ...model, ...resolved });
+        if (modelCapabilities) entry.capabilities = modelCapabilities;
+      }
+      data.push(entry);
     }
 
     return {
@@ -241,8 +268,7 @@ export class ProxyController {
         traceId,
         callerAttribution,
         requestHeaders,
-        undefined,
-        startTime,
+        apiMode,
       );
       return;
     }
@@ -419,6 +445,7 @@ export class ProxyController {
         traceId,
         callerAttribution,
         requestHeaders,
+        apiMode,
         currentMeta,
         startTime,
       );
@@ -471,6 +498,7 @@ export class ProxyController {
     traceId: string | undefined,
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
+    apiMode: ProxyApiMode,
     meta?: RoutingMeta,
     startTime?: number,
   ): void {
@@ -481,18 +509,20 @@ export class ProxyController {
 
     const message = this.extractErrorMessage(err);
     const status =
-      err instanceof ResponsesSseError
+      err instanceof UpstreamStreamError
         ? err.status
-        : err instanceof HttpException
-          ? err.getStatus()
-          : 500;
+        : err instanceof ResponsesSseError
+          ? err.status
+          : err instanceof HttpException
+            ? err.getStatus()
+            : 500;
     const providerErrorBody = err instanceof ResponsesSseError ? err.body : message;
     this.logger.error(`Proxy error: ${message}`);
 
-    // Who failed? A ManifestError says so explicitly. Everything a provider can
-    // do reaches us as a response — even a dead socket or a timeout, which
-    // proxy-transport turns into a synthetic 503/504 Response handled inline —
-    // so the only *thrown* errors left are Manifest's own bugs (M500).
+    // Who failed? A ManifestError says so explicitly. Pre-response dead sockets
+    // and timeouts become synthetic 503/504 responses in proxy-transport. A
+    // socket that dies after streaming starts is thrown as UpstreamStreamError.
+    // Other non-HTTP throws are Manifest's own bugs (M500).
     //
     // An unrecordable ManifestError (M001–M003, M005) writes NOTHING: it has no
     // tenant to attribute, and falling through to recordProviderError would blame
@@ -512,7 +542,11 @@ export class ProxyController {
           startTime == null ? undefined : Date.now() - startTime,
         );
       }
-    } else if (!(err instanceof ResponsesSseError) && !(err instanceof HttpException)) {
+    } else if (
+      !(err instanceof UpstreamStreamError) &&
+      !(err instanceof ResponsesSseError) &&
+      !(err instanceof HttpException)
+    ) {
       // A non-HTTP throw is Manifest's own bug, never a provider fault.
       this.recordManifestBlockedRequest(
         err,
@@ -560,7 +594,13 @@ export class ProxyController {
     }
 
     if (headersSent) {
-      if (!res.writableEnded) res.end();
+      if (!res.writableEnded) {
+        if (err instanceof UpstreamStreamError) {
+          this.writeStreamError(res, apiMode, err, meta);
+        } else {
+          res.end();
+        }
+      }
       return;
     }
 
@@ -606,6 +646,43 @@ export class ProxyController {
         type: status >= 500 ? 'server_error' : 'invalid_request_error',
       },
     });
+  }
+
+  private writeStreamError(
+    res: ExpressResponse,
+    apiMode: ProxyApiMode,
+    streamError: UpstreamStreamError,
+    meta: RoutingMeta | undefined,
+  ): void {
+    const error = buildOpenAiCompatibleError(streamError.status, STREAM_INTERRUPTED_MESSAGE, {
+      source: 'provider',
+      code: 'stream_interrupted',
+      provider: meta?.provider,
+      model: meta?.model,
+    });
+    error.message = STREAM_INTERRUPTED_MESSAGE;
+
+    if (apiMode === 'messages') {
+      res.write(
+        `event: error\ndata: ${JSON.stringify({
+          type: 'error',
+          error: { type: 'api_error', message: STREAM_INTERRUPTED_MESSAGE },
+        })}\n\n`,
+      );
+    } else if (apiMode === 'responses') {
+      res.write(
+        `event: error\ndata: ${JSON.stringify({
+          type: 'error',
+          code: error.code ?? 'server_error',
+          message: STREAM_INTERRUPTED_MESSAGE,
+          param: null,
+          sequence_number: nextResponsesSequenceNumber(res),
+        })}\n\n`,
+      );
+    } else {
+      res.write(`data: ${JSON.stringify({ error })}\n\ndata: [DONE]\n\n`);
+    }
+    res.end();
   }
 
   private extractTraceId(req: Request): string | undefined {

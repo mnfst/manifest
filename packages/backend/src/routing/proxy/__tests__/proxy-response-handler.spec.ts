@@ -1232,7 +1232,7 @@ describe('proxy-response-handler', () => {
         res,
         undefined,
         undefined,
-        undefined,
+        expect.any(Function),
       );
     });
 
