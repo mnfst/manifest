@@ -495,7 +495,7 @@ export class ProxyController {
     if (headersSent) {
       if (!res.writableEnded) {
         if (err instanceof UpstreamStreamError) {
-          this.writeStreamError(res, apiMode, status, providerErrorBody, meta);
+          this.writeStreamError(res, apiMode, status, meta);
         } else {
           res.end();
         }
@@ -551,10 +551,9 @@ export class ProxyController {
     res: ExpressResponse,
     apiMode: ProxyApiMode,
     status: number,
-    errorBody: string,
     meta: RoutingMeta | undefined,
   ): void {
-    const error = buildOpenAiCompatibleError(status, errorBody, {
+    const error = buildOpenAiCompatibleError(status, 'Upstream provider stream was interrupted.', {
       source: 'provider',
       code: 'stream_interrupted',
       provider: meta?.provider,
