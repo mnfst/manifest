@@ -1,0 +1,46 @@
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_6c9ca7fc8edb9e::t_6d20236bef52f5 86-89,91-95,104-115
+  s_6c9ca7fc8edb9e::t_0c7c152940513e 35,44-45,56-63,66,391,414
+  s_6c9ca7fc8edb9e::t_b396d55268af7d 263-274
+packages/backend/.env.example
+  s_6c9ca7fc8edb9e::t_97dac045dcfb16 25
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_6c9ca7fc8edb9e::t_0c7c152940513e 5,33,44-49,62,76,78
+  s_6c9ca7fc8edb9e::t_e0bcde6eaa6f2d 155-165
+packages/backend/src/database/backfills/request-backfill.cli.ts
+  s_6c9ca7fc8edb9e::t_0c7c152940513e 1-14,16-19,21-38,40-69,78-91
+  s_6c9ca7fc8edb9e::t_97dac045dcfb16 70-71,74
+  s_6c9ca7fc8edb9e::t_d66c50f84b931e 72
+  s_6c9ca7fc8edb9e::t_e23cd4d8dfa87e 20
+  s_6c9ca7fc8edb9e::t_40e21f205b4aff 15
+  s_6c9ca7fc8edb9e::t_99ac3ce6c69e2c 73
+  s_6c9ca7fc8edb9e::t_e0bcde6eaa6f2d 39,75-77
+packages/backend/src/database/backfills/request-backfill.cli.spec.ts
+  s_6c9ca7fc8edb9e::t_0c7c152940513e 1-38,40-89,91-103,105-113,115-116,118-132,134-138,160
+  s_6c9ca7fc8edb9e::t_e23cd4d8dfa87e 39
+  s_6c9ca7fc8edb9e::t_b396d55268af7d 114,133
+  s_6c9ca7fc8edb9e::t_97dac045dcfb16 117
+  s_6c9ca7fc8edb9e::t_2ca14890cc2be6 139-145,147-159
+  s_6c9ca7fc8edb9e::t_d66c50f84b931e 90,104,146
+packages/backend/package.json
+  s_6c9ca7fc8edb9e::t_0c7c152940513e 23-25
+railway.toml
+  s_6c9ca7fc8edb9e::t_0fd5fe97563030 12-13
+  s_6c9ca7fc8edb9e::t_0c7c152940513e 11,14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4f89ce59fb0d850655001c00ed670c5f1601d29f",
+  "prompts": {},
+  "sessions": {
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
