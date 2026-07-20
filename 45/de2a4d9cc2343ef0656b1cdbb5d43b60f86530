@@ -1,0 +1,34 @@
+packages/backend/src/routing/proxy/proxy-error-sanitizer.ts
+  s_038aae19f36c81::t_4a3206a71d7bbc 59-71,125-126,138-141
+.changeset/clean-tunnel-errors.md
+  s_038aae19f36c81::t_4a3206a71d7bbc 1-5
+packages/backend/src/routing/proxy/proxy-error-sanitizer.spec.ts
+  s_038aae19f36c81::t_630954227b078a 4,40,56-69,140-151
+  s_6c9ca7fc8edb9e::t_d0f7aa2d36237d 152-153
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_038aae19f36c81::t_ba54fdcca3c5be 27,338-340,503-505,566-570
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "45de2a4d9cc2343ef0656b1cdbb5d43b60f86530",
+  "prompts": {},
+  "sessions": {
+    "s_038aae19f36c81": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7f93-3058-7c83-b327-31139f88fe33",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
