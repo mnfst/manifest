@@ -1,0 +1,167 @@
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 136-137
+packages/backend/src/model-discovery/model-capabilities.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 1-34,53-148
+  s_155fb9a238c29f::t_b053eb7ff2cfd9 149
+packages/backend/src/routing/proxy/proxy-error-sanitizer.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 59-83,135-136,150-156
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 97-115,146-147,187-188,221-222,291-415,2425,2428-2430,2442,2445,2447-2451,2454-2455,2459-2465,2468-2477,2479,2482-2496,2499-2502,2506,2511-2572,2580,2585,3035-3036,3048-3050,3060
+  s_155fb9a238c29f::t_55b475df24a7ec 2456-2458
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 1235
+packages/backend/src/database/backfills/message-provider-backfill.boot.service.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 5,38-39,62,72
+.changeset/quiet-request-history.md
+  s_155fb9a238c29f::t_b7d84232435bc8 1-5
+packages/backend/src/model-discovery/known-model-modalities.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 1-50
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_155fb9a238c29f::t_9a82e758aea90b 179-204,206-225
+  s_155fb9a238c29f::t_e308c11940622f 205
+  s_155fb9a238c29f::t_b7d84232435bc8 139-178,596
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 18,60-101,508-513
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_155fb9a238c29f::t_5985c04b518b22 292-298
+  s_155fb9a238c29f::t_b7d84232435bc8 15,18,103-104,148-170
+  s_155fb9a238c29f::t_aee8b4eba951b7 6,271,273-282,286,288,290-291,299-309
+  s_155fb9a238c29f::t_68925c6cdccee6 256,265-266
+packages/backend/src/database/backfills/message-provider-backfill.boot.service.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 40,43,51-52,63-69
+  s_155fb9a238c29f::t_5afd4c0a432a39 70-72
+packages/backend/src/database/backfills/request-backfill.datasource.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 20
+railway.toml
+  s_155fb9a238c29f::t_b7d84232435bc8 11-14
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 5,466,468-469,984-998
+  s_155fb9a238c29f::t_4b45e5aa01f7a5 999
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 35,773-775
+  s_155fb9a238c29f::t_edcd43d80ca934 857-859
+  s_155fb9a238c29f::t_4a0fc057e4c0dc 594-597
+packages/backend/src/routing/proxy/__tests__/openai-model-capabilities.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 1-56
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 19-26,72-74,96-100,135-140,143-144
+packages/backend/src/database/backfills/backfill-requests.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 57-62,97,186,190
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 44,46-50,135,355-359,391-398,495-499,598-609
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 5,28-30,42,57,59,63,71,99-100,106,108,113-114,129,134-146,271,448,501,512,514-518,522-525,545-549,597-603,651-685
+  s_155fb9a238c29f::t_adb2f8960fb2ab 686-687
+packages/backend/src/routing/tenant-providers.controller.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 6,9-17,110-130
+  s_155fb9a238c29f::t_6c6dda9e7bd231 131
+packages/shared/src/error-taxonomy.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 134,157-160
+.changeset/clean-tunnel-errors.md
+  s_155fb9a238c29f::t_b7d84232435bc8 1-5
+packages/backend/src/common/utils/provider-availability.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 1-24
+packages/backend/src/database/backfills/request-backfill.cli.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 44
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 24,42,48,126-189
+  s_155fb9a238c29f::t_9715ac80aeda65 190
+packages/backend/src/entities/agent-message.entity.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 109-111
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 5,90-92,101,342,360,365,529,565,819,839
+  s_155fb9a238c29f::t_c0d6f31fd1a9f6 7,12,26,33-36,640-642,647-654,659-669,674-685,690-702,707-712,717-798
+  s_155fb9a238c29f::t_cba41b46161d5d 297-332,713-716
+  s_155fb9a238c29f::t_5985c04b518b22 643-646,655-658,670-673,686-689,703-706
+  s_155fb9a238c29f::t_23737e3e32a59e 799
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 2,11,15,20-24,31-49
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_155fb9a238c29f::t_b0f466ebc2d739 646-666,834-855,864
+  s_155fb9a238c29f::t_b7d84232435bc8 389-390,417-422,429,816
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 1018-1031
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 14-15,18-20,25,28-43
+  s_155fb9a238c29f::t_ccc94145bcb87c 44
+packages/backend/src/routing/model.controller.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 1,14,21-24,110-112,136-140,142
+packages/backend/src/routing/provider.controller.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 17,29,74-78,515-518,524-547
+  s_155fb9a238c29f::t_cb4aafd3154565 548
+packages/backend/src/routing/proxy/proxy-error-sanitizer.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 4,40,56-96,167-197
+  s_155fb9a238c29f::t_f56545f324c277 198-199
+packages/backend/src/common/utils/provider-availability.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 1-48
+packages/backend/src/common/errors/__tests__/manifest-error.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 95-104
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_155fb9a238c29f::t_d8c5cf346dda11 12,22-23,35-39,54-66,79,254,263-307,350-353
+  s_155fb9a238c29f::t_b7d84232435bc8 14-17,32,139-143,311,315
+  s_155fb9a238c29f::t_3487a362d86b1b 308
+packages/backend/src/routing/provider.controller.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 35-38,115-120
+packages/backend/src/routing/dto/routing.dto.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 1,77
+packages/backend/src/routing/proxy/openai-model-capabilities.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 1-35
+packages/backend/src/model-discovery/known-model-modalities.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 1-33
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 2,17-35,228,235,269-271,274,290,342,370-372,375
+.changeset/model-capabilities-projection.md
+  s_155fb9a238c29f::t_b7d84232435bc8 1-5
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 43,132,135-138
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 59,74,98-102,1076-1087
+  s_155fb9a238c29f::t_2f0dae1b051cd0 1088
+packages/backend/src/routing/model.controller.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 34,47,98-102,168-176,305-312
+  s_155fb9a238c29f::t_0a0842c8b6d0d8 313-314
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 86
+packages/backend/src/routing/tenant-providers.controller.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 8,39-41
+packages/backend/src/routing/proxy/provider-client.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 2,33-34,219-221
+  s_155fb9a238c29f::t_9fffee412be551 222
+packages/backend/src/common/errors/manifest-error.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 20,58
+.changeset/quiet-local-runtimes.md
+  s_155fb9a238c29f::t_b7d84232435bc8 1-5
+packages/backend/src/analytics/controllers/provider-usage.controller.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 4,23
+packages/backend/src/common/errors/error-codes.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 70-74
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 2-6,99-151
+  s_155fb9a238c29f::t_ae5b03d859b434 152
+.changeset/report-interrupted-streams.md
+  s_155fb9a238c29f::t_b7d84232435bc8 1-5
+packages/backend/src/analytics/controllers/provider-usage.controller.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 6-16,51-72
+packages/backend/src/database/backfills/backfill-requests.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 98,109,112,270,272
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 14-21
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_155fb9a238c29f::t_b7d84232435bc8 89,107,143-147,155-166,222-250,581-594,712-735
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4c2254a6b9efa36398de3f7658def3a0040522d3",
+  "prompts": {},
+  "sessions": {
+    "s_155fb9a238c29f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f809f-22df-7372-b5d9-ded434f98401",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
