@@ -120,6 +120,20 @@ describe('Anthropic Adapter', () => {
       expect(result.top_p).toBe(0.9);
     });
 
+    it('omits deprecated temperature for Opus 4.8 while preserving other sampling fields', () => {
+      const result = toAnthropicRequest(
+        {
+          messages: [{ role: 'user', content: 'Hi' }],
+          temperature: 0.7,
+          top_p: 0.9,
+        },
+        'claude-opus-4-8',
+      );
+
+      expect(result).not.toHaveProperty('temperature');
+      expect(result.top_p).toBe(0.9);
+    });
+
     it('forwards Anthropic-native top_k, thinking, and stop_sequences when present', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
@@ -2262,6 +2276,24 @@ describe('Anthropic Adapter', () => {
       expect(result).not.toBe(inbound);
       expect(inbound.system).toBe('Native system');
       expect(lookup).not.toHaveBeenCalled();
+    });
+
+    it('strips deprecated temperature from a native Opus 4.8 request', () => {
+      const inbound = {
+        model: 'default',
+        temperature: 0.7,
+        top_p: 0.9,
+        messages: [{ role: 'user', content: 'hello' }],
+      };
+
+      const result = applyAnthropicMessagesMutations(inbound, {
+        preserveNativeBody: true,
+        targetModel: 'claude-opus-4.8-20260701',
+      });
+
+      expect(result).not.toHaveProperty('temperature');
+      expect(result.top_p).toBe(0.9);
+      expect(inbound.temperature).toBe(0.7);
     });
 
     it('preserves Anthropic server tools with their type discriminator and skips input_schema (issue #1886)', () => {

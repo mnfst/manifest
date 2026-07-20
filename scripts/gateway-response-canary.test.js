@@ -43,10 +43,14 @@ function sseResponse(text = DEFAULT_MARKER, options = {}) {
 }
 
 test('canary accepts an exact, well-formed Anthropic stream and returns metadata only', async () => {
+  let requestBody;
   const result = await runCanary({
     baseUrl: 'https://manifest.example',
     apiKey: 'secret-test-key',
-    fetchImpl: async () => sseResponse(),
+    fetchImpl: async (_url, init) => {
+      requestBody = JSON.parse(init.body);
+      return sseResponse();
+    },
   });
 
   assert.equal(result.ok, true);
@@ -56,6 +60,7 @@ test('canary accepts an exact, well-formed Anthropic stream and returns metadata
   assert.equal(result.response_model, 'canary-model');
   assert.ok(!JSON.stringify(result).includes(DEFAULT_MARKER));
   assert.ok(!JSON.stringify(result).includes('secret-test-key'));
+  assert.equal(requestBody.temperature, undefined);
 });
 
 test('canary rejects a text mismatch without returning response content', async () => {

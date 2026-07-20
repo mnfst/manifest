@@ -111,6 +111,12 @@ function isClaudeSonnetModel(model: string | undefined): boolean {
   return bareAnthropicModel(model).replace(/\./g, '-').startsWith('claude-sonnet-');
 }
 
+function isClaudeOpus48Model(model: string | undefined): boolean {
+  if (!model) return false;
+  const bare = bareAnthropicModel(model).replace(/\./g, '-').toLowerCase();
+  return bare === 'claude-opus-4-8' || bare.startsWith('claude-opus-4-8-');
+}
+
 function normalizeOutputConfigForModel(outputConfig: unknown, model: string | undefined): unknown {
   if (!isObjectRecord(outputConfig)) return outputConfig;
   if (outputConfig.effort !== 'xhigh' || !isClaudeSonnetModel(model)) return outputConfig;
@@ -381,7 +387,12 @@ export function toAnthropicRequest(
     );
   }
 
-  if (body.temperature !== undefined) result.temperature = body.temperature;
+  // Opus 4.8 rejects the otherwise-valid Anthropic `temperature` field as
+  // deprecated. Older Claude clients and OpenAI-compatible callers may still
+  // send it, so normalize at the provider boundary instead of returning 400.
+  if (body.temperature !== undefined && !isClaudeOpus48Model(_model)) {
+    result.temperature = body.temperature;
+  }
   if (body.top_p !== undefined) result.top_p = body.top_p;
   if (body.top_k !== undefined) result.top_k = body.top_k;
   // Anthropic-native fields forwarded when the inbound request originated as
@@ -455,6 +466,7 @@ export function applyAnthropicMessagesMutations(
 ): Record<string, unknown> {
   const result: Record<string, unknown> = { ...body };
   const preserveNativeBody = options?.preserveNativeBody === true;
+  if (isClaudeOpus48Model(options?.targetModel)) delete result.temperature;
   if (preserveNativeBody && !options?.injectSubscriptionIdentity) return result;
   const cacheBudget = {
     remaining: Math.max(0, MAX_CACHE_CONTROL_BLOCKS - countCacheControlBlocks(body)),

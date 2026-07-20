@@ -225,7 +225,6 @@ async function runCanary(options) {
       body: JSON.stringify({
         model,
         max_tokens: 64,
-        temperature: 0,
         stream: true,
         messages: [
           {
