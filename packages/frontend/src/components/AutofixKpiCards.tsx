@@ -68,9 +68,14 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
           title,
           role: 'link' as const,
           tabIndex: 0,
-          onClick: () => navigate(link),
+          onClick: (event: MouseEvent) => {
+            const interactive =
+              event.target instanceof Element &&
+              event.target.closest('a, button, input, select, textarea, [role="button"]');
+            if (!interactive) navigate(link);
+          },
           onKeyDown: (event: KeyboardEvent) => {
-            if (event.key === 'Enter') navigate(link);
+            if (event.target === event.currentTarget && event.key === 'Enter') navigate(link);
           },
         }
       : {};

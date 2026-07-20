@@ -67,7 +67,11 @@ vi.mock('../../src/services/chart-utils.js', () => ({
 }));
 
 vi.mock('../../src/components/InfoTooltip.jsx', () => ({
-  default: (props: { text: string }) => <span data-testid="info-tooltip">{props.text}</span>,
+  default: (props: { text: string }) => (
+    <span data-testid="info-tooltip" role="button">
+      {props.text}
+    </span>
+  ),
 }));
 
 vi.mock('../../src/services/sse.js', () => ({
@@ -403,6 +407,13 @@ describe('analytics chart surface components', () => {
     expect(routerNavigate).toHaveBeenLastCalledWith(
       '/messages?agent=demo-agent&range=7d&status=failed',
     );
+
+    const recoveredCard = screen.getByText('Recovered requests').closest('.overview-stat-card')!;
+    const tooltip = recoveredCard.querySelector('[data-testid="info-tooltip"]')!;
+    const navigationCount = routerNavigate.mock.calls.length;
+    fireEvent.keyDown(tooltip, { key: 'Enter' });
+    fireEvent.click(tooltip);
+    expect(routerNavigate).toHaveBeenCalledTimes(navigationCount);
   });
 
   it('describes global KPI links as covering all harnesses', () => {

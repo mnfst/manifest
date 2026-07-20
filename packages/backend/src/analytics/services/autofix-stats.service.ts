@@ -102,7 +102,7 @@ export class AutofixStatsService {
     }
 
     const agents = await this.agentRepo.find({
-      where: { tenant_id: tenantId, deleted_at: IsNull() },
+      where: { tenant_id: tenantId, deleted_at: IsNull(), is_playground: false },
       select: ['name', 'autofix_enabled'],
     });
     const enabledAgents = agents

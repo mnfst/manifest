@@ -11,7 +11,9 @@ import { BackfillState } from '../../entities/backfill-state.entity';
  */
 export function resolveRequestBackfillDatabaseUrl(env: NodeJS.ProcessEnv): string {
   const directUrl =
-    env['BACKFILL_DATABASE_URL'] ?? env['MIGRATION_DATABASE_URL'] ?? env['DATABASE_UNPOOLED_URL'];
+    env['MIGRATION_DATABASE_URL']?.trim() ||
+    env['DATABASE_UNPOOLED_URL']?.trim() ||
+    env['BACKFILL_DATABASE_URL']?.trim();
   if (directUrl) return directUrl;
 
   throw new Error(

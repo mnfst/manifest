@@ -93,6 +93,7 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
         await coordinator.runUntilComplete();
         if (this.stopping) return;
         await coordinator.startTailSweep();
+        if (this.stopping) coordinator.stopTailSweep();
         return;
       } catch (error) {
         await this.releaseCloudCoordinator();

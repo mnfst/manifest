@@ -99,7 +99,7 @@ describe('AutofixStatsService', () => {
       enabled_agents: ['inherited', 'enabled'],
     });
     expect(agentRepo.find).toHaveBeenCalledWith({
-      where: { tenant_id: 'tenant', deleted_at: expect.anything() },
+      where: { tenant_id: 'tenant', deleted_at: expect.anything(), is_playground: false },
       select: ['name', 'autofix_enabled'],
     });
   });

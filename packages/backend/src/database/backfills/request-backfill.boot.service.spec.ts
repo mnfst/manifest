@@ -128,6 +128,50 @@ describe('RequestBackfillBootService', () => {
     expect(directDataSource.getRepository).not.toHaveBeenCalled();
   });
 
+  it('does not leave a Cloud tail sweep running when shutdown races with startup', async () => {
+    jest.useFakeTimers();
+    process.env['NODE_ENV'] = 'production';
+    process.env['MANIFEST_MODE'] = 'cloud';
+    process.env['MIGRATION_DATABASE_URL'] = 'postgres://direct/cloud';
+    let finishCompatibilityCheck!: () => void;
+    const directState = makeState(true);
+    const directDataSource = {
+      initialize: jest.fn(async () => undefined),
+      destroy: jest.fn(async () => undefined),
+      isInitialized: true,
+      getRepository: jest.fn(() => directState.repo),
+      query: jest.fn(
+        () =>
+          new Promise<Array<{ present: boolean }>>((resolve) => {
+            finishCompatibilityCheck = () => resolve([{ present: true }]);
+          }),
+      ),
+    } as unknown as DataSource;
+    jest
+      .spyOn(requestBackfillDataSource, 'createRequestBackfillDataSource')
+      .mockReturnValue(directDataSource);
+    const service = new RequestBackfillBootService(
+      { createQueryRunner: jest.fn() } as unknown as DataSource,
+      makeState(false).repo,
+    );
+
+    try {
+      service.onApplicationBootstrap();
+      await jest.advanceTimersByTimeAsync(0);
+      expect(directDataSource.query).toHaveBeenCalled();
+
+      await service.onApplicationShutdown();
+      finishCompatibilityCheck();
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(jest.getTimerCount()).toBe(0);
+      expect(directDataSource.destroy).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    }
+  });
+
   it('retries a self-hosted startup failure without requiring a restart or direct URL', async () => {
     jest.useFakeTimers();
     process.env['NODE_ENV'] = 'production';

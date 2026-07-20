@@ -18,16 +18,20 @@ describe('resolveRequestBackfillDatabaseUrl', () => {
         MIGRATION_DATABASE_URL: 'postgres://migration/db',
         DATABASE_UNPOOLED_URL: 'postgres://unpooled/db',
       }),
-    ).toBe('postgres://backfill/db');
-    expect(
-      resolveRequestBackfillDatabaseUrl({
-        MIGRATION_DATABASE_URL: 'postgres://migration/db',
-        DATABASE_UNPOOLED_URL: 'postgres://unpooled/db',
-      }),
     ).toBe('postgres://migration/db');
     expect(
-      resolveRequestBackfillDatabaseUrl({ DATABASE_UNPOOLED_URL: 'postgres://unpooled/db' }),
+      resolveRequestBackfillDatabaseUrl({
+        MIGRATION_DATABASE_URL: '  ',
+        DATABASE_UNPOOLED_URL: 'postgres://unpooled/db',
+        BACKFILL_DATABASE_URL: 'postgres://backfill/db',
+      }),
     ).toBe('postgres://unpooled/db');
+    expect(
+      resolveRequestBackfillDatabaseUrl({
+        DATABASE_UNPOOLED_URL: '',
+        BACKFILL_DATABASE_URL: 'postgres://backfill/db',
+      }),
+    ).toBe('postgres://backfill/db');
   });
 
   it('refuses the pooled application URL regardless of NODE_ENV', () => {
