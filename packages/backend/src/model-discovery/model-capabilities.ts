@@ -142,6 +142,7 @@ export async function resolveModelCapabilityMetadata(
       modelsDevEntry?.capabilities,
       specCapabilities,
       modelSupportsStreaming(metadataProvider, metadata.model) ? ['stream'] : undefined,
+      known?.capabilities,
     ),
     inputModalities: modelsDevEntry?.inputModalities ?? model.inputModalities ?? known?.input,
     outputModalities: modelsDevEntry?.outputModalities ?? model.outputModalities ?? known?.output,

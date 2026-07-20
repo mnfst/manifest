@@ -5,6 +5,7 @@ describe('lookupKnownModalities', () => {
     expect(lookupKnownModalities('OpenAI', 'GPT-5.3-Codex-Spark')).toEqual({
       input: ['text'],
       output: ['text'],
+      capabilities: ['text', 'tools', 'stream'],
     });
   });
 
@@ -20,6 +21,7 @@ describe('lookupKnownModalities', () => {
       expect(lookupKnownModalities('openai', modelId)).toEqual({
         input: ['text', 'image'],
         output: ['text'],
+        capabilities: ['text', 'image', 'tools', 'stream'],
       });
     }
   });

@@ -200,7 +200,7 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).toHaveBeenCalledWith('kiro', 'kiro-access', 'subscription', undefined);
     });
 
-    it('should fill modality gaps from the curated known-modalities list', async () => {
+    it('should fill capability gaps from the curated known-modalities list', async () => {
       fetcher.fetch.mockResolvedValue([
         makeModel({ id: 'gpt-5.3-codex-spark', inputPricePerToken: 0, outputPricePerToken: 0 }),
       ]);
@@ -209,6 +209,7 @@ describe('ModelDiscoveryService', () => {
 
       expect(result[0].inputModalities).toEqual(['text']);
       expect(result[0].outputModalities).toEqual(['text']);
+      expect(result[0].capabilities).toEqual(['text', 'tools', 'stream']);
     });
 
     it('should keep discovered modalities over the curated known-modalities list', async () => {

@@ -585,6 +585,7 @@ export class ModelDiscoveryService {
         ...model,
         inputModalities: model.inputModalities ?? knownModalities.input,
         outputModalities: model.outputModalities ?? knownModalities.output,
+        capabilities: mergeModelCapabilities(model.capabilities, knownModalities.capabilities),
       };
     }
 

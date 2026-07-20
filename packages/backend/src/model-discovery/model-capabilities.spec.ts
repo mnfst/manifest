@@ -109,7 +109,7 @@ describe('resolveModelCapabilityMetadata', () => {
     expect(resolved.outputModalities).toEqual(['text']);
   });
 
-  it('falls back to curated known modalities when discovery and models.dev are silent', async () => {
+  it('falls back to curated known capability facts when discovery and models.dev are silent', async () => {
     const resolved = await resolveModelCapabilityMetadata(
       makeModel({ id: 'gpt-5.4-mini', provider: 'openai', authType: 'subscription' }),
       paramSpecs,
@@ -118,6 +118,7 @@ describe('resolveModelCapabilityMetadata', () => {
 
     expect(resolved.inputModalities).toEqual(['text', 'image']);
     expect(resolved.outputModalities).toEqual(['text']);
+    expect(resolved.capabilities).toEqual(['stream', 'text', 'image', 'tools']);
   });
 
   it('prefers discovered modalities over the curated known list', async () => {

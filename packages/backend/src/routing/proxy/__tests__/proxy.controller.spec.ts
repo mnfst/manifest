@@ -348,8 +348,9 @@ describe('ProxyController', () => {
             input_modalities: ['text'],
             output_modalities: ['text'],
             // OpenAI is a streaming-endpoint provider, so the same heuristic
-            // the routing model picker uses asserts stream support here.
-            features: ['stream'],
+            // the routing model picker uses asserts stream support here. The
+            // curated fallback additionally confirms tools support.
+            features: ['stream', 'tools'],
           },
         },
       ],
