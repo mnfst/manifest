@@ -1,0 +1,40 @@
+packages/frontend/src/components/SetupStepAddProvider.tsx
+  s_5c287139553f64::t_fdff2cbb43e719 7,55-61,79-80
+  s_5c287139553f64::t_f21527f01ac98a 81
+packages/frontend/src/components/N8nSetup.tsx
+  s_5c287139553f64::t_e1a25c09323b54 1-53,55-62,66-69,76-78,80-83,85-108
+  s_6d8a2aeb292c0d::t_f1fbb222ea8e5d 70
+  s_5c287139553f64::t_633394ec6ae36c 75,79
+  s_6d8a2aeb292c0d::t_0b08f7f86f0678 54,63-65,71-74,84
+packages/frontend/src/styles/agent-type-select.css
+  s_5c287139553f64::t_5df91cfe3d2456 62-64,91-92,102,124,193-196,202-206,209,214
+packages/frontend/tests/components/SetupStepAddProvider.test.tsx
+  s_6d8a2aeb292c0d::t_8fea468c39800d 346,350-351,360-362
+  s_5c287139553f64::t_fb4a28dcb219bd 355-357
+  s_5c287139553f64::t_0bcd8f08295e84 342-344,358,363-365
+  s_6d8a2aeb292c0d::t_b609b5a682cf12 341,345,347-349,352-354,359
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "ac9b466a9bc3f8162ae4121cfdbeee4dfc34cf37",
+  "prompts": {},
+  "sessions": {
+    "s_5c287139553f64": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4235-b7bc-7f13-98a7-27d2d1c90800",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6d8a2aeb292c0d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f418a-9e60-7fb0-b308-cfbdef64b9a7",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null
+    }
+  }
+}
