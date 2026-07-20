@@ -1,0 +1,66 @@
+packages/backend/src/notifications/services/email-providers/send-email.spec.ts
+  s_6c9ca7fc8edb9e::t_029eced4f79040 5,8-43
+  s_6c9ca7fc8edb9e::t_82edf6a08cdd44 44
+packages/backend/src/setup/setup.controller.spec.ts
+  s_6c9ca7fc8edb9e::t_029eced4f79040 17,26,40,59,72,86,101,116,128-132
+  s_6c9ca7fc8edb9e::t_c06005a134dc42 133-134
+packages/frontend/src/styles/auth.css
+  s_6c9ca7fc8edb9e::t_029eced4f79040 176-191,364-366,423-424
+deploy/apple-containers/start.sh
+  s_6c9ca7fc8edb9e::t_029eced4f79040 1-354
+deploy/apple-containers/TUTORIAL.md
+  s_6c9ca7fc8edb9e::t_029eced4f79040 1-254
+docs/glossary.md
+  s_6c9ca7fc8edb9e::t_37fe9617855f0e 59,61
+packages/manifest/CHANGELOG.md
+  s_6c9ca7fc8edb9e::t_029eced4f79040 3-16
+packages/shared/src/subscription/configs.ts
+  s_6c9ca7fc8edb9e::t_029eced4f79040 157,161-163,334
+packages/backend/src/notifications/services/email-providers/send-email.ts
+  s_6c9ca7fc8edb9e::t_029eced4f79040 66-76
+packages/frontend/src/pages/ResetPassword.tsx
+  s_6c9ca7fc8edb9e::t_029eced4f79040 3,5,12-15,19-22,48-52,56-69
+packages/backend/test/setup.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_029eced4f79040 44
+packages/backend/src/setup/setup.controller.ts
+  s_6c9ca7fc8edb9e::t_029eced4f79040 18,28
+packages/frontend/tests/services/setup-status.test.ts
+  s_6c9ca7fc8edb9e::t_029eced4f79040 8,259-301
+  s_6c9ca7fc8edb9e::t_e8713d76b842b5 302-303
+packages/frontend/src/services/setup-status.ts
+  s_6c9ca7fc8edb9e::t_029eced4f79040 12,21,39,48-50,59,91-92
+  s_6c9ca7fc8edb9e::t_38a522fcf664de 93-94
+CLAUDE.md
+  s_6c9ca7fc8edb9e::t_029eced4f79040 3,60,70,134,331,359-360,367-368,374,422-425,452,716,798
+packages/backend/package.json
+  s_6c9ca7fc8edb9e::t_029eced4f79040 51
+packages/backend/src/setup/setup.service.ts
+  s_6c9ca7fc8edb9e::t_029eced4f79040 6,54-61
+  s_6c9ca7fc8edb9e::t_316b96e98f5a57 62-63
+packages/shared/__tests__/subscription.spec.ts
+  s_6c9ca7fc8edb9e::t_029eced4f79040 388-394,580
+packages/manifest/package.json
+  s_6c9ca7fc8edb9e::t_029eced4f79040 3
+packages/backend/src/setup/setup.service.spec.ts
+  s_6c9ca7fc8edb9e::t_029eced4f79040 225-267
+packages/frontend/tests/pages/ResetPassword.test.tsx
+  s_6c9ca7fc8edb9e::t_029eced4f79040 7,26-29,35,111-143,147
+package-lock.json
+  s_6c9ca7fc8edb9e::t_d865cd94486485 15066,15136-15138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "682408a817164a0267e68ed04f70c149a685abaa",
+  "prompts": {},
+  "sessions": {
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
