@@ -5,7 +5,7 @@
  *
  * Drives a real /v1/chat/completions request through the full proxy stack
  * (resolver, fallback chain, response handler, recorder) and asserts on the
- * row that lands in `provider_attempts`.
+ * row that lands in `agent_messages`.
  */
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
@@ -210,7 +210,7 @@ describe('Proxy fallback success — auth_type/cost_usd attribution (#1173)', ()
 
   it('records fallback auth_type=subscription and cost_usd=0 on subscription fallback success', async () => {
     const ds = app.get(DataSource);
-    await ds.query(`DELETE FROM provider_attempts WHERE agent_id = $1`, [TEST_AGENT_ID]);
+    await ds.query(`DELETE FROM agent_messages WHERE agent_id = $1`, [TEST_AGENT_ID]);
 
     // The seeder + auto-assign warm the routing cache before the test's DB
     // writes, so flush it now or the resolver keeps using the stale tier.
@@ -227,7 +227,7 @@ describe('Proxy fallback success — auth_type/cost_usd attribution (#1173)', ()
 
     const rows = await ds.query(
       `SELECT model, provider, auth_type, cost_usd, fallback_from_model, status, superseded
-         FROM provider_attempts
+         FROM agent_messages
         WHERE agent_id = $1
         ORDER BY timestamp DESC`,
       [TEST_AGENT_ID],

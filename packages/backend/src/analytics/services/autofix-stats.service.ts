@@ -434,14 +434,14 @@ export class AutofixStatsService {
       .addSelect('at.provider', 'provider')
       .addSelect('at.model', 'model')
       .addSelect('COUNT(*)', 'count')
-      .addSelect("(at.autofix_decision->>'issueId')::text", 'phoenix_issue_id')
+      .addSelect("(at.autofix_phoenix->>'issueId')::text", 'phoenix_issue_id')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere("(at.autofix_role = 'original' OR at.status = 'auto_fixed')")
       .andWhere(sqlIsFailedStatus('at.status'))
       .andWhere("(r.autofix_status IS NULL OR r.autofix_status <> 'retry_succeeded')")
       .andWhere(
         `(r.id IS NOT NULL OR NOT EXISTS (
-          SELECT 1 FROM provider_attempts sib
+          SELECT 1 FROM agent_messages sib
           WHERE sib.autofix_group_id = at.autofix_group_id
             AND sib.tenant_id = at.tenant_id
             AND sib.autofix_role = 'retry'
@@ -451,7 +451,7 @@ export class AutofixStatsService {
       .groupBy('LEFT(at.error_message, 200)')
       .addGroupBy('at.provider')
       .addGroupBy('at.model')
-      .addGroupBy("(at.autofix_decision->>'issueId')::text")
+      .addGroupBy("(at.autofix_phoenix->>'issueId')::text")
       .orderBy('count', 'DESC')
       .limit(5);
     addTenantFilter(qb, tenantId, agentName);

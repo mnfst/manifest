@@ -67,7 +67,7 @@ beforeAll(async () => {
   // --- Tenant A data ---------------------------------------------------
   // A message.
   await ds.query(
-    `INSERT INTO provider_attempts
+    `INSERT INTO agent_messages
        (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens,
         cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
      VALUES ($1,$2,$3,$4,'ok','gpt-4o',100,50,0,0,'Tenant A secret','agent','test-agent',$5)`,
@@ -89,7 +89,7 @@ beforeAll(async () => {
   // A message attributed to that connection so per-connection analytics for
   // tenant A's connection_id have something to leak if isolation breaks.
   await ds.query(
-    `INSERT INTO provider_attempts
+    `INSERT INTO agent_messages
        (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type,
         provider_key_label, tenant_provider_id, input_tokens, output_tokens,
         cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
@@ -147,7 +147,7 @@ beforeAll(async () => {
 
   // --- Tenant B data (so "empty" assertions cannot pass vacuously) -----
   await ds.query(
-    `INSERT INTO provider_attempts
+    `INSERT INTO agent_messages
        (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens,
         cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
      VALUES ($1,$2,$3,$4,'ok','gpt-4o',10,5,0,0,'Tenant B message','agent',$5,$6)`,
@@ -228,7 +228,7 @@ describe('Messages — user B never sees tenant A rows', () => {
     await asB(api().patch(`/api/v1/messages/${A_MESSAGE_ID}/feedback`))
       .send({ rating: 'like' })
       .expect(404);
-    const row = await ds.query(`SELECT feedback_rating FROM provider_attempts WHERE id = $1`, [
+    const row = await ds.query(`SELECT feedback_rating FROM agent_messages WHERE id = $1`, [
       A_MESSAGE_ID,
     ]);
     expect(row[0].feedback_rating).toBeNull();

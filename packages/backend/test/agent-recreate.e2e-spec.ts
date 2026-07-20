@@ -31,7 +31,7 @@ describe('agent delete + recreate (issue #1765)', () => {
     // Seed v1 telemetry + a routing override
     const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
     await ds.query(
-      `INSERT INTO provider_attempts (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, agent_name, user_id, cost_usd)
+      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, agent_name, user_id, cost_usd)
        VALUES ($1, $2, $3, $4, 'ok', 'gpt-4o', 100, 50, 0, 0, $5, 'test-user-001', 0.001)`,
       [uuid(), TEST_TENANT_ID, v1Id, now, agentName],
     );
@@ -64,7 +64,7 @@ describe('agent delete + recreate (issue #1765)', () => {
 
     // Data is preserved in storage
     const remainingMessages = await ds.query(
-      `SELECT COUNT(*)::int AS count FROM provider_attempts WHERE tenant_id = $1 AND agent_id = $2`,
+      `SELECT COUNT(*)::int AS count FROM agent_messages WHERE tenant_id = $1 AND agent_id = $2`,
       [TEST_TENANT_ID, v1Id],
     );
     expect(remainingMessages[0].count).toBe(1);

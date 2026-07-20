@@ -112,7 +112,7 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   authType?: string;
   /**
    * Why the tier was selected (e.g. 'header-match', 'specificity', 'scored').
-   * Persisted to provider_attempts.routing_reason so single-shot upstream errors
+   * Persisted to agent_messages.routing_reason so single-shot upstream errors
    * keep the same audit context as their successful siblings.
    */
   reason?: string;
@@ -120,7 +120,7 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   providerKeyLabel?: string;
   /**
    * The tenant_providers row (connection/key) that served this message.
-   * Persisted to provider_attempts.tenant_provider_id so per-connection analytics
+   * Persisted to agent_messages.tenant_provider_id so per-connection analytics
    * scope by the exact key rather than the non-unique provider/auth/label tuple.
    */
   tenantProviderId?: string | null;
@@ -128,7 +128,7 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   requestHeaders?: Record<string, string> | null;
   /**
    * Snapshot of effective request body parameters merged into the outbound
-   * provider request. Persisted to `provider_attempts.request_params`.
+   * provider request. Persisted to `agent_messages.request_params`.
    */
   requestParams?: RequestParamDefaults | null;
   /** Auto-fix audit when this error was the terminal outcome after healing. */
@@ -181,14 +181,14 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
   authType?: string;
   /**
    * Why the primary tier was selected (e.g. 'header-match', 'specificity',
-   * 'scored'). Persisted to provider_attempts.routing_reason so fallback rows
+   * 'scored'). Persisted to agent_messages.routing_reason so fallback rows
    * keep the same audit context as their non-fallback siblings.
    */
   reason?: string;
   providerKeyLabel?: string;
   /**
    * The tenant_providers row (connection/key) that served this message.
-   * Persisted to provider_attempts.tenant_provider_id so per-connection analytics
+   * Persisted to agent_messages.tenant_provider_id so per-connection analytics
    * scope by the exact key rather than the non-unique provider/auth/label tuple.
    */
   tenantProviderId?: string | null;
@@ -198,7 +198,7 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
   /**
    * Snapshot of effective request body parameters (today: DeepSeek
    * `thinking`) merged into the outbound provider request. `null` when no
-   * known params apply. Persisted to `provider_attempts.request_params`.
+   * known params apply. Persisted to `agent_messages.request_params`.
    */
   requestParams?: RequestParamDefaults | null;
   /** Request-level Auto-fix outcome when a failed retry later fell back. */
@@ -218,7 +218,7 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   providerKeyLabel?: string;
   /**
    * The tenant_providers row (connection/key) that served this message.
-   * Persisted to provider_attempts.tenant_provider_id so per-connection analytics
+   * Persisted to agent_messages.tenant_provider_id so per-connection analytics
    * scope by the exact key rather than the non-unique provider/auth/label tuple.
    */
   tenantProviderId?: string | null;

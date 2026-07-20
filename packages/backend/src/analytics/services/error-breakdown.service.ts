@@ -123,7 +123,7 @@ export class ErrorBreakdownService {
           r.id IS NULL
           AND at.status = 'auto_fixed'
           AND EXISTS (
-            SELECT 1 FROM provider_attempts retry
+            SELECT 1 FROM agent_messages retry
             WHERE retry.autofix_group_id = at.autofix_group_id
               AND retry.tenant_id = at.tenant_id
               AND retry.autofix_role = 'retry'

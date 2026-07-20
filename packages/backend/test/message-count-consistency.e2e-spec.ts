@@ -32,7 +32,7 @@ async function insertMessage(ds: DataSource, status: string) {
     ],
   );
   await ds.query(
-    `INSERT INTO provider_attempts (id, request_id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
+    `INSERT INTO agent_messages (id, request_id, tenant_id, agent_id, timestamp, status, model, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
     [
       uuid(),

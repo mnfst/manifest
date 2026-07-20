@@ -56,9 +56,9 @@ interface DailyBucketRow {
 }
 
 /**
- * Computes provider usage stats from `provider_attempts` in a single collapsed,
+ * Computes provider usage stats from `agent_messages` in a single collapsed,
  * daily-bucketed aggregation. Kept out of the providers/routing config path so
- * a provider-config read never scans the (large) `provider_attempts` table.
+ * a provider-config read never scans the (large) `agent_messages` table.
  *
  * All time bucketing is pinned to UTC via `AT TIME ZONE 'UTC'` so the day
  * labels line up exactly with the frontend, which builds its 7 sparkline slots
@@ -94,7 +94,7 @@ export class ProviderUsageService {
     // ONE collapsed query: 30-day window, daily buckets per (provider,
     // auth_type, UTC day). We derive 30d totals (sum of buckets), the dense 7d
     // sparkline, and last_used (max bucket day's max timestamp) in JS so the DB
-    // only scans provider_attempts once.
+    // only scans agent_messages once.
     //
     // `m.timestamp AT TIME ZONE 'UTC'` reads the stored `timestamp without time
     // zone` as UTC (→ timestamptz); truncating to day then converting back with

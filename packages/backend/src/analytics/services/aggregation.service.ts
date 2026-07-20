@@ -258,7 +258,7 @@ export class AggregationService {
            ${playgroundPredicate}
          UNION ALL
          SELECT 'unlinked:' || pa.id, pa.timestamp, pa.status
-         FROM provider_attempts pa
+         FROM agent_messages pa
          WHERE pa.request_id IS NULL
            AND pa.tenant_id = $1
            AND pa.timestamp >= $2
@@ -270,7 +270,7 @@ export class AggregationService {
                 COUNT(*) FILTER (WHERE ${sqlIsCompletedStatus('pa.status')}) AS attempts,
                 COUNT(*) FILTER (WHERE ${sqlIsSuccessStatus('pa.status')}) AS successful_attempts,
                 BOOL_OR(${sqlIsFailedStatus('pa.status')}) AS had_failure
-         FROM provider_attempts pa
+         FROM agent_messages pa
          JOIN scoped_requests r ON r.id = pa.request_id
          GROUP BY pa.request_id
          UNION ALL
@@ -278,7 +278,7 @@ export class AggregationService {
                 1 AS attempts,
                 CASE WHEN ${sqlIsSuccessStatus('pa.status')} THEN 1 ELSE 0 END AS successful_attempts,
                 ${sqlIsFailedStatus('pa.status')} AS had_failure
-         FROM provider_attempts pa
+         FROM agent_messages pa
          JOIN scoped_requests r ON r.id = 'unlinked:' || pa.id
          WHERE pa.request_id IS NULL
        )

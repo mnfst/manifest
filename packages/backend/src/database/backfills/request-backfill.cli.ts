@@ -54,8 +54,8 @@ export async function main(deps: MainDeps = {}): Promise<void> {
       return;
     }
 
-    // Old replicas can write through the compatibility view during the rolling
-    // handover. If any remain after the historical pass, give the last one a
+    // Old replicas can write their unchanged columns during the rolling
+    // handover. If any unlinked rows remain after the historical pass, give them a
     // full generic grace window, then perform one explicit catch-up.
     while (await coordinator.hasUnlinkedAttempts()) {
       logger.log(`waiting ${REQUEST_BACKFILL_GENERIC_GRACE_MS / 1000}s for legacy writes to age`);

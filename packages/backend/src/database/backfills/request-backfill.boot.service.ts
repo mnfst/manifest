@@ -13,9 +13,9 @@ import { TypeOrmRequestBackfillGateway } from './backfill-requests.gateway';
 import { MESSAGE_PROVIDER_BACKFILL_LOCK_KEY } from './message-provider-backfill.boot.service';
 import { createRequestBackfillDataSource } from './request-backfill.datasource';
 
-/** Initial historical pass marker; old-replica delta is tracked by unlinked rows. */
-export const REQUEST_BACKFILL_NAME = 'requests_provider_attempts_v1';
-// Both post-deploy jobs update provider_attempts. Sharing the lock guarantees
+/** Initial historical pass marker; legacy-writer delta is tracked by unlinked rows. */
+export const REQUEST_BACKFILL_NAME = 'requests_agent_messages_v1';
+// Both post-deploy jobs update agent_messages. Sharing the lock guarantees
 // that Cloud never runs their batches concurrently; a contending job releases
 // its connection and retries until both completion markers exist.
 export const REQUEST_BACKFILL_LOCK_KEY = MESSAGE_PROVIDER_BACKFILL_LOCK_KEY;
@@ -177,7 +177,7 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   }
 
   /**
-   * Old replicas write through the compatibility view without request_id.
+   * Old replicas write their unchanged column set without request_id.
    * Revisit those rows after a grace period, using a larger delay for generic
    * linking so a fallback terminal always gets another reconstruction pass.
    */
@@ -214,7 +214,7 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   async hasUnlinkedAttempts(): Promise<boolean> {
     const rows = (await this.dataSource.query(
       `SELECT EXISTS (
-         SELECT 1 FROM "provider_attempts"
+         SELECT 1 FROM "agent_messages"
          WHERE "request_id" IS NULL
          LIMIT 1
        ) AS pending`,
@@ -223,7 +223,7 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   }
 
   private async startTailSweep(): Promise<void> {
-    if (!(await this.hasCompatibilityView())) return;
+    if (!(await this.hasAttemptTable())) return;
     this.tailTimer = setInterval(() => {
       void this.runTailOnce().catch((error) => {
         this.logger.error(
@@ -253,7 +253,7 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   private async hasEligibleAttempts(before: string): Promise<boolean> {
     const rows = (await this.dataSource.query(
       `SELECT EXISTS (
-         SELECT 1 FROM "provider_attempts"
+         SELECT 1 FROM "agent_messages"
          WHERE "request_id" IS NULL AND timestamp < $1
          LIMIT 1
        ) AS pending`,
@@ -262,13 +262,15 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
     return rows[0]?.pending === true;
   }
 
-  private async hasCompatibilityView(): Promise<boolean> {
+  private async hasAttemptTable(): Promise<boolean> {
     const rows = (await this.dataSource.query(
       `SELECT EXISTS (
          SELECT 1
          FROM pg_class c
          JOIN pg_namespace n ON n.oid = c.relnamespace
-         WHERE n.nspname = 'public' AND c.relname = 'agent_messages' AND c.relkind = 'v'
+         WHERE n.nspname = 'public'
+           AND c.relname = 'agent_messages'
+           AND c.relkind IN ('r', 'p')
        ) AS present`,
     )) as { present: boolean }[];
     return rows[0]?.present === true;

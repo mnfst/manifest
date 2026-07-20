@@ -85,7 +85,7 @@ export function sqlCastInterval(paramName: string): string {
  * analytics range cutoffs.
  *
  * Do NOT use this to build window boundaries compared against
- * `provider_attempts.timestamp` — those rows are stored in local time, so a UTC
+ * `agent_messages.timestamp` — those rows are stored in local time, so a UTC
  * boundary is offset by the process TZ and silently drops rows. Use
  * {@link toLocalSqlTimestamp} for that (see computePeriodBoundaries).
  */
@@ -99,7 +99,7 @@ export function toSqlTimestamp(d: Date = new Date()): string {
  * no timezone suffix).
  *
  * This is the correct format for period boundaries compared against
- * `provider_attempts.timestamp`: the pg driver serialises stored Dates in local
+ * `agent_messages.timestamp`: the pg driver serialises stored Dates in local
  * time, so a UTC boundary would be offset from the stored values by the
  * process's TZ offset — silently dropping rows near (and, for `periodEnd`, well
  * within) the window. Mirrors the rationale on {@link computeCutoff}.

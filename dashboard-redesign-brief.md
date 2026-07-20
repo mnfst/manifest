@@ -115,9 +115,8 @@ creates invalid cells in the matrix.
 ## What data we have (from the database)
 
 The data is split into two grains. One logical request lives in `requests`; each
-upstream provider call lives in `provider_attempts`. `agent_messages` is only a
-temporary compatibility view over Provider Attempts and must not be used for
-request totals.
+upstream provider call lives in the physical `agent_messages` table as a
+Provider Attempt. Attempt rows must not be used for request totals.
 
 Request outcomes come from:
 
@@ -143,7 +142,7 @@ Provider Attempt details come from:
 | `autofix_role`                  | `original`/`retry`/null                                                         | If autofix: the failed request or the patched retry                               |
 | `autofix_group_id`              | uuid                                                                            | Links the original and retry rows                                                 |
 | `autofix_operations`            | jsonb                                                                           | What Phoenix changed (rename_param, etc.)                                         |
-| `autofix_decision`              | jsonb `{status, issueId, patchId, healAttemptId, explanation?}`                 | Phoenix decision; the legacy view exposes it as `autofix_phoenix`                 |
+| `autofix_decision`              | jsonb `{status, issueId, patchId, healAttemptId, explanation?}`                 | Entity/API name for the physical `autofix_phoenix` column                         |
 | `cost`                          | float                                                                           | Dollar cost of the request                                                        |
 | `input_tokens`, `output_tokens` | int                                                                             | Token counts                                                                      |
 | `timestamp`                     | datetime                                                                        | When it happened                                                                  |

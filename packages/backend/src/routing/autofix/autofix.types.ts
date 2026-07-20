@@ -46,7 +46,7 @@ export interface AutofixChainEntry {
  * patched request was actually sent to the provider. The recorder uses that
  * invariant—not Phoenix consultation alone—to decide whether Auto-fix was
  * applied. When a retry exists, the failed original and retry are recorded as
- * linked `provider_attempts` rows sharing `groupId`.
+ * linked `agent_messages` rows sharing `groupId`.
  */
 export interface AutofixRecord {
   /** Shared id linking the failed-original and retry rows, when a retry exists. */

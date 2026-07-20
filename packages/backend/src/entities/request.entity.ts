@@ -6,7 +6,7 @@ import type { AutofixStatus } from 'manifest-shared';
 /**
  * One request made by a caller to Manifest.
  *
- * Provider work belongs in provider_attempts. A row with no attempts is valid:
+ * Provider work belongs in agent_messages. A row with no attempts is valid:
  * Manifest may reject a request before choosing or contacting a provider.
  */
 @Entity('requests')

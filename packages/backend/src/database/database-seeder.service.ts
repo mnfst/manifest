@@ -73,7 +73,7 @@ export class DatabaseSeederService implements OnModuleInit {
       await this.seedTenantAndAgent();
       await this.seedApiKey();
       // Connections must exist before messages: each seeded message references a
-      // tenant_providers row via the FK on provider_attempts.tenant_provider_id.
+      // tenant_providers row via the FK on agent_messages.tenant_provider_id.
       await this.seedTenantProviders();
       await this.seedAgentMessages();
       // Two routing cohorts for the complexity/task-specific deprecation demo:

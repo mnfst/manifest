@@ -437,7 +437,7 @@ describe('RequestBackfillBootService', () => {
         }
         if (sql.includes('max(pair_seq)')) return [{ max_seq: 0 }];
         if (sql.includes('INSERT INTO "requests"')) return [{ n: 0 }];
-        if (sql.includes('UPDATE "provider_attempts"')) return [{ n: 0 }];
+        if (sql.includes('UPDATE "agent_messages"')) return [{ n: 0 }];
         return undefined;
       }),
     };
@@ -593,7 +593,7 @@ describe('RequestBackfillBootService', () => {
     expect(lock.release).toHaveBeenCalled();
   });
 
-  it('starts, reports, and stops the compatibility tail timer', async () => {
+  it('starts, reports, and stops the delta tail timer while agent_messages exists', async () => {
     jest.useFakeTimers();
     process.env['NODE_ENV'] = 'production';
     process.env['MANIFEST_MODE'] = 'selfhosted';
@@ -617,7 +617,7 @@ describe('RequestBackfillBootService', () => {
     jest.useRealTimers();
   });
 
-  it('does not schedule tail sweeps after the compatibility view is removed', async () => {
+  it('does not schedule tail sweeps when the attempt table is absent', async () => {
     process.env['NODE_ENV'] = 'production';
     process.env['MANIFEST_MODE'] = 'selfhosted';
     const ds = {

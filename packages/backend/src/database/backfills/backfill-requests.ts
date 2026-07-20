@@ -71,7 +71,7 @@ const realSleep = (ms: number): Promise<void> =>
 /**
  * Regroup history after startup in short, retryable keyset windows. This is
  * deliberately not a TypeORM migration: deploy readiness must not wait for a
- * scan and rewrite of the hot provider_attempts table.
+ * scan and rewrite of the hot agent_messages table.
  */
 export async function runRequestBackfill(
   gateway: RequestBackfillGateway,

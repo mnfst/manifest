@@ -18,6 +18,6 @@ describe('AddProviderAttemptOrdering1801100000000', () => {
     expect(sql).toContain('CHECK ("attempt_number" IS NULL OR "attempt_number" > 0) NOT VALID');
     expect(sql).toContain('CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS');
     expect(sql).toContain('("request_id", "attempt_number")');
-    expect(sql).not.toMatch(/UPDATE\s+"provider_attempts"/i);
+    expect(sql).not.toMatch(/UPDATE\s+"agent_messages"/i);
   });
 });

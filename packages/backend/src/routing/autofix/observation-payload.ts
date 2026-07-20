@@ -97,7 +97,7 @@ export interface ObservationInput {
   /**
    * The `traceparent` trace id when the caller sent one. Phoenix keys its ledger
    * on `(issue, traceId)`, and Peacock's scrape reports the same
-   * `provider_attempts.trace_id`, so passing it through is what lets a live
+   * `agent_messages.trace_id`, so passing it through is what lets a live
    * observation and a later scrape of the same failure collapse into one row.
    */
   traceId: string;

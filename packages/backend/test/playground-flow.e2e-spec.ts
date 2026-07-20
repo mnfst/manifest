@@ -181,7 +181,7 @@ describe('Playground E2E — POST /api/v1/playground/run (SSE)', () => {
       `SELECT id FROM agents WHERE is_playground = true AND deleted_at IS NULL LIMIT 1`,
     );
     const rows = await ds.query(
-      `SELECT routing_reason, routing_tier, status, provider, model, input_tokens, output_tokens, agent_name FROM provider_attempts WHERE agent_id = $1 AND routing_tier = $2`,
+      `SELECT routing_reason, routing_tier, status, provider, model, input_tokens, output_tokens, agent_name FROM agent_messages WHERE agent_id = $1 AND routing_tier = $2`,
       [playgroundAgent.id, 'playground'],
     );
     expect(rows.length).toBe(1);

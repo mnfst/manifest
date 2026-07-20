@@ -1,14 +1,14 @@
 /**
- * Post-deploy backfill for `provider_attempts.tenant_provider_id`.
+ * Post-deploy backfill for `agent_messages.tenant_provider_id`.
  *
  * The tenant-refactor migrations add the column (+ FK + covering index) but
  * deliberately do NOT stamp pre-upgrade history inline: on a multi-million-row
- * table that held an ACCESS EXCLUSIVE lock on `provider_attempts` for the whole
+ * table that held an ACCESS EXCLUSIVE lock on `agent_messages` for the whole
  * (12–30+ min) backfill, locking the live app out of its main table. This runs
  * that stamping OUT of the boot transaction, in throttled keyset batches.
  *
  * It runs AFTER the full migration batch, so it targets the FINAL schema names:
- * `provider_attempts.tenant_provider_id` (was user_provider_id) matched against
+ * `agent_messages.tenant_provider_id` (was user_provider_id) matched against
  * `tenant_providers` (was user_providers), whose `created_by_user_id` (was
  * user_id) carries the original user id. Those are pure RENAMEs, so the values
  * are unchanged and the matching is identical to the original in-migration

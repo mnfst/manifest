@@ -31,7 +31,7 @@ interface TotalsRow {
 
 /**
  * Builds the daily telemetry payload by aggregating the last 24h of
- * `provider_attempts` plus the total agent count + runtime metadata. All
+ * `agent_messages` plus the total agent count + runtime metadata. All
  * SELECTs are parameterised so the window is consistent across queries.
  */
 @Injectable()

@@ -102,7 +102,7 @@ const MANIFEST_ORIGIN_SQL_LIST = MANIFEST_ERROR_ORIGINS.map((o) => `'${o}'`).joi
  * SQL predicate matching Manifest-originated errors (config / policy / internal
  * / request) — the rows the caller gets back as HTTP 200 stubs or 4xx envelopes
  * without a provider ever being contacted. Backs the `origin=manifest` filter
- * shorthand. Assumes the query builder aliases `provider_attempts` as `at`.
+ * shorthand. Assumes the query builder aliases `agent_messages` as `at`.
  *
  * The Messages log used to hide `config` rows by default on the theory that "a
  * Manifest config error is not a message". It was the only surface that hid
@@ -130,11 +130,11 @@ export function downsample(data: number[], targetLen: number): number[] {
 /**
  * Constrain a message aggregate to the LIVE agent currently owning a slug.
  *
- * `provider_attempts` stores `agent_id` alongside `agent_name`, so filtering by
+ * `agent_messages` stores `agent_id` alongside `agent_name`, so filtering by
  * name alone would pull in rows from a soft-deleted agent that shares the slug
  * with a live one (slug reuse). Resolving to the live agent's id keeps a
  * recreated agent's chart free of its dead namesake's history. Assumes the
- * query builder aliases `provider_attempts` as `at`.
+ * query builder aliases `agent_messages` as `at`.
  */
 export function filterByLiveAgentName<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
@@ -193,7 +193,7 @@ export function addTenantFilter<T extends ObjectLiteral>(
  *     is still excluded. An id-only LEFT JOIN left those rows with a NULL
  *     `is_playground` and wrongly counted them.
  *
- * Assumes the query builder aliases `provider_attempts` as `at`. This helper adds
+ * Assumes the query builder aliases `agent_messages` as `at`. This helper adds
  * no join, so callers that need agent columns must add their own `agents` join
  * (one-to-(0/1) on `a.id = at.agent_id`) independently.
  */
@@ -219,7 +219,7 @@ export function excludePlaygroundAgents<T extends ObjectLiteral>(
  * `provider_key_label` as the canonical `'Default'`. A connection is identified
  * by (tenant, provider, auth_type, label); without the label filter two keys
  * that share provider+auth_type but differ by label merge into one. Assumes the
- * query builder aliases `provider_attempts` as `at`.
+ * query builder aliases `agent_messages` as `at`.
  */
 export function filterByKeyLabel<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
@@ -232,14 +232,14 @@ export function filterByKeyLabel<T extends ObjectLiteral>(
 
 /**
  * Scope a message aggregate to one exact connection by its `tenant_providers`
- * row id — the value stamped on `provider_attempts.tenant_provider_id` at proxy
+ * row id — the value stamped on `agent_messages.tenant_provider_id` at proxy
  * time. Unlike filterByKeyLabel (which matches the provider+auth_type+label
  * tuple and so merges sibling keys sharing a label, and treats a NULL label as
  * 'Default'), this pins to the single connection that actually served each
  * message. Rows with a NULL id — pre-upgrade history that the backfill could
  * not disambiguate, plus local/Ollama and blind-proxy paths — never match,
  * which is the correct behaviour for a per-connection view. Assumes the query
- * builder aliases `provider_attempts` as `at`. Prefer this over filterByKeyLabel
+ * builder aliases `agent_messages` as `at`. Prefer this over filterByKeyLabel
  * whenever a connection id is available; keep filterByKeyLabel for
  * provider-level ("all my OpenAI keys") aggregation.
  */
@@ -275,7 +275,7 @@ export function scopeToConnection<T extends ObjectLiteral>(
  * is the downstream contract — every field it declares must be selected here so
  * the shared badge/provider rendering works identically across every call site.
  *
- * Assumes the query builder aliases `provider_attempts` as `at`. Callers pass the
+ * Assumes the query builder aliases `agent_messages` as `at`. Callers pass the
  * `costExpr` (e.g. `sqlCastFloat(sqlSanitizeCost('at.cost_usd'))`) so the
  * shared helper stays agnostic to how each call site sanitises cost.
  */

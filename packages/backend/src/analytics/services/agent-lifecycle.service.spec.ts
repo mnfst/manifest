@@ -303,7 +303,7 @@ describe('AgentLifecycleService', () => {
 
       const updateCalls = mockManagerQb.update.mock.calls.map((c: unknown[]) => c[0]);
       expect(updateCalls).toContain('agents');
-      expect(updateCalls).toContain('provider_attempts');
+      expect(updateCalls).toContain('agent_messages');
       expect(updateCalls).toContain('requests');
       expect(updateCalls).toContain('notification_rules');
       expect(updateCalls).not.toContain('notification_logs');

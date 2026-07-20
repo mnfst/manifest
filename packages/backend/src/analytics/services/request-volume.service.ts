@@ -129,7 +129,7 @@ export class RequestVolumeService {
           pa.provider_key_label,
           pa.tenant_provider_id
         FROM requests r
-        LEFT JOIN provider_attempts pa ON pa.request_id = r.id
+        LEFT JOIN agent_messages pa ON pa.request_id = r.id
         WHERE r.tenant_id = $1
           AND r.timestamp >= $2
           ${toR}
@@ -158,7 +158,7 @@ export class RequestVolumeService {
           pa.auth_type,
           pa.provider_key_label,
           pa.tenant_provider_id
-        FROM provider_attempts pa
+        FROM agent_messages pa
         WHERE pa.request_id IS NULL
           AND pa.tenant_id = $1
           AND pa.timestamp >= $2

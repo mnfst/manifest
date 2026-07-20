@@ -47,7 +47,7 @@ function categoryFor(http: number | null): { id: string; label: string } {
 }
 
 /**
- * Computes error-cluster aggregates live from `provider_attempts` (cross-tenant).
+ * Computes error-cluster aggregates live from `agent_messages` (cross-tenant).
  * This is the rollup the Peacock CMS pulls from to discover and refresh clusters.
  * Aggregates only — never returns tenant identities — and applies the same
  * k-anonymity floor as publishing, so a cluster below the floor is never
@@ -81,9 +81,9 @@ export class ErrorDiscoveryService {
              MAX(e.timestamp) AS last_seen,
              AVG(CASE WHEN ok.trace_id IS NOT NULL THEN 1.0 ELSE 0.0 END)::float AS recovery,
              (array_agg(e.error_message ORDER BY e.timestamp DESC))[1] AS sample
-      FROM provider_attempts e
+      FROM agent_messages e
       LEFT JOIN (
-        SELECT DISTINCT trace_id FROM provider_attempts WHERE status IN ('ok', 'success') AND trace_id IS NOT NULL
+        SELECT DISTINCT trace_id FROM agent_messages WHERE status IN ('ok', 'success') AND trace_id IS NOT NULL
       ) ok ON ok.trace_id = e.trace_id
       WHERE e.status IN ('error','fallback_error','rate_limited','failed')
         AND e.tenant_id IS NOT NULL
@@ -100,7 +100,7 @@ export class ErrorDiscoveryService {
                e.error_http_status AS http,
                to_char(date_trunc('day', e.timestamp), 'YYYY-MM-DD') AS day,
                COUNT(*)::int AS cnt
-        FROM provider_attempts e
+        FROM agent_messages e
         WHERE e.status IN ('error','fallback_error','rate_limited','failed')
           AND e.timestamp >= NOW() - INTERVAL '14 days'
           AND e.provider IS NOT NULL
@@ -124,7 +124,7 @@ export class ErrorDiscoveryService {
                e.error_http_status AS http,
                e.error_message AS msg,
                COUNT(*)::int AS cnt
-        FROM provider_attempts e
+        FROM agent_messages e
         WHERE e.status IN ('error','fallback_error','rate_limited','failed')
           AND e.error_message IS NOT NULL
           AND e.tenant_id IS NOT NULL

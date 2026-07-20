@@ -354,7 +354,7 @@ describe('AutofixStatsService', () => {
     const filterSql = qb.andWhere.mock.calls.flat().join(' ');
     expect(qb.leftJoin).toHaveBeenCalled();
     expect(filterSql).toContain("r.autofix_status <> 'retry_succeeded'");
-    expect(filterSql).toContain('FROM provider_attempts sib');
-    expect(filterSql).not.toContain('FROM agent_messages sib');
+    expect(filterSql).toContain('FROM agent_messages sib');
+    expect(filterSql).not.toContain('FROM provider_attempts sib');
   });
 });

@@ -11,7 +11,7 @@ export const REQUEST_BACKFILL_WINDOW_END_SQL = `
   SELECT max(id) AS end_id
   FROM (
     SELECT id
-    FROM "provider_attempts"
+    FROM "agent_messages"
     WHERE "request_id" IS NULL AND id > $1 AND timestamp < $3
     ORDER BY id
     LIMIT $2
@@ -22,7 +22,7 @@ export const FALLBACK_PRIMARY_WINDOW_END_SQL = `
   SELECT max(id) AS end_id
   FROM (
     SELECT id
-    FROM "provider_attempts"
+    FROM "agent_messages"
     WHERE "request_id" IS NULL
       AND id > $1
       AND timestamp < $3
@@ -41,7 +41,7 @@ const REQUEST_LEVEL_ORIGINS = `'config', 'policy', 'request', 'internal'`;
  * The requests this backfill materializes must use the canonical
  * `success` / `failed` vocabulary, same as the live recorder now writes, so the
  * `requests` table is coherent regardless of which side created a row. Historical
- * `provider_attempts.status` still holds the legacy values (`ok` / `error` /
+ * `agent_messages.status` still holds the legacy values (`ok` / `error` /
  * `rate_limited` / `fallback_error` / `auto_fixed`); this collapses a terminal
  * attempt status onto the request outcome while preserving in-flight work.
  */
@@ -58,10 +58,10 @@ const autofixStatusFromAttempt = (alias: string): string => `CASE
   WHEN ${alias}.autofix_role = 'retry' THEN
     CASE WHEN ${alias}.status IN ('ok', 'success') THEN 'retry_succeeded' ELSE 'retry_failed' END
   WHEN COALESCE(${alias}.autofix_applied, false)
-    AND ${alias}.autofix_decision->>'healAttemptId' IS NOT NULL THEN 'retry_failed'
-  WHEN ${alias}.autofix_decision->>'status' = 'resolving' THEN 'resolving'
-  WHEN ${alias}.autofix_decision->>'status' = 'no_patch' THEN 'no_patch'
-  WHEN ${alias}.autofix_decision IS NOT NULL THEN 'no_patch'
+    AND ${alias}.autofix_phoenix->>'healAttemptId' IS NOT NULL THEN 'retry_failed'
+  WHEN ${alias}.autofix_phoenix->>'status' = 'resolving' THEN 'resolving'
+  WHEN ${alias}.autofix_phoenix->>'status' = 'no_patch' THEN 'no_patch'
+  WHEN ${alias}.autofix_phoenix IS NOT NULL THEN 'no_patch'
   WHEN COALESCE(${alias}.autofix_applied, false) THEN 'service_error'
   ELSE NULL
 END`;
@@ -71,11 +71,11 @@ const autofixStatusFromAttempts = (alias: string): string => `CASE
     THEN 'retry_succeeded'
   WHEN BOOL_OR(${alias}.autofix_role = 'retry')
     OR BOOL_OR(COALESCE(${alias}.autofix_applied, false)
-      AND ${alias}.autofix_decision->>'healAttemptId' IS NOT NULL)
+      AND ${alias}.autofix_phoenix->>'healAttemptId' IS NOT NULL)
     THEN 'retry_failed'
-  WHEN BOOL_OR(${alias}.autofix_decision->>'status' = 'resolving') THEN 'resolving'
-  WHEN BOOL_OR(${alias}.autofix_decision->>'status' = 'no_patch') THEN 'no_patch'
-  WHEN BOOL_OR(${alias}.autofix_decision IS NOT NULL) THEN 'no_patch'
+  WHEN BOOL_OR(${alias}.autofix_phoenix->>'status' = 'resolving') THEN 'resolving'
+  WHEN BOOL_OR(${alias}.autofix_phoenix->>'status' = 'no_patch') THEN 'no_patch'
+  WHEN BOOL_OR(${alias}.autofix_phoenix IS NOT NULL) THEN 'no_patch'
   WHEN BOOL_OR(COALESCE(${alias}.autofix_applied, false)) THEN 'service_error'
   ELSE NULL
 END`;
@@ -114,7 +114,7 @@ export const CREATE_LEGACY_FALLBACK_STAGING_SQL = `
 export const INSERT_LEGACY_FALLBACK_INDEXES_SQL = `
   INSERT INTO "request_backfill_fallback_indexes" (fallback_index)
   SELECT DISTINCT fallback_index
-  FROM "provider_attempts"
+  FROM "agent_messages"
   WHERE "request_id" IS NULL
     AND fallback_from_model IS NOT NULL
     AND fallback_index IS NOT NULL
@@ -136,9 +136,9 @@ export const INSERT_LEGACY_FALLBACK_PAIRS_SQL = `
       p.timestamp AS primary_timestamp,
       t.fallback_index AS terminal_index,
       'recovered'::varchar AS outcome
-    FROM "provider_attempts" p
+    FROM "agent_messages" p
     JOIN "request_backfill_fallback_indexes" fi ON true
-    JOIN "provider_attempts" t
+    JOIN "agent_messages" t
       ON t."request_id" IS NULL
      AND t.status IN ('ok', 'success')
      AND t.fallback_from_model = p.model
@@ -169,9 +169,9 @@ export const INSERT_LEGACY_FALLBACK_PAIRS_SQL = `
       p.timestamp AS primary_timestamp,
       t.fallback_index AS terminal_index,
       'exhausted'::varchar AS outcome
-    FROM "provider_attempts" p
+    FROM "agent_messages" p
     JOIN "request_backfill_fallback_indexes" fi ON true
-    JOIN "provider_attempts" t
+    JOIN "agent_messages" t
       ON t."request_id" IS NULL
      AND t.status NOT IN ('ok', 'fallback_error', 'auto_fixed')
      AND NOT COALESCE(t.superseded, false)
@@ -235,10 +235,10 @@ export const INSERT_LEGACY_FALLBACK_MEMBERS_SQL = `
   ), member_candidates AS (
     SELECT g.request_id, pa.id AS attempt_id, g.primary_id, g.terminal_id
     FROM groups g
-    JOIN "provider_attempts" primary_attempt ON primary_attempt.id = g.primary_id
+    JOIN "agent_messages" primary_attempt ON primary_attempt.id = g.primary_id
     JOIN "request_backfill_fallback_indexes" fi
       ON fi.fallback_index >= 0 AND fi.fallback_index < g.terminal_index
-    JOIN "provider_attempts" pa
+    JOIN "agent_messages" pa
       ON pa."request_id" IS NULL
      AND g.outcome = 'recovered'
      AND pa.status = 'fallback_error'
@@ -258,10 +258,10 @@ export const INSERT_LEGACY_FALLBACK_MEMBERS_SQL = `
     UNION ALL
     SELECT g.request_id, pa.id, g.primary_id, g.terminal_id
     FROM groups g
-    JOIN "provider_attempts" primary_attempt ON primary_attempt.id = g.primary_id
+    JOIN "agent_messages" primary_attempt ON primary_attempt.id = g.primary_id
     JOIN "request_backfill_fallback_indexes" fi
       ON fi.fallback_index >= 0 AND fi.fallback_index < g.terminal_index
-    JOIN "provider_attempts" pa
+    JOIN "agent_messages" pa
       ON pa."request_id" IS NULL
      AND g.outcome = 'exhausted'
      AND pa.status = 'fallback_error'
@@ -342,7 +342,7 @@ export const INSERT_LEGACY_FALLBACK_REQUESTS_SQL = `
            ${autofixStatusFromAttempts('pa')} AS autofix_status
     FROM groups g
     JOIN "request_backfill_fallback_groups" member ON member.request_id = g.request_id
-    JOIN "provider_attempts" pa ON pa.id = member.attempt_id
+    JOIN "agent_messages" pa ON pa.id = member.attempt_id
     GROUP BY g.request_id
   ), ins AS (
     INSERT INTO "requests" (
@@ -361,8 +361,8 @@ export const INSERT_LEGACY_FALLBACK_REQUESTS_SQL = `
       terminal.feedback_tags, terminal.feedback_details
     FROM groups g
     JOIN totals ON totals.request_id = g.request_id
-    JOIN "provider_attempts" primary_attempt ON primary_attempt.id = g.primary_id
-    JOIN "provider_attempts" terminal ON terminal.id = g.terminal_id
+    JOIN "agent_messages" primary_attempt ON primary_attempt.id = g.primary_id
+    JOIN "agent_messages" terminal ON terminal.id = g.terminal_id
     ON CONFLICT (id) DO NOTHING
     RETURNING 1
   )
@@ -371,7 +371,7 @@ export const INSERT_LEGACY_FALLBACK_REQUESTS_SQL = `
 
 export const LINK_LEGACY_FALLBACK_ATTEMPTS_SQL = `
   WITH updated AS (
-    UPDATE "provider_attempts" pa
+    UPDATE "agent_messages" pa
     SET "request_id" = grouped.request_id,
         "attempt_number" = CASE
           WHEN pa.id = grouped.primary_id THEN 1
@@ -389,7 +389,7 @@ export const LINK_LEGACY_FALLBACK_ATTEMPTS_SQL = `
 // provider call. Copy them to requests and remove the pseudo-attempt.
 export const INSERT_REJECTIONS_SQL = `
   WITH batch AS (
-    SELECT * FROM "provider_attempts"
+    SELECT * FROM "agent_messages"
     WHERE "request_id" IS NULL AND id > $1 AND id <= $2
       AND timestamp < $3
       AND status NOT IN ('ok', 'success')
@@ -415,7 +415,7 @@ export const INSERT_REJECTIONS_SQL = `
 
 export const DELETE_REJECTIONS_SQL = `
   WITH deleted AS (
-    DELETE FROM "provider_attempts"
+    DELETE FROM "agent_messages"
     WHERE "request_id" IS NULL AND id > $1 AND id <= $2
       AND timestamp < $3
       AND status NOT IN ('ok', 'success')
@@ -443,7 +443,7 @@ END`;
 export const INSERT_ATTEMPT_REQUESTS_SQL = `
   WITH batch AS (
     SELECT *, ${LEGACY_REQUEST_ID} AS legacy_request_id, ${OUTCOME_RANK} AS outcome_rank
-    FROM "provider_attempts"
+    FROM "agent_messages"
     WHERE "request_id" IS NULL AND id > $1 AND id <= $2
       AND timestamp < $3
   ), terminal AS (
@@ -500,7 +500,7 @@ export const LINK_ATTEMPTS_SQL = `
       COALESCE(tenant_id, '') AS tenant_key,
       COALESCE(agent_id, '') AS agent_key,
       autofix_group_id AS group_id
-    FROM "provider_attempts"
+    FROM "agent_messages"
     WHERE "request_id" IS NULL AND id > $1 AND id <= $2
       AND timestamp < $3
       AND autofix_group_id IS NOT NULL
@@ -514,7 +514,7 @@ export const LINK_ATTEMPTS_SQL = `
              WHERE other.status = 'auto_fixed' AND COALESCE(other.superseded, false)
            )::int AS original_count
     FROM target_autofix_groups target
-    JOIN "provider_attempts" other
+    JOIN "agent_messages" other
       ON COALESCE(other.tenant_id, '') = target.tenant_key
      AND COALESCE(other.agent_id, '') = target.agent_key
      AND other.autofix_group_id = target.group_id
@@ -535,7 +535,7 @@ export const LINK_ATTEMPTS_SQL = `
              WHEN pa.trace_id IS NULL THEN 1
              ELSE NULL
            END AS attempt_number
-    FROM "provider_attempts" pa
+    FROM "agent_messages" pa
     LEFT JOIN autofix_group_stats stats
       ON stats.tenant_key = COALESCE(pa.tenant_id, '')
      AND stats.agent_key = COALESCE(pa.agent_id, '')
@@ -543,7 +543,7 @@ export const LINK_ATTEMPTS_SQL = `
     WHERE pa."request_id" IS NULL AND pa.id > $1 AND pa.id <= $2
       AND pa.timestamp < $3
   ), updated AS (
-    UPDATE "provider_attempts" pa
+    UPDATE "agent_messages" pa
     SET "request_id" = batch.legacy_request_id,
         "attempt_number" = batch.attempt_number
     FROM batch
@@ -559,7 +559,7 @@ export const LINK_ATTEMPTS_SQL = `
 export const REFRESH_ATTEMPT_REQUESTS_SQL = `
   WITH affected AS (
     SELECT DISTINCT request_id
-    FROM "provider_attempts"
+    FROM "agent_messages"
     WHERE id > $1 AND id <= $2 AND timestamp < $3 AND request_id IS NOT NULL
       AND (
         request_id LIKE 'legacy-autofix-%'
@@ -570,12 +570,12 @@ export const REFRESH_ATTEMPT_REQUESTS_SQL = `
     SELECT pa.request_id,
            min(pa.timestamp) AS started_at,
            sum(pa.duration_ms)::int AS duration_ms
-    FROM "provider_attempts" pa
+    FROM "agent_messages" pa
     JOIN affected a ON a.request_id = pa.request_id
     GROUP BY pa.request_id
   ), terminal AS (
     SELECT DISTINCT ON (pa.request_id) pa.*
-    FROM "provider_attempts" pa
+    FROM "agent_messages" pa
     JOIN affected a ON a.request_id = pa.request_id
     ORDER BY pa.request_id,
       pa.attempt_number DESC NULLS LAST,
@@ -589,7 +589,7 @@ export const REFRESH_ATTEMPT_REQUESTS_SQL = `
       pa.id DESC
   ), autofix AS (
     SELECT pa.request_id, ${autofixStatusFromAttempts('pa')} AS autofix_status
-    FROM "provider_attempts" pa
+    FROM "agent_messages" pa
     JOIN affected a ON a.request_id = pa.request_id
     GROUP BY pa.request_id
   )
@@ -618,13 +618,13 @@ export const FINALIZE_PENDING_REQUESTS_SQL = `
         r.id LIKE 'legacy-autofix-%'
         OR r.id LIKE 'legacy-trace-%'
         OR EXISTS (
-          SELECT 1 FROM "provider_attempts" pa
+          SELECT 1 FROM "agent_messages" pa
           WHERE pa.request_id = r.id AND pa.id = r.id
         )
       )
   ), last_attempt AS (
     SELECT DISTINCT ON (pa.request_id) pa.*
-    FROM "provider_attempts" pa
+    FROM "agent_messages" pa
     JOIN pending p ON p.id = pa.request_id
     ORDER BY pa.request_id, pa.attempt_number DESC NULLS LAST, pa.timestamp DESC, pa.id DESC
   )
@@ -643,7 +643,7 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
   constructor(private readonly dataSource: DataSource) {}
 
   async analyze(): Promise<void> {
-    await this.dataSource.query('ANALYZE "provider_attempts"');
+    await this.dataSource.query('ANALYZE "agent_messages"');
   }
 
   async nextWindowEnd(afterId: string, batchSize: number, before: string): Promise<string | null> {
@@ -810,10 +810,10 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
       // writes continue, unlike adding a validated FK in the deploy migration.
       await runner.query(`SET LOCAL statement_timeout = '0'`);
       await runner.query(
-        'ALTER TABLE "provider_attempts" VALIDATE CONSTRAINT "FK_provider_attempts_request"',
+        'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "FK_agent_messages_request"',
       );
       await runner.query(
-        'ALTER TABLE "provider_attempts" VALIDATE CONSTRAINT "CHK_provider_attempts_attempt_number_positive"',
+        'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "CHK_agent_messages_attempt_number_positive"',
       );
     });
   }

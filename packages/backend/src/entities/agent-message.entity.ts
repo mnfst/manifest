@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType } from '../common/utils/postgres-sql';
 import type { CallerAttribution } from '../routing/proxy/caller-classifier';
 
-@Entity('provider_attempts')
+@Entity('agent_messages')
 @Index(['tenant_id', 'agent_id', 'timestamp'])
 // No index on `user_id`: it is deprecated attribution-only metadata, never
 // scoped or filtered on (see query-helpers.ts). Its index cost 715 MB and was
@@ -159,7 +159,7 @@ export class AgentMessage {
   /**
    * DEPRECATED — informational attribution only, written by the proxy
    * recorder. Never filter, scope, key, or authorize by this column; all
-   * scoping goes through `tenant_id`. Kept because provider_attempts is the
+   * scoping goes through `tenant_id`. Kept because agent_messages is the
    * big hot table and a column drop isn't worth the rewrite.
    */
   @Column('varchar', { nullable: true })
@@ -233,8 +233,8 @@ export class AgentMessage {
   autofix_operations!: object | null;
 
   // Phoenix's decision behind this attempt ({ status, issueId, patchId,
-  // healAttemptId, explanation }). The rolling-deploy agent_messages view keeps
-  // exposing this same column to old replicas as `autofix_phoenix`.
-  @Column('jsonb', { nullable: true })
+  // healAttemptId, explanation }). Keep the physical legacy column name so
+  // replicas from the previous release can keep writing during a rolling deploy.
+  @Column('jsonb', { name: 'autofix_phoenix', nullable: true })
   autofix_decision!: object | null;
 }

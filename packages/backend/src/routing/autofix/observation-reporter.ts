@@ -32,7 +32,7 @@ const MAX_IN_FLIGHT_GATES = 100;
  * Auto-fix itself only reports the requests it actually heals: the narrow
  * `AUTOFIX_REPAIRABLE_STATUSES` set, the primary attempt only, and only when the
  * heal call gets through. Everything else reached Phoenix solely through
- * Peacock's hourly scrape of `provider_attempts`, which stores the model-parameter
+ * Peacock's hourly scrape of `agent_messages`, which stores the model-parameter
  * snapshot and not the messages — so those issues arrived without the body that
  * caused them. This reporter closes that gap without persisting a single byte in
  * Manifest: the body is scrubbed, batched, and POSTed to Phoenix, which is where

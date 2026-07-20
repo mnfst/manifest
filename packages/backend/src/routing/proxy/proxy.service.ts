@@ -99,7 +99,7 @@ export interface RoutingMeta {
   provider_key_label?: string;
   /**
    * The `tenant_providers` row id that served this attempt. Stamped on
-   * `provider_attempts.tenant_provider_id` so per-connection analytics scope by the
+   * `agent_messages.tenant_provider_id` so per-connection analytics scope by the
    * exact key rather than the non-unique (provider, auth_type, label) tuple.
    * In a fallback-success flow this holds the winning fallback's connection.
    * NULL for local/Ollama and resolution-failure paths.
@@ -133,7 +133,7 @@ export interface RoutingMeta {
   /**
    * Effective request body parameters for this attempt: client body values,
    * route-scoped `agent_model_params`, and MPS provider param defaults.
-   * Persisted on `provider_attempts.request_params` so the dashboard can show
+   * Persisted on `agent_messages.request_params` so the dashboard can show
    * which model params were in play for the recorded request.
    */
   request_params?: RequestParamDefaults | null;
@@ -318,7 +318,7 @@ export class ProxyService {
       : { agentId, scopeKey };
 
     // Snapshot of which known param keys are *effectively in play* for the
-    // primary attempt. Stored on every `provider_attempts` row recorded for
+    // primary attempt. Stored on every `agent_messages` row recorded for
     // this request so the dashboard can display the effective parameters
     // (today: DeepSeek's `thinking` toggle) in the expanded message detail.
     // Re-derived for fallback successes against the actual fallback
@@ -713,7 +713,7 @@ export class ProxyService {
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       // A ManifestError, not a bare BadRequestException: the proxy needs to tell
       // "Manifest refused this body" from "the provider returned a 400", or the
-      // row lands in provider_attempts blamed on the provider.
+      // row lands in agent_messages blamed on the provider.
       throw new ManifestError('M300', HttpStatus.BAD_REQUEST);
     }
     sanitizeNullContent(messages as Record<string, unknown>[]);
@@ -843,7 +843,7 @@ export class ProxyService {
     if (!key || key.apiKey === null) return null;
     const apiKey = key.apiKey;
     // NULL for the synthetic Ollama tile — it has no persisted row, so
-    // stamping its id would violate the provider_attempts FK.
+    // stamping its id would violate the agent_messages FK.
     const tenantProviderId = key.id === SYNTHETIC_OLLAMA_PROVIDER_ID ? null : key.id;
 
     const unwrapped = await resolveApiKey(

@@ -24,7 +24,7 @@ beforeAll(async () => {
     [TEST_TENANT_ID, current],
   );
   await ds.query(
-    `INSERT INTO provider_attempts
+    `INSERT INTO agent_messages
        (id, tenant_id, agent_id, agent_name, timestamp, status, model,
         fallback_from_model, autofix_applied, autofix_group_id, autofix_role)
      VALUES

@@ -29,10 +29,10 @@ A zero-attempt Request is valid when Manifest rejects it before contacting an AI
 One request from Manifest to an AI provider while serving a Manifest Request.
 
 - Direction: Manifest → AI provider
-- Database table: `provider_attempts`
-- Parent Request: `provider_attempts.request_id → requests.id`
-- Order within the Request: `provider_attempts.attempt_number`
-- Status: `provider_attempts.status`
+- Database table: `agent_messages` (the physical legacy name is retained for safe rolling deploys)
+- Parent Request: `agent_messages.request_id → requests.id`
+- Order within the Request: `agent_messages.attempt_number`
+- Status: `agent_messages.status`
 
 Every provider call counts as an Attempt, including failed calls, fallback attempts, and Auto-fix retries.
 
@@ -50,7 +50,7 @@ Requests and Provider Attempts use the same status values:
 
 Manifest creates a Request with `pending` status when it accepts the Request and creates an Attempt with `pending` status when it starts the provider call. Each transitions to one terminal status. Pending records remain internal to the current analytics UI, so this contract does not require a visible UI change.
 
-A successful Request has `requests.status = 'success'`. A successful Attempt has `provider_attempts.status = 'success'`. `requests.status` is authoritative for the caller-visible outcome.
+A successful Request has `requests.status = 'success'`. A successful Attempt has `agent_messages.status = 'success'`. `requests.status` is authoritative for the caller-visible outcome.
 
 When a Request with at least one Attempt succeeds, its Last Attempt must also be successful. A failed Request may have no Attempt at all, and `requests.status` remains authoritative if a Request-level failure happens outside the provider call.
 
@@ -58,7 +58,7 @@ When a Request with at least one Attempt succeeds, its Last Attempt must also be
 
 The Last Attempt is the final Provider Attempt within a Request: the Attempt with the highest `attempt_number`. For a completed Request, it is also the Attempt that concluded the Request: the successful Attempt when the Request succeeded, otherwise the terminal non-superseded failure. A zero-attempt Request has no Last Attempt.
 
-Attempt numbers are positive, unique within their Request, and increase in the order Manifest starts provider calls. Do not derive Attempt order from timestamps. `provider_attempts.timestamp` records the real provider-call start time, and `provider_attempts.duration_ms` records measured elapsed time once the Attempt is terminal. Neither may be fabricated to create an ordering. Superseded Attempts are never the Last Attempt of a completed Request.
+Attempt numbers are positive, unique within their Request, and increase in the order Manifest starts provider calls. Do not derive Attempt order from timestamps. `agent_messages.timestamp` records the real provider-call start time, and `agent_messages.duration_ms` records measured elapsed time once the Attempt is terminal. Neither may be fabricated to create an ordering. Superseded Attempts are never the Last Attempt of a completed Request.
 
 Historical Attempts linked during the migration may have a null `attempt_number` when their order could not be reconstructed safely. Readers may use the legacy compatibility ranking (successful outcome, then non-superseded failure, then timestamp and id) to select a representative terminal Attempt, but must not present that inferred position as an Attempt number. All newly recorded Attempts require a positive `attempt_number`.
 
@@ -66,7 +66,7 @@ Historical Attempts linked during the migration may have a null `attempt_number`
 
 A Superseded Attempt is a failed Provider Attempt after which Manifest continued the same Request with another Attempt.
 
-It keeps `provider_attempts.status = 'failed'` and has `provider_attempts.superseded = true`. It counts in Attempt metrics, but it does not determine the Request outcome.
+It keeps `agent_messages.status = 'failed'` and has `agent_messages.superseded = true`. It counts in Attempt metrics, but it does not determine the Request outcome.
 
 ### Recovered Request
 
@@ -79,7 +79,7 @@ Each Request belongs to exactly one outcome category, evaluated in this order:
 1. **Pending:** `requests.status = 'pending'`.
 2. **Failed:** `requests.status = 'failed'`.
 3. **Recovered by Auto-fix:** `requests.status = 'success'` and `requests.autofix_status = 'retry_succeeded'`.
-4. **Recovered by fallback:** `requests.status = 'success'`, the Last Attempt has a non-null `provider_attempts.fallback_from_model`, and the Request was not recovered by Auto-fix.
+4. **Recovered by fallback:** `requests.status = 'success'`, the Last Attempt has a non-null `agent_messages.fallback_from_model`, and the Request was not recovered by Auto-fix.
 5. **Success:** any other Request with `requests.status = 'success'`.
 
 The ordering makes Auto-fix the tie-breaker if inconsistent or historical data satisfies both recovery criteria. If an Auto-fix retry fails and a fallback succeeds, the Request is recovered by fallback because `requests.autofix_status` is not `retry_succeeded`.
@@ -90,29 +90,29 @@ A recovery attempt is a recovery method Manifest tried during a Request, whether
 
 ### AI Provider and Provider Connection
 
-An **AI Provider** is an upstream platform such as OpenAI or Anthropic. Each Attempt records its Provider in `provider_attempts.provider`.
+An **AI Provider** is an upstream platform such as OpenAI or Anthropic. Each Attempt records its Provider in `agent_messages.provider`.
 
 A **Provider Connection** is a tenant's configured connection to one AI Provider. It lives in `tenant_providers`; `tenant_providers.provider` identifies its Provider and `tenant_providers.auth_type` identifies its authentication method. A Provider may have several Connections, while each Connection belongs to one Provider.
 
-An Attempt identifies the Connection it used through `provider_attempts.tenant_provider_id → tenant_providers.id`. `provider_attempts.auth_type` and `provider_attempts.provider_key_label` are historical display snapshots, not Connection identity. Authentication credentials such as API keys or access tokens remain encrypted Connection-level data and must never be copied onto Attempts.
+An Attempt identifies the Connection it used through `agent_messages.tenant_provider_id → tenant_providers.id`. `agent_messages.auth_type` and `agent_messages.provider_key_label` are historical display snapshots, not Connection identity. Authentication credentials such as API keys or access tokens remain encrypted Connection-level data and must never be copied onto Attempts.
 
 “Connection Attempts” are Provider Attempts filtered by `tenant_provider_id`, not a separate event type or table. The reference may be null for legacy data, local providers, or paths where Manifest could not identify a Connection, so Provider totals may exceed the sum of their Connection totals.
 
 ## Request and Attempt data
 
-| Data                            | Canonical source                                                                                |
-| ------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Request identity and scope      | `requests.id`, `requests.tenant_id`, `requests.agent_id`                                        |
-| Caller-visible status           | `requests.status` and the `requests.error_*` columns                                            |
-| End-to-end duration             | `requests.duration_ms`                                                                          |
-| Model requested by the agent    | `requests.requested_model`                                                                      |
-| Auto-fix outcome                | `requests.autofix_status`                                                                       |
-| Attempt identity and parent     | `provider_attempts.id`, `provider_attempts.request_id`                                          |
-| Attempt order                   | `provider_attempts.attempt_number`                                                              |
-| Attempt status                  | `provider_attempts.status` and the `provider_attempts.error_*` columns                          |
-| Provider, model, and Connection | `provider_attempts.provider`, `provider_attempts.model`, `provider_attempts.tenant_provider_id` |
-| Attempt usage                   | Token and cost columns on `provider_attempts`                                                   |
-| Routing and recovery context    | `provider_attempts.routing_*`, `fallback_*`, `superseded`, and `autofix_*`                      |
+| Data                            | Canonical source                                                                       |
+| ------------------------------- | -------------------------------------------------------------------------------------- |
+| Request identity and scope      | `requests.id`, `requests.tenant_id`, `requests.agent_id`                               |
+| Caller-visible status           | `requests.status` and the `requests.error_*` columns                                   |
+| End-to-end duration             | `requests.duration_ms`                                                                 |
+| Model requested by the agent    | `requests.requested_model`                                                             |
+| Auto-fix outcome                | `requests.autofix_status`                                                              |
+| Attempt identity and parent     | `agent_messages.id`, `agent_messages.request_id`                                       |
+| Attempt order                   | `agent_messages.attempt_number`                                                        |
+| Attempt status                  | `agent_messages.status` and the `agent_messages.error_*` columns                       |
+| Provider, model, and Connection | `agent_messages.provider`, `agent_messages.model`, `agent_messages.tenant_provider_id` |
+| Attempt usage                   | Token and cost columns on `agent_messages`                                             |
+| Routing and recovery context    | `agent_messages.routing_*`, `fallback_*`, `superseded`, and `autofix_*`                |
 
 ## Metric definitions and perimeter
 
@@ -127,7 +127,7 @@ Dashboard metrics use completed Requests and Attempts within the selected tenant
 | -------------------- | ------------------------------------------------------------------------------------------------------ |
 | Total Requests       | Count each completed stored Request once, plus each eligible synthetic Request once during transition. |
 | Request success rate | Requests with `status = 'success'` divided by completed Requests. No traffic means no rate, not 100%.  |
-| Total Attempts       | Count each completed `provider_attempts.id`; do not deduplicate by Request.                            |
+| Total Attempts       | Count each completed `agent_messages.id`; do not deduplicate by Request.                               |
 | Attempt success rate | Attempts with `status = 'success'` divided by completed Attempts.                                      |
 
 Request-level surfaces count Requests; Provider-, Connection-, and model-level surfaces count Attempts. The two totals answer different questions and are not expected to match.
@@ -171,7 +171,7 @@ The Counted Requests and Counted Attempts columns show how many rows the complet
 
 ## Legacy naming and statuses
 
-- `agent_messages` is a temporary compatibility view over `provider_attempts`. New code uses `requests` and `provider_attempts` directly.
+- `agent_messages` remains the physical table for Provider Attempts. The legacy name is retained so old and new application versions can write safely during rolling deploys.
 - `AgentMessage`, `/api/v1/messages`, and frontend `Message*` names are legacy code and API names; they do not define the analytics unit.
-- The compatibility view exposes `autofix_phoenix`; the canonical column for new code is `provider_attempts.autofix_decision`.
+- The physical Auto-fix column remains `agent_messages.autofix_phoenix`; the entity and API expose it as `autofix_decision`.
 - Legacy `ok` maps to `success`. Legacy `error`, `rate_limited`, `fallback_error`, and `auto_fixed` map to `failed`; their error, fallback, supersession, and Auto-fix fields preserve the additional context.

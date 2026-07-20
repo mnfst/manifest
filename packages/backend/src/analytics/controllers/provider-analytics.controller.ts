@@ -312,7 +312,7 @@ export class ProviderAnalyticsController {
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
 
     // A connection is identified by its tenant_providers row id, stamped on
-    // provider_attempts.tenant_provider_id at proxy time. Filtering on it pins every
+    // agent_messages.tenant_provider_id at proxy time. Filtering on it pins every
     // widget below to the exact key that served each message — unlike the old
     // (provider, auth_type, label) tuple, two keys that share a label no longer
     // merge. Pre-upgrade rows the backfill could not disambiguate carry a NULL

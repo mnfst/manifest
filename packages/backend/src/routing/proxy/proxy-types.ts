@@ -103,7 +103,7 @@ export interface ProxyRequestOptions {
   tenantId: string;
   /**
    * Owning user, when one exists. Informational attribution for the message
-   * recorder (`provider_attempts.user_id`) only — never used for scoping,
+   * recorder (`agent_messages.user_id`) only — never used for scoping,
    * keying, or rate limiting.
    */
   userId: string | null;

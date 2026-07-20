@@ -210,7 +210,7 @@ export class ProxyController {
 
     // Plan request-limit gate. A 402 must reach ProxyExceptionFilter (friendly
     // upgrade message / real 402), but still gets a Manifest-policy row in
-    // provider_attempts so the Messages tab explains why the request never routed.
+    // agent_messages so the Messages tab explains why the request never routed.
     // Billing counters exclude Manifest-origin rows, so this does not consume
     // quota or push the tenant further over the limit.
     try {
@@ -260,7 +260,7 @@ export class ProxyController {
       const { forward, meta, failedFallbacks, autofix } = await this.proxyService.proxyRequest({
         agentId: req.ingestionContext.agentId,
         tenantId,
-        // Attribution only — the recorder writes it to provider_attempts.user_id.
+        // Attribution only — the recorder writes it to agent_messages.user_id.
         userId: req.ingestionContext.userId,
         body,
         routingBody,

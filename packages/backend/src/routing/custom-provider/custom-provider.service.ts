@@ -122,7 +122,7 @@ export class CustomProviderService {
    * registry (llama.cpp → `llamacpp`, LM Studio → `lmstudio`), return that
    * canonical id. Otherwise return null. Used to surface tile-connected
    * local servers as first-class providers in user-visible columns
-   * (`provider_attempts.provider` / `.model`, dashboard aggregations) even
+   * (`agent_messages.provider` / `.model`, dashboard aggregations) even
    * though they're physically stored in `custom_providers`.
    */
   static canonicalTileIdForName(name: string): string | null {
@@ -131,7 +131,7 @@ export class CustomProviderService {
   }
 
   /**
-   * Rewrite a `(provider, model)` pair for the provider_attempts log. When the
+   * Rewrite a `(provider, model)` pair for the agent_messages log. When the
    * pair resolves to a tile-connected canonical provider, substitute the
    * canonical id so the DB / dashboard never exposes the internal
    * `custom:<uuid>` key. Passthrough for every other case (non-custom

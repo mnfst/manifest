@@ -44,8 +44,8 @@ describe('TypeOrmRequestBackfillGateway', () => {
     ]) {
       expect(sql).toContain(`'${status}'`);
     }
-    expect(sql).toContain("autofix_decision->>'status'");
-    expect(sql).toContain("autofix_decision->>'healAttemptId'");
+    expect(sql).toContain("autofix_phoenix->>'status'");
+    expect(sql).toContain("autofix_phoenix->>'healAttemptId'");
   });
 
   it('preserves pending attempts when deriving request status', () => {
@@ -72,7 +72,7 @@ describe('TypeOrmRequestBackfillGateway', () => {
     await gateway.analyze();
     await expect(gateway.nextWindowEnd('attempt-0', 100, before)).resolves.toBe('attempt-9');
     await expect(gateway.nextWindowEnd('attempt-9', 100, before)).resolves.toBeNull();
-    expect(query).toHaveBeenCalledWith('ANALYZE "provider_attempts"');
+    expect(query).toHaveBeenCalledWith('ANALYZE "agent_messages"');
     expect(query).toHaveBeenCalledWith(REQUEST_BACKFILL_WINDOW_END_SQL, ['attempt-0', 100, before]);
   });
 
@@ -236,10 +236,10 @@ describe('TypeOrmRequestBackfillGateway', () => {
 
     expect(runner.query).toHaveBeenCalledWith("SET LOCAL statement_timeout = '0'");
     expect(runner.query).toHaveBeenCalledWith(
-      'ALTER TABLE "provider_attempts" VALIDATE CONSTRAINT "FK_provider_attempts_request"',
+      'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "FK_agent_messages_request"',
     );
     expect(runner.query).toHaveBeenCalledWith(
-      'ALTER TABLE "provider_attempts" VALIDATE CONSTRAINT "CHK_provider_attempts_attempt_number_positive"',
+      'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "CHK_agent_messages_attempt_number_positive"',
     );
     expect(runner.commitTransaction).toHaveBeenCalled();
     expect(runner.release).toHaveBeenCalled();

@@ -87,10 +87,10 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
 
   async function insertAttempt(attempt: LegacyAttempt): Promise<void> {
     await dataSource.query(
-      `INSERT INTO provider_attempts (
+      `INSERT INTO agent_messages (
         id, tenant_id, agent_id, agent_name, timestamp, duration_ms, status,
         model, fallback_from_model, fallback_index, superseded,
-        autofix_group_id, autofix_applied, autofix_role, autofix_decision,
+        autofix_group_id, autofix_applied, autofix_role, autofix_phoenix,
         error_origin, caller_attribution, request_headers,
         request_params, trace_id, session_key, session_id
       ) VALUES (
@@ -183,7 +183,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     );
     const [{ parents, attempts }] = await dataSource.query(
       `SELECT count(DISTINCT request_id)::int parents, count(*)::int attempts
-       FROM provider_attempts`,
+       FROM agent_messages`,
     );
     expect({ ...request, parents, attempts }).toEqual({
       status: 'success',
@@ -227,7 +227,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
 
     const [request] = await dataSource.query(`SELECT status, requested_model FROM requests`);
     const [{ parents }] = await dataSource.query(
-      `SELECT count(DISTINCT request_id)::int parents FROM provider_attempts`,
+      `SELECT count(DISTINCT request_id)::int parents FROM agent_messages`,
     );
     expect({ ...request, parents }).toEqual({
       status: 'failed',
@@ -260,7 +260,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
 
     const [{ requests, parents }] = await dataSource.query(
       `SELECT (SELECT count(*)::int FROM requests) requests,
-              (SELECT count(DISTINCT request_id)::int FROM provider_attempts) parents`,
+              (SELECT count(DISTINCT request_id)::int FROM agent_messages) parents`,
     );
     expect({ requests, parents }).toEqual({ requests: 3, parents: 3 });
   });
@@ -293,7 +293,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
 
     const [{ requests, parents, fallbackRequests }] = await dataSource.query(
       `SELECT (SELECT count(*)::int FROM requests) requests,
-              (SELECT count(DISTINCT request_id)::int FROM provider_attempts) parents,
+              (SELECT count(DISTINCT request_id)::int FROM agent_messages) parents,
               (SELECT count(*)::int FROM requests
                WHERE id LIKE 'legacy-fallback-%') AS "fallbackRequests"`,
     );
@@ -347,7 +347,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     const rows = (await dataSource.query(
       `SELECT r.id, count(pa.id)::int AS attempts
        FROM requests r
-       JOIN provider_attempts pa ON pa.request_id = r.id
+       JOIN agent_messages pa ON pa.request_id = r.id
        GROUP BY r.id
        ORDER BY attempts DESC`,
     )) as { id: string; attempts: number }[];
@@ -404,7 +404,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
 
     const [{ requests, parents }] = await dataSource.query(
       `SELECT (SELECT count(*)::int FROM requests) requests,
-              (SELECT count(DISTINCT request_id)::int FROM provider_attempts) parents`,
+              (SELECT count(DISTINCT request_id)::int FROM agent_messages) parents`,
     );
     expect({ requests, parents }).toEqual({ requests: 5, parents: 5 });
   });
@@ -441,7 +441,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     });
     const [{ unlinkedAfterFirstSweep }] = await dataSource.query(
       `SELECT count(*)::int AS "unlinkedAfterFirstSweep"
-       FROM provider_attempts WHERE request_id IS NULL`,
+       FROM agent_messages WHERE request_id IS NULL`,
     );
     expect(unlinkedAfterFirstSweep).toBe(2);
 
@@ -452,13 +452,22 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     });
     const [{ requests, parents, unlinked }] = await dataSource.query(
       `SELECT (SELECT count(*)::int FROM requests) requests,
-              (SELECT count(DISTINCT request_id)::int FROM provider_attempts) parents,
-              (SELECT count(*)::int FROM provider_attempts WHERE request_id IS NULL) unlinked`,
+              (SELECT count(DISTINCT request_id)::int FROM agent_messages) parents,
+              (SELECT count(*)::int FROM agent_messages WHERE request_id IS NULL) unlinked`,
     );
     expect({ requests, parents, unlinked }).toEqual({ requests: 1, parents: 1, unlinked: 0 });
   });
 
-  it('keeps the old Auto-fix column writable through the compatibility view', async () => {
+  it('keeps the legacy table and column shape writable after the additive migrations', async () => {
+    const [relation] = await dataSource.query(`
+      SELECT c.relkind,
+             to_regclass('public.provider_attempts')::text AS renamed_relation
+      FROM pg_class c
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+      WHERE n.nspname = 'public' AND c.relname = 'agent_messages'
+    `);
+    expect(relation).toEqual({ relkind: 'r', renamed_relation: null });
+
     await dataSource.query(`
       INSERT INTO agent_messages (
         id, tenant_id, agent_id, agent_name, timestamp, status, model, autofix_phoenix
@@ -468,12 +477,21 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
         '{"status":"no_patch","issueId":"issue-1"}'::jsonb
       )
     `);
+    await dataSource.query(`
+      UPDATE agent_messages
+      SET status = 'ok', autofix_phoenix = '{"status":"no_patch","issueId":"issue-2"}'::jsonb
+      WHERE id = 'old-replica'
+    `);
 
     const [attempt] = await dataSource.query(
-      `SELECT autofix_decision FROM provider_attempts WHERE id = 'old-replica'`,
+      `SELECT status, autofix_phoenix, request_id, attempt_number
+       FROM agent_messages WHERE id = 'old-replica'`,
     );
     expect(attempt).toEqual({
-      autofix_decision: { status: 'no_patch', issueId: 'issue-1' },
+      status: 'ok',
+      autofix_phoenix: { status: 'no_patch', issueId: 'issue-2' },
+      request_id: null,
+      attempt_number: null,
     });
   });
 
@@ -526,9 +544,9 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
 
     const [{ requests, parents, ordered }] = await dataSource.query(
       `SELECT (SELECT count(*)::int FROM requests) requests,
-              (SELECT count(DISTINCT request_id)::int FROM provider_attempts) parents,
+              (SELECT count(DISTINCT request_id)::int FROM agent_messages) parents,
               (SELECT array_agg(attempt_number ORDER BY attempt_number)
-               FROM provider_attempts
+               FROM agent_messages
                WHERE autofix_group_id = 'heal-1') ordered`,
     );
     expect({ requests, parents, ordered }).toEqual({
@@ -591,7 +609,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
 
     const rows = await dataSource.query(`
       SELECT pa.id, r.autofix_status
-      FROM provider_attempts pa
+      FROM agent_messages pa
       JOIN requests r ON r.id = pa.request_id
       WHERE pa.id IN (
         'no-patch', 'resolving', 'service-error', 'legacy-no-patch',

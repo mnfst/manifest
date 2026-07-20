@@ -75,7 +75,7 @@ function envelopeOf(error: PhoenixProviderError, message: string): string {
 /**
  * Re-serialize a normalised error into the OpenAI-compatible `{"error":{…}}` envelope —
  * the inverse of {@link normalizeProviderError}, and the shape every other
- * `provider_attempts.error_message` already holds.
+ * `agent_messages.error_message` already holds.
  *
  * Auto-fix rows used to persist `error.message` alone, silently dropping `type`, `param`
  * and `code`. Those are exactly the dimensions Phoenix fingerprints on, so a downstream

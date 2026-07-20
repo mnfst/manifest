@@ -113,7 +113,7 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
 
     // Overlay user-defined custom provider pricing (from the custom_providers
     // table). Keyed by `custom:<uuid>/<model_name>` — the same identifier
-    // written to provider_attempts.model, so cost lookups hit.
+    // written to agent_messages.model, so cost lookups hit.
     await this.loadCustomProviderEntries();
 
     this.aliasMap = buildAliasMap([...this.cache.keys()]);
@@ -239,7 +239,7 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
   /**
    * Load user-defined pricing for custom (OpenAI-compatible) providers.
    *
-   * The proxy writes `custom:<uuid>/<model_name>` to provider_attempts.model
+   * The proxy writes `custom:<uuid>/<model_name>` to agent_messages.model
    * and the cost recorder calls getByModel() with that exact string — so we
    * index custom pricing under the same key. UUIDs are globally unique
    * (randomUUID), so cross-tenant collisions are impossible.

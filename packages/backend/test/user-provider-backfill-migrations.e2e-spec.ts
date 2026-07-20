@@ -147,7 +147,7 @@ describe('agent-message attribution backfill after provider lift (e2e)', () => {
     // anymore — a user-level backfill would leave BOTH NULL. The agent anchor
     // resolves each to its own agent's key.
     const rows: { id: string; tenant_provider_id: string | null }[] = await ds.query(
-      `SELECT "id","tenant_provider_id" FROM "provider_attempts"
+      `SELECT "id","tenant_provider_id" FROM "agent_messages"
         WHERE "id" IN ('msg-a1-anthropic','msg-a2-anthropic') ORDER BY "id"`,
     );
     expect(rows).toEqual([
@@ -158,21 +158,21 @@ describe('agent-message attribution backfill after provider lift (e2e)', () => {
 
   it('pass 1 stamps a label-exact message even when the agent has multiple keys for the provider', async () => {
     const rows: { tenant_provider_id: string | null }[] = await ds.query(
-      `SELECT "tenant_provider_id" FROM "provider_attempts" WHERE "id" = 'msg-a2-openai-work'`,
+      `SELECT "tenant_provider_id" FROM "agent_messages" WHERE "id" = 'msg-a2-openai-work'`,
     );
     expect(rows).toEqual([{ tenant_provider_id: 'up-a2-openai-work' }]);
   });
 
   it('leaves a genuinely ambiguous message NULL (two keys on the agent, no label match)', async () => {
     const rows: { tenant_provider_id: string | null }[] = await ds.query(
-      `SELECT "tenant_provider_id" FROM "provider_attempts" WHERE "id" = 'msg-a2-openai-ambiguous'`,
+      `SELECT "tenant_provider_id" FROM "agent_messages" WHERE "id" = 'msg-a2-openai-ambiguous'`,
     );
     expect(rows).toEqual([{ tenant_provider_id: null }]);
   });
 
   it('pass 3 still resolves deleted-agent (NULL agent_id) messages via the user-level label match', async () => {
     const rows: { tenant_provider_id: string | null }[] = await ds.query(
-      `SELECT "tenant_provider_id" FROM "provider_attempts" WHERE "id" = 'msg-deleted-agent'`,
+      `SELECT "tenant_provider_id" FROM "agent_messages" WHERE "id" = 'msg-deleted-agent'`,
     );
     expect(rows).toEqual([{ tenant_provider_id: 'up-a3-gemini' }]);
   });
@@ -181,14 +181,14 @@ describe('agent-message attribution backfill after provider lift (e2e)', () => {
     const fks: { confdeltype: string }[] = await ds.query(
       `SELECT confdeltype FROM pg_constraint
         WHERE conname = 'FK_agent_messages_tenant_provider'
-          AND conrelid = '"provider_attempts"'::regclass`,
+          AND conrelid = '"agent_messages"'::regclass`,
     );
     expect(fks).toHaveLength(1);
     expect(fks[0].confdeltype).toBe('n'); // n = SET NULL
 
     const idx: { indexname: string }[] = await ds.query(
       `SELECT indexname FROM pg_indexes
-        WHERE tablename = 'provider_attempts'
+        WHERE tablename = 'agent_messages'
           AND indexname = 'IDX_agent_messages_tenant_provider'`,
     );
     expect(idx).toHaveLength(1);

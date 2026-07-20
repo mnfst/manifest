@@ -40,7 +40,7 @@ export const AUTOFIX_ORIGINAL_STATUS = 'auto_fixed';
 export const SUPERSEDED_STATUSES: readonly string[] = [SUPERSEDED_STATUS, AUTOFIX_ORIGINAL_STATUS];
 
 /**
- * Canonical outcome vocabulary for `requests.status` and `provider_attempts.status`.
+ * Canonical outcome vocabulary for `requests.status` and `agent_messages.status`.
  *
  * The legacy `status` column conflated the outcome with the *reason* it failed
  * (`rate_limited`, `fallback_error`, `auto_fixed`). Those reasons now live on the

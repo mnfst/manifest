@@ -382,9 +382,7 @@ describe('MessagesQueryService request-first queries', () => {
       expect.stringContaining('filtered_attempt.routing_tier = :requestTier'),
     );
     expect(
-      clauses.filter((clause) =>
-        clause.includes('SELECT 1 FROM provider_attempts filtered_attempt'),
-      ),
+      clauses.filter((clause) => clause.includes('SELECT 1 FROM agent_messages filtered_attempt')),
     ).toHaveLength(1);
     expect(requestQb.having).toHaveBeenCalled();
     expect(requestQb.andHaving).toHaveBeenCalled();

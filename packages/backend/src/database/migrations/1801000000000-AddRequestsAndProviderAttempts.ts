@@ -13,8 +13,8 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
   transaction = false;
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Fail the deploy attempt instead of queueing an ACCESS EXCLUSIVE rename
-    // behind a long Cloud query and then blocking newer traffic behind us.
+    // Fail the deploy attempt instead of queueing an ACCESS EXCLUSIVE schema
+    // change behind a long Cloud query and then blocking newer traffic.
     await queryRunner.query(`SET lock_timeout = '5s'`);
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS "requests" (
@@ -51,58 +51,20 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
       )
     `);
 
-    // Keep the old relation name as an automatically updatable view while
-    // Railway drains replicas from the previous release. The rename and view
-    // creation share one statement transaction, so old connections never
-    // observe a committed schema where agent_messages is missing. Creating the
-    // view before request_id is added also freezes the legacy column shape.
-    await queryRunner.query(`
-      DO $$
-      BEGIN
-        IF to_regclass('public.provider_attempts') IS NULL
-           AND to_regclass('public.agent_messages') IS NOT NULL THEN
-          ALTER TABLE "agent_messages" RENAME TO "provider_attempts";
-        END IF;
-
-        IF to_regclass('public.agent_messages') IS NULL
-           AND to_regclass('public.provider_attempts') IS NOT NULL THEN
-          CREATE VIEW "agent_messages" AS SELECT * FROM "provider_attempts";
-        END IF;
-      END $$
-    `);
-    // The compatibility view was frozen before this rename. PostgreSQL keeps
-    // its public column name (`autofix_phoenix`) while mapping old-replica
-    // writes to provider_attempts.autofix_decision by column identity.
-    await queryRunner.query(`
-      DO $$
-      BEGIN
-        IF EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_schema = 'public'
-            AND table_name = 'provider_attempts'
-            AND column_name = 'autofix_phoenix'
-        ) AND NOT EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_schema = 'public'
-            AND table_name = 'provider_attempts'
-            AND column_name = 'autofix_decision'
-        ) THEN
-          ALTER TABLE "provider_attempts"
-            RENAME COLUMN "autofix_phoenix" TO "autofix_decision";
-        END IF;
-      END $$
-    `);
+    // Keep agent_messages as the physical table. The new columns are nullable,
+    // so replicas from the previous release can continue inserting and updating
+    // their unchanged column set while Railway rolls the new release out.
     await queryRunner.query(
-      `ALTER TABLE "provider_attempts" ADD COLUMN IF NOT EXISTS "request_id" varchar`,
+      `ALTER TABLE "agent_messages" ADD COLUMN IF NOT EXISTS "request_id" varchar`,
     );
     await queryRunner.query(`
       DO $$
       BEGIN
         IF NOT EXISTS (
-          SELECT 1 FROM pg_constraint WHERE conname = 'FK_provider_attempts_request'
+          SELECT 1 FROM pg_constraint WHERE conname = 'FK_agent_messages_request'
         ) THEN
-          ALTER TABLE "provider_attempts"
-            ADD CONSTRAINT "FK_provider_attempts_request"
+          ALTER TABLE "agent_messages"
+            ADD CONSTRAINT "FK_agent_messages_request"
             FOREIGN KEY ("request_id") REFERENCES "requests"("id")
             ON DELETE CASCADE NOT VALID;
         END IF;
@@ -126,8 +88,8 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
              pg_get_indexdef(i.indexrelid) AS definition
       FROM pg_class c
       JOIN pg_index i ON i.indexrelid = c.oid
-      WHERE c.relname = 'IDX_provider_attempts_request_id'
-        AND i.indrelid = 'provider_attempts'::regclass
+      WHERE c.relname = 'IDX_agent_messages_request_id'
+        AND i.indrelid = 'agent_messages'::regclass
     `)) as Array<{ valid: boolean; definition: string }>;
     // PostgreSQL leaves an invalid shell behind when CREATE INDEX
     // CONCURRENTLY is interrupted. IF NOT EXISTS would treat that shell as a
@@ -137,12 +99,10 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
       requestIndex?.[0] &&
       (!requestIndex[0].valid || !requestIndex[0].definition.includes(expectedRequestIndex))
     ) {
-      await queryRunner.query(
-        `DROP INDEX CONCURRENTLY IF EXISTS "IDX_provider_attempts_request_id"`,
-      );
+      await queryRunner.query(`DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_request_id"`);
     }
     await queryRunner.query(
-      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_provider_attempts_request_id" ON "provider_attempts" ("request_id", "id")`,
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_agent_messages_request_id" ON "agent_messages" ("request_id", "id")`,
     );
 
     // Temporary migration support: exact fallback reconstruction repeatedly
@@ -154,8 +114,8 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
              pg_get_indexdef(i.indexrelid) AS definition
       FROM pg_class c
       JOIN pg_index i ON i.indexrelid = c.oid
-      WHERE c.relname = 'IDX_provider_attempts_unlinked_fallback'
-        AND i.indrelid = 'provider_attempts'::regclass
+      WHERE c.relname = 'IDX_agent_messages_unlinked_fallback'
+        AND i.indrelid = 'agent_messages'::regclass
     `)) as Array<{ valid: boolean; definition: string }>;
     const expectedFallbackIndex = '(fallback_from_model, "timestamp", tenant_id, agent_id)';
     if (
@@ -163,64 +123,24 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
       (!fallbackIndex[0].valid || !fallbackIndex[0].definition.includes(expectedFallbackIndex))
     ) {
       await queryRunner.query(
-        `DROP INDEX CONCURRENTLY IF EXISTS "IDX_provider_attempts_unlinked_fallback"`,
+        `DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_unlinked_fallback"`,
       );
     }
     await queryRunner.query(
-      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_provider_attempts_unlinked_fallback" ON "provider_attempts" ("fallback_from_model", "timestamp", "tenant_id", "agent_id") INCLUDE ("fallback_index", "status", "superseded") WHERE "request_id" IS NULL AND "fallback_from_model" IS NOT NULL`,
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_agent_messages_unlinked_fallback" ON "agent_messages" ("fallback_from_model", "timestamp", "tenant_id", "agent_id") INCLUDE ("fallback_index", "status", "superseded") WHERE "request_id" IS NULL AND "fallback_from_model" IS NOT NULL`,
     );
     await queryRunner.query(`RESET lock_timeout`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `DROP INDEX CONCURRENTLY IF EXISTS "IDX_provider_attempts_unlinked_fallback"`,
+      `DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_unlinked_fallback"`,
     );
-    await queryRunner.query(`DROP INDEX CONCURRENTLY IF EXISTS "IDX_provider_attempts_request_id"`);
+    await queryRunner.query(`DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_request_id"`);
     await queryRunner.query(
-      `ALTER TABLE "provider_attempts" DROP CONSTRAINT IF EXISTS "FK_provider_attempts_request"`,
+      `ALTER TABLE "agent_messages" DROP CONSTRAINT IF EXISTS "FK_agent_messages_request"`,
     );
-    await queryRunner.query(`ALTER TABLE "provider_attempts" DROP COLUMN IF EXISTS "request_id"`);
-    // Drop the compatibility view and restore the table name atomically.
-    await queryRunner.query(`
-      DO $$
-      BEGIN
-        IF EXISTS (
-          SELECT 1
-          FROM pg_class c
-          JOIN pg_namespace n ON n.oid = c.relnamespace
-          WHERE n.nspname = 'public'
-            AND c.relname = 'agent_messages'
-            AND c.relkind = 'v'
-        ) THEN
-          DROP VIEW "agent_messages";
-        END IF;
-
-        IF to_regclass('public.agent_messages') IS NULL
-           AND to_regclass('public.provider_attempts') IS NOT NULL THEN
-          ALTER TABLE "provider_attempts" RENAME TO "agent_messages";
-        END IF;
-      END $$
-    `);
-    await queryRunner.query(`
-      DO $$
-      BEGIN
-        IF EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_schema = 'public'
-            AND table_name = 'agent_messages'
-            AND column_name = 'autofix_decision'
-        ) AND NOT EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_schema = 'public'
-            AND table_name = 'agent_messages'
-            AND column_name = 'autofix_phoenix'
-        ) THEN
-          ALTER TABLE "agent_messages"
-            RENAME COLUMN "autofix_decision" TO "autofix_phoenix";
-        END IF;
-      END $$
-    `);
+    await queryRunner.query(`ALTER TABLE "agent_messages" DROP COLUMN IF EXISTS "request_id"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "requests"`);
   }
 }

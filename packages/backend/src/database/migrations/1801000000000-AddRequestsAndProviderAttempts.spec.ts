@@ -33,50 +33,44 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
     ]) {
       expect(sql).toContain(`'${status}'`);
     }
-    expect(sql).toContain('ALTER TABLE "agent_messages" RENAME TO "provider_attempts"');
-    expect(sql).toContain('CREATE VIEW "agent_messages" AS SELECT * FROM "provider_attempts"');
-    expect(sql).toContain('RENAME COLUMN "autofix_phoenix" TO "autofix_decision"');
+    expect(sql).not.toMatch(/ALTER TABLE\s+"agent_messages"\s+RENAME/i);
+    expect(sql).not.toMatch(/CREATE\s+VIEW/i);
+    expect(sql).not.toMatch(/RENAME\s+COLUMN/i);
     expect(sql).toContain('ADD COLUMN IF NOT EXISTS "request_id"');
     expect(sql).toContain('NOT VALID');
     expect(sql).toContain('CREATE INDEX CONCURRENTLY IF NOT EXISTS');
     expect(sql).toContain(
-      '"IDX_provider_attempts_request_id" ON "provider_attempts" ("request_id", "id")',
+      '"IDX_agent_messages_request_id" ON "agent_messages" ("request_id", "id")',
     );
-    expect(sql).toContain('"IDX_provider_attempts_unlinked_fallback"');
+    expect(sql).toContain('"IDX_agent_messages_unlinked_fallback"');
     expect(sql).not.toMatch(/INSERT\s+INTO\s+"requests"/i);
-    expect(sql).not.toMatch(/UPDATE\s+"provider_attempts"/i);
+    expect(sql).not.toMatch(/UPDATE\s+"agent_messages"/i);
   });
 
   it('is restart-safe after a partially completed non-transactional run', async () => {
     await migration.up(runner);
     const sql = queries.join('\n');
-    expect(sql).toContain('IF NOT EXISTS "request_id"');
+    expect(sql).toContain('ADD COLUMN IF NOT EXISTS "request_id"');
     expect(sql).toContain('IF NOT EXISTS (');
-    expect(sql).toContain('IF NOT EXISTS "IDX_provider_attempts_request_id"');
+    expect(sql).toContain('IF NOT EXISTS "IDX_agent_messages_request_id"');
   });
 
-  it('renames the table and creates its compatibility view atomically', async () => {
+  it('keeps agent_messages as the physical relation for rolling-deploy compatibility', async () => {
     await migration.up(runner);
 
-    const cutover = queries.find(
-      (sql) => sql.includes('RENAME TO "provider_attempts"') && sql.includes('CREATE VIEW'),
-    );
-    expect(cutover).toContain('CREATE VIEW "agent_messages" AS SELECT * FROM "provider_attempts"');
-
-    const cutoverIndex = queries.indexOf(cutover!);
-    const requestIdIndex = queries.findIndex((sql) => sql.includes('ADD COLUMN IF NOT EXISTS'));
-    expect(cutoverIndex).toBeLessThan(requestIdIndex);
+    const sql = queries.join('\n');
+    expect(sql).toContain('ALTER TABLE "agent_messages" ADD COLUMN IF NOT EXISTS "request_id"');
+    expect(sql).not.toContain('DROP TABLE "agent_messages"');
+    expect(sql).not.toContain('DROP VIEW "agent_messages"');
+    expect(sql).not.toContain('RENAME TO');
   });
 
-  it('freezes the old Auto-fix column name before renaming the base column', async () => {
+  it('preserves every legacy column name', async () => {
     await migration.up(runner);
 
-    const viewIndex = queries.findIndex((sql) => sql.includes('CREATE VIEW "agent_messages"'));
-    const renameIndex = queries.findIndex((sql) =>
-      sql.includes('RENAME COLUMN "autofix_phoenix" TO "autofix_decision"'),
-    );
-    expect(viewIndex).toBeGreaterThan(-1);
-    expect(renameIndex).toBeGreaterThan(viewIndex);
+    const sql = queries.join('\n');
+    expect(sql).not.toContain('autofix_phoenix');
+    expect(sql).not.toContain('autofix_decision');
   });
 
   it('drops an invalid concurrent index before rebuilding it', async () => {
@@ -93,20 +87,20 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
     expect(create).toBeGreaterThan(drop);
   });
 
-  it('checks index validity on provider_attempts rather than by global name alone', async () => {
+  it('checks index validity on agent_messages rather than by global name alone', async () => {
     await migration.up(runner);
 
     const validityQuery = queries.find((sql) => sql.includes('i.indisvalid'));
-    expect(validityQuery).toContain("i.indrelid = 'provider_attempts'::regclass");
+    expect(validityQuery).toContain("i.indrelid = 'agent_messages'::regclass");
   });
 
   it('rebuilds a valid fallback index whose key order cannot support the bounded lookup', async () => {
     (runner as { query: jest.Mock }).query.mockImplementation((sql: string) => {
       queries.push(sql);
-      if (sql.includes("c.relname = 'IDX_provider_attempts_request_id'")) {
+      if (sql.includes("c.relname = 'IDX_agent_messages_request_id'")) {
         return Promise.resolve([{ valid: true, definition: '(request_id, id)' }]);
       }
-      if (sql.includes("c.relname = 'IDX_provider_attempts_unlinked_fallback'")) {
+      if (sql.includes("c.relname = 'IDX_agent_messages_unlinked_fallback'")) {
         return Promise.resolve([
           {
             valid: true,
@@ -121,22 +115,18 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
 
     expect(
       queries.some((sql) =>
-        sql.includes('DROP INDEX CONCURRENTLY IF EXISTS "IDX_provider_attempts_unlinked_fallback"'),
+        sql.includes('DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_unlinked_fallback"'),
       ),
     ).toBe(true);
   });
 
-  it('drops the compatibility view before restoring the old table name', async () => {
+  it('rolls back only the additive request schema', async () => {
     await migration.down(runner);
 
-    const rollback = queries.find(
-      (sql) =>
-        sql.includes('DROP VIEW "agent_messages"') && sql.includes('RENAME TO "agent_messages"'),
-    );
-    expect(rollback).toBeDefined();
-    expect(rollback!.indexOf('DROP VIEW "agent_messages"')).toBeLessThan(
-      rollback!.indexOf('RENAME TO "agent_messages"'),
-    );
-    expect(queries.join('\n')).toContain('RENAME COLUMN "autofix_decision" TO "autofix_phoenix"');
+    const sql = queries.join('\n');
+    expect(sql).toContain('DROP COLUMN IF EXISTS "request_id"');
+    expect(sql).toContain('DROP TABLE IF EXISTS "requests"');
+    expect(sql).not.toContain('DROP VIEW');
+    expect(sql).not.toContain('RENAME');
   });
 });

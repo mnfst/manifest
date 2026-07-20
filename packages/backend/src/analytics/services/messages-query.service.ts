@@ -46,11 +46,11 @@ const MAX_CACHE_ENTRIES = 5_000;
 // $1 (tenant_id) is reused by position across all three references.
 const DISTINCT_MODELS_SKIP_SCAN_SQL = `
 WITH RECURSIVE t AS (
-  (SELECT model FROM provider_attempts
+  (SELECT model FROM agent_messages
      WHERE tenant_id = $1 AND model IS NOT NULL AND model <> ''
      ORDER BY model LIMIT 1)
   UNION ALL
-  SELECT (SELECT model FROM provider_attempts
+  SELECT (SELECT model FROM agent_messages
             WHERE tenant_id = $1 AND model > t.model AND model IS NOT NULL AND model <> ''
             ORDER BY model LIMIT 1)
   FROM t WHERE t.model IS NOT NULL
@@ -58,14 +58,14 @@ WITH RECURSIVE t AS (
 SELECT model FROM t WHERE model IS NOT NULL`;
 
 // Same technique for distinct providers, backed by the partial
-// IDX_provider_attempts_tenant_provider_value (tenant_id, provider) index.
+// IDX_agent_messages_tenant_provider_value (tenant_id, provider) index.
 const DISTINCT_PROVIDERS_SKIP_SCAN_SQL = `
 WITH RECURSIVE p AS (
-  (SELECT provider FROM provider_attempts
+  (SELECT provider FROM agent_messages
      WHERE tenant_id = $1 AND provider IS NOT NULL AND provider <> ''
      ORDER BY provider LIMIT 1)
   UNION ALL
-  SELECT (SELECT provider FROM provider_attempts
+  SELECT (SELECT provider FROM agent_messages
             WHERE tenant_id = $1 AND provider > p.provider AND provider IS NOT NULL AND provider <> ''
             ORDER BY provider LIMIT 1)
   FROM p WHERE p.provider IS NOT NULL
@@ -275,7 +275,7 @@ export class MessagesQueryService {
     const attemptPredicates: string[] = [];
     const attemptParameters: Record<string, unknown> = {};
     const matchingAttempt = (predicates: string[]): string => `EXISTS (
-      SELECT 1 FROM provider_attempts filtered_attempt
+      SELECT 1 FROM agent_messages filtered_attempt
       WHERE filtered_attempt.request_id = r.id AND ${predicates.join(' AND ')}
     )`;
     if (params.provider) {
@@ -332,7 +332,7 @@ export class MessagesQueryService {
           ')'
         : '';
       const triggerExists = (condition: string): string => `EXISTS (
-        SELECT 1 FROM provider_attempts trigger_attempt
+        SELECT 1 FROM agent_messages trigger_attempt
         WHERE trigger_attempt.request_id = r.id AND ${condition}${connScope}
       )`;
       const parts = params.triggers.map((trigger) => {
@@ -341,7 +341,7 @@ export class MessagesQueryService {
           return triggerExists('trigger_attempt.fallback_from_model IS NOT NULL');
         // 'none': no recovery attempt anywhere on the request.
         return `NOT EXISTS (
-          SELECT 1 FROM provider_attempts trigger_attempt
+          SELECT 1 FROM agent_messages trigger_attempt
           WHERE trigger_attempt.request_id = r.id
           AND (trigger_attempt.autofix_applied = true OR trigger_attempt.fallback_from_model IS NOT NULL)
         )`;
@@ -373,7 +373,7 @@ export class MessagesQueryService {
             : sqlIsFailedStatus('outcome_attempt.status');
         qb.andWhere(
           `EXISTS (
-            SELECT 1 FROM provider_attempts outcome_attempt
+            SELECT 1 FROM agent_messages outcome_attempt
             WHERE outcome_attempt.request_id = r.id AND ${condition}${connScope}
           )`,
           outcomeParameters,
@@ -862,7 +862,7 @@ export class MessagesQueryService {
 
     // Fast path: the tenant-global filter dropdown (no agent constraint, tenant
     // resolved). A recursive loose-index-scan jumps value-to-value through
-    // IDX_provider_attempts_tenant_model / IDX_provider_attempts_tenant_provider_value
+    // IDX_agent_messages_tenant_model / IDX_agent_messages_tenant_provider_value
     // — roughly one index seek per distinct value, versus scanning and
     // disk-sorting the tenant's entire history (measured 2.2s -> ~10ms on a
     // 322k-row tenant). The window is intentionally all-time: cost is now bounded
@@ -897,7 +897,7 @@ export class MessagesQueryService {
     agentName: string | undefined,
   ): Promise<{ models: string[]; providers: string[] }> {
     // Bound the scan: when the caller doesn't constrain the range, default to
-    // the last 90 days. The DISTINCT covers the entire provider_attempts table
+    // the last 90 days. The DISTINCT covers the entire agent_messages table
     // otherwise, which scales poorly as ingest grows.
     const cutoff = range
       ? computeCutoff(rangeToInterval(range))

@@ -48,18 +48,18 @@ beforeAll(async () => {
   // Reload pricing cache from OpenRouter cache + manual pricing
   await app.get(ModelPricingCacheService).reload();
 
-  // Seed provider_attempts directly (with pre-calculated cost_usd) using the same
+  // Seed agent_messages directly (with pre-calculated cost_usd) using the same
   // timestamp format as sqlNow() so that date comparisons line up with the
   // Postgres `timestamp without time zone` columns the analytics queries read.
   const costUsd1 = 5000 * 0.0000025 + 2000 * 0.00001; // 0.0325
   const costUsd2 = 3000 * 0.0000025 + 1000 * 0.00001; // 0.0175
   await ds.query(
-    `INSERT INTO provider_attempts (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
+    `INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
     [uuid(), now, 'Cost query 1', 'agent', 'ok', 'gpt-4o', 5000, 2000, costUsd1, TEST_USER_ID, TEST_TENANT_ID, null],
   );
   await ds.query(
-    `INSERT INTO provider_attempts (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
+    `INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
     [uuid(), now, 'Cost query 2', 'agent', 'ok', 'gpt-4o', 3000, 1000, costUsd2, TEST_USER_ID, TEST_TENANT_ID, null],
   );
@@ -165,7 +165,7 @@ describe('GET /api/v1/costs - numeric edge cases', () => {
 
     // Row with all zeros — must not crash the query nor poison cost summary.
     await ds.query(
-      `INSERT INTO provider_attempts (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
+      `INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [
         '11111111-1111-4111-8111-111111111111',
@@ -187,7 +187,7 @@ describe('GET /api/v1/costs - numeric edge cases', () => {
     // Anything larger would error at the driver level — verifying the upper
     // boundary is what the column type allows.
     await ds.query(
-      `INSERT INTO provider_attempts (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
+      `INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [
         '22222222-2222-4222-8222-222222222222',
@@ -211,7 +211,7 @@ describe('GET /api/v1/costs - numeric edge cases', () => {
       ['other-tenant-001', 'other-user-001', 'other-user-001', 'Other Org', now, now],
     );
     await ds.query(
-      `INSERT INTO provider_attempts (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
+      `INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [
         '33333333-3333-4333-8333-333333333333',

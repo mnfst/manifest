@@ -224,14 +224,14 @@ export class PlanService {
            FROM requests r
            WHERE r.tenant_id = $1
              AND r.timestamp >= $2
-             AND EXISTS (SELECT 1 FROM provider_attempts pa WHERE pa.request_id = r.id)
+             AND EXISTS (SELECT 1 FROM agent_messages pa WHERE pa.request_id = r.id)
              AND NOT EXISTS (
                SELECT 1 FROM agents a
                WHERE a.id = r.agent_id AND a.is_playground = true
              )
          ) + (
            SELECT COUNT(*)
-           FROM provider_attempts m
+           FROM agent_messages m
            WHERE m.tenant_id = $1
              AND m.timestamp >= $2
              AND m.request_id IS NULL
@@ -326,7 +326,7 @@ export class PlanService {
   /**
    * Block a routed request when the tenant is at/over its monthly request cap.
    * Called on the /v1/* proxy admission path BEFORE the request is recorded, so
-   * a blocked request never becomes an `provider_attempts` row (which would count
+   * a blocked request never becomes an `agent_messages` row (which would count
    * toward the very limit it hit). Only structured data is thrown; the friendly
    * copy + upgrade link is built in ProxyExceptionFilter.
    */

@@ -107,7 +107,7 @@ describe('request limit gate (/v1 proxy)', () => {
       [tenantId],
     );
     const attemptsBefore = await ds.query(
-      `SELECT COUNT(*)::int AS n FROM provider_attempts WHERE tenant_id = $1`,
+      `SELECT COUNT(*)::int AS n FROM agent_messages WHERE tenant_id = $1`,
       [tenantId],
     );
     const manifestBlocksBefore = await ds.query(
@@ -134,7 +134,7 @@ describe('request limit gate (/v1 proxy)', () => {
       [tenantId],
     );
     const attemptsAfter = await ds.query(
-      `SELECT COUNT(*)::int AS n FROM provider_attempts WHERE tenant_id = $1`,
+      `SELECT COUNT(*)::int AS n FROM agent_messages WHERE tenant_id = $1`,
       [tenantId],
     );
     const latestBlock = await ds.query(

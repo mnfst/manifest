@@ -4,7 +4,7 @@ import { runMigrationsWithAdvisoryLock } from './run-migrations-with-lock';
 /**
  * Migration entry point used by the deploy step (`npm run migration:run`).
  * Wraps TypeORM's migration run in an advisory lock so concurrent deploys /
- * replicas don't deadlock on provider_attempts locks. The DataSource reads
+ * replicas don't deadlock on agent_messages locks. The DataSource reads
  * MIGRATION_DATABASE_URL (a direct, non-pooled connection) so the session-level
  * advisory lock holds.
  */
