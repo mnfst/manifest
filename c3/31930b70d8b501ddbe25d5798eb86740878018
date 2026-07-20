@@ -1,0 +1,35 @@
+packages/backend/.env.example
+  s_6c9ca7fc8edb9e::t_07ad2657e2b7c6 25-26
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_6c9ca7fc8edb9e::t_98df39a40b3e68 131-174
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_6c9ca7fc8edb9e::t_07ad2657e2b7c6 96
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_6c9ca7fc8edb9e::t_07ad2657e2b7c6 105
+packages/frontend/src/components/AutofixKpiCards.tsx
+  s_6c9ca7fc8edb9e::t_07ad2657e2b7c6 71-76,78
+packages/backend/src/database/backfills/request-backfill.cli.spec.ts
+  s_6c9ca7fc8edb9e::t_07ad2657e2b7c6 21,24,26,29-34
+packages/frontend/tests/components/AnalyticsChartSurfaces.test.tsx
+  s_6c9ca7fc8edb9e::t_07ad2657e2b7c6 70-74,410-416
+packages/backend/src/database/backfills/request-backfill.datasource.ts
+  s_6c9ca7fc8edb9e::t_07ad2657e2b7c6 14-16
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_6c9ca7fc8edb9e::t_07ad2657e2b7c6 102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "c331930b70d8b501ddbe25d5798eb86740878018",
+  "prompts": {},
+  "sessions": {
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

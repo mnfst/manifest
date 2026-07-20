@@ -1,0 +1,48 @@
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js
+  s_6d8a2aeb292c0d::t_b080aff2979da3 4-6,47-105,107-118,126,136,156-157,163-164,260
+  s_6d8a2aeb292c0d::t_4fd1f0791ecfab 106
+integrations/n8n-nodes-manifest/package.json
+  s_6d8a2aeb292c0d::t_b5db3b358f1894 36
+  s_6d8a2aeb292c0d::t_0df1bdd0083b2f 3
+integrations/n8n-nodes-manifest/package-lock.json
+  s_6d8a2aeb292c0d::t_88d7cbb2db48bc 3,9
+integrations/n8n-nodes-manifest/dist/package.json
+  s_6d8a2aeb292c0d::t_b080aff2979da3 3,36
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.d.ts
+  s_6d8a2aeb292c0d::t_b080aff2979da3 1-4
+integrations/n8n-nodes-manifest/README.md
+  s_6d8a2aeb292c0d::t_b5db3b358f1894 11,13,15-16,31
+  s_6d8a2aeb292c0d::t_35420914159932 12,14,17-30,66
+integrations/n8n-nodes-manifest/CHANGELOG.md
+  s_6d8a2aeb292c0d::t_35420914159932 3-7
+nodes/Manifest/Manifest.node.ts
+  s_6d8a2aeb292c0d::t_39a517188dd233 6,81-94,96-98,100-130,132-140,142-143,145-157,175-181,194-200,229-230,238-239,336
+  s_6d8a2aeb292c0d::t_879e0ea7b1844c 2,95,99,131,141
+  s_6d8a2aeb292c0d::t_b5db3b358f1894 144
+integrations/n8n-nodes-manifest/nodes/Manifest/Manifest.node.ts
+  s_6d8a2aeb292c0d::t_879e0ea7b1844c 2,95,99,131,141
+  s_6d8a2aeb292c0d::t_b5db3b358f1894 144
+  s_6d8a2aeb292c0d::t_39a517188dd233 6,81-94,96-98,100-130,132-140,142-143,145-157,175-181,194-200,229-230,238-239,336
+integrations/n8n-nodes-manifest/test/manifest-node.test.js
+  s_6d8a2aeb292c0d::t_35420914159932 1-4,6-10,36-58,60-100,186
+  s_6d8a2aeb292c0d::t_ef03d375e60ad1 5,11-35,101-185
+  s_6d8a2aeb292c0d::t_b5db3b358f1894 59
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js.map
+  s_6d8a2aeb292c0d::t_774f01d63c3f16 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "100532a4c25dc2ffee8095060eb543dca3fcc4b2",
+  "prompts": {},
+  "sessions": {
+    "s_6d8a2aeb292c0d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f418a-9e60-7fb0-b308-cfbdef64b9a7",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null
+    }
+  }
+}

@@ -1,0 +1,86 @@
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_6c9ca7fc8edb9e::t_3d1a5fdc3a04ef 16
+  s_6c9ca7fc8edb9e::t_e2a5b4a919ddc3 14,47-49,55-57,66-99,101,103-126,129,131
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_6d8a2aeb292c0d::t_6b7b7c62b4f0ee 406-442
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_6d8a2aeb292c0d::t_32ec5484e324a2 18,38,52-91
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_6d8a2aeb292c0d::t_74499a79a02fe7 2-3,164-166,467,471-474,506-537,539,581-613
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_6d8a2aeb292c0d::t_ccfae0834c8d75 474-520
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_6d8a2aeb292c0d::t_08c08c4089d76c 2-3,61-63,97,100-101,120,131,133-146,323-324,326,335,337,347,350-369,532-542,918-941
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_6d8a2aeb292c0d::t_0762da0bd7acb1 143-185,241-243
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_9220f602fe57e5::t_6260a2e02884e5 4-9,663,681,690-693,702-704,709-714,727-764,815-817
+packages/backend/src/database/backfills/backfill-requests.spec.ts
+  s_6d8a2aeb292c0d::t_99e883c9611b59 36
+packages/backend/src/database/backfills/backfill-requests.ts
+  s_9220f602fe57e5::t_c5974cb9ca4bf7 15,123,129
+packages/backend/src/database/backfills/request-backfill.cli.ts
+  s_6c9ca7fc8edb9e::t_4130fe6159e765 5-8,15,29,50-55,75
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_6d8a2aeb292c0d::t_dc55b9ddc184f6 522,527-528
+packages/backend/.env.example
+  s_6c9ca7fc8edb9e::t_1845de5773433e 25
+packages/backend/src/analytics/analytics.module.ts
+  s_6c9ca7fc8edb9e::t_1589419e443ae6 43,64
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_6c9ca7fc8edb9e::t_ee68c03fc96e67 36-39,54-55,68,80,86,90-99,101-113,117
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_6c9ca7fc8edb9e::t_3c9a72946750f7 7,24,26,28,91,100,105-106,108-110,114-115
+packages/backend/src/analytics/services/message-details.service.ts
+  s_6c9ca7fc8edb9e::t_bc26cd079db29d 105,108,114,123-142
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_6c9ca7fc8edb9e::t_255fb62691c699 4,7,38-40,51-57,67,70-162,165-166,171-174,176-182,184-218,220-240
+packages/backend/src/database/backfills/request-backfill.cli.spec.ts
+  s_6c9ca7fc8edb9e::t_55838f7833d91d 39,114-133
+packages/backend/src/database/backfills/request-backfill.datasource.ts
+  s_6c9ca7fc8edb9e::t_9c32de6fc9bd76 1-33
+packages/backend/src/routing/tier.controller.spec.ts
+  s_6c9ca7fc8edb9e::t_c833b516faf50d 161-162,165,195-196,202
+packages/backend/src/routing/tier.controller.ts
+  s_6c9ca7fc8edb9e::t_7cba23eb50b81f 162,164-165,167-168,193
+packages/frontend/src/components/NotificationBell.tsx
+  s_6c9ca7fc8edb9e::t_1253d0caa3e60c 103
+packages/frontend/src/components/Sidebar.tsx
+  s_6d8a2aeb292c0d::t_ae166ea46fc87c 247
+packages/frontend/tests/components/NotificationBell.test.tsx
+  s_6c9ca7fc8edb9e::t_c462ac1aa62589 140-151
+railway.toml
+  s_6c9ca7fc8edb9e::t_43a3c07078bfbe 12-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "ea3c5e39472fe3a30c00fafb8fd765970b1c7cde",
+  "prompts": {},
+  "sessions": {
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6d8a2aeb292c0d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f418a-9e60-7fb0-b308-cfbdef64b9a7",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_9220f602fe57e5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7f53-974f-7212-b460-a3879d83856a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
