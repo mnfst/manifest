@@ -24,6 +24,7 @@ import {
   type AutofixRecord,
 } from '../autofix/autofix.types';
 import { serializeProviderError } from '../autofix/provider-error-normalizer';
+import { normalizeProviderErrorForStorage } from './proxy-error-sanitizer';
 
 /**
  * Phoenix's decision metadata for a healed row: its issue/patch/heal-attempt ids
@@ -334,7 +335,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         trace_id: traceId ?? null,
         timestamp: new Date().toISOString(),
         status: messageStatus,
-        error_message: scrubSecrets(errorMessage).slice(0, 2000),
+        error_message: scrubSecrets(
+          normalizeProviderErrorForStorage(httpStatus, errorMessage),
+        ).slice(0, 2000),
         error_http_status: httpStatus,
         ...autofixColumns(autofix, terminalAutofixRole(autofix)),
         model: canonical.model,
@@ -497,7 +500,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           trace_id: traceId ?? null,
           timestamp: ts,
           status,
-          error_message: scrubSecrets(f.errorBody).slice(0, 2000),
+          error_message: scrubSecrets(
+            normalizeProviderErrorForStorage(f.status, f.errorBody),
+          ).slice(0, 2000),
           error_http_status: f.status,
           model: canonical.model,
           provider: canonical.provider,
@@ -558,7 +563,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         timestamp,
         status: 'fallback_error',
         ...autofixColumns(opts?.autofix, terminalAutofixRole(opts?.autofix)),
-        error_message: scrubSecrets(errorBody).slice(0, 2000),
+        error_message: scrubSecrets(
+          normalizeProviderErrorForStorage(opts?.httpStatus, errorBody),
+        ).slice(0, 2000),
         error_http_status: opts?.httpStatus ?? null,
         model: canonical.model,
         provider: canonical.provider,
