@@ -1,0 +1,21 @@
+{
+    "node": "n8n-nodes-manifest",
+    "nodeVersion": "1.0",
+    "codexVersion": "1.0",
+    "categories": ["Core Nodes"],
+    "subcategories": {
+        "Core Nodes": ["Helpers"]
+    },
+    "resources": {
+        "credentialDocumentation": [
+            {
+                "url": "https://github.com/mnfst/manifest/tree/main/integrations/n8n-nodes-manifest#credentials"
+            }
+        ],
+        "primaryDocumentation": [
+            {
+                "url": "https://github.com/mnfst/manifest/tree/main/integrations/n8n-nodes-manifest"
+            }
+        ]
+    }
+}

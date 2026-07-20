@@ -1,5 +1,19 @@
 # manifest
 
+## 6.15.2
+
+### Patch Changes
+
+- 2cdaee6: Fix auto routing resolving to a provider the agent never connected. A stale legacy auto-assigned (or promoted fallback) route now reuses the gateway's provider-key lookup before it becomes primary, so an unconfigured provider is skipped without adding a separate model-discovery query. When nothing routable remains, the request returns the neutral `M101` "no providers configured" error. The proxy also treats the resolver's fallback chain as definitive so a fallback promoted to primary is not retried as its own fallback.
+- 9cf2571: Bump `modelparams` to 0.0.13 to pick up the new xAI Grok model parameter specs, including `grok-4.5` and subscription entries for the Grok subscription models.
+- 6f1345c: Scope Auto-fix parameter repairs by provider authentication type.
+- d3d44e3: Add Kimi K3 (`cline-pass/kimi-k3`) to the ClinePass subscription's known models list.
+- d8fb0b2: Fix Auto-fix attempt recording so no-patch consultations remain plain provider failures and failed patched retries keep their own outcome.
+- 84b2112: The password reset page now detects when no email provider is configured and shows a clear notice (pointing to the authenticated Change Password flow) instead of silently pretending a reset link was sent. Self-hosted installs without an `EMAIL_PROVIDER` no longer dead-end here.
+- 6519ea5: Add opt-in Sentry error monitoring. It stays disabled without a `SENTRY_DSN`; request contents, user data, tracing, and profiling remain off.
+- 189a6eb: Sync the model parameter catalog to `modelparams@0.0.15`. Adds 24 new model routes (including a new `xiaomi` provider) with no schema changes — the param types, groups, and auth types are unchanged, so the bump is purely additive.
+- 89c1757: Preserve xAI reasoning effort when forwarding Chat Completions requests.
+
 ## 6.15.1
 
 ### Patch Changes

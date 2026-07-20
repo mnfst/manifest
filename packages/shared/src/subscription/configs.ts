@@ -331,6 +331,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       'cline-pass/glm-5.2',
       'cline-pass/kimi-k2.7-code',
       'cline-pass/kimi-k2.6',
+      'cline-pass/kimi-k3',
       'cline-pass/deepseek-v4-pro',
       'cline-pass/deepseek-v4-flash',
       'cline-pass/mimo-v2.5',
