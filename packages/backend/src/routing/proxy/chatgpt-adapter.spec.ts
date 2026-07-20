@@ -385,10 +385,16 @@ describe('chatgpt-adapter', () => {
       expect(empty.choices[0].delta).toEqual({ reasoning_content: '' });
     });
 
-    it('does not expose raw reasoning text deltas as summaries', () => {
-      const chunk = 'event: response.reasoning_text.delta\ndata: {"delta":"Private chain."}';
+    it('converts GPT-5.6 reasoning text deltas into reasoning_content', () => {
+      const chunk =
+        'event: response.reasoning_text.delta\ndata: {"delta":"Checked the constraints."}';
+      const parsed = parseFrame(transformResponsesStreamChunk(chunk, 'gpt-5.6-sol'));
 
-      expect(transformResponsesStreamChunk(chunk, 'gpt-5.5')).toBeNull();
+      expect(parsed.choices[0]).toEqual({
+        index: 0,
+        delta: { reasoning_content: 'Checked the constraints.' },
+        finish_reason: null,
+      });
     });
 
     it('returns null for malformed reasoning delta payloads', () => {
@@ -472,6 +478,21 @@ describe('chatgpt-adapter', () => {
         'event: response.completed\ndata: {"response":{"usage":{"input_tokens":1,"output_tokens":2,"total_tokens":3}}}',
       ].join('\n\n');
       const out = collectChatGptSseResponse(sse, 'gpt-5.5');
+      const choices = out.choices as Array<Record<string, unknown>>;
+      const message = choices[0].message as Record<string, unknown>;
+
+      expect(message.content).toBe('Done.');
+      expect(message.reasoning_content).toBe('I checked the constraints.');
+    });
+
+    it('collects GPT-5.6 reasoning text deltas into non-streaming reasoning_content', () => {
+      const sse = [
+        'event: response.reasoning_text.delta\ndata: {"delta":"I checked "}',
+        'event: response.reasoning_text.delta\ndata: {"delta":"the constraints."}',
+        'event: response.output_text.delta\ndata: {"delta":"Done."}',
+        'event: response.completed\ndata: {"response":{"usage":{"input_tokens":1,"output_tokens":2,"total_tokens":3}}}',
+      ].join('\n\n');
+      const out = collectChatGptSseResponse(sse, 'gpt-5.6-sol');
       const choices = out.choices as Array<Record<string, unknown>>;
       const message = choices[0].message as Record<string, unknown>;
 

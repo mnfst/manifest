@@ -168,7 +168,9 @@ function reasoningContentFromOutput(output: Record<string, unknown>[]): string {
 function isReasoningDeltaEvent(eventType: string): boolean {
   return (
     eventType === 'response.reasoning_summary.delta' ||
-    eventType === 'response.reasoning_summary_text.delta'
+    eventType === 'response.reasoning_summary_text.delta' ||
+    // GPT-5.6 can stream its public Responses reasoning output under this event.
+    eventType === 'response.reasoning_text.delta'
   );
 }
 
