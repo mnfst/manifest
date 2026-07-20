@@ -56,6 +56,19 @@ function extractProviderMessage(rawBody: string): string | null {
   }
 }
 
+function isHtmlErrorBody(rawBody: string): boolean {
+  return /^\s*(?:<!doctype\s+html|<html)\b/i.test(rawBody);
+}
+
+function htmlEndpointError(status: number, rawBody: string): string | null {
+  if (!isHtmlErrorBody(rawBody)) return null;
+  const ngrokCode = rawBody.match(/\bERR_NGROK_\d+\b/i)?.[0]?.toUpperCase();
+  if (ngrokCode && /\bendpoint\b[\s\S]{0,300}\bis offline\b/i.test(rawBody)) {
+    return `Tunnel endpoint is offline (${ngrokCode})`;
+  }
+  return `Upstream endpoint returned HTTP ${status}`;
+}
+
 function extractProviderErrorCode(rawBody: string): string | null {
   try {
     const parsed = JSON.parse(rawBody) as Record<string, unknown>;
@@ -109,6 +122,8 @@ export function sanitizeProviderError(status: number, rawBody: string, nodeEnv?:
   const generic = KNOWN_ERROR_MESSAGES[status] ?? `Upstream provider returned HTTP ${status}`;
   const classified = classifyProviderError(status, rawBody);
   if (classified) return classified.message;
+  const endpointError = htmlEndpointError(status, rawBody);
+  if (endpointError) return endpointError;
 
   // In production, only return generic error messages to avoid leaking provider internals
   if ((nodeEnv ?? 'production') === 'production') return generic;
@@ -119,4 +134,8 @@ export function sanitizeProviderError(status: number, rawBody: string, nodeEnv?:
   }
 
   return generic;
+}
+
+export function normalizeProviderErrorForStorage(status: number, rawBody: string): string {
+  return isHtmlErrorBody(rawBody) ? sanitizeProviderError(status, rawBody, 'production') : rawBody;
 }
