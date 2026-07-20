@@ -1,0 +1,214 @@
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 110,137
+packages/backend/src/analytics/controllers/provider-analytics.controller.ts
+  s_038aae19f36c81::t_9e9f94a6739c2a 315
+packages/backend/test/tokens.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 17,23
+packages/backend/src/analytics/services/attempt-stats.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 26
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 261,273,281
+packages/backend/src/database/run-migrations-with-lock.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 8
+packages/backend/test/costs.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 51,57,62,168,190,214
+packages/shared/src/error-taxonomy.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 43
+packages/backend/src/error-pages/error-cluster-seeder.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 8,224
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 43,45,47,55,90,94,100,103,118
+  s_6c9ca7fc8edb9e::t_b83e8e4c15d2d4 36-38,53,58,61-65,68,71-73,123,126-130
+packages/backend/test/message-count-consistency.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 35
+packages/backend/src/billing/plan.service.ts
+  s_038aae19f36c81::t_9e9f94a6739c2a 227,234,329
+packages/backend/src/analytics/services/provider-usage.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 59,61,97
+packages/backend/src/common/utils/postgres-sql.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 88,102
+packages/backend/src/entities/public-error-page.entity.ts
+  s_038aae19f36c81::t_9e9f94a6739c2a 41
+packages/backend/src/common/utils/period.util.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 9
+packages/backend/src/database/database-seeder.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 76
+CLAUDE.md
+  s_6c9ca7fc8edb9e::t_ef0bbadc11b665 637
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 324,440,448,504
+  s_6c9ca7fc8edb9e::t_5e4c3ab27b0b9a 465,717
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 75,239,242
+  s_6c9ca7fc8edb9e::t_c39e1ab5db4592 47-48
+packages/backend/src/model-prices/model-pricing-cache.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 116,242
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 125,134
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_038aae19f36c81::t_9e9f94a6739c2a 115,123,131,184,191,201,221
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 6,164,171,204,217,250
+packages/backend/test/messages-manifest-errors.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 33
+packages/backend/src/analytics/services/agent-lifecycle.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 153
+packages/backend/src/routing/autofix/observation-reporter.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 35
+packages/backend/test/overview.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 17,23
+packages/backend/src/common/utils/secret-scrub.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 2
+packages/backend/src/routing/autofix/autofix.types.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 49
+AGENTS.md
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 8
+packages/backend/test/smoke-test.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 163
+packages/backend/src/analytics/services/error-breakdown.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 126
+packages/backend/test/attempt-analytics.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 27
+packages/backend/src/analytics/services/agent-lifecycle.service.spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 306
+packages/backend/src/entities/agent-message.entity.spec.ts
+  s_6c9ca7fc8edb9e::t_e1e8f130fb9887 1-26
+packages/backend/src/database/migrate.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 7
+packages/backend/src/entities/agent-message.entity.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 5,162
+  s_6c9ca7fc8edb9e::t_996f5241f0bc31 236-238
+dashboard-redesign-brief.md
+  s_6c9ca7fc8edb9e::t_9eacd87e7d49dc 118-119,145
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 14,25,44,117,139,141,172,174,238,241,261,264,345,364-365,374,392,418,446,503,517,538,546,562,573,578,592,621,627,646,813,816
+  s_6c9ca7fc8edb9e::t_c39e1ab5db4592 61-64,74,76-78
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_6c9ca7fc8edb9e::t_e473f1e866dccc 385
+packages/backend/src/routing/proxy/proxy-message-dedup.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 100
+packages/backend/src/database/backfills/backfill-message-providers.gateway.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 12,26,43,57,71,88,91
+packages/backend/src/common/errors/manifest-error.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 26
+packages/backend/src/telemetry/payload-builder.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 34
+packages/backend/src/routing/tenant-providers.controller.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 14
+packages/backend/src/analytics/services/query-helpers.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 105,133,137,196,222,235,242,278
+packages/backend/test/agent-recreate.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 34,67
+packages/backend/src/database/backfills/backfill-message-providers.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 2,6,11
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_6c9ca7fc8edb9e::t_996f5241f0bc31 16-17,54-56
+  s_6c9ca7fc8edb9e::t_73e55b6bcc419b 102
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 58,64,66-67,91-92,105,117-118,126,130,137,139,141,143
+packages/backend/test/provider-analytics.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 49,72,86,99,130
+packages/backend/test/roundtrip.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 21,53
+packages/frontend/src/services/api/analytics.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 252
+packages/backend/src/routing/autofix/observation-payload.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 100
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 102,136,321,716,846
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_6c9ca7fc8edb9e::t_c39e1ab5db4592 16,180,226,265,271-273
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 17-18,217,256
+packages/backend/src/error-pages/error-discovery.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 50,84,86,103,127
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 357
+  s_6c9ca7fc8edb9e::t_26cfe8e53809ae 358
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 90,186,230,263,296,350,407,444,455-456,547,549,612
+  s_6c9ca7fc8edb9e::t_c39e1ab5db4592 93
+  s_6c9ca7fc8edb9e::t_26cfe8e53809ae 464
+  s_6c9ca7fc8edb9e::t_a3a221247db1da 461-463,465-470,480-484,487-488,491-494
+packages/backend/src/database/backfills/backfill-requests.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 74
+packages/backend/test/errors-breakdown.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 20
+packages/backend/test/tenant-isolation.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 70,92,150,231
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.ts
+  s_6c9ca7fc8edb9e::t_e473f1e866dccc 63
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 15,22-23,25-26,37-38,43,48-49,57,60-61
+packages/backend/src/database/backfills/request-backfill.cli.ts
+  s_6c9ca7fc8edb9e::t_c39e1ab5db4592 57-58
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 49,53,61,64,68,278,335,344,376,865,900
+packages/backend/test/proxy-fallback-auth.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 8,213,230
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 444
+  s_6c9ca7fc8edb9e::t_c39e1ab5db4592 437,454
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 106
+packages/backend/src/analytics/services/request-volume.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 132,161
+packages/backend/src/database/backfills/backfill-message-providers.gateway.spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 48
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 21
+packages/backend/test/messages.isolation.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_c8dccef1b84398 153
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 9,37
+packages/backend/src/entities/request.entity.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 9
+packages/backend/src/database/database.module.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 46
+docs/glossary.md
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 33-35,53,61,69,82,93,97
+  s_6c9ca7fc8edb9e::t_73e55b6bcc419b 103-115,130
+  s_6c9ca7fc8edb9e::t_9eacd87e7d49dc 32,174,176
+packages/backend/test/public-stats.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 18,23,28,33,54,59
+packages/backend/src/analytics/controllers/provider-usage.controller.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 9
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 21,93,142,144
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 213,263
+packages/backend/test/user-provider-backfill-migrations.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 150,161,168,175,184,191
+packages/backend/test/playground-flow.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 184
+packages/backend/src/routing/autofix/provider-error-normalizer.ts
+  s_038aae19f36c81::t_9e9f94a6739c2a 78
+packages/backend/src/database/backfills/message-provider-backfill.boot.service.spec.ts
+  s_038aae19f36c81::t_9e9f94a6739c2a 206
+packages/backend/test/messages.e2e-spec.ts
+  s_038aae19f36c81::t_9e9f94a6739c2a 17,23,29,207,286
+packages/backend/src/routing/header-tiers/seen-headers.service.ts
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 58
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_6c9ca7fc8edb9e::t_c39e1ab5db4592 596,620
+  s_6c9ca7fc8edb9e::t_1fb379bba7cf48 440
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "74b8c918415c4ef9354a6005563575e32139838a",
+  "prompts": {},
+  "sessions": {
+    "s_038aae19f36c81": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7f93-3058-7c83-b327-31139f88fe33",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
