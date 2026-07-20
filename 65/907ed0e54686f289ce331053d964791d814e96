@@ -1,0 +1,41 @@
+packages/frontend/tests/components/message-table-cells.test.tsx
+  s_6c9ca7fc8edb9e::t_790edff0f9390e 236-238
+packages/backend/src/database/migrations/1801200000000-AddAnnouncementSends.spec.ts
+  s_6c9ca7fc8edb9e::t_790edff0f9390e 24-26
+packages/backend/src/database/backfills/request-backfill.datasource.ts
+  s_6c9ca7fc8edb9e::t_790edff0f9390e 8-10,17-19
+packages/backend/src/database/backfills/request-backfill.cli.spec.ts
+  s_6c9ca7fc8edb9e::t_790edff0f9390e 33,38-40
+packages/backend/src/scripts/send-doctor-announcement.ts
+  s_6c9ca7fc8edb9e::t_e80520fd6b0fb9 152,180,191-193
+  s_6c9ca7fc8edb9e::t_790edff0f9390e 2,7,63-70,76-102,127-132,155,157-158,163-169,172,174-176,181
+  s_6c9ca7fc8edb9e::t_cfa039219e838f 190
+packages/backend/src/database/migrations/1801200000000-AddAnnouncementSends.ts
+  s_6c9ca7fc8edb9e::t_790edff0f9390e 16
+packages/backend/src/scripts/send-doctor-announcement.spec.ts
+  s_6c9ca7fc8edb9e::t_7e6c2d71d5cddd 1-2,45-67
+  s_6c9ca7fc8edb9e::t_44ec0bb4894f68 40
+  s_6c9ca7fc8edb9e::t_790edff0f9390e 37-39,41-44,68
+packages/frontend/src/components/AutofixKpiCards.tsx
+  s_6c9ca7fc8edb9e::t_790edff0f9390e 69-70,72-74,77,118,135,149,163
+  s_6c9ca7fc8edb9e::t_44ec0bb4894f68 78
+packages/frontend/tests/components/AnalyticsChartSurfaces.test.tsx
+  s_6c9ca7fc8edb9e::t_790edff0f9390e 398-429
+  s_6c9ca7fc8edb9e::t_44ec0bb4894f68 79-80,383-385
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "65907ed0e54686f289ce331053d964791d814e96",
+  "prompts": {},
+  "sessions": {
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
