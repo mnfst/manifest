@@ -136,6 +136,46 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     });
   }
 
+  it('stages Manifest rejections without deleting their legacy rows', async () => {
+    const expected = [
+      { id: 'manifest-config', error_code: 'M100', error_origin: 'config' },
+      { id: 'manifest-internal', error_code: 'M500', error_origin: 'internal' },
+      { id: 'manifest-policy', error_code: 'M201', error_origin: 'policy' },
+      { id: 'manifest-request', error_code: 'M300', error_origin: 'request' },
+    ];
+    await dataSource.query(`
+      INSERT INTO agent_messages (
+        id, tenant_id, agent_id, agent_name, timestamp, duration_ms, status,
+        error_code, error_origin, error_class, model
+      ) VALUES
+        ('manifest-config', 'tenant-1', 'agent-1', 'Agent',
+         '2026-01-01 00:00:00.000', 0, 'error', 'M100', 'config', 'no_provider_key', 'auto'),
+        ('manifest-policy', 'tenant-1', 'agent-1', 'Agent',
+         '2026-01-01 00:00:01.000', 0, 'rate_limited', 'M201', 'policy', 'rate_limit', 'auto'),
+        ('manifest-request', 'tenant-1', 'agent-1', 'Agent',
+         '2026-01-01 00:00:02.000', 0, 'error', 'M300', 'request', 'invalid_request', 'auto'),
+        ('manifest-internal', 'tenant-1', 'agent-1', 'Agent',
+         '2026-01-01 00:00:03.000', 0, 'error', 'M500', 'internal', 'internal_error', 'auto')
+    `);
+
+    await backfill({ batchSize: 1 });
+    const legacyRows = await dataSource.query(`
+      SELECT id, request_id, attempt_number, error_code, error_origin
+      FROM agent_messages
+      ORDER BY id
+    `);
+    const requestRows = await dataSource.query(`
+      SELECT id, status, error_code, error_origin
+      FROM requests
+      ORDER BY id
+    `);
+
+    expect(legacyRows).toEqual(
+      expected.map((row) => ({ ...row, request_id: row.id, attempt_number: null })),
+    );
+    expect(requestRows).toEqual(expected.map((row) => ({ ...row, status: 'failed' })));
+  });
+
   it('groups a recovered fallback chain without traceparent', async () => {
     await insertAttempt({
       id: 'recovered-primary',

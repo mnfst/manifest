@@ -11,8 +11,10 @@ import {
   INSERT_LEGACY_FALLBACK_PAIRS_SQL,
   INSERT_LEGACY_FALLBACK_REQUESTS_SQL,
   INSERT_ATTEMPT_REQUESTS_SQL,
+  INSERT_REJECTIONS_SQL,
   LINK_ATTEMPTS_SQL,
   LINK_LEGACY_FALLBACK_ATTEMPTS_SQL,
+  MARK_REJECTIONS_SQL,
   REFRESH_ATTEMPT_REQUESTS_SQL,
   TypeOrmRequestBackfillGateway,
   REQUEST_BACKFILL_WINDOW_END_SQL,
@@ -97,6 +99,8 @@ describe('TypeOrmRequestBackfillGateway', () => {
     });
     expect(runner.query).toHaveBeenNthCalledWith(1, "SET LOCAL lock_timeout = '5000ms'");
     expect(runner.query).toHaveBeenNthCalledWith(2, "SET LOCAL statement_timeout = '60000ms'");
+    expect(runner.query).toHaveBeenNthCalledWith(3, INSERT_REJECTIONS_SQL, ['a', 'b', before]);
+    expect(runner.query).toHaveBeenNthCalledWith(4, MARK_REJECTIONS_SQL, ['a', 'b', before]);
     expect(runner.commitTransaction).toHaveBeenCalled();
     expect(runner.rollbackTransaction).not.toHaveBeenCalled();
     expect(runner.release).toHaveBeenCalled();

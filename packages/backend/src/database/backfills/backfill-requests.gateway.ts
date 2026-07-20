@@ -386,7 +386,8 @@ export const LINK_LEGACY_FALLBACK_ATTEMPTS_SQL = `
 `;
 
 // These rows predate the explicit request table but never represented a
-// provider call. Copy them to requests and remove the pseudo-attempt.
+// provider call. Copy them to requests while the legacy dashboard still reads
+// agent_messages; #2485 can remove the preserved row after switching readers.
 export const INSERT_REJECTIONS_SQL = `
   WITH batch AS (
     SELECT * FROM "agent_messages"
@@ -413,16 +414,19 @@ export const INSERT_REJECTIONS_SQL = `
   SELECT count(*)::int AS n FROM ins
 `;
 
-export const DELETE_REJECTIONS_SQL = `
-  WITH deleted AS (
-    DELETE FROM "agent_messages"
+// Mark the preserved legacy row as staged so subsequent tail sweeps skip it.
+// attempt_number remains NULL because no provider call occurred.
+export const MARK_REJECTIONS_SQL = `
+  WITH marked AS (
+    UPDATE "agent_messages"
+    SET "request_id" = id
     WHERE "request_id" IS NULL AND id > $1 AND id <= $2
       AND timestamp < $3
       AND status NOT IN ('ok', 'success')
       AND error_origin IN (${REQUEST_LEVEL_ORIGINS})
     RETURNING 1
   )
-  SELECT count(*)::int AS n FROM deleted
+  SELECT count(*)::int AS n FROM marked
 `;
 
 const LEGACY_REQUEST_ID = `CASE
@@ -788,7 +792,7 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
       const [{ n: requests }] = (await runner.query(INSERT_REJECTIONS_SQL, params)) as {
         n: number;
       }[];
-      const [{ n: rejections }] = (await runner.query(DELETE_REJECTIONS_SQL, params)) as {
+      const [{ n: rejections }] = (await runner.query(MARK_REJECTIONS_SQL, params)) as {
         n: number;
       }[];
       const [{ n: attemptRequests }] = (await runner.query(
