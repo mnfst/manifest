@@ -1,0 +1,60 @@
+integrations/n8n-nodes-manifest/README.md
+  s_6d8a2aeb292c0d::t_b99fedaa5eb462 3,46-47,49-51
+  s_6d8a2aeb292c0d::t_23883eff2293c6 48
+  s_6c9ca7fc8edb9e::t_9cac78fc532261 52
+integrations/n8n-nodes-manifest/nodes/Manifest/Manifest.node.ts
+  s_6d8a2aeb292c0d::t_b99fedaa5eb462 250,297
+  s_6d8a2aeb292c0d::t_babde1e46db435 336
+integrations/n8n-nodes-manifest/package.json
+  s_6d8a2aeb292c0d::t_b99fedaa5eb462 4,14
+nodes/Manifest/Manifest.node.ts
+  s_6d8a2aeb292c0d::t_babde1e46db435 336
+  s_6d8a2aeb292c0d::t_b99fedaa5eb462 250,297
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js
+  s_6d8a2aeb292c0d::t_8b841b45ff4a01 260
+  s_6d8a2aeb292c0d::t_8bd40a1e57838b 175,222
+integrations/n8n-nodes-manifest/templates/draft-gmail-replies-with-model-fallback.json
+  s_6d8a2aeb292c0d::t_e4de35722a4bd7 1-5,7-96
+  s_6d8a2aeb292c0d::t_741470b0fd59c4 6
+integrations/n8n-nodes-manifest/CHANGELOG.md
+  s_6d8a2aeb292c0d::t_b99fedaa5eb462 3-4,6-7
+  s_6d8a2aeb292c0d::t_babde1e46db435 5,10
+integrations/n8n-nodes-manifest/templates/qualify-leads-and-alert-slack-with-fallback.json
+  s_6d8a2aeb292c0d::t_e4de35722a4bd7 1-5,7-67,69-107,113-116,118-164
+  s_6d8a2aeb292c0d::t_741470b0fd59c4 6,117
+  s_6d8a2aeb292c0d::t_290331a9860d25 68,108-112
+integrations/n8n-nodes-manifest/dist/package.json
+  s_6d8a2aeb292c0d::t_8bd40a1e57838b 4,14
+integrations/n8n-nodes-manifest/templates/README.md
+  s_6d8a2aeb292c0d::t_e4de35722a4bd7 1-25,29-45,47-51,56-63
+  s_6d8a2aeb292c0d::t_c2b9dc68a67b43 46
+  s_6d8a2aeb292c0d::t_741470b0fd59c4 26-28,52-55
+README.md
+  s_6d8a2aeb292c0d::t_babde1e46db435 45,47,50,84
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js.map
+  s_6d8a2aeb292c0d::t_bf63b338c869bf 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "20a3ed9e480f5d329198d085a57561f994f8ca36",
+  "prompts": {},
+  "sessions": {
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6d8a2aeb292c0d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f418a-9e60-7fb0-b308-cfbdef64b9a7",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
