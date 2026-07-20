@@ -57,7 +57,7 @@ function extractProviderMessage(rawBody: string): string | null {
 }
 
 function isHtmlErrorBody(rawBody: string): boolean {
-  return /^\s*(?:<!doctype\s+html|<html)\b/i.test(rawBody);
+  return /^\s*(?:<!--[\s\S]*?-->\s*)*(?:<!doctype\s+html|<html)\b/i.test(rawBody);
 }
 
 function htmlEndpointError(status: number | null | undefined, rawBody: string): string | null {
@@ -122,10 +122,10 @@ export function classifyProviderError(
 
 export function sanitizeProviderError(status: number, rawBody: string, nodeEnv?: string): string {
   const generic = KNOWN_ERROR_MESSAGES[status] ?? `Upstream provider returned HTTP ${status}`;
-  const classified = classifyProviderError(status, rawBody);
-  if (classified) return classified.message;
   const endpointError = htmlEndpointError(status, rawBody);
   if (endpointError) return endpointError;
+  const classified = classifyProviderError(status, rawBody);
+  if (classified) return classified.message;
 
   // In production, only return generic error messages to avoid leaking provider internals
   if ((nodeEnv ?? 'production') === 'production') return generic;

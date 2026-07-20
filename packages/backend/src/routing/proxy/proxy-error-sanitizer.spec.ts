@@ -67,6 +67,20 @@ describe('sanitizeProviderError', () => {
     );
   });
 
+  it('detects HTML error pages prefixed by server comments', () => {
+    const body = '<!-- served by edge --><html><body>Not found</body></html>';
+    expect(sanitizeProviderError(404, body, 'production')).toBe(
+      'Upstream endpoint returned HTTP 404',
+    );
+  });
+
+  it('does not classify an HTML page as a model context error', () => {
+    const body = '<html><body>context_length_exceeded while rendering the error</body></html>';
+    expect(sanitizeProviderError(404, body, 'production')).toBe(
+      'Upstream endpoint returned HTTP 404',
+    );
+  });
+
   it('ignores empty string message in JSON', () => {
     const body = JSON.stringify({ error: { message: '' } });
     expect(sanitizeProviderError(500, body, 'development')).toBe(
@@ -148,6 +162,11 @@ describe('normalizeProviderErrorForStorage', () => {
     expect(normalizeProviderErrorForStorage(undefined, '<html><p>Tunnel failed</p></html>')).toBe(
       'Upstream endpoint returned an HTML error page',
     );
+  });
+
+  it('collapses comment-prefixed HTML error pages for storage', () => {
+    const body = '<!-- proxy --><!doctype html><p>Bad gateway</p>';
+    expect(normalizeProviderErrorForStorage(502, body)).toBe('Upstream endpoint returned HTTP 502');
   });
 
   it('preserves an offline ngrok diagnostic when no HTTP status was captured', () => {
