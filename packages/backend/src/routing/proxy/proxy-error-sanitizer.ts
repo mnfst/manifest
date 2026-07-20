@@ -57,7 +57,17 @@ function extractProviderMessage(rawBody: string): string | null {
 }
 
 function isHtmlErrorBody(rawBody: string): boolean {
-  return /^\s*(?:<!--[\s\S]*?-->\s*)*(?:<!doctype\s+html|<html)\b/i.test(rawBody);
+  let offset = 0;
+  while (offset < rawBody.length) {
+    while (/\s/.test(rawBody[offset] ?? '')) offset += 1;
+    if (!rawBody.startsWith('<!--', offset)) break;
+
+    const commentEnd = rawBody.indexOf('-->', offset + 4);
+    if (commentEnd === -1) return false;
+    offset = commentEnd + 3;
+  }
+
+  return /^(?:<!doctype\s+html|<html)\b/i.test(rawBody.slice(offset));
 }
 
 function htmlEndpointError(status: number | null | undefined, rawBody: string): string | null {

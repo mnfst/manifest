@@ -74,6 +74,13 @@ describe('sanitizeProviderError', () => {
     );
   });
 
+  it('detects many leading HTML comments without backtracking', () => {
+    const body = `${'<!-- edge -->'.repeat(1_000)}<html><body>Not found</body></html>`;
+    expect(sanitizeProviderError(404, body, 'production')).toBe(
+      'Upstream endpoint returned HTTP 404',
+    );
+  });
+
   it('does not classify an HTML page as a model context error', () => {
     const body = '<html><body>context_length_exceeded while rendering the error</body></html>';
     expect(sanitizeProviderError(404, body, 'production')).toBe(
