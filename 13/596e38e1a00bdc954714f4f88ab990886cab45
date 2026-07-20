@@ -1,0 +1,55 @@
+packages/backend/src/database/backfills/request-backfill.datasource.ts
+  s_6c9ca7fc8edb9e::t_8d40e93455cf23 20
+packages/backend/src/database/backfills/message-provider-backfill.boot.service.ts
+  s_6c9ca7fc8edb9e::t_8d40e93455cf23 5,38-39,62,72
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_6c9ca7fc8edb9e::t_cc39ca8dd5ed69 301,319,324,618,638
+  s_6c9ca7fc8edb9e::t_c5f09b266c1b43 5,85-87,96
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_6c9ca7fc8edb9e::t_8d40e93455cf23 13-16,117-121
+packages/backend/src/database/backfills/message-provider-backfill.boot.service.spec.ts
+  s_6c9ca7fc8edb9e::t_d8f036d28ed150 40,43,51-52,63-69
+  s_038aae19f36c81::t_5bf352f04cc9ca 70-72
+packages/backend/src/database/backfills/request-backfill.cli.spec.ts
+  s_6c9ca7fc8edb9e::t_b2e81992d0cca2 44
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_6c9ca7fc8edb9e::t_c5f09b266c1b43 151-177,188
+  s_6c9ca7fc8edb9e::t_67e30b82b509f8 24,42,125-150,178-187
+  s_038aae19f36c81::t_f36abfac40c2a3 189
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.spec.ts
+  s_6c9ca7fc8edb9e::t_b5189a31ff31af 25
+  s_6c9ca7fc8edb9e::t_67e30b82b509f8 14-15,18-20,28-43
+  s_6c9ca7fc8edb9e::t_d1c26efb2fa8bd 44
+packages/backend/src/database/backfills/backfill-requests.ts
+  s_6c9ca7fc8edb9e::t_c5e139424f9cfa 57-62,97
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.ts
+  s_6c9ca7fc8edb9e::t_06c950a4437eca 14-21
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_6c9ca7fc8edb9e::t_06c950a4437eca 19-26,72-74,130-135,138-139
+packages/backend/src/database/backfills/backfill-requests.spec.ts
+  s_6c9ca7fc8edb9e::t_a81ffe3ac25f89 270,272
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "13596e38e1a00bdc954714f4f88ab990886cab45",
+  "prompts": {},
+  "sessions": {
+    "s_038aae19f36c81": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7f93-3058-7c83-b327-31139f88fe33",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
