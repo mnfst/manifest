@@ -262,6 +262,88 @@ describe('ProxyController', () => {
     });
   });
 
+  it('should keep the default /v1/models shape unchanged even when capability metadata exists', async () => {
+    modelDiscovery.getModelsForAgent.mockResolvedValue([
+      makeDiscoveredModel({
+        id: 'gpt-4o',
+        provider: 'openai',
+        inputModalities: ['text', 'image'],
+        outputModalities: ['text'],
+        capabilities: ['text', 'image', 'stream', 'tools'],
+        supportedEndpoints: ['/responses'],
+      }),
+    ]);
+
+    await expect(controller.models(mockRequest({}) as never)).resolves.toEqual({
+      object: 'list',
+      data: [
+        { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
+        { id: 'openai/gpt-4o', object: 'model', created: 0, owned_by: 'openai' },
+      ],
+    });
+  });
+
+  it('should expose capability metadata when ?capabilities=true, preserving subscription ids', async () => {
+    modelDiscovery.getModelsForAgent.mockResolvedValue([
+      makeDiscoveredModel({
+        id: 'gpt-5.4-mini',
+        provider: 'openai',
+        authType: 'subscription',
+        inputModalities: ['text', 'image'],
+        outputModalities: ['text'],
+        capabilities: ['text', 'image', 'stream', 'tools'],
+        supportedEndpoints: ['/responses'],
+      }),
+    ]);
+
+    await expect(controller.models(mockRequest({}) as never, 'true')).resolves.toEqual({
+      object: 'list',
+      data: [
+        { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
+        {
+          id: 'openai/gpt-5.4-mini-subscription',
+          object: 'model',
+          created: 0,
+          owned_by: 'openai',
+          capabilities: {
+            input_modalities: ['text', 'image'],
+            output_modalities: ['text'],
+            features: ['stream', 'tools'],
+            supported_endpoints: ['/responses'],
+          },
+        },
+      ],
+    });
+  });
+
+  it('should omit the capabilities field for models with unknown metadata and for auto', async () => {
+    modelDiscovery.getModelsForAgent.mockResolvedValue([
+      makeDiscoveredModel({ id: 'mystery-model', provider: 'openai' }),
+      makeDiscoveredModel({
+        id: 'gpt-5.3-codex-spark',
+        provider: 'openai',
+        authType: 'subscription',
+        inputModalities: ['text'],
+        outputModalities: ['text'],
+      }),
+    ]);
+
+    await expect(controller.models(mockRequest({}) as never, 'true')).resolves.toEqual({
+      object: 'list',
+      data: [
+        { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
+        { id: 'openai/mystery-model', object: 'model', created: 0, owned_by: 'openai' },
+        {
+          id: 'openai/gpt-5.3-codex-spark-subscription',
+          object: 'model',
+          created: 0,
+          owned_by: 'openai',
+          capabilities: { input_modalities: ['text'], output_modalities: ['text'] },
+        },
+      ],
+    });
+  });
+
   it('should return JSON response for non-streaming OpenAI provider', async () => {
     const responseBody = { choices: [{ message: { content: 'hello' } }] };
     const mockProviderResp = new Response(JSON.stringify(responseBody), {
