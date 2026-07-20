@@ -1,0 +1,89 @@
+packages/backend/src/routing/provider.controller.spec.ts
+  s_038aae19f36c81::t_80577f86158623 515-518
+  s_038aae19f36c81::t_3a166a954acb41 17,29,74-78,524-547
+  s_038aae19f36c81::t_2c8a72ccaa8968 548
+packages/backend/src/routing/model.controller.spec.ts
+  s_038aae19f36c81::t_3a166a954acb41 34,47,98-102,168-175
+  s_6d8a2aeb292c0d::t_735647b778f3e4 176
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_038aae19f36c81::t_841482bd16c8b4 89,107,143-145
+  s_038aae19f36c81::t_50b34d533c151c 155-166,552-565,683-706
+  s_6d8a2aeb292c0d::t_bb4209b28873a8 146-147
+packages/backend/src/routing/tenant-providers.controller.ts
+  s_038aae19f36c81::t_0bed996019d24b 8,39-41
+packages/backend/src/telemetry/payload-builder.service.spec.ts
+  s_038aae19f36c81::t_1049eba67dd377 173-186
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_038aae19f36c81::t_76f951fcc43de3 10,14,19-23,30-44
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_038aae19f36c81::t_8fa45c21c0cfaf 45-49,134,354-358,390-397,494-498
+packages/backend/src/routing/provider.controller.ts
+  s_038aae19f36c81::t_80577f86158623 115-118
+  s_038aae19f36c81::t_f2b4c36ef9fd85 35-38,119-120
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_038aae19f36c81::t_841482bd16c8b4 59,74,98-102,1076-1087
+  s_6c9ca7fc8edb9e::t_04bc8888991dff 1088
+packages/backend/src/routing/proxy/proxy-error-sanitizer.spec.ts
+  s_038aae19f36c81::t_9d58b21e697d5f 40
+  s_038aae19f36c81::t_4bd4fbb0088932 4,56-69,140-151
+  s_6d8a2aeb292c0d::t_ceec69592e1cf3 152-153
+packages/backend/src/routing/proxy/proxy-error-sanitizer.ts
+  s_038aae19f36c81::t_4bd4fbb0088932 59-71,125-126,138-141
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_038aae19f36c81::t_feeacc8f1d2605 43,132,135-138
+packages/backend/src/routing/model.controller.ts
+  s_038aae19f36c81::t_031d86f2e62e6a 1,22-25,111-113
+packages/backend/src/analytics/controllers/provider-usage.controller.spec.ts
+  s_038aae19f36c81::t_841482bd16c8b4 6-16,48-69
+packages/backend/src/analytics/controllers/provider-usage.controller.ts
+  s_038aae19f36c81::t_0bed996019d24b 4,23
+packages/backend/src/routing/tenant-providers.controller.spec.ts
+  s_038aae19f36c81::t_841482bd16c8b4 6,9-17,110-130
+  s_6c9ca7fc8edb9e::t_c4024b1f5e1040 131
+packages/backend/src/routing/proxy/provider-client.ts
+  s_038aae19f36c81::t_76f951fcc43de3 33-36,217-219
+  s_6c9ca7fc8edb9e::t_daac6e24f807d7 220
+packages/backend/src/common/utils/provider-availability.spec.ts
+  s_038aae19f36c81::t_7253dae90cf8cc 1-46
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_038aae19f36c81::t_634bf1ce1fa9df 338-340
+  s_038aae19f36c81::t_4bd4fbb0088932 27,503-505,566-570
+packages/backend/src/routing/dto/routing.dto.ts
+  s_038aae19f36c81::t_f2b4c36ef9fd85 1,77
+packages/backend/src/common/utils/provider-availability.ts
+  s_038aae19f36c81::t_7253dae90cf8cc 1-20
+.changeset/quiet-local-runtimes.md
+  s_038aae19f36c81::t_3f843ad82ff7ef 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "6a42da35966b324a906a0a3b5390ac9c6d3e1c29",
+  "prompts": {},
+  "sessions": {
+    "s_038aae19f36c81": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7f93-3058-7c83-b327-31139f88fe33",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6d8a2aeb292c0d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f418a-9e60-7fb0-b308-cfbdef64b9a7",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
