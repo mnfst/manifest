@@ -1,0 +1,38 @@
+packages/backend/src/routing/model.controller.ts
+  s_a3756f69263f02::t_2a92102ee68757 14
+  s_a3756f69263f02::t_a66954f0028019 129-133,135
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_a3756f69263f02::t_7d40346640560d 2-5
+  s_a3756f69263f02::t_c8a1393e0b356b 98-147
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_a3756f69263f02::t_d2bd50e20d6bfb 136-137
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_a3756f69263f02::t_410f43447c3940 28-30
+  s_a3756f69263f02::t_f446f74f4c71ae 95-96
+  s_a3756f69263f02::t_e142bc8c632d43 132-139
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_a3756f69263f02::t_e8b24ec8bcd0f5 327,341,347-387,391-392
+  s_a3756f69263f02::t_4e15bf47ae978e 167-168
+  s_a3756f69263f02::t_d2e8aee6b3d013 201-202
+  s_a3756f69263f02::t_29a8eb6733bfb4 126-127
+packages/backend/src/model-discovery/model-capabilities.spec.ts
+  s_a3756f69263f02::t_27b8b2f5d8aa45 1-34,53-113,115-118,120
+  s_a3756f69263f02::t_83cbd36fbd0a69 114,119
+  s_a3756f69263f02::t_5ce5cf4c98a643 121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "ba8f0f5580d998c12095aba513ab9f08017d4635",
+  "prompts": {},
+  "sessions": {
+    "s_a3756f69263f02": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aa8e3a63-9ba0-4441-a1de-8bc1a142538c",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
