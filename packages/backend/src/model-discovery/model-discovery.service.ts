@@ -41,6 +41,7 @@ import {
   supplementWithKnownModels,
 } from './model-fallback';
 import { lookupKnownPrice } from './known-model-prices';
+import { lookupKnownModalities } from './known-model-modalities';
 import { mergeModelCapabilities, modelSupportsStreaming } from './model-capabilities';
 import {
   CLOUD_LOCAL_PROVIDER_MESSAGE,
@@ -594,6 +595,18 @@ export class ModelDiscoveryService {
   }
 
   private enrichModel(model: DiscoveredModel, providerId: string): DiscoveredModel {
+    // Fill modality gaps from the curated list before enrichment, so
+    // provider-native and models.dev modalities (applied below) still win.
+    const knownModalities = lookupKnownModalities(providerId, model.id);
+    if (knownModalities) {
+      model = {
+        ...model,
+        inputModalities: model.inputModalities ?? knownModalities.input,
+        outputModalities: model.outputModalities ?? knownModalities.output,
+        capabilities: mergeModelCapabilities(model.capabilities, knownModalities.capabilities),
+      };
+    }
+
     // Skip pricing enrichment when both prices are already set (price=0 for free/subscription)
     // but still apply capability flags from models.dev for better scoring
     if (

@@ -219,6 +219,35 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).toHaveBeenCalledWith('kiro', 'kiro-access', 'subscription', undefined);
     });
 
+    it('should fill capability gaps from the curated known-modalities list', async () => {
+      fetcher.fetch.mockResolvedValue([
+        makeModel({ id: 'gpt-5.3-codex-spark', inputPricePerToken: 0, outputPricePerToken: 0 }),
+      ]);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputModalities).toEqual(['text']);
+      expect(result[0].outputModalities).toEqual(['text']);
+      expect(result[0].capabilities).toEqual(expect.arrayContaining(['text', 'tools', 'stream']));
+    });
+
+    it('should keep discovered modalities over the curated known-modalities list', async () => {
+      fetcher.fetch.mockResolvedValue([
+        makeModel({
+          id: 'gpt-5.3-codex-spark',
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+          inputModalities: ['text', 'image'],
+          outputModalities: ['text', 'image'],
+        }),
+      ]);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputModalities).toEqual(['text', 'image']);
+      expect(result[0].outputModalities).toEqual(['text', 'image']);
+    });
+
     it('should enrich models with openRouter pricing when available', async () => {
       mockPricingSync.lookupPricing.mockImplementation((key: string) => {
         if (key === 'openai/gpt-4') {

@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -24,6 +25,9 @@ import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
+import { resolveModelCapabilityMetadata } from '../../model-discovery/model-capabilities';
 import { classifyCaller } from './caller-classifier';
 import { ObservationReporter } from '../autofix/observation-reporter';
 import { sanitizeRequestHeaders } from './request-headers';
@@ -49,6 +53,7 @@ import type { ProxyApiMode } from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
 import { openAiModelId } from './openai-model-id';
+import { openAiModelCapabilities, type OpenAiModelCapabilities } from './openai-model-capabilities';
 import { PlanService } from '../../billing/plan.service';
 import { UpstreamStreamError } from './stream-writer';
 
@@ -62,6 +67,7 @@ interface OpenAiModelObject {
   object: 'model';
   created: number;
   owned_by: string;
+  capabilities?: OpenAiModelCapabilities;
 }
 
 interface OpenAiModelList {
@@ -89,16 +95,22 @@ export class ProxyController {
     private readonly modelDiscovery: ModelDiscoveryService,
     private readonly planService: PlanService,
     private readonly observationReporter: ObservationReporter,
+    private readonly providerParamSpecs: ProviderParamSpecService,
+    private readonly modelsDevSync: ModelsDevSyncService,
   ) {}
 
   @Get('models')
   async models(
     @Req() req: Request & { ingestionContext: IngestionContext },
+    @Query('capabilities') capabilities?: string,
   ): Promise<OpenAiModelList> {
+    const includeCapabilities = capabilities === 'true';
     const models = await this.modelDiscovery.getModelsForAgent(
       req.ingestionContext.tenantId,
       req.ingestionContext.agentId,
     );
+    // The synthetic `auto` route never carries capabilities — it resolves to a
+    // different concrete model per request, so any claim would be wrong.
     const data: OpenAiModelObject[] = [
       {
         id: 'auto',
@@ -113,12 +125,24 @@ export class ProxyController {
       const id = openAiModelId(model);
       if (seen.has(id)) continue;
       seen.add(id);
-      data.push({
+      const entry: OpenAiModelObject = {
         id,
         object: 'model',
         created: MODEL_CREATED_UNKNOWN,
         owned_by: model.provider,
-      });
+      };
+      if (includeCapabilities) {
+        // Same resolution as the dashboard's model picker, so agents and the
+        // routing UI report identical capability facts.
+        const resolved = await resolveModelCapabilityMetadata(
+          model,
+          this.providerParamSpecs,
+          this.modelsDevSync,
+        );
+        const modelCapabilities = openAiModelCapabilities({ ...model, ...resolved });
+        if (modelCapabilities) entry.capabilities = modelCapabilities;
+      }
+      data.push(entry);
     }
 
     return {
