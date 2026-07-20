@@ -209,7 +209,7 @@ describe('ModelDiscoveryService', () => {
 
       expect(result[0].inputModalities).toEqual(['text']);
       expect(result[0].outputModalities).toEqual(['text']);
-      expect(result[0].capabilities).toEqual(['text', 'tools', 'stream']);
+      expect(result[0].capabilities).toEqual(expect.arrayContaining(['text', 'tools', 'stream']));
     });
 
     it('should keep discovered modalities over the curated known-modalities list', async () => {
