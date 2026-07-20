@@ -1,0 +1,23 @@
+docs/glossary.md
+  s_aef14bd488b184::t_d92dcda973a29e 1-174
+AGENTS.md
+  s_aef14bd488b184::t_d92dcda973a29e 1-10
+CLAUDE.md
+  s_aef14bd488b184::t_d92dcda973a29e 7,86,91,154,223,324,354-356,437,439-442,444-448,463,465,469,475,504,637,717
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "d9ac1b4f293773b81d4fe42b751c667f73b1dc38",
+  "prompts": {},
+  "sessions": {
+    "s_aef14bd488b184": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7eb0-e70f-74d0-bb46-5c02c2bdba63",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
