@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-07-16
+Last updated: 2026-07-20
 
 ## What Manifest Is
 
@@ -57,7 +57,7 @@ The `AgentKeyAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in the
 
 - **Backend**: NestJS 11, TypeORM 0.3, PostgreSQL 16, Better Auth, class-validator, class-transformer, Helmet
 - **Frontend**: SolidJS, Vite, uPlot (charts), Better Auth client, custom CSS theme
-- **Runtime**: TypeScript 5.x (strict mode), Node.js 24.x
+- **Runtime**: TypeScript 5.x (strict mode). CI pins Node.js 24 (`.github/workflows/release.yml`); no `engines` field enforces this locally.
 - **Monorepo**: npm workspaces + Turborepo
 - **Release**: Changesets for version management + GitHub Actions for Docker image release
 
@@ -67,6 +67,7 @@ The `AgentKeyAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in the
 packages/
 ├── backend/
 │   ├── src/
+│   │   ├── instrument.ts                    # Sentry init, imported first (before any other import)
 │   │   ├── main.ts                          # Bootstrap: Helmet, ValidationPipe, Better Auth mount, CORS
 │   │   ├── app.module.ts                    # Root module (guards: ApiKey, Session, Throttler)
 │   │   ├── config/app.config.ts             # Environment variable config
@@ -130,6 +131,7 @@ packages/
 │   │   ├── error-pages/                     # Custom error-page config (internal + public)
 │   │   ├── waitlist/                        # Early-access waitlist signup (e.g. Auto-fix)
 │   │   ├── cors-csp-config.ts               # Wingman CORS/CSP origin allowlists
+│   │   ├── sentry/                          # Sentry init-options builder (SENTRY_DSN-gated)
 │   │   └── telemetry/                       # Anonymous self-hosted telemetry
 │   └── test/                                # E2E tests (supertest)
 ├── frontend/
@@ -326,7 +328,7 @@ User (Better Auth) ──→ Tenant ──→ Agent ──→ AgentApiKey (mnfst
 - **Agent** (`agents` table): Belongs to a tenant. Unique constraint on `[tenant_id, name]`.
 - **AgentApiKey** (`agent_api_keys` table): One-to-one with agent. `mnfst_*` format key for OTLP ingestion.
 - **ApiKey** (`api_keys` table): A separate, tenant-scoped credential (not per-agent) used for dashboard/API access — the primary key `ApiKeyGuard` checks. Distinct from `AgentApiKey`.
-- **Onboarding flow**: `ApiKeyGeneratorService.onboardAgent()` creates tenant (if new) + agent + API key in one transaction.
+- **Onboarding flow**: `ApiKeyGeneratorService.onboardAgent()` creates tenant (if new) + agent + API key via three sequential inserts.
 
 ### Data Isolation
 
@@ -354,21 +356,22 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET | `/api/v1/security` | Session/API Key | Security score + events |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
 | GET | `/api/v1/free-models` | Session/API Key | Free LLM model catalog |
-| GET | `/api/v1/agent/:agentName/usage` | Session/API Key | Per-agent token usage |
-| GET | `/api/v1/agent/:agentName/costs` | Session/API Key | Per-agent cost data |
+| GET | `/api/v1/agent/usage` | Bearer (mnfst_*) | Token usage for the calling agent |
+| GET | `/api/v1/agent/costs` | Bearer (mnfst_*) | Cost data for the calling agent |
 | GET | `/api/v1/overview/*` | Session/API Key | Overview timeseries/breakdown sub-endpoints |
 | GET | `/api/v1/providers` / `/api/v1/providers/usage` | Session/API Key | Connected provider list + usage |
 | GET | `/api/v1/provider-analytics/*` | Session/API Key | Per-provider analytics |
 | GET | `/api/v1/errors/breakdown` | Session/API Key | Error breakdown analytics |
 | GET/PATCH | `/api/v1/billing/*` | Session/API Key | Billing status + email preferences (Stripe) |
 | GET/POST | `/api/v1/waitlist/autofix*` | Session/API Key (GET/POST), Public (`/claim`) | Auto-fix early-access waitlist |
-| GET/POST/DELETE | `/api/v1/internal/error-pages*` | Session/API Key | Custom error-page config |
+| GET/POST/DELETE | `/api/v1/internal/error-pages*` | Public (`x-internal-secret` header) | Custom error-page config (Peacock CMS push API) |
+| GET/PUT/DELETE | `/api/v1/agents/:agentName/enabled-providers*` | Session/API Key | Per-agent provider enable/disable + impact preview |
 | GET/POST/PATCH/DELETE | `/api/v1/notifications/*` | Session/API Key | Notification rules CRUD + email provider config |
 | GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*` | Session/API Key | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, etc.) |
 | POST | `/api/v1/routing/ollama/sync` | Session/API Key | Sync Ollama models |
 | GET | `/api/v1/routing/pricing-health` | Session/API Key | OpenRouter pricing sync health |
 | POST | `/api/v1/routing/pricing/refresh` | Session/API Key | Force pricing cache refresh |
-| GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows (Gemini, OpenAI, Kiro, MiniMax) |
+| GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows (Gemini, OpenAI, Anthropic, xAI, Kiro, MiniMax) |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
 | POST | `/api/v1/routing/subscription-providers` | Bearer (mnfst_*) | Subscription provider config |
 | GET | `/api/v1/setup/status` | Public | First-run setup status |
@@ -416,6 +419,10 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `MANIFEST_MODE` — `selfhosted` or `cloud` (default: `cloud`; auto-detected as `selfhosted` inside Docker via `/.dockerenv` or Podman via `/run/.containerenv`). Self-hosted mode enables loopback auth shortcuts and allows custom-provider URLs with `http://` / private IPs. `local` is accepted as a legacy alias for `selfhosted`.
 - `MANIFEST_TELEMETRY_DISABLED` — Set `1` to opt out of anonymous telemetry (self-hosted only).
 - `MANIFEST_PUBLIC_STATS` — Set `true` to expose `/api/v1/public/*` aggregate stats without auth (cloud-only marketing use).
+- `TELEMETRY_ENDPOINT` — Where self-hosted installs POST the anonymous usage report. Default: `https://telemetry.manifest.build/v1/report`. See [Telemetry](#anonymous-usage-telemetry-self-hosted).
+- `SENTRY_DSN` / `SENTRY_ENVIRONMENT` / `SENTRY_RELEASE` — Opt-in Sentry error monitoring. Unset `SENTRY_DSN` disables Sentry entirely; `SENTRY_ENVIRONMENT` defaults to `NODE_ENV`. See [Error Monitoring](#error-monitoring-sentry-opt-in).
+- `WINGMAN_PORT` — Dev-only. Port a locally-running Wingman build listens on, allowed through CSP `frame-src` and CORS alongside the hosted Wingman origin. Default: backend `PORT` + 1.
+- `AUTH_DB_POOL_MAX` — Connection pool size for Better Auth's own `pg.Pool`, separate from `DB_POOL_MAX`. Default: `10`.
 - `OLLAMA_HOST` — Ollama endpoint for the built-in tile. Defaults to `http://localhost:11434` outside Docker and `http://host.docker.internal:11434` inside the bundled `docker/docker-compose.yml`.
 - `AUTOFIX_HEALING_URL` — Base URL of the Phoenix healing service for Auto-fix. Unset → inert Noop client in production (never mutates traffic), in-process mock in dev/test. See [Auto-fix](#auto-fix-self-healing-via-phoenix).
 - `AUTOFIX_HEALING_API_KEY` — Sent as `x-api-key` on every call to Phoenix. Phoenix guards `/api/heal*` and fails closed in production, so this is required when `AUTOFIX_HEALING_URL` points at a production Phoenix; omit it for a keyless dev/test Phoenix.
@@ -442,7 +449,7 @@ Any backend endpoint that returns provider-attempt fields rendered by the fronte
 
 - Adding a new column the UI needs → edit the helper once, never duplicate the projection across query services.
 - Endpoint-specific fields that don't belong to the shared `MessageRow` contract (e.g. `description`, `service_type`, `cache_read_tokens`, `duration_ms` for the full Messages log) stay as explicit `.addSelect` chained after the helper call.
-- Current call sites: `getRecentActivity()` in `timeseries-queries.service.ts` (Overview "Recent Messages") and `getMessages()` in `messages-query.service.ts` (Messages log).
+- Current call sites: `getRecentActivity()` in `timeseries-queries.service.ts` (Overview "Recent Messages"), `getMessages()` in `messages-query.service.ts` (Messages log), and `provider-analytics.controller.ts` (provider-scoped message list).
 - A `query-helpers.spec.ts` test pins the required alias set — it fails loudly if anyone drops a field from the helper. Don't bypass it by hand-rolling a new SELECT chain.
 
 This rule exists because the Overview and Messages pages previously drifted and the Recent Messages badge read `STANDARD` instead of the specificity category (`CODING` etc.) — the frontend already shares the rendering code, so the divergence was purely backend projection drift.
@@ -706,7 +713,7 @@ All pricing comes from a single source:
 |------|--------|-------------|
 | **Model Prices** | `ModelPricingCacheService.getAll()` | All models from OpenRouter cache, attributed to real providers |
 | **Routing (available models)** | `ModelDiscoveryService.getModelsForAgent()` | Only models from user's connected providers (discovered via native API) |
-| **Routing (tier assignments)** | `TierAutoAssignService.recalculate()` | Auto-assigned from discovered models based on quality/price scoring |
+| **Routing (tier assignments)** | `TierService` (`routing-core/route-helpers.ts` `effectiveRoute`/`unambiguousRoute`) | Auto-assigned from discovered models based on quality/price scoring |
 | **Requests / Overview attempt details** | Stored in `provider_attempts.model` column | Raw model name from telemetry, display name resolved via `model-display.ts` cache |
 
 ## Releases
@@ -788,4 +795,4 @@ This applies to:
 
 ### E2E Test Entities
 
-When adding new TypeORM entities to `database.module.ts`, also add them to the E2E test helper (`packages/backend/test/helpers.ts`) entities array. Missing entities cause `EntityMetadataNotFoundError` in services that depend on them.
+When adding new TypeORM entities to `database/data-source-definitions.ts` (the entities array `database.module.ts` imports from), also add them to the E2E test helper (`packages/backend/test/helpers.ts`) entities array. Missing entities cause `EntityMetadataNotFoundError` in services that depend on them.
