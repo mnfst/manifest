@@ -25,6 +25,9 @@ import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
+import { resolveModelCapabilityMetadata } from '../../model-discovery/model-capabilities';
 import { classifyCaller } from './caller-classifier';
 import { ObservationReporter } from '../autofix/observation-reporter';
 import { sanitizeRequestHeaders } from './request-headers';
@@ -89,6 +92,8 @@ export class ProxyController {
     private readonly modelDiscovery: ModelDiscoveryService,
     private readonly planService: PlanService,
     private readonly observationReporter: ObservationReporter,
+    private readonly providerParamSpecs: ProviderParamSpecService,
+    private readonly modelsDevSync: ModelsDevSyncService,
   ) {}
 
   @Get('models')
@@ -124,7 +129,14 @@ export class ProxyController {
         owned_by: model.provider,
       };
       if (includeCapabilities) {
-        const modelCapabilities = openAiModelCapabilities(model);
+        // Same resolution as the dashboard's model picker, so agents and the
+        // routing UI report identical capability facts.
+        const resolved = await resolveModelCapabilityMetadata(
+          model,
+          this.providerParamSpecs,
+          this.modelsDevSync,
+        );
+        const modelCapabilities = openAiModelCapabilities({ ...model, ...resolved });
         if (modelCapabilities) entry.capabilities = modelCapabilities;
       }
       data.push(entry);
