@@ -267,7 +267,9 @@ describe('runRequestBackfill', () => {
 
   it.each([
     ['batchSize', 0],
+    ['batchSize', 1.5],
     ['batchSize', Number.NaN],
+    ['batchSize', Number.MAX_SAFE_INTEGER + 1],
     ['throttleMs', -1],
     ['maxRetries', -1],
     ['retryBackoffMs', Number.POSITIVE_INFINITY],

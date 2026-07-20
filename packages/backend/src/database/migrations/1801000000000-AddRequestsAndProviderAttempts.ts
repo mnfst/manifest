@@ -16,6 +16,14 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
     // Fail the deploy attempt instead of queueing an ACCESS EXCLUSIVE schema
     // change behind a long Cloud query and then blocking newer traffic.
     await queryRunner.query(`SET lock_timeout = '5s'`);
+    try {
+      await this.addRequestSchema(queryRunner);
+    } finally {
+      await queryRunner.query(`RESET lock_timeout`);
+    }
+  }
+
+  private async addRequestSchema(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE TABLE IF NOT EXISTS "requests" (
         "id" varchar NOT NULL,
@@ -61,7 +69,9 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
       DO $$
       BEGIN
         IF NOT EXISTS (
-          SELECT 1 FROM pg_constraint WHERE conname = 'FK_agent_messages_request'
+          SELECT 1 FROM pg_constraint
+          WHERE conname = 'FK_agent_messages_request'
+            AND conrelid = 'agent_messages'::regclass
         ) THEN
           ALTER TABLE "agent_messages"
             ADD CONSTRAINT "FK_agent_messages_request"
@@ -117,10 +127,16 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
       WHERE c.relname = 'IDX_agent_messages_unlinked_fallback'
         AND i.indrelid = 'agent_messages'::regclass
     `)) as Array<{ valid: boolean; definition: string }>;
-    const expectedFallbackIndex = '(fallback_from_model, "timestamp", tenant_id, agent_id)';
+    const expectedFallbackIndexParts = [
+      '(fallback_from_model, "timestamp", tenant_id, agent_id)',
+      'INCLUDE (fallback_index, status, superseded)',
+      'request_id IS NULL',
+      'fallback_from_model IS NOT NULL',
+    ];
     if (
       fallbackIndex?.[0] &&
-      (!fallbackIndex[0].valid || !fallbackIndex[0].definition.includes(expectedFallbackIndex))
+      (!fallbackIndex[0].valid ||
+        expectedFallbackIndexParts.some((part) => !fallbackIndex[0].definition.includes(part)))
     ) {
       await queryRunner.query(
         `DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_unlinked_fallback"`,
@@ -129,7 +145,6 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
     await queryRunner.query(
       `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_agent_messages_unlinked_fallback" ON "agent_messages" ("fallback_from_model", "timestamp", "tenant_id", "agent_id") INCLUDE ("fallback_index", "status", "superseded") WHERE "request_id" IS NULL AND "fallback_from_model" IS NOT NULL`,
     );
-    await queryRunner.query(`RESET lock_timeout`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

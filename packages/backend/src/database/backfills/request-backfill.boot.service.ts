@@ -10,7 +10,10 @@ import {
   type RequestBackfillResult,
 } from './backfill-requests';
 import { TypeOrmRequestBackfillGateway } from './backfill-requests.gateway';
-import { MESSAGE_PROVIDER_BACKFILL_LOCK_KEY } from './message-provider-backfill.boot.service';
+import {
+  MESSAGE_PROVIDER_BACKFILL_LOCK_KEY,
+  MessageProviderBackfillBootService,
+} from './message-provider-backfill.boot.service';
 import { createRequestBackfillDataSource } from './request-backfill.datasource';
 
 /** Initial historical pass marker; legacy-writer delta is tracked by unlinked rows. */
@@ -111,7 +114,11 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
       return null;
     }
     this.ownedDataSource = dataSource;
-    return new RequestBackfillBootService(dataSource, dataSource.getRepository(BackfillState));
+    const stateRepo = dataSource.getRepository(BackfillState);
+    // The older provider-attribution task uses the same direct connection in
+    // Cloud. Its session advisory lock must never cross transaction PgBouncer.
+    await new MessageProviderBackfillBootService(dataSource, stateRepo).runUntilComplete();
+    return new RequestBackfillBootService(dataSource, stateRepo);
   }
 
   private async releaseCloudCoordinator(): Promise<void> {

@@ -11,6 +11,14 @@ export class AddProviderAttemptOrdering1801100000000 implements MigrationInterfa
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`SET lock_timeout = '5s'`);
+    try {
+      await this.addAttemptOrdering(queryRunner);
+    } finally {
+      await queryRunner.query(`RESET lock_timeout`);
+    }
+  }
+
+  private async addAttemptOrdering(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `ALTER TABLE "agent_messages" ADD COLUMN IF NOT EXISTS "attempt_number" integer`,
     );
@@ -49,7 +57,6 @@ export class AddProviderAttemptOrdering1801100000000 implements MigrationInterfa
       ON "agent_messages" ("request_id", "attempt_number")
       WHERE "request_id" IS NOT NULL AND "attempt_number" IS NOT NULL
     `);
-    await queryRunner.query(`RESET lock_timeout`);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

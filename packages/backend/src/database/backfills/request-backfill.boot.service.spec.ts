@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { BackfillState } from '../../entities/backfill-state.entity';
 import * as requestBackfillDataSource from './request-backfill.datasource';
+import { MessageProviderBackfillBootService } from './message-provider-backfill.boot.service';
 import {
   REQUEST_BACKFILL_LOCK_KEY,
   REQUEST_BACKFILL_LOCK_RETRY_MS,
@@ -81,6 +82,9 @@ describe('RequestBackfillBootService', () => {
     const factory = jest
       .spyOn(requestBackfillDataSource, 'createRequestBackfillDataSource')
       .mockReturnValue(directDataSource);
+    const providerBackfill = jest
+      .spyOn(MessageProviderBackfillBootService.prototype, 'runUntilComplete')
+      .mockResolvedValue(undefined);
     const service = new RequestBackfillBootService(appDataSource, makeState(false).repo);
 
     service.onApplicationBootstrap();
@@ -89,6 +93,7 @@ describe('RequestBackfillBootService', () => {
     expect(factory).toHaveBeenCalledWith(process.env);
     expect(directDataSource.initialize).toHaveBeenCalled();
     expect(directDataSource.getRepository).toHaveBeenCalledWith(BackfillState);
+    expect(providerBackfill).toHaveBeenCalledTimes(1);
     expect(appDataSource.createQueryRunner).not.toHaveBeenCalled();
     await service.onApplicationShutdown();
     expect(directDataSource.destroy).toHaveBeenCalled();
@@ -293,7 +298,7 @@ describe('RequestBackfillBootService', () => {
 
     try {
       const result = new RequestBackfillBootService(ds, state.repo).runUntilComplete();
-      await jest.advanceTimersByTimeAsync(30_000);
+      await jest.advanceTimersByTimeAsync(REQUEST_BACKFILL_LOCK_RETRY_MS);
       await result;
 
       expect(state.countBy).toHaveBeenCalledTimes(2);
@@ -311,12 +316,12 @@ describe('RequestBackfillBootService', () => {
 
     try {
       const result = new RequestBackfillBootService(ds, state.repo).runUntilComplete();
-      await jest.advanceTimersByTimeAsync(30_000 * 12);
+      await jest.advanceTimersByTimeAsync(REQUEST_BACKFILL_LOCK_RETRY_MS * 12);
 
       expect(state.countBy.mock.calls.length).toBeGreaterThan(10);
       expect(errorSpy).not.toHaveBeenCalled();
       state.countBy.mockResolvedValue(1);
-      await jest.advanceTimersByTimeAsync(30_000);
+      await jest.advanceTimersByTimeAsync(REQUEST_BACKFILL_LOCK_RETRY_MS);
       await result;
     } finally {
       jest.useRealTimers();
@@ -610,7 +615,7 @@ describe('RequestBackfillBootService', () => {
     expect(errorSpy).toHaveBeenCalledWith(
       expect.stringContaining('request backfill tail sweep failed'),
     );
-    service.onApplicationShutdown();
+    await service.onApplicationShutdown();
     jest.clearAllTimers();
     jest.useRealTimers();
   });
@@ -630,6 +635,6 @@ describe('RequestBackfillBootService', () => {
 
     expect(ds.query).toHaveBeenCalledTimes(1);
     expect(tail).not.toHaveBeenCalled();
-    service.onApplicationShutdown();
+    await service.onApplicationShutdown();
   });
 });

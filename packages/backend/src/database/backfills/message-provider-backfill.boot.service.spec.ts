@@ -37,8 +37,10 @@ describe('MessageProviderBackfillBootService', () => {
   let logSpy: jest.SpyInstance;
   let errSpy: jest.SpyInstance;
   const originalEnv = process.env['NODE_ENV'];
+  const originalMode = process.env['MANIFEST_MODE'];
 
   beforeEach(() => {
+    process.env['MANIFEST_MODE'] = 'selfhosted';
     logSpy = jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
     errSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
   });
@@ -46,6 +48,8 @@ describe('MessageProviderBackfillBootService', () => {
     logSpy.mockRestore();
     errSpy.mockRestore();
     process.env['NODE_ENV'] = originalEnv;
+    if (originalMode === undefined) delete process.env['MANIFEST_MODE'];
+    else process.env['MANIFEST_MODE'] = originalMode;
   });
 
   describe('onApplicationBootstrap', () => {
@@ -53,6 +57,16 @@ describe('MessageProviderBackfillBootService', () => {
       process.env['NODE_ENV'] = 'test';
       const ds = { createQueryRunner: jest.fn() } as unknown as DataSource;
       new MessageProviderBackfillBootService(ds, makeState(false).repo).onApplicationBootstrap();
+      expect(ds.createQueryRunner).not.toHaveBeenCalled();
+    });
+
+    it('leaves Cloud coordination to the direct request-backfill connection', () => {
+      process.env['NODE_ENV'] = 'production';
+      process.env['MANIFEST_MODE'] = 'cloud';
+      const ds = { createQueryRunner: jest.fn() } as unknown as DataSource;
+
+      new MessageProviderBackfillBootService(ds, makeState(false).repo).onApplicationBootstrap();
+
       expect(ds.createQueryRunner).not.toHaveBeenCalled();
     });
 

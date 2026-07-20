@@ -17,7 +17,7 @@ export function resolveRequestBackfillDatabaseUrl(env: NodeJS.ProcessEnv): strin
   if (directUrl) return directUrl;
 
   throw new Error(
-    'A direct PostgreSQL URL is required; set BACKFILL_DATABASE_URL, MIGRATION_DATABASE_URL, or DATABASE_UNPOOLED_URL',
+    'A direct PostgreSQL URL is required; set MIGRATION_DATABASE_URL, DATABASE_UNPOOLED_URL, or BACKFILL_DATABASE_URL',
   );
 }
 

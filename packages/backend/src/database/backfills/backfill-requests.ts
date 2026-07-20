@@ -54,6 +54,12 @@ function assertPositiveFinite(name: string, value: number): void {
   }
 }
 
+function assertPositiveSafeInteger(name: string, value: number): void {
+  if (!Number.isSafeInteger(value) || value <= 0) {
+    throw new Error(`request backfill ${name} must be a positive safe integer`);
+  }
+}
+
 function assertNonNegativeFinite(name: string, value: number): void {
   if (!Number.isFinite(value) || value < 0) {
     throw new Error(`request backfill ${name} must be a non-negative finite number`);
@@ -88,7 +94,7 @@ export async function runRequestBackfill(
     statementTimeoutMs: options.statementTimeoutMs ?? DEFAULT_BACKFILL_OPTIONS.statementTimeoutMs,
   };
 
-  assertPositiveFinite('batchSize', batchSize);
+  assertPositiveSafeInteger('batchSize', batchSize);
   assertNonNegativeFinite('throttleMs', throttleMs);
   assertNonNegativeFinite('maxRetries', maxRetries);
   assertNonNegativeFinite('retryBackoffMs', retryBackoffMs);

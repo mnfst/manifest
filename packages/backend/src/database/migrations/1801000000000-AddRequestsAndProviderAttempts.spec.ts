@@ -21,6 +21,7 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
     const sql = queries.join('\n');
     expect(migration.transaction).toBe(false);
     expect(queries[0]).toContain("SET lock_timeout = '5s'");
+    expect(queries.at(-1)).toContain('RESET lock_timeout');
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS "requests"');
     expect(sql).toContain('"autofix_status" varchar');
     expect(sql).toContain('CONSTRAINT "CHK_requests_autofix_status"');
@@ -38,6 +39,7 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
     expect(sql).not.toMatch(/RENAME\s+COLUMN/i);
     expect(sql).toContain('ADD COLUMN IF NOT EXISTS "request_id"');
     expect(sql).toContain('NOT VALID');
+    expect(sql).toContain("conrelid = 'agent_messages'::regclass");
     expect(sql).toContain('CREATE INDEX CONCURRENTLY IF NOT EXISTS');
     expect(sql).toContain(
       '"IDX_agent_messages_request_id" ON "agent_messages" ("request_id", "id")',
@@ -118,6 +120,71 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
         sql.includes('DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_unlinked_fallback"'),
       ),
     ).toBe(true);
+  });
+
+  it('rebuilds a fallback index missing its covering columns or predicate', async () => {
+    (runner as { query: jest.Mock }).query.mockImplementation((sql: string) => {
+      queries.push(sql);
+      if (sql.includes("c.relname = 'IDX_agent_messages_request_id'")) {
+        return Promise.resolve([{ valid: true, definition: '(request_id, id)' }]);
+      }
+      if (sql.includes("c.relname = 'IDX_agent_messages_unlinked_fallback'")) {
+        return Promise.resolve([
+          {
+            valid: true,
+            definition: '(fallback_from_model, "timestamp", tenant_id, agent_id)',
+          },
+        ]);
+      }
+      return Promise.resolve();
+    });
+
+    await migration.up(runner);
+
+    expect(
+      queries.some((sql) =>
+        sql.includes('DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_unlinked_fallback"'),
+      ),
+    ).toBe(true);
+  });
+
+  it('keeps a valid fallback index with the expected covering predicate', async () => {
+    (runner as { query: jest.Mock }).query.mockImplementation((sql: string) => {
+      queries.push(sql);
+      if (sql.includes("c.relname = 'IDX_agent_messages_request_id'")) {
+        return Promise.resolve([{ valid: true, definition: '(request_id, id)' }]);
+      }
+      if (sql.includes("c.relname = 'IDX_agent_messages_unlinked_fallback'")) {
+        return Promise.resolve([
+          {
+            valid: true,
+            definition:
+              '(fallback_from_model, "timestamp", tenant_id, agent_id) INCLUDE (fallback_index, status, superseded) WHERE ((request_id IS NULL) AND (fallback_from_model IS NOT NULL))',
+          },
+        ]);
+      }
+      return Promise.resolve();
+    });
+
+    await migration.up(runner);
+
+    expect(
+      queries.some((sql) =>
+        sql.includes('DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_unlinked_fallback"'),
+      ),
+    ).toBe(false);
+  });
+
+  it('resets the lock timeout when the migration fails', async () => {
+    const failure = new Error('lock timeout');
+    (runner as { query: jest.Mock }).query.mockImplementation((sql: string) => {
+      queries.push(sql);
+      if (sql.includes('CREATE TABLE')) return Promise.reject(failure);
+      return Promise.resolve();
+    });
+
+    await expect(migration.up(runner)).rejects.toBe(failure);
+    expect(queries.at(-1)).toContain('RESET lock_timeout');
   });
 
   it('rolls back only the additive request schema', async () => {
