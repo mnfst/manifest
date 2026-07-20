@@ -1,0 +1,96 @@
+{
+  "name": "Draft Gmail replies with Manifest model fallback",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Draft replies without depending on one AI provider\n1. Create a Gmail label named `manifest-draft`.\n2. Connect Gmail and Manifest credentials.\n3. Configure a primary model and fallback models in Manifest.\n4. Set the Manifest route response mode to **Buffered**.\n5. Apply the label to emails that need a reply draft.\n6. Review every generated draft in Gmail before sending.\n\nA useful setup is a subscription model first, then a pay-per-token provider as fallback.",
+        "height": 380,
+        "width": 540,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-700, -380],
+      "id": "117a161f-f27d-4644-8d9e-d3d80e75aa9d",
+      "name": "Setup"
+    },
+    {
+      "parameters": {
+        "content": "## Customize the reply policy\nEdit the system message in **Generate Reply with Fallback** with your company context, response rules, escalation policy, and tone.\n\nThe workflow creates a draft only. It never sends email automatically.",
+        "height": 260,
+        "width": 420,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-20, -320],
+      "id": "896bcfde-30bd-4ac0-9264-77272ac81631",
+      "name": "Customize"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "label:manifest-draft is:unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [-560, 120],
+      "id": "43b17f74-2c50-4380-a7e4-18df48035674",
+      "name": "Watch Labeled Emails"
+    },
+    {
+      "parameters": {
+        "operation": "chatCompletion",
+        "model": "auto",
+        "messages": "={{ [{ role: 'system', content: 'Draft a concise, helpful email reply. Match the sender language. Do not invent facts, prices, dates, or commitments. If information is missing, ask a clear follow-up question. Return only the email body without a subject line or markdown.' }, { role: 'user', content: JSON.stringify({ from: $json.from, subject: $json.subject, message: $json.text || $json.snippet || '' }) }] }}",
+        "additionalBody": "{\"temperature\":0.2}"
+      },
+      "type": "n8n-nodes-manifest.manifest",
+      "typeVersion": 1,
+      "position": [-280, 120],
+      "id": "2de2a5ee-3374-42f0-83a9-e17fd491c647",
+      "name": "Generate Reply with Fallback"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "operation": "create",
+        "subject": "={{ $('Watch Labeled Emails').item.json.subject?.toLowerCase().startsWith('re:') ? $('Watch Labeled Emails').item.json.subject : 'Re: ' + ($('Watch Labeled Emails').item.json.subject || '') }}",
+        "emailType": "text",
+        "message": "={{ $json.choices[0].message.content }}",
+        "options": {
+          "sendTo": "={{ $('Watch Labeled Emails').item.json.replyTo || $('Watch Labeled Emails').item.json.from }}",
+          "threadId": "={{ $('Watch Labeled Emails').item.json.threadId }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [0, 120],
+      "id": "167c4322-002d-48b6-9b65-c91e32d29b7a",
+      "name": "Create Gmail Draft"
+    }
+  ],
+  "connections": {
+    "Watch Labeled Emails": {
+      "main": [[{"node": "Generate Reply with Fallback", "type": "main", "index": 0}]]
+    },
+    "Generate Reply with Fallback": {
+      "main": [[{"node": "Create Gmail Draft", "type": "main", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "active": false,
+  "versionId": "982bb181-8d9c-4538-8599-b83e335f6884",
+  "meta": {"templateCredsSetupCompleted": false},
+  "tags": []
+}

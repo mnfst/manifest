@@ -1,6 +1,6 @@
 # n8n-nodes-manifest
 
-Use [Manifest](https://manifest.build) from n8n workflows. Manifest routes requests through the right AI model behind one OpenAI-compatible API.
+Use [Manifest](https://manifest.build) from n8n workflows. Manifest keeps AI steps running by retrying configured fallback models behind one OpenAI-compatible API.
 
 ## Operations
 
@@ -42,6 +42,13 @@ The credential sends requests with:
 ```text
 Authorization: Bearer <your Manifest API key>
 ```
+
+## Workflow templates
+
+Importable examples and Creator Hub submission copy are available in the [workflow templates directory](https://github.com/mnfst/manifest/tree/main/integrations/n8n-nodes-manifest/templates):
+
+- Draft Gmail replies with Manifest model fallback
+- Qualify inbound leads and alert sales in Slack with Manifest fallback
 
 ## Install
 

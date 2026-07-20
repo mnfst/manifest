@@ -247,7 +247,7 @@ export class Manifest implements INodeType {
 		group: ['transform'],
 		version: [1],
 		subtitle: '={{$parameter["operation"]}}',
-		description: 'Route AI requests through Manifest',
+		description: 'Run AI requests with Manifest model fallback',
 		defaults: {
 			name: 'Manifest',
 		},
@@ -294,7 +294,7 @@ export class Manifest implements INodeType {
 				type: 'string',
 				default: 'auto',
 				required: true,
-				description: 'Manifest model ID. Use auto to let Manifest route the request.',
+				description: 'Manifest model ID. Use auto to run the configured model and fallbacks.',
 				displayOptions: {
 					show: {
 						operation: ['chatCompletion', 'createResponse'],
@@ -333,7 +333,7 @@ export class Manifest implements INodeType {
 				type: 'json',
 				default: '{}',
 				description:
-					'Additional JSON fields to merge into the request body. Manifest routing controls streaming, so the stream field is ignored.',
+					'Additional JSON fields to merge into the request body. The Manifest response mode controls streaming, so the stream field is ignored.',
 				displayOptions: {
 					show: {
 						operation: ['chatCompletion', 'createResponse'],

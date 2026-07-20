@@ -1,0 +1,164 @@
+{
+  "name": "Qualify inbound leads and alert sales with Manifest fallback",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Reliable lead qualification\nThis workflow accepts leads from any form or application, validates the payload, asks Manifest for a structured qualification, and alerts sales in Slack when the score is 70 or higher.\n\nConfigure a primary model and fallback models in Manifest, set the route response mode to **Buffered**, then select Manifest and Slack credentials. Choose the Slack channel in **Alert Sales in Slack**.\n\n```json\n{\n  \"name\": \"Ada Lovelace\",\n  \"email\": \"ada@example.com\",\n  \"company\": \"Analytical Engines\",\n  \"role\": \"CTO\",\n  \"message\": \"We need a reliable AI gateway for production automations.\",\n  \"source\": \"website\"\n}\n```",
+        "height": 500,
+        "width": 600,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-900, -500],
+      "id": "f9e1c173-92c5-4ab7-bbb4-c4dbe6685828",
+      "name": "Setup"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "manifest-lead-qualification",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-800, 160],
+      "id": "7a121702-3001-4cd1-a632-60e8311421ac",
+      "name": "Receive Lead",
+      "webhookId": "46cfbdea-e2a4-4abe-acb8-fd5cd74426e3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body ?? {};\nconst lead = {\n  name: typeof body.name === 'string' ? body.name.trim() : '',\n  email: typeof body.email === 'string' ? body.email.trim() : '',\n  company: typeof body.company === 'string' ? body.company.trim() : '',\n  role: typeof body.role === 'string' ? body.role.trim() : '',\n  message: typeof body.message === 'string' ? body.message.trim() : '',\n  source: typeof body.source === 'string' ? body.source.trim() : 'unknown',\n};\nconst errors = [];\nif (!lead.name) errors.push('name is required');\nif (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(lead.email)) errors.push('email must be valid');\nif (!lead.message) errors.push('message is required');\n\nreturn [{\n  json: {\n    valid: errors.length === 0,\n    lead,\n    errors,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-540, 160],
+      "id": "be95a273-d6c0-4cdf-ab05-b786e29411ee",
+      "name": "Validate Lead"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.valid ? 0 : 1 }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [-280, 160],
+      "id": "c42038b2-2182-45da-af93-5644188799b7",
+      "name": "Lead Valid?"
+    },
+    {
+      "parameters": {
+        "operation": "chatCompletion",
+        "model": "auto",
+        "messages": "={{ [{ role: 'system', content: 'Qualify the inbound B2B lead. Return only valid JSON with this exact shape: {\"score\":0,\"summary\":\"\",\"reason\":\"\",\"recommended_action\":\"\"}. score must be an integer from 0 to 100. Evaluate business intent, urgency, fit, and specificity. Do not include markdown.' }, { role: 'user', content: JSON.stringify($json.lead) }] }}",
+        "additionalBody": "{\"temperature\":0.1}"
+      },
+      "type": "n8n-nodes-manifest.manifest",
+      "typeVersion": 1,
+      "position": [0, 60],
+      "id": "6bbf7e1c-f407-457c-b456-f20f5091efe4",
+      "name": "Qualify Lead with Fallback"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lead = $('Validate Lead').first().json.lead;\nconst content = $input.first().json.choices?.[0]?.message?.content;\nif (typeof content !== 'string') throw new Error('Manifest returned no qualification text');\n\nconst cleaned = content\n  .trim()\n  .replace(/^```(?:json)?\\s*/i, '')\n  .replace(/\\s*```$/, '');\nlet qualification;\ntry {\n  qualification = JSON.parse(cleaned);\n} catch {\n  throw new Error('The model response was not valid JSON');\n}\n\nconst score = Number(qualification.score);\nif (!Number.isFinite(score)) throw new Error('The qualification score is missing');\n\nreturn [{\n  json: {\n    ok: true,\n    lead,\n    qualification: {\n      score: Math.max(0, Math.min(100, Math.round(score))),\n      summary: String(qualification.summary ?? ''),\n      reason: String(qualification.reason ?? ''),\n      recommended_action: String(qualification.recommended_action ?? ''),\n    },\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [280, 60],
+      "id": "8501f75c-1844-4a1c-a389-de288c89a6c9",
+      "name": "Parse Qualification"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $json.qualification.score >= 70 ? 0 : 1 }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [540, 60],
+      "id": "ecb88d7d-d19b-4849-a1df-b678ca6cd6d8",
+      "name": "Qualified?"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": ""
+        },
+        "messageType": "text",
+        "text": "=New qualified lead (score {{ $json.qualification.score }})\n*{{ $json.lead.name }}* - {{ $json.lead.company || 'Company not provided' }}\n{{ $json.lead.email }}\n\n{{ $json.qualification.summary }}\n*Why:* {{ $json.qualification.reason }}\n*Next action:* {{ $json.qualification.recommended_action }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [800, -40],
+      "id": "1c73a9b5-00fd-47b8-8d55-e44e3798a326",
+      "name": "Alert Sales in Slack",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $('Parse Qualification').first().json }}",
+        "options": {"responseCode": 200}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [1080, 60],
+      "id": "31d61efb-139c-4827-8706-527a81536f43",
+      "name": "Return Qualification"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: false, errors: $json.errors } }}",
+        "options": {"responseCode": 400}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [0, 280],
+      "id": "576f32fa-b3f3-4d05-97fe-f0e366303aec",
+      "name": "Return Validation Error"
+    }
+  ],
+  "connections": {
+    "Receive Lead": {"main": [[{"node": "Validate Lead", "type": "main", "index": 0}]]},
+    "Validate Lead": {"main": [[{"node": "Lead Valid?", "type": "main", "index": 0}]]},
+    "Lead Valid?": {
+      "main": [
+        [{"node": "Qualify Lead with Fallback", "type": "main", "index": 0}],
+        [{"node": "Return Validation Error", "type": "main", "index": 0}]
+      ]
+    },
+    "Qualify Lead with Fallback": {"main": [[{"node": "Parse Qualification", "type": "main", "index": 0}]]},
+    "Parse Qualification": {"main": [[{"node": "Qualified?", "type": "main", "index": 0}]]},
+    "Qualified?": {
+      "main": [
+        [{"node": "Alert Sales in Slack", "type": "main", "index": 0}],
+        [{"node": "Return Qualification", "type": "main", "index": 0}]
+      ]
+    },
+    "Alert Sales in Slack": {"main": [[{"node": "Return Qualification", "type": "main", "index": 0}]]}
+  },
+  "pinData": {},
+  "settings": {"executionOrder": "v1"},
+  "active": false,
+  "versionId": "7a253d73-a25a-4a48-b5e7-adc84f72615d",
+  "meta": {"templateCredsSetupCompleted": false},
+  "tags": []
+}

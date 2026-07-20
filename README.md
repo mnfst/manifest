@@ -42,12 +42,12 @@ Plug your AI agents into any provider
 
 ## What is Manifest?
 
-Manifest is an open-source model router for AI agents and apps. Connect your API keys, subscriptions, and local models to one OpenAI-compatible endpoint, and each query goes to the right model. No single-provider lock-in.
+Manifest is an open-source model fallback layer for AI agents and apps. Connect API keys, subscriptions, and local models behind one OpenAI-compatible endpoint, choose a primary model, and keep requests running with configured fallbacks. No single-provider lock-in.
 
-- 🔀 Routing based on complexity, specificity and custom HTTP headers
+- 🔄 Retry requests across configured fallback models
 - 🎛️ Mix your providers: API keys, Subscriptions, Local models, Custom providers
 - 📊 Track every single dollar, setup notifications and limits
-- 🚑 Fallback on different models when queries fails
+- 🚑 Keep applications running through provider failures and rate limits
 
 ## Quick start
 
@@ -81,7 +81,7 @@ Full deployment guides: [Railway](https://manifest.build/docs/deploy/railway), [
 
 ## Providers
 
-Manifest connects to **300+ models through 31 built-in provider connections** plus any custom OpenAI/Anthropic-compatible endpoint. Bring your own API key, reuse one of **18 subscription flows**, or run models locally. Everything is routed through the same `/auto` endpoint.
+Manifest connects to **300+ models through 31 built-in provider connections** plus any custom OpenAI/Anthropic-compatible endpoint. Bring your own API key, reuse one of **18 subscription flows**, or run models locally. Use the same `/auto` endpoint for the configured primary and fallback chain.
 
 Provider catalogs are discovered dynamically when credentials are connected. The examples below are representative, not exhaustive.
 
