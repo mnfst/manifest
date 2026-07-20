@@ -109,6 +109,33 @@ describe('resolveModelCapabilityMetadata', () => {
     expect(resolved.outputModalities).toEqual(['text']);
   });
 
+  it('falls back to curated known modalities when discovery and models.dev are silent', async () => {
+    const resolved = await resolveModelCapabilityMetadata(
+      makeModel({ id: 'gpt-5.4-mini', provider: 'openai', authType: 'subscription' }),
+      paramSpecs,
+      modelsDevSync,
+    );
+
+    expect(resolved.inputModalities).toEqual(['text', 'image']);
+    expect(resolved.outputModalities).toEqual(['text']);
+  });
+
+  it('prefers discovered modalities over the curated known list', async () => {
+    const resolved = await resolveModelCapabilityMetadata(
+      makeModel({
+        id: 'gpt-5.4-mini',
+        provider: 'openai',
+        inputModalities: ['text'],
+        outputModalities: ['text'],
+      }),
+      paramSpecs,
+      modelsDevSync,
+    );
+
+    expect(resolved.inputModalities).toEqual(['text']);
+    expect(resolved.outputModalities).toEqual(['text']);
+  });
+
   it('looks up metadata under the underlying provider for vendor-prefixed ids', async () => {
     await resolveModelCapabilityMetadata(
       makeModel({ id: 'anthropic.claude-sonnet-5-v1:0', provider: 'bedrock' }),

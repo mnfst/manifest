@@ -8,8 +8,24 @@ describe('lookupKnownModalities', () => {
     });
   });
 
+  it('identifies mainline ChatGPT subscription models as accepting image input', () => {
+    for (const modelId of [
+      'gpt-5.6-sol',
+      'gpt-5.6-terra',
+      'gpt-5.6-luna',
+      'gpt-5.5',
+      'gpt-5.4',
+      'gpt-5.4-mini',
+    ]) {
+      expect(lookupKnownModalities('openai', modelId)).toEqual({
+        input: ['text', 'image'],
+        output: ['text'],
+      });
+    }
+  });
+
   it('returns undefined for models without a curated entry', () => {
-    expect(lookupKnownModalities('openai', 'gpt-5.4')).toBeUndefined();
+    expect(lookupKnownModalities('openai', 'unlisted-model')).toBeUndefined();
     expect(lookupKnownModalities('anthropic', 'gpt-5.3-codex-spark')).toBeUndefined();
   });
 });

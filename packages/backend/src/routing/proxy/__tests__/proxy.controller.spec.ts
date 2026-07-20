@@ -325,12 +325,12 @@ describe('ProxyController', () => {
   it('should omit the capabilities field for models with unknown metadata and for auto', async () => {
     modelDiscovery.getModelsForAgent.mockResolvedValue([
       makeDiscoveredModel({ id: 'mystery-model', provider: 'kiro' }),
+      // No discovery-time modalities: the curated known-modalities fallback
+      // must supply them even when cached_models predate the curated list.
       makeDiscoveredModel({
         id: 'gpt-5.3-codex-spark',
         provider: 'openai',
         authType: 'subscription',
-        inputModalities: ['text'],
-        outputModalities: ['text'],
       }),
     ]);
 

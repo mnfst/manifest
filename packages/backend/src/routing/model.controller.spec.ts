@@ -286,6 +286,16 @@ describe('ModelController', () => {
       });
     });
 
+    it('surfaces curated known modalities in the picker payload when discovery has none', async () => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeDiscovered({ id: 'gpt-5.4-mini', provider: 'openai', authType: 'subscription' }),
+      ]);
+
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
+
+      expect(result[0].input_modalities).toEqual(['text', 'image']);
+    });
+
     it('includes the per-request cost for OpenCode Go subscription models', async () => {
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([
         makeDiscovered({

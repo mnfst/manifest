@@ -3,6 +3,7 @@ import { resolveProviderMetadataIdentity } from 'manifest-shared';
 import type { AuthType, ModelCapability, ModelModality } from 'manifest-shared';
 import type { DiscoveredModel } from './model-fetcher';
 import type { ModelsDevModelEntry } from '../database/models-dev-sync.service';
+import { lookupKnownModalities } from './known-model-modalities';
 
 type RawModalities = { input?: string[]; output?: string[] } | undefined;
 
@@ -132,6 +133,9 @@ export async function resolveModelCapabilityMetadata(
   const metadata = resolveProviderMetadataIdentity(model.provider, model.id);
   const metadataProvider = metadata.provider ?? model.provider;
   const modelsDevEntry = modelsDevSync.lookupModel(metadataProvider, metadata.model);
+  // Curated facts are the last resort, and applying them here (not only at
+  // discovery time) means stale cached_models still resolve correctly.
+  const known = lookupKnownModalities(metadataProvider, metadata.model);
   return {
     capabilities: mergeModelCapabilities(
       model.capabilities,
@@ -139,8 +143,8 @@ export async function resolveModelCapabilityMetadata(
       specCapabilities,
       modelSupportsStreaming(metadataProvider, metadata.model) ? ['stream'] : undefined,
     ),
-    inputModalities: modelsDevEntry?.inputModalities ?? model.inputModalities,
-    outputModalities: modelsDevEntry?.outputModalities ?? model.outputModalities,
+    inputModalities: modelsDevEntry?.inputModalities ?? model.inputModalities ?? known?.input,
+    outputModalities: modelsDevEntry?.outputModalities ?? model.outputModalities ?? known?.output,
     modelsDevEntry,
   };
 }
