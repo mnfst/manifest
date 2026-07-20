@@ -1,9 +1,10 @@
 import { readFileSync } from 'fs';
+import { randomUUID } from 'crypto';
 import { Client } from 'pg';
 import { render } from '@react-email/render';
 import * as React from 'react';
 import { DoctorReleaseEmail } from '../notifications/emails/doctor-release';
-import { sendEmail } from '../notifications/services/email-providers/send-email';
+import { isEmailConfigured, sendEmail } from '../notifications/services/email-providers/send-email';
 
 export const DOCTOR_RELEASE_ANNOUNCEMENT_KEY = 'doctor-release-2026-07';
 const SUBJECT = 'Auto-fix is live on your account';
@@ -59,11 +60,44 @@ export function parseArgs(argv: string[]): CliArgs {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--dry-run') args.dryRun = true;
-    else if (arg === '--test') args.testRecipient = argv[++i]?.toLowerCase();
-    else if (!arg.startsWith('-') && !args.file) args.file = arg;
+    else if (arg === '--test') {
+      const recipient = argv[i + 1];
+      if (!recipient || recipient.startsWith('-')) {
+        throw new Error('--test requires an email address');
+      }
+      args.testRecipient = parseMailingList([recipient])[0];
+      i++;
+    } else if (!arg.startsWith('-') && !args.file) args.file = arg;
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return args;
+}
+
+const ABANDONED_CLAIM_INTERVAL = '1 hour';
+
+/** Atomically claim one address. A fresh claim held by another run is skipped. */
+export async function claimRecipient(db: Client, email: string): Promise<string | null> {
+  const claimId = randomUUID();
+  const result = await db.query<{ claim_id: string }>(
+    `INSERT INTO announcement_sends
+       (announcement, email, claim_id, claimed_at, sent_at)
+     VALUES ($1, $2, $3, NOW(), NULL)
+     ON CONFLICT (announcement, email) DO UPDATE
+       SET claim_id = EXCLUDED.claim_id, claimed_at = NOW()
+       WHERE announcement_sends.sent_at IS NULL
+         AND announcement_sends.claimed_at < NOW() - $4::interval
+     RETURNING claim_id`,
+    [DOCTOR_RELEASE_ANNOUNCEMENT_KEY, email, claimId, ABANDONED_CLAIM_INTERVAL],
+  );
+  return result.rows[0]?.claim_id === claimId ? claimId : null;
+}
+
+async function releaseClaim(db: Client, email: string, claimId: string): Promise<void> {
+  await db.query(
+    `DELETE FROM announcement_sends
+     WHERE announcement = $1 AND email = $2 AND claim_id = $3 AND sent_at IS NULL`,
+    [DOCTOR_RELEASE_ANNOUNCEMENT_KEY, email, claimId],
+  );
 }
 
 async function main(): Promise<void> {
@@ -90,6 +124,12 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (!isEmailConfigured()) {
+    throw new Error(
+      'A valid email provider configuration is required (EMAIL_PROVIDER and EMAIL_API_KEY)',
+    );
+  }
+
   const appUrl = process.env['ANNOUNCE_APP_URL'] ?? 'https://app.manifest.build';
   const tutorialUrl = process.env['DOCTOR_TUTORIAL_URL'] || undefined;
   const element = React.createElement(DoctorReleaseEmail, { appUrl, tutorialUrl });
@@ -109,30 +149,36 @@ async function main(): Promise<void> {
 
   let sent = 0;
   let skipped = 0;
+  let failed = 0;
   try {
     for (const email of recipients) {
+      let claimId: string | null = null;
       if (db) {
-        const seen = await db.query(
-          'SELECT 1 FROM announcement_sends WHERE announcement = $1 AND email = $2 LIMIT 1',
-          [DOCTOR_RELEASE_ANNOUNCEMENT_KEY, email],
-        );
-        if (seen.rows.length > 0) {
+        claimId = await claimRecipient(db, email);
+        if (!claimId) {
           skipped++;
           continue;
         }
       }
-      const ok = await sendEmail({ to: email, subject: SUBJECT, html, text });
+      let ok: boolean;
+      try {
+        ok = await sendEmail({ to: email, subject: SUBJECT, html, text });
+      } catch (error) {
+        if (db && claimId) await releaseClaim(db, email, claimId);
+        throw error;
+      }
       if (ok) {
         sent++;
-        if (db) {
+        if (db && claimId) {
           await db.query(
-            `INSERT INTO announcement_sends (announcement, email, sent_at)
-             VALUES ($1, $2, NOW())
-             ON CONFLICT (announcement, email) DO NOTHING`,
-            [DOCTOR_RELEASE_ANNOUNCEMENT_KEY, email],
+            `UPDATE announcement_sends SET sent_at = NOW()
+             WHERE announcement = $1 AND email = $2 AND claim_id = $3`,
+            [DOCTOR_RELEASE_ANNOUNCEMENT_KEY, email, claimId],
           );
         }
       } else {
+        failed++;
+        if (db && claimId) await releaseClaim(db, email, claimId);
         console.warn(`Send failed for ${email} (no ledger row: a rerun will retry it)`);
       }
       // Gentle pace for the provider's rate limits.
@@ -141,7 +187,10 @@ async function main(): Promise<void> {
   } finally {
     await db?.end();
   }
-  console.log(`Done: ${sent} sent, ${skipped} skipped (already sent earlier)`);
+  console.log(`Done: ${sent} sent, ${skipped} skipped (already sent or claimed), ${failed} failed`);
+  if (failed > 0) {
+    throw new Error(`${failed} announcement email(s) failed; rerun to retry them`);
+  }
 }
 
 /* istanbul ignore next -- CLI entry, exercised manually */

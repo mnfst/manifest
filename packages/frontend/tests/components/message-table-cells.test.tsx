@@ -233,7 +233,9 @@ describe('StatusCell merged pill', () => {
     const { container } = renderCell(
       baseRow({ status: 'error', error_message: 'net', error_origin: 'transport' }),
     );
-    expect(onlyBadge(container).getAttribute('title')).toBe('Transport');
+    const badge = onlyBadge(container);
+    expect(badge.textContent).toContain('Failed');
+    expect(badge.getAttribute('title')).toBe('Transport');
   });
 
   it('titles a malformed caller body "Bad request", not "Provider"', () => {

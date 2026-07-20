@@ -76,7 +76,8 @@ vi.mock('../../src/services/sse.js', () => ({
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
-  REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
   getErrorBreakdown: (...args: unknown[]) => mockGetErrorBreakdown(...args),
 }));
 
@@ -379,7 +380,9 @@ describe('analytics chart surface components', () => {
       />
     ));
     fireEvent.click(screen.getByText('Failed requests').closest('.overview-stat-card')!);
-    expect(routerNavigate).toHaveBeenCalledWith('/messages?agent=demo-agent&range=7d&status=failed');
+    expect(routerNavigate).toHaveBeenCalledWith(
+      '/messages?agent=demo-agent&range=7d&status=failed',
+    );
     fireEvent.click(screen.getByText('Recovered by Auto-fix').closest('.overview-stat-card')!);
     expect(routerNavigate).toHaveBeenCalledWith(
       '/messages?agent=demo-agent&range=7d&status=ok&trigger=autofix',
@@ -392,6 +395,38 @@ describe('analytics chart surface components', () => {
     expect(routerNavigate).toHaveBeenCalledWith(
       '/messages?agent=demo-agent&range=7d&status=ok&trigger=autofix,fallback',
     );
+
+    const failedCard = screen.getByText('Failed requests').closest('.overview-stat-card')!;
+    expect(failedCard.getAttribute('role')).toBe('link');
+    expect((failedCard as HTMLElement).tabIndex).toBe(0);
+    fireEvent.keyDown(failedCard, { key: 'Enter' });
+    expect(routerNavigate).toHaveBeenLastCalledWith(
+      '/messages?agent=demo-agent&range=7d&status=failed',
+    );
+  });
+
+  it('describes global KPI links as covering all harnesses', () => {
+    render(() => (
+      <AutofixKpiCards
+        stats={{
+          success_rate: { value: 0.8, previous: 0.7 },
+          errors_remaining: { value: 2, previous: 1 },
+          autofix_saves: { value: 5, previous: 0 },
+          fallback_saves: { value: 3, previous: 0 },
+          total_requests: { value: 100, previous: 0 },
+          coverage: { rate: 0.5, previous_rate: 0.4 },
+          dispositions: { healed: 5, no_fix_found: 2, resolving: 1, ineffective: 0 },
+          needs_attention: [],
+        }}
+      />
+    ));
+
+    expect(
+      screen.getByText('Recovered requests').closest('.overview-stat-card')?.getAttribute('title'),
+    ).toBe('View recovered requests across all harnesses');
+    expect(
+      screen.getByText('Failed requests').closest('.overview-stat-card')?.getAttribute('title'),
+    ).toBe('View failed requests across all harnesses');
   });
 
   it('renders and sorts error classes, then renders the empty state', async () => {

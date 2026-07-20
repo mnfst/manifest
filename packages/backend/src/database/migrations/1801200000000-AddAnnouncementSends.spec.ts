@@ -21,6 +21,9 @@ describe('AddAnnouncementSends1801200000000', () => {
         'CONSTRAINT "PK_announcement_sends" PRIMARY KEY ("announcement", "email")',
       ),
     );
+    expect(queryRunner.query).toHaveBeenCalledWith(
+      expect.stringContaining('"claim_id" varchar NOT NULL'),
+    );
   });
 
   it('drops the announcement send ledger', async () => {

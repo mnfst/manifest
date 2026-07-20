@@ -13,6 +13,7 @@ export class AddAnnouncementSends1801200000000 implements MigrationInterface {
       CREATE TABLE IF NOT EXISTS "announcement_sends" (
         "announcement" varchar NOT NULL,
         "email" varchar NOT NULL,
+        "claim_id" varchar NOT NULL,
         "claimed_at" TIMESTAMP NOT NULL DEFAULT now(),
         "sent_at" TIMESTAMP,
         CONSTRAINT "PK_announcement_sends" PRIMARY KEY ("announcement", "email")

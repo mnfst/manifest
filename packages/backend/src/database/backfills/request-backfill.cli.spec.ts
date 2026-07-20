@@ -30,20 +30,15 @@ describe('resolveRequestBackfillDatabaseUrl', () => {
     ).toBe('postgres://unpooled/db');
   });
 
-  it('refuses the pooled application URL in production', () => {
+  it('refuses the pooled application URL regardless of NODE_ENV', () => {
     expect(() =>
       resolveRequestBackfillDatabaseUrl({
-        NODE_ENV: 'production',
         DATABASE_URL: 'postgres://pgbouncer/db',
       }),
-    ).toThrow('A direct PostgreSQL URL is required in Cloud production');
-  });
-
-  it('allows the application URL or local default outside production', () => {
-    expect(resolveRequestBackfillDatabaseUrl({ DATABASE_URL: 'postgres://local/db' })).toBe(
-      'postgres://local/db',
+    ).toThrow('A direct PostgreSQL URL is required');
+    expect(() => resolveRequestBackfillDatabaseUrl({})).toThrow(
+      'A direct PostgreSQL URL is required',
     );
-    expect(resolveRequestBackfillDatabaseUrl({})).toContain('localhost:5432');
   });
 });
 

@@ -66,9 +66,16 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
       ? {
           style: 'cursor: pointer;',
           title,
+          role: 'link' as const,
+          tabIndex: 0,
           onClick: () => navigate(link),
+          onKeyDown: (event: KeyboardEvent) => {
+            if (event.key === 'Enter') navigate(link);
+          },
         }
       : {};
+  const scopeTitle = (subject: string) =>
+    props.agentName ? `View this harness's ${subject}` : `View ${subject} across all harnesses`;
   const selfHealed = () => {
     const s = props.stats;
     if (!s) return 0;
@@ -108,7 +115,7 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
             class="overview-stat-card"
             {...linkProps(
               requestsLink('&status=ok&trigger=autofix,fallback'),
-              "View this harness's recovered requests",
+              scopeTitle('recovered requests'),
             )}
           >
             <span class="overview-stat-card__label">
@@ -125,7 +132,7 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
             class="overview-stat-card overview-stat-card--autofix"
             {...linkProps(
               requestsLink('&status=ok&trigger=autofix'),
-              'View the successful requests holding an auto-fixed attempt',
+              scopeTitle('requests recovered by Auto-fix'),
             )}
           >
             <span class="overview-stat-card__label">Recovered by Auto-fix</span>
@@ -139,7 +146,7 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
             class="overview-stat-card overview-stat-card--fallback"
             {...linkProps(
               requestsLink('&status=ok&trigger=fallback'),
-              'View the successful requests holding a fallback retry',
+              scopeTitle('requests recovered by fallback'),
             )}
           >
             <span class="overview-stat-card__label">Recovered by Fallback</span>
@@ -153,7 +160,7 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
           </div>
           <div
             class="overview-stat-card overview-stat-card--destructive"
-            {...linkProps(requestsLink('&status=failed'), "View this harness's failed requests")}
+            {...linkProps(requestsLink('&status=failed'), scopeTitle('failed requests'))}
           >
             <span class="overview-stat-card__label">Failed requests</span>
             <div class="overview-stat-card__value-row">
