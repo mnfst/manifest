@@ -1,0 +1,28 @@
+packages/frontend/tests/components/SetupStepAddProvider.test.tsx
+  s_5c287139553f64::t_0bcd8f08295e84 341-345,349-351,356,358-360
+  s_5c287139553f64::t_fb4a28dcb219bd 346-348,352-355,357
+packages/frontend/src/styles/agent-type-select.css
+  s_5c287139553f64::t_5df91cfe3d2456 62-64,91-92,102,124,193-196,202-206,209,214
+packages/frontend/src/components/N8nSetup.tsx
+  s_5c287139553f64::t_633394ec6ae36c 62-63,69,73
+  s_5c287139553f64::t_e1a25c09323b54 1-61,64-68,70-72,74-102
+packages/frontend/src/components/SetupStepAddProvider.tsx
+  s_5c287139553f64::t_fdff2cbb43e719 7,55-61,79-80
+  s_5c287139553f64::t_f21527f01ac98a 81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "7820ce6dafc6dae5ba2002500de635b771065c2e",
+  "prompts": {},
+  "sessions": {
+    "s_5c287139553f64": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f4235-b7bc-7f13-98a7-27d2d1c90800",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
