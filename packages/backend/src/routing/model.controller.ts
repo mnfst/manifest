@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
@@ -19,6 +19,10 @@ import {
   AgentProviderParamDto,
   RemoveProviderQueryDto,
 } from './dto/routing.dto';
+import {
+  CLOUD_LOCAL_PROVIDER_MESSAGE,
+  isProviderAvailableForDeployment,
+} from '../common/utils/provider-availability';
 
 function formatModelSlug(slug: string): string {
   return slug.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
@@ -104,6 +108,9 @@ export class ModelController {
 
   @Post('ollama/sync')
   async syncOllama() {
+    if (!isProviderAvailableForDeployment('ollama')) {
+      throw new BadRequestException(CLOUD_LOCAL_PROVIDER_MESSAGE);
+    }
     return this.ollamaSync.sync();
   }
 

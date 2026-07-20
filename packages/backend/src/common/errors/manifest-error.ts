@@ -54,6 +54,7 @@ export const MANIFEST_CODE_TO_REASON: Record<RecordableManifestCode, ManifestBlo
     M204: 'plan_request_limit_exceeded',
     M300: 'manifest_invalid_request',
     M302: 'model_not_available',
+    M303: 'manifest_invalid_request',
     M500: 'manifest_internal_error',
   };
 
