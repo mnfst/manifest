@@ -1,4 +1,5 @@
 import { ProviderClient } from '../provider-client';
+import { ManifestError } from '../../../common/errors/manifest-error';
 import { buildCustomEndpoint } from '../provider-endpoints';
 import { ThinkingBlockCache, type ThinkingBlockRouteContext } from '../thinking-block-cache';
 import type { ProviderModelRegistryService } from '../../../model-discovery/provider-model-registry.service';
@@ -7,11 +8,18 @@ const mockFetch = jest.fn();
 (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch;
 
 describe('ProviderClient', () => {
+  const previousMode = process.env['MANIFEST_MODE'];
   let client: ProviderClient;
 
   beforeEach(() => {
+    process.env['MANIFEST_MODE'] = 'selfhosted';
     client = new ProviderClient();
     mockFetch.mockReset();
+  });
+
+  afterAll(() => {
+    if (previousMode === undefined) delete process.env['MANIFEST_MODE'];
+    else process.env['MANIFEST_MODE'] = previousMode;
   });
 
   const body = {
@@ -20,6 +28,25 @@ describe('ProviderClient', () => {
   };
 
   describe('OpenAI-compatible providers', () => {
+    it('refuses to dial a built-in local provider from cloud', async () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+
+      const request = client.forward({
+        provider: 'ollama',
+        apiKey: '',
+        model: 'qwen2.5:0.5b',
+        body,
+        stream: false,
+      });
+
+      await expect(request).rejects.toMatchObject({ code: 'M303' });
+      await expect(request).rejects.toBeInstanceOf(ManifestError);
+      await expect(request).rejects.toThrow(
+        'Built-in local providers are only available in self-hosted Manifest',
+      );
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
     it('builds correct URL and headers for openai', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
