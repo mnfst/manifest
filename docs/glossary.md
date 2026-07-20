@@ -56,9 +56,9 @@ When a Request with at least one Attempt succeeds, its Last Attempt must also be
 
 ### Last Attempt
 
-The Last Attempt is the Provider Attempt with the highest `attempt_number` within a Request. Attempt numbers are positive, unique within their Request, and increase in the order Manifest starts provider calls.
+The Last Attempt is the final Provider Attempt within a Request: the Attempt with the highest `attempt_number`. For a completed Request, it is also the Attempt that concluded the Request: the successful Attempt when the Request succeeded, otherwise the terminal non-superseded failure. A zero-attempt Request has no Last Attempt.
 
-Do not derive Attempt order from timestamps. `provider_attempts.timestamp` records the real provider-call start time, and `provider_attempts.duration_ms` records measured elapsed time once the Attempt is terminal. Neither may be fabricated to create an ordering. A zero-attempt Request has no Last Attempt.
+Attempt numbers are positive, unique within their Request, and increase in the order Manifest starts provider calls. Do not derive Attempt order from timestamps. `provider_attempts.timestamp` records the real provider-call start time, and `provider_attempts.duration_ms` records measured elapsed time once the Attempt is terminal. Neither may be fabricated to create an ordering. Superseded Attempts are never the Last Attempt of a completed Request.
 
 Historical Attempts linked during the migration may have a null `attempt_number` when their order could not be reconstructed safely. Readers may use the legacy compatibility ranking (successful outcome, then non-superseded failure, then timestamp and id) to select a representative terminal Attempt, but must not present that inferred position as an Attempt number. All newly recorded Attempts require a positive `attempt_number`.
 
