@@ -68,9 +68,15 @@ describe('sanitizeProviderError', () => {
   });
 
   it('detects HTML error pages prefixed by server comments', () => {
-    const body = '<!-- served by edge --><html><body>Not found</body></html>';
+    const body = '\n\t<!-- served by edge --><html><body>Not found</body></html>';
     expect(sanitizeProviderError(404, body, 'production')).toBe(
       'Upstream endpoint returned HTTP 404',
+    );
+  });
+
+  it('does not treat an unterminated leading comment as HTML', () => {
+    expect(sanitizeProviderError(502, '<!-- edge failure', 'production')).toBe(
+      'Upstream provider returned bad gateway',
     );
   });
 

@@ -59,7 +59,7 @@ function extractProviderMessage(rawBody: string): string | null {
 function isHtmlErrorBody(rawBody: string): boolean {
   let offset = 0;
   while (offset < rawBody.length) {
-    while (/\s/.test(rawBody[offset] ?? '')) offset += 1;
+    while (/\s/.test(rawBody.charAt(offset))) offset += 1;
     if (!rawBody.startsWith('<!--', offset)) break;
 
     const commentEnd = rawBody.indexOf('-->', offset + 4);
