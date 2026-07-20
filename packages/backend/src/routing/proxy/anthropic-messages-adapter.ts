@@ -434,6 +434,10 @@ interface StreamState {
   stopReason: string | null;
   hasMeaningfulOutput: boolean;
   sawTerminalEvent: boolean;
+  sourceEventCount: number;
+  textCharacters: number;
+  thinkingCharacters: number;
+  malformedEvents: number;
   failure: MessagesStreamFailure | null;
   endedMessage: boolean;
 }
@@ -443,16 +447,37 @@ export interface MessagesStreamFailure {
   message: string;
 }
 
+/**
+ * Content-blind evidence about one Anthropic Messages stream. These counters
+ * deliberately omit response text, tool names, tool arguments, and provider
+ * payloads so operators can diagnose protocol failures without retaining
+ * model output.
+ */
+export interface MessagesStreamEvidence {
+  source_events: number;
+  content_blocks: number;
+  text_characters: number;
+  thinking_characters: number;
+  tool_calls: number;
+  tool_argument_characters: number;
+  malformed_events: number;
+  meaningful_output: boolean;
+  terminal_event: 'message_stop' | 'error' | null;
+  stop_reason: string | null;
+}
+
 export interface MessagesStreamTransformer {
   transform: (chunk: string) => string | null;
   finalize: () => string | null;
   getFailure: () => MessagesStreamFailure | null;
+  getEvidence: () => MessagesStreamEvidence;
 }
 
 export interface AnthropicPassthroughStreamValidator {
   observe: (event: string) => void;
   finalize: () => string | null;
   getFailure: () => MessagesStreamFailure | null;
+  getEvidence: () => MessagesStreamEvidence;
 }
 
 export function createMessagesStreamTransformer(model: string): MessagesStreamTransformer {
@@ -470,6 +495,10 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
     stopReason: null,
     hasMeaningfulOutput: false,
     sawTerminalEvent: false,
+    sourceEventCount: 0,
+    textCharacters: 0,
+    thinkingCharacters: 0,
+    malformedEvents: 0,
     failure: null,
     endedMessage: false,
   };
@@ -481,6 +510,7 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
       return events.length > 0 ? events.join('') : null;
     },
     getFailure: () => state.failure,
+    getEvidence: () => streamStateEvidence(state),
   };
 }
 
@@ -489,6 +519,16 @@ export function createAnthropicPassthroughStreamValidator(): AnthropicPassthroug
   let sawMessageStop = false;
   let ended = false;
   let failure: MessagesStreamFailure | null = null;
+  let failureAlreadyForwarded = false;
+  let sourceEventCount = 0;
+  let contentBlockCount = 0;
+  let textCharacters = 0;
+  let thinkingCharacters = 0;
+  let toolCalls = 0;
+  let toolArgumentCharacters = 0;
+  let malformedEvents = 0;
+  let stopReason: string | null = null;
+  const openBlocks = new Map<number, { type: string; toolArguments: string }>();
 
   const fail = (nextFailure: MessagesStreamFailure): string => {
     failure = nextFailure;
@@ -505,8 +545,16 @@ export function createAnthropicPassthroughStreamValidator(): AnthropicPassthroug
   return {
     observe: (event: string) => {
       for (const payload of extractDataPayloads(event)) {
+        sourceEventCount += 1;
         const data = safeParse(payload);
-        if (!data) continue;
+        if (!data) {
+          malformedEvents += 1;
+          failure = {
+            status: 502,
+            message: 'Upstream provider returned malformed SSE data',
+          };
+          continue;
+        }
         const type = typeof data.type === 'string' ? data.type : '';
 
         if (type === 'error' && isRecord(data.error)) {
@@ -518,12 +566,22 @@ export function createAnthropicPassthroughStreamValidator(): AnthropicPassthroug
                 ? data.error.message
                 : 'Upstream provider stream failed',
           };
+          failureAlreadyForwarded = true;
           ended = true;
           continue;
         }
 
         if (type === 'content_block_start' && isRecord(data.content_block)) {
           const block = data.content_block;
+          const index = typeof data.index === 'number' ? data.index : contentBlockCount;
+          const blockType = typeof block.type === 'string' ? block.type : '';
+          contentBlockCount += 1;
+          openBlocks.set(index, { type: blockType, toolArguments: '' });
+          if (blockType === 'tool_use' && typeof block.name === 'string' && block.name.trim()) {
+            toolCalls += 1;
+          }
+          if (typeof block.text === 'string') textCharacters += block.text.length;
+          if (typeof block.thinking === 'string') thinkingCharacters += block.thinking.length;
           if (
             (typeof block.text === 'string' && block.text.trim()) ||
             (typeof block.thinking === 'string' && block.thinking.trim()) ||
@@ -537,6 +595,14 @@ export function createAnthropicPassthroughStreamValidator(): AnthropicPassthroug
 
         if (type === 'content_block_delta' && isRecord(data.delta)) {
           const delta = data.delta;
+          if (typeof delta.text === 'string') textCharacters += delta.text.length;
+          if (typeof delta.thinking === 'string') thinkingCharacters += delta.thinking.length;
+          if (typeof delta.partial_json === 'string') {
+            toolArgumentCharacters += delta.partial_json.length;
+            const index = typeof data.index === 'number' ? data.index : -1;
+            const block = openBlocks.get(index);
+            if (block) block.toolArguments += delta.partial_json;
+          }
           if (
             (typeof delta.text === 'string' && delta.text.trim()) ||
             (typeof delta.thinking === 'string' && delta.thinking.trim())
@@ -545,11 +611,34 @@ export function createAnthropicPassthroughStreamValidator(): AnthropicPassthroug
           }
         }
 
+        if (type === 'content_block_stop') {
+          const index = typeof data.index === 'number' ? data.index : -1;
+          const block = openBlocks.get(index);
+          if (block?.type === 'tool_use' && !isValidToolInput(block.toolArguments)) {
+            failure = {
+              status: 502,
+              message: 'Upstream provider returned malformed tool input',
+            };
+          }
+          openBlocks.delete(index);
+        }
+
+        if (type === 'message_delta' && isRecord(data.delta)) {
+          stopReason = typeof data.delta.stop_reason === 'string' ? data.delta.stop_reason : null;
+        }
+
         if (type === 'message_stop') sawMessageStop = true;
       }
     },
     finalize: () => {
+      if (failure && !failureAlreadyForwarded) return fail(failure);
       if (ended) return null;
+      if (openBlocks.size > 0) {
+        return fail({
+          status: 502,
+          message: 'Upstream provider stream ended with an incomplete content block',
+        });
+      }
       if (!hasMeaningfulOutput) {
         return fail({ status: 502, message: 'Upstream provider returned an empty completion' });
       }
@@ -563,6 +652,18 @@ export function createAnthropicPassthroughStreamValidator(): AnthropicPassthroug
       return null;
     },
     getFailure: () => failure,
+    getEvidence: () => ({
+      source_events: sourceEventCount,
+      content_blocks: contentBlockCount,
+      text_characters: textCharacters,
+      thinking_characters: thinkingCharacters,
+      tool_calls: toolCalls,
+      tool_argument_characters: toolArgumentCharacters,
+      malformed_events: malformedEvents,
+      meaningful_output: hasMeaningfulOutput,
+      terminal_event: failure ? 'error' : sawMessageStop ? 'message_stop' : null,
+      stop_reason: stopReason,
+    }),
   };
 }
 
@@ -581,8 +682,22 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
   for (const payload of extractDataPayloads(chunk)) {
     if (state.endedMessage) break;
     if (payload === '[DONE]') continue;
+    state.sourceEventCount += 1;
     const data = safeParse(payload);
-    if (!data) continue;
+    if (!data) {
+      state.malformedEvents += 1;
+      state.failure = {
+        status: 502,
+        message: 'Upstream provider returned malformed SSE data',
+      };
+      events.push(
+        buildStreamErrorEvent(state, {
+          status: 502,
+          message: state.failure.message,
+        }),
+      );
+      break;
+    }
 
     // Terminal upstream errors arrive as OpenAI-shape `{"error":{...}}` chunks
     // (e.g. from the ChatGPT Responses adapter). Surface them as a native
@@ -631,6 +746,7 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     // safely replay. Keeping the tool_use block contiguous is the more
     // defensible tradeoff than surfacing a fragment that breaks replay.
     if (typeof delta.reasoning_content === 'string' && delta.reasoning_content.length > 0) {
+      state.thinkingCharacters += delta.reasoning_content.length;
       if (!hasOpenToolCall(state)) {
         if (delta.reasoning_content.trim().length > 0) state.hasMeaningfulOutput = true;
         closeTextBlock(state, events);
@@ -657,6 +773,7 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     }
 
     if (typeof delta.content === 'string' && delta.content.length > 0) {
+      state.textCharacters += delta.content.length;
       if (delta.content.trim().length > 0) state.hasMeaningfulOutput = true;
       closeThinkingBlock(state, events);
       closeOpenToolCalls(state, events);
@@ -863,6 +980,15 @@ function closeStream(state: StreamState): string[] {
     ];
   }
 
+  if (hasMalformedToolInput(state)) {
+    return [
+      buildIntegrityFailureEvent(state, {
+        status: 502,
+        message: 'Upstream provider returned malformed tool input',
+      }),
+    ];
+  }
+
   const events: string[] = [];
 
   closeThinkingBlock(state, events);
@@ -882,6 +1008,42 @@ function closeStream(state: StreamState): string[] {
   events.push(formatMessagesEvent('message_stop', { type: 'message_stop' }));
   state.endedMessage = true;
   return events;
+}
+
+function isValidToolInput(argumentsText: string): boolean {
+  if (!argumentsText) return true;
+  try {
+    const value: unknown = JSON.parse(argumentsText);
+    return isRecord(value);
+  } catch {
+    return false;
+  }
+}
+
+function hasMalformedToolInput(state: StreamState): boolean {
+  for (const toolCall of state.toolCalls.values()) {
+    if (!isValidToolInput(toolCall.argBuffer)) return true;
+  }
+  return false;
+}
+
+function streamStateEvidence(state: StreamState): MessagesStreamEvidence {
+  let toolArgumentCharacters = 0;
+  for (const toolCall of state.toolCalls.values()) {
+    toolArgumentCharacters += toolCall.argBuffer.length;
+  }
+  return {
+    source_events: state.sourceEventCount,
+    content_blocks: state.nextBlockIndexCounter,
+    text_characters: state.textCharacters,
+    thinking_characters: state.thinkingCharacters,
+    tool_calls: state.toolCalls.size,
+    tool_argument_characters: toolArgumentCharacters,
+    malformed_events: state.malformedEvents,
+    meaningful_output: state.hasMeaningfulOutput,
+    terminal_event: state.failure ? 'error' : state.endedMessage ? 'message_stop' : null,
+    stop_reason: state.stopReason,
+  };
 }
 
 function extractDataPayloads(chunk: string): string[] {

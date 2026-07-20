@@ -29,6 +29,7 @@ import {
   chatCompletionsResponseToMessages,
   createAnthropicPassthroughStreamValidator,
   createMessagesStreamTransformer,
+  type MessagesStreamEvidence,
   type MessagesStreamFailure,
 } from './anthropic-messages-adapter';
 import type { ProxyApiMode } from './proxy-types';
@@ -659,6 +660,7 @@ export async function handleStreamResponse(
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
   onIntegrityFailure?: (failure: MessagesStreamFailure) => void,
+  onContractEvidence?: (evidence: MessagesStreamEvidence) => void,
 ): Promise<StreamUsage | null> {
   copySafeProviderResponseHeaders(res, forward.response.headers, apiMode);
   initSseHeaders(res, metaHeaders, 200);
@@ -698,9 +700,13 @@ export async function handleStreamResponse(
     stream: Promise<StreamUsage | null>,
     getFailure: () => MessagesStreamFailure | null = () =>
       messagesTransformer?.getFailure() ?? null,
+    getEvidence: () => MessagesStreamEvidence | null = () =>
+      messagesTransformer?.getEvidence() ?? null,
   ): Promise<StreamUsage | null> => {
     const usage = await stream;
     const failure = sourceFailure ?? getFailure();
+    const evidence = getEvidence();
+    if (evidence) onContractEvidence?.(evidence);
     if (failure) onIntegrityFailure?.(failure);
     return usage;
   };
@@ -768,6 +774,7 @@ export async function handleStreamResponse(
           onSourceError,
         ),
         () => validator.getFailure(),
+        () => validator.getEvidence(),
       );
     }
     return complete(

@@ -2,4 +2,4 @@
 'manifest': patch
 ---
 
-Reject empty or truncated Claude Messages completions with native Anthropic error events, record stream-integrity failures instead of zero-token successes, keep long-lived SSE responses active through proxy-safe heartbeats and a separately bounded streaming timeout, and serve local token-count estimates so Claude clients do not create extra fallback inference requests.
+Reject empty, malformed, or truncated Claude Messages completions and tool arguments with native Anthropic error events, record stream-integrity failures instead of zero-token successes, emit content-blind contract evidence and correlation IDs, provide an exact-output canary that never prints response text, keep long-lived SSE responses active through proxy-safe heartbeats and a separately bounded streaming timeout, and serve local token-count estimates so Claude clients do not create extra fallback inference requests.

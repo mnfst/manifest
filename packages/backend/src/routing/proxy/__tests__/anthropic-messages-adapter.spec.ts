@@ -1182,10 +1182,29 @@ describe('Anthropic Messages adapter', () => {
       expect(out).toContain('event: message_start');
     });
 
-    it('ignores unparseable payloads without breaking the stream', () => {
+    it('turns an unparseable payload into a terminal Anthropic error', () => {
       const t = createMessagesStreamTransformer('m');
-      expect(t.transform('data: not-json\n\n')).toBeNull();
-      expect(t.transform('data: "scalar"\n\n')).toBeNull();
+      const out = t.transform('data: not-json\n\n');
+
+      expect(out).toContain('event: error');
+      expect(out).toContain('Upstream provider returned malformed SSE data');
+      expect(t.getFailure()).toEqual({
+        status: 502,
+        message: 'Upstream provider returned malformed SSE data',
+      });
+      expect(t.getEvidence()).toEqual(
+        expect.objectContaining({
+          source_events: 1,
+          malformed_events: 1,
+          meaningful_output: false,
+          terminal_event: 'error',
+        }),
+      );
+      expect(t.finalize()).toBeNull();
+    });
+
+    it('ignores the OpenAI [DONE] sentinel', () => {
+      const t = createMessagesStreamTransformer('m');
       expect(t.transform('data: [DONE]\n\n')).toBeNull();
 
       const real = t.transform('data: {"choices":[{"delta":{"content":"a"}}]}\n\n');
@@ -1312,6 +1331,27 @@ describe('Anthropic Messages adapter', () => {
       });
       expect(t.getFailure()?.status).toBe(502);
     });
+
+    it('rejects malformed tool input after a valid upstream terminal event', () => {
+      const t = createMessagesStreamTransformer('m');
+      t.transform(
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"tc_bad","function":{"name":"search","arguments":"{bad"}}]},"finish_reason":"tool_calls"}]}\n\n',
+      );
+
+      const tail = t.finalize();
+      expect(tail).toContain('event: error');
+      expect(tail).toContain('Upstream provider returned malformed tool input');
+      expect(t.getFailure()?.status).toBe(502);
+      expect(t.getEvidence()).toEqual(
+        expect.objectContaining({
+          tool_calls: 1,
+          tool_argument_characters: 4,
+          meaningful_output: true,
+          terminal_event: 'error',
+          stop_reason: 'tool_use',
+        }),
+      );
+    });
   });
 
   describe('createAnthropicPassthroughStreamValidator', () => {
@@ -1372,6 +1412,9 @@ describe('Anthropic Messages adapter', () => {
           index: 0,
           content_block: block,
         })}\n\n`,
+      );
+      validator.observe(
+        'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}\n\n',
       );
       validator.observe('event: message_stop\ndata: {"type":"message_stop"}\n\n');
 

@@ -1999,7 +1999,7 @@ describe('ProxyController', () => {
       );
     });
 
-    it('should store null trace_id when traceparent header is absent', async () => {
+    it('should generate and return a trace_id when traceparent header is absent', async () => {
       const errorBody = '{"error":"bad"}';
       const mockProviderResp = new Response(errorBody, {
         status: 403,
@@ -2018,19 +2018,23 @@ describe('ProxyController', () => {
       });
 
       const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
-      const { res } = mockResponse();
+      const { res, headers } = mockResponse();
 
       await controller.chatCompletions(req as never, res as never);
       await new Promise((r) => setTimeout(r, 10));
 
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          trace_id: null,
+          trace_id: expect.stringMatching(/^[0-9a-f]{32}$/),
         }),
+      );
+      expect(headers['x-manifest-trace-id']).toMatch(/^[0-9a-f]{32}$/);
+      expect(mockMessageRepo.insert.mock.calls[0]?.[0]?.trace_id).toBe(
+        headers['x-manifest-trace-id'],
       );
     });
 
-    it('should store null trace_id when traceparent has less than 2 parts', async () => {
+    it('should generate and return a trace_id when traceparent is invalid', async () => {
       const errorBody = '{"error":"bad"}';
       const mockProviderResp = new Response(errorBody, {
         status: 500,
@@ -2056,15 +2060,19 @@ describe('ProxyController', () => {
       const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] }, 'user-1', {
         traceparent: 'invalidnodashes',
       });
-      const { res } = mockResponse();
+      const { res, headers } = mockResponse();
 
       await controller.chatCompletions(req as never, res as never);
       await new Promise((r) => setTimeout(r, 10));
 
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          trace_id: null,
+          trace_id: expect.stringMatching(/^[0-9a-f]{32}$/),
         }),
+      );
+      expect(headers['x-manifest-trace-id']).toMatch(/^[0-9a-f]{32}$/);
+      expect(mockMessageRepo.insert.mock.calls[0]?.[0]?.trace_id).toBe(
+        headers['x-manifest-trace-id'],
       );
     });
 

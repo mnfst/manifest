@@ -52,7 +52,7 @@ import { redactInlineImageDataUrls } from './inline-image-redaction';
 import { openAiModelId } from './openai-model-id';
 import { PlanService } from '../../billing/plan.service';
 import { isCodingClientApiMode, sendProxyProtocolError } from './proxy-protocol-error';
-import type { MessagesStreamFailure } from './anthropic-messages-adapter';
+import type { MessagesStreamEvidence, MessagesStreamFailure } from './anthropic-messages-adapter';
 import { countAnthropicInputTokens } from './anthropic-token-count';
 
 const MAX_SEEN_TENANTS = 10_000;
@@ -182,7 +182,8 @@ export class ProxyController {
     const body = req.body as Record<string, unknown>;
     const sessionKey = this.extractSessionKey(req);
     const requestContext = extractAgentRequestContext(req.headers);
-    const traceId = this.extractTraceId(req);
+    const traceId = this.extractTraceId(req) ?? uuid().replace(/-/g, '');
+    res.setHeader('x-manifest-trace-id', traceId);
     const callerAttribution = classifyCaller(req.headers);
     const requestHeaders = sanitizeRequestHeaders(req.headers);
     const isStream = body.stream === true;
@@ -190,9 +191,20 @@ export class ProxyController {
     let headersSent = false;
     let slotAcquired = false;
     let currentMeta: RoutingMeta | undefined;
+    let responseFinished = false;
 
     const clientAbort = new AbortController();
-    res.once('close', () => clientAbort.abort());
+    res.once('finish', () => {
+      responseFinished = true;
+    });
+    res.once('close', () => {
+      if (!responseFinished && !res.writableEnded) {
+        this.logger.warn(
+          `Client disconnected before response completion: trace_id=${traceId} api_mode=${apiMode} provider=${currentMeta?.provider ?? 'unresolved'} model=${currentMeta?.model ?? 'unresolved'}`,
+        );
+      }
+      clientAbort.abort();
+    });
     const startTime = Date.now();
 
     // Plan request-limit gate. A 402 must reach ProxyExceptionFilter (friendly
@@ -343,6 +355,7 @@ export class ProxyController {
 
       let streamUsage = null;
       let streamIntegrityFailure: MessagesStreamFailure | null = null;
+      let streamContractEvidence: MessagesStreamEvidence | null = null;
 
       const shouldStreamResponse = isStream || meta.response_mode === 'stream';
 
@@ -361,6 +374,9 @@ export class ProxyController {
           this.reasoningCache,
           (failure) => {
             streamIntegrityFailure = failure;
+          },
+          (evidence) => {
+            streamContractEvidence = evidence;
           },
         );
       } else {
@@ -386,7 +402,7 @@ export class ProxyController {
       } else if (streamIntegrityFailure) {
         const failure: MessagesStreamFailure = streamIntegrityFailure;
         this.logger.error(
-          `Upstream stream integrity failure: provider=${meta.provider} model=${meta.model} ${failure.message}`,
+          `Upstream stream integrity failure: trace_id=${traceId} provider=${meta.provider} model=${meta.model} ${failure.message} evidence=${JSON.stringify(streamContractEvidence)}`,
         );
         this.recorder
           .recordProviderError(req.ingestionContext, failure.status, failure.message, {
@@ -411,6 +427,11 @@ export class ProxyController {
           })
           .catch((e) => this.logger.warn(`Failed to record stream integrity error: ${e}`));
       } else {
+        if (streamContractEvidence) {
+          this.logger.debug(
+            `Response contract satisfied: trace_id=${traceId} provider=${meta.provider} model=${meta.model} evidence=${JSON.stringify(streamContractEvidence)}`,
+          );
+        }
         recordSuccess(
           req.ingestionContext,
           meta,
