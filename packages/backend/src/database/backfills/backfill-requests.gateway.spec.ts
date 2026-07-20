@@ -248,26 +248,6 @@ describe('TypeOrmRequestBackfillGateway', () => {
     expect(runner.release).toHaveBeenCalled();
   });
 
-  it('finalizes pending requests and validates the foreign key', async () => {
-    const runner = mockQueryRunner();
-    runner.query.mockResolvedValue(undefined);
-    const gateway = new TypeOrmRequestBackfillGateway({
-      createQueryRunner: jest.fn(() => runner),
-    } as unknown as DataSource);
-
-    await gateway.finalize(timeouts);
-
-    expect(runner.query).toHaveBeenCalledWith("SET LOCAL statement_timeout = '0'");
-    expect(runner.query).toHaveBeenCalledWith(
-      'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "FK_agent_messages_request"',
-    );
-    expect(runner.query).toHaveBeenCalledWith(
-      'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "CHK_agent_messages_attempt_number_positive"',
-    );
-    expect(runner.commitTransaction).toHaveBeenCalled();
-    expect(runner.release).toHaveBeenCalled();
-  });
-
   it('finalizes pending requests without validating the foreign key', async () => {
     const runner = mockQueryRunner();
     runner.query.mockResolvedValue(undefined);
@@ -275,7 +255,7 @@ describe('TypeOrmRequestBackfillGateway', () => {
       createQueryRunner: jest.fn(() => runner),
     } as unknown as DataSource);
 
-    await gateway.finalizePending(timeouts);
+    await gateway.finalize(timeouts);
 
     expect(runner.query).toHaveBeenCalledWith(FINALIZE_PENDING_REQUESTS_SQL);
     expect(runner.query).not.toHaveBeenCalledWith(expect.stringContaining('VALIDATE CONSTRAINT'));

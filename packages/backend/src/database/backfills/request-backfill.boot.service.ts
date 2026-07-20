@@ -23,10 +23,7 @@ export const REQUEST_BACKFILL_LOCK_KEY = MESSAGE_PROVIDER_BACKFILL_LOCK_KEY;
 type RequestBackfillRunner = (
   dataSource: DataSource,
   logger: Pick<Logger, 'log'>,
-  options: Pick<
-    RequestBackfillOptions,
-    'analyze' | 'before' | 'fallbackBefore' | 'finalizePending' | 'finalize'
-  >,
+  options: Pick<RequestBackfillOptions, 'analyze' | 'before' | 'fallbackBefore' | 'finalize'>,
 ) => Promise<RequestBackfillResult>;
 
 const defaultRunner: RequestBackfillRunner = (dataSource, logger, options) =>
@@ -236,15 +233,11 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
 
   private runOptions(
     initial: boolean,
-  ): Pick<
-    RequestBackfillOptions,
-    'analyze' | 'before' | 'fallbackBefore' | 'finalizePending' | 'finalize'
-  > {
+  ): Pick<RequestBackfillOptions, 'analyze' | 'before' | 'fallbackBefore' | 'finalize'> {
     const now = Date.now();
     return {
       analyze: initial,
-      finalizePending: !initial,
-      finalize: initial,
+      finalize: true,
       fallbackBefore: toLocalSqlTimestamp(new Date(now - REQUEST_BACKFILL_FALLBACK_GRACE_MS)),
       before: toLocalSqlTimestamp(new Date(now - REQUEST_BACKFILL_GENERIC_GRACE_MS)),
     };

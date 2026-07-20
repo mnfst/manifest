@@ -125,7 +125,6 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
       before?: string;
       fallbackBefore?: string;
       finalize?: boolean;
-      finalizePending?: boolean;
     } = {},
   ): Promise<void> {
     await runRequestBackfill(new TypeOrmRequestBackfillGateway(dataSource), {
@@ -134,7 +133,6 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
       before: options.before,
       fallbackBefore: options.fallbackBefore,
       finalize: options.finalize,
-      finalizePending: options.finalizePending,
     });
   }
 
@@ -508,8 +506,7 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     await backfill({
       before: '2026-01-01 00:07:00.000',
       fallbackBefore: '2026-01-01 00:07:00.000',
-      finalize: false,
-      finalizePending: true,
+      finalize: true,
     });
 
     const [request] = await dataSource.query(`SELECT status FROM requests`);

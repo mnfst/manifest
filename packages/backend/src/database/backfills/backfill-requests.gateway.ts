@@ -806,21 +806,6 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
   async finalize(timeouts: RequestBackfillTimeouts): Promise<void> {
     await this.inTransaction(timeouts, async (runner) => {
       await runner.query(FINALIZE_PENDING_REQUESTS_SQL);
-      // Validation scans the table under SHARE UPDATE EXCLUSIVE: reads and
-      // writes continue, unlike adding a validated FK in the deploy migration.
-      await runner.query(`SET LOCAL statement_timeout = '0'`);
-      await runner.query(
-        'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "FK_agent_messages_request"',
-      );
-      await runner.query(
-        'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "CHK_agent_messages_attempt_number_positive"',
-      );
-    });
-  }
-
-  async finalizePending(timeouts: RequestBackfillTimeouts): Promise<void> {
-    await this.inTransaction(timeouts, async (runner) => {
-      await runner.query(FINALIZE_PENDING_REQUESTS_SQL);
     });
   }
 

@@ -21,7 +21,6 @@ export interface RequestBackfillGateway {
     before: string,
     timeouts: RequestBackfillTimeouts,
   ): Promise<{ requests: number; attempts: number; rejections: number }>;
-  finalizePending(timeouts: RequestBackfillTimeouts): Promise<void>;
   finalize(timeouts: RequestBackfillTimeouts): Promise<void>;
 }
 
@@ -37,8 +36,6 @@ export interface RequestBackfillOptions {
   /** Only generic attempts older than this boundary are linked. */
   before?: string;
   analyze?: boolean;
-  /** Finalize legacy pending outcomes without validating the foreign key. */
-  finalizePending?: boolean;
   finalize?: boolean;
   logger?: { log: (message: string) => void };
   sleep?: (ms: number) => Promise<void>;
@@ -180,12 +177,11 @@ export async function runRequestBackfill(
     if (throttleMs > 0) await sleep(throttleMs);
   }
 
-  if (options.finalize !== false || options.finalizePending === true) {
+  if (options.finalize !== false) {
     let finalizeAttempt = 0;
     for (;;) {
       try {
-        if (options.finalize !== false) await gateway.finalize(timeouts);
-        else await gateway.finalizePending(timeouts);
+        await gateway.finalize(timeouts);
         break;
       } catch (error) {
         finalizeAttempt += 1;

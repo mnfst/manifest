@@ -480,7 +480,7 @@ describe('RequestBackfillBootService', () => {
     await expect(service.hasUnlinkedAttempts()).resolves.toBe(false);
   });
 
-  it('tail-sweeps old-replica writes without re-analyzing or re-finalizing', async () => {
+  it('tail-sweeps old-replica writes without re-analyzing', async () => {
     const lock = makeLock(true);
     const query = jest
       .fn()
@@ -496,7 +496,6 @@ describe('RequestBackfillBootService', () => {
         _logger: Pick<Logger, 'log'>,
         _options: {
           analyze?: boolean;
-          finalizePending?: boolean;
           finalize?: boolean;
           before?: string;
           fallbackBefore?: string;
@@ -517,8 +516,7 @@ describe('RequestBackfillBootService', () => {
     expect(options).toEqual(
       expect.objectContaining({
         analyze: false,
-        finalizePending: true,
-        finalize: false,
+        finalize: true,
         before: expect.any(String),
         fallbackBefore: expect.any(String),
       }),
