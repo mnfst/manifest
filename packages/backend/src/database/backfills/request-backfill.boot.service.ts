@@ -2,6 +2,7 @@ import { Injectable, Logger, OnApplicationBootstrap, OnApplicationShutdown } fro
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { toLocalSqlTimestamp } from '../../common/utils/postgres-sql';
+import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { BackfillState } from '../../entities/backfill-state.entity';
 import {
   runRequestBackfill,
@@ -29,7 +30,7 @@ type RequestBackfillRunner = (
 const defaultRunner: RequestBackfillRunner = (dataSource, logger, options) =>
   runRequestBackfill(new TypeOrmRequestBackfillGateway(dataSource), { logger, ...options });
 
-const LOCK_RETRY_MS = 30_000;
+export const REQUEST_BACKFILL_LOCK_RETRY_MS = 30_000;
 export const REQUEST_BACKFILL_TAIL_INTERVAL_MS = 60_000;
 export const REQUEST_BACKFILL_FALLBACK_GRACE_MS = 5 * 60_000;
 export const REQUEST_BACKFILL_GENERIC_GRACE_MS = 10 * 60_000;
@@ -40,7 +41,12 @@ const wait = (ms: number): Promise<void> =>
     if (typeof timer === 'object' && 'unref' in timer) timer.unref();
   });
 
-/** Runs historical regrouping after readiness, never in the deploy migration. */
+/**
+ * Runs historical regrouping automatically for self-hosted installs, whose
+ * DATABASE_URL is normally a direct PostgreSQL connection. Cloud runs the same
+ * coordinator through request-backfill.cli over an explicit direct URL so
+ * session locks and temporary tables never cross transaction-mode PgBouncer.
+ */
 @Injectable()
 export class RequestBackfillBootService implements OnApplicationBootstrap, OnApplicationShutdown {
   private readonly logger = new Logger(RequestBackfillBootService.name);
@@ -53,7 +59,7 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   ) {}
 
   onApplicationBootstrap(): void {
-    if (process.env['NODE_ENV'] !== 'production') return;
+    if (process.env['NODE_ENV'] !== 'production' || !isSelfHosted()) return;
     void this.runUntilComplete()
       .then(() => this.startTailSweep())
       .catch((error) => {
@@ -67,9 +73,9 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
     if (this.tailTimer) clearInterval(this.tailTimer);
   }
 
-  private async runUntilComplete(): Promise<void> {
+  async runUntilComplete(): Promise<void> {
     while (!(await this.runOnce())) {
-      await wait(LOCK_RETRY_MS);
+      await wait(REQUEST_BACKFILL_LOCK_RETRY_MS);
     }
   }
 
@@ -144,6 +150,17 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
       }
       await lock.release();
     }
+  }
+
+  async hasUnlinkedAttempts(): Promise<boolean> {
+    const rows = (await this.dataSource.query(
+      `SELECT EXISTS (
+         SELECT 1 FROM "provider_attempts"
+         WHERE "request_id" IS NULL
+         LIMIT 1
+       ) AS pending`,
+    )) as { pending: boolean }[];
+    return rows[0]?.pending === true;
   }
 
   private async startTailSweep(): Promise<void> {

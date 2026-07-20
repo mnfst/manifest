@@ -32,6 +32,7 @@ function makeState(completed: boolean) {
 
 describe('RequestBackfillBootService', () => {
   const originalEnv = process.env['NODE_ENV'];
+  const originalMode = process.env['MANIFEST_MODE'];
   let errorSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -40,6 +41,8 @@ describe('RequestBackfillBootService', () => {
 
   afterEach(() => {
     process.env['NODE_ENV'] = originalEnv;
+    if (originalMode === undefined) delete process.env['MANIFEST_MODE'];
+    else process.env['MANIFEST_MODE'] = originalMode;
     errorSpy.mockRestore();
   });
 
@@ -50,8 +53,17 @@ describe('RequestBackfillBootService', () => {
     expect(ds.createQueryRunner).not.toHaveBeenCalled();
   });
 
+  it('does not run automatically in cloud production', () => {
+    process.env['NODE_ENV'] = 'production';
+    process.env['MANIFEST_MODE'] = 'cloud';
+    const ds = { createQueryRunner: jest.fn() } as unknown as DataSource;
+    new RequestBackfillBootService(ds, makeState(false).repo).onApplicationBootstrap();
+    expect(ds.createQueryRunner).not.toHaveBeenCalled();
+  });
+
   it('logs a production startup failure without throwing', async () => {
     process.env['NODE_ENV'] = 'production';
+    process.env['MANIFEST_MODE'] = 'selfhosted';
     const state = makeState(false);
     state.countBy.mockRejectedValue(new Error('db down'));
     const ds = { createQueryRunner: jest.fn() } as unknown as DataSource;
@@ -66,35 +78,41 @@ describe('RequestBackfillBootService', () => {
 
   it('waits and retries when the shared lock is initially busy', async () => {
     jest.useFakeTimers();
-    process.env['NODE_ENV'] = 'production';
     const state = makeState(false);
     state.countBy.mockResolvedValueOnce(0).mockResolvedValueOnce(1);
     const lock = makeLock(false);
     const ds = { createQueryRunner: jest.fn(() => lock) } as unknown as DataSource;
 
-    new RequestBackfillBootService(ds, state.repo).onApplicationBootstrap();
-    await jest.advanceTimersByTimeAsync(30_000);
+    try {
+      const result = new RequestBackfillBootService(ds, state.repo).runUntilComplete();
+      await jest.advanceTimersByTimeAsync(30_000);
+      await result;
 
-    expect(state.countBy).toHaveBeenCalledTimes(2);
-    expect(lock.release).toHaveBeenCalled();
-    jest.useRealTimers();
+      expect(state.countBy).toHaveBeenCalledTimes(2);
+      expect(lock.release).toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('keeps retrying until the competing backfill completes', async () => {
     jest.useFakeTimers();
-    process.env['NODE_ENV'] = 'production';
     const state = makeState(false);
     const lock = makeLock(false);
     const ds = { createQueryRunner: jest.fn(() => lock) } as unknown as DataSource;
 
-    new RequestBackfillBootService(ds, state.repo).onApplicationBootstrap();
-    await jest.advanceTimersByTimeAsync(30_000 * 12);
+    try {
+      const result = new RequestBackfillBootService(ds, state.repo).runUntilComplete();
+      await jest.advanceTimersByTimeAsync(30_000 * 12);
 
-    expect(state.countBy.mock.calls.length).toBeGreaterThan(10);
-    expect(errorSpy).not.toHaveBeenCalled();
-    state.countBy.mockResolvedValue(1);
-    await jest.advanceTimersByTimeAsync(30_000);
-    jest.useRealTimers();
+      expect(state.countBy.mock.calls.length).toBeGreaterThan(10);
+      expect(errorSpy).not.toHaveBeenCalled();
+      state.countBy.mockResolvedValue(1);
+      await jest.advanceTimersByTimeAsync(30_000);
+      await result;
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('returns true without taking a lock when already complete', async () => {
@@ -242,6 +260,18 @@ describe('RequestBackfillBootService', () => {
     expect(runner).not.toHaveBeenCalled();
   });
 
+  it('reports whether any attempts remain unlinked', async () => {
+    const query = jest
+      .fn()
+      .mockResolvedValueOnce([{ pending: true }])
+      .mockResolvedValueOnce([{ pending: false }]);
+    const ds = { query } as unknown as DataSource;
+    const service = new RequestBackfillBootService(ds, makeState(true).repo);
+
+    await expect(service.hasUnlinkedAttempts()).resolves.toBe(true);
+    await expect(service.hasUnlinkedAttempts()).resolves.toBe(false);
+  });
+
   it('tail-sweeps old-replica writes without re-analyzing or re-finalizing', async () => {
     const lock = makeLock(true);
     const query = jest
@@ -358,6 +388,7 @@ describe('RequestBackfillBootService', () => {
   it('starts, reports, and stops the compatibility tail timer', async () => {
     jest.useFakeTimers();
     process.env['NODE_ENV'] = 'production';
+    process.env['MANIFEST_MODE'] = 'selfhosted';
     const ds = {
       query: jest.fn().mockResolvedValue([{ present: true }]),
       createQueryRunner: jest.fn(),
@@ -380,6 +411,7 @@ describe('RequestBackfillBootService', () => {
 
   it('does not schedule tail sweeps after the compatibility view is removed', async () => {
     process.env['NODE_ENV'] = 'production';
+    process.env['MANIFEST_MODE'] = 'selfhosted';
     const ds = {
       query: jest.fn().mockResolvedValue([{ present: false }]),
       createQueryRunner: jest.fn(),
