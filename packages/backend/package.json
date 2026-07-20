@@ -12,7 +12,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json --runInBand",
     "lint": "eslint src/",
     "contract:refresh": "node scripts/refresh-phoenix-contract.mjs",
-    "announce:doctor": "node dist/scripts/send-doctor-announcement.js",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/database/datasource.ts",
     "migration:run": "ts-node -T src/database/migrate.ts",
     "migration:run:prod": "node dist/database/migrate.js",
