@@ -45,6 +45,7 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
       '"IDX_agent_messages_request_id" ON "agent_messages" ("request_id", "id")',
     );
     expect(sql).toContain('"IDX_agent_messages_unlinked_fallback"');
+    expect(sql).toContain(`"IDX_requests_pending" ON "requests" ("id") WHERE "status" = 'pending'`);
     expect(sql).not.toMatch(/INSERT\s+INTO\s+"requests"/i);
     expect(sql).not.toMatch(/UPDATE\s+"agent_messages"/i);
   });

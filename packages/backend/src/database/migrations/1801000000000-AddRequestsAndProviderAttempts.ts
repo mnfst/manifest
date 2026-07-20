@@ -93,6 +93,11 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
     await queryRunner.query(
       `CREATE INDEX IF NOT EXISTS "IDX_requests_tenant_status_timestamp" ON "requests" ("tenant_id", "status", "timestamp")`,
     );
+    // Tail sweeps finalize only legacy parents still marked pending. This index
+    // is created while requests is empty, then stays small as parents settle.
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_requests_pending" ON "requests" ("id") WHERE "status" = 'pending'`,
+    );
     const requestIndex = (await queryRunner.query(`
       SELECT i.indisvalid AS valid,
              pg_get_indexdef(i.indexrelid) AS definition
