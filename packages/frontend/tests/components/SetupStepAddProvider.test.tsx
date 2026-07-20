@@ -338,6 +338,48 @@ describe("SetupStepAddProvider", () => {
       expect(screen.getByText("Connect your Craft harness to Manifest")).toBeDefined();
     });
 
+    it("shows n8n setup guidance with docs and credential values", () => {
+      const { container } = render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="n8n" keyPrefix="mnfst_abc" />
+      ));
+      expect(screen.getByText("Connect n8n to Manifest")).toBeDefined();
+      expect(container.textContent).toContain("n8n-nodes-manifest");
+      expect(container.textContent).toContain("add a Manifest node");
+      expect(container.textContent).toContain("Create or select Manifest credentials");
+      expect(container.textContent).toContain("set the node model to auto");
+      expect(container.textContent).toContain("http://localhost:3001");
+      expect(container.textContent).not.toContain("http://localhost:3001/v1");
+      expect(container.textContent).toContain("mnfst_abc...");
+      expect(container.textContent).toContain("auto");
+      expect(container.textContent).not.toContain("not bundled");
+      const docsLink = container.querySelector(
+        'a[href="https://docs.n8n.io/integrations/community-nodes/installation-and-management/"]',
+      );
+      expect(docsLink).not.toBeNull();
+      expect(docsLink!.textContent).toContain("n8n community node installation docs");
+      expect(
+        container.querySelector('a[href="https://www.npmjs.com/package/n8n-nodes-manifest"]'),
+      ).not.toBeNull();
+      expect(container.querySelector('[aria-label="Setup method"]')).toBeNull();
+    });
+
+    it("reveals and hides the n8n API key", () => {
+      render(() => (
+        <SetupStepAddProvider
+          {...defaultProps}
+          platform="n8n"
+          apiKey="mnfst_secret"
+          keyPrefix="mnfst_sec"
+        />
+      ));
+
+      expect(screen.queryByText("mnfst_secret")).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Reveal API key" }));
+      expect(screen.getByText("mnfst_secret")).toBeDefined();
+      fireEvent.click(screen.getByRole("button", { name: "Hide API key" }));
+      expect(screen.queryByText("mnfst_secret")).toBeNull();
+    });
+
     it("shows ClaudeCodeSetup directly when platform is claude-code", () => {
       const { container } = render(() => (
         <SetupStepAddProvider {...defaultProps} platform="claude-code" />
