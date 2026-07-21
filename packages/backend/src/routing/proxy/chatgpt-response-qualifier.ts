@@ -1,7 +1,6 @@
 import { buildResponsesSseError } from './chatgpt-adapter';
 import { isObjectRecord, safeParse } from './chatgpt-helpers';
 import { createSsePayloadParser, DEFAULT_MAX_SSE_BUFFER_SIZE } from './sse-parser';
-import { STREAM_WARMUP_MS } from './stream-warmup';
 
 type DownstreamFormat = 'chat-completions' | 'responses';
 
@@ -17,6 +16,9 @@ interface ParsedEvent {
 }
 
 const encoder = new TextEncoder();
+// Allow quiet Codex reasoning beyond generic stream warm-up without delaying
+// fallback for the full provider request deadline when no output ever arrives.
+const DEFAULT_SEMANTIC_OUTPUT_TIMEOUT_MS = 60_000;
 
 function parseEvent(payload: string): ParsedEvent | null {
   const lines = payload.split('\n');
@@ -247,7 +249,7 @@ export async function qualifyChatGptResponse(
     );
   }
 
-  const timeoutMs = options.timeoutMs ?? STREAM_WARMUP_MS;
+  const timeoutMs = options.timeoutMs ?? DEFAULT_SEMANTIC_OUTPUT_TIMEOUT_MS;
   const maxBufferSize = options.maxBufferSize ?? DEFAULT_MAX_SSE_BUFFER_SIZE;
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
