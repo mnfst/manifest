@@ -1,0 +1,27 @@
+.changeset/fix-request-tail-refresh.md
+  s_6c9ca7fc8edb9e::t_e17ab2d73f10d0 1-5
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_6c9ca7fc8edb9e::t_5a1c3624840585 555,557-559,566-567,797-801
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_6c9ca7fc8edb9e::t_a2e7ba9335ffbf 66-71
+  s_6c9ca7fc8edb9e::t_9603cf9050519a 95,110-112
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_ead589a534fdb0 179-196,198-203
+  s_6c9ca7fc8edb9e::t_e8cc95c66276ce 197
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "a19b4aae92c23085b65da02e6db3f2ad700eb3ad",
+  "prompts": {},
+  "sessions": {
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
