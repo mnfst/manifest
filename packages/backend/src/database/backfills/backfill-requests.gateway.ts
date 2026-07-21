@@ -552,24 +552,19 @@ export const LINK_ATTEMPTS_SQL = `
         "attempt_number" = batch.attempt_number
     FROM batch
     WHERE pa.id = batch.id AND pa."request_id" IS NULL
-    RETURNING 1
+    RETURNING pa."request_id"::text AS request_id
   )
-  SELECT count(*)::int AS n FROM updated
+  SELECT count(*)::int AS n,
+         COALESCE(array_agg(DISTINCT request_id), ARRAY[]::text[]) AS request_ids
+  FROM updated
 `;
 
 // A legacy request can span UUID-ordered windows. Recompute each affected
 // parent from every attempt linked so far, so the final outcome never depends
 // on which window happened to contain the success or terminal failure.
 export const REFRESH_ATTEMPT_REQUESTS_SQL = `
-  WITH affected AS (
-    SELECT DISTINCT request_id
-    FROM "agent_messages"
-    WHERE id > $1 AND id <= $2 AND timestamp < $3 AND request_id IS NOT NULL
-      AND (
-        request_id LIKE 'legacy-autofix-%'
-        OR request_id LIKE 'legacy-trace-%'
-        OR request_id = id
-      )
+  WITH affected AS MATERIALIZED (
+    SELECT unnest($1::text[]) AS request_id
   ), totals AS (
     SELECT pa.request_id,
            min(pa.timestamp) AS started_at,
@@ -799,10 +794,11 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
         INSERT_ATTEMPT_REQUESTS_SQL,
         params,
       )) as { n: number }[];
-      const [{ n: attempts }] = (await runner.query(LINK_ATTEMPTS_SQL, params)) as {
-        n: number;
-      }[];
-      await runner.query(REFRESH_ATTEMPT_REQUESTS_SQL, params);
+      const [{ n: attempts, request_ids: requestIds }] = (await runner.query(
+        LINK_ATTEMPTS_SQL,
+        params,
+      )) as { n: number; request_ids: string[] }[];
+      await runner.query(REFRESH_ATTEMPT_REQUESTS_SQL, [requestIds]);
       return { requests: requests + attemptRequests, attempts, rejections };
     });
   }
