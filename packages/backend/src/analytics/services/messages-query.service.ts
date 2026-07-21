@@ -1,15 +1,22 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, In, Repository, SelectQueryBuilder } from 'typeorm';
+import { Injectable, Optional } from '@nestjs/common';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { Brackets, DataSource, In, QueryRunner, Repository, SelectQueryBuilder } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
+import { TenantProvider } from '../../entities/tenant-provider.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
 import {
   addTenantFilter,
   formatTimestamp,
   selectMessageRowColumns,
   ERROR_MESSAGE_STATUSES,
+  SUCCESS_STATUS_SQL_LIST,
   MANIFEST_ORIGIN_PREDICATE,
+  CUSTOM_PROVIDER_JOIN_CONDITION,
+  excludePlaygroundAgents,
+  sqlExcludePlayground,
+  sqlIsFailedStatus,
+  sqlIsSuccessStatus,
 } from './query-helpers';
 import type {
   MessageOriginFilter,
@@ -19,6 +26,7 @@ import type {
 import { computeCutoff, sqlCastFloat, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 import { inferProviderFromModel } from '../../common/utils/provider-inference';
 import { TtlCache } from '../../common/utils/ttl-cache';
+import { ManifestRequest } from '../../entities/request.entity';
 
 // The Messages-log "failed"/"errors" filters and every "messages" KPI count
 // share one definition of an error status (see query-helpers.sqlCountMessages).
@@ -72,13 +80,17 @@ interface MessageFilterParams {
 
 interface MessageQueryParams extends MessageFilterParams {
   provider?: string;
+  /** tenant_providers ids; requests must have touched one of these connections. */
+  connections?: string[];
   service_type?: string;
   cost_min?: number;
   cost_max?: number;
   limit: number;
   cursor?: string;
   status?: MessageStatusFilter;
-  trigger?: MessageTriggerFilter;
+  /** AND facet: the request must hold at least one attempt of each kind. */
+  attemptStatus?: ('has_failed' | 'has_succeeded')[];
+  triggers?: MessageTriggerFilter[];
   origin?: MessageOriginFilter;
   error_class?: string;
   routing_tier?: string;
@@ -86,6 +98,45 @@ interface MessageQueryParams extends MessageFilterParams {
   header_tier_id?: string;
   include_total?: boolean;
   include_filter_options?: boolean;
+  exclude_playground?: boolean;
+}
+
+interface ConnectionIdentity {
+  id: string;
+  provider: string;
+  authType: string;
+  label: string;
+}
+
+/**
+ * One connection's attempt predicate, with the SAME legacy folds as the
+ * dashboard's connection scoping (attempt-stats.service): a NULL auth_type
+ * reads as 'api_key', and an orphan attempt (NULL tenant_provider_id) belongs
+ * to the connection whose label folds to its own (NULL label = 'Default').
+ */
+function connectionAttemptPredicate(
+  alias: string,
+  conn: ConnectionIdentity,
+  index: number,
+  parameters: Record<string, unknown>,
+): string {
+  const p = `connProvider${index}`;
+  const a = `connAuthType${index}`;
+  const id = `connId${index}`;
+  const l = `connLabel${index}`;
+  parameters[p] = conn.provider;
+  parameters[a] = conn.authType;
+  parameters[id] = conn.id;
+  parameters[l] = conn.label;
+  const authFold =
+    conn.authType === 'api_key'
+      ? `(${alias}.auth_type = :${a} OR ${alias}.auth_type IS NULL)`
+      : `${alias}.auth_type = :${a}`;
+  return (
+    `(${alias}.provider = :${p} AND ${authFold} AND ` +
+    `(${alias}.tenant_provider_id = :${id} OR (${alias}.tenant_provider_id IS NULL ` +
+    `AND LOWER(COALESCE(${alias}.provider_key_label, 'Default')) = LOWER(:${l}))))`
+  );
 }
 
 @Injectable()
@@ -104,9 +155,19 @@ export class MessagesQueryService {
     private readonly turnRepo: Repository<AgentMessage>,
     @InjectRepository(CustomProvider)
     private readonly customProviderRepo: Repository<CustomProvider>,
+    @Optional()
+    @InjectRepository(ManifestRequest)
+    private readonly requestRepo?: Repository<ManifestRequest>,
+    @Optional()
+    @InjectRepository(TenantProvider)
+    private readonly tenantProviderRepo?: Repository<TenantProvider>,
+    @Optional()
+    @InjectDataSource()
+    private readonly dataSource?: DataSource,
   ) {}
 
   async getMessages(params: MessageQueryParams) {
+    if (this.requestRepo) return this.getRequests(params);
     const baseQb = await this.buildBaseMessageQuery(params);
 
     const includeTotal = params.include_total !== false;
@@ -167,6 +228,389 @@ export class MessagesQueryService {
     };
   }
 
+  /** Request-first log. Attempts are aggregated into their parent row. */
+  private async getRequests(params: MessageQueryParams) {
+    const qb = this.requestRepo!.createQueryBuilder('r').leftJoin(
+      AgentMessage,
+      'at',
+      'at.request_id = r.id',
+    );
+    const cutoff = params.range ? computeCutoff(rangeToInterval(params.range)) : undefined;
+    if (cutoff) qb.where('r.timestamp >= :requestCutoff', { requestCutoff: cutoff });
+    if (params.tenantId)
+      qb.andWhere('r.tenant_id = :requestTenantId', { requestTenantId: params.tenantId });
+    else qb.andWhere('1 = 0');
+    if (params.agent_name) {
+      qb.andWhere(
+        `r.agent_id = (
+          SELECT id FROM agents
+          WHERE tenant_id = r.tenant_id AND name = :requestAgentName AND deleted_at IS NULL
+          LIMIT 1
+        )`,
+        { requestAgentName: params.agent_name },
+      );
+    }
+    if (params.exclude_playground) {
+      qb.andWhere(sqlExcludePlayground('r'));
+    }
+    if (params.status === 'failed' || params.status === 'errors') {
+      // "Not a success" across both vocabularies: a normalized `success` row must
+      // never leak into the failed filter just because it is not literally `ok`.
+      qb.andWhere(`r.status NOT IN (${SUCCESS_STATUS_SQL_LIST})`);
+    } else if (params.status === 'ok' || params.status === 'success') {
+      qb.andWhere(`r.status IN (${SUCCESS_STATUS_SQL_LIST})`);
+    } else if (params.status) {
+      qb.andWhere('r.status = :requestStatus', { requestStatus: params.status });
+    }
+    if (params.origin === 'manifest') {
+      qb.andWhere(`r.error_origin IN ('config', 'policy', 'internal', 'request')`);
+    } else if (params.origin) {
+      qb.andWhere('r.error_origin = :requestOrigin', { requestOrigin: params.origin });
+    }
+    if (params.error_class) {
+      qb.andWhere('r.error_class = :requestErrorClass', {
+        requestErrorClass: params.error_class,
+      });
+    }
+    const attemptPredicates: string[] = [];
+    const attemptParameters: Record<string, unknown> = {};
+    const matchingAttempt = (predicates: string[]): string => `EXISTS (
+      SELECT 1 FROM agent_messages filtered_attempt
+      WHERE filtered_attempt.request_id = r.id AND ${predicates.join(' AND ')}
+    )`;
+    if (params.provider) {
+      attemptPredicates.push('filtered_attempt.provider = :requestProvider');
+      attemptParameters['requestProvider'] = params.provider;
+    }
+    const resolvedConnections = params.connections?.length
+      ? await this.resolveConnections(params.tenantId, params.connections)
+      : null;
+    if (resolvedConnections) {
+      // No resolvable connection: the filter names nothing this tenant owns.
+      if (resolvedConnections.length === 0) qb.andWhere('1 = 0');
+      else {
+        const parts = resolvedConnections.map((c, i) =>
+          connectionAttemptPredicate('filtered_attempt', c, i, attemptParameters),
+        );
+        attemptPredicates.push(`(${parts.join(' OR ')})`);
+      }
+    }
+    if (params.service_type) {
+      attemptPredicates.push('filtered_attempt.service_type = :requestServiceType');
+      attemptParameters['requestServiceType'] = params.service_type;
+    }
+    if (params.routing_tier) {
+      attemptPredicates.push('filtered_attempt.routing_tier = :requestTier');
+      attemptParameters['requestTier'] = params.routing_tier;
+    }
+    if (params.specificity_category) {
+      attemptPredicates.push('filtered_attempt.specificity_category = :requestSpecificity');
+      attemptParameters['requestSpecificity'] = params.specificity_category;
+    }
+    if (params.header_tier_id) {
+      attemptPredicates.push('filtered_attempt.header_tier_id = :requestHeaderTier');
+      attemptParameters['requestHeaderTier'] = params.header_tier_id;
+    }
+    if (params.triggers?.length) {
+      // Several recovery-attempt kinds OR together (a multiselect facet). When
+      // a connections filter is active, the recovery attempt must be ON one of
+      // the selected connections, so a connection card's "fallback retries"
+      // link lands on exactly the requests it counted.
+      const triggerParameters: Record<string, unknown> = {};
+      const connScope = resolvedConnections?.length
+        ? ' AND (' +
+          resolvedConnections
+            .map((c, i) =>
+              connectionAttemptPredicate(
+                'trigger_attempt',
+                c,
+                i + resolvedConnections.length,
+                triggerParameters,
+              ),
+            )
+            .join(' OR ') +
+          ')'
+        : '';
+      const triggerExists = (condition: string): string => `EXISTS (
+        SELECT 1 FROM agent_messages trigger_attempt
+        WHERE trigger_attempt.request_id = r.id AND ${condition}${connScope}
+      )`;
+      const parts = params.triggers.map((trigger) => {
+        if (trigger === 'autofix') return triggerExists('trigger_attempt.autofix_applied = true');
+        if (trigger === 'fallback')
+          return triggerExists('trigger_attempt.fallback_from_model IS NOT NULL');
+        // 'none': no recovery attempt anywhere on the request.
+        return `NOT EXISTS (
+          SELECT 1 FROM agent_messages trigger_attempt
+          WHERE trigger_attempt.request_id = r.id
+          AND (trigger_attempt.autofix_applied = true OR trigger_attempt.fallback_from_model IS NOT NULL)
+        )`;
+      });
+      qb.andWhere(`(${parts.join(' OR ')})`, triggerParameters);
+    }
+    if (params.attemptStatus?.length) {
+      // Same succeeded/failed reading as the connection dashboards:
+      // Both canonical and legacy outcomes are accepted during the transition.
+      const outcomeParameters: Record<string, unknown> = {};
+      const connScope = resolvedConnections?.length
+        ? ' AND (' +
+          resolvedConnections
+            .map((c, i) =>
+              connectionAttemptPredicate(
+                'outcome_attempt',
+                c,
+                i + 2 * resolvedConnections.length,
+                outcomeParameters,
+              ),
+            )
+            .join(' OR ') +
+          ')'
+        : '';
+      for (const kind of params.attemptStatus) {
+        const condition =
+          kind === 'has_succeeded'
+            ? sqlIsSuccessStatus('outcome_attempt.status')
+            : sqlIsFailedStatus('outcome_attempt.status');
+        qb.andWhere(
+          `EXISTS (
+            SELECT 1 FROM agent_messages outcome_attempt
+            WHERE outcome_attempt.request_id = r.id AND ${condition}${connScope}
+          )`,
+          outcomeParameters,
+        );
+      }
+    }
+    if (attemptPredicates.length > 0) {
+      qb.andWhere(matchingAttempt(attemptPredicates), attemptParameters);
+    }
+    if (params.cursor) {
+      const sep = params.cursor.indexOf('|');
+      if (sep !== -1) {
+        const cursorTs = params.cursor.slice(0, sep);
+        const cursorId = params.cursor.slice(sep + 1);
+        qb.andWhere(
+          new Brackets((sub) => {
+            sub.where('r.timestamp < :requestCursorTs', { requestCursorTs: cursorTs }).orWhere(
+              new Brackets((inner) => {
+                inner
+                  .where('r.timestamp = :requestCursorTsEqual', {
+                    requestCursorTsEqual: cursorTs,
+                  })
+                  .andWhere('r.id < :requestCursorId', { requestCursorId: cursorId });
+              }),
+            );
+          }),
+        );
+      }
+    }
+
+    const includeTotal = params.include_total !== false;
+    const rank = `CASE WHEN ${sqlIsSuccessStatus('at.status')} THEN 3 WHEN NOT COALESCE(at.superseded, false) AND at.status NOT IN ('fallback_error', 'auto_fixed') THEN 2 ELSE 1 END`;
+    const picked = (column: string): string =>
+      `(ARRAY_AGG(${column} ORDER BY at.attempt_number DESC NULLS LAST, ${rank} DESC, at.timestamp DESC, at.id DESC) FILTER (WHERE at.id IS NOT NULL))[1]`;
+    const safeCost = sqlSanitizeCost('at.cost_usd');
+    qb.leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
+      .select('r.id', 'id')
+      .addSelect('r.timestamp', 'timestamp')
+      .addSelect('r.agent_name', 'agent_name')
+      .addSelect(`COALESCE(${picked('at.model')}, r.requested_model)`, 'model')
+      .addSelect(picked('at.provider'), 'provider')
+      .addSelect(`COALESCE(${picked('at.model')}, r.requested_model)`, 'display_name')
+      .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'input_tokens')
+      .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output_tokens')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total_tokens')
+      .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
+      .addSelect('r.status', 'status')
+      .addSelect('r.error_message', 'error_message')
+      .addSelect('r.error_code', 'error_code')
+      .addSelect('r.error_origin', 'error_origin')
+      .addSelect('r.error_class', 'error_class')
+      .addSelect('r.error_http_status', 'error_http_status')
+      // Latency, like tokens and cost, is attempt-derived. The parent value is
+      // only needed for zero-attempt rejections.
+      .addSelect('COALESCE(SUM(at.duration_ms), r.duration_ms)::int', 'duration_ms')
+      .addSelect(picked('at.routing_tier'), 'routing_tier')
+      .addSelect(picked('at.routing_reason'), 'routing_reason')
+      .addSelect(picked('at.specificity_category'), 'specificity_category')
+      .addSelect(picked('at.auth_type'), 'auth_type')
+      .addSelect(picked('at.fallback_from_model'), 'fallback_from_model')
+      .addSelect(picked('at.fallback_index'), 'fallback_index')
+      .addSelect('r.feedback_rating', 'feedback_rating')
+      .addSelect(picked('at.header_tier_id'), 'header_tier_id')
+      .addSelect(picked('at.header_tier_name'), 'header_tier_name')
+      .addSelect(picked('at.header_tier_color'), 'header_tier_color')
+      .addSelect(picked('at.provider_key_label'), 'provider_key_label')
+      .addSelect(picked('cp.name'), 'custom_provider_name')
+      .addSelect('COALESCE(BOOL_OR(at.autofix_applied), false)', 'autofix_applied')
+      .addSelect(
+        `CASE WHEN COALESCE(BOOL_OR(at.autofix_applied), false) THEN 'retry' ELSE NULL END`,
+        'autofix_role',
+      )
+      .addSelect('COALESCE(SUM(at.cache_read_tokens), 0)', 'cache_read_tokens')
+      .addSelect('COALESCE(SUM(at.cache_creation_tokens), 0)', 'cache_creation_tokens')
+      .addSelect('COUNT(at.id)::int', 'attempt_count')
+      .groupBy('r.id');
+    if (params.cost_min !== undefined) {
+      qb.having(`COALESCE(SUM(${safeCost}), 0) >= :requestCostMin`, {
+        requestCostMin: params.cost_min,
+      });
+    }
+    if (params.cost_max !== undefined) {
+      qb.andHaving(`COALESCE(SUM(${safeCost}), 0) <= :requestCostMax`, {
+        requestCostMax: params.cost_max,
+      });
+    }
+
+    // Count the grouped request rows after cost HAVING has been applied. A
+    // window count on the page query would disappear on an empty page, making
+    // an exact non-zero total look like zero after the last cursor.
+    let requestCountQuery: { sql: string; parameters: unknown[] } | null = null;
+    if (includeTotal) {
+      const countSource = qb.clone().select('r.id', 'id').orderBy();
+      const [countSql, countParameters] = countSource.getQueryAndParameters();
+      requestCountQuery = {
+        sql: `SELECT COUNT(*) AS total FROM (${countSql}) "filtered_requests"`,
+        parameters: countParameters,
+      };
+    }
+
+    // Keep the log complete while the online backfill is running. Each still-
+    // unlinked attempt is temporarily its own synthetic request; it disappears
+    // from this branch as soon as the backfill links it to a real parent.
+    const legacyBase = await this.buildBaseMessageQuery(params);
+    legacyBase.andWhere('at.request_id IS NULL');
+    if (resolvedConnections) {
+      if (resolvedConnections.length === 0) legacyBase.andWhere('1 = 0');
+      else {
+        const legacyParams: Record<string, unknown> = {};
+        const parts = resolvedConnections.map((c, i) =>
+          connectionAttemptPredicate('at', c, i, legacyParams),
+        );
+        legacyBase.andWhere(`(${parts.join(' OR ')})`, legacyParams);
+      }
+    }
+    if (params.exclude_playground) excludePlaygroundAgents(legacyBase);
+    const legacyCountQb = legacyBase.clone().select('COUNT(*)', 'total');
+    const legacyDataQb = selectMessageRowColumns(
+      legacyBase.clone(),
+      sqlCastFloat(sqlSanitizeCost('at.cost_usd')),
+    )
+      .addSelect('at.description', 'description')
+      .addSelect('at.service_type', 'service_type')
+      .addSelect('at.cache_read_tokens', 'cache_read_tokens')
+      .addSelect('at.cache_creation_tokens', 'cache_creation_tokens')
+      .addSelect('at.duration_ms', 'duration_ms')
+      .addSelect('1', 'attempt_count');
+    this.applyCursor(legacyDataQb, params.cursor);
+
+    const readRows = async (runner?: QueryRunner) => {
+      if (runner) {
+        qb.setQueryRunner(runner);
+        legacyCountQb.setQueryRunner(runner);
+        legacyDataQb.setQueryRunner(runner);
+      }
+      const requestCountPromise = requestCountQuery
+        ? ((runner
+            ? runner.query(requestCountQuery.sql, requestCountQuery.parameters)
+            : this.requestRepo!.query(
+                requestCountQuery.sql,
+                requestCountQuery.parameters,
+              )) as Promise<Array<{ total: string }>>)
+        : Promise.resolve([] as Array<{ total: string }>);
+      // QueryRunner owns one pg client. Await each statement rather than
+      // issuing concurrent client.query calls (deprecated in pg); all four
+      // statements still share this transaction snapshot.
+      const requestCountRows = await requestCountPromise;
+      const legacyCount = includeTotal ? await legacyCountQb.getRawOne() : null;
+      const requestRows = await qb
+        .orderBy('r.timestamp', 'DESC')
+        .addOrderBy('r.id', 'DESC')
+        .limit(params.limit + 1)
+        .getRawMany();
+      const legacyRows = await legacyDataQb
+        .orderBy('at.timestamp', 'DESC')
+        .addOrderBy('at.id', 'DESC')
+        .limit(params.limit + 1)
+        .getRawMany();
+      return [requestCountRows, legacyCount, requestRows, legacyRows] as const;
+    };
+    const [[requestCountRows, legacyCount, requestRows, legacyRows], filterOptions] =
+      await Promise.all([
+        this.withCompatibilitySnapshot(readRows),
+        params.include_filter_options !== false
+          ? this.getMessageFilterOptions(params)
+          : Promise.resolve({ providers: [] as string[], provider_labels: {} }),
+      ]);
+    const rows = [...requestRows, ...legacyRows].sort((a, b) => {
+      const byTime = new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+      return byTime || String(b.id).localeCompare(String(a.id));
+    });
+    const hasMore = rows.length > params.limit;
+    const items = rows.slice(0, params.limit);
+    const last = items[items.length - 1] as Record<string, unknown> | undefined;
+    return {
+      items,
+      next_cursor: hasMore && last ? this.encodeCursor(last) : null,
+      total_count: includeTotal
+        ? Number(requestCountRows[0]?.total ?? 0) + Number(legacyCount?.total ?? 0)
+        : items.length + (hasMore ? 1 : 0),
+      total_count_exact: includeTotal,
+      providers: filterOptions.providers,
+      provider_labels: filterOptions.provider_labels,
+    };
+  }
+
+  /** Resolve connection ids to their identity triple, tenant-scoped. */
+  private async resolveConnections(
+    tenantId: string | null,
+    ids: string[],
+  ): Promise<ConnectionIdentity[]> {
+    if (!tenantId || ids.length === 0 || !this.tenantProviderRepo) return [];
+    const rows = await this.tenantProviderRepo.find({
+      where: { tenant_id: tenantId, id: In(ids) },
+      select: ['id', 'provider', 'auth_type', 'label'],
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      provider: r.provider,
+      authType: r.auth_type,
+      label: r.label ?? 'Default',
+    }));
+  }
+
+  /**
+   * The request backfill inserts a parent and links its attempts atomically, but
+   * request and unlinked compatibility branches are separate SELECTs. Pin them
+   * to one repeatable-read transaction so a row cannot disappear from one
+   * branch before becoming visible in the other (or appear in both).
+   *
+   * A transaction works through Railway's transaction-mode PgBouncer: PgBouncer
+   * keeps one server connection for BEGIN→COMMIT. Unlike the backfill itself,
+   * this read path does not depend on session locks or temporary tables.
+   */
+  private async withCompatibilitySnapshot<T>(
+    read: (runner?: QueryRunner) => Promise<T>,
+  ): Promise<T> {
+    const dataSource = this.dataSource ?? this.turnRepo.manager?.connection;
+    if (!dataSource) return read();
+    const runner = dataSource.createQueryRunner();
+    await runner.connect();
+    try {
+      await runner.startTransaction('REPEATABLE READ');
+      try {
+        await runner.query('SET TRANSACTION READ ONLY');
+        const result = await read(runner);
+        await runner.commitTransaction();
+        return result;
+      } catch (error) {
+        await runner.rollbackTransaction();
+        throw error;
+      }
+    } finally {
+      await runner.release();
+    }
+  }
+
   async getMessageFilterOptions(params: MessageFilterParams): Promise<{
     providers: string[];
     provider_labels: Record<string, string>;
@@ -211,7 +655,7 @@ export class MessagesQueryService {
     cost_max?: number;
     agent_name?: string;
     status?: MessageStatusFilter;
-    trigger?: MessageTriggerFilter;
+    triggers?: MessageTriggerFilter[];
     origin?: MessageOriginFilter;
     error_class?: string;
     routing_tier?: string;
@@ -247,11 +691,13 @@ export class MessagesQueryService {
       qb.andWhere('at.status IN (:...failedStatuses)', { failedStatuses: FAILED_STATUSES });
     } else if (params.status === 'errors') {
       qb.andWhere('at.status IN (:...errorStatuses)', { errorStatuses: ERROR_STATUSES });
+    } else if (params.status === 'ok' || params.status === 'success') {
+      qb.andWhere(sqlIsSuccessStatus('at.status'));
     } else if (params.status) {
       qb.andWhere('at.status = :statusFilter', { statusFilter: params.status });
     }
 
-    this.applyTriggerFilter(qb, params.trigger);
+    this.applyTriggerFilter(qb, params.triggers);
 
     // Error-origin scope. Nothing is hidden by default: the log is the complete
     // event listing, and a Manifest setup error is exactly the row a user needs
@@ -296,9 +742,21 @@ export class MessagesQueryService {
 
   private applyTriggerFilter(
     qb: SelectQueryBuilder<AgentMessage>,
-    trigger: MessageTriggerFilter | undefined,
+    triggers: MessageTriggerFilter[] | undefined,
   ): void {
-    if (!trigger) return;
+    if (!triggers?.length) return;
+    if (triggers.length > 1) {
+      // Attempt-grain OR of the selected kinds.
+      const conditions = triggers.map((t) => {
+        if (t === 'autofix') return 'at.autofix_role = :triggerAutofixRole';
+        if (t === 'fallback')
+          return "(COALESCE(at.autofix_role, '') != :triggerAutofixRole AND at.fallback_from_model IS NOT NULL AND at.fallback_from_model != '')";
+        return "(COALESCE(at.autofix_role, '') != :triggerAutofixRole AND (at.fallback_from_model IS NULL OR at.fallback_from_model = ''))";
+      });
+      qb.andWhere(`(${conditions.join(' OR ')})`, { triggerAutofixRole: AUTOFIX_TRIGGER_ROLE });
+      return;
+    }
+    const trigger = triggers[0];
 
     if (trigger === 'autofix') {
       qb.andWhere('at.autofix_role = :triggerAutofixRole', {
@@ -479,7 +937,7 @@ export class MessagesQueryService {
     cost_min?: number;
     cost_max?: number;
     status?: MessageStatusFilter;
-    trigger?: MessageTriggerFilter;
+    triggers?: MessageTriggerFilter[];
     origin?: MessageOriginFilter;
     error_class?: string;
     routing_tier?: string;
@@ -495,7 +953,7 @@ export class MessagesQueryService {
       params.cost_min ?? '',
       params.cost_max ?? '',
       params.status ?? '',
-      params.trigger ?? '',
+      params.triggers?.join(',') ?? '',
       params.origin ?? '',
       params.error_class ?? '',
       params.routing_tier ?? '',

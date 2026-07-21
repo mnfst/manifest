@@ -18,6 +18,7 @@ interface BackfillCoordinator {
   runUntilComplete(): Promise<void>;
   runTailOnce(): Promise<boolean>;
   hasUnlinkedAttempts(): Promise<boolean>;
+  runTransitionFinalizeOnce(): Promise<boolean>;
 }
 
 export interface MainDeps {
@@ -55,16 +56,20 @@ export async function main(deps: MainDeps = {}): Promise<void> {
     }
 
     // Old replicas can write their unchanged columns during the rolling
-    // handover. If any unlinked rows remain after the historical pass, give them a
-    // full generic grace window, then perform one explicit catch-up.
-    while (await coordinator.hasUnlinkedAttempts()) {
-      logger.log(`waiting ${REQUEST_BACKFILL_GENERIC_GRACE_MS / 1000}s for legacy writes to age`);
-      await sleep(REQUEST_BACKFILL_GENERIC_GRACE_MS);
-      while (!(await coordinator.runTailOnce())) {
-        await sleep(REQUEST_BACKFILL_LOCK_RETRY_MS);
+    // handover. Give each observed delta a full generic grace window, sweep it,
+    // then recheck under the shared transition lock before finalizing.
+    while (true) {
+      while (await coordinator.hasUnlinkedAttempts()) {
+        logger.log(`waiting ${REQUEST_BACKFILL_GENERIC_GRACE_MS / 1000}s for legacy writes to age`);
+        await sleep(REQUEST_BACKFILL_GENERIC_GRACE_MS);
+        while (!(await coordinator.runTailOnce())) {
+          await sleep(REQUEST_BACKFILL_LOCK_RETRY_MS);
+        }
       }
+      if (await coordinator.runTransitionFinalizeOnce()) break;
+      await sleep(REQUEST_BACKFILL_LOCK_RETRY_MS);
     }
-    logger.log('request/provider-attempt backfill and catch-up complete');
+    logger.log('request/provider-attempt backfill, catch-up, and transition complete');
   } finally {
     await dataSource.destroy();
   }

@@ -41,6 +41,7 @@ const baseMessage = {
   agent_name: 'test-agent',
   model: 'gpt-4o',
   status: 'error',
+  autofix_status: null,
   error_message: null,
   description: null,
   service_type: 'agent',
@@ -73,7 +74,7 @@ const baseMessage = {
   autofix_applied: false,
   autofix_role: null,
   autofix_operations: null,
-  autofix_phoenix: null,
+  autofix_decision: null,
   autofix_sibling: null,
 };
 
@@ -84,6 +85,7 @@ const originalResponse = {
     ...baseMessage,
     id: 'orig-1',
     status: 'error',
+    autofix_status: 'retry_succeeded' as const,
     error_message: 'Unknown parameter: max_tokens',
     autofix_applied: true,
     autofix_role: 'original',
@@ -98,6 +100,7 @@ const retryResponse = {
     ...baseMessage,
     id: 'retry-1',
     status: 'ok',
+    autofix_status: 'retry_succeeded' as const,
     error_message: null,
     autofix_applied: true,
     autofix_role: 'retry',
@@ -112,6 +115,21 @@ describe('MessageDetails Auto-fix section', () => {
   });
   afterEach(() => {
     cleanup();
+  });
+
+  it.each([
+    ['no_patch', 'No patch'],
+    ['resolving', 'Resolving'],
+    ['retry_succeeded', 'Retry succeeded'],
+    ['retry_failed', 'Retry failed'],
+    ['service_error', 'Service error'],
+  ] as const)('renders the %s request status as %s', async (autofix_status, label) => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: { ...baseMessage, autofix_status },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+
+    await vi.waitFor(() => expect(container.textContent).toContain(label));
   });
 
   it('renders the original-side panel: error, the "auto-fix attempted" card, and the retry link', async () => {
@@ -133,7 +151,7 @@ describe('MessageDetails Auto-fix section', () => {
     // The forward link to the successful retry.
     const link = container.querySelector('.error-autofix-row__autofix-btn');
     expect(link).not.toBeNull();
-    expect(link!.textContent).toContain('View autofix retry');
+    expect(link!.textContent).toContain('View Auto-fix retry');
 
     // Clicking it opens the sibling (retry) row.
     fireEvent.click(link!);
@@ -171,7 +189,7 @@ describe('MessageDetails Auto-fix section', () => {
 
     await vi.waitFor(() => {
       // Wait for the panel to render at all.
-      expect(container.textContent).toContain('Message');
+      expect(container.textContent).toContain('Request');
     });
 
     // No error/auto-fix row and no auto-fix cards render.
@@ -319,13 +337,13 @@ describe('MessageDetails Auto-fix section', () => {
     expect(container.textContent).not.toContain('→');
   });
 
-  it('renders Phoenix issue/patch/heal ids (first 8 chars) when autofix_phoenix is present', async () => {
+  it('renders Phoenix issue/patch/heal ids (first 8 chars) when autofix_decision is present', async () => {
     // Phoenix's own identifiers for the heal decision. Each id renders as a
     // labelled 8-char slice: "Issue <8>", "Patch <8>", "Heal-attempt <8>".
     const withPhoenix = {
       message: {
         ...retryResponse.message,
-        autofix_phoenix: {
+        autofix_decision: {
           issueId: 'issue-1234abcd',
           patchId: 'patch-5678efgh',
           healAttemptId: 'heal-9012ijkl',
@@ -352,7 +370,7 @@ describe('MessageDetails Auto-fix section', () => {
     const healOnly = {
       message: {
         ...retryResponse.message,
-        autofix_phoenix: {
+        autofix_decision: {
           issueId: null,
           patchId: null,
           healAttemptId: 'heal-9012ijkl',
@@ -370,8 +388,8 @@ describe('MessageDetails Auto-fix section', () => {
     expect(container.textContent).not.toContain('Patch ');
   });
 
-  it('renders no Phoenix ids when autofix_phoenix is null', async () => {
-    // The retry panel with autofix_phoenix null (the default) must not render
+  it('renders no Phoenix ids when autofix_decision is null', async () => {
+    // The retry panel with autofix_decision null (the default) must not render
     // any Issue/Patch/Heal-attempt labels — covers the absent branch.
     mockGetMessageDetails.mockResolvedValue(retryResponse);
     const { container } = render(() => <MessageDetails messageId="retry-1" />);
@@ -388,7 +406,7 @@ describe('MessageDetails Auto-fix section', () => {
     expect(container.textContent).not.toContain('Heal-attempt');
   });
 
-  it('renders Phoenix\'s explanation summary and per-op detail when present', async () => {
+  it("renders Phoenix's explanation summary and per-op detail when present", async () => {
     // Phoenix now sends a human-readable "why". The card shows its summary in place
     // of the generic phrase, and its authoritative per-op detail — which the local
     // describeOperation could not produce for clamp_param (no from/to).
@@ -396,12 +414,13 @@ describe('MessageDetails Auto-fix section', () => {
       message: {
         ...retryResponse.message,
         autofix_operations: [{ type: 'clamp_param' }],
-        autofix_phoenix: {
+        autofix_decision: {
           issueId: 'issue-1',
           patchId: 'patch-1',
           healAttemptId: 'heal-1',
           explanation: {
-            summary: "Your request set max_tokens above this model's limit, so it was capped at 8192.",
+            summary:
+              "Your request set max_tokens above this model's limit, so it was capped at 8192.",
             operations: [
               { type: 'clamp_param', detail: 'Capped "max_tokens" at the maximum of 8192.' },
             ],

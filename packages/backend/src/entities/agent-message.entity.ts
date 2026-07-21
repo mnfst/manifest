@@ -27,6 +27,17 @@ export class AgentMessage {
   @PrimaryColumn('varchar')
   id!: string;
 
+  /** Parent caller request. NULL only while the historical backfill is running. */
+  @Column('varchar', { nullable: true })
+  request_id!: string | null;
+
+  /**
+   * Positive provider-call start order within the parent Request. NULL only for
+   * legacy rows that have not been assigned an unambiguous order.
+   */
+  @Column('integer', { nullable: true })
+  attempt_number!: number | null;
+
   @Column('varchar', { nullable: true })
   tenant_id!: string | null;
 
@@ -63,7 +74,7 @@ export class AgentMessage {
   @Column('decimal', { precision: 10, scale: 6, nullable: true })
   cost_usd!: number | null;
 
-  @Column('varchar', { default: 'ok' })
+  @Column('varchar', { default: 'pending' })
   status!: string;
 
   @Column('varchar', { nullable: true })
@@ -222,9 +233,9 @@ export class AgentMessage {
   @Column('jsonb', { nullable: true })
   autofix_operations!: object | null;
 
-  // Phoenix's own identifiers for the heal decision behind this row
-  // ({ issueId, patchId, healAttemptId }) — lets a Manifest message be
-  // cross-referenced with the healing service's issue/patch timeline.
-  @Column('jsonb', { nullable: true })
-  autofix_phoenix!: object | null;
+  // Phoenix's decision behind this attempt ({ status, issueId, patchId,
+  // healAttemptId, explanation }). Keep the physical legacy column name so
+  // replicas from the previous release can keep writing during a rolling deploy.
+  @Column('jsonb', { name: 'autofix_phoenix', nullable: true })
+  autofix_decision!: object | null;
 }

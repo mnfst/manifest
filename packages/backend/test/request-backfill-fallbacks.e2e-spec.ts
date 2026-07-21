@@ -176,6 +176,53 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     expect(requestRows).toEqual(expected.map((row) => ({ ...row, status: 'failed' })));
   });
 
+  it('removes staged Manifest rejections and validates constraints at transition completion', async () => {
+    await dataSource.query(`
+      INSERT INTO agent_messages (
+        id, tenant_id, agent_id, agent_name, timestamp, duration_ms, status,
+        error_code, error_origin, error_class, model
+      ) VALUES
+        ('manifest-config', 'tenant-1', 'agent-1', 'Agent',
+         '2026-01-01 00:00:00.000', 0, 'error', 'M100', 'config', 'no_provider_key', 'auto'),
+        ('provider-error', 'tenant-1', 'agent-1', 'Agent',
+         '2026-01-01 00:00:01.000', 100, 'error', NULL, 'provider', 'server_error', 'gpt-4o')
+    `);
+    await backfill({ batchSize: 1 });
+
+    const gateway = new TypeOrmRequestBackfillGateway(dataSource);
+    await expect(
+      gateway.finalizeTransition(1, {
+        lockTimeoutMs: 5_000,
+        statementTimeoutMs: 30_000,
+      }),
+    ).resolves.toBe(1);
+
+    const attempts = await dataSource.query(`
+      SELECT id, request_id, attempt_number
+      FROM agent_messages
+      ORDER BY id
+    `);
+    const [{ requests }] = await dataSource.query(`SELECT count(*)::int AS requests FROM requests`);
+    const constraints = await dataSource.query(`
+      SELECT conname, convalidated
+      FROM pg_constraint
+      WHERE conname IN (
+        'FK_agent_messages_request',
+        'CHK_agent_messages_attempt_number_positive'
+      )
+      ORDER BY conname
+    `);
+
+    expect(attempts).toEqual([
+      { id: 'provider-error', request_id: 'provider-error', attempt_number: 1 },
+    ]);
+    expect(requests).toBe(2);
+    expect(constraints).toEqual([
+      { conname: 'CHK_agent_messages_attempt_number_positive', convalidated: true },
+      { conname: 'FK_agent_messages_request', convalidated: true },
+    ]);
+  });
+
   it('refreshes only requests linked by the current sparse window', async () => {
     await insertAttempt({
       id: 'a-linked',

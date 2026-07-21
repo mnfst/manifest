@@ -159,11 +159,13 @@ export class TierController {
   @Get(':agentName/autofix')
   async getAutofix(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    const available = await this.autofixService.hasAccess(ctx.tenantId);
     // `available` gates the toggle's visibility in the UI (early-access rollout);
-    // `enabled` is the agent's effective setting once it is available.
+    // `enabled` reports effective runtime behavior, so a tenant outside the
+    // cohort never appears enabled merely because its mode default is on.
     return {
-      enabled: this.autofixService.resolveEnabled(agent.autofix_enabled),
-      available: await this.autofixService.hasAccess(ctx.tenantId),
+      enabled: available && this.autofixService.resolveEnabled(agent.autofix_enabled),
+      available,
     };
   }
 
@@ -188,7 +190,7 @@ export class TierController {
     return {
       enabled: applied
         ? (body.enabled as boolean)
-        : this.autofixService.resolveEnabled(agent.autofix_enabled),
+        : available && this.autofixService.resolveEnabled(agent.autofix_enabled),
       available,
     };
   }

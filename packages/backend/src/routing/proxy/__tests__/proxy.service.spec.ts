@@ -372,10 +372,15 @@ describe('ProxyService — orchestration', () => {
 
       expect(result.forward).toBe(healed);
       expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
-      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(failed, {
-        model: 'gpt-4o',
-        max_tokens: 5,
-      });
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        failed,
+        { model: 'gpt-4o', max_tokens: 5 },
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'gpt-4o',
+          authType: 'api_key',
+        }),
+      );
     });
 
     it('reports the captured provider body and provider-facing API mode to Auto-fix', async () => {
@@ -586,9 +591,15 @@ describe('ProxyService — orchestration', () => {
       expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
       // No re-resolve — the same-model branch never consults getModelsForAgent.
       expect(modelDiscovery.getModelsForAgent).not.toHaveBeenCalled();
-      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(failed, {
-        max_output_tokens: 5,
-      });
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        failed,
+        { max_output_tokens: 5 },
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'gpt-4o',
+          authType: 'api_key',
+        }),
+      );
     });
 
     it('re-resolves via scoring (not the explicit-model path) when the heal switches the model to auto (M5)', async () => {
@@ -1730,17 +1741,23 @@ describe('ProxyService — orchestration', () => {
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
+        attempt: { id: 'primary-attempt' } as never,
+        providerCallStarted: true,
       });
       fallbackService.tryFallbacks.mockResolvedValue({
         success: null,
         failures: [],
       } as never);
 
-      await svc.proxyRequest(baseOpts());
+      const result = await svc.proxyRequest(baseOpts());
 
       const call = fallbackService.tryFallbacks.mock.calls[0];
       expect(call[2]).toEqual(['claude']);
       expect(call[14]).toEqual([route('anthropic', 'api_key', 'claude')]);
+      // When every eligible fallback fails before invoking a provider, the
+      // terminal response still records the primary provider call.
+      expect(result.meta.attempt).toEqual({ id: 'primary-attempt' });
+      expect(result.meta.providerCallStarted).toBe(true);
     });
 
     it('does not retry a lifted stream fallback as its own fallback', async () => {

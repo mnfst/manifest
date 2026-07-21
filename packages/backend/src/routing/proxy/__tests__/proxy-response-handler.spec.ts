@@ -167,7 +167,8 @@ describe('proxy-response-handler', () => {
         testCtx,
         500,
         'Internal Server Error',
-        {
+        expect.objectContaining({
+          requestId: expect.any(String),
           model: 'gpt-4o',
           provider: 'openai',
           tier: 'standard',
@@ -177,7 +178,7 @@ describe('proxy-response-handler', () => {
           authType: undefined,
           reason: 'auto',
           specificityCategory: undefined,
-        },
+        }),
       );
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith(
@@ -216,6 +217,30 @@ describe('proxy-response-handler', () => {
         500,
         'oops',
         expect.objectContaining({ reason: 'header-match' }),
+      );
+    });
+
+    it('finishes a locally rejected Request without recording a Provider Attempt', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ providerCallStarted: false });
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        429,
+        'route cooling down',
+        undefined,
+        recorder as any,
+      );
+
+      expect(recorder.recordProviderError).toHaveBeenCalledWith(
+        testCtx,
+        429,
+        'route cooling down',
+        expect.objectContaining({ skipAttempt: true }),
       );
     });
 
@@ -592,6 +617,42 @@ describe('proxy-response-handler', () => {
       expect(recorder.recordFailedFallbacks).toHaveBeenCalled();
     });
 
+    it('numbers an Auto-fix retry before its fallback attempts', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta({ fallbackFromModel: 'gpt-4o' });
+      const failedFallbacks: FailedFallback[] = [
+        { model: 'claude', provider: 'anthropic', fallbackIndex: 0, status: 500, errorBody: '' },
+      ];
+      const autofix: AutofixRecord = {
+        groupId: 'grp-order',
+        outcome: 'exhausted',
+        original_http_status: 400,
+        chain: [
+          { attempt: 0, origin: 'original', request: {}, http_status: 400 },
+          { attempt: 1, origin: 'autofix', request: {}, http_status: 400 },
+        ],
+      };
+
+      recordFallbackFailures(testCtx, meta, failedFallbacks, recorder as any, null, null, autofix);
+
+      expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
+        testCtx,
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        undefined,
+        expect.objectContaining({ attemptNumber: 2 }),
+      );
+      expect(recorder.recordFailedFallbacks).toHaveBeenCalledWith(
+        testCtx,
+        expect.anything(),
+        expect.anything(),
+        failedFallbacks,
+        expect.objectContaining({ firstAttemptNumber: 3 }),
+      );
+    });
+
     it('passes a no-patch audit to the plain primary failure', () => {
       const recorder = mockRecorder();
       const meta = makeMeta({ fallbackFromModel: 'gpt-4o', primaryErrorStatus: 400 });
@@ -715,6 +776,7 @@ describe('proxy-response-handler', () => {
         expect.any(String),
         undefined,
         expect.objectContaining({
+          requestId: expect.any(String),
           provider: 'anthropic',
           reason: 'auto',
           callerAttribution: undefined,
@@ -739,7 +801,11 @@ describe('proxy-response-handler', () => {
         'Provider returned HTTP 500',
         expect.any(String),
         undefined,
-        { provider: 'anthropic', reason: 'auto', callerAttribution: undefined },
+        expect.objectContaining({
+          requestId: expect.any(String),
+          provider: 'anthropic',
+          reason: 'auto',
+        }),
       );
     });
 
@@ -777,7 +843,11 @@ describe('proxy-response-handler', () => {
         expect.any(String),
         expect.any(String),
         undefined,
-        { provider: undefined, reason: 'auto', callerAttribution: undefined },
+        expect.objectContaining({
+          requestId: expect.any(String),
+          provider: undefined,
+          reason: 'auto',
+        }),
       );
     });
   });
@@ -2123,18 +2193,31 @@ describe('proxy-response-handler', () => {
         recorder as any,
         'trace-1',
         'session-1',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'request-order',
+        4,
       );
 
-      expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(testCtx, 'gpt-4o', 'standard', {
-        traceId: 'trace-1',
-        provider: 'openai',
-        fallbackFromModel: 'gpt-4o',
-        fallbackIndex: 1,
-        timestamp: '2025-01-01T00:00:00Z',
-        authType: undefined,
-        reason: 'auto',
-        usage,
-      });
+      expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        expect.objectContaining({
+          requestId: 'request-order',
+          attemptNumber: 4,
+          traceId: 'trace-1',
+          provider: 'openai',
+          fallbackFromModel: 'gpt-4o',
+          fallbackIndex: 1,
+          timestamp: '2025-01-01T00:00:00Z',
+          authType: undefined,
+          reason: 'auto',
+          usage,
+        }),
+      );
     });
 
     it('should record success message when no fallback and usage exists', () => {
@@ -2150,14 +2233,16 @@ describe('proxy-response-handler', () => {
         'standard',
         'auto',
         usage,
-        {
+        expect.objectContaining({
+          requestId: expect.any(String),
+          attemptNumber: 1,
           traceId: 'trace-1',
           provider: 'openai',
           authType: undefined,
           sessionKey: 'session-1',
           durationMs: expect.any(Number),
           specificityCategory: undefined,
-        },
+        }),
       );
     });
 
@@ -2230,16 +2315,22 @@ describe('proxy-response-handler', () => {
 
       recordSuccess(testCtx, meta, null, '2025-01-01T00:00:00Z', recorder as any);
 
-      expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(testCtx, 'gpt-4o', 'standard', {
-        traceId: undefined,
-        provider: 'openai',
-        fallbackFromModel: 'gpt-4o',
-        fallbackIndex: 0,
-        timestamp: '2025-01-01T00:00:00Z',
-        authType: undefined,
-        reason: 'auto',
-        usage: undefined,
-      });
+      expect(recorder.recordFallbackSuccess).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        expect.objectContaining({
+          requestId: expect.any(String),
+          traceId: undefined,
+          provider: 'openai',
+          fallbackFromModel: 'gpt-4o',
+          fallbackIndex: 0,
+          timestamp: '2025-01-01T00:00:00Z',
+          authType: undefined,
+          reason: 'auto',
+          usage: undefined,
+        }),
+      );
     });
 
     it('defaults fallbackIndex to 0 when meta does not set one', () => {

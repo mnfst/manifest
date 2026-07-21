@@ -24,7 +24,7 @@ import {
   createAnthropicTransformer,
   createReasoningContentStreamTransformer as reasoningContentStreamTransformer,
 } from './provider-client-converters';
-import { ForwardOptions, ProxyApiMode } from './proxy-types';
+import { ForwardOptions, ProxyApiMode, type ProviderAttemptRef } from './proxy-types';
 import { CodexSessionAffinity } from './codex-session-affinity';
 import { toNativeResponsesRequest } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
@@ -42,6 +42,10 @@ export interface ForwardResult {
   wireApiMode?: ProxyApiMode;
   /** Re-send a healed wire body through the already-resolved transport. */
   retryWireBody?: (body: Record<string, unknown>) => Promise<ForwardResult>;
+  /** False only when Manifest produced a response without invoking provider transport. */
+  providerCallStarted?: boolean;
+  /** Persisted provider-call identity, when request tracking is available. */
+  attempt?: ProviderAttemptRef;
   /** True when we converted from Google format (needs SSE transform). */
   isGoogle: boolean;
   /** True when we converted from Anthropic format (needs SSE transform). */
