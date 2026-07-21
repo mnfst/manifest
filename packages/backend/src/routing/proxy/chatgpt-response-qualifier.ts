@@ -19,6 +19,7 @@ const encoder = new TextEncoder();
 // Allow quiet Codex reasoning beyond generic stream warm-up without delaying
 // fallback for the full provider request deadline when no output ever arrives.
 export const DEFAULT_CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS = 60_000;
+const MAX_TIMER_MS = 2_147_483_647;
 
 export function parseCodexSemanticOutputTimeoutMs(
   rawValue = process.env.CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS,
@@ -26,7 +27,9 @@ export function parseCodexSemanticOutputTimeoutMs(
   const value = rawValue ?? '';
   if (!/^\d+$/.test(value)) return DEFAULT_CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS;
   const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS;
+  return Number.isSafeInteger(parsed) && parsed > 0 && parsed <= MAX_TIMER_MS
+    ? parsed
+    : DEFAULT_CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS;
 }
 
 const CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS = parseCodexSemanticOutputTimeoutMs();
@@ -264,6 +267,7 @@ export async function qualifyChatGptResponse(
   const payloads: string[] = [];
   let bufferedSize = 0;
   let sawReasoningDelta = false;
+  const semanticOutputDeadline = Date.now() + timeoutMs;
 
   const processPayloads = async (newPayloads: string[]): Promise<Response | null> => {
     for (const payload of newPayloads) {
@@ -326,7 +330,8 @@ export async function qualifyChatGptResponse(
 
   try {
     while (true) {
-      const read = await readWithTimeout(reader, timeoutMs);
+      const remainingMs = Math.max(0, semanticOutputDeadline - Date.now());
+      const read = await readWithTimeout(reader, remainingMs);
       if (!read) {
         await discard(reader);
         return errorResponse(

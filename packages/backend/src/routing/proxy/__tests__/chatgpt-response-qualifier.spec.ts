@@ -393,6 +393,34 @@ describe('qualifyChatGptResponse', () => {
     expect(response.status).toBe(504);
   });
 
+  it('applies the semantic-output timeout across non-deliverable chunks', async () => {
+    jest.useFakeTimers();
+    try {
+      const encoder = new TextEncoder();
+      const reasoning = event('response.reasoning_summary.delta', { delta: 'Still thinking' });
+      const source = new Response(
+        new ReadableStream<Uint8Array>({
+          async pull(controller) {
+            await new Promise((resolve) => setTimeout(resolve, 4));
+            controller.enqueue(encoder.encode(reasoning));
+          },
+        }),
+        { status: 200 },
+      );
+
+      const pending = qualifyChatGptResponse(source, {
+        downstreamFormat: 'chat-completions',
+        timeoutMs: 10,
+      });
+      await jest.advanceTimersByTimeAsync(10);
+
+      const response = await pending;
+      expect(response.status).toBe(504);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('bounds non-output data buffered before qualification', async () => {
     const response = await qualifyChatGptResponse(codexResponse('noise'), {
       downstreamFormat: 'chat-completions',
@@ -479,9 +507,15 @@ describe('qualifyChatGptResponse', () => {
 describe('parseCodexSemanticOutputTimeoutMs', () => {
   it('accepts a positive integer', () => {
     expect(parseCodexSemanticOutputTimeoutMs('90000')).toBe(90_000);
+    expect(parseCodexSemanticOutputTimeoutMs('2147483647')).toBe(2_147_483_647);
   });
 
-  it.each([undefined, '', '0', '-1', '1.5', 'invalid'])('uses the default for %p', (value) => {
-    expect(parseCodexSemanticOutputTimeoutMs(value)).toBe(DEFAULT_CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS);
-  });
+  it.each([undefined, '', '0', '-1', '1.5', '12abc', '2147483648', 'invalid'])(
+    'uses the default for %p',
+    (value) => {
+      expect(parseCodexSemanticOutputTimeoutMs(value)).toBe(
+        DEFAULT_CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS,
+      );
+    },
+  );
 });
