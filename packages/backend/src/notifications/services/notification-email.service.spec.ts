@@ -183,7 +183,7 @@ describe('NotificationEmailService', () => {
       agentName: 'demo-agent',
       metricType: 'tokens',
       threshold: 1000,
-      actualValue: 1500,
+      actualValue: 1000,
       period: 'hour',
       timestamp: '2024-01-01T00:00:00Z',
       agentUrl: 'http://localhost:3001/agents/demo-agent',
@@ -192,7 +192,7 @@ describe('NotificationEmailService', () => {
 
     expect(sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        subject: 'Warning: demo-agent exceeded tokens threshold',
+        subject: 'Warning: demo-agent reached tokens threshold',
       }),
     );
   });
@@ -249,7 +249,7 @@ describe('NotificationEmailService', () => {
       agentName: 'demo-agent',
       metricType: 'tokens',
       threshold: 1000,
-      actualValue: 1500,
+      actualValue: 1000,
       period: 'hour',
       timestamp: '2024-01-01T00:00:00Z',
       agentUrl: 'http://localhost:3001/agents/demo-agent',
@@ -260,7 +260,7 @@ describe('NotificationEmailService', () => {
     expect(getTenantLocale).toHaveBeenCalledWith('tenant-1');
     expect(sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        subject: 'Предупреждение: для «demo-agent» превышен порог токенов',
+        subject: 'Предупреждение: для «demo-agent» достигнут порог токенов',
       }),
     );
   });

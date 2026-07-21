@@ -14,6 +14,7 @@ import { getWorkspaceAutofixStatus } from '../services/api/analytics.js';
 import { getAutofixCohort } from '../services/api/autofix.js';
 import { getAgents } from '../services/api.js';
 import { messagePing, agentPing, routingPing } from '../services/sse.js';
+import { t, tr } from '../i18n/index.js';
 
 const READ_KEY = 'manifest_notif_read';
 
@@ -148,7 +149,7 @@ const NotificationBell: Component = () => {
           class="btn btn--outline btn--sm"
           style="position: relative; padding: 6px; display: flex; align-items: center;"
           onClick={() => setOpen(!open())}
-          aria-label="Notifications"
+          aria-label={t('notificationBell.aria')}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -166,7 +167,7 @@ const NotificationBell: Component = () => {
 
         <Show when={open()}>
           <div class="notif-dropdown">
-            <div class="notif-dropdown__header">Auto-fix notifications</div>
+            <div class="notif-dropdown__header">{t('notificationBell.title')}</div>
             <div class="notif-dropdown__list">
               <For each={disabledAgents()}>
                 {(agent) => {
@@ -184,8 +185,9 @@ const NotificationBell: Component = () => {
                         </Show>
                       </div>
                       <span style="font-size: 14px;">
-                        Auto-fix is inactive on <strong>{agent.display}</strong>. Enable it to get
-                        the full dashboard experience.
+                        {tr('notificationBell.inactive', {
+                          agent: <strong>{agent.display}</strong>,
+                        })}
                       </span>
                     </A>
                   );

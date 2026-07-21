@@ -137,4 +137,28 @@ describe('locale catalog integrity', () => {
       }
     }
   });
+
+  it('keeps request-first surfaces free of legacy message terminology', () => {
+    const requestFirstKeys = [
+      'addAgent.description',
+      'provider.localHint',
+      'message.miscategorizeTitle',
+      'pages.workspace.metaDescription',
+      'pages.workspace.messages',
+      'pages.settings.deleteDescription',
+      'pages.globalOverview.recentMessages',
+      'pages.globalOverview.messages',
+    ] as const;
+
+    for (const key of requestFirstKeys) {
+      expect(en[key], `en.${key}`).not.toMatch(/\bmessages?\b/i);
+      expect(ru[key], `ru.${key}`).not.toMatch(/сообщен/iu);
+    }
+
+    expect(en['message.autofixTriggered']).toContain('provider attempt');
+    expect(en['message.autofixTriggered']).not.toContain('request was triggered');
+    expect(en['message.fallbackAttempt']).toContain('Provider attempt');
+    expect(en['message.fallbackLabel']).toBe('Fallback');
+    expect(ru['message.fallbackLabel']).toBe('Резервная модель');
+  });
 });

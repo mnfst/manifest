@@ -6,7 +6,7 @@ const OverviewSkeleton = () => (
     <div class="chart-card">
       <div class="chart-card__header">
         <div class="chart-card__stat chart-card__stat--active">
-          <span class="chart-card__label">Requests</span>
+          <span class="chart-card__label">{t('overview.messages')}</span>
           <div class="chart-card__value-row">
             <div class="skeleton skeleton--text" style="width: 50px; height: 28px;" />
           </div>
@@ -33,7 +33,7 @@ const OverviewSkeleton = () => (
         class="panel__title"
         style="display: flex; justify-content: space-between; align-items: center;"
       >
-        Recent Requests
+        {t('overview.recentMessages')}
         <span class="view-more-link" style="pointer-events: none; opacity: 0.4;">
           {t('overview.viewMore')}
         </span>
@@ -42,7 +42,7 @@ const OverviewSkeleton = () => (
         <thead>
           <tr>
             <th>{t('overview.date')}</th>
-            <th>Request</th>
+            <th>{t('overview.message')}</th>
             <th>{t('overview.cost')}</th>
             <th>{t('overview.model')}</th>
             <th>{t('overview.tokens')}</th>

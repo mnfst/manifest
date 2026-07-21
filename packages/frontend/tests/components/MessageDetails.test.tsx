@@ -327,8 +327,8 @@ describe('MessageDetails', () => {
     await screen.findByRole('table', { name: 'Provider attempts' });
     const rows = container.querySelectorAll('table[aria-label="Provider attempts"] tbody tr');
     expect(rows).toHaveLength(2);
-    expect(rows[0]?.textContent).toContain('1Unknown—error—');
-    expect(rows[1]?.textContent).toContain('2openaiGPT-4osuccess$0.012346');
+    expect(rows[0]?.textContent).toContain('1unknown—Failed—');
+    expect(rows[1]?.textContent).toContain('2openaiGPT-4oSuccess$0.012346');
   });
 
   it('shows error state on API failure', async () => {
@@ -388,7 +388,7 @@ describe('MessageDetails', () => {
       // trigger card (`.autofix-card--fallback`) with the attempt number.
       const banner = container.querySelector('.autofix-card--fallback');
       expect(banner).not.toBeNull();
-      expect(banner!.querySelector('.autofix-card__title')?.textContent).toBe('fallback');
+      expect(banner!.querySelector('.autofix-card__title')?.textContent).toBe('Fallback');
       expect(banner!.textContent).toContain('gemini-2.5-flash-lite');
       expect(banner!.textContent).toContain('#1');
     });
@@ -409,7 +409,7 @@ describe('MessageDetails', () => {
       await vi.waitFor(() => {
         expect(
           container.querySelector('.autofix-card--fallback .autofix-card__title')?.textContent,
-        ).toBe('резервная модель');
+        ).toBe('Резервная модель');
       });
     } finally {
       await setLocale('en');
@@ -447,13 +447,13 @@ describe('MessageDetails', () => {
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain('Routing');
-      expect(container.textContent).toContain('standard');
+      expect(container.textContent).toContain('Standard');
       expect(container.textContent).toContain('Auth');
-      expect(container.textContent).toContain('api_key');
+      expect(container.textContent).toContain('API Key');
     });
   });
 
-  it('displays direct model overrides as DIRECT routing metadata', async () => {
+  it('displays direct model overrides as localized routing metadata', async () => {
     mockGetMessageDetails.mockResolvedValue({
       ...detailsResponse,
       message: {
@@ -465,7 +465,7 @@ describe('MessageDetails', () => {
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain('Routing');
-      expect(container.textContent).toContain('DIRECT');
+      expect(container.textContent).toContain('Direct');
       expect(container.textContent).not.toContain('default');
     });
   });
@@ -676,7 +676,7 @@ describe('MessageDetails', () => {
     });
   });
 
-  it('defaults to Attempt #1 in the fallback banner when fallback_index is null', async () => {
+  it('defaults to provider attempt #1 in the fallback banner when fallback_index is null', async () => {
     const fallbackNoIndexResponse = {
       ...detailsResponse,
       message: {
@@ -693,7 +693,7 @@ describe('MessageDetails', () => {
       expect(banner!.textContent).toContain('gemini-2.5-flash-lite');
       // With no explicit index the attempt number falls back to #1 rather than
       // being hidden — `(fallback_index ?? 0) + 1`.
-      expect(banner!.textContent).toContain('Attempt #1');
+      expect(banner!.textContent).toContain('Provider attempt #1');
     });
   });
 

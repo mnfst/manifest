@@ -24,7 +24,7 @@ export const enShell = {
   'header.logOut': 'Log out',
   'sidebar.navigation': 'Navigation',
   'sidebar.overview': 'Overview',
-  'sidebar.messages': 'Messages',
+  'sidebar.messages': 'Requests',
   'sidebar.providers': 'PROVIDERS',
   'sidebar.subscriptions': 'Subscriptions',
   'sidebar.usageBased': 'Usage-based',
@@ -36,7 +36,7 @@ export const enShell = {
   'sidebar.playground': 'Playground',
   'sidebar.discoverAutofix': 'Discover Auto-fix',
   'sidebar.autofixDescription':
-    'Failing requests are automatically fixed before reaching the model.',
+    'Auto-fix can repair eligible failing requests before they reach the model.',
   'sidebar.learnMore': 'Learn more',
   'sidebar.monthUsage': '{month} usage',
   'sidebar.requestUsage': '{used} / {limit} requests',

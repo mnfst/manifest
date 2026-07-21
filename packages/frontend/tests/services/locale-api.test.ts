@@ -153,9 +153,7 @@ describe('workspace locale synchronization', () => {
     );
     const syncing = syncLocalePreference();
 
-    let resolveRussian!: (
-      module: typeof import('../../src/i18n/messages/ru/index.js'),
-    ) => void;
+    let resolveRussian!: (module: typeof import('../../src/i18n/messages/ru/index.js')) => void;
     const russianChunk = new Promise<typeof import('../../src/i18n/messages/ru/index.js')>(
       (resolve) => (resolveRussian = resolve),
     );

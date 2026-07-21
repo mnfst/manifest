@@ -23,9 +23,6 @@ import {
   getConnectionAttemptHttpStatusTimeseries,
   getConnectionAttemptBreakdown,
   attemptSuccessRate,
-  totalAttemptsTooltip,
-  CONNECTION_SUCCESS_RATE_TOOLTIP,
-  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP,
 } from '../../services/api/analytics.js';
 import { getAutofixCohort } from '../../services/api/autofix.js';
 import { messagePing } from '../../services/sse.js';
@@ -56,7 +53,20 @@ import '../../styles/analytics-overview.css';
 import { getModelDisplayName } from '../../services/model-display.js';
 import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import '../../styles/routing.css';
-import { t, tp } from '../../i18n/index.js';
+import { formatNumber as formatLocalizedNumber, t, tp } from '../../i18n/index.js';
+
+const formatSuccessRate = (rate: number): string =>
+  formatLocalizedNumber(rate, {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+
+const formatSharePercentage = (percentage: number): string =>
+  formatLocalizedNumber(percentage / 100, {
+    style: 'percent',
+    maximumFractionDigits: 1,
+  });
 
 const BACK_LINKS: Record<string, string> = {
   subscription: '/providers/subscriptions',
@@ -200,7 +210,7 @@ const ConnectionDetail: Component = () => {
   // card's current window, so the list matches what the card counted.
   const requestsLink = (extra: string) =>
     `/messages?connections=${encodeURIComponent(params.connectionId)}&range=${chartRange()}${extra}`;
-  const viewMore = () => <span class="view-more-link">View more</span>;
+  const viewMore = () => <span class="view-more-link">{t('analytics.action.viewMore')}</span>;
 
   const backLink = () =>
     BACK_LINKS[conn()?.auth_type ?? 'subscription'] ?? '/providers/subscriptions';
@@ -851,8 +861,8 @@ const ConnectionDetail: Component = () => {
               >
                 <div class="overview-stat-card">
                   <span class="overview-stat-card__label">
-                    Success rate
-                    <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP} />
+                    {t('analytics.successRate')}
+                    <InfoTooltip text={t('analytics.tooltip.connectionSuccessRate')} />
                   </span>
                   <div class="overview-stat-card__value-row">
                     <span class="overview-stat-card__value">
@@ -861,7 +871,7 @@ const ConnectionDetail: Component = () => {
                         const rate = b
                           ? attemptSuccessRate({ attempts: b.attempts, succeeded: b.succeeded })
                           : null;
-                        return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                        return rate == null ? '—' : formatSuccessRate(rate);
                       })()}
                     </span>
                   </div>
@@ -869,10 +879,10 @@ const ConnectionDetail: Component = () => {
                 <div
                   class="overview-stat-card"
                   style="cursor: pointer;"
-                  title="View the requests holding these succeeded attempts"
+                  title={t('analytics.action.viewConnectionSucceededAttempts')}
                   onClick={() => navigate(requestsLink('&attempts=has_succeeded'))}
                 >
-                  <span class="overview-stat-card__label">Succeeded attempts</span>
+                  <span class="overview-stat-card__label">{t('analytics.succeededAttempts')}</span>
                   <div class="overview-stat-card__value-row">
                     <span class="overview-stat-card__value">
                       {formatNumber(breakdown()?.succeeded ?? 0)}
@@ -883,10 +893,10 @@ const ConnectionDetail: Component = () => {
                 <div
                   class="overview-stat-card"
                   style="cursor: pointer;"
-                  title="View the requests holding these failed attempts"
+                  title={t('analytics.action.viewConnectionFailedAttempts')}
                   onClick={() => navigate(requestsLink('&attempts=has_failed'))}
                 >
-                  <span class="overview-stat-card__label">Failed attempts</span>
+                  <span class="overview-stat-card__label">{t('analytics.failedAttempts')}</span>
                   <div class="overview-stat-card__value-row">
                     <span class="overview-stat-card__value">
                       {formatNumber(breakdown()?.failed ?? 0)}
@@ -897,17 +907,20 @@ const ConnectionDetail: Component = () => {
                 <div
                   class="overview-stat-card"
                   style="cursor: pointer;"
-                  title="View the requests where this connection ran a fallback retry"
+                  title={t('analytics.action.viewConnectionFallbackRetries')}
                   onClick={() => navigate(requestsLink('&trigger=fallback'))}
                 >
-                  <span class="overview-stat-card__label">Fallback retries</span>
+                  <span class="overview-stat-card__label">{t('analytics.fallbackRetries')}</span>
                   <div class="overview-stat-card__value-row">
                     <span class="overview-stat-card__value">
                       {formatNumber(breakdown()?.fallback_retries ?? 0)}
                     </span>
                     <Show when={(breakdown()?.fallback_retries ?? 0) > 0}>
                       <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                        {formatNumber(breakdown()?.fallback_retries_succeeded ?? 0)} succeeded
+                        {tp(
+                          'analytics.succeededAttemptCount',
+                          breakdown()?.fallback_retries_succeeded ?? 0,
+                        )}
                       </span>
                     </Show>
                     {viewMore()}
@@ -917,17 +930,22 @@ const ConnectionDetail: Component = () => {
                   <div
                     class="overview-stat-card"
                     style="cursor: pointer;"
-                    title="View the requests where this connection ran an auto-fixed attempt"
+                    title={t('analytics.action.viewConnectionAutoFixedAttempts')}
                     onClick={() => navigate(requestsLink('&trigger=autofix'))}
                   >
-                    <span class="overview-stat-card__label">Auto-fixed attempts</span>
+                    <span class="overview-stat-card__label">
+                      {t('analytics.autoFixedAttempts')}
+                    </span>
                     <div class="overview-stat-card__value-row">
                       <span class="overview-stat-card__value">
                         {formatNumber(breakdown()?.autofix_attempts ?? 0)}
                       </span>
                       <Show when={(breakdown()?.autofix_attempts ?? 0) > 0}>
                         <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                          {formatNumber(breakdown()?.autofix_attempts_succeeded ?? 0)} succeeded
+                          {tp(
+                            'analytics.succeededAttemptCount',
+                            breakdown()?.autofix_attempts_succeeded ?? 0,
+                          )}
                         </span>
                       </Show>
                       {viewMore()}
@@ -952,8 +970,12 @@ const ConnectionDetail: Component = () => {
                     <UnifiedChartCard
                       activeTab={chartView()}
                       onTabChange={setChartView}
-                      requestsLabel="Attempts"
-                      requestsInfoTooltip={totalAttemptsTooltip(autofixEligible())}
+                      requestsLabel={t('analytics.attempts')}
+                      requestsInfoTooltip={t(
+                        autofixEligible()
+                          ? 'analytics.tooltip.totalAttemptsWithAutofix'
+                          : 'analytics.tooltip.totalAttemptsWithoutAutofix',
+                      )}
                       requestsValue={attemptTotals().attempts}
                       requestsTrendPct={0}
                       tokensValue={analytics()!.summary.tokens.value}
@@ -988,7 +1010,7 @@ const ConnectionDetail: Component = () => {
                               }}
                               onClick={() => setGroupBy('http')}
                             >
-                              By HTTP status
+                              {t('analytics.byHttpStatus')}
                             </button>
                             <button
                               class="chart-card__filter-btn"
@@ -997,7 +1019,7 @@ const ConnectionDetail: Component = () => {
                               }}
                               onClick={() => setGroupBy('status')}
                             >
-                              By attempt status
+                              {t('analytics.byAttemptStatus')}
                             </button>
                             <button
                               class="chart-card__filter-btn"
@@ -1006,7 +1028,7 @@ const ConnectionDetail: Component = () => {
                               }}
                               onClick={() => setGroupBy('harness')}
                             >
-                              By harness
+                              {t('analytics.byHarness')}
                             </button>
                           </Show>
                           <Show
@@ -1038,13 +1060,13 @@ const ConnectionDetail: Component = () => {
                   class="panel__title"
                   style="display: flex; justify-content: space-between; align-items: center;"
                 >
-                  Recent Requests
+                  {t('pages.connectionDetail.recentRequests')}
                 </div>
                 <Show
                   when={detail()!.recent_messages.length > 0}
                   fallback={
                     <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
-                      No requests yet.
+                      {t('pages.connectionDetail.noRequests')}
                     </div>
                   }
                 >
@@ -1053,7 +1075,7 @@ const ConnectionDetail: Component = () => {
                       <thead>
                         <tr>
                           <th>{t('pages.connectionDetail.date')}</th>
-                          <th>Request ID</th>
+                          <th>{t('pages.connectionDetail.requestId')}</th>
                           <th>{t('pages.connectionDetail.model')}</th>
                           <th>{t('pages.connectionDetail.tokens')}</th>
                         </tr>
@@ -1138,13 +1160,13 @@ const ConnectionDetail: Component = () => {
                                     />
                                   </div>
                                   <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                                    {m.pct_of_total}%
+                                    {formatSharePercentage(m.pct_of_total)}
                                   </span>
                                 </div>
                               </td>
                               <Show when={isByok()}>
                                 <td style="font-weight: 600; color: hsl(var(--foreground));">
-                                  {formatCost(m.cost) ?? '$0.00'}
+                                  {formatCost(m.cost) ?? formatCost(0)}
                                 </td>
                               </Show>
                             </tr>
@@ -1178,12 +1200,20 @@ const ConnectionDetail: Component = () => {
                             <th>{t('pages.connectionDetail.cost30d')}</th>
                           </Show>
                           <th class="rel-col">
-                            Total attempts
-                            <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                            {t('analytics.totalAttempts')}
+                            <InfoTooltip
+                              text={t(
+                                autofixEligible()
+                                  ? 'analytics.tooltip.totalAttemptsWithAutofix'
+                                  : 'analytics.tooltip.totalAttemptsWithoutAutofix',
+                              )}
+                            />
                           </th>
                           <th class="rel-col">
-                            Success rate
-                            <InfoTooltip text={CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP} />
+                            {t('analytics.successRate')}
+                            <InfoTooltip
+                              text={t('analytics.tooltip.connectionHarnessSuccessRate')}
+                            />
                           </th>
                           <th>{t('pages.connectionDetail.lastUsed')}</th>
                         </tr>
@@ -1223,12 +1253,12 @@ const ConnectionDetail: Component = () => {
                                     />
                                   </div>
                                   <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                                    {agent.pct_of_total}%
+                                    {formatSharePercentage(agent.pct_of_total)}
                                   </span>
                                 </div>
                               </td>
                               <Show when={isByok()}>
-                                <td>{formatCost(agent.cost_30d) ?? '$0.00'}</td>
+                                <td>{formatCost(agent.cost_30d) ?? formatCost(0)}</td>
                               </Show>
                               <td class="rel-col">{formatNumber(agent.attempts_30d ?? 0)}</td>
                               <td class="rel-col">
@@ -1237,7 +1267,7 @@ const ConnectionDetail: Component = () => {
                                     attempts: agent.attempts_30d ?? 0,
                                     succeeded: agent.succeeded_30d,
                                   });
-                                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                                  return rate == null ? '—' : formatSuccessRate(rate);
                                 })()}
                               </td>
                               <td style="color: hsl(var(--muted-foreground));">

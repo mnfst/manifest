@@ -173,7 +173,12 @@ export function CostCell(item: MessageRow): JSX.Element {
                     }),
                   })
                 : item.cost != null && item.cost > 0 && item.cost < 0.01
-                  ? `$${item.cost.toFixed(6)}`
+                  ? formatLocalizedNumber(item.cost, {
+                      style: 'currency',
+                      currency: 'USD',
+                      minimumFractionDigits: 6,
+                      maximumFractionDigits: 6,
+                    })
                   : undefined
             }
           >
@@ -185,7 +190,12 @@ export function CostCell(item: MessageRow): JSX.Element {
           style="color: hsl(var(--muted-foreground));"
           title={t('headerTier.includedSubscription')}
         >
-          $0.00
+          {formatLocalizedNumber(0, {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
         </span>
       </Show>
     </td>

@@ -901,7 +901,7 @@ const MessageLog: Component = () => {
                     <div class="empty-state__img-wrapper">
                       <img
                         src="/example-messages.svg"
-                        alt="Example request log showing LLM request history"
+                        alt={t('pages.messages.requestLogAlt')}
                         class="empty-state__img"
                         loading="lazy"
                       />
@@ -928,7 +928,7 @@ const MessageLog: Component = () => {
                   <div class="empty-state__img-wrapper">
                     <img
                       src="/example-messages.svg"
-                      alt="Example request log showing LLM request history"
+                      alt={t('pages.messages.requestLogAlt')}
                       class="empty-state__img"
                       loading="lazy"
                     />

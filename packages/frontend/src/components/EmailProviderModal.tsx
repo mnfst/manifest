@@ -4,7 +4,17 @@ import { setEmailProvider, testEmailProvider, testSavedEmailProvider } from '../
 import { authClient } from '../services/auth-client.js';
 import { getEmailProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 import { toast } from '../services/toast-store.js';
-import { locale, t } from '../i18n/index.js';
+import { locale, t, type TextMessageKey } from '../i18n/index.js';
+
+type EmailFieldErrorKey = Extract<
+  TextMessageKey,
+  | 'email.apiKeyRequired'
+  | 'email.apiKeyMinLength'
+  | 'email.resendPrefix'
+  | 'email.sendgridPrefix'
+  | 'email.domainRequired'
+  | 'email.invalidDomain'
+>;
 
 const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
 
@@ -32,8 +42,8 @@ const EmailProviderModal: Component<Props> = (props) => {
   const [notificationEmail, setNotificationEmail] = createSignal('');
   const [saving, setSaving] = createSignal(false);
   const [testing, setTesting] = createSignal(false);
-  const [keyError, setKeyError] = createSignal('');
-  const [domainError, setDomainError] = createSignal('');
+  const [keyError, setKeyError] = createSignal<EmailFieldErrorKey | null>(null);
+  const [domainError, setDomainError] = createSignal<EmailFieldErrorKey | null>(null);
   const [editingKey, setEditingKey] = createSignal(false);
 
   const session = authClient.useSession();
@@ -55,8 +65,8 @@ const EmailProviderModal: Component<Props> = (props) => {
       setDomain(props.existingDomain ?? '');
       const defaultEmail = props.existingNotificationEmail ?? session()?.data?.user?.email ?? '';
       setNotificationEmail(defaultEmail);
-      setKeyError('');
-      setDomainError('');
+      setKeyError(null);
+      setDomainError(null);
     }
   });
 
@@ -69,39 +79,39 @@ const EmailProviderModal: Component<Props> = (props) => {
 
     // Skip API key validation when keeping the existing key
     if (!editingKey() && hasExistingKey()) {
-      setKeyError('');
+      setKeyError(null);
     } else if (!key) {
-      setKeyError(t('email.apiKeyRequired'));
+      setKeyError('email.apiKeyRequired');
       valid = false;
     } else if (key.length < 8) {
-      setKeyError(t('email.apiKeyMinLength'));
+      setKeyError('email.apiKeyMinLength');
       valid = false;
     } else if (provider() === 'resend' && !key.startsWith('re_')) {
-      setKeyError(t('email.resendPrefix'));
+      setKeyError('email.resendPrefix');
       valid = false;
     } else if (provider() === 'sendgrid' && !key.startsWith('SG.')) {
-      setKeyError(t('email.sendgridPrefix'));
+      setKeyError('email.sendgridPrefix');
       valid = false;
     } else {
-      setKeyError('');
+      setKeyError(null);
     }
 
     if (needsDomain()) {
       if (!dom) {
-        setDomainError(t('email.domainRequired'));
+        setDomainError('email.domainRequired');
         valid = false;
       } else if (!DOMAIN_RE.test(dom)) {
-        setDomainError(t('email.invalidDomain'));
+        setDomainError('email.invalidDomain');
         valid = false;
       } else {
-        setDomainError('');
+        setDomainError(null);
       }
     } else {
       if (dom && !DOMAIN_RE.test(dom)) {
-        setDomainError(t('email.invalidDomain'));
+        setDomainError('email.invalidDomain');
         valid = false;
       } else {
-        setDomainError('');
+        setDomainError(null);
       }
     }
 
@@ -287,7 +297,7 @@ const EmailProviderModal: Component<Props> = (props) => {
                 classList={{ 'provider-modal-option--active': provider() === 'resend' }}
                 onClick={() => {
                   setProvider('resend');
-                  setKeyError('');
+                  setKeyError(null);
                 }}
                 type="button"
               >
@@ -299,7 +309,7 @@ const EmailProviderModal: Component<Props> = (props) => {
                 classList={{ 'provider-modal-option--active': provider() === 'mailgun' }}
                 onClick={() => {
                   setProvider('mailgun');
-                  setKeyError('');
+                  setKeyError(null);
                 }}
                 type="button"
               >
@@ -311,7 +321,7 @@ const EmailProviderModal: Component<Props> = (props) => {
                 classList={{ 'provider-modal-option--active': provider() === 'sendgrid' }}
                 onClick={() => {
                   setProvider('sendgrid');
-                  setKeyError('');
+                  setKeyError(null);
                 }}
                 type="button"
               >
@@ -353,13 +363,13 @@ const EmailProviderModal: Component<Props> = (props) => {
                 value={apiKey()}
                 onInput={(e) => {
                   setApiKey(e.currentTarget.value);
-                  setKeyError('');
+                  setKeyError(null);
                 }}
               />
             </Show>
             <Show when={keyError()}>
               <p class="modal-card__field-error" role="alert">
-                {keyError()}
+                {t(keyError()!)}
               </p>
             </Show>
             <Show when={keyDocsUrl()}>
@@ -388,12 +398,12 @@ const EmailProviderModal: Component<Props> = (props) => {
                 value={domain()}
                 onInput={(e) => {
                   setDomain(e.currentTarget.value);
-                  setDomainError('');
+                  setDomainError(null);
                 }}
               />
               <Show when={domainError()}>
                 <p class="modal-card__field-error" role="alert">
-                  {domainError()}
+                  {t(domainError()!)}
                 </p>
               </Show>
             </Show>

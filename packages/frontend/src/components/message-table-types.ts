@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.js';
+
 export interface MessageRow {
   id: string;
   timestamp: string;
@@ -39,7 +41,25 @@ export interface MessageRow {
 
 export function routingTierLabel(tier: string | null | undefined): string | undefined {
   if (!tier) return undefined;
-  return tier === 'direct' ? 'DIRECT' : tier;
+  switch (tier) {
+    case 'direct':
+      return t('pages.messages.tier.direct');
+    case 'default':
+      return t('routing.tier.default');
+    case 'simple':
+      return t('routing.tier.simple');
+    case 'standard':
+      return t('routing.tier.standard');
+    case 'complex':
+      return t('routing.tier.complex');
+    case 'reasoning':
+      return t('routing.tier.reasoning');
+    case 'fallback':
+      return t('message.fallbackLabel');
+    default:
+      // Custom tier names are operator-authored display data.
+      return tier;
+  }
 }
 
 export type MessageColumnKey =

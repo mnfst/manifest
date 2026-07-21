@@ -143,6 +143,8 @@ describe('billing plan emails', () => {
       }),
     );
     expect(usageHtml).toContain('Месячный лимит запросов исчерпан');
+    expect(usageHtml).toContain('запросов, включённых в тариф');
+    expect(usageHtml).not.toContain('включённых запросов');
     expect(usageHtml).toContain('Перейдите на тариф Pro');
     expect(usageHtml).toContain('Посмотреть тариф');
   });

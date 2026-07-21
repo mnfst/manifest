@@ -22,7 +22,7 @@ export interface LimitExceeded {
   metricType: 'tokens' | 'cost';
   threshold: number;
   actual: number;
-  period: string;
+  period: BlockRule['period'];
 }
 
 interface CacheEntry<T> {

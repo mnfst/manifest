@@ -37,7 +37,9 @@ const USAGE_SUBJECTS = {
 
 export function planUsagePercentage(used: number, limit: number): number {
   if (!Number.isFinite(used) || !Number.isFinite(limit) || limit <= 0) return 0;
-  return Math.min(100, Math.max(0, Math.round((used / limit) * 100)));
+  if (used >= limit) return 100;
+  // Do not announce full usage while the raw value is still below the limit.
+  return Math.min(99, Math.max(0, Math.round((used / limit) * 100)));
 }
 
 export function subscriptionEmailSubject(

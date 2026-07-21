@@ -73,9 +73,7 @@ describe('lazyReload', () => {
     sessionStorage.setItem(scopeKey(ROUTE_SCOPE), '1');
     const factory = lazyReload(() => Promise.reject(new Error('still broken')), ROUTE_SCOPE);
 
-    await expect(
-      (factory as unknown as () => Promise<unknown>)(),
-    ).rejects.toThrow('still broken');
+    await expect((factory as unknown as () => Promise<unknown>)()).rejects.toThrow('still broken');
 
     expect(reloadMock).not.toHaveBeenCalled();
     expect(sessionStorage.getItem(scopeKey(ROUTE_SCOPE))).toBeNull();

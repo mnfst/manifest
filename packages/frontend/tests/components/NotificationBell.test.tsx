@@ -53,6 +53,7 @@ vi.mock('../../src/services/sse.js', () => ({
 }));
 
 import NotificationBell from '../../src/components/NotificationBell';
+import { setLocale } from '../../src/i18n/index.js';
 
 describe('NotificationBell', () => {
   beforeEach(() => {
@@ -97,6 +98,24 @@ describe('NotificationBell', () => {
     expect(screen.getByText(/Auto-fix is inactive on/)).toBeDefined();
     fireEvent.mouseDown(document.body);
     expect(screen.queryByText(/Auto-fix is inactive on/)).toBeNull();
+  });
+
+  it('updates a mounted notification and its accessible label when locale changes', async () => {
+    cohortEligible = true;
+    render(() => <NotificationBell />);
+    await waitFor(() => expect(screen.getByLabelText('Notifications')).toBeDefined());
+    fireEvent.click(screen.getByLabelText('Notifications'));
+
+    await setLocale('ru');
+    try {
+      await waitFor(() => expect(screen.getByLabelText('Уведомления')).toBeDefined());
+      expect(screen.getByText('Уведомления Auto-fix')).toBeDefined();
+      expect(screen.getByText(/Для интеграции/).textContent).toContain(
+        'Включите его, чтобы использовать все возможности панели.',
+      );
+    } finally {
+      await setLocale('en');
+    }
   });
 
   it('clears read state after an agent is enabled and accepts array agent responses', async () => {

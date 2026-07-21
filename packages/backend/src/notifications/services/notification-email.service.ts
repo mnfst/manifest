@@ -13,12 +13,12 @@ type ThresholdSubjectProps = Pick<ThresholdAlertProps, 'agentName' | 'metricType
 const THRESHOLD_SUBJECTS = {
   en: ({ agentName, metricType, alertType }: ThresholdSubjectProps) =>
     alertType === 'soft'
-      ? `Warning: ${agentName} exceeded ${metricType} threshold`
+      ? `Warning: ${agentName} reached ${metricType} threshold`
       : `Blocked: ${agentName} reached ${metricType} limit`,
   ru: ({ agentName, metricType, alertType }: ThresholdSubjectProps) => {
     const metric = metricType === 'cost' ? 'расходов' : 'токенов';
     return alertType === 'soft'
-      ? `Предупреждение: для «${agentName}» превышен порог ${metric}`
+      ? `Предупреждение: для «${agentName}» достигнут порог ${metric}`
       : `Заблокировано: для «${agentName}» достигнут лимит ${metric}`;
   },
 } satisfies Record<AppLocale, (props: ThresholdSubjectProps) => string>;

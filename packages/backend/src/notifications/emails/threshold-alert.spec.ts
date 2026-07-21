@@ -10,6 +10,39 @@ function renderEmail(props: Parameters<typeof ThresholdAlertEmail>[0]): string {
 }
 
 describe('ThresholdAlertEmail', () => {
+  it('describes a soft English alert as a threshold warning, not a hard limit', () => {
+    const html = renderEmail({
+      agentName: 'helper',
+      metricType: 'tokens',
+      threshold: 100,
+      actualValue: 100,
+      period: 'day',
+      timestamp: '2026-04-23 12:00',
+      agentUrl: 'https://app.manifest.build/agents/helper',
+      alertType: 'soft',
+    });
+
+    expect(html).toContain('helper reached the tokens threshold');
+    expect(html).not.toContain('helper reached the tokens limit');
+  });
+
+  it('describes a soft Russian alert as a threshold warning, not a hard limit', () => {
+    const html = renderEmail({
+      agentName: 'помощник',
+      metricType: 'tokens',
+      threshold: 100,
+      actualValue: 100,
+      period: 'day',
+      timestamp: '2026-04-23 12:00',
+      agentUrl: 'https://app.manifest.build/agents/helper',
+      alertType: 'soft',
+      locale: 'ru',
+    });
+
+    expect(html).toContain('помощник: достигнут порог токенов');
+    expect(html).not.toContain('помощник: достигнут лимит токенов');
+  });
+
   it('HTML-escapes hostile agent names so injected markup is neutralised', () => {
     const html = renderEmail({
       agentName: '<img src=x onerror="alert(1)">',

@@ -103,7 +103,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
         classList={{ active: isGlobalActive('/messages') }}
         aria-current={isGlobalActive('/messages') ? 'page' : undefined}
       >
-        Requests
+        {t('sidebar.messages')}
       </A>
       <div class="sidebar__section-label">{t('sidebar.providers')}</div>
       <Show when={selfHosted()}>
@@ -243,9 +243,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
               </svg>
               <span class="sidebar-autofix__title">{t('sidebar.discoverAutofix')}</span>
             </div>
-            <p class="sidebar-autofix__desc">
-              Auto-fix can repair eligible failing requests before they reach the model.
-            </p>
+            <p class="sidebar-autofix__desc">{t('sidebar.autofixDescription')}</p>
             <a
               class="sidebar-autofix__btn"
               href="https://manifest.build/autofix/"

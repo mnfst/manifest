@@ -53,7 +53,7 @@ import {
   type MessageRow,
 } from '../components/message-table-types.js';
 import { agentPing, messagePing, routingPing } from '../services/sse.js';
-import { t, tp } from '../i18n/index.js';
+import { formatNumber as formatLocalizedNumber, t, tp } from '../i18n/index.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/analytics-overview.css';
@@ -67,12 +67,6 @@ import {
   selfHealedCount,
   successRate,
   attemptSuccessRate,
-  totalAttemptsTooltip,
-  MODEL_SUCCESS_RATE_TOOLTIP,
-  PROVIDER_SUCCESS_RATE_TOOLTIP,
-  CONNECTION_SUCCESS_RATE_TOOLTIP,
-  HARNESS_SUCCESS_RATE_TOOLTIP,
-  HARNESS_TOTAL_REQUESTS_TOOLTIP,
 } from '../services/api/analytics.js';
 import { getAutofixCohort } from '../services/api/autofix.js';
 
@@ -139,6 +133,22 @@ const PRO_DASHBOARD_RANGES = new Set(['30d', '90d', '365d']);
 
 const RANGE_STORAGE_KEY = 'manifest_global_range';
 const GROUP_STORAGE_KEY = 'manifest_global_group';
+const DEFAULT_CONNECTION_KEY_LABEL = 'Default';
+
+function formatSharePercentage(percentage: number): string {
+  return formatLocalizedNumber(percentage / 100, {
+    style: 'percent',
+    maximumFractionDigits: 1,
+  });
+}
+
+function formatSuccessRate(rate: number): string {
+  return formatLocalizedNumber(rate, {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+}
 
 function loadRange(): string {
   try {
@@ -729,7 +739,7 @@ const GlobalOverview: Component = () => {
                       }}
                       onClick={() => setGroupBy('status')}
                     >
-                      By request status
+                      {t('pages.globalOverview.byRequestStatus')}
                     </button>
                     <button
                       class="chart-card__filter-btn"
@@ -791,7 +801,7 @@ const GlobalOverview: Component = () => {
             class="panel__title"
             style="display: flex; justify-content: space-between; align-items: center;"
           >
-            Recent Requests
+            {t('pages.globalOverview.recentRequests')}
             <A href="/messages" class="view-more-link">
               {t('pages.globalOverview.viewMore')}
             </A>
@@ -831,12 +841,18 @@ const GlobalOverview: Component = () => {
                   <th style="text-align: right;">{t('pages.globalOverview.share')}</th>
                   <th style="text-align: right;">{t('pages.globalOverview.estimatedCost')}</th>
                   <th class="rel-col">
-                    Total attempts
-                    <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                    {t('analytics.totalAttempts')}
+                    <InfoTooltip
+                      text={t(
+                        autofixEligible()
+                          ? 'analytics.tooltip.totalAttemptsWithAutofix'
+                          : 'analytics.tooltip.totalAttemptsWithoutAutofix',
+                      )}
+                    />
                   </th>
                   <th class="rel-col">
-                    Success rate
-                    <InfoTooltip text={MODEL_SUCCESS_RATE_TOOLTIP} />
+                    {t('analytics.successRate')}
+                    <InfoTooltip text={t('analytics.tooltip.modelSuccessRate')} />
                   </th>
                 </tr>
               </thead>
@@ -899,12 +915,12 @@ const GlobalOverview: Component = () => {
                             />
                           </div>
                           <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                            {row.share_pct}%
+                            {formatSharePercentage(row.share_pct)}
                           </span>
                         </div>
                       </td>
                       <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                        {formatCost(row.estimated_cost) ?? '$0.00'}
+                        {formatCost(row.estimated_cost) ?? formatCost(0)}
                       </td>
                       {(() => {
                         const rel = () => modelReliability()?.find((r) => r.model === row.model);
@@ -918,7 +934,7 @@ const GlobalOverview: Component = () => {
                             <td class="rel-col">
                               {(() => {
                                 const rate = rel() ? attemptSuccessRate(rel()!) : null;
-                                return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                                return rate == null ? '—' : formatSuccessRate(rate);
                               })()}
                             </td>
                           </>
@@ -950,20 +966,26 @@ const GlobalOverview: Component = () => {
               <thead>
                 <tr>
                   <th>{t('pages.globalOverview.provider')}</th>
-                  <th>Connection name</th>
+                  <th>{t('pages.globalOverview.connectionName')}</th>
                   <th>{t('pages.globalOverview.type')}</th>
                   <th>{t('pages.globalOverview.status')}</th>
                   <th class="rel-col">
-                    Total attempts
-                    <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                    {t('analytics.totalAttempts')}
+                    <InfoTooltip
+                      text={t(
+                        autofixEligible()
+                          ? 'analytics.tooltip.totalAttemptsWithAutofix'
+                          : 'analytics.tooltip.totalAttemptsWithoutAutofix',
+                      )}
+                    />
                   </th>
                   <th class="rel-col">
-                    Failed attempts
-                    <InfoTooltip text="Attempts this connection failed on the filtered period. Click a count to see the requests holding them." />
+                    {t('analytics.failedAttempts')}
+                    <InfoTooltip text={t('analytics.tooltip.connectionFailedAttempts')} />
                   </th>
                   <th class="rel-col">
-                    Success rate
-                    <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP} />
+                    {t('analytics.successRate')}
+                    <InfoTooltip text={t('analytics.tooltip.connectionSuccessRate')} />
                   </th>
                 </tr>
               </thead>
@@ -972,7 +994,7 @@ const GlobalOverview: Component = () => {
                   each={providerList().flatMap((group) =>
                     (group.connections.length
                       ? group.connections
-                      : [{ id: '', label: 'Default', is_active: false }]
+                      : [{ id: '', label: '', is_active: false }]
                     ).map((connection) => ({ group, connection })),
                   )}
                 >
@@ -1032,7 +1054,7 @@ const GlobalOverview: Component = () => {
                           </div>
                         </td>
                         <td style="color: hsl(var(--muted-foreground));">
-                          {connection.label || 'Default'}
+                          {connection.label || t('pages.globalOverview.defaultConnection')}
                         </td>
                         <td>
                           <span
@@ -1063,13 +1085,16 @@ const GlobalOverview: Component = () => {
                           const pKey = group.provider.startsWith('custom:')
                             ? 'custom'
                             : group.provider;
-                          const wantedLabel = (connection.label || 'Default').toLowerCase();
+                          const wantedLabel = (
+                            connection.label || DEFAULT_CONNECTION_KEY_LABEL
+                          ).toLowerCase();
                           const rel = () =>
                             providerReliability()?.find(
                               (r) =>
                                 r.provider === pKey &&
                                 r.auth_type === group.auth_type &&
-                                (r.key_label ?? 'Default').toLowerCase() === wantedLabel,
+                                (r.key_label ?? DEFAULT_CONNECTION_KEY_LABEL).toLowerCase() ===
+                                  wantedLabel,
                             );
                           return (
                             <>
@@ -1089,7 +1114,7 @@ const GlobalOverview: Component = () => {
                                     <a
                                       class="count-link"
                                       href={`/messages?connections=${encodeURIComponent(connection.id)}&range=${effectiveChartRange()}&attempts=has_failed`}
-                                      title="View the requests holding these failed attempts"
+                                      title={t('analytics.action.viewConnectionFailedAttempts')}
                                       onClick={(e) => {
                                         // The row navigates to the connection; this cell
                                         // drills into the Requests log instead.
@@ -1108,7 +1133,7 @@ const GlobalOverview: Component = () => {
                               <td class="rel-col">
                                 {(() => {
                                   const rate = rel() ? attemptSuccessRate(rel()!) : null;
-                                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                                  return rate == null ? '—' : formatSuccessRate(rate);
                                 })()}
                               </td>
                             </>
@@ -1141,17 +1166,17 @@ const GlobalOverview: Component = () => {
               <thead>
                 <tr>
                   <th>{t('pages.globalOverview.harness')}</th>
-                  <th>Usage</th>
+                  <th>{t('pages.globalOverview.usage')}</th>
                   <th class="rel-col">
-                    Total requests
-                    <InfoTooltip text={HARNESS_TOTAL_REQUESTS_TOOLTIP} />
+                    {t('analytics.totalRequests')}
+                    <InfoTooltip text={t('analytics.tooltip.harnessTotalRequests')} />
                   </th>
                   <Show when={autofixEligible()}>
-                    <th class="rel-col">Recovered requests</th>
+                    <th class="rel-col">{t('analytics.recoveredRequests')}</th>
                   </Show>
                   <th class="rel-col">
-                    Success rate
-                    <InfoTooltip text={HARNESS_SUCCESS_RATE_TOOLTIP} />
+                    {t('analytics.successRate')}
+                    <InfoTooltip text={t('analytics.tooltip.harnessSuccessRate')} />
                   </th>
                 </tr>
               </thead>
@@ -1210,7 +1235,7 @@ const GlobalOverview: Component = () => {
                               <a
                                 class="count-link"
                                 href={link}
-                                title="View this harness's requests"
+                                title={t('analytics.action.viewHarnessRequests')}
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
@@ -1238,7 +1263,7 @@ const GlobalOverview: Component = () => {
                                         <a
                                           class="count-link"
                                           href={link}
-                                          title="View this harness's recovered requests"
+                                          title={t('analytics.action.viewHarnessRecoveredRequests')}
                                           onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
@@ -1255,7 +1280,7 @@ const GlobalOverview: Component = () => {
                               <td class="rel-col">
                                 {(() => {
                                   const rate = rel() ? successRate(rel()!) : null;
-                                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                                  return rate == null ? '—' : formatSuccessRate(rate);
                                 })()}
                               </td>
                             </>

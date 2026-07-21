@@ -432,7 +432,7 @@ const Overview: Component = () => {
                     <div class="empty-state__img-wrapper">
                       <img
                         src="/example-overview.svg"
-                        alt="Example dashboard overview showing cost and token charts"
+                        alt={t('pages.overview.exampleDashboardAlt')}
                         class="empty-state__img"
                         loading="lazy"
                       />
@@ -459,7 +459,7 @@ const Overview: Component = () => {
                   <div class="empty-state__img-wrapper">
                     <img
                       src="/example-overview.svg"
-                      alt="Example dashboard overview showing cost and token charts"
+                      alt={t('pages.overview.exampleDashboardAlt')}
                       class="empty-state__img"
                       loading="lazy"
                     />
@@ -546,7 +546,7 @@ const Overview: Component = () => {
                       class="panel__title"
                       style="display: flex; justify-content: space-between; align-items: center;"
                     >
-                      Recent Requests
+                      {t('pages.overview.recentMessages')}
                       <A href={`/harnesses/${params.agentName}/messages`} class="view-more-link">
                         {t('pages.overview.viewMore')}
                       </A>

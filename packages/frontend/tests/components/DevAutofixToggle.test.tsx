@@ -11,6 +11,7 @@ vi.mock('../../src/services/api/autofix.js', () => ({
 }));
 
 import DevAutofixToggle from '../../src/components/DevAutofixToggle';
+import { setLocale } from '../../src/i18n/index.js';
 
 beforeEach(() => {
   getAutofixCohort.mockReset();
@@ -28,7 +29,9 @@ describe('DevAutofixToggle', () => {
     setDevAutofixCohort.mockResolvedValue({ eligible: true });
     render(() => <DevAutofixToggle />);
 
-    const button = await screen.findByRole('button', { name: 'Grant the Dr version for this tenant' });
+    const button = await screen.findByRole('button', {
+      name: 'Grant the Dr version for this tenant',
+    });
     expect(button.getAttribute('aria-pressed')).toBe('false');
 
     await fireEvent.click(button);
@@ -59,5 +62,24 @@ describe('DevAutofixToggle', () => {
 
     expect(screen.getByRole('button').hasAttribute('disabled')).toBe(true);
     expect(screen.getByText('Dr version …')).toBeDefined();
+  });
+
+  it('updates the mounted control and accessible name on a live locale switch', async () => {
+    getAutofixCohort.mockResolvedValue({ eligible: true });
+    render(() => <DevAutofixToggle />);
+    await screen.findByRole('button', { name: 'Revoke the Dr version for this tenant' });
+
+    await setLocale('ru');
+    try {
+      const button = await screen.findByRole('button', {
+        name: 'Отозвать у этого рабочего пространства доступ к версии Dr',
+      });
+      expect(button.getAttribute('title')).toBe(
+        'Переключить доступ текущего рабочего пространства к версии Dr (только для разработки)',
+      );
+      expect(screen.getByText('Версия Dr: доступна')).toBeDefined();
+    } finally {
+      await setLocale('en');
+    }
   });
 });

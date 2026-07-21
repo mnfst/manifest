@@ -14,12 +14,14 @@ import {
 } from '@react-email/components';
 import { AppLocale, intlLocale } from '../../common/i18n/locale';
 
+export type ThresholdPeriod = 'hour' | 'day' | 'week' | 'month';
+
 export interface ThresholdAlertProps {
   agentName: string;
   metricType: 'tokens' | 'cost';
   threshold: number;
   actualValue: number;
-  period: string;
+  period: ThresholdPeriod;
   timestamp: string;
   agentUrl: string;
   logoUrl?: string;
@@ -86,18 +88,22 @@ function metricLabel(metric: ThresholdAlertProps['metricType'], locale: AppLocal
 
 type PeriodLabelContext = 'afterPreposition' | 'metadata';
 
-const RUSSIAN_PERIOD_LABELS: Record<string, Record<PeriodLabelContext, string>> = {
+const RUSSIAN_PERIOD_LABELS = {
   hour: { afterPreposition: 'час', metadata: 'час' },
   day: { afterPreposition: 'день', metadata: 'день' },
   week: { afterPreposition: 'неделю', metadata: 'неделя' },
   month: { afterPreposition: 'месяц', metadata: 'месяц' },
-};
+} satisfies Record<ThresholdPeriod, Record<PeriodLabelContext, string>>;
 
-function periodLabel(period: string, locale: AppLocale, context: PeriodLabelContext): string {
+function periodLabel(
+  period: ThresholdPeriod,
+  locale: AppLocale,
+  context: PeriodLabelContext,
+): string {
   const formatters = {
-    en: (value: string) => value,
-    ru: (value: string) => RUSSIAN_PERIOD_LABELS[value]?.[context] ?? value,
-  } satisfies Record<AppLocale, (value: string) => string>;
+    en: (value: ThresholdPeriod) => value,
+    ru: (value: ThresholdPeriod) => RUSSIAN_PERIOD_LABELS[value][context],
+  } satisfies Record<AppLocale, (value: ThresholdPeriod) => string>;
   return formatters[locale](period);
 }
 
@@ -135,15 +141,15 @@ function englishThresholdCopy({
 }: ThresholdCopyContext): ThresholdCopy {
   return {
     preview: isSoft
-      ? `${props.agentName} exceeded ${props.metricType} threshold (${actualValue})`
+      ? `${props.agentName} reached ${props.metricType} threshold (${actualValue})`
       : `${props.agentName} has been blocked — ${props.metricType} limit reached (${actualValue} / ${thresholdValue})`,
     badge: isSoft ? 'Warning' : 'Agent blocked',
     heading: isSoft
-      ? `${props.agentName} exceeded the ${props.metricType} limit`
+      ? `${props.agentName} reached the ${props.metricType} threshold`
       : `${props.agentName} has been blocked`,
     description: isSoft ? (
       <>
-        Your agent <strong>{props.agentName}</strong> has exceeded the{' '}
+        Your agent <strong>{props.agentName}</strong> has reached the{' '}
         <strong>{props.metricType}</strong> threshold for the current{' '}
         <strong>{props.period}</strong> period.
       </>
@@ -178,15 +184,15 @@ function russianThresholdCopy({
 }: ThresholdCopyContext): ThresholdCopy {
   return {
     preview: isSoft
-      ? `${props.agentName}: превышен порог ${metric} (${actualValue})`
+      ? `${props.agentName}: достигнут порог ${metric} (${actualValue})`
       : `${props.agentName}: интеграция заблокирована — достигнут лимит ${metric} (${actualValue} / ${thresholdValue})`,
     badge: isSoft ? 'Предупреждение' : 'Интеграция заблокирована',
     heading: isSoft
-      ? `${props.agentName}: превышен лимит ${metric}`
+      ? `${props.agentName}: достигнут порог ${metric}`
       : `${props.agentName}: интеграция заблокирована`,
     description: isSoft ? (
       <>
-        Для интеграции <strong>{props.agentName}</strong> превышен порог <strong>{metric}</strong>{' '}
+        Для интеграции <strong>{props.agentName}</strong> достигнут порог <strong>{metric}</strong>{' '}
         за <strong>{localizedPeriod}</strong>.
       </>
     ) : (

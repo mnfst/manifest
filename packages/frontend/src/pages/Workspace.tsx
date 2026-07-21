@@ -206,8 +206,12 @@ const Workspace: Component = () => {
                           </span>
                         </div>
                         <div class="agent-card__stat">
-                          <span class="agent-card__stat-label">Requests</span>
-                          <span class="agent-card__stat-value">{agent.message_count}</span>
+                          <span class="agent-card__stat-label">
+                            {t('pages.workspace.requests')}
+                          </span>
+                          <span class="agent-card__stat-value">
+                            {formatNumber(agent.message_count)}
+                          </span>
                         </div>
                       </div>
                       <div class="agent-card__chart">

@@ -149,7 +149,7 @@ import { MakeAutofixEnabledNullable1799000300000 } from './migrations/1799000300
 import { AddAutofixAccessGrant1799000400000 } from './migrations/1799000400000-AddAutofixAccessGrant';
 import { AddRequestsAndProviderAttempts1801000000000 } from './migrations/1801000000000-AddRequestsAndProviderAttempts';
 import { AddProviderAttemptOrdering1801100000000 } from './migrations/1801100000000-AddProviderAttemptOrdering';
-import { AddTenantLocale1801200000000 } from './migrations/1801200000000-AddTenantLocale';
+import { AddTenantLocale1801300000000 } from './migrations/1801300000000-AddTenantLocale';
 
 export const entities = [
   AgentMessage,
@@ -301,5 +301,5 @@ export const migrations = [
   AddRequestsAndProviderAttempts1801000000000,
   AddProviderAttemptOrdering1801100000000,
   ExtendDashboardCoveringIndex1801200000000,
-  AddTenantLocale1801200000000,
+  AddTenantLocale1801300000000,
 ];

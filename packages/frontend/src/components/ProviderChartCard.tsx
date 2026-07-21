@@ -1,7 +1,7 @@
 import { Show, Suspense, lazy, type Component } from 'solid-js';
 import InfoTooltip from './InfoTooltip.jsx';
-import { formatNumber, formatCost } from '../services/formatters.js';
-import { t } from '../i18n/index.js';
+import { formatNumber, formatCost, formatTrend } from '../services/formatters.js';
+import { formatNumber as formatLocalizedNumber, t } from '../i18n/index.js';
 
 // uPlot is heavy; lazy-load the chart so it stays out of the initial bundle and
 // is only fetched when this card actually renders a chart body.
@@ -13,13 +13,7 @@ const trendBadge = (pct: number, value: number) => {
   if (pct === 0 || Math.abs(value) < 0.005) return null;
   const clamped = Math.max(-999, Math.min(999, Math.round(pct)));
   if (clamped === 0) return null;
-  const sign = clamped > 0 ? '+' : '';
-  return (
-    <span class="trend trend--neutral">
-      {sign}
-      {clamped}%
-    </span>
-  );
+  return <span class="trend trend--neutral">{formatTrend(clamped)}</span>;
 };
 
 interface AgentTimeseries {
@@ -72,7 +66,7 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
               </Show>
             </span>
             <div class="chart-card__value-row">
-              <span class="chart-card__value">{formatCost(props.costValue!) ?? '$0.00'}</span>
+              <span class="chart-card__value">{formatCost(props.costValue!) ?? formatCost(0)}</span>
               {trendBadge(props.costTrendPct ?? 0, props.costValue!)}
             </div>
           </button>
@@ -84,19 +78,33 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
           onClick={() => props.onViewChange('messages')}
         >
           <span class="chart-card__label">
-            Requests
+            {t('overview.messages')}
             <Show when={props.attemptSuccessRate != null}>
               <InfoTooltip
                 text={
                   props.requestSuccessRate == null
-                    ? `Provider-attempt success: ${props.attemptSuccessRate!.toFixed(1)}%.`
-                    : `Caller success: ${props.requestSuccessRate.toFixed(1)}%. Provider-attempt success: ${props.attemptSuccessRate!.toFixed(1)}%. The gap is recovery from fallbacks and Auto-fix.`
+                    ? t('analytics.tooltip.providerAttemptSuccess', {
+                        rate: formatLocalizedNumber(props.attemptSuccessRate! / 100, {
+                          style: 'percent',
+                          maximumFractionDigits: 1,
+                        }),
+                      })
+                    : t('analytics.tooltip.requestAndAttemptSuccess', {
+                        requestRate: formatLocalizedNumber(props.requestSuccessRate / 100, {
+                          style: 'percent',
+                          maximumFractionDigits: 1,
+                        }),
+                        attemptRate: formatLocalizedNumber(props.attemptSuccessRate! / 100, {
+                          style: 'percent',
+                          maximumFractionDigits: 1,
+                        }),
+                      })
                 }
               />
             </Show>
           </span>
           <div class="chart-card__value-row">
-            <span class="chart-card__value">{props.messagesValue}</span>
+            <span class="chart-card__value">{formatNumber(props.messagesValue)}</span>
             {trendBadge(props.messagesTrendPct, props.messagesValue)}
           </div>
         </button>
@@ -118,14 +126,14 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
           <Show when={props.activeView === 'messages'}>
             <Show
               when={props.agentMessageTimeseries?.agents.length}
-              fallback={EMPTY('No request data for this time range')}
+              fallback={EMPTY(t('overview.noMessageData'))}
             >
               <MultiAgentTokenChart
                 agents={props.agentMessageTimeseries!.agents}
                 timeseries={props.agentMessageTimeseries!.timeseries}
                 range={props.range}
                 colorMap={props.colorMap}
-                label="Requests"
+                label={t('overview.messages')}
               />
             </Show>
           </Show>

@@ -1,5 +1,6 @@
 import { createResource, createSignal, type Component } from 'solid-js';
 import { getAutofixCohort, setDevAutofixCohort } from '../services/api/autofix.js';
+import { t } from '../i18n/index.js';
 
 const DevAutofixToggle: Component = () => {
   const [cohort, { mutate }] = createResource(getAutofixCohort);
@@ -26,17 +27,25 @@ const DevAutofixToggle: Component = () => {
       class={`header__mode-badge header__mode-badge--dev header__dev-autofix${
         enabled() ? ' header__dev-autofix--active' : ''
       }`}
-      aria-label={`${enabled() ? 'Revoke' : 'Grant'} the Dr version for this tenant`}
+      aria-label={t(enabled() ? 'devAutofix.revoke' : 'devAutofix.grant')}
       aria-pressed={enabled()}
       disabled={saving() || unavailable()}
-      title="Toggle the current tenant's Dr version access (development only)"
+      title={t('devAutofix.title')}
       onClick={toggle}
     >
-      <span>Dev</span>
+      <span>{t('devAutofix.dev')}</span>
       <span class="header__dev-autofix-divider" aria-hidden="true" />
       <span class="header__dev-autofix-dot" aria-hidden="true" />
       <span>
-        Dr version {saving() || cohort.loading ? '…' : enabled() ? 'available' : 'unavailable'}
+        {t('devAutofix.version', {
+          status: t(
+            saving() || cohort.loading
+              ? 'devAutofix.status.loading'
+              : enabled()
+                ? 'devAutofix.status.available'
+                : 'devAutofix.status.unavailable',
+          ),
+        })}
       </span>
     </button>
   );

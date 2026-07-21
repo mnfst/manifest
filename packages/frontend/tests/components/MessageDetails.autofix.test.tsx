@@ -22,6 +22,7 @@ vi.mock('../../src/services/model-display.js', () => ({
 }));
 
 import MessageDetails from '../../src/components/MessageDetails';
+import { setLocale } from '../../src/i18n/index.js';
 
 // The Auto-fix model is two linked rows: a failed `original` and its
 // successful `retry`. Each row carries `autofix_role`, the Phoenix
@@ -132,6 +133,27 @@ describe('MessageDetails Auto-fix section', () => {
     await vi.waitFor(() => expect(container.textContent).toContain(label));
   });
 
+  it('localizes credential and direct-routing values at the presentation boundary', async () => {
+    await setLocale('ru');
+    try {
+      mockGetMessageDetails.mockResolvedValue({
+        message: {
+          ...baseMessage,
+          auth_type: 'subscription',
+          routing_reason: 'direct',
+        },
+      });
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+
+      await vi.waitFor(() => expect(container.textContent).toContain('Подписка'));
+      expect(container.textContent).toContain('Прямой');
+      expect(container.textContent).not.toContain('subscription');
+      expect(container.textContent).not.toContain('DIRECT');
+    } finally {
+      await setLocale('en');
+    }
+  });
+
   it('renders the original-side panel: error, the "auto-fix attempted" card, and the retry link', async () => {
     mockGetMessageDetails.mockResolvedValue(originalResponse);
     const onOpenMessage = vi.fn();
@@ -151,7 +173,7 @@ describe('MessageDetails Auto-fix section', () => {
     // The forward link to the successful retry.
     const link = container.querySelector('.error-autofix-row__autofix-btn');
     expect(link).not.toBeNull();
-    expect(link!.textContent).toContain('View Auto-fix retry');
+    expect(link!.textContent).toContain('View autofix retry');
 
     // Clicking it opens the sibling (retry) row.
     fireEvent.click(link!);
@@ -447,6 +469,39 @@ describe('MessageDetails Auto-fix section', () => {
     expect(text).toContain('clamp_param');
   });
 
+  it('uses locale-owned Auto-fix prose instead of English-only Phoenix explanations in Russian', async () => {
+    await setLocale('ru');
+    try {
+      mockGetMessageDetails.mockResolvedValue({
+        message: {
+          ...retryResponse.message,
+          autofix_operations: [{ type: 'clamp_param' }],
+          autofix_decision: {
+            issueId: 'issue-1',
+            patchId: 'patch-1',
+            healAttemptId: 'heal-1',
+            explanation: {
+              summary: 'English-only Phoenix summary must not leak.',
+              operations: [{ type: 'clamp_param', detail: 'English-only operation detail.' }],
+              source: 'deterministic',
+            },
+          },
+        },
+      });
+      const { container } = render(() => <MessageDetails messageId="retry-1" />);
+
+      await vi.waitFor(() =>
+        expect(container.textContent).toContain(
+          'Manifest обнаружил ошибку, исправил запрос и успешно повторил его.',
+        ),
+      );
+      expect(container.textContent).toContain('Значение приведено к допустимому диапазону');
+      expect(container.textContent).not.toContain('English-only');
+    } finally {
+      await setLocale('en');
+    }
+  });
+
   it('renders a triple layout: auto-fix retry trigger → error → fallback next', async () => {
     // A retry that itself failed and was recovered by a fallback: the request
     // was triggered by an auto-fix (left), it errored (middle), and a fallback
@@ -468,8 +523,8 @@ describe('MessageDetails Auto-fix section', () => {
     });
 
     const text = container.textContent!;
-    // Trigger card (left): this request came from an auto-fix.
-    expect(text).toContain('This request was triggered by an auto-fix.');
+    // Trigger card (left): this provider attempt follows an Auto-fix repair.
+    expect(text).toContain('This provider attempt was made after Auto-fix repaired the request.');
     // Error card (middle).
     expect(container.querySelector('.msg-detail__error-inline')!.textContent).toBe('Overloaded');
     // Next card (right): a fallback fired after the error.
@@ -504,7 +559,7 @@ describe('MessageDetails Auto-fix section', () => {
 
     const text = container.textContent!;
     // Fallback trigger card (left) with the 1-based attempt number + source.
-    expect(text).toContain('Attempt #3:');
+    expect(text).toContain('Provider attempt #3:');
     expect(text).toContain('gemini-flash');
     // Error card (middle).
     expect(container.querySelector('.msg-detail__error-inline')!.textContent).toBe('Bad param');
@@ -532,7 +587,9 @@ describe('MessageDetails Auto-fix section', () => {
     const { container } = render(() => <MessageDetails messageId="retry-fail-1" />);
 
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('This request was triggered by an auto-fix.');
+      expect(container.textContent).toContain(
+        'This provider attempt was made after Auto-fix repaired the request.',
+      );
     });
 
     // Error present, but no triple layout and no next-action cards.

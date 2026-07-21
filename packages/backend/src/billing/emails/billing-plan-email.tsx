@@ -294,7 +294,7 @@ function russianUsageCopy({ props, percentage, isLimit, reset }: UsageCopyContex
       <>
         {greeting(props.userName, 'ru')} В этом месяце ваше рабочее пространство использовало{' '}
         <strong>{formatCount(props.used, 'ru')}</strong> из{' '}
-        <strong>{formatCount(props.limit, 'ru')}</strong> включённых запросов.
+        <strong>{formatCount(props.limit, 'ru')}</strong> запросов, включённых в тариф.
       </>
     ),
     resetMessage: isLimit

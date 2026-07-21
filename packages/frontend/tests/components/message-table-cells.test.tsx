@@ -6,12 +6,14 @@ import {
   HeartbeatIcon,
   ModelCell,
   AgentCell,
+  CostCell,
   StatusCell,
   AttemptsCell,
   SelfHealCell,
 } from '../../src/components/message-table-cells';
 import { fireEvent } from '@solidjs/testing-library';
 import type { MessageRow } from '../../src/components/message-table-types';
+import { setLocale } from '../../src/i18n/index.js';
 
 vi.mock('@solidjs/router', () => ({
   A: (props: any) => (
@@ -155,7 +157,7 @@ describe('SelfHealCell', () => {
     const badge = container.querySelector('[title="Auto-fix"]') as HTMLElement;
     expect(badge).not.toBeNull();
     expect(badge.className).toContain('trigger-badge--autofix');
-    expect(badge.textContent).toContain('auto-fix');
+    expect(badge.textContent).toContain('Auto-fix');
   });
 
   it('renders fallback badge with icon and text when fallback_from_model is set', () => {
@@ -163,7 +165,7 @@ describe('SelfHealCell', () => {
     const badge = container.querySelector('[title="Fallback"]') as HTMLElement;
     expect(badge).not.toBeNull();
     expect(badge.className).toContain('trigger-badge--fallback');
-    expect(badge.textContent).toContain('fallback');
+    expect(badge.textContent).toContain('Fallback');
   });
 
   it('renders both badges when both autofix and fallback apply', () => {
@@ -172,6 +174,35 @@ describe('SelfHealCell', () => {
     );
     expect(container.querySelector('[title="Auto-fix"]')).not.toBeNull();
     expect(container.querySelector('[title="Fallback"]')).not.toBeNull();
+  });
+});
+
+describe('CostCell', () => {
+  function renderCell(row: MessageRow) {
+    return render(() => (
+      <table>
+        <tbody>
+          <tr>{CostCell(row)}</tr>
+        </tbody>
+      </table>
+    ));
+  }
+
+  it('uses locale-aware currency for small-cost tooltips and included subscriptions', async () => {
+    await setLocale('ru');
+    try {
+      const small = renderCell(baseRow({ cost: 0.001, auth_type: 'api_key' }));
+      const smallTitle = small.container.querySelector('span[title]')!.getAttribute('title')!;
+      expect(smallTitle).toMatch(/0,001000.*\$/u);
+      expect(smallTitle).not.toContain('$0.001000');
+      small.unmount();
+
+      const included = renderCell(baseRow({ cost: 0, auth_type: 'subscription' }));
+      expect(included.container.textContent).toMatch(/0,00.*\$/u);
+      expect(included.container.textContent).not.toContain('$0.00');
+    } finally {
+      await setLocale('en');
+    }
   });
 });
 

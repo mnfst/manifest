@@ -1,10 +1,10 @@
 import { QueryRunner } from 'typeorm';
-import { AddTenantLocale1801200000000 } from './1801200000000-AddTenantLocale';
+import { AddTenantLocale1801300000000 } from './1801300000000-AddTenantLocale';
 
-describe('AddTenantLocale1801200000000', () => {
+describe('AddTenantLocale1801300000000', () => {
   const query = jest.fn().mockResolvedValue(undefined);
   const runner = { query } as unknown as QueryRunner;
-  const migration = new AddTenantLocale1801200000000();
+  const migration = new AddTenantLocale1801300000000();
 
   beforeEach(() => query.mockClear());
 

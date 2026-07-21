@@ -25,7 +25,7 @@ export const ruShell = {
   'header.logOut': 'Выйти',
   'sidebar.navigation': 'Навигация',
   'sidebar.overview': 'Обзор',
-  'sidebar.messages': 'Сообщения',
+  'sidebar.messages': 'Запросы',
   'sidebar.providers': 'ПРОВАЙДЕРЫ',
   'sidebar.subscriptions': 'Подписки',
   'sidebar.usageBased': 'Оплата по мере использования',
@@ -36,7 +36,8 @@ export const ruShell = {
   'sidebar.tools': 'ИНСТРУМЕНТЫ',
   'sidebar.playground': 'Песочница',
   'sidebar.discoverAutofix': 'Откройте Auto-fix',
-  'sidebar.autofixDescription': 'Ошибочные запросы автоматически исправляются до отправки модели.',
+  'sidebar.autofixDescription':
+    'Auto-fix может исправлять подходящие ошибочные запросы до их отправки модели.',
   'sidebar.learnMore': 'Подробнее',
   'sidebar.monthUsage': 'Использование за {month}',
   'sidebar.requestUsage': '{used} из {limit} запросов',

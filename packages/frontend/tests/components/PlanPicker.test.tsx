@@ -42,9 +42,7 @@ describe('PlanPicker', () => {
   });
 
   it('collapses the selected plan when it is clicked again', () => {
-    const { container } = render(() => (
-      <PlanPicker proPrice={monthlyUsd} onSelect={vi.fn()} />
-    ));
+    const { container } = render(() => <PlanPicker proPrice={monthlyUsd} onSelect={vi.fn()} />);
     const proCard = container.querySelectorAll<HTMLButtonElement>('.plan-picker__card')[1];
 
     fireEvent.click(proCard);
@@ -78,18 +76,14 @@ describe('PlanPicker', () => {
 
   it('renders the free request limit with Russian locale grouping', async () => {
     await setLocale('ru');
-    const { container } = render(() => (
-      <PlanPicker proPrice={monthlyUsd} onSelect={vi.fn()} />
-    ));
+    const { container } = render(() => <PlanPicker proPrice={monthlyUsd} onSelect={vi.fn()} />);
     fireEvent.click(container.querySelectorAll<HTMLButtonElement>('.plan-picker__card')[0]);
 
     expect(container.textContent).toMatch(/10[\u00a0\u202f]000 маршрутизируемых запросов/);
   });
 
   it('reformats the loaded Pro price when the locale changes', async () => {
-    const { container } = render(() => (
-      <PlanPicker proPrice={monthlyUsd} onSelect={vi.fn()} />
-    ));
+    const { container } = render(() => <PlanPicker proPrice={monthlyUsd} onSelect={vi.fn()} />);
     expect(container.querySelectorAll('.plan-picker__amount')[1]?.textContent).toBe('$20');
 
     await setLocale('ru');

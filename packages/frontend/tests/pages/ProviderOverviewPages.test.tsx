@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import { Show } from 'solid-js';
 import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
+import { setLocale } from '../../src/i18n/index.js';
 
 const routerState = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -723,7 +724,8 @@ function ensureStorageLike(kind: 'localStorage' | 'sessionStorage') {
   return replacement;
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  await setLocale('en');
   vi.clearAllMocks();
   ensureStorageLike('localStorage').clear();
   ensureStorageLike('sessionStorage').clear();
@@ -831,6 +833,16 @@ describe('GlobalOverview (analytics)', () => {
       });
       fireEvent.scroll(scroller);
     }
+  });
+
+  it('formats model percentages, costs, and page copy for Russian', async () => {
+    await setLocale('ru');
+    const { container } = render(() => <GlobalOverview />);
+
+    await waitFor(() => expect(container.querySelector('h1')?.textContent).toBe('Обзор'));
+    await waitFor(() => expect(container.textContent).toContain('Последние запросы'));
+    expect(container.textContent).toContain('75\u00a0%');
+    expect(container.textContent).toContain('1,23\u00a0$');
   });
 
   it('navigates to harness and connection detail on row click', async () => {
@@ -1014,6 +1026,34 @@ describe('ConnectionDetail (analytics)', () => {
       });
       fireEvent.scroll(scroller);
     }
+  });
+
+  it('localizes request-first connection analytics into Russian', async () => {
+    await setLocale('ru');
+    const { container } = render(() => <ConnectionDetail />);
+
+    await waitFor(() => expect(screen.getByText('Последние запросы')).toBeDefined());
+    expect(screen.getByText('ID запроса')).toBeDefined();
+    expect(screen.getByText('Успешные попытки')).toBeDefined();
+    expect(screen.getByText('Неудачные попытки')).toBeDefined();
+    expect(container.textContent).toContain('75,0\u00a0%');
+    expect(container.textContent).toContain('1,23\u00a0$');
+
+    const fallbackCard = [...container.querySelectorAll('.overview-stat-card')].find((card) =>
+      card.textContent?.includes('Повторные попытки с резервной моделью'),
+    );
+    expect(fallbackCard?.textContent).toContain('8 успешных');
+    expect(fallbackCard?.getAttribute('title')).toBe(
+      'Показать запросы, в которых это подключение выполнило повторную попытку с резервной моделью',
+    );
+
+    expect(
+      [...container.querySelectorAll('[aria-label]')].some((node) =>
+        node
+          .getAttribute('aria-label')
+          ?.includes('Доля успешных попыток среди всех попыток этого подключения'),
+      ),
+    ).toBe(true);
   });
 
   it('persists chart range and view selection', async () => {

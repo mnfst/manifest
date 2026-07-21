@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library';
+import { setLocale } from '../../src/i18n/index.js';
 
 /**
  * Targeted coverage for GlobalOverview's harness/provider multi-select
@@ -62,7 +63,8 @@ vi.mock('../../src/services/api.js', async () => {
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
-  REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
   totalAttemptsTooltip: (doctor: boolean) =>
     doctor
       ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
@@ -97,7 +99,13 @@ vi.mock('../../src/services/api/analytics.js', () => ({
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
   getPerProviderReliability: () =>
     Promise.resolve([
-      { provider: 'openai', auth_type: 'api_key', key_label: 'Default', attempts: 10, succeeded: 7 },
+      {
+        provider: 'openai',
+        auth_type: 'api_key',
+        key_label: 'Default',
+        attempts: 10,
+        succeeded: 7,
+      },
     ]),
   getPerModelReliability: () => Promise.resolve([]),
   getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
@@ -229,6 +237,7 @@ vi.mock('../../src/services/model-display.js', () => ({
 vi.mock('../../src/services/formatters.js', () => ({
   formatNumber: (v: number) => String(v),
   formatCost: (v: number) => `$${v.toFixed(2)}`,
+  formatTrend: (v: number) => `${v >= 0 ? '+' : ''}${Math.round(v)}%`,
   formatTimeAgo: (t: string) => t,
   customProviderColor: () => '#6366f1',
 }));
@@ -313,7 +322,8 @@ const providerUsageTimeseries = {
   costUsage: providerTimeseries,
 };
 
-beforeEach(() => {
+beforeEach(async () => {
+  await setLocale('en');
   vi.clearAllMocks();
   localStorage.clear();
   sessionStorage.clear();
@@ -370,6 +380,7 @@ describe('GlobalOverview filter onUnselectAll', () => {
         (a) => a.getAttribute('href') === '/messages?agent=demo-agent&range=7d',
       );
       expect(link).toBeDefined();
+      expect(link!.getAttribute('title')).toBe("View this harness's requests");
     });
   });
 
@@ -385,7 +396,35 @@ describe('GlobalOverview filter onUnselectAll', () => {
       expect(link!.getAttribute('href')).toBe(
         '/messages?connections=conn-openai&range=7d&attempts=has_failed',
       );
+      expect(link!.getAttribute('title')).toBe('View requests with these failed attempts');
     });
+  });
+
+  it('localizes analytics copy and keeps the API Default key stable in Russian', async () => {
+    await setLocale('ru');
+    apiMocks.getGlobalProviders.mockResolvedValue({
+      providers: [
+        {
+          ...providersResponse.providers[0],
+          connection_count: 0,
+          connections: [],
+        },
+      ],
+    });
+
+    const { container } = render(() => <GlobalOverview />);
+
+    await waitFor(() => expect(container.textContent).toContain('По умолчанию'));
+    expect(container.textContent).toContain('Последние запросы');
+    expect(container.textContent).toContain('Название подключения');
+    expect(container.textContent).toContain('Неудачные попытки');
+    expect(container.textContent).toContain('Всего запросов');
+    expect(container.textContent).toContain('70,0\u00a0%');
+    expect(
+      container.querySelector(
+        '[aria-label*="Неудачные попытки для этого подключения за выбранный период"]',
+      ),
+    ).not.toBeNull();
   });
 
   it('opens the Pro success modal when upgraded=1 is present', async () => {

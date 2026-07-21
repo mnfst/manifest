@@ -357,10 +357,6 @@ export interface ProviderReliabilityRow {
   succeeded: number;
 }
 
-/** One-line definition surfaced by the ⓘ tooltips next to "Recovered requests". */
-export const RECOVERED_REQUESTS_TOOLTIP =
-  'Successful requests that were recovered by Auto-fix or fallback.';
-
 /** Self-healed = recovered by Auto-fix + recovered by fallback. */
 export function selfHealedCount(row: { autofixed: number; fallback_saves?: number }): number {
   return row.autofixed + (row.fallback_saves ?? 0);
@@ -377,34 +373,6 @@ export function attemptSuccessRate(row: { attempts: number; succeeded?: number }
   if (!row.attempts || row.succeeded == null) return null;
   return row.succeeded / row.attempts;
 }
-
-/**
- * Total attempts ⓘ: the Doctor version (Auto-fix) owns the auto-fixed
- * vocabulary, so tenants without it get the same sentence minus Auto-fix.
- * House vocabulary: a FALLBACK is a retry; an AUTO-FIX produces an attempt.
- */
-export function totalAttemptsTooltip(doctorAvailable: boolean): string {
-  return doctorAvailable
-    ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
-    : 'Every provider call counts here, including fallback retries. One request can produce several attempts.';
-}
-
-/** Success rate ⓘ texts, one per surface grain. */
-export const MODEL_SUCCESS_RATE_TOOLTIP = 'Successful attempts over all attempts for this model.';
-export const PROVIDER_SUCCESS_RATE_TOOLTIP =
-  'Successful attempts over all attempts for this provider.';
-export const CONNECTION_SUCCESS_RATE_TOOLTIP_30D =
-  'Successful attempts over all attempts for this connection, over the last 30 days.';
-export const CONNECTION_SUCCESS_RATE_TOOLTIP =
-  'Successful attempts over all attempts for this connection, on the filtered period.';
-export const CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP =
-  'Successful attempts over all attempts for this harness on this connection.';
-export const HARNESS_SUCCESS_RATE_TOOLTIP =
-  'Successful requests over all requests for this harness.';
-export const HARNESS_TOTAL_REQUESTS_TOOLTIP =
-  'Logical requests from this harness, one per call, whatever the number of attempts.';
-export const REQUEST_SUCCESS_RATE_TOOLTIP =
-  'Successful requests over all requests. Recovered requests count as successful.';
 
 export function getPerProviderReliability(
   range = '7d',

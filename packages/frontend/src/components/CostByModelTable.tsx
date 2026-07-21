@@ -11,13 +11,8 @@ import {
 } from '../services/routing-utils.js';
 import { PROVIDERS } from '../services/providers.js';
 import InfoTooltip from './InfoTooltip.jsx';
-import {
-  attemptSuccessRate,
-  totalAttemptsTooltip,
-  MODEL_SUCCESS_RATE_TOOLTIP,
-  type ModelReliabilityRow,
-} from '../services/api/analytics.js';
-import { t } from '../i18n/index.js';
+import { attemptSuccessRate, type ModelReliabilityRow } from '../services/api/analytics.js';
+import { formatNumber as formatLocalizedNumber, t } from '../i18n/index.js';
 
 interface CostByModelRow {
   model: string;
@@ -67,7 +62,7 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
     <div class="panel" style="margin-top: var(--gap-lg);">
       <div class="panel__title">{t('pages.globalOverview.modelUsage')}</div>
       <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: -8px 0 12px;">
-        The models used and what they cost you
+        {t('costByModel.description')}
       </p>
       <table class="data-table">
         <thead>
@@ -79,12 +74,18 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
             {props.reliability && (
               <>
                 <th class="rel-col">
-                  Total attempts
-                  <InfoTooltip text={totalAttemptsTooltip(props.doctorAvailable ?? false)} />
+                  {t('analytics.totalAttempts')}
+                  <InfoTooltip
+                    text={t(
+                      props.doctorAvailable
+                        ? 'analytics.tooltip.totalAttemptsWithAutofix'
+                        : 'analytics.tooltip.totalAttemptsWithoutAutofix',
+                    )}
+                  />
                 </th>
                 <th class="rel-col">
-                  Success rate
-                  <InfoTooltip text={MODEL_SUCCESS_RATE_TOOLTIP} />
+                  {t('analytics.successRate')}
+                  <InfoTooltip text={t('analytics.tooltip.modelSuccessRate')} />
                 </th>
               </>
             )}
@@ -159,14 +160,22 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
                       />
                     </div>
                     <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                      {Math.round(row.share_pct)}%
+                      {formatLocalizedNumber(row.share_pct / 100, {
+                        style: 'percent',
+                        maximumFractionDigits: 0,
+                      })}
                     </span>
                   </div>
                 </td>
                 <td
                   title={
                     row.estimated_cost > 0 && row.estimated_cost < 0.01
-                      ? `$${row.estimated_cost.toFixed(6)}`
+                      ? formatLocalizedNumber(row.estimated_cost, {
+                          style: 'currency',
+                          currency: 'USD',
+                          minimumFractionDigits: 6,
+                          maximumFractionDigits: 6,
+                        })
                       : undefined
                   }
                 >
@@ -184,7 +193,13 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
                       {(() => {
                         const rel = relFor(row.model);
                         const rate = rel ? attemptSuccessRate(rel) : null;
-                        return rate == null ? '\u2014' : `${(rate * 100).toFixed(1)}%`;
+                        return rate == null
+                          ? '\u2014'
+                          : formatLocalizedNumber(rate, {
+                              style: 'percent',
+                              minimumFractionDigits: 1,
+                              maximumFractionDigits: 1,
+                            });
                       })()}
                     </td>
                   </>

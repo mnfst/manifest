@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@solidjs/testing-library';
+import { setLocale } from '../../src/i18n/index.js';
 
 const mockNavigate = vi.fn();
 let mockSearchParams: Record<string, string | undefined> = {};
@@ -65,8 +66,10 @@ vi.mock('../../src/services/toast-store.js', () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
 
+const mockFormatNumber = vi.hoisted(() => vi.fn((value: number) => String(value)));
+
 vi.mock('../../src/services/formatters.js', () => ({
-  formatNumber: (v: number) => String(v),
+  formatNumber: (v: number) => mockFormatNumber(v),
   formatCost: (v: number) => `$${v.toFixed(2)}`,
 }));
 
@@ -149,7 +152,8 @@ vi.mock('manifest-shared', () => ({
 import Workspace from '../../src/pages/Workspace';
 
 describe('Workspace', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await setLocale('en');
     vi.clearAllMocks();
     mockSearchParams = {};
     mockGetAgents.mockResolvedValue({
@@ -241,6 +245,17 @@ describe('Workspace', () => {
     const { container } = render(() => <Workspace />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain('42');
+      expect(mockFormatNumber).toHaveBeenCalledWith(42);
+    });
+  });
+
+  it('renders the request label in Russian', async () => {
+    await setLocale('ru');
+    const { container } = render(() => <Workspace />);
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Запросы');
+      expect(container.textContent).not.toContain('Requests');
     });
   });
 

@@ -38,18 +38,21 @@ import { toast } from '../../services/toast-store.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
-import {
-  attemptSuccessRate,
-  totalAttemptsTooltip,
-  CONNECTION_SUCCESS_RATE_TOOLTIP_30D,
-} from '../../services/api/analytics.js';
+import { attemptSuccessRate } from '../../services/api/analytics.js';
 import { getAutofixCohort } from '../../services/api/autofix.js';
-import { t, tp } from '../../i18n/index.js';
+import { formatNumber as formatLocalizedNumber, t, tp } from '../../i18n/index.js';
 import '../../styles/routing.css';
 import '../../styles/analytics-overview.css';
 
 type ProviderPageKind = 'subscriptions' | 'byok' | 'local';
 type ViewMode = 'list' | 'grid';
+
+const formatSuccessRate = (rate: number): string =>
+  formatLocalizedNumber(rate, {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
 
 interface ProviderConnectionsPageProps {
   kind: ProviderPageKind;
@@ -551,7 +554,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
               <div class="overview-stat-card__value-row">
                 <Show when={!usageLoading()} fallback={<UsageShimmer width={72} />}>
                   <span class="overview-stat-card__value">
-                    {formatCost(totalApiCost()) ?? '$0.00'}
+                    {formatCost(totalApiCost()) ?? formatCost(0)}
                   </span>
                 </Show>
               </div>
@@ -559,8 +562,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           </Show>
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">
-              Total attempts (30d)
-              <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+              {t('analytics.totalAttempts30d')}
+              <InfoTooltip
+                text={t(
+                  autofixEligible()
+                    ? 'analytics.tooltip.totalAttemptsWithAutofix'
+                    : 'analytics.tooltip.totalAttemptsWithoutAutofix',
+                )}
+              />
             </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{formatNumber(totalAttempts())}</span>
@@ -568,8 +577,8 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           </div>
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">
-              Success rate (30d)
-              <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP_30D} />
+              {t('analytics.successRate30d')}
+              <InfoTooltip text={t('analytics.tooltip.connectionSuccessRate30d')} />
             </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">
@@ -578,7 +587,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                     attempts: totalAttempts(),
                     succeeded: totalAttemptsSucceeded(),
                   });
-                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                  return rate == null ? '—' : formatSuccessRate(rate);
                 })()}
               </span>
             </div>
@@ -602,12 +611,18 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                   <th>{copy().rowMetricHeading}</th>
                 </Show>
                 <th class="rel-col">
-                  Total attempts (30d)
-                  <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                  {t('analytics.totalAttempts30d')}
+                  <InfoTooltip
+                    text={t(
+                      autofixEligible()
+                        ? 'analytics.tooltip.totalAttemptsWithAutofix'
+                        : 'analytics.tooltip.totalAttemptsWithoutAutofix',
+                    )}
+                  />
                 </th>
                 <th class="rel-col">
-                  Success rate (30d)
-                  <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP_30D} />
+                  {t('analytics.successRate30d')}
+                  <InfoTooltip text={t('analytics.tooltip.connectionSuccessRate30d')} />
                 </th>
                 <th>{t('pages.providerConnections.lastUsed')}</th>
                 <th />
@@ -754,7 +769,8 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                     <Show when={copy().rowMetricHeading}>
                       <td>
                         <Show when={!usageLoading()} fallback={<UsageShimmer />}>
-                          {formatCost(perConnectionCost(row.summary, row.connection)) ?? '$0.00'}
+                          {formatCost(perConnectionCost(row.summary, row.connection)) ??
+                            formatCost(0)}
                         </Show>
                       </td>
                     </Show>
@@ -777,7 +793,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                             attempts: u?.attempts_30d ?? row.summary.attempts_30d,
                             succeeded: u?.succeeded_30d ?? row.summary.succeeded_30d,
                           });
-                          return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                          return rate == null ? '—' : formatSuccessRate(rate);
                         })()}
                       </Show>
                     </td>

@@ -206,9 +206,7 @@ describe('MessageTable', () => {
           'Tokens are units of text that AI models process. More tokens = higher cost.',
         );
         expect(container.querySelector('.status-badge--ok')?.textContent).toBe('Success');
-        expect(container.querySelector('.status-badge--error')?.textContent).toBe(
-          'Failed: Provider',
-        );
+        expect(container.querySelector('.status-badge--error')?.textContent).toBe('Failed');
 
         await setLocale('ru');
         await vi.waitFor(() => {
@@ -220,9 +218,7 @@ describe('MessageTable', () => {
             'Токены — единицы текста, обрабатываемые моделью. Чем больше токенов, тем выше стоимость.',
           );
           expect(container.querySelector('.status-badge--ok')?.textContent).toBe('Успешно');
-          expect(container.querySelector('.status-badge--error')?.textContent).toBe(
-            'Ошибка: Провайдер',
-          );
+          expect(container.querySelector('.status-badge--error')?.textContent).toBe('Ошибка');
         });
       } finally {
         await setLocale('en');
@@ -495,7 +491,7 @@ describe('MessageTable', () => {
       expect(badge!.textContent).toBe('fast');
     });
 
-    it('renders direct routing tier badge in uppercase', () => {
+    it('renders the localized direct routing tier badge', () => {
       const { container } = render(() => (
         <MessageTable
           items={[makeRow({ routing_tier: 'direct' })]}
@@ -505,7 +501,7 @@ describe('MessageTable', () => {
       ));
       const badge = container.querySelector('.tier-badge--direct');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toBe('DIRECT');
+      expect(badge!.textContent).toBe('Direct');
     });
 
     it('renders the localized specificity category over the tier badge', () => {
@@ -541,24 +537,28 @@ describe('MessageTable', () => {
       );
     });
 
-    it('renders Russian specificity and fallback labels', async () => {
+    it('renders Russian specificity, tier, and fallback labels', async () => {
       await setLocale('ru');
       try {
         const { container } = render(() => (
           <MessageTable
             items={[
               makeRow({ id: 'specificity', specificity_category: 'data_analysis' }),
+              makeRow({ id: 'direct', routing_tier: 'direct' }),
+              makeRow({ id: 'standard', routing_tier: 'standard' }),
               makeRow({ id: 'fallback', fallback_from_model: 'gpt-4o' }),
             ]}
-            columns={['model', 'trigger']}
+            columns={['model', 'selfheal']}
             agentName="agent-1"
           />
         ));
         expect(container.querySelector('.tier-badge--specificity')?.textContent).toBe(
           'Анализ данных',
         );
+        expect(container.querySelector('.tier-badge--direct')?.textContent).toBe('Прямой');
+        expect(container.querySelector('.tier-badge--standard')?.textContent).toBe('Стандартный');
         expect(container.querySelector('.trigger-badge--fallback')?.textContent).toContain(
-          'резервная модель',
+          'Резервная модель',
         );
       } finally {
         await setLocale('en');
@@ -616,7 +616,7 @@ describe('MessageTable', () => {
       ));
       const badge = container.querySelector('[title="Auto-fix"]') as HTMLElement;
       expect(badge).not.toBeNull();
-      expect(badge.textContent).toContain('auto-fix');
+      expect(badge.textContent).toContain('Auto-fix');
     });
 
     it('renders fallback icon with text label when fallback_from_model is set', () => {
@@ -629,16 +629,12 @@ describe('MessageTable', () => {
       ));
       const badge = container.querySelector('[title="Fallback"]') as HTMLElement;
       expect(badge).not.toBeNull();
-      expect(badge.textContent).toContain('fallback');
+      expect(badge.textContent).toContain('Fallback');
     });
 
     it('renders dash when neither autofix nor fallback applies', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['selfheal']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow()]} columns={['selfheal']} agentName="agent-1" />
       ));
       expect(container.querySelector('td')!.textContent).toContain('\u2014');
     });
