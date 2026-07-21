@@ -1,0 +1,39 @@
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_2110bf8ec34462::t_bbb5c14c77f5a9 1375-1378
+  s_2110bf8ec34462::t_e0780be7c389c8 1372-1374,1379-1413
+packages/backend/src/routing/proxy/provider-client.ts
+  s_2110bf8ec34462::t_c239f1e351d2e5 33,304-314
+packages/backend/src/routing/proxy/__tests__/chatgpt-response-qualifier.spec.ts
+  s_2110bf8ec34462::t_e0780be7c389c8 1-14,29-35,37-47,63-64,79-97,130-154,190-251,253-261,376-377
+  s_2110bf8ec34462::t_e26844cfc05ab5 15-28,48-62,65-78,155-168,174-189,262-330,354-375
+  s_2110bf8ec34462::t_224d20eaa4d5ba 169-173
+  s_2110bf8ec34462::t_bbb5c14c77f5a9 36,252
+  s_2110bf8ec34462::t_9b74b3f068c629 98-129
+  s_2110bf8ec34462::t_17cc1fcb616ecb 331-353
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_2110bf8ec34462::t_c239f1e351d2e5 526
+packages/backend/src/routing/proxy/chatgpt-response-qualifier.ts
+  s_2110bf8ec34462::t_bbb5c14c77f5a9 24,47,84,278-284
+  s_2110bf8ec34462::t_befa431d67c62b 30,32-33,292,310
+  s_2110bf8ec34462::t_c239f1e351d2e5 1-23,25-29,31,34-46,48-83,85-277,285-291,293-309,311-368
+packages/backend/src/routing/proxy/__tests__/provider-client.headers.spec.ts
+  s_2110bf8ec34462::t_b6dbb5434f9b41 295-296,298-301,303
+.changeset/fuzzy-codex-fallbacks.md
+  s_2110bf8ec34462::t_e0b64ad949c4e1 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "1f41cadffad9b6255f03aaf48732f8ee1e8b14d3",
+  "prompts": {},
+  "sessions": {
+    "s_2110bf8ec34462": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f834f-55ee-7b11-a73c-ee652058eb35",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
