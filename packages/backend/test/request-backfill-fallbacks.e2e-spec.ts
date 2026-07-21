@@ -223,6 +223,31 @@ describe('request backfill legacy fallback reconstruction (e2e)', () => {
     ]);
   });
 
+  it('refreshes only requests linked by the current sparse window', async () => {
+    await insertAttempt({
+      id: 'a-linked',
+      timestamp: '2026-01-01 00:00:00.000',
+      status: 'ok',
+      model: 'openai/gpt-4o',
+    });
+    await backfill({ batchSize: 1 });
+    await dataSource.query(`UPDATE requests SET duration_ms = 999 WHERE id = 'a-linked'`);
+
+    await insertAttempt({
+      id: 'z-delta',
+      timestamp: '2026-01-01 00:00:01.000',
+      status: 'ok',
+      model: 'openai/gpt-4o',
+    });
+    await backfill({ batchSize: 1 });
+
+    const requests = await dataSource.query(`SELECT id, duration_ms FROM requests ORDER BY id`);
+    expect(requests).toEqual([
+      { id: 'a-linked', duration_ms: 999 },
+      { id: 'z-delta', duration_ms: 100 },
+    ]);
+  });
+
   it('groups a recovered fallback chain without traceparent', async () => {
     await insertAttempt({
       id: 'recovered-primary',

@@ -74,7 +74,6 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   private readonly logger = new Logger(RequestBackfillBootService.name);
   private tailTimer: ReturnType<typeof setInterval> | undefined;
   private stopping = false;
-  private managedCoordinator: RequestBackfillBootService | undefined;
   private ownedDataSource: DataSource | undefined;
   private readonly transitionReadyAt = Date.now() + REQUEST_BACKFILL_GENERIC_GRACE_MS;
 
@@ -92,10 +91,7 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
 
   async onApplicationShutdown(): Promise<void> {
     this.stopping = true;
-    if (this.tailTimer) clearInterval(this.tailTimer);
-    if (this.managedCoordinator && this.managedCoordinator !== this) {
-      this.managedCoordinator.stopTailSweep();
-    }
+    this.stopTailSweep();
     const ownedDataSource = this.ownedDataSource;
     this.ownedDataSource = undefined;
     if (ownedDataSource?.isInitialized) await ownedDataSource.destroy();
@@ -109,13 +105,17 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   private async runManagedBackfill(): Promise<void> {
     while (!this.stopping) {
       try {
-        const coordinator = isSelfHosted() ? this : await this.createCloudCoordinator();
+        const selfHosted = isSelfHosted();
+        const coordinator = selfHosted ? this : await this.createCloudCoordinator();
         if (!coordinator || this.stopping) return;
-        this.managedCoordinator = coordinator;
         await coordinator.runUntilComplete();
         if (this.stopping) return;
-        await coordinator.startTailSweep();
-        if (this.stopping) coordinator.stopTailSweep();
+        if (selfHosted) {
+          await coordinator.startTailSweep();
+          return;
+        }
+        // Cloud catch-up runs explicitly after the new deployment is healthy.
+        await this.releaseCloudCoordinator();
         return;
       } catch (error) {
         await this.releaseCloudCoordinator();
@@ -144,10 +144,6 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   }
 
   private async releaseCloudCoordinator(): Promise<void> {
-    if (this.managedCoordinator && this.managedCoordinator !== this) {
-      this.managedCoordinator.stopTailSweep();
-    }
-    this.managedCoordinator = undefined;
     const dataSource = this.ownedDataSource;
     this.ownedDataSource = undefined;
     if (dataSource?.isInitialized) await dataSource.destroy().catch(() => undefined);
@@ -250,6 +246,7 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
 
   private async startTailSweep(): Promise<void> {
     if (!(await this.hasAttemptTable())) return;
+    if (await this.isTransitionFinalized()) return;
     this.tailTimer = setInterval(() => {
       void this.runMaintenanceOnce().catch((error) => {
         this.logger.error(
@@ -263,7 +260,7 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   private async runMaintenanceOnce(): Promise<void> {
     if (!(await this.runTailOnce())) return;
     if (Date.now() < this.transitionReadyAt) return;
-    await this.runTransitionFinalizeOnce();
+    if (await this.runTransitionFinalizeOnce()) this.stopTailSweep();
   }
 
   async runTransitionFinalizeOnce(
