@@ -10,9 +10,6 @@
 // only settles when the signal aborts — if the timeout doesn't fire,
 // the test would block until Jest's per-test timeout (still a clear
 // failure, but we keep the per-test cap at 5 seconds for speed).
-
-import { ProviderClient } from '../provider-client';
-
 const mockFetch = jest.fn();
 (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch;
 
@@ -149,7 +146,7 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
     expect(abortObserved).toBe(true);
   }, 5000);
 
-  it('keeps the timeout active through a streaming response body', async () => {
+  it('applies PROVIDER_STREAM_TIMEOUT_MS as an idle timeout after streaming headers arrive', async () => {
     process.env.PROVIDER_TIMEOUT_MS = '5';
     process.env.PROVIDER_STREAM_TIMEOUT_MS = '25';
 
@@ -187,6 +184,54 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
     });
 
     expect(fetchSignal).toBeDefined();
-    expect(fetchSignal!.aborted).toBe(true);
+    expect(fetchSignal!.aborted).toBe(false);
+  }, 5000);
+
+  it('keeps an active streaming body alive beyond the idle timeout duration', async () => {
+    process.env.PROVIDER_TIMEOUT_MS = '5';
+    process.env.PROVIDER_STREAM_TIMEOUT_MS = '35';
+
+    let fetchSignal: AbortSignal | undefined;
+    mockFetch.mockImplementation((_url: string, init: RequestInit) => {
+      fetchSignal = init.signal as AbortSignal;
+      return Promise.resolve(
+        new Response(
+          new ReadableStream<Uint8Array>({
+            start(controller) {
+              const encoder = new TextEncoder();
+              controller.enqueue(encoder.encode('data: {"choices":[1]}\n\n'));
+              setTimeout(() => {
+                controller.enqueue(encoder.encode('data: {"choices":[2]}\n\n'));
+              }, 20);
+              setTimeout(() => {
+                controller.enqueue(encoder.encode('data: {"choices":[3]}\n\n'));
+                controller.close();
+              }, 40);
+            },
+          }),
+          { status: 200, headers: { 'content-type': 'text/event-stream' } },
+        ),
+      );
+    });
+
+    await jest.isolateModulesAsync(async () => {
+      const { ProviderClient: FreshClient } = await import('../provider-client');
+      const fresh = new FreshClient();
+      const forward = await fresh.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: true,
+      });
+      const reader = forward.response.body!.getReader();
+      await expect(reader.read()).resolves.toMatchObject({ done: false });
+      await expect(reader.read()).resolves.toMatchObject({ done: false });
+      await expect(reader.read()).resolves.toMatchObject({ done: false });
+      await expect(reader.read()).resolves.toMatchObject({ done: true });
+    });
+
+    expect(fetchSignal).toBeDefined();
+    expect(fetchSignal!.aborted).toBe(false);
   }, 5000);
 });

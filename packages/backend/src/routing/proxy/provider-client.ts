@@ -85,6 +85,89 @@ const QWEN_TOKEN_PLAN_RESPONSES_RE = /^qwen3\.7-max$/i;
 const COPILOT_CHAT_COMPLETIONS_ENDPOINT = '/chat/completions';
 const COPILOT_RESPONSES_ENDPOINTS = new Set(['/responses', 'ws:/responses']);
 
+function providerTimeoutError(message = 'Provider stream idle timeout'): Error {
+  const error = new Error(message);
+  error.name = 'TimeoutError';
+  return error;
+}
+
+function unrefTimer(timer: ReturnType<typeof setTimeout>): void {
+  if (typeof timer === 'object' && 'unref' in timer) timer.unref();
+}
+
+function withProviderStreamIdleTimeout(
+  source: ReadableStream<Uint8Array>,
+  timeoutMs: number,
+  signal?: AbortSignal,
+): ReadableStream<Uint8Array> {
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let settled = false;
+
+  const clearTimer = (): void => {
+    if (timer) clearTimeout(timer);
+    timer = undefined;
+  };
+
+  return new ReadableStream<Uint8Array>({
+    start(controller) {
+      reader = source.getReader();
+      const fail = (reason: unknown): void => {
+        if (settled) return;
+        settled = true;
+        clearTimer();
+        void reader?.cancel(reason).catch(() => undefined);
+        controller.error(reason);
+      };
+      const resetTimer = (): void => {
+        clearTimer();
+        timer = setTimeout(() => fail(providerTimeoutError()), timeoutMs);
+        unrefTimer(timer);
+      };
+      const onAbort = (): void => {
+        fail(
+          signal?.reason ??
+            Object.assign(new Error('The operation was aborted'), { name: 'AbortError' }),
+        );
+      };
+
+      if (signal?.aborted) {
+        onAbort();
+        return;
+      }
+      signal?.addEventListener('abort', onAbort, { once: true });
+
+      resetTimer();
+      void (async () => {
+        try {
+          for (;;) {
+            const result = await reader.read();
+            if (result.done) {
+              settled = true;
+              clearTimer();
+              controller.close();
+              return;
+            }
+            resetTimer();
+            controller.enqueue(result.value);
+          }
+        } catch (error) {
+          fail(error);
+        } finally {
+          signal?.removeEventListener('abort', onAbort);
+          if (settled) clearTimer();
+          reader?.releaseLock();
+        }
+      })();
+    },
+    cancel(reason) {
+      clearTimer();
+      settled = true;
+      return reader?.cancel(reason);
+    },
+  });
+}
+
 function shouldApplyAnthropicAutomaticCacheControl(
   endpointKey: string,
   authType: string | undefined,
@@ -710,16 +793,23 @@ export class ProviderClient {
       responsesToolTypesByName?: Readonly<Record<string, ResponsesToolCallType>>;
     },
   ): Promise<ForwardResult> {
-    // Keep the provider deadline attached for the complete response body, not
-    // only until fetch() resolves its headers. Streaming fetches resolve as
-    // soon as HTTP 200 headers arrive; clearing their timer at that point let
-    // body reads run past Cloudflare's proxy window and surface downstream as
-    // a truncated HTTP 200. Streaming gets its own bounded deadline because
-    // the response writer sends SSE heartbeats while the provider is quiet;
-    // buffered calls still use the shorter general provider deadline.
+    // For streaming requests, the fetch signal is only the startup deadline:
+    // fetch() resolves as soon as headers arrive, then the body is guarded by
+    // an idle watchdog below. Long active streams can exceed this duration,
+    // but a silent provider still fails before Cloudflare's proxy read window.
     const timeoutMs = stream ? PROVIDER_STREAM_TIMEOUT_MS : PROVIDER_TIMEOUT_MS;
-    const timeoutSignal = AbortSignal.timeout(timeoutMs);
-    const fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
+    const timeoutController = new AbortController();
+    const timeout = setTimeout(
+      () =>
+        timeoutController.abort(
+          providerTimeoutError(stream ? 'Provider stream startup timed out' : undefined),
+        ),
+      timeoutMs,
+    );
+    unrefTimer(timeout);
+    const fetchSignal = signal
+      ? AbortSignal.any([timeoutController.signal, signal])
+      : timeoutController.signal;
 
     let response: Response;
     try {
@@ -734,7 +824,22 @@ export class ProviderClient {
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      throw new Error(message.replace(/key=[^&\s]+/gi, 'key=***'));
+      const sanitized = new Error(message.replace(/key=[^&\s]+/gi, 'key=***'));
+      if (err instanceof Error) sanitized.name = err.name;
+      throw sanitized;
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (stream && response.body) {
+      response = new Response(
+        withProviderStreamIdleTimeout(response.body, PROVIDER_STREAM_TIMEOUT_MS, signal),
+        {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers,
+        },
+      );
     }
 
     return { response, ...formatFlags };
