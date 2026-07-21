@@ -589,11 +589,10 @@ describe('ModelDiscoveryService', () => {
         last_fetched_at: null,
         error: expect.stringContaining('only available in self-hosted Manifest'),
       });
-      expect(providerRepo.findOne).not.toHaveBeenCalled();
+      expect(providerRepo.find).not.toHaveBeenCalled();
     });
 
     it('returns Provider not found when no row matches', async () => {
-      providerRepo.findOne.mockResolvedValue(null);
       const result = await service.refreshProvider('agent-1', 'openai');
       expect(result).toEqual({
         ok: false,
@@ -604,13 +603,13 @@ describe('ModelDiscoveryService', () => {
     });
 
     it('refuses custom providers and reports the cached count', async () => {
-      providerRepo.findOne.mockResolvedValue(
+      providerRepo.find.mockResolvedValue([
         makeProvider({
           provider: 'custom:cp-1',
           cached_models: [makeModel({ id: 'foo' }), makeModel({ id: 'bar' })],
           models_fetched_at: '2026-04-12T08:00:00.000Z',
         }),
-      );
+      ]);
       const result = await service.refreshProvider('agent-1', 'custom:cp-1');
       expect(result.ok).toBe(false);
       expect(result.model_count).toBe(2);
@@ -620,14 +619,14 @@ describe('ModelDiscoveryService', () => {
 
     it('returns ok with the discovered count on success', async () => {
       const provider = makeProvider({ provider: 'openai' });
-      providerRepo.findOne.mockResolvedValue(provider);
+      providerRepo.find.mockResolvedValue([provider]);
       fetcher.fetch.mockResolvedValue([
         makeModel({ id: 'gpt-4o' }),
         makeModel({ id: 'gpt-4o-mini' }),
       ]);
 
       const result = await service.refreshProvider('tenant-1', 'openai', 'api_key');
-      expect(providerRepo.findOne).toHaveBeenCalledWith({
+      expect(providerRepo.find).toHaveBeenCalledWith({
         where: { tenant_id: 'tenant-1', provider: 'openai', is_active: true, auth_type: 'api_key' },
       });
       expect(fetcher.fetch).toHaveBeenCalledWith('openai', 'decrypted-key', 'api_key', undefined, {
@@ -639,9 +638,48 @@ describe('ModelDiscoveryService', () => {
       expect(result.last_fetched_at).toBeDefined();
     });
 
+    it('refreshes every matching API-key connection', async () => {
+      const first = makeProvider({
+        id: 'openai-key-1',
+        api_key_encrypted: 'encrypted-key-1',
+      });
+      const second = makeProvider({
+        id: 'openai-key-2',
+        api_key_encrypted: 'encrypted-key-2',
+      });
+      providerRepo.find.mockResolvedValue([first, second]);
+      mockDecrypt.mockImplementation((encrypted) => encrypted.replace('encrypted-', ''));
+      fetcher.fetch.mockImplementation(async (_provider, apiKey) =>
+        apiKey === 'key-1'
+          ? [makeModel({ id: 'gpt-4o' })]
+          : [
+              makeModel({ id: 'gpt-5.6-sol' }),
+              makeModel({ id: 'gpt-5.6-terra' }),
+              makeModel({ id: 'gpt-5.6-luna' }),
+            ],
+      );
+
+      const result = await service.refreshProvider('tenant-1', 'openai', 'api_key');
+
+      expect(fetcher.fetch).toHaveBeenCalledTimes(2);
+      expect(first.cached_models?.map((model) => model.id)).toEqual(['gpt-4o']);
+      expect(second.cached_models?.map((model) => model.id)).toEqual([
+        'gpt-5.6-sol',
+        'gpt-5.6-terra',
+        'gpt-5.6-luna',
+      ]);
+      expect(mockModelsDevSync.refreshCache).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({
+        ok: true,
+        model_count: 3,
+        last_fetched_at: expect.any(String),
+        error: null,
+      });
+    });
+
     it('returns ok=false with hint when provider returns no models', async () => {
       const provider = makeProvider({ provider: 'openai', cached_models: null });
-      providerRepo.findOne.mockResolvedValue(provider);
+      providerRepo.find.mockResolvedValue([provider]);
       fetcher.fetch.mockResolvedValue([]);
 
       const result = await service.refreshProvider('agent-1', 'openai');
@@ -652,13 +690,13 @@ describe('ModelDiscoveryService', () => {
 
     it('preserves cached models and reports prior count when discovery throws', async () => {
       const cachedModels = [makeModel({ id: 'gpt-4o' }), makeModel({ id: 'gpt-4o-mini' })];
-      providerRepo.findOne.mockResolvedValue(
+      providerRepo.find.mockResolvedValue([
         makeProvider({
           provider: 'openai',
           cached_models: cachedModels,
           models_fetched_at: '2026-04-01T08:00:00.000Z',
         }),
-      );
+      ]);
       // discoverModels itself swallows fetcher errors, so to land in the
       // refreshProvider catch we make the cache-write throw instead.
       fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o' })]);
@@ -672,7 +710,7 @@ describe('ModelDiscoveryService', () => {
     });
 
     it('reports a non-Error thrown value via String() in the error field', async () => {
-      providerRepo.findOne.mockResolvedValue(makeProvider({ provider: 'openai' }));
+      providerRepo.find.mockResolvedValue([makeProvider({ provider: 'openai' })]);
       fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o' })]);
       providerRepo.save.mockRejectedValueOnce('plain-string-failure');
 
