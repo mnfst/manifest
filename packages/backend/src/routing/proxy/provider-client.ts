@@ -30,6 +30,7 @@ import { toNativeResponsesRequest } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { ProviderModelRegistryService } from '../../model-discovery/provider-model-registry.service';
+import { qualifyChatGptResponse } from './chatgpt-response-qualifier';
 
 export interface ForwardResult {
   response: Response;
@@ -300,8 +301,17 @@ export class ProviderClient {
       structuredOutputToolName,
       responsesTextFormat: textFormat,
     });
-    if (affinity) this.codexAffinity.capture(affinity.storeKey, result.response);
-    return result;
+    const qualifiedResult =
+      endpointKey === 'openai-subscription'
+        ? {
+            ...result,
+            response: await qualifyChatGptResponse(result.response, {
+              downstreamFormat: isResponses ? 'responses' : 'chat-completions',
+            }),
+          }
+        : result;
+    if (affinity) this.codexAffinity.capture(affinity.storeKey, qualifiedResult.response);
+    return qualifiedResult;
   }
 
   private async resolveEndpoint(
