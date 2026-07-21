@@ -1,9 +1,10 @@
 import { Show, type Component } from 'solid-js';
+import { t } from '../i18n/index.js';
 
 interface ErrorStateProps {
   /** The error object from createResource (used to extract a message). */
   error?: unknown;
-  /** Override the default title ("Something went wrong"). */
+  /** Override the localized default error title. */
   title?: string;
   /** Override the subtitle derived from the error message. */
   message?: string;
@@ -14,7 +15,7 @@ interface ErrorStateProps {
 function extractMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (typeof error === 'string') return error;
-  return 'An unexpected error occurred. Please try again.';
+  return t('error.unexpected');
 }
 
 const ErrorState: Component<ErrorStateProps> = (props) => {
@@ -22,7 +23,7 @@ const ErrorState: Component<ErrorStateProps> = (props) => {
 
   return (
     <div class="empty-state" role="alert">
-      <div class="empty-state__title">{props.title ?? 'Something went wrong'}</div>
+      <div class="empty-state__title">{props.title ?? t('error.title')}</div>
       <p style="max-width: 420px; margin: 0 auto;">{displayMessage()}</p>
       <Show when={props.onRetry}>
         <button
@@ -30,7 +31,7 @@ const ErrorState: Component<ErrorStateProps> = (props) => {
           style="margin-top: var(--gap-md);"
           onClick={props.onRetry}
         >
-          Try again
+          {t('error.retry')}
         </button>
       </Show>
     </div>

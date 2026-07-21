@@ -8,6 +8,7 @@ import type {
   ResponseMode,
   RoutingProvider,
 } from '../services/api.js';
+import { t } from '../i18n/index.js';
 import {
   type HeaderTier,
   resetHeaderTier,
@@ -199,9 +200,9 @@ const HeaderTierCard: Component<Props> = (props) => {
     try {
       await setHeaderTierFallbacks(props.agentName, props.tier.id, next, nextRoutes);
       props.onFallbacksUpdate(next, nextRoutes);
-      toast.success('Fallback added');
+      toast.success(t('headerTier.fallbackAdded'));
     } catch {
-      toast.error('Failed to add fallback');
+      toast.error(t('headerTier.fallbackAddFailed'));
     }
   };
 
@@ -285,8 +286,8 @@ const HeaderTierCard: Component<Props> = (props) => {
               type="button"
               class="header-tier-card__icon-btn"
               onClick={() => setMenuOpen(!menuOpen())}
-              aria-label={`Options for ${props.tier.name}`}
-              title="Options"
+              aria-label={t('headerTier.optionsFor', { tier: props.tier.name })}
+              title={t('components.actions')}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -310,7 +311,7 @@ const HeaderTierCard: Component<Props> = (props) => {
                     setSnippetOpen(true);
                   }}
                 >
-                  Send this header
+                  {t('headerTier.sendHeader')}
                 </button>
                 <Show when={props.onEdit}>
                   <button
@@ -321,7 +322,7 @@ const HeaderTierCard: Component<Props> = (props) => {
                       props.onEdit?.();
                     }}
                   >
-                    Edit tier
+                    {t('headerTier.edit')}
                   </button>
                 </Show>
                 <Show when={props.onDisable}>
@@ -333,7 +334,7 @@ const HeaderTierCard: Component<Props> = (props) => {
                       props.onDisable?.();
                     }}
                   >
-                    Disable
+                    {t('headerTier.disable')}
                   </button>
                 </Show>
               </div>
@@ -344,7 +345,7 @@ const HeaderTierCard: Component<Props> = (props) => {
           when={currentModel()}
           fallback={
             <button class="routing-card__header-add" onClick={() => setPickerMode('primary')}>
-              + Add model
+              {t('headerTier.addModel')}
             </button>
           }
         >
@@ -367,7 +368,7 @@ const HeaderTierCard: Component<Props> = (props) => {
                 <path d="m7.77,12.97c.49.41,1.23.06,1.23-.58v-2.4h6c2.21,0,4,1.79,4,4v5c0,.55.45,1,1,1s1-.45,1-1v-5c0-3.31-2.69-6-6-6h-6v-2.4c0-.64-.74-.98-1.23-.58l-4.08,3.4c-.36.3-.36.85,0,1.15l4.08,3.4Z" />
               </svg>
             )}
-            Reset
+            {t('headerTier.reset')}
           </button>
         </Show>
       </div>
@@ -385,7 +386,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             <div
               class="routing-card__model-chip"
               classList={{ 'routing-card__model-chip--skipped': primarySkipped() }}
-              title={primarySkipped() ? 'Skipped while Stream mode is active' : undefined}
+              title={primarySkipped() ? t('fallback.skippedTitle') : undefined}
               onClick={() => setPickerMode('primary')}
             >
               <div class="routing-card__chip-main">
@@ -478,9 +479,9 @@ const HeaderTierCard: Component<Props> = (props) => {
                       e.stopPropagation();
                       setPickerMode('primary');
                     }}
-                    aria-label={`Change model for ${props.tier.name}`}
+                    aria-label={t('headerTier.changeModelFor', { tier: props.tier.name })}
                   >
-                    <span class="routing-tooltip">Change</span>
+                    <span class="routing-tooltip">{t('headerTier.change')}</span>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="12"
@@ -502,10 +503,12 @@ const HeaderTierCard: Component<Props> = (props) => {
                     <span class="routing-card__chip-meta">
                       <span class="routing-card__chip-price">
                         {formatPerRequestCost(modelInfo()?.cost_per_request) ??
-                          'Included in subscription'}
+                          t('headerTier.includedSubscription')}
                       </span>
                       <Show when={primarySkipped()}>
-                        <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                        <span class="routing-card__skipped-badge">
+                          {t('fallback.skippedBadge')}
+                        </span>
                       </Show>
                     </span>
                   }
@@ -513,7 +516,7 @@ const HeaderTierCard: Component<Props> = (props) => {
                   <span class="routing-card__chip-meta">
                     <span class="routing-card__chip-price">{priceLabel()}</span>
                     <Show when={primarySkipped()}>
-                      <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                      <span class="routing-card__skipped-badge">{t('fallback.skippedBadge')}</span>
                     </Show>
                   </span>
                 </Show>

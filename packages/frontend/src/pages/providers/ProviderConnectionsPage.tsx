@@ -38,17 +38,21 @@ import { toast } from '../../services/toast-store.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
-import {
-  attemptSuccessRate,
-  totalAttemptsTooltip,
-  CONNECTION_SUCCESS_RATE_TOOLTIP_30D,
-} from '../../services/api/analytics.js';
+import { attemptSuccessRate } from '../../services/api/analytics.js';
 import { getAutofixCohort } from '../../services/api/autofix.js';
+import { formatNumber as formatLocalizedNumber, t, tp } from '../../i18n/index.js';
 import '../../styles/routing.css';
 import '../../styles/analytics-overview.css';
 
 type ProviderPageKind = 'subscriptions' | 'byok' | 'local';
 type ViewMode = 'list' | 'grid';
+
+const formatSuccessRate = (rate: number): string =>
+  formatLocalizedNumber(rate, {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
 
 interface ProviderConnectionsPageProps {
   kind: ProviderPageKind;
@@ -58,63 +62,58 @@ interface AgentRow {
   agent_name: string;
 }
 
-const PAGE_COPY: Record<
-  ProviderPageKind,
-  {
-    title: string;
-    heading: string;
-    subtitle: string;
-    addLabel: string;
-    customAddLabel?: string;
-    connectedHeading: string;
-    supportedHeading: string;
-    authType: AuthType;
-    /** Cost metric (stat card + per-row column) — BYOK only. Subscriptions and
-     *  local providers have no real cost figure to show. */
-    metricLabel?: string;
-    metricTooltip?: string;
-    rowMetricHeading?: string;
-    activeSingular: string;
-    activePlural: string;
+interface ProviderPageCopy {
+  title: string;
+  heading: string;
+  subtitle: string;
+  addLabel: string;
+  customAddLabel?: string;
+  connectedHeading: string;
+  supportedHeading: string;
+  authType: AuthType;
+  /** Cost metric (stat card + per-row column) — BYOK only. Subscriptions and
+   *  local providers have no real cost figure to show. */
+  metricLabel?: string;
+  metricTooltip?: string;
+  rowMetricHeading?: string;
+}
+
+const pageCopy = (kind: ProviderPageKind): ProviderPageCopy => {
+  if (kind === 'subscriptions') {
+    return {
+      title: t('pages.providerConnections.subscriptions.metaTitle'),
+      heading: t('pages.providerConnections.subscriptions.title'),
+      subtitle: t('pages.providerConnections.subscriptions.subtitle'),
+      addLabel: t('pages.providerConnections.connect'),
+      connectedHeading: t('pages.providerConnections.subscriptions.connected'),
+      supportedHeading: t('pages.providerConnections.subscriptions.supported'),
+      authType: 'subscription',
+    };
   }
-> = {
-  subscriptions: {
-    title: 'Subscriptions | Manifest',
-    heading: 'Subscriptions',
-    subtitle: 'Use your current plans with any supported provider.',
-    addLabel: 'Connect',
-    connectedHeading: 'My subscription connections',
-    supportedHeading: 'Supported subscription providers',
-    authType: 'subscription',
-    activeSingular: 'connection',
-    activePlural: 'connections',
-  },
-  byok: {
-    title: 'Usage-based | Manifest',
-    heading: 'Usage-based',
-    subtitle: 'Connect providers you pay per token or per usage with your own API keys.',
-    addLabel: 'Connect',
-    customAddLabel: 'Add custom provider',
-    connectedHeading: 'My usage-based connections',
-    supportedHeading: 'Supported usage-based providers',
+  if (kind === 'local') {
+    return {
+      title: t('pages.providerConnections.local.metaTitle'),
+      heading: t('pages.providerConnections.local.title'),
+      subtitle: t('pages.providerConnections.local.subtitle'),
+      addLabel: t('pages.providerConnections.connect'),
+      connectedHeading: t('pages.providerConnections.local.connected'),
+      supportedHeading: t('pages.providerConnections.local.supported'),
+      authType: 'local',
+    };
+  }
+  return {
+    title: t('pages.providerConnections.byok.metaTitle'),
+    heading: t('pages.providerConnections.byok.title'),
+    subtitle: t('pages.providerConnections.byok.subtitle'),
+    addLabel: t('pages.providerConnections.connect'),
+    customAddLabel: t('pages.providerConnections.addCustom'),
+    connectedHeading: t('pages.providerConnections.byok.connected'),
+    supportedHeading: t('pages.providerConnections.byok.supported'),
     authType: 'api_key',
-    metricLabel: 'Total API cost (30d)',
-    metricTooltip: 'Sum of all API key usage costs across your connected providers.',
-    rowMetricHeading: 'Cost (30d)',
-    activeSingular: 'key',
-    activePlural: 'keys',
-  },
-  local: {
-    title: 'Local | Manifest',
-    heading: 'Local',
-    subtitle: 'Connect to LLM servers running on your machine.',
-    addLabel: 'Connect',
-    connectedHeading: 'My local connections',
-    supportedHeading: 'Supported local providers',
-    authType: 'local',
-    activeSingular: 'connection',
-    activePlural: 'connections',
-  },
+    metricLabel: t('pages.providerConnections.totalCost'),
+    metricTooltip: t('pages.providerConnections.totalCostHelp'),
+    rowMetricHeading: t('pages.providerConnections.cost30d'),
+  };
 };
 
 const providerListForKind = (kind: ProviderPageKind): ProviderDef[] => {
@@ -163,12 +162,12 @@ const StatusBadge: Component<{ active: boolean }> = (props) => (
     when={props.active}
     fallback={
       <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
-        Inactive
+        {t('pages.providerConnections.inactive')}
       </span>
     }
   >
     <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
-      Active
+      {t('pages.providerConnections.active')}
     </span>
   </Show>
 );
@@ -217,7 +216,7 @@ const GridIcon: Component = () => (
 );
 
 const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props) => {
-  const copy = () => PAGE_COPY[props.kind];
+  const copy = () => pageCopy(props.kind);
   const navigate = useNavigate();
   const [showModal, setShowModal] = createSignal(false);
   const [showCustomModal, setShowCustomModal] = createSignal(false);
@@ -255,7 +254,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     e?.stopPropagation();
     const newLabel = renameValue().trim();
     if (!newLabel) {
-      setRenameError('Name cannot be empty');
+      setRenameError(t('pages.providerConnections.renameEmpty'));
       return;
     }
     if (newLabel === currentLabel) {
@@ -273,11 +272,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
         newLabel,
         authType as AuthType,
       );
-      toast.success('Connection renamed');
+      toast.success(t('pages.providerConnections.renamed'));
       setRenamingId(null);
       refetchGlobalProviders();
     } catch (err: any) {
-      setRenameError(err?.message ?? 'Failed to rename');
+      setRenameError(err?.message ?? t('pages.providerConnections.renameFailed'));
     } finally {
       setRenameBusy(false);
     }
@@ -458,8 +457,13 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     !!copy().metricLabel && (connectedRows().length > 0 || totalApiCost() > 0);
 
   const activeLabel = (count: number) => {
-    if (props.kind === 'local') return 'Connected';
-    return `${count} active ${count === 1 ? copy().activeSingular : copy().activePlural}`;
+    if (props.kind === 'local') return t('pages.providerConnections.connectedLabel');
+    return tp(
+      props.kind === 'byok'
+        ? 'pages.providerConnections.activeKeys'
+        : 'pages.providerConnections.activeConnections',
+      count,
+    );
   };
 
   const openModal = (providerId?: string) => {
@@ -546,11 +550,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
         >
           <Show when={showMetricCard()}>
             <div class="overview-stat-card">
-              <span class="overview-stat-card__label">Total API cost (30d)</span>
+              <span class="overview-stat-card__label">{copy().metricLabel}</span>
               <div class="overview-stat-card__value-row">
                 <Show when={!usageLoading()} fallback={<UsageShimmer width={72} />}>
                   <span class="overview-stat-card__value">
-                    {formatCost(totalApiCost()) ?? '$0.00'}
+                    {formatCost(totalApiCost()) ?? formatCost(0)}
                   </span>
                 </Show>
               </div>
@@ -558,8 +562,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           </Show>
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">
-              Total attempts (30d)
-              <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+              {t('analytics.totalAttempts30d')}
+              <InfoTooltip
+                text={t(
+                  autofixEligible()
+                    ? 'analytics.tooltip.totalAttemptsWithAutofix'
+                    : 'analytics.tooltip.totalAttemptsWithoutAutofix',
+                )}
+              />
             </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{formatNumber(totalAttempts())}</span>
@@ -567,8 +577,8 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           </div>
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">
-              Success rate (30d)
-              <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP_30D} />
+              {t('analytics.successRate30d')}
+              <InfoTooltip text={t('analytics.tooltip.connectionSuccessRate30d')} />
             </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">
@@ -577,7 +587,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                     attempts: totalAttempts(),
                     succeeded: totalAttemptsSucceeded(),
                   });
-                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                  return rate == null ? '—' : formatSuccessRate(rate);
                 })()}
               </span>
             </div>
@@ -593,22 +603,28 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           <table class="data-table" style="width: 100%;">
             <thead>
               <tr>
-                <th>Provider</th>
-                <th>Connection</th>
-                <th>Status</th>
-                <th>Usage (30d)</th>
+                <th>{t('pages.providerConnections.provider')}</th>
+                <th>{t('pages.providerConnections.connection')}</th>
+                <th>{t('pages.providerConnections.status')}</th>
+                <th>{t('pages.providerConnections.usage30d')}</th>
                 <Show when={copy().rowMetricHeading}>
                   <th>{copy().rowMetricHeading}</th>
                 </Show>
                 <th class="rel-col">
-                  Total attempts (30d)
-                  <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                  {t('analytics.totalAttempts30d')}
+                  <InfoTooltip
+                    text={t(
+                      autofixEligible()
+                        ? 'analytics.tooltip.totalAttemptsWithAutofix'
+                        : 'analytics.tooltip.totalAttemptsWithoutAutofix',
+                    )}
+                  />
                 </th>
                 <th class="rel-col">
-                  Success rate (30d)
-                  <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP_30D} />
+                  {t('analytics.successRate30d')}
+                  <InfoTooltip text={t('analytics.tooltip.connectionSuccessRate30d')} />
                 </th>
-                <th>Last used</th>
+                <th>{t('pages.providerConnections.lastUsed')}</th>
                 <th />
               </tr>
             </thead>
@@ -633,7 +649,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         <span style="font-weight: 500;">{row.name}</span>
                         <Show when={row.summary.provider.startsWith('custom:')}>
                           <span style="display: inline-flex; padding: 1px 6px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                            Custom
+                            {t('pages.providerConnections.custom')}
                           </span>
                         </Show>
                       </span>
@@ -656,7 +672,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                               onClick={(e) =>
                                 startRename(row.connection.id, row.connection.label, e)
                               }
-                              aria-label={`Rename ${row.connection.label}`}
+                              aria-label={t('pages.providerConnections.renameLabel', {
+                                name: row.connection.label,
+                              })}
                               style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s; display: inline-flex; align-items: center; line-height: 1;"
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -702,14 +720,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                               )
                             }
                           >
-                            Save
+                            {t('pages.providerConnections.save')}
                           </button>
                           <button
                             class="btn btn--outline btn--sm"
                             style="font-size: var(--font-size-xs); padding: 4px 10px;"
                             onClick={cancelRename}
                           >
-                            Cancel
+                            {t('pages.providerConnections.cancel')}
                           </button>
                         </div>
                         <Show when={renameError()}>
@@ -737,7 +755,10 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                                 </Show>
                                 <span>
                                   {formatNumber(perConnectionTokens(row.summary, row.connection))}{' '}
-                                  tokens
+                                  {tp(
+                                    'pages.providerConnections.tokenUnit',
+                                    perConnectionTokens(row.summary, row.connection),
+                                  )}
                                 </span>
                               </>
                             );
@@ -748,7 +769,8 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                     <Show when={copy().rowMetricHeading}>
                       <td>
                         <Show when={!usageLoading()} fallback={<UsageShimmer />}>
-                          {formatCost(perConnectionCost(row.summary, row.connection)) ?? '$0.00'}
+                          {formatCost(perConnectionCost(row.summary, row.connection)) ??
+                            formatCost(0)}
                         </Show>
                       </td>
                     </Show>
@@ -771,7 +793,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                             attempts: u?.attempts_30d ?? row.summary.attempts_30d,
                             succeeded: u?.succeeded_30d ?? row.summary.succeeded_30d,
                           });
-                          return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                          return rate == null ? '—' : formatSuccessRate(rate);
                         })()}
                       </Show>
                     </td>
@@ -791,7 +813,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                           navigate(`/providers/connections/${row.connection.id}`);
                         }}
                       >
-                        View details
+                        {t('pages.providerConnections.viewDetails')}
                       </button>
                     </td>
                   </tr>
@@ -813,7 +835,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
             class="panel__tab"
             classList={{ 'panel__tab--active': viewMode() === 'grid' }}
             onClick={() => setViewMode('grid')}
-            aria-label="Grid view"
+            aria-label={t('pages.providerConnections.gridView')}
             style="padding: 0 8px;"
           >
             <GridIcon />
@@ -824,7 +846,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
             class="panel__tab"
             classList={{ 'panel__tab--active': viewMode() === 'list' }}
             onClick={() => setViewMode('list')}
-            aria-label="List view"
+            aria-label={t('pages.providerConnections.listView')}
             style="padding: 0 8px;"
           >
             <ListIcon />
@@ -837,7 +859,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           <table class="data-table" style="width: 100%;">
             <thead>
               <tr>
-                <th>Provider</th>
+                <th>{t('pages.providerConnections.provider')}</th>
                 <th />
               </tr>
             </thead>
@@ -964,7 +986,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
             class="modal-card routing-modal"
             role="dialog"
             aria-modal="true"
-            aria-label="Add custom provider"
+            aria-label={t('pages.providerConnections.addCustomLabel')}
             style="max-width: 600px; max-height: 85vh; overflow-y: auto;"
           >
             <CustomProviderForm

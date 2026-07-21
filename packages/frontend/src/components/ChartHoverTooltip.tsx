@@ -1,5 +1,6 @@
 import { For, Show, type Component } from 'solid-js';
 import type uPlot from 'uplot';
+import { formatDate, formatDateTime, t } from '../i18n/index.js';
 import '../styles/agent-chart-tooltip.css';
 
 /**
@@ -47,17 +48,19 @@ export function snapToBucket(u: uPlot, left: number, top: number): [number, numb
   return [snappedLeft, top];
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 export function formatTooltipDate(epochSec: number, multiDay: boolean): string {
   const d = new Date(epochSec * 1000);
-  const day = d.getDate();
-  const mon = MONTHS[d.getMonth()]!;
-  const year = d.getFullYear();
-  if (multiDay) return `${day} ${mon} ${year}`;
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${day} ${mon} ${year}, ${hh}:${mm}`;
+  if (multiDay) {
+    return formatDate(d, { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  return formatDateTime(d, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
 }
 
 const ROWS_PER_COL = 16;
@@ -112,7 +115,7 @@ const ChartHoverTooltip: Component<ChartHoverTooltipProps> = (props) => {
           </For>
         </div>
         <div class="agent-chart-tooltip__total">
-          <span>Total</span>
+          <span>{t('chart.total')}</span>
           <span class="agent-chart-tooltip__total-value">{props.fmtVal(props.state.total)}</span>
         </div>
       </div>

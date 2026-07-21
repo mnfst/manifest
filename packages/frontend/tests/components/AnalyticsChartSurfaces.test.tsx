@@ -92,6 +92,8 @@ import UnifiedChartCard from '../../src/components/UnifiedChartCard';
 import AutofixKpiCards from '../../src/components/AutofixKpiCards';
 import ErrorClassCard from '../../src/components/ErrorClassCard';
 import ReliabilityChart from '../../src/components/ReliabilityChart';
+import { formatTooltipDate } from '../../src/components/ChartHoverTooltip';
+import { setLocale } from '../../src/i18n/index.js';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -152,7 +154,7 @@ describe('analytics chart surface components', () => {
     // Stacked series are reversed (top-of-stack first).
     const labels = capturedChartOpts.series.slice(1).map((s: { label: string }) => s.label);
     expect(labels).toContain('Success - recovered by Auto-fix');
-    expect(labels).toContain('Success - recovered by Fallback');
+    expect(labels).toContain('Success - recovered by fallback');
     unmount();
   });
 
@@ -243,7 +245,7 @@ describe('analytics chart surface components', () => {
     expect(legend).toEqual([
       'Success',
       'Success - recovered by Auto-fix',
-      'Success - recovered by Fallback',
+      'Success - recovered by fallback',
       'Error',
     ]);
 
@@ -256,7 +258,7 @@ describe('analytics chart surface components', () => {
     unmount();
   });
 
-  it('snaps the cursor and shows the hover tooltip on the disposition chart', () => {
+  it('snaps the cursor and does not keep a cached tooltip across locale changes', async () => {
     const { container, unmount } = render(() => (
       <ReliabilityChart
         timeseries={{
@@ -296,10 +298,17 @@ describe('analytics chart surface components', () => {
     expect(rows).toEqual([
       { label: 'Success', value: '1' },
       { label: 'Success - recovered by Auto-fix', value: '2' },
-      { label: 'Success - recovered by Fallback', value: '3' },
+      { label: 'Success - recovered by fallback', value: '3' },
       { label: 'Error', value: '4' },
     ]);
     expect(container.querySelector('.agent-chart-tooltip__total-value')?.textContent).toBe('10');
+
+    await setLocale('ru');
+    try {
+      await waitFor(() => expect(container.querySelector('.agent-chart-tooltip')).toBeNull());
+    } finally {
+      await setLocale('en');
+    }
 
     // Cursor off the data hides it.
     capturedChartOpts.hooks.setCursor[0]({ cursor: { idx: -1 } });
@@ -345,7 +354,7 @@ describe('analytics chart surface components', () => {
     expect(screen.getByText('Failed requests')).toBeDefined();
     expect(screen.getByText('Recovered by Auto-fix')).toBeDefined();
     expect(screen.getByText('5')).toBeDefined();
-    expect(screen.getByText('Recovered by Fallback')).toBeDefined();
+    expect(screen.getByText('Recovered by fallback')).toBeDefined();
     expect(screen.getByText('3')).toBeDefined();
     unmount();
 
@@ -391,7 +400,7 @@ describe('analytics chart surface components', () => {
     expect(routerNavigate).toHaveBeenCalledWith(
       '/messages?agent=demo-agent&range=7d&status=ok&trigger=autofix',
     );
-    fireEvent.click(screen.getByText('Recovered by Fallback').closest('.overview-stat-card')!);
+    fireEvent.click(screen.getByText('Recovered by fallback').closest('.overview-stat-card')!);
     expect(routerNavigate).toHaveBeenCalledWith(
       '/messages?agent=demo-agent&range=7d&status=ok&trigger=fallback',
     );
@@ -438,6 +447,69 @@ describe('analytics chart surface components', () => {
     expect(
       screen.getByText('Failed requests').closest('.overview-stat-card')?.getAttribute('title'),
     ).toBe('View failed requests across all harnesses');
+  });
+
+  it('updates mounted chart labels, KPI titles, and cached chart structure on locale change', async () => {
+    const { container, unmount } = render(() => (
+      <>
+        <ReliabilityChart
+          timeseries={{
+            range: '7d',
+            by: 'disposition',
+            keys: ['success', 'fallback', 'error'],
+            buckets: [{ bucket: '2026-06-04', counts: [3, 2, 1] }],
+          }}
+          range="7d"
+          seriesMode="disposition"
+        />
+        <AutofixKpiCards
+          stats={{
+            success_rate: { value: 0.8, previous: 0.7 },
+            errors_remaining: { value: 1, previous: 0 },
+            autofix_saves: { value: 2, previous: 0 },
+            fallback_saves: { value: 1, previous: 0 },
+            total_requests: { value: 10, previous: 0 },
+            coverage: { rate: 0.5, previous_rate: 0.4 },
+            dispositions: { healed: 2, no_fix_found: 0, resolving: 0, ineffective: 0 },
+            needs_attention: [],
+          }}
+        />
+        <UnifiedChartCard
+          activeTab="tokens"
+          onTabChange={vi.fn()}
+          requestsValue={10}
+          requestsTrendPct={0}
+          tokensValue={20}
+          tokensTrendPct={0}
+          range="7d"
+        />
+      </>
+    ));
+    const reliabilityLifecycle = capturedLifecycleOpts;
+    const englishDate = formatTooltipDate(1_700_000_000, true);
+    expect(reliabilityLifecycle.structureKey()).toMatch(/^en::/);
+
+    await setLocale('ru');
+    try {
+      await waitFor(() => expect(screen.getByText('Доля успешных запросов')).toBeDefined());
+      expect(screen.getAllByText('Использование токенов').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getByText('Нет данных о токенах за этот период')).toBeDefined();
+      const legend = [...container.querySelectorAll('.rel-chart__legend-item')].map((item) =>
+        item.textContent?.trim(),
+      );
+      expect(legend).toEqual(['Успешно', 'Успешно — восстановлено резервной моделью', 'Ошибка']);
+      expect(reliabilityLifecycle.structureKey()).toMatch(/^ru::/);
+      expect(
+        screen
+          .getByText('Восстановленные запросы')
+          .closest('.overview-stat-card')
+          ?.getAttribute('title'),
+      ).toBe('Открыть восстановленные запросы всех интеграций');
+      expect(formatTooltipDate(1_700_000_000, true)).not.toBe(englishDate);
+    } finally {
+      await setLocale('en');
+      unmount();
+    }
   });
 
   it('renders and sorts error classes, then renders the empty state', async () => {
@@ -527,7 +599,7 @@ describe('analytics chart surface components', () => {
     ));
 
     expect(screen.getByTestId('info-tooltip').textContent).toBe(
-      'Caller success: 95.0%. Provider-attempt success: 80.0%. The gap is recovery from fallbacks and Auto-fix.',
+      'Request success: 95%. Provider-attempt success: 80%. The gap is recovery through fallback and Auto-fix.',
     );
     unmount();
 
@@ -543,7 +615,7 @@ describe('analytics chart surface components', () => {
         range="24h"
       />
     ));
-    expect(screen.getByTestId('info-tooltip').textContent).toBe('Provider-attempt success: 80.0%.');
+    expect(screen.getByTestId('info-tooltip').textContent).toBe('Provider-attempt success: 80%.');
   });
 
   it('renders ProviderChartCard message and cost chart branches', async () => {

@@ -21,6 +21,7 @@ import { oauthDoneHtml } from './callback-page';
 import { PendingStore } from './pending-store';
 import { parseOAuthTokenBlob, serializeOAuthTokenBlob, type OAuthTokenBlob } from './oauth-blob';
 import { coordinateOAuthRefresh, oauthRefreshKey } from './oauth-refresh-coordinator';
+import { localeFromAcceptLanguage } from '../../../common/i18n/locale';
 
 export interface RedirectPkceOauthConfig {
   /** Provider id stored on `tenant_providers.provider_id`. */
@@ -421,15 +422,15 @@ export abstract class RedirectPkceOauthBaseService {
       this.logger.error(`OAuth callback error from provider: ${desc}`);
       this.pending.delete(state);
       this.shutdownCallbackServerIfIdle();
-      this.sendDoneResponse(res, false, appUrl);
+      this.sendDoneResponse(res, false, appUrl, req.headers?.['accept-language']);
       return;
     }
     this.exchangeCode(state, code)
-      .then(() => this.sendDoneResponse(res, true, appUrl))
+      .then(() => this.sendDoneResponse(res, true, appUrl, req.headers?.['accept-language']))
       .catch((err) => {
         this.logger.error(`OAuth callback failed: ${err}`);
         this.shutdownCallbackServerIfIdle();
-        this.sendDoneResponse(res, false, appUrl);
+        this.sendDoneResponse(res, false, appUrl, req.headers?.['accept-language']);
       });
   }
 
@@ -447,7 +448,12 @@ export abstract class RedirectPkceOauthBaseService {
     }
   }
 
-  private sendDoneResponse(res: ServerResponse, success: boolean, appUrl: string): void {
+  private sendDoneResponse(
+    res: ServerResponse,
+    success: boolean,
+    appUrl: string,
+    acceptLanguage?: string | string[],
+  ): void {
     if (appUrl && this.isAllowedRedirectOrigin(appUrl)) {
       const ok = success ? '1' : '0';
       res.writeHead(302, {
@@ -455,8 +461,9 @@ export abstract class RedirectPkceOauthBaseService {
       });
       res.end();
     } else {
+      const locale = localeFromAcceptLanguage(acceptLanguage);
       res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(oauthDoneHtml(success, undefined, this.oauthConfig.providerLabel));
+      res.end(oauthDoneHtml(success, undefined, this.oauthConfig.providerLabel, locale));
     }
   }
 

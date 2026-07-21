@@ -1,5 +1,6 @@
 import { createSignal, createEffect, Show, type Component } from 'solid-js';
 import { Portal } from 'solid-js/web';
+import { t } from '../i18n/index.js';
 
 export interface LimitRuleData {
   metric_type: string;
@@ -92,14 +93,12 @@ const LimitRuleModal: Component<Props> = (props) => {
             }}
           >
             <h2 class="modal-card__title" id="limit-modal-title">
-              {isEdit() ? 'Edit rule' : 'Create rule'}
+              {isEdit() ? t('limit.editRule') : t('limit.createRule')}
             </h2>
-            <p class="modal-card__desc">
-              You'll receive an email alert when usage exceeds the threshold.
-            </p>
+            <p class="modal-card__desc">{t('limit.alertDescription')}</p>
 
             <label class="modal-card__field-label" for="limit-metric-select" style="margin-top: 0;">
-              Metric
+              {t('limit.metric')}
             </label>
             <select
               id="limit-metric-select"
@@ -108,14 +107,14 @@ const LimitRuleModal: Component<Props> = (props) => {
               onChange={(e) => setMetricType(e.currentTarget.value)}
               ref={(el) => requestAnimationFrame(() => el.focus())}
             >
-              <option value="tokens">Tokens</option>
-              <option value="cost">Cost (USD)</option>
+              <option value="tokens">{t('costByModel.tokens')}</option>
+              <option value="cost">{t('limit.costUsd')}</option>
             </select>
 
             <div class="limit-modal__row">
               <div class="limit-modal__col">
                 <label class="modal-card__field-label" for="limit-threshold-input">
-                  Threshold
+                  {t('limit.threshold')}
                 </label>
                 <input
                   id="limit-threshold-input"
@@ -123,14 +122,18 @@ const LimitRuleModal: Component<Props> = (props) => {
                   type="number"
                   min="0"
                   step={metricType() === 'cost' ? '0.01' : '1'}
-                  placeholder={metricType() === 'cost' ? 'e.g. 10.00' : 'e.g. 50000'}
+                  placeholder={
+                    metricType() === 'cost'
+                      ? t('limit.thresholdCostPlaceholder')
+                      : t('limit.thresholdTokensPlaceholder')
+                  }
                   value={threshold()}
                   onInput={(e) => setThreshold(e.currentTarget.value)}
                 />
               </div>
               <div class="limit-modal__col">
                 <label class="modal-card__field-label" for="limit-period-select">
-                  Period
+                  {t('limit.period')}
                 </label>
                 <select
                   id="limit-period-select"
@@ -138,16 +141,16 @@ const LimitRuleModal: Component<Props> = (props) => {
                   value={period()}
                   onChange={(e) => setPeriod(e.currentTarget.value)}
                 >
-                  <option value="hour">Per hour</option>
-                  <option value="day">Per day</option>
-                  <option value="week">Per week</option>
-                  <option value="month">Per month</option>
+                  <option value="hour">{t('limit.perHour')}</option>
+                  <option value="day">{t('limit.perDay')}</option>
+                  <option value="week">{t('limit.perWeek')}</option>
+                  <option value="month">{t('limit.perMonth')}</option>
                 </select>
               </div>
             </div>
 
             <div class="limit-block-toggle">
-              <span class="limit-block-toggle__label">Block requests when exceeded</span>
+              <span class="limit-block-toggle__label">{t('limit.blockExceeded')}</span>
               <label class="notification-toggle">
                 <input
                   type="checkbox"
@@ -164,7 +167,13 @@ const LimitRuleModal: Component<Props> = (props) => {
                 disabled={!threshold() || Number(threshold()) <= 0 || saving()}
                 onClick={handleSave}
               >
-                {saving() ? <span class="spinner" /> : isEdit() ? 'Save changes' : 'Create rule'}
+                {saving() ? (
+                  <span class="spinner" />
+                ) : isEdit() ? (
+                  t('limit.saveChanges')
+                ) : (
+                  t('limit.createRule')
+                )}
               </button>
             </div>
           </div>

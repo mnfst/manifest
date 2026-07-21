@@ -17,8 +17,10 @@ import { getLastAuthMethod, setLastAuthMethod } from '../services/last-auth-meth
 import { checkSocialProviders } from '../services/setup-status.js';
 import { getBillingStatus } from '../services/api/billing.js';
 import { markPlanChosen } from '../services/plan-selection.js';
-import { formatBillingPrice } from '../services/billing-display.js';
 import { toast } from '../services/toast-store.js';
+import { t, tr } from '../i18n/index.js';
+import { authLocaleFetchOptions } from './auth-locale.js';
+import type { BillingPrice } from 'manifest-shared';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -35,7 +37,7 @@ const Register: Component = () => {
   const [lastAuthMethod] = createSignal(getLastAuthMethod());
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [proPrice, setProPrice] = createSignal<string | null>(null);
+  const [proPrice, setProPrice] = createSignal<BillingPrice | null>(null);
   const [planBusy, setPlanBusy] = createSignal(false);
   const location = useLocation();
   const session = authClient.useSession();
@@ -58,7 +60,7 @@ const Register: Component = () => {
           markPlanChosen(userId());
           navigate('/', { replace: true });
         } else {
-          setProPrice(formatBillingPrice(status?.priceMonthly));
+          setProPrice(status?.priceMonthly ?? null);
         }
       })
       .catch(() => {});
@@ -90,12 +92,15 @@ const Register: Component = () => {
     setError('');
     setLoading(true);
 
-    const { data, error: authError } = await authClient.signUp.email({
-      name: name(),
-      email: email(),
-      password: password(),
-      callbackURL: '/upgrade',
-    });
+    const { data, error: authError } = await authClient.signUp.email(
+      {
+        name: name(),
+        email: email(),
+        password: password(),
+        callbackURL: '/upgrade',
+      },
+      authLocaleFetchOptions(),
+    );
 
     setLoading(false);
 
@@ -103,7 +108,7 @@ const Register: Component = () => {
       if (authError.code === 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL') {
         setAlreadyExists(true);
       }
-      setError(authError.message ?? 'Registration failed');
+      setError(authError.message ?? t('pages.register.error.failed'));
       return;
     }
     setAlreadyExists(false);
@@ -113,7 +118,7 @@ const Register: Component = () => {
       try {
         const status = await getBillingStatus();
         if (status?.enabled) {
-          setProPrice(formatBillingPrice(status.priceMonthly));
+          setProPrice(status.priceMonthly ?? null);
           window.location.href = '/register?step=plan';
           return;
         }
@@ -149,7 +154,7 @@ const Register: Component = () => {
       if (error) throw error;
       markPlanChosen(userId());
     } catch {
-      toast.error('Could not start the upgrade. Please try again.');
+      toast.error(t('pages.register.error.upgrade'));
       setPlanBusy(false);
     }
   };
@@ -157,13 +162,16 @@ const Register: Component = () => {
   const handleResend = async () => {
     if (resendCooldown() > 0) return;
 
-    const { error: resendError } = await authClient.sendVerificationEmail({
-      email: email(),
-      callbackURL: '/upgrade',
-    });
+    const { error: resendError } = await authClient.sendVerificationEmail(
+      {
+        email: email(),
+        callbackURL: '/upgrade',
+      },
+      authLocaleFetchOptions(),
+    );
 
     if (resendError) {
-      setError(resendError.message ?? 'Failed to resend verification email');
+      setError(resendError.message ?? t('pages.auth.error.resendVerification'));
       return;
     }
 
@@ -172,19 +180,18 @@ const Register: Component = () => {
 
   return (
     <>
-      <Title>Sign Up - Manifest</Title>
-      <Meta
-        name="description"
-        content="Create a Manifest account to start monitoring your AI harnesses."
-      />
+      <Title>{t('pages.register.metaTitle')}</Title>
+      <Meta name="description" content={t('pages.register.metaDescription')} />
       <Show
         when={!emailSent()}
         fallback={
           <>
             <div class="auth-header">
-              <h1 class="auth-header__title">Check your email</h1>
+              <h1 class="auth-header__title">{t('pages.register.checkEmail')}</h1>
               <p class="auth-header__subtitle">
-                We sent a verification link to <strong>{email()}</strong>
+                {tr('pages.register.verificationSent', {
+                  email: <strong>{email()}</strong>,
+                })}
               </p>
             </div>
 
@@ -194,23 +201,21 @@ const Register: Component = () => {
                   {error()}
                 </div>
               )}
-              <div class="auth-form__success">
-                Click the link in your email to verify your account and get started.
-              </div>
+              <div class="auth-form__success">{t('pages.register.verificationInstructions')}</div>
               <button
                 class="auth-form__link-btn"
                 onClick={handleResend}
                 disabled={resendCooldown() > 0}
               >
                 {resendCooldown() > 0
-                  ? `Resend in ${resendCooldown()}s`
-                  : 'Resend verification email'}
+                  ? t('pages.auth.resendIn', { count: resendCooldown() })
+                  : t('pages.auth.resendVerification')}
               </button>
             </div>
 
             <div class="auth-footer">
               <A href={appendSearch('/login', location.search)} class="auth-footer__link">
-                Back to sign in
+                {t('pages.auth.backToSignIn')}
               </A>
             </div>
           </>
@@ -221,28 +226,28 @@ const Register: Component = () => {
           fallback={
             <>
               <div class="auth-header">
-                <h1 class="auth-header__title">Create an account</h1>
-                <p class="auth-header__subtitle">Monitor your AI harnesses' costs and usage</p>
+                <h1 class="auth-header__title">{t('pages.register.createTitle')}</h1>
+                <p class="auth-header__subtitle">{t('pages.register.createSubtitle')}</p>
               </div>
 
               <SocialButtons enabledProviders={socialProviders()} lastUsed={lastAuthMethod()} />
 
               <Show when={socialProviders().length > 0}>
                 <div class="auth-divider">
-                  <span class="auth-divider__text">or</span>
+                  <span class="auth-divider__text">{t('pages.auth.or')}</span>
                 </div>
               </Show>
 
               <form class="auth-form" onSubmit={handleSubmit}>
                 <Show when={alreadyExists()}>
                   <div id={errorId} class="auth-form__error" role="alert">
-                    An account with this email already exists.{' '}
+                    {t('pages.register.accountExists')}{' '}
                     <A href={appendSearch('/login', location.search)} class="auth-form__error-link">
-                      Sign in
+                      {t('pages.auth.signIn')}
                     </A>{' '}
-                    or{' '}
+                    {t('pages.auth.or')}{' '}
                     <A href="/reset-password" class="auth-form__error-link">
-                      reset your password
+                      {t('pages.register.resetPassword')}
                     </A>
                     .
                   </div>
@@ -253,14 +258,14 @@ const Register: Component = () => {
                   </div>
                 </Show>
                 <label class="auth-form__label" for={nameId}>
-                  Name
+                  {t('pages.register.name')}
                   <input
                     ref={(el) => requestAnimationFrame(() => el.focus())}
                     id={nameId}
                     class="auth-form__input"
                     type="text"
                     autocomplete="name"
-                    placeholder="Your name"
+                    placeholder={t('pages.register.namePlaceholder')}
                     value={name()}
                     onInput={(e) => setName(e.currentTarget.value)}
                     required
@@ -268,13 +273,13 @@ const Register: Component = () => {
                   />
                 </label>
                 <label class="auth-form__label" for={emailId}>
-                  Email
+                  {t('pages.auth.email')}
                   <input
                     id={emailId}
                     class="auth-form__input"
                     type="email"
                     autocomplete="email"
-                    placeholder="you@example.com"
+                    placeholder={t('pages.auth.emailPlaceholder')}
                     value={email()}
                     onInput={(e) => setEmail(e.currentTarget.value)}
                     required
@@ -282,13 +287,13 @@ const Register: Component = () => {
                   />
                 </label>
                 <label class="auth-form__label" for={passwordId}>
-                  Password
+                  {t('pages.auth.password')}
                   <input
                     id={passwordId}
                     class="auth-form__input"
                     type="password"
                     autocomplete="new-password"
-                    placeholder="Create a password"
+                    placeholder={t('pages.register.passwordPlaceholder')}
                     value={password()}
                     onInput={(e) => setPassword(e.currentTarget.value)}
                     required
@@ -297,33 +302,33 @@ const Register: Component = () => {
                   />
                 </label>
                 <button class="auth-form__submit" type="submit" disabled={loading()}>
-                  {loading() ? <span class="spinner" /> : 'Create account'}
+                  {loading() ? <span class="spinner" /> : t('pages.register.createAccount')}
                 </button>
               </form>
               <p class="auth-terms">
-                By signing up, you agree to our{' '}
+                {t('pages.register.termsPrefix')}{' '}
                 <a
                   href="https://manifest.build/terms"
                   class="auth-terms__link"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Terms
+                  {t('pages.register.terms')}
                 </a>{' '}
-                and{' '}
+                {t('pages.register.termsAnd')}{' '}
                 <a
                   href="https://manifest.build/privacy"
                   class="auth-terms__link"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Privacy Policy
+                  {t('pages.register.privacy')}
                 </a>
               </p>
               <div class="auth-footer">
-                <span>Already have an account? </span>
+                <span>{t('pages.register.haveAccount')} </span>
                 <A href={appendSearch('/login', location.search)} class="auth-footer__link">
-                  Sign in
+                  {t('pages.auth.signIn')}
                 </A>
               </div>
             </>
@@ -331,19 +336,21 @@ const Register: Component = () => {
         >
           <div class="auth-header">
             <h1 class="auth-header__title">
-              {searchParams.context === 'login' ? 'Choose your plan' : 'Create an account'}
+              {searchParams.context === 'login'
+                ? t('pages.register.choosePlan')
+                : t('pages.register.createTitle')}
             </h1>
             <p class="auth-header__subtitle">
               {searchParams.context === 'login'
-                ? 'Manifest now offers Free and Pro plans. Select the one that fits your needs.'
-                : 'Monitor your AI harnesses\' costs and usage'}
+                ? t('pages.register.planIntro')
+                : t('pages.register.createSubtitle')}
             </p>
           </div>
 
           <Show when={searchParams.context !== 'login'}>
             <div class="plan-picker__section-header">
-              <h2 class="plan-picker__section-title">Choose your plan</h2>
-              <p class="plan-picker__section-subtitle">You can change your plan anytime</p>
+              <h2 class="plan-picker__section-title">{t('pages.register.choosePlan')}</h2>
+              <p class="plan-picker__section-subtitle">{t('pages.register.planChange')}</p>
             </div>
           </Show>
 

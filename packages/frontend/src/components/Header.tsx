@@ -25,6 +25,8 @@ import {
 } from '../services/connection-breadcrumb-store.js';
 import { providerIcon } from './ProviderIcon.jsx';
 import DuplicateAgentModal from './DuplicateAgentModal.jsx';
+import LanguageSelector from './LanguageSelector.jsx';
+import { formatNumber, t } from '../i18n/index.js';
 
 const DevAutofixToggle = __DEV_MODE__ ? lazy(() => import('./DevAutofixToggle.jsx')) : null;
 
@@ -92,12 +94,8 @@ const Header: Component<HeaderProps> = (props) => {
     setStarDismissed(true);
   };
 
-  const formatCount = (n: number): string => {
-    return n.toLocaleString('en-US');
-  };
-
   const user = () => session()?.data?.user;
-  const effectiveName = () => user()?.name ?? 'User';
+  const effectiveName = () => user()?.name ?? t('header.userFallback');
   const docsUrl = () => {
     const p = location.pathname;
     if (p.includes('/guardrails') || p.includes('/limits')) return `${DOCS_BASE_URL}/set-limits`;
@@ -157,8 +155,8 @@ const Header: Component<HeaderProps> = (props) => {
           />
         </A>
         <Show when={isSelfHosted()}>
-          <span class="header__mode-badge" title="Running on the self-hosted version of Manifest">
-            Self-hosted
+          <span class="header__mode-badge" title={t('header.selfHostedTitle')}>
+            {t('header.selfHosted')}
           </span>
         </Show>
         {__DEV_MODE__ && DevAutofixToggle && <DevAutofixToggle />}
@@ -168,7 +166,7 @@ const Header: Component<HeaderProps> = (props) => {
             href="/harnesses"
             style="color: hsl(var(--muted-foreground)); text-decoration: none; font-size: var(--font-size-sm); font-weight: 500;"
           >
-            Harnesses
+            {t('header.harnesses')}
           </A>
           <span class="header__separator">/</span>
           <span class="header__breadcrumb-current">
@@ -186,7 +184,7 @@ const Header: Component<HeaderProps> = (props) => {
               <button
                 class="header__gear-btn"
                 onClick={() => setGearOpen(!gearOpen())}
-                aria-label="Harness actions"
+                aria-label={t('header.harnessActions')}
                 aria-haspopup="menu"
                 aria-expanded={gearOpen()}
               >
@@ -224,7 +222,7 @@ const Header: Component<HeaderProps> = (props) => {
                       <circle cx="12" cy="12" r="3" />
                       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                     </svg>
-                    Settings
+                    {t('header.settings')}
                   </A>
                   <button
                     class="header__dropdown-item"
@@ -244,7 +242,7 @@ const Header: Component<HeaderProps> = (props) => {
                       <path d="M20 2H10c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2m0 12H10V4h10z" />
                       <path d="M4 22h10c1.1 0 2-.9 2-2v-2h-2v2H4V10h2V8H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2m10-10h2v-2h2V8h-2V6h-2v2h-2v2h2z" />
                     </svg>
-                    Duplicate harness
+                    {t('header.duplicateHarness')}
                   </button>
                 </div>
               </Show>
@@ -281,7 +279,7 @@ const Header: Component<HeaderProps> = (props) => {
             type="button"
             class="mobile-nav-toggle"
             aria-label={
-              props.mobileNavOpen === true ? 'Close navigation menu' : 'Open navigation menu'
+              props.mobileNavOpen === true ? t('shell.closeNavigation') : t('shell.openNavigation')
             }
             aria-controls="agent-navigation"
             aria-expanded={props.mobileNavOpen === true}
@@ -307,8 +305,9 @@ const Header: Component<HeaderProps> = (props) => {
             <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
             <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
           </svg>
-          Docs
+          {t('header.docs')}
         </a>
+        <LanguageSelector />
         <NotificationBell />
         <Show when={!starDismissed()}>
           <div class="header__star-separator" />
@@ -330,16 +329,16 @@ const Header: Component<HeaderProps> = (props) => {
                 >
                   <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
                 </svg>
-                <span class="header__github-star-label">Star</span>
+                <span class="header__github-star-label">{t('header.star')}</span>
               </span>
               <Show when={starCount() !== null}>
-                <span class="header__github-star-count">{formatCount(starCount()!)}</span>
+                <span class="header__github-star-count">{formatNumber(starCount()!)}</span>
               </Show>
             </a>
             <button
               class="header__github-star-close"
               onClick={dismissStar}
-              aria-label="Dismiss GitHub star button"
+              aria-label={t('header.dismissStar')}
             >
               <svg
                 width="10"
@@ -362,7 +361,7 @@ const Header: Component<HeaderProps> = (props) => {
           <button
             class="header__avatar-btn"
             onClick={() => setMenuOpen(!menuOpen())}
-            aria-label="User menu"
+            aria-label={t('header.userMenu')}
             aria-haspopup="menu"
             aria-expanded={menuOpen()}
           >
@@ -400,7 +399,7 @@ const Header: Component<HeaderProps> = (props) => {
                   <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
-                Account Preferences
+                {t('header.accountPreferences')}
               </A>
               <button
                 class="header__dropdown-item header__dropdown-item--danger"
@@ -422,7 +421,7 @@ const Header: Component<HeaderProps> = (props) => {
                   <polyline points="16 17 21 12 16 7" />
                   <line x1="21" y1="12" x2="9" y2="12" />
                 </svg>
-                Log out
+                {t('header.logOut')}
               </button>
             </div>
           </Show>

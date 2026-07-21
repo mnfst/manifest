@@ -40,6 +40,7 @@ import RequestHeadersPopover, {
 } from '../components/playground/RequestHeadersPopover.jsx';
 import { CodeIcon } from '../components/playground/icons.jsx';
 import { useRightSidebar } from '../services/right-sidebar.jsx';
+import { t } from '../i18n/index.js';
 
 // Route-scoped styles (kept out of the global theme bundle). routing.css is
 // needed here because the shared ModelPickerModal / ProviderSelectModal use
@@ -186,7 +187,7 @@ const Playground: Component = () => {
     void store()
       .markBest(col)
       .catch((err) =>
-        toast.error(err instanceof Error ? err.message : 'Failed to set best answer'),
+        toast.error(err instanceof Error ? err.message : t('pages.playground.setBestFailed')),
       );
   };
 
@@ -301,7 +302,7 @@ const Playground: Component = () => {
     try {
       setHistoryRuns(await listPlaygroundRuns());
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to load history');
+      toast.error(err instanceof Error ? err.message : t('pages.playground.loadHistoryFailed'));
     } finally {
       setHistoryLoading(false);
     }
@@ -350,7 +351,12 @@ const Playground: Component = () => {
   createEffect(() => {
     for (const col of store().columns) {
       if (col.status === 'success' && col.metrics) {
-        setAnnouncement(`${col.displayName} responded in ${col.metrics.durationMs} milliseconds.`);
+        setAnnouncement(
+          t('pages.playground.responseAnnouncement', {
+            model: col.displayName,
+            duration: col.metrics.durationMs,
+          }),
+        );
       }
     }
   });
@@ -418,7 +424,7 @@ const Playground: Component = () => {
       setActiveRunId(runId);
       setSearchParams({ run: runId });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to load run');
+      toast.error(err instanceof Error ? err.message : t('pages.playground.loadRunFailed'));
     }
   };
 
@@ -449,18 +455,13 @@ const Playground: Component = () => {
 
   return (
     <div class="playground" style={{ 'padding-bottom': `${promptHeight() + 48}px` }}>
-      <Title>Playground · Manifest</Title>
-      <Meta
-        name="description"
-        content="Compare models side by side for cost, speed, and quality."
-      />
+      <Title>{t('pages.playground.metaTitle')}</Title>
+      <Meta name="description" content={t('pages.playground.metaDescription')} />
 
       <header class="page-header">
         <div>
-          <h1>Playground</h1>
-          <p class="page-header__sub">
-            Send one prompt to multiple models and compare cost, speed, and quality.
-          </p>
+          <h1>{t('pages.playground.title')}</h1>
+          <p class="page-header__sub">{t('pages.playground.subtitle')}</p>
         </div>
         {/* Provider connection now handled via sidebar provider pages */}
       </header>
@@ -477,7 +478,7 @@ const Playground: Component = () => {
           </Show>
         }
       >
-        <div class="playground__columns" aria-label="Model comparison columns">
+        <div class="playground__columns" aria-label={t('pages.playground.columnsLabel')}>
           <For each={viewingHistory() ?? store().columns}>
             {(col) => (
               <PlaygroundColumn
@@ -503,11 +504,11 @@ const Playground: Component = () => {
               type="button"
               class="playground__add"
               onClick={() => setShowAddPicker(true)}
-              aria-label="Add model column"
+              aria-label={t('pages.playground.addColumnLabel')}
               disabled={store().isAnyRunning()}
             >
               <span class="playground__add-plus">+</span>
-              <span>Add model</span>
+              <span>{t('pages.playground.addModel')}</span>
               <kbd class="playground__add-shortcut">
                 <span>{navigator.platform?.includes('Mac') ? '⌘' : 'Ctrl'}</span>
                 <span class="playground__add-shortcut-plus">+</span>
@@ -528,13 +529,17 @@ const Playground: Component = () => {
           fallback={
             <div class="playground-prompt-wrapper">
               <div class="playground-prompt playground-prompt--info">
-                <span class="playground-prompt__info-text">Connect a provider to get started</span>
+                <span class="playground-prompt__info-text">
+                  {t('pages.playground.connectProvider')}
+                </span>
               </div>
             </div>
           }
         >
           <PlaygroundPrompt
-            ref={(el) => { promptRef = el; }}
+            ref={(el) => {
+              promptRef = el;
+            }}
             value={store().prompt()}
             onChange={store().setPrompt}
             onSubmit={handleSubmit}
@@ -548,9 +553,9 @@ const Playground: Component = () => {
                 <button
                   type="button"
                   class="playground-prompt__headers"
-                  aria-label="Request headers"
+                  aria-label={t('pages.playground.requestHeadersLabel')}
                   aria-expanded={headersOpen()}
-                  title="Custom request headers"
+                  title={t('pages.playground.requestHeadersTitle')}
                   onClick={() => (headersOpen() ? setHeadersOpen(false) : openHeaders())}
                 >
                   <CodeIcon size={16} />

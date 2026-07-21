@@ -6,7 +6,8 @@ const mockBetterAuth = jest.fn().mockReturnValue({
 });
 
 jest.mock('better-auth', () => ({ betterAuth: mockBetterAuth }));
-jest.mock('pg', () => ({ Pool: jest.fn() }));
+const mockPoolQuery = jest.fn().mockResolvedValue({ rows: [] });
+jest.mock('pg', () => ({ Pool: jest.fn(() => ({ query: mockPoolQuery })) }));
 const mockStripePlugin = jest.fn().mockReturnValue({ id: 'stripe' });
 jest.mock('@better-auth/stripe', () => ({ stripe: mockStripePlugin }));
 jest.mock('@react-email/render', () => ({
@@ -18,9 +19,15 @@ jest.mock('@react-email/render', () => ({
 }));
 jest.mock('../notifications/emails/verify-email', () => ({
   VerifyEmailEmail: jest.fn().mockReturnValue('verify-email-element'),
+  verifyEmailSubject: jest.fn((locale: 'en' | 'ru' = 'en') =>
+    locale === 'ru' ? 'Подтвердите адрес электронной почты' : 'Verify your email address',
+  ),
 }));
 jest.mock('../notifications/emails/reset-password', () => ({
   ResetPasswordEmail: jest.fn().mockReturnValue('reset-password-element'),
+  resetPasswordEmailSubject: jest.fn((locale: 'en' | 'ru' = 'en') =>
+    locale === 'ru' ? 'Сброс пароля' : 'Reset your password',
+  ),
 }));
 jest.mock('../notifications/services/email-providers/send-email', () => ({
   sendEmail: jest.fn(),
@@ -38,6 +45,7 @@ describe('auth.instance', () => {
   beforeEach(() => {
     jest.resetModules();
     mockBetterAuth.mockClear();
+    mockPoolQuery.mockReset().mockResolvedValue({ rows: [] });
     process.env = {
       ...originalEnv,
       NODE_ENV: 'test',
@@ -284,6 +292,7 @@ describe('auth.instance', () => {
       expect(ResetPasswordEmail).toHaveBeenCalledWith({
         userName: 'Jane Doe',
         resetUrl: mockUrl,
+        locale: 'en',
       });
       expect(render).toHaveBeenCalledTimes(2);
       expect(render).toHaveBeenCalledWith('reset-password-element');
@@ -294,6 +303,89 @@ describe('auth.instance', () => {
         html: '<html>rendered</html>',
         text: 'plain text version',
       });
+    });
+
+    it('uses Accept-Language when no workspace preference has been saved yet', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { ResetPasswordEmail } = require('../notifications/emails/reset-password') as {
+        ResetPasswordEmail: jest.Mock;
+      };
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { sendEmail } = require('../notifications/services/email-providers/send-email') as {
+        sendEmail: jest.Mock;
+      };
+      loadModule();
+      const config = mockBetterAuth.mock.calls[0][0];
+
+      await config.emailAndPassword.sendResetPassword(
+        {
+          user: { id: 'user-ru', name: 'Анна', email: 'anna@example.com' },
+          url: 'https://app.example.com/reset',
+        },
+        new Request('https://app.example.com', {
+          headers: { 'Accept-Language': 'ru-RU,ru;q=0.9' },
+        }),
+      );
+
+      expect(ResetPasswordEmail).toHaveBeenCalledWith(expect.objectContaining({ locale: 'ru' }));
+      expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ subject: 'Сброс пароля' }));
+    });
+
+    it.each([
+      ['en', 'ru-RU', 'en-US', 'Сброс пароля'],
+      ['ru', 'en-US', 'ru-RU', 'Reset your password'],
+    ] as const)(
+      'prefers explicit locale %s header over stored workspace locale',
+      async (storedLocale, explicitLocale, ambientLocale, expectedSubject) => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { sendEmail } = require('../notifications/services/email-providers/send-email') as {
+          sendEmail: jest.Mock;
+        };
+        mockPoolQuery.mockResolvedValue({ rows: [{ locale: storedLocale }] });
+        loadModule();
+        const config = mockBetterAuth.mock.calls[0][0];
+
+        await config.emailAndPassword.sendResetPassword(
+          {
+            user: { id: 'user-explicit', name: 'User', email: 'user@example.com' },
+            url: 'https://app.example.com/reset',
+          },
+          new Request('https://app.example.com', {
+            headers: {
+              'Accept-Language': ambientLocale,
+              'X-Manifest-Locale': explicitLocale,
+            },
+          }),
+        );
+
+        expect(mockPoolQuery).not.toHaveBeenCalled();
+        expect(sendEmail).toHaveBeenCalledWith(
+          expect.objectContaining({ subject: expectedSubject }),
+        );
+      },
+    );
+
+    it('prefers a stored workspace locale over ambient Accept-Language', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { sendEmail } = require('../notifications/services/email-providers/send-email') as {
+        sendEmail: jest.Mock;
+      };
+      mockPoolQuery.mockResolvedValue({ rows: [{ locale: 'ru' }] });
+      loadModule();
+      const config = mockBetterAuth.mock.calls[0][0];
+
+      await config.emailAndPassword.sendResetPassword(
+        {
+          user: { id: 'user-stored', name: 'User', email: 'user@example.com' },
+          url: 'https://app.example.com/reset',
+        },
+        new Request('https://app.example.com', {
+          headers: { 'Accept-Language': 'en-US' },
+        }),
+      );
+
+      expect(mockPoolQuery).toHaveBeenCalled();
+      expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ subject: 'Сброс пароля' }));
     });
   });
 
@@ -323,6 +415,7 @@ describe('auth.instance', () => {
       expect(VerifyEmailEmail).toHaveBeenCalledWith({
         userName: 'John Doe',
         verificationUrl: mockUrl,
+        locale: 'en',
       });
       expect(render).toHaveBeenCalledWith('verify-email-element');
       expect(render).toHaveBeenCalledWith('verify-email-element', { plainText: true });
@@ -332,6 +425,30 @@ describe('auth.instance', () => {
         html: '<html>rendered</html>',
         text: 'plain text version',
       });
+    });
+
+    it('uses the persisted Russian locale for verification copy and subject', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { VerifyEmailEmail } = require('../notifications/emails/verify-email') as {
+        VerifyEmailEmail: jest.Mock;
+      };
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { sendEmail } = require('../notifications/services/email-providers/send-email') as {
+        sendEmail: jest.Mock;
+      };
+      mockPoolQuery.mockResolvedValue({ rows: [{ locale: 'ru' }] });
+      loadModule();
+      const config = mockBetterAuth.mock.calls[0][0];
+
+      await config.emailVerification.sendVerificationEmail({
+        user: { id: 'user-ru', name: 'Анна', email: 'anna@example.com' },
+        url: 'https://app.example.com/verify',
+      });
+
+      expect(VerifyEmailEmail).toHaveBeenCalledWith(expect.objectContaining({ locale: 'ru' }));
+      expect(sendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ subject: 'Подтвердите адрес электронной почты' }),
+      );
     });
 
     it('sends verification email on sign-up when Mailgun email provider is configured', () => {

@@ -10,11 +10,12 @@ function renderEmail(props: Parameters<typeof DoctorReleaseEmail>[0]): string {
 }
 
 describe('DoctorReleaseEmail', () => {
-  it('renders the announcement with the two CTAs and waitlist footer', () => {
+  it('defaults to English and renders both CTAs and the waitlist footer', () => {
     const html = renderEmail({
       appUrl: 'https://app.manifest.build',
       tutorialUrl: 'https://manifest.build/blog/auto-fix',
     });
+    expect(html).toContain('lang="en"');
     expect(html).toContain('Auto-fix is live on your account');
     expect(html).toContain('already running on your account');
     expect(html).toContain('https://app.manifest.build');
@@ -26,6 +27,28 @@ describe('DoctorReleaseEmail', () => {
     expect(html).toContain('New:');
     expect(html).toContain('autofix-icon-email.png');
     // House copy rules: no em dashes in user-facing sentences.
+    expect(html).not.toContain('\u2014');
+  });
+
+  it('renders complete Russian copy, language metadata, and localized CTAs', () => {
+    const html = renderEmail({
+      appUrl: 'https://app.manifest.build',
+      tutorialUrl: 'https://manifest.build/ru/blog/auto-fix',
+      locale: 'ru',
+    });
+
+    expect(html).toContain('lang="ru"');
+    expect(html).toContain('Manifest может автоматически исправлять ошибки в запросах');
+    expect(html).toContain('Auto-fix уже работает в вашем аккаунте');
+    expect(html).toContain('Ничего дополнительно включать не нужно');
+    expect(html).toContain('ошибку, исправление и повторную попытку');
+    expect(html).toContain('каждую неделю функция сможет восстанавливать всё больше запросов');
+    expect(html).toContain('Открыть панель управления');
+    expect(html).toContain('Как работает Auto-fix');
+    expect(html).toContain('https://app.manifest.build');
+    expect(html).toContain('https://manifest.build/ru/blog/auto-fix');
+    expect(html).toContain('потому что записались в список ожидания Auto-fix');
+    expect(html).not.toContain('Open your dashboard');
     expect(html).not.toContain('\u2014');
   });
 

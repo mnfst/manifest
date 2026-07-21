@@ -1,6 +1,7 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import type { PlaygroundHistoryRunSummary } from '../../services/api.js';
 import { togglePlaygroundRunStar } from '../../services/api.js';
+import { t } from '../../i18n/index.js';
 
 interface Group {
   label: string;
@@ -22,9 +23,9 @@ function groupRuns(runs: PlaygroundHistoryRunSummary[]): Group[] {
     else older.push(r);
   }
   const out: Group[] = [];
-  if (today.length > 0) out.push({ label: 'Today', runs: today });
-  if (week.length > 0) out.push({ label: 'Previous 7 days', runs: week });
-  if (older.length > 0) out.push({ label: 'Older', runs: older });
+  if (today.length > 0) out.push({ label: t('playground.today'), runs: today });
+  if (week.length > 0) out.push({ label: t('playground.previousSevenDays'), runs: week });
+  if (older.length > 0) out.push({ label: t('playground.older'), runs: older });
   return out;
 }
 
@@ -125,7 +126,7 @@ const RunItem: Component<{
             e.stopPropagation();
             setMenuOpen((v) => !v);
           }}
-          aria-label="Options"
+          aria-label={t('playground.options')}
         >
           <MoreIcon size={14} />
         </button>
@@ -134,7 +135,7 @@ const RunItem: Component<{
           <div class="playground-recent__menu">
             <button type="button" class="playground-recent__menu-item" onClick={handleStar}>
               <StarIcon size={14} filled={starred()} />
-              {starred() ? 'Unstar' : 'Star'}
+              {starred() ? t('playground.unstar') : t('playground.star')}
             </button>
           </div>
         </Show>
@@ -157,22 +158,22 @@ const PlaygroundRecentSidebar: Component<Props> = (props) => {
             type="button"
             class="playground-recent__toggle"
             onClick={props.onToggle}
-            aria-label="Show recent runs"
-            title="Show recent runs"
+            aria-label={t('playground.showRecent')}
+            title={t('playground.showRecent')}
           >
             <SidebarPanelIcon size={18} />
           </button>
         </div>
       </Show>
       <Show when={props.open}>
-        <aside class="playground-recent" aria-label="Run history">
+        <aside class="playground-recent" aria-label={t('playground.runHistory')}>
           <header class="playground-recent__header">
-            <h2 class="playground-recent__title">My runs</h2>
+            <h2 class="playground-recent__title">{t('playground.myRuns')}</h2>
             <button
               type="button"
               class="playground-recent__collapse"
               onClick={props.onToggle}
-              aria-label="Hide runs"
+              aria-label={t('playground.hideRuns')}
             >
               <SidebarPanelIcon size={18} />
             </button>
@@ -195,7 +196,7 @@ const PlaygroundRecentSidebar: Component<Props> = (props) => {
                   <path d="M3 13h8v8h2v-8h8v-2h-8V3h-2v8H3z" />
                 </svg>
               </span>
-              <span class="playground-recent__new-label">New run</span>
+              <span class="playground-recent__new-label">{t('playground.newRun')}</span>
             </span>
             <kbd class="playground-recent__new-shortcut">
               <span>{navigator.platform?.includes('Mac') ? '⇧' : 'Shift'}</span>
@@ -206,17 +207,15 @@ const PlaygroundRecentSidebar: Component<Props> = (props) => {
 
           <div class="playground-recent__body">
             <Show when={!props.loading && props.runs.length === 0}>
-              <p class="playground-recent__empty">
-                No runs yet. Send a prompt to see your history here.
-              </p>
+              <p class="playground-recent__empty">{t('playground.noRuns')}</p>
             </Show>
             <Show when={props.loading}>
-              <p class="playground-recent__empty">Loading…</p>
+              <p class="playground-recent__empty">{t('components.loading')}</p>
             </Show>
 
             <Show when={starredRuns().length > 0}>
               <section class="playground-recent__group">
-                <h3 class="playground-recent__group-label">Starred</h3>
+                <h3 class="playground-recent__group-label">{t('playground.starred')}</h3>
                 <ul class="playground-recent__list">
                   <For each={starredRuns()}>
                     {(run) => (

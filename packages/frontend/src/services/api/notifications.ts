@@ -1,4 +1,5 @@
 import { fetchJson, fetchMutate } from './core.js';
+import type { Locale } from '../../i18n/index.js';
 
 export interface NotificationRule {
   id: string;
@@ -95,6 +96,7 @@ export function testEmailProvider(data: {
   apiKey: string;
   domain?: string;
   to: string;
+  locale?: Locale;
 }) {
   return fetchMutate<{ success: boolean; error?: string }>('/notifications/email-provider/test', {
     method: 'POST',
@@ -103,13 +105,13 @@ export function testEmailProvider(data: {
   });
 }
 
-export function testSavedEmailProvider(to: string) {
+export function testSavedEmailProvider(to: string, locale?: Locale) {
   return fetchMutate<{ success: boolean; error?: string }>(
     '/notifications/email-provider/test-saved',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to }),
+      body: JSON.stringify({ to, ...(locale ? { locale } : {}) }),
     },
   );
 }

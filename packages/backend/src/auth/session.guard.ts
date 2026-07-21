@@ -50,8 +50,16 @@ export class SessionGuard implements CanActivate, OnModuleDestroy {
     // Let API-key authenticated requests be handled by ApiKeyGuard
     if (request.headers['x-api-key']) return true;
 
-    // In the self-hosted version without Better Auth, skip session lookup
-    if (!auth) return true;
+    // A self-hosted operator without Better Auth is session-equivalent only on
+    // the trusted loopback transport. This keeps preference endpoints usable
+    // (and asynchronous emails localized) without opening them to API keys or
+    // arbitrary remote requests.
+    if (!auth) {
+      if (isSelfHosted() && isLoopbackPeer(request)) {
+        await this.attachLocalOperator(request);
+      }
+      return true;
+    }
 
     const cookieHeader = request.headers['cookie'];
     const cacheKey =
@@ -98,13 +106,7 @@ export class SessionGuard implements CanActivate, OnModuleDestroy {
     // forge when the backend is reachable directly or sits behind a proxy
     // that fails to strip XFF. The socket address cannot be spoofed.
     if (isSelfHosted() && isLoopbackPeer(request)) {
-      (request as Request & { user: unknown }).user = {
-        id: 'local',
-        name: 'Local User',
-        email: 'local@localhost',
-      };
-      (request as Request & { authMethod: string }).authMethod = 'session';
-      await this.attachTenantContext(request, { id: 'local' });
+      await this.attachLocalOperator(request);
       return true;
     }
 
@@ -131,6 +133,13 @@ export class SessionGuard implements CanActivate, OnModuleDestroy {
       this.logger.warn(`Tenant resolution failed for session user: ${(err as Error).message}`);
       (request as RequestWithTenantContext).tenantContext = { tenantId: null, userId };
     }
+  }
+
+  private async attachLocalOperator(request: Request): Promise<void> {
+    const user = { id: 'local', name: 'Local User', email: 'local@localhost' };
+    (request as Request & { user: unknown }).user = user;
+    (request as Request & { authMethod: string }).authMethod = 'session';
+    await this.attachTenantContext(request, user);
   }
 
   invalidateCache(cookieHeader?: string): void {

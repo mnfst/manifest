@@ -5,13 +5,33 @@ import { ThresholdAlertEmail, ThresholdAlertProps } from '../emails/threshold-al
 import { sendEmail } from './email-providers/send-email';
 import { createProvider } from './email-providers/resolve-provider';
 import type { EmailProviderConfig } from './email-providers/email-provider.interface';
+import { LocaleService } from '../../common/services/locale.service';
+import type { AppLocale } from '../../common/i18n/locale';
+
+type ThresholdSubjectProps = Pick<ThresholdAlertProps, 'agentName' | 'metricType' | 'alertType'>;
+
+const THRESHOLD_SUBJECTS = {
+  en: ({ agentName, metricType, alertType }: ThresholdSubjectProps) =>
+    alertType === 'soft'
+      ? `Warning: ${agentName} reached ${metricType} threshold`
+      : `Blocked: ${agentName} reached ${metricType} limit`,
+  ru: ({ agentName, metricType, alertType }: ThresholdSubjectProps) => {
+    const metric = metricType === 'cost' ? 'расходов' : 'токенов';
+    return alertType === 'soft'
+      ? `Предупреждение: для «${agentName}» достигнут порог ${metric}`
+      : `Заблокировано: для «${agentName}» достигнут лимит ${metric}`;
+  },
+} satisfies Record<AppLocale, (props: ThresholdSubjectProps) => string>;
 
 @Injectable()
 export class NotificationEmailService {
   private readonly logger = new Logger(NotificationEmailService.name);
   private readonly fromEmail: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly locales: LocaleService,
+  ) {
     this.fromEmail =
       this.configService.get<string>('app.emailFrom') ||
       this.configService.get<string>('app.notificationFromEmail', 'noreply@manifest.build');
@@ -19,16 +39,16 @@ export class NotificationEmailService {
 
   async sendThresholdAlert(
     to: string,
-    props: ThresholdAlertProps,
+    props: ThresholdAlertProps & { tenantId?: string | null },
     providerConfig?: { provider: string; apiKey: string; domain: string | null },
   ): Promise<boolean> {
-    const element = ThresholdAlertEmail(props);
+    const { tenantId, ...emailProps } = props;
+    const locale = emailProps.locale ?? (await this.locales.getTenantLocale(tenantId));
+    const localizedProps = { ...emailProps, locale };
+    const element = ThresholdAlertEmail(localizedProps);
     const html = await render(element);
     const text = await render(element, { plainText: true });
-    const subject =
-      props.alertType === 'soft'
-        ? `Warning: ${props.agentName} exceeded ${props.metricType} threshold`
-        : `Blocked: ${props.agentName} reached ${props.metricType} limit`;
+    const subject = THRESHOLD_SUBJECTS[locale](props);
 
     if (providerConfig) {
       const defaultFrom = this.fromEmail;

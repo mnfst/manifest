@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
 import { describe, expect, it, vi } from 'vitest';
 import MultiSelect from '../../src/components/MultiSelect';
+import { setLocale } from '../../src/i18n/index.js';
 
 const OPTIONS = [
   {
@@ -87,6 +88,18 @@ describe('MultiSelect', () => {
   it('falls back to the placeholder for an unknown selected value', () => {
     renderMultiSelect(['missing']);
     expect(screen.getByText('All providers')).toBeDefined();
+  });
+
+  it('updates the pluralized selection summary on a live locale switch', async () => {
+    renderMultiSelect(['anthropic', 'openai']);
+    expect(screen.getByText('2 selected')).toBeDefined();
+
+    await setLocale('ru');
+    try {
+      await waitFor(() => expect(screen.getByText('Выбрано: 2')).toBeDefined());
+    } finally {
+      await setLocale('en');
+    }
   });
 
   it('closes on outside click and Escape, but not on an option click', async () => {

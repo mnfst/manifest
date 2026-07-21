@@ -6,6 +6,7 @@ import type {
   PlaygroundStreamEvent,
 } from 'manifest-shared';
 import { BASE_URL, fetchJson, parseErrorMessage } from './core.js';
+import { t } from '../../i18n/index.js';
 
 export type {
   PlaygroundHistoryColumn,
@@ -112,7 +113,7 @@ export async function streamPlayground(
   if (buffer.trim()) handleEvent(buffer);
 
   if (streamError !== null) throw new Error(streamError);
-  if (result === null) throw new Error('Stream ended without a result');
+  if (result === null) throw new Error(t('services.playground.noResult'));
   return result;
 }
 
@@ -126,7 +127,7 @@ export async function setPlaygroundRunBest(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ columnId }),
   });
-  if (!res.ok) throw new Error('Failed to set best answer');
+  if (!res.ok) throw new Error(t('services.playground.bestAnswerFailed'));
   const data = (await res.json()) as { bestColumnId: string | null };
   return data.bestColumnId;
 }
@@ -148,7 +149,7 @@ export async function togglePlaygroundRunStar(runId: string): Promise<boolean> {
     method: 'PATCH',
     credentials: 'include',
   });
-  if (!res.ok) throw new Error('Failed to toggle star');
+  if (!res.ok) throw new Error(t('services.playground.starFailed'));
   const data = (await res.json()) as { starred: boolean };
   return data.starred;
 }

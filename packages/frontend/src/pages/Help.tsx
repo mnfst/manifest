@@ -1,30 +1,24 @@
 import type { Component } from 'solid-js';
 import { Title, Meta } from '@solidjs/meta';
+import { t } from '../i18n/index.js';
 
 const Help: Component = () => {
   return (
     <div class="container--sm">
-      <Title>Help & Support - Manifest</Title>
-      <Meta
-        name="description"
-        content="Get help with Manifest. Schedule a call or contact support."
-      />
+      <Title>{t('pages.help.metaTitle')}</Title>
+      <Meta name="description" content={t('pages.help.metaDescription')} />
       <div class="page-header">
         <div>
-          <h1>Help & Support</h1>
-          <span class="breadcrumb">
-            Questions or issues? Reach out and we'll get back to you quickly
-          </span>
+          <h1>{t('pages.help.title')}</h1>
+          <span class="breadcrumb">{t('pages.help.subtitle')}</span>
         </div>
       </div>
 
       <div class="settings-card">
         <div class="settings-card__row">
           <div class="settings-card__label">
-            <span class="settings-card__label-title">Schedule a Call</span>
-            <span class="settings-card__label-desc">
-              Book a 30-min call with us to get help setting things up.
-            </span>
+            <span class="settings-card__label-title">{t('pages.help.scheduleTitle')}</span>
+            <span class="settings-card__label-desc">{t('pages.help.scheduleDescription')}</span>
           </div>
           <div class="settings-card__control">
             <a
@@ -34,7 +28,7 @@ const Help: Component = () => {
               class="btn btn--outline btn--sm"
               style="text-decoration: none;"
             >
-              Book
+              {t('pages.help.book')}
               <svg
                 width="12"
                 height="12"
@@ -56,10 +50,8 @@ const Help: Component = () => {
         </div>
         <div class="settings-card__row">
           <div class="settings-card__label">
-            <span class="settings-card__label-title">Email Support</span>
-            <span class="settings-card__label-desc">
-              sebastien@manifest.build &mdash; we typically respond within 24 hours.
-            </span>
+            <span class="settings-card__label-title">{t('pages.help.emailTitle')}</span>
+            <span class="settings-card__label-desc">{t('pages.help.emailDescription')}</span>
           </div>
           <div class="settings-card__control">
             <a
@@ -67,7 +59,7 @@ const Help: Component = () => {
               class="btn btn--outline btn--sm"
               style="text-decoration: none;"
             >
-              Contact
+              {t('pages.help.contact')}
               <svg
                 width="12"
                 height="12"

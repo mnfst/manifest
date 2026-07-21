@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { beforeEach, describe, it, expect } from 'vitest';
 import {
   formatNumber,
   formatCost,
@@ -14,6 +14,9 @@ import {
   formatDuration,
   formatTimeAgo,
 } from '../../src/services/formatters';
+import { setLocale } from '../../src/i18n/index.js';
+
+beforeEach(async () => setLocale('en'));
 
 describe('formatNumber', () => {
   it('formats millions', () => {
@@ -195,6 +198,20 @@ describe('formatDuration', () => {
     expect(formatDuration(1000)).toBe('1.0s');
     expect(formatDuration(1200)).toBe('1.2s');
     expect(formatDuration(5500)).toBe('5.5s');
+  });
+
+  it('uses locale-aware Russian unit formatting', async () => {
+    await setLocale('ru');
+    expect(formatDuration(423)).toMatch(/^423[\s\u00a0\u202f]?мс$/i);
+    expect(formatDuration(1200)).toMatch(/^1,2[\s\u00a0\u202f]?с$/i);
+  });
+});
+
+describe('Russian monetary formatting', () => {
+  it('uses Intl currency separators for costs and quota values', async () => {
+    await setLocale('ru');
+    expect(formatCost(17.5)).toMatch(/^17,50[\u00a0\u202f]?\$$/);
+    expect(formatPerRequestCost(0.013636)).toMatch(/0,0136[\u00a0\u202f]?\$/);
   });
 });
 

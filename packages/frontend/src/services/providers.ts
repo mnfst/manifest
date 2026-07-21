@@ -1,6 +1,7 @@
 /* ── LLM Provider definitions (shared by Routing page) ── */
 
 import { SHARED_PROVIDER_BY_ID, type SharedProviderEntry } from 'manifest-shared';
+import { t, type PlainTextMessageKey } from '../i18n/index.js';
 
 export interface SubscriptionEndpointRegion {
   value: string;
@@ -455,13 +456,83 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   },
 };
 
+const REGION_MESSAGE_KEYS: Readonly<Record<string, Readonly<Record<string, PlainTextMessageKey>>>> =
+  {
+    qwen: {
+      auto: 'providers.region.auto',
+      beijing: 'providers.region.chinaBeijing',
+      singapore: 'providers.region.singapore',
+      us: 'providers.region.unitedStates',
+      'workspace-cn-hongkong': 'providers.region.chinaHongKong',
+      'workspace-eu-central-1': 'providers.region.germanyFrankfurt',
+      'workspace-ap-northeast-1': 'providers.region.japanTokyo',
+      custom: 'providers.region.customEndpoint',
+    },
+    bedrock: {
+      'us-east-1': 'providers.region.usEastVirginia',
+      'us-east-2': 'providers.region.usEastOhio',
+      'us-west-2': 'providers.region.usWestOregon',
+      'eu-west-1': 'providers.region.europeIreland',
+      'eu-west-2': 'providers.region.europeLondon',
+      'eu-central-1': 'providers.region.europeFrankfurt',
+      'eu-south-1': 'providers.region.europeMilan',
+      'eu-north-1': 'providers.region.europeStockholm',
+      'ap-south-1': 'providers.region.asiaMumbai',
+      'ap-southeast-2': 'providers.region.asiaSydney',
+      'ap-southeast-3': 'providers.region.asiaJakarta',
+      'ap-northeast-1': 'providers.region.asiaTokyo',
+      'sa-east-1': 'providers.region.southAmericaSaoPaulo',
+    },
+    xiaomi: {
+      cn: 'providers.region.chinaToken',
+      sgp: 'providers.region.singaporeToken',
+      ams: 'providers.region.europeToken',
+    },
+    zai: {
+      global: 'providers.region.outsideChina',
+      cn: 'providers.region.chinaMainland',
+    },
+  };
+
+type LocalizedProviderField =
+  | 'subtitle'
+  | 'subscriptionLabel'
+  | 'subscriptionKeyPlaceholder'
+  | 'subscriptionRequirementNote'
+  | 'subscriptionSignInLabel'
+  | 'subscriptionSignInHint';
+
+function providerText(
+  providerId: string,
+  field: LocalizedProviderField,
+  fallback: string | undefined,
+): string | undefined {
+  if (fallback === undefined) return undefined;
+  return t(`providers.${providerId}.${field}` as PlainTextMessageKey);
+}
+
+function localizedRegions(
+  providerId: string,
+  regions: SubscriptionEndpointRegion[] | undefined,
+): SubscriptionEndpointRegion[] | undefined {
+  if (!regions) return undefined;
+  const keys = REGION_MESSAGE_KEYS[providerId];
+  return regions.map((region) => ({
+    ...region,
+    get label() {
+      const key = keys?.[region.value];
+      return key ? t(key) : region.label;
+    },
+  }));
+}
+
 /** @internal Exported for testing only */
 export function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
   const overlay = PROVIDER_UI[shared.id];
   if (!overlay) {
     throw new Error(`Missing UI overlay for shared provider "${shared.id}"`);
   }
-  return {
+  const provider = {
     id: shared.id,
     name: shared.displayName,
     color: shared.color,
@@ -470,6 +541,45 @@ export function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
     keyPlaceholder: shared.keyPlaceholder,
     localOnly: shared.localOnly || undefined,
     ...overlay,
+  };
+  return {
+    ...provider,
+    get subtitle() {
+      return providerText(shared.id, 'subtitle', overlay.subtitle)!;
+    },
+    get subscriptionLabel() {
+      return providerText(shared.id, 'subscriptionLabel', overlay.subscriptionLabel);
+    },
+    get subscriptionKeyPlaceholder() {
+      return providerText(
+        shared.id,
+        'subscriptionKeyPlaceholder',
+        overlay.subscriptionKeyPlaceholder,
+      );
+    },
+    get subscriptionRequirementNote() {
+      return providerText(
+        shared.id,
+        'subscriptionRequirementNote',
+        overlay.subscriptionRequirementNote,
+      );
+    },
+    get subscriptionSignInLabel() {
+      return providerText(shared.id, 'subscriptionSignInLabel', overlay.subscriptionSignInLabel);
+    },
+    get subscriptionSignInHint() {
+      return providerText(shared.id, 'subscriptionSignInHint', overlay.subscriptionSignInHint);
+    },
+    apiKeyEndpointRegions: localizedRegions(shared.id, overlay.apiKeyEndpointRegions),
+    subscriptionEndpointRegions: localizedRegions(shared.id, overlay.subscriptionEndpointRegions),
+    subscriptionTokenAlternative: overlay.subscriptionTokenAlternative
+      ? {
+          ...overlay.subscriptionTokenAlternative,
+          get dividerLabel() {
+            return t(`providers.${shared.id}.dividerLabel` as PlainTextMessageKey);
+          },
+        }
+      : undefined,
   };
 }
 
@@ -527,95 +637,38 @@ export interface StageDef {
   desc: string;
 }
 
-export const DEFAULT_STAGE: StageDef = {
-  id: 'default',
-  step: 0,
-  label: 'Default',
-  desc: 'Handles every request.',
-};
+function localizedStage(id: string, step: number, messageId = id): StageDef {
+  return {
+    id,
+    step,
+    get label() {
+      return t(`stages.${messageId}.label` as PlainTextMessageKey);
+    },
+    get desc() {
+      return t(`stages.${messageId}.description` as PlainTextMessageKey);
+    },
+  };
+}
+
+export const DEFAULT_STAGE: StageDef = localizedStage('default', 0);
 
 export const STAGES: StageDef[] = [
-  {
-    id: 'simple',
-    step: 1,
-    label: 'Simple',
-    desc: 'Heartbeats, greetings, and low-cost tasks that any model can handle.',
-  },
-  {
-    id: 'standard',
-    step: 2,
-    label: 'Standard',
-    desc: 'General-purpose requests that need a good balance of quality and cost.',
-  },
-  {
-    id: 'complex',
-    step: 3,
-    label: 'Complex',
-    desc: 'Tasks requiring high quality, nuance, or multi-step reasoning.',
-  },
-  {
-    id: 'reasoning',
-    step: 4,
-    label: 'Reasoning',
-    desc: 'Advanced reasoning, planning, and critical decision-making.',
-  },
+  localizedStage('simple', 1),
+  localizedStage('standard', 2),
+  localizedStage('complex', 3),
+  localizedStage('reasoning', 4),
 ];
 
 export const SPECIFICITY_STAGES: StageDef[] = [
-  {
-    id: 'coding',
-    step: 1,
-    label: 'Coding',
-    desc: 'Write, debug, and refactor code.',
-  },
-  {
-    id: 'web_browsing',
-    step: 2,
-    label: 'Web Browsing',
-    desc: 'Navigate pages, search, and extract content.',
-  },
-  {
-    id: 'data_analysis',
-    step: 3,
-    label: 'Data Analysis',
-    desc: 'Crunch numbers, run stats, build charts.',
-  },
-  {
-    id: 'image_generation',
-    step: 4,
-    label: 'Image Generation',
-    desc: 'Create and edit images, logos, visuals.',
-  },
-  {
-    id: 'video_generation',
-    step: 5,
-    label: 'Video Generation',
-    desc: 'Produce clips, animations, and edits.',
-  },
-  {
-    id: 'social_media',
-    step: 6,
-    label: 'Social Media',
-    desc: 'Draft posts, plan content, track engagement.',
-  },
-  {
-    id: 'email_management',
-    step: 7,
-    label: 'Email',
-    desc: 'Compose, reply, and manage your inbox.',
-  },
-  {
-    id: 'calendar_management',
-    step: 8,
-    label: 'Calendar',
-    desc: 'Book meetings, check availability, reschedule.',
-  },
-  {
-    id: 'trading',
-    step: 9,
-    label: 'Trading',
-    desc: 'Analyze markets, place trades, track positions.',
-  },
+  localizedStage('coding', 1),
+  localizedStage('web_browsing', 2, 'webBrowsing'),
+  localizedStage('data_analysis', 3, 'dataAnalysis'),
+  localizedStage('image_generation', 4, 'imageGeneration'),
+  localizedStage('video_generation', 5, 'videoGeneration'),
+  localizedStage('social_media', 6, 'socialMedia'),
+  localizedStage('email_management', 7, 'email'),
+  localizedStage('calendar_management', 8, 'calendar'),
+  localizedStage('trading', 9),
 ];
 
 /* ── Helpers ── */

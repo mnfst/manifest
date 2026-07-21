@@ -1,4 +1,5 @@
 import type { JSX } from 'solid-js';
+import { t } from '../i18n/index.js';
 
 interface PipelineStep {
   num: number;
@@ -20,16 +21,16 @@ export function buildPipelineHelp(
   if (custom) {
     steps.push({
       num: n++,
-      name: 'Custom routing',
-      desc: 'If a request header matches a custom tier rule, it is routed to the corresponding model.',
+      name: t('routing.custom'),
+      desc: t('routing.customDescription'),
     });
   }
 
   if (specificity) {
     steps.push({
       num: n++,
-      name: 'Task-specific routing',
-      desc: 'Manifest semantically analyzes the query, and if it matches an active task-specific tier (coding, image generation\u2026), it is routed to the corresponding model.',
+      name: t('routing.taskSpecific'),
+      desc: t('routing.taskSpecificDescription'),
     });
   }
 
@@ -37,27 +38,20 @@ export function buildPipelineHelp(
     num: n,
     name: complexity ? (
       <>
-        Default routing: <i>complexity</i>
+        {t('routing.defaultRouting')}: <i>{t('routing.complexity')}</i>
       </>
     ) : (
       <>
-        Default routing: <i>regular</i>
+        {t('routing.defaultRouting')}: <i>{t('routing.regular')}</i>
       </>
     ),
-    desc: complexity
-      ? 'Manifest semantically analyzes the query, scores its complexity, and assigns it to a tier ranging from \u201csimple\u201d to \u201creasoning\u201d.'
-      : 'All remaining requests go to the default model and its fallbacks.',
+    desc: complexity ? t('routing.complexityDescription') : t('routing.regularDescription'),
   });
 
   return (
     <div class="routing-pipeline-help-steps">
-      <p class="routing-pipeline-help-summary">
-        Routing is a powerful technique that allows Manifest to intercept queries on the fly and
-        redirect them to the corresponding model.
-      </p>
-      <p class="routing-pipeline-help-summary">
-        This is what your current configuration looks like:
-      </p>
+      <p class="routing-pipeline-help-summary">{t('routing.helpSummary')}</p>
+      <p class="routing-pipeline-help-summary">{t('routing.currentConfiguration')}</p>
       {steps.map((step) => (
         <div class="routing-pipeline-help-step">
           <span class="routing-pipeline-help-step__head">

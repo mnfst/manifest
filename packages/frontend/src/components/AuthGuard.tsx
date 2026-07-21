@@ -4,6 +4,7 @@ import { authClient } from '../services/auth-client.js';
 import { buildLoginRedirect } from '../services/auth-redirects.js';
 import { hasPlanBeenChosen, markPlanChosen } from '../services/plan-selection.js';
 import { getBillingStatus } from '../services/api/billing.js';
+import { t } from '../i18n/index.js';
 
 const AuthGuard: ParentComponent = (props) => {
   const session = authClient.useSession();
@@ -45,11 +46,15 @@ const AuthGuard: ParentComponent = (props) => {
         <div class="auth-layout">
           <div class="auth-card" style="text-align: center;">
             <div class="auth-logo">
-              <img src="/logotype-white.svg" alt="Manifest" class="auth-logo__img auth-logo__img--light" />
+              <img
+                src="/logotype-white.svg"
+                alt="Manifest"
+                class="auth-logo__img auth-logo__img--light"
+              />
               <img src="/logotype-dark.svg" alt="" class="auth-logo__img auth-logo__img--dark" />
             </div>
             <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
-              Loading...
+              {t('components.loading')}
             </p>
           </div>
         </div>

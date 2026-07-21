@@ -11,6 +11,7 @@ import {
 } from '../services/api/header-tiers.js';
 import { toast } from '../services/toast-store.js';
 import type { AvailableModel, ModelCapability, ResponseMode } from '../services/api.js';
+import { formatNumber, t, tp, type PlainTextMessageKey } from '../i18n/index.js';
 
 const RESERVED_KEYS = new Set([
   'authorization',
@@ -22,6 +23,33 @@ const RESERVED_KEYS = new Set([
 const HEADER_KEY_RE = /^[a-z0-9-]+$/;
 const MAX_NAME_LEN = 32;
 const MAX_HEADER_VALUE_LEN = 128;
+
+const COLOR_LABEL_KEYS: Record<TierColor, PlainTextMessageKey> = {
+  slate: 'headerTier.color.slate',
+  gray: 'headerTier.color.gray',
+  zinc: 'headerTier.color.zinc',
+  stone: 'headerTier.color.stone',
+  red: 'headerTier.color.red',
+  orange: 'headerTier.color.orange',
+  amber: 'headerTier.color.amber',
+  yellow: 'headerTier.color.yellow',
+  lime: 'headerTier.color.lime',
+  green: 'headerTier.color.green',
+  emerald: 'headerTier.color.emerald',
+  teal: 'headerTier.color.teal',
+  cyan: 'headerTier.color.cyan',
+  sky: 'headerTier.color.sky',
+  blue: 'headerTier.color.blue',
+  indigo: 'headerTier.color.indigo',
+  violet: 'headerTier.color.violet',
+  purple: 'headerTier.color.purple',
+  fuchsia: 'headerTier.color.fuchsia',
+  pink: 'headerTier.color.pink',
+  rose: 'headerTier.color.rose',
+  coral: 'headerTier.color.coral',
+  brown: 'headerTier.color.brown',
+  navy: 'headerTier.color.navy',
+};
 
 interface Props {
   agentName: string;
@@ -74,11 +102,14 @@ const HeaderTierModal: Component<Props> = (props) => {
     const result: { model: string; position: string }[] = [];
     const route = editingTier.override_route;
     if (route && !hasStream(route.model)) {
-      result.push({ model: route.model, position: 'Primary' });
+      result.push({ model: route.model, position: t('headerTier.primary') });
     }
     for (const [i, fb] of (editingTier.fallback_routes ?? []).entries()) {
       if (!hasStream(fb.model)) {
-        result.push({ model: fb.model, position: `Fallback ${i + 1}` });
+        result.push({
+          model: fb.model,
+          position: t('headerTier.fallbackPosition', { index: i + 1 }),
+        });
       }
     }
     return result;
@@ -95,8 +126,8 @@ const HeaderTierModal: Component<Props> = (props) => {
         group: r.sdks[0],
         sublabel:
           r.top_values.length > 0
-            ? `${r.count}× · ${r.top_values.slice(0, 3).join(' · ')}`
-            : `${r.count}× seen`,
+            ? `${formatNumber(r.count)}× · ${r.top_values.slice(0, 3).join(' · ')}`
+            : t('headerTier.seen', { count: formatNumber(r.count) }),
       }));
   };
 
@@ -109,42 +140,42 @@ const HeaderTierModal: Component<Props> = (props) => {
 
   const validateName = (raw: string): string | undefined => {
     const trimmed = raw.trim();
-    if (!trimmed) return 'Name is required';
-    if (trimmed.length > MAX_NAME_LEN) return `Name must be ${MAX_NAME_LEN} characters or fewer`;
+    if (!trimmed) return t('headerTier.nameRequired');
+    if (trimmed.length > MAX_NAME_LEN) return t('headerTier.nameTooLong', { max: MAX_NAME_LEN });
     const lower = trimmed.toLowerCase();
     if (otherTiers().some((t) => t.name.toLowerCase() === lower)) {
-      return 'A tier with this name already exists';
+      return t('headerTier.nameExists');
     }
     return undefined;
   };
 
   const validateKey = (raw: string): string | undefined => {
     const key = raw.trim().toLowerCase();
-    if (!key) return 'Header key is required';
+    if (!key) return t('headerTier.keyRequired');
     if (!HEADER_KEY_RE.test(key)) {
-      return 'Header keys can only contain lowercase letters, digits, and hyphens';
+      return t('headerTier.keyInvalid');
     }
     if (RESERVED_KEYS.has(key)) {
-      return "This header is stripped for security and can't be used as a match rule";
+      return t('headerTier.keyReserved');
     }
     return undefined;
   };
 
   const validateValue = (rawValue: string, rawKey: string): string | undefined => {
     const v = rawValue.trim();
-    if (!v) return 'Header value is required';
+    if (!v) return t('headerTier.valueRequired');
     if (v.length > MAX_HEADER_VALUE_LEN) {
-      return `Header value must be ${MAX_HEADER_VALUE_LEN} characters or fewer`;
+      return t('headerTier.valueTooLong', { max: MAX_HEADER_VALUE_LEN });
     }
     // Quotes and backslashes would break the rendered SDK snippets (Python/TS
     // wrap the value in `"..."`, cURL wraps it in `'...'`). Reject up front
     // instead of escaping inside every snippet generator.
     if (v.includes('"') || v.includes("'") || v.includes('\\')) {
-      return 'Header value cannot contain quotes or backslashes';
+      return t('headerTier.valueInvalid');
     }
     const key = rawKey.trim().toLowerCase();
     if (otherTiers().some((t) => t.header_key === key && t.header_value === v)) {
-      return 'Another tier already matches this header key and value';
+      return t('headerTier.matchExists');
     }
     return undefined;
   };
@@ -181,20 +212,19 @@ const HeaderTierModal: Component<Props> = (props) => {
       props.onSaved(saved);
       props.onClose();
     } catch (err) {
-      const fallback = editingTier ? 'Failed to update tier' : 'Failed to create tier';
+      const fallback = editingTier ? t('headerTier.updateFailed') : t('headerTier.createFailed');
       toast.error(err instanceof Error ? err.message : fallback);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const titleText = editingTier ? 'Edit custom tier' : 'Create custom tier';
-  const descText = editingTier
-    ? 'Update the header rule, name, or color for this tier. Model and fallbacks are managed on the card.'
-    : 'Custom routing lets you identify requests based on their headers and assign specific models to them.';
+  const titleText = () => (editingTier ? t('headerTier.editTitle') : t('headerTier.createTitle'));
+  const descText = () =>
+    editingTier ? t('headerTier.editDescription') : t('headerTier.createDescription');
   const submitLabel = (): string => {
-    if (editingTier) return submitting() ? 'Saving…' : 'Save changes';
-    return submitting() ? 'Creating…' : 'Create tier';
+    if (editingTier) return submitting() ? t('headerTier.saving') : t('headerTier.saveChanges');
+    return submitting() ? t('headerTier.creating') : t('headerTier.create');
   };
 
   return (
@@ -221,7 +251,7 @@ const HeaderTierModal: Component<Props> = (props) => {
               type="button"
               class="modal__close header-tier-modal__close"
               onClick={props.onClose}
-              aria-label="Close"
+              aria-label={t('components.close')}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -236,7 +266,12 @@ const HeaderTierModal: Component<Props> = (props) => {
             </button>
           }
         >
-          <button type="button" class="modal-back-btn" onClick={props.onBack} aria-label="Back">
+          <button
+            type="button"
+            class="modal-back-btn"
+            onClick={props.onBack}
+            aria-label={t('headerTier.back')}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -250,12 +285,12 @@ const HeaderTierModal: Component<Props> = (props) => {
           </button>
         </Show>
         <h2 class="modal-card__title" id="header-tier-modal-title">
-          {titleText}
+          {titleText()}
         </h2>
-        <p class="modal-card__desc">{descText}</p>
+        <p class="modal-card__desc">{descText()}</p>
 
         <label class="modal-card__field-label" for="header-tier-name">
-          Tier name
+          {t('headerTier.name')}
         </label>
         <input
           ref={(el) => requestAnimationFrame(() => el.focus())}
@@ -264,7 +299,7 @@ const HeaderTierModal: Component<Props> = (props) => {
           classList={{ 'modal-card__input--error': nameError() !== undefined }}
           type="text"
           value={name()}
-          placeholder="My custom tier"
+          placeholder={t('headerTier.namePlaceholder')}
           maxlength={MAX_NAME_LEN}
           onInput={(e) => setName(e.currentTarget.value)}
         />
@@ -273,7 +308,7 @@ const HeaderTierModal: Component<Props> = (props) => {
         </Show>
 
         <label class="modal-card__field-label" for="header-tier-key">
-          Header key
+          {t('headerTier.headerKey')}
         </label>
         <HeaderComboBox
           id="header-tier-key"
@@ -283,11 +318,11 @@ const HeaderTierModal: Component<Props> = (props) => {
           placeholder="x-manifest-tier"
           invalid={keyError() !== undefined}
           errorMessage={keyError()}
-          freeFormHint={`Use "${headerKey().trim()}" as a custom header`}
+          freeFormHint={t('headerTier.useHeader', { value: headerKey().trim() })}
         />
 
         <label class="modal-card__field-label" for="header-tier-value">
-          Header value
+          {t('headerTier.headerValue')}
         </label>
         <HeaderComboBox
           id="header-tier-value"
@@ -298,18 +333,22 @@ const HeaderTierModal: Component<Props> = (props) => {
           invalid={valueError() !== undefined}
           errorMessage={valueError()}
           disabled={!headerKey().trim()}
-          freeFormHint={`Use "${headerValue().trim()}" as a custom value`}
+          freeFormHint={t('headerTier.useValue', { value: headerValue().trim() })}
         />
 
-        <div class="modal-card__field-label">Badge color</div>
-        <div class="header-tier-modal__swatches" role="radiogroup" aria-label="Badge color">
+        <div class="modal-card__field-label">{t('headerTier.badgeColor')}</div>
+        <div
+          class="header-tier-modal__swatches"
+          role="radiogroup"
+          aria-label={t('headerTier.badgeColor')}
+        >
           <For each={TIER_COLORS}>
             {(c) => (
               <button
                 type="button"
                 role="radio"
                 aria-checked={badgeColor() === c}
-                aria-label={c}
+                aria-label={t(COLOR_LABEL_KEYS[c])}
                 class="header-tier-modal__swatch"
                 classList={{
                   [`header-tier-modal__swatch--${c}`]: true,
@@ -322,7 +361,7 @@ const HeaderTierModal: Component<Props> = (props) => {
         </div>
 
         <div class="response-mode-modal__field-header" style="margin-top: 16px;">
-          <span class="response-mode-modal__field-title">Stream mode</span>
+          <span class="response-mode-modal__field-title">{t('headerTier.streamMode')}</span>
           <button
             class="routing-switch"
             classList={{
@@ -342,22 +381,14 @@ const HeaderTierModal: Component<Props> = (props) => {
         </div>
         <Show
           when={streamMode()}
-          fallback={
-            <p class="response-mode-modal__desc">
-              Responses are returned as a single payload once the model finishes generating.
-            </p>
-          }
+          fallback={<p class="response-mode-modal__desc">{t('headerTier.bufferedDescription')}</p>}
         >
-          <p class="response-mode-modal__desc">
-            Responses are streamed token by token as the model generates them.
-          </p>
+          <p class="response-mode-modal__desc">{t('headerTier.streamDescription')}</p>
         </Show>
         <Show when={!streamMode() && incompatibleModels().length > 0}>
           <div class="response-mode-modal__blocker" style="margin-top: 8px;">
             <p class="response-mode-modal__blocker-text">
-              {incompatibleModels().length === 1 ? 'This model does' : 'These models do'} not
-              support streaming. Change {incompatibleModels().length === 1 ? 'it' : 'them'} to
-              enable stream mode.
+              {tp('headerTier.streamBlocked', incompatibleModels().length)}
             </p>
             <div class="response-mode-modal__blocker-list">
               <For each={incompatibleModels()}>
@@ -378,18 +409,18 @@ const HeaderTierModal: Component<Props> = (props) => {
               type="button"
               class="btn btn--outline header-tier-modal__delete-btn"
               onClick={() => {
-                if (confirm(`Delete tier "${editingTier!.name}"?`)) {
+                if (confirm(t('headerTier.deletePrompt', { tier: editingTier!.name }))) {
                   props.onDelete!(editingTier!.id);
                 }
               }}
             >
-              Delete tier
+              {t('headerTier.delete')}
             </button>
           </Show>
           <div class="header-tier-modal__footer-right">
             <Show when={!props.onBack}>
               <button type="button" class="btn btn--ghost" onClick={props.onClose}>
-                Cancel
+                {t('components.cancel')}
               </button>
             </Show>
             <button type="button" class="btn btn--primary" disabled={submitting()} onClick={submit}>

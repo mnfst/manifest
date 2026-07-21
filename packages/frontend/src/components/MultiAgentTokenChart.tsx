@@ -3,7 +3,6 @@ import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
 import ChartHoverTooltip, {
   HIDDEN_TOOLTIP,
-  formatTooltipDate,
   snapToBucket,
   type HoverTooltipState,
 } from './ChartHoverTooltip.jsx';
@@ -19,6 +18,7 @@ import {
   isMultiDayRange,
   fillDailyGaps,
 } from '../services/chart-utils.js';
+import { formatDateTime, locale, t } from '../i18n/index.js';
 
 export const AGENT_COLORS = [
   '#1cc4bf',
@@ -53,10 +53,20 @@ interface MultiAgentTokenChartProps {
   label?: string;
 }
 
+function formatLocalizedTooltipDate(epochSec: number, multiDay: boolean): string {
+  const d = new Date(epochSec * 1000);
+  return formatDateTime(d, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    ...(multiDay ? {} : { hour: '2-digit', minute: '2-digit' }),
+  });
+}
+
 const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
   let el!: HTMLDivElement;
   let rawData: number[][] = [];
-  const isCost = () => props.label === 'Cost';
+  const isCost = () => props.label === t('overview.cost') || props.label === 'Cost';
   const fmtVal = (v: number) => (isCost() ? (formatCost(v) ?? '$0.00') : formatNumber(v));
 
   const [tooltip, setTooltip] = createSignal<HoverTooltipState>(HIDDEN_TOOLTIP);
@@ -91,7 +101,7 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
     el: () => el,
     data: () => props.timeseries,
     buildData,
-    structureKey: () => `${props.range}::${props.agents.join(',')}`,
+    structureKey: () => `${locale()}::${props.range}::${props.agents.join(',')}`,
     buildChart() {
       if (!el) return null;
       const w = el.clientWidth || el.getBoundingClientRect().width;
@@ -174,7 +184,8 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
                 const chartWidth = u.bbox.width / devicePixelRatio;
                 const pastHalf = barLeft > chartWidth / 2;
 
-                const date = timestamp != null ? formatTooltipDate(timestamp, multiDay) : '';
+                const date =
+                  timestamp != null ? formatLocalizedTooltipDate(timestamp, multiDay) : '';
 
                 setTooltip({
                   visible: true,

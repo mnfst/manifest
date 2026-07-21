@@ -5,6 +5,7 @@ import { providerIcon } from './ProviderIcon.jsx';
 // This component owns the .model-filter__* classes; importing here keeps the
 // stylesheet in the chunk that renders it instead of the global theme bundle.
 import '../styles/model-filter.css';
+import { t, tp } from '../i18n/index.js';
 
 interface ModelPricesFilterBarProps {
   allModels: string[];
@@ -207,21 +208,21 @@ const ModelPricesFilterBar: Component<ModelPricesFilterBarProps> = (props) => {
               ref={inputRef}
               type="text"
               class="model-filter__search"
-              placeholder="Search models or providers..."
+              placeholder={t('model.search')}
               value={query()}
               onInput={handleInput}
               onKeyDown={handleKeyDown}
               role="combobox"
               aria-expanded={dropdownOpen()}
               aria-autocomplete="list"
-              aria-label="Search models or providers"
+              aria-label={t('model.searchAria')}
             />
           </div>
           <Show when={dropdownOpen() && flatSuggestions().length > 0}>
             <div class="model-filter__dropdown" role="listbox">
               <Show when={matchingProviders().length > 0}>
                 <div class="model-filter__dropdown-group">
-                  <div class="model-filter__dropdown-label">Providers</div>
+                  <div class="model-filter__dropdown-label">{t('model.filter.providers')}</div>
                   <For each={matchingProviders()}>
                     {(provider) => {
                       const idx = () =>
@@ -244,7 +245,9 @@ const ModelPricesFilterBar: Component<ModelPricesFilterBarProps> = (props) => {
                             <FilterProviderIcon provider={provider} size={16} />
                             {provider}
                           </span>
-                          <span class="model-filter__dropdown-item-type">Provider</span>
+                          <span class="model-filter__dropdown-item-type">
+                            {t('model.filter.provider')}
+                          </span>
                         </button>
                       );
                     }}
@@ -253,7 +256,7 @@ const ModelPricesFilterBar: Component<ModelPricesFilterBarProps> = (props) => {
               </Show>
               <Show when={matchingModels().length > 0}>
                 <div class="model-filter__dropdown-group">
-                  <div class="model-filter__dropdown-label">Models</div>
+                  <div class="model-filter__dropdown-label">{t('model.filter.models')}</div>
                   <For each={matchingModels()}>
                     {(model) => {
                       const idx = () =>
@@ -273,7 +276,9 @@ const ModelPricesFilterBar: Component<ModelPricesFilterBarProps> = (props) => {
                           <span class="model-filter__dropdown-item-name">
                             {getModelDisplayName(model)}
                           </span>
-                          <span class="model-filter__dropdown-item-type">Model</span>
+                          <span class="model-filter__dropdown-item-type">
+                            {t('model.filter.model')}
+                          </span>
                         </button>
                       );
                     }}
@@ -284,9 +289,15 @@ const ModelPricesFilterBar: Component<ModelPricesFilterBarProps> = (props) => {
           </Show>
         </div>
         <div class="model-filter__summary">
-          <Show when={hasActiveFilters()} fallback={<span>{props.totalCount} models</span>}>
+          <Show
+            when={hasActiveFilters()}
+            fallback={<span>{tp('model.filter.total', props.totalCount)}</span>}
+          >
             <span>
-              {props.filteredCount} of {props.totalCount} models
+              {t('model.filter.filtered', {
+                filtered: props.filteredCount,
+                total: props.totalCount,
+              })}
             </span>
             <button
               class="model-filter__clear-all"
@@ -297,7 +308,7 @@ const ModelPricesFilterBar: Component<ModelPricesFilterBarProps> = (props) => {
               }}
               type="button"
             >
-              Clear filters
+              {t('model.filter.clear')}
             </button>
           </Show>
         </div>
@@ -314,7 +325,7 @@ const ModelPricesFilterBar: Component<ModelPricesFilterBarProps> = (props) => {
                   <FilterProviderIcon provider={tag.value} size={16} />
                 </Show>
                 <Show when={tag.type === 'Model'}>
-                  <span class="model-filter__tag-type">Model:</span>
+                  <span class="model-filter__tag-type">{t('model.filter.modelTag')}</span>
                 </Show>
                 <span class="model-filter__tag-value">
                   {tag.type === 'Model' ? getModelDisplayName(tag.value) : tag.value}
@@ -323,7 +334,13 @@ const ModelPricesFilterBar: Component<ModelPricesFilterBarProps> = (props) => {
                   class="model-filter__tag-remove"
                   onClick={() => removeTag(tag)}
                   type="button"
-                  aria-label={`Remove ${tag.type} ${tag.value}`}
+                  aria-label={t('model.filter.remove', {
+                    type:
+                      tag.type === 'Provider'
+                        ? t('model.filter.provider')
+                        : t('model.filter.model'),
+                    value: tag.value,
+                  })}
                 >
                   <svg
                     width="10"

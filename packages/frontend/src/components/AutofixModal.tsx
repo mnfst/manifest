@@ -1,5 +1,6 @@
 import { createSignal, createResource, Show, type Component } from 'solid-js';
 import { getAutofixWaitlistStatus, joinAutofixWaitlist } from '../services/api.js';
+import { t } from '../i18n/index.js';
 
 const AutofixModal: Component<{ open: boolean; onClose: () => void }> = (props) => {
   const [waitlistStatus, { refetch }] = createResource(
@@ -40,7 +41,12 @@ const AutofixModal: Component<{ open: boolean; onClose: () => void }> = (props) 
           onClick={(e) => e.stopPropagation()}
           onKeyDown={handleKeyDown}
         >
-          <button type="button" class="autofix-modal__close" onClick={dismiss} aria-label="Close">
+          <button
+            type="button"
+            class="autofix-modal__close"
+            onClick={dismiss}
+            aria-label={t('components.close')}
+          >
             <svg
               width="16"
               height="16"
@@ -75,12 +81,9 @@ const AutofixModal: Component<{ open: boolean; onClose: () => void }> = (props) 
                 <span class="autofix-modal__brand-name">Auto-fix</span>
               </div>
               <h2 id="autofix-modal-title" class="autofix-modal__title">
-                Auto-fix repairs failing requests before they reach the model
+                {t('autofix.title')}
               </h2>
-              <p class="autofix-modal__desc">
-                We're rolling out Auto-fix to a select few teams to start. Get on the list while
-                there's still room.
-              </p>
+              <p class="autofix-modal__desc">{t('autofix.description')}</p>
               <div class="autofix-modal__ctas">
                 <a
                   href="https://calendly.com/sebastien-manifest/30min"
@@ -88,7 +91,7 @@ const AutofixModal: Component<{ open: boolean; onClose: () => void }> = (props) 
                   rel="noopener noreferrer"
                   class="btn btn--primary autofix-modal__cta-book"
                 >
-                  Book a demo
+                  {t('autofix.bookDemo')}
                 </a>
                 <Show
                   when={!isJoined()}
@@ -106,7 +109,7 @@ const AutofixModal: Component<{ open: boolean; onClose: () => void }> = (props) 
                       >
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
-                      You're on the list
+                      {t('autofix.joined')}
                     </span>
                   }
                 >
@@ -116,7 +119,7 @@ const AutofixModal: Component<{ open: boolean; onClose: () => void }> = (props) 
                     onClick={handleJoinWaitlist}
                     disabled={joining()}
                   >
-                    {joining() ? <span class="spinner" /> : 'Claim my spot'}
+                    {joining() ? <span class="spinner" /> : t('autofix.claimSpot')}
                   </button>
                 </Show>
               </div>
@@ -124,7 +127,7 @@ const AutofixModal: Component<{ open: boolean; onClose: () => void }> = (props) 
 
             {/* Right column */}
             <div class="autofix-modal__right">
-              <span class="autofix-modal__badge">Early Access</span>
+              <span class="autofix-modal__badge">{t('autofix.earlyAccess')}</span>
               <ul class="autofix-modal__features">
                 <li class="autofix-modal__feature">
                   <span class="autofix-modal__feature-icon">
@@ -141,7 +144,7 @@ const AutofixModal: Component<{ open: boolean; onClose: () => void }> = (props) 
                       <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
                     </svg>
                   </span>
-                  <span class="autofix-modal__feature-label">Real-time fix</span>
+                  <span class="autofix-modal__feature-label">{t('autofix.realTime')}</span>
                 </li>
                 <li class="autofix-modal__feature">
                   <span class="autofix-modal__feature-icon">
@@ -158,7 +161,7 @@ const AutofixModal: Component<{ open: boolean; onClose: () => void }> = (props) 
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
                   </span>
-                  <span class="autofix-modal__feature-label">Zero downtime</span>
+                  <span class="autofix-modal__feature-label">{t('autofix.zeroDowntime')}</span>
                 </li>
                 <li class="autofix-modal__feature">
                   <span class="autofix-modal__feature-icon">
@@ -177,7 +180,7 @@ const AutofixModal: Component<{ open: boolean; onClose: () => void }> = (props) 
                       <path d="M9 21V9" />
                     </svg>
                   </span>
-                  <span class="autofix-modal__feature-label">Observability</span>
+                  <span class="autofix-modal__feature-label">{t('autofix.observability')}</span>
                 </li>
                 <li class="autofix-modal__feature">
                   <span class="autofix-modal__feature-icon">
@@ -195,7 +198,7 @@ const AutofixModal: Component<{ open: boolean; onClose: () => void }> = (props) 
                       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                     </svg>
                   </span>
-                  <span class="autofix-modal__feature-label">Notifications</span>
+                  <span class="autofix-modal__feature-label">{t('autofix.notifications')}</span>
                 </li>
               </ul>
               <a
@@ -204,7 +207,7 @@ const AutofixModal: Component<{ open: boolean; onClose: () => void }> = (props) 
                 rel="noopener noreferrer"
                 class="autofix-modal__learn-more"
               >
-                Learn more about Auto-fix
+                {t('autofix.learnMore')}
                 <svg
                   width="12"
                   height="12"

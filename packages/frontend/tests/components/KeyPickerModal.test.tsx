@@ -33,7 +33,9 @@ describe('KeyPickerModal', () => {
       />
     ));
     expect(screen.getByText('Which Google key?')).toBeDefined();
-    expect(screen.getByText('Gemini 2.5 Pro')).toBeDefined();
+    const model = screen.getByText('Gemini 2.5 Pro');
+    expect(model.tagName).toBe('STRONG');
+    expect(model.parentElement?.textContent).toBe('Picking a key for Gemini 2.5 Pro');
     expect(screen.getByText('Personal')).toBeDefined();
     expect(screen.getByText('Work')).toBeDefined();
   });

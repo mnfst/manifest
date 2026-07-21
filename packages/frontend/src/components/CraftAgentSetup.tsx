@@ -1,6 +1,7 @@
 import { createSignal, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
+import { t, tr } from '../i18n/index.js';
 
 interface Props {
   apiKey: string | null;
@@ -48,9 +49,10 @@ const CraftAgentSetup: Component<Props> = (props) => {
   return (
     <div class="setup-agents-card">
       <p class="setup-method__hint">
-        In Craft, add an API-key connection and choose the{' '}
-        <code class="setup-model-hint__code">Manifest</code> provider preset. Use model{' '}
-        <code class="setup-model-hint__code">auto</code> and paste this API key:
+        {tr('craft.instructions', {
+          provider: <code class="setup-model-hint__code">Manifest</code>,
+          model: <code class="setup-model-hint__code">auto</code>,
+        })}
       </p>
 
       <div class="setup-cli-block">
@@ -59,8 +61,8 @@ const CraftAgentSetup: Component<Props> = (props) => {
             <button
               class="modal-terminal__copy"
               onClick={() => setKeyRevealed(!keyRevealed())}
-              aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
-              title={keyRevealed() ? 'Hide key' : 'Reveal key'}
+              aria-label={keyRevealed() ? t('components.hideApiKey') : t('components.revealApiKey')}
+              title={keyRevealed() ? t('components.hideKey') : t('components.revealKey')}
             >
               <EyeIcon open={keyRevealed()} />
             </button>

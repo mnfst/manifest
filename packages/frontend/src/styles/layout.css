@@ -125,6 +125,53 @@ body {
   align-items: center;
 }
 
+/* ── Interface language ───────────────────────────── */
+.language-selector {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.language-selector::after {
+  position: absolute;
+  top: 50%;
+  right: 0.6875rem;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-right: 1.5px solid currentcolor;
+  border-bottom: 1.5px solid currentcolor;
+  color: hsl(var(--muted-foreground));
+  content: '';
+  pointer-events: none;
+  transform: translateY(-75%) rotate(45deg);
+}
+
+.language-selector__select {
+  appearance: none;
+  height: 2rem;
+  min-width: 5.75rem;
+  padding: 0 1.75rem 0 0.625rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+
+.language-selector__select:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.language-selector--auth {
+  position: absolute;
+  top: var(--gap-md);
+  right: var(--gap-md);
+}
+
 /* ── Cards Grid ────────────────────────────────────── */
 .cards-grid {
   display: grid;

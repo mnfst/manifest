@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { setLocale } from '../../src/i18n/index.js';
 
 const mockSetSearchParams = vi.fn();
 let mockSearchParams: Record<string, string | undefined> = {};
@@ -67,12 +68,17 @@ vi.mock('../../src/services/providers.js', () => ({
   ],
 }));
 
-vi.mock('../../src/services/formatters.js', () => ({
-  customProviderColor: () => '#654321',
-  formatNumber: (value: number) => String(value),
-  formatCost: (value: number) => `$${value.toFixed(2)}`,
-  formatTimeAgo: () => 'recently',
-}));
+vi.mock('../../src/services/formatters.js', async () => {
+  const actual = await vi.importActual<typeof import('../../src/services/formatters.js')>(
+    '../../src/services/formatters.js',
+  );
+  return {
+    customProviderColor: () => '#654321',
+    formatNumber: (value: number) => String(value),
+    formatCost: actual.formatCost,
+    formatTimeAgo: () => 'recently',
+  };
+});
 
 const mockGetProviderUsage = vi.fn();
 // Use the real mergeUsage so the merge logic stays under test through the page.
@@ -209,7 +215,8 @@ const globalProvidersResponse = {
 };
 
 describe('provider pages', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await setLocale('en');
     vi.clearAllMocks();
     mockSearchParams = {};
     mockIsSelfHosted = true;
@@ -275,6 +282,24 @@ describe('provider pages', () => {
     expect(screen.getAllByText('129').length).toBeGreaterThan(0);
     // The blended provider rate (267/317 = 84.2%) must appear nowhere.
     expect(screen.queryByText('84.2%')).toBeNull();
+  });
+
+  it('localizes the 30-day attempt analytics into Russian', async () => {
+    await setLocale('ru');
+    const { container } = render(() => <Byok />);
+
+    await waitFor(() => expect(screen.getByText('Production')).toBeDefined());
+    expect(screen.getAllByText('Всего попыток (30 дн.)').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Доля успешных (30 дн.)').length).toBeGreaterThan(0);
+    expect(container.textContent).toContain('78,7\u00a0%');
+    expect(container.textContent).toContain('0,00\u00a0$');
+    expect(
+      [...container.querySelectorAll('[aria-label]')].some((node) =>
+        node
+          .getAttribute('aria-label')
+          ?.includes('Доля успешных попыток среди всех попыток этого подключения'),
+      ),
+    ).toBe(true);
   });
 
   it('renders the subscriptions page and opens the connect modal', async () => {

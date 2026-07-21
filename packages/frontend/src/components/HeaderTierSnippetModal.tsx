@@ -2,6 +2,7 @@ import { type Component, createResource } from 'solid-js';
 import FrameworkSnippets from './FrameworkSnippets.jsx';
 import { getAgentKey } from '../services/api.js';
 import type { HeaderTier } from '../services/api/header-tiers.js';
+import { t } from '../i18n/index.js';
 
 interface Props {
   agentName: string;
@@ -30,8 +31,7 @@ const HeaderTierSnippetModal: Component<Props> = (props) => {
     [props.tier.header_key]: props.tier.header_value,
   });
 
-  const modelText = (): string =>
-    props.tier.override_route?.model ?? 'no model assigned (falls back to default routing)';
+  const modelText = (): string => props.tier.override_route?.model ?? t('headerTier.noModel');
 
   return (
     <div
@@ -55,9 +55,13 @@ const HeaderTierSnippetModal: Component<Props> = (props) => {
             id="header-tier-snippet-title"
             style="margin: 0; font-size: var(--font-size-lg); font-weight: 600;"
           >
-            Send the “{props.tier.name}” header
+            {t('headerTier.snippetTitle', { tier: props.tier.name })}
           </h2>
-          <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
+          <button
+            class="modal__close"
+            onClick={() => props.onClose()}
+            aria-label={t('components.close')}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -71,7 +75,7 @@ const HeaderTierSnippetModal: Component<Props> = (props) => {
           </button>
         </div>
         <p class="modal-card__desc" style="margin-top: 0;">
-          Add this header to any request and it'll route to <code>{modelText()}</code>.
+          {t('headerTier.snippetBeforeModel')} <code>{modelText()}</code>.
         </p>
 
         <FrameworkSnippets
@@ -83,7 +87,7 @@ const HeaderTierSnippetModal: Component<Props> = (props) => {
 
         <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
           <button class="btn btn--primary" type="button" onClick={() => props.onClose()}>
-            Done
+            {t('headerTier.done')}
           </button>
         </div>
       </div>

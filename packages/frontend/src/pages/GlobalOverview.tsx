@@ -53,6 +53,7 @@ import {
   type MessageRow,
 } from '../components/message-table-types.js';
 import { agentPing, messagePing, routingPing } from '../services/sse.js';
+import { formatNumber as formatLocalizedNumber, t, tp } from '../i18n/index.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/analytics-overview.css';
@@ -66,12 +67,6 @@ import {
   selfHealedCount,
   successRate,
   attemptSuccessRate,
-  totalAttemptsTooltip,
-  MODEL_SUCCESS_RATE_TOOLTIP,
-  PROVIDER_SUCCESS_RATE_TOOLTIP,
-  CONNECTION_SUCCESS_RATE_TOOLTIP,
-  HARNESS_SUCCESS_RATE_TOOLTIP,
-  HARNESS_TOTAL_REQUESTS_TOOLTIP,
 } from '../services/api/analytics.js';
 import { getAutofixCohort } from '../services/api/autofix.js';
 
@@ -133,17 +128,27 @@ interface AgentRow {
   sparkline: number[];
 }
 
-const RANGE_OPTIONS = [
-  { label: 'Last 24 hours', value: '24h' },
-  { label: 'Last 7 days', value: '7d' },
-  { label: 'Last 30 days', value: '30d' },
-  { label: 'Last 90 days', value: '90d' },
-  { label: 'Last 365 days', value: '365d' },
-];
+const OVERVIEW_RANGES = ['24h', '7d', '30d', '90d', '365d'] as const;
 const PRO_DASHBOARD_RANGES = new Set(['30d', '90d', '365d']);
 
 const RANGE_STORAGE_KEY = 'manifest_global_range';
 const GROUP_STORAGE_KEY = 'manifest_global_group';
+const DEFAULT_CONNECTION_KEY_LABEL = 'Default';
+
+function formatSharePercentage(percentage: number): string {
+  return formatLocalizedNumber(percentage / 100, {
+    style: 'percent',
+    maximumFractionDigits: 1,
+  });
+}
+
+function formatSuccessRate(rate: number): string {
+  return formatLocalizedNumber(rate, {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+}
 
 function loadRange(): string {
   try {
@@ -231,12 +236,19 @@ const GlobalOverview: Component = () => {
     isProRangeLocked(chartRange()) ? '7d' : chartRange(),
   );
   const proBadge = () => (
-    <span class="pro-range-badge" aria-label="Pro plan required">
+    <span class="pro-range-badge" aria-label={t('pages.overview.proRequired')}>
       PRO
     </span>
   );
+  const rangeLabel = (value: (typeof OVERVIEW_RANGES)[number]) => {
+    if (value === '24h') return t('pages.overview.range.24h');
+    if (value === '7d') return t('pages.overview.range.7d');
+    if (value === '30d') return t('pages.overview.range.30d');
+    if (value === '90d') return t('pages.overview.range.90d');
+    return t('pages.overview.range.365d');
+  };
   const rangeOptions = () =>
-    RANGE_OPTIONS.map((option) =>
+    OVERVIEW_RANGES.map((value) => ({ label: rangeLabel(value), value })).map((option) =>
       isProRangeLocked(option.value) ? { ...option, disabled: true, badge: proBadge() } : option,
     );
   createEffect(() => {
@@ -577,7 +589,7 @@ const GlobalOverview: Component = () => {
 
   return (
     <div class="container--lg">
-      <Title>Overview | Manifest</Title>
+      <Title>{t('pages.globalOverview.metaTitle')}</Title>
 
       {/* Add Harness Modal */}
       <AddAgentModal open={addAgentOpen()} onClose={dismissAddAgent} />
@@ -588,8 +600,8 @@ const GlobalOverview: Component = () => {
       {/* ── 1. Page Header ──────────────────────────────────────────── */}
       <div class="page-header" style="border-bottom: none; padding-bottom: 0;">
         <div>
-          <h1 class="page-header__title">Overview</h1>
-          <p class="page-header__subtitle">All your harnesses and providers</p>
+          <h1 class="page-header__title">{t('pages.globalOverview.title')}</h1>
+          <p class="page-header__subtitle">{t('pages.globalOverview.subtitle')}</p>
         </div>
         <Show when={!hasNoAgents() || !hasNoProviders()}>
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -614,14 +626,13 @@ const GlobalOverview: Component = () => {
             <path d="M11 18c.55 0 1-.45 1-1V6c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v11c0 .55.45 1 1 1zm-1-2H8v-2h2zm0-9v5H8V7zm9 11c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v14c0 .55.45 1 1 1zm-1-2h-2v-6h2zM16 4h2v4h-2z" />
           </svg>
           <div style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground));">
-            No activity yet
+            {t('pages.globalOverview.emptyTitle')}
           </div>
           <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
-            Set up your harness and connect at least one provider. Once your harness sends requests,
-            data will appear here.
+            {t('pages.globalOverview.emptyDescription')}
           </div>
           <button class="btn btn--primary btn--sm" onClick={() => setAddAgentOpen(true)}>
-            Set up harness
+            {t('pages.globalOverview.setup')}
           </button>
         </div>
       </Show>
@@ -641,17 +652,17 @@ const GlobalOverview: Component = () => {
             <path d="M11 18c.55 0 1-.45 1-1V6c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v11c0 .55.45 1 1 1zm-1-2H8v-2h2zm0-9v5H8V7zm9 11c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v14c0 .55.45 1 1 1zm-1-2h-2v-6h2zM16 4h2v4h-2z" />
           </svg>
           <div style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground));">
-            No providers connected
+            {t('pages.globalOverview.noProviders')}
           </div>
           <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
-            Connect a model provider to start routing your harnesses' LLM calls.
+            {t('pages.globalOverview.noProvidersDescription')}
           </div>
           <A
             href="/providers/subscriptions"
             class="btn btn--primary btn--sm"
             style="text-decoration: none;"
           >
-            Connect provider
+            {t('pages.globalOverview.connectProvider')}
           </A>
         </div>
       </Show>
@@ -705,7 +716,7 @@ const GlobalOverview: Component = () => {
               selfHealedTimeseries={autofixEligible() ? selfHealedTs() : undefined}
               costValue={o().summary.cost_today.value}
               costTrendPct={o().summary.cost_today.trend_pct}
-              costInfoTooltip="Actual API key costs only. Subscription usage is not included."
+              costInfoTooltip={t('pages.globalOverview.costHelp')}
               tokensValue={o().summary.tokens_today.value}
               tokensTrendPct={o().summary.tokens_today.trend_pct}
               range={effectiveChartRange()}
@@ -728,14 +739,14 @@ const GlobalOverview: Component = () => {
                       }}
                       onClick={() => setGroupBy('status')}
                     >
-                      By request status
+                      {t('pages.globalOverview.byRequestStatus')}
                     </button>
                     <button
                       class="chart-card__filter-btn"
                       classList={{ 'chart-card__filter-btn--active': requestsGroup() === 'agent' }}
                       onClick={() => setGroupBy('agent')}
                     >
-                      By harness
+                      {t('pages.globalOverview.byHarness')}
                     </button>
                   </Show>
                   <Show when={chartView() !== 'requests'}>
@@ -746,20 +757,24 @@ const GlobalOverview: Component = () => {
                       }}
                       onClick={() => setGroupBy('provider')}
                     >
-                      By provider
+                      {t('pages.globalOverview.byProvider')}
                     </button>
                     <button
                       class="chart-card__filter-btn"
                       classList={{ 'chart-card__filter-btn--active': usageGroup() === 'agent' }}
                       onClick={() => setGroupBy('agent')}
                     >
-                      By harness
+                      {t('pages.globalOverview.byHarness')}
                     </button>
                   </Show>
                   <Show when={chartView() !== 'requests' || requestsGroup() === 'agent'}>
                     <div style="min-width: 140px;">
                       <FilterSelect
-                        noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}
+                        noun={
+                          groupBy() === 'provider'
+                            ? t('pages.globalOverview.providers')
+                            : t('pages.globalOverview.harnesses')
+                        }
                         items={allAgents()}
                         selected={effectiveSelected()}
                         colorMap={agentColorMap()}
@@ -786,9 +801,9 @@ const GlobalOverview: Component = () => {
             class="panel__title"
             style="display: flex; justify-content: space-between; align-items: center;"
           >
-            Recent Requests
+            {t('pages.globalOverview.recentRequests')}
             <A href="/messages" class="view-more-link">
-              View more
+              {t('pages.globalOverview.viewMore')}
             </A>
           </div>
           <div class="scroll-panel__body" onScroll={toggleScrollFade}>
@@ -816,22 +831,28 @@ const GlobalOverview: Component = () => {
 
         {/* ── 5. Model usage (full width) ────────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
-          <div class="panel__title">Model usage</div>
+          <div class="panel__title">{t('pages.globalOverview.modelUsage')}</div>
           <div class="scroll-panel__body" onScroll={toggleScrollFade}>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Model</th>
-                  <th style="text-align: right;">Tokens</th>
-                  <th style="text-align: right;">Share</th>
-                  <th style="text-align: right;">Est. cost</th>
+                  <th>{t('pages.globalOverview.model')}</th>
+                  <th style="text-align: right;">{t('pages.globalOverview.tokens')}</th>
+                  <th style="text-align: right;">{t('pages.globalOverview.share')}</th>
+                  <th style="text-align: right;">{t('pages.globalOverview.estimatedCost')}</th>
                   <th class="rel-col">
-                    Total attempts
-                    <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                    {t('analytics.totalAttempts')}
+                    <InfoTooltip
+                      text={t(
+                        autofixEligible()
+                          ? 'analytics.tooltip.totalAttemptsWithAutofix'
+                          : 'analytics.tooltip.totalAttemptsWithoutAutofix',
+                      )}
+                    />
                   </th>
                   <th class="rel-col">
-                    Success rate
-                    <InfoTooltip text={MODEL_SUCCESS_RATE_TOOLTIP} />
+                    {t('analytics.successRate')}
+                    <InfoTooltip text={t('analytics.tooltip.modelSuccessRate')} />
                   </th>
                 </tr>
               </thead>
@@ -894,12 +915,12 @@ const GlobalOverview: Component = () => {
                             />
                           </div>
                           <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                            {row.share_pct}%
+                            {formatSharePercentage(row.share_pct)}
                           </span>
                         </div>
                       </td>
                       <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                        {formatCost(row.estimated_cost) ?? '$0.00'}
+                        {formatCost(row.estimated_cost) ?? formatCost(0)}
                       </td>
                       {(() => {
                         const rel = () => modelReliability()?.find((r) => r.model === row.model);
@@ -913,7 +934,7 @@ const GlobalOverview: Component = () => {
                             <td class="rel-col">
                               {(() => {
                                 const rate = rel() ? attemptSuccessRate(rel()!) : null;
-                                return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                                return rate == null ? '—' : formatSuccessRate(rate);
                               })()}
                             </td>
                           </>
@@ -928,7 +949,7 @@ const GlobalOverview: Component = () => {
                       colspan="3"
                       style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
                     >
-                      No model data yet
+                      {t('pages.globalOverview.noModelData')}
                     </td>
                   </tr>
                 </Show>
@@ -939,26 +960,32 @@ const GlobalOverview: Component = () => {
 
         {/* ── 6. Provider connections (full width) ────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
-          <div class="panel__title">Provider connections</div>
+          <div class="panel__title">{t('pages.globalOverview.providerConnections')}</div>
           <div class="scroll-panel__body" onScroll={toggleScrollFade}>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Provider</th>
-                  <th>Connection name</th>
-                  <th>Type</th>
-                  <th>Status</th>
+                  <th>{t('pages.globalOverview.provider')}</th>
+                  <th>{t('pages.globalOverview.connectionName')}</th>
+                  <th>{t('pages.globalOverview.type')}</th>
+                  <th>{t('pages.globalOverview.status')}</th>
                   <th class="rel-col">
-                    Total attempts
-                    <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                    {t('analytics.totalAttempts')}
+                    <InfoTooltip
+                      text={t(
+                        autofixEligible()
+                          ? 'analytics.tooltip.totalAttemptsWithAutofix'
+                          : 'analytics.tooltip.totalAttemptsWithoutAutofix',
+                      )}
+                    />
                   </th>
                   <th class="rel-col">
-                    Failed attempts
-                    <InfoTooltip text="Attempts this connection failed on the filtered period. Click a count to see the requests holding them." />
+                    {t('analytics.failedAttempts')}
+                    <InfoTooltip text={t('analytics.tooltip.connectionFailedAttempts')} />
                   </th>
                   <th class="rel-col">
-                    Success rate
-                    <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP} />
+                    {t('analytics.successRate')}
+                    <InfoTooltip text={t('analytics.tooltip.connectionSuccessRate')} />
                   </th>
                 </tr>
               </thead>
@@ -967,7 +994,7 @@ const GlobalOverview: Component = () => {
                   each={providerList().flatMap((group) =>
                     (group.connections.length
                       ? group.connections
-                      : [{ id: '', label: 'Default', is_active: false }]
+                      : [{ id: '', label: '', is_active: false }]
                     ).map((connection) => ({ group, connection })),
                   )}
                 >
@@ -1018,7 +1045,7 @@ const GlobalOverview: Component = () => {
                                   </span>
                                   {isCustom && (
                                     <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
-                                      custom
+                                      {t('pages.globalOverview.custom')}
                                     </span>
                                   )}
                                 </>
@@ -1027,7 +1054,7 @@ const GlobalOverview: Component = () => {
                           </div>
                         </td>
                         <td style="color: hsl(var(--muted-foreground));">
-                          {connection.label || 'Default'}
+                          {connection.label || t('pages.globalOverview.defaultConnection')}
                         </td>
                         <td>
                           <span
@@ -1045,12 +1072,12 @@ const GlobalOverview: Component = () => {
                             when={isActive()}
                             fallback={
                               <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
-                                Inactive
+                                {t('pages.globalOverview.inactive')}
                               </span>
                             }
                           >
                             <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
-                              Active
+                              {t('pages.globalOverview.active')}
                             </span>
                           </Show>
                         </td>
@@ -1058,13 +1085,16 @@ const GlobalOverview: Component = () => {
                           const pKey = group.provider.startsWith('custom:')
                             ? 'custom'
                             : group.provider;
-                          const wantedLabel = (connection.label || 'Default').toLowerCase();
+                          const wantedLabel = (
+                            connection.label || DEFAULT_CONNECTION_KEY_LABEL
+                          ).toLowerCase();
                           const rel = () =>
                             providerReliability()?.find(
                               (r) =>
                                 r.provider === pKey &&
                                 r.auth_type === group.auth_type &&
-                                (r.key_label ?? 'Default').toLowerCase() === wantedLabel,
+                                (r.key_label ?? DEFAULT_CONNECTION_KEY_LABEL).toLowerCase() ===
+                                  wantedLabel,
                             );
                           return (
                             <>
@@ -1084,7 +1114,7 @@ const GlobalOverview: Component = () => {
                                     <a
                                       class="count-link"
                                       href={`/messages?connections=${encodeURIComponent(connection.id)}&range=${effectiveChartRange()}&attempts=has_failed`}
-                                      title="View the requests holding these failed attempts"
+                                      title={t('analytics.action.viewConnectionFailedAttempts')}
                                       onClick={(e) => {
                                         // The row navigates to the connection; this cell
                                         // drills into the Requests log instead.
@@ -1103,7 +1133,7 @@ const GlobalOverview: Component = () => {
                               <td class="rel-col">
                                 {(() => {
                                   const rate = rel() ? attemptSuccessRate(rel()!) : null;
-                                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                                  return rate == null ? '—' : formatSuccessRate(rate);
                                 })()}
                               </td>
                             </>
@@ -1119,7 +1149,7 @@ const GlobalOverview: Component = () => {
                       colspan="7"
                       style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
                     >
-                      No connections yet
+                      {t('pages.globalOverview.noConnections')}
                     </td>
                   </tr>
                 </Show>
@@ -1130,23 +1160,23 @@ const GlobalOverview: Component = () => {
 
         {/* ── 7. Harnesses (full width) ──────────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
-          <div class="panel__title">Harnesses</div>
+          <div class="panel__title">{t('pages.globalOverview.harnessesTitle')}</div>
           <div class="scroll-panel__body" onScroll={toggleScrollFade}>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Harness</th>
-                  <th>Usage</th>
+                  <th>{t('pages.globalOverview.harness')}</th>
+                  <th>{t('pages.globalOverview.usage')}</th>
                   <th class="rel-col">
-                    Total requests
-                    <InfoTooltip text={HARNESS_TOTAL_REQUESTS_TOOLTIP} />
+                    {t('analytics.totalRequests')}
+                    <InfoTooltip text={t('analytics.tooltip.harnessTotalRequests')} />
                   </th>
                   <Show when={autofixEligible()}>
-                    <th class="rel-col">Recovered requests</th>
+                    <th class="rel-col">{t('analytics.recoveredRequests')}</th>
                   </Show>
                   <th class="rel-col">
-                    Success rate
-                    <InfoTooltip text={HARNESS_SUCCESS_RATE_TOOLTIP} />
+                    {t('analytics.successRate')}
+                    <InfoTooltip text={t('analytics.tooltip.harnessSuccessRate')} />
                   </th>
                 </tr>
               </thead>
@@ -1188,7 +1218,8 @@ const GlobalOverview: Component = () => {
                                   </span>
                                 </Show>
                                 <span style="font-variant-numeric: tabular-nums;">
-                                  {formatNumber(usage()?.total ?? 0)} tokens
+                                  {formatNumber(usage()?.total ?? 0)}{' '}
+                                  {tp('pages.globalOverview.tokenUnit', usage()?.total ?? 0)}
                                 </span>
                               </div>
                             );
@@ -1204,7 +1235,7 @@ const GlobalOverview: Component = () => {
                               <a
                                 class="count-link"
                                 href={link}
-                                title="View this harness's requests"
+                                title={t('analytics.action.viewHarnessRequests')}
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
@@ -1232,7 +1263,7 @@ const GlobalOverview: Component = () => {
                                         <a
                                           class="count-link"
                                           href={link}
-                                          title="View this harness's recovered requests"
+                                          title={t('analytics.action.viewHarnessRecoveredRequests')}
                                           onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
@@ -1249,7 +1280,7 @@ const GlobalOverview: Component = () => {
                               <td class="rel-col">
                                 {(() => {
                                   const rate = rel() ? successRate(rel()!) : null;
-                                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                                  return rate == null ? '—' : formatSuccessRate(rate);
                                 })()}
                               </td>
                             </>
@@ -1265,7 +1296,7 @@ const GlobalOverview: Component = () => {
                       colspan="4"
                       style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
                     >
-                      No harnesses yet
+                      {t('pages.globalOverview.noHarnesses')}
                     </td>
                   </tr>
                 </Show>

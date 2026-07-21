@@ -2,18 +2,40 @@ import { For, Show, type Component } from 'solid-js';
 import AlertIcon from './AlertIcon.js';
 import LimitIcon from './LimitIcon.js';
 import type { NotificationRule } from '../services/api.js';
+import { formatNumber, localeTag, t, tp } from '../i18n/index.js';
 
 function formatThreshold(rule: NotificationRule): string {
-  if (rule.metric_type === 'cost') return `$${Number(rule.threshold).toFixed(2)}`;
-  return `${Number(rule.threshold).toLocaleString()} tokens`;
+  if (rule.metric_type === 'cost') {
+    return formatNumber(Number(rule.threshold), {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+  return tp('limit.tokens', Number(rule.threshold));
 }
 
+const PERIOD_LABEL_KEYS = {
+  hour: 'limit.perHour',
+  day: 'limit.perDay',
+  week: 'limit.perWeek',
+  month: 'limit.perMonth',
+} as const;
+
+// Stable English labels remain exported for consumers that use these values
+// as non-UI metadata; rendered UI goes through periodLabel().
 const PERIOD_LABELS: Record<string, string> = {
   hour: 'Per hour',
   day: 'Per day',
   week: 'Per week',
   month: 'Per month',
 };
+
+function periodLabel(period: string): string {
+  const key = PERIOD_LABEL_KEYS[period as keyof typeof PERIOD_LABEL_KEYS];
+  return key ? t(key) : period;
+}
 
 interface LimitRuleTableProps {
   rules: NotificationRule[] | undefined;
@@ -27,17 +49,17 @@ const hasBlockAction = (action: string) => action === 'block' || action === 'bot
 
 const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
   <div class="panel">
-    <div class="panel__title">Rules</div>
+    <div class="panel__title">{t('limit.rules')}</div>
     <Show
       when={!props.loading}
       fallback={
         <table class="notif-table notif-table--flush">
           <thead>
             <tr>
-              <th>Type</th>
-              <th>Threshold</th>
-              <th>Triggered</th>
-              <th style="text-align: right;">Actions</th>
+              <th>{t('limit.type')}</th>
+              <th>{t('limit.threshold')}</th>
+              <th>{t('limit.triggered')}</th>
+              <th style="text-align: right;">{t('components.actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -67,18 +89,18 @@ const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
         when={(props.rules ?? []).length > 0}
         fallback={
           <div class="empty-state">
-            <div class="empty-state__title">No rules yet</div>
-            <p>Set up alerts for usage spikes, or hard limits to block requests over budget.</p>
+            <div class="empty-state__title">{t('limit.noRules')}</div>
+            <p>{t('limit.emptyDescription')}</p>
           </div>
         }
       >
         <table class="notif-table notif-table--flush">
           <thead>
             <tr>
-              <th>Type</th>
-              <th>Threshold</th>
-              <th>Triggered</th>
-              <th style="text-align: right;">Actions</th>
+              <th>{t('limit.type')}</th>
+              <th>{t('limit.threshold')}</th>
+              <th>{t('limit.triggered')}</th>
+              <th style="text-align: right;">{t('components.actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -88,12 +110,12 @@ const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
                   <td>
                     <div class="limit-type-icons">
                       <Show when={hasEmailAction(rule.action ?? 'notify')}>
-                        <span class="limit-type-icon" title="Email Alert">
+                        <span class="limit-type-icon" title={t('limit.emailAlert')}>
                           <AlertIcon size={14} />
                         </span>
                       </Show>
                       <Show when={hasBlockAction(rule.action ?? 'notify')}>
-                        <span class="limit-type-icon" title="Hard Limit">
+                        <span class="limit-type-icon" title={t('limit.hardLimit')}>
                           <LimitIcon size={14} />
                         </span>
                       </Show>
@@ -114,7 +136,7 @@ const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
                             <line x1="12" y1="9" x2="12" y2="13" />
                             <line x1="12" y1="17" x2="12.01" y2="17" />
                           </svg>
-                          No provider
+                          {t('limit.noProvider')}
                         </span>
                       </Show>
                     </div>
@@ -122,7 +144,7 @@ const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
                   <td>
                     <span class="notif-table__mono">{formatThreshold(rule)}</span>{' '}
                     <span class="notif-table__period">
-                      {(PERIOD_LABELS[rule.period] ?? rule.period).toLowerCase()}
+                      {periodLabel(rule.period).toLocaleLowerCase(localeTag())}
                     </span>
                   </td>
                   <td class="notif-table__mono">{rule.trigger_count ?? 0}</td>
@@ -131,7 +153,7 @@ const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
                       <button
                         class="rule-menu__btn"
                         onClick={(e) => props.onToggleMenu(rule.id, e)}
-                        aria-label="Rule options"
+                        aria-label={t('limit.ruleOptions')}
                       >
                         <svg
                           width="16"
@@ -157,5 +179,5 @@ const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
   </div>
 );
 
-export { formatThreshold, PERIOD_LABELS };
+export { formatThreshold, periodLabel, PERIOD_LABELS };
 export default LimitRuleTable;

@@ -2,6 +2,7 @@ import { createSignal, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
 import { highlight } from '../services/syntax-highlight.js';
+import { t, tr } from '../i18n/index.js';
 
 type SubTab = 'cli' | 'wizard';
 
@@ -74,14 +75,12 @@ const HermesSetup: Component<Props> = (props) => {
 
   return (
     <div class="setup-agents-card">
-      <p class="setup-step__desc">
-        Point Hermes at the Manifest endpoint to route requests across multiple models.
-      </p>
+      <p class="setup-step__desc">{t('hermes.description')}</p>
 
       <div
         class="setup-segment setup-segment--full"
         role="tablist"
-        aria-label="Configuration method"
+        aria-label={t('hermes.configurationMethod')}
       >
         <button
           class="setup-segment__btn"
@@ -90,7 +89,7 @@ const HermesSetup: Component<Props> = (props) => {
           role="tab"
           aria-selected={subTab() === 'cli'}
         >
-          Configuration file
+          {t('hermes.configurationFile')}
         </button>
         <button
           class="setup-segment__btn"
@@ -99,17 +98,19 @@ const HermesSetup: Component<Props> = (props) => {
           role="tab"
           aria-selected={subTab() === 'wizard'}
         >
-          Hermes onboard
+          {t('hermes.onboard')}
         </button>
       </div>
 
       <Show when={subTab() === 'cli'}>
-        <p class="setup-method__hint">Open the Hermes configuration file:</p>
+        <p class="setup-method__hint">{t('hermes.openConfig')}</p>
         <CodeBlock code="hermes config edit" language="bash" />
 
         <p class="setup-method__hint" style="margin-top: 12px;">
-          Add the following <code class="setup-model-hint__code">model:</code> section to your{' '}
-          <code class="setup-model-hint__code">config.yaml</code>:
+          {tr('hermes.addModelSection', {
+            section: <code class="setup-model-hint__code">model:</code>,
+            file: <code class="setup-model-hint__code">config.yaml</code>,
+          })}
         </p>
         <div class="setup-cli-block">
           <div class="setup-cli-block__actions">
@@ -117,8 +118,10 @@ const HermesSetup: Component<Props> = (props) => {
               <button
                 class="setup-onboard-fields__eye"
                 onClick={() => setCliKeyRevealed(!cliKeyRevealed())}
-                aria-label={cliKeyRevealed() ? 'Hide API key' : 'Reveal API key'}
-                title={cliKeyRevealed() ? 'Hide key' : 'Reveal key'}
+                aria-label={
+                  cliKeyRevealed() ? t('components.hideApiKey') : t('components.revealApiKey')
+                }
+                title={cliKeyRevealed() ? t('components.hideKey') : t('components.revealKey')}
               >
                 <EyeIcon open={cliKeyRevealed()} />
               </button>
@@ -132,7 +135,7 @@ const HermesSetup: Component<Props> = (props) => {
           </div>
         </div>
 
-        <div class="setup-onboard-fields" role="list" aria-label="Configuration values">
+        <div class="setup-onboard-fields" role="list" aria-label={t('hermes.configurationValues')}>
           <OnboardField label="provider" value="custom" copyable />
           <OnboardField label="base_url" value={props.baseUrl} copyable />
           <div class="setup-onboard-fields__row" role="listitem">
@@ -143,8 +146,10 @@ const HermesSetup: Component<Props> = (props) => {
                 <button
                   class="setup-onboard-fields__eye"
                   onClick={() => setCliKeyRevealed(!cliKeyRevealed())}
-                  aria-label={cliKeyRevealed() ? 'Hide API key' : 'Reveal API key'}
-                  title={cliKeyRevealed() ? 'Hide key' : 'Reveal key'}
+                  aria-label={
+                    cliKeyRevealed() ? t('components.hideApiKey') : t('components.revealApiKey')
+                  }
+                  title={cliKeyRevealed() ? t('components.hideKey') : t('components.revealKey')}
                 >
                   <EyeIcon open={cliKeyRevealed()} />
                 </button>
@@ -158,22 +163,25 @@ const HermesSetup: Component<Props> = (props) => {
 
       <Show when={subTab() === 'wizard'}>
         <p class="setup-method__hint">
-          Run the onboarding wizard and select <strong>Custom endpoint</strong> when prompted. Then
-          enter the following values:
+          {tr('hermes.wizardHint', {
+            endpoint: <strong>Custom endpoint</strong>,
+          })}
         </p>
         <CodeBlock code="hermes model" language="bash" />
-        <div class="setup-onboard-fields" role="list" aria-label="Configuration values">
-          <OnboardField label="API base URL" value={props.baseUrl} copyable />
+        <div class="setup-onboard-fields" role="list" aria-label={t('hermes.configurationValues')}>
+          <OnboardField label={t('hermes.apiBaseUrl')} value={props.baseUrl} copyable />
           <div class="setup-onboard-fields__row" role="listitem">
-            <span class="setup-onboard-fields__label">API Key</span>
+            <span class="setup-onboard-fields__label">{t('hermes.apiKey')}</span>
             <span class="setup-onboard-fields__value">
               <code>{wizKey()}</code>
               <Show when={hasFullKey()}>
                 <button
                   class="setup-onboard-fields__eye"
                   onClick={() => setWizKeyRevealed(!wizKeyRevealed())}
-                  aria-label={wizKeyRevealed() ? 'Hide API key' : 'Reveal API key'}
-                  title={wizKeyRevealed() ? 'Hide key' : 'Reveal key'}
+                  aria-label={
+                    wizKeyRevealed() ? t('components.hideApiKey') : t('components.revealApiKey')
+                  }
+                  title={wizKeyRevealed() ? t('components.hideKey') : t('components.revealKey')}
                 >
                   <EyeIcon open={wizKeyRevealed()} />
                 </button>
@@ -181,7 +189,7 @@ const HermesSetup: Component<Props> = (props) => {
               <CopyButton text={copyKey()} />
             </span>
           </div>
-          <OnboardField label="Model name" value="auto" copyable />
+          <OnboardField label={t('hermes.modelName')} value="auto" copyable />
         </div>
       </Show>
     </div>

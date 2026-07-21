@@ -1,5 +1,6 @@
 /* ── Auth Layout ──────────────────────────────────── */
 .auth-layout {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;

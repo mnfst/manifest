@@ -11,15 +11,21 @@ vi.mock('../../src/components/ProviderIcon.jsx', () => ({
   providerIcon: (provider: string) => <span data-provider={provider} />,
 }));
 
-vi.mock('../../src/components/AuthBadge.js', () => ({
-  authBadgeFor: (authType: string) => <span data-auth={authType} />,
-}));
+vi.mock('../../src/components/AuthBadge.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/components/AuthBadge.js')>();
+  return {
+    ...actual,
+    authBadgeFor: (authType: string) => <span data-auth={authType} />,
+  };
+});
 
 vi.mock('../../src/components/MessageDetailsSections.jsx', () => ({
   formatParamValue: (value: unknown) => JSON.stringify(value),
 }));
 
 import RequestDrawer from '../../src/components/RequestDrawer';
+import { setLocale } from '../../src/i18n/index.js';
+import { getModelDisplayName } from '../../src/services/model-display.js';
 
 const fullMessage = {
   id: 'request-1234567890',
@@ -58,7 +64,7 @@ const fullMessage = {
       error_http_status: 400,
       trace_id: 'trace-1',
       routing_tier: 'default',
-      routing_reason: 'configured',
+      routing_reason: 'direct',
       service_type: 'chat',
       session_key: 'session-1',
       description: 'first',
@@ -120,20 +126,25 @@ describe('RequestDrawer', () => {
     // to the attempts (sidebar icons + context cards), not the request title.
     expect(container.querySelector('.drawer__meta-row .trigger-badge')).toBeNull();
     // The branded badges still exist further down, on the attempt content.
-    expect(screen.getAllByText('auto-fix').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Auto-fix').length).toBeGreaterThan(0);
     // Sidebar attempt icons use the same branded squares.
     expect(container.querySelector('.attempt-item__icon .fallback-icon')).not.toBeNull();
     expect(container.querySelector('.attempt-item__icon .autofix-icon')).not.toBeNull();
     expect(screen.getByText('bad parameter')).toBeDefined();
-    expect(screen.getByText('invalid_request')).toBeDefined();
+    expect(screen.getByText('Invalid request')).toBeDefined();
+    expect(screen.queryByText('invalid_request')).toBeNull();
+    expect(screen.getByText('API Key')).toBeDefined();
+    expect(screen.getByText('Default')).toBeDefined();
+    expect(screen.getByText('Direct')).toBeDefined();
+    expect(screen.getAllByText(getModelDisplayName('gpt-4o')).length).toBeGreaterThan(0);
     expect(screen.getByText('$0.0123')).toBeDefined();
     // Auto-fix context card: role-aware copy + operations table.
     expect(container.textContent).toContain('rename: old → new');
 
-    fireEvent.click(screen.getByText('Request headers'));
+    fireEvent.click(screen.getByText('Request Headers'));
     expect(screen.getByText('alpha')).toBeDefined();
     expect(screen.getByText('zeta')).toBeDefined();
-    fireEvent.click(screen.getByText('Model params'));
+    fireEvent.click(screen.getByText('Model Parameters'));
     expect(screen.getByText('temperature')).toBeDefined();
     expect(screen.getByText('0.2')).toBeDefined();
 
@@ -167,10 +178,10 @@ describe('RequestDrawer', () => {
   });
 
   it.each([
-    [{ fallback_from_model: 'old' }, 'fallback'],
-    [{ autofix_role: 'retry' }, 'auto-fix'],
-    [{}, 'initial'],
-  ])('builds a single %s attempt when no attempt array is present', async (extra, type) => {
+    [{ fallback_from_model: 'old' }, 'fallback', 'Fallback'],
+    [{ autofix_role: 'retry' }, 'auto-fix', 'Auto-fix'],
+    [{}, 'initial', 'Initial'],
+  ])('builds a single %s attempt when no attempt array is present', async (extra, type, label) => {
     mockGetMessageDetails.mockResolvedValue({
       ...fullMessage,
       ...extra,
@@ -191,7 +202,27 @@ describe('RequestDrawer', () => {
       <RequestDrawer messageId={`single-${type}`} onClose={vi.fn()} />
     ));
     await waitFor(() => expect(container.querySelector('.attempt-item')).not.toBeNull());
-    expect(container.querySelector('.drawer-kv:nth-child(2)')?.textContent).toContain(type);
+    expect(container.querySelector('.drawer-kv:nth-child(2)')?.textContent).toContain(label);
+  });
+
+  it('updates a mounted request and its exhaustive Auto-fix outcome when locale changes', async () => {
+    mockGetMessageDetails.mockResolvedValue({ message: fullMessage });
+    render(() => <RequestDrawer messageId="request-1234567890" onClose={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByText('Request request-1234')).toBeDefined());
+    await setLocale('ru');
+    try {
+      await waitFor(() => expect(screen.getByText('Запрос request-1234')).toBeDefined());
+      expect(screen.getByText('Auto-fix: Повторная попытка успешна')).toBeDefined();
+      expect(screen.getByText('Попытки провайдера')).toBeDefined();
+      expect(screen.getByText('Сведения')).toBeDefined();
+      expect(screen.getByText('Некорректный запрос')).toBeDefined();
+      expect(screen.getByText('API-ключ')).toBeDefined();
+      expect(screen.getByText('По умолчанию')).toBeDefined();
+      expect(screen.getByText('Прямой')).toBeDefined();
+    } finally {
+      await setLocale('en');
+    }
   });
 
   it('treats a present empty attempts array as an authoritative zero-attempt request', async () => {
@@ -227,6 +258,14 @@ describe('RequestDrawer', () => {
 
     const closed = render(() => <RequestDrawer messageId={null} onClose={vi.fn()} />);
     expect(closed.container.querySelector('.drawer--open')).toBeNull();
+    expect(screen.queryByText('Loading...')).toBeNull();
+  });
+
+  it('shows a terminal error state when request details fail to load', async () => {
+    mockGetMessageDetails.mockRejectedValue(new Error('offline'));
+    render(() => <RequestDrawer messageId="failed-load" onClose={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByText('Failed to load details')).toBeDefined());
     expect(screen.queryByText('Loading...')).toBeNull();
   });
 
@@ -286,7 +325,9 @@ describe('RequestDrawer', () => {
     expect(screen.getByText('Error')).toBeDefined();
     const text = container.textContent!;
     const errorIdx = text.indexOf('Authentication Fails');
-    const consequenceIdx = text.indexOf('Recovered by fallback to gpt-4.1-nano');
+    const consequenceIdx = text.indexOf(
+      `Recovered by fallback to ${getModelDisplayName('gpt-4.1-nano')}`,
+    );
     expect(consequenceIdx).toBeGreaterThan(errorIdx);
     // Branded title: the little logotype badge, not an uppercase word.
     expect(container.querySelector('.trigger-badge--fallback .fallback-icon')).not.toBeNull();
@@ -294,7 +335,11 @@ describe('RequestDrawer', () => {
     // Attempt 2 (recovery): fallback ORIGIN card explaining where it came from.
     const attempts = container.querySelectorAll('.attempt-item');
     fireEvent.click(attempts[1]!);
-    await waitFor(() => expect(container.textContent).toContain('Fell back from deepseek-chat'));
+    await waitFor(() =>
+      expect(container.textContent).toContain(
+        `Fell back from ${getModelDisplayName('deepseek-chat')}`,
+      ),
+    );
     expect(screen.queryByText('Error')).toBeNull();
   });
 });

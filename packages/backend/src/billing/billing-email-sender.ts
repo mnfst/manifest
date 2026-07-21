@@ -6,6 +6,13 @@ import {
   SubscriptionPlanEmailProps,
 } from './emails/billing-plan-email';
 import { sendEmail } from '../notifications/services/email-providers/send-email';
+import {
+  planUsagePercentage,
+  subscriptionEmailSubject,
+  usageEmailSubject,
+} from './billing-email-copy';
+
+export { subscriptionEmailSubject, usageEmailSubject } from './billing-email-copy';
 
 export function formatPlanName(plan: string | null | undefined): string {
   const normalized = (plan ?? '').trim().toLowerCase();
@@ -34,18 +41,6 @@ export function getBillingAppUrl(explicit?: string | null): string {
   );
 }
 
-export function subscriptionEmailSubject(kind: SubscriptionPlanEmailProps['kind'], plan: string) {
-  if (kind === 'plan_changed') return `Your Manifest plan changed to ${plan}`;
-  if (kind === 'cancellation_confirmed') return `Your Manifest ${plan} cancellation is scheduled`;
-  return `Your Manifest ${plan} plan is active`;
-}
-
-export function usageEmailSubject(kind: PlanUsageEmailProps['kind']) {
-  return kind === 'requests_limit_reached'
-    ? 'Your Manifest monthly request limit has been reached'
-    : 'Your Manifest workspace has used 80% of monthly requests';
-}
-
 export async function sendSubscriptionPlanEmail(
   to: string,
   props: SubscriptionPlanEmailProps,
@@ -56,7 +51,7 @@ export async function sendSubscriptionPlanEmail(
   const text = await render(element, { plainText: true });
   return sendEmail({
     to,
-    subject: subscriptionEmailSubject(props.kind, props.planName),
+    subject: subscriptionEmailSubject(props.kind, props.planName, props.locale),
     html,
     text,
     from: `Manifest <${getBillingEmailFrom(fromEmail)}>`,
@@ -73,7 +68,11 @@ export async function sendPlanUsageEmail(
   const text = await render(element, { plainText: true });
   return sendEmail({
     to,
-    subject: usageEmailSubject(props.kind),
+    subject: usageEmailSubject(
+      props.kind,
+      planUsagePercentage(props.used, props.limit),
+      props.locale,
+    ),
     html,
     text,
     from: `Manifest <${getBillingEmailFrom(fromEmail)}>`,

@@ -1,23 +1,24 @@
 import { For } from 'solid-js';
+import { t } from '../i18n/index.js';
 
 const OverviewSkeleton = () => (
   <>
     <div class="chart-card">
       <div class="chart-card__header">
         <div class="chart-card__stat chart-card__stat--active">
-          <span class="chart-card__label">Requests</span>
+          <span class="chart-card__label">{t('overview.messages')}</span>
           <div class="chart-card__value-row">
             <div class="skeleton skeleton--text" style="width: 50px; height: 28px;" />
           </div>
         </div>
         <div class="chart-card__stat">
-          <span class="chart-card__label">Cost</span>
+          <span class="chart-card__label">{t('overview.cost')}</span>
           <div class="chart-card__value-row">
             <div class="skeleton skeleton--text" style="width: 80px; height: 28px;" />
           </div>
         </div>
         <div class="chart-card__stat">
-          <span class="chart-card__label">Token usage</span>
+          <span class="chart-card__label">{t('overview.tokenUsage')}</span>
           <div class="chart-card__value-row">
             <div class="skeleton skeleton--text" style="width: 70px; height: 28px;" />
           </div>
@@ -32,20 +33,20 @@ const OverviewSkeleton = () => (
         class="panel__title"
         style="display: flex; justify-content: space-between; align-items: center;"
       >
-        Recent Requests
+        {t('overview.recentMessages')}
         <span class="view-more-link" style="pointer-events: none; opacity: 0.4;">
-          View more
+          {t('overview.viewMore')}
         </span>
       </div>
       <table class="data-table">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Request</th>
-            <th>Cost</th>
-            <th>Model</th>
-            <th>Tokens</th>
-            <th>Status</th>
+            <th>{t('overview.date')}</th>
+            <th>{t('overview.message')}</th>
+            <th>{t('overview.cost')}</th>
+            <th>{t('overview.model')}</th>
+            <th>{t('overview.tokens')}</th>
+            <th>{t('overview.status')}</th>
           </tr>
         </thead>
         <tbody>
@@ -77,17 +78,17 @@ const OverviewSkeleton = () => (
       </table>
     </div>
     <div class="panel" style="margin-top: var(--gap-lg);">
-      <div class="panel__title">Cost by Model</div>
+      <div class="panel__title">{t('overview.costByModel')}</div>
       <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: -8px 0 12px;">
-        How much each AI model is costing you
+        {t('overview.costByModelDescription')}
       </p>
       <table class="data-table">
         <thead>
           <tr>
-            <th>Model</th>
-            <th>Tokens</th>
-            <th>% of total</th>
-            <th>Cost</th>
+            <th>{t('overview.model')}</th>
+            <th>{t('overview.tokens')}</th>
+            <th>{t('overview.share')}</th>
+            <th>{t('overview.cost')}</th>
           </tr>
         </thead>
         <tbody>

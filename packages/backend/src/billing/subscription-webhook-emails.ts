@@ -11,10 +11,12 @@ import {
   hasBillingEmailLog,
   tryInsertBillingEmailLog,
 } from './billing-email-log.service';
+import { isAppLocale } from '../common/i18n/locale';
 
 interface BillingUserRecipient {
   email: string | null;
   name: string | null;
+  locale: unknown;
 }
 
 async function resolveBillingUser(
@@ -22,7 +24,10 @@ async function resolveBillingUser(
   userId: string,
 ): Promise<BillingUserRecipient | null> {
   const result = await db.query(
-    `SELECT email, NULLIF(name, '') AS name FROM "user" WHERE id = $1`,
+    `SELECT u.email, NULLIF(u.name, '') AS name, t.locale
+       FROM "user" u
+       LEFT JOIN tenants t ON t.owner_user_id = u.id
+      WHERE u.id = $1`,
     [userId],
   );
   const rows = Array.isArray(result)
@@ -57,6 +62,7 @@ async function sendLifecycleEmail(
     if (!recipient?.email) return false;
 
     const appUrl = getBillingAppUrl();
+    const locale = isAppLocale(recipient.locale) ? recipient.locale : 'en';
     const sent = await sendSubscriptionPlanEmail(
       recipient.email,
       {
@@ -67,6 +73,7 @@ async function sendLifecycleEmail(
         periodEnd: params.periodEnd ?? null,
         appUrl,
         manageBillingUrl: `${appUrl}/account`,
+        locale,
       },
       getBillingEmailFrom(),
     );

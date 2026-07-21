@@ -1,9 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@solidjs/testing-library";
-import Pagination from "../../src/components/Pagination";
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@solidjs/testing-library';
+import Pagination from '../../src/components/Pagination';
+import { setLocale } from '../../src/i18n/index.js';
 
-describe("Pagination", () => {
-  it("renders summary text", () => {
+describe('Pagination', () => {
+  it('renders summary text', () => {
     const { container } = render(() => (
       <Pagination
         currentPage={() => 1}
@@ -14,12 +15,34 @@ describe("Pagination", () => {
         onNext={() => {}}
       />
     ));
-    expect(container.textContent).toContain("Showing 1");
-    expect(container.textContent).toContain("25");
-    expect(container.textContent).toContain("100");
+    expect(container.textContent).toContain('Showing 1');
+    expect(container.textContent).toContain('25');
+    expect(container.textContent).toContain('100');
   });
 
-  it("shows correct range on page 2", () => {
+  it('formats large summary numbers with the active locale', async () => {
+    await setLocale('ru');
+    try {
+      const { container } = render(() => (
+        <Pagination
+          currentPage={() => 1}
+          totalItems={() => 12_345}
+          pageSize={1_000}
+          hasNextPage={() => true}
+          onPrevious={() => {}}
+          onNext={() => {}}
+        />
+      ));
+
+      expect(container.textContent).toMatch(
+        /^Показаны 1–1[\u00a0\u202f]000 из 12[\u00a0\u202f]345НазадДалее$/,
+      );
+    } finally {
+      await setLocale('en');
+    }
+  });
+
+  it('shows correct range on page 2', () => {
     const { container } = render(() => (
       <Pagination
         currentPage={() => 2}
@@ -30,12 +53,12 @@ describe("Pagination", () => {
         onNext={() => {}}
       />
     ));
-    expect(container.textContent).toContain("26");
-    expect(container.textContent).toContain("50");
-    expect(container.textContent).toContain("60");
+    expect(container.textContent).toContain('26');
+    expect(container.textContent).toContain('50');
+    expect(container.textContent).toContain('60');
   });
 
-  it("clamps end to totalItems on last page", () => {
+  it('clamps end to totalItems on last page', () => {
     const { container } = render(() => (
       <Pagination
         currentPage={() => 3}
@@ -46,11 +69,11 @@ describe("Pagination", () => {
         onNext={() => {}}
       />
     ));
-    expect(container.textContent).toContain("51");
-    expect(container.textContent).toContain("60");
+    expect(container.textContent).toContain('51');
+    expect(container.textContent).toContain('60');
   });
 
-  it("Previous disabled on page 1", () => {
+  it('Previous disabled on page 1', () => {
     render(() => (
       <Pagination
         currentPage={() => 1}
@@ -61,11 +84,11 @@ describe("Pagination", () => {
         onNext={() => {}}
       />
     ));
-    const prev = screen.getByText("Previous");
-    expect(prev.hasAttribute("disabled")).toBe(true);
+    const prev = screen.getByText('Previous');
+    expect(prev.hasAttribute('disabled')).toBe(true);
   });
 
-  it("Next disabled when no next page", () => {
+  it('Next disabled when no next page', () => {
     render(() => (
       <Pagination
         currentPage={() => 2}
@@ -76,11 +99,11 @@ describe("Pagination", () => {
         onNext={() => {}}
       />
     ));
-    const next = screen.getByText("Next");
-    expect(next.hasAttribute("disabled")).toBe(true);
+    const next = screen.getByText('Next');
+    expect(next.hasAttribute('disabled')).toBe(true);
   });
 
-  it("calls onPrevious when Previous clicked", () => {
+  it('calls onPrevious when Previous clicked', () => {
     const onPrevious = vi.fn();
     render(() => (
       <Pagination
@@ -92,11 +115,11 @@ describe("Pagination", () => {
         onNext={() => {}}
       />
     ));
-    fireEvent.click(screen.getByText("Previous"));
+    fireEvent.click(screen.getByText('Previous'));
     expect(onPrevious).toHaveBeenCalledTimes(1);
   });
 
-  it("calls onNext when Next clicked", () => {
+  it('calls onNext when Next clicked', () => {
     const onNext = vi.fn();
     render(() => (
       <Pagination
@@ -108,11 +131,11 @@ describe("Pagination", () => {
         onNext={onNext}
       />
     ));
-    fireEvent.click(screen.getByText("Next"));
+    fireEvent.click(screen.getByText('Next'));
     expect(onNext).toHaveBeenCalledTimes(1);
   });
 
-  it("hidden when items fit on one page", () => {
+  it('hidden when items fit on one page', () => {
     const { container } = render(() => (
       <Pagination
         currentPage={() => 1}
@@ -123,10 +146,10 @@ describe("Pagination", () => {
         onNext={() => {}}
       />
     ));
-    expect(container.querySelector(".pagination")).toBeNull();
+    expect(container.querySelector('.pagination')).toBeNull();
   });
 
-  it("both buttons disabled when loading", () => {
+  it('both buttons disabled when loading', () => {
     render(() => (
       <Pagination
         currentPage={() => 2}
@@ -138,11 +161,11 @@ describe("Pagination", () => {
         onNext={() => {}}
       />
     ));
-    expect(screen.getByText("Previous").hasAttribute("disabled")).toBe(true);
-    expect(screen.getByText("Next").hasAttribute("disabled")).toBe(true);
+    expect(screen.getByText('Previous').hasAttribute('disabled')).toBe(true);
+    expect(screen.getByText('Next').hasAttribute('disabled')).toBe(true);
   });
 
-  it("has navigation role and aria-label", () => {
+  it('has navigation role and aria-label', () => {
     const { container } = render(() => (
       <Pagination
         currentPage={() => 1}
@@ -153,13 +176,13 @@ describe("Pagination", () => {
         onNext={() => {}}
       />
     ));
-    const nav = container.querySelector("nav");
+    const nav = container.querySelector('nav');
     expect(nav).not.toBeNull();
-    expect(nav?.getAttribute("role")).toBe("navigation");
-    expect(nav?.getAttribute("aria-label")).toBe("Pagination");
+    expect(nav?.getAttribute('role')).toBe('navigation');
+    expect(nav?.getAttribute('aria-label')).toBe('Pagination');
   });
 
-  it("buttons have descriptive aria-labels", () => {
+  it('buttons have descriptive aria-labels', () => {
     render(() => (
       <Pagination
         currentPage={() => 1}
@@ -170,13 +193,13 @@ describe("Pagination", () => {
         onNext={() => {}}
       />
     ));
-    const prev = screen.getByText("Previous");
-    const next = screen.getByText("Next");
-    expect(prev.getAttribute("aria-label")).toBe("Go to previous page");
-    expect(next.getAttribute("aria-label")).toBe("Go to next page");
+    const prev = screen.getByText('Previous');
+    const next = screen.getByText('Next');
+    expect(prev.getAttribute('aria-label')).toBe('Go to previous page');
+    expect(next.getAttribute('aria-label')).toBe('Go to next page');
   });
 
-  it("handles currentPage 0 gracefully", () => {
+  it('handles currentPage 0 gracefully', () => {
     const { container } = render(() => (
       <Pagination
         currentPage={() => 0}
@@ -188,14 +211,14 @@ describe("Pagination", () => {
       />
     ));
     // Exposes off-by-one: (0-1)*25+1 = -24, min(0*25, 100) = 0
-    expect(container.textContent).toContain("Showing -24");
-    expect(container.textContent).toContain("0");
-    expect(container.textContent).toContain("100");
+    expect(container.textContent).toContain('Showing -24');
+    expect(container.textContent).toContain('0');
+    expect(container.textContent).toContain('100');
     // Previous button must remain disabled (currentPage <= 1)
-    expect(screen.getByText("Previous").hasAttribute("disabled")).toBe(true);
+    expect(screen.getByText('Previous').hasAttribute('disabled')).toBe(true);
   });
 
-  it("handles pageSize of 0", () => {
+  it('handles pageSize of 0', () => {
     const { container } = render(() => (
       <Pagination
         currentPage={() => 1}
@@ -207,12 +230,12 @@ describe("Pagination", () => {
       />
     ));
     // Exposes nonsensical range: (1-1)*0+1 = 1, min(1*0, 100) = 0
-    expect(container.textContent).toContain("Showing 1");
-    expect(container.textContent).toContain("0");
-    expect(container.textContent).toContain("100");
+    expect(container.textContent).toContain('Showing 1');
+    expect(container.textContent).toContain('0');
+    expect(container.textContent).toContain('100');
   });
 
-  it("hides pagination when pageSize exceeds totalItems", () => {
+  it('hides pagination when pageSize exceeds totalItems', () => {
     // Boundary: when pageSize > totalItems, Show condition is false
     // so the nav is not rendered at all.
     const { container } = render(() => (
@@ -225,11 +248,11 @@ describe("Pagination", () => {
         onNext={() => {}}
       />
     ));
-    expect(container.querySelector(".pagination")).toBeNull();
-    expect(container.textContent).not.toContain("Showing");
+    expect(container.querySelector('.pagination')).toBeNull();
+    expect(container.textContent).not.toContain('Showing');
   });
 
-  it("clamps end via Math.min when on last partial page", () => {
+  it('clamps end via Math.min when on last partial page', () => {
     // Explicitly tests Math.min clamping at line 15: end = min(page*size, total)
     // Page 2 of 15-per-page with 20 total → range 16-20 (clamped from 30 to 20).
     const { container } = render(() => (
@@ -242,7 +265,7 @@ describe("Pagination", () => {
         onNext={() => {}}
       />
     ));
-    expect(container.textContent).toContain("16");
-    expect(container.textContent).toContain("20");
+    expect(container.textContent).toContain('16');
+    expect(container.textContent).toContain('20');
   });
 });

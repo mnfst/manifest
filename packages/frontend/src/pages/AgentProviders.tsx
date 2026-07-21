@@ -13,13 +13,8 @@ import { toast } from '../services/toast-store.js';
 import { customProviderColor } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import NoConnectionsPrompt from '../components/NoConnectionsPrompt.jsx';
+import { t } from '../i18n/index.js';
 import '../styles/routing.css';
-
-const AUTH_BADGES: Record<string, string> = {
-  api_key: 'API Key',
-  subscription: 'Subscription',
-  local: 'Local',
-};
 
 interface AgentProviderConnection {
   userProviderId: string;
@@ -89,6 +84,13 @@ const AgentProviders: Component = () => {
     return providerId;
   };
 
+  const authBadge = (authType: string) => {
+    if (authType === 'api_key') return t('pages.agentProviders.auth.apiKey');
+    if (authType === 'subscription') return t('pages.agentProviders.auth.subscription');
+    if (authType === 'local') return t('pages.agentProviders.auth.local');
+    return authType;
+  };
+
   const enableConnection = async (userProviderId: string) => {
     setBusy(userProviderId);
     try {
@@ -119,14 +121,16 @@ const AgentProviders: Component = () => {
         .affected_tiers;
     } catch {
       setBusy(null);
-      toast.error("Couldn't check this provider's routing impact. Please try again.");
+      toast.error(t('pages.agentProviders.impactError'));
       return;
     }
 
     if (affectedTiers.length > 0) {
       setBusy(null);
       toast.error(
-        `Can't disable ${providerName(connection.provider)}. Its models are assigned to this harness's routing. Update routing to stop using them first.`,
+        t('pages.agentProviders.disableBlocked', {
+          provider: providerName(connection.provider),
+        }),
       );
       return;
     }
@@ -144,8 +148,7 @@ const AgentProviders: Component = () => {
   return (
     <div>
       <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); margin-bottom: 16px;">
-        Enable the global provider connections this harness may use. A provider can't be turned off
-        while its models are assigned to this harness's routing. Update routing first to remove it.
+        {t('pages.agentProviders.description')}
       </p>
 
       <Show when={connections().length > 0} fallback={<NoConnectionsPrompt />}>
@@ -160,10 +163,10 @@ const AgentProviders: Component = () => {
             </colgroup>
             <thead>
               <tr>
-                <th>Provider</th>
-                <th>Type</th>
-                <th>Connection</th>
-                <th>Models</th>
+                <th>{t('pages.agentProviders.provider')}</th>
+                <th>{t('pages.agentProviders.type')}</th>
+                <th>{t('pages.agentProviders.connection')}</th>
+                <th>{t('pages.agentProviders.models')}</th>
                 <th />
               </tr>
             </thead>
@@ -206,7 +209,7 @@ const AgentProviders: Component = () => {
                       </td>
                       <td>
                         <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                          {AUTH_BADGES[connection.authType] ?? connection.authType}
+                          {authBadge(connection.authType)}
                         </span>
                       </td>
                       <td style="color: hsl(var(--muted-foreground));">{connection.label}</td>
@@ -216,9 +219,12 @@ const AgentProviders: Component = () => {
                           class="routing-switch"
                           classList={{ 'routing-switch--on': enabled() }}
                           disabled={busy() === connection.userProviderId}
-                          aria-label={`${enabled() ? 'Disable' : 'Enable'} ${name()} ${
-                            connection.label
-                          }`}
+                          aria-label={t(
+                            enabled()
+                              ? 'pages.agentProviders.disable'
+                              : 'pages.agentProviders.enable',
+                            { provider: name(), connection: connection.label },
+                          )}
                           onClick={() => void handleToggle(connection)}
                         >
                           <span class="routing-switch__track">

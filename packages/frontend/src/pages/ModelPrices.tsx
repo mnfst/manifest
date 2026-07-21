@@ -18,6 +18,7 @@ import { getModelPrices } from '../services/api.js';
 import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { createClientPagination } from '../services/pagination.js';
 import { resolveProviderId } from '../services/routing-utils.js';
+import { formatDateTime, formatNumber, t } from '../i18n/index.js';
 
 interface ModelPrice {
   model_name: string;
@@ -42,9 +43,13 @@ type SortDir = 'asc' | 'desc';
 
 function formatPrice(price: number | null): string {
   if (price == null) return '\u2014';
-  if (price < 0.01) return `$${price.toFixed(4)}`;
-  if (price < 1) return `$${price.toFixed(3)}`;
-  return `$${price.toFixed(2)}`;
+  const digits = price < 0.01 ? 4 : price < 1 ? 3 : 2;
+  return formatNumber(price, {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
 }
 
 const ModelPrices: Component = () => {
@@ -169,9 +174,8 @@ const ModelPrices: Component = () => {
   };
 
   const formatSyncTime = (ts: string | null) => {
-    if (!ts) return 'Never';
-    const d = new Date(ts);
-    return d.toLocaleString('en-US', {
+    if (!ts) return t('pages.modelPrices.never');
+    return formatDateTime(new Date(ts), {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -182,21 +186,16 @@ const ModelPrices: Component = () => {
 
   return (
     <div class="container--full">
-      <Title>Model Prices - Manifest</Title>
-      <Meta
-        name="description"
-        content="Compare per-token pricing across all major LLM providers."
-      />
+      <Title>{t('pages.modelPrices.metaTitle')}</Title>
+      <Meta name="description" content={t('pages.modelPrices.metaDescription')} />
       <div class="page-header">
         <div>
-          <h1>Model Prices</h1>
-          <span class="breadcrumb">
-            Compare per-token pricing across all supported LLM providers and models
-          </span>
+          <h1>{t('pages.modelPrices.title')}</h1>
+          <span class="breadcrumb">{t('pages.modelPrices.subtitle')}</span>
         </div>
         <Show when={data()?.lastSyncedAt}>
           <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-            Last updated: {formatSyncTime(data()!.lastSyncedAt)}
+            {t('pages.modelPrices.lastUpdated', { date: formatSyncTime(data()!.lastSyncedAt) })}
           </span>
         </Show>
       </div>
@@ -219,11 +218,11 @@ const ModelPrices: Component = () => {
             <table class="data-table" style="width: 100%;">
               <thead>
                 <tr>
-                  <th>Model</th>
-                  <th>Model ID</th>
-                  <th>Provider</th>
-                  <th>Cost to send / 1M tokens</th>
-                  <th>Cost to receive / 1M tokens</th>
+                  <th>{t('pages.modelPrices.model')}</th>
+                  <th>{t('pages.modelPrices.modelId')}</th>
+                  <th>{t('pages.modelPrices.provider')}</th>
+                  <th>{t('pages.modelPrices.inputCost')}</th>
+                  <th>{t('pages.modelPrices.outputCost')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -272,13 +271,10 @@ const ModelPrices: Component = () => {
               when={pager.totalItems() > 0}
               fallback={
                 <div class="model-filter__empty">
-                  <p class="model-filter__empty-title">No models match your filters</p>
-                  <p class="model-filter__empty-hint">
-                    Try selecting a different provider or model, or clear all filters to see every
-                    model.
-                  </p>
+                  <p class="model-filter__empty-title">{t('pages.modelPrices.emptyTitle')}</p>
+                  <p class="model-filter__empty-hint">{t('pages.modelPrices.emptyHint')}</p>
                   <button class="btn btn--outline btn--sm" onClick={clearFilters} type="button">
-                    Clear filters
+                    {t('pages.modelPrices.clearFilters')}
                   </button>
                 </div>
               }
@@ -287,27 +283,32 @@ const ModelPrices: Component = () => {
                 <thead>
                   <tr>
                     <th class="data-table__sortable" onClick={() => handleSort('display_name')}>
-                      Model{indicator('display_name')}
+                      {t('pages.modelPrices.model')}
+                      {indicator('display_name')}
                     </th>
                     <th class="data-table__sortable" onClick={() => handleSort('model_name')}>
-                      Model ID{indicator('model_name')}
+                      {t('pages.modelPrices.modelId')}
+                      {indicator('model_name')}
                     </th>
                     <th class="data-table__sortable" onClick={() => handleSort('provider')}>
-                      Provider{indicator('provider')}
+                      {t('pages.modelPrices.provider')}
+                      {indicator('provider')}
                     </th>
                     <th
                       class="data-table__sortable"
                       onClick={() => handleSort('input_price_per_million')}
                     >
-                      Cost to send / 1M tokens{indicator('input_price_per_million')}
-                      <InfoTooltip text="Tokens are small chunks of text. Send cost is what you pay for the input you give the model." />
+                      {t('pages.modelPrices.inputCost')}
+                      {indicator('input_price_per_million')}
+                      <InfoTooltip text={t('pages.modelPrices.inputCostHelp')} />
                     </th>
                     <th
                       class="data-table__sortable"
                       onClick={() => handleSort('output_price_per_million')}
                     >
-                      Cost to receive / 1M tokens{indicator('output_price_per_million')}
-                      <InfoTooltip text="Tokens are small chunks of text. Receive cost is what you pay for the output the model returns." />
+                      {t('pages.modelPrices.outputCost')}
+                      {indicator('output_price_per_million')}
+                      <InfoTooltip text={t('pages.modelPrices.outputCostHelp')} />
                     </th>
                   </tr>
                 </thead>
@@ -325,7 +326,7 @@ const ModelPrices: Component = () => {
                             {displayName()}
                             <Show when={isFree()}>
                               {' '}
-                              <span class="free-tag">Free</span>
+                              <span class="free-tag">{t('pages.modelPrices.free')}</span>
                             </Show>
                           </td>
                           <td style="font-family: var(--font-mono); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">

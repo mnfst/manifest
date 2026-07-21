@@ -9,11 +9,21 @@ import {
   type Component,
 } from 'solid-js';
 import { getMessageDetails, type AutofixDecision } from '../services/api/messages.js';
-import { AUTOFIX_STATUS_LABELS, isSuccessStatus, type AutofixStatus } from 'manifest-shared';
+import { isSuccessStatus, type AutofixStatus } from 'manifest-shared';
 import { formatParamValue } from './MessageDetailsSections.jsx';
 import { providerIcon } from './ProviderIcon.jsx';
 import { AutofixIcon, FallbackIcon } from './message-table-cells.jsx';
-import { authBadgeFor } from './AuthBadge.js';
+import { authBadgeFor, authLabel } from './AuthBadge.js';
+import {
+  formatDuration,
+  formatErrorClass,
+  formatErrorOrigin,
+  formatTime,
+} from '../services/formatters.js';
+import { autofixStatusLabel } from '../services/autofix-status-label.js';
+import { getModelDisplayName } from '../services/model-display.js';
+import { routingTierLabel } from './message-table-types.js';
+import { formatNumber, t } from '../i18n/index.js';
 import '../styles/request-drawer.css';
 
 export interface RequestDrawerProps {
@@ -58,21 +68,44 @@ interface Attempt {
   autofix_sibling?: any;
 }
 
-function fmtDate(iso: string): string {
-  const d = new Date(iso);
-  const mon = d.toLocaleString('en-US', { month: 'short' });
-  const day = d.getDate();
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  const ss = String(d.getSeconds()).padStart(2, '0');
-  return `${mon} ${day}, ${hh}:${mm}:${ss}`;
+function statusLabel(status: string): string {
+  if (isSuccessStatus(status)) return t('message.success');
+  if (status === 'auto_fixed') return t('requestDrawer.status.autoFixed');
+  if (status === 'rate_limited') return t('requestDrawer.status.rateLimited');
+  return t('message.failed');
 }
 
-function statusLabel(status: string): string {
-  if (isSuccessStatus(status)) return 'Success';
-  if (status === 'auto_fixed') return 'Auto-fixed';
-  if (status === 'rate_limited') return 'Rate limited';
-  return 'Failed';
+function attemptTypeLabel(type: Attempt['type']): string {
+  if (type === 'initial') return t('requestDrawer.type.initial');
+  if (type === 'fallback') return t('requestDrawer.type.fallback');
+  return t('requestDrawer.type.autofix');
+}
+
+function modelLabel(model: string | null | undefined): string {
+  return model ? getModelDisplayName(model) : '';
+}
+
+function drawerRoutingTierLabel(tier: string | null | undefined): string | undefined {
+  switch (tier) {
+    case 'direct':
+      return t('pages.messages.tier.direct');
+    case 'default':
+      return t('routing.tier.default');
+    case 'simple':
+      return t('routing.tier.simple');
+    case 'standard':
+      return t('routing.tier.standard');
+    case 'complex':
+      return t('routing.tier.complex');
+    case 'reasoning':
+      return t('routing.tier.reasoning');
+    case 'fallback':
+      return t('message.fallbackLabel');
+    default:
+      // Custom tier names are operator-authored display data, not translatable
+      // wire vocabulary. Preserve them exactly.
+      return routingTierLabel(tier);
+  }
 }
 
 /** The attempt's HTTP code as displayed: 200 for success, the provider's
@@ -189,6 +222,9 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
   );
 
   const m = () => {
+    // A Solid resource accessor throws its stored error when read. Inspect the
+    // error property first so the drawer can render a recoverable error state.
+    if (data.error) return null;
     const raw = data();
     if (!raw) return null;
     return (raw as any).message ?? raw;
@@ -205,13 +241,13 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
   const visibleTabs = createMemo(() => {
     const att = currentAttempt();
     const tabs: Array<{ value: AttemptTab; label: string }> = [
-      { value: 'details', label: 'Details' },
+      { value: 'details', label: t('requestDrawer.tab.details') },
     ];
     if (att?.request_headers && Object.keys(att.request_headers).length > 0) {
-      tabs.push({ value: 'headers', label: 'Request headers' });
+      tabs.push({ value: 'headers', label: t('message.requestHeaders') });
     }
     if (att?.request_params && Object.keys(att.request_params).length > 0) {
-      tabs.push({ value: 'params', label: 'Model params' });
+      tabs.push({ value: 'params', label: t('message.modelParameters') });
     }
     return tabs;
   });
@@ -250,7 +286,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
 
   const headerProvider = () => currentAttempt()?.provider ?? m()?.provider;
   const headerAuthType = () => currentAttempt()?.auth_type ?? m()?.auth_type;
-  const headerModel = () => currentAttempt()?.model ?? m()?.model ?? m()?.model_id;
+  const headerModel = () => modelLabel(currentAttempt()?.model ?? m()?.model ?? m()?.model_id);
 
   return (
     <>
@@ -261,8 +297,14 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
               {/* ── Request header (full width) ── */}
               <div class="drawer__header">
                 <div class="drawer__title-row">
-                  <h3 class="drawer__title">Request {msg().id?.slice(0, 12)}</h3>
-                  <button class="drawer__close" onClick={props.onClose} aria-label="Close">
+                  <h3 class="drawer__title">
+                    {t('requestDrawer.title', { id: msg().id?.slice(0, 12) })}
+                  </h3>
+                  <button
+                    class="drawer__close"
+                    onClick={props.onClose}
+                    aria-label={t('components.close')}
+                  >
                     <svg
                       width="16"
                       height="16"
@@ -287,7 +329,9 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                       <>
                         <span class="drawer__meta-sep">&middot;</span>
                         <span class="drawer__meta-text">
-                          Auto-fix: {AUTOFIX_STATUS_LABELS[autofixStatus()]}
+                          {t('requestDrawer.autofixOutcome', {
+                            status: autofixStatusLabel(autofixStatus()),
+                          })}
                         </span>
                       </>
                     )}
@@ -307,7 +351,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                   </Show>
                   <Show when={msg().timestamp}>
                     <span class="drawer__meta-sep">&middot;</span>
-                    <span class="drawer__meta-text">{fmtDate(msg().timestamp)}</span>
+                    <span class="drawer__meta-text">{formatTime(msg().timestamp)}</span>
                   </Show>
                 </div>
               </div>
@@ -316,10 +360,10 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
               <div class="drawer__split">
                 {/* Attempts sidebar */}
                 <div class="drawer__sidebar">
-                  <div class="drawer__sidebar-title">Attempts</div>
+                  <div class="drawer__sidebar-title">{t('requestDrawer.attempts')}</div>
                   <Show
                     when={attempts().length > 0}
-                    fallback={<div class="drawer__empty">No provider attempts</div>}
+                    fallback={<div class="drawer__empty">{t('requestDrawer.noAttempts')}</div>}
                   >
                     <For each={attempts()}>
                       {(att, idx) => (
@@ -355,7 +399,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                               </svg>
                             )}
                           </span>
-                          <span class="attempt-item__model">{att.model}</span>
+                          <span class="attempt-item__model">{modelLabel(att.model)}</span>
                           <span
                             class={`attempt-code ${isSuccessStatus(att.status) ? 'attempt-code--ok' : 'attempt-code--error'}`}
                           >
@@ -373,7 +417,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                     when={currentAttempt()}
                     fallback={
                       <div class="drawer__body" style="color: hsl(var(--muted-foreground));">
-                        Manifest rejected this request before contacting a provider.
+                        {t('requestDrawer.rejectedBeforeProvider')}
                       </div>
                     }
                   >
@@ -400,7 +444,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                           <Show when={tab() === 'details'}>
                             <div class="drawer-metadata">
                               <div class="drawer-kv">
-                                <span class="drawer-kv__key">Status</span>
+                                <span class="drawer-kv__key">{t('message.status')}</span>
                                 <span style="display: inline-flex; align-items: center; gap: 6px;">
                                   {statusLabel(att().status)}
                                   <span
@@ -411,11 +455,11 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                 </span>
                               </div>
                               <div class="drawer-kv">
-                                <span class="drawer-kv__key">Type</span>
-                                <span style="text-transform: capitalize;">{att().type}</span>
+                                <span class="drawer-kv__key">{t('message.type')}</span>
+                                <span>{attemptTypeLabel(att().type)}</span>
                               </div>
                               <div class="drawer-kv">
-                                <span class="drawer-kv__key">Provider</span>
+                                <span class="drawer-kv__key">{t('message.provider')}</span>
                                 <span style="display: inline-flex; align-items: center; gap: 6px;">
                                   {providerIcon(att().provider, 14)}
                                   {att().provider}
@@ -423,69 +467,102 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                               </div>
                               <Show when={att().auth_type}>
                                 <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Auth</span>
-                                  <span>{att().auth_type}</span>
+                                  <span class="drawer-kv__key">{t('message.auth')}</span>
+                                  <span>{authLabel(att().auth_type)}</span>
                                 </div>
                               </Show>
                               <div class="drawer-kv">
-                                <span class="drawer-kv__key">Model</span>
-                                <span>{att().model}</span>
+                                <span class="drawer-kv__key">{t('message.model')}</span>
+                                <span>{modelLabel(att().model)}</span>
                               </div>
                               <Show when={att().model_id && att().model_id !== att().model}>
                                 <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Model ID</span>
+                                  <span class="drawer-kv__key">{t('message.modelId')}</span>
                                   <span>{att().model_id}</span>
                                 </div>
                               </Show>
                               <Show when={att().trace_id}>
                                 <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Trace ID</span>
+                                  <span class="drawer-kv__key">
+                                    {t('requestDrawer.field.traceId')}
+                                  </span>
                                   <span>{att().trace_id}</span>
                                 </div>
                               </Show>
                               <Show when={att().routing_tier}>
                                 <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Routing tier</span>
-                                  <span>{att().routing_tier}</span>
+                                  <span class="drawer-kv__key">
+                                    {t('requestDrawer.field.routingTier')}
+                                  </span>
+                                  <span>{drawerRoutingTierLabel(att().routing_tier)}</span>
                                 </div>
                               </Show>
                               <Show when={att().routing_reason}>
                                 <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Reason</span>
-                                  <span>{att().routing_reason}</span>
+                                  <span class="drawer-kv__key">{t('message.reason')}</span>
+                                  <span>
+                                    {att().routing_reason === 'direct'
+                                      ? routingTierLabel('direct')
+                                      : att().routing_reason}
+                                  </span>
                                 </div>
                               </Show>
                               <Show when={att().service_type}>
                                 <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Service type</span>
+                                  <span class="drawer-kv__key">
+                                    {t('requestDrawer.field.serviceType')}
+                                  </span>
                                   <span>{att().service_type}</span>
                                 </div>
                               </Show>
                               <Show when={att().session_key}>
                                 <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Session</span>
+                                  <span class="drawer-kv__key">{t('message.session')}</span>
                                   <span>{att().session_key}</span>
                                 </div>
                               </Show>
                               <Show when={att().duration_ms != null}>
                                 <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Duration</span>
-                                  <span>{att().duration_ms}ms</span>
+                                  <span class="drawer-kv__key">
+                                    {t('requestDrawer.field.duration')}
+                                  </span>
+                                  <span>{formatDuration(att().duration_ms!)}</span>
                                 </div>
                               </Show>
                               <Show when={att().cost != null}>
                                 <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Cost</span>
-                                  <span>${att().cost?.toFixed(4)}</span>
+                                  <span class="drawer-kv__key">
+                                    {t('requestDrawer.field.cost')}
+                                  </span>
+                                  <span>
+                                    {formatNumber(att().cost!, {
+                                      style: 'currency',
+                                      currency: 'USD',
+                                      minimumFractionDigits: 4,
+                                      maximumFractionDigits: 4,
+                                    })}
+                                  </span>
                                 </div>
                               </Show>
                               <div class="drawer-kv">
-                                <span class="drawer-kv__key">Input tokens</span>
-                                <span>{att().input_tokens?.toLocaleString()}</span>
+                                <span class="drawer-kv__key">
+                                  {t('requestDrawer.field.inputTokens')}
+                                </span>
+                                <span>
+                                  {att().input_tokens == null
+                                    ? undefined
+                                    : formatNumber(att().input_tokens!)}
+                                </span>
                               </div>
                               <div class="drawer-kv">
-                                <span class="drawer-kv__key">Output tokens</span>
-                                <span>{att().output_tokens?.toLocaleString()}</span>
+                                <span class="drawer-kv__key">
+                                  {t('requestDrawer.field.outputTokens')}
+                                </span>
+                                <span>
+                                  {att().output_tokens == null
+                                    ? undefined
+                                    : formatNumber(att().output_tokens!)}
+                                </span>
                               </div>
 
                               {/* ── The attempt's story, in reading order ──────
@@ -503,13 +580,13 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                   <div style="margin-bottom: 8px;">
                                     <span class="trigger-badge trigger-badge--autofix">
                                       <AutofixIcon />
-                                      auto-fix
+                                      {t('message.autofixLabel')}
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: 8px;">
                                     {isSuccessStatus(att().status)
-                                      ? 'This Auto-fix retry recovered the request.'
-                                      : 'Manifest applied a fix and retried, but this attempt failed.'}
+                                      ? t('requestDrawer.autofix.retryRecovered')
+                                      : t('requestDrawer.autofix.retryFailed')}
                                   </div>
                                   <Show when={att().autofix_decision?.explanation?.summary}>
                                     <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
@@ -525,7 +602,9 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                         <For each={att().autofix_operations as any[]}>
                                           {(op: any) => (
                                             <tr>
-                                              <td class="error-autofix-row__meta-label">Fix</td>
+                                              <td class="error-autofix-row__meta-label">
+                                                {t('message.fix')}
+                                              </td>
                                               <td>
                                                 {op.type}
                                                 {(op.args?.from ?? op.from)
@@ -550,14 +629,16 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                   <div style="margin-bottom: 8px;">
                                     <span class="trigger-badge trigger-badge--fallback">
                                       <FallbackIcon />
-                                      fallback
+                                      {t('message.fallbackLabel')}
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                                    {isSuccessStatus(att().status)
-                                      ? 'This fallback recovered the request.'
-                                      : 'This fallback attempt failed.'}{' '}
-                                    Fell back from {att().fallback_from_model}.
+                                    {t(
+                                      isSuccessStatus(att().status)
+                                        ? 'requestDrawer.fallback.originRecovered'
+                                        : 'requestDrawer.fallback.originFailed',
+                                      { model: modelLabel(att().fallback_from_model) },
+                                    )}
                                   </div>
                                 </div>
                               </Show>
@@ -567,7 +648,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                               <Show when={att().error_message}>
                                 <div style="margin-top: 16px; padding: 12px 16px; background: hsl(var(--destructive) / 0.06); border: 1px solid hsl(var(--destructive) / 0.25); border-radius: var(--radius);">
                                   <div style="font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; color: hsl(var(--foreground));">
-                                    Error
+                                    {t('message.error')}
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--destructive)); font-family: var(--font-mono, monospace); word-break: break-word; margin-bottom: 8px;">
                                     {att().error_message}
@@ -586,20 +667,24 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                       <tbody>
                                         <Show when={att().error_origin}>
                                           <tr>
-                                            <td class="error-autofix-row__meta-label">Origin</td>
-                                            <td>{att().error_origin}</td>
+                                            <td class="error-autofix-row__meta-label">
+                                              {t('message.origin')}
+                                            </td>
+                                            <td>{formatErrorOrigin(att().error_origin)}</td>
                                           </tr>
                                         </Show>
                                         <Show when={att().error_class}>
                                           <tr>
-                                            <td class="error-autofix-row__meta-label">Type</td>
-                                            <td>{att().error_class}</td>
+                                            <td class="error-autofix-row__meta-label">
+                                              {t('message.type')}
+                                            </td>
+                                            <td>{formatErrorClass(att().error_class)}</td>
                                           </tr>
                                         </Show>
                                         <Show when={att().error_http_status}>
                                           <tr>
                                             <td class="error-autofix-row__meta-label">
-                                              HTTP status
+                                              {t('requestDrawer.field.httpStatus')}
                                             </td>
                                             <td>{att().error_http_status}</td>
                                           </tr>
@@ -617,15 +702,15 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                   <div style="margin-bottom: 8px;">
                                     <span class="trigger-badge trigger-badge--autofix">
                                       <AutofixIcon />
-                                      auto-fix
+                                      {t('message.autofixLabel')}
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: 8px;">
-                                    {`This attempt failed and was auto-fixed.${
-                                      attempts().length > att().index
-                                        ? ` Retried as attempt ${att().index + 1}.`
-                                        : ''
-                                    }`}
+                                    {attempts().length > att().index
+                                      ? t('requestDrawer.autofix.attemptFixedRetried', {
+                                          attempt: att().index + 1,
+                                        })
+                                      : t('requestDrawer.autofix.attemptFixed')}
                                   </div>
                                   <Show when={att().autofix_decision?.explanation?.summary}>
                                     <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
@@ -641,7 +726,9 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                         <For each={att().autofix_operations as any[]}>
                                           {(op: any) => (
                                             <tr>
-                                              <td class="error-autofix-row__meta-label">Fix</td>
+                                              <td class="error-autofix-row__meta-label">
+                                                {t('message.fix')}
+                                              </td>
                                               <td>
                                                 {op.type}
                                                 {(op.args?.from ?? op.from)
@@ -674,15 +761,19 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                   <div style="margin-bottom: 8px;">
                                     <span class="trigger-badge trigger-badge--fallback">
                                       <FallbackIcon />
-                                      fallback
+                                      {t('message.fallbackLabel')}
                                     </span>
                                   </div>
                                   <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                                    This attempt failed.{' '}
-                                    {isSuccessStatus(attempts()[att().index]?.status)
-                                      ? 'Recovered by fallback to'
-                                      : 'Continued with fallback to'}{' '}
-                                    {attempts()[att().index]?.model} (attempt {att().index + 1}).
+                                    {t(
+                                      isSuccessStatus(attempts()[att().index]?.status)
+                                        ? 'requestDrawer.fallback.consequenceRecovered'
+                                        : 'requestDrawer.fallback.consequenceContinued',
+                                      {
+                                        model: modelLabel(attempts()[att().index]?.model),
+                                        attempt: att().index + 1,
+                                      },
+                                    )}
                                   </div>
                                 </div>
                               </Show>
@@ -736,12 +827,21 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
           )}
         </Show>
 
-        <Show when={!m() && open()}>
+        <Show when={data.error && open()}>
+          <div
+            class="drawer__body"
+            style="display: flex; align-items: center; justify-content: center; height: 200px; color: hsl(var(--destructive));"
+          >
+            {t('message.loadFailed')}
+          </div>
+        </Show>
+
+        <Show when={!data.error && !m() && open()}>
           <div
             class="drawer__body"
             style="display: flex; align-items: center; justify-content: center; height: 200px; color: hsl(var(--muted-foreground));"
           >
-            Loading...
+            {t('components.loading')}
           </div>
         </Show>
       </div>

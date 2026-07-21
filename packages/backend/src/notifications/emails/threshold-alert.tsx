@@ -12,43 +12,216 @@ import {
   Img,
   Button,
 } from '@react-email/components';
+import { AppLocale, intlLocale } from '../../common/i18n/locale';
+
+export type ThresholdPeriod = 'hour' | 'day' | 'week' | 'month';
 
 export interface ThresholdAlertProps {
   agentName: string;
   metricType: 'tokens' | 'cost';
   threshold: number;
   actualValue: number;
-  period: string;
+  period: ThresholdPeriod;
   timestamp: string;
   agentUrl: string;
   logoUrl?: string;
   alertType?: 'soft' | 'hard';
   periodResetDate?: string;
+  locale?: AppLocale;
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = {
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  ru: [
+    'янв.',
+    'февр.',
+    'мар.',
+    'апр.',
+    'мая',
+    'июн.',
+    'июл.',
+    'авг.',
+    'сент.',
+    'окт.',
+    'нояб.',
+    'дек.',
+  ],
+} as const satisfies Record<AppLocale, readonly string[]>;
 
-function formatTimestamp(raw: string): string {
+const TIMESTAMP_FORMATTERS = {
+  en: (day: number, month: string, time: string) => `${month} ${day}, ${time}`,
+  ru: (day: number, month: string, time: string) => `${day} ${month}, ${time}`,
+} satisfies Record<AppLocale, (day: number, month: string, time: string) => string>;
+
+function formatTimestamp(raw: string, locale: AppLocale): string {
   const [datePart, timePart] = raw.split(' ');
   if (!datePart || !timePart) return raw;
   const [, month, day] = datePart.split('-');
   if (!month || !day) return raw;
   const monthIdx = parseInt(month, 10) - 1;
-  const monthName = MONTHS[monthIdx] ?? month;
+  const monthName = MONTHS[locale][monthIdx] ?? month;
   const dayNum = parseInt(day, 10);
-  return `${monthName} ${dayNum}, ${timePart}`;
+  return TIMESTAMP_FORMATTERS[locale](dayNum, monthName, timePart);
 }
 
-function formatValue(value: number, metric: string): string {
+function formatValue(value: number, metric: string, locale: AppLocale): string {
   const num = Number(value);
-  if (metric === 'cost')
-    return `$${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  return num.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  if (metric === 'cost') {
+    return num.toLocaleString(intlLocale(locale), {
+      style: 'currency',
+      currency: 'USD',
+      currencyDisplay: 'narrowSymbol',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+  return num.toLocaleString(intlLocale(locale), { maximumFractionDigits: 0 });
 }
+
+function metricLabel(metric: ThresholdAlertProps['metricType'], locale: AppLocale): string {
+  const labels = {
+    en: { tokens: 'tokens', cost: 'cost' },
+    ru: { tokens: 'токенов', cost: 'расходов' },
+  } satisfies Record<AppLocale, Record<ThresholdAlertProps['metricType'], string>>;
+  return labels[locale][metric];
+}
+
+type PeriodLabelContext = 'afterPreposition' | 'metadata';
+
+const RUSSIAN_PERIOD_LABELS = {
+  hour: { afterPreposition: 'час', metadata: 'час' },
+  day: { afterPreposition: 'день', metadata: 'день' },
+  week: { afterPreposition: 'неделю', metadata: 'неделя' },
+  month: { afterPreposition: 'месяц', metadata: 'месяц' },
+} satisfies Record<ThresholdPeriod, Record<PeriodLabelContext, string>>;
+
+function periodLabel(
+  period: ThresholdPeriod,
+  locale: AppLocale,
+  context: PeriodLabelContext,
+): string {
+  const formatters = {
+    en: (value: ThresholdPeriod) => value,
+    ru: (value: ThresholdPeriod) => RUSSIAN_PERIOD_LABELS[value][context],
+  } satisfies Record<AppLocale, (value: ThresholdPeriod) => string>;
+  return formatters[locale](period);
+}
+
+interface ThresholdCopyContext {
+  props: ThresholdAlertProps;
+  isSoft: boolean;
+  metric: string;
+  localizedPeriod: string;
+  thresholdValue: string;
+  actualValue: string;
+  resetTimestamp: string | null;
+}
+
+interface ThresholdCopy {
+  preview: string;
+  badge: string;
+  heading: string;
+  description: React.ReactNode;
+  contextMessage: string;
+  thresholdLabel: string;
+  actualUsageLabel: string;
+  periodLabel: string;
+  triggeredLabel: string;
+  cta: string;
+  footerNote: string;
+  rights: string;
+}
+
+function englishThresholdCopy({
+  props,
+  isSoft,
+  thresholdValue,
+  actualValue,
+  resetTimestamp,
+}: ThresholdCopyContext): ThresholdCopy {
+  return {
+    preview: isSoft
+      ? `${props.agentName} reached ${props.metricType} threshold (${actualValue})`
+      : `${props.agentName} has been blocked — ${props.metricType} limit reached (${actualValue} / ${thresholdValue})`,
+    badge: isSoft ? 'Warning' : 'Agent blocked',
+    heading: isSoft
+      ? `${props.agentName} reached the ${props.metricType} threshold`
+      : `${props.agentName} has been blocked`,
+    description: isSoft ? (
+      <>
+        Your agent <strong>{props.agentName}</strong> has reached the{' '}
+        <strong>{props.metricType}</strong> threshold for the current{' '}
+        <strong>{props.period}</strong> period.
+      </>
+    ) : (
+      <>
+        Your agent <strong>{props.agentName}</strong> has reached the{' '}
+        <strong>{props.metricType}</strong> limit of <strong>{thresholdValue}</strong> per{' '}
+        <strong>{props.period}</strong>. New requests are blocked to protect your budget.
+      </>
+    ),
+    contextMessage: isSoft
+      ? 'Requests are still being processed normally.'
+      : `Requests are now blocked until the next period resets${resetTimestamp ? ` on ${resetTimestamp}` : ''}.`,
+    thresholdLabel: 'Threshold',
+    actualUsageLabel: isSoft ? 'Actual usage' : 'Current usage',
+    periodLabel: 'Period',
+    triggeredLabel: 'Triggered',
+    cta: 'View Agent Dashboard →',
+    footerNote: 'You are receiving this because you set up a notification rule in Manifest.',
+    rights: 'All rights reserved.',
+  };
+}
+
+function russianThresholdCopy({
+  props,
+  isSoft,
+  metric,
+  localizedPeriod,
+  thresholdValue,
+  actualValue,
+  resetTimestamp,
+}: ThresholdCopyContext): ThresholdCopy {
+  return {
+    preview: isSoft
+      ? `${props.agentName}: достигнут порог ${metric} (${actualValue})`
+      : `${props.agentName}: интеграция заблокирована — достигнут лимит ${metric} (${actualValue} / ${thresholdValue})`,
+    badge: isSoft ? 'Предупреждение' : 'Интеграция заблокирована',
+    heading: isSoft
+      ? `${props.agentName}: достигнут порог ${metric}`
+      : `${props.agentName}: интеграция заблокирована`,
+    description: isSoft ? (
+      <>
+        Для интеграции <strong>{props.agentName}</strong> достигнут порог <strong>{metric}</strong>{' '}
+        за <strong>{localizedPeriod}</strong>.
+      </>
+    ) : (
+      <>
+        Для интеграции <strong>{props.agentName}</strong> достигнут лимит <strong>{metric}</strong>{' '}
+        <strong>{thresholdValue}</strong> за <strong>{localizedPeriod}</strong>. Новые запросы
+        заблокированы для защиты вашего бюджета.
+      </>
+    ),
+    contextMessage: isSoft
+      ? 'Запросы продолжают обрабатываться в обычном режиме.'
+      : `Запросы заблокированы до следующего периода${resetTimestamp ? ` (${resetTimestamp})` : ''}.`,
+    thresholdLabel: 'Порог',
+    actualUsageLabel: isSoft ? 'Фактическое использование' : 'Текущее использование',
+    periodLabel: 'Период',
+    triggeredLabel: 'Срабатывание',
+    cta: 'Открыть панель интеграции →',
+    footerNote: 'Вы получили это письмо, потому что настроили правило уведомлений в Manifest.',
+    rights: 'Все права защищены.',
+  };
+}
+
+const COPY = {
+  en: englishThresholdCopy,
+  ru: russianThresholdCopy,
+} satisfies Record<AppLocale, (context: ThresholdCopyContext) => ThresholdCopy>;
 
 export function ThresholdAlertEmail(props: ThresholdAlertProps) {
   const {
-    agentName,
     metricType,
     threshold,
     actualValue,
@@ -59,20 +232,32 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
     alertType = 'hard',
     periodResetDate,
   } = props;
+  const locale = props.locale ?? 'en';
+  const metric = metricLabel(metricType, locale);
+  const localizedPeriod = periodLabel(period, locale, 'afterPreposition');
+  const localizedPeriodMetadata = periodLabel(period, locale, 'metadata');
 
   const isSoft = alertType === 'soft';
+  const thresholdValue = formatValue(threshold, metricType, locale);
+  const actualValueFormatted = formatValue(actualValue, metricType, locale);
+  const resetTimestamp = periodResetDate ? formatTimestamp(periodResetDate, locale) : null;
+  const copy = COPY[locale]({
+    props,
+    isSoft,
+    metric,
+    localizedPeriod,
+    thresholdValue,
+    actualValue: actualValueFormatted,
+    resetTimestamp,
+  });
   const accentColor = isSoft ? '#ea580c' : '#dc2626';
   const accentBg = isSoft ? '#fff7ed' : '#fef2f2';
   const accentBorder = isSoft ? '#fed7aa' : '#fecaca';
 
   return (
-    <Html>
+    <Html lang={locale}>
       <Head />
-      <Preview>
-        {isSoft
-          ? `${agentName} exceeded ${metricType} threshold (${formatValue(actualValue, metricType)})`
-          : `${agentName} has been blocked — ${metricType} limit reached (${formatValue(actualValue, metricType)} / ${formatValue(threshold, metricType)})`}
-      </Preview>
+      <Preview>{copy.preview}</Preview>
       <Body style={body}>
         <Container style={container}>
           {/* Logo */}
@@ -85,72 +270,54 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
             {/* Alert badge */}
             <Section style={alertBadgeContainer}>
               <Text style={{ ...alertBadge, color: accentColor, backgroundColor: accentBg }}>
-                {isSoft ? 'Warning' : 'Agent blocked'}
+                {copy.badge}
               </Text>
             </Section>
 
-            <Text style={heading}>
-              {isSoft
-                ? `${agentName} exceeded the ${metricType} limit`
-                : `${agentName} has been blocked`}
-            </Text>
-            <Text style={paragraph}>
-              {isSoft ? (
-                <>
-                  Your agent <strong>{agentName}</strong> has exceeded the{' '}
-                  <strong>{metricType}</strong> threshold for the current <strong>{period}</strong>{' '}
-                  period.
-                </>
-              ) : (
-                <>
-                  Your agent <strong>{agentName}</strong> has reached the{' '}
-                  <strong>{metricType}</strong> limit of{' '}
-                  <strong>{formatValue(threshold, metricType)}</strong> per{' '}
-                  <strong>{period}</strong>. New requests are blocked to protect your budget.
-                </>
-              )}
-            </Text>
+            <Text style={heading}>{copy.heading}</Text>
+            <Text style={paragraph}>{copy.description}</Text>
 
             {/* Context message */}
             {isSoft ? (
-              <Text style={paragraph}>Requests are still being processed normally.</Text>
+              <Text style={paragraph}>{copy.contextMessage}</Text>
             ) : (
               <Section
                 style={{ ...hardLimitBox, backgroundColor: accentBg, borderColor: accentBorder }}
               >
-                <Text style={{ ...hardLimitText, color: accentColor }}>
-                  Requests are now blocked until the next period resets
-                  {periodResetDate ? ` on ${formatTimestamp(periodResetDate)}` : ''}.
-                </Text>
+                <Text style={{ ...hardLimitText, color: accentColor }}>{copy.contextMessage}</Text>
               </Section>
             )}
 
             {/* Stats row */}
             <Section style={statsRow}>
               <Section style={statBox}>
-                <Text style={statLabel}>Threshold</Text>
-                <Text style={statValue}>{formatValue(threshold, metricType)}</Text>
+                <Text style={statLabel}>{copy.thresholdLabel}</Text>
+                <Text style={statValue}>{thresholdValue}</Text>
               </Section>
               <Section
                 style={{ ...statBoxAlert, backgroundColor: accentBg, borderColor: accentBorder }}
               >
-                <Text style={statLabel}>{isSoft ? 'Actual usage' : 'Current usage'}</Text>
+                <Text style={statLabel}>{copy.actualUsageLabel}</Text>
                 <Text style={{ ...statValueAlert, color: accentColor }}>
-                  {formatValue(actualValue, metricType)}
+                  {actualValueFormatted}
                 </Text>
               </Section>
             </Section>
 
             {/* Meta info */}
             <Section style={metaRow}>
-              <Text style={metaText}>Period: {period}</Text>
-              <Text style={metaText}>Triggered: {formatTimestamp(timestamp)}</Text>
+              <Text style={metaText}>
+                {copy.periodLabel}: {localizedPeriodMetadata}
+              </Text>
+              <Text style={metaText}>
+                {copy.triggeredLabel}: {formatTimestamp(timestamp, locale)}
+              </Text>
             </Section>
 
             {/* CTA Button */}
             <Section style={ctaContainer}>
               <Button style={ctaButton} href={agentUrl}>
-                View Agent Dashboard →
+                {copy.cta}
               </Button>
             </Section>
           </Section>
@@ -158,11 +325,9 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
           {/* Footer */}
           <Hr style={divider} />
           <Section style={footer}>
-            <Text style={footerNote}>
-              You are receiving this because you set up a notification rule in Manifest.
-            </Text>
+            <Text style={footerNote}>{copy.footerNote}</Text>
             <Text style={footerMuted}>
-              © 2026 MNFST Inc. All rights reserved.{' '}
+              © 2026 MNFST Inc. {copy.rights}{' '}
               <Link href="https://manifest.build" style={footerLink}>
                 manifest.build
               </Link>

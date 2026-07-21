@@ -8,11 +8,15 @@ import {
 } from '../services/api.js';
 import { inferProviderName } from '../services/routing-utils.js';
 import { getModelDisplayName } from '../services/model-display.js';
-import { AUTOFIX_STATUS_LABELS, manifestErrorDocsUrl, isSuccessStatus } from 'manifest-shared';
+import { manifestErrorDocsUrl, isSuccessStatus } from 'manifest-shared';
 import { formatErrorClass, formatErrorOrigin } from '../services/formatters.js';
 import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
+import { routingDisplayLabel } from '../services/routing-display-label.js';
+import { autofixStatusLabel } from '../services/autofix-status-label.js';
+import { authLabel } from './AuthBadge.js';
 import { ModelParamsSection, RequestHeadersSection } from './MessageDetailsSections.jsx';
 import { routingTierLabel } from './message-table-types.js';
+import { formatNumber as formatLocalizedNumber, locale, t } from '../i18n/index.js';
 
 export interface MessageDetailsProps {
   messageId: string;
@@ -65,10 +69,10 @@ function MiscategorizeControl(props: {
       class="msg-detail__miscat-btn"
       onClick={toggle}
       disabled={busy()}
-      title="Flag this message's routing category as wrong. Repeated flags reduce this category's routing score for this harness."
+      title={t('message.miscategorizeTitle')}
       aria-pressed={flagged()}
     >
-      {flagged() ? 'Flagged as miscategorized (undo)' : 'Wrong category?'}
+      {flagged() ? t('message.flagged') : t('message.wrongCategory')}
     </button>
   );
 }
@@ -79,27 +83,27 @@ function MiscategorizeControl(props: {
 function describeOperation(op: AutofixOperation): string {
   switch (op.type) {
     case 'drop_param':
-      return op.from
-        ? `Removed unsupported parameter "${op.from}"`
-        : 'Removed an unsupported parameter';
+      return op.from ? t('message.op.dropNamed', { name: op.from }) : t('message.op.drop');
     case 'rename_param':
-      return op.from && op.to ? `Renamed "${op.from}" to "${op.to}"` : 'Renamed a parameter';
+      return op.from && op.to
+        ? t('message.op.renameNamed', { from: op.from, to: op.to })
+        : t('message.op.rename');
     case 'clamp_param':
       return op.from && op.to
-        ? `Adjusted ${op.from} from ${op.from} to ${op.to}`
-        : 'Adjusted a value to fit the allowed range';
+        ? t('message.op.clampNamed', { name: op.from, from: op.from, to: op.to })
+        : t('message.op.clamp');
     case 'set_param':
-      return op.from && op.to ? `Set "${op.from}" to ${op.to}` : 'Set a required parameter value';
+      return op.from && op.to
+        ? t('message.op.setNamed', { name: op.from, value: op.to })
+        : t('message.op.set');
     case 'remap_model':
       return op.from && op.to
-        ? `Switched from "${op.from}" to "${op.to}"`
-        : 'Replaced the model with a supported one';
+        ? t('message.op.remapNamed', { from: op.from, to: op.to })
+        : t('message.op.remap');
     case 'remove_unsupported_schema_keywords':
-      return 'Cleaned unsupported JSON Schema keywords from tool definitions';
+      return t('message.op.schema');
     case 'remove_unsupported_message_fields':
-      return op.from
-        ? `Removed unsupported field "${op.from}" from messages`
-        : 'Removed unsupported fields from messages';
+      return op.from ? t('message.op.fieldsNamed', { name: op.from }) : t('message.op.fields');
     default:
       return op.from && op.to ? `${op.type}: ${op.from} → ${op.to}` : op.type;
   }
@@ -127,23 +131,22 @@ export function AutofixSection(props: {
   onOpenMessage?: (id: string) => void;
 }): JSX.Element {
   const isOriginal = () => props.role === 'original';
-  // Prefer Phoenix's own explanation (authoritative, built from the real edit) over
-  // our generic phrase and locally re-derived operation prose.
+  // Phoenix explanations are currently English-only. Preserve their richer
+  // detail in English, but never leak that prose into another locale.
   const explanation = () => props.phoenix?.explanation ?? null;
   const phrase = () => {
-    const summary = explanation()?.summary;
+    const summary = locale() === 'en' ? explanation()?.summary : null;
     if (summary) return summary;
-    if (!isOriginal())
-      return 'Manifest caught an error, repaired the request, and retried it successfully.';
-    return props.sibling
-      ? 'This request failed. Manifest repaired it automatically and retried.'
-      : 'This request failed. Auto-fix tried but could not find a repair.';
+    if (!isOriginal()) return t('message.autofixSuccess');
+    return props.sibling ? t('message.autofixRetried') : t('message.autofixNoRepair');
   };
-  // One row per edit: Phoenix's per-op detail when present, else our local fallback.
+  // One row per edit: Phoenix's per-op detail in English, otherwise derive
+  // locale-owned prose from the structured operation whenever possible.
   const fixRows = (): Array<{ type: string; detail: string }> => {
     const ex = explanation();
-    if (ex && ex.operations.length > 0) return ex.operations;
-    return (props.operations ?? []).map((op) => ({ type: op.type, detail: describeOperation(op) }));
+    if (locale() === 'en' && ex && ex.operations.length > 0) return ex.operations;
+    const operations = props.operations ?? ex?.operations.map(({ type }) => ({ type })) ?? [];
+    return operations.map((op) => ({ type: op.type, detail: describeOperation(op) }));
   };
 
   return (
@@ -162,7 +165,7 @@ export function AutofixSection(props: {
               <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
             </svg>
           </span>
-          <span class="autofix-card__title">auto-fix</span>
+          <span class="autofix-card__title">{t('message.autofixLabel')}</span>
         </div>
 
         <p class="autofix-card__phrase">{phrase()}</p>
@@ -173,7 +176,7 @@ export function AutofixSection(props: {
               <For each={fixRows()}>
                 {(op) => (
                   <tr>
-                    <td class="error-autofix-row__meta-label">Fix</td>
+                    <td class="error-autofix-row__meta-label">{t('message.fix')}</td>
                     <td class="error-autofix-row__meta-value">
                       <strong>{op.type}</strong>
                       <span class="error-autofix-row__meta-hint">{op.detail}</span>
@@ -193,13 +196,15 @@ export function AutofixSection(props: {
         >
           <div class="autofix-card__ids">
             <Show when={props.phoenix!.issueId}>
-              <span>Issue {props.phoenix!.issueId!.slice(0, 8)}</span>
+              <span>{t('message.issue', { id: props.phoenix!.issueId!.slice(0, 8) })}</span>
             </Show>
             <Show when={props.phoenix!.patchId}>
-              <span>Patch {props.phoenix!.patchId!.slice(0, 8)}</span>
+              <span>{t('message.patch', { id: props.phoenix!.patchId!.slice(0, 8) })}</span>
             </Show>
             <Show when={props.phoenix!.healAttemptId}>
-              <span>Heal-attempt {props.phoenix!.healAttemptId!.slice(0, 8)}</span>
+              <span>
+                {t('message.healAttempt', { id: props.phoenix!.healAttemptId!.slice(0, 8) })}
+              </span>
             </Show>
           </div>
         </Show>
@@ -228,10 +233,10 @@ export function AutofixSection(props: {
                 >
                   <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
                 </svg>
-                View Auto-fix retry
+                {t('message.viewRetry')}
               </>
             ) : (
-              <>← View original request</>
+              <>{t('message.viewOriginal')}</>
             )}
           </button>
         </Show>
@@ -248,11 +253,11 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
       <Show when={data.loading && !data.error}>
         <div class="msg-detail__loader">
           <div class="msg-detail__spinner" />
-          <span>Loading details...</span>
+          <span>{t('message.loadingDetails')}</span>
         </div>
       </Show>
       <Show when={data.error}>
-        <div class="msg-detail__error">Failed to load details</div>
+        <div class="msg-detail__error">{t('message.loadFailed')}</div>
       </Show>
       <Show when={!data.error && data() && !data.loading}>
         {(() => {
@@ -264,8 +269,8 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
           // accepts both the legacy `ok` and the canonical `success`.
           const displayStatus = () => {
             if (isSuccessStatus(m.status))
-              return { label: 'Success', cls: 'status-badge status-badge--ok' };
-            return { label: 'Failed', cls: 'status-badge status-badge--error' };
+              return { label: t('message.success'), cls: 'status-badge status-badge--ok' };
+            return { label: t('message.failed'), cls: 'status-badge status-badge--error' };
           };
           const isAutofixOriginal = m.autofix_applied && m.autofix_role === 'original';
           const isAutofixRetry = m.autofix_applied && m.autofix_role === 'retry';
@@ -283,29 +288,38 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
             <>
               {/* ── Message section — always first ─────────────────── */}
               <div class="msg-detail__section">
-                <div class="msg-detail__section-title">Request</div>
+                <div class="msg-detail__section-title">{t('message.request')}</div>
                 <div class="msg-detail__meta">
                   <span class="msg-detail__meta-item">
-                    <span class="msg-detail__meta-label">Status</span>
+                    <span class="msg-detail__meta-label">{t('message.status')}</span>
                     <span class={displayStatus().cls}>{displayStatus().label}</span>
                   </span>
                   <MetaField
-                    label="Auto-fix"
-                    value={m.autofix_status ? AUTOFIX_STATUS_LABELS[m.autofix_status] : null}
+                    label={t('message.autofixLabel')}
+                    value={m.autofix_status ? autofixStatusLabel(m.autofix_status) : null}
                   />
                   <MetaField label="ID" value={m.id} />
-                  <MetaField label="Provider" value={provider} />
-                  <MetaField label="Auth" value={m.auth_type} />
-                  <MetaField label="API Key" value={m.provider_key_label ?? 'Default'} />
-                  <MetaField label="Model" value={m.model ? getModelDisplayName(m.model) : null} />
-                  <MetaField label="Model ID" value={m.model} />
-                  <MetaField label="Trace" value={m.trace_id?.slice(0, 16)} />
+                  <MetaField label={t('message.provider')} value={provider} />
                   <MetaField
-                    label="Routing"
+                    label={t('message.auth')}
+                    value={m.auth_type ? authLabel(m.auth_type) : null}
+                  />
+                  <MetaField
+                    label={t('message.apiKey')}
+                    value={m.provider_key_label ?? t('message.default')}
+                  />
+                  <MetaField
+                    label={t('message.model')}
+                    value={m.model ? getModelDisplayName(m.model) : null}
+                  />
+                  <MetaField label={t('message.modelId')} value={m.model} />
+                  <MetaField label={t('message.trace')} value={m.trace_id?.slice(0, 16)} />
+                  <MetaField
+                    label={t('message.routing')}
                     value={
                       m.header_tier_name ??
                       (m.specificity_category
-                        ? m.specificity_category.replace(/_/g, ' ')
+                        ? routingDisplayLabel(m.specificity_category)
                         : routingTierLabel(m.routing_tier))
                     }
                   />
@@ -316,15 +330,19 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                     />
                   </Show>
                   <MetaField
-                    label="Reason"
-                    value={m.routing_reason === 'direct' ? 'DIRECT' : m.routing_reason}
+                    label={t('message.reason')}
+                    value={
+                      m.routing_reason === 'direct'
+                        ? routingTierLabel(m.routing_reason)
+                        : m.routing_reason
+                    }
                   />
-                  <MetaField label="Service" value={m.service_type} />
-                  <MetaField label="Session" value={m.session_key} />
-                  <MetaField label="Description" value={m.description} />
-                  <MetaField label="App" value={m.caller_attribution?.appName} />
+                  <MetaField label={t('message.service')} value={m.service_type} />
+                  <MetaField label={t('message.session')} value={m.session_key} />
+                  <MetaField label={t('message.description')} value={m.description} />
+                  <MetaField label={t('message.app')} value={m.caller_attribution?.appName} />
                   <MetaField label="SDK" value={m.caller_attribution?.sdk} />
-                  <MetaField label="Skill" value={m.skill_name} />
+                  <MetaField label={t('message.skill')} value={m.skill_name} />
                 </div>
               </div>
 
@@ -340,7 +358,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                           : 'error-autofix-row__error error-autofix-row__error--full'
                       }
                     >
-                      <div class="error-autofix-row__title">Error</div>
+                      <div class="error-autofix-row__title">{t('message.error')}</div>
                       <div class="msg-detail__error-inline">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -360,10 +378,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                         </svg>
                         <span>
                           {m.error_message}
-                          <Show when={isPlanLimitBlock()}>
-                            {' '}
-                            Upgrade to Pro for unlimited requests.
-                          </Show>
+                          <Show when={isPlanLimitBlock()}> {t('message.upgradeUnlimited')}</Show>
                         </span>
                         <Show when={isPlanLimitBlock()}>
                           <A
@@ -371,7 +386,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                             class="btn btn--primary btn--sm"
                             style="text-decoration: none; flex-shrink: 0; margin-left: 8px;"
                           >
-                            Upgrade plan
+                            {t('message.upgradePlan')}
                           </A>
                         </Show>
                       </div>
@@ -379,7 +394,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                         <tbody>
                           <Show when={m.error_code}>
                             <tr>
-                              <td class="error-autofix-row__meta-label">Code</td>
+                              <td class="error-autofix-row__meta-label">{t('message.code')}</td>
                               <td class="error-autofix-row__meta-value">
                                 <a
                                   class="msg-detail__error-code"
@@ -390,53 +405,43 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                                   {m.error_code}
                                 </a>
                                 <span class="error-autofix-row__meta-hint">
-                                  Read the docs for this error.
+                                  {t('message.readErrorDocs')}
                                 </span>
                               </td>
                             </tr>
                           </Show>
                           <Show when={formatErrorOrigin(m.error_origin)}>
                             <tr>
-                              <td class="error-autofix-row__meta-label">Origin</td>
+                              <td class="error-autofix-row__meta-label">{t('message.origin')}</td>
                               <td class="error-autofix-row__meta-value">
                                 <strong>{formatErrorOrigin(m.error_origin)}</strong>
                                 <span class="error-autofix-row__meta-hint">
-                                  {m.error_origin === 'provider' &&
-                                    'The LLM provider rejected the request.'}
-                                  {m.error_origin === 'transport' &&
-                                    'Network or connection failure.'}
-                                  {m.error_origin === 'config' && 'Manifest configuration issue.'}
-                                  {m.error_origin === 'policy' &&
-                                    'A Manifest usage limit was reached.'}
-                                  {m.error_origin === 'internal' && 'An unexpected Manifest error.'}
-                                  {m.error_origin === 'request' &&
-                                    'Your agent sent a request Manifest could not route. No provider was called.'}
+                                  {m.error_origin === 'provider' && t('message.origin.provider')}
+                                  {m.error_origin === 'transport' && t('message.origin.transport')}
+                                  {m.error_origin === 'config' && t('message.origin.config')}
+                                  {m.error_origin === 'policy' && t('message.origin.policy')}
+                                  {m.error_origin === 'internal' && t('message.origin.internal')}
+                                  {m.error_origin === 'request' && t('message.origin.request')}
                                 </span>
                               </td>
                             </tr>
                           </Show>
                           <Show when={formatErrorClass(m.error_class)}>
                             <tr>
-                              <td class="error-autofix-row__meta-label">Type</td>
+                              <td class="error-autofix-row__meta-label">{t('message.type')}</td>
                               <td class="error-autofix-row__meta-value">
                                 <strong>{formatErrorClass(m.error_class)}</strong>
                                 <span class="error-autofix-row__meta-hint">
                                   {m.error_class === 'invalid_request' &&
-                                    'The request is malformed. Wrong parameter, unsupported value, or missing field.'}
-                                  {m.error_class === 'rate_limit' &&
-                                    'Too many requests. The provider is throttling.'}
-                                  {m.error_class === 'auth' &&
-                                    'Authentication failed. Invalid or expired API key.'}
-                                  {m.error_class === 'billing' &&
-                                    'The provider rejected the request for billing or quota reasons.'}
-                                  {m.error_class === 'timeout' &&
-                                    'The request timed out before the provider responded.'}
-                                  {m.error_class === 'server_error' &&
-                                    'The provider experienced an internal error.'}
-                                  {m.error_class === 'no_provider_key' &&
-                                    'No API key is configured for this provider.'}
+                                    t('message.class.invalidRequest')}
+                                  {m.error_class === 'rate_limit' && t('message.class.rateLimit')}
+                                  {m.error_class === 'auth' && t('message.class.auth')}
+                                  {m.error_class === 'billing' && t('message.class.billing')}
+                                  {m.error_class === 'timeout' && t('message.class.timeout')}
+                                  {m.error_class === 'server_error' && t('message.class.server')}
+                                  {m.error_class === 'no_provider_key' && t('message.class.noKey')}
                                   {m.error_class === 'plan_request_limit_exceeded' &&
-                                    'The Manifest Free plan monthly request quota was reached.'}
+                                    t('message.class.planLimit')}
                                 </span>
                               </td>
                             </tr>
@@ -488,10 +493,10 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                             <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
                           </svg>
                         </span>
-                        <span class="autofix-card__title">auto-fix</span>
+                        <span class="autofix-card__title">{t('message.autofixLabel')}</span>
                       </div>
                       <p class="error-autofix-row__autofix-text" style="font-size: 12px;">
-                        This request was triggered by an auto-fix.
+                        {t('message.autofixTriggered')}
                       </p>
                     </div>
                   );
@@ -511,17 +516,15 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                             <path d="m7.84 13.75 1.33-1.49-2.53-2.25h8.37c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H6.63l2.53-2.25-1.33-1.49-5.34 4.75 5.34 4.75Z" />
                           </svg>
                         </span>
-                        <span class="autofix-card__title">fallback</span>
+                        <span class="autofix-card__title">{routingDisplayLabel('fallback')}</span>
                       </div>
                       <p class="error-autofix-row__autofix-text" style="font-size: 12px;">
-                        <strong>Attempt #{((m.fallback_index as number) ?? 0) + 1}:</strong> this
-                        request was triggered by a fallback from{' '}
-                        <strong>
-                          {m.fallback_from_model
+                        {t('message.fallbackAttempt', {
+                          attempt: ((m.fallback_index as number) ?? 0) + 1,
+                          model: m.fallback_from_model
                             ? getModelDisplayName(m.fallback_from_model)
-                            : 'unknown'}
-                        </strong>
-                        .
+                            : t('message.unknown'),
+                        })}
                       </p>
                     </div>
                   );
@@ -541,11 +544,9 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                             <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
                           </svg>
                         </span>
-                        <span class="autofix-card__title">auto-fix</span>
+                        <span class="autofix-card__title">{t('message.autofixLabel')}</span>
                       </div>
-                      <p class="error-autofix-row__autofix-text">
-                        Auto-fix was attempted after this error.
-                      </p>
+                      <p class="error-autofix-row__autofix-text">{t('message.autofixAttempted')}</p>
                       <Show when={m.autofix_sibling && props.onOpenMessage}>
                         <button
                           type="button"
@@ -563,7 +564,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                           >
                             <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
                           </svg>
-                          View Auto-fix retry
+                          {t('message.viewRetry')}
                         </button>
                       </Show>
                     </div>
@@ -584,10 +585,10 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                             <path d="m7.84 13.75 1.33-1.49-2.53-2.25h8.37c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H6.63l2.53-2.25-1.33-1.49-5.34 4.75 5.34 4.75Z" />
                           </svg>
                         </span>
-                        <span class="autofix-card__title">fallback</span>
+                        <span class="autofix-card__title">{routingDisplayLabel('fallback')}</span>
                       </div>
                       <p class="error-autofix-row__autofix-text">
-                        A fallback was triggered after this error.
+                        {t('message.fallbackTriggered')}
                       </p>
                     </div>
                   );
@@ -704,17 +705,17 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                                 <path d="m7.84 13.75 1.33-1.49-2.53-2.25h8.37c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H6.63l2.53-2.25-1.33-1.49-5.34 4.75 5.34 4.75Z" />
                               </svg>
                             </span>
-                            <span class="autofix-card__title">fallback</span>
+                            <span class="autofix-card__title">
+                              {routingDisplayLabel('fallback')}
+                            </span>
                           </div>
                           <p class="autofix-card__phrase" style="font-size: 12px;">
-                            <strong>Attempt #{((m.fallback_index as number) ?? 0) + 1}:</strong>{' '}
-                            this request was triggered by a fallback from{' '}
-                            <strong>
-                              {m.fallback_from_model
+                            {t('message.fallbackAttempt', {
+                              attempt: ((m.fallback_index as number) ?? 0) + 1,
+                              model: m.fallback_from_model
                                 ? getModelDisplayName(m.fallback_from_model)
-                                : 'unknown'}
-                            </strong>
-                            .
+                                : t('message.unknown'),
+                            })}
                           </p>
                         </div>
                       </div>
@@ -727,15 +728,15 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
 
               <Show when={(m.attempts?.length ?? 0) > 0}>
                 <div class="message-details__section">
-                  <h4>Provider attempts</h4>
-                  <table class="details-table" aria-label="Provider attempts">
+                  <h4>{t('message.providerAttempts')}</h4>
+                  <table class="details-table" aria-label={t('message.providerAttempts')}>
                     <thead>
                       <tr>
                         <th>#</th>
-                        <th>Provider</th>
-                        <th>Model</th>
-                        <th>Status</th>
-                        <th>Cost</th>
+                        <th>{t('message.provider')}</th>
+                        <th>{t('message.model')}</th>
+                        <th>{t('message.status')}</th>
+                        <th>{t('message.cost')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -743,13 +744,22 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                         {(attempt, index) => (
                           <tr>
                             <td>{index() + 1}</td>
-                            <td>{attempt.provider ?? 'Unknown'}</td>
+                            <td>{attempt.provider ?? t('message.unknown')}</td>
                             <td>{attempt.model ? getModelDisplayName(attempt.model) : '—'}</td>
-                            <td>{attempt.status}</td>
+                            <td>
+                              {isSuccessStatus(attempt.status)
+                                ? t('message.success')
+                                : t('message.failed')}
+                            </td>
                             <td>
                               {attempt.cost_usd == null
                                 ? '—'
-                                : `$${Number(attempt.cost_usd).toFixed(6)}`}
+                                : formatLocalizedNumber(Number(attempt.cost_usd), {
+                                    style: 'currency',
+                                    currency: 'USD',
+                                    minimumFractionDigits: 6,
+                                    maximumFractionDigits: 6,
+                                  })}
                             </td>
                           </tr>
                         )}

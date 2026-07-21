@@ -1,5 +1,6 @@
 import { createSignal, For, type Accessor, type Component } from 'solid-js';
 import type { ResponseMode } from '../services/api.js';
+import { t } from '../i18n/index.js';
 
 interface Props {
   responseMode: Accessor<ResponseMode>;
@@ -7,11 +8,6 @@ interface Props {
   disabled?: Accessor<boolean>;
   compact?: boolean;
 }
-
-const RESPONSE_OPTIONS: Array<{ value: ResponseMode; label: string }> = [
-  { value: 'buffered', label: 'Buffered' },
-  { value: 'stream', label: 'Stream' },
-];
 
 const OutputControls: Component<Props> = (props) => {
   const [saving, setSaving] = createSignal<ResponseMode | null>(null);
@@ -30,9 +26,14 @@ const OutputControls: Component<Props> = (props) => {
   return (
     <div class="output-controls" classList={{ 'output-controls--compact': !!props.compact }}>
       <div class="output-controls__field">
-        <span class="output-controls__label">Response mode</span>
-        <div class="output-controls__segments" role="group" aria-label="Response mode">
-          <For each={RESPONSE_OPTIONS}>
+        <span class="output-controls__label">{t('responseMode.title')}</span>
+        <div class="output-controls__segments" role="group" aria-label={t('responseMode.title')}>
+          <For
+            each={[
+              { value: 'buffered' as ResponseMode, label: t('responseMode.buffered') },
+              { value: 'stream' as ResponseMode, label: t('responseMode.stream') },
+            ]}
+          >
             {(option) => (
               <button
                 type="button"

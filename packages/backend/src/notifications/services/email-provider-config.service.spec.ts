@@ -6,6 +6,9 @@ jest.mock('@react-email/render', () => ({
 
 jest.mock('../emails/test-email', () => ({
   TestEmail: jest.fn(() => 'mock-test-email'),
+  testEmailSubject: jest.fn((locale = 'en') =>
+    locale === 'ru' ? 'Manifest — тестовое письмо' : 'Manifest — Test Email',
+  ),
 }));
 
 jest.mock('./email-providers/resolve-provider', () => ({
@@ -26,6 +29,7 @@ import { ConfigService } from '@nestjs/config';
 import { EmailProviderConfigService } from './email-provider-config.service';
 import { createProvider } from './email-providers/resolve-provider';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { testEmailSubject } from '../emails/test-email';
 
 const mockConfigService = {
   get: (key: string, fallback?: string) =>
@@ -572,6 +576,27 @@ describe('EmailProviderConfigService', () => {
         expect.objectContaining({
           from: 'Manifest <noreply@mg.example.com>',
         }),
+      );
+    });
+
+    it('uses the subject from the selected test-email locale catalogue', async () => {
+      const mockSend = jest.fn().mockResolvedValue(true);
+      (createProvider as jest.Mock).mockReturnValue({ send: mockSend });
+      const service = new EmailProviderConfigService(
+        createMockDataSource(),
+        mockConfigService,
+        createMockTenantCache(),
+      );
+
+      await service.testConfig(
+        { provider: 'resend', apiKey: 're_testkey12345678' },
+        'test@test.com',
+        'ru',
+      );
+
+      expect(testEmailSubject).toHaveBeenCalledWith('ru');
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ subject: 'Manifest — тестовое письмо' }),
       );
     });
   });

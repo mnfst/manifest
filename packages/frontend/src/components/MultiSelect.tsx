@@ -1,4 +1,5 @@
 import { createSignal, For, Show, onCleanup, type Component, type JSX } from 'solid-js';
+import { tp } from '../i18n/index.js';
 
 export interface MultiSelectOption {
   label: string;
@@ -41,7 +42,7 @@ const MultiSelect: Component<MultiSelectProps> = (props) => {
       const opt = props.options.find((o) => o.value === props.values[0]);
       return opt?.label ?? props.placeholder;
     }
-    return `${props.values.length} selected`;
+    return tp('multiSelect.selected', props.values.length);
   };
 
   const handleClickOutside = (e: MouseEvent) => {

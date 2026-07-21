@@ -10,6 +10,39 @@ function renderEmail(props: Parameters<typeof ThresholdAlertEmail>[0]): string {
 }
 
 describe('ThresholdAlertEmail', () => {
+  it('describes a soft English alert as a threshold warning, not a hard limit', () => {
+    const html = renderEmail({
+      agentName: 'helper',
+      metricType: 'tokens',
+      threshold: 100,
+      actualValue: 100,
+      period: 'day',
+      timestamp: '2026-04-23 12:00',
+      agentUrl: 'https://app.manifest.build/agents/helper',
+      alertType: 'soft',
+    });
+
+    expect(html).toContain('helper reached the tokens threshold');
+    expect(html).not.toContain('helper reached the tokens limit');
+  });
+
+  it('describes a soft Russian alert as a threshold warning, not a hard limit', () => {
+    const html = renderEmail({
+      agentName: 'помощник',
+      metricType: 'tokens',
+      threshold: 100,
+      actualValue: 100,
+      period: 'day',
+      timestamp: '2026-04-23 12:00',
+      agentUrl: 'https://app.manifest.build/agents/helper',
+      alertType: 'soft',
+      locale: 'ru',
+    });
+
+    expect(html).toContain('помощник: достигнут порог токенов');
+    expect(html).not.toContain('помощник: достигнут лимит токенов');
+  });
+
   it('HTML-escapes hostile agent names so injected markup is neutralised', () => {
     const html = renderEmail({
       agentName: '<img src=x onerror="alert(1)">',
@@ -45,5 +78,59 @@ describe('ThresholdAlertEmail', () => {
     expect(html).not.toContain('evil"onmouseover');
     // React escapes both angle brackets and quotes in text content.
     expect(html).toContain('evil&quot;onmouseover=&quot;alert(1)');
+  });
+
+  it('renders Russian labels, periods, and localized values', () => {
+    const html = renderEmail({
+      agentName: 'помощник',
+      metricType: 'tokens',
+      threshold: 1000,
+      actualValue: 1500,
+      period: 'day',
+      timestamp: '2026-04-23 12:00',
+      agentUrl: 'https://app.manifest.build/agents/helper',
+      alertType: 'hard',
+      locale: 'ru',
+    });
+    expect(html).toContain('lang="ru"');
+    expect(html).toContain('Интеграция заблокирована');
+    expect(html).toContain('за <strong>день</strong>');
+    expect(html).toContain('Открыть панель интеграции');
+  });
+
+  it('uses context-appropriate Russian cases for a weekly period', () => {
+    const html = renderEmail({
+      agentName: 'помощник',
+      metricType: 'tokens',
+      threshold: 1000,
+      actualValue: 1500,
+      period: 'week',
+      timestamp: '2026-04-23 12:00',
+      agentUrl: 'https://app.manifest.build/agents/helper',
+      alertType: 'hard',
+      locale: 'ru',
+    });
+
+    expect(html).toContain('за <strong>неделю</strong>');
+    expect(html).toContain('Период: неделя');
+    expect(html).not.toContain('Период: неделю');
+  });
+
+  it('formats USD with locale-aware currency placement in Russian', () => {
+    const html = renderEmail({
+      agentName: 'помощник',
+      metricType: 'cost',
+      threshold: 1.5,
+      actualValue: 2.75,
+      period: 'month',
+      timestamp: '2026-04-23 12:00',
+      agentUrl: 'https://app.manifest.build/agents/helper',
+      alertType: 'hard',
+      locale: 'ru',
+    });
+
+    expect(html).toContain('1,50 $');
+    expect(html).toContain('2,75 $');
+    expect(html).not.toContain('$1,50');
   });
 });

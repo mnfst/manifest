@@ -53,14 +53,18 @@ vi.mock('../../src/services/routing-utils.js', () => ({
   stripCustomPrefix: (m: string) => m.replace(/^custom:[^/]+\//, ''),
 }));
 
-vi.mock('../../src/services/providers.js', () => ({
-  PROVIDERS: [
-    { id: 'openai', name: 'OpenAI' },
-    { id: 'anthropic', name: 'Anthropic' },
-    { id: 'ollama-cloud', name: 'Ollama Cloud' },
-    { id: 'ollama', name: 'Ollama' },
-  ],
-}));
+vi.mock('../../src/services/providers.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/services/providers.js')>();
+  return {
+    ...actual,
+    PROVIDERS: [
+      { id: 'openai', name: 'OpenAI' },
+      { id: 'anthropic', name: 'Anthropic' },
+      { id: 'ollama-cloud', name: 'Ollama Cloud' },
+      { id: 'ollama', name: 'Ollama' },
+    ],
+  };
+});
 
 vi.mock('../../src/services/model-display.js', () => ({
   getModelDisplayName: (slug: string) => slug,
@@ -95,6 +99,7 @@ vi.mock('../../src/components/MessageDetails.jsx', () => ({
 }));
 
 import MessageTable from '../../src/components/MessageTable';
+import { setLocale } from '../../src/i18n/index.js';
 
 function makeRow(overrides: Partial<MessageRow> = {}): MessageRow {
   return {
@@ -111,16 +116,11 @@ function makeRow(overrides: Partial<MessageRow> = {}): MessageRow {
   };
 }
 
-
 describe('MessageTable', () => {
   describe('column configuration', () => {
     it('renders compact column headers', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[]}
-          columns={COMPACT_COLUMNS}
-          agentName="agent-1"
-        />
+        <MessageTable items={[]} columns={COMPACT_COLUMNS} agentName="agent-1" />
       ));
       const headers = container.querySelectorAll('th');
       expect(headers.length).toBe(10);
@@ -164,11 +164,7 @@ describe('MessageTable', () => {
 
     it('renders "Tokens" without tooltip when showHeaderTooltips is false', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[]}
-          columns={COMPACT_COLUMNS}
-          agentName="agent-1"
-        />
+        <MessageTable items={[]} columns={COMPACT_COLUMNS} agentName="agent-1" />
       ));
       const tokensHeader = container.querySelectorAll('th')[7]!; // 'totalTokens' is at index 7 in COMPACT_COLUMNS (after selfheal)
       expect(tokensHeader.textContent).toBe('Tokens');
@@ -188,16 +184,52 @@ describe('MessageTable', () => {
       const cells = container.querySelectorAll('tbody td');
       expect(cells.length).toBe(headers.length);
     });
+
+    it('updates stable headers, tooltips, and status pills when the locale changes', async () => {
+      await setLocale('en');
+      try {
+        const { container } = render(() => (
+          <MessageTable
+            items={[
+              makeRow({ id: 'ok-row', status: 'ok' }),
+              makeRow({ id: 'error-row', status: 'error', error_origin: 'provider' }),
+            ]}
+            columns={['status', 'totalTokens']}
+            agentName="agent-1"
+            showHeaderTooltips
+          />
+        ));
+
+        expect(container.querySelectorAll('th')[0]!.textContent).toBe('Status');
+        expect(container.querySelectorAll('th')[1]!.textContent).toBe('Total Tokens');
+        expect(container.querySelector('[data-testid="info-tooltip"]')?.getAttribute('title')).toBe(
+          'Tokens are units of text that AI models process. More tokens = higher cost.',
+        );
+        expect(container.querySelector('.status-badge--ok')?.textContent).toBe('Success');
+        expect(container.querySelector('.status-badge--error')?.textContent).toBe('Failed');
+
+        await setLocale('ru');
+        await vi.waitFor(() => {
+          expect(container.querySelectorAll('th')[0]!.textContent).toBe('Статус');
+          expect(container.querySelectorAll('th')[1]!.textContent).toBe('Всего токенов');
+          expect(
+            container.querySelector('[data-testid="info-tooltip"]')?.getAttribute('title'),
+          ).toBe(
+            'Токены — единицы текста, обрабатываемые моделью. Чем больше токенов, тем выше стоимость.',
+          );
+          expect(container.querySelector('.status-badge--ok')?.textContent).toBe('Успешно');
+          expect(container.querySelector('.status-badge--error')?.textContent).toBe('Ошибка');
+        });
+      } finally {
+        await setLocale('en');
+      }
+    });
   });
 
   describe('data rendering', () => {
     it('renders date cell', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" />
       ));
       expect(container.textContent).toContain('2026-02-16 10:00:00');
     });
@@ -228,11 +260,7 @@ describe('MessageTable', () => {
 
     it('renders cost value', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ cost: 1.5 })]}
-          columns={['cost']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow({ cost: 1.5 })]} columns={['cost']} agentName="agent-1" />
       ));
       expect(container.textContent).toContain('$1.50');
     });
@@ -259,17 +287,32 @@ describe('MessageTable', () => {
       ));
       expect(container.textContent).toContain('$0.01');
       expect(
-        container.querySelector('[title^="Per-request subscription cost:"]'),
+        container.querySelector('[title="Per-request subscription cost: $0.013636"]'),
       ).not.toBeNull();
+    });
+
+    it('localizes the per-request currency tooltip', async () => {
+      await setLocale('ru');
+      try {
+        const { container } = render(() => (
+          <MessageTable
+            items={[makeRow({ auth_type: 'subscription', cost: 0.013636 })]}
+            columns={['cost']}
+            agentName="agent-1"
+          />
+        ));
+        const tooltip = container.querySelector('[title^="Стоимость запроса по подписке:"]');
+        expect(tooltip?.getAttribute('title')).toMatch(
+          /^Стоимость запроса по подписке: 0,013636[\u00a0\u202f]\$$/,
+        );
+      } finally {
+        await setLocale('en');
+      }
     });
 
     it('renders em dash for null cost', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ cost: null })]}
-          columns={['cost']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow({ cost: null })]} columns={['cost']} agentName="agent-1" />
       ));
       expect(container.textContent).toContain('\u2014');
     });
@@ -430,11 +473,7 @@ describe('MessageTable', () => {
 
     it('renders em dash for null model', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ model: null })]}
-          columns={['model']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow({ model: null })]} columns={['model']} agentName="agent-1" />
       ));
       expect(container.textContent).toContain('\u2014');
     });
@@ -452,7 +491,7 @@ describe('MessageTable', () => {
       expect(badge!.textContent).toBe('fast');
     });
 
-    it('renders direct routing tier badge in uppercase', () => {
+    it('renders the localized direct routing tier badge', () => {
       const { container } = render(() => (
         <MessageTable
           items={[makeRow({ routing_tier: 'direct' })]}
@@ -462,10 +501,10 @@ describe('MessageTable', () => {
       ));
       const badge = container.querySelector('.tier-badge--direct');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toBe('DIRECT');
+      expect(badge!.textContent).toBe('Direct');
     });
 
-    it('renders specificity category badge (with underscores replaced) over tier badge', () => {
+    it('renders the localized specificity category over the tier badge', () => {
       const { container } = render(() => (
         <MessageTable
           items={[
@@ -480,10 +519,50 @@ describe('MessageTable', () => {
       ));
       const specBadge = container.querySelector('.tier-badge--specificity');
       expect(specBadge).not.toBeNull();
-      // underscores replaced with spaces
-      expect(specBadge!.textContent).toBe('data analysis');
+      expect(specBadge!.textContent).toBe('Data Analysis');
       // When specificity is set, the tier badge is NOT rendered alongside it.
       expect(container.querySelector('.tier-badge--fast')).toBeNull();
+    });
+
+    it('keeps an unknown specificity category as its raw identifier', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ specificity_category: 'future_category' })]}
+          columns={['model']}
+          agentName="agent-1"
+        />
+      ));
+      expect(container.querySelector('.tier-badge--specificity')?.textContent).toBe(
+        'future_category',
+      );
+    });
+
+    it('renders Russian specificity, tier, and fallback labels', async () => {
+      await setLocale('ru');
+      try {
+        const { container } = render(() => (
+          <MessageTable
+            items={[
+              makeRow({ id: 'specificity', specificity_category: 'data_analysis' }),
+              makeRow({ id: 'direct', routing_tier: 'direct' }),
+              makeRow({ id: 'standard', routing_tier: 'standard' }),
+              makeRow({ id: 'fallback', fallback_from_model: 'gpt-4o' }),
+            ]}
+            columns={['model', 'selfheal']}
+            agentName="agent-1"
+          />
+        ));
+        expect(container.querySelector('.tier-badge--specificity')?.textContent).toBe(
+          'Анализ данных',
+        );
+        expect(container.querySelector('.tier-badge--direct')?.textContent).toBe('Прямой');
+        expect(container.querySelector('.tier-badge--standard')?.textContent).toBe('Стандартный');
+        expect(container.querySelector('.trigger-badge--fallback')?.textContent).toContain(
+          'Резервная модель',
+        );
+      } finally {
+        await setLocale('en');
+      }
     });
 
     it('no longer renders a fallback badge in the model column (moved to Trigger)', () => {
@@ -537,7 +616,7 @@ describe('MessageTable', () => {
       ));
       const badge = container.querySelector('[title="Auto-fix"]') as HTMLElement;
       expect(badge).not.toBeNull();
-      expect(badge.textContent).toContain('auto-fix');
+      expect(badge.textContent).toContain('Auto-fix');
     });
 
     it('renders fallback icon with text label when fallback_from_model is set', () => {
@@ -550,16 +629,12 @@ describe('MessageTable', () => {
       ));
       const badge = container.querySelector('[title="Fallback"]') as HTMLElement;
       expect(badge).not.toBeNull();
-      expect(badge.textContent).toContain('fallback');
+      expect(badge.textContent).toContain('Fallback');
     });
 
     it('renders dash when neither autofix nor fallback applies', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['selfheal']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow()]} columns={['selfheal']} agentName="agent-1" />
       ));
       expect(container.querySelector('td')!.textContent).toContain('\u2014');
     });
@@ -641,11 +716,7 @@ describe('MessageTable', () => {
 
     it('does not set row id when rowIdPrefix is omitted', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" />
       ));
       const bodyRow = container.querySelector('tbody tr');
       expect(bodyRow!.getAttribute('id')).toBeNull();
@@ -668,11 +739,7 @@ describe('MessageTable', () => {
 
     it('does not render chevron when expandable is false', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" />
       ));
       expect(container.querySelector('.msg-detail__chevron-btn')).toBeNull();
       expect(container.querySelector('.msg-detail__chevron-th')).toBeNull();
@@ -680,12 +747,7 @@ describe('MessageTable', () => {
 
     it('expands details panel when chevron is clicked', async () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-          expandable
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" expandable />
       ));
       expect(container.querySelector('[data-testid="message-details"]')).toBeNull();
       const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
@@ -695,12 +757,7 @@ describe('MessageTable', () => {
 
     it('collapses details panel on second click', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-          expandable
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" expandable />
       ));
       const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
       fireEvent.click(btn);
@@ -711,12 +768,7 @@ describe('MessageTable', () => {
 
     it('adds open class to chevron button when expanded', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-          expandable
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" expandable />
       ));
       const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLElement;
       expect(btn.classList.contains('msg-detail__chevron-btn--open')).toBe(false);
@@ -758,12 +810,7 @@ describe('MessageTable', () => {
 
     it('sets aria-label on chevron button', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-          expandable
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" expandable />
       ));
       const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLElement;
       expect(btn.getAttribute('aria-label')).toBe('Expand details');
@@ -773,12 +820,7 @@ describe('MessageTable', () => {
 
     it('expands the panel when the row body (a non-interactive cell) is clicked', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-          expandable
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" expandable />
       ));
       expect(container.querySelector('[data-testid="message-details"]')).toBeNull();
       // Click a plain cell — the click bubbles to the row handler and toggles.
@@ -811,11 +853,7 @@ describe('MessageTable', () => {
       const row = makeRow({ model: 'gpt-4o', display_name: 'GPT-4o', routing_tier: 'fast' });
 
       const { container: compact } = render(() => (
-        <MessageTable
-          items={[row]}
-          columns={COMPACT_COLUMNS}
-          agentName="agent-1"
-        />
+        <MessageTable items={[row]} columns={COMPACT_COLUMNS} agentName="agent-1" />
       ));
       const { container: detailed } = render(() => (
         <MessageTable
@@ -838,11 +876,7 @@ describe('MessageTable', () => {
       const row = makeRow({ status: 'error', error_message: 'timeout' });
 
       const { container: compact } = render(() => (
-        <MessageTable
-          items={[row]}
-          columns={COMPACT_COLUMNS}
-          agentName="agent-1"
-        />
+        <MessageTable items={[row]} columns={COMPACT_COLUMNS} agentName="agent-1" />
       ));
       const { container: detailed } = render(() => (
         <MessageTable
@@ -880,10 +914,7 @@ describe('MessageTable', () => {
   describe('agent column (global mode)', () => {
     it('renders Agent column header when agent column is in columns list', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ agent_name: 'my-agent' })]}
-          columns={['agent', 'date']}
-        />
+        <MessageTable items={[makeRow({ agent_name: 'my-agent' })]} columns={['agent', 'date']} />
       ));
       const headers = container.querySelectorAll('th');
       expect(headers[0]!.textContent).toContain('Harness');
@@ -892,30 +923,21 @@ describe('MessageTable', () => {
 
     it('renders agent_name value in agent cell', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ agent_name: 'my-agent' })]}
-          columns={['agent']}
-        />
+        <MessageTable items={[makeRow({ agent_name: 'my-agent' })]} columns={['agent']} />
       ));
       expect(container.textContent).toContain('my-agent');
     });
 
     it('renders em dash when agent_name is null', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ agent_name: null })]}
-          columns={['agent']}
-        />
+        <MessageTable items={[makeRow({ agent_name: null })]} columns={['agent']} />
       ));
       expect(container.textContent).toContain('—');
     });
 
     it('works without agentName prop (global mode)', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date', 'status']}
-        />
+        <MessageTable items={[makeRow()]} columns={['date', 'status']} />
       ));
       expect(container.querySelector('.data-table')).not.toBeNull();
     });

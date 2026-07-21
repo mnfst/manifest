@@ -19,8 +19,10 @@ import {
 } from '../services/api.js';
 import { suggestNextProviderKeyLabel } from '../services/provider-key-labels.js';
 import { validateSubscriptionKey } from '../services/provider-utils.js';
+import { credentialValidationMessage } from '../services/provider-validation-messages.js';
 import { toast } from '../services/toast-store.js';
 import Select from './Select.jsx';
+import { t } from '../i18n/index.js';
 
 interface Props {
   provDef: ProviderDef;
@@ -122,7 +124,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     const trimmed = altToken().replace(/\s/g, '');
     const result = validateSubscriptionKey(props.provDef, trimmed);
     if (!result.valid) {
-      setAltError(result.error!);
+      setAltError(credentialValidationMessage(result.error));
       return;
     }
     props.setBusy(true);
@@ -139,7 +141,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
         region: selectedRegion(),
         ...(label && { label }),
       });
-      toast.success(`${props.provDef.name} subscription connected`);
+      toast.success(t('device.connected', { provider: props.provDef.name }));
       setAddingAccount(false);
       setAltToken('');
       props.onUpdate();
@@ -164,18 +166,18 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     const startUrl = kiroStartUrl().trim();
     const region = kiroRegion().trim().toLowerCase();
     if (!/^[a-z]{2}(?:-[a-z0-9]+)+-\d$/.test(region)) {
-      setKiroConfigError('Enter a valid AWS region, such as us-east-1.');
+      setKiroConfigError(t('device.invalidAwsRegion'));
       return null;
     }
     if (startUrl) {
       try {
         const parsed = new URL(startUrl);
         if (parsed.protocol !== 'https:') {
-          setKiroConfigError('Start URL must use HTTPS.');
+          setKiroConfigError(t('device.httpsRequired'));
           return null;
         }
       } catch {
-        setKiroConfigError('Enter a valid IAM Identity Center Start URL.');
+        setKiroConfigError(t('device.invalidStartUrl'));
         return null;
       }
     }
@@ -185,12 +187,12 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
   const connectHint = () => {
     if (api().hasRegion) {
-      return 'Choose your MiniMax region, then open the authorization page in your browser to sign in and approve access.';
+      return t('device.minimaxHint');
     }
     if (isKiro()) {
-      return 'Choose the AWS region for Kiro sign-in. Add a Start URL only if your organization uses IAM Identity Center.';
+      return t('device.kiroHint');
     }
-    return 'Open the authorization page in your browser to sign in and approve access.';
+    return t('device.defaultHint');
   };
 
   const clearPollTimer = () => {
@@ -264,7 +266,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
         newLabel,
         props.selectedAuthType(),
       );
-      toast.success(`Renamed to "${newLabel}"`);
+      toast.success(t('account.renamed', { name: newLabel }));
       setRenamingId(null);
       props.onUpdate();
     } catch {
@@ -283,7 +285,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
       clearPollTimer();
       setStatusMessage(null);
       setFlow(null);
-      toast.error('This verification code expired. Start again to generate a new one.');
+      toast.error(t('device.codeExpired'));
       return;
     }
 
@@ -297,7 +299,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
       if (result.status === 'success') {
         clearPollTimer();
-        toast.success(`${props.provDef.name} subscription connected`);
+        toast.success(t('device.connected', { provider: props.provDef.name }));
         setAddingAccount(false);
         setFlow(null);
         props.onUpdate();
@@ -308,11 +310,11 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
         clearPollTimer();
         setStatusMessage(null);
         setFlow(null);
-        toast.error(result.message ?? `${props.provDef.name} login failed. Start again to retry.`);
+        toast.error(result.message ?? t('device.loginFailed', { provider: props.provDef.name }));
         return;
       }
 
-      setStatusMessage(result.message ?? 'Waiting for approval…');
+      setStatusMessage(result.message ?? t('device.waitingApproval'));
       schedulePoll(
         result.pollIntervalMs ?? latest.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,
         flowGeneration,
@@ -322,7 +324,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
       clearPollTimer();
       setStatusMessage(null);
       setFlow(null);
-      toast.error('Failed to check approval status. Start again to retry.');
+      toast.error(t('device.pollFailed'));
     }
   };
 
@@ -336,7 +338,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     // to redirect it later — we null `popup.opener` ourselves instead.
     const popup = window.open('about:blank', '_blank');
     if (!popup) {
-      toast.error('Popup was blocked by your browser. Allow popups for this site, then try again.');
+      toast.error(t('anthropic.popupBlocked'));
       return;
     }
     // Defang the opener-attack vector that noopener would normally prevent;
@@ -396,7 +398,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                 <Show when={api().hasRegion}>
                   <div class="provider-detail__field">
                     <label class="provider-detail__label" for="minimax-region">
-                      Region
+                      {t('device.region')}
                     </label>
                     <select
                       id="minimax-region"
@@ -407,16 +409,16 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                         setSelectedRegion(e.currentTarget.value as MinimaxOAuthRegion)
                       }
                     >
-                      <option value="global">Global (api.minimax.io)</option>
-                      <option value="cn">China Mainland (api.minimaxi.com)</option>
+                      <option value="global">{t('device.globalRegion')}</option>
+                      <option value="cn">{t('device.chinaRegion')}</option>
                     </select>
                   </div>
                 </Show>
                 <Show when={isKiro()}>
                   <div class="provider-detail__field">
-                    <span class="provider-detail__label">Region</span>
+                    <span class="provider-detail__label">{t('device.region')}</span>
                     <Select
-                      label="Region"
+                      label={t('device.region')}
                       options={KIRO_REGION_OPTIONS}
                       value={kiroRegion()}
                       disabled={props.busy()}
@@ -431,7 +433,8 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                   </div>
                   <div class="provider-detail__field">
                     <label class="provider-detail__label" for="kiro-start-url">
-                      Start URL <span class="provider-detail__label-muted">(optional)</span>
+                      {t('device.startUrl')}{' '}
+                      <span class="provider-detail__label-muted">{t('device.optional')}</span>
                     </label>
                     <input
                       id="kiro-start-url"
@@ -462,7 +465,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                   onClick={handleStart}
                 >
                   <Show when={!props.busy()} fallback={<span class="spinner" />}>
-                    Connect with {props.provDef.name}
+                    {t('device.connectWith', { provider: props.provDef.name })}
                   </Show>
                 </button>
               </div>
@@ -479,7 +482,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                       type="text"
                       autocomplete="off"
                       placeholder={alt().placeholder}
-                      aria-label={`${props.provDef.name} Coding Plan token`}
+                      aria-label={t('device.tokenAria', { provider: props.provDef.name })}
                       value={altToken()}
                       disabled={props.busy()}
                       onInput={(e) => {
@@ -499,7 +502,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                       onClick={handleAltConnect}
                     >
                       <Show when={!props.busy()} fallback={<span class="spinner" />}>
-                        Connect with token
+                        {t('device.connectToken')}
                       </Show>
                     </button>
                   </div>
@@ -510,8 +513,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
         >
           <>
             <p class="provider-detail__hint">
-              A new tab opened with the {props.provDef.name} authorization page. Approve the request
-              there to finish connecting.
+              {t('device.approvalHint', { provider: props.provDef.name })}
             </p>
             <Show when={statusMessage()}>
               <p class="provider-detail__hint" style="margin-top: 12px;">
@@ -526,7 +528,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
             disabled={props.busy()}
             onClick={cancelAddAccount}
           >
-            Cancel
+            {t('components.cancel')}
           </button>
         </Show>
       </Show>
@@ -534,10 +536,10 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
         {/* Multi-key list */}
         <Show when={isMultiKey()}>
           <div class="provider-detail__field">
-            <label class="provider-detail__label">Accounts</label>
+            <label class="provider-detail__label">{t('account.accounts')}</label>
             <ul
               role="list"
-              aria-label={`Accounts for ${props.provDef.name}`}
+              aria-label={t('account.accountsFor', { provider: props.provDef.name })}
               style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;"
             >
               <For each={props.activeKeys!()}>
@@ -552,7 +554,10 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                               {k.label}
                             </div>
                             <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                              Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
+                              {t('account.connectedVia', {
+                                method:
+                                  props.provDef.subscriptionLabel ?? t('authBadge.subscription'),
+                              })}
                             </div>
                           </div>
                           <button
@@ -561,14 +566,14 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                             disabled={props.busy()}
                             onClick={() => startRename(k)}
                           >
-                            Rename
+                            {t('account.rename')}
                           </button>
                           <button
                             class="provider-detail__disconnect-icon"
                             disabled={props.busy()}
                             onClick={() => handleDeleteKey(k.label)}
-                            aria-label={`Delete account ${k.label}`}
-                            title="Delete account"
+                            aria-label={t('account.deleteNamed', { name: k.label })}
+                            title={t('account.delete')}
                           >
                             <svg
                               width="16"
@@ -593,7 +598,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                         class="provider-detail__input"
                         type="text"
                         maxlength={MAX_LABEL_LENGTH}
-                        aria-label={`Rename ${k.label}`}
+                        aria-label={t('account.renameNamed', { name: k.label })}
                         value={renameValue()}
                         onInput={(e) => setRenameValue(e.currentTarget.value)}
                         onKeyDown={(e) => {
@@ -606,14 +611,14 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                         disabled={props.busy()}
                         onClick={() => commitRename(k)}
                       >
-                        Save
+                        {t('components.save')}
                       </button>
                       <button
                         class="btn btn--outline btn--sm"
                         disabled={props.busy()}
                         onClick={() => setRenamingId(null)}
                       >
-                        Cancel
+                        {t('components.cancel')}
                       </button>
                     </Show>
                   </li>
@@ -627,7 +632,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
             onClick={handleDisconnect}
           >
             <Show when={!props.busy()} fallback={<span class="spinner" />}>
-              Disconnect all
+              {t('account.disconnectAll')}
             </Show>
           </button>
         </Show>
@@ -635,7 +640,9 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
         <Show when={!isMultiKey()}>
           <div class="provider-detail__field">
             <span class="provider-detail__no-key">
-              Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
+              {t('account.connectedVia', {
+                method: props.provDef.subscriptionLabel ?? t('authBadge.subscription'),
+              })}
             </span>
           </div>
           <button
@@ -644,7 +651,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
             onClick={handleDisconnect}
           >
             <Show when={!props.busy()} fallback={<span class="spinner" />}>
-              Disconnect
+              {t('components.disconnect')}
             </Show>
           </button>
         </Show>

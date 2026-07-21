@@ -1,6 +1,7 @@
 import { createSignal, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
+import { t } from '../i18n/index.js';
 
 interface Props {
   apiKey: string | null;
@@ -77,7 +78,7 @@ const OpenCodeSetup: Component<Props> = (props) => {
   return (
     <div class="setup-agents-card">
       <p class="setup-method__hint">
-        Add this block to your global{' '}
+        {t('setup.openCodePrefix')}{' '}
         <code class="setup-model-hint__code">~/.config/opencode/opencode.json</code>.
       </p>
 
@@ -87,8 +88,8 @@ const OpenCodeSetup: Component<Props> = (props) => {
             <button
               class="modal-terminal__copy"
               onClick={() => setKeyRevealed(!keyRevealed())}
-              aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
-              title={keyRevealed() ? 'Hide key' : 'Reveal key'}
+              aria-label={keyRevealed() ? t('components.hideApiKey') : t('components.revealApiKey')}
+              title={keyRevealed() ? t('components.hideKey') : t('components.revealKey')}
             >
               <EyeIcon open={keyRevealed()} />
             </button>

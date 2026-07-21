@@ -12,6 +12,7 @@ import {
 } from 'solid-js';
 import type { ProviderDef, SubscriptionEndpointRegion } from '../services/providers.js';
 import { validateApiKey, validateSubscriptionKey } from '../services/provider-utils.js';
+import { credentialValidationMessage } from '../services/provider-validation-messages.js';
 import {
   connectProvider,
   disconnectProvider,
@@ -26,6 +27,7 @@ import {
 } from '../services/provider-api-key-urls.js';
 import { suggestNextProviderKeyLabel } from '../services/provider-key-labels.js';
 import { toast } from '../services/toast-store.js';
+import { t } from '../i18n/index.js';
 
 export const MAX_KEYS_PER_PROVIDER = 5;
 const MAX_LABEL_LENGTH = 50;
@@ -83,16 +85,22 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
     props.provId === 'openai' && isPopupOAuth() && props.selectedAuthType() === 'subscription';
   const isApiKeyCredential = () =>
     !props.isSubMode() || props.provDef.subscriptionCredentialKind === 'api-key';
-  const credentialNoun = () => (isApiKeyCredential() ? 'API key' : 'setup token');
+  const credentialNoun = () =>
+    isApiKeyCredential() ? t('provider.apiKey') : t('provider.setupToken');
   const credentialOwnerName = () =>
     props.isSubMode() && props.provDef.subscriptionCredentialName
       ? props.provDef.subscriptionCredentialName
       : props.provDef.name;
-  const inputAriaLabel = () => `${credentialOwnerName()} ${credentialNoun()}`;
-  const editAriaLabel = () => `New ${credentialOwnerName()} ${credentialNoun()}`;
+  const inputAriaLabel = () =>
+    t('provider.credentialAria', { provider: credentialOwnerName(), credential: credentialNoun() });
+  const editAriaLabel = () =>
+    t('provider.newCredentialAria', {
+      provider: credentialOwnerName(),
+      credential: credentialNoun(),
+    });
   const placeholder = () =>
     props.isSubMode()
-      ? (props.provDef.subscriptionKeyPlaceholder ?? 'Paste token')
+      ? (props.provDef.subscriptionKeyPlaceholder ?? t('provider.pasteToken'))
       : props.provDef.keyPlaceholder;
   const endpointRegions = () =>
     props.isSubMode()
@@ -183,7 +191,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
   };
   const validateEndpointRegion = () => {
     if (isCustomEndpointSelected() && !customEndpointUrl().trim()) {
-      props.setValidationError('Base URL is required');
+      props.setValidationError(t('provider.baseUrlRequired'));
       return false;
     }
     return true;
@@ -193,7 +201,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
     <Show when={hasEndpointRegions()}>
       <div class="provider-detail__field">
         <label class="provider-detail__label" for={selectProps.id}>
-          Region
+          {t('provider.region')}
         </label>
         <select
           id={selectProps.id}
@@ -214,14 +222,14 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                 for={`${selectProps.id}-base-url`}
                 style="margin-top: 8px;"
               >
-                Base URL
+                {t('provider.baseUrl')}
               </label>
               <input
                 id={`${selectProps.id}-base-url`}
                 class="provider-detail__input"
                 classList={{
                   'provider-detail__input--error':
-                    props.validationError() === 'Base URL is required',
+                    props.validationError() === t('provider.baseUrlRequired'),
                 }}
                 type="url"
                 autocomplete="off"
@@ -241,8 +249,8 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
   );
 
   const fieldLabel = () => {
-    if (isListMode()) return 'API Keys';
-    return isApiKeyCredential() ? 'API Key' : 'Setup Token';
+    if (isListMode()) return t('provider.apiKeys');
+    return isApiKeyCredential() ? t('provider.apiKeyLabel') : t('provider.setupTokenLabel');
   };
 
   const handleConnect = async (label?: string) => {
@@ -251,7 +259,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
       ? validateSubscriptionKey(props.provDef, props.keyInput())
       : validateApiKey(props.provDef, props.keyInput());
     if (!result.valid) {
-      props.setValidationError(result.error!);
+      props.setValidationError(credentialValidationMessage(result.error));
       return;
     }
 
@@ -264,7 +272,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
         ...(endpointRegionPayload() && { region: endpointRegionPayload() }),
         ...(label && { label }),
       });
-      toast.success(`${props.provDef.name} connected`);
+      toast.success(t('provider.connected', { provider: props.provDef.name }));
       props.onBack();
       props.onUpdate();
     } catch {
@@ -280,7 +288,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
       ? validateSubscriptionKey(props.provDef, props.keyInput())
       : validateApiKey(props.provDef, props.keyInput());
     if (!result.valid) {
-      props.setValidationError(result.error!);
+      props.setValidationError(credentialValidationMessage(result.error));
       return;
     }
 
@@ -297,8 +305,11 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
         ...(endpointRegionPayload() && { region: endpointRegionPayload() }),
         ...(targetLabel && { label: targetLabel }),
       });
-      const noun = props.isSubMode() && !isApiKeyCredential() ? 'token' : 'key';
-      toast.success(`${props.provDef.name} ${noun} updated`);
+      toast.success(
+        props.isSubMode() && !isApiKeyCredential()
+          ? t('provider.tokenUpdated', { provider: props.provDef.name })
+          : t('provider.keyUpdated', { provider: props.provDef.name }),
+      );
       props.onBack();
       props.onUpdate();
     } catch {
@@ -381,7 +392,10 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Get {credentialOwnerName()} {credentialNoun()}
+                {t('provider.getCredential', {
+                  provider: credentialOwnerName(),
+                  credential: credentialNoun(),
+                })}
               </a>
             </p>
           </Show>
@@ -392,7 +406,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
           onClick={() => handleConnect()}
         >
           <Show when={!props.busy()} fallback={<span class="spinner" />}>
-            Connect
+            {t('components.connect')}
           </Show>
         </button>
       </Show>
@@ -409,7 +423,9 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                 value={props.getKeyPrefixDisplay(props.selectedAuthType())}
                 disabled
                 aria-label={
-                  isApiKeyCredential() ? 'Current API key (masked)' : 'Current setup token (masked)'
+                  isApiKeyCredential()
+                    ? t('provider.currentApiKeyMasked')
+                    : t('provider.currentSetupTokenMasked')
                 }
               />
               <button
@@ -420,14 +436,14 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                   props.setValidationError(null);
                 }}
               >
-                Change
+                {t('components.change')}
               </button>
               <button
                 class="provider-detail__disconnect-icon"
                 disabled={props.busy()}
                 onClick={() => handleDisconnect()}
-                aria-label="Disconnect provider"
-                title="Disconnect"
+                aria-label={t('provider.disconnect')}
+                title={t('components.disconnect')}
               >
                 <Show when={!props.busy()} fallback={<span class="spinner" />}>
                   <svg
@@ -454,7 +470,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                 busy={props.busy}
                 setBusy={props.setBusy}
                 provDef={props.provDef}
-                placeholder={placeholder() ?? 'Paste API key'}
+                placeholder={placeholder() ?? t('provider.pasteApiKey')}
                 whereToGetUrl={whereToGetUrl}
                 credentialNoun={credentialNoun}
                 credentialOwnerName={credentialOwnerName}
@@ -496,7 +512,10 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Get {credentialOwnerName()} {credentialNoun()}
+                  {t('provider.getCredential', {
+                    provider: credentialOwnerName(),
+                    credential: credentialNoun(),
+                  })}
                 </a>
               </p>
             </Show>
@@ -506,7 +525,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
               onClick={() => handleUpdateKey()}
               style="margin-top: 12px;"
             >
-              Save
+              {t('components.save')}
             </button>
           </Show>
         </div>
@@ -522,7 +541,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
           activeKeys={activeKeys}
           busy={props.busy}
           setBusy={props.setBusy}
-          placeholder={placeholder() ?? 'Paste API key'}
+          placeholder={placeholder() ?? t('provider.pasteApiKey')}
           credentialNoun={credentialNoun}
           credentialOwnerName={credentialOwnerName}
           whereToGetUrl={whereToGetUrl}
@@ -552,7 +571,7 @@ async function handleAddKey(
     ? validateSubscriptionKey(props.provDef, apiKey)
     : validateApiKey(props.provDef, apiKey);
   if (!result.valid) {
-    toast.error(result.error!);
+    toast.error(credentialValidationMessage(result.error));
     return false;
   }
   props.setBusy(true);
@@ -564,7 +583,7 @@ async function handleAddKey(
       label,
       ...(region && { region }),
     });
-    toast.success(`${props.provDef.name} key "${label}" added`);
+    toast.success(t('provider.keyAdded', { provider: props.provDef.name, label }));
     props.onUpdate();
     return true;
   } catch {
@@ -635,7 +654,7 @@ export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) 
 
   const submit = async () => {
     if (selectedEndpointRegionOption()?.baseUrlPlaceholder && !customEndpointUrl().trim()) {
-      toast.error('Base URL is required');
+      toast.error(t('provider.baseUrlRequired'));
       return;
     }
     const labelToUse = (label().trim() || defaultLabel()).slice(0, MAX_LABEL_LENGTH);
@@ -673,7 +692,7 @@ export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) 
             >
               <path d="M4 11h11v2H4zm0-5h16v2H4zm0 10h8v2H4zm15-3h-2v3h-3v2h3v3h2v-3h3v-2h-3z" />
             </svg>
-            {props.isSubscription ? ' Add connection' : ' Add another key'}
+            {props.isSubscription ? t('provider.addConnection') : t('provider.addAnotherKey')}
           </button>
         ) : undefined
       }
@@ -683,21 +702,21 @@ export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) 
         style="margin-top: 12px; padding: 12px; border: 1px solid hsl(var(--border)); border-radius: 6px;"
       >
         <label class="provider-detail__label" for="add-key-label">
-          Name
+          {t('provider.name')}
         </label>
         <input
           id="add-key-label"
           class="provider-detail__input"
           type="text"
           maxlength={MAX_LABEL_LENGTH}
-          aria-label="Key name"
+          aria-label={t('provider.keyName')}
           value={label()}
           placeholder={defaultLabel()}
           onInput={(e) => setLabel(e.currentTarget.value)}
         />
         <Show when={props.endpointRegions?.length}>
           <label class="provider-detail__label" for="add-key-endpoint" style="margin-top: 8px;">
-            Region
+            {t('provider.region')}
           </label>
           <select
             id="add-key-endpoint"
@@ -718,7 +737,7 @@ export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) 
                   for="add-key-base-url"
                   style="margin-top: 8px;"
                 >
-                  Base URL
+                  {t('provider.baseUrl')}
                 </label>
                 <input
                   id="add-key-base-url"
@@ -743,7 +762,10 @@ export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) 
           class="provider-detail__input provider-detail__input--masked"
           type="text"
           autocomplete="off"
-          aria-label={`New ${props.credentialOwnerName()} ${props.credentialNoun()}`}
+          aria-label={t('provider.newCredentialAria', {
+            provider: props.credentialOwnerName(),
+            credential: props.credentialNoun(),
+          })}
           placeholder={props.placeholder}
           value={apiKey()}
           onInput={(e) => setApiKey(e.currentTarget.value)}
@@ -759,7 +781,10 @@ export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) 
               target="_blank"
               rel="noopener noreferrer"
             >
-              Get {props.credentialOwnerName()} {props.credentialNoun()}
+              {t('provider.getCredential', {
+                provider: props.credentialOwnerName(),
+                credential: props.credentialNoun(),
+              })}
             </a>
           </p>
         </Show>
@@ -769,7 +794,7 @@ export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) 
             onClick={() => setIsOpen(false)}
             disabled={props.busy()}
           >
-            Cancel
+            {t('components.cancel')}
           </button>
           <button
             class="btn btn--primary btn--sm"
@@ -777,7 +802,7 @@ export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) 
             onClick={submit}
           >
             <Show when={!props.busy()} fallback={<span class="spinner" />}>
-              Add key
+              {t('provider.addKey')}
             </Show>
           </button>
         </div>
@@ -824,7 +849,7 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
     props.setBusy(true);
     try {
       await renameProviderKey(props.agentName, props.provId, k.label, newLabel, props.authType());
-      toast.success(`Renamed to "${newLabel}"`);
+      toast.success(t('account.renamed', { name: newLabel }));
       setRenamingId(null);
       props.onUpdate();
     } catch {
@@ -836,10 +861,10 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
 
   return (
     <div class="provider-detail__field">
-      <label class="provider-detail__label">API Keys</label>
+      <label class="provider-detail__label">{t('provider.apiKeys')}</label>
       <ul
         role="list"
-        aria-label={`API keys for ${props.provDef.name}`}
+        aria-label={t('provider.apiKeysFor', { provider: props.provDef.name })}
         style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;"
       >
         <For each={props.activeKeys()}>
@@ -868,14 +893,14 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
                       disabled={props.busy()}
                       onClick={() => startRename(k)}
                     >
-                      Rename
+                      {t('account.rename')}
                     </button>
                     <button
                       class="provider-detail__disconnect-icon"
                       disabled={props.busy()}
                       onClick={() => props.onDelete(k.label)}
-                      aria-label={`Delete key ${k.label}`}
-                      title="Delete key"
+                      aria-label={t('provider.deleteKeyNamed', { name: k.label })}
+                      title={t('provider.deleteKey')}
                     >
                       <svg
                         width="16"
@@ -900,7 +925,7 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
                   class="provider-detail__input"
                   type="text"
                   maxlength={MAX_LABEL_LENGTH}
-                  aria-label={`Rename ${k.label}`}
+                  aria-label={t('account.renameNamed', { name: k.label })}
                   value={renameValue()}
                   onInput={(e) => setRenameValue(e.currentTarget.value)}
                   onKeyDown={(e) => {
@@ -913,14 +938,14 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
                   disabled={props.busy()}
                   onClick={() => commitRename(k)}
                 >
-                  Save
+                  {t('components.save')}
                 </button>
                 <button
                   class="btn btn--outline btn--sm"
                   disabled={props.busy()}
                   onClick={() => setRenamingId(null)}
                 >
-                  Cancel
+                  {t('components.cancel')}
                 </button>
               </Show>
             </li>
@@ -938,7 +963,7 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
                 ? validateSubscriptionKey(props.provDef, apiKey)
                 : validateApiKey(props.provDef, apiKey);
             if (!result.valid) {
-              toast.error(result.error!);
+              toast.error(credentialValidationMessage(result.error));
               return false;
             }
             props.setBusy(true);
@@ -950,7 +975,7 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
                 label,
                 ...(region && { region }),
               });
-              toast.success(`${props.provDef.name} key "${label}" added`);
+              toast.success(t('provider.keyAdded', { provider: props.provDef.name, label }));
               props.onUpdate();
               return true;
             } catch {

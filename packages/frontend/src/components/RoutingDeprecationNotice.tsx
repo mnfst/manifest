@@ -1,5 +1,6 @@
 import { type Component, type JSX } from 'solid-js';
 import '../styles/routing-deprecation.css';
+import { t } from '../i18n/index.js';
 
 /** Blog post explaining why rule-based (complexity + task-specific) routing is being retired. */
 const DEPRECATION_BLOG_URL = 'https://manifest.build/blog/deprecating-rule-based-routing/';
@@ -43,7 +44,7 @@ const RoutingDeprecationNotice: Component<RoutingDeprecationNoticeProps> = (prop
         target="_blank"
         rel="noopener noreferrer"
       >
-        View more
+        {t('overview.viewMore')}
       </a>
     </div>
   </div>

@@ -87,6 +87,9 @@ export default defineConfig(({ command }) => ({
   },
   build: {
     target: 'esnext',
+    // Used by the post-build i18n boundary check to prove locale catalogues
+    // remain lazy and do not leak translated copy into the initial graph.
+    manifest: true,
     rollupOptions: {
       output: {
         manualChunks(id) {

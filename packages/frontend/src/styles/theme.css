@@ -122,6 +122,15 @@
   }
 }
 
+/* The bundled display fonts contain Latin glyphs only. Keep Russian pages on
+   one Cyrillic-capable system stack so headings and body copy never mix font
+   metrics within the same word. */
+html[lang='ru'] {
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
+}
+
 /* ── Shared tokens ────────────────────────────────── */
 :root {
   --sidebar-width: 230px;

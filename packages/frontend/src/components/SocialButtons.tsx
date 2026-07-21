@@ -3,14 +3,19 @@ import { useSearchParams } from '@solidjs/router';
 import { authClient } from '../services/auth-client.js';
 import { buildSocialAuthUrls } from '../services/auth-redirects.js';
 import { setLastAuthMethod } from '../services/last-auth-method.js';
+import { t, type PlainTextMessageKey } from '../i18n/index.js';
 
 type Provider = 'google' | 'github' | 'discord';
 
-const allProviders: { id: Provider; label: string }[] = [
-  { id: 'google', label: 'Continue with Google' },
-  { id: 'github', label: 'Continue with GitHub' },
-  { id: 'discord', label: 'Continue with Discord' },
-];
+const allProviderIds: Provider[] = ['google', 'github', 'discord'];
+
+const providerLabelKeys = {
+  google: 'social.continueGoogle',
+  github: 'social.continueGitHub',
+  discord: 'social.continueDiscord',
+} as const satisfies Record<Provider, PlainTextMessageKey>;
+
+const providerLabel = (provider: Provider): string => t(providerLabelKeys[provider]);
 
 const handleSocialLogin = (
   provider: Provider,
@@ -61,8 +66,8 @@ const SocialButtons: Component<{ enabledProviders?: string[]; lastUsed?: string 
 ) => {
   const [searchParams] = useSearchParams();
   const visible = () => {
-    if (!props.enabledProviders) return allProviders;
-    return allProviders.filter((p) => props.enabledProviders!.includes(p.id));
+    if (!props.enabledProviders) return allProviderIds;
+    return allProviderIds.filter((provider) => props.enabledProviders!.includes(provider));
   };
   const authUrls = () => buildSocialAuthUrls(searchParams);
 
@@ -72,14 +77,14 @@ const SocialButtons: Component<{ enabledProviders?: string[]; lastUsed?: string 
         <For each={visible()}>
           {(provider) => (
             <button
-              class={`auth-social-btn auth-social-btn--${provider.id}`}
-              onClick={() => handleSocialLogin(provider.id, authUrls())}
+              class={`auth-social-btn auth-social-btn--${provider}`}
+              onClick={() => handleSocialLogin(provider, authUrls())}
             >
-              <span class="auth-social-btn__icon">{providerIcons[provider.id]()}</span>
-              <span class="auth-social-btn__label">{provider.label}</span>
-              <Show when={props.lastUsed === provider.id}>
-                <span class="auth-last-used" aria-label="Last used">
-                  Last used
+              <span class="auth-social-btn__icon">{providerIcons[provider]()}</span>
+              <span class="auth-social-btn__label">{providerLabel(provider)}</span>
+              <Show when={props.lastUsed === provider}>
+                <span class="auth-last-used" aria-label={t('social.lastUsed')}>
+                  {t('social.lastUsed')}
                 </span>
               </Show>
             </button>

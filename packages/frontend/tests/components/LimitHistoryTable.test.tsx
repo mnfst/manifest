@@ -1,7 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { beforeEach, describe, it, expect } from 'vitest';
 import { render } from '@solidjs/testing-library';
 import LimitHistoryTable from '../../src/components/LimitHistoryTable';
 import type { NotificationLog } from '../../src/services/api/notifications';
+import { setLocale } from '../../src/i18n/index.js';
 
 const q = (sel: string) => document.querySelector(sel);
 const qa = (sel: string) => document.querySelectorAll(sel);
@@ -20,6 +21,8 @@ const makeLogs = (overrides?: Partial<NotificationLog>[]): NotificationLog[] =>
   }));
 
 describe('LimitHistoryTable', () => {
+  beforeEach(async () => setLocale('en'));
+
   it('renders panel with History title', () => {
     render(() => <LimitHistoryTable logs={makeLogs()} loading={false} />);
     expect(q('.panel__title')!.textContent).toBe('History');
@@ -58,10 +61,7 @@ describe('LimitHistoryTable', () => {
   });
 
   it('renders multiple rows in order', () => {
-    const logs = makeLogs([
-      { actual_value: 100000 },
-      { actual_value: 200000 },
-    ]);
+    const logs = makeLogs([{ actual_value: 100000 }, { actual_value: 200000 }]);
     render(() => <LimitHistoryTable logs={logs} loading={false} />);
     const rows = qa('tbody tr');
     expect(rows.length).toBe(2);
@@ -78,13 +78,28 @@ describe('LimitHistoryTable', () => {
 
   it('normalizes UTC timestamps for local display', () => {
     render(() => (
-      <LimitHistoryTable
-        logs={makeLogs([{ sent_at: '2026-03-29 12:00:00' }])}
-        loading={false}
-      />
+      <LimitHistoryTable logs={makeLogs([{ sent_at: '2026-03-29 12:00:00' }])} loading={false} />
     ));
     const dateCell = qa('tbody tr td')[0];
     // Should not contain raw "12:00:00" — it should be formatted by toLocaleDateString
     expect(dateCell.textContent).not.toContain('12:00:00');
+  });
+
+  it('uses the active Russian locale for numbers, plurals, currency, and dates', async () => {
+    await setLocale('ru');
+    const { container } = render(() => (
+      <LimitHistoryTable
+        logs={makeLogs([
+          { actual_value: 2, threshold_value: 5 },
+          { metric_type: 'cost', actual_value: 12.5, threshold_value: 10 },
+        ])}
+        loading={false}
+      />
+    ));
+
+    expect(container.textContent).toContain('2 токена');
+    expect(container.textContent).toContain('5 токенов');
+    expect(container.textContent).toMatch(/12,50[\u00a0\u202f]?\$/);
+    expect(container.textContent).toMatch(/мар\.|март/i);
   });
 });

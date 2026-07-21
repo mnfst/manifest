@@ -1,16 +1,12 @@
 import { Meta, Title } from '@solidjs/meta';
 import { useNavigate, useSearchParams } from '@solidjs/router';
 import { For, Show, createEffect, createResource, createSignal, type Component } from 'solid-js';
-import {
-  type PlanId,
-  freeFeatures,
-  proFeatures,
-  enterpriseFeatures,
-} from '../components/PlanPicker.jsx';
+import { type PlanId } from '../components/PlanPicker.jsx';
 import { authClient } from '../services/auth-client.js';
 import { getBillingStatus } from '../services/api/billing.js';
 import { toast } from '../services/toast-store.js';
-import { FREE_REQUEST_LIMIT_LABEL, formatBillingPrice } from '../services/billing-display.js';
+import { FREE_REQUEST_LIMIT, formatBillingPrice } from '../services/billing-display.js';
+import { formatNumber, t } from '../i18n/index.js';
 
 const Upgrade: Component = () => {
   const navigate = useNavigate();
@@ -30,6 +26,32 @@ const Upgrade: Component = () => {
   const status = () => billing();
   const isRequestLimitEntry = () => searchParams.reason === 'requests';
   const proPrice = () => formatBillingPrice(status()?.priceMonthly);
+  const freeFeatures = () => [
+    t('pages.upgrade.feature.unlimitedAgents'),
+    t('pages.upgrade.feature.freeRequests', { limit: formatNumber(FREE_REQUEST_LIMIT) }),
+    t('pages.upgrade.feature.allProviders'),
+    t('pages.upgrade.feature.subscriptionProviders'),
+    t('pages.upgrade.feature.retention7'),
+    t('pages.upgrade.feature.autoFix'),
+    t('pages.upgrade.feature.budgetAlerts'),
+    t('pages.upgrade.feature.communitySupport'),
+  ];
+  const proFeatures = () => [
+    t('pages.upgrade.feature.unlimitedRequests'),
+    t('pages.upgrade.feature.retention365'),
+    t('pages.upgrade.feature.basicSupport'),
+  ];
+  const enterpriseFeatures = () => [
+    t('pages.upgrade.feature.multipleSeats'),
+    t('pages.upgrade.feature.sso'),
+    t('pages.upgrade.feature.auditLogs'),
+    t('pages.upgrade.feature.customRetention'),
+    t('pages.upgrade.feature.uptimeSla'),
+    t('pages.upgrade.feature.compliance'),
+    t('pages.upgrade.feature.hipaa'),
+    t('pages.upgrade.feature.customGuardrails'),
+    t('pages.upgrade.feature.dedicatedSupport'),
+  ];
 
   createEffect(() => {
     const current = status();
@@ -58,7 +80,7 @@ const Upgrade: Component = () => {
       const error = (res as { error?: unknown } | undefined)?.error;
       if (error) throw error;
     } catch {
-      toast.error('Could not start the upgrade. Please try again.');
+      toast.error(t('pages.upgrade.error.start'));
     } finally {
       setBillingBusy(false);
     }
@@ -66,8 +88,8 @@ const Upgrade: Component = () => {
 
   return (
     <div class="account-modal account-modal--standalone">
-      <Title>Upgrade to Pro - Manifest</Title>
-      <Meta name="description" content="Upgrade Manifest to Pro for unlimited routed requests." />
+      <Title>{t('pages.upgrade.metaTitle')}</Title>
+      <Meta name="description" content={t('pages.upgrade.metaDescription')} />
       <div class="account-modal__inner account-modal__inner--upgrade">
         <Show when={window.history.length > 1}>
           <button
@@ -91,28 +113,28 @@ const Upgrade: Component = () => {
             >
               <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12l4.58-4.59Z" />
             </svg>
-            Back
+            {t('pages.upgrade.back')}
           </button>
         </Show>
         <div class="page-header upgrade-page-header upgrade-page-header--centered">
           <div class="upgrade-page-header__copy">
-            <h1>Full control over your AI routing</h1>
-            <p>Free to start. Pick the plan that fits how your team ships AI.</p>
+            <h1>{t('pages.upgrade.title')}</h1>
+            <p>{t('pages.upgrade.subtitle')}</p>
           </div>
         </div>
 
         <Show when={isRequestLimitEntry()}>
           <p class="upgrade-limit-notice">
-            You've used all{' '}
-            {status()?.requests.limit?.toLocaleString('en-US') ?? FREE_REQUEST_LIMIT_LABEL} requests
-            this month. Upgrade for unlimited routed requests.
+            {t('pages.upgrade.limitNotice', {
+              limit: formatNumber(status()?.requests.limit ?? FREE_REQUEST_LIMIT),
+            })}
           </p>
         </Show>
 
         <Show when={billing.loading}>
           <div class="settings-card">
             <div class="settings-card__body">
-              <p class="settings-card__desc">Loading billing status...</p>
+              <p class="settings-card__desc">{t('pages.upgrade.loading')}</p>
             </div>
           </div>
         </Show>
@@ -120,12 +142,12 @@ const Upgrade: Component = () => {
         <Show when={billingError()}>
           <div class="settings-card">
             <div class="settings-card__body">
-              <p class="settings-card__desc">Could not load billing status. Please try again.</p>
+              <p class="settings-card__desc">{t('pages.upgrade.loadError')}</p>
             </div>
             <div class="settings-card__footer billing-footer">
-              <span class="billing-footer__note">You can continue to the dashboard.</span>
+              <span class="billing-footer__note">{t('pages.upgrade.continueDashboard')}</span>
               <button class="btn btn--outline btn--sm" onClick={() => navigate('/')}>
-                Dashboard
+                {t('pages.upgrade.dashboard')}
               </button>
             </div>
           </div>
@@ -139,22 +161,22 @@ const Upgrade: Component = () => {
                 <div class="upgrade-plan-grid">
                   <section class="settings-card upgrade-plan-card">
                     <div class="upgrade-plan-card__header">
-                      <h2>Free</h2>
+                      <h2>{t('pages.upgrade.free')}</h2>
                     </div>
                     <div class="upgrade-plan-card__price">
                       <span class="upgrade-plan-card__amount">$0</span>
-                      <span class="upgrade-plan-card__period">/month</span>
+                      <span class="upgrade-plan-card__period">{t('pages.upgrade.perMonth')}</span>
                     </div>
-                    <p class="upgrade-plan-card__desc">For prototypes and small projects.</p>
+                    <p class="upgrade-plan-card__desc">{t('pages.upgrade.freeDescription')}</p>
                     <div class="upgrade-plan-card__cta">
                       <button class="btn btn--outline" onClick={() => navigate('/')}>
-                        Use Manifest for free
+                        {t('pages.upgrade.useFree')}
                       </button>
                     </div>
                     <div class="upgrade-plan-card__bottom">
                       <div class="upgrade-plan-card__divider" />
                       <ul class="upgrade-plan-card__features">
-                        <For each={freeFeatures}>
+                        <For each={freeFeatures()}>
                           {(feature) => (
                             <li>
                               <svg
@@ -176,39 +198,36 @@ const Upgrade: Component = () => {
                   </section>
 
                   <section class="settings-card upgrade-plan-card upgrade-plan-card--pro">
-                    <span class="upgrade-plan-card__badge">Popular</span>
+                    <span class="upgrade-plan-card__badge">{t('pages.upgrade.popular')}</span>
                     <div class="upgrade-plan-card__header">
-                      <h2>Pro</h2>
+                      <h2>{t('pages.upgrade.pro')}</h2>
                     </div>
                     <div class="upgrade-plan-card__price">
-                      <span class="upgrade-plan-card__amount">{proPrice() ?? 'Pro'}</span>
+                      <span class="upgrade-plan-card__amount">
+                        {proPrice() ?? t('pages.upgrade.pro')}
+                      </span>
                       <Show when={proPrice()}>
-                        <span class="upgrade-plan-card__period">/month</span>
+                        <span class="upgrade-plan-card__period">{t('pages.upgrade.perMonth')}</span>
                       </Show>
                     </div>
-                    <p class="upgrade-plan-card__desc">
-                      For production projects. Longer data access and unlimited agents. Not suited
-                      for teams.
-                    </p>
+                    <p class="upgrade-plan-card__desc">{t('pages.upgrade.proDescription')}</p>
                     <div class="upgrade-plan-card__cta">
                       <button
                         class="btn btn--primary"
                         disabled={billingBusy()}
                         onClick={() => handlePlanSelect('pro')}
                       >
-                        {billingBusy() ? <span class="spinner" /> : 'Upgrade to Pro'}
+                        {billingBusy() ? <span class="spinner" /> : t('pages.upgrade.upgradePro')}
                       </button>
                       <span class="upgrade-plan-card__no-commitment">
-                        No commitment, cancel anytime
+                        {t('pages.upgrade.noCommitment')}
                       </span>
                     </div>
                     <div class="upgrade-plan-card__bottom">
                       <div class="upgrade-plan-card__divider" />
-                      <p class="upgrade-plan-card__features-intro">
-                        Everything in the Free plan, plus:
-                      </p>
+                      <p class="upgrade-plan-card__features-intro">{t('pages.upgrade.proIntro')}</p>
                       <ul class="upgrade-plan-card__features">
-                        <For each={proFeatures}>
+                        <For each={proFeatures()}>
                           {(feature) => (
                             <li>
                               <svg
@@ -231,16 +250,15 @@ const Upgrade: Component = () => {
 
                   <section class="settings-card upgrade-plan-card">
                     <div class="upgrade-plan-card__header">
-                      <h2>Enterprise</h2>
+                      <h2>{t('pages.upgrade.enterprise')}</h2>
                     </div>
                     <div class="upgrade-plan-card__price">
                       <span class="upgrade-plan-card__amount upgrade-plan-card__amount--custom">
-                        Let's Talk
+                        {t('pages.upgrade.letsTalk')}
                       </span>
                     </div>
                     <p class="upgrade-plan-card__desc">
-                      For scaling projects, large scale teams. Enterprise-grade support and
-                      security.
+                      {t('pages.upgrade.enterpriseDescription')}
                     </p>
                     <div class="upgrade-plan-card__cta">
                       <a
@@ -249,13 +267,13 @@ const Upgrade: Component = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        Talk to sales
+                        {t('pages.upgrade.talkToSales')}
                       </a>
                     </div>
                     <div class="upgrade-plan-card__bottom">
                       <div class="upgrade-plan-card__divider" />
                       <ul class="upgrade-plan-card__features">
-                        <For each={enterpriseFeatures}>
+                        <For each={enterpriseFeatures()}>
                           {(feature) => (
                             <li>
                               <svg
@@ -277,9 +295,9 @@ const Upgrade: Component = () => {
                   </section>
                 </div>
                 <p class="upgrade-terms">
-                  Subject to our{' '}
+                  {t('pages.upgrade.termsPrefix')}{' '}
                   <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
-                    terms and conditions
+                    {t('pages.upgrade.terms')}
                   </a>
                 </p>
               </>
@@ -287,30 +305,26 @@ const Upgrade: Component = () => {
           >
             <div class="upgrade-pro-current">
               <p class="upgrade-pro-current__status">
-                You're currently on the <strong>Pro plan</strong>. Manage billing from{' '}
+                {t('pages.upgrade.currentProPrefix')} <strong>{t('pages.upgrade.proPlan')}</strong>.{' '}
+                {t('pages.upgrade.manageFrom')}{' '}
                 <a href="/account" class="billing-footer__link">
-                  Account
+                  {t('pages.upgrade.account')}
                 </a>
                 .
               </p>
-              <p class="upgrade-pro-current__status">
-                If you need more (team management, compliance, SLAs...), explore our Enterprise
-                plan.
-              </p>
+              <p class="upgrade-pro-current__status">{t('pages.upgrade.enterprisePrompt')}</p>
 
               <div class="upgrade-pro-current__card">
                 <section class="settings-card upgrade-plan-card">
                   <div class="upgrade-plan-card__header">
-                    <h2>Enterprise</h2>
+                    <h2>{t('pages.upgrade.enterprise')}</h2>
                   </div>
                   <div class="upgrade-plan-card__price">
                     <span class="upgrade-plan-card__amount upgrade-plan-card__amount--custom">
-                      Let's Talk
+                      {t('pages.upgrade.letsTalk')}
                     </span>
                   </div>
-                  <p class="upgrade-plan-card__desc">
-                    Everything is negotiable. We build the plan around your team's needs.
-                  </p>
+                  <p class="upgrade-plan-card__desc">{t('pages.upgrade.negotiable')}</p>
                   <div class="upgrade-plan-card__cta">
                     <a
                       class="btn btn--primary"
@@ -318,37 +332,29 @@ const Upgrade: Component = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Talk to sales
+                      {t('pages.upgrade.talkToSales')}
                     </a>
                   </div>
                   <div class="upgrade-plan-card__bottom">
                     <div class="upgrade-plan-card__divider" />
                     <ul class="upgrade-plan-card__features">
-                      {[
-                        'Multiple seats and team management',
-                        'SSO / SAML',
-                        'Audit logs',
-                        'Custom retention',
-                        'Uptime SLA',
-                        'SOC 2 Type II and ISO 27001',
-                        'HIPAA and custom BAAs',
-                        'Custom guardrails',
-                        'Dedicated support (Slack and email)',
-                      ].map((feature) => (
-                        <li>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            fill="#2632EF"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                          >
-                            <path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z" />
-                          </svg>
-                          <span>{feature}</span>
-                        </li>
-                      ))}
+                      <For each={enterpriseFeatures()}>
+                        {(feature) => (
+                          <li>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              fill="#2632EF"
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                            >
+                              <path d="M9 15.59 4.71 11.3 3.3 12.71l5 5c.2.2.45.29.71.29s.51-.1.71-.29l11-11-1.41-1.41L9.02 15.59Z" />
+                            </svg>
+                            <span>{feature}</span>
+                          </li>
+                        )}
+                      </For>
                     </ul>
                   </div>
                 </section>

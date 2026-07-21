@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
+import { setLocale } from '../../src/i18n/index.js';
 
 let mockAgentName = 'test-agent';
 let mockSearchParams: Record<string, string | undefined> = {};
@@ -316,7 +317,8 @@ const connectionMultiselect = (container: HTMLElement) =>
   ) as HTMLSelectElement;
 
 describe('MessageLog', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await setLocale('en');
     vi.clearAllMocks();
     localStorage.clear();
     mockAgentName = 'test-agent';
@@ -405,6 +407,25 @@ describe('MessageLog', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('No requests yet');
     });
+  });
+
+  it('localizes the example image alternative text and hides the English image for Russian UI', async () => {
+    const empty = { items: [], next_cursor: null, total_count: 0, providers: [] };
+    mockGetMessages.mockResolvedValue(empty);
+    const english = render(() => <MessageLog />);
+    await vi.waitFor(() =>
+      expect(
+        english.container.querySelector('img[src="/example-messages.svg"]')?.getAttribute('alt'),
+      ).toBe('Example request log showing LLM request history'),
+    );
+    english.unmount();
+
+    await setLocale('ru');
+    const russian = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(russian.container.querySelector('.empty-state')).not.toBeNull();
+    });
+    expect(russian.container.querySelector('img[src="/example-messages.svg"]')).toBeNull();
   });
 
   it("shows 'no messages match' when filters return 0 results", async () => {
@@ -702,7 +723,7 @@ describe('MessageLog', () => {
     });
     const attemptSelect = selectWithOption(container, 'All attempt statuses');
     expect(attemptSelect.textContent).toContain('With a failed attempt');
-    expect(attemptSelect.textContent).toContain('With a succeeded attempt');
+    expect(attemptSelect.textContent).toContain('With a successful attempt');
 
     mockGetMessages.mockClear();
     await fireEvent.change(attemptSelect, { target: { value: 'has_failed' } });
@@ -723,7 +744,7 @@ describe('MessageLog', () => {
 
     const triggerSelect = selectWithOption(container, 'All attempts');
     expect(triggerSelect.textContent).toContain('With any recovery attempt');
-    expect(triggerSelect.textContent).toContain('With an auto-fix attempt');
+    expect(triggerSelect.textContent).toContain('With an Auto-fix attempt');
     expect(triggerSelect.textContent).toContain('With a fallback attempt');
     expect(triggerSelect.textContent).toContain('No recovery attempt');
 
@@ -927,7 +948,7 @@ describe('MessageLog', () => {
     await vi.waitFor(() => {
       const badge = container.querySelector('.tier-badge');
       expect(badge).not.toBeNull();
-      expect(badge?.textContent).toBe('simple');
+      expect(badge?.textContent).toBe('Simple');
     });
   });
 
@@ -1249,7 +1270,7 @@ describe('MessageLog', () => {
     await vi.waitFor(() => {
       const badge = container.querySelector('.tier-badge');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toBe('simple');
+      expect(badge!.textContent).toBe('Simple');
     });
   });
 

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearPlanChosen,
   hasPlanBeenChosen,
@@ -9,6 +9,10 @@ describe('plan-selection', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('stores, reads, and clears the chosen plan flag per user', () => {
@@ -25,14 +29,16 @@ describe('plan-selection', () => {
   });
 
   it('fails closed when storage reads are unavailable and does not throw on writes', () => {
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new Error('full');
-    });
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-      throw new Error('blocked');
-    });
-    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
-      throw new Error('blocked');
+    vi.stubGlobal('localStorage', {
+      setItem: () => {
+        throw new Error('full');
+      },
+      getItem: () => {
+        throw new Error('blocked');
+      },
+      removeItem: () => {
+        throw new Error('blocked');
+      },
     });
 
     expect(() => markPlanChosen('u1')).not.toThrow();

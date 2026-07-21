@@ -8,7 +8,8 @@ import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { validateProviderConfig } from './email-provider-validation';
 import { createProvider } from './email-providers/resolve-provider';
-import { TestEmail } from '../emails/test-email';
+import { TestEmail, testEmailSubject } from '../emails/test-email';
+import type { AppLocale } from '../../common/i18n/locale';
 import type { EmailProviderConfig as ProviderConfig } from './email-providers/email-provider.interface';
 
 export interface EmailProviderPublicConfig {
@@ -214,6 +215,7 @@ export class EmailProviderConfigService {
   async testSavedConfig(
     tenantId: string | null,
     toEmail: string,
+    locale: AppLocale = 'en',
   ): Promise<{ success: boolean; error?: string }> {
     const config = await this.getFullConfig(tenantId);
     if (!config) {
@@ -222,12 +224,14 @@ export class EmailProviderConfigService {
     return this.testConfig(
       { provider: config.provider, apiKey: config.apiKey, domain: config.domain ?? undefined },
       toEmail,
+      locale,
     );
   }
 
   async testConfig(
     dto: { provider: string; apiKey: string; domain?: string },
     toEmail: string,
+    locale: AppLocale = 'en',
   ): Promise<{ success: boolean; error?: string }> {
     const validation = validateProviderConfig(dto.provider, dto.apiKey, dto.domain);
     if (!validation.valid) {
@@ -243,12 +247,12 @@ export class EmailProviderConfigService {
         domain: domain || undefined,
       };
       const emailProvider = createProvider(config);
-      const html = await render(TestEmail());
-      const text = await render(TestEmail(), { plainText: true });
+      const html = await render(TestEmail({ locale }));
+      const text = await render(TestEmail({ locale }), { plainText: true });
       const from = domain ? `Manifest <noreply@${domain}>` : `Manifest <${this.fromEmail}>`;
       const sent = await emailProvider.send({
         to: toEmail,
-        subject: 'Manifest — Test Email',
+        subject: testEmailSubject(locale),
         html,
         text,
         from,

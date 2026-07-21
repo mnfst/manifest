@@ -1,6 +1,7 @@
 import { A } from '@solidjs/router';
 import { createResource, Show, type Component } from 'solid-js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
+import { t } from '../i18n/index.js';
 
 const SubscriptionIcon = () => (
   <svg
@@ -56,10 +57,8 @@ const NoConnectionsPrompt: Component = () => {
   return (
     <div class="no-connections-prompt">
       <div class="no-connections-prompt__header">
-        <span class="no-connections-prompt__title">No providers connected</span>
-        <span class="no-connections-prompt__desc">
-          Connect a provider to start routing your requests.
-        </span>
+        <span class="no-connections-prompt__title">{t('connections.emptyTitle')}</span>
+        <span class="no-connections-prompt__desc">{t('connections.emptyDescription')}</span>
       </div>
       <div class="no-connections-prompt__cards">
         <A
@@ -70,12 +69,12 @@ const NoConnectionsPrompt: Component = () => {
           <span class="no-connections-prompt__card-icon">
             <SubscriptionIcon />
           </span>
-          <span class="no-connections-prompt__card-title">Subscriptions</span>
+          <span class="no-connections-prompt__card-title">{t('connections.subscriptions')}</span>
           <span class="no-connections-prompt__card-desc">
-            Use your existing paid plans. You can add several from the same provider.
+            {t('connections.subscriptionsDescription')}
           </span>
           <button class="btn btn--primary btn--sm" style="margin-top: auto; pointer-events: none;">
-            Connect provider
+            {t('provider.connect')}
           </button>
         </A>
         <A
@@ -86,12 +85,12 @@ const NoConnectionsPrompt: Component = () => {
           <span class="no-connections-prompt__card-icon">
             <ApiKeyIcon />
           </span>
-          <span class="no-connections-prompt__card-title">Usage-based</span>
+          <span class="no-connections-prompt__card-title">{t('connections.usageBased')}</span>
           <span class="no-connections-prompt__card-desc">
-            Connect providers you pay per token or per usage with your own API keys.
+            {t('connections.usageBasedDescription')}
           </span>
           <button class="btn btn--primary btn--sm" style="margin-top: auto; pointer-events: none;">
-            Connect provider
+            {t('provider.connect')}
           </button>
         </A>
         <Show when={selfHosted()}>
@@ -103,15 +102,15 @@ const NoConnectionsPrompt: Component = () => {
             <span class="no-connections-prompt__card-icon">
               <LocalIcon />
             </span>
-            <span class="no-connections-prompt__card-title">Local</span>
+            <span class="no-connections-prompt__card-title">{t('connections.local')}</span>
             <span class="no-connections-prompt__card-desc">
-              Connect to LLM servers running on your machine.
+              {t('connections.localDescription')}
             </span>
             <button
               class="btn btn--primary btn--sm"
               style="margin-top: auto; pointer-events: none;"
             >
-              Connect provider
+              {t('provider.connect')}
             </button>
           </A>
         </Show>

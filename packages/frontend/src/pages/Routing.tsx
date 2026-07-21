@@ -63,6 +63,7 @@ import { DEFAULT_STAGE, STAGES } from '../services/providers.js';
 // of the global theme bundle so login/overview/etc. don't download it.
 import NoConnectionsPrompt from '../components/NoConnectionsPrompt.jsx';
 import '../styles/routing.css';
+import { t } from '../i18n/index.js';
 
 const Routing: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -232,7 +233,7 @@ const Routing: Component = () => {
         await handleDefaultResponseModeChange('stream');
       }
     } catch {
-      toast.error('Failed to toggle complexity routing');
+      toast.error(t('pages.routing.complexityToggleFailed'));
     } finally {
       setTogglingComplexity(false);
     }
@@ -262,11 +263,11 @@ const Routing: Component = () => {
       });
       toast.success(
         responseMode === 'stream'
-          ? 'Streaming response mode enabled'
-          : 'Buffered response mode enabled',
+          ? t('pages.routing.streamingEnabled')
+          : t('pages.routing.bufferedEnabled'),
       );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update response mode');
+      toast.error(err instanceof Error ? err.message : t('pages.routing.responseModeFailed'));
     } finally {
       setChangingDefaultResponseMode(false);
     }
@@ -298,12 +299,12 @@ const Routing: Component = () => {
       });
       toast.success(
         responseMode === 'stream'
-          ? 'Streaming response mode enabled'
-          : 'Buffered response mode enabled',
+          ? t('pages.routing.streamingEnabled')
+          : t('pages.routing.bufferedEnabled'),
       );
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : 'Failed to update task-specific response mode',
+        err instanceof Error ? err.message : t('pages.routing.specificityResponseModeFailed'),
       );
     } finally {
       setChangingSpecificityResponseMode(false);
@@ -340,7 +341,7 @@ const Routing: Component = () => {
     }
     if (pricingWarningShown()) return;
     setPricingWarningShown(true);
-    toast.warning('Model pricing data is unavailable. Model cost details may be incomplete.');
+    toast.warning(t('pages.routing.pricingUnavailable'));
   });
 
   const refetchAll = async () => {
@@ -399,9 +400,9 @@ const Routing: Component = () => {
         const { setSpecificityFallbacks } = await import('../services/api.js');
         await setSpecificityFallbacks(agentName(), tierId, updated, updatedRoutes);
         await refetchSpecificity();
-        toast.success('Fallback added');
+        toast.success(t('pages.routing.fallbackAdded'));
       } catch {
-        toast.error('Failed to add fallback');
+        toast.error(t('pages.routing.fallbackAddFailed'));
       }
       return;
     }
@@ -458,7 +459,7 @@ const Routing: Component = () => {
       await overrideSpecificity(agentName(), category, model, provider, authType, providerKeyLabel);
       await refetchSpecificity();
     } catch {
-      toast.error('Failed to update specificity model');
+      toast.error(t('pages.routing.specificity.modelUpdateFailed'));
     } finally {
       setChangingSpecificity(null);
     }
@@ -490,7 +491,11 @@ const Routing: Component = () => {
         providerKeyLabel ?? undefined,
       );
       await refetchSpecificity();
-      toast.success(providerKeyLabel ? `Pinned to "${providerKeyLabel}" key` : 'Key pin cleared');
+      toast.success(
+        providerKeyLabel
+          ? t('pages.routing.pinnedKey', { label: providerKeyLabel })
+          : t('pages.routing.keyPinCleared'),
+      );
     } catch {
       // toast handled upstream
     } finally {
@@ -500,10 +505,12 @@ const Routing: Component = () => {
 
   return (
     <div class="container--lg">
-      <Title>{agentDisplayName() ?? agentName()} Routing - Manifest</Title>
+      <Title>{t('pages.routing.metaTitle', { agent: agentDisplayName() ?? agentName() })}</Title>
       <Meta
         name="description"
-        content={`Configure model routing for ${agentDisplayName() ?? agentName()}.`}
+        content={t('pages.routing.metaDescription', {
+          agent: agentDisplayName() ?? agentName(),
+        })}
       />
 
       <Show
@@ -530,15 +537,17 @@ const Routing: Component = () => {
                       await refreshModels(agentName());
                       refetchModels();
                       refetchTiers();
-                      toast.success('Models refreshed');
+                      toast.success(t('pages.routing.modelsRefreshed'));
                     } catch {
-                      toast.error('Failed to refresh models');
+                      toast.error(t('pages.routing.modelsRefreshFailed'));
                     } finally {
                       setRefreshingModels(false);
                     }
                   }}
                 >
-                  {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
+                  {refreshingModels()
+                    ? t('pages.routing.refreshing')
+                    : t('pages.routing.refreshModels')}
                 </button>
               </Show>
               <button class="response-mode-btn" onClick={() => setResponseModeModalOpen(true)}>
@@ -558,7 +567,12 @@ const Routing: Component = () => {
                     <circle cx="12" cy="12" r="3" />
                   </svg>
                 </span>
-                Response mode: {defaultResponseMode() === 'stream' ? 'Stream' : 'Buffered'}
+                {t('pages.routing.responseMode', {
+                  mode:
+                    defaultResponseMode() === 'stream'
+                      ? t('pages.routing.stream')
+                      : t('pages.routing.buffered'),
+                })}
               </button>
             </div>
           </div>
@@ -574,7 +588,7 @@ const Routing: Component = () => {
                 >
                   <div>
                     <span class="routing-section__subtitle">
-                      Pick one model and up to 5 fallbacks as your default routing.
+                      {t('pages.routing.default.description')}
                     </span>
                   </div>
                   <Show when={(headerTiers() ?? []).length > 0}>
@@ -583,7 +597,7 @@ const Routing: Component = () => {
                       class="btn btn--primary btn--sm routing-section__cta"
                       onClick={() => headerTierOpener?.()}
                     >
-                      Manage custom routing
+                      {t('pages.routing.custom.manage')}
                     </button>
                   </Show>
                   <Show when={(headerTiers() ?? []).length === 0}>
@@ -592,7 +606,7 @@ const Routing: Component = () => {
                       class="btn btn--primary btn--sm routing-section__cta"
                       onClick={() => headerTierCreator?.()}
                     >
-                      Create custom tier
+                      {t('pages.routing.custom.create')}
                     </button>
                   </Show>
                 </div>
@@ -639,7 +653,9 @@ const Routing: Component = () => {
                             await refetchHeaderTiers();
                           } catch (err) {
                             toast.error(
-                              err instanceof Error ? err.message : 'Failed to update tier',
+                              err instanceof Error
+                                ? err.message
+                                : t('pages.routing.custom.updateFailed'),
                             );
                           }
                         }}
@@ -661,7 +677,9 @@ const Routing: Component = () => {
                             await refetchHeaderTiers();
                           } catch (err) {
                             toast.error(
-                              err instanceof Error ? err.message : 'Failed to toggle tier',
+                              err instanceof Error
+                                ? err.message
+                                : t('pages.routing.custom.toggleFailed'),
                             );
                           }
                         }}
@@ -687,7 +705,7 @@ const Routing: Component = () => {
                       <path d="m21,4h-1v-1c0-.55-.45-1-1-1s-1,.45-1,1v1h-1c-.55,0-1,.45-1,1s.45,1,1,1h1v1c0,.55.45,1,1,1s1-.45,1-1v-1h1c.55,0,1-.45,1-1s-.45-1-1-1Z" />
                       <path d="m3.24,16.5c0,.76.42,1.45,1.11,1.79l5.87,2.93c.56.28,1.18.42,1.79.42s1.23-.14,1.79-.42l5.87-2.93c.68-.34,1.11-1.03,1.11-1.79s-.42-1.45-1.11-1.79l-.42-.21.42-.21c.68-.34,1.11-1.03,1.11-1.79,0-.76-.42-1.45-1.11-1.79l-5.87-2.93c-1.12-.56-2.46-.56-3.58,0l-5.87,2.93c-.68.34-1.11,1.03-1.11,1.79,0,.76.42,1.45,1.11,1.79l.42.21-.42.21c-.68.34-1.11,1.03-1.11,1.79Zm2-4l5.87-2.93c.28-.14.59-.21.89-.21s.61.07.89.21l5.88,2.93-5.88,2.94c-.56.28-1.23.28-1.79,0l-4.11-2.05-1.76-.88Zm4.97,4.72c1.12.56,2.46.56,3.58,0l3.21-1.61,1.77.88-5.88,2.94c-.56.28-1.23.28-1.79,0l-5.87-2.93,1.76-.88,3.21,1.61Z" />
                     </svg>
-                    <span>Create custom tier</span>
+                    <span>{t('pages.routing.custom.create')}</span>
                   </button>
                 </div>
                 {/* Headless section for modals only */}
@@ -782,7 +800,7 @@ const Routing: Component = () => {
                         await resetSpecificity(agentName(), category);
                         await refetchSpecificity();
                       } catch {
-                        toast.error('Failed to reset');
+                        toast.error(t('pages.routing.specificity.resetFailed'));
                       } finally {
                         setResettingSpecificity(null);
                       }
@@ -859,12 +877,12 @@ const Routing: Component = () => {
                     onClick={(e) => e.stopPropagation()}
                   >
                     <h2 style="margin: 0 0 16px; font-size: var(--font-size-lg); font-weight: 600;">
-                      How routing works
+                      {t('pages.routing.howItWorks')}
                     </h2>
                     {content}
                     <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
                       <button class="btn btn--primary btn--sm" onClick={() => setHelpOpen(false)}>
-                        Got it
+                        {t('pages.routing.gotIt')}
                       </button>
                     </div>
                   </div>

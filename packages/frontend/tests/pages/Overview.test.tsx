@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@solidjs/testing-library';
+import { setLocale } from '../../src/i18n/index.js';
 
 let mockAgentName = 'test-agent';
 let mockLocationState: any = null;
@@ -50,6 +51,7 @@ vi.mock('../../src/services/model-display.js', () => ({
 vi.mock('../../src/services/formatters.js', () => ({
   formatCost: (v: number) => `$${v.toFixed(2)}`,
   formatNumber: (v: number) => String(v),
+  formatTrend: (v: number) => `${v >= 0 ? '+' : ''}${Math.round(v)}%`,
   formatStatus: (s: string) => s,
   formatErrorOrigin: (o: string | null | undefined) => o ?? null,
   formatTime: (t: string) => t,
@@ -73,7 +75,8 @@ const mockGetAutofixStats = vi.fn();
 let mockAutofixEligible = false;
 vi.mock('../../src/services/api/analytics.js', () => ({
   RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
-  REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
   totalAttemptsTooltip: (doctor: boolean) =>
     doctor
       ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
@@ -256,7 +259,8 @@ const emptyOverviewData = {
 };
 
 describe('Overview', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await setLocale('en');
     vi.clearAllMocks();
     localStorage.clear();
     localStorage.setItem('manifest_global_group', 'provider');
@@ -456,6 +460,36 @@ describe('Overview', () => {
     });
   });
 
+  it('keeps the original English example image and hides it for Russian UI', async () => {
+    mockGetOverview.mockResolvedValue(emptyOverviewData);
+    const english = render(() => <Overview />);
+    await vi.waitFor(() => {
+      const image = english.container.querySelector('img[src="/example-overview.svg"]');
+      expect(image).not.toBeNull();
+      expect(image?.getAttribute('alt')).toBe(
+        'Example dashboard overview showing cost and token charts',
+      );
+    });
+    english.unmount();
+
+    await setLocale('ru');
+    const russian = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(russian.container.querySelector('.empty-state')).not.toBeNull();
+    });
+    expect(russian.container.querySelector('img[src="/example-overview.svg"]')).toBeNull();
+  });
+
+  it('localizes the recent requests panel for Russian', async () => {
+    await setLocale('ru');
+    mockGetOverview.mockResolvedValue(overviewData);
+
+    const { container } = render(() => <Overview />);
+
+    await vi.waitFor(() => expect(container.textContent).toContain('Последние запросы'));
+    expect(container.textContent).not.toContain('Recent Requests');
+  });
+
   it('calls getOverview on mount', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     render(() => <Overview />);
@@ -532,7 +566,7 @@ describe('Overview', () => {
     // Tab + KPI cards share the label; both surfaces are present.
     expect(screen.getAllByText('Recovered requests').length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('Recovered by Auto-fix')).toBeDefined();
-    expect(screen.getByText('Recovered by Fallback')).toBeDefined();
+    expect(screen.getByText('Recovered by fallback')).toBeDefined();
   });
 
   it('switches chart view when stat header clicked', async () => {

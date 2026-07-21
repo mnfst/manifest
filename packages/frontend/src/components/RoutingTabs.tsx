@@ -1,4 +1,5 @@
 import { createSignal, Show, type Component, type JSX } from 'solid-js';
+import { t } from '../i18n/index.js';
 
 export type RoutingTabId = 'default' | 'specificity' | 'custom';
 
@@ -37,23 +38,23 @@ const RoutingTabs: Component<RoutingTabsProps> = (props) => {
   const showSpecificity = () => props.showSpecificity?.() ?? true;
 
   const tabs = (): Tab[] => [
-    { id: 'default', label: 'Default', dot: () => true },
+    { id: 'default', label: t('routing.tier.default'), dot: () => true },
     ...(showSpecificity()
       ? [
           {
             id: 'specificity' as RoutingTabId,
-            label: 'Task-specific',
+            label: t('routing.taskSpecific'),
             dot: () => props.specificityEnabled(),
           },
         ]
       : []),
-    { id: 'custom', label: 'Custom', dot: () => props.customEnabled() },
+    { id: 'custom', label: t('routing.customShort'), dot: () => props.customEnabled() },
   ];
 
   return (
     <div class="routing-tabs">
       <div class="routing-tabs__header">
-        <div class="panel__tabs" role="tablist" aria-label="Routing layers">
+        <div class="panel__tabs" role="tablist" aria-label={t('routing.layers')}>
           {tabs().map((tab) => (
             <button
               class="panel__tab"

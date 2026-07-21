@@ -2,6 +2,7 @@ import { createSignal, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
 import { getNanobotConfigSnippet } from '../services/framework-snippets.js';
+import { t, tr } from '../i18n/index.js';
 
 interface Props {
   apiKey: string | null;
@@ -52,9 +53,11 @@ const NanobotSetup: Component<Props> = (props) => {
   return (
     <div class="setup-agents-card">
       <p class="setup-method__hint">
-        Edit <code class="setup-model-hint__code">~/.nanobot/config.json</code> by updating the
-        existing <code class="setup-model-hint__code">agents.defaults</code> values first, then add
-        the <code class="setup-model-hint__code">custom</code> provider block below.
+        {tr('setup.nanobotHint', {
+          configFile: <code class="setup-model-hint__code">~/.nanobot/config.json</code>,
+          defaultsPath: <code class="setup-model-hint__code">agents.defaults</code>,
+          providerName: <code class="setup-model-hint__code">custom</code>,
+        })}
       </p>
 
       <div class="setup-cli-block">
@@ -63,8 +66,8 @@ const NanobotSetup: Component<Props> = (props) => {
             <button
               class="modal-terminal__copy"
               onClick={() => setKeyRevealed(!keyRevealed())}
-              aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
-              title={keyRevealed() ? 'Hide key' : 'Reveal key'}
+              aria-label={keyRevealed() ? t('components.hideApiKey') : t('components.revealApiKey')}
+              title={keyRevealed() ? t('components.hideKey') : t('components.revealKey')}
             >
               <EyeIcon open={keyRevealed()} />
             </button>

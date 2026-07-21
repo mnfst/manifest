@@ -223,10 +223,18 @@ describe('Login', () => {
     )!;
     fireEvent.click(resendBtn);
     await vi.waitFor(() => {
-      expect(mockSendVerificationEmail).toHaveBeenCalledWith({
-        email: 'user@test.com',
-        callbackURL: '/',
-      });
+      expect(mockSendVerificationEmail).toHaveBeenCalledWith(
+        {
+          email: 'user@test.com',
+          callbackURL: '/',
+        },
+        {
+          headers: {
+            'Accept-Language': 'en-US',
+            'X-Manifest-Locale': 'en-US',
+          },
+        },
+      );
     });
   });
 
@@ -302,10 +310,18 @@ describe('Login', () => {
     )!;
     fireEvent.click(resendBtn);
     await vi.waitFor(() => {
-      expect(mockSendVerificationEmail).toHaveBeenCalledWith({
-        email: 'user@test.com',
-        callbackURL: '/upgrade',
-      });
+      expect(mockSendVerificationEmail).toHaveBeenCalledWith(
+        {
+          email: 'user@test.com',
+          callbackURL: '/upgrade',
+        },
+        {
+          headers: {
+            'Accept-Language': 'en-US',
+            'X-Manifest-Locale': 'en-US',
+          },
+        },
+      );
     });
   });
 

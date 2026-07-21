@@ -130,12 +130,20 @@ describe('Register', () => {
     });
     fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(mockSignUpEmail).toHaveBeenCalledWith({
-        name: 'Test',
-        email: 'test@test.com',
-        password: 'pass123',
-        callbackURL: '/upgrade',
-      });
+      expect(mockSignUpEmail).toHaveBeenCalledWith(
+        {
+          name: 'Test',
+          email: 'test@test.com',
+          password: 'pass123',
+          callbackURL: '/upgrade',
+        },
+        {
+          headers: {
+            'Accept-Language': 'en-US',
+            'X-Manifest-Locale': 'en-US',
+          },
+        },
+      );
     });
   });
 
@@ -153,6 +161,9 @@ describe('Register', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('Check your email');
     });
+    const email = container.querySelector('.auth-header__subtitle strong');
+    expect(email?.textContent).toBe('test@test.com');
+    expect(email?.parentElement?.textContent).toBe('We sent a verification link to test@test.com');
   });
 
   it('shows error on failed registration', async () => {
@@ -369,10 +380,18 @@ describe('Register', () => {
     if (resendBtn) {
       fireEvent.click(resendBtn);
       await vi.waitFor(() => {
-        expect(mockSendVerificationEmail).toHaveBeenCalledWith({
-          email: 'test@test.com',
-          callbackURL: '/upgrade',
-        });
+        expect(mockSendVerificationEmail).toHaveBeenCalledWith(
+          {
+            email: 'test@test.com',
+            callbackURL: '/upgrade',
+          },
+          {
+            headers: {
+              'Accept-Language': 'en-US',
+              'X-Manifest-Locale': 'en-US',
+            },
+          },
+        );
       });
     }
     vi.useRealTimers();

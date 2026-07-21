@@ -1,34 +1,29 @@
 import { Show, type Component, type JSX } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import InfoTooltip from './InfoTooltip.jsx';
-import { formatNumber } from '../services/formatters.js';
+import { formatNumber, formatTrend } from '../services/formatters.js';
+import { formatNumber as formatLocalizedNumber, t, type TextMessageKey } from '../i18n/index.js';
 // The card grid styles: this component owns the dependency so the agent
 // Overview renders styled cards even when loaded directly (deep link/refresh).
 import '../styles/analytics-overview.css';
-import {
-  RECOVERED_REQUESTS_TOOLTIP,
-  REQUEST_SUCCESS_RATE_TOOLTIP,
-  type AutofixStats,
-} from '../services/api/analytics.js';
+import type { AutofixStats } from '../services/api/analytics.js';
 
 function fmtPct(v: number): string {
-  const pct = v * 100;
-  return pct === 100 || pct === 0 ? `${pct}%` : `${pct.toFixed(1)}%`;
+  const whole = v === 0 || v === 1;
+  return formatLocalizedNumber(v, {
+    style: 'percent',
+    minimumFractionDigits: whole ? 0 : 1,
+    maximumFractionDigits: whole ? 0 : 1,
+  });
 }
 
 function trendBadge(current: number, previous: number) {
   if (previous === 0 && current === 0) return null;
-  if (previous === 0) return <span class="trend trend--neutral">new</span>;
+  if (previous === 0) return <span class="trend trend--neutral">{t('autofixKpi.trend.new')}</span>;
   const pct = ((current - previous) / previous) * 100;
   if (Math.abs(pct) < 0.5) return null;
   const clamped = Math.max(-999, Math.min(999, Math.round(pct)));
-  const sign = clamped > 0 ? '+' : '';
-  return (
-    <span class="trend trend--neutral">
-      {sign}
-      {clamped}%
-    </span>
-  );
+  return <span class="trend trend--neutral">{formatTrend(clamped)}</span>;
 }
 
 export interface AutofixKpiCardsProps {
@@ -41,7 +36,9 @@ export interface AutofixKpiCardsProps {
   noLinks?: boolean;
 }
 
-const viewMore = (): JSX.Element => <span class="view-more-link">View more</span>;
+const viewMore = (): JSX.Element => <span class="view-more-link">{t('autofixKpi.viewMore')}</span>;
+
+type SubjectKey = Extract<TextMessageKey, `autofixKpi.subject.${string}`>;
 
 /**
  * The reliability story, request-first: Success rate · Self-healed requests %
@@ -61,11 +58,10 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
       .join('&');
     return params ? `/messages?${params}` : '/messages';
   };
-  const linkProps = (link: string | null, title: string) =>
+  const linkProps = (link: string | null) =>
     link
       ? {
           style: 'cursor: pointer;',
-          title,
           role: 'link' as const,
           tabIndex: 0,
           onClick: (event: MouseEvent) => {
@@ -79,8 +75,10 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
           },
         }
       : {};
-  const scopeTitle = (subject: string) =>
-    props.agentName ? `View this harness's ${subject}` : `View ${subject} across all harnesses`;
+  const scopeTitle = (subjectKey: SubjectKey) =>
+    t(props.agentName ? 'autofixKpi.scope.agent' : 'autofixKpi.scope.all', {
+      subject: t(subjectKey),
+    });
   const selfHealed = () => {
     const s = props.stats;
     if (!s) return 0;
@@ -108,8 +106,8 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
         <div class="overview-stats" style="grid-template-columns: repeat(5, 1fr);">
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">
-              Success rate
-              <InfoTooltip text={REQUEST_SUCCESS_RATE_TOOLTIP} />
+              {t('autofixKpi.successRate')}
+              <InfoTooltip text={t('autofixKpi.successRateHelp')} />
             </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{fmtPct(s().success_rate.value)}</span>
@@ -118,14 +116,16 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
           </div>
           <div
             class="overview-stat-card"
-            {...linkProps(
-              requestsLink('&status=ok&trigger=autofix,fallback'),
-              scopeTitle('recovered requests'),
-            )}
+            {...linkProps(requestsLink('&status=ok&trigger=autofix,fallback'))}
+            title={
+              requestsLink('&status=ok&trigger=autofix,fallback')
+                ? scopeTitle('autofixKpi.subject.recovered')
+                : undefined
+            }
           >
             <span class="overview-stat-card__label">
-              Recovered requests
-              <InfoTooltip text={RECOVERED_REQUESTS_TOOLTIP} />
+              {t('autofixKpi.recoveredRequests')}
+              <InfoTooltip text={t('autofixKpi.recoveredRequestsHelp')} />
             </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{fmtPct(selfHealedPct())}</span>
@@ -135,12 +135,14 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
           </div>
           <div
             class="overview-stat-card overview-stat-card--autofix"
-            {...linkProps(
-              requestsLink('&status=ok&trigger=autofix'),
-              scopeTitle('requests recovered by Auto-fix'),
-            )}
+            {...linkProps(requestsLink('&status=ok&trigger=autofix'))}
+            title={
+              requestsLink('&status=ok&trigger=autofix')
+                ? scopeTitle('autofixKpi.subject.autofix')
+                : undefined
+            }
           >
-            <span class="overview-stat-card__label">Recovered by Auto-fix</span>
+            <span class="overview-stat-card__label">{t('autofixKpi.recoveredByAutofix')}</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{formatNumber(s().autofix_saves.value)}</span>
               {trendBadge(s().autofix_saves.value, s().autofix_saves.previous)}
@@ -149,12 +151,14 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
           </div>
           <div
             class="overview-stat-card overview-stat-card--fallback"
-            {...linkProps(
-              requestsLink('&status=ok&trigger=fallback'),
-              scopeTitle('requests recovered by fallback'),
-            )}
+            {...linkProps(requestsLink('&status=ok&trigger=fallback'))}
+            title={
+              requestsLink('&status=ok&trigger=fallback')
+                ? scopeTitle('autofixKpi.subject.fallback')
+                : undefined
+            }
           >
-            <span class="overview-stat-card__label">Recovered by Fallback</span>
+            <span class="overview-stat-card__label">{t('autofixKpi.recoveredByFallback')}</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">
                 {formatNumber(s().fallback_saves?.value ?? 0)}
@@ -165,9 +169,12 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
           </div>
           <div
             class="overview-stat-card overview-stat-card--destructive"
-            {...linkProps(requestsLink('&status=failed'), scopeTitle('failed requests'))}
+            {...linkProps(requestsLink('&status=failed'))}
+            title={
+              requestsLink('&status=failed') ? scopeTitle('autofixKpi.subject.failed') : undefined
+            }
           >
-            <span class="overview-stat-card__label">Failed requests</span>
+            <span class="overview-stat-card__label">{t('autofixKpi.failedRequests')}</span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">
                 {formatNumber(s().errors_remaining.value)}

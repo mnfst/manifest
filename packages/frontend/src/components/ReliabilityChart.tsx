@@ -1,4 +1,4 @@
-import { createSignal, For, type Component } from 'solid-js';
+import { createEffect, createSignal, For, type Component } from 'solid-js';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
 import '../styles/reliability-card.css';
@@ -20,6 +20,7 @@ import {
   fillDailyGaps,
 } from '../services/chart-utils.js';
 import type { AutofixTimeseries } from '../services/api/analytics.js';
+import { locale, t } from '../i18n/index.js';
 
 // ---------------------------------------------------------------------------
 // Colors per series mode
@@ -63,13 +64,13 @@ function colorFor(key: string, mode: string, idx: number): string {
 }
 
 function keyLabel(key: string): string {
-  if (key === 'none') return 'No error';
-  if (key === 'success') return 'Success';
-  if (key === 'healed') return 'Success - recovered by Auto-fix';
-  if (key === 'error') return 'Error';
-  if (key === 'no_fix_found') return 'No fix found';
-  if (key === 'autofix') return 'Success - recovered by Auto-fix';
-  if (key === 'fallback') return 'Success - recovered by Fallback';
+  if (key === 'none') return t('reliability.noError');
+  if (key === 'success') return t('reliability.success');
+  if (key === 'healed') return t('reliability.recoveredAutofix');
+  if (key === 'error') return t('reliability.error');
+  if (key === 'no_fix_found') return t('reliability.noFixFound');
+  if (key === 'autofix') return t('reliability.recoveredAutofix');
+  if (key === 'fallback') return t('reliability.recoveredFallback');
   return key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 }
 
@@ -115,6 +116,13 @@ const ReliabilityChart: Component<ReliabilityChartProps> = (props) => {
   let rawSeries: number[][] = [];
   const [tooltip, setTooltip] = createSignal<HoverTooltipState>(HIDDEN_TOOLTIP);
 
+  // Tooltip state contains preformatted labels and a date. Do not leave that
+  // cached English/Russian snapshot visible across a live locale switch.
+  createEffect(() => {
+    locale();
+    setTooltip((previous) => (previous.visible ? { ...previous, visible: false } : previous));
+  });
+
   const bucketKey = () => (props.range === '24h' ? 'hour' : 'date');
   const ordered = () => orderTimeseries(props.timeseries);
 
@@ -152,7 +160,10 @@ const ReliabilityChart: Component<ReliabilityChartProps> = (props) => {
     el: () => el,
     data: () => props.timeseries?.buckets,
     buildData,
-    structureKey: () => `${props.range}::${props.seriesMode}::${ordered()?.keys.join(',')}`,
+    // uPlot copies series labels into its imperative instance. Rebuild when the
+    // locale changes so its cached labels and the Solid legend stay in sync.
+    structureKey: () =>
+      `${locale()}::${props.range}::${props.seriesMode}::${ordered()?.keys.join(',')}`,
     buildChart() {
       if (!el || !props.timeseries || props.timeseries.buckets.length === 0) return null;
 

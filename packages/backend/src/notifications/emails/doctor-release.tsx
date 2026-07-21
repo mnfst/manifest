@@ -12,6 +12,7 @@ import {
   Img,
   Button,
 } from '@react-email/components';
+import type { AppLocale } from '../../common/i18n/locale';
 
 export interface DoctorReleaseProps {
   /** The dashboard the reader lands on. */
@@ -21,7 +22,48 @@ export interface DoctorReleaseProps {
   logoUrl?: string;
   /** The Auto-fix gradient sparkle mark (hosted PNG). */
   autofixIconUrl?: string;
+  locale?: AppLocale;
 }
+
+interface DoctorReleaseCopy {
+  preview: string;
+  newLabel: string;
+  heading: string;
+  paragraphs: readonly [string, string, string];
+  dashboardCta: string;
+  tutorialCta: string;
+  footer: string;
+}
+
+const COPY = {
+  en: {
+    preview: 'Auto-fix is live on your account. Your failing requests can now repair themselves.',
+    newLabel: 'New:',
+    heading: 'Auto-fix is live on your account',
+    paragraphs: [
+      'You joined the waitlist. Here it is: Auto-fix shipped today, and it is already running on your account. You have nothing to turn on.',
+      'From now on, when a provider rejects one of your requests with a fixable error, a renamed parameter, an unsupported field, a deprecated model, Manifest repairs the request and sends it again. Your agent gets its answer. You see the whole story in your dashboard: the failure, the fix, the retry.',
+      'Auto-fix learns from real traffic. Each new error we patch works for every account, so the share of requests it can repair grows week after week.',
+    ],
+    dashboardCta: 'Open your dashboard',
+    tutorialCta: 'How Auto-fix works',
+    footer: 'You are receiving this email because you joined the Auto-fix waitlist on Manifest.',
+  },
+  ru: {
+    preview:
+      'Auto-fix уже доступен в вашем аккаунте. Теперь Manifest может автоматически исправлять ошибки в запросах и отправлять их повторно.',
+    newLabel: 'Новинка:',
+    heading: 'Auto-fix уже работает в вашем аккаунте',
+    paragraphs: [
+      'Вы записались в список ожидания, и вот Auto-fix уже доступен: сегодня мы запустили функцию в вашем аккаунте. Ничего дополнительно включать не нужно.',
+      'Теперь, если провайдер отклонит запрос из-за исправимой ошибки, Manifest скорректирует запрос и отправит его повторно. Причиной может быть переименованный параметр, неподдерживаемое поле или устаревшая модель. Ваша интеграция получит ответ, а в панели управления вы увидите всю цепочку: ошибку, исправление и повторную попытку.',
+      'Auto-fix совершенствуется на основе реального трафика. Каждое новое исправление становится доступно всем аккаунтам, поэтому каждую неделю функция сможет восстанавливать всё больше запросов.',
+    ],
+    dashboardCta: 'Открыть панель управления',
+    tutorialCta: 'Как работает Auto-fix',
+    footer: 'Вы получили это письмо, потому что записались в список ожидания Auto-fix в Manifest.',
+  },
+} satisfies Record<AppLocale, DoctorReleaseCopy>;
 
 /**
  * The Auto-fix release announcement, sent once to every waitlist member when
@@ -29,6 +71,8 @@ export interface DoctorReleaseProps {
  * retry, an auto-fix produces an attempt), no em dashes, short sentences.
  */
 export function DoctorReleaseEmail(props: DoctorReleaseProps) {
+  const locale = props.locale ?? 'en';
+  const copy = COPY[locale];
   const {
     appUrl,
     tutorialUrl,
@@ -37,11 +81,9 @@ export function DoctorReleaseEmail(props: DoctorReleaseProps) {
   } = props;
 
   return (
-    <Html>
+    <Html lang={locale}>
       <Head />
-      <Preview>
-        Auto-fix is live on your account. Your failing requests can now repair themselves.
-      </Preview>
+      <Preview>{copy.preview}</Preview>
       <Body style={body}>
         <Container style={container}>
           <Section style={logoSection}>
@@ -51,47 +93,34 @@ export function DoctorReleaseEmail(props: DoctorReleaseProps) {
           <Section style={card}>
             <Section style={badgeContainer}>
               <Text style={newLine}>
-                <span style={newLabel}>New:</span>{' '}
+                <span style={newLabel}>{copy.newLabel}</span>{' '}
                 <Img src={autofixIconUrl} alt="" width="18" height="18" style={autofixIcon} />{' '}
                 <span style={autofixName}>Auto-fix</span>
               </Text>
             </Section>
 
-            <Text style={heading}>Auto-fix is live on your account</Text>
+            <Text style={heading}>{copy.heading}</Text>
 
-            <Text style={paragraph}>
-              You joined the waitlist. Here it is: Auto-fix shipped today, and it is already running
-              on your account. You have nothing to turn on.
-            </Text>
-
-            <Text style={paragraph}>
-              From now on, when a provider rejects one of your requests with a fixable error, a
-              renamed parameter, an unsupported field, a deprecated model, Manifest repairs the
-              request and sends it again. Your agent gets its answer. You see the whole story in
-              your dashboard: the failure, the fix, the retry.
-            </Text>
-
-            <Text style={paragraph}>
-              Auto-fix learns from real traffic. Each new error we patch works for every account, so
-              the share of requests it can repair grows week after week.
-            </Text>
+            {copy.paragraphs.map((text) => (
+              <Text key={text} style={paragraph}>
+                {text}
+              </Text>
+            ))}
 
             <Section style={buttonSection}>
               <Button href={appUrl} style={buttonPrimary}>
-                Open your dashboard
+                {copy.dashboardCta}
               </Button>
               {tutorialUrl ? (
                 <Button href={tutorialUrl} style={buttonSecondary}>
-                  How Auto-fix works
+                  {copy.tutorialCta}
                 </Button>
               ) : null}
             </Section>
 
             <Hr style={hr} />
 
-            <Text style={footer}>
-              You are receiving this email because you joined the Auto-fix waitlist on Manifest.
-            </Text>
+            <Text style={footer}>{copy.footer}</Text>
           </Section>
         </Container>
       </Body>

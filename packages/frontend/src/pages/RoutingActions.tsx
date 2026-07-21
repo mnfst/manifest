@@ -9,6 +9,7 @@ import {
   type AuthType,
   type ModelRoute,
 } from '../services/api.js';
+import { t } from '../i18n/index.js';
 
 interface RoutingActionsInput {
   agentName: () => string;
@@ -54,7 +55,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
       // Commit the primary update to local state immediately so the UI reflects
       // the new model even if the fallback cleanup below fails.
       input.mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
-      toast.success('Routing updated');
+      toast.success(t('pages.routing.updated'));
       // Auto-remove any fallback that conflicts with the new primary's full
       // (model, provider, authType, keyLabel) tuple. Same model on a different
       // (provider, authType, keyLabel) is intentionally preserved — those are
@@ -123,7 +124,11 @@ export function createRoutingActions(input: RoutingActionsInput) {
         providerKeyLabel ?? undefined,
       );
       input.mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
-      toast.success(providerKeyLabel ? `Pinned to "${providerKeyLabel}" key` : 'Key pin cleared');
+      toast.success(
+        providerKeyLabel
+          ? t('pages.routing.pinnedKey', { label: providerKeyLabel })
+          : t('pages.routing.keyPinCleared'),
+      );
     } catch {
       // error toast from fetchMutate
     } finally {
@@ -142,7 +147,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
           fallback_routes: null,
         })),
       );
-      toast.success('All tier routes cleared');
+      toast.success(t('pages.routing.allRoutesCleared'));
     } catch {
       // error toast from fetchMutate
     } finally {
@@ -157,7 +162,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
       input.mutateTiers((prev) =>
         prev?.map((t) => (t.tier === tierId ? { ...t, override_route: null } : t)),
       );
-      toast.success('Tier route cleared');
+      toast.success(t('pages.routing.routeCleared'));
     } catch {
       // error toast from fetchMutate
     } finally {
@@ -214,7 +219,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
       input.mutateTiers((prev) =>
         prev?.map((t) => (t.tier === tierId ? { ...t, fallback_routes: persistedRoutes } : t)),
       );
-      toast.success('Fallback added');
+      toast.success(t('pages.routing.fallbackAdded'));
     } catch {
       // error toast from fetchMutate
       setFallbackOverrides((prev) => {

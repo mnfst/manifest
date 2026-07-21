@@ -38,6 +38,7 @@ vi.mock('../../src/services/sse.js', () => ({
 vi.mock('../../src/services/formatters.js', () => ({
   formatCost: (v: number) => `$${v.toFixed(2)}`,
   formatNumber: (v: number) => String(v),
+  formatTrend: (v: number) => `${v >= 0 ? '+' : ''}${Math.round(v)}%`,
   formatStatus: (s: string) => s,
   formatErrorOrigin: (o: string | null | undefined) => o ?? null,
   formatTime: (t: string) => t,
@@ -59,7 +60,8 @@ vi.mock('../../src/components/ProviderIcon.jsx', () => ({
 // the real chart (which calls matchMedia).
 vi.mock('../../src/services/api/analytics.js', () => ({
   RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
-  REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
   totalAttemptsTooltip: (doctor: boolean) =>
     doctor
       ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
@@ -237,7 +239,7 @@ describe('Overview - trend badges and status display', () => {
     await vi.waitFor(() => {
       const tierBadge = container.querySelector('.tier-badge--complex');
       expect(tierBadge).not.toBeNull();
-      expect(tierBadge?.textContent).toBe('complex');
+      expect(tierBadge?.textContent).toBe('Complex');
     });
   });
 

@@ -7,6 +7,7 @@ import {
 } from '../services/api.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { toast } from '../services/toast-store.js';
+import { t, tp } from '../i18n/index.js';
 
 interface Props {
   open: boolean;
@@ -81,7 +82,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
       }
       const slug = result.agent.name;
       markAgentCreated(slug);
-      toast.success(`Duplicated "${props.sourceName}" to "${slug}"`);
+      toast.success(t('duplicate.success', { source: props.sourceName, target: slug }));
       props.onClose();
       props.onDuplicated?.();
       navigate(`/harnesses/${encodeURIComponent(slug)}`, {
@@ -117,15 +118,12 @@ const DuplicateAgentModal: Component<Props> = (props) => {
           onKeyDown={handleKeyDown}
         >
           <h2 class="modal-card__title" id="duplicate-agent-title">
-            Duplicate "{props.sourceName}"
+            {t('duplicate.title', { name: props.sourceName })}
           </h2>
-          <p class="modal-card__desc">
-            Creates a new harness with the same providers, routing, and tier configuration. A fresh
-            API key is generated. Telemetry and request history stay with the original.
-          </p>
+          <p class="modal-card__desc">{t('duplicate.description')}</p>
 
           <label class="modal-card__field-label" for="duplicate-agent-name">
-            New harness name
+            {t('duplicate.newName')}
           </label>
           <input
             ref={(el) =>
@@ -145,7 +143,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
 
           <div class="duplicate-agent__section">
             <div class="duplicate-agent__section-header">
-              What is copied
+              {t('duplicate.copied')}
               <Show when={preview()}>
                 <span class="duplicate-agent__badge">{totalCopied()}</span>
               </Show>
@@ -156,34 +154,34 @@ const DuplicateAgentModal: Component<Props> = (props) => {
             >
               <ul class="duplicate-agent__list">
                 <li>
-                  <strong>{preview()!.copied.providers}</strong> provider credential
-                  {preview()!.copied.providers === 1 ? '' : 's'} (encrypted API keys &amp;
-                  subscriptions)
+                  <strong>{preview()!.copied.providers}</strong>{' '}
+                  {tp('duplicate.providerCredential', preview()!.copied.providers)}{' '}
+                  {t('duplicate.encryptedCredentials')}
                 </li>
                 <li>
-                  <strong>{preview()!.copied.tierAssignments}</strong> tier override
-                  {preview()!.copied.tierAssignments === 1 ? '' : 's'}
+                  <strong>{preview()!.copied.tierAssignments}</strong>{' '}
+                  {tp('duplicate.tierOverride', preview()!.copied.tierAssignments)}
                 </li>
                 <li>
-                  <strong>{preview()!.copied.specificityAssignments}</strong> specificity override
-                  {preview()!.copied.specificityAssignments === 1 ? '' : 's'}
+                  <strong>{preview()!.copied.specificityAssignments}</strong>{' '}
+                  {tp('duplicate.specificityOverride', preview()!.copied.specificityAssignments)}
                 </li>
               </ul>
             </Show>
           </div>
 
           <div class="duplicate-agent__section">
-            <div class="duplicate-agent__section-header">What is not copied</div>
+            <div class="duplicate-agent__section-header">{t('duplicate.notCopied')}</div>
             <ul class="duplicate-agent__list">
-              <li>Requests</li>
-              <li>Logs</li>
-              <li>Notification rules</li>
+              <li>{t('duplicate.messages')}</li>
+              <li>{t('duplicate.logs')}</li>
+              <li>{t('duplicate.notificationRules')}</li>
             </ul>
           </div>
 
           <div class="modal-card__footer">
             <button class="btn btn--ghost btn--sm" onClick={requestClose} type="button">
-              Cancel
+              {t('components.cancel')}
             </button>
             <button
               class="btn btn--primary btn--sm"
@@ -191,7 +189,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
               disabled={!name().trim() || submitting()}
               type="button"
             >
-              {submitting() ? <span class="spinner" /> : 'Duplicate harness'}
+              {submitting() ? <span class="spinner" /> : t('duplicate.action')}
             </button>
           </div>
         </div>

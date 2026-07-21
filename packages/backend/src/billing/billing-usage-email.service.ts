@@ -7,6 +7,7 @@ import { PlanService } from './plan.service';
 import { BillingEmailLogService } from './billing-email-log.service';
 import { BillingEmailService } from './billing-email.service';
 import { normalizeBillingEmailPreferences } from './billing-email-preferences';
+import { isAppLocale } from '../common/i18n/locale';
 
 const REQUEST_WARNING_RATIO = 0.8;
 
@@ -15,6 +16,7 @@ interface BillingRecipient {
   name: string | null;
   user_id: string | null;
   billing_email_preferences: unknown;
+  locale: unknown;
 }
 
 @Injectable()
@@ -72,6 +74,7 @@ export class BillingUsageEmailService implements OnModuleInit, OnModuleDestroy {
     if (!normalizeBillingEmailPreferences(recipient.billing_email_preferences).usageAlerts) {
       return false;
     }
+    const locale = isAppLocale(recipient.locale) ? recipient.locale : 'en';
 
     const sent = await this.emails.sendPlanUsageEmail(recipient.email, {
       kind,
@@ -79,6 +82,7 @@ export class BillingUsageEmailService implements OnModuleInit, OnModuleDestroy {
       used,
       limit,
       periodEnd,
+      locale,
     });
     if (!sent) return false;
 
@@ -108,7 +112,8 @@ export class BillingUsageEmailService implements OnModuleInit, OnModuleDestroy {
       `SELECT COALESCE(u.email, t.email) AS email,
               COALESCE(NULLIF(u.name, ''), NULLIF(t.organization_name, '')) AS name,
               t.owner_user_id AS user_id,
-              t.billing_email_preferences AS billing_email_preferences
+              t.billing_email_preferences AS billing_email_preferences,
+              t.locale AS locale
          FROM tenants t
          LEFT JOIN "user" u ON u.id = t.owner_user_id
         WHERE t.id = $1`,

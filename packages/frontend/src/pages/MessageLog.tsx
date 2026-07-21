@@ -37,8 +37,9 @@ import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS, SPECIFICITY_STAGES } from '../services/providers.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { platformIcon } from 'manifest-shared';
-import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
+import { ALL_TIERS } from 'manifest-shared';
 import { messagePing } from '../services/sse.js';
+import { formatNumber, locale, t, tp } from '../i18n/index.js';
 import '../styles/overview.css';
 import '../styles/routing.css';
 // The filtered-empty state here reuses .model-filter__empty classes, so this
@@ -173,7 +174,7 @@ const MessageLog: Component = () => {
     return map;
   });
   const agentFilterOptions = createMemo(() => [
-    { label: 'All harnesses', value: '' },
+    { label: t('pages.messages.allHarnesses'), value: '' },
     ...(agentList() ?? []).map((a) => {
       const info = agentPlatformMap().get(a);
       const iconPath = info?.platform ? platformIcon(info.platform, info.category) : null;
@@ -509,9 +510,18 @@ const MessageLog: Component = () => {
       ),
   );
 
+  const tierLabel = (tier: (typeof ALL_TIERS)[number]) => {
+    if (tier === 'simple') return t('pages.messages.tier.simple');
+    if (tier === 'standard') return t('pages.messages.tier.standard');
+    if (tier === 'complex') return t('pages.messages.tier.complex');
+    if (tier === 'reasoning') return t('pages.messages.tier.reasoning');
+    if (tier === 'direct') return t('pages.messages.tier.direct');
+    return t('pages.messages.tier.playground');
+  };
+
   const tierOptions = createMemo(() => [
-    { label: 'All tiers', value: '' },
-    ...ALL_TIERS.map((t) => ({ label: TIER_LABELS_ALL[t], value: t })),
+    { label: t('pages.messages.allTiers'), value: '' },
+    ...ALL_TIERS.map((tier) => ({ label: tierLabel(tier), value: tier })),
     ...SPECIFICITY_STAGES.filter((stage) => activeSpecificityCategories().has(stage.id)).map(
       (stage) => ({
         label: stage.label,
@@ -534,10 +544,11 @@ const MessageLog: Component = () => {
     return messageFilterOptions()?.provider_labels?.[id] ?? id;
   };
 
-  const AUTH_TYPE_LABELS: Record<string, string> = {
-    subscription: 'Subscription',
-    api_key: 'Usage-based',
-    local: 'Local',
+  const authTypeLabel = (authType: string): string => {
+    if (authType === 'subscription') return t('pages.messages.auth.subscription');
+    if (authType === 'api_key') return t('pages.messages.auth.usageBased');
+    if (authType === 'local') return t('pages.messages.auth.local');
+    return authType;
   };
   // Every connection the tenant has, active or not: the log keeps history for
   // connections that were since disabled.
@@ -549,34 +560,34 @@ const MessageLog: Component = () => {
         label: `${group.display_name ?? providerDisplayName(group.provider)} · ${conn.label}`,
         icon: providerIcon(group.provider, 14) ?? undefined,
         description:
-          (AUTH_TYPE_LABELS[group.auth_type] ?? group.auth_type) +
-          (conn.is_active ? '' : ' · inactive'),
+          authTypeLabel(group.auth_type) +
+          (conn.is_active ? '' : ` · ${t('pages.messages.connection.inactive')}`),
       })),
     );
   });
 
   const proBadge = () => (
-    <span class="pro-range-badge" aria-label="Pro plan required">
+    <span class="pro-range-badge" aria-label={t('pages.messages.proRequired')}>
       PRO
     </span>
   );
   const rangeOptions = createMemo(() => [
-    { label: 'All time', value: '' },
+    { label: t('pages.messages.range.allTime'), value: '' },
     ...[
-      { label: 'Last 24 hours', value: '24h' },
-      { label: 'Last 7 days', value: '7d' },
-      { label: 'Last 30 days', value: '30d' },
-      { label: 'Last 90 days', value: '90d' },
-      { label: 'Last 365 days', value: '365d' },
+      { label: t('pages.messages.range.last24Hours'), value: '24h' },
+      { label: t('pages.messages.range.last7Days'), value: '7d' },
+      { label: t('pages.messages.range.last30Days'), value: '30d' },
+      { label: t('pages.messages.range.last90Days'), value: '90d' },
+      { label: t('pages.messages.range.last365Days'), value: '365d' },
     ].map((opt) =>
       isProRangeLocked(opt.value) ? { ...opt, disabled: true, badge: proBadge() } : opt,
     ),
   ]);
 
-  const statusOptions = [
-    { label: 'All statuses', value: '' },
-    { label: 'Success', value: 'ok' },
-    { label: 'Failed', value: 'failed' },
+  const statusOptions = () => [
+    { label: t('pages.messages.allStatuses'), value: '' },
+    { label: t('pages.messages.status.success'), value: 'ok' },
+    { label: t('pages.messages.status.failed'), value: 'failed' },
   ];
 
   const noRecoveryIcon = () => (
@@ -596,10 +607,10 @@ const MessageLog: Component = () => {
       </svg>
     </span>
   );
-  const triggerOptions = [
-    { label: 'All attempts', value: '' },
+  const triggerOptions = () => [
+    { label: t('pages.messages.recovery.allAttempts'), value: '' },
     {
-      label: 'With any recovery attempt',
+      label: t('pages.messages.recovery.any'),
       value: 'any',
       icon: (
         <span class="recovery-opt-icon" aria-hidden="true">
@@ -610,7 +621,7 @@ const MessageLog: Component = () => {
       ),
     },
     {
-      label: 'With an auto-fix attempt',
+      label: t('pages.messages.recovery.autofix'),
       value: 'autofix',
       icon: (
         <span class="recovery-opt-icon" aria-hidden="true">
@@ -619,7 +630,7 @@ const MessageLog: Component = () => {
       ),
     },
     {
-      label: 'With a fallback attempt',
+      label: t('pages.messages.recovery.fallback'),
       value: 'fallback',
       icon: (
         <span class="recovery-opt-icon" aria-hidden="true">
@@ -627,23 +638,27 @@ const MessageLog: Component = () => {
         </span>
       ),
     },
-    { label: 'No recovery attempt', value: 'none', icon: noRecoveryIcon() },
+    {
+      label: t('pages.messages.recovery.none'),
+      value: 'none',
+      icon: noRecoveryIcon(),
+    },
   ];
 
-  const attemptStatusOptions = [
-    { label: 'All attempt statuses', value: '' },
-    { label: 'With a failed attempt', value: 'has_failed' },
-    { label: 'With a succeeded attempt', value: 'has_succeeded' },
+  const attemptStatusOptions = () => [
+    { label: t('pages.messages.attemptStatus.all'), value: '' },
+    { label: t('pages.messages.attemptStatus.failed'), value: 'has_failed' },
+    { label: t('pages.messages.attemptStatus.succeeded'), value: 'has_succeeded' },
   ];
 
   // Who failed. `manifest` collapses every Manifest-authored origin (setup,
   // limits, bad requests, internal errors) into one choice, since from a user's
   // point of view they share a fix path that has nothing to do with a provider.
-  const originOptions = [
-    { label: 'All origins', value: '' },
-    { label: 'Manifest', value: 'manifest' },
-    { label: 'Provider', value: 'provider' },
-    { label: 'Transport', value: 'transport' },
+  const originOptions = () => [
+    { label: t('pages.messages.allOrigins'), value: '' },
+    { label: t('pages.messages.origin.manifest'), value: 'manifest' },
+    { label: t('pages.messages.origin.provider'), value: 'provider' },
+    { label: t('pages.messages.origin.transport'), value: 'transport' },
   ];
 
   // Jump to a linked message (the Auto-fix sibling of an expanded row).
@@ -685,23 +700,25 @@ const MessageLog: Component = () => {
     <div class="container--full" onClick={handlePageClick}>
       <Title>
         {params.agentName
-          ? `${agentDisplayName() ?? decodeURIComponent(params.agentName)} Requests - Manifest`
-          : 'Requests - Manifest'}
+          ? t('pages.messages.agentMetaTitle', {
+              name: agentDisplayName() ?? decodeURIComponent(params.agentName),
+            })
+          : t('pages.messages.metaTitle')}
       </Title>
       <Meta
         name="description"
         content={
           params.agentName
-            ? `Browse all requests handled for ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider, status, or cost.`
-            : 'Browse all requests across all harnesses. Filter by provider, status, or cost.'
+            ? t('pages.messages.agentMetaDescription', {
+                name: agentDisplayName() ?? decodeURIComponent(params.agentName),
+              })
+            : t('pages.messages.metaDescription')
         }
       />
       <div class="page-header page-header--wrap">
         <div class="page-header__intro">
-          <h1>Requests</h1>
-          <span class="breadcrumb">
-            Full log of requests from your app. Provider calls appear as attempts.
-          </span>
+          <h1>{t('pages.messages.title')}</h1>
+          <span class="breadcrumb">{t('pages.messages.subtitle')}</span>
         </div>
         <div class="header-controls">
           <Show when={!showEmptyState()}>
@@ -716,46 +733,46 @@ const MessageLog: Component = () => {
               values={connectionsFilter()}
               onChange={setConnectionsFilter}
               options={connectionOptions()}
-              placeholder="All connections"
-              label="Connection filter"
+              placeholder={t('pages.messages.connections.all')}
+              label={t('pages.messages.filter.connection')}
             />
             <Select
               value={triggerFilter()}
               onChange={setTriggerFilterValue}
-              options={triggerOptions}
-              label="Recovery attempts filter"
+              options={triggerOptions()}
+              label={t('pages.messages.filter.recovery')}
             />
             <Select
               value={attemptStatusFilter()}
               onChange={setAttemptStatusFilter}
-              options={attemptStatusOptions}
-              label="Attempt status filter"
+              options={attemptStatusOptions()}
+              label={t('pages.messages.filter.attemptStatus')}
             />
             <Select
               value={statusFilterValue()}
               onChange={setStatusFilter}
-              options={statusOptions}
-              label="Status filter"
+              options={statusOptions()}
+              label={t('pages.messages.filter.status')}
             />
             <Select
               value={originFilter()}
               onChange={setOriginFilter}
-              options={originOptions}
-              label="Origin filter"
+              options={originOptions()}
+              label={t('pages.messages.filter.origin')}
             />
             <Select value={tierFilter()} onChange={setTierFilter} options={tierOptions()} />
             <Select
               value={rangeFilter()}
               onChange={setRangeFilter}
               options={rangeOptions()}
-              label="Period filter"
+              label={t('pages.messages.filter.period')}
             />
             <div class="cost-range-filter">
               <input
                 type="number"
                 class="cost-range-filter__input"
-                placeholder="Min $"
-                aria-label="Minimum cost filter"
+                placeholder={t('pages.messages.filter.minCost')}
+                aria-label={t('pages.messages.filter.minCostLabel')}
                 min="0"
                 step="0.01"
                 value={costMin()}
@@ -765,8 +782,8 @@ const MessageLog: Component = () => {
               <input
                 type="number"
                 class="cost-range-filter__input"
-                placeholder="Max $"
-                aria-label="Maximum cost filter"
+                placeholder={t('pages.messages.filter.maxCost')}
+                aria-label={t('pages.messages.filter.maxCostLabel')}
                 min="0"
                 step="0.01"
                 value={costMax()}
@@ -776,7 +793,7 @@ const MessageLog: Component = () => {
           </Show>
           <Show when={showEmptyState() && !!params.agentName && !setupCompleted()}>
             <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
-              Set up harness
+              {t('pages.messages.setup')}
             </button>
           </Show>
         </div>
@@ -794,16 +811,16 @@ const MessageLog: Component = () => {
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Request</th>
-                    <th>Cost</th>
-                    <th>Total Tokens</th>
-                    <th>Input</th>
-                    <th>Output</th>
-                    <th>Model</th>
-                    <th>Cache</th>
-                    <th>Latency</th>
-                    <th>Status</th>
+                    <th>{t('pages.messages.date')}</th>
+                    <th>{t('pages.messages.message')}</th>
+                    <th>{t('pages.messages.cost')}</th>
+                    <th>{t('pages.messages.totalTokens')}</th>
+                    <th>{t('pages.messages.input')}</th>
+                    <th>{t('pages.messages.output')}</th>
+                    <th>{t('pages.messages.model')}</th>
+                    <th>{t('pages.messages.cache')}</th>
+                    <th>{t('pages.messages.latency')}</th>
+                    <th>{t('pages.messages.status')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -855,49 +872,47 @@ const MessageLog: Component = () => {
               when={params.agentName && setupCompleted()}
               fallback={
                 <div class="empty-state">
-                  <div class="empty-state__title">No requests yet</div>
+                  <div class="empty-state__title">{t('pages.messages.emptyTitle')}</div>
                   <Show
                     when={params.agentName}
                     fallback={
                       <>
-                        <p>
-                          Create a harness and send a request. Every caller request shows up here.
-                        </p>
+                        <p>{t('pages.messages.globalEmpty')}</p>
                         <A
                           href="/harnesses"
                           class="btn btn--primary btn--sm"
                           style="margin-top: var(--gap-md);"
                         >
-                          Go to Harnesses
+                          {t('pages.messages.goToHarnesses')}
                         </A>
                       </>
                     }
                   >
-                    <p>
-                      Set up your harness and send a request. Every caller request shows up here.
-                    </p>
+                    <p>{t('pages.messages.agentEmpty')}</p>
                     <button
                       class="btn btn--primary btn--sm"
                       style="margin-top: var(--gap-md);"
                       onClick={() => setSetupOpen(true)}
                     >
-                      Set up harness
+                      {t('pages.messages.setup')}
                     </button>
                   </Show>
-                  <div class="empty-state__img-wrapper">
-                    <img
-                      src="/example-messages.svg"
-                      alt="Example request log showing LLM request history"
-                      class="empty-state__img"
-                      loading="lazy"
-                    />
-                  </div>
+                  <Show when={locale() === 'en'}>
+                    <div class="empty-state__img-wrapper">
+                      <img
+                        src="/example-messages.svg"
+                        alt={t('pages.messages.requestLogAlt')}
+                        class="empty-state__img"
+                        loading="lazy"
+                      />
+                    </div>
+                  </Show>
                 </div>
               }
             >
               <div class="empty-state">
-                <div class="empty-state__title">No requests yet</div>
-                <p>Connect a provider to start routing LLM calls.</p>
+                <div class="empty-state__title">{t('pages.messages.emptyTitle')}</div>
+                <p>{t('pages.messages.connectEmpty')}</p>
                 <button
                   class="btn btn--primary btn--sm"
                   style="margin-top: var(--gap-md);"
@@ -907,16 +922,18 @@ const MessageLog: Component = () => {
                     })
                   }
                 >
-                  Connect provider
+                  {t('pages.messages.connectProvider')}
                 </button>
-                <div class="empty-state__img-wrapper">
-                  <img
-                    src="/example-messages.svg"
-                    alt="Example request log showing LLM request history"
-                    class="empty-state__img"
-                    loading="lazy"
-                  />
-                </div>
+                <Show when={locale() === 'en'}>
+                  <div class="empty-state__img-wrapper">
+                    <img
+                      src="/example-messages.svg"
+                      alt={t('pages.messages.requestLogAlt')}
+                      class="empty-state__img"
+                      loading="lazy"
+                    />
+                  </div>
+                </Show>
               </div>
             </Show>
           </Show>
@@ -924,19 +941,17 @@ const MessageLog: Component = () => {
             <div class="panel">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
                 <div class="panel__title" style="margin-bottom: 0;">
-                  Requests
+                  {t('pages.messages.title')}
                 </div>
                 <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                  0 results
+                  {tp('pages.messages.resultCount', 0)}
                 </span>
               </div>
               <div class="model-filter__empty">
-                <p class="model-filter__empty-title">No requests match your filters</p>
-                <p class="model-filter__empty-hint">
-                  Try adjusting your provider, status, or cost filters to see more results.
-                </p>
+                <p class="model-filter__empty-title">{t('pages.messages.filteredEmptyTitle')}</p>
+                <p class="model-filter__empty-hint">{t('pages.messages.filteredEmptyHint')}</p>
                 <button class="btn btn--outline btn--sm" onClick={clearFilters} type="button">
-                  Clear filters
+                  {t('pages.messages.clearFilters')}
                 </button>
               </div>
             </div>
@@ -945,16 +960,16 @@ const MessageLog: Component = () => {
             <Show when={hasNoData() && hasProviders()}>
               <div class="waiting-banner">
                 <i class="bxd bx-florist" />
-                <p>No requests yet. They appear seconds after your first LLM call.</p>
+                <p>{t('pages.messages.waiting')}</p>
               </div>
             </Show>
             <div class="panel">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
                 <div class="panel__title" style="margin-bottom: 0;">
-                  Requests
+                  {t('pages.messages.title')}
                 </div>
                 <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                  {totalForPager()} total
+                  {t('pages.messages.totalCount', { count: formatNumber(totalForPager()) })}
                 </span>
               </div>
               <div class="data-table-scroll">

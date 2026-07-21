@@ -2,8 +2,11 @@ import { betterAuth } from 'better-auth';
 import type { Auth } from 'better-auth';
 import { stripe as stripePlugin } from '@better-auth/stripe';
 import { render } from '@react-email/render';
-import { VerifyEmailEmail } from '../notifications/emails/verify-email';
-import { ResetPasswordEmail } from '../notifications/emails/reset-password';
+import { VerifyEmailEmail, verifyEmailSubject } from '../notifications/emails/verify-email';
+import {
+  ResetPasswordEmail,
+  resetPasswordEmailSubject,
+} from '../notifications/emails/reset-password';
 import { sendEmail } from '../notifications/services/email-providers/send-email';
 import { isBillingEnabled, getStripeClient } from '../billing/billing.config';
 import {
@@ -12,6 +15,12 @@ import {
   sendSubscriptionCanceledEmail,
   sendSubscriptionConfirmedEmail,
 } from '../billing/subscription-webhook-emails';
+import {
+  AppLocale,
+  isAppLocale,
+  localeFromAcceptLanguage,
+  parseLocale,
+} from '../common/i18n/locale';
 
 const port = process.env['PORT'] ?? '3001';
 const isDev = (process.env['NODE_ENV'] ?? '') !== 'production';
@@ -34,6 +43,30 @@ function createDatabaseConnection() {
 }
 
 const database = createDatabaseConnection();
+
+async function resolveAuthEmailLocale(userId: string, request?: Request): Promise<AppLocale> {
+  const queryable = database as unknown as {
+    query?: (sql: string, params: unknown[]) => Promise<{ rows?: Array<{ locale?: unknown }> }>;
+  };
+  const explicitLocale = parseLocale(request?.headers.get('x-manifest-locale'));
+  if (explicitLocale) return explicitLocale;
+
+  const ambientLocale = localeFromAcceptLanguage(
+    request?.headers.get('accept-language') ?? undefined,
+  );
+  if (typeof queryable?.query !== 'function') return ambientLocale;
+  try {
+    const result = await queryable.query(
+      'SELECT locale FROM tenants WHERE owner_user_id = $1 LIMIT 1',
+      [userId],
+    );
+    const stored = result.rows?.[0]?.locale;
+    return isAppLocale(stored) ? stored : ambientLocale;
+  } catch {
+    // Email delivery must not fail if locale lookup is temporarily unavailable.
+    return ambientLocale;
+  }
+}
 
 const betterAuthSecret = process.env['BETTER_AUTH_SECRET'] ?? '';
 const nodeEnv = process.env['NODE_ENV'] ?? '';
@@ -117,16 +150,18 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
     requireEmailVerification: !isDev && hasEmailProvider,
-    sendResetPassword: async ({ user, url }) => {
+    sendResetPassword: async ({ user, url }, request) => {
+      const locale = await resolveAuthEmailLocale(user.id, request);
       const element = ResetPasswordEmail({
         userName: user.name,
         resetUrl: url,
+        locale,
       });
       const html = await render(element);
       const text = await render(element, { plainText: true });
       void sendEmail({
         to: user.email,
-        subject: 'Reset your password',
+        subject: resetPasswordEmailSubject(locale),
         html,
         text,
       });
@@ -135,16 +170,18 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: hasEmailProvider,
     autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url }) => {
+    sendVerificationEmail: async ({ user, url }, request) => {
+      const locale = await resolveAuthEmailLocale(user.id, request);
       const element = VerifyEmailEmail({
         userName: user.name,
         verificationUrl: url,
+        locale,
       });
       const html = await render(element);
       const text = await render(element, { plainText: true });
       void sendEmail({
         to: user.email,
-        subject: 'Verify your email address',
+        subject: verifyEmailSubject(locale),
         html,
         text,
       });

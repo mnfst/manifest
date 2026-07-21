@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryColumn, OneToMany } from 'typeorm';
 import { Agent } from './agent.entity';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 import type { BillingEmailPreferences } from 'manifest-shared';
+import type { AppLocale } from '../common/i18n/locale';
 
 @Entity('tenants')
 export class Tenant {
@@ -41,6 +42,10 @@ export class Tenant {
 
   @Column('jsonb', { nullable: true })
   billing_email_preferences!: Partial<BillingEmailPreferences> | null;
+
+  /** Preferred locale for workspace-owned, asynchronous user messages. */
+  @Column('varchar', { nullable: true })
+  locale!: AppLocale | null;
 
   @OneToMany(() => Agent, (a) => a.tenant, { cascade: true })
   agents!: Agent[];

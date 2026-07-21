@@ -21,6 +21,8 @@ import { providerIcon, customProviderLogo } from './ProviderIcon.jsx';
 import { authBadgeFor, authLabel } from './AuthBadge.js';
 import { platformIcon, isSuccessStatus } from 'manifest-shared';
 import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
+import { routingDisplayLabel } from '../services/routing-display-label.js';
+import { formatNumber as formatLocalizedNumber, t } from '../i18n/index.js';
 
 const MONO = 'font-family: var(--font-mono);';
 const MONO_XS =
@@ -79,39 +81,52 @@ export function FallbackIcon(): JSX.Element {
   );
 }
 
-const HEADER_LABELS: Record<MessageColumnKey, string> = {
-  date: 'Date',
-  message: 'Request',
-  cost: 'Cost',
-  totalTokens: 'Tokens',
-  input: 'Input',
-  output: 'Output',
-  model: 'Model',
-  cache: 'Cache',
-  duration: 'Latency',
-  status: 'Status',
-  attempts: 'Attempts',
-  selfheal: 'Recovery attempts',
-  agent: 'Harness',
-};
+const HEADER_KEYS = {
+  date: 'message.header.date',
+  message: 'message.header.message',
+  cost: 'message.header.cost',
+  totalTokens: 'message.header.tokens',
+  input: 'message.header.input',
+  output: 'message.header.output',
+  model: 'message.header.model',
+  cache: 'message.header.cache',
+  duration: 'message.header.latency',
+  status: 'message.header.status',
+  attempts: 'message.header.attempts',
+  selfheal: 'message.header.recoveryAttempts',
+  agent: 'message.header.agent',
+} as const;
 
-const TOOLTIP_TEXT: Partial<Record<MessageColumnKey, string>> = {
-  totalTokens: 'Tokens are units of text that AI models process. More tokens = higher cost.',
-  input: "Tokens sent to the model (your prompt). Also called 'input tokens'.",
-  output: "Tokens returned by the model (its response). Also called 'output tokens'.",
-};
+const TOOLTIP_KEYS = {
+  totalTokens: 'message.tooltip.tokens',
+  input: 'message.tooltip.input',
+  output: 'message.tooltip.output',
+} as const;
+
+function LocalizedColumnHeader(props: {
+  columnKey: MessageColumnKey;
+  tooltips?: boolean;
+}): JSX.Element {
+  const tipKey = () => TOOLTIP_KEYS[props.columnKey as keyof typeof TOOLTIP_KEYS];
+  const tip = () => {
+    const key = tipKey();
+    return key ? t(key) : undefined;
+  };
+  const visibleTip = () =>
+    props.tooltips || props.columnKey !== 'totalTokens' ? tip() : undefined;
+
+  return (
+    <>
+      {props.columnKey === 'totalTokens' && props.tooltips
+        ? t('message.header.totalTokens')
+        : t(HEADER_KEYS[props.columnKey])}
+      <Show when={visibleTip()}>{(text) => <InfoTooltip text={text()} />}</Show>
+    </>
+  );
+}
 
 export function columnHeader(key: MessageColumnKey, tooltips?: boolean): JSX.Element {
-  const label = key === 'totalTokens' && tooltips ? 'Total Tokens' : HEADER_LABELS[key];
-  const tip = TOOLTIP_TEXT[key];
-  return tip && (tooltips || key !== 'totalTokens') ? (
-    <>
-      {label}
-      <InfoTooltip text={tip} />
-    </>
-  ) : (
-    <>{label}</>
-  );
+  return <LocalizedColumnHeader columnKey={key} tooltips={tooltips} />;
 }
 
 export function DateCell(item: MessageRow): JSX.Element {
@@ -124,7 +139,7 @@ export function MessageCell(item: MessageRow): JSX.Element {
       {item.id.slice(0, 8)}
       {item.routing_reason === 'heartbeat' && (
         <span
-          title="Heartbeat"
+          title={t('message.heartbeat')}
           style="display: inline-flex; align-items: center; margin-left: 4px; color: hsl(var(--muted-foreground)); opacity: 0.7;"
         >
           {<HeartbeatIcon />}
@@ -149,9 +164,21 @@ export function CostCell(item: MessageRow): JSX.Element {
           <span
             title={
               isPerRequestSubscription
-                ? `Per-request subscription cost: $${Number(item.cost!).toFixed(6)}`
-                : item.cost != null && Number(item.cost) > 0 && Number(item.cost) < 0.01
-                  ? `$${Number(item.cost).toFixed(6)}`
+                ? t('message.perRequestCost', {
+                    cost: formatLocalizedNumber(item.cost!, {
+                      style: 'currency',
+                      currency: 'USD',
+                      minimumFractionDigits: 6,
+                      maximumFractionDigits: 6,
+                    }),
+                  })
+                : item.cost != null && item.cost > 0 && item.cost < 0.01
+                  ? formatLocalizedNumber(item.cost, {
+                      style: 'currency',
+                      currency: 'USD',
+                      minimumFractionDigits: 6,
+                      maximumFractionDigits: 6,
+                    })
                   : undefined
             }
           >
@@ -159,8 +186,16 @@ export function CostCell(item: MessageRow): JSX.Element {
           </span>
         }
       >
-        <span style="color: hsl(var(--muted-foreground));" title="Included in subscription">
-          $0.00
+        <span
+          style="color: hsl(var(--muted-foreground));"
+          title={t('headerTier.includedSubscription')}
+        >
+          {formatLocalizedNumber(0, {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
         </span>
       </Show>
     </td>
@@ -257,7 +292,7 @@ export function ModelCell(item: MessageRow): JSX.Element {
           </span>
         ) : item.specificity_category ? (
           <span class="tier-badge tier-badge--specificity">
-            {item.specificity_category.replace(/_/g, ' ')}
+            {routingDisplayLabel(item.specificity_category)}
           </span>
         ) : item.routing_tier && item.routing_tier !== 'fallback' ? (
           <span class="tier-badge-tooltip">
@@ -267,8 +302,8 @@ export function ModelCell(item: MessageRow): JSX.Element {
             {(item.routing_tier === 'direct' || item.routing_tier === 'default') && (
               <span class="tier-badge-tooltip__bubble">
                 {item.routing_tier === 'direct'
-                  ? 'The caller requested a specific model. No routing applied.'
-                  : 'Routed through the default tier.'}
+                  ? t('message.directTier')
+                  : t('message.defaultTier')}
               </span>
             )}
           </span>
@@ -293,7 +328,10 @@ export function CacheCell(item: MessageRow): JSX.Element {
   return (
     <td style={`width: 192px; ${MONO_XS}`}>
       {has
-        ? `Read: ${formatNumber(item.cache_read_tokens ?? 0)} / Write: ${formatNumber(item.cache_creation_tokens ?? 0)}`
+        ? t('message.cacheUsage', {
+            read: formatNumber(item.cache_read_tokens ?? 0),
+            write: formatNumber(item.cache_creation_tokens ?? 0),
+          })
         : '\u2014'}
     </td>
   );
@@ -345,21 +383,21 @@ export function SelfHealCell(item: MessageRow): JSX.Element {
         {hasAutofix && (
           <span
             class="trigger-badge trigger-badge--autofix"
-            title="Auto-fix"
+            title={t('message.autofixLabel')}
             style="padding: 1px 3px;"
           >
             <AutofixIcon />
-            auto-fix
+            {t('message.autofixLabel')}
           </span>
         )}
         {hasFallback && (
           <span
             class="trigger-badge trigger-badge--fallback"
-            title="Fallback"
+            title={t('message.fallbackLabel')}
             style="padding: 1px 3px;"
           >
             <FallbackIcon />
-            fallback
+            {t('message.fallbackLabel')}
           </span>
         )}
       </span>
@@ -370,22 +408,24 @@ export function SelfHealCell(item: MessageRow): JSX.Element {
 /**
  * Compact origin descriptor appended to "Failed" (e.g. "Failed: Provider").
  */
-const ERROR_DESCRIPTORS: Record<string, string> = {
-  provider: 'Provider',
-  transport: 'Transport',
-  config: 'Setup',
-  policy: 'Custom limit',
-  internal: 'Manifest error',
-  request: 'Bad request',
-};
+const ERROR_DESCRIPTOR_KEYS = {
+  provider: 'message.error.provider',
+  transport: 'message.error.transport',
+  config: 'message.error.config',
+  policy: 'message.error.policy',
+  internal: 'message.error.internal',
+  request: 'message.error.request',
+} as const;
 
 function isPlanLimitBlock(item: MessageRow): boolean {
   return isPlanRequestLimitMessage(item);
 }
 
 function statusErrorDescriptor(item: MessageRow): string | null {
-  if (isPlanLimitBlock(item)) return 'Plan limit';
-  return item.error_origin ? (ERROR_DESCRIPTORS[item.error_origin] ?? null) : null;
+  if (isPlanLimitBlock(item)) return t('message.error.plan');
+  if (!item.error_origin) return null;
+  const key = ERROR_DESCRIPTOR_KEYS[item.error_origin as keyof typeof ERROR_DESCRIPTOR_KEYS];
+  return key ? t(key) : null;
 }
 
 /**
@@ -396,24 +436,28 @@ function statusErrorDescriptor(item: MessageRow): string | null {
  * `ok` and the canonical `success`.
  */
 function describeStatusPill(item: MessageRow): {
-  label: string;
-  title?: string;
   cls: string;
   limitAgent: string | null;
 } {
   const isSuccess = isSuccessStatus(item.status);
   if (isSuccess) {
-    return { label: 'Success', cls: 'status-badge status-badge--ok', limitAgent: null };
+    return { cls: 'status-badge status-badge--ok', limitAgent: null };
   }
   // The pill stays a plain "Failed": the cause (provider, setup, custom
   // limit...) lives in the drawer's error message, and rides here only as a
   // hover title so the column reads binary at a glance.
   return {
-    label: 'Failed',
-    title: statusErrorDescriptor(item) ?? undefined,
     cls: 'status-badge status-badge--error',
     limitAgent: item.error_origin === 'policy' ? item.agent_name : null,
   };
+}
+
+function statusPillLabel(item: MessageRow): string {
+  return isSuccessStatus(item.status) ? t('message.success') : t('message.failed');
+}
+
+function LocalizedStatusPillLabel(props: { item: MessageRow }): JSX.Element {
+  return <>{statusPillLabel(props.item)}</>;
 }
 
 export function StatusCell(item: MessageRow, _agentName: string | undefined): JSX.Element {
@@ -431,13 +475,9 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
               ? '/upgrade?reason=requests'
               : `/harnesses/${encodeURIComponent(pill.limitAgent)}/limits`
           }
-          title={
-            planLimit
-              ? 'Free plan request limit reached - upgrade to Pro'
-              : 'Manifest usage limit reached - open your limits'
-          }
+          title={planLimit ? t('message.planLimitTitle') : t('message.usageLimitTitle')}
         >
-          {pill.label}
+          <LocalizedStatusPillLabel item={item} />
         </A>
         {planLimit && (
           <A
@@ -445,7 +485,7 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
             class="btn btn--primary btn--sm"
             style="margin-left: 6px; font-size: 11px; padding: 2px 8px; text-decoration: none;"
           >
-            Upgrade plan
+            {t('message.upgradePlan')}
           </A>
         )}
       </td>
@@ -453,8 +493,8 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
   }
 
   const badge = (
-    <span class={pill.cls} title={pill.title}>
-      {pill.label}
+    <span class={pill.cls} title={statusErrorDescriptor(item) ?? undefined}>
+      <LocalizedStatusPillLabel item={item} />
     </span>
   );
 

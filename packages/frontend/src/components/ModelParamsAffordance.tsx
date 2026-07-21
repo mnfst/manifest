@@ -2,6 +2,7 @@ import { createResource, createSignal, lazy, Show, Suspense, type Component } fr
 import type { ProviderParamSpec } from 'manifest-shared';
 import type { AuthType, RequestParamDefaults } from '../services/api.js';
 import { getModelParamSpecs } from '../services/api/model-params.js';
+import { t } from '../i18n/index.js';
 
 // Only mounted while the parameters dialog is open. Lazy-load it so the
 // Routing route doesn't ship the dialog up front.
@@ -84,9 +85,9 @@ const ModelParamsAffordance: Component<Props> = (props) => {
           setDialogOpen(true);
         }}
         disabled={props.disabled}
-        aria-label={`Configure model parameters for ${props.slotLabel}`}
+        aria-label={t('model.configureParameters', { model: props.slotLabel })}
       >
-        <span class="routing-tooltip">Parameters</span>
+        <span class="routing-tooltip">{t('model.parameters')}</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="12"

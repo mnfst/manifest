@@ -8,6 +8,7 @@ import {
   IsNotEmpty,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { SUPPORTED_LOCALES, type AppLocale } from '../../common/i18n/locale';
 
 export class SetEmailProviderDto {
   @IsString()
@@ -50,6 +51,11 @@ export class TestEmailProviderDto {
 
   @IsEmail()
   to!: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn([...SUPPORTED_LOCALES])
+  locale?: AppLocale;
 }
 
 export class TestSavedEmailProviderDto {
@@ -57,4 +63,9 @@ export class TestSavedEmailProviderDto {
   @IsNotEmpty()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   to!: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn([...SUPPORTED_LOCALES])
+  locale?: AppLocale;
 }

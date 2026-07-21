@@ -3,11 +3,16 @@ import {
   type AgentCategory,
   type AgentPlatform,
   AGENT_CATEGORIES,
-  CATEGORY_LABELS,
   PLATFORM_LABELS,
   PLATFORMS_BY_CATEGORY,
   PLATFORM_ICONS,
 } from 'manifest-shared';
+import { t } from '../i18n/index.js';
+
+const categoryLabel = (category: AgentCategory): string =>
+  t(`agentType.category.${category}` as const);
+const platformLabel = (platform: AgentPlatform): string =>
+  platform === 'other' ? t('agentType.platform.other') : PLATFORM_LABELS[platform];
 
 interface Props {
   category: AgentCategory | null;
@@ -66,7 +71,9 @@ const AgentTypeSelect: Component<Props> = (props) => {
         disabled={props.disabled}
         aria-haspopup="listbox"
         aria-expanded={open()}
-        aria-label={`Harness type: ${props.platform ? PLATFORM_LABELS[props.platform] : 'Select'}`}
+        aria-label={t('agentType.aria', {
+          type: props.platform ? platformLabel(props.platform) : t('agentType.select'),
+        })}
       >
         <Show when={selectedIcon()}>
           <img
@@ -78,7 +85,7 @@ const AgentTypeSelect: Component<Props> = (props) => {
           />
         </Show>
         <span class="agent-type-select__trigger-label">
-          {props.platform ? PLATFORM_LABELS[props.platform] : 'Select'}
+          {props.platform ? platformLabel(props.platform) : t('agentType.select')}
         </span>
         <svg
           class="agent-type-select__caret"
@@ -98,7 +105,7 @@ const AgentTypeSelect: Component<Props> = (props) => {
             {(cat) => (
               <div class="agent-type-select__column">
                 <div class="agent-type-select__group-label" role="presentation">
-                  {CATEGORY_LABELS[cat]}
+                  {categoryLabel(cat)}
                 </div>
                 <For each={[...PLATFORMS_BY_CATEGORY[cat]]}>
                   {(plat) => {
@@ -122,7 +129,7 @@ const AgentTypeSelect: Component<Props> = (props) => {
                             class="agent-type-select__option-icon"
                           />
                         </Show>
-                        <span>{PLATFORM_LABELS[plat]}</span>
+                        <span>{platformLabel(plat)}</span>
                       </button>
                     );
                   }}

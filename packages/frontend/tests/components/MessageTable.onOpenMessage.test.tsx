@@ -160,7 +160,7 @@ describe('MessageTable onOpenMessage passthrough', () => {
       expect(el).not.toBeNull();
       return el as HTMLButtonElement;
     });
-    expect(link.textContent).toContain('View Auto-fix retry');
+    expect(link.textContent).toContain('View autofix retry');
 
     // Clicking the sibling link calls the table's onOpenMessage with the id.
     fireEvent.click(link);

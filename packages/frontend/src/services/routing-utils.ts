@@ -1,6 +1,7 @@
 import { PROVIDERS } from './providers.js';
 import { inferProviderFromModel, SHARED_PROVIDERS } from 'manifest-shared';
 import type { AuthType, ModelRoute, RoutingProvider } from './api.js';
+import { formatNumber, locale, t } from '../i18n/index.js';
 
 export interface RouteSlots {
   override_route?: ModelRoute | null;
@@ -135,8 +136,16 @@ export function routeKeySelectionForModel(input: {
 export function pricePerM(perToken: number | null | undefined): string {
   if (perToken == null) return '\u2014';
   const perM = Number(perToken) * 1_000_000;
-  if (perM === 0) return 'Free';
-  if (perM < 0.01) return '< $0.01';
+  if (perM === 0) return t('services.routing.free');
+  if (perM < 0.01) return t('formatters.cost.lessThanCent');
+  if (locale() !== 'en') {
+    return formatNumber(perM, {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: perM < 1 ? 3 : 2,
+      maximumFractionDigits: perM < 1 ? 3 : 2,
+    });
+  }
   if (perM < 1) return `$${perM.toFixed(3)}`;
   return `$${perM.toFixed(2)}`;
 }

@@ -1,5 +1,6 @@
 import { createEffect, createSignal, For, onCleanup, Show, type Component } from 'solid-js';
 import type { RoutingProvider } from '../services/api.js';
+import { t } from '../i18n/index.js';
 
 interface RouteKeyChipProps {
   keys: RoutingProvider[];
@@ -45,7 +46,10 @@ const RouteKeyChip: Component<RouteKeyChipProps> = (props) => {
         class={props.buttonClass}
         aria-haspopup="listbox"
         aria-expanded={open()}
-        aria-label={`API key for ${props.modelLabel}: currently ${displayLabel()}. Click to change.`}
+        aria-label={t('provider.routeKeyAria', {
+          model: props.modelLabel,
+          label: displayLabel(),
+        })}
         title={displayLabel()}
         disabled={props.disabled}
         onClick={(event) => {
@@ -58,7 +62,12 @@ const RouteKeyChip: Component<RouteKeyChipProps> = (props) => {
         <span aria-hidden="true">▾</span>
       </button>
       <Show when={open()}>
-        <ul role="listbox" aria-label="Choose API key" onClick={stop} style={menuStyle()}>
+        <ul
+          role="listbox"
+          aria-label={t('provider.chooseApiKey')}
+          onClick={stop}
+          style={menuStyle()}
+        >
           <Show when={props.allowClear && props.currentLabel}>
             <li>
               <button
@@ -72,7 +81,7 @@ const RouteKeyChip: Component<RouteKeyChipProps> = (props) => {
                 }}
                 style="width: 100%; text-align: left; background: none; border: none; padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); border-bottom: 1px solid hsl(var(--border)); margin-bottom: 2px; padding-bottom: 6px;"
               >
-                Clear pin
+                {t('provider.clearPin')}
               </button>
             </li>
           </Show>

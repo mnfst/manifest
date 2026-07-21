@@ -6,6 +6,8 @@ import { authClient } from '../services/auth-client.js';
 import { appendSearch, getAuthDestination } from '../services/auth-redirects.js';
 import { getLastAuthMethod, setLastAuthMethod } from '../services/last-auth-method.js';
 import { checkSocialProviders } from '../services/setup-status.js';
+import { t } from '../i18n/index.js';
+import { authLocaleFetchOptions } from './auth-locale.js';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -33,7 +35,7 @@ const Login: Component = () => {
 
   onMount(async () => {
     if (searchParams.error) {
-      setError('Login failed. Please try again or use a different method.');
+      setError(t('pages.login.error.failed'));
     }
     setSocialProviders(await checkSocialProviders());
   });
@@ -79,10 +81,10 @@ const Login: Component = () => {
         authError.code === 'EMAIL_NOT_VERIFIED'
       ) {
         setNeedsVerification(true);
-        setError('Please verify your email before signing in.');
+        setError(t('pages.login.error.verifyEmail'));
         return;
       }
-      setError(msg || 'Invalid email or password');
+      setError(msg || t('pages.login.error.invalidCredentials'));
       return;
     }
 
@@ -103,7 +105,7 @@ const Login: Component = () => {
     });
     setLoading(false);
     if (authError) {
-      setError(authError.message ?? 'Dev sign-in failed');
+      setError(authError.message ?? t('pages.login.error.devFailed'));
       return;
     }
     setLastAuthMethod('email');
@@ -113,34 +115,37 @@ const Login: Component = () => {
   const handleResendVerification = async () => {
     if (resendCooldown() > 0) return;
 
-    const { error: resendError } = await authClient.sendVerificationEmail({
-      email: email(),
-      callbackURL: getAuthDestination(searchParams),
-    });
+    const { error: resendError } = await authClient.sendVerificationEmail(
+      {
+        email: email(),
+        callbackURL: getAuthDestination(searchParams),
+      },
+      authLocaleFetchOptions(),
+    );
 
     if (resendError) {
-      setError(resendError.message ?? 'Failed to resend verification email');
+      setError(resendError.message ?? t('pages.auth.error.resendVerification'));
       return;
     }
 
     startCooldown();
-    setError('Verification email sent! Check your inbox.');
+    setError(t('pages.login.verificationSent'));
   };
 
   return (
     <>
-      <Title>Sign In - Manifest</Title>
-      <Meta name="description" content="Sign in to Manifest to monitor your AI harnesses." />
+      <Title>{t('pages.login.metaTitle')}</Title>
+      <Meta name="description" content={t('pages.login.metaDescription')} />
       <div class="auth-header">
-        <h1 class="auth-header__title">Welcome back</h1>
-        <p class="auth-header__subtitle">Take control of your AI harness costs</p>
+        <h1 class="auth-header__title">{t('pages.login.title')}</h1>
+        <p class="auth-header__subtitle">{t('pages.login.subtitle')}</p>
       </div>
 
       <SocialButtons enabledProviders={socialProviders()} lastUsed={lastAuthMethod()} />
 
       <Show when={socialProviders().length > 0}>
         <div class="auth-divider">
-          <span class="auth-divider__text">or</span>
+          <span class="auth-divider__text">{t('pages.auth.or')}</span>
         </div>
       </Show>
 
@@ -153,7 +158,7 @@ const Login: Component = () => {
             disabled={loading()}
             style="background:#f59e0b;color:#1f1400;font-weight:700;margin-bottom:0.75rem;"
           >
-            ⚡ Sign in as dev, admin@manifest.build
+            {t('pages.login.devSignIn')}
           </button>
         )}
         {error() && (
@@ -168,18 +173,20 @@ const Login: Component = () => {
             onClick={handleResendVerification}
             disabled={resendCooldown() > 0}
           >
-            {resendCooldown() > 0 ? `Resend in ${resendCooldown()}s` : 'Resend verification email'}
+            {resendCooldown() > 0
+              ? t('pages.auth.resendIn', { count: resendCooldown() })
+              : t('pages.auth.resendVerification')}
           </button>
         </Show>
         <label class="auth-form__label" for={emailId}>
-          Email
+          {t('pages.auth.email')}
           <input
             ref={(el) => requestAnimationFrame(() => el.focus())}
             id={emailId}
             class="auth-form__input"
             type="email"
             autocomplete="email"
-            placeholder="you@example.com"
+            placeholder={t('pages.auth.emailPlaceholder')}
             value={email()}
             onInput={(e) => setEmail(e.currentTarget.value)}
             required
@@ -187,13 +194,13 @@ const Login: Component = () => {
           />
         </label>
         <label class="auth-form__label" for={passwordId}>
-          Password
+          {t('pages.auth.password')}
           <input
             id={passwordId}
             class="auth-form__input"
             type="password"
             autocomplete="current-password"
-            placeholder="Enter your password"
+            placeholder={t('pages.login.passwordPlaceholder')}
             value={password()}
             onInput={(e) => setPassword(e.currentTarget.value)}
             required
@@ -202,17 +209,17 @@ const Login: Component = () => {
         </label>
         <div class="auth-form__actions">
           <A href="/reset-password" class="auth-form__forgot">
-            Forgot password?
+            {t('pages.login.forgotPassword')}
           </A>
         </div>
         <button class="auth-form__submit" type="submit" disabled={loading()}>
-          {loading() ? <span class="spinner" /> : 'Sign in'}
+          {loading() ? <span class="spinner" /> : t('pages.auth.signIn')}
         </button>
       </form>
       <div class="auth-footer">
-        <span>Don't have an account? </span>
+        <span>{t('pages.login.noAccount')} </span>
         <A href={appendSearch('/register', location.search)} class="auth-footer__link">
-          Sign up
+          {t('pages.login.signUp')}
         </A>
       </div>
     </>
