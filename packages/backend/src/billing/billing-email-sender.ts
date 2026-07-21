@@ -6,6 +6,7 @@ import {
   SubscriptionPlanEmailProps,
 } from './emails/billing-plan-email';
 import { sendEmail } from '../notifications/services/email-providers/send-email';
+import type { AppLocale } from '../common/i18n/locale';
 
 export function formatPlanName(plan: string | null | undefined): string {
   const normalized = (plan ?? '').trim().toLowerCase();
@@ -34,13 +35,27 @@ export function getBillingAppUrl(explicit?: string | null): string {
   );
 }
 
-export function subscriptionEmailSubject(kind: SubscriptionPlanEmailProps['kind'], plan: string) {
+export function subscriptionEmailSubject(
+  kind: SubscriptionPlanEmailProps['kind'],
+  plan: string,
+  locale: AppLocale = 'en',
+) {
+  if (locale === 'ru') {
+    if (kind === 'plan_changed') return `Ваш тариф Manifest изменён на ${plan}`;
+    if (kind === 'cancellation_confirmed') return `Отмена тарифа Manifest ${plan} запланирована`;
+    return `Тариф Manifest ${plan} активирован`;
+  }
   if (kind === 'plan_changed') return `Your Manifest plan changed to ${plan}`;
   if (kind === 'cancellation_confirmed') return `Your Manifest ${plan} cancellation is scheduled`;
   return `Your Manifest ${plan} plan is active`;
 }
 
-export function usageEmailSubject(kind: PlanUsageEmailProps['kind']) {
+export function usageEmailSubject(kind: PlanUsageEmailProps['kind'], locale: AppLocale = 'en') {
+  if (locale === 'ru') {
+    return kind === 'requests_limit_reached'
+      ? 'Месячный лимит запросов Manifest исчерпан'
+      : 'Рабочее пространство Manifest использовало 80\u00a0% месячного лимита запросов';
+  }
   return kind === 'requests_limit_reached'
     ? 'Your Manifest monthly request limit has been reached'
     : 'Your Manifest workspace has used 80% of monthly requests';
@@ -56,7 +71,7 @@ export async function sendSubscriptionPlanEmail(
   const text = await render(element, { plainText: true });
   return sendEmail({
     to,
-    subject: subscriptionEmailSubject(props.kind, props.planName),
+    subject: subscriptionEmailSubject(props.kind, props.planName, props.locale),
     html,
     text,
     from: `Manifest <${getBillingEmailFrom(fromEmail)}>`,
@@ -73,7 +88,7 @@ export async function sendPlanUsageEmail(
   const text = await render(element, { plainText: true });
   return sendEmail({
     to,
-    subject: usageEmailSubject(props.kind),
+    subject: usageEmailSubject(props.kind, props.locale),
     html,
     text,
     from: `Manifest <${getBillingEmailFrom(fromEmail)}>`,

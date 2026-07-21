@@ -11,17 +11,42 @@ import {
   Img,
   Link,
 } from '@react-email/components';
+import type { AppLocale } from '../../common/i18n/locale';
 
 interface TestEmailProps {
   logoUrl?: string;
+  locale?: AppLocale;
 }
+
+const COPY = {
+  en: {
+    preview: 'Your email configuration is working correctly',
+    badge: 'Configuration verified',
+    heading: 'Email is working',
+    body: "This is a test email from Manifest. If you're reading this, your email provider configuration is working correctly.",
+    notifications: 'Notification emails, like threshold alerts, will be delivered to this address.',
+    footer: 'This is a one-time test email sent from Manifest.',
+    rights: 'All rights reserved.',
+  },
+  ru: {
+    preview: 'Настройки электронной почты работают правильно',
+    badge: 'Настройки проверены',
+    heading: 'Электронная почта работает',
+    body: 'Это тестовое письмо от Manifest. Если вы его получили, значит настройки почтового провайдера работают правильно.',
+    notifications:
+      'На этот адрес будут приходить уведомления, в том числе о превышении заданных порогов.',
+    footer: 'Это однократное тестовое письмо от Manifest.',
+    rights: 'Все права защищены.',
+  },
+} as const;
 
 export function TestEmail(props: TestEmailProps = {}) {
   const { logoUrl = 'https://app.manifest.build/manifest-logo.png' } = props;
+  const copy = COPY[props.locale ?? 'en'];
   return (
-    <Html>
+    <Html lang={props.locale ?? 'en'}>
       <Head />
-      <Preview>Your email configuration is working correctly</Preview>
+      <Preview>{copy.preview}</Preview>
       <Body style={body}>
         <Container style={container}>
           {/* Logo */}
@@ -32,25 +57,20 @@ export function TestEmail(props: TestEmailProps = {}) {
           {/* Main content */}
           <Section style={card}>
             <Section style={badgeContainer}>
-              <Text style={successBadge}>Configuration verified</Text>
+              <Text style={successBadge}>{copy.badge}</Text>
             </Section>
 
-            <Text style={heading}>Email is working</Text>
-            <Text style={paragraph}>
-              This is a test email from Manifest. If you're reading this, your email provider
-              configuration is working correctly.
-            </Text>
-            <Text style={paragraph}>
-              Notification emails, like threshold alerts, will be delivered to this address.
-            </Text>
+            <Text style={heading}>{copy.heading}</Text>
+            <Text style={paragraph}>{copy.body}</Text>
+            <Text style={paragraph}>{copy.notifications}</Text>
           </Section>
 
           {/* Footer */}
           <Hr style={divider} />
           <Section style={footer}>
-            <Text style={footerNote}>This is a one-time test email sent from Manifest.</Text>
+            <Text style={footerNote}>{copy.footer}</Text>
             <Text style={footerMuted}>
-              © 2026 MNFST Inc. All rights reserved.{' '}
+              © 2026 MNFST Inc. {copy.rights}{' '}
               <Link href="https://manifest.build" style={footerLink}>
                 manifest.build
               </Link>

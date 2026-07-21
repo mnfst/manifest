@@ -46,4 +46,22 @@ describe('ThresholdAlertEmail', () => {
     // React escapes both angle brackets and quotes in text content.
     expect(html).toContain('evil&quot;onmouseover=&quot;alert(1)');
   });
+
+  it('renders Russian labels, periods, and localized values', () => {
+    const html = renderEmail({
+      agentName: 'помощник',
+      metricType: 'tokens',
+      threshold: 1000,
+      actualValue: 1500,
+      period: 'day',
+      timestamp: '2026-04-23 12:00',
+      agentUrl: 'https://app.manifest.build/agents/helper',
+      alertType: 'hard',
+      locale: 'ru',
+    });
+    expect(html).toContain('lang="ru"');
+    expect(html).toContain('Интеграция заблокирована');
+    expect(html).toContain('за <strong>день</strong>');
+    expect(html).toContain('Открыть панель интеграции');
+  });
 });

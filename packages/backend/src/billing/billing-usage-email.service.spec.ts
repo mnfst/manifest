@@ -96,6 +96,24 @@ describe('BillingUsageEmailService', () => {
     }
   });
 
+  it('passes the persisted Russian locale to asynchronous usage emails', async () => {
+    dataSourceQuery.mockResolvedValueOnce([
+      {
+        email: 'owner@example.com',
+        name: 'Анна',
+        user_id: 'u1',
+        billing_email_preferences: null,
+        locale: 'ru',
+      },
+    ]);
+
+    await expect(service.checkTenantUsage('t1')).resolves.toBe(true);
+    expect(sendPlanUsageEmail).toHaveBeenCalledWith(
+      'owner@example.com',
+      expect.objectContaining({ locale: 'ru' }),
+    );
+  });
+
   it('subscribes to message events and unsubscribes on destroy', async () => {
     const unsubscribe = jest.fn();
     const handlers: Array<(event: { kind: string; tenantId: string }) => void> = [];

@@ -12,6 +12,7 @@ import {
   Link,
   Img,
 } from '@react-email/components';
+import { AppLocale, intlLocale } from '../../common/i18n/locale';
 
 type SubscriptionEmailKind = 'subscription_confirmed' | 'plan_changed' | 'cancellation_confirmed';
 type UsageEmailKind = 'requests_warning' | 'requests_limit_reached';
@@ -25,6 +26,7 @@ export interface SubscriptionPlanEmailProps {
   appUrl: string;
   manageBillingUrl: string;
   logoUrl?: string;
+  locale?: AppLocale;
 }
 
 export interface PlanUsageEmailProps {
@@ -35,22 +37,24 @@ export interface PlanUsageEmailProps {
   periodEnd: string;
   appUrl: string;
   logoUrl?: string;
+  locale?: AppLocale;
 }
 
-function greeting(name?: string | null): string {
+function greeting(name: string | null | undefined, locale: AppLocale): string {
   const trimmed = name?.trim();
+  if (locale === 'ru') return trimmed ? `Здравствуйте, ${trimmed}!` : 'Здравствуйте!';
   return trimmed ? `Hi ${trimmed},` : 'Hi,';
 }
 
-function formatCount(value: number): string {
-  return Math.round(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
+function formatCount(value: number, locale: AppLocale): string {
+  return Math.round(value).toLocaleString(intlLocale(locale), { maximumFractionDigits: 0 });
 }
 
-function formatDate(raw?: string | null): string | null {
+function formatDate(raw: string | null | undefined, locale: AppLocale): string | null {
   if (!raw) return null;
   const date = new Date(raw);
   if (Number.isNaN(date.getTime())) return raw;
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(intlLocale(locale), {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -66,7 +70,7 @@ function emailPreferencesUrl(appUrl: string): string {
   return `${accountUrl(appUrl)}#email-preferences`;
 }
 
-function subscriptionCopy(props: SubscriptionPlanEmailProps): {
+interface SubscriptionCopy {
   preview: string;
   badge: string;
   heading: string;
@@ -75,7 +79,11 @@ function subscriptionCopy(props: SubscriptionPlanEmailProps): {
   features?: string[];
   cta: string;
   ctaSecondary?: string;
-} {
+}
+
+function subscriptionCopy(props: SubscriptionPlanEmailProps): SubscriptionCopy {
+  const locale = props.locale ?? 'en';
+  if (locale === 'ru') return russianSubscriptionCopy(props);
   if (props.kind === 'plan_changed') {
     return {
       preview: `Your Manifest plan changed to ${props.planName}`,
@@ -83,7 +91,7 @@ function subscriptionCopy(props: SubscriptionPlanEmailProps): {
       heading: `Your plan is now Manifest ${props.planName}`,
       body: (
         <>
-          {greeting(props.userName)} your plan has been updated
+          {greeting(props.userName, locale)} your plan has been updated
           {props.previousPlanName ? (
             <>
               {' '}
@@ -103,7 +111,7 @@ function subscriptionCopy(props: SubscriptionPlanEmailProps): {
   }
 
   if (props.kind === 'cancellation_confirmed') {
-    const end = formatDate(props.periodEnd);
+    const end = formatDate(props.periodEnd, locale);
     return {
       preview: end
         ? `Your Manifest ${props.planName} plan is scheduled to end on ${end}`
@@ -113,7 +121,7 @@ function subscriptionCopy(props: SubscriptionPlanEmailProps): {
       body: 'multi',
       paragraphs: [
         <>
-          {greeting(props.userName)} we're sorry to see you go. Your{' '}
+          {greeting(props.userName, locale)} we're sorry to see you go. Your{' '}
           <strong>{props.planName}</strong> cancellation has been confirmed. You'll keep full access
           to {props.planName} features{end ? ` until ${end}` : ''}.
         </>,
@@ -136,8 +144,8 @@ function subscriptionCopy(props: SubscriptionPlanEmailProps): {
     heading: `Welcome to Manifest ${props.planName}`,
     body: (
       <>
-        {greeting(props.userName)} your <strong>{props.planName}</strong> plan is active. The whole
-        team warmly thanks you for your trust. Here's what you now have access to:
+        {greeting(props.userName, locale)} your <strong>{props.planName}</strong> plan is active.
+        The whole team warmly thanks you for your trust. Here's what you now have access to:
       </>
     ),
     features: [
@@ -149,14 +157,87 @@ function subscriptionCopy(props: SubscriptionPlanEmailProps): {
   };
 }
 
+function russianSubscriptionCopy(props: SubscriptionPlanEmailProps): SubscriptionCopy {
+  if (props.kind === 'plan_changed') {
+    return {
+      preview: `Ваш тариф Manifest изменён на ${props.planName}`,
+      badge: '',
+      heading: `Теперь ваш тариф — Manifest ${props.planName}`,
+      body: (
+        <>
+          {greeting(props.userName, 'ru')} Ваш тариф изменён
+          {props.previousPlanName ? (
+            <>
+              {' '}
+              с <strong>{props.previousPlanName}</strong>
+            </>
+          ) : null}{' '}
+          на <strong>{props.planName}</strong>. Теперь вам доступны:
+        </>
+      ),
+      features: [
+        'Неограниченное количество маршрутизируемых запросов',
+        'Хранение данных панели управления в течение 365 дней',
+        'Базовая поддержка по платформе, оплате и активации лицензии',
+      ],
+      cta: 'Открыть Manifest',
+    };
+  }
+
+  if (props.kind === 'cancellation_confirmed') {
+    const end = formatDate(props.periodEnd, 'ru');
+    return {
+      preview: end
+        ? `Тариф Manifest ${props.planName} будет отключён ${end}`
+        : `Тариф Manifest ${props.planName} будет отключён`,
+      badge: '',
+      heading: `Отмена тарифа ${props.planName} запланирована`,
+      body: 'multi',
+      paragraphs: [
+        <>
+          {greeting(props.userName, 'ru')} Нам жаль, что вы уходите. Отмена тарифа{' '}
+          <strong>{props.planName}</strong> подтверждена. Все его возможности останутся доступны
+          {end ? ` до ${end}` : ''}.
+        </>,
+        <>
+          После этого рабочее пространство перейдёт на тариф Free: 10 000 маршрутизируемых запросов
+          в месяц и хранение данных панели управления в течение 7 дней.
+        </>,
+        <>Если мы можем помочь или вы хотите обсудить свои задачи, свяжитесь с нами.</>,
+      ],
+      cta: 'Управлять оплатой',
+      ctaSecondary: 'Связаться с отделом продаж',
+    };
+  }
+
+  return {
+    preview: `Тариф Manifest ${props.planName} активирован`,
+    badge: '',
+    heading: `Добро пожаловать в Manifest ${props.planName}`,
+    body: (
+      <>
+        {greeting(props.userName, 'ru')} Ваш тариф <strong>{props.planName}</strong> активирован.
+        Команда Manifest благодарит вас за доверие. Теперь вам доступны:
+      </>
+    ),
+    features: [
+      'Неограниченное количество маршрутизируемых запросов',
+      'Хранение данных панели управления в течение 365 дней',
+      'Базовая поддержка по платформе, оплате и активации лицензии',
+    ],
+    cta: 'Открыть Manifest',
+  };
+}
+
 export function SubscriptionPlanEmail(props: SubscriptionPlanEmailProps) {
+  const locale = props.locale ?? 'en';
   const logoUrl = props.logoUrl ?? 'https://app.manifest.build/manifest-logo.png';
   const copy = subscriptionCopy(props);
   const accent = props.kind === 'cancellation_confirmed' ? '#ea580c' : '#0f766e';
   const accentBg = props.kind === 'cancellation_confirmed' ? '#fff7ed' : '#ecfdf5';
 
   return (
-    <Html>
+    <Html lang={locale}>
       <Head />
       <Preview>{copy.preview}</Preview>
       <Body style={body}>
@@ -204,12 +285,13 @@ export function SubscriptionPlanEmail(props: SubscriptionPlanEmailProps) {
             </Section>
 
             <Text style={hint}>
-              This email confirms a Manifest plan change only. Stripe may send payment receipts
-              separately.
+              {locale === 'ru'
+                ? 'Это письмо подтверждает только изменение тарифа Manifest. Stripe может отправлять платёжные квитанции отдельно.'
+                : 'This email confirms a Manifest plan change only. Stripe may send payment receipts separately.'}
             </Text>
           </Section>
 
-          <Footer preferencesUrl={emailPreferencesUrl(props.appUrl)} />
+          <Footer preferencesUrl={emailPreferencesUrl(props.appUrl)} locale={locale} />
         </Container>
       </Body>
     </Html>
@@ -217,21 +299,33 @@ export function SubscriptionPlanEmail(props: SubscriptionPlanEmailProps) {
 }
 
 export function PlanUsageEmail(props: PlanUsageEmailProps) {
+  const locale = props.locale ?? 'en';
   const logoUrl = props.logoUrl ?? 'https://app.manifest.build/manifest-logo.png';
   const isLimit = props.kind === 'requests_limit_reached';
   const percentage = Math.min(100, Math.round((props.used / props.limit) * 100));
   const accent = isLimit ? '#dc2626' : '#ea580c';
   const accentBg = isLimit ? '#fef2f2' : '#fff7ed';
-  const reset = formatDate(props.periodEnd);
-  const title = isLimit ? 'Monthly request limit reached' : '80% of monthly requests used';
+  const reset = formatDate(props.periodEnd, locale);
+  const title =
+    locale === 'ru'
+      ? isLimit
+        ? 'Месячный лимит запросов исчерпан'
+        : 'Использовано 80\u00a0% месячного лимита запросов'
+      : isLimit
+        ? 'Monthly request limit reached'
+        : '80% of monthly requests used';
 
   return (
-    <Html>
+    <Html lang={locale}>
       <Head />
       <Preview>
-        {isLimit
-          ? `Your Manifest workspace reached ${formatCount(props.limit)} monthly requests`
-          : `Your Manifest workspace used ${percentage}% of monthly requests`}
+        {locale === 'ru'
+          ? isLimit
+            ? `Рабочее пространство Manifest достигло лимита ${formatCount(props.limit, locale)} запросов в месяц`
+            : `Рабочее пространство Manifest использовало ${percentage}\u00a0% месячного лимита запросов`
+          : isLimit
+            ? `Your Manifest workspace reached ${formatCount(props.limit, locale)} monthly requests`
+            : `Your Manifest workspace used ${percentage}% of monthly requests`}
       </Preview>
       <Body style={body}>
         <Container style={container}>
@@ -242,48 +336,67 @@ export function PlanUsageEmail(props: PlanUsageEmailProps) {
           <Section style={card}>
             <Text style={heading}>{title}</Text>
             <Text style={paragraph}>
-              {greeting(props.userName)} your workspace has used{' '}
-              <strong>{formatCount(props.used)}</strong> of{' '}
-              <strong>{formatCount(props.limit)}</strong> included requests this month.
+              {locale === 'ru' ? (
+                <>
+                  {greeting(props.userName, locale)} В этом месяце ваше рабочее пространство
+                  использовало <strong>{formatCount(props.used, locale)}</strong> из{' '}
+                  <strong>{formatCount(props.limit, locale)}</strong> включённых запросов.
+                </>
+              ) : (
+                <>
+                  {greeting(props.userName, locale)} your workspace has used{' '}
+                  <strong>{formatCount(props.used, locale)}</strong> of{' '}
+                  <strong>{formatCount(props.limit, locale)}</strong> included requests this month.
+                </>
+              )}
             </Text>
 
             <Text style={paragraph}>
-              {isLimit
-                ? `New routed requests are blocked until the limit resets${reset ? ` on ${reset}` : ''}.`
-                : `Requests are still running. The limit resets${reset ? ` on ${reset}` : ' at the start of next month'}.`}
+              {locale === 'ru'
+                ? isLimit
+                  ? `Новые маршрутизируемые запросы заблокированы до сброса лимита${reset ? ` ${reset}` : ''}.`
+                  : `Запросы продолжают выполняться. Лимит сбросится${reset ? ` ${reset}` : ' в начале следующего месяца'}.`
+                : isLimit
+                  ? `New routed requests are blocked until the limit resets${reset ? ` on ${reset}` : ''}.`
+                  : `Requests are still running. The limit resets${reset ? ` on ${reset}` : ' at the start of next month'}.`}
             </Text>
 
             <Text style={paragraph}>
-              {isLimit
-                ? 'Upgrade to Pro for unlimited requests.'
-                : `If you reach ${formatCount(props.limit)}, new requests will stop being routed until the next period. To avoid interruptions, stay within your limit or upgrade to Pro for unlimited requests.`}
+              {locale === 'ru'
+                ? isLimit
+                  ? 'Перейдите на тариф Pro, чтобы снять ограничение на количество запросов.'
+                  : `При достижении ${formatCount(props.limit, locale)} запросов маршрутизация новых запросов остановится до следующего периода. Чтобы избежать перерыва, не превышайте лимит или перейдите на тариф Pro без ограничения запросов.`
+                : isLimit
+                  ? 'Upgrade to Pro for unlimited requests.'
+                  : `If you reach ${formatCount(props.limit, locale)}, new requests will stop being routed until the next period. To avoid interruptions, stay within your limit or upgrade to Pro for unlimited requests.`}
             </Text>
 
             <Section style={buttonContainer}>
               <Button style={button} href={`${props.appUrl.replace(/\/+$/, '')}/upgrade`}>
-                Review plan
+                {locale === 'ru' ? 'Посмотреть тариф' : 'Review plan'}
               </Button>
             </Section>
           </Section>
 
-          <Footer preferencesUrl={emailPreferencesUrl(props.appUrl)} />
+          <Footer preferencesUrl={emailPreferencesUrl(props.appUrl)} locale={locale} />
         </Container>
       </Body>
     </Html>
   );
 }
 
-function Footer(props: { preferencesUrl: string }) {
+function Footer(props: { preferencesUrl: string; locale: AppLocale }) {
   return (
     <>
       <Hr style={divider} />
       <Section style={footer}>
         <Text style={footerMuted}>
           <Link href={props.preferencesUrl} style={footerLink}>
-            Manage email preferences
+            {props.locale === 'ru'
+              ? 'Настроить уведомления по электронной почте'
+              : 'Manage email preferences'}
           </Link>
-          {' · '}
-          (c) 2026 MNFST Inc.{' '}
+          {' · '}© 2026 MNFST Inc.{' '}
           <Link href="https://manifest.build" style={footerLink}>
             manifest.build
           </Link>

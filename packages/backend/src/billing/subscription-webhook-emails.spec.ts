@@ -76,6 +76,25 @@ describe('subscription webhook billing emails', () => {
     );
   });
 
+  it('passes the persisted Russian locale to Stripe lifecycle emails', async () => {
+    const query = jest
+      .fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({
+        rows: [{ email: 'owner@example.com', name: 'Анна', locale: 'ru' }],
+      })
+      .mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
+
+    await expect(sendSubscriptionConfirmedEmail({ query }, event(), subscription())).resolves.toBe(
+      true,
+    );
+    expect(sendSubscriptionPlanEmail).toHaveBeenCalledWith(
+      'owner@example.com',
+      expect.objectContaining({ locale: 'ru' }),
+      'noreply@manifest.build',
+    );
+  });
+
   it('does not send when the lifecycle dedupe key already exists', async () => {
     const query = jest.fn().mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
 
@@ -188,8 +207,9 @@ describe('subscription webhook billing emails', () => {
   });
 
   it('returns false for plan_changed when previousPlan is null', async () => {
-    await expect(sendPlanChangedEmail({ query: jest.fn() }, event(), subscription(), null))
-      .resolves.toBe(false);
+    await expect(
+      sendPlanChangedEmail({ query: jest.fn() }, event(), subscription(), null),
+    ).resolves.toBe(false);
   });
 
   it('uses the stripeSubscriptionId fallback to subscription.id when stripeSubscriptionId is null', async () => {
@@ -213,11 +233,7 @@ describe('subscription webhook billing emails', () => {
       .mockResolvedValueOnce({ rows: [{ email: 'owner@example.com', name: 'Ada' }] })
       .mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
 
-    await sendSubscriptionCanceledEmail(
-      { query },
-      event(),
-      subscription({ cancelAt: cancelDate }),
-    );
+    await sendSubscriptionCanceledEmail({ query }, event(), subscription({ cancelAt: cancelDate }));
 
     expect(sendSubscriptionPlanEmail).toHaveBeenCalledWith(
       'owner@example.com',
@@ -320,8 +336,6 @@ describe('subscription webhook billing emails', () => {
     );
 
     // plan_changed uses the eventId as the dedupe action (not 'confirm' or 'cancel')
-    expect(query.mock.calls[0][1][0]).toBe(
-      'billing:plan_changed:sub_123:evt_plan_change_42',
-    );
+    expect(query.mock.calls[0][1][0]).toBe('billing:plan_changed:sub_123:evt_plan_change_42');
   });
 });

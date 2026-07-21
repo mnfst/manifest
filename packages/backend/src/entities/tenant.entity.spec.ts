@@ -49,6 +49,14 @@ describe('Tenant entity', () => {
     expect(t.billing_email_preferences).toEqual({ usageAlerts: false });
   });
 
+  it('allows a supported workspace locale or an unset preference', () => {
+    const t = new Tenant();
+    t.locale = null;
+    expect(t.locale).toBeNull();
+    t.locale = 'ru';
+    expect(t.locale).toBe('ru');
+  });
+
   describe('TypeORM relation callbacks', () => {
     it('OneToMany callback resolves to Agent with inverse side', () => {
       const relations = getMetadataArgsStorage().relations.filter((r) => r.target === Tenant);

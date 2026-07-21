@@ -26,4 +26,16 @@ describe('oauthDoneHtml', () => {
     expect(oauthDoneHtml(true)).toContain('<script>');
     expect(oauthDoneHtml(true)).not.toContain('nonce=');
   });
+
+  it('renders Russian copy and a matching document language', () => {
+    const html = oauthDoneHtml(true, undefined, 'Login', 'ru');
+    expect(html).toContain('<html lang="ru">');
+    expect(html).toContain('Вход выполнен успешно');
+    expect(html).toContain('Это окно можно закрыть');
+    expect(html).toContain('manifest-oauth-success');
+  });
+
+  it('localizes the Login suffix without translating provider brands', () => {
+    expect(oauthDoneHtml(true, undefined, 'xAI Login', 'ru')).toContain('Manifest — xAI — вход');
+  });
 });

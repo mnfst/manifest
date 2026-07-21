@@ -5,13 +5,17 @@ import { ThresholdAlertEmail, ThresholdAlertProps } from '../emails/threshold-al
 import { sendEmail } from './email-providers/send-email';
 import { createProvider } from './email-providers/resolve-provider';
 import type { EmailProviderConfig } from './email-providers/email-provider.interface';
+import { LocaleService } from '../../common/services/locale.service';
 
 @Injectable()
 export class NotificationEmailService {
   private readonly logger = new Logger(NotificationEmailService.name);
   private readonly fromEmail: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly locales: LocaleService,
+  ) {
     this.fromEmail =
       this.configService.get<string>('app.emailFrom') ||
       this.configService.get<string>('app.notificationFromEmail', 'noreply@manifest.build');
@@ -19,16 +23,23 @@ export class NotificationEmailService {
 
   async sendThresholdAlert(
     to: string,
-    props: ThresholdAlertProps,
+    props: ThresholdAlertProps & { tenantId?: string | null },
     providerConfig?: { provider: string; apiKey: string; domain: string | null },
   ): Promise<boolean> {
-    const element = ThresholdAlertEmail(props);
+    const { tenantId, ...emailProps } = props;
+    const locale = emailProps.locale ?? (await this.locales.getTenantLocale(tenantId));
+    const localizedProps = { ...emailProps, locale };
+    const element = ThresholdAlertEmail(localizedProps);
     const html = await render(element);
     const text = await render(element, { plainText: true });
     const subject =
-      props.alertType === 'soft'
-        ? `Warning: ${props.agentName} exceeded ${props.metricType} threshold`
-        : `Blocked: ${props.agentName} reached ${props.metricType} limit`;
+      locale === 'ru'
+        ? props.alertType === 'soft'
+          ? `Предупреждение: для «${props.agentName}» превышен порог ${props.metricType === 'cost' ? 'расходов' : 'токенов'}`
+          : `Заблокировано: для «${props.agentName}» достигнут лимит ${props.metricType === 'cost' ? 'расходов' : 'токенов'}`
+        : props.alertType === 'soft'
+          ? `Warning: ${props.agentName} exceeded ${props.metricType} threshold`
+          : `Blocked: ${props.agentName} reached ${props.metricType} limit`;
 
     if (providerConfig) {
       const defaultFrom = this.fromEmail;

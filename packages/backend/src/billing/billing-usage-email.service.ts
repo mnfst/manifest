@@ -15,6 +15,7 @@ interface BillingRecipient {
   name: string | null;
   user_id: string | null;
   billing_email_preferences: unknown;
+  locale: 'en' | 'ru' | null;
 }
 
 @Injectable()
@@ -79,6 +80,7 @@ export class BillingUsageEmailService implements OnModuleInit, OnModuleDestroy {
       used,
       limit,
       periodEnd,
+      ...(recipient.locale === 'ru' ? { locale: 'ru' as const } : {}),
     });
     if (!sent) return false;
 
@@ -108,7 +110,8 @@ export class BillingUsageEmailService implements OnModuleInit, OnModuleDestroy {
       `SELECT COALESCE(u.email, t.email) AS email,
               COALESCE(NULLIF(u.name, ''), NULLIF(t.organization_name, '')) AS name,
               t.owner_user_id AS user_id,
-              t.billing_email_preferences AS billing_email_preferences
+              t.billing_email_preferences AS billing_email_preferences,
+              t.locale AS locale
          FROM tenants t
          LEFT JOIN "user" u ON u.id = t.owner_user_id
         WHERE t.id = $1`,

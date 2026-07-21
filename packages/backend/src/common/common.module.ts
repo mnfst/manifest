@@ -7,6 +7,9 @@ import { ManifestRuntimeService } from './services/manifest-runtime.service';
 import { TenantCacheService } from './services/tenant-cache.service';
 import { UserCacheInterceptor } from './interceptors/user-cache.interceptor';
 import { AgentCacheInterceptor } from './interceptors/agent-cache.interceptor';
+import { LocaleService } from './services/locale.service';
+import { LocalizationController } from './localization.controller';
+import { SessionOnlyGuard } from './guards/session-only.guard';
 
 @Global()
 @Module({
@@ -17,6 +20,8 @@ import { AgentCacheInterceptor } from './interceptors/agent-cache.interceptor';
     TenantCacheService,
     UserCacheInterceptor,
     AgentCacheInterceptor,
+    LocaleService,
+    SessionOnlyGuard,
   ],
   exports: [
     IngestEventBusService,
@@ -24,6 +29,8 @@ import { AgentCacheInterceptor } from './interceptors/agent-cache.interceptor';
     TenantCacheService,
     UserCacheInterceptor,
     AgentCacheInterceptor,
+    LocaleService,
   ],
+  controllers: [LocalizationController],
 })
 export class CommonModule {}

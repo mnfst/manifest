@@ -33,10 +33,10 @@ export class NotificationsController {
 
   @Post('email-provider/test')
   async testEmailProvider(@TenantCtx() _ctx: TenantContext, @Body() body: TestEmailProviderDto) {
-    return this.emailProviderConfigService.testConfig(
-      { provider: body.provider, apiKey: body.apiKey, domain: body.domain },
-      body.to,
-    );
+    const config = { provider: body.provider, apiKey: body.apiKey, domain: body.domain };
+    return body.locale
+      ? this.emailProviderConfigService.testConfig(config, body.to, body.locale)
+      : this.emailProviderConfigService.testConfig(config, body.to);
   }
 
   @Post('email-provider/test-saved')
@@ -44,7 +44,9 @@ export class NotificationsController {
     @TenantCtx() ctx: TenantContext,
     @Body() body: TestSavedEmailProviderDto,
   ) {
-    return this.emailProviderConfigService.testSavedConfig(ctx.tenantId, body.to);
+    return body.locale
+      ? this.emailProviderConfigService.testSavedConfig(ctx.tenantId, body.to, body.locale)
+      : this.emailProviderConfigService.testSavedConfig(ctx.tenantId, body.to);
   }
 
   @Post('email-provider')

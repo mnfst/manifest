@@ -12,6 +12,7 @@ import {
   Img,
   Button,
 } from '@react-email/components';
+import { AppLocale, intlLocale } from '../../common/i18n/locale';
 
 export interface ThresholdAlertProps {
   agentName: string;
@@ -24,26 +25,59 @@ export interface ThresholdAlertProps {
   logoUrl?: string;
   alertType?: 'soft' | 'hard';
   periodResetDate?: string;
+  locale?: AppLocale;
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = {
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  ru: [
+    'янв.',
+    'февр.',
+    'мар.',
+    'апр.',
+    'мая',
+    'июн.',
+    'июл.',
+    'авг.',
+    'сент.',
+    'окт.',
+    'нояб.',
+    'дек.',
+  ],
+} as const;
 
-function formatTimestamp(raw: string): string {
+function formatTimestamp(raw: string, locale: AppLocale): string {
   const [datePart, timePart] = raw.split(' ');
   if (!datePart || !timePart) return raw;
   const [, month, day] = datePart.split('-');
   if (!month || !day) return raw;
   const monthIdx = parseInt(month, 10) - 1;
-  const monthName = MONTHS[monthIdx] ?? month;
+  const monthName = MONTHS[locale][monthIdx] ?? month;
   const dayNum = parseInt(day, 10);
-  return `${monthName} ${dayNum}, ${timePart}`;
+  return locale === 'ru'
+    ? `${dayNum} ${monthName}, ${timePart}`
+    : `${monthName} ${dayNum}, ${timePart}`;
 }
 
-function formatValue(value: number, metric: string): string {
+function formatValue(value: number, metric: string, locale: AppLocale): string {
   const num = Number(value);
   if (metric === 'cost')
-    return `$${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  return num.toLocaleString(undefined, { maximumFractionDigits: 0 });
+    return `$${num.toLocaleString(intlLocale(locale), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return num.toLocaleString(intlLocale(locale), { maximumFractionDigits: 0 });
+}
+
+function metricLabel(metric: ThresholdAlertProps['metricType'], locale: AppLocale): string {
+  if (locale === 'ru') return metric === 'cost' ? 'расходов' : 'токенов';
+  return metric;
+}
+
+function periodLabel(period: string, locale: AppLocale): string {
+  if (locale !== 'ru') return period;
+  return (
+    ({ hour: 'час', day: 'день', week: 'неделю', month: 'месяц' } as Record<string, string>)[
+      period
+    ] ?? period
+  );
 }
 
 export function ThresholdAlertEmail(props: ThresholdAlertProps) {
@@ -59,6 +93,9 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
     alertType = 'hard',
     periodResetDate,
   } = props;
+  const locale = props.locale ?? 'en';
+  const metric = metricLabel(metricType, locale);
+  const localizedPeriod = periodLabel(period, locale);
 
   const isSoft = alertType === 'soft';
   const accentColor = isSoft ? '#ea580c' : '#dc2626';
@@ -66,12 +103,16 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
   const accentBorder = isSoft ? '#fed7aa' : '#fecaca';
 
   return (
-    <Html>
+    <Html lang={locale}>
       <Head />
       <Preview>
-        {isSoft
-          ? `${agentName} exceeded ${metricType} threshold (${formatValue(actualValue, metricType)})`
-          : `${agentName} has been blocked — ${metricType} limit reached (${formatValue(actualValue, metricType)} / ${formatValue(threshold, metricType)})`}
+        {locale === 'ru'
+          ? isSoft
+            ? `${agentName}: превышен порог ${metric} (${formatValue(actualValue, metricType, locale)})`
+            : `${agentName}: интеграция заблокирована — достигнут лимит ${metric} (${formatValue(actualValue, metricType, locale)} / ${formatValue(threshold, metricType, locale)})`
+          : isSoft
+            ? `${agentName} exceeded ${metricType} threshold (${formatValue(actualValue, metricType, locale)})`
+            : `${agentName} has been blocked — ${metricType} limit reached (${formatValue(actualValue, metricType, locale)} / ${formatValue(threshold, metricType, locale)})`}
       </Preview>
       <Body style={body}>
         <Container style={container}>
@@ -85,17 +126,42 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
             {/* Alert badge */}
             <Section style={alertBadgeContainer}>
               <Text style={{ ...alertBadge, color: accentColor, backgroundColor: accentBg }}>
-                {isSoft ? 'Warning' : 'Agent blocked'}
+                {locale === 'ru'
+                  ? isSoft
+                    ? 'Предупреждение'
+                    : 'Интеграция заблокирована'
+                  : isSoft
+                    ? 'Warning'
+                    : 'Agent blocked'}
               </Text>
             </Section>
 
             <Text style={heading}>
-              {isSoft
-                ? `${agentName} exceeded the ${metricType} limit`
-                : `${agentName} has been blocked`}
+              {locale === 'ru'
+                ? isSoft
+                  ? `${agentName}: превышен лимит ${metric}`
+                  : `${agentName}: интеграция заблокирована`
+                : isSoft
+                  ? `${agentName} exceeded the ${metricType} limit`
+                  : `${agentName} has been blocked`}
             </Text>
             <Text style={paragraph}>
-              {isSoft ? (
+              {locale === 'ru' ? (
+                isSoft ? (
+                  <>
+                    Для интеграции <strong>{agentName}</strong> превышен порог{' '}
+                    <strong>{metric}</strong> за <strong>{localizedPeriod}</strong>.
+                  </>
+                ) : (
+                  <>
+                    Для интеграции <strong>{agentName}</strong> достигнут лимит{' '}
+                    <strong>{metric}</strong>{' '}
+                    <strong>{formatValue(threshold, metricType, locale)}</strong> за{' '}
+                    <strong>{localizedPeriod}</strong>. Новые запросы заблокированы для защиты
+                    вашего бюджета.
+                  </>
+                )
+              ) : isSoft ? (
                 <>
                   Your agent <strong>{agentName}</strong> has exceeded the{' '}
                   <strong>{metricType}</strong> threshold for the current <strong>{period}</strong>{' '}
@@ -105,7 +171,7 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
                 <>
                   Your agent <strong>{agentName}</strong> has reached the{' '}
                   <strong>{metricType}</strong> limit of{' '}
-                  <strong>{formatValue(threshold, metricType)}</strong> per{' '}
+                  <strong>{formatValue(threshold, metricType, locale)}</strong> per{' '}
                   <strong>{period}</strong>. New requests are blocked to protect your budget.
                 </>
               )}
@@ -113,14 +179,19 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
 
             {/* Context message */}
             {isSoft ? (
-              <Text style={paragraph}>Requests are still being processed normally.</Text>
+              <Text style={paragraph}>
+                {locale === 'ru'
+                  ? 'Запросы продолжают обрабатываться в обычном режиме.'
+                  : 'Requests are still being processed normally.'}
+              </Text>
             ) : (
               <Section
                 style={{ ...hardLimitBox, backgroundColor: accentBg, borderColor: accentBorder }}
               >
                 <Text style={{ ...hardLimitText, color: accentColor }}>
-                  Requests are now blocked until the next period resets
-                  {periodResetDate ? ` on ${formatTimestamp(periodResetDate)}` : ''}.
+                  {locale === 'ru'
+                    ? `Запросы заблокированы до следующего периода${periodResetDate ? ` (${formatTimestamp(periodResetDate, locale)})` : ''}.`
+                    : `Requests are now blocked until the next period resets${periodResetDate ? ` on ${formatTimestamp(periodResetDate, locale)}` : ''}.`}
                 </Text>
               </Section>
             )}
@@ -128,29 +199,42 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
             {/* Stats row */}
             <Section style={statsRow}>
               <Section style={statBox}>
-                <Text style={statLabel}>Threshold</Text>
-                <Text style={statValue}>{formatValue(threshold, metricType)}</Text>
+                <Text style={statLabel}>{locale === 'ru' ? 'Порог' : 'Threshold'}</Text>
+                <Text style={statValue}>{formatValue(threshold, metricType, locale)}</Text>
               </Section>
               <Section
                 style={{ ...statBoxAlert, backgroundColor: accentBg, borderColor: accentBorder }}
               >
-                <Text style={statLabel}>{isSoft ? 'Actual usage' : 'Current usage'}</Text>
+                <Text style={statLabel}>
+                  {locale === 'ru'
+                    ? isSoft
+                      ? 'Фактическое использование'
+                      : 'Текущее использование'
+                    : isSoft
+                      ? 'Actual usage'
+                      : 'Current usage'}
+                </Text>
                 <Text style={{ ...statValueAlert, color: accentColor }}>
-                  {formatValue(actualValue, metricType)}
+                  {formatValue(actualValue, metricType, locale)}
                 </Text>
               </Section>
             </Section>
 
             {/* Meta info */}
             <Section style={metaRow}>
-              <Text style={metaText}>Period: {period}</Text>
-              <Text style={metaText}>Triggered: {formatTimestamp(timestamp)}</Text>
+              <Text style={metaText}>
+                {locale === 'ru' ? 'Период' : 'Period'}: {localizedPeriod}
+              </Text>
+              <Text style={metaText}>
+                {locale === 'ru' ? 'Срабатывание' : 'Triggered'}:{' '}
+                {formatTimestamp(timestamp, locale)}
+              </Text>
             </Section>
 
             {/* CTA Button */}
             <Section style={ctaContainer}>
               <Button style={ctaButton} href={agentUrl}>
-                View Agent Dashboard →
+                {locale === 'ru' ? 'Открыть панель интеграции →' : 'View Agent Dashboard →'}
               </Button>
             </Section>
           </Section>
@@ -159,10 +243,12 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
           <Hr style={divider} />
           <Section style={footer}>
             <Text style={footerNote}>
-              You are receiving this because you set up a notification rule in Manifest.
+              {locale === 'ru'
+                ? 'Вы получили это письмо, потому что настроили правило уведомлений в Manifest.'
+                : 'You are receiving this because you set up a notification rule in Manifest.'}
             </Text>
             <Text style={footerMuted}>
-              © 2026 MNFST Inc. All rights reserved.{' '}
+              © 2026 MNFST Inc. {locale === 'ru' ? 'Все права защищены.' : 'All rights reserved.'}{' '}
               <Link href="https://manifest.build" style={footerLink}>
                 manifest.build
               </Link>

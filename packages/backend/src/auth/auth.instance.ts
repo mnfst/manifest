@@ -12,6 +12,12 @@ import {
   sendSubscriptionCanceledEmail,
   sendSubscriptionConfirmedEmail,
 } from '../billing/subscription-webhook-emails';
+import {
+  AppLocale,
+  localeFromAcceptLanguage,
+  normalizeLocale,
+  parseLocale,
+} from '../common/i18n/locale';
 
 const port = process.env['PORT'] ?? '3001';
 const isDev = (process.env['NODE_ENV'] ?? '') !== 'production';
@@ -34,6 +40,30 @@ function createDatabaseConnection() {
 }
 
 const database = createDatabaseConnection();
+
+async function resolveAuthEmailLocale(userId: string, request?: Request): Promise<AppLocale> {
+  const queryable = database as unknown as {
+    query?: (sql: string, params: unknown[]) => Promise<{ rows?: Array<{ locale?: unknown }> }>;
+  };
+  const explicitLocale = parseLocale(request?.headers.get('x-manifest-locale'));
+  if (explicitLocale) return explicitLocale;
+
+  const ambientLocale = localeFromAcceptLanguage(
+    request?.headers.get('accept-language') ?? undefined,
+  );
+  if (typeof queryable?.query !== 'function') return ambientLocale;
+  try {
+    const result = await queryable.query(
+      'SELECT locale FROM tenants WHERE owner_user_id = $1 LIMIT 1',
+      [userId],
+    );
+    const stored = result.rows?.[0]?.locale;
+    return stored === 'en' || stored === 'ru' ? normalizeLocale(stored) : ambientLocale;
+  } catch {
+    // Email delivery must not fail if locale lookup is temporarily unavailable.
+    return ambientLocale;
+  }
+}
 
 const betterAuthSecret = process.env['BETTER_AUTH_SECRET'] ?? '';
 const nodeEnv = process.env['NODE_ENV'] ?? '';
@@ -117,16 +147,18 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
     requireEmailVerification: !isDev && hasEmailProvider,
-    sendResetPassword: async ({ user, url }) => {
+    sendResetPassword: async ({ user, url }, request) => {
+      const locale = await resolveAuthEmailLocale(user.id, request);
       const element = ResetPasswordEmail({
         userName: user.name,
         resetUrl: url,
+        ...(locale === 'ru' ? { locale } : {}),
       });
       const html = await render(element);
       const text = await render(element, { plainText: true });
       void sendEmail({
         to: user.email,
-        subject: 'Reset your password',
+        subject: locale === 'ru' ? 'Сброс пароля' : 'Reset your password',
         html,
         text,
       });
@@ -135,16 +167,19 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: hasEmailProvider,
     autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url }) => {
+    sendVerificationEmail: async ({ user, url }, request) => {
+      const locale = await resolveAuthEmailLocale(user.id, request);
       const element = VerifyEmailEmail({
         userName: user.name,
         verificationUrl: url,
+        ...(locale === 'ru' ? { locale } : {}),
       });
       const html = await render(element);
       const text = await render(element, { plainText: true });
       void sendEmail({
         to: user.email,
-        subject: 'Verify your email address',
+        subject:
+          locale === 'ru' ? 'Подтвердите адрес электронной почты' : 'Verify your email address',
         html,
         text,
       });

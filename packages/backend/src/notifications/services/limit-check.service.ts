@@ -147,6 +147,7 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
           agentUrl: `${this.runtime.getAuthBaseUrl()}/agents/${encodeURIComponent(rule.agent_name)}`,
           alertType: 'hard',
           periodResetDate: computePeriodResetDate(rule.period),
+          tenantId: rule.tenant_id,
         },
         providerConfig ?? undefined,
       );

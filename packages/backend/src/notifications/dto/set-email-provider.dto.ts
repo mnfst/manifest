@@ -50,6 +50,10 @@ export class TestEmailProviderDto {
 
   @IsEmail()
   to!: string;
+
+  @IsOptional()
+  @IsIn(['en', 'ru'])
+  locale?: 'en' | 'ru';
 }
 
 export class TestSavedEmailProviderDto {
@@ -57,4 +61,8 @@ export class TestSavedEmailProviderDto {
   @IsNotEmpty()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   to!: string;
+
+  @IsOptional()
+  @IsIn(['en', 'ru'])
+  locale?: 'en' | 'ru';
 }

@@ -24,6 +24,7 @@ import { ConfigService } from '@nestjs/config';
 import { NotificationEmailService } from './notification-email.service';
 import { sendEmail } from './email-providers/send-email';
 import { createProvider } from './email-providers/resolve-provider';
+import { LocaleService } from '../../common/services/locale.service';
 
 function createMockConfig(overrides: Record<string, string> = {}): ConfigService {
   const values: Record<string, string> = {
@@ -39,7 +40,9 @@ describe('NotificationEmailService', () => {
   let service: NotificationEmailService;
 
   beforeEach(() => {
-    service = new NotificationEmailService(createMockConfig());
+    service = new NotificationEmailService(createMockConfig(), {
+      getTenantLocale: jest.fn().mockResolvedValue('en'),
+    } as unknown as LocaleService);
     jest.clearAllMocks();
   });
 
@@ -231,6 +234,33 @@ describe('NotificationEmailService', () => {
     expect(sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         subject: 'Blocked: demo-agent reached tokens limit',
+      }),
+    );
+  });
+
+  it('uses the persisted tenant locale for Russian subjects', async () => {
+    const getTenantLocale = jest.fn().mockResolvedValue('ru');
+    const localizedService = new NotificationEmailService(createMockConfig(), {
+      getTenantLocale,
+    } as unknown as LocaleService);
+    (sendEmail as jest.Mock).mockResolvedValue(true);
+
+    await localizedService.sendThresholdAlert('user@test.com', {
+      agentName: 'demo-agent',
+      metricType: 'tokens',
+      threshold: 1000,
+      actualValue: 1500,
+      period: 'hour',
+      timestamp: '2024-01-01T00:00:00Z',
+      agentUrl: 'http://localhost:3001/agents/demo-agent',
+      alertType: 'soft',
+      tenantId: 'tenant-1',
+    });
+
+    expect(getTenantLocale).toHaveBeenCalledWith('tenant-1');
+    expect(sendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Предупреждение: для «demo-agent» превышен порог токенов',
       }),
     );
   });

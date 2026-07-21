@@ -3,19 +3,40 @@
  * BroadcastChannel message and a window.opener postMessage so the SPA can
  * detect completion without polling, then auto-closes.
  */
-export function oauthDoneHtml(success: boolean, nonce?: string, providerLabel = 'Login'): string {
+import type { AppLocale } from '../../../common/i18n/locale';
+
+export function oauthDoneHtml(
+  success: boolean,
+  nonce?: string,
+  providerLabel = 'Login',
+  locale: AppLocale = 'en',
+): string {
   const message = success ? 'manifest-oauth-success' : 'manifest-oauth-error';
-  const text = success
-    ? 'Login successful!'
-    : 'Login failed. Please close this window and try again.';
+  const text =
+    locale === 'ru'
+      ? success
+        ? 'Вход выполнен успешно!'
+        : 'Не удалось войти. Закройте это окно и повторите попытку.'
+      : success
+        ? 'Login successful!'
+        : 'Login failed. Please close this window and try again.';
+  const hint = locale === 'ru' ? 'Это окно можно закрыть.' : 'You can close this window.';
+  const localizedProviderLabel =
+    locale === 'ru'
+      ? providerLabel === 'Login'
+        ? 'Вход'
+        : providerLabel.endsWith(' Login')
+          ? `${providerLabel.slice(0, -' Login'.length)} — вход`
+          : providerLabel
+      : providerLabel;
   const nonceAttr = nonce ? ` nonce="${nonce}"` : '';
 
   return `<!DOCTYPE html>
-<html>
-<head><title>Manifest — ${providerLabel}</title></head>
+<html lang="${locale}">
+<head><title>Manifest — ${localizedProviderLabel}</title></head>
 <body style="font-family:system-ui;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#111;color:#eee;">
 <p>${text}</p>
-<p id="hint" style="font-size:13px;color:#888;display:none;">You can close this window.</p>
+<p id="hint" style="font-size:13px;color:#888;display:none;">${hint}</p>
 <script${nonceAttr}>
 try{var bc=new BroadcastChannel('manifest-oauth');bc.postMessage({type:'${message}'});bc.close();}catch(e){}
 if(window.opener){window.opener.postMessage({type:'${message}'},'*');}

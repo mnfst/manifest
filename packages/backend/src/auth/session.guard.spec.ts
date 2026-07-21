@@ -15,7 +15,8 @@ import { Reflector } from '@nestjs/core';
 import { SessionGuard } from './session.guard';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { auth } = require('./auth.instance');
+const authModule = require('./auth.instance');
+const { auth } = authModule;
 
 function createMockContext(overrides: { ip?: string; headers?: Record<string, string> }): {
   context: ExecutionContext;
@@ -273,6 +274,27 @@ describe('SessionGuard', () => {
       });
       expect(request['authMethod']).toBe('session');
       expect(tenantCache.resolve).toHaveBeenCalledWith('local');
+      expect(request['tenantContext']).toEqual({ tenantId: 'tenant-1', userId: 'local' });
+    });
+
+    it('treats a trusted loopback operator as a session when Better Auth is absent', async () => {
+      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+      const configuredAuth = authModule.auth;
+      authModule.auth = null;
+      const { context, request } = createMockContext({ ip: '127.0.0.1' });
+
+      try {
+        await guard.canActivate(context);
+      } finally {
+        authModule.auth = configuredAuth;
+      }
+
+      expect(request['user']).toEqual({
+        id: 'local',
+        name: 'Local User',
+        email: 'local@localhost',
+      });
+      expect(request['authMethod']).toBe('session');
       expect(request['tenantContext']).toEqual({ tenantId: 'tenant-1', userId: 'local' });
     });
 

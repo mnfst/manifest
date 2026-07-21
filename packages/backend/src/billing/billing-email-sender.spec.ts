@@ -117,6 +117,15 @@ describe('billing-email-sender', () => {
         'Your Manifest Pro plan is active',
       );
     });
+
+    it('returns Russian lifecycle subjects', () => {
+      expect(subscriptionEmailSubject('plan_changed', 'Pro', 'ru')).toBe(
+        'Ваш тариф Manifest изменён на Pro',
+      );
+      expect(subscriptionEmailSubject('subscription_confirmed', 'Pro', 'ru')).toBe(
+        'Тариф Manifest Pro активирован',
+      );
+    });
   });
 
   describe('usageEmailSubject', () => {
@@ -129,6 +138,12 @@ describe('billing-email-sender', () => {
     it('returns the warning subject', () => {
       expect(usageEmailSubject('requests_warning')).toBe(
         'Your Manifest workspace has used 80% of monthly requests',
+      );
+    });
+
+    it('returns Russian usage subjects', () => {
+      expect(usageEmailSubject('requests_limit_reached', 'ru')).toBe(
+        'Месячный лимит запросов Manifest исчерпан',
       );
     });
   });

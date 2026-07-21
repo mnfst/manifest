@@ -15,6 +15,7 @@ import {
 interface BillingUserRecipient {
   email: string | null;
   name: string | null;
+  locale: 'en' | 'ru' | null;
 }
 
 async function resolveBillingUser(
@@ -22,7 +23,10 @@ async function resolveBillingUser(
   userId: string,
 ): Promise<BillingUserRecipient | null> {
   const result = await db.query(
-    `SELECT email, NULLIF(name, '') AS name FROM "user" WHERE id = $1`,
+    `SELECT u.email, NULLIF(u.name, '') AS name, t.locale
+       FROM "user" u
+       LEFT JOIN tenants t ON t.owner_user_id = u.id
+      WHERE u.id = $1`,
     [userId],
   );
   const rows = Array.isArray(result)
@@ -67,6 +71,7 @@ async function sendLifecycleEmail(
         periodEnd: params.periodEnd ?? null,
         appUrl,
         manageBillingUrl: `${appUrl}/account`,
+        ...(recipient.locale === 'ru' ? { locale: 'ru' as const } : {}),
       },
       getBillingEmailFrom(),
     );

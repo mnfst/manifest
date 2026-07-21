@@ -12,12 +12,37 @@ import {
   Img,
   Link,
 } from '@react-email/components';
+import type { AppLocale } from '../../common/i18n/locale';
 
 export interface VerifyEmailProps {
   userName: string;
   verificationUrl: string;
   logoUrl?: string;
+  locale?: AppLocale;
 }
+
+const COPY = {
+  en: {
+    preview: 'Verify your email address to get started with Manifest',
+    heading: 'Verify your email',
+    intro: (name: string) =>
+      `Hi ${name}, thanks for signing up. Please confirm your email address by clicking the button below.`,
+    cta: 'Verify email address',
+    hint: "If you didn't create an account, you can safely ignore this email.",
+    fallback: "If the button above doesn't work, copy and paste this link into your browser:",
+    rights: 'All rights reserved.',
+  },
+  ru: {
+    preview: 'Подтвердите адрес электронной почты, чтобы начать работу с Manifest',
+    heading: 'Подтвердите адрес электронной почты',
+    intro: (name: string) =>
+      `Здравствуйте, ${name}! Спасибо за регистрацию. Нажмите кнопку ниже, чтобы подтвердить адрес электронной почты.`,
+    cta: 'Подтвердить адрес',
+    hint: 'Если вы не создавали аккаунт, просто проигнорируйте это письмо.',
+    fallback: 'Если кнопка не работает, скопируйте эту ссылку и вставьте её в браузер:',
+    rights: 'Все права защищены.',
+  },
+} as const;
 
 export function VerifyEmailEmail(props: VerifyEmailProps) {
   const {
@@ -25,11 +50,12 @@ export function VerifyEmailEmail(props: VerifyEmailProps) {
     verificationUrl,
     logoUrl = 'https://app.manifest.build/manifest-logo.png',
   } = props;
+  const copy = COPY[props.locale ?? 'en'];
 
   return (
-    <Html>
+    <Html lang={props.locale ?? 'en'}>
       <Head />
-      <Preview>Verify your email address to get started with Manifest</Preview>
+      <Preview>{copy.preview}</Preview>
       <Body style={body}>
         <Container style={container}>
           {/* Logo */}
@@ -39,28 +65,21 @@ export function VerifyEmailEmail(props: VerifyEmailProps) {
 
           {/* Main content */}
           <Section style={card}>
-            <Text style={heading}>Verify your email</Text>
-            <Text style={paragraph}>
-              Hi {userName}, thanks for signing up. Please confirm your email address by clicking
-              the button below.
-            </Text>
+            <Text style={heading}>{copy.heading}</Text>
+            <Text style={paragraph}>{copy.intro(userName)}</Text>
 
             <Section style={buttonContainer}>
               <Button style={button} href={verificationUrl}>
-                Verify email address
+                {copy.cta}
               </Button>
             </Section>
 
-            <Text style={hint}>
-              If you didn't create an account, you can safely ignore this email.
-            </Text>
+            <Text style={hint}>{copy.hint}</Text>
           </Section>
 
           {/* Fallback link */}
           <Section style={fallbackSection}>
-            <Text style={fallbackText}>
-              If the button above doesn't work, copy and paste this link into your browser:
-            </Text>
+            <Text style={fallbackText}>{copy.fallback}</Text>
             <Text style={fallbackUrl}>{verificationUrl}</Text>
           </Section>
 
@@ -68,7 +87,7 @@ export function VerifyEmailEmail(props: VerifyEmailProps) {
           <Hr style={divider} />
           <Section style={footer}>
             <Text style={footerMuted}>
-              © 2026 MNFST Inc. All rights reserved.{' '}
+              © 2026 MNFST Inc. {copy.rights}{' '}
               <Link href="https://manifest.build" style={footerLink}>
                 manifest.build
               </Link>

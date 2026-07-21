@@ -21,6 +21,7 @@ import { ProviderService } from '../../routing-core/provider.service';
 import { oauthDoneHtml, type OAuthTokenBlob } from '../core';
 import { optionalTrimmedStringQuery } from '../core/query-params';
 import { XaiOauthService } from './xai-oauth.service';
+import { localeFromAcceptLanguage } from '../../../common/i18n/locale';
 
 @Controller('api/v1/oauth/xai')
 export class XaiOauthController {
@@ -124,12 +125,14 @@ export class XaiOauthController {
 
   @Get('done')
   @Public()
-  done(@Query('ok') ok: string, @Res() res: Response) {
+  done(@Query('ok') ok: string, @Res() res: Response, @Req() req?: Request) {
     const success = ok === '1';
+    const locale = localeFromAcceptLanguage(req?.headers['accept-language']);
 
     const nonce = randomBytes(16).toString('base64');
     res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Language', locale);
     res.setHeader('Content-Security-Policy', `default-src 'none'; script-src 'nonce-${nonce}'`);
-    res.send(oauthDoneHtml(success, nonce, 'xAI Login'));
+    res.send(oauthDoneHtml(success, nonce, 'xAI Login', locale));
   }
 }

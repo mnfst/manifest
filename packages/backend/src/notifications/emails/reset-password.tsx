@@ -12,20 +12,46 @@ import {
   Img,
   Link,
 } from '@react-email/components';
+import type { AppLocale } from '../../common/i18n/locale';
 
 export interface ResetPasswordEmailProps {
   userName: string;
   resetUrl: string;
   logoUrl?: string;
+  locale?: AppLocale;
 }
+
+const COPY = {
+  en: {
+    preview: 'Reset your Manifest password',
+    heading: 'Reset your password',
+    intro: (name: string) =>
+      `Hi ${name}, we received a request to reset your password. Click the button below to choose a new one.`,
+    cta: 'Reset password',
+    hint: "This link expires in 1 hour. If you didn't request a password reset, you can safely ignore this email.",
+    fallback: "If the button above doesn't work, copy and paste this link into your browser:",
+    rights: 'All rights reserved.',
+  },
+  ru: {
+    preview: 'Сброс пароля Manifest',
+    heading: 'Сброс пароля',
+    intro: (name: string) =>
+      `Здравствуйте, ${name}! Мы получили запрос на сброс вашего пароля. Нажмите кнопку ниже, чтобы выбрать новый пароль.`,
+    cta: 'Сбросить пароль',
+    hint: 'Ссылка действует 1 час. Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.',
+    fallback: 'Если кнопка не работает, скопируйте эту ссылку и вставьте её в браузер:',
+    rights: 'Все права защищены.',
+  },
+} as const;
 
 export function ResetPasswordEmail(props: ResetPasswordEmailProps) {
   const { userName, resetUrl, logoUrl = 'https://app.manifest.build/manifest-logo.png' } = props;
+  const copy = COPY[props.locale ?? 'en'];
 
   return (
-    <Html>
+    <Html lang={props.locale ?? 'en'}>
       <Head />
-      <Preview>Reset your Manifest password</Preview>
+      <Preview>{copy.preview}</Preview>
       <Body style={body}>
         <Container style={container}>
           {/* Logo */}
@@ -35,29 +61,21 @@ export function ResetPasswordEmail(props: ResetPasswordEmailProps) {
 
           {/* Main content */}
           <Section style={card}>
-            <Text style={heading}>Reset your password</Text>
-            <Text style={paragraph}>
-              Hi {userName}, we received a request to reset your password. Click the button below to
-              choose a new one.
-            </Text>
+            <Text style={heading}>{copy.heading}</Text>
+            <Text style={paragraph}>{copy.intro(userName)}</Text>
 
             <Section style={buttonContainer}>
               <Button style={button} href={resetUrl}>
-                Reset password
+                {copy.cta}
               </Button>
             </Section>
 
-            <Text style={hint}>
-              This link expires in 1 hour. If you didn't request a password reset, you can safely
-              ignore this email.
-            </Text>
+            <Text style={hint}>{copy.hint}</Text>
           </Section>
 
           {/* Fallback link */}
           <Section style={fallbackSection}>
-            <Text style={fallbackText}>
-              If the button above doesn't work, copy and paste this link into your browser:
-            </Text>
+            <Text style={fallbackText}>{copy.fallback}</Text>
             <Text style={fallbackUrl}>{resetUrl}</Text>
           </Section>
 
@@ -65,7 +83,7 @@ export function ResetPasswordEmail(props: ResetPasswordEmailProps) {
           <Hr style={divider} />
           <Section style={footer}>
             <Text style={footerMuted}>
-              © 2026 MNFST Inc. All rights reserved.{' '}
+              © 2026 MNFST Inc. {copy.rights}{' '}
               <Link href="https://manifest.build" style={footerLink}>
                 manifest.build
               </Link>
