@@ -1249,6 +1249,42 @@ describe('ProxyFallbackService', () => {
       expect(attempt).toEqual(expect.objectContaining({ completedAtMs: expect.any(Number) }));
       expect(providerClient.forward).not.toHaveBeenCalled();
     });
+
+    it('tracks transport failures from an exact wire-body retry', async () => {
+      const healedBody = { model: 'gpt-4o', max_tokens: 128 };
+      const attempt = {
+        id: 'attempt-2',
+        attemptNumber: 2,
+        startedAtMs: Date.now(),
+        startedAt: new Date().toISOString(),
+        pendingWrite: Promise.resolve(true),
+      };
+      const retryWireBody = jest.fn().mockRejectedValue(new Error('fetch failed'));
+      const original = {
+        response: new Response('{}', { status: 400 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        retryWireBody,
+      };
+
+      const result = await service.retryWireBody(original, healedBody, {
+        provider: 'openai',
+        model: 'gpt-4o',
+        authType: 'api_key',
+        tenantProviderId: 'connection-1',
+        startProviderAttempt: jest.fn(() => attempt),
+      });
+
+      expect(result.response.status).toBe(503);
+      await expect(result.response.json()).resolves.toEqual({
+        error: { message: 'Failed to reach upstream provider' },
+      });
+      expect(result.attempt).toBe(attempt);
+      expect(result.providerCallStarted).toBe(true);
+      expect(attempt).toEqual(expect.objectContaining({ completedAtMs: expect.any(Number) }));
+      expect(providerClient.forward).not.toHaveBeenCalled();
+    });
   });
 
   describe('tryFallbacks', () => {
