@@ -11,11 +11,12 @@ import {
   hasBillingEmailLog,
   tryInsertBillingEmailLog,
 } from './billing-email-log.service';
+import { isAppLocale } from '../common/i18n/locale';
 
 interface BillingUserRecipient {
   email: string | null;
   name: string | null;
-  locale: 'en' | 'ru' | null;
+  locale: unknown;
 }
 
 async function resolveBillingUser(
@@ -61,6 +62,7 @@ async function sendLifecycleEmail(
     if (!recipient?.email) return false;
 
     const appUrl = getBillingAppUrl();
+    const locale = isAppLocale(recipient.locale) ? recipient.locale : 'en';
     const sent = await sendSubscriptionPlanEmail(
       recipient.email,
       {
@@ -71,7 +73,7 @@ async function sendLifecycleEmail(
         periodEnd: params.periodEnd ?? null,
         appUrl,
         manageBillingUrl: `${appUrl}/account`,
-        ...(recipient.locale === 'ru' ? { locale: 'ru' as const } : {}),
+        locale,
       },
       getBillingEmailFrom(),
     );

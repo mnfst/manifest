@@ -19,6 +19,7 @@ import {
 } from '../services/api.js';
 import { suggestNextProviderKeyLabel } from '../services/provider-key-labels.js';
 import { validateSubscriptionKey } from '../services/provider-utils.js';
+import { credentialValidationMessage } from '../services/provider-validation-messages.js';
 import { toast } from '../services/toast-store.js';
 import Select from './Select.jsx';
 import { t } from '../i18n/index.js';
@@ -123,7 +124,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     const trimmed = altToken().replace(/\s/g, '');
     const result = validateSubscriptionKey(props.provDef, trimmed);
     if (!result.valid) {
-      setAltError(result.error!);
+      setAltError(credentialValidationMessage(result.error));
       return;
     }
     props.setBusy(true);

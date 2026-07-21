@@ -5,26 +5,54 @@ export function getProvider(id: string): ProviderDef | undefined {
   return PROVIDERS.find((p) => p.id === id);
 }
 
-export function validateApiKey(
-  provider: ProviderDef,
-  key: string,
-): { valid: boolean; error?: string } {
+export interface CredentialValidationErrorParams {
+  apiKeyRequired: Record<string, never>;
+  apiKeyPrefix: { provider: string; prefix: string };
+  apiKeyTooShort: { minLength: number };
+  subscriptionTokenRequired: Record<string, never>;
+  subscriptionTokenPrefix: { provider: string; prefix: string };
+  apiKeyInSubscriptionMode: Record<string, never>;
+  subscriptionTokenTooShort: { minLength: number };
+}
+
+export type CredentialValidationErrorCode = keyof CredentialValidationErrorParams;
+
+export type CredentialValidationError = {
+  [Code in CredentialValidationErrorCode]: {
+    code: Code;
+    params: Readonly<CredentialValidationErrorParams[Code]>;
+  };
+}[CredentialValidationErrorCode];
+
+export type CredentialValidationResult =
+  | { valid: true }
+  | { valid: false; error: CredentialValidationError };
+
+export function validateApiKey(provider: ProviderDef, key: string): CredentialValidationResult {
   if (provider.noKeyRequired) return { valid: true };
 
   const trimmed = key.replace(/\s/g, '');
-  if (!trimmed) return { valid: false, error: 'API key is required' };
+  if (!trimmed) {
+    return { valid: false, error: { code: 'apiKeyRequired', params: {} } };
+  }
 
   if (provider.keyPrefix && !trimmed.startsWith(provider.keyPrefix)) {
     return {
       valid: false,
-      error: `${provider.name} keys start with "${provider.keyPrefix}"`,
+      error: {
+        code: 'apiKeyPrefix',
+        params: { provider: provider.name, prefix: provider.keyPrefix },
+      },
     };
   }
 
   if (provider.minKeyLength && trimmed.length < provider.minKeyLength) {
     return {
       valid: false,
-      error: `Key is too short (minimum ${provider.minKeyLength} characters)`,
+      error: {
+        code: 'apiKeyTooShort',
+        params: { minLength: provider.minKeyLength },
+      },
     };
   }
 
@@ -51,21 +79,26 @@ const API_KEY_PREFIXES: Record<string, string> = {
 export function validateSubscriptionKey(
   provider: ProviderDef,
   key: string,
-): { valid: boolean; error?: string } {
+): CredentialValidationResult {
   const trimmed = key.replace(/\s/g, '');
-  if (!trimmed) return { valid: false, error: 'Token is required' };
+  if (!trimmed) {
+    return { valid: false, error: { code: 'subscriptionTokenRequired', params: {} } };
+  }
   const prefix = SUBSCRIPTION_PREFIXES[provider.id];
   if (prefix && !trimmed.startsWith(prefix)) {
     return {
       valid: false,
-      error: `${provider.name} subscription tokens start with "${prefix}"`,
+      error: {
+        code: 'subscriptionTokenPrefix',
+        params: { provider: provider.name, prefix },
+      },
     };
   }
   const apiPrefix = API_KEY_PREFIXES[provider.id];
   if (apiPrefix && trimmed.startsWith(apiPrefix)) {
     return {
       valid: false,
-      error: 'This looks like an API key. Use the API Key tab instead.',
+      error: { code: 'apiKeyInSubscriptionMode', params: {} },
     };
   }
   // Providers that expose a paste-token alternative alongside an OAuth flow
@@ -82,7 +115,10 @@ export function validateSubscriptionKey(
   if (trimmed.length < minLength) {
     return {
       valid: false,
-      error: `Token is too short (minimum ${minLength} characters)`,
+      error: {
+        code: 'subscriptionTokenTooShort',
+        params: { minLength },
+      },
     };
   }
   return { valid: true };

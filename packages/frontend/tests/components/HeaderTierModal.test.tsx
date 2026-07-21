@@ -55,6 +55,7 @@ vi.mock("../../src/components/HeaderComboBox.js", () => ({
 
 import HeaderTierModal from "../../src/components/HeaderTierModal";
 import type { HeaderTier } from "../../src/services/api/header-tiers";
+import { setLocale } from "../../src/i18n/index.js";
 
 const existingTier: HeaderTier = {
   id: "ht-1",
@@ -96,6 +97,34 @@ describe("HeaderTierModal", () => {
         "Create custom tier",
       );
       expect(container.textContent).toContain("Custom routing lets you identify");
+    });
+
+    it("updates title and description when the workspace locale resolves late", async () => {
+      await setLocale("en");
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[]}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+
+      expect(container.querySelector("#header-tier-modal-title")?.textContent).toBe(
+        "Create custom tier",
+      );
+
+      try {
+        await setLocale("ru");
+        expect(container.querySelector("#header-tier-modal-title")?.textContent).toBe(
+          "Создать пользовательский уровень",
+        );
+        expect(container.querySelector(".modal-card__desc")?.textContent).toBe(
+          "Пользовательская маршрутизация определяет запросы по заголовкам и направляет их к выбранным моделям.",
+        );
+      } finally {
+        await setLocale("en");
+      }
     });
 
     it("renders the close button when no onBack handler is provided", () => {
@@ -876,6 +905,34 @@ describe("HeaderTierModal", () => {
         | undefined;
       expect(suggestions?.[0]?.sublabel).toBe("2× seen");
     });
+  });
+
+  it("locale-formats large seen-header counts", async () => {
+    await setLocale("ru");
+    try {
+      mockGetSeenHeaders.mockResolvedValue([
+        { key: "x-empty", count: 12_345, top_values: [], sdks: ["langchain"] },
+      ]);
+      render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[]}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      await waitFor(() => {
+        const lastKeyCall = comboCalls.find((c) => c.id === "header-tier-key");
+        const suggestions = lastKeyCall?.suggestions as
+          | Array<{ sublabel?: string }>
+          | undefined;
+        expect(suggestions?.[0]?.sublabel).toMatch(
+          /^Количество совпадений: 12[\u00a0\u202f]345$/,
+        );
+      });
+    } finally {
+      await setLocale("en");
+    }
   });
 
   describe("stream mode and incompatible models", () => {

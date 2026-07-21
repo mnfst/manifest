@@ -5,6 +5,33 @@
  */
 import type { AppLocale } from '../../../common/i18n/locale';
 
+interface OAuthCallbackCopy {
+  success: string;
+  failure: string;
+  hint: string;
+  providerLabel: (label: string) => string;
+}
+
+const COPY = {
+  en: {
+    success: 'Login successful!',
+    failure: 'Login failed. Please close this window and try again.',
+    hint: 'You can close this window.',
+    providerLabel: (label) => label,
+  },
+  ru: {
+    success: 'Вход выполнен успешно!',
+    failure: 'Не удалось войти. Закройте это окно и повторите попытку.',
+    hint: 'Это окно можно закрыть.',
+    providerLabel: (label) =>
+      label === 'Login'
+        ? 'Вход'
+        : label.endsWith(' Login')
+          ? `${label.slice(0, -' Login'.length)} — вход`
+          : label,
+  },
+} satisfies Record<AppLocale, OAuthCallbackCopy>;
+
 export function oauthDoneHtml(
   success: boolean,
   nonce?: string,
@@ -12,23 +39,9 @@ export function oauthDoneHtml(
   locale: AppLocale = 'en',
 ): string {
   const message = success ? 'manifest-oauth-success' : 'manifest-oauth-error';
-  const text =
-    locale === 'ru'
-      ? success
-        ? 'Вход выполнен успешно!'
-        : 'Не удалось войти. Закройте это окно и повторите попытку.'
-      : success
-        ? 'Login successful!'
-        : 'Login failed. Please close this window and try again.';
-  const hint = locale === 'ru' ? 'Это окно можно закрыть.' : 'You can close this window.';
-  const localizedProviderLabel =
-    locale === 'ru'
-      ? providerLabel === 'Login'
-        ? 'Вход'
-        : providerLabel.endsWith(' Login')
-          ? `${providerLabel.slice(0, -' Login'.length)} — вход`
-          : providerLabel
-      : providerLabel;
+  const copy = COPY[locale];
+  const text = success ? copy.success : copy.failure;
+  const localizedProviderLabel = copy.providerLabel(providerLabel);
   const nonceAttr = nonce ? ` nonce="${nonce}"` : '';
 
   return `<!DOCTYPE html>
@@ -36,7 +49,7 @@ export function oauthDoneHtml(
 <head><title>Manifest — ${localizedProviderLabel}</title></head>
 <body style="font-family:system-ui;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#111;color:#eee;">
 <p>${text}</p>
-<p id="hint" style="font-size:13px;color:#888;display:none;">${hint}</p>
+<p id="hint" style="font-size:13px;color:#888;display:none;">${copy.hint}</p>
 <script${nonceAttr}>
 try{var bc=new BroadcastChannel('manifest-oauth');bc.postMessage({type:'${message}'});bc.close();}catch(e){}
 if(window.opener){window.opener.postMessage({type:'${message}'},'*');}

@@ -47,9 +47,6 @@ export const ruComponentsAM = {
   'claudeCode.routeWith': 'будет проходить через Manifest с моделью',
   'craft.instructions':
     'Добавьте в Craft подключение по API-ключу и выберите шаблон провайдера {provider}. Укажите модель {model} и вставьте API-ключ:',
-  'craft.beforeProvider': 'Добавьте в Craft подключение по API-ключу и выберите шаблон провайдера',
-  'craft.afterProvider': 'Укажите модель',
-  'craft.afterModel': 'и вставьте API-ключ:',
   'cloudEmail.title': 'Оповещения по электронной почте',
   'cloudEmail.description': 'Оповещения будут отправляться на адрес {email}',
   'cloudEmail.descriptionPrefix': 'Оповещения будут отправляться на адрес',
@@ -570,6 +567,7 @@ export const ruComponentsAM = {
   'message.autofixTriggered': 'Этот запрос выполнен после срабатывания Auto-fix.',
   'message.fallbackAttempt':
     'Попытка провайдера №{attempt}: запрос был направлен резервной модели после сбоя модели {model}.',
+  'message.fallbackLabel': 'резервная модель',
   'message.unknown': 'неизвестно',
   'message.autofixAttempted': 'После этой ошибки была предпринята попытка Auto-fix.',
   'message.fallbackTriggered': 'После этой ошибки выполнен переход к резервной модели.',

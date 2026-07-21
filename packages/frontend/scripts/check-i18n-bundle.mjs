@@ -6,6 +6,7 @@ const dist = resolve(import.meta.dirname, '../dist');
 const manifest = JSON.parse(readFileSync(resolve(dist, '.vite/manifest.json'), 'utf8'));
 const entries = Object.entries(manifest);
 const appEntry = entries.find(([, chunk]) => chunk.isEntry);
+const supportedLocales = ['en', 'ru'];
 
 if (!appEntry) throw new Error('[i18n bundle] Vite entry was not found');
 
@@ -48,7 +49,7 @@ function kilobytes(bytes) {
 
 const [appKey] = appEntry;
 const initial = staticClosure(appKey);
-const localeEntries = ['en', 'ru'].map((locale) => [locale, ...catalogueEntry(locale)]);
+const localeEntries = supportedLocales.map((locale) => [locale, ...catalogueEntry(locale)]);
 
 for (const [locale, key] of localeEntries) {
   if (initial.has(key)) {

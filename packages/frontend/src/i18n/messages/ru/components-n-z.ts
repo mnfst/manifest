@@ -88,6 +88,16 @@ export const ruComponentsNZ = {
   'provider.credentialAria': '{provider}: {credential}',
   'provider.newCredentialAria': 'Новый {credential}: {provider}',
   'provider.baseUrlRequired': 'Укажите базовый URL',
+  'provider.validation.apiKeyRequired': 'Введите API-ключ',
+  'provider.validation.apiKeyPrefix': 'API-ключи {provider} начинаются с «{prefix}»',
+  'provider.validation.apiKeyTooShort': 'API-ключ слишком короткий (минимум {minLength} символов)',
+  'provider.validation.subscriptionTokenRequired': 'Введите токен',
+  'provider.validation.subscriptionTokenPrefix':
+    'Токены подписки {provider} начинаются с «{prefix}»',
+  'provider.validation.apiKeyInSubscriptionMode':
+    'Похоже, это API-ключ. Используйте вкладку «API-ключ».',
+  'provider.validation.subscriptionTokenTooShort':
+    'Токен слишком короткий (минимум {minLength} символов)',
   'provider.baseUrl': 'Базовый URL',
   'provider.region': 'Регион',
   'provider.keyUpdated': 'Ключ {provider} обновлён',

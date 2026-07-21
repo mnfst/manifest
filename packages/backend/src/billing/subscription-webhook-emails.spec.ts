@@ -76,12 +76,34 @@ describe('subscription webhook billing emails', () => {
     );
   });
 
-  it('passes the persisted Russian locale to Stripe lifecycle emails', async () => {
+  it.each(['en', 'ru'] as const)(
+    'passes the persisted %s locale to Stripe lifecycle emails',
+    async (locale) => {
+      const query = jest
+        .fn()
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({
+          rows: [{ email: 'owner@example.com', name: locale === 'ru' ? 'Анна' : 'Ada', locale }],
+        })
+        .mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
+
+      await expect(
+        sendSubscriptionConfirmedEmail({ query }, event(), subscription()),
+      ).resolves.toBe(true);
+      expect(sendSubscriptionPlanEmail).toHaveBeenCalledWith(
+        'owner@example.com',
+        expect.objectContaining({ locale }),
+        'noreply@manifest.build',
+      );
+    },
+  );
+
+  it('falls back to a valid English locale for an unsupported persisted locale', async () => {
     const query = jest
       .fn()
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({
-        rows: [{ email: 'owner@example.com', name: 'Анна', locale: 'ru' }],
+        rows: [{ email: 'owner@example.com', name: 'Ada', locale: 'de' }],
       })
       .mockResolvedValueOnce({ rows: [{ id: 'log-1' }] });
 
@@ -90,7 +112,7 @@ describe('subscription webhook billing emails', () => {
     );
     expect(sendSubscriptionPlanEmail).toHaveBeenCalledWith(
       'owner@example.com',
-      expect.objectContaining({ locale: 'ru' }),
+      expect.objectContaining({ locale: 'en' }),
       'noreply@manifest.build',
     );
   });

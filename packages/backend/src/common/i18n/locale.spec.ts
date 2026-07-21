@@ -40,4 +40,13 @@ describe('locale helpers', () => {
     expect(intlLocale('en')).toBe('en-US');
     expect(intlLocale('ru')).toBe('ru-RU');
   });
+
+  it('keeps locale catalogues exhaustive when the registry grows', () => {
+    type HypotheticalLocale = 'en' | 'ru' | 'de';
+
+    // @ts-expect-error A new registry member must make every incomplete catalogue fail to compile.
+    const incompleteCatalog: Record<HypotheticalLocale, string> = { en: 'English', ru: 'Русский' };
+
+    expect(incompleteCatalog.en).toBe('English');
+  });
 });

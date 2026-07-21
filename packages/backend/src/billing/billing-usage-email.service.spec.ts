@@ -96,21 +96,42 @@ describe('BillingUsageEmailService', () => {
     }
   });
 
-  it('passes the persisted Russian locale to asynchronous usage emails', async () => {
+  it.each(['en', 'ru'] as const)(
+    'passes the persisted %s locale to asynchronous usage emails',
+    async (locale) => {
+      dataSourceQuery.mockResolvedValueOnce([
+        {
+          email: 'owner@example.com',
+          name: locale === 'ru' ? 'Анна' : 'Ada',
+          user_id: 'u1',
+          billing_email_preferences: null,
+          locale,
+        },
+      ]);
+
+      await expect(service.checkTenantUsage('t1')).resolves.toBe(true);
+      expect(sendPlanUsageEmail).toHaveBeenCalledWith(
+        'owner@example.com',
+        expect.objectContaining({ locale }),
+      );
+    },
+  );
+
+  it('falls back to a valid English locale for an unsupported persisted locale', async () => {
     dataSourceQuery.mockResolvedValueOnce([
       {
         email: 'owner@example.com',
-        name: 'Анна',
+        name: 'Ada',
         user_id: 'u1',
         billing_email_preferences: null,
-        locale: 'ru',
+        locale: 'de',
       },
     ]);
 
     await expect(service.checkTenantUsage('t1')).resolves.toBe(true);
     expect(sendPlanUsageEmail).toHaveBeenCalledWith(
       'owner@example.com',
-      expect.objectContaining({ locale: 'ru' }),
+      expect.objectContaining({ locale: 'en' }),
     );
   });
 

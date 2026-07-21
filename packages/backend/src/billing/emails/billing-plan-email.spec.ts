@@ -84,6 +84,21 @@ describe('billing plan emails', () => {
     expect(html).not.toContain('Использовано 80\u00a0% месячного лимита запросов');
   });
 
+  it('uses the actual percentage in the English usage-warning title', () => {
+    const html = renderToStaticMarkup(
+      PlanUsageEmail({
+        kind: 'requests_warning',
+        used: 8500,
+        limit: FREE_PLAN_REQUESTS_PER_MONTH,
+        periodEnd: '2026-08-01T00:00:00.000Z',
+        appUrl: 'https://app.manifest.build',
+      }),
+    );
+
+    expect(html).toContain('85% of monthly requests used');
+    expect(html).not.toContain('80% of monthly requests used');
+  });
+
   it('normalizes usage CTA URLs with trailing slashes', () => {
     const html = renderToStaticMarkup(
       PlanUsageEmail({

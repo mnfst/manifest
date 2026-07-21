@@ -21,8 +21,20 @@ export interface ResetPasswordEmailProps {
   locale?: AppLocale;
 }
 
+interface ResetPasswordEmailCopy {
+  subject: string;
+  preview: string;
+  heading: string;
+  intro: (name: string) => string;
+  cta: string;
+  hint: string;
+  fallback: string;
+  rights: string;
+}
+
 const COPY = {
   en: {
+    subject: 'Reset your password',
     preview: 'Reset your Manifest password',
     heading: 'Reset your password',
     intro: (name: string) =>
@@ -33,6 +45,7 @@ const COPY = {
     rights: 'All rights reserved.',
   },
   ru: {
+    subject: 'Сброс пароля',
     preview: 'Сброс пароля Manifest',
     heading: 'Сброс пароля',
     intro: (name: string) =>
@@ -42,7 +55,11 @@ const COPY = {
     fallback: 'Если кнопка не работает, скопируйте эту ссылку и вставьте её в браузер:',
     rights: 'Все права защищены.',
   },
-} as const;
+} as const satisfies Record<AppLocale, ResetPasswordEmailCopy>;
+
+export function resetPasswordEmailSubject(locale: AppLocale = 'en'): string {
+  return COPY[locale].subject;
+}
 
 export function ResetPasswordEmail(props: ResetPasswordEmailProps) {
   const { userName, resetUrl, logoUrl = 'https://app.manifest.build/manifest-logo.png' } = props;

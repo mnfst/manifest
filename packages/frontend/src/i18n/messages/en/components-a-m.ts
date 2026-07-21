@@ -46,9 +46,6 @@ export const enComponentsAM = {
   'claudeCode.routeWith': 'run will route through Manifest with',
   'craft.instructions':
     'In Craft, add an API-key connection and choose the {provider} provider preset. Use model {model} and paste this API key:',
-  'craft.beforeProvider': 'In Craft, add an API-key connection and choose the',
-  'craft.afterProvider': 'provider preset. Use model',
-  'craft.afterModel': 'and paste this API key:',
   'cloudEmail.title': 'Email alerts',
   'cloudEmail.description': 'Alerts will be sent to {email}',
   'cloudEmail.descriptionPrefix': 'Alerts will be sent to',
@@ -542,6 +539,7 @@ export const enComponentsAM = {
   'message.autofixTriggered': 'This request was triggered by an auto-fix.',
   'message.fallbackAttempt':
     'Attempt #{attempt}: this request was triggered by a fallback from {model}.',
+  'message.fallbackLabel': 'fallback',
   'message.unknown': 'unknown',
   'message.autofixAttempted': 'Auto-fix was attempted after this error.',
   'message.fallbackTriggered': 'A fallback was triggered after this error.',

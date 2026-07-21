@@ -2,8 +2,11 @@ import { betterAuth } from 'better-auth';
 import type { Auth } from 'better-auth';
 import { stripe as stripePlugin } from '@better-auth/stripe';
 import { render } from '@react-email/render';
-import { VerifyEmailEmail } from '../notifications/emails/verify-email';
-import { ResetPasswordEmail } from '../notifications/emails/reset-password';
+import { VerifyEmailEmail, verifyEmailSubject } from '../notifications/emails/verify-email';
+import {
+  ResetPasswordEmail,
+  resetPasswordEmailSubject,
+} from '../notifications/emails/reset-password';
 import { sendEmail } from '../notifications/services/email-providers/send-email';
 import { isBillingEnabled, getStripeClient } from '../billing/billing.config';
 import {
@@ -14,8 +17,8 @@ import {
 } from '../billing/subscription-webhook-emails';
 import {
   AppLocale,
+  isAppLocale,
   localeFromAcceptLanguage,
-  normalizeLocale,
   parseLocale,
 } from '../common/i18n/locale';
 
@@ -58,7 +61,7 @@ async function resolveAuthEmailLocale(userId: string, request?: Request): Promis
       [userId],
     );
     const stored = result.rows?.[0]?.locale;
-    return stored === 'en' || stored === 'ru' ? normalizeLocale(stored) : ambientLocale;
+    return isAppLocale(stored) ? stored : ambientLocale;
   } catch {
     // Email delivery must not fail if locale lookup is temporarily unavailable.
     return ambientLocale;
@@ -152,13 +155,13 @@ export const auth = betterAuth({
       const element = ResetPasswordEmail({
         userName: user.name,
         resetUrl: url,
-        ...(locale === 'ru' ? { locale } : {}),
+        locale,
       });
       const html = await render(element);
       const text = await render(element, { plainText: true });
       void sendEmail({
         to: user.email,
-        subject: locale === 'ru' ? 'Сброс пароля' : 'Reset your password',
+        subject: resetPasswordEmailSubject(locale),
         html,
         text,
       });
@@ -172,14 +175,13 @@ export const auth = betterAuth({
       const element = VerifyEmailEmail({
         userName: user.name,
         verificationUrl: url,
-        ...(locale === 'ru' ? { locale } : {}),
+        locale,
       });
       const html = await render(element);
       const text = await render(element, { plainText: true });
       void sendEmail({
         to: user.email,
-        subject:
-          locale === 'ru' ? 'Подтвердите адрес электронной почты' : 'Verify your email address',
+        subject: verifyEmailSubject(locale),
         html,
         text,
       });

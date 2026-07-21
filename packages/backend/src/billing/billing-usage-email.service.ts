@@ -7,6 +7,7 @@ import { PlanService } from './plan.service';
 import { BillingEmailLogService } from './billing-email-log.service';
 import { BillingEmailService } from './billing-email.service';
 import { normalizeBillingEmailPreferences } from './billing-email-preferences';
+import { isAppLocale } from '../common/i18n/locale';
 
 const REQUEST_WARNING_RATIO = 0.8;
 
@@ -15,7 +16,7 @@ interface BillingRecipient {
   name: string | null;
   user_id: string | null;
   billing_email_preferences: unknown;
-  locale: 'en' | 'ru' | null;
+  locale: unknown;
 }
 
 @Injectable()
@@ -73,6 +74,7 @@ export class BillingUsageEmailService implements OnModuleInit, OnModuleDestroy {
     if (!normalizeBillingEmailPreferences(recipient.billing_email_preferences).usageAlerts) {
       return false;
     }
+    const locale = isAppLocale(recipient.locale) ? recipient.locale : 'en';
 
     const sent = await this.emails.sendPlanUsageEmail(recipient.email, {
       kind,
@@ -80,7 +82,7 @@ export class BillingUsageEmailService implements OnModuleInit, OnModuleDestroy {
       used,
       limit,
       periodEnd,
-      ...(recipient.locale === 'ru' ? { locale: 'ru' as const } : {}),
+      locale,
     });
     if (!sent) return false;
 

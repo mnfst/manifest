@@ -12,6 +12,7 @@ import {
 } from 'solid-js';
 import type { ProviderDef, SubscriptionEndpointRegion } from '../services/providers.js';
 import { validateApiKey, validateSubscriptionKey } from '../services/provider-utils.js';
+import { credentialValidationMessage } from '../services/provider-validation-messages.js';
 import {
   connectProvider,
   disconnectProvider,
@@ -258,7 +259,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
       ? validateSubscriptionKey(props.provDef, props.keyInput())
       : validateApiKey(props.provDef, props.keyInput());
     if (!result.valid) {
-      props.setValidationError(result.error!);
+      props.setValidationError(credentialValidationMessage(result.error));
       return;
     }
 
@@ -287,7 +288,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
       ? validateSubscriptionKey(props.provDef, props.keyInput())
       : validateApiKey(props.provDef, props.keyInput());
     if (!result.valid) {
-      props.setValidationError(result.error!);
+      props.setValidationError(credentialValidationMessage(result.error));
       return;
     }
 
@@ -570,7 +571,7 @@ async function handleAddKey(
     ? validateSubscriptionKey(props.provDef, apiKey)
     : validateApiKey(props.provDef, apiKey);
   if (!result.valid) {
-    toast.error(result.error!);
+    toast.error(credentialValidationMessage(result.error));
     return false;
   }
   props.setBusy(true);
@@ -962,7 +963,7 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
                 ? validateSubscriptionKey(props.provDef, apiKey)
                 : validateApiKey(props.provDef, apiKey);
             if (!result.valid) {
-              toast.error(result.error!);
+              toast.error(credentialValidationMessage(result.error));
               return false;
             }
             props.setBusy(true);

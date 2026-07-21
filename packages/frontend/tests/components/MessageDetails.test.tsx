@@ -35,6 +35,7 @@ vi.mock('@solidjs/router', () => ({
 }));
 
 import MessageDetails from '../../src/components/MessageDetails';
+import { setLocale } from '../../src/i18n/index.js';
 
 const detailsResponse = {
   message: {
@@ -387,9 +388,32 @@ describe('MessageDetails', () => {
       // trigger card (`.autofix-card--fallback`) with the attempt number.
       const banner = container.querySelector('.autofix-card--fallback');
       expect(banner).not.toBeNull();
+      expect(banner!.querySelector('.autofix-card__title')?.textContent).toBe('fallback');
       expect(banner!.textContent).toContain('gemini-2.5-flash-lite');
       expect(banner!.textContent).toContain('#1');
     });
+  });
+
+  it('shows a Russian fallback label in message details', async () => {
+    await setLocale('ru');
+    try {
+      mockGetMessageDetails.mockResolvedValue({
+        ...detailsResponse,
+        message: {
+          ...detailsResponse.message,
+          fallback_from_model: 'gemini-2.5-flash-lite',
+          fallback_index: 0,
+        },
+      });
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        expect(
+          container.querySelector('.autofix-card--fallback .autofix-card__title')?.textContent,
+        ).toBe('резервная модель');
+      });
+    } finally {
+      await setLocale('en');
+    }
   });
 
   it('hides fallback banner when no fallback', async () => {
@@ -699,6 +723,31 @@ describe('MessageDetails', () => {
         const btn = container.querySelector('.msg-detail__miscat-btn') as HTMLButtonElement;
         expect(btn).not.toBeNull();
         expect(btn.textContent).toContain('Wrong category?');
+        expect(container.textContent).toContain('Web Browsing');
+      });
+    });
+
+    it('shows the localized Russian specificity label in message details', async () => {
+      await setLocale('ru');
+      try {
+        mockGetMessageDetails.mockResolvedValue(specificityResponse);
+        const { container } = render(() => <MessageDetails messageId="msg-1" />);
+        await vi.waitFor(() => {
+          expect(container.textContent).toContain('Работа с интернетом');
+        });
+      } finally {
+        await setLocale('en');
+      }
+    });
+
+    it('keeps an unknown specificity category as its raw identifier in message details', async () => {
+      mockGetMessageDetails.mockResolvedValue({
+        ...specificityResponse,
+        message: { ...specificityResponse.message, specificity_category: 'future_category' },
+      });
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain('future_category');
       });
     });
 

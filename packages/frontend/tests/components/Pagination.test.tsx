@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 import Pagination from "../../src/components/Pagination";
+import { setLocale } from "../../src/i18n/index.js";
 
 describe("Pagination", () => {
   it("renders summary text", () => {
@@ -17,6 +18,28 @@ describe("Pagination", () => {
     expect(container.textContent).toContain("Showing 1");
     expect(container.textContent).toContain("25");
     expect(container.textContent).toContain("100");
+  });
+
+  it("formats large summary numbers with the active locale", async () => {
+    await setLocale("ru");
+    try {
+      const { container } = render(() => (
+        <Pagination
+          currentPage={() => 1}
+          totalItems={() => 12_345}
+          pageSize={1_000}
+          hasNextPage={() => true}
+          onPrevious={() => {}}
+          onNext={() => {}}
+        />
+      ));
+
+      expect(container.textContent).toMatch(
+        /^Показаны 1–1[\u00a0\u202f]000 из 12[\u00a0\u202f]345НазадДалее$/,
+      );
+    } finally {
+      await setLocale("en");
+    }
   });
 
   it("shows correct range on page 2", () => {

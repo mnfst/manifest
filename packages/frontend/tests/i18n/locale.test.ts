@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   LOCALE_STORAGE_KEY,
@@ -7,6 +8,7 @@ import {
   normalizeLocale,
   resolveLocale,
   setLocale,
+  supportedLocales,
 } from '../../src/i18n/index.js';
 import { ensureLocalStorage } from './storage.js';
 
@@ -15,6 +17,13 @@ function storageWith(value: string | null) {
     getItem: vi.fn(() => value),
     setItem: vi.fn(),
   };
+}
+
+function declaredLocales(relativePath: string): string[] {
+  const source = readFileSync(new URL(relativePath, import.meta.url), 'utf8');
+  const declaration = source.match(/(?:var|const) supportedLocales = \[([^\]]*)\]/);
+  expect(declaration, `${relativePath} must declare supportedLocales`).not.toBeNull();
+  return [...(declaration?.[1] ?? '').matchAll(/['"]([^'"]+)['"]/g)].map((match) => match[1]!);
 }
 
 describe('locale resolution', () => {
@@ -53,6 +62,11 @@ describe('locale resolution', () => {
     };
 
     expect(resolveLocale({ storage: brokenStorage, languages: ['ru'] })).toBe('ru');
+  });
+
+  it('keeps prepaint and bundle locale registries aligned with the runtime', () => {
+    expect(declaredLocales('../../public/theme-init.js')).toEqual([...supportedLocales]);
+    expect(declaredLocales('../../scripts/check-i18n-bundle.mjs')).toEqual([...supportedLocales]);
   });
 });
 

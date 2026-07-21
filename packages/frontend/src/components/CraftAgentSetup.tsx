@@ -1,7 +1,7 @@
 import { createSignal, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
-import { t } from '../i18n/index.js';
+import { t, tr } from '../i18n/index.js';
 
 interface Props {
   apiKey: string | null;
@@ -49,9 +49,10 @@ const CraftAgentSetup: Component<Props> = (props) => {
   return (
     <div class="setup-agents-card">
       <p class="setup-method__hint">
-        {t('craft.beforeProvider')} <code class="setup-model-hint__code">Manifest</code>{' '}
-        {t('craft.afterProvider')} <code class="setup-model-hint__code">auto</code>{' '}
-        {t('craft.afterModel')}
+        {tr('craft.instructions', {
+          provider: <code class="setup-model-hint__code">Manifest</code>,
+          model: <code class="setup-model-hint__code">auto</code>,
+        })}
       </p>
 
       <div class="setup-cli-block">

@@ -1,6 +1,19 @@
-import type { Component } from 'solid-js';
-import { isLocale, locale, setLocale, t } from '../i18n/index.js';
+import { For, type Component } from 'solid-js';
+import {
+  isLocale,
+  locale,
+  setLocale,
+  supportedLocales,
+  t,
+  type Locale,
+  type TextMessageKey,
+} from '../i18n/index.js';
 import { registerLocaleIntent, updateLocalePreference } from '../services/api/locale.js';
+
+const localeLabelKeys = {
+  en: 'language.english',
+  ru: 'language.russian',
+} as const satisfies Record<Locale, TextMessageKey>;
 
 interface LanguageSelectorProps {
   class?: string;
@@ -29,8 +42,9 @@ const LanguageSelector: Component<LanguageSelectorProps> = (props) => {
         value={locale()}
         onChange={(event) => void handleChange(event)}
       >
-        <option value="en">{t('language.english')}</option>
-        <option value="ru">{t('language.russian')}</option>
+        <For each={supportedLocales}>
+          {(value) => <option value={value}>{t(localeLabelKeys[value])}</option>}
+        </For>
       </select>
     </label>
   );

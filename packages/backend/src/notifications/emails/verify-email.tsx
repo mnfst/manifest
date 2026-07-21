@@ -21,8 +21,20 @@ export interface VerifyEmailProps {
   locale?: AppLocale;
 }
 
+interface VerifyEmailCopy {
+  subject: string;
+  preview: string;
+  heading: string;
+  intro: (name: string) => string;
+  cta: string;
+  hint: string;
+  fallback: string;
+  rights: string;
+}
+
 const COPY = {
   en: {
+    subject: 'Verify your email address',
     preview: 'Verify your email address to get started with Manifest',
     heading: 'Verify your email',
     intro: (name: string) =>
@@ -33,6 +45,7 @@ const COPY = {
     rights: 'All rights reserved.',
   },
   ru: {
+    subject: 'Подтвердите адрес электронной почты',
     preview: 'Подтвердите адрес электронной почты, чтобы начать работу с Manifest',
     heading: 'Подтвердите адрес электронной почты',
     intro: (name: string) =>
@@ -42,7 +55,11 @@ const COPY = {
     fallback: 'Если кнопка не работает, скопируйте эту ссылку и вставьте её в браузер:',
     rights: 'Все права защищены.',
   },
-} as const;
+} as const satisfies Record<AppLocale, VerifyEmailCopy>;
+
+export function verifyEmailSubject(locale: AppLocale = 'en'): string {
+  return COPY[locale].subject;
+}
 
 export function VerifyEmailEmail(props: VerifyEmailProps) {
   const {

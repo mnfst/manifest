@@ -84,6 +84,16 @@ export const enComponentsNZ = {
   'provider.credentialAria': '{provider} {credential}',
   'provider.newCredentialAria': 'New {provider} {credential}',
   'provider.baseUrlRequired': 'Base URL is required',
+  'provider.validation.apiKeyRequired': 'API key is required',
+  'provider.validation.apiKeyPrefix': '{provider} keys start with "{prefix}"',
+  'provider.validation.apiKeyTooShort': 'Key is too short (minimum {minLength} characters)',
+  'provider.validation.subscriptionTokenRequired': 'Token is required',
+  'provider.validation.subscriptionTokenPrefix':
+    '{provider} subscription tokens start with "{prefix}"',
+  'provider.validation.apiKeyInSubscriptionMode':
+    'This looks like an API key. Use the API Key tab instead.',
+  'provider.validation.subscriptionTokenTooShort':
+    'Token is too short (minimum {minLength} characters)',
   'provider.baseUrl': 'Base URL',
   'provider.region': 'Region',
   'provider.keyUpdated': '{provider} key updated',

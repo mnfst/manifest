@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
 import FilterSelect from '../../src/components/FilterSelect';
+import { setLocale } from '../../src/i18n/index.js';
 
 const ITEMS = ['anthropic', 'gemini', 'openai'];
 const COLORS: Record<string, string> = {
@@ -45,6 +46,20 @@ describe('FilterSelect', () => {
   it('shows the partial-selection trigger label', () => {
     renderFilter({}, new Set(['anthropic']));
     expect(screen.getByText('1 of 3 providers')).toBeDefined();
+  });
+
+  it('formats large selection counts with the active locale', async () => {
+    await setLocale('ru');
+    try {
+      const items = Array.from({ length: 12_345 }, (_, index) => `provider-${index}`);
+      const { container } = renderFilter({ items }, new Set(items));
+
+      expect(container.querySelector('.agent-filter-select__trigger')?.textContent).toMatch(
+        /Все провайдеры \(12[\u00a0\u202f]345\)/,
+      );
+    } finally {
+      await setLocale('en');
+    }
   });
 
   it('opens and closes the dropdown from the trigger', async () => {

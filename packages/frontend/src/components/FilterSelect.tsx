@@ -1,6 +1,6 @@
 import { createSignal, For, Show, onCleanup, type Component } from 'solid-js';
 import '../styles/filter-select.css';
-import { t } from '../i18n/index.js';
+import { formatNumber, t } from '../i18n/index.js';
 
 interface FilterSelectProps {
   /** Plural noun for the trigger label, e.g. "providers" or "harnesses". */
@@ -51,10 +51,10 @@ const FilterSelect: Component<FilterSelectProps> = (props) => {
         : props.noun;
   const label = () =>
     selectedCount() === props.items.length
-      ? t('filter.all', { noun: localizedNoun(), total: props.items.length })
+      ? t('filter.all', { noun: localizedNoun(), total: formatNumber(props.items.length) })
       : t('filter.selected', {
-          selected: selectedCount(),
-          total: props.items.length,
+          selected: formatNumber(selectedCount()),
+          total: formatNumber(props.items.length),
           noun: localizedNoun(),
         });
 

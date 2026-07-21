@@ -1,5 +1,5 @@
 import { Show, type Component, type Accessor } from 'solid-js';
-import { t } from '../i18n/index.js';
+import { formatNumber, t } from '../i18n/index.js';
 
 export interface PaginationProps {
   currentPage: Accessor<number>;
@@ -20,7 +20,11 @@ const Pagination: Component<PaginationProps> = (props) => {
     <Show when={props.totalItems() > props.pageSize}>
       <nav class="pagination" role="navigation" aria-label={t('pagination.aria')}>
         <span class="pagination__summary">
-          {t('pagination.summary', { start: start(), end: end(), total: props.totalItems() })}
+          {t('pagination.summary', {
+            start: formatNumber(start()),
+            end: formatNumber(end()),
+            total: formatNumber(props.totalItems()),
+          })}
         </span>
         <div class="pagination__controls">
           <button

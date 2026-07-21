@@ -35,6 +35,13 @@ describe('oauthDoneHtml', () => {
     expect(html).toContain('manifest-oauth-success');
   });
 
+  it('renders Russian failure guidance from the same locale catalogue', () => {
+    const html = oauthDoneHtml(false, undefined, 'Login', 'ru');
+    expect(html).toContain('Не удалось войти');
+    expect(html).toContain('повторите попытку');
+    expect(html).toContain('manifest-oauth-error');
+  });
+
   it('localizes the Login suffix without translating provider brands', () => {
     expect(oauthDoneHtml(true, undefined, 'xAI Login', 'ru')).toContain('Manifest — xAI — вход');
   });

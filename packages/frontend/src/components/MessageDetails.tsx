@@ -11,6 +11,7 @@ import { getModelDisplayName } from '../services/model-display.js';
 import { AUTOFIX_STATUS_LABELS, manifestErrorDocsUrl, isSuccessStatus } from 'manifest-shared';
 import { formatErrorClass, formatErrorOrigin } from '../services/formatters.js';
 import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
+import { routingDisplayLabel } from '../services/routing-display-label.js';
 import { ModelParamsSection, RequestHeadersSection } from './MessageDetailsSections.jsx';
 import { routingTierLabel } from './message-table-types.js';
 import { t } from '../i18n/index.js';
@@ -311,7 +312,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                     value={
                       m.header_tier_name ??
                       (m.specificity_category
-                        ? m.specificity_category.replace(/_/g, ' ')
+                        ? routingDisplayLabel(m.specificity_category)
                         : routingTierLabel(m.routing_tier))
                     }
                   />
@@ -504,7 +505,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                             <path d="m7.84 13.75 1.33-1.49-2.53-2.25h8.37c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H6.63l2.53-2.25-1.33-1.49-5.34 4.75 5.34 4.75Z" />
                           </svg>
                         </span>
-                        <span class="autofix-card__title">fallback</span>
+                        <span class="autofix-card__title">{routingDisplayLabel('fallback')}</span>
                       </div>
                       <p class="error-autofix-row__autofix-text" style="font-size: 12px;">
                         {t('message.fallbackAttempt', {
@@ -573,7 +574,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                             <path d="m7.84 13.75 1.33-1.49-2.53-2.25h8.37c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H6.63l2.53-2.25-1.33-1.49-5.34 4.75 5.34 4.75Z" />
                           </svg>
                         </span>
-                        <span class="autofix-card__title">fallback</span>
+                        <span class="autofix-card__title">{routingDisplayLabel('fallback')}</span>
                       </div>
                       <p class="error-autofix-row__autofix-text">
                         {t('message.fallbackTriggered')}
@@ -693,7 +694,9 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                                 <path d="m7.84 13.75 1.33-1.49-2.53-2.25h8.37c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H6.63l2.53-2.25-1.33-1.49-5.34 4.75 5.34 4.75Z" />
                               </svg>
                             </span>
-                            <span class="autofix-card__title">fallback</span>
+                            <span class="autofix-card__title">
+                              {routingDisplayLabel('fallback')}
+                            </span>
                           </div>
                           <p class="autofix-card__phrase" style="font-size: 12px;">
                             {t('message.fallbackAttempt', {

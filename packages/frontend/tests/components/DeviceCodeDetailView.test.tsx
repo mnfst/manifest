@@ -50,6 +50,7 @@ import {
 } from '../../src/services/api.js';
 import { toast } from '../../src/services/toast-store.js';
 import { getProvider } from '../../src/services/provider-utils';
+import { setLocale } from '../../src/i18n/index.js';
 import type { AuthType, RoutingProvider } from '../../src/services/api.js';
 
 const mockConnectProvider = connectProvider as ReturnType<typeof vi.fn>;
@@ -98,6 +99,22 @@ describe('DeviceCodeDetailView — MiniMax Coding Plan token alternative', () =>
       expect(screen.getByText('MiniMax subscription tokens start with "sk-cp-"')).toBeDefined();
     });
     expect(mockConnectProvider).not.toHaveBeenCalled();
+  });
+
+  it('shows a localized Russian validation error for a pasted token', async () => {
+    await setLocale('ru');
+    try {
+      renderMinimax();
+      const input = screen.getByLabelText('Токен Coding Plan для MiniMax') as HTMLInputElement;
+      await fireEvent.input(input, { target: { value: 'sk-wrong-token-long-enough' } });
+      await fireEvent.click(screen.getByText('Подключить с помощью токена'));
+      await waitFor(() => {
+        expect(screen.getByText('Токены подписки MiniMax начинаются с «sk-cp-»')).toBeDefined();
+      });
+      expect(mockConnectProvider).not.toHaveBeenCalled();
+    } finally {
+      await setLocale('en');
+    }
   });
 
   it('connects with a valid sk-cp- token, defaulting to global region', async () => {

@@ -21,6 +21,7 @@ import { providerIcon, customProviderLogo } from './ProviderIcon.jsx';
 import { authBadgeFor, authLabel } from './AuthBadge.js';
 import { platformIcon, isSuccessStatus } from 'manifest-shared';
 import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
+import { routingDisplayLabel } from '../services/routing-display-label.js';
 import { formatNumber as formatLocalizedNumber, t } from '../i18n/index.js';
 
 const MONO = 'font-family: var(--font-mono);';
@@ -102,19 +103,30 @@ const TOOLTIP_KEYS = {
   output: 'message.tooltip.output',
 } as const;
 
-export function columnHeader(key: MessageColumnKey, tooltips?: boolean): JSX.Element {
-  const label =
-    key === 'totalTokens' && tooltips ? t('message.header.totalTokens') : t(HEADER_KEYS[key]);
-  const tipKey = TOOLTIP_KEYS[key as keyof typeof TOOLTIP_KEYS];
-  const tip = tipKey ? t(tipKey) : undefined;
-  return tip && (tooltips || key !== 'totalTokens') ? (
+function LocalizedColumnHeader(props: {
+  columnKey: MessageColumnKey;
+  tooltips?: boolean;
+}): JSX.Element {
+  const tipKey = () => TOOLTIP_KEYS[props.columnKey as keyof typeof TOOLTIP_KEYS];
+  const tip = () => {
+    const key = tipKey();
+    return key ? t(key) : undefined;
+  };
+  const visibleTip = () =>
+    props.tooltips || props.columnKey !== 'totalTokens' ? tip() : undefined;
+
+  return (
     <>
-      {label}
-      <InfoTooltip text={tip} />
+      {props.columnKey === 'totalTokens' && props.tooltips
+        ? t('message.header.totalTokens')
+        : t(HEADER_KEYS[props.columnKey])}
+      <Show when={visibleTip()}>{(text) => <InfoTooltip text={text()} />}</Show>
     </>
-  ) : (
-    <>{label}</>
   );
+}
+
+export function columnHeader(key: MessageColumnKey, tooltips?: boolean): JSX.Element {
+  return <LocalizedColumnHeader columnKey={key} tooltips={tooltips} />;
 }
 
 export function DateCell(item: MessageRow): JSX.Element {
@@ -270,7 +282,7 @@ export function ModelCell(item: MessageRow): JSX.Element {
           </span>
         ) : item.specificity_category ? (
           <span class="tier-badge tier-badge--specificity">
-            {item.specificity_category.replace(/_/g, ' ')}
+            {routingDisplayLabel(item.specificity_category)}
           </span>
         ) : item.routing_tier && item.routing_tier !== 'fallback' ? (
           <span class="tier-badge-tooltip">
@@ -414,24 +426,28 @@ function statusErrorDescriptor(item: MessageRow): string | null {
  * `ok` and the canonical `success`.
  */
 function describeStatusPill(item: MessageRow): {
-  label: string;
-  title?: string;
   cls: string;
   limitAgent: string | null;
 } {
   const isSuccess = isSuccessStatus(item.status);
   if (isSuccess) {
-    return { label: t('message.success'), cls: 'status-badge status-badge--ok', limitAgent: null };
+    return { cls: 'status-badge status-badge--ok', limitAgent: null };
   }
   // The pill stays a plain "Failed": the cause (provider, setup, custom
   // limit...) lives in the drawer's error message, and rides here only as a
   // hover title so the column reads binary at a glance.
   return {
-    label: t('message.failed'),
-    title: statusErrorDescriptor(item) ?? undefined,
     cls: 'status-badge status-badge--error',
     limitAgent: item.error_origin === 'policy' ? item.agent_name : null,
   };
+}
+
+function statusPillLabel(item: MessageRow): string {
+  return isSuccessStatus(item.status) ? t('message.success') : t('message.failed');
+}
+
+function LocalizedStatusPillLabel(props: { item: MessageRow }): JSX.Element {
+  return <>{statusPillLabel(props.item)}</>;
 }
 
 export function StatusCell(item: MessageRow, _agentName: string | undefined): JSX.Element {
@@ -451,7 +467,7 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
           }
           title={planLimit ? t('message.planLimitTitle') : t('message.usageLimitTitle')}
         >
-          {pill.label}
+          <LocalizedStatusPillLabel item={item} />
         </A>
         {planLimit && (
           <A
@@ -467,8 +483,8 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
   }
 
   const badge = (
-    <span class={pill.cls} title={pill.title}>
-      {pill.label}
+    <span class={pill.cls} title={statusErrorDescriptor(item) ?? undefined}>
+      <LocalizedStatusPillLabel item={item} />
     </span>
   );
 

@@ -11,7 +11,7 @@ import {
 } from '../services/api/header-tiers.js';
 import { toast } from '../services/toast-store.js';
 import type { AvailableModel, ModelCapability, ResponseMode } from '../services/api.js';
-import { t, tp, type PlainTextMessageKey } from '../i18n/index.js';
+import { formatNumber, t, tp, type PlainTextMessageKey } from '../i18n/index.js';
 
 const RESERVED_KEYS = new Set([
   'authorization',
@@ -126,8 +126,8 @@ const HeaderTierModal: Component<Props> = (props) => {
         group: r.sdks[0],
         sublabel:
           r.top_values.length > 0
-            ? `${r.count}× · ${r.top_values.slice(0, 3).join(' · ')}`
-            : t('headerTier.seen', { count: r.count }),
+            ? `${formatNumber(r.count)}× · ${r.top_values.slice(0, 3).join(' · ')}`
+            : t('headerTier.seen', { count: formatNumber(r.count) }),
       }));
   };
 
@@ -219,10 +219,9 @@ const HeaderTierModal: Component<Props> = (props) => {
     }
   };
 
-  const titleText = editingTier ? t('headerTier.editTitle') : t('headerTier.createTitle');
-  const descText = editingTier
-    ? t('headerTier.editDescription')
-    : t('headerTier.createDescription');
+  const titleText = () => (editingTier ? t('headerTier.editTitle') : t('headerTier.createTitle'));
+  const descText = () =>
+    editingTier ? t('headerTier.editDescription') : t('headerTier.createDescription');
   const submitLabel = (): string => {
     if (editingTier) return submitting() ? t('headerTier.saving') : t('headerTier.saveChanges');
     return submitting() ? t('headerTier.creating') : t('headerTier.create');
@@ -286,9 +285,9 @@ const HeaderTierModal: Component<Props> = (props) => {
           </button>
         </Show>
         <h2 class="modal-card__title" id="header-tier-modal-title">
-          {titleText}
+          {titleText()}
         </h2>
-        <p class="modal-card__desc">{descText}</p>
+        <p class="modal-card__desc">{descText()}</p>
 
         <label class="modal-card__field-label" for="header-tier-name">
           {t('headerTier.name')}

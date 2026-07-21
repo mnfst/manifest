@@ -130,20 +130,23 @@ describe('billing-email-sender', () => {
 
   describe('usageEmailSubject', () => {
     it('returns the limit-reached subject', () => {
-      expect(usageEmailSubject('requests_limit_reached')).toBe(
+      expect(usageEmailSubject('requests_limit_reached', 100)).toBe(
         'Your Manifest monthly request limit has been reached',
       );
     });
 
     it('returns the warning subject', () => {
-      expect(usageEmailSubject('requests_warning')).toBe(
-        'Your Manifest workspace has used 80% of monthly requests',
+      expect(usageEmailSubject('requests_warning', 85)).toBe(
+        'Your Manifest workspace has used 85% of monthly requests',
       );
     });
 
     it('returns Russian usage subjects', () => {
-      expect(usageEmailSubject('requests_limit_reached', 'ru')).toBe(
+      expect(usageEmailSubject('requests_limit_reached', 100, 'ru')).toBe(
         'Месячный лимит запросов Manifest исчерпан',
+      );
+      expect(usageEmailSubject('requests_warning', 85, 'ru')).toBe(
+        'Рабочее пространство Manifest использовало 85\u00a0% месячного лимита запросов',
       );
     });
   });
@@ -230,6 +233,26 @@ describe('billing-email-sender', () => {
         expect.objectContaining({
           from: 'Manifest <custom@manifest.build>',
           subject: 'Your Manifest workspace has used 80% of monthly requests',
+        }),
+      );
+    });
+
+    it('uses the actual rounded percentage in the localized warning subject', async () => {
+      const props = {
+        kind: 'requests_warning' as const,
+        userName: 'Анна',
+        used: 8500,
+        limit: 10000,
+        periodEnd: '2026-08-01T00:00:00.000Z',
+        appUrl: 'https://app.manifest.build',
+        locale: 'ru' as const,
+      };
+
+      await sendPlanUsageEmail('anna@example.com', props);
+
+      expect(sendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          subject: 'Рабочее пространство Manifest использовало 85\u00a0% месячного лимита запросов',
         }),
       );
     });

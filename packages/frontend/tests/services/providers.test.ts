@@ -16,6 +16,10 @@ import {
   getSubscriptionProviderKeyUrl,
 } from '../../src/services/provider-api-key-urls';
 
+function invalidCredential(code: string, params: Record<string, string | number> = {}) {
+  return { valid: false, error: { code, params } };
+}
+
 /* ── getProvider ────────────────────────────────── */
 
 describe('getProvider', () => {
@@ -40,36 +44,26 @@ describe('validateApiKey', () => {
 
   it('returns invalid when key is empty', () => {
     const openai = getProvider('openai')!;
-    expect(validateApiKey(openai, '')).toEqual({
-      valid: false,
-      error: 'API key is required',
-    });
+    expect(validateApiKey(openai, '')).toEqual(invalidCredential('apiKeyRequired'));
   });
 
   it('returns invalid when key is only whitespace', () => {
     const openai = getProvider('openai')!;
-    expect(validateApiKey(openai, '   ')).toEqual({
-      valid: false,
-      error: 'API key is required',
-    });
+    expect(validateApiKey(openai, '   ')).toEqual(invalidCredential('apiKeyRequired'));
   });
 
   it('returns invalid when key does not match expected prefix', () => {
     const anthropic = getProvider('anthropic')!;
     expect(
       validateApiKey(anthropic, 'wrong-prefix-key-that-is-long-enough-for-validation'),
-    ).toEqual({
-      valid: false,
-      error: 'Anthropic keys start with "sk-ant-"',
-    });
+    ).toEqual(invalidCredential('apiKeyPrefix', { provider: 'Anthropic', prefix: 'sk-ant-' }));
   });
 
   it('returns invalid when key is too short', () => {
     const openai = getProvider('openai')!;
-    expect(validateApiKey(openai, 'sk-short')).toEqual({
-      valid: false,
-      error: 'Key is too short (minimum 50 characters)',
-    });
+    expect(validateApiKey(openai, 'sk-short')).toEqual(
+      invalidCredential('apiKeyTooShort', { minLength: 50 }),
+    );
   });
 
   it('returns valid for a correct key', () => {
@@ -80,93 +74,66 @@ describe('validateApiKey', () => {
 
   it('validates MiniMax key prefix and length', () => {
     const minimax = getProvider('minimax')!;
-    expect(validateApiKey(minimax, '')).toEqual({
-      valid: false,
-      error: 'API key is required',
-    });
-    expect(validateApiKey(minimax, 'wrong-prefix-key-that-is-long-enough-for-validation')).toEqual({
-      valid: false,
-      error: 'MiniMax keys start with "sk-"',
-    });
-    expect(validateApiKey(minimax, 'sk-api-short')).toEqual({
-      valid: false,
-      error: 'Key is too short (minimum 30 characters)',
-    });
+    expect(validateApiKey(minimax, '')).toEqual(invalidCredential('apiKeyRequired'));
+    expect(validateApiKey(minimax, 'wrong-prefix-key-that-is-long-enough-for-validation')).toEqual(
+      invalidCredential('apiKeyPrefix', { provider: 'MiniMax', prefix: 'sk-' }),
+    );
+    expect(validateApiKey(minimax, 'sk-api-short')).toEqual(
+      invalidCredential('apiKeyTooShort', { minLength: 30 }),
+    );
     expect(validateApiKey(minimax, 'sk-api-' + 'a'.repeat(30))).toEqual({ valid: true });
   });
 
   it('validates Z.ai key with no prefix and minimum length', () => {
     const zai = getProvider('zai')!;
-    expect(validateApiKey(zai, '')).toEqual({
-      valid: false,
-      error: 'API key is required',
-    });
-    expect(validateApiKey(zai, 'short')).toEqual({
-      valid: false,
-      error: 'Key is too short (minimum 30 characters)',
-    });
+    expect(validateApiKey(zai, '')).toEqual(invalidCredential('apiKeyRequired'));
+    expect(validateApiKey(zai, 'short')).toEqual(
+      invalidCredential('apiKeyTooShort', { minLength: 30 }),
+    );
     expect(validateApiKey(zai, 'a'.repeat(30))).toEqual({ valid: true });
   });
 
   it('validates Fireworks AI key prefix and length', () => {
     const fireworks = getProvider('fireworks')!;
-    expect(validateApiKey(fireworks, '')).toEqual({
-      valid: false,
-      error: 'API key is required',
-    });
-    expect(validateApiKey(fireworks, 'sk-wrong-prefix-that-is-long-enough')).toEqual({
-      valid: false,
-      error: 'Fireworks AI keys start with "fw_"',
-    });
-    expect(validateApiKey(fireworks, 'fw_short')).toEqual({
-      valid: false,
-      error: 'Key is too short (minimum 20 characters)',
-    });
+    expect(validateApiKey(fireworks, '')).toEqual(invalidCredential('apiKeyRequired'));
+    expect(validateApiKey(fireworks, 'sk-wrong-prefix-that-is-long-enough')).toEqual(
+      invalidCredential('apiKeyPrefix', { provider: 'Fireworks AI', prefix: 'fw_' }),
+    );
+    expect(validateApiKey(fireworks, 'fw_short')).toEqual(
+      invalidCredential('apiKeyTooShort', { minLength: 20 }),
+    );
     expect(validateApiKey(fireworks, 'fw_' + 'a'.repeat(20))).toEqual({ valid: true });
   });
 
   it('validates Cerebras keys by length without enforcing an undocumented prefix', () => {
     const cerebras = getProvider('cerebras')!;
     expect(cerebras.keyPlaceholder).toBe('Cerebras API key');
-    expect(validateApiKey(cerebras, '')).toEqual({
-      valid: false,
-      error: 'API key is required',
-    });
-    expect(validateApiKey(cerebras, 'short')).toEqual({
-      valid: false,
-      error: 'Key is too short (minimum 20 characters)',
-    });
+    expect(validateApiKey(cerebras, '')).toEqual(invalidCredential('apiKeyRequired'));
+    expect(validateApiKey(cerebras, 'short')).toEqual(
+      invalidCredential('apiKeyTooShort', { minLength: 20 }),
+    );
     expect(validateApiKey(cerebras, 'x'.repeat(20))).toEqual({ valid: true });
   });
 
   it('validates Pioneer key prefix and length', () => {
     const pioneer = getProvider('pioneer')!;
     expect(pioneer.keyPlaceholder).toBe('pio_sk_...');
-    expect(validateApiKey(pioneer, '')).toEqual({
-      valid: false,
-      error: 'API key is required',
-    });
-    expect(validateApiKey(pioneer, 'sk-wrong-prefix-that-is-long-enough')).toEqual({
-      valid: false,
-      error: 'Pioneer keys start with "pio_sk_"',
-    });
-    expect(validateApiKey(pioneer, 'pio_sk_short')).toEqual({
-      valid: false,
-      error: 'Key is too short (minimum 20 characters)',
-    });
+    expect(validateApiKey(pioneer, '')).toEqual(invalidCredential('apiKeyRequired'));
+    expect(validateApiKey(pioneer, 'sk-wrong-prefix-that-is-long-enough')).toEqual(
+      invalidCredential('apiKeyPrefix', { provider: 'Pioneer', prefix: 'pio_sk_' }),
+    );
+    expect(validateApiKey(pioneer, 'pio_sk_short')).toEqual(
+      invalidCredential('apiKeyTooShort', { minLength: 20 }),
+    );
     expect(validateApiKey(pioneer, 'pio_sk_' + 'a'.repeat(20))).toEqual({ valid: true });
   });
 
   it('validates AWS Bedrock raw bearer-token and legacy API-key lengths', () => {
     const bedrock = getProvider('bedrock')!;
-    expect(validateApiKey(bedrock, '')).toEqual({
-      valid: false,
-      error: 'API key is required',
-    });
-    expect(validateApiKey(bedrock, 'bedrock-api-key-short')).toEqual({
-      valid: false,
-      error: 'Key is too short (minimum 100 characters)',
-    });
+    expect(validateApiKey(bedrock, '')).toEqual(invalidCredential('apiKeyRequired'));
+    expect(validateApiKey(bedrock, 'bedrock-api-key-short')).toEqual(
+      invalidCredential('apiKeyTooShort', { minLength: 100 }),
+    );
     expect(validateApiKey(bedrock, 'ABSKTWFudGxlQXBpS2V5LWV4YW1wbGU='.padEnd(100, 'A'))).toEqual({
       valid: true,
     });
@@ -178,32 +145,23 @@ describe('validateApiKey', () => {
   it('validates Xiaomi MiMo API key prefix and length', () => {
     const xiaomi = getProvider('xiaomi')!;
     expect(xiaomi.keyPlaceholder).toBe('sk-xxxxx');
-    expect(validateApiKey(xiaomi, '')).toEqual({
-      valid: false,
-      error: 'API key is required',
-    });
-    expect(validateApiKey(xiaomi, 'wrong-prefix-key')).toEqual({
-      valid: false,
-      error: 'Xiaomi MiMo keys start with "sk-"',
-    });
-    expect(validateApiKey(xiaomi, 'sk-short')).toEqual({
-      valid: false,
-      error: 'Key is too short (minimum 50 characters)',
-    });
+    expect(validateApiKey(xiaomi, '')).toEqual(invalidCredential('apiKeyRequired'));
+    expect(validateApiKey(xiaomi, 'wrong-prefix-key')).toEqual(
+      invalidCredential('apiKeyPrefix', { provider: 'Xiaomi MiMo', prefix: 'sk-' }),
+    );
+    expect(validateApiKey(xiaomi, 'sk-short')).toEqual(
+      invalidCredential('apiKeyTooShort', { minLength: 50 }),
+    );
     expect(validateApiKey(xiaomi, `sk-${'a'.repeat(47)}`)).toEqual({ valid: true });
   });
 
   it('validates NVIDIA NIM key length without enforcing an undocumented prefix', () => {
     const nvidia = getProvider('nvidia')!;
     expect(nvidia.keyPlaceholder).toBe('nvapi-...');
-    expect(validateApiKey(nvidia, '')).toEqual({
-      valid: false,
-      error: 'API key is required',
-    });
-    expect(validateApiKey(nvidia, 'short')).toEqual({
-      valid: false,
-      error: 'Key is too short (minimum 20 characters)',
-    });
+    expect(validateApiKey(nvidia, '')).toEqual(invalidCredential('apiKeyRequired'));
+    expect(validateApiKey(nvidia, 'short')).toEqual(
+      invalidCredential('apiKeyTooShort', { minLength: 20 }),
+    );
     expect(validateApiKey(nvidia, 'x'.repeat(20))).toEqual({ valid: true });
   });
 });
@@ -213,28 +171,28 @@ describe('validateApiKey', () => {
 describe('validateSubscriptionKey', () => {
   it('returns invalid when token is empty', () => {
     const anthropic = getProvider('anthropic')!;
-    expect(validateSubscriptionKey(anthropic, '')).toEqual({
-      valid: false,
-      error: 'Token is required',
-    });
+    expect(validateSubscriptionKey(anthropic, '')).toEqual(
+      invalidCredential('subscriptionTokenRequired'),
+    );
   });
 
   it('returns invalid when token is too short (no subscription prefix configured)', () => {
     // Pick a provider without a SUBSCRIPTION_PREFIXES entry so the length
     // check fires before any prefix gate would.
     const deepseek = getProvider('deepseek')!;
-    expect(validateSubscriptionKey(deepseek, 'short')).toEqual({
-      valid: false,
-      error: 'Token is too short (minimum 10 characters)',
-    });
+    expect(validateSubscriptionKey(deepseek, 'short')).toEqual(
+      invalidCredential('subscriptionTokenTooShort', { minLength: 10 }),
+    );
   });
 
   it('returns invalid when Anthropic token has wrong prefix', () => {
     const anthropic = getProvider('anthropic')!;
-    expect(validateSubscriptionKey(anthropic, 'sk-wrong-prefix-long-enough-token')).toEqual({
-      valid: false,
-      error: 'Anthropic subscription tokens start with "sk-ant-oat"',
-    });
+    expect(validateSubscriptionKey(anthropic, 'sk-wrong-prefix-long-enough-token')).toEqual(
+      invalidCredential('subscriptionTokenPrefix', {
+        provider: 'Anthropic',
+        prefix: 'sk-ant-oat',
+      }),
+    );
   });
 
   it('returns valid for a correct Anthropic subscription token', () => {
@@ -253,26 +211,23 @@ describe('validateSubscriptionKey', () => {
 
   it('returns invalid for an empty OpenAI subscription token', () => {
     const openai = getProvider('openai')!;
-    expect(validateSubscriptionKey(openai, '')).toEqual({
-      valid: false,
-      error: 'Token is required',
-    });
+    expect(validateSubscriptionKey(openai, '')).toEqual(
+      invalidCredential('subscriptionTokenRequired'),
+    );
   });
 
   it('returns invalid for a too-short OpenAI subscription token', () => {
     const openai = getProvider('openai')!;
-    expect(validateSubscriptionKey(openai, 'short')).toEqual({
-      valid: false,
-      error: 'Token is too short (minimum 10 characters)',
-    });
+    expect(validateSubscriptionKey(openai, 'short')).toEqual(
+      invalidCredential('subscriptionTokenTooShort', { minLength: 10 }),
+    );
   });
 
   it('rejects an OpenAI API key in subscription mode', () => {
     const openai = getProvider('openai')!;
-    expect(validateSubscriptionKey(openai, 'sk-proj-1234567890abcdef')).toEqual({
-      valid: false,
-      error: 'This looks like an API key. Use the API Key tab instead.',
-    });
+    expect(validateSubscriptionKey(openai, 'sk-proj-1234567890abcdef')).toEqual(
+      invalidCredential('apiKeyInSubscriptionMode'),
+    );
   });
 
   it('does not reject non-API-key tokens for providers without API_KEY_PREFIXES', () => {
@@ -284,10 +239,9 @@ describe('validateSubscriptionKey', () => {
 
   it('rejects a MiniMax subscription token without the sk-cp- prefix', () => {
     const minimax = getProvider('minimax')!;
-    expect(validateSubscriptionKey(minimax, 'sk-api-some-long-enough-token')).toEqual({
-      valid: false,
-      error: 'MiniMax subscription tokens start with "sk-cp-"',
-    });
+    expect(validateSubscriptionKey(minimax, 'sk-api-some-long-enough-token')).toEqual(
+      invalidCredential('subscriptionTokenPrefix', { provider: 'MiniMax', prefix: 'sk-cp-' }),
+    );
   });
 
   it('accepts a valid MiniMax sk-cp- Coding Plan token', () => {
@@ -299,10 +253,12 @@ describe('validateSubscriptionKey', () => {
 
   it('rejects a regular Qwen API key in Token Plan subscription mode', () => {
     const qwen = getProvider('qwen')!;
-    expect(validateSubscriptionKey(qwen, 'sk-' + 'a'.repeat(40))).toEqual({
-      valid: false,
-      error: 'Alibaba Cloud subscription tokens start with "sk-sp-"',
-    });
+    expect(validateSubscriptionKey(qwen, 'sk-' + 'a'.repeat(40))).toEqual(
+      invalidCredential('subscriptionTokenPrefix', {
+        provider: 'Alibaba Cloud',
+        prefix: 'sk-sp-',
+      }),
+    );
   });
 
   it('accepts a valid Qwen Token Plan sk-sp API key', () => {
@@ -314,18 +270,16 @@ describe('validateSubscriptionKey', () => {
 
   it('rejects a too-short Qwen Token Plan key', () => {
     const qwen = getProvider('qwen')!;
-    expect(validateSubscriptionKey(qwen, 'sk-sp-1234')).toEqual({
-      valid: false,
-      error: 'Token is too short (minimum 30 characters)',
-    });
+    expect(validateSubscriptionKey(qwen, 'sk-sp-1234')).toEqual(
+      invalidCredential('subscriptionTokenTooShort', { minLength: 30 }),
+    );
   });
 
   it('rejects a regular Xiaomi MiMo API key in Token Plan subscription mode', () => {
     const xiaomi = getProvider('xiaomi')!;
-    expect(validateSubscriptionKey(xiaomi, 'sk-mimo-valid')).toEqual({
-      valid: false,
-      error: 'Xiaomi MiMo subscription tokens start with "tp-"',
-    });
+    expect(validateSubscriptionKey(xiaomi, 'sk-mimo-valid')).toEqual(
+      invalidCredential('subscriptionTokenPrefix', { provider: 'Xiaomi MiMo', prefix: 'tp-' }),
+    );
   });
 
   it('accepts a valid Xiaomi MiMo Token Plan key', () => {
@@ -339,10 +293,9 @@ describe('validateSubscriptionKey', () => {
     const minimax = getProvider('minimax')!;
     // sk-cp- prefix (6) + 4 chars = 10 total: passes the generic 10-char floor
     // but should fail MiniMax's stricter 30-char minimum.
-    expect(validateSubscriptionKey(minimax, 'sk-cp-1234')).toEqual({
-      valid: false,
-      error: 'Token is too short (minimum 30 characters)',
-    });
+    expect(validateSubscriptionKey(minimax, 'sk-cp-1234')).toEqual(
+      invalidCredential('subscriptionTokenTooShort', { minLength: 30 }),
+    );
   });
 
   it('exposes the MiniMax Coding Plan token alternative on the provider def', () => {
@@ -859,14 +812,10 @@ describe('PROVIDERS', () => {
 
   it('OpenCode Go subscription key is validated with generic min-length check', () => {
     const og = PROVIDERS.find((p) => p.id === 'opencode-go')!;
-    expect(validateSubscriptionKey(og, '')).toEqual({
-      valid: false,
-      error: 'Token is required',
-    });
-    expect(validateSubscriptionKey(og, 'short')).toEqual({
-      valid: false,
-      error: 'Token is too short (minimum 10 characters)',
-    });
+    expect(validateSubscriptionKey(og, '')).toEqual(invalidCredential('subscriptionTokenRequired'));
+    expect(validateSubscriptionKey(og, 'short')).toEqual(
+      invalidCredential('subscriptionTokenTooShort', { minLength: 10 }),
+    );
     expect(validateSubscriptionKey(og, 'a-valid-opencode-token-1234')).toEqual({
       valid: true,
     });
@@ -874,14 +823,12 @@ describe('PROVIDERS', () => {
 
   it('Command Code subscription key is validated with generic token length', () => {
     const commandcode = PROVIDERS.find((p) => p.id === 'commandcode')!;
-    expect(validateSubscriptionKey(commandcode, '')).toEqual({
-      valid: false,
-      error: 'Token is required',
-    });
-    expect(validateSubscriptionKey(commandcode, 'short')).toEqual({
-      valid: false,
-      error: 'Token is too short (minimum 10 characters)',
-    });
+    expect(validateSubscriptionKey(commandcode, '')).toEqual(
+      invalidCredential('subscriptionTokenRequired'),
+    );
+    expect(validateSubscriptionKey(commandcode, 'short')).toEqual(
+      invalidCredential('subscriptionTokenTooShort', { minLength: 10 }),
+    );
     expect(validateSubscriptionKey(commandcode, 'user_' + 'a'.repeat(40))).toEqual({
       valid: true,
     });
@@ -889,14 +836,12 @@ describe('PROVIDERS', () => {
 
   it('BytePlus subscription key is validated with generic token length', () => {
     const byteplus = PROVIDERS.find((p) => p.id === 'byteplus')!;
-    expect(validateSubscriptionKey(byteplus, '')).toEqual({
-      valid: false,
-      error: 'Token is required',
-    });
-    expect(validateSubscriptionKey(byteplus, 'short')).toEqual({
-      valid: false,
-      error: 'Token is too short (minimum 10 characters)',
-    });
+    expect(validateSubscriptionKey(byteplus, '')).toEqual(
+      invalidCredential('subscriptionTokenRequired'),
+    );
+    expect(validateSubscriptionKey(byteplus, 'short')).toEqual(
+      invalidCredential('subscriptionTokenTooShort', { minLength: 10 }),
+    );
     expect(validateSubscriptionKey(byteplus, 'bp-valid-token-1234')).toEqual({
       valid: true,
     });
@@ -904,14 +849,12 @@ describe('PROVIDERS', () => {
 
   it('ClinePass subscription key is validated with generic token length', () => {
     const clinePass = PROVIDERS.find((p) => p.id === 'cline-pass')!;
-    expect(validateSubscriptionKey(clinePass, '')).toEqual({
-      valid: false,
-      error: 'Token is required',
-    });
-    expect(validateSubscriptionKey(clinePass, 'short')).toEqual({
-      valid: false,
-      error: 'Token is too short (minimum 10 characters)',
-    });
+    expect(validateSubscriptionKey(clinePass, '')).toEqual(
+      invalidCredential('subscriptionTokenRequired'),
+    );
+    expect(validateSubscriptionKey(clinePass, 'short')).toEqual(
+      invalidCredential('subscriptionTokenTooShort', { minLength: 10 }),
+    );
     expect(validateSubscriptionKey(clinePass, 'cp-valid-token-1234')).toEqual({
       valid: true,
     });
@@ -919,14 +862,12 @@ describe('PROVIDERS', () => {
 
   it('Nous subscription key is validated with generic token length', () => {
     const nous = PROVIDERS.find((p) => p.id === 'nous')!;
-    expect(validateSubscriptionKey(nous, '')).toEqual({
-      valid: false,
-      error: 'Token is required',
-    });
-    expect(validateSubscriptionKey(nous, 'short')).toEqual({
-      valid: false,
-      error: 'Token is too short (minimum 10 characters)',
-    });
+    expect(validateSubscriptionKey(nous, '')).toEqual(
+      invalidCredential('subscriptionTokenRequired'),
+    );
+    expect(validateSubscriptionKey(nous, 'short')).toEqual(
+      invalidCredential('subscriptionTokenTooShort', { minLength: 10 }),
+    );
     expect(validateSubscriptionKey(nous, 'nous-valid-token-1234')).toEqual({
       valid: true,
     });
@@ -934,14 +875,12 @@ describe('PROVIDERS', () => {
 
   it('Mistral Vibe subscription key is validated with generic token length', () => {
     const mistral = PROVIDERS.find((p) => p.id === 'mistral')!;
-    expect(validateSubscriptionKey(mistral, '')).toEqual({
-      valid: false,
-      error: 'Token is required',
-    });
-    expect(validateSubscriptionKey(mistral, 'short')).toEqual({
-      valid: false,
-      error: 'Token is too short (minimum 10 characters)',
-    });
+    expect(validateSubscriptionKey(mistral, '')).toEqual(
+      invalidCredential('subscriptionTokenRequired'),
+    );
+    expect(validateSubscriptionKey(mistral, 'short')).toEqual(
+      invalidCredential('subscriptionTokenTooShort', { minLength: 10 }),
+    );
     expect(validateSubscriptionKey(mistral, 'mistral-vibe-token-1234')).toEqual({
       valid: true,
     });
@@ -949,14 +888,10 @@ describe('PROVIDERS', () => {
 
   it('Kilo API key is validated with generic min-length check', () => {
     const kilo = PROVIDERS.find((p) => p.id === 'kilo')!;
-    expect(validateApiKey(kilo, '')).toEqual({
-      valid: false,
-      error: 'API key is required',
-    });
-    expect(validateApiKey(kilo, 'short')).toEqual({
-      valid: false,
-      error: 'Key is too short (minimum 10 characters)',
-    });
+    expect(validateApiKey(kilo, '')).toEqual(invalidCredential('apiKeyRequired'));
+    expect(validateApiKey(kilo, 'short')).toEqual(
+      invalidCredential('apiKeyTooShort', { minLength: 10 }),
+    );
     expect(validateApiKey(kilo, 'eyJhbGciOiJKiloToken')).toEqual({
       valid: true,
     });

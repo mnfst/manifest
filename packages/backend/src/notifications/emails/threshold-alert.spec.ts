@@ -82,4 +82,22 @@ describe('ThresholdAlertEmail', () => {
     expect(html).toContain('Период: неделя');
     expect(html).not.toContain('Период: неделю');
   });
+
+  it('formats USD with locale-aware currency placement in Russian', () => {
+    const html = renderEmail({
+      agentName: 'помощник',
+      metricType: 'cost',
+      threshold: 1.5,
+      actualValue: 2.75,
+      period: 'month',
+      timestamp: '2026-04-23 12:00',
+      agentUrl: 'https://app.manifest.build/agents/helper',
+      alertType: 'hard',
+      locale: 'ru',
+    });
+
+    expect(html).toContain('1,50 $');
+    expect(html).toContain('2,75 $');
+    expect(html).not.toContain('$1,50');
+  });
 });

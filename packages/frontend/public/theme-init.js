@@ -1,4 +1,5 @@
 (function () {
+  var supportedLocales = ['en', 'ru'];
   var t = null;
   var storedLocale = null;
   try {
@@ -11,7 +12,7 @@
     document.documentElement.classList.add('dark');
   }
 
-  var locale = storedLocale === 'en' || storedLocale === 'ru' ? storedLocale : null;
+  var locale = supportedLocales.indexOf(storedLocale) !== -1 ? storedLocale : null;
   if (!locale) {
     var languages =
       navigator.languages && navigator.languages.length
@@ -21,7 +22,7 @@
       var language = String(languages[i] || '')
         .toLowerCase()
         .split(/[-_]/, 1)[0];
-      if (language === 'en' || language === 'ru') {
+      if (supportedLocales.indexOf(language) !== -1) {
         locale = language;
         break;
       }
