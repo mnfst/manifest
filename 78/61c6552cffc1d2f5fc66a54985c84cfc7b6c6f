@@ -1,0 +1,29 @@
+packages/backend/src/error-pages/error-discovery.service.spec.ts
+  s_155fb9a238c29f::t_a652ed47561cfc 59-68
+packages/frontend/src/services/api/analytics.ts
+  s_155fb9a238c29f::t_a652ed47561cfc 252
+packages/backend/src/analytics/services/attempt-stats.service.ts
+  s_155fb9a238c29f::t_a652ed47561cfc 26
+packages/backend/src/common/errors/manifest-error.ts
+  s_155fb9a238c29f::t_a652ed47561cfc 27
+docs/glossary.md
+  s_155fb9a238c29f::t_a652ed47561cfc 41,51-52,55,71
+packages/backend/src/error-pages/error-discovery.service.ts
+  s_155fb9a238c29f::t_a652ed47561cfc 106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "7861c6552cffc1d2f5fc66a54985c84cfc7b6c6f",
+  "prompts": {},
+  "sessions": {
+    "s_155fb9a238c29f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f809f-22df-7372-b5d9-ded434f98401",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
