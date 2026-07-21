@@ -1396,6 +1396,48 @@ describe('ProviderClient', () => {
       const url = mockFetch.mock.calls[0][0] as string;
       expect(url).toContain('api.openai.com');
     });
+
+    it('rejects an HTTP 200 Codex stream that completes without output', async () => {
+      mockFetch.mockResolvedValue(
+        new Response('event: response.completed\ndata: {"response":{"output":[]}}\n\n', {
+          status: 200,
+          headers: { 'content-type': 'text/event-stream' },
+        }),
+      );
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'oauth-token',
+        model: 'gpt-5',
+        body,
+        stream: true,
+        authType: 'subscription',
+      });
+
+      expect(result.response.status).toBe(502);
+      await expect(result.response.json()).resolves.toMatchObject({
+        error: { code: 'empty_response' },
+      });
+    });
+
+    it('does not apply Codex stream qualification to API-key Responses requests', async () => {
+      const upstream = new Response('{"output":[]}', {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+      mockFetch.mockResolvedValue(upstream);
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-5.3-codex',
+        body,
+        stream: false,
+      });
+
+      expect(result.response).toBe(upstream);
+      expect(result.response.status).toBe(200);
+    });
   });
 
   describe('resolveEndpoint - OpenAI Responses-only routing', () => {

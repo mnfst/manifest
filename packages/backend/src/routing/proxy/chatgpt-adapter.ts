@@ -523,7 +523,7 @@ export function collectChatGptSseResponse(sseText: string, model: string): Recor
   };
 }
 
-function buildResponsesSseError(data: Record<string, unknown>): ResponsesSseError {
+export function buildResponsesSseError(data: Record<string, unknown>): ResponsesSseError {
   const response = isObjectRecord(data.response) ? data.response : undefined;
   const error = isObjectRecord(data.error)
     ? data.error
