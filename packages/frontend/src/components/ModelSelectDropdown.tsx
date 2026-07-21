@@ -3,6 +3,7 @@ import { getModelPrices } from '../services/api.js';
 import { resolveProviderId } from '../services/routing-utils.js';
 import { PROVIDERS } from '../services/providers.js';
 import { providerIcon } from './ProviderIcon.js';
+import { t } from '../i18n/index.js';
 
 interface ModelPricesData {
   models: { model_name: string; provider: string }[];
@@ -102,12 +103,12 @@ const ModelSelectDropdown: Component<ModelSelectDropdownProps> = (props) => {
           class="routing-modal__selected-display"
           onClick={handleReopen}
           type="button"
-          aria-label="Change model selection"
+          aria-label={t('model.selection.change')}
         >
           <span class="routing-modal__selected-label">
             {labelForModel(props.selectedValue!.split('/').pop()!)}
           </span>
-          <span class="routing-modal__selected-hint">Click to change</span>
+          <span class="routing-modal__selected-hint">{t('model.selection.click')}</span>
         </button>
       </Show>
 
@@ -133,15 +134,15 @@ const ModelSelectDropdown: Component<ModelSelectDropdownProps> = (props) => {
             ref={(el) => requestAnimationFrame(() => el.focus())}
             class="routing-modal__search"
             type="text"
-            placeholder="Search models or providers..."
-            aria-label="Search models"
+            placeholder={t('model.search')}
+            aria-label={t('model.searchModels')}
             value={search()}
             onInput={(e) => setSearch(e.currentTarget.value)}
           />
         </div>
 
         <Show when={data.loading}>
-          <div class="routing-modal__empty">Loading models...</div>
+          <div class="routing-modal__empty">{t('model.loadingModels')}</div>
         </Show>
 
         <Show when={!data.loading && data()}>
@@ -169,7 +170,7 @@ const ModelSelectDropdown: Component<ModelSelectDropdownProps> = (props) => {
               )}
             </For>
             <Show when={groupedModels().length === 0}>
-              <div class="routing-modal__empty">No models match your search.</div>
+              <div class="routing-modal__empty">{t('model.noMatches')}</div>
             </Show>
           </div>
         </Show>

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import type { ProviderParamSpec, RequestParamDefaults } from 'manifest-shared';
 
@@ -8,6 +8,7 @@ vi.mock('solid-js/web', async (importOriginal) => {
 });
 
 import ModelParamsDialog from '../../src/components/ModelParamsDialog';
+import { setLocale } from '../../src/i18n/index.js';
 
 const q = (sel: string) => document.querySelector(sel);
 
@@ -146,7 +147,14 @@ describe('ModelParamsDialog', () => {
     onSave: vi.fn().mockResolvedValue(undefined),
   };
 
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    await setLocale('en');
+  });
+
+  afterEach(async () => {
+    await setLocale('en');
+  });
 
   it('renders nothing when closed', () => {
     render(() => <ModelParamsDialog {...baseProps} open={false} />);
@@ -292,6 +300,7 @@ describe('ModelParamsDialog', () => {
 
     fireEvent.click(screen.getByLabelText('Thinking mode'));
     expect(screen.getByRole('option', { name: 'None' })).toBeTruthy();
+    expect(screen.getByText('Default: None')).toBeTruthy();
     fireEvent.click(screen.getByRole('option', { name: 'adaptive' }));
     fireEvent.click(screen.getByText('Save'));
 
@@ -701,5 +710,78 @@ describe('ModelParamsDialog', () => {
     expect(onClose).not.toHaveBeenCalled();
     resolveSave!();
     await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  it('reactively localizes metadata without changing provider spec identity fields', async () => {
+    const specs: readonly ProviderParamSpec[] = [
+      {
+        provider: 'deepseek',
+        authType: 'api_key',
+        model: 'deepseek-v4',
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description:
+          'Controls whether DeepSeek uses thinking mode before producing the final answer.',
+        default: 'disabled',
+        values: ['enabled', 'disabled'],
+        group: 'reasoning',
+      },
+      {
+        provider: 'anthropic',
+        authType: 'api_key',
+        model: 'claude-fable-5',
+        path: 'thinking.display',
+        type: 'enum',
+        label: 'Thinking display',
+        description: 'Controls whether Anthropic returns summarized or omitted thinking content.',
+        default: 'omitted',
+        values: ['summarized', 'omitted'],
+        group: 'reasoning',
+        applicability: { only: { 'thinking.type': ['adaptive'] } },
+      },
+      {
+        provider: 'deepseek',
+        authType: 'api_key',
+        model: 'deepseek-v4',
+        path: 'temperature',
+        type: 'number',
+        label: 'Temperature',
+        description:
+          'Controls randomness. In DeepSeek thinking mode this parameter is accepted for compatibility but has no effect.',
+        default: 1,
+        range: { min: 0, max: 2, step: 0.1 },
+        group: 'sampling',
+        applicability: { except: { 'thinking.type': 'enabled' } },
+      },
+    ];
+    const identitySnapshot = structuredClone(specs);
+
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={specs} current={{ thinking: { type: 'enabled' } }} />
+    ));
+
+    expect(screen.getByText('Temperature')).toBeTruthy();
+    expect(screen.getByRole('slider', { name: 'Temperature' })).toBeTruthy();
+    expect(screen.getByLabelText('Thinking display')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Controls randomness. In DeepSeek thinking mode this parameter is accepted for compatibility but has no effect.',
+      ),
+    ).toBeTruthy();
+
+    await setLocale('ru');
+
+    await waitFor(() => expect(screen.getByText('Температура')).toBeTruthy());
+    expect(screen.getByRole('slider', { name: 'Температура' })).toBeTruthy();
+    expect(screen.getByLabelText('Отображение размышлений')).toBeTruthy();
+    expect(screen.getByText(/DeepSeek.*ни на что не влияет/)).toBeTruthy();
+    expect(screen.getByText('temperature')).toBeTruthy();
+    expect(
+      Array.from(document.querySelectorAll('.model-params__help')).some((element) =>
+        element.getAttribute('aria-label')?.includes('Режим размышлений'),
+      ),
+    ).toBe(true);
+    expect(specs).toEqual(identitySnapshot);
   });
 });

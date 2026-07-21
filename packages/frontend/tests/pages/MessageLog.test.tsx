@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
+import { setLocale } from '../../src/i18n/index.js';
 
 let mockAgentName = 'test-agent';
 let mockSearchParams: Record<string, string | undefined> = {};
@@ -316,7 +317,8 @@ const connectionMultiselect = (container: HTMLElement) =>
   ) as HTMLSelectElement;
 
 describe('MessageLog', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await setLocale('en');
     vi.clearAllMocks();
     localStorage.clear();
     mockAgentName = 'test-agent';
@@ -405,6 +407,23 @@ describe('MessageLog', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('No requests yet');
     });
+  });
+
+  it('keeps the original English example image and hides it for Russian UI', async () => {
+    const empty = { items: [], next_cursor: null, total_count: 0, providers: [] };
+    mockGetMessages.mockResolvedValue(empty);
+    const english = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(english.container.querySelector('img[src="/example-messages.svg"]')).not.toBeNull();
+    });
+    english.unmount();
+
+    await setLocale('ru');
+    const russian = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(russian.container.querySelector('.empty-state')).not.toBeNull();
+    });
+    expect(russian.container.querySelector('img[src="/example-messages.svg"]')).toBeNull();
   });
 
   it("shows 'no messages match' when filters return 0 results", async () => {

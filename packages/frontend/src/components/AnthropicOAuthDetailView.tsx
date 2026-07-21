@@ -19,6 +19,7 @@ import {
   type RoutingProvider,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
+import { t } from '../i18n/index.js';
 
 interface Props {
   provDef: ProviderDef;
@@ -85,9 +86,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
       setState(authState);
       const opened = window.open(url, 'manifest-anthropic-oauth', 'noopener,noreferrer');
       if (!opened) {
-        toast.error(
-          'Popup was blocked by your browser. Allow popups for this site, then try again.',
-        );
+        toast.error(t('anthropic.popupBlocked'));
         setState(null);
         if (props.connected()) setAddingAccount(false);
       }
@@ -104,16 +103,12 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
     if (!raw) return;
 
     if (!raw.includes('#')) {
-      setError(
-        "That doesn't look like an authorization code. Make sure you copied the full string from the redirect page.",
-      );
+      setError(t('anthropic.invalidCode'));
       return;
     }
     const pastedState = raw.slice(raw.indexOf('#') + 1);
     if (!pastedState) {
-      setError(
-        "That doesn't look like an authorization code. Make sure you copied the full string from the redirect page.",
-      );
+      setError(t('anthropic.invalidCode'));
       return;
     }
 
@@ -122,17 +117,13 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
     try {
       const authState = state() ?? pastedState;
       await submitAnthropicOAuth(props.agentName, raw, authState);
-      toast.success(`${props.provDef.name} subscription connected`);
+      toast.success(t('anthropic.connected', { provider: props.provDef.name }));
       setAddingAccount(false);
       setInput('');
       setState(null);
       props.onUpdate();
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to exchange code. The code may have expired. Sign in again to retry.',
-      );
+      setError(err instanceof Error ? err.message : t('anthropic.exchangeFailed'));
     } finally {
       props.setBusy(false);
     }
@@ -200,7 +191,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
         newLabel,
         props.selectedAuthType(),
       );
-      toast.success(`Renamed to "${newLabel}"`);
+      toast.success(t('account.renamed', { name: newLabel }));
       setRenamingId(null);
       props.onUpdate();
     } catch {
@@ -214,36 +205,30 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
     <>
       <Show when={showConnectFlow()}>
         <div class="anthropic-detail__primary">
-          <p class="provider-detail__hint">
-            Sign in with your Claude Pro or Max account. Manifest will route through your
-            subscription with auto-refreshing tokens.
-          </p>
+          <p class="provider-detail__hint">{t('anthropic.signInHint')}</p>
           <button
             class="btn btn--primary anthropic-detail__btn"
             disabled={props.busy()}
             onClick={handleSignIn}
           >
             <Show when={!props.busy()} fallback={<span class="spinner" />}>
-              Sign in with Claude
+              {t('anthropic.signIn')}
             </Show>
           </button>
         </div>
 
         <div class="anthropic-detail__alt">
           <div class="anthropic-detail__alt-divider">
-            <span>Paste the authorization code</span>
+            <span>{t('anthropic.pasteCode')}</span>
           </div>
-          <p class="anthropic-detail__alt-hint">
-            After signing in, Anthropic's redirect page shows a code. Copy the full string and paste
-            it below.
-          </p>
+          <p class="anthropic-detail__alt-hint">{t('anthropic.pasteCodeHint')}</p>
           <input
             class="provider-detail__input provider-detail__input--masked"
             classList={{ 'provider-detail__input--error': !!error() }}
             type="text"
             autocomplete="off"
-            placeholder="Authorization code"
-            aria-label="Anthropic authorization code"
+            placeholder={t('anthropic.codePlaceholder')}
+            aria-label={t('anthropic.codeAria')}
             value={input()}
             onInput={(e) => {
               setInput(e.currentTarget.value);
@@ -262,7 +247,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
             onClick={handleSubmit}
           >
             <Show when={!props.busy()} fallback={<span class="spinner" />}>
-              Connect
+              {t('components.connect')}
             </Show>
           </button>
         </div>
@@ -272,7 +257,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
             disabled={props.busy()}
             onClick={cancelAddAccount}
           >
-            Cancel
+            {t('components.cancel')}
           </button>
         </Show>
       </Show>
@@ -280,10 +265,10 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
         {/* Multi-key list */}
         <Show when={isMultiKey()}>
           <div class="provider-detail__field">
-            <label class="provider-detail__label">Accounts</label>
+            <label class="provider-detail__label">{t('account.accounts')}</label>
             <ul
               role="list"
-              aria-label={`OAuth accounts for ${props.provDef.name}`}
+              aria-label={t('account.oauthAccountsFor', { provider: props.provDef.name })}
               style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;"
             >
               <For each={props.activeKeys!()}>
@@ -298,7 +283,10 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
                               {k.label}
                             </div>
                             <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                              Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
+                              {t('account.connectedVia', {
+                                method:
+                                  props.provDef.subscriptionLabel ?? t('authBadge.subscription'),
+                              })}
                             </div>
                           </div>
                           <button
@@ -307,14 +295,14 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
                             disabled={props.busy()}
                             onClick={() => startRename(k)}
                           >
-                            Rename
+                            {t('account.rename')}
                           </button>
                           <button
                             class="provider-detail__disconnect-icon"
                             disabled={props.busy()}
                             onClick={() => handleDeleteKey(k.label)}
-                            aria-label={`Delete account ${k.label}`}
-                            title="Delete account"
+                            aria-label={t('account.deleteNamed', { name: k.label })}
+                            title={t('account.delete')}
                           >
                             <svg
                               width="16"
@@ -339,7 +327,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
                         class="provider-detail__input"
                         type="text"
                         maxlength={MAX_LABEL_LENGTH}
-                        aria-label={`Rename ${k.label}`}
+                        aria-label={t('account.renameNamed', { name: k.label })}
                         value={renameValue()}
                         onInput={(e) => setRenameValue(e.currentTarget.value)}
                         onKeyDown={(e) => {
@@ -352,14 +340,14 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
                         disabled={props.busy()}
                         onClick={() => commitRename(k)}
                       >
-                        Save
+                        {t('components.save')}
                       </button>
                       <button
                         class="btn btn--outline btn--sm"
                         disabled={props.busy()}
                         onClick={() => setRenamingId(null)}
                       >
-                        Cancel
+                        {t('components.cancel')}
                       </button>
                     </Show>
                   </li>
@@ -373,7 +361,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
             onClick={handleDisconnect}
           >
             <Show when={!props.busy()} fallback={<span class="spinner" />}>
-              Disconnect all
+              {t('account.disconnectAll')}
             </Show>
           </button>
         </Show>
@@ -381,7 +369,9 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
         <Show when={!isMultiKey()}>
           <div class="provider-detail__field">
             <span class="provider-detail__no-key">
-              Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
+              {t('account.connectedVia', {
+                method: props.provDef.subscriptionLabel ?? t('authBadge.subscription'),
+              })}
             </span>
           </div>
           <button
@@ -390,7 +380,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
             onClick={handleDisconnect}
           >
             <Show when={!props.busy()} fallback={<span class="spinner" />}>
-              Disconnect
+              {t('components.disconnect')}
             </Show>
           </button>
         </Show>

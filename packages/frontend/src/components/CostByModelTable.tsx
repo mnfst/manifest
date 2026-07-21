@@ -17,6 +17,7 @@ import {
   MODEL_SUCCESS_RATE_TOOLTIP,
   type ModelReliabilityRow,
 } from '../services/api/analytics.js';
+import { t } from '../i18n/index.js';
 
 interface CostByModelRow {
   model: string;
@@ -64,17 +65,17 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
 
   return (
     <div class="panel" style="margin-top: var(--gap-lg);">
-      <div class="panel__title">Model usage</div>
+      <div class="panel__title">{t('pages.globalOverview.modelUsage')}</div>
       <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin: -8px 0 12px;">
         The models used and what they cost you
       </p>
       <table class="data-table">
         <thead>
           <tr>
-            <th>Model</th>
-            <th>Tokens</th>
-            <th>% of total</th>
-            <th>Cost</th>
+            <th>{t('costByModel.model')}</th>
+            <th>{t('costByModel.tokens')}</th>
+            <th>{t('costByModel.share')}</th>
+            <th>{t('costByModel.cost')}</th>
             {props.reliability && (
               <>
                 <th class="rel-col">

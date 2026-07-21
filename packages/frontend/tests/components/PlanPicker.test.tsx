@@ -1,9 +1,12 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@solidjs/testing-library';
 import PlanPicker from '../../src/components/PlanPicker';
 import { FREE_REQUEST_LIMIT_LABEL } from '../../src/services/billing-display';
+import { setLocale } from '../../src/i18n/index.js';
 
 describe('PlanPicker', () => {
+  beforeEach(async () => setLocale('en'));
+
   it('renders the Pro plan expanded by default and submits it', () => {
     const onSelect = vi.fn();
     const { container } = render(() => <PlanPicker proPrice="$20" onSelect={onSelect} />);
@@ -67,5 +70,13 @@ describe('PlanPicker', () => {
     expect(screen.getAllByText('Pro').length).toBeGreaterThan(0);
     expect(cta.disabled).toBe(true);
     expect(cta.querySelector('.spinner')).not.toBeNull();
+  });
+
+  it('renders the free request limit with Russian locale grouping', async () => {
+    await setLocale('ru');
+    const { container } = render(() => <PlanPicker proPrice="$20" onSelect={vi.fn()} />);
+    fireEvent.click(container.querySelectorAll<HTMLButtonElement>('.plan-picker__card')[0]);
+
+    expect(container.textContent).toMatch(/10[\u00a0\u202f]000 маршрутизируемых запросов/);
   });
 });

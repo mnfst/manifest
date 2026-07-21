@@ -4,6 +4,7 @@ import { providerIcon, customProviderLogo } from '../components/ProviderIcon.js'
 import { customProviderColor } from '../services/formatters.js';
 import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import type { RoutingProvider, CustomProviderData } from '../services/api.js';
+import { t, tp } from '../i18n/index.js';
 
 /** Skeleton placeholder rendered while routing data is loading. */
 export const RoutingLoadingSkeleton: Component = () => {
@@ -111,9 +112,14 @@ export const ActiveProviderIcons: Component<ActiveProviderIconsProps> = (props) 
                 <Show when={keyCount > 1}>
                   <span class="routing-providers-info__tooltip">
                     <strong>
-                      {keyCount} {authLabel(group.auth_type)} keys
+                      {t('pages.routing.providerKeys', {
+                        count: keyCount,
+                        authType: authLabel(group.auth_type),
+                      })}
                     </strong>
-                    <For each={group.keys}>{(k) => <span>{k.label || 'Default'}</span>}</For>
+                    <For each={group.keys}>
+                      {(k) => <span>{k.label || t('pages.routing.defaultKey')}</span>}
+                    </For>
                   </span>
                 </Show>
                 <Show when={keyCount === 1}>
@@ -128,8 +134,7 @@ export const ActiveProviderIcons: Component<ActiveProviderIconsProps> = (props) 
         </For>
       </span>
       <span class="routing-providers-info__label">
-        {props.activeProviders().length} connection
-        {props.activeProviders().length !== 1 ? 's' : ''}
+        {tp('pages.routing.connectionCount', props.activeProviders().length)}
       </span>
     </div>
   );
@@ -153,18 +158,18 @@ export const RoutingFooter: Component<RoutingFooterProps> = (props) => (
         onClick={() => props.onResetAll()}
         disabled={props.resettingAll() || props.resettingTier() !== null}
       >
-        {props.resettingAll() ? <span class="spinner" /> : 'Reset all to auto'}
+        {props.resettingAll() ? <span class="spinner" /> : t('pages.routing.resetAll')}
       </button>
     </Show>
     <div style="flex: 1;" />
     <Show when={props.onShowHowRoutingWorks}>
       <button class="routing-footer__instructions" onClick={() => props.onShowHowRoutingWorks?.()}>
-        How routing works
+        {t('pages.routing.howItWorks')}
       </button>
       <span class="routing-footer__sep">|</span>
     </Show>
     <button class="routing-footer__instructions" onClick={() => props.onShowInstructions()}>
-      Setup instructions
+      {t('pages.routing.setupInstructions')}
     </button>
   </div>
 );

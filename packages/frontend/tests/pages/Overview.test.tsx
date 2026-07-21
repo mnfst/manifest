@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@solidjs/testing-library';
+import { setLocale } from '../../src/i18n/index.js';
 
 let mockAgentName = 'test-agent';
 let mockLocationState: any = null;
@@ -256,7 +257,8 @@ const emptyOverviewData = {
 };
 
 describe('Overview', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await setLocale('en');
     vi.clearAllMocks();
     localStorage.clear();
     localStorage.setItem('manifest_global_group', 'provider');
@@ -454,6 +456,22 @@ describe('Overview', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('No activity yet');
     });
+  });
+
+  it('keeps the original English example image and hides it for Russian UI', async () => {
+    mockGetOverview.mockResolvedValue(emptyOverviewData);
+    const english = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(english.container.querySelector('img[src="/example-overview.svg"]')).not.toBeNull();
+    });
+    english.unmount();
+
+    await setLocale('ru');
+    const russian = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(russian.container.querySelector('.empty-state')).not.toBeNull();
+    });
+    expect(russian.container.querySelector('img[src="/example-overview.svg"]')).toBeNull();
   });
 
   it('calls getOverview on mount', async () => {

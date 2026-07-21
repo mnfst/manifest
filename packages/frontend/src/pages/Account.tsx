@@ -11,10 +11,8 @@ import { Title, Meta } from '@solidjs/meta';
 import { authClient } from '../services/auth-client.js';
 import { getBillingStatus, updateBillingEmailPreferences } from '../services/api/billing.js';
 import { toast } from '../services/toast-store.js';
-import {
-  FREE_REQUEST_LIMIT_LABEL,
-  formatBillingPriceWithInterval,
-} from '../services/billing-display.js';
+import { FREE_REQUEST_LIMIT, formatBillingPriceWithInterval } from '../services/billing-display.js';
+import { formatDate, formatNumber, t } from '../i18n/index.js';
 
 const Account: Component = () => {
   const navigate = useNavigate();
@@ -35,15 +33,15 @@ const Account: Component = () => {
     const next = newPassword();
 
     if (next !== confirmPassword()) {
-      setPwError('New passwords do not match');
+      setPwError(t('pages.account.error.passwordMismatch'));
       return;
     }
     if (next.length < 8) {
-      setPwError('New password must be at least 8 characters');
+      setPwError(t('pages.account.error.passwordLength'));
       return;
     }
     if (next === current) {
-      setPwError('New password must differ from the current password');
+      setPwError(t('pages.account.error.passwordSame'));
       return;
     }
 
@@ -56,16 +54,16 @@ const Account: Component = () => {
       });
 
       if (error) {
-        setPwError(error.message ?? 'Failed to change password');
+        setPwError(error.message ?? t('pages.account.error.passwordChange'));
         return;
       }
 
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      toast.success('Password changed. Other devices have been signed out.');
+      toast.success(t('pages.account.passwordChanged'));
     } catch {
-      setPwError('Failed to change password');
+      setPwError(t('pages.account.error.passwordChange'));
     } finally {
       setPwBusy(false);
     }
@@ -98,7 +96,7 @@ const Account: Component = () => {
     }
 
     if (searchParams['upgraded'] === '1') {
-      toast.success('Welcome to Pro!');
+      toast.success(t('pages.account.welcomePro'));
       setSearchParams({ upgraded: undefined }, { replace: true });
     }
   });
@@ -115,7 +113,7 @@ const Account: Component = () => {
       const error = (res as { error?: unknown } | undefined)?.error;
       if (error) throw error;
     } catch {
-      toast.error('Could not start the upgrade. Please try again.');
+      toast.error(t('pages.account.error.upgrade'));
     } finally {
       setBillingBusy(false);
     }
@@ -142,17 +140,15 @@ const Account: Component = () => {
         else window.open(url, '_blank', 'noopener,noreferrer');
       } else {
         tab?.close();
-        toast.error('Could not open the billing portal. Please try again.');
+        toast.error(t('pages.account.error.billingPortal'));
       }
     } catch {
       tab?.close();
-      toast.error('Could not open the billing portal. Please try again.');
+      toast.error(t('pages.account.error.billingPortal'));
     } finally {
       setBillingBusy(false);
     }
   };
-
-  const fmt = (n: number) => n.toLocaleString('en-US');
 
   const applyTheme = (value: 'light' | 'dark' | 'system') => {
     setTheme(value);
@@ -180,7 +176,7 @@ const Account: Component = () => {
       const saved = await updateBillingEmailPreferences({ usageAlerts: enabled });
       setUsageAlertsEnabled(saved.usageAlerts);
       await refetchBilling();
-      toast.success('Email preferences saved');
+      toast.success(t('pages.account.emailPreferencesSaved'));
     } catch {
       setUsageAlertsEnabled(previous);
     } finally {
@@ -190,8 +186,8 @@ const Account: Component = () => {
 
   return (
     <div class="account-modal">
-      <Title>Account Preferences - Manifest</Title>
-      <Meta name="description" content="Manage your profile, workspace, and theme preferences." />
+      <Title>{t('pages.account.metaTitle')}</Title>
+      <Meta name="description" content={t('pages.account.metaDescription')} />
       <div class="account-modal__inner">
         <button class="btn btn--ghost btn--sm account-back-btn" onClick={() => navigate(-1)}>
           <svg
@@ -204,29 +200,31 @@ const Account: Component = () => {
           >
             <path d="M14.71 7.29a.996.996 0 0 0-1.41 0l-4 4a.996.996 0 0 0 0 1.41l4 4c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41L11.43 12l3.29-3.29a.996.996 0 0 0 0-1.41Z" />
           </svg>
-          Back
+          {t('pages.account.back')}
         </button>
         <div class="page-header">
           <div>
-            <h1>Account Preferences</h1>
-            <span class="breadcrumb">Your profile, workspace details, and display preferences</span>
+            <h1>{t('pages.account.title')}</h1>
+            <span class="breadcrumb">{t('pages.account.subtitle')}</span>
           </div>
         </div>
 
         {/* Profile Information */}
-        <h2 class="settings-section__title">Profile information</h2>
+        <h2 class="settings-section__title">{t('pages.account.profile')}</h2>
 
         <div class="settings-card">
           <div class="settings-card__row">
             <div class="settings-card__label">
-              <span class="settings-card__label-title">Display name</span>
-              <span class="settings-card__label-desc">Name shown throughout the dashboard.</span>
+              <span class="settings-card__label-title">{t('pages.account.displayName')}</span>
+              <span class="settings-card__label-desc">
+                {t('pages.account.displayNameDescription')}
+              </span>
             </div>
             <div class="settings-card__control">
               <input
                 class="settings-card__input"
                 type="text"
-                aria-label="Display name"
+                aria-label={t('pages.account.displayName')}
                 value={userName()}
                 readonly
               />
@@ -234,14 +232,14 @@ const Account: Component = () => {
           </div>
           <div class="settings-card__row">
             <div class="settings-card__label">
-              <span class="settings-card__label-title">Email</span>
-              <span class="settings-card__label-desc">Used for account notifications.</span>
+              <span class="settings-card__label-title">{t('pages.account.email')}</span>
+              <span class="settings-card__label-desc">{t('pages.account.emailDescription')}</span>
             </div>
             <div class="settings-card__control">
               <input
                 class="settings-card__input"
                 type="email"
-                aria-label="Email"
+                aria-label={t('pages.account.email')}
                 value={userEmail()}
                 readonly
               />
@@ -249,27 +247,29 @@ const Account: Component = () => {
           </div>
           <div class="settings-card__footer">
             <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-              Profile information is managed through your authentication provider.
+              {t('pages.account.profileManaged')}
             </span>
           </div>
         </div>
 
         {/* Security */}
         <Show when={hasCredentialAccount()}>
-          <h2 class="settings-section__title">Security</h2>
+          <h2 class="settings-section__title">{t('pages.account.security')}</h2>
 
           <form class="settings-card" onSubmit={handleChangePassword}>
             <div class="settings-card__row">
               <div class="settings-card__label">
-                <span class="settings-card__label-title">Current password</span>
-                <span class="settings-card__label-desc">Confirm the password you use today.</span>
+                <span class="settings-card__label-title">{t('pages.account.currentPassword')}</span>
+                <span class="settings-card__label-desc">
+                  {t('pages.account.currentPasswordDescription')}
+                </span>
               </div>
               <div class="settings-card__control">
                 <input
                   class="settings-card__input"
                   type="password"
                   autocomplete="current-password"
-                  aria-label="Current password"
+                  aria-label={t('pages.account.currentPassword')}
                   value={currentPassword()}
                   onInput={(e) => setCurrentPassword(e.currentTarget.value)}
                   required
@@ -278,15 +278,17 @@ const Account: Component = () => {
             </div>
             <div class="settings-card__row">
               <div class="settings-card__label">
-                <span class="settings-card__label-title">New password</span>
-                <span class="settings-card__label-desc">At least 8 characters.</span>
+                <span class="settings-card__label-title">{t('pages.account.newPassword')}</span>
+                <span class="settings-card__label-desc">
+                  {t('pages.account.newPasswordDescription')}
+                </span>
               </div>
               <div class="settings-card__control">
                 <input
                   class="settings-card__input"
                   type="password"
                   autocomplete="new-password"
-                  aria-label="New password"
+                  aria-label={t('pages.account.newPassword')}
                   value={newPassword()}
                   onInput={(e) => setNewPassword(e.currentTarget.value)}
                   required
@@ -296,15 +298,17 @@ const Account: Component = () => {
             </div>
             <div class="settings-card__row">
               <div class="settings-card__label">
-                <span class="settings-card__label-title">Confirm new password</span>
-                <span class="settings-card__label-desc">Re-enter the new password to confirm.</span>
+                <span class="settings-card__label-title">{t('pages.account.confirmPassword')}</span>
+                <span class="settings-card__label-desc">
+                  {t('pages.account.confirmPasswordDescription')}
+                </span>
               </div>
               <div class="settings-card__control">
                 <input
                   class="settings-card__input"
                   type="password"
                   autocomplete="new-password"
-                  aria-label="Confirm new password"
+                  aria-label={t('pages.account.confirmPassword')}
                   value={confirmPassword()}
                   onInput={(e) => setConfirmPassword(e.currentTarget.value)}
                   required
@@ -317,28 +321,27 @@ const Account: Component = () => {
                 {pwError()}
               </span>
               <button class="btn btn--primary btn--sm" type="submit" disabled={pwBusy()}>
-                {pwBusy() ? <span class="spinner" /> : 'Change password'}
+                {pwBusy() ? <span class="spinner" /> : t('pages.account.changePassword')}
               </button>
             </div>
           </form>
         </Show>
 
         {/* Workspace ID */}
-        <h2 class="settings-section__title">Workspace</h2>
+        <h2 class="settings-section__title">{t('pages.account.workspace')}</h2>
 
         <div class="settings-card">
           <div class="settings-card__body">
-            <p class="settings-card__desc">
-              Your unique workspace identifier. You may need this for support requests or advanced
-              integrations.
-            </p>
+            <p class="settings-card__desc">{t('pages.account.workspaceDescription')}</p>
             <div class="settings-card__id-row">
               <code class="settings-card__id-value">{userId()}</code>
               <button
                 class="settings-card__copy-btn"
                 onClick={copyId}
-                title="Copy"
-                aria-label={copied() ? 'Copied' : 'Copy workspace ID'}
+                title={t('pages.account.copy')}
+                aria-label={
+                  copied() ? t('pages.account.copied') : t('pages.account.copyWorkspaceId')
+                }
               >
                 {copied() ? (
                   <svg
@@ -378,46 +381,53 @@ const Account: Component = () => {
         {/* Billing */}
         <Show when={billing()?.enabled}>
           <h2 class="settings-section__title" id="billing">
-            Billing
+            {t('pages.account.billing')}
           </h2>
 
           <div class="settings-card">
             <div class="billing-stats">
               <div class="billing-stat">
-                <span class="billing-stat__label">Current plan</span>
+                <span class="billing-stat__label">{t('pages.account.currentPlan')}</span>
                 <span class="billing-stat__value">
-                  {billing()!.plan === 'pro' ? 'Pro' : 'Free'}
+                  {billing()!.plan === 'pro'
+                    ? t('pages.account.plan.pro')
+                    : t('pages.account.plan.free')}
                   {billing()!.plan === 'pro' && proPriceWithInterval()
                     ? ` · ${proPriceWithInterval()}`
                     : ''}
                 </span>
                 <Show when={billing()!.cancelAtPeriodEnd && billing()!.subscriptionPeriodEnd}>
                   <span class="billing-stat__cancel">
-                    You'll keep Pro access until{' '}
-                    {new Date(billing()!.subscriptionPeriodEnd!).toLocaleDateString(undefined, {
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric',
+                    {t('pages.account.proUntil', {
+                      date: formatDate(new Date(billing()!.subscriptionPeriodEnd!), {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      }),
                     })}
                   </span>
                 </Show>
               </div>
 
               <div class="billing-stat">
-                <span class="billing-stat__label">Requests</span>
+                <span class="billing-stat__label">{t('pages.account.requests')}</span>
                 <span class="billing-stat__value">
                   {billing()!.requests.limit != null
                     ? billing()!.requests.used != null
-                      ? `${fmt(billing()!.requests.used!)} / ${fmt(billing()!.requests.limit!)}`
-                      : fmt(billing()!.requests.limit!)
-                    : 'Unlimited'}
+                      ? t('pages.account.requestUsage', {
+                          used: formatNumber(billing()!.requests.used!),
+                          limit: formatNumber(billing()!.requests.limit!),
+                        })
+                      : formatNumber(billing()!.requests.limit!)
+                    : t('pages.account.unlimited')}
                 </span>
                 <Show when={billing()!.requests.limit != null && billing()!.requests.periodEnd}>
                   <span class="billing-stat__meta">
-                    Resets{' '}
-                    {new Date(billing()!.requests.periodEnd!).toLocaleDateString(undefined, {
-                      month: 'short',
-                      day: 'numeric',
+                    {t('pages.account.resets', {
+                      date: formatDate(new Date(billing()!.requests.periodEnd!), {
+                        month: 'short',
+                        day: 'numeric',
+                      }),
                     })}
                   </span>
                 </Show>
@@ -427,8 +437,8 @@ const Account: Component = () => {
             <div class="settings-card__footer billing-footer">
               <span class="billing-footer__note">
                 {billing()!.plan === 'free'
-                  ? `Free: ${FREE_REQUEST_LIMIT_LABEL} requests/mo · Pro: unlimited requests`
-                  : 'Update your payment method and view invoices.'}
+                  ? t('pages.account.freePlanNote', { limit: formatNumber(FREE_REQUEST_LIMIT) })
+                  : t('pages.account.proPlanNote')}
               </span>
               <Show
                 when={billing()!.plan === 'free'}
@@ -439,14 +449,18 @@ const Account: Component = () => {
                       disabled={billingBusy()}
                       onClick={handleManageBilling}
                     >
-                      {billingBusy() ? <span class="spinner" /> : 'Manage subscription'}
+                      {billingBusy() ? (
+                        <span class="spinner" />
+                      ) : (
+                        t('pages.account.manageSubscription')
+                      )}
                     </button>
                     <button
                       class="btn btn--outline btn--sm"
                       disabled={billingBusy()}
                       onClick={handleManageBilling}
                     >
-                      {billingBusy() ? <span class="spinner" /> : 'View invoices'}
+                      {billingBusy() ? <span class="spinner" /> : t('pages.account.viewInvoices')}
                     </button>
                   </div>
                 }
@@ -456,7 +470,7 @@ const Account: Component = () => {
                   disabled={billingBusy()}
                   onClick={handleUpgrade}
                 >
-                  Upgrade to Pro
+                  {t('pages.account.upgrade')}
                   {proPriceWithInterval() ? ` · ${proPriceWithInterval()}` : ''}
                 </button>
               </Show>
@@ -467,22 +481,22 @@ const Account: Component = () => {
         {/* Email Preferences */}
         <Show when={billing()?.enabled}>
           <h2 class="settings-section__title" id="email-preferences">
-            Email preferences
+            {t('pages.account.emailPreferences')}
           </h2>
 
           <div class="settings-card">
             <div class="settings-card__row">
               <div class="settings-card__label">
-                <span class="settings-card__label-title">Usage alert emails</span>
+                <span class="settings-card__label-title">{t('pages.account.usageAlerts')}</span>
                 <span class="settings-card__label-desc">
-                  Receive emails at 80% usage and when the monthly request limit is reached.
+                  {t('pages.account.usageAlertsDescription')}
                 </span>
               </div>
               <div class="settings-card__control settings-card__control--end">
                 <label
                   class="notification-toggle account-email-toggle"
                   classList={{ 'account-email-toggle--disabled': emailPrefsBusy() }}
-                  title="Usage alert emails"
+                  title={t('pages.account.usageAlerts')}
                 >
                   <input
                     type="checkbox"
@@ -491,23 +505,22 @@ const Account: Component = () => {
                     onChange={(e) => void handleUsageAlertsChange(e.currentTarget.checked)}
                   />
                   <span class="notification-toggle__slider" aria-hidden="true" />
-                  <span class="sr-only">Receive usage alert emails</span>
+                  <span class="sr-only">{t('pages.account.receiveUsageAlerts')}</span>
                 </label>
               </div>
             </div>
             <div class="settings-card__footer account-email-footer">
-              Plan confirmations, plan changes, and cancellation confirmations remain on as billing
-              lifecycle emails.
+              {t('pages.account.emailLifecycleNote')}
             </div>
           </div>
         </Show>
 
         {/* Appearance */}
-        <h2 class="settings-section__title">Appearance</h2>
+        <h2 class="settings-section__title">{t('pages.account.appearance')}</h2>
 
         <div class="settings-card">
           <div class="settings-card__body">
-            <p class="settings-card__desc">Choose how Manifest looks for you.</p>
+            <p class="settings-card__desc">{t('pages.account.appearanceDescription')}</p>
             <div class="theme-picker">
               <button
                 class="theme-picker__option"
@@ -535,7 +548,7 @@ const Account: Component = () => {
                   <path d="m6.34 17.66-1.41 1.41" />
                   <path d="m19.07 4.93-1.41 1.41" />
                 </svg>
-                Light
+                {t('pages.account.theme.light')}
               </button>
               <button
                 class="theme-picker__option"
@@ -555,7 +568,7 @@ const Account: Component = () => {
                 >
                   <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
                 </svg>
-                Dark
+                {t('pages.account.theme.dark')}
               </button>
               <button
                 class="theme-picker__option"
@@ -577,7 +590,7 @@ const Account: Component = () => {
                   <path d="M8 21h8" />
                   <path d="M12 17v4" />
                 </svg>
-                System
+                {t('pages.account.theme.system')}
               </button>
             </div>
           </div>

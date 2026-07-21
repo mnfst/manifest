@@ -3,6 +3,7 @@ import { Title, Meta } from '@solidjs/meta';
 import { type Component, createSignal, onMount, Show } from 'solid-js';
 import { authClient } from '../services/auth-client.js';
 import { checkNeedsSetup, createFirstAdmin } from '../services/setup-status.js';
+import { t } from '../i18n/index.js';
 
 const Setup: Component = () => {
   const navigate = useNavigate();
@@ -28,11 +29,11 @@ const Setup: Component = () => {
     setError('');
 
     if (password() !== confirmPassword()) {
-      setError('Passwords do not match');
+      setError(t('pages.setup.error.passwordMismatch'));
       return;
     }
     if (password().length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(t('pages.setup.error.passwordLength'));
       return;
     }
 
@@ -52,7 +53,7 @@ const Setup: Component = () => {
       }
       window.location.href = '/';
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Setup failed');
+      setError(err instanceof Error ? err.message : t('pages.setup.error.failed'));
     } finally {
       setLoading(false);
     }
@@ -60,12 +61,15 @@ const Setup: Component = () => {
 
   return (
     <>
-      <Title>Set up Manifest</Title>
-      <Meta name="description" content="Create the admin account for your Manifest instance." />
-      <Show when={!checking()} fallback={<div class="auth-header__subtitle">Loading...</div>}>
+      <Title>{t('pages.setup.metaTitle')}</Title>
+      <Meta name="description" content={t('pages.setup.metaDescription')} />
+      <Show
+        when={!checking()}
+        fallback={<div class="auth-header__subtitle">{t('pages.setup.loading')}</div>}
+      >
         <div class="auth-header">
-          <h1 class="auth-header__title">Welcome to Manifest</h1>
-          <p class="auth-header__subtitle">Create the admin account for your instance</p>
+          <h1 class="auth-header__title">{t('pages.setup.title')}</h1>
+          <p class="auth-header__subtitle">{t('pages.setup.subtitle')}</p>
         </div>
         <form class="auth-form" onSubmit={handleSubmit}>
           {error() && (
@@ -74,11 +78,11 @@ const Setup: Component = () => {
             </div>
           )}
           <label class="auth-form__label">
-            Name
+            {t('pages.setup.name')}
             <input
               class="auth-form__input"
               type="text"
-              placeholder="Your name"
+              placeholder={t('pages.setup.namePlaceholder')}
               value={name()}
               onInput={(e) => setName(e.currentTarget.value)}
               required
@@ -87,22 +91,22 @@ const Setup: Component = () => {
             />
           </label>
           <label class="auth-form__label">
-            Email
+            {t('pages.setup.email')}
             <input
               class="auth-form__input"
               type="email"
-              placeholder="you@example.com"
+              placeholder={t('pages.setup.emailPlaceholder')}
               value={email()}
               onInput={(e) => setEmail(e.currentTarget.value)}
               required
             />
           </label>
           <label class="auth-form__label">
-            Password
+            {t('pages.setup.password')}
             <input
               class="auth-form__input"
               type="password"
-              placeholder="At least 8 characters"
+              placeholder={t('pages.setup.passwordPlaceholder')}
               value={password()}
               onInput={(e) => setPassword(e.currentTarget.value)}
               required
@@ -111,11 +115,11 @@ const Setup: Component = () => {
             />
           </label>
           <label class="auth-form__label">
-            Confirm password
+            {t('pages.setup.confirmPassword')}
             <input
               class="auth-form__input"
               type="password"
-              placeholder="Re-enter password"
+              placeholder={t('pages.setup.confirmPasswordPlaceholder')}
               value={confirmPassword()}
               onInput={(e) => setConfirmPassword(e.currentTarget.value)}
               required
@@ -124,7 +128,7 @@ const Setup: Component = () => {
             />
           </label>
           <button class="auth-form__submit" type="submit" disabled={loading()}>
-            {loading() ? <span class="spinner" /> : 'Create admin account'}
+            {loading() ? <span class="spinner" /> : t('pages.setup.createAccount')}
           </button>
         </form>
       </Show>

@@ -1,4 +1,5 @@
 import { Show, createSignal, type Component } from 'solid-js';
+import { t } from '../i18n/index.js';
 
 export const SOCIAL_FOLLOW_DISMISSED_KEY = 'manifest:overview-social-follow-dismissed:v4';
 
@@ -28,7 +29,7 @@ const SocialFollowBanner: Component = () => {
 
   return (
     <Show when={!dismissed()}>
-      <aside class="overview-social-banner" aria-label="Manifest announcement">
+      <aside class="overview-social-banner" aria-label={t('social.announcementAria')}>
         <div class="overview-social-banner__inner">
           <span class="overview-social-banner__text">
             🔥 Introducing request recovery and paid plans for Manifest Cloud.{' '}
@@ -38,13 +39,13 @@ const SocialFollowBanner: Component = () => {
               rel="noopener noreferrer"
               class="overview-social-banner__read-more"
             >
-              Read more
+              {t('overview.readMore')}
             </a>
           </span>
           <button
             type="button"
             class="overview-social-banner__dismiss"
-            aria-label="Dismiss banner"
+            aria-label={t('social.dismissBanner')}
             onClick={dismiss}
           >
             <svg

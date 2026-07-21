@@ -11,6 +11,7 @@ import {
 import { toast } from '../services/toast-store.js';
 import { checkLocalLlmHost } from '../services/setup-status.js';
 import { providerIcon } from './ProviderIcon.js';
+import { t, tp } from '../i18n/index.js';
 
 interface Props {
   agentName: string;
@@ -35,7 +36,30 @@ interface ProbeState {
 
 const LocalServerDetailView: Component<Props> = (props) => {
   const isEdit = () => !!props.editData;
-  const hint = (): LocalServerHint | undefined => LOCAL_SERVER_HINTS[props.provider.id];
+  const hint = (): LocalServerHint | undefined => {
+    const value = LOCAL_SERVER_HINTS[props.provider.id];
+    if (!value) return undefined;
+    if (props.provider.id === 'lmstudio') {
+      return {
+        ...value,
+        dockerBindNote: t('local.lmstudioDocker'),
+        dockerGuiFix: t('local.lmstudioGui'),
+      };
+    }
+    if (props.provider.id === 'llamacpp') {
+      return {
+        ...value,
+        setupNote: t('local.llamacppSetup'),
+        dockerBindNote: t('local.llamacppDocker'),
+        notReachableHint: {
+          before: t('local.llamacppBefore'),
+          linkLabel: t('local.llamacppLink'),
+          after: t('local.llamacppAfter'),
+        },
+      };
+    }
+    return value;
+  };
 
   const [hostResource] = createResource(() => checkLocalLlmHost());
   // `defaultLocalPort` is the gate that routes the tile click here in
@@ -77,7 +101,7 @@ const LocalServerDetailView: Component<Props> = (props) => {
         return { models: names, baseUrl: url };
       } catch (err) {
         if (wasConnected) {
-          toast.error(`${props.provider.name} is no longer reachable`);
+          toast.error(t('local.unreachable', { provider: props.provider.name }));
         }
         throw err;
       }
@@ -109,9 +133,7 @@ const LocalServerDetailView: Component<Props> = (props) => {
             output_price_per_million_tokens: 0,
           })),
         });
-        toast.success(
-          `${props.provider.name} updated (${picked.length} model${picked.length === 1 ? '' : 's'})`,
-        );
+        toast.success(tp('local.updatedModels', picked.length, { provider: props.provider.name }));
       } else {
         await createCustomProvider(props.agentName, {
           name: props.provider.name,
@@ -123,12 +145,16 @@ const LocalServerDetailView: Component<Props> = (props) => {
           })),
         });
         toast.success(
-          `${props.provider.name} connected (${picked.length} model${picked.length === 1 ? '' : 's'})`,
+          tp('local.connectedModels', picked.length, { provider: props.provider.name }),
         );
       }
       props.onConnected();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : `Failed to connect ${props.provider.name}`);
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : t('local.connectFailed', { provider: props.provider.name }),
+      );
     } finally {
       setConnecting(false);
     }
@@ -139,11 +165,13 @@ const LocalServerDetailView: Component<Props> = (props) => {
     setDeleting(true);
     try {
       await deleteCustomProvider(props.agentName, props.editData.id);
-      toast.success(`${props.provider.name} disconnected`);
+      toast.success(t('local.disconnected', { provider: props.provider.name }));
       props.onConnected();
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : `Failed to disconnect ${props.provider.name}`,
+        err instanceof Error
+          ? err.message
+          : t('local.disconnectFailed', { provider: props.provider.name }),
       );
     } finally {
       setDeleting(false);
@@ -152,7 +180,11 @@ const LocalServerDetailView: Component<Props> = (props) => {
 
   return (
     <div class="provider-detail">
-      <button class="modal-back-btn" onClick={props.onBack} aria-label="Back to providers">
+      <button
+        class="modal-back-btn"
+        onClick={props.onBack}
+        aria-label={t('components.backToProviders')}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -168,7 +200,9 @@ const LocalServerDetailView: Component<Props> = (props) => {
       {/* Title */}
       <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 15px;">
         <div>
-          <div class="routing-modal__title">{isEdit() ? 'Edit provider' : 'Connect provider'}</div>
+          <div class="routing-modal__title">
+            {isEdit() ? t('local.editProvider') : t('copilot.connectProvider')}
+          </div>
         </div>
       </div>
 
@@ -206,7 +240,7 @@ const LocalServerDetailView: Component<Props> = (props) => {
             style="display: flex; align-items: center; gap: 8px; padding: 12px 0; color: hsl(var(--muted-foreground));"
           >
             <span class="spinner" aria-hidden="true" />
-            <span>Checking {resolvedBaseUrl() || 'the server'}…</span>
+            <span>{t('local.checking', { server: resolvedBaseUrl() || t('local.server') })}</span>
           </div>
         }
       >
@@ -251,7 +285,7 @@ const LocalServerDetailView: Component<Props> = (props) => {
                 disabled={deleting()}
                 onClick={handleDelete}
               >
-                {deleting() ? <span class="spinner" /> : 'Delete provider'}
+                {deleting() ? <span class="spinner" /> : t('custom.deleteProvider')}
               </button>
             </Show>
             <button
@@ -263,9 +297,9 @@ const LocalServerDetailView: Component<Props> = (props) => {
               {connecting() ? (
                 <span class="spinner" />
               ) : isEdit() ? (
-                'Save changes'
+                t('custom.saveChanges')
               ) : (
-                `Connect ${selected().size} model${selected().size === 1 ? '' : 's'}`
+                tp('local.connectModels', selected().size)
               )}
             </button>
           </div>
@@ -290,14 +324,14 @@ const SuccessState: Component<{
       {/* Header row: model count + refresh */}
       <div style="display: flex; align-items: center; margin-bottom: 8px;">
         <span style="font-size: var(--font-size-sm); font-weight: 600; color: hsl(var(--foreground));">
-          {`${p.models.length} model${p.models.length === 1 ? '' : 's'} available at ${p.baseUrl}`}
+          {tp('local.modelsAvailable', p.models.length, { url: p.baseUrl })}
         </span>
         <button
           type="button"
-          title="Refresh"
+          title={t('local.refresh')}
           onClick={p.onRefresh}
           disabled={p.refreshing}
-          aria-label="Refresh model list"
+          aria-label={t('local.refreshModels')}
           style="margin-left: auto; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 1px solid hsl(var(--border)); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); border-radius: var(--radius); cursor: pointer; flex-shrink: 0;"
         >
           <Show when={!p.refreshing} fallback={<span class="spinner" aria-hidden="true" />}>
@@ -377,10 +411,7 @@ const EmptyModelsState: Component<{
             <path d="M15 6A1 1 0 1 0 15 8 1 1 0 1 0 15 6z" />
           </g>
         </svg>
-        <span>
-          Server is running at {p.baseUrl}, but no models are loaded. Open {p.providerName} and load
-          a model to see it here.
-        </span>
+        <span>{t('local.noModels', { url: p.baseUrl, provider: p.providerName })}</span>
       </div>
 
       <video
@@ -401,7 +432,7 @@ const EmptyModelsState: Component<{
           style="margin-left: auto;"
           onClick={p.onRetry}
         >
-          Retry
+          {t('local.retry')}
         </button>
       </div>
     </div>
@@ -417,8 +448,7 @@ const FailureState: Component<{
   onRetry: () => void;
   onOpenCustomForm?: () => void;
 }> = (p) => {
-  const errorMsg = () =>
-    p.error instanceof Error ? p.error.message : 'Could not reach the server';
+  const errorMsg = () => (p.error instanceof Error ? p.error.message : t('local.cannotReach'));
   const [hostResource] = createResource(() => checkLocalLlmHost());
   const isDocker = () => !!p.hint?.dockerBindNote && hostResource() === 'host.docker.internal';
   const [copied, setCopied] = createSignal(false);
@@ -429,7 +459,7 @@ const FailureState: Component<{
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Copy failed. Select the command and copy it manually');
+      toast.error(t('local.copyManual'));
     }
   };
 
@@ -468,7 +498,7 @@ const FailureState: Component<{
       <Show when={p.hint}>
         <div class="provider-detail__setup" style="margin-bottom: 20px;">
           <div style="font-size: var(--font-size-sm); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 8px;">
-            {isDocker() ? '2. Start server command' : 'Start server command'}
+            {isDocker() ? t('local.startCommandStep') : t('local.startCommand')}
           </div>
           <div style="position: relative;">
             <pre
@@ -479,7 +509,7 @@ const FailureState: Component<{
             </pre>
             <button
               type="button"
-              title={copied() ? 'Copied!' : 'Copy'}
+              title={copied() ? t('local.copied') : t('components.copy')}
               onClick={copyCommand}
               style="position: absolute; top: 50%; right: 8px; transform: translateY(-50%); display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer; border-radius: var(--radius);"
             >
@@ -527,7 +557,7 @@ const FailureState: Component<{
               don't have a "Developer → Start Server" menu to point at). */}
           <Show when={p.hint!.persistsBindAcrossLaunches}>
             <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 12px;">
-              Or open {p.providerName} → Developer → Start Server
+              {t('local.openServer', { provider: p.providerName })}
             </div>
             <video
               src="/icons/lmstudio-start-server.mp4"
@@ -573,7 +603,7 @@ const FailureState: Component<{
             class="btn btn--outline btn--sm"
             style="text-decoration: none;"
           >
-            Get {p.providerName} ↗
+            {t('local.getProvider', { provider: p.providerName })}
           </a>
         </Show>
         <button
@@ -582,7 +612,7 @@ const FailureState: Component<{
           style="margin-left: auto;"
           onClick={p.onRetry}
         >
-          Retry
+          {t('local.retry')}
         </button>
       </div>
     </div>
@@ -603,7 +633,7 @@ const DockerCaveat: Component<{ hint: LocalServerHint; errorMsg: string }> = (p)
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Copy failed. Select the command and copy it manually');
+      toast.error(t('local.copyManual'));
     }
   };
 
@@ -655,7 +685,7 @@ const DockerCaveat: Component<{ hint: LocalServerHint; errorMsg: string }> = (p)
 
         {/* Step 1: Running Manifest in Docker */}
         <div style="font-size: var(--font-size-sm); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
-          1. Running Manifest in Docker
+          {t('local.dockerStep')}
         </div>
 
         {/* Tabs: GUI / CLI */}
@@ -698,8 +728,8 @@ const DockerCaveat: Component<{ hint: LocalServerHint; errorMsg: string }> = (p)
             <button
               type="button"
               onClick={copy}
-              title={copied() ? 'Copied!' : 'Copy'}
-              aria-label={copied() ? 'Copied' : 'Copy command'}
+              title={copied() ? t('local.copied') : t('components.copy')}
+              aria-label={copied() ? t('components.copied') : t('local.copyCommand')}
               style="position: absolute; top: 50%; right: 8px; transform: translateY(-50%); display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: none; background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer; border-radius: var(--radius);"
             >
               <Show
@@ -738,9 +768,7 @@ const DockerCaveat: Component<{ hint: LocalServerHint; errorMsg: string }> = (p)
         </Show>
 
         <Show when={p.hint.persistsBindAcrossLaunches}>
-          <div style="margin-bottom: 20px; font-size: var(--font-size-xs);">
-            You only need to do this once. The server remembers this setting across restarts.
-          </div>
+          <div style="margin-bottom: 20px; font-size: var(--font-size-xs);">{t('local.once')}</div>
         </Show>
       </div>
     </Show>

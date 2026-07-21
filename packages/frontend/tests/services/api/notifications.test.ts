@@ -142,20 +142,25 @@ describe('notifications API client', () => {
       apiKey: 'key',
       domain: 'mg.example.com',
       to: 'foo@bar.com',
+      locale: 'ru',
     });
     expect(out).toEqual({ success: true });
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain('/api/v1/notifications/email-provider/test');
     expect((init as RequestInit).method).toBe('POST');
+    expect(JSON.parse((init as RequestInit).body as string)).toMatchObject({ locale: 'ru' });
   });
 
   it('testSavedEmailProvider POSTs to /test-saved with the recipient', async () => {
     const fetchMock = setupFetch({ success: false, error: 'no-config' });
-    const out = await notifications.testSavedEmailProvider('foo@bar.com');
+    const out = await notifications.testSavedEmailProvider('foo@bar.com', 'ru');
     expect(out).toEqual({ success: false, error: 'no-config' });
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain('/api/v1/notifications/email-provider/test-saved');
     expect((init as RequestInit).method).toBe('POST');
-    expect(JSON.parse((init as RequestInit).body as string)).toEqual({ to: 'foo@bar.com' });
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      to: 'foo@bar.com',
+      locale: 'ru',
+    });
   });
 });

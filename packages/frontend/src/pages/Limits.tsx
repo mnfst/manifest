@@ -19,6 +19,7 @@ import {
   getRoutingStatus,
   type NotificationRule,
 } from '../services/api.js';
+import { t } from '../i18n/index.js';
 
 const Limits: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -74,10 +75,10 @@ const Limits: Component = () => {
     try {
       if (editing) {
         await updateNotificationRule(editing.id, { ...data });
-        toast.success('Rule updated');
+        toast.success(t('pages.limits.ruleUpdated'));
       } else {
         await createNotificationRule({ agent_name: agentName(), ...data });
-        toast.success('Rule created');
+        toast.success(t('pages.limits.ruleCreated'));
       }
       await refetchRules();
       setShowModal(false);
@@ -100,7 +101,7 @@ const Limits: Component = () => {
     try {
       await deleteNotificationRule(target.id);
       await refetchRules();
-      toast.success('Rule deleted');
+      toast.success(t('pages.limits.ruleDeleted'));
     } catch {
       // error toast from fetchMutate
     } finally {
@@ -123,16 +124,16 @@ const Limits: Component = () => {
 
   return (
     <div class="container--lg">
-      <Title>{agentDisplayName() ?? agentName()} Limits - Manifest</Title>
+      <Title>{t('pages.limits.metaTitle', { name: agentDisplayName() ?? agentName() })}</Title>
       <Meta
         name="description"
-        content={`Configure limits and alerts for ${agentDisplayName() ?? agentName()}.`}
+        content={t('pages.limits.metaDescription', {
+          name: agentDisplayName() ?? agentName(),
+        })}
       />
 
       <div class="page-header" style="border-bottom: none; padding-bottom: 0;">
-        <span class="breadcrumb">
-          Get notified or block requests when token or cost thresholds are exceeded
-        </span>
+        <span class="breadcrumb">{t('pages.limits.subtitle')}</span>
         <button
           class="btn btn--primary btn--sm"
           onClick={() => {
@@ -154,7 +155,7 @@ const Limits: Component = () => {
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Create rule
+          {t('pages.limits.createRule')}
         </button>
       </div>
 
@@ -175,10 +176,7 @@ const Limits: Component = () => {
             <line x1="12" y1="9" x2="12" y2="13" />
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
-          <span>
-            One or more hard limits triggered. New proxy requests for this harness will be blocked
-            until the usage resets in the next period.
-          </span>
+          <span>{t('pages.limits.triggeredWarning')}</span>
         </div>
       </Show>
 
@@ -200,11 +198,8 @@ const Limits: Component = () => {
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
           <div>
-            <strong>Connect a provider to set hard limits</strong>
-            <p>
-              Hard limits automatically block proxy requests when usage exceeds a threshold. Email
-              alerts work without a connected provider &mdash; only hard limits require one.
-            </p>
+            <strong>{t('pages.limits.connectProvider')}</strong>
+            <p>{t('pages.limits.connectProviderDescription')}</p>
           </div>
         </div>
       </Show>

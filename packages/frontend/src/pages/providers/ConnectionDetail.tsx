@@ -56,12 +56,7 @@ import '../../styles/analytics-overview.css';
 import { getModelDisplayName } from '../../services/model-display.js';
 import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import '../../styles/routing.css';
-
-const AUTH_TYPE_LABELS: Record<string, string> = {
-  subscription: 'Subscriptions',
-  api_key: 'Usage-based',
-  local: 'Local',
-};
+import { t, tp } from '../../i18n/index.js';
 
 const BACK_LINKS: Record<string, string> = {
   subscription: '/providers/subscriptions',
@@ -119,13 +114,29 @@ interface AnalyticsResponse {
 }
 
 const PRO_RANGES_CD = new Set(['30d', '90d', '365d']);
-const CD_RANGE_OPTIONS = [
-  { label: 'Last 24 hours', value: '24h' },
-  { label: 'Last 7 days', value: '7d' },
-  { label: 'Last 30 days', value: '30d' },
-  { label: 'Last 90 days', value: '90d' },
-  { label: 'Last 365 days', value: '365d' },
-];
+const CD_RANGES = ['24h', '7d', '30d', '90d', '365d'] as const;
+
+const rangeLabel = (range: (typeof CD_RANGES)[number]): string => {
+  switch (range) {
+    case '24h':
+      return t('pages.connectionDetail.range.24h');
+    case '7d':
+      return t('pages.connectionDetail.range.7d');
+    case '30d':
+      return t('pages.connectionDetail.range.30d');
+    case '90d':
+      return t('pages.connectionDetail.range.90d');
+    case '365d':
+      return t('pages.connectionDetail.range.365d');
+  }
+};
+
+const authTypeLabel = (authType: string): string => {
+  if (authType === 'subscription') return t('pages.connectionDetail.back.subscriptions');
+  if (authType === 'api_key') return t('pages.connectionDetail.back.byok');
+  if (authType === 'local') return t('pages.connectionDetail.back.local');
+  return t('pages.connectionDetail.back.providers');
+};
 
 const ConnectionDetail: Component = () => {
   const params = useParams<{ connectionId: string }>();
@@ -139,15 +150,15 @@ const ConnectionDetail: Component = () => {
   });
   const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
   const proBadge = () => (
-    <span class="pro-range-badge" aria-label="Pro plan required">
+    <span class="pro-range-badge" aria-label={t('pages.connectionDetail.proRequired')}>
       PRO
     </span>
   );
   const cdRangeOptions = () =>
-    CD_RANGE_OPTIONS.map((opt) =>
-      isFreePlan() && PRO_RANGES_CD.has(opt.value)
-        ? { ...opt, disabled: true, badge: proBadge() }
-        : opt,
+    CD_RANGES.map((value) =>
+      isFreePlan() && PRO_RANGES_CD.has(value)
+        ? { label: rangeLabel(value), value, disabled: true, badge: proBadge() }
+        : { label: rangeLabel(value), value },
     );
 
   const [detail, { refetch: refetchDetail }] = createResource(
@@ -193,7 +204,7 @@ const ConnectionDetail: Component = () => {
 
   const backLink = () =>
     BACK_LINKS[conn()?.auth_type ?? 'subscription'] ?? '/providers/subscriptions';
-  const backLabel = () => AUTH_TYPE_LABELS[conn()?.auth_type ?? 'subscription'] ?? 'Providers';
+  const backLabel = () => authTypeLabel(conn()?.auth_type ?? 'subscription');
 
   // Set breadcrumb for Header
   createEffect(() => {
@@ -577,12 +588,12 @@ const ConnectionDetail: Component = () => {
     const c = conn();
     if (!c) return;
     if (!firstAgentName()) {
-      toast.error('Create at least one harness first.');
+      toast.error(t('pages.connectionDetail.missingHarness'));
       return;
     }
     const newLabel = renameValue().trim();
     if (!newLabel) {
-      setRenameError('Name cannot be empty');
+      setRenameError(t('pages.connectionDetail.renameEmpty'));
       return;
     }
     if (newLabel === c.label) {
@@ -593,11 +604,11 @@ const ConnectionDetail: Component = () => {
     setRenameError('');
     try {
       await renameProviderKey(firstAgentName(), c.provider, c.label, newLabel, c.auth_type as any);
-      toast.success('Connection renamed');
+      toast.success(t('pages.connectionDetail.renamed'));
       closeManageModal();
       refetchDetail();
     } catch (e: any) {
-      setRenameError(e?.message ?? 'Failed to rename');
+      setRenameError(e?.message ?? t('pages.connectionDetail.renameFailed'));
     } finally {
       setRenaming(false);
     }
@@ -610,17 +621,21 @@ const ConnectionDetail: Component = () => {
     const agent = firstAgentName();
     if (!agent) {
       toast.error(
-        `Create at least one harness before ${c.is_active ? 'disconnecting' : 'deleting'} a provider.`,
+        t(
+          c.is_active
+            ? 'pages.connectionDetail.missingHarnessDisconnect'
+            : 'pages.connectionDetail.missingHarnessDelete',
+        ),
       );
       return;
     }
     setDeletingConnection(true);
     try {
       await disconnectProvider(agent, c.provider, c.auth_type as any, c.label);
-      toast.success('Connection removed');
+      toast.success(t('pages.connectionDetail.removed'));
       navigate(backLink());
     } catch (e: any) {
-      toast.error(e?.message ?? 'Failed to disconnect');
+      toast.error(e?.message ?? t('pages.connectionDetail.disconnectFailed'));
     } finally {
       setDeletingConnection(false);
     }
@@ -628,16 +643,16 @@ const ConnectionDetail: Component = () => {
 
   const handleRefreshModels = async () => {
     if (!firstAgentName()) {
-      toast.error('Create at least one harness first.');
+      toast.error(t('pages.connectionDetail.missingHarness'));
       return;
     }
     setRefreshingModels(true);
     try {
       await refreshModels(firstAgentName());
-      toast.success('Models refreshed');
+      toast.success(t('pages.connectionDetail.modelsRefreshed'));
       refetchDetail();
     } catch {
-      toast.error('Failed to refresh models');
+      toast.error(t('pages.connectionDetail.modelsRefreshFailed'));
     } finally {
       setRefreshingModels(false);
     }
@@ -656,30 +671,30 @@ const ConnectionDetail: Component = () => {
   return (
     <div class="container--lg">
       <Show when={hasError()}>
-        <Title>Couldn't load connection | Manifest</Title>
+        <Title>{t('pages.connectionDetail.loadErrorMeta')}</Title>
         <div style="padding: 48px 0; text-align: center;">
           <div style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 8px;">
-            Couldn't load this connection
+            {t('pages.connectionDetail.loadErrorTitle')}
           </div>
           <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 16px;">
-            Something went wrong loading this connection. Please try again.
+            {t('pages.connectionDetail.loadErrorDescription')}
           </div>
           <button type="button" class="btn btn--outline btn--sm" onClick={() => refetchDetail()}>
-            Retry
+            {t('pages.connectionDetail.retry')}
           </button>
         </div>
       </Show>
       <Show when={notFound()}>
-        <Title>Connection not found | Manifest</Title>
+        <Title>{t('pages.connectionDetail.notFoundMeta')}</Title>
         <div style="padding: 48px 0; text-align: center;">
           <div style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 8px;">
-            Connection not found
+            {t('pages.connectionDetail.notFoundTitle')}
           </div>
           <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 16px;">
-            This connection no longer exists or you don't have access to it.
+            {t('pages.connectionDetail.notFoundDescription')}
           </div>
           <A href="/" class="btn btn--outline btn--sm" style="text-decoration: none;">
-            Back to overview
+            {t('pages.connectionDetail.backOverview')}
           </A>
         </div>
       </Show>
@@ -696,7 +711,10 @@ const ConnectionDetail: Component = () => {
           return (
             <>
               <Title>
-                {providerDisplayName()} / {c.label} | Manifest
+                {t('pages.connectionDetail.metaTitle', {
+                  provider: providerDisplayName(),
+                  connection: c.label,
+                })}
               </Title>
 
               {/* Back link */}
@@ -749,38 +767,40 @@ const ConnectionDetail: Component = () => {
                     </h1>
                     <Show when={isCustomProvider()}>
                       <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
-                        Custom
+                        {t('pages.connectionDetail.custom')}
                       </span>
                     </Show>
                     <Show
                       when={c.is_active}
                       fallback={
                         <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); font-weight: 500;">
-                          Inactive
+                          {t('pages.connectionDetail.inactive')}
                         </span>
                       }
                     >
                       <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-sm); font-weight: 600;">
-                        Active
+                        {t('pages.connectionDetail.active')}
                       </span>
                     </Show>
                   </div>
                   <div style="display: flex; gap: 24px; font-size: var(--font-size-sm);">
                     <span>
                       <span style="font-weight: 600; color: hsl(var(--foreground));">
-                        Connection name:
+                        {t('pages.connectionDetail.connectionNameColon')}
                       </span>{' '}
                       <span style="color: hsl(var(--muted-foreground));">{c.label}</span>
                     </span>
                     <span>
-                      <span style="font-weight: 600; color: hsl(var(--foreground));">Models:</span>{' '}
+                      <span style="font-weight: 600; color: hsl(var(--foreground));">
+                        {t('pages.connectionDetail.modelsColon')}
+                      </span>{' '}
                       <span style="color: hsl(var(--muted-foreground));">
                         {c.cached_model_count}
                       </span>
                     </span>
                     <span>
                       <span style="font-weight: 600; color: hsl(var(--foreground));">
-                        First connection:
+                        {t('pages.connectionDetail.firstConnectionColon')}
                       </span>{' '}
                       <span style="color: hsl(var(--muted-foreground));">
                         {c.connected_at ? formatTimeAgo(c.connected_at) : '—'}
@@ -788,7 +808,7 @@ const ConnectionDetail: Component = () => {
                     </span>
                     <span>
                       <span style="font-weight: 600; color: hsl(var(--foreground));">
-                        Last used:
+                        {t('pages.connectionDetail.lastUsedColon')}
                       </span>{' '}
                       <span style="color: hsl(var(--muted-foreground));">
                         {c.last_used_at ? formatTimeAgo(c.last_used_at) : '—'}
@@ -817,7 +837,7 @@ const ConnectionDetail: Component = () => {
                     options={cdRangeOptions()}
                   />
                   <button class="btn btn--outline btn--sm" onClick={openManageModal}>
-                    Manage
+                    {t('pages.connectionDetail.manage')}
                   </button>
                 </div>
               </div>
@@ -1032,10 +1052,10 @@ const ConnectionDetail: Component = () => {
                     <table class="data-table">
                       <thead>
                         <tr>
-                          <th>Date</th>
+                          <th>{t('pages.connectionDetail.date')}</th>
                           <th>Request ID</th>
-                          <th>Model</th>
-                          <th>Tokens</th>
+                          <th>{t('pages.connectionDetail.model')}</th>
+                          <th>{t('pages.connectionDetail.tokens')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1076,12 +1096,12 @@ const ConnectionDetail: Component = () => {
 
               {/* Models (full width) */}
               <div class="panel scroll-panel" style="margin-bottom: 24px;">
-                <div class="panel__title">Models</div>
+                <div class="panel__title">{t('pages.connectionDetail.models')}</div>
                 <Show
                   when={detail()!.model_usage.length > 0}
                   fallback={
                     <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
-                      No model usage data yet.
+                      {t('pages.connectionDetail.noModelUsage')}
                     </div>
                   }
                 >
@@ -1089,11 +1109,11 @@ const ConnectionDetail: Component = () => {
                     <table class="data-table">
                       <thead>
                         <tr>
-                          <th>Model</th>
-                          <th>Tokens</th>
-                          <th>% of total</th>
+                          <th>{t('pages.connectionDetail.model')}</th>
+                          <th>{t('pages.connectionDetail.tokens')}</th>
+                          <th>{t('pages.connectionDetail.percentTotal')}</th>
                           <Show when={isByok()}>
-                            <th>Cost</th>
+                            <th>{t('pages.connectionDetail.cost')}</th>
                           </Show>
                         </tr>
                       </thead>
@@ -1138,12 +1158,12 @@ const ConnectionDetail: Component = () => {
 
               {/* Harnesses (full width) */}
               <div class="panel scroll-panel" style="margin-bottom: 0;">
-                <div class="panel__title">Harnesses</div>
+                <div class="panel__title">{t('pages.connectionDetail.harnesses')}</div>
                 <Show
                   when={detail()!.agents.length > 0}
                   fallback={
                     <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
-                      No harnesses have used this provider yet.
+                      {t('pages.connectionDetail.noHarnessUsage')}
                     </div>
                   }
                 >
@@ -1151,11 +1171,11 @@ const ConnectionDetail: Component = () => {
                     <table class="data-table">
                       <thead>
                         <tr>
-                          <th>Harness</th>
-                          <th>Tokens (30d)</th>
-                          <th>% of total</th>
+                          <th>{t('pages.connectionDetail.harness')}</th>
+                          <th>{t('pages.connectionDetail.tokens30d')}</th>
+                          <th>{t('pages.connectionDetail.percentTotal')}</th>
                           <Show when={isByok()}>
-                            <th>Cost (30d)</th>
+                            <th>{t('pages.connectionDetail.cost30d')}</th>
                           </Show>
                           <th class="rel-col">
                             Total attempts
@@ -1165,7 +1185,7 @@ const ConnectionDetail: Component = () => {
                             Success rate
                             <InfoTooltip text={CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP} />
                           </th>
-                          <th>Last used</th>
+                          <th>{t('pages.connectionDetail.lastUsed')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1274,7 +1294,7 @@ const ConnectionDetail: Component = () => {
                             type="button"
                             onClick={closeManageModal}
                             style="background: none; border: none; cursor: pointer; padding: 4px; color: hsl(var(--muted-foreground)); font-size: 18px; line-height: 1;"
-                            aria-label="Close"
+                            aria-label={t('pages.connectionDetail.close')}
                           >
                             ✕
                           </button>
@@ -1283,7 +1303,7 @@ const ConnectionDetail: Component = () => {
                         {/* Connection name */}
                         <div style="margin-bottom: 16px;">
                           <label style="display: block; font-size: var(--font-size-sm); font-weight: 500; color: hsl(var(--foreground)); margin-bottom: 6px;">
-                            Connection name
+                            {t('pages.connectionDetail.connectionName')}
                           </label>
                           <div style="display: flex; align-items: center; gap: 8px;">
                             <input
@@ -1304,7 +1324,9 @@ const ConnectionDetail: Component = () => {
                               disabled={renaming() || renameValue().trim() === conn()?.label}
                               onClick={handleRename}
                             >
-                              {renaming() ? 'Saving...' : 'Save'}
+                              {renaming()
+                                ? t('pages.connectionDetail.saving')
+                                : t('pages.connectionDetail.save')}
                             </button>
                           </div>
                           <Show when={renameError()}>
@@ -1318,7 +1340,7 @@ const ConnectionDetail: Component = () => {
                           {/* Models */}
                           <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid hsl(var(--border));">
                             <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-                              {c.cached_model_count ?? 0} models
+                              {tp('pages.connectionDetail.modelCount', c.cached_model_count ?? 0)}
                             </span>
                             <button
                               class="btn btn--outline btn--sm"
@@ -1326,27 +1348,31 @@ const ConnectionDetail: Component = () => {
                               onClick={handleRefreshModels}
                               style="display: inline-flex; align-items: center; gap: 6px;"
                             >
-                              {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
+                              {refreshingModels()
+                                ? t('pages.connectionDetail.refreshing')
+                                : t('pages.connectionDetail.refreshModels')}
                             </button>
                           </div>
 
                           {/* Connection info */}
                           <div style="padding: 12px 0; border-top: 1px solid hsl(var(--border)); font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-                            Connected via{' '}
-                            {c.auth_type === 'subscription'
-                              ? c.auth_type
-                              : c.auth_type === 'api_key'
-                                ? 'API key'
-                                : 'local server'}
+                            {t('pages.connectionDetail.connectedVia', {
+                              method:
+                                c.auth_type === 'subscription'
+                                  ? t('pages.connectionDetail.method.subscription')
+                                  : c.auth_type === 'api_key'
+                                    ? t('pages.connectionDetail.method.apiKey')
+                                    : t('pages.connectionDetail.method.local'),
+                            })}
                           </div>
 
                           {/* Actions */}
                           <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid hsl(var(--border));">
                             <button class="btn btn--danger btn--sm" onClick={handleDisconnect}>
-                              Disconnect
+                              {t('pages.connectionDetail.disconnect')}
                             </button>
                             <button class="btn btn--outline btn--sm" onClick={closeManageModal}>
-                              Done
+                              {t('pages.connectionDetail.done')}
                             </button>
                           </div>
                         </Show>
@@ -1357,10 +1383,10 @@ const ConnectionDetail: Component = () => {
                             fallback={
                               <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid hsl(var(--border));">
                                 <button class="btn btn--danger btn--sm" onClick={openDeleteConfirm}>
-                                  Delete
+                                  {t('pages.connectionDetail.delete')}
                                 </button>
                                 <button class="btn btn--outline btn--sm" onClick={closeManageModal}>
-                                  Close
+                                  {t('pages.connectionDetail.close')}
                                 </button>
                               </div>
                             }
@@ -1376,21 +1402,20 @@ const ConnectionDetail: Component = () => {
                                   id="delete-connection-confirm-title"
                                   class="connection-delete-confirmation__title"
                                 >
-                                  Delete usage history?
+                                  {t('pages.connectionDetail.deleteHistoryTitle')}
                                 </h3>
                                 <p
                                   id="delete-connection-confirm-copy"
                                   class="connection-delete-confirmation__copy"
                                 >
-                                  This will permanently delete this inactive connection and its
-                                  usage history. This action cannot be undone.
+                                  {t('pages.connectionDetail.deleteHistoryDescription')}
                                 </p>
                               </div>
                               <label
                                 for="delete-connection-confirm-input"
                                 class="connection-delete-confirmation__label"
                               >
-                                Type the connection name to confirm
+                                {t('pages.connectionDetail.deleteConfirmLabel')}
                               </label>
                               <input
                                 id="delete-connection-confirm-input"
@@ -1411,14 +1436,16 @@ const ConnectionDetail: Component = () => {
                                   onClick={closeDeleteConfirm}
                                   disabled={deletingConnection()}
                                 >
-                                  Cancel
+                                  {t('pages.connectionDetail.cancel')}
                                 </button>
                                 <button
                                   class="btn btn--danger btn--sm"
                                   onClick={handleDisconnect}
                                   disabled={!deleteConfirmMatches() || deletingConnection()}
                                 >
-                                  {deletingConnection() ? 'Deleting...' : 'Delete connection'}
+                                  {deletingConnection()
+                                    ? t('pages.connectionDetail.deleting')
+                                    : t('pages.connectionDetail.deleteConnection')}
                                 </button>
                               </div>
                             </div>
@@ -1442,7 +1469,7 @@ const ConnectionDetail: Component = () => {
                       class="modal-card routing-modal"
                       role="dialog"
                       aria-modal="true"
-                      aria-label="Edit custom provider"
+                      aria-label={t('pages.connectionDetail.editCustom')}
                       style="max-width: 600px; max-height: 85vh; overflow-y: auto;"
                     >
                       <CustomProviderForm

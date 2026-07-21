@@ -11,7 +11,12 @@ import {
 import { createEffect, createSignal, For, Show, type Component } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import type { RequestParamDefaults } from '../services/api.js';
+import {
+  localizeModelParamDescription,
+  localizeModelParamLabel,
+} from '../i18n/model-param-metadata.js';
 import Select from './Select.jsx';
+import { t } from '../i18n/index.js';
 
 interface Props {
   open: boolean;
@@ -30,15 +35,15 @@ type DraftState = Record<string, JsonValue>;
 
 const UNSET_OPTION_VALUE = '__manifest_param_unset__';
 
-const GROUP_LABELS: Record<ModelParamGroup, string> = {
-  generation_length: 'Generation length',
-  sampling: 'Sampling',
-  reasoning: 'Reasoning',
-  tooling: 'Tooling',
-  output_format: 'Output format',
-  observability: 'Observability',
-  provider_metadata: 'Provider metadata',
-};
+const GROUP_LABEL_KEYS = {
+  generation_length: 'model.params.group.generation',
+  sampling: 'model.params.group.sampling',
+  reasoning: 'model.params.group.reasoning',
+  tooling: 'model.params.group.tooling',
+  output_format: 'model.params.group.output',
+  observability: 'model.params.group.observability',
+  provider_metadata: 'model.params.group.provider',
+} as const satisfies Record<ModelParamGroup, string>;
 
 const trimTrailingPunct = (text: string): string => text.replace(/[.\s]+$/, '');
 
@@ -127,15 +132,25 @@ const ModelParamsDialog: Component<Props> = (props) => {
     providerParamIsApplicable(spec, draft());
   const isDisabled = (spec: ProviderParamSpec): boolean => saving() || !isApplicable(spec);
 
-  const labelForPath = (path: string): string =>
-    props.specs.find((s) => s.path === path)?.label ?? path;
+  const labelForSpec = (spec: ProviderParamSpec): string => localizeModelParamLabel(spec.label);
+
+  const labelForPath = (path: string): string => {
+    const spec = props.specs.find((candidate) => candidate.path === path);
+    return spec ? labelForSpec(spec) : path;
+  };
 
   const formatValueList = (values: readonly JsonValue[]): string => {
     const quoted = values.map((v) => `"${String(v)}"`);
     if (quoted.length === 1) return quoted[0]!;
-    if (quoted.length === 2) return `${quoted[0]} or ${quoted[1]}`;
-    return `${quoted.slice(0, -1).join(', ')}, or ${quoted[quoted.length - 1]}`;
+    if (quoted.length === 2) return t('model.params.or', { left: quoted[0]!, right: quoted[1]! });
+    return t('model.params.orList', {
+      items: quoted.slice(0, -1).join(', '),
+      last: quoted[quoted.length - 1]!,
+    });
   };
+
+  const joinConditions = (parts: string[]): string =>
+    parts.reduce((left, right) => t('model.params.and', { left, right }));
 
   const describeBlocker = (spec: ProviderParamSpec): string | null => {
     if (!spec.applicability) return null;
@@ -147,9 +162,9 @@ const ModelParamsDialog: Component<Props> = (props) => {
       const parts = Object.entries(rule).map(([path, value]) => {
         const label = labelForPath(path);
         const list = Array.isArray(value) ? (value as readonly JsonValue[]) : [value as JsonValue];
-        return `set ${label} to ${formatValueList(list)}`;
+        return t('model.params.setTo', { label, values: formatValueList(list) });
       });
-      return `To configure this parameter, ${parts.join(' and ')}.`;
+      return t('model.params.configureWhen', { conditions: joinConditions(parts) });
     }
     if (except) {
       const draftSnapshot = draft();
@@ -172,14 +187,17 @@ const ModelParamsDialog: Component<Props> = (props) => {
       const parts = Object.entries(active).map(([path, value]) => {
         const label = labelForPath(path);
         if (Array.isArray(value)) {
-          return `${label} is ${formatValueList(value as readonly JsonValue[])}`;
+          return t('model.params.is', {
+            label,
+            values: formatValueList(value as readonly JsonValue[]),
+          });
         }
         if (value !== null && typeof value === 'object' && 'not' in value) {
-          return `${label} is set to a custom value`;
+          return t('model.params.custom', { label });
         }
-        return `${label} is "${String(value)}"`;
+        return t('model.params.isValue', { label, value: String(value) });
       });
-      return `Unavailable while ${parts.join(' and ')}.`;
+      return t('model.params.unavailable', { conditions: joinConditions(parts) });
     }
     return null;
   };
@@ -193,7 +211,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
   };
 
   const selectOptions = (spec: ProviderParamSpec) => [
-    ...(canUnset(spec) ? [{ label: 'None', value: UNSET_OPTION_VALUE }] : []),
+    ...(canUnset(spec) ? [{ label: t('model.params.none'), value: UNSET_OPTION_VALUE }] : []),
     ...(spec.values ?? []).map((v) => ({ label: String(v), value: String(v) })),
   ];
 
@@ -224,7 +242,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
         type="button"
         class="model-params__toggle"
         aria-pressed={isOn()}
-        aria-label={`${spec.label}: ${String(currentValue())}`}
+        aria-label={`${labelForSpec(spec)}: ${String(currentValue())}`}
         disabled={isDisabled(spec)}
         onClick={() => setValue(spec, isOn() ? offValue() : onValue())}
       >
@@ -238,7 +256,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
   const SelectRow = (spec: ProviderParamSpec) => (
     <div class="model-params__field">
       <Select
-        label={spec.label}
+        label={labelForSpec(spec)}
         options={selectOptions(spec)}
         value={selectValue(spec)}
         disabled={isDisabled(spec)}
@@ -312,7 +330,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
           inputmode="decimal"
           class="model-params__number model-params__number--slider"
           disabled={isDisabled(spec)}
-          aria-label={`${spec.label} value`}
+          aria-label={t('model.params.valueFor', { label: labelForSpec(spec) })}
           onBlur={(e) => (e.currentTarget.value = String(value()))}
           onInput={(e) => commitFromText(e.currentTarget.value)}
         />
@@ -335,7 +353,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
               step={sliderStep(spec)}
               value={value()}
               disabled={isDisabled(spec)}
-              aria-label={spec.label}
+              aria-label={labelForSpec(spec)}
               aria-disabled={isDisabled(spec)}
               onInput={(e) => setSliderVal(Number.parseFloat(e.currentTarget.value))}
               onKeyDown={handleKeyDown}
@@ -366,7 +384,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
         max={spec.range?.max}
         value={value()}
         disabled={isDisabled(spec)}
-        aria-label={spec.label}
+        aria-label={labelForSpec(spec)}
         onInput={(e) => setFromInput(e.currentTarget.value)}
       />
     );
@@ -425,8 +443,10 @@ const ModelParamsDialog: Component<Props> = (props) => {
 
   const ParamRow = (rowProps: { spec: ProviderParamSpec }) => {
     const spec = () => rowProps.spec;
-    const description = () => trimTrailingPunct(spec().description) + '.';
-    const defaultLabel = () => (spec().default === undefined ? 'none' : String(spec().default));
+    const description = () =>
+      trimTrailingPunct(localizeModelParamDescription(spec().description)) + '.';
+    const defaultLabel = () =>
+      spec().default === undefined ? t('model.params.none') : String(spec().default);
     return (
       <div
         class="model-params__row"
@@ -434,7 +454,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
       >
         <div class="model-params__row-text">
           <div class="model-params__label-title">
-            <span>{spec().label}</span>
+            <span>{labelForSpec(spec())}</span>
             <code class="model-params__param-key">{spec().path}</code>
             <Show when={!isApplicable(spec()) && describeBlocker(spec())}>
               {(message) => (
@@ -458,7 +478,9 @@ const ModelParamsDialog: Component<Props> = (props) => {
             </Show>
           </div>
           <div class="model-params__label-hint">{description()}</div>
-          <div class="model-params__default-hint">Default: {defaultLabel()}</div>
+          <div class="model-params__default-hint">
+            {t('model.params.default', { value: defaultLabel() })}
+          </div>
         </div>
         <div class="model-params__row-control">{renderControl(spec())}</div>
       </div>
@@ -485,14 +507,14 @@ const ModelParamsDialog: Component<Props> = (props) => {
             onKeyDown={handleKeyDown}
           >
             <h2 class="modal-card__title" id="model-params-dialog-title">
-              Model parameters
+              {t('model.params.title')}
             </h2>
             <p class="modal-card__desc">
               {props.loading
-                ? `Loading parameters for ${props.slotLabel}…`
+                ? t('model.params.loadingFor', { model: props.slotLabel })
                 : hasSpecs()
-                  ? `Defaults for ${props.slotLabel}. Client requests override.`
-                  : `No parameter controls are published for ${props.slotLabel} yet.`}
+                  ? t('model.params.defaultsFor', { model: props.slotLabel })
+                  : t('model.params.nonePublished', { model: props.slotLabel })}
             </p>
 
             <div class="model-params__body">
@@ -501,7 +523,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
                 fallback={
                   <div class="model-params__status">
                     <span class="spinner" />
-                    <span>Loading parameters…</span>
+                    <span>{t('model.params.loading')}</span>
                   </div>
                 }
               >
@@ -512,9 +534,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
                       <Show
                         when={props.requestParamsUrl}
                         fallback={
-                          <p class="model-params__status">
-                            This model has no configurable parameters.
-                          </p>
+                          <p class="model-params__status">{t('model.params.noConfigurable')}</p>
                         }
                       >
                         <a
@@ -522,9 +542,9 @@ const ModelParamsDialog: Component<Props> = (props) => {
                           href={props.requestParamsUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          aria-label={`Request model parameters for ${props.slotLabel}`}
+                          aria-label={t('model.params.requestFor', { model: props.slotLabel })}
                         >
-                          Request parameters for this model
+                          {t('model.params.requestModel')}
                         </a>
                       </Show>
                     </div>
@@ -534,7 +554,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
                     {(group) => (
                       <div class="model-params__group">
                         <div class="model-params__group-header">
-                          <span>{GROUP_LABELS[group.group]}</span>
+                          <span>{t(GROUP_LABEL_KEYS[group.group])}</span>
                         </div>
                         <div class="model-params__group-card">
                           <For each={group.specs}>
@@ -562,9 +582,9 @@ const ModelParamsDialog: Component<Props> = (props) => {
                   href={props.requestParamsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`Request parameters for ${props.slotLabel}`}
+                  aria-label={t('model.params.requestCompactFor', { model: props.slotLabel })}
                 >
-                  Request
+                  {t('model.params.request')}
                 </a>
               </Show>
               <div class="model-params__footer-actions">
@@ -574,7 +594,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
                   disabled={saving()}
                   type="button"
                 >
-                  {!props.loading && hasSpecs() ? 'Cancel' : 'Close'}
+                  {!props.loading && hasSpecs() ? t('components.cancel') : t('components.close')}
                 </button>
                 <Show when={!props.loading && hasSpecs()}>
                   <button
@@ -583,7 +603,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
                     disabled={saving()}
                     type="button"
                   >
-                    {saving() ? <span class="spinner" /> : 'Save'}
+                    {saving() ? <span class="spinner" /> : t('components.save')}
                   </button>
                 </Show>
               </div>

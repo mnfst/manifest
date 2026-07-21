@@ -6,6 +6,7 @@ import { toast } from '../services/toast-store.js';
 import { markAgentCreated, markSetupPending } from '../services/recent-agents.js';
 import { refreshAgents } from '../services/sse.js';
 import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'manifest-shared';
+import { t } from '../i18n/index.js';
 
 /**
  * "Connect Harness" modal extracted from Workspace so it can be reused by other
@@ -66,7 +67,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       // The user dismissed the modal while the request was in flight — honour
       // that dismissal and skip every success side effect + the navigation.
       if (cancelled) return;
-      toast.success(`Harness "${agentName}" connected`);
+      toast.success(t('addAgent.connected', { name: agentName }));
       props.onClose();
       resetForm();
       const slug = result?.agent?.name ?? agentName;
@@ -129,15 +130,13 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           onKeyDown={handleKeyDown}
         >
           <h2 class="modal-card__title" id="add-agent-title">
-            Connect Harness
+            {t('addAgent.title')}
           </h2>
-          <p class="modal-card__desc">
-            Name your harness to start tracking its LLM usage, costs, and messages in real time.
-          </p>
+          <p class="modal-card__desc">{t('addAgent.description')}</p>
 
           <div class="agent-type-select-row">
             <div>
-              <label class="modal-card__field-label">Type</label>
+              <label class="modal-card__field-label">{t('addAgent.type')}</label>
               <AgentTypeSelect
                 category={category()}
                 platform={platform()}
@@ -148,14 +147,14 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             </div>
             <div style="flex: 1;">
               <label class="modal-card__field-label" for="agent-name-input">
-                Harness name
+                {t('addAgent.name')}
               </label>
               <input
                 ref={(el) => requestAnimationFrame(() => el.focus())}
                 id="agent-name-input"
                 class="modal-card__input modal-card__input--lg"
                 type="text"
-                placeholder="e.g. My Cool Harness"
+                placeholder={t('addAgent.namePlaceholder')}
                 value={name()}
                 onInput={(e) => setName(e.currentTarget.value)}
                 disabled={creating()}
@@ -169,7 +168,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
               onClick={handleCreate}
               disabled={!name().trim() || creating()}
             >
-              {creating() ? <span class="spinner" /> : 'Create'}
+              {creating() ? <span class="spinner" /> : t('addAgent.create')}
             </button>
           </div>
         </div>

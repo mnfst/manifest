@@ -1,4 +1,5 @@
 import { createSignal, For, Show, onMount, onCleanup, type JSX } from 'solid-js';
+import { t } from '../i18n/index.js';
 
 export const FEEDBACK_TAGS = [
   'Not expected tier',
@@ -7,6 +8,17 @@ export const FEEDBACK_TAGS = [
   'Buggy',
   'Other',
 ] as const;
+
+const feedbackTagLabel = (tag: (typeof FEEDBACK_TAGS)[number]): string => {
+  const keys = {
+    'Not expected tier': 'feedback.tag.unexpectedTier',
+    'Poor answer quality': 'feedback.tag.quality',
+    'Too slow': 'feedback.tag.slow',
+    Buggy: 'feedback.tag.buggy',
+    Other: 'feedback.tag.other',
+  } as const;
+  return t(keys[tag]);
+};
 
 export interface FeedbackModalProps {
   open: boolean;
@@ -55,11 +67,16 @@ export default function FeedbackModal(props: FeedbackModalProps): JSX.Element {
           class="modal feedback-modal"
           role="dialog"
           aria-modal="true"
-          aria-label="Share feedback"
+          aria-label={t('feedback.title')}
         >
           <div class="modal__header">
-            <span class="modal__title">Share feedback</span>
-            <button class="modal__close" onClick={handleClose} aria-label="Close" type="button">
+            <span class="modal__title">{t('feedback.title')}</span>
+            <button
+              class="modal__close"
+              onClick={handleClose}
+              aria-label={t('components.close')}
+              type="button"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -78,28 +95,28 @@ export default function FeedbackModal(props: FeedbackModalProps): JSX.Element {
           </div>
           <div style="padding: 12px var(--gap-lg);">
             <div class="feedback-modal__tags">
-              <For each={FEEDBACK_TAGS as unknown as string[]}>
+              <For each={FEEDBACK_TAGS}>
                 {(tag) => (
                   <button
                     type="button"
                     class={`feedback-tag${selectedTags().includes(tag) ? ' feedback-tag--selected' : ''}`}
                     onClick={() => toggleTag(tag)}
                   >
-                    {tag}
+                    {feedbackTagLabel(tag)}
                   </button>
                 )}
               </For>
             </div>
             <textarea
               class="feedback-modal__textarea"
-              placeholder="Share details (optional)"
+              placeholder={t('feedback.details')}
               value={details()}
               onInput={(e) => setDetails(e.currentTarget.value)}
               maxLength={2000}
             />
             <div class="feedback-modal__footer">
               <button type="button" class="btn btn--primary" onClick={handleSubmit}>
-                Submit
+                {t('feedback.submit')}
               </button>
             </div>
           </div>

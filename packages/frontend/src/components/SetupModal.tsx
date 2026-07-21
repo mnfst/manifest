@@ -3,6 +3,7 @@ import { getAgentKey } from '../services/api.js';
 import { platformIcon } from 'manifest-shared';
 import ErrorState from './ErrorState.jsx';
 import SetupStepAddProvider from './SetupStepAddProvider.jsx';
+import { t } from '../i18n/index.js';
 
 const SetupModal: Component<{
   open: boolean;
@@ -61,10 +62,14 @@ const SetupModal: Component<{
                 />
               </Show>
               <span class="setup-modal__title-text">
-                Set up harness: <em>{props.agentName}</em>
+                {t('setup.harnessTitlePrefix')} <em>{props.agentName}</em>
               </span>
             </div>
-            <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
+            <button
+              class="modal__close"
+              onClick={() => props.onClose()}
+              aria-label={t('components.close')}
+            >
               <svg
                 width="16"
                 height="16"
@@ -81,17 +86,15 @@ const SetupModal: Component<{
               </svg>
             </button>
           </div>
-          <p class="modal-card__desc">
-            Connect your harness to Manifest to start routing requests.
-          </p>
+          <p class="modal-card__desc">{t('setup.connectDescription')}</p>
 
           <Show
             when={!apiKeyData.error || !!props.apiKey}
             fallback={
               <ErrorState
                 error={apiKeyData.error}
-                title="Could not load API key"
-                message="Failed to fetch your harness's API key. Please try again."
+                title={t('setup.keyLoadTitle')}
+                message={t('setup.keyLoadMessage')}
                 onRetry={refetchKey}
               />
             }
@@ -106,7 +109,7 @@ const SetupModal: Component<{
 
           <div class="setup-modal__nav">
             <button class="setup-modal__next" onClick={handleGoToRouting}>
-              Done
+              {t('components.done')}
             </button>
           </div>
         </div>

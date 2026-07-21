@@ -3,12 +3,13 @@ import { Show, For, createSignal, createResource, type Component } from 'solid-j
 import { useAgentName } from '../services/routing.js';
 import { getAgents } from '../services/api.js';
 import { getBillingStatus } from '../services/api/billing.js';
-import { FREE_REQUEST_LIMIT_LABEL } from '../services/billing-display.js';
+import { FREE_REQUEST_LIMIT } from '../services/billing-display.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { agentPing } from '../services/sse.js';
 import { platformIcon } from 'manifest-shared';
 import AddAgentModal from './AddAgentModal.jsx';
 import AutofixModal from './AutofixModal.jsx';
+import { formatDate, formatNumber, t } from '../i18n/index.js';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -51,8 +52,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
     }
   });
   const showUpgrade = () => billing()?.enabled && billing()?.plan === 'free';
-  const requestLimitLabel = () =>
-    billing()?.requests.limit?.toLocaleString('en-US') ?? FREE_REQUEST_LIMIT_LABEL;
+  const requestLimitLabel = () => formatNumber(billing()?.requests.limit ?? FREE_REQUEST_LIMIT);
 
   // Harness list for the in-nav switcher. Refetches whenever the agent SSE ping
   // fires (create/delete/rename). Uses the DEFAULT getAgents() — playground agents
@@ -82,7 +82,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
       id="agent-navigation"
       class="sidebar"
       classList={{ 'sidebar--mobile-open': props.mobileOpen === true }}
-      aria-label="Navigation"
+      aria-label={t('sidebar.navigation')}
       onClick={(event) => {
         if ((event.target as HTMLElement).closest('a.sidebar__link')) {
           handleNav();
@@ -95,7 +95,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
         classList={{ active: isGlobalActive('/overview') }}
         aria-current={isGlobalActive('/overview') ? 'page' : undefined}
       >
-        Overview
+        {t('sidebar.overview')}
       </A>
       <A
         href="/messages"
@@ -105,7 +105,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
       >
         Requests
       </A>
-      <div class="sidebar__section-label">PROVIDERS</div>
+      <div class="sidebar__section-label">{t('sidebar.providers')}</div>
       <Show when={selfHosted()}>
         <A
           href="/providers/local"
@@ -113,7 +113,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
           classList={{ active: isGlobalActive('/providers/local') }}
           aria-current={isGlobalActive('/providers/local') ? 'page' : undefined}
         >
-          Local
+          {t('sidebar.local')}
         </A>
       </Show>
       <A
@@ -122,7 +122,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
         classList={{ active: isGlobalActive('/providers/usage-based') }}
         aria-current={isGlobalActive('/providers/usage-based') ? 'page' : undefined}
       >
-        Usage-based
+        {t('sidebar.usageBased')}
       </A>
       <A
         href="/providers/subscriptions"
@@ -130,7 +130,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
         classList={{ active: isGlobalActive('/providers/subscriptions') }}
         aria-current={isGlobalActive('/providers/subscriptions') ? 'page' : undefined}
       >
-        Subscriptions
+        {t('sidebar.subscriptions')}
       </A>
 
       {/* Harnesses — collapsible section with a + create button.
@@ -143,7 +143,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
           onClick={() => setAgentsCollapsed(!agentsCollapsed())}
           aria-expanded={!agentsCollapsed()}
         >
-          <span>HARNESSES</span>
+          <span>{t('sidebar.harnesses')}</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="12"
@@ -162,8 +162,8 @@ const Sidebar: Component<SidebarProps> = (props) => {
         <button
           type="button"
           class="sidebar__section-add"
-          title="Create new harness"
-          aria-label="Create new harness"
+          title={t('sidebar.createHarness')}
+          aria-label={t('sidebar.createHarness')}
           onClick={() => setAddModalOpen(true)}
         >
           <svg
@@ -185,7 +185,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
             each={agents() ?? []}
             fallback={
               <Show when={!agents.loading}>
-                <div class="sidebar__agents-empty">No harnesses yet</div>
+                <div class="sidebar__agents-empty">{t('sidebar.noHarnesses')}</div>
               </Show>
             }
           >
@@ -213,14 +213,14 @@ const Sidebar: Component<SidebarProps> = (props) => {
         </div>
       </Show>
 
-      <div class="sidebar__section-label">TOOLS</div>
+      <div class="sidebar__section-label">{t('sidebar.tools')}</div>
       <A
         href="/playground"
         class="sidebar__link"
         classList={{ active: isGlobalActive('/playground') }}
         aria-current={isGlobalActive('/playground') ? 'page' : undefined}
       >
-        Playground
+        {t('sidebar.playground')}
       </A>
 
       <div class="sidebar__spacer" />
@@ -241,7 +241,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
                 <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8" />
                 <path d="M12.28 8.82 12 9.1l-.28-.28c-1.09-1.1-2.81-1.1-3.91 0a2.794 2.794 0 0 0 0 3.95L11.99 17l4.18-4.23a2.794 2.794 0 0 0 0-3.95 2.73 2.73 0 0 0-3.91 0Z" />
               </svg>
-              <span class="sidebar-autofix__title">Discover Auto-fix</span>
+              <span class="sidebar-autofix__title">{t('sidebar.discoverAutofix')}</span>
             </div>
             <p class="sidebar-autofix__desc">
               Auto-fix can repair eligible failing requests before they reach the model.
@@ -252,14 +252,16 @@ const Sidebar: Component<SidebarProps> = (props) => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Learn more
+              {t('sidebar.learnMore')}
             </a>
           </div>
         }
       >
         <div class="sidebar-usage">
           <span class="sidebar-usage__title">
-            {new Date().toLocaleDateString('en-US', { month: 'long' })} usage
+            {t('sidebar.monthUsage', {
+              month: formatDate(new Date(), { month: 'long' }),
+            })}
           </span>
           <span
             class="sidebar-usage__count"
@@ -268,14 +270,10 @@ const Sidebar: Component<SidebarProps> = (props) => {
                 (billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.8,
             }}
           >
-            {billing()!.requests.used != null
-              ? billing()!.requests.used!.toLocaleString('en-US')
-              : '0'}
-            {' / '}
-            {billing()!.requests.limit != null
-              ? billing()!.requests.limit!.toLocaleString('en-US')
-              : '0'}
-            {' requests'}
+            {t('sidebar.requestUsage', {
+              used: formatNumber(billing()!.requests.used ?? 0),
+              limit: formatNumber(billing()!.requests.limit ?? 0),
+            })}
           </span>
           <div class="sidebar-usage__bar">
             <div
@@ -295,8 +293,8 @@ const Sidebar: Component<SidebarProps> = (props) => {
           <Show when={(billing()!.requests.used ?? 0) / (billing()!.requests.limit ?? 1) >= 0.8}>
             <p class="sidebar-usage__alert">
               {(billing()!.requests.used ?? 0) >= (billing()!.requests.limit ?? 1)
-                ? "You've reached your monthly limit. Requests are being blocked."
-                : `You're limited to ${requestLimitLabel()} requests this month. Upgrade for unlimited.`}
+                ? t('sidebar.limitReached')
+                : t('sidebar.limitWarning', { limit: requestLimitLabel() })}
             </p>
           </Show>
         </div>
@@ -312,7 +310,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
             <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2m0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8" />
             <path d="m8 12 1.41 1.41L11 11.83V17h2v-5.17l1.59 1.59L16 12l-4-4z" />
           </svg>
-          Upgrade plan
+          {t('sidebar.upgradePlan')}
         </A>
       </Show>
 

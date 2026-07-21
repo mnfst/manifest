@@ -125,6 +125,36 @@ body {
   align-items: center;
 }
 
+/* ── Interface language ───────────────────────────── */
+.language-selector {
+  display: inline-flex;
+  align-items: center;
+}
+
+.language-selector__select {
+  height: 2rem;
+  min-width: 5.75rem;
+  padding: 0 1.75rem 0 0.625rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.language-selector__select:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.language-selector--auth {
+  position: absolute;
+  top: var(--gap-md);
+  right: var(--gap-md);
+}
+
 /* ── Cards Grid ────────────────────────────────────── */
 .cards-grid {
   display: grid;

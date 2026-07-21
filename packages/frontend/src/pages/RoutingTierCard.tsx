@@ -26,6 +26,7 @@ import type {
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
+import { t } from '../i18n/index.js';
 
 /** @internal Exported for testing only. */
 export function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
@@ -240,7 +241,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
       await persistFn(props.agentName(), props.stage.id, newFallbacks, newRoutes ?? undefined);
     } catch {
       props.onFallbackUpdate(props.stage.id, fallbacks, fallbackRoutes);
-      toast.error('Failed to update fallbacks');
+      toast.error(t('pages.routing.tier.fallbacksUpdateFailed'));
       setSwappingFbIndex(null);
       return;
     }
@@ -291,7 +292,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
       await persistFn(props.agentName(), props.stage.id, newFallbacks, newRoutes ?? undefined);
     } catch {
       props.onFallbackUpdate(props.stage.id, fallbacks, fallbackRoutes);
-      toast.error('Failed to update fallbacks');
+      toast.error(t('pages.routing.tier.fallbacksUpdateFailed'));
       setSwappingFbIndex(null);
       return;
     }
@@ -337,7 +338,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const priceLabel = (modelName: string): string => {
     const info = modelInfo(modelName);
     if (!info) return '';
-    return `${pricePerM(info.input_price_per_token)} in · ${pricePerM(info.output_price_per_token)} out per 1M`;
+    return t('pages.routing.tier.price', {
+      input: pricePerM(info.input_price_per_token),
+      output: pricePerM(info.output_price_per_token),
+    });
   };
 
   const modelCapabilities = (modelName: string) => modelInfo(modelName)?.capabilities;
@@ -367,7 +371,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                 <path d="m7.77,12.97c.49.41,1.23.06,1.23-.58v-2.4h6c2.21,0,4,1.79,4,4v5c0,.55.45,1,1,1s1-.45,1-1v-5c0-3.31-2.69-6-6-6h-6v-2.4c0-.64-.74-.98-1.23-.58l-4.08,3.4c-.36.3-.36.85,0,1.15l4.08,3.4Z" />
               </svg>
             )}
-            Reset
+            {t('pages.routing.tier.reset')}
           </button>
         </Show>
         <Show when={!eff() && !props.tiersLoading}>
@@ -375,7 +379,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             class="routing-card__header-add"
             onClick={() => props.onDropdownOpen(props.stage.id)}
           >
-            + Add model
+            {t('pages.routing.tier.addModel')}
           </button>
         </Show>
       </div>
@@ -453,7 +457,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                         'routing-card__model-chip--drop-target': primaryDropTarget(),
                         'routing-card__model-chip--skipped': primarySkipped(),
                       }}
-                      title={primarySkipped() ? 'Skipped while Stream mode is active' : undefined}
+                      title={primarySkipped() ? t('pages.routing.tier.skippedTitle') : undefined}
                       draggable={true}
                       onDragStart={handlePrimaryDragStart}
                       onDragEnd={handlePrimaryDragEnd}
@@ -515,7 +519,9 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                             </Show>
                             <span class="routing-card__main">{labelFor(modelName())}</span>
                             <Show when={!isManual()}>
-                              <span class="routing-card__auto-tag">auto</span>
+                              <span class="routing-card__auto-tag">
+                                {t('pages.routing.tier.auto')}
+                              </span>
                             </Show>
                           </div>
                         </div>
@@ -558,9 +564,11 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                             class="routing-card__chip-action"
                             onClick={() => props.onDropdownOpen(props.stage.id)}
                             disabled={props.changingTier() === props.stage.id}
-                            aria-label={`Change model for ${props.stage.label}`}
+                            aria-label={t('pages.routing.tier.changeLabel', {
+                              tier: props.stage.label,
+                            })}
                           >
-                            <span class="routing-tooltip">Change</span>
+                            <span class="routing-tooltip">{t('pages.routing.tier.change')}</span>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="12"
@@ -582,10 +590,12 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                             <span class="routing-card__chip-meta">
                               <span class="routing-card__chip-price">
                                 {formatPerRequestCost(modelInfo(modelName())?.cost_per_request) ??
-                                  'Included in subscription'}
+                                  t('pages.routing.tier.included')}
                               </span>
                               <Show when={primarySkipped()}>
-                                <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                                <span class="routing-card__skipped-badge">
+                                  {t('pages.routing.tier.skipped')}
+                                </span>
                               </Show>
                             </span>
                           }
@@ -593,7 +603,9 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                           <span class="routing-card__chip-meta">
                             <span class="routing-card__chip-price">{priceLabel(modelName())}</span>
                             <Show when={primarySkipped()}>
-                              <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                              <span class="routing-card__skipped-badge">
+                                {t('pages.routing.tier.skipped')}
+                              </span>
                             </Show>
                           </span>
                         </Show>
@@ -661,14 +673,14 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               id="reset-tier-modal-title"
               style="margin: 0 0 12px; font-size: var(--font-size-lg); font-weight: 600;"
             >
-              Reset tier?
+              {t('pages.routing.tier.resetTitle')}
             </h2>
             <p style="margin: 0 0 20px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-              This will clear the model override and remove all fallback models for this tier.
+              {t('pages.routing.tier.resetDescription')}
             </p>
             <div style="display: flex; justify-content: flex-end; gap: 8px;">
               <button class="btn btn--outline" onClick={() => setConfirmReset(false)}>
-                Cancel
+                {t('pages.routing.cancel')}
               </button>
               <button
                 class="btn btn--danger"
@@ -678,7 +690,11 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                   props.onReset(props.stage.id);
                 }}
               >
-                {props.resettingTier() === props.stage.id ? <span class="spinner" /> : 'Reset'}
+                {props.resettingTier() === props.stage.id ? (
+                  <span class="spinner" />
+                ) : (
+                  t('pages.routing.tier.reset')
+                )}
               </button>
             </div>
           </div>

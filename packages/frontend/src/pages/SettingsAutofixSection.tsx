@@ -1,6 +1,7 @@
 import { createResource, createSignal, createEffect, Show, type Component } from 'solid-js';
 import { useSearchParams } from '@solidjs/router';
 import { getAutofix, updateAutofix } from '../services/api.js';
+import { t } from '../i18n/index.js';
 
 /**
  * Per-agent Auto-fix toggle on the Settings page. Fetches its own status and
@@ -54,22 +55,19 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
 
   return (
     <Show when={available()}>
-      <h2 class="settings-section__title">Auto-fix</h2>
+      <h2 class="settings-section__title">{t('pages.settings.autofix')}</h2>
       <div class="settings-card" classList={{ 'settings-card--highlight': highlighted() }}>
         <div class="settings-card__row">
           <div class="settings-card__label">
-            <span class="settings-card__label-title">Auto-fix failing requests</span>
-            <span class="settings-card__label-desc">
-              When a request fails with a fixable error, Manifest repairs it and retries once before
-              falling back, so a bad request gets fixed instead of just failing over.
-            </span>
+            <span class="settings-card__label-title">{t('pages.settings.autofixTitle')}</span>
+            <span class="settings-card__label-desc">{t('pages.settings.autofixDescription')}</span>
           </div>
           <div class="settings-card__control settings-card__control--end">
             <button
               type="button"
               role="switch"
               aria-checked={enabled()}
-              aria-label="Auto-fix"
+              aria-label={t('pages.settings.autofix')}
               class="settings-switch"
               classList={{ 'settings-switch--on': enabled() }}
               disabled={busy()}

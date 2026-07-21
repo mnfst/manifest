@@ -3,6 +3,8 @@
  * setup page, and any guards can all ask without spamming the endpoint.
  */
 
+import { t } from '../i18n/index.js';
+
 interface SetupStatusResponse {
   needsSetup: boolean;
   socialProviders?: string[];
@@ -111,7 +113,7 @@ export async function createFirstAdmin(input: CreateAdminInput): Promise<void> {
     body: JSON.stringify(input),
   });
   if (!res.ok) {
-    let message = `Setup failed (${res.status})`;
+    let message = t('services.setup.failed', { status: res.status });
     try {
       const body = (await res.json()) as { message?: string | string[] };
       if (typeof body.message === 'string') message = body.message;

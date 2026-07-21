@@ -1,6 +1,7 @@
 import { Show, Suspense, lazy, type Component } from 'solid-js';
 import InfoTooltip from './InfoTooltip.jsx';
 import { formatNumber, formatCost } from '../services/formatters.js';
+import { t } from '../i18n/index.js';
 
 // uPlot is heavy; lazy-load the chart so it stays out of the initial bundle and
 // is only fetched when this card actually renders a chart body.
@@ -65,7 +66,7 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
             onClick={() => props.onViewChange('cost')}
           >
             <span class="chart-card__label">
-              Cost
+              {t('overview.cost')}
               <Show when={props.costInfoTooltip}>
                 <InfoTooltip text={props.costInfoTooltip!} />
               </Show>
@@ -105,7 +106,7 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
           classList={{ 'chart-card__stat--active': props.activeView === 'tokens' }}
           onClick={() => props.onViewChange('tokens')}
         >
-          <span class="chart-card__label">Token usage</span>
+          <span class="chart-card__label">{t('overview.tokenUsage')}</span>
           <div class="chart-card__value-row">
             <span class="chart-card__value">{formatNumber(props.tokensValue)}</span>
             {trendBadge(props.tokensTrendPct, props.tokensValue)}
@@ -113,7 +114,7 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
         </button>
       </div>
       <div class="chart-card__body">
-        <Suspense fallback={EMPTY('Loading chart…')}>
+        <Suspense fallback={EMPTY(t('overview.loadingChart'))}>
           <Show when={props.activeView === 'messages'}>
             <Show
               when={props.agentMessageTimeseries?.agents.length}
@@ -131,7 +132,7 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
           <Show when={props.activeView === 'tokens'}>
             <Show
               when={props.agentTimeseries?.agents.length}
-              fallback={EMPTY('No token data for this time range')}
+              fallback={EMPTY(t('overview.noTokenData'))}
             >
               <MultiAgentTokenChart
                 agents={props.agentTimeseries!.agents}
@@ -144,14 +145,14 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
           <Show when={props.activeView === 'cost'}>
             <Show
               when={props.agentCostTimeseries?.agents.length}
-              fallback={EMPTY('No cost data for this time range')}
+              fallback={EMPTY(t('overview.noCostData'))}
             >
               <MultiAgentTokenChart
                 agents={props.agentCostTimeseries!.agents}
                 timeseries={props.agentCostTimeseries!.timeseries}
                 range={props.range}
                 colorMap={props.colorMap}
-                label="Cost"
+                label={t('overview.cost')}
               />
             </Show>
           </Show>

@@ -1,5 +1,6 @@
 import { toast } from '../toast-store.js';
 import { cachedFetch, isCacheable, invalidateAll } from './cache.js';
+import { t } from '../../i18n/index.js';
 
 export const BASE_URL = '/api/v1';
 
@@ -54,13 +55,15 @@ async function doFetchJson<T>(url: string): Promise<T> {
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
-      throw new Error('Session expired');
+      throw new Error(t('services.api.sessionExpired'));
     }
-    throw new Error(body || 'Unauthorized');
+    throw new Error(body || t('services.api.unauthorized'));
   }
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    throw new Error(body || `API error: ${res.status} ${res.statusText}`);
+    throw new Error(
+      body || t('services.api.error', { status: res.status, statusText: res.statusText }),
+    );
   }
   return res.json() as Promise<T>;
 }
@@ -73,7 +76,7 @@ export async function parseErrorMessage(res: Response): Promise<string> {
   } catch {
     // not JSON — fall through
   }
-  return `Request failed (${res.status})`;
+  return t('services.api.requestFailed', { status: res.status });
 }
 
 export async function fetchMutate<T = void>(path: string, options: RequestInit): Promise<T> {

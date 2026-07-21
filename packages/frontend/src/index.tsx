@@ -1,7 +1,7 @@
 /* @refresh reload */
 import { render } from 'solid-js/web';
 import { Router, Route, Navigate } from '@solidjs/router';
-import { MetaProvider, Title } from '@solidjs/meta';
+import { Meta, MetaProvider, Title } from '@solidjs/meta';
 import App from './App.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
 import Workspace from './pages/Workspace.jsx';
@@ -12,6 +12,7 @@ import GuestGuard from './components/GuestGuard.jsx';
 import NotFound from './pages/NotFound.jsx';
 import ToastContainer from './components/ToastContainer.jsx';
 import { lazyReload, clearReloadFlag } from './services/lazy-reload.js';
+import { initializeI18n, t } from './i18n/index.js';
 import type { ParentComponent } from 'solid-js';
 import './styles/theme.css';
 
@@ -61,80 +62,90 @@ const root = document.getElementById('root');
 if (!root) {
   throw new Error('Root element not found');
 }
+const mountRoot = root;
 
-render(
-  () => (
-    <MetaProvider>
-      <Title>Manifest</Title>
-      <ToastContainer />
-      <Router>
-        <Route path="/" component={App}>
-          <Route path="/" component={RootRedirect} />
-          <Route path="/overview" component={GlobalOverview} />
-          <Route path="/messages" component={MessageLog} />
-          <Route path="/harnesses" component={Workspace} />
-          <Route path="/playground" component={Playground} />
-          <Route path="/providers/subscriptions" component={Subscriptions} />
-          <Route path="/providers/usage-based" component={Byok} />
-          <Route path="/providers/local" component={LocalProviders} />
-          <Route path="/providers/connections/:connectionId" component={ConnectionDetail} />
-          <Route path="/harnesses/:agentName" component={AgentGuard}>
-            {/* Redirects: /limits → /guardrails, /messages → global /messages */}
-            <Route path="/limits" component={AgentLimitsRedirect} />
-            <Route path="/messages" component={AgentMessagesRedirect} />
+async function bootstrap(): Promise<void> {
+  await initializeI18n();
 
-            {/* Tabbed shell wraps Overview / Routing / Limits / Settings */}
-            <Route path="/" component={AgentDetail}>
-              <Route path="/" component={AgentOverview} />
-              <Route path="/overview" component={AgentOverview} />
-              <Route path="/routing" component={Routing} />
-              <Route path="/providers" component={AgentProviders} />
-              <Route path="/guardrails" component={Limits} />
-              <Route path="/settings/*" component={Settings} />
+  render(
+    () => (
+      <MetaProvider>
+        <Title>Manifest</Title>
+        <Meta name="description" content={t('meta.description')} />
+        <Meta property="og:description" content={t('meta.description')} />
+        <Meta name="twitter:description" content={t('meta.description')} />
+        <ToastContainer />
+        <Router>
+          <Route path="/" component={App}>
+            <Route path="/" component={RootRedirect} />
+            <Route path="/overview" component={GlobalOverview} />
+            <Route path="/messages" component={MessageLog} />
+            <Route path="/harnesses" component={Workspace} />
+            <Route path="/playground" component={Playground} />
+            <Route path="/providers/subscriptions" component={Subscriptions} />
+            <Route path="/providers/usage-based" component={Byok} />
+            <Route path="/providers/local" component={LocalProviders} />
+            <Route path="/providers/connections/:connectionId" component={ConnectionDetail} />
+            <Route path="/harnesses/:agentName" component={AgentGuard}>
+              {/* Redirects: /limits → /guardrails, /messages → global /messages */}
+              <Route path="/limits" component={AgentLimitsRedirect} />
+              <Route path="/messages" component={AgentMessagesRedirect} />
+
+              {/* Tabbed shell wraps Overview / Routing / Limits / Settings */}
+              <Route path="/" component={AgentDetail}>
+                <Route path="/" component={AgentOverview} />
+                <Route path="/overview" component={AgentOverview} />
+                <Route path="/routing" component={Routing} />
+                <Route path="/providers" component={AgentProviders} />
+                <Route path="/guardrails" component={Limits} />
+                <Route path="/settings/*" component={Settings} />
+              </Route>
+
+              {/* Non-tab agent routes: kept reachable but not primary tabs */}
+              <Route path="/model-prices" component={ModelPrices} />
+              <Route path="/free-models" component={FreeModels} />
+              <Route path="/help" component={Help} />
             </Route>
 
-            {/* Non-tab agent routes: kept reachable but not primary tabs */}
-            <Route path="/model-prices" component={ModelPrices} />
-            <Route path="/free-models" component={FreeModels} />
-            <Route path="/help" component={Help} />
-          </Route>
-
-          {/* Legacy /agents redirects → /harnesses (keep bookmarks alive) */}
-          <Route
-            path="/agents"
-            component={() => {
-              const { search, hash } = window.location;
-              return <Navigate href={`/harnesses${search}${hash}`} />;
-            }}
-          />
-          {/* The *rest splat matches zero trailing segments too, so this single
+            {/* Legacy /agents redirects → /harnesses (keep bookmarks alive) */}
+            <Route
+              path="/agents"
+              component={() => {
+                const { search, hash } = window.location;
+                return <Navigate href={`/harnesses${search}${hash}`} />;
+              }}
+            />
+            {/* The *rest splat matches zero trailing segments too, so this single
               route also covers the bare /agents/:agentName path. */}
-          <Route
-            path="/agents/:agentName/*rest"
-            component={() => {
-              const { pathname, search, hash } = window.location;
-              const target = pathname.replace(/^\/agents/, '/harnesses');
-              return <Navigate href={`${target}${search}${hash}`} />;
-            }}
-          />
+            <Route
+              path="/agents/:agentName/*rest"
+              component={() => {
+                const { pathname, search, hash } = window.location;
+                const target = pathname.replace(/^\/agents/, '/harnesses');
+                return <Navigate href={`${target}${search}${hash}`} />;
+              }}
+            />
 
-          <Route path="/connect-provider" component={ConnectProvider} />
-          <Route path="/account" component={Account} />
-        </Route>
-        <Route path="/upgrade" component={AuthGuard}>
-          <Route path="/" component={Upgrade} />
-        </Route>
-        <Route path="/" component={GuestLayout}>
-          <Route path="/login" component={Login} />
-          <Route path="/register" component={Register} />
-          <Route path="/reset-password" component={ResetPassword} />
-        </Route>
-        <Route path="/setup" component={AuthLayout}>
-          <Route path="/" component={Setup} />
-        </Route>
-        <Route path="*404" component={NotFound} />
-      </Router>
-    </MetaProvider>
-  ),
-  root,
-);
+            <Route path="/connect-provider" component={ConnectProvider} />
+            <Route path="/account" component={Account} />
+          </Route>
+          <Route path="/upgrade" component={AuthGuard}>
+            <Route path="/" component={Upgrade} />
+          </Route>
+          <Route path="/" component={GuestLayout}>
+            <Route path="/login" component={Login} />
+            <Route path="/register" component={Register} />
+            <Route path="/reset-password" component={ResetPassword} />
+          </Route>
+          <Route path="/setup" component={AuthLayout}>
+            <Route path="/" component={Setup} />
+          </Route>
+          <Route path="*404" component={NotFound} />
+        </Router>
+      </MetaProvider>
+    ),
+    mountRoot,
+  );
+}
+
+void bootstrap();

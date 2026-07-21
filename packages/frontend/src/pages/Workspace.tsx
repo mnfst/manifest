@@ -11,6 +11,7 @@ import { formatNumber } from '../services/formatters.js';
 import Sparkline from '../components/Sparkline.jsx';
 import { agentPing, messagePing } from '../services/sse.js';
 import { platformIcon } from 'manifest-shared';
+import { t } from '../i18n/index.js';
 
 interface Agent {
   agent_name: string;
@@ -98,7 +99,7 @@ const Workspace: Component = () => {
     setDeleting(true);
     try {
       await deleteAgent(target);
-      toast.success(`Harness "${target}" deleted`);
+      toast.success(t('pages.workspace.deleted', { name: target }));
       closeDeleteModal();
       await refetch();
     } catch {
@@ -110,15 +111,12 @@ const Workspace: Component = () => {
 
   return (
     <div class="container--lg">
-      <Title>My Harnesses - Manifest</Title>
-      <Meta
-        name="description"
-        content="View and manage all your harnesses. Monitor usage, requests, and costs."
-      />
+      <Title>{t('pages.workspace.metaTitle')}</Title>
+      <Meta name="description" content={t('pages.workspace.metaDescription')} />
       <div class="page-header">
         <div>
-          <h1>My Harnesses</h1>
-          <span class="breadcrumb">View and manage all your connected harnesses</span>
+          <h1>{t('pages.workspace.title')}</h1>
+          <span class="breadcrumb">{t('pages.workspace.subtitle')}</span>
         </div>
         <button class="btn btn--primary btn--sm" onClick={() => setModalOpen(true)}>
           <svg
@@ -135,7 +133,7 @@ const Workspace: Component = () => {
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Connect Harness
+          {t('pages.workspace.connect')}
         </button>
       </div>
 
@@ -166,16 +164,14 @@ const Workspace: Component = () => {
             when={data()?.agents?.length}
             fallback={
               <div class="empty-state">
-                <div class="empty-state__title">No harnesses yet</div>
-                <p>
-                  Connect a harness or an AI app to take control of your routing and your costs.
-                </p>
+                <div class="empty-state__title">{t('pages.workspace.emptyTitle')}</div>
+                <p>{t('pages.workspace.emptyDescription')}</p>
                 <button
                   class="btn btn--primary btn--sm"
                   style="margin-top: var(--gap-md);"
                   onClick={() => setModalOpen(true)}
                 >
-                  Connect your first harness
+                  {t('pages.workspace.connectFirst')}
                 </button>
               </div>
             }
@@ -204,7 +200,7 @@ const Workspace: Component = () => {
                       </div>
                       <div class="agent-card__stats">
                         <div class="agent-card__stat">
-                          <span class="agent-card__stat-label">Tokens</span>
+                          <span class="agent-card__stat-label">{t('pages.workspace.tokens')}</span>
                           <span class="agent-card__stat-value">
                             {formatNumber(agent.total_tokens)}
                           </span>
@@ -220,15 +216,15 @@ const Workspace: Component = () => {
                     </A>
                     <ActionMenu
                       class="agent-card__menu"
-                      ariaLabel={`Actions for ${agent.agent_name}`}
+                      ariaLabel={t('pages.workspace.actions', { name: agent.agent_name })}
                       items={[
                         {
-                          label: 'Duplicate',
+                          label: t('pages.workspace.duplicate'),
                           icon: <DuplicateIcon />,
                           onClick: () => setDuplicateSource(agent.agent_name),
                         },
                         {
-                          label: 'Delete',
+                          label: t('pages.workspace.delete'),
                           danger: true,
                           icon: <DeleteIcon />,
                           onClick: () => {
@@ -276,18 +272,18 @@ const Workspace: Component = () => {
               id="workspace-delete-title"
               style="margin: 0 0 var(--gap-md); font-size: var(--font-size-lg);"
             >
-              Delete {deleteTarget()}
+              {t('pages.workspace.deleteTitle', { name: deleteTarget()! })}
             </h3>
             <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-md);">
-              This will permanently delete the{' '}
-              <strong style="color: hsl(var(--foreground));">{deleteTarget()}</strong> harness and
-              all its data. This action cannot be undone.
+              {t('pages.workspace.deleteDescriptionPrefix')}{' '}
+              <strong style="color: hsl(var(--foreground));">{deleteTarget()}</strong>{' '}
+              {t('pages.workspace.deleteDescriptionSuffix')}
             </p>
             <label
               for="workspace-delete-confirm"
               style="display: block; font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: var(--gap-sm);"
             >
-              To confirm, type <strong>"{deleteTarget()}"</strong> below
+              {t('pages.workspace.deleteConfirm', { name: deleteTarget()! })}
             </label>
             <input
               id="workspace-delete-confirm"
@@ -305,7 +301,7 @@ const Workspace: Component = () => {
                 onClick={closeDeleteModal}
                 disabled={deleting()}
               >
-                Cancel
+                {t('pages.workspace.cancel')}
               </button>
               <button
                 type="button"
@@ -313,7 +309,7 @@ const Workspace: Component = () => {
                 onClick={handleDelete}
                 disabled={deleteConfirmName() !== deleteTarget() || deleting()}
               >
-                {deleting() ? <span class="spinner" /> : 'Delete harness'}
+                {deleting() ? <span class="spinner" /> : t('pages.workspace.deleteHarness')}
               </button>
             </div>
           </div>

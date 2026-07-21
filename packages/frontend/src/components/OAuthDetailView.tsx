@@ -17,6 +17,7 @@ import {
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { monitorOAuthPopup } from '../services/oauth-popup.js';
+import { t } from '../i18n/index.js';
 
 const MAX_LABEL_LENGTH = 50;
 
@@ -77,9 +78,7 @@ const OAuthDetailView: Component<Props> = (props) => {
   const isXaiProvider = () => props.provId === 'xai';
   const isOpenAiProvider = () => props.provId === 'openai';
   const callbackPlaceholder = () =>
-    isXaiProvider()
-      ? 'Paste the xAI authorization code or callback URL'
-      : 'http://localhost:1455/auth/callback?code=...';
+    isXaiProvider() ? t('oauth.xaiPlaceholder') : 'http://localhost:1455/auth/callback?code=...';
   const showConnectFlow = () => !props.connected() || addingAccount() || pasteFlowActive();
   const showConnectedFlow = () => props.connected() && !addingAccount() && !pasteFlowActive();
   const activeKeyCount = () => (props.activeKeys?.() ?? []).length;
@@ -98,7 +97,7 @@ const OAuthDetailView: Component<Props> = (props) => {
     setPasteError(null);
     setOauthState(null);
     setAddingAccount(false);
-    toast.success(`${props.provDef.name} subscription connected`);
+    toast.success(t('oauth.subscriptionConnected', { provider: props.provDef.name }));
     props.onUpdate();
   };
 
@@ -139,9 +138,7 @@ const OAuthDetailView: Component<Props> = (props) => {
       }
       const popup = window.open(url, 'manifest-oauth', 'width=500,height=700');
       if (!popup) {
-        toast.error(
-          'Popup was blocked by your browser. Allow popups for this site, then try again.',
-        );
+        toast.error(t('oauth.popupBlocked'));
         if (props.connected()) setAddingAccount(false);
         setOauthState(null);
         props.setBusy(false);
@@ -179,11 +176,7 @@ const OAuthDetailView: Component<Props> = (props) => {
     try {
       const { code, state } = parseOAuthCallbackInput(raw, oauthState());
       if (!code || !state) {
-        setPasteError(
-          props.provId === 'xai'
-            ? 'Paste the authorization code shown by xAI, or paste the full callback URL after approval.'
-            : 'URL is missing the authorization code. Make sure you copied the full URL.',
-        );
+        setPasteError(props.provId === 'xai' ? t('oauth.xaiMissingCode') : t('oauth.missingCode'));
         return;
       }
 
@@ -192,7 +185,7 @@ const OAuthDetailView: Component<Props> = (props) => {
       await oauthApi().submitCallback(code, state);
       finishOAuthSuccess();
     } catch {
-      setPasteError('Failed to exchange token. The URL may have expired. Try logging in again.');
+      setPasteError(t('oauth.exchangeFailed'));
     } finally {
       props.setBusy(false);
     }
@@ -263,7 +256,7 @@ const OAuthDetailView: Component<Props> = (props) => {
         newLabel,
         props.selectedAuthType(),
       );
-      toast.success(`Renamed to "${newLabel}"`);
+      toast.success(t('account.renamed', { name: newLabel }));
       setRenamingId(null);
       props.onUpdate();
     } catch {
@@ -281,7 +274,7 @@ const OAuthDetailView: Component<Props> = (props) => {
           fallback={
             <>
               <p class="provider-detail__hint">
-                Log in with your {props.provDef.name} account to connect your subscription.
+                {t('oauth.loginHint', { provider: props.provDef.name })}
               </p>
               <button
                 class="btn btn--primary provider-detail__action"
@@ -289,7 +282,7 @@ const OAuthDetailView: Component<Props> = (props) => {
                 onClick={handleOAuthLogin}
               >
                 <Show when={!props.busy()} fallback={<span class="spinner" />}>
-                  Log in with {props.provDef.name}
+                  {t('oauth.loginWith', { provider: props.provDef.name })}
                 </Show>
               </button>
             </>
@@ -299,17 +292,14 @@ const OAuthDetailView: Component<Props> = (props) => {
             when={isXaiProvider()}
             fallback={
               <>
-                <p class="provider-detail__hint">
-                  A login window has opened. If it does not close automatically after sign-in, paste
-                  the callback URL below.
-                </p>
+                <p class="provider-detail__hint">{t('oauth.popupInstructions')}</p>
                 <Show when={isOpenAiProvider()}>
                   <p class="provider-detail__hint" style="margin-top: 8px;">
-                    Copy the full URL from the{' '}
+                    {t('oauth.copyPopupUrlPrefix')}{' '}
                     <span style="color: hsl(var(--foreground)); font-weight: 500;">
-                      popup's address bar
+                      {t('oauth.popupAddressBar')}
                     </span>{' '}
-                    and paste it below:
+                    {t('oauth.copyPopupUrlSuffix')}
                   </p>
                   <video
                     src="/images/oauth-callback-example.mp4"
@@ -325,10 +315,7 @@ const OAuthDetailView: Component<Props> = (props) => {
               </>
             }
           >
-            <p class="provider-detail__hint">
-              A login window has opened. After approving access, paste the authorization code xAI
-              shows. If your browser lands on a callback URL, paste that URL instead.
-            </p>
+            <p class="provider-detail__hint">{t('oauth.xaiInstructions')}</p>
           </Show>
           <div class="provider-detail__field" style="margin-top: 12px;">
             <input
@@ -356,7 +343,7 @@ const OAuthDetailView: Component<Props> = (props) => {
               onClick={handlePasteSubmit}
             >
               <Show when={!props.busy()} fallback={<span class="spinner" />}>
-                Connect
+                {t('components.connect')}
               </Show>
             </button>
           </div>
@@ -367,7 +354,7 @@ const OAuthDetailView: Component<Props> = (props) => {
             disabled={props.busy()}
             onClick={cancelAddAccount}
           >
-            Cancel
+            {t('components.cancel')}
           </button>
         </Show>
       </Show>
@@ -375,10 +362,10 @@ const OAuthDetailView: Component<Props> = (props) => {
         {/* Multi-key list */}
         <Show when={isMultiKey()}>
           <div class="provider-detail__field">
-            <label class="provider-detail__label">Accounts</label>
+            <label class="provider-detail__label">{t('account.accounts')}</label>
             <ul
               role="list"
-              aria-label={`OAuth accounts for ${props.provDef.name}`}
+              aria-label={t('account.oauthAccountsFor', { provider: props.provDef.name })}
               style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;"
             >
               <For each={props.activeKeys!()}>
@@ -393,7 +380,10 @@ const OAuthDetailView: Component<Props> = (props) => {
                               {k.label}
                             </div>
                             <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                              Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
+                              {t('account.connectedVia', {
+                                method:
+                                  props.provDef.subscriptionLabel ?? t('provider.subscription'),
+                              })}
                             </div>
                           </div>
                           <button
@@ -402,14 +392,14 @@ const OAuthDetailView: Component<Props> = (props) => {
                             disabled={props.busy()}
                             onClick={() => startRename(k)}
                           >
-                            Rename
+                            {t('account.rename')}
                           </button>
                           <button
                             class="provider-detail__disconnect-icon"
                             disabled={props.busy()}
                             onClick={() => handleDeleteKey(k.label)}
-                            aria-label={`Delete account ${k.label}`}
-                            title="Delete account"
+                            aria-label={t('account.deleteNamed', { name: k.label })}
+                            title={t('account.delete')}
                           >
                             <svg
                               width="16"
@@ -434,7 +424,7 @@ const OAuthDetailView: Component<Props> = (props) => {
                         class="provider-detail__input"
                         type="text"
                         maxlength={MAX_LABEL_LENGTH}
-                        aria-label={`Rename ${k.label}`}
+                        aria-label={t('account.renameNamed', { name: k.label })}
                         value={renameValue()}
                         onInput={(e) => setRenameValue(e.currentTarget.value)}
                         onKeyDown={(e) => {
@@ -447,14 +437,14 @@ const OAuthDetailView: Component<Props> = (props) => {
                         disabled={props.busy()}
                         onClick={() => commitRename(k)}
                       >
-                        Save
+                        {t('components.save')}
                       </button>
                       <button
                         class="btn btn--outline btn--sm"
                         disabled={props.busy()}
                         onClick={() => setRenamingId(null)}
                       >
-                        Cancel
+                        {t('components.cancel')}
                       </button>
                     </Show>
                   </li>
@@ -469,12 +459,12 @@ const OAuthDetailView: Component<Props> = (props) => {
               onClick={handleDisconnect}
             >
               <Show when={!props.busy()} fallback={<span class="spinner" />}>
-                Disconnect all
+                {t('account.disconnectAll')}
               </Show>
             </button>
             <div style="flex: 1;" />
             <button class="btn btn--primary btn--sm" onClick={() => props.onClose()}>
-              Done
+              {t('components.done')}
             </button>
           </div>
         </Show>
@@ -482,7 +472,9 @@ const OAuthDetailView: Component<Props> = (props) => {
         <Show when={!isMultiKey()}>
           <div class="provider-detail__field">
             <span class="provider-detail__no-key">
-              Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
+              {t('account.connectedVia', {
+                method: props.provDef.subscriptionLabel ?? t('provider.subscription'),
+              })}
             </span>
           </div>
           <div class="provider-detail__footer">
@@ -492,12 +484,12 @@ const OAuthDetailView: Component<Props> = (props) => {
               onClick={handleDisconnect}
             >
               <Show when={!props.busy()} fallback={<span class="spinner" />}>
-                Disconnect
+                {t('components.disconnect')}
               </Show>
             </button>
             <div style="flex: 1;" />
             <button class="btn btn--primary btn--sm" onClick={() => props.onClose()}>
-              Done
+              {t('components.done')}
             </button>
           </div>
         </Show>

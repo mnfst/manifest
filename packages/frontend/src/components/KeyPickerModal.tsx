@@ -1,5 +1,6 @@
 import { For, type Component } from 'solid-js';
 import type { RoutingProvider } from '../services/api.js';
+import { t } from '../i18n/index.js';
 
 export interface KeyPickerModalProps {
   /** Display name of the provider (e.g. "Google"). */
@@ -33,15 +34,15 @@ const KeyPickerModal: Component<KeyPickerModalProps> = (props) => (
       >
         <div>
           <h2 id="key-picker-modal-title" style="margin: 0; font-size: var(--font-size-lg);">
-            Which {props.providerName} key?
+            {t('keyPicker.title', { provider: props.providerName })}
           </h2>
           <p style="margin: 4px 0 0; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-            Picking a key for <strong>{props.modelName}</strong>
+            {t('keyPicker.descriptionPrefix')} <strong>{props.modelName}</strong>
           </p>
         </div>
         <button
           class="modal__close"
-          aria-label="Close"
+          aria-label={t('components.close')}
           onClick={props.onClose}
           style="background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px;"
         >
@@ -51,7 +52,7 @@ const KeyPickerModal: Component<KeyPickerModalProps> = (props) => (
       <div class="modal__body" style="padding: 12px 16px 16px;">
         <ul
           role="list"
-          aria-label={`Choose a ${props.providerName} key`}
+          aria-label={t('keyPicker.choose', { provider: props.providerName })}
           style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px;"
         >
           <For each={props.keys}>

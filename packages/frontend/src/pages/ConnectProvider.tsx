@@ -2,6 +2,7 @@ import { createResource, createSignal, Show, For, type Component } from 'solid-j
 import { useNavigate, useSearchParams } from '@solidjs/router';
 import { getAgents, createAgent } from '../services/api.js';
 import { markAgentCreated } from '../services/recent-agents.js';
+import { t } from '../i18n/index.js';
 
 interface Agent {
   agent_name: string;
@@ -68,9 +69,9 @@ const ConnectProvider: Component = () => {
     <div class="container--sm" style="padding-top: 80px;">
       <Show when={!data.loading && (data()?.length ?? 0) > 1}>
         <div class="panel" style="max-width: 440px; margin: 0 auto; padding: 32px;">
-          <h2 style="margin: 0 0 8px;">Select a harness</h2>
+          <h2 style="margin: 0 0 8px;">{t('pages.connectProvider.title')}</h2>
           <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); margin: 0 0 24px;">
-            Which harness should this provider be added to?
+            {t('pages.connectProvider.description')}
           </p>
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <For each={data()}>
@@ -94,7 +95,7 @@ const ConnectProvider: Component = () => {
             class="spinner"
             style="width: 24px; height: 24px;"
             role="status"
-            aria-label="Loading"
+            aria-label={t('pages.connectProvider.loading')}
           />
         </div>
       </Show>

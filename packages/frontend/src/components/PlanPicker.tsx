@@ -1,35 +1,36 @@
 import { For, Show, createSignal, type Component } from 'solid-js';
-import { FREE_REQUEST_LIMIT_LABEL } from '../services/billing-display.js';
+import { freeRequestLimitLabel } from '../services/billing-display.js';
+import { formatNumber, t } from '../i18n/index.js';
 
 /* ── Plan data ───────────────────────────────────────── */
 
-const freeFeatures = [
-  'Unlimited agents',
-  `${FREE_REQUEST_LIMIT_LABEL} routed requests / month`,
-  'All providers, no restrictions',
-  'Subscription providers (Claude, ChatGPT, Gemini...)',
-  '7-day dashboard retention',
-  'Auto-fix',
-  'Budget alerts and notifications',
-  'Community support via Discord',
+const freeFeatures = () => [
+  t('plan.free.unlimitedAgents'),
+  t('plan.free.requestLimit', { limit: freeRequestLimitLabel() }),
+  t('plan.free.allProviders'),
+  t('plan.free.subscriptionProviders'),
+  t('plan.free.retention'),
+  t('plan.free.autoFix'),
+  t('plan.free.budgetAlerts'),
+  t('plan.free.communitySupport'),
 ];
 
-const proFeatures = [
-  'Unlimited routed requests',
-  '365 days dashboard retention',
-  'Basic support (platform issues, billing, licence activation)',
+const proFeatures = () => [
+  t('plan.pro.unlimitedRequests'),
+  t('plan.pro.retention'),
+  t('plan.pro.support'),
 ];
 
-const enterpriseFeatures = [
-  'Multiple seats and team management',
-  'SSO / SAML',
-  'Audit logs',
-  'Custom retention',
-  'Uptime SLA',
-  'SOC 2 Type II and ISO 27001',
-  'HIPAA and custom BAAs',
-  'Custom guardrails',
-  'Dedicated support (Slack and email)',
+const enterpriseFeatures = () => [
+  t('plan.enterprise.teamManagement'),
+  t('plan.enterprise.sso'),
+  t('plan.enterprise.auditLogs'),
+  t('plan.enterprise.customRetention'),
+  t('plan.enterprise.uptime'),
+  t('plan.enterprise.compliance'),
+  t('plan.enterprise.hipaa'),
+  t('plan.enterprise.guardrails'),
+  t('plan.enterprise.support'),
 ];
 
 export type PlanId = 'free' | 'pro' | 'enterprise';
@@ -55,35 +56,33 @@ export interface PlanPickerProps {
   usedRequests?: number | null;
 }
 
-const fmt = (n: number) => n.toLocaleString('en-US');
-
 const PlanPicker: Component<PlanPickerProps> = (props) => {
   const [expanded, setExpanded] = createSignal<PlanId | null>('pro');
 
   const plans = (): PlanDef[] => [
     {
       id: 'free',
-      name: 'Free',
+      name: t('plan.free.name'),
       price: '$0',
-      period: '/month',
-      desc: 'For prototypes and small projects.',
-      features: freeFeatures,
+      period: t('plan.perMonth'),
+      desc: t('plan.free.description'),
+      features: freeFeatures(),
     },
     {
       id: 'pro',
-      name: 'Pro',
+      name: t('plan.pro.name'),
       price: props.proPrice ?? 'Pro',
-      period: props.proPrice ? '/month' : undefined,
-      desc: 'For production projects. Longer data access and unlimited agents. Not suited for teams.',
-      features: proFeatures,
+      period: props.proPrice ? t('plan.perMonth') : undefined,
+      desc: t('plan.pro.description'),
+      features: proFeatures(),
       popular: true,
     },
     {
       id: 'enterprise',
-      name: 'Enterprise',
-      price: 'Custom',
-      desc: 'For scaling projects, large scale teams. Enterprise-grade support and security.',
-      features: enterpriseFeatures,
+      name: t('plan.enterprise.name'),
+      price: t('plan.customPrice'),
+      desc: t('plan.enterprise.description'),
+      features: enterpriseFeatures(),
     },
   ];
 
@@ -112,7 +111,7 @@ const PlanPicker: Component<PlanPickerProps> = (props) => {
                   </span>
                   <span>{plan.name}</span>
                   <Show when={plan.popular}>
-                    <span class="plan-picker__badge">Popular</span>
+                    <span class="plan-picker__badge">{t('plan.popular')}</span>
                   </Show>
                 </div>
                 <div class="plan-picker__price-inline">
@@ -126,7 +125,9 @@ const PlanPicker: Component<PlanPickerProps> = (props) => {
               <Show when={isExpanded()}>
                 <div class="plan-picker__details">
                   <Show when={plan.id === 'free' && props.usedRequests != null}>
-                    <p class="plan-picker__usage">{fmt(props.usedRequests!)} used this month</p>
+                    <p class="plan-picker__usage">
+                      {t('plan.usedThisMonth', { count: formatNumber(props.usedRequests!) })}
+                    </p>
                   </Show>
                   <ul class="plan-picker__features">
                     <For each={plan.features}>
@@ -164,7 +165,7 @@ const PlanPicker: Component<PlanPickerProps> = (props) => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Talk to sales
+              {t('plan.talkToSales')}
             </a>
           }
         >
@@ -174,7 +175,7 @@ const PlanPicker: Component<PlanPickerProps> = (props) => {
             disabled={props.busy}
             onClick={() => props.onSelect(expanded()!)}
           >
-            {props.busy ? <span class="spinner" /> : 'Choose this plan'}
+            {props.busy ? <span class="spinner" /> : t('plan.choose')}
           </button>
         </Show>
       </Show>

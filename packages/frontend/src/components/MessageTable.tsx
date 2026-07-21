@@ -2,6 +2,7 @@ import { createSignal, For, Show, type JSX } from 'solid-js';
 import type { MessageRow, MessageColumnKey } from './message-table-types.js';
 import MessageDetails from './MessageDetails.jsx';
 import { columnHeader, renderCell } from './message-table-cells.jsx';
+import { t } from '../i18n/index.js';
 
 export interface MessageTableProps {
   items: MessageRow[];
@@ -88,8 +89,8 @@ function ExpandableRow(props: {
                 setExpanded(!expanded());
               }}
               aria-expanded={expanded()}
-              aria-label={expanded() ? 'Collapse details' : 'Expand details'}
-              title={expanded() ? 'Collapse details' : 'Expand details'}
+              aria-label={expanded() ? t('message.collapseDetails') : t('message.expandDetails')}
+              title={expanded() ? t('message.collapseDetails') : t('message.expandDetails')}
             >
               <ChevronIcon />
             </button>

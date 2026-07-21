@@ -1,11 +1,8 @@
 import { createSignal, For, Show, type JSX } from 'solid-js';
 import InfoTooltip from './InfoTooltip.jsx';
+import { t } from '../i18n/index.js';
 
-const MODEL_PARAMS_TOOLTIP =
-  'Provider-specific request parameters that affected this call, e.g. ' +
-  "DeepSeek's `thinking` toggle. The set is curated per provider today; " +
-  'support for additional models and custom user-defined parameters lands ' +
-  'here as it ships.';
+const modelParamsTooltip = (): string => t('message.modelParametersTooltip');
 
 /**
  * Render an effective model parameter value as a readable string. Objects
@@ -39,7 +36,7 @@ export function RequestHeadersSection(props: { headers: Record<string, string> }
           aria-controls={tableId}
           onClick={() => setOpen((v) => !v)}
         >
-          Request Headers
+          {t('message.requestHeaders')}
           <span class="msg-detail__count-badge">{entries().length}</span>
           <span
             class="msg-detail__chevron"
@@ -63,8 +60,8 @@ export function RequestHeadersSection(props: { headers: Record<string, string> }
           <table class="data-table msg-detail__table">
             <thead>
               <tr>
-                <th>Header</th>
-                <th>Value</th>
+                <th>{t('message.header')}</th>
+                <th>{t('message.value')}</th>
               </tr>
             </thead>
             <tbody>
@@ -99,7 +96,7 @@ export function ModelParamsSection(props: { params: Record<string, unknown> }): 
           aria-controls={tableId}
           onClick={() => setOpen((v) => !v)}
         >
-          Model Parameters
+          {t('message.modelParameters')}
           <span class="msg-detail__count-badge">{entries().length}</span>
           <span
             class="msg-detail__chevron"
@@ -117,15 +114,15 @@ export function ModelParamsSection(props: { params: Record<string, unknown> }): 
             </svg>
           </span>
         </button>
-        <InfoTooltip text={MODEL_PARAMS_TOOLTIP} />
+        <InfoTooltip text={modelParamsTooltip()} />
       </div>
       <Show when={open()}>
         <div class="data-table-scroll" id={tableId}>
           <table class="data-table msg-detail__table">
             <thead>
               <tr>
-                <th>Parameter</th>
-                <th>Value</th>
+                <th>{t('message.parameter')}</th>
+                <th>{t('message.value')}</th>
               </tr>
             </thead>
             <tbody>

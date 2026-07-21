@@ -2,6 +2,7 @@ import { createSignal, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
 import { getOpenClawSnippet, getOpenClawWizardSnippet } from '../services/framework-snippets.js';
+import { t } from '../i18n/index.js';
 
 type SubTab = 'cli' | 'wizard';
 
@@ -70,14 +71,13 @@ const OpenClawSetup: Component<Props> = (props) => {
   return (
     <div class="setup-agents-card">
       <p class="setup-step__desc">
-        Register Manifest in your OpenClaw config to route each request to the best provider using
-        the model <code class="setup-model-hint__code">manifest/auto</code>
+        {t('setup.openClawPrefix')} <code class="setup-model-hint__code">manifest/auto</code>
       </p>
 
       <div
         class="setup-segment setup-segment--full"
         role="tablist"
-        aria-label="Configuration method"
+        aria-label={t('setup.configurationMethod')}
       >
         <button
           class="setup-segment__btn"
@@ -86,7 +86,7 @@ const OpenClawSetup: Component<Props> = (props) => {
           role="tab"
           aria-selected={subTab() === 'cli'}
         >
-          CLI configuration
+          {t('setup.cliConfiguration')}
         </button>
         <button
           class="setup-segment__btn"
@@ -100,17 +100,17 @@ const OpenClawSetup: Component<Props> = (props) => {
       </div>
 
       <Show when={subTab() === 'cli'}>
-        <p class="setup-method__hint">
-          Set the provider config and default model directly via CLI commands.
-        </p>
+        <p class="setup-method__hint">{t('setup.cliDescription')}</p>
         <div class="setup-cli-block">
           <div class="setup-cli-block__actions">
             <Show when={hasFullKey()}>
               <button
                 class="modal-terminal__copy"
                 onClick={() => setCliKeyRevealed(!cliKeyRevealed())}
-                aria-label={cliKeyRevealed() ? 'Hide API key' : 'Reveal API key'}
-                title={cliKeyRevealed() ? 'Hide key' : 'Reveal key'}
+                aria-label={
+                  cliKeyRevealed() ? t('components.hideApiKey') : t('components.revealApiKey')
+                }
+                title={cliKeyRevealed() ? t('components.hideKey') : t('components.revealKey')}
               >
                 <EyeIcon open={cliKeyRevealed()} />
               </button>
@@ -123,22 +123,23 @@ const OpenClawSetup: Component<Props> = (props) => {
 
       <Show when={subTab() === 'wizard'}>
         <p class="setup-method__hint">
-          Run the onboarding wizard and select <strong>Custom Provider</strong> when prompted. Then
-          enter the following values:
+          {t('setup.wizardPrefix')} <strong>Custom Provider</strong> {t('setup.wizardSuffix')}
         </p>
         <CodeBlock code={getOpenClawWizardSnippet()} language="bash" />
-        <div class="setup-onboard-fields" role="list" aria-label="Configuration values">
-          <OnboardField label="API Base URL" value={props.baseUrl} copyable />
+        <div class="setup-onboard-fields" role="list" aria-label={t('setup.configurationValues')}>
+          <OnboardField label={t('setup.apiBaseUrl')} value={props.baseUrl} copyable />
           <div class="setup-onboard-fields__row" role="listitem">
-            <span class="setup-onboard-fields__label">API Key</span>
+            <span class="setup-onboard-fields__label">{t('setup.apiKey')}</span>
             <span class="setup-onboard-fields__value">
               <code>{wizKey()}</code>
               <Show when={hasFullKey()}>
                 <button
                   class="setup-onboard-fields__eye"
                   onClick={() => setWizKeyRevealed(!wizKeyRevealed())}
-                  aria-label={wizKeyRevealed() ? 'Hide API key' : 'Reveal API key'}
-                  title={wizKeyRevealed() ? 'Hide key' : 'Reveal key'}
+                  aria-label={
+                    wizKeyRevealed() ? t('components.hideApiKey') : t('components.revealApiKey')
+                  }
+                  title={wizKeyRevealed() ? t('components.hideKey') : t('components.revealKey')}
                 >
                   <EyeIcon open={wizKeyRevealed()} />
                 </button>
@@ -146,9 +147,12 @@ const OpenClawSetup: Component<Props> = (props) => {
               <CopyButton text={copyKey()} />
             </span>
           </div>
-          <OnboardField label="Endpoint compatibility" value="OpenAI Chat Completions-compatible" />
-          <OnboardField label="Model ID" value="auto" copyable />
-          <OnboardField label="Endpoint ID" value="manifest" copyable />
+          <OnboardField
+            label={t('setup.endpointCompatibility')}
+            value="OpenAI Chat Completions-compatible"
+          />
+          <OnboardField label={t('setup.modelId')} value="auto" copyable />
+          <OnboardField label={t('setup.endpointId')} value="manifest" copyable />
         </div>
       </Show>
     </div>

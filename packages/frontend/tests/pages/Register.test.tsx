@@ -130,12 +130,20 @@ describe('Register', () => {
     });
     fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(mockSignUpEmail).toHaveBeenCalledWith({
-        name: 'Test',
-        email: 'test@test.com',
-        password: 'pass123',
-        callbackURL: '/upgrade',
-      });
+      expect(mockSignUpEmail).toHaveBeenCalledWith(
+        {
+          name: 'Test',
+          email: 'test@test.com',
+          password: 'pass123',
+          callbackURL: '/upgrade',
+        },
+        {
+          headers: {
+            'Accept-Language': 'en-US',
+            'X-Manifest-Locale': 'en-US',
+          },
+        },
+      );
     });
   });
 
@@ -369,10 +377,18 @@ describe('Register', () => {
     if (resendBtn) {
       fireEvent.click(resendBtn);
       await vi.waitFor(() => {
-        expect(mockSendVerificationEmail).toHaveBeenCalledWith({
-          email: 'test@test.com',
-          callbackURL: '/upgrade',
-        });
+        expect(mockSendVerificationEmail).toHaveBeenCalledWith(
+          {
+            email: 'test@test.com',
+            callbackURL: '/upgrade',
+          },
+          {
+            headers: {
+              'Accept-Language': 'en-US',
+              'X-Manifest-Locale': 'en-US',
+            },
+          },
+        );
       });
     }
     vi.useRealTimers();

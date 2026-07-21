@@ -7,7 +7,11 @@ const mockResetPassword = vi.fn();
 const mockCheckEmailConfigured = vi.fn().mockResolvedValue(true);
 
 vi.mock("@solidjs/router", () => ({
-  A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
+  A: (props: any) => (
+    <a href={props.href} class={props.class}>
+      {props.children}
+    </a>
+  ),
   useSearchParams: () => [new Proxy({}, { get: (_, key) => mockSearchParamsValue[key as string] })],
 }));
 
@@ -82,6 +86,18 @@ describe("ResetPassword - Request form (no token)", () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Check your email for a reset link");
     });
+    expect(mockRequestPasswordReset).toHaveBeenCalledWith(
+      {
+        email: "test@test.com",
+        redirectTo: "/reset-password",
+      },
+      {
+        headers: {
+          "Accept-Language": "en-US",
+          "X-Manifest-Locale": "en-US",
+        },
+      },
+    );
   });
 
   it("shows error on failed request", async () => {
@@ -118,9 +134,7 @@ describe("ResetPassword - Request form (no email provider)", () => {
   it("shows the unavailable notice instead of the form", async () => {
     const { container } = render(() => <ResetPassword />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain(
-        "Password reset by email isn't available on this install",
-      );
+      expect(container.textContent).toContain("Password reset by email isn't available on this install");
     });
     expect(container.querySelector("form")).toBeNull();
     expect(container.querySelector('input[type="email"]')).toBeNull();

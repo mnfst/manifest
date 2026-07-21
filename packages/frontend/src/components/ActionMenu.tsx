@@ -7,6 +7,7 @@ import {
   type JSX,
   type Component,
 } from 'solid-js';
+import { t } from '../i18n/index.js';
 
 interface MenuItem {
   label: string;
@@ -83,7 +84,7 @@ const ActionMenu: Component<ActionMenuProps> = (props) => {
           e.stopPropagation();
           setOpen(!open());
         }}
-        aria-label={props.ariaLabel ?? 'Actions'}
+        aria-label={props.ariaLabel ?? t('components.actions')}
         aria-expanded={open()}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

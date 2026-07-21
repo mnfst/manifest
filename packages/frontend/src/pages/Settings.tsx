@@ -22,11 +22,11 @@ import { setAgentPlatform } from '../services/agent-platform-store.js';
 import {
   type AgentCategory,
   type AgentPlatform,
-  CATEGORY_LABELS,
   PLATFORM_LABELS,
   PLATFORMS_BY_CATEGORY,
   platformIcon,
 } from 'manifest-shared';
+import { t } from '../i18n/index.js';
 
 const Settings: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -54,6 +54,17 @@ const Settings: Component = () => {
 
   const currentCategory = () => (agentInfo()?.agent_category as AgentCategory) ?? null;
   const currentPlatform = () => (agentInfo()?.agent_platform as AgentPlatform) ?? null;
+  const categoryLabel = (category: AgentCategory | null) => {
+    if (category === 'personal') return t('pages.settings.category.personal');
+    if (category === 'app') return t('pages.settings.category.app');
+    if (category === 'coding') return t('pages.settings.category.coding');
+    return '';
+  };
+  const platformLabel = (platform: AgentPlatform | null) => {
+    if (!platform) return t('pages.settings.notSet');
+    if (platform === 'other') return t('pages.settings.platform.other');
+    return PLATFORM_LABELS[platform] ?? platform;
+  };
 
   const openTypeModal = () => {
     setModalCategory(currentCategory());
@@ -102,7 +113,7 @@ const Settings: Component = () => {
     setDeleting(true);
     try {
       await deleteAgent(agentName());
-      toast.success(`Harness "${agentName()}" deleted`);
+      toast.success(t('pages.settings.deleted', { name: agentName() }));
       navigate('/harnesses', { replace: true });
     } catch {
       setDeleting(false);
@@ -132,7 +143,7 @@ const Settings: Component = () => {
       const result = await rotateAgentKey(agentName());
       setRotatedKey(result.apiKey);
       setKeyRevealed(true);
-      toast.success('API key rotated successfully');
+      toast.success(t('pages.settings.keyRotated'));
       refetchKey();
     } catch {
       // error toast handled by fetchMutate
@@ -143,29 +154,31 @@ const Settings: Component = () => {
 
   return (
     <div class="container--sm">
-      <Title>{agentDisplayName() ?? agentName()} Settings - Manifest</Title>
+      <Title>{t('pages.settings.metaTitle', { name: agentDisplayName() ?? agentName() })}</Title>
       <Meta
         name="description"
-        content={`Configure settings for ${agentDisplayName() ?? agentName()}.`}
+        content={t('pages.settings.metaDescription', {
+          name: agentDisplayName() ?? agentName(),
+        })}
       />
       <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); margin: 0 0 var(--gap-lg);">
-        Rename your agent, manage API keys, and view setup instructions
+        {t('pages.settings.subtitle')}
       </p>
 
       {/* -- Harness Name ------------------------------ */}
       <div class="settings-card">
         <div class="settings-card__row">
           <div class="settings-card__label">
-            <span class="settings-card__label-title">Harness name</span>
+            <span class="settings-card__label-title">{t('pages.settings.harnessName')}</span>
             <span class="settings-card__label-desc">
-              The display name for this harness across the dashboard.
+              {t('pages.settings.harnessNameDescription')}
             </span>
           </div>
           <div class="settings-card__control">
             <input
               class="settings-card__input"
               type="text"
-              aria-label="Harness name"
+              aria-label={t('pages.settings.harnessName')}
               value={name()}
               onInput={(e) => setName(e.currentTarget.value)}
             />
@@ -180,17 +193,17 @@ const Settings: Component = () => {
             {saving() ? (
               <>
                 <span class="spinner" />
-                <span class="sr-only">Saving...</span>
+                <span class="sr-only">{t('pages.settings.saving')}</span>
               </>
             ) : (
-              'Save'
+              t('pages.settings.save')
             )}
           </button>
         </div>
       </div>
 
       {/* -- Harness Type (read-only + change modal) --- */}
-      <h2 class="settings-section__title">Harness type</h2>
+      <h2 class="settings-section__title">{t('pages.settings.harnessType')}</h2>
       <div class="settings-card">
         <div class="settings-card__row">
           <div class="settings-card__label">
@@ -207,20 +220,13 @@ const Settings: Component = () => {
                   class="settings-type__icon"
                 />
               </Show>
-              {currentPlatform()
-                ? (PLATFORM_LABELS[currentPlatform()! as keyof typeof PLATFORM_LABELS] ??
-                  currentPlatform())
-                : 'Not set'}
+              {platformLabel(currentPlatform())}
             </span>
-            <span class="settings-card__label-desc">
-              {currentCategory()
-                ? CATEGORY_LABELS[currentCategory()! as keyof typeof CATEGORY_LABELS]
-                : ''}
-            </span>
+            <span class="settings-card__label-desc">{categoryLabel(currentCategory())}</span>
           </div>
           <div class="settings-card__control settings-card__control--end">
             <button class="btn btn--outline btn--sm" onClick={openTypeModal}>
-              Change
+              {t('pages.settings.change')}
             </button>
           </div>
         </div>
@@ -234,19 +240,18 @@ const Settings: Component = () => {
         fallback={(err, reset) => (
           <ErrorState
             error={err}
-            title="Something went wrong"
-            message="An error occurred."
+            title={t('pages.settings.error.title')}
+            message={t('pages.settings.error.message')}
             onRetry={reset}
           />
         )}
       >
-        <h2 class="settings-section__title">API Key</h2>
+        <h2 class="settings-section__title">{t('pages.settings.apiKey')}</h2>
         <div class="settings-card">
           <div class="settings-card__body">
-            <span class="settings-card__label-title">Harness API key</span>
+            <span class="settings-card__label-title">{t('pages.settings.harnessApiKey')}</span>
             <span class="settings-card__label-desc" style="font-size: 14px;">
-              This key authenticates your harness's requests to Manifest. Rotating it generates a
-              new key and immediately invalidates the current one.
+              {t('pages.settings.apiKeyDescription')}
             </span>
             <div class="settings-card__key-row">
               <code class="settings-card__key-value">{displayedKey()}</code>
@@ -255,8 +260,12 @@ const Settings: Component = () => {
                   <button
                     class="btn btn--ghost btn--sm"
                     onClick={() => setKeyRevealed(!keyRevealed())}
-                    aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
-                    title={keyRevealed() ? 'Hide' : 'Reveal'}
+                    aria-label={
+                      keyRevealed()
+                        ? t('pages.settings.hideApiKey')
+                        : t('pages.settings.revealApiKey')
+                    }
+                    title={keyRevealed() ? t('pages.settings.hide') : t('pages.settings.reveal')}
                   >
                     <svg
                       width="16"
@@ -297,25 +306,26 @@ const Settings: Component = () => {
               {rotating() ? (
                 <>
                   <span class="spinner" />
-                  <span class="sr-only">Rotating...</span>
+                  <span class="sr-only">{t('pages.settings.rotating')}</span>
                 </>
               ) : (
-                'Rotate key'
+                t('pages.settings.rotateKey')
               )}
             </button>
           </div>
         </div>
 
         {/* -- Setup Instructions ---------------------- */}
-        <h2 class="settings-section__title">Setup</h2>
+        <h2 class="settings-section__title">{t('pages.settings.setup')}</h2>
         <Show
           when={!apiKeyData.loading}
           fallback={<div class="skeleton skeleton--rect" style="width: 100%; height: 200px;" />}
         >
           <Show when={apiKeyData.error}>
             <div style="background: hsl(var(--chart-5) / 0.1); border: 1px solid hsl(var(--chart-5) / 0.3); border-radius: var(--radius); padding: 10px 14px; margin-bottom: var(--gap-md); font-size: var(--font-size-sm);">
-              Could not load your API key. Use <strong>Rotate key</strong> above to generate a new
-              one.
+              {t('pages.settings.keyLoadPrefix')}{' '}
+              <strong>{t('pages.settings.keyLoadAction')}</strong>{' '}
+              {t('pages.settings.keyLoadSuffix')}
             </div>
           </Show>
           <div class="settings-card" style="padding: var(--gap-lg);">
@@ -331,15 +341,14 @@ const Settings: Component = () => {
       </ErrorBoundary>
 
       {/* -- Danger Zone -------------------------------- */}
-      <h2 class="settings-section__title settings-section__title--danger">Danger zone</h2>
+      <h2 class="settings-section__title settings-section__title--danger">
+        {t('pages.settings.dangerZone')}
+      </h2>
       <div class="settings-card settings-card--danger">
         <div class="settings-card__row">
           <div class="settings-card__label">
-            <span class="settings-card__label-title">Delete this harness</span>
-            <span class="settings-card__label-desc">
-              Permanently delete this harness, its API key, and all messages and analytics. This
-              action cannot be undone.
-            </span>
+            <span class="settings-card__label-title">{t('pages.settings.deleteHarness')}</span>
+            <span class="settings-card__label-desc">{t('pages.settings.deleteDescription')}</span>
           </div>
           <div class="settings-card__control">
             <button
@@ -349,7 +358,7 @@ const Settings: Component = () => {
                 setDeleteConfirmName('');
               }}
             >
-              Delete harness
+              {t('pages.workspace.deleteHarness')}
             </button>
           </div>
         </div>
@@ -381,12 +390,12 @@ const Settings: Component = () => {
           >
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
               <h3 id="delete-agent-modal-title" style="margin: 0; font-size: var(--font-size-lg);">
-                Delete {agentName()}
+                {t('pages.settings.deleteTitle', { name: agentName() })}
               </h3>
               <button
                 style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px;"
                 onClick={() => setShowDeleteModal(false)}
-                aria-label="Close"
+                aria-label={t('pages.settings.close')}
               >
                 <svg
                   width="16"
@@ -405,15 +414,15 @@ const Settings: Component = () => {
               </button>
             </div>
             <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-md);">
-              This will permanently delete the{' '}
-              <strong style="color: hsl(var(--foreground));">{agentName()}</strong> harness and all
-              its data. This action cannot be undone.
+              {t('pages.settings.deleteModalPrefix')}{' '}
+              <strong style="color: hsl(var(--foreground));">{agentName()}</strong>{' '}
+              {t('pages.settings.deleteModalSuffix')}
             </p>
             <label
               for="delete-confirm-input"
               style="display: block; font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: var(--gap-sm);"
             >
-              To confirm, type <strong>"{agentName()}"</strong> in the box below
+              {t('pages.settings.deleteConfirm', { name: agentName() })}
             </label>
             <input
               ref={(el) => setTimeout(() => el.focus(), 200)}
@@ -434,10 +443,10 @@ const Settings: Component = () => {
               {deleting() ? (
                 <>
                   <span class="spinner" />
-                  <span class="sr-only">Deleting...</span>
+                  <span class="sr-only">{t('pages.settings.deleting')}</span>
                 </>
               ) : (
-                'Delete this harness'
+                t('pages.settings.deleteHarness')
               )}
             </button>
           </div>
@@ -464,9 +473,9 @@ const Settings: Component = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 class="modal-card__title" id="change-type-modal-title">
-              Change harness type
+              {t('pages.settings.changeType')}
             </h2>
-            <p class="modal-card__desc">Select the new type and platform for this harness.</p>
+            <p class="modal-card__desc">{t('pages.settings.changeTypeDescription')}</p>
 
             <AgentTypeGrid
               category={modalCategory()}
@@ -485,7 +494,7 @@ const Settings: Component = () => {
                 onClick={handleSaveType}
                 disabled={savingType() || !modalCategory() || !modalPlatform()}
               >
-                {savingType() ? <span class="spinner" /> : 'Save'}
+                {savingType() ? <span class="spinner" /> : t('pages.settings.save')}
               </button>
             </div>
           </div>

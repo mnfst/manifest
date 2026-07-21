@@ -1,5 +1,6 @@
 import { For, Show, type Component } from 'solid-js';
 import type { ModelCapability, ModelModality } from '../services/api.js';
+import { t } from '../i18n/index.js';
 
 interface Props {
   capabilities?: readonly ModelCapability[];
@@ -7,14 +8,17 @@ interface Props {
   iconOnly?: boolean;
 }
 
-export const CAPABILITY_LABELS: Record<ModelCapability, string> = {
-  text: 'Text',
-  image: 'Image',
-  audio: 'Audio',
-  video: 'Video',
-  stream: 'Stream',
-  tools: 'Tools',
-};
+const CAPABILITY_LABEL_KEYS = {
+  text: 'model.capability.text',
+  image: 'model.capability.image',
+  audio: 'model.capability.audio',
+  video: 'model.capability.video',
+  stream: 'model.capability.stream',
+  tools: 'model.capability.tools',
+} as const satisfies Record<ModelCapability, string>;
+
+export const capabilityLabel = (capability: ModelCapability): string =>
+  t(CAPABILITY_LABEL_KEYS[capability]);
 
 export const CAPABILITY_ICONS: Record<ModelCapability, string> = {
   text: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4c0-1.1.9-2 2-2h12c1.1 0 2 .9 2 2v16c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2zm2 0v16h12V4zm2 4h8v2H8zm0 4h8v2H8zm0 4h5v2H8z"/></svg>',
@@ -49,11 +53,9 @@ const ModelCapabilityBadges: Component<Props> = (props) => {
     return DISPLAY_ORDER.filter((capability) => set.has(capability));
   };
   const summary = () => {
-    if (!hasMetadata()) return 'Capabilities unknown';
-    if (supported().length === 0) return 'Text only';
-    return `Capabilities: ${supported()
-      .map((capability) => CAPABILITY_LABELS[capability])
-      .join(', ')}`;
+    if (!hasMetadata()) return t('model.capabilitiesUnknown');
+    if (supported().length === 0) return t('model.textOnly');
+    return t('model.capabilities', { items: supported().map(capabilityLabel).join(', ') });
   };
 
   return (
@@ -68,7 +70,7 @@ const ModelCapabilityBadges: Component<Props> = (props) => {
           <Show when={!hasMetadata()}>
             <span
               class="model-capability-badge model-capability-badge--icon-only model-capability-badge--unknown"
-              data-tooltip="Capabilities unknown"
+              data-tooltip={t('model.capabilitiesUnknown')}
             >
               <span class="model-capability-badge__icon" innerHTML={unknownIcon} />
             </span>
@@ -80,15 +82,15 @@ const ModelCapabilityBadges: Component<Props> = (props) => {
         class="model-capability-badges"
         classList={{ 'model-capability-badges--compact': !!props.compact }}
         aria-label={summary()}
-        title="Model capability metadata. This is not a selected setting."
+        title={t('model.capabilityMetadata')}
       >
         <For each={supported()}>
           {(capability) => (
             <span
               class="model-capability-badge"
               classList={{ 'model-capability-badge--icon-only': !!props.iconOnly }}
-              title={props.iconOnly ? undefined : CAPABILITY_LABELS[capability]}
-              data-tooltip={CAPABILITY_LABELS[capability]}
+              title={props.iconOnly ? undefined : capabilityLabel(capability)}
+              data-tooltip={capabilityLabel(capability)}
             >
               {CAPABILITY_ICONS[capability] && (
                 <span
@@ -96,7 +98,7 @@ const ModelCapabilityBadges: Component<Props> = (props) => {
                   innerHTML={CAPABILITY_ICONS[capability]}
                 />
               )}
-              <Show when={!props.iconOnly}>{CAPABILITY_LABELS[capability]}</Show>
+              <Show when={!props.iconOnly}>{capabilityLabel(capability)}</Show>
             </span>
           )}
         </For>
@@ -110,14 +112,16 @@ export const ModelModalityBadges: Component<ModalityProps> = (props) => {
     const set = new Set(props.modalities ?? []);
     return MODALITY_ORDER.filter((modality) => set.has(modality));
   };
-  const directionLabel = () => (props.direction === 'input' ? 'Input' : 'Output');
+  const directionLabel = () => (props.direction === 'input' ? t('model.input') : t('model.output'));
   const summary = () => {
-    if (supported().length === 0) return `${directionLabel()} modalities unknown`;
-    return `${directionLabel()}: ${supported()
-      .map((modality) => CAPABILITY_LABELS[modality])
-      .join(', ')}`;
+    if (supported().length === 0)
+      return t('model.modalitiesUnknown', { direction: directionLabel() });
+    return t('model.modalities', {
+      direction: directionLabel(),
+      items: supported().map(capabilityLabel).join(', '),
+    });
   };
-  const tooltip = (modality: ModelModality) => CAPABILITY_LABELS[modality];
+  const tooltip = (modality: ModelModality) => capabilityLabel(modality);
 
   return (
     <Show
@@ -130,7 +134,7 @@ export const ModelModalityBadges: Component<ModalityProps> = (props) => {
         >
           <span
             class="model-capability-badge model-capability-badge--icon-only model-capability-badge--unknown"
-            data-tooltip={`${directionLabel()} modalities unknown`}
+            data-tooltip={t('model.modalitiesUnknown', { direction: directionLabel() })}
           >
             <span class="model-capability-badge__icon" innerHTML={unknownIcon} />
           </span>
@@ -151,7 +155,7 @@ export const ModelModalityBadges: Component<ModalityProps> = (props) => {
               data-tooltip={tooltip(modality)}
             >
               <span class="model-capability-badge__icon" innerHTML={CAPABILITY_ICONS[modality]} />
-              <Show when={!props.iconOnly}>{CAPABILITY_LABELS[modality]}</Show>
+              <Show when={!props.iconOnly}>{capabilityLabel(modality)}</Show>
             </span>
           )}
         </For>

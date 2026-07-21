@@ -1,4 +1,5 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
+import { t } from '../i18n/index.js';
 
 export interface HeaderSuggestion {
   label: string;
@@ -113,7 +114,7 @@ const HeaderComboBox: Component<Props> = (props) => {
                 select(props.value.trim());
               }}
             >
-              {props.freeFormHint ?? `Use "${props.value.trim()}" as a custom entry`}
+              {props.freeFormHint ?? t('headerTier.useEntry', { value: props.value.trim() })}
             </li>
           </Show>
         </ul>

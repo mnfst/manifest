@@ -4,6 +4,7 @@ import { setEmailProvider, testEmailProvider, testSavedEmailProvider } from '../
 import { authClient } from '../services/auth-client.js';
 import { getEmailProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 import { toast } from '../services/toast-store.js';
+import { locale, t } from '../i18n/index.js';
 
 const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
 
@@ -70,16 +71,16 @@ const EmailProviderModal: Component<Props> = (props) => {
     if (!editingKey() && hasExistingKey()) {
       setKeyError('');
     } else if (!key) {
-      setKeyError('API key is required');
+      setKeyError(t('email.apiKeyRequired'));
       valid = false;
     } else if (key.length < 8) {
-      setKeyError('API key must be at least 8 characters');
+      setKeyError(t('email.apiKeyMinLength'));
       valid = false;
     } else if (provider() === 'resend' && !key.startsWith('re_')) {
-      setKeyError('Resend API key must start with re_');
+      setKeyError(t('email.resendPrefix'));
       valid = false;
     } else if (provider() === 'sendgrid' && !key.startsWith('SG.')) {
-      setKeyError('SendGrid API key must start with SG.');
+      setKeyError(t('email.sendgridPrefix'));
       valid = false;
     } else {
       setKeyError('');
@@ -87,17 +88,17 @@ const EmailProviderModal: Component<Props> = (props) => {
 
     if (needsDomain()) {
       if (!dom) {
-        setDomainError('Domain is required');
+        setDomainError(t('email.domainRequired'));
         valid = false;
       } else if (!DOMAIN_RE.test(dom)) {
-        setDomainError('Invalid domain format');
+        setDomainError(t('email.invalidDomain'));
         valid = false;
       } else {
         setDomainError('');
       }
     } else {
       if (dom && !DOMAIN_RE.test(dom)) {
-        setDomainError('Invalid domain format');
+        setDomainError(t('email.invalidDomain'));
         valid = false;
       } else {
         setDomainError('');
@@ -119,22 +120,29 @@ const EmailProviderModal: Component<Props> = (props) => {
     const recipient = getTestRecipient();
 
     if (!recipient) {
-      toast.error('Enter a notification email to send the test to');
+      toast.error(t('email.recipientRequired'));
       return false;
     }
 
     setTesting(true);
     try {
-      const testData: { provider: string; apiKey: string; domain?: string; to: string } = {
+      const testData: {
+        provider: string;
+        apiKey: string;
+        domain?: string;
+        to: string;
+        locale: 'en' | 'ru';
+      } = {
         provider: provider(),
         apiKey: trimmedKey,
         to: recipient,
+        locale: locale(),
       };
       if (trimmedDomain) testData.domain = trimmedDomain;
       const result = await testEmailProvider(testData);
 
       if (!result.success) {
-        toast.error(result.error ?? 'Email test failed. Check your credentials');
+        toast.error(result.error ?? t('email.testFailed'));
         return false;
       }
       return true;
@@ -148,15 +156,15 @@ const EmailProviderModal: Component<Props> = (props) => {
   const runTestSaved = async (): Promise<boolean> => {
     const recipient = getTestRecipient();
     if (!recipient) {
-      toast.error('Enter a notification email to send the test to');
+      toast.error(t('email.recipientRequired'));
       return false;
     }
 
     setTesting(true);
     try {
-      const result = await testSavedEmailProvider(recipient);
+      const result = await testSavedEmailProvider(recipient, locale());
       if (!result.success) {
-        toast.error(result.error ?? 'Email test failed. Check your credentials');
+        toast.error(result.error ?? t('email.testFailed'));
         return false;
       }
       return true;
@@ -172,7 +180,7 @@ const EmailProviderModal: Component<Props> = (props) => {
     if (busy()) return;
     const keepingExistingKey = !editingKey() && hasExistingKey();
     const ok = keepingExistingKey ? await runTestSaved() : await runTest();
-    if (ok) toast.success(`Test email sent to ${getTestRecipient()}`);
+    if (ok) toast.success(t('email.testSent', { email: getTestRecipient() ?? '' }));
   };
 
   const handleSave = async () => {
@@ -202,7 +210,7 @@ const EmailProviderModal: Component<Props> = (props) => {
       if (trimmedEmail) saveData.notificationEmail = trimmedEmail;
       await setEmailProvider(saveData);
       const name = PROVIDER_NAMES[provider()] ?? provider();
-      toast.success(`${name} connected`);
+      toast.success(t('email.connected', { provider: name }));
       props.onSaved();
       props.onClose();
     } catch {
@@ -231,9 +239,9 @@ const EmailProviderModal: Component<Props> = (props) => {
   };
 
   const buttonLabel = () => {
-    if (testing()) return 'Testing...';
-    if (saving()) return 'Saving...';
-    return props.editMode ? 'Test & Save' : 'Test & Connect';
+    if (testing()) return t('email.testing');
+    if (saving()) return t('email.saving');
+    return props.editMode ? t('email.testSave') : t('email.testConnect');
   };
 
   const keyDocsUrl = () => getEmailProviderApiKeyUrl(provider());
@@ -268,13 +276,11 @@ const EmailProviderModal: Component<Props> = (props) => {
             }}
           >
             <h2 class="modal-card__title" id="provider-modal-title">
-              {props.editMode ? 'Edit email provider' : 'Configure email provider'}
+              {props.editMode ? t('email.editTitle') : t('email.configureTitle')}
             </h2>
-            <p class="modal-card__desc">
-              Enter your API credentials to enable email alert delivery.
-            </p>
+            <p class="modal-card__desc">{t('email.configureDescription')}</p>
 
-            <label class="modal-card__field-label">Provider</label>
+            <label class="modal-card__field-label">{t('email.provider')}</label>
             <div class="provider-modal-picker">
               <button
                 class="provider-modal-option"
@@ -315,7 +321,7 @@ const EmailProviderModal: Component<Props> = (props) => {
             </div>
 
             <label class="modal-card__field-label" for="email-provider-api-key">
-              API Key
+              {t('email.apiKey')}
             </label>
             <Show
               when={editingKey() || !hasExistingKey()}
@@ -330,7 +336,7 @@ const EmailProviderModal: Component<Props> = (props) => {
                       setApiKey('');
                     }}
                   >
-                    Change
+                    {t('email.change')}
                   </button>
                 </div>
               }
@@ -364,21 +370,21 @@ const EmailProviderModal: Component<Props> = (props) => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Get {PROVIDER_NAMES[provider()] ?? provider()} API key
+                  {t('email.getApiKey', { provider: PROVIDER_NAMES[provider()] ?? provider() })}
                 </a>
               </p>
             </Show>
 
             <Show when={needsDomain()}>
               <label class="modal-card__field-label" for="email-provider-domain">
-                Sending domain
+                {t('email.sendingDomain')}
               </label>
               <input
                 id="email-provider-domain"
                 class="modal-card__input"
                 classList={{ 'modal-card__input--error': !!domainError() }}
                 type="text"
-                placeholder="e.g. notifications.mycompany.com"
+                placeholder={t('email.domainPlaceholder')}
                 value={domain()}
                 onInput={(e) => {
                   setDomain(e.currentTarget.value);
@@ -393,7 +399,7 @@ const EmailProviderModal: Component<Props> = (props) => {
             </Show>
 
             <label class="modal-card__field-label" for="email-provider-notification">
-              Notification email
+              {t('email.notificationEmail')}
             </label>
             <input
               id="email-provider-notification"
@@ -404,7 +410,7 @@ const EmailProviderModal: Component<Props> = (props) => {
               onInput={(e) => setNotificationEmail(e.currentTarget.value)}
               onKeyDown={handleKeyDown}
             />
-            <p class="modal-card__field-hint">Where threshold alerts will be sent.</p>
+            <p class="modal-card__field-hint">{t('email.notificationHint')}</p>
 
             <div class="modal-card__footer modal-card__footer--split">
               <button
@@ -413,7 +419,7 @@ const EmailProviderModal: Component<Props> = (props) => {
                 disabled={busy() || isDisabled()}
                 type="button"
               >
-                {testing() ? <span class="spinner" /> : 'Send test email'}
+                {testing() ? <span class="spinner" /> : t('email.sendTest')}
               </button>
               <button
                 class="btn btn--primary btn--sm"

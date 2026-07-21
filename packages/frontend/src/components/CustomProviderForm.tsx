@@ -12,6 +12,7 @@ import { toast } from '../services/toast-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import type { CustomProviderPrefill } from '../services/routing-params.js';
 import InfoTooltip from './InfoTooltip.jsx';
+import { t } from '../i18n/index.js';
 
 const BASE_URL_PLACEHOLDERS: Record<CustomProviderApiKind, string> = {
   openai: 'https://api.example.com/v1',
@@ -33,8 +34,6 @@ interface ModelRow {
   output_price: string;
   price_estimated: boolean;
 }
-
-const ESTIMATED_PRICE_TOOLTIP = 'Estimated price. This may not be accurate.';
 
 const emptyRow = (): ModelRow => ({
   model_name: '',
@@ -88,7 +87,7 @@ const CustomProviderForm: Component<Props> = (props) => {
   const handleProbe = async () => {
     const url = baseUrl().trim();
     if (!url) {
-      setProbeError('Enter a base URL first');
+      setProbeError(t('custom.baseUrlRequired'));
       return;
     }
     setProbeBusy(true);
@@ -102,12 +101,12 @@ const CustomProviderForm: Component<Props> = (props) => {
         name().trim() || undefined,
       );
       if (models.length === 0) {
-        setProbeError('Server returned no models');
+        setProbeError(t('custom.noModels'));
         return;
       }
       setRows(toModelRows(models));
     } catch (e) {
-      setProbeError(e instanceof Error ? e.message : 'Probe failed');
+      setProbeError(e instanceof Error ? e.message : t('custom.probeFailed'));
     } finally {
       setProbeBusy(false);
     }
@@ -161,10 +160,10 @@ const CustomProviderForm: Component<Props> = (props) => {
         apiKey: apiKey().trim() || undefined,
         models: buildModels(),
       });
-      toast.success(`${name().trim()} connected`);
+      toast.success(t('custom.connected', { provider: name().trim() }));
       props.onCreated();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to create provider');
+      setError(e instanceof Error ? e.message : t('custom.createFailed'));
     } finally {
       setBusy(false);
     }
@@ -184,10 +183,10 @@ const CustomProviderForm: Component<Props> = (props) => {
     setBusy(true);
     try {
       await updateCustomProvider(props.agentName, props.initialData!.id, data as never);
-      toast.success(`${name().trim()} updated`);
+      toast.success(t('custom.updated', { provider: name().trim() }));
       props.onCreated();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to update provider');
+      setError(e instanceof Error ? e.message : t('custom.updateFailed'));
     } finally {
       setBusy(false);
     }
@@ -197,7 +196,7 @@ const CustomProviderForm: Component<Props> = (props) => {
     setBusy(true);
     try {
       await deleteCustomProvider(props.agentName, props.initialData!.id);
-      toast.success(`${props.initialData!.name} removed`);
+      toast.success(t('custom.removed', { provider: props.initialData!.name }));
       props.onDeleted?.();
     } catch {
       // error toast from fetchMutate
@@ -214,7 +213,11 @@ const CustomProviderForm: Component<Props> = (props) => {
 
   return (
     <div class="provider-detail">
-      <button class="modal-back-btn" onClick={props.onBack} aria-label="Back to providers">
+      <button
+        class="modal-back-btn"
+        onClick={props.onBack}
+        aria-label={t('components.backToProviders')}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -230,11 +233,9 @@ const CustomProviderForm: Component<Props> = (props) => {
       <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 20px;">
         <div>
           <div class="routing-modal__title">
-            {isEdit() ? 'Edit custom provider' : 'Add custom provider'}
+            {isEdit() ? t('custom.editTitle') : t('custom.addTitle')}
           </div>
-          <div class="routing-modal__subtitle">
-            Connect any OpenAI- or Anthropic-compatible endpoint
-          </div>
+          <div class="routing-modal__subtitle">{t('custom.subtitle')}</div>
         </div>
       </div>
 
@@ -246,14 +247,14 @@ const CustomProviderForm: Component<Props> = (props) => {
       >
         <div class="provider-detail__field">
           <label class="provider-detail__label" for="cp-name">
-            Provider name
+            {t('custom.providerName')}
           </label>
           <input
             ref={(el) => requestAnimationFrame(() => el.focus())}
             id="cp-name"
             class="provider-detail__input"
             type="text"
-            placeholder="e.g. Groq, Together, Azure"
+            placeholder={t('custom.providerPlaceholder')}
             value={name()}
             onInput={(e) => {
               setName(e.currentTarget.value);
@@ -267,7 +268,7 @@ const CustomProviderForm: Component<Props> = (props) => {
           aria-describedby="cp-format-help"
           disabled={isEdit()}
         >
-          <legend class="provider-detail__format-legend">API format</legend>
+          <legend class="provider-detail__format-legend">{t('custom.apiFormat')}</legend>
           <div class="provider-detail__format-options" role="radiogroup">
             <label
               class={`provider-detail__format-option${
@@ -303,15 +304,15 @@ const CustomProviderForm: Component<Props> = (props) => {
             </label>
           </div>
           <p id="cp-format-help" class="provider-detail__format-help">
-            <Show when={isEdit()} fallback={<>Most providers use OpenAI format.</>}>
-              Format can't be changed after creation. Delete and recreate to switch.
+            <Show when={isEdit()} fallback={<>{t('custom.formatDefault')}</>}>
+              {t('custom.formatLocked')}
             </Show>
           </p>
         </fieldset>
 
         <div class="provider-detail__field">
           <label class="provider-detail__label" for="cp-base-url">
-            Base URL
+            {t('custom.baseUrl')}
           </label>
           <div class="provider-detail__key-row">
             <input
@@ -332,12 +333,10 @@ const CustomProviderForm: Component<Props> = (props) => {
               onClick={handleProbe}
               disabled={probeBusy() || !baseUrl().trim()}
               aria-label={
-                apiKind() === 'anthropic'
-                  ? "Fetch models from the server's /v1/models endpoint"
-                  : "Fetch models from the server's /models endpoint"
+                apiKind() === 'anthropic' ? t('custom.fetchAnthropic') : t('custom.fetchOpenAI')
               }
             >
-              {probeBusy() ? <span class="spinner" /> : 'Fetch models'}
+              {probeBusy() ? <span class="spinner" /> : t('custom.fetchModels')}
             </button>
           </div>
           <Show when={isSelfHosted()}>
@@ -345,9 +344,10 @@ const CustomProviderForm: Component<Props> = (props) => {
               class="provider-detail__hint"
               style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 4px;"
             >
-              For local servers use <code>http://host.docker.internal:&lt;port&gt;</code> (Docker),{' '}
-              <code>http://host.containers.internal:&lt;port&gt;</code> (Podman), or{' '}
-              <code>http://localhost:&lt;port&gt;</code> (native). HTTPS required for public URLs.
+              {t('custom.localPrefix')} <code>http://host.docker.internal:&lt;port&gt;</code>{' '}
+              {t('custom.localDocker')} <code>http://host.containers.internal:&lt;port&gt;</code>{' '}
+              {t('custom.localPodman')} <code>http://localhost:&lt;port&gt;</code>{' '}
+              {t('custom.localNative')}
             </div>
           </Show>
           <Show when={probeError()}>
@@ -359,9 +359,9 @@ const CustomProviderForm: Component<Props> = (props) => {
 
         <div class="provider-detail__field">
           <label class="provider-detail__label" for="cp-api-key">
-            API Key{' '}
+            {t('email.apiKey')}{' '}
             <span style="color: hsl(var(--muted-foreground)); font-weight: 400;">
-              (optional for local providers)
+              {t('custom.apiKeyOptional')}
             </span>
           </label>
           <Show when={isEdit() && !editingKey()}>
@@ -370,9 +370,9 @@ const CustomProviderForm: Component<Props> = (props) => {
                 id="cp-api-key"
                 class="provider-detail__input provider-detail__input--disabled"
                 type="text"
-                value={props.initialData?.has_api_key ? '••••••••••••' : 'No key set'}
+                value={props.initialData?.has_api_key ? '••••••••••••' : t('custom.noKey')}
                 disabled
-                aria-label="Current API key (masked)"
+                aria-label={t('custom.currentKey')}
               />
               <button
                 type="button"
@@ -382,7 +382,7 @@ const CustomProviderForm: Component<Props> = (props) => {
                   setApiKey('');
                 }}
               >
-                Change
+                {t('email.change')}
               </button>
             </div>
           </Show>
@@ -401,21 +401,21 @@ const CustomProviderForm: Component<Props> = (props) => {
 
         <div class="provider-detail__field">
           <div id="cp-models-label" class="provider-detail__label custom-provider-models__label">
-            Models
+            {t('custom.models')}
             <Show when={hasEstimatedPrices()}>
-              <InfoTooltip text={ESTIMATED_PRICE_TOOLTIP} />
+              <InfoTooltip text={t('custom.estimatedPrice')} />
             </Show>
           </div>
           <div class="custom-provider-models" aria-labelledby="cp-models-label">
             <div class="custom-provider-models__columns" aria-hidden="true">
               <span class="custom-provider-models__column custom-provider-models__column--name">
-                Model name
+                {t('custom.modelName')}
               </span>
               <span class="custom-provider-models__column custom-provider-models__column--price">
-                Input / 1M tokens
+                {t('custom.inputPrice')}
               </span>
               <span class="custom-provider-models__column custom-provider-models__column--price">
-                Output / 1M tokens
+                {t('custom.outputPrice')}
               </span>
               <span class="custom-provider-models__column-spacer" />
             </div>
@@ -425,8 +425,8 @@ const CustomProviderForm: Component<Props> = (props) => {
                   <input
                     class="provider-detail__input custom-provider-model-row__name"
                     type="text"
-                    placeholder="Model name"
-                    aria-label={`Model ${i + 1} name`}
+                    placeholder={t('custom.modelName')}
+                    aria-label={t('custom.modelNameAria', { index: i + 1 })}
                     value={row().model_name}
                     onInput={(e) => updateRow(i, 'model_name', e.currentTarget.value)}
                   />
@@ -435,7 +435,7 @@ const CustomProviderForm: Component<Props> = (props) => {
                     type="text"
                     inputmode="decimal"
                     placeholder="$/M in"
-                    aria-label={`Model ${i + 1} input price per million tokens`}
+                    aria-label={t('custom.inputPriceAria', { index: i + 1 })}
                     value={row().input_price}
                     onInput={(e) => updateRow(i, 'input_price', e.currentTarget.value)}
                   />
@@ -444,7 +444,7 @@ const CustomProviderForm: Component<Props> = (props) => {
                     type="text"
                     inputmode="decimal"
                     placeholder="$/M out"
-                    aria-label={`Model ${i + 1} output price per million tokens`}
+                    aria-label={t('custom.outputPriceAria', { index: i + 1 })}
                     value={row().output_price}
                     onInput={(e) => updateRow(i, 'output_price', e.currentTarget.value)}
                   />
@@ -453,8 +453,8 @@ const CustomProviderForm: Component<Props> = (props) => {
                     class="custom-provider-model-row__remove"
                     onClick={() => removeRow(i)}
                     disabled={rows().length <= 1}
-                    aria-label={`Remove model ${i + 1}`}
-                    title="Remove"
+                    aria-label={t('custom.removeModelAria', { index: i + 1 })}
+                    title={t('custom.remove')}
                   >
                     <svg
                       width="14"
@@ -481,7 +481,7 @@ const CustomProviderForm: Component<Props> = (props) => {
               disabled={!rows().at(-1)?.model_name.trim()}
               style="margin-top: 4px; align-self: flex-start;"
             >
-              + Add model
+              {t('custom.addModel')}
             </button>
           </div>
         </div>
@@ -500,7 +500,7 @@ const CustomProviderForm: Component<Props> = (props) => {
               disabled={busy()}
               onClick={() => setShowDeleteConfirm(true)}
             >
-              Delete provider
+              {t('custom.deleteProvider')}
             </button>
           </Show>
           <button
@@ -508,7 +508,13 @@ const CustomProviderForm: Component<Props> = (props) => {
             class="btn btn--primary btn--sm provider-detail__action"
             disabled={!canSubmit()}
           >
-            {busy() ? <span class="spinner" /> : isEdit() ? 'Save changes' : 'Connect'}
+            {busy() ? (
+              <span class="spinner" />
+            ) : isEdit() ? (
+              t('custom.saveChanges')
+            ) : (
+              t('components.connect')
+            )}
           </button>
         </div>
       </form>
@@ -536,12 +542,12 @@ const CustomProviderForm: Component<Props> = (props) => {
                 id="delete-provider-modal-title"
                 style="margin: 0; font-size: var(--font-size-lg);"
               >
-                Delete provider
+                {t('custom.deleteProvider')}
               </h3>
               <button
                 style="background: none; border: none; cursor: pointer; color: hsl(var(--muted-foreground)); padding: 4px;"
                 onClick={() => setShowDeleteConfirm(false)}
-                aria-label="Close"
+                aria-label={t('components.close')}
               >
                 <svg
                   width="16"
@@ -560,10 +566,7 @@ const CustomProviderForm: Component<Props> = (props) => {
               </button>
             </div>
             <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-lg);">
-              Remove{' '}
-              <strong style="color: hsl(var(--foreground));">{props.initialData?.name}</strong>?
-              This will delete all its models and any routing assignments using them. This action
-              cannot be undone.
+              {t('custom.deletePrompt', { provider: props.initialData?.name ?? '' })}
             </p>
             <div style="display: flex; gap: var(--gap-sm); justify-content: flex-end;">
               <button
@@ -571,10 +574,10 @@ const CustomProviderForm: Component<Props> = (props) => {
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={busy()}
               >
-                Cancel
+                {t('components.cancel')}
               </button>
               <button class="btn btn--danger btn--sm" onClick={handleDelete} disabled={busy()}>
-                {busy() ? <span class="spinner" /> : 'Delete'}
+                {busy() ? <span class="spinner" /> : t('custom.delete')}
               </button>
             </div>
           </div>

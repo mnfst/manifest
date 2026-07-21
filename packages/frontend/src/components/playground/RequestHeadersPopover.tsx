@@ -1,6 +1,7 @@
 import { For, Show, createEffect, createSignal, onCleanup, type Component } from 'solid-js';
 import { useFocusTrap } from '../../services/use-focus-trap.js';
 import { PlusIcon, TrashIcon, XIcon } from './icons.jsx';
+import { t } from '../../i18n/index.js';
 
 export interface HeaderEntry {
   id: string;
@@ -92,27 +93,24 @@ const RequestHeadersPopover: Component<Props> = (props) => {
         class="playground-headers"
         role="dialog"
         aria-modal="true"
-        aria-label="Request headers"
+        aria-label={t('playground.requestHeaders')}
       >
         <header class="playground-headers__header">
-          <h3 class="playground-headers__title">Request headers</h3>
+          <h3 class="playground-headers__title">{t('playground.requestHeaders')}</h3>
           <button
             type="button"
             class="playground-headers__close"
-            aria-label="Close request headers"
+            aria-label={t('playground.closeRequestHeaders')}
             onClick={props.onClose}
           >
             <XIcon size={16} />
           </button>
         </header>
 
-        <p class="playground-headers__hint">
-          Added to every provider call for this playground. Manifest-managed headers (Authorization,
-          Content-Type, x-manifest-*) are ignored.
-        </p>
+        <p class="playground-headers__hint">{t('playground.headersHint')}</p>
 
         <Show when={props.entries.length === 0}>
-          <p class="playground-headers__empty">No headers yet.</p>
+          <p class="playground-headers__empty">{t('playground.noHeaders')}</p>
         </Show>
 
         <div class="playground-headers__rows">
@@ -127,9 +125,9 @@ const RequestHeadersPopover: Component<Props> = (props) => {
                   <input
                     type="text"
                     class="playground-headers__input playground-headers__input--key"
-                    placeholder="Header"
+                    placeholder={t('playground.header')}
                     value={entry.key}
-                    aria-label="Header name"
+                    aria-label={t('playground.headerName')}
                     spellcheck={false}
                     autocomplete="off"
                     onInput={(e) => update(entry.id, { key: e.currentTarget.value })}
@@ -137,9 +135,9 @@ const RequestHeadersPopover: Component<Props> = (props) => {
                   <input
                     type="text"
                     class="playground-headers__input playground-headers__input--value"
-                    placeholder="Value"
+                    placeholder={t('playground.value')}
                     value={entry.value}
-                    aria-label="Header value"
+                    aria-label={t('playground.headerValue')}
                     spellcheck={false}
                     autocomplete="off"
                     onInput={(e) => update(entry.id, { value: e.currentTarget.value })}
@@ -147,14 +145,16 @@ const RequestHeadersPopover: Component<Props> = (props) => {
                   <button
                     type="button"
                     class="playground-headers__remove"
-                    aria-label={`Remove ${entry.key || 'header'}`}
+                    aria-label={t('playground.removeHeader', {
+                      header: entry.key || t('playground.headerLower'),
+                    })}
                     onClick={() => remove(entry.id)}
                   >
                     <TrashIcon size={14} />
                   </button>
                   <Show when={blocked()}>
                     <p class="playground-headers__warning">
-                      {entry.key.trim()} is managed by Manifest and will be dropped.
+                      {t('playground.managedHeader', { header: entry.key.trim() })}
                     </p>
                   </Show>
                 </div>
@@ -165,11 +165,11 @@ const RequestHeadersPopover: Component<Props> = (props) => {
 
         <footer class="playground-headers__footer">
           <button type="button" class="playground-headers__add" onClick={add}>
-            <PlusIcon size={14} /> Add header
+            <PlusIcon size={14} /> {t('playground.addHeader')}
           </button>
           <Show when={props.entries.length > 0}>
             <button type="button" class="playground-headers__clear" onClick={clearAll}>
-              Clear all
+              {t('playground.clearAll')}
             </button>
           </Show>
         </footer>

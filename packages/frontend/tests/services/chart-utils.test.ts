@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 let mountCb: (() => void) | null = null;
 let cleanupCb: (() => void) | null = null;
 let effectCb: (() => void) | null = null;
+let effectDependency: (() => unknown) | null = null;
 
 vi.mock('solid-js', () => ({
   onMount: (cb: () => void) => {
@@ -15,7 +16,10 @@ vi.mock('solid-js', () => ({
   createEffect: (cb: () => void) => {
     effectCb = cb;
   },
-  on: (_dep: unknown, cb: () => void) => cb,
+  on: (dep: () => unknown, cb: () => void) => {
+    effectDependency = dep;
+    return cb;
+  },
 }));
 
 vi.mock('../../src/services/theme.js', () => ({
@@ -35,6 +39,7 @@ import {
   useChartLifecycle,
   fillDailyGaps,
 } from '../../src/services/chart-utils';
+import { setLocale } from '../../src/i18n/index.js';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -59,6 +64,7 @@ beforeEach(() => {
   mountCb = null;
   cleanupCb = null;
   effectCb = null;
+  effectDependency = null;
   vi.useFakeTimers();
 });
 
@@ -177,6 +183,13 @@ describe('formatAxisTimestamp', () => {
     const epoch = Date.UTC(2024, 5, 15, 14, 30) / 1000;
     expect(formatAxisTimestamp(epoch, 'unknown')).toBe(localMonDay(epoch));
   });
+
+  it('uses Russian month labels from the active locale, not navigator language', async () => {
+    await setLocale('ru');
+    const epoch = new Date(2024, 0, 15, 12, 0).getTime() / 1000;
+    expect(formatAxisTimestamp(epoch, '7d')).toMatch(/15\s+янв\.?/i);
+    await setLocale('en');
+  });
 });
 
 // ---------- formatLegendTimestamp ----------
@@ -220,6 +233,12 @@ describe('formatLegendTokens', () => {
 
   it('rounds small floating-point values', () => {
     expect(formatLegendTokens(null as any, 499.7)).toBe('500');
+  });
+
+  it('uses Russian compact number notation independently of navigator language', async () => {
+    await setLocale('ru');
+    expect(formatLegendTokens(null as any, 20_000)).toMatch(/^20[\u00a0\u202f]?тыс\.?$/i);
+    await setLocale('en');
   });
 });
 
@@ -915,6 +934,32 @@ describe('useChartLifecycle', () => {
     expect(mockChart.destroy).toHaveBeenCalledTimes(1);
     vi.advanceTimersByTime(0);
     expect(buildChart).toHaveBeenCalledTimes(2);
+  });
+
+  it('rebuilds the chart when locale changes so axes and legends are refreshed', async () => {
+    await setLocale('en');
+    const mockChart = { destroy: vi.fn(), setSize: vi.fn(), setCursor: vi.fn(), setData: vi.fn() };
+    const buildChart = vi.fn().mockReturnValue(mockChart);
+    useChartLifecycle({
+      el: () => mockEl,
+      data: () => [1, 2],
+      buildChart,
+      buildData: () => [[0], [1]] as any,
+      structureKey: () => '7d',
+    });
+    mountCb!();
+    vi.advanceTimersByTime(50);
+
+    expect((effectDependency!() as readonly unknown[])[2]).toBe('en');
+    await setLocale('ru');
+    expect((effectDependency!() as readonly unknown[])[2]).toBe('ru');
+    effectCb!();
+
+    expect(mockChart.setData).not.toHaveBeenCalled();
+    expect(mockChart.destroy).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(0);
+    expect(buildChart).toHaveBeenCalledTimes(2);
+    await setLocale('en');
   });
 });
 

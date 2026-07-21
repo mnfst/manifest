@@ -8,6 +8,7 @@ import type { AuthType, CustomProviderData } from '../services/api.js';
 import { customProviderColor } from '../services/formatters.js';
 import type { ProviderDef } from '../services/providers.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
+import { t } from '../i18n/index.js';
 
 const resolveCanonicalId = (name: string): string | null => {
   const shared =
@@ -70,10 +71,7 @@ const ProviderLocalTab: Component<Props> = (props) => {
 
   return (
     <>
-      <div class="provider-modal__tab-hint">
-        Runs on your own machine. No key, no cost, no network. Messages routed here are tagged with
-        a pink tepee badge.
-      </div>
+      <div class="provider-modal__tab-hint">{t('provider.localHint')}</div>
       <div class="provider-modal__list">
         <For each={mergedProviders()}>
           {(item) => {

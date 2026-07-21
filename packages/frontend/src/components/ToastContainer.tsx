@@ -1,5 +1,6 @@
 import { For, onMount, onCleanup, type Component } from 'solid-js';
 import { toasts, dismissToast, type Toast } from '../services/toast-store.js';
+import { t } from '../i18n/index.js';
 
 const icons: Record<string, string> = {
   error:
@@ -38,7 +39,7 @@ const ToastItem: Component<{ toast: Toast }> = (props) => {
       <button
         class="toast__dismiss"
         onClick={() => dismissToast(props.toast.id)}
-        aria-label="Dismiss notification"
+        aria-label={t('toast.dismiss')}
       >
         <svg
           width="14"

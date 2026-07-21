@@ -7,6 +7,7 @@ import CraftAgentSetup from './CraftAgentSetup.jsx';
 import ClaudeCodeSetup from './ClaudeCodeSetup.jsx';
 import OpenCodeSetup from './OpenCodeSetup.jsx';
 import type { ToolkitId } from '../services/framework-snippets.js';
+import { t } from '../i18n/index.js';
 
 type SetupTab = 'toolkits' | 'agents';
 type AgentId = 'openclaw' | 'hermes' | 'nanobot' | 'craft' | 'claude-code' | 'opencode';
@@ -44,18 +45,18 @@ const SetupStepAddProvider: Component<Props> = (props) => {
     <div>
       <h3 class="setup-step__heading">
         {props.platform === 'hermes'
-          ? 'Connect your Hermes harness to Manifest'
+          ? t('setup.connectHermes')
           : props.platform === 'openclaw'
-            ? 'Connect your OpenClaw harness to Manifest'
+            ? t('setup.connectOpenClaw')
             : props.platform === 'nanobot'
-              ? 'Connect your Nanobot harness to Manifest'
+              ? t('setup.connectNanobot')
               : props.platform === 'craft'
-                ? 'Connect your Craft harness to Manifest'
+                ? t('setup.connectCraft')
                 : props.platform === 'claude-code'
-                  ? 'Connect Claude Code to Manifest'
+                  ? t('setup.connectClaudeCode')
                   : props.platform === 'opencode'
-                    ? 'Connect OpenCode to Manifest'
-                    : 'Connect your harness to Manifest'}
+                    ? t('setup.connectOpenCode')
+                    : t('setup.connectHarness')}
       </h3>
 
       {/* Platform-filtered mode: show only relevant content */}
@@ -99,11 +100,10 @@ const SetupStepAddProvider: Component<Props> = (props) => {
       {/* Default / "other": show full tabbed UI */}
       <Show when={!isFiltered()}>
         <p class="setup-step__desc">
-          Point your harness at the Manifest endpoint using the model{' '}
-          <code class="setup-model-hint__code">auto</code>
+          {t('setup.pointHarnessPrefix')} <code class="setup-model-hint__code">auto</code>
         </p>
 
-        <div class="setup-segment" role="tablist" aria-label="Setup method">
+        <div class="setup-segment" role="tablist" aria-label={t('setup.method')}>
           <button
             class="setup-segment__btn"
             classList={{ 'setup-segment__btn--active': activeTab() === 'agents' }}
@@ -111,7 +111,7 @@ const SetupStepAddProvider: Component<Props> = (props) => {
             role="tab"
             aria-selected={activeTab() === 'agents'}
           >
-            Agents
+            {t('setup.agents')}
           </button>
           <button
             class="setup-segment__btn"
@@ -120,7 +120,7 @@ const SetupStepAddProvider: Component<Props> = (props) => {
             role="tab"
             aria-selected={activeTab() === 'toolkits'}
           >
-            Toolkits
+            {t('setup.toolkits')}
           </button>
         </div>
 
@@ -130,7 +130,7 @@ const SetupStepAddProvider: Component<Props> = (props) => {
 
         <Show when={activeTab() === 'agents'}>
           <div class="setup-method-tabs">
-            <div class="panel__tabs" role="tablist" aria-label="Agent framework">
+            <div class="panel__tabs" role="tablist" aria-label={t('setup.agentFramework')}>
               <button
                 class="panel__tab"
                 classList={{ 'panel__tab--active': activeAgent() === 'openclaw' }}

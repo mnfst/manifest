@@ -1,5 +1,6 @@
 import { createSignal, onCleanup, type Component } from 'solid-js';
 import { Portal } from 'solid-js/web';
+import { t } from '../i18n/index.js';
 
 interface Props {
   text: string;
@@ -53,7 +54,7 @@ const InfoTooltip: Component<Props> = (props) => {
       classList={{ 'info-tooltip--active': expanded() }}
       tabindex="0"
       role="button"
-      aria-label={`Info: ${props.text}`}
+      aria-label={t('info.aria', { text: props.text })}
       aria-expanded={expanded()}
       onKeyDown={handleKeyDown}
       onClick={() => (expanded() ? hide() : show())}

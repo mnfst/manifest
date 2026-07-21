@@ -15,6 +15,7 @@ import CustomProviderForm from './CustomProviderForm.js';
 import CopilotDeviceLogin from './CopilotDeviceLogin.js';
 import LocalServerDetailView from './LocalServerDetailView.js';
 import ProviderDetailView from './ProviderDetailView.js';
+import { t } from '../i18n/index.js';
 
 export interface ProviderSelectContentProps {
   agentName: string;
@@ -212,7 +213,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
       if (result?.notifications?.length) {
         for (const msg of result.notifications) toast.error(msg);
       }
-      toast.success('Provider disconnected');
+      toast.success(t('provider.disconnected'));
       props.onUpdate();
     } catch {
       // error toast from fetchMutate
@@ -239,13 +240,13 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
         if (result?.notifications?.length) {
           for (const msg of result.notifications) toast.error(msg);
         }
-        toast.success(`${provDef.name} subscription disconnected`);
+        toast.success(t('provider.subscriptionDisconnected', { provider: provDef.name }));
       } else {
         await connectProvider(props.agentName, {
           provider: provId,
           authType: 'subscription',
         });
-        toast.success(`${provDef.name} subscription connected`);
+        toast.success(t('provider.subscriptionConnected', { provider: provDef.name }));
       }
       props.onUpdate();
     } catch {

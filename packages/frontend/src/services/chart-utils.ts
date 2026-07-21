@@ -1,6 +1,8 @@
 import { onMount, onCleanup, createEffect, on } from 'solid-js';
 import type { Accessor } from 'solid-js';
 import uPlot from 'uplot';
+import { formatDate, formatDateTime, locale } from '../i18n/index.js';
+import { formatNumber } from './formatters.js';
 
 interface UseChartLifecycleOptions<T> {
   el: () => HTMLDivElement;
@@ -26,6 +28,7 @@ export function useChartLifecycle<T>(opts: UseChartLifecycleOptions<T>): void {
   let chart: uPlot | null = null;
   let ro: ResizeObserver | null = null;
   let lastStructureKey: unknown = opts.structureKey?.();
+  let lastLocale = locale();
 
   const CHART_HEIGHT = 260;
 
@@ -55,11 +58,13 @@ export function useChartLifecycle<T>(opts: UseChartLifecycleOptions<T>): void {
 
   createEffect(
     on(
-      opts.data,
+      () => [opts.data(), opts.structureKey?.(), locale()] as const,
       () => {
         const key = opts.structureKey?.();
-        const sameStructure = key === lastStructureKey;
+        const currentLocale = locale();
+        const sameStructure = key === lastStructureKey && currentLocale === lastLocale;
         lastStructureKey = key;
+        lastLocale = currentLocale;
 
         if (chart && opts.buildData && sameStructure) {
           chart.setData(opts.buildData());
@@ -82,8 +87,6 @@ export function useChartLifecycle<T>(opts: UseChartLifecycleOptions<T>): void {
   });
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 export function createFormatLegendTimestamp(
   range?: string,
 ): (_u: uPlot, epochSec: number) => string {
@@ -91,27 +94,21 @@ export function createFormatLegendTimestamp(
   return (_u: uPlot, epochSec: number): string => {
     if (epochSec == null || isNaN(epochSec)) return '';
     const d = new Date(epochSec * 1000);
-    const mon = MONTHS[d.getMonth()]!;
-    const day = d.getDate();
-    if (multiDay) return `${mon} ${day}`;
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mm = String(d.getMinutes()).padStart(2, '0');
-    return `${mon} ${day}, ${hh}:${mm}`;
+    if (multiDay) return formatDate(d, { month: 'short', day: 'numeric' });
+    return formatDateTime(d, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
   };
 }
 
 export function formatLegendTokens(_u: uPlot, val: number): string {
   if (val == null || isNaN(val)) return '';
   val = Math.round(val);
-  if (val >= 1_000_000) {
-    const v = val / 1_000_000;
-    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}M`;
-  }
-  if (val >= 1_000) {
-    const v = val / 1_000;
-    return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}k`;
-  }
-  return val.toString();
+  return formatNumber(val);
 }
 
 const RANGE_MAP: Record<string, number> = {
@@ -215,9 +212,7 @@ export function formatAxisTimestamp(epochSec: number, range: string): string {
     const mm = String(d.getMinutes()).padStart(2, '0');
     return `${hh}:${mm}`;
   }
-  const mon = MONTHS[d.getMonth()]!;
-  const day = d.getDate();
-  return `${mon} ${day}`;
+  return formatDate(d, { month: 'short', day: 'numeric' });
 }
 
 export function isMultiDayRange(range?: string): boolean {

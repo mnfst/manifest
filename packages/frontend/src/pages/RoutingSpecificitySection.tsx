@@ -21,6 +21,7 @@ import type {
 import '../styles/routing-specificity.css';
 import OutputControls from '../components/OutputControls.js';
 import RoutingDeprecationNotice from '../components/RoutingDeprecationNotice.js';
+import { t } from '../i18n/index.js';
 
 const SPECIFICITY_ICONS: Record<string, () => JSX.Element> = {
   coding: () => (
@@ -217,9 +218,13 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
       if (shouldInheritStreaming) {
         await props.onResponseModeChange('stream');
       }
-      toast.success(`${active ? 'Enabled' : 'Disabled'} ${label} routing`);
+      toast.success(
+        t(active ? 'pages.routing.specificity.enabled' : 'pages.routing.specificity.disabled', {
+          tier: label,
+        }),
+      );
     } catch {
-      toast.error('Failed to update task-specific routing');
+      toast.error(t('pages.routing.specificity.updateFailed'));
     } finally {
       setToggling(null);
     }
@@ -228,7 +233,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
   const manageButton = () => (
     <Show when={hasAnyActive()}>
       <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
-        Manage task-specific routing
+        {t('pages.routing.specificity.manage')}
       </button>
     </Show>
   );
@@ -236,9 +241,8 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
   // This section only renders for legacy/invested agents (gated in Routing.tsx),
   // so the deprecation banner is always appropriate here.
   const deprecationNotice = () => (
-    <RoutingDeprecationNotice title="We're deprecating rule-based routing.">
-      You can still use it until September 1, 2026, but we recommend migrating to default or custom
-      routing.
+    <RoutingDeprecationNotice title={t('pages.routing.deprecationTitle')}>
+      {t('pages.routing.deprecationDescription')}
     </RoutingDeprecationNotice>
   );
 
@@ -248,12 +252,14 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
         when={activeTiers().length > 0}
         fallback={
           <div class="specificity-empty">
-            <span class="specificity-empty__title">No task-specific tiers yet</span>
+            <span class="specificity-empty__title">
+              {t('pages.routing.specificity.emptyTitle')}
+            </span>
             <span class="specificity-empty__desc">
-              Route specialized tasks to dedicated models.
+              {t('pages.routing.specificity.emptyDescription')}
             </span>
             <button class="btn btn--primary btn--sm" onClick={() => setShowModal(true)}>
-              Add a task-specific tier
+              {t('pages.routing.specificity.add')}
             </button>
           </div>
         }
@@ -322,11 +328,10 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
             onClick={(e) => e.stopPropagation()}
           >
             <h2 id="specificity-modal-title" class="specificity-modal__title">
-              Manage task-specific routing
+              {t('pages.routing.specificity.manage')}
             </h2>
             <p class="specificity-modal__desc">
-              Route specialized tasks to dedicated models. Overrides complexity and default routing
-              when a task matches.
+              {t('pages.routing.specificity.manageDescription')}
             </p>
             <div class="specificity-modal__list">
               <For each={SPECIFICITY_STAGES}>
@@ -362,7 +367,12 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                           e.stopPropagation();
                           if (!loading()) handleToggle(stage.id, stage.label, !active());
                         }}
-                        aria-label={`${active() ? 'Disable' : 'Enable'} ${stage.label}`}
+                        aria-label={t(
+                          active()
+                            ? 'pages.routing.specificity.disableLabel'
+                            : 'pages.routing.specificity.enableLabel',
+                          { tier: stage.label },
+                        )}
                       >
                         <Show
                           when={loading()}
@@ -392,7 +402,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                   }
                 }}
               >
-                Done
+                {t('pages.routing.done')}
               </button>
             </div>
           </div>
@@ -408,8 +418,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
         <div class="routing-section__header specificity-header" style="margin-bottom: 16px;">
           <div class="specificity-header__left">
             <span class="routing-section__subtitle">
-              Send specific tasks (coding, trading, image gen…) to dedicated models. Overrides
-              default and complexity routing when a task matches.
+              {t('pages.routing.specificity.description')}
             </span>
           </div>
           {manageButton()}
@@ -424,10 +433,9 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
       {deprecationNotice()}
       <div class="routing-section__header specificity-header">
         <div class="specificity-header__left">
-          <span class="routing-section__title">Task-specific routing</span>
+          <span class="routing-section__title">{t('pages.routing.specificity.title')}</span>
           <span class="routing-section__subtitle">
-            Send specific tasks (coding, trading, image gen…) to dedicated models. Overrides default
-            and complexity routing when a task matches.
+            {t('pages.routing.specificity.description')}
           </span>
         </div>
         {manageButton()}

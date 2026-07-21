@@ -1,4 +1,5 @@
 import { createEffect, createSignal, onCleanup, Show, type Component } from 'solid-js';
+import { t } from '../i18n/index.js';
 
 const STORAGE_OPEN = 'manifest:wingman:open';
 const STORAGE_HEIGHT = 'manifest:wingman:height';
@@ -99,8 +100,8 @@ const WingmanDevTools: Component = () => {
           type="button"
           class="wingman-fab"
           onClick={() => setOpenPersist(true)}
-          title="Open Wingman, gateway tester (⌘/Ctrl + Shift + W)"
-          aria-label="Open Wingman gateway tester"
+          title={t('wingman.openShortcut')}
+          aria-label={t('wingman.open')}
         >
           <svg
             width="20"
@@ -126,15 +127,15 @@ const WingmanDevTools: Component = () => {
           class="wingman-drawer"
           classList={{ 'wingman-drawer--resizing': resizing() }}
           style={{ height: `${heightVh()}vh` }}
-          aria-label="Wingman gateway tester"
+          aria-label={t('wingman.tester')}
         >
           <div
             class="wingman-drawer__resizer"
             onPointerDown={onResizePointerDown}
             role="separator"
             aria-orientation="horizontal"
-            aria-label="Resize Wingman drawer"
-            title="Drag to resize"
+            aria-label={t('wingman.resize')}
+            title={t('wingman.dragResize')}
           />
           <header class="wingman-drawer__head">
             <div class="wingman-drawer__title">
@@ -146,8 +147,8 @@ const WingmanDevTools: Component = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 class="wingman-drawer__icon-btn"
-                title="Open Wingman in a new tab"
-                aria-label="Open Wingman in a new tab"
+                title={t('wingman.openNewTab')}
+                aria-label={t('wingman.openNewTab')}
               >
                 <svg
                   width="14"
@@ -169,8 +170,8 @@ const WingmanDevTools: Component = () => {
                 type="button"
                 class="wingman-drawer__icon-btn"
                 onClick={() => setOpenPersist(false)}
-                title="Close (Esc)"
-                aria-label="Close Wingman drawer"
+                title={t('wingman.closeEsc')}
+                aria-label={t('wingman.close')}
               >
                 <svg
                   width="14"
@@ -192,7 +193,7 @@ const WingmanDevTools: Component = () => {
           <iframe
             src={iframeSrc()}
             class="wingman-drawer__frame"
-            title="Wingman gateway tester"
+            title={t('wingman.tester')}
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-clipboard-write"
             allow="clipboard-read; clipboard-write"
           />

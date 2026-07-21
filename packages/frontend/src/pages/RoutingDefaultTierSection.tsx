@@ -12,6 +12,7 @@ import { DEFAULT_STAGE, STAGES } from '../services/providers.js';
 import OutputControls from '../components/OutputControls.js';
 import RoutingDeprecationNotice from '../components/RoutingDeprecationNotice.js';
 import RoutingTierCard from './RoutingTierCard.js';
+import { t } from '../i18n/index.js';
 
 export interface RoutingDefaultTierSectionProps {
   agentName: () => string;
@@ -151,7 +152,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
       disabled={props.togglingComplexity()}
       onClick={() => props.onToggleComplexity()}
     >
-      <span class="routing-switch__label">Route by complexity</span>
+      <span class="routing-switch__label">{t('pages.routing.default.routeByComplexity')}</span>
       <span class="routing-switch__track">
         <span class="routing-switch__thumb" />
       </span>
@@ -160,8 +161,8 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
 
   const subtitle = () =>
     props.complexityEnabled()
-      ? 'Analyzes the complexity of each request on the fly and routes it to the matching tier.'
-      : 'Pick one model and up to 5 fallbacks as your default routing.';
+      ? t('pages.routing.default.complexityDescription')
+      : t('pages.routing.default.description');
 
   const showComplexityToggle = () => props.showComplexityToggle?.() ?? true;
   const controls = () => (
@@ -174,9 +175,8 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
   // toggle) while complexity routing is actually active.
   const deprecationNotice = () => (
     <Show when={showComplexityToggle() && props.complexityEnabled()}>
-      <RoutingDeprecationNotice title="We're deprecating rule-based routing.">
-        You can still use it until September 1, 2026, but we recommend migrating to default or
-        custom routing.
+      <RoutingDeprecationNotice title={t('pages.routing.deprecationTitle')}>
+        {t('pages.routing.deprecationDescription')}
       </RoutingDeprecationNotice>
     </Show>
   );
@@ -207,7 +207,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
       {deprecationNotice()}
       <div class="routing-section__header routing-section__header--with-control">
         <div>
-          <span class="routing-section__title">Default routing</span>
+          <span class="routing-section__title">{t('pages.routing.default.title')}</span>
           <span class="routing-section__subtitle">{subtitle()}</span>
         </div>
         {controls()}

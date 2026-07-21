@@ -7,6 +7,7 @@ import {
   type Component,
   type JSX,
 } from 'solid-js';
+import { t } from '../../i18n/index.js';
 
 interface Props {
   value: string;
@@ -100,7 +101,7 @@ const PlaygroundPrompt: Component<Props> = (props) => {
             props.ref?.(el);
           }}
           class="playground-prompt__textarea"
-          placeholder="Send a prompt to compare models..."
+          placeholder={t('playground.promptPlaceholder')}
           value={props.value}
           rows={1}
           disabled={props.disabled && !props.running}
@@ -109,7 +110,7 @@ const PlaygroundPrompt: Component<Props> = (props) => {
             autoGrow();
           }}
           onKeyDown={handleKeyDown}
-          aria-label="Run prompt"
+          aria-label={t('playground.runPrompt')}
         />
         <div class="playground-prompt__toolbar">
           <div class="playground-prompt__toolbar-left">
@@ -119,7 +120,7 @@ const PlaygroundPrompt: Component<Props> = (props) => {
             type="submit"
             class="playground-prompt__send"
             disabled={props.disabled || props.value.trim().length === 0}
-            aria-label={props.running ? 'Running' : 'Send prompt'}
+            aria-label={props.running ? t('playground.running') : t('playground.sendPrompt')}
           >
             <Show
               when={!props.running}

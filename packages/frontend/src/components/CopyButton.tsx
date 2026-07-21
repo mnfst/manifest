@@ -1,4 +1,5 @@
 import { createSignal, type Component } from 'solid-js';
+import { t } from '../i18n/index.js';
 
 const CopyButton: Component<{ text: string; disabled?: boolean }> = (props) => {
   const [copied, setCopied] = createSignal(false);
@@ -22,15 +23,15 @@ const CopyButton: Component<{ text: string; disabled?: boolean }> = (props) => {
       classList={{ 'modal-terminal__copy--disabled': !!props.disabled }}
       onClick={handleCopy}
       disabled={props.disabled}
-      title={props.disabled ? 'Reveal key first' : 'Copy'}
+      title={props.disabled ? t('components.revealKeyFirst') : t('components.copy')}
       aria-label={
         props.disabled
-          ? 'Copy disabled'
+          ? t('components.copyDisabled')
           : copied()
-            ? 'Copied'
+            ? t('components.copied')
             : failed()
-              ? 'Copy failed'
-              : 'Copy to clipboard'
+              ? t('components.copyFailed')
+              : t('components.copyToClipboard')
       }
     >
       {copied() ? (

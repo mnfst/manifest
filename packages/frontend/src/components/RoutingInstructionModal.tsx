@@ -5,6 +5,7 @@ import SetupStepAddProvider from './SetupStepAddProvider.jsx';
 import { getAgentKey } from '../services/api.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import { platformIcon } from 'manifest-shared';
+import { t } from '../i18n/index.js';
 
 interface Props {
   open: boolean;
@@ -17,7 +18,6 @@ interface Props {
 const RoutingInstructionModal: Component<Props> = (props) => {
   const [selectedModel, setSelectedModel] = createSignal<string | null>(null);
   const isEnable = () => props.mode === 'enable';
-  const title = () => (isEnable() ? 'Activate routing' : 'Deactivate routing');
   const modelOrPlaceholder = () => selectedModel() ?? '<provider/model>';
 
   const [apiKeyData] = createResource(
@@ -69,11 +69,15 @@ const RoutingInstructionModal: Component<Props> = (props) => {
                   />
                 </Show>
               </Show>
-              <Show when={isEnable()} fallback={<>Deactivate routing</>}>
-                Set up harness: <em>{props.agentName}</em>
+              <Show when={isEnable()} fallback={<>{t('routing.deactivate')}</>}>
+                {t('setup.harnessTitlePrefix')} <em>{props.agentName}</em>
               </Show>
             </div>
-            <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
+            <button
+              class="modal__close"
+              onClick={() => props.onClose()}
+              aria-label={t('components.close')}
+            >
               <svg
                 width="16"
                 height="16"
@@ -91,9 +95,7 @@ const RoutingInstructionModal: Component<Props> = (props) => {
             </button>
           </div>
           <Show when={isEnable()}>
-            <p class="modal-card__desc">
-              Connect your harness to Manifest to start routing requests.
-            </p>
+            <p class="modal-card__desc">{t('setup.connectDescription')}</p>
           </Show>
 
           <Show
@@ -101,18 +103,17 @@ const RoutingInstructionModal: Component<Props> = (props) => {
             fallback={
               <>
                 <p style="margin: 0 0 14px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-                  This will stop routing requests through Manifest and restore direct model access
-                  in your OpenClaw harness.
+                  {t('routing.deactivateDescription')}
                 </p>
 
                 <p style="margin: 0 0 8px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-                  1. Pick the model your harness should use directly:
+                  {t('routing.pickDirectModel')}
                 </p>
 
                 <ModelSelectDropdown selectedValue={selectedModel()} onSelect={handleModelSelect} />
 
                 <p style="margin: 14px 0; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-                  2. Run these commands in your harness's terminal to restore direct model access:
+                  {t('routing.runRestoreCommands')}
                 </p>
 
                 <div class="modal-terminal">
@@ -123,7 +124,9 @@ const RoutingInstructionModal: Component<Props> = (props) => {
                       <span class="modal-terminal__dot modal-terminal__dot--green" />
                     </div>
                     <div class="modal-terminal__tabs">
-                      <span class="modal-terminal__tab modal-terminal__tab--active">Terminal</span>
+                      <span class="modal-terminal__tab modal-terminal__tab--active">
+                        {t('setup.terminal')}
+                      </span>
                     </div>
                   </div>
                   <div class="modal-terminal__body">
@@ -165,7 +168,7 @@ const RoutingInstructionModal: Component<Props> = (props) => {
 
           <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
             <button class="btn btn--primary btn--sm" onClick={() => props.onClose()}>
-              Done
+              {t('components.done')}
             </button>
           </div>
         </div>

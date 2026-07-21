@@ -2,6 +2,7 @@ import { createSignal, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
 import { getClaudeCodeSettingsSnippet } from '../services/framework-snippets.js';
+import { t } from '../i18n/index.js';
 
 interface Props {
   apiKey: string | null;
@@ -52,9 +53,10 @@ const ClaudeCodeSetup: Component<Props> = (props) => {
   return (
     <div class="setup-agents-card">
       <p class="setup-method__hint">
-        Add this block to <code class="setup-model-hint__code">~/.claude/settings.json</code>. Every{' '}
-        <code class="setup-model-hint__code">claude</code> run will route through Manifest with{' '}
-        <code class="setup-model-hint__code">auto</code>.
+        {t('claudeCode.addBlock')}{' '}
+        <code class="setup-model-hint__code">~/.claude/settings.json</code>.{' '}
+        {t('claudeCode.everyRun')} <code class="setup-model-hint__code">claude</code>{' '}
+        {t('claudeCode.routeWith')} <code class="setup-model-hint__code">auto</code>.
       </p>
 
       <div class="setup-cli-block">
@@ -63,8 +65,8 @@ const ClaudeCodeSetup: Component<Props> = (props) => {
             <button
               class="modal-terminal__copy"
               onClick={() => setKeyRevealed(!keyRevealed())}
-              aria-label={keyRevealed() ? 'Hide API key' : 'Reveal API key'}
-              title={keyRevealed() ? 'Hide key' : 'Reveal key'}
+              aria-label={keyRevealed() ? t('components.hideApiKey') : t('components.revealApiKey')}
+              title={keyRevealed() ? t('components.hideKey') : t('components.revealKey')}
             >
               <EyeIcon open={keyRevealed()} />
             </button>

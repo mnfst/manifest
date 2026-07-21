@@ -7,6 +7,7 @@ import { getFreeModels, type FreeProviderDto } from '../services/api.js';
 import { PROVIDERS } from '../services/providers.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { toast } from '../services/toast-store.js';
+import { t } from '../i18n/index.js';
 
 /** Logos that have a `-dark-mode` variant in /icons/ */
 const DARK_MODE_LOGOS = new Set([
@@ -42,10 +43,10 @@ const CopyButton: Component<{ text: string }> = (props) => {
     try {
       await navigator.clipboard.writeText(props.text);
       setCopied(true);
-      toast.success('Copied to clipboard');
+      toast.success(t('pages.freeModels.copiedToast'));
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Failed to copy');
+      toast.error(t('pages.freeModels.copyError'));
     }
   };
 
@@ -54,9 +55,9 @@ const CopyButton: Component<{ text: string }> = (props) => {
       class="btn btn--outline btn--sm"
       style="padding: 2px 8px; font-size: var(--font-size-xs);"
       onClick={handleCopy}
-      aria-label="Copy to clipboard"
+      aria-label={t('pages.freeModels.copyToClipboard')}
     >
-      {copied() ? 'Copied' : 'Copy'}
+      {copied() ? t('pages.freeModels.copied') : t('pages.freeModels.copy')}
     </button>
   );
 };
@@ -121,16 +122,13 @@ const ConnectButton: Component<{ provider: FreeProviderDto }> = (props) => {
     <Show
       when={!isOllamaLocal() || isSelfHosted()}
       fallback={
-        <span
-          class="free-models-disabled-btn"
-          data-tooltip="Available on the self-hosted version only"
-        >
-          Connect {props.provider.name}
+        <span class="free-models-disabled-btn" data-tooltip={t('pages.freeModels.selfHostedOnly')}>
+          {t('pages.freeModels.connect', { provider: props.provider.name })}
         </span>
       }
     >
       <a href={href()} class="btn btn--primary btn--sm" style="text-decoration: none;">
-        Connect {props.provider.name}
+        {t('pages.freeModels.connect', { provider: props.provider.name })}
       </a>
     </Show>
   );
@@ -141,16 +139,15 @@ const FreeModels: Component = () => {
 
   return (
     <div class="container--lg">
-      <Title>Free Models - Manifest</Title>
-      <Meta
-        name="description"
-        content="Free LLM models you can use with Manifest. No credit card required."
-      />
+      <Title>{t('pages.freeModels.metaTitle')}</Title>
+      <Meta name="description" content={t('pages.freeModels.metaDescription')} />
       <div class="page-header">
         <div>
-          <h1>Free Models</h1>
+          <h1>{t('pages.freeModels.title')}</h1>
           <span class="breadcrumb">
-            Cloud providers offering free API access for {agentDisplayName() ?? 'your harness'}
+            {t('pages.freeModels.subtitle', {
+              harness: agentDisplayName() ?? t('pages.freeModels.yourHarness'),
+            })}
           </span>
         </div>
       </div>
@@ -161,7 +158,7 @@ const FreeModels: Component = () => {
             1
           </span>
           <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-            Get your free API key from the provider website
+            {t('pages.freeModels.step.getKey')}
           </span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -169,7 +166,7 @@ const FreeModels: Component = () => {
             2
           </span>
           <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-            Hit the provider Connect button, paste your key, and validate the connection
+            {t('pages.freeModels.step.connect')}
           </span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -177,14 +174,16 @@ const FreeModels: Component = () => {
             3
           </span>
           <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-            Done! The provider models are now included in your routing. Customize tiers and
-            preferences from the routing page.
+            {t('pages.freeModels.step.done')}
           </span>
         </div>
       </div>
 
       <Show when={!data.loading} fallback={<div class="loading-spinner" />}>
-        <Show when={!data.error} fallback={<ErrorState message="Failed to load free models" />}>
+        <Show
+          when={!data.error}
+          fallback={<ErrorState message={t('pages.freeModels.loadError')} />}
+        >
           <For each={data()?.providers ?? []}>
             {(provider) => (
               <div class="panel" style="margin-bottom: 24px;">
@@ -223,7 +222,7 @@ const FreeModels: Component = () => {
                       class="btn btn--outline btn--sm"
                       style="text-decoration: none;"
                     >
-                      Get API key
+                      {t('pages.freeModels.getApiKey')}
                       <ExternalLinkIcon />
                     </a>
                     <Show when={provider.base_url}>
@@ -258,7 +257,7 @@ const FreeModels: Component = () => {
                         <div class="free-models-base-url-row">
                           <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
                             <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); flex-shrink: 0;">
-                              Base URL:
+                              {t('pages.freeModels.baseUrl')}
                             </span>
                             <code style="font-family: var(--font-mono); font-size: var(--font-size-xs); background: hsl(var(--muted) / 0.5); padding: 4px 8px; border-radius: var(--radius); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;">
                               {provider.base_url}
@@ -270,8 +269,10 @@ const FreeModels: Component = () => {
                             onClick={() => setShowModels((v) => !v)}
                           >
                             {showModels()
-                              ? 'Hide models'
-                              : `Show models (${displayModels().length})`}
+                              ? t('pages.freeModels.hideModels')
+                              : t('pages.freeModels.showModels', {
+                                  count: displayModels().length,
+                                })}
                             <img
                               src="/icons/caret-down.svg"
                               alt=""
@@ -286,7 +287,11 @@ const FreeModels: Component = () => {
                           style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); color: hsl(var(--foreground)); padding: 0; background: none; border: none; cursor: pointer; white-space: nowrap; font-weight: 500;"
                           onClick={() => setShowModels((v) => !v)}
                         >
-                          {showModels() ? 'Hide models' : `Show models (${displayModels().length})`}
+                          {showModels()
+                            ? t('pages.freeModels.hideModels')
+                            : t('pages.freeModels.showModels', {
+                                count: displayModels().length,
+                              })}
                           <img
                             src="/icons/caret-down.svg"
                             alt=""
@@ -333,11 +338,11 @@ const FreeModels: Component = () => {
                             </colgroup>
                             <thead>
                               <tr>
-                                <th>Model Name</th>
-                                <th>Context</th>
-                                <th>Max Output</th>
-                                <th>Modality</th>
-                                <th>Rate Limit</th>
+                                <th>{t('pages.freeModels.modelName')}</th>
+                                <th>{t('pages.freeModels.context')}</th>
+                                <th>{t('pages.freeModels.maxOutput')}</th>
+                                <th>{t('pages.freeModels.modality')}</th>
+                                <th>{t('pages.freeModels.rateLimit')}</th>
                               </tr>
                             </thead>
                             <tbody>
