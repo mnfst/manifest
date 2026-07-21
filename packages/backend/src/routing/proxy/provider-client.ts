@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, Optional } from '@nestjs/common';
 import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
 import { XAI_RESPONSES_ONLY_RE } from '../../common/constants/xai-models';
 import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './provider-endpoints';
@@ -36,6 +36,9 @@ import {
 } from './agent-request-context';
 import { extractOpenAiSubscriptionMetadata } from '../oauth/openai/openai-token-metadata';
 import { stripAnthropicServerToolsForFallback } from './anthropic-messages-adapter';
+import { qualifyChatGptResponse } from './chatgpt-response-qualifier';
+import { isProviderAvailableForDeployment } from '../../common/utils/provider-availability';
+import { ManifestError } from '../../common/errors/manifest-error';
 
 export interface ForwardResult {
   response: Response;
@@ -322,6 +325,10 @@ export class ProviderClient {
       authType,
     } = opts;
 
+    if (!customEndpoint && !isProviderAvailableForDeployment(provider)) {
+      throw new ManifestError('M303', HttpStatus.BAD_REQUEST);
+    }
+
     const { endpoint, endpointKey } = await this.resolveEndpoint(
       customEndpoint,
       provider,
@@ -440,8 +447,17 @@ export class ProviderClient {
       responsesTextFormat: textFormat,
       responsesToolTypesByName: toolTypesByName,
     });
-    if (affinity) this.codexAffinity.capture(affinity.storeKey, result.response);
-    return result;
+    const qualifiedResult =
+      endpointKey === 'openai-subscription'
+        ? {
+            ...result,
+            response: await qualifyChatGptResponse(result.response, {
+              downstreamFormat: isResponses ? 'responses' : 'chat-completions',
+            }),
+          }
+        : result;
+    if (affinity) this.codexAffinity.capture(affinity.storeKey, qualifiedResult.response);
+    return qualifiedResult;
   }
 
   private async resolveEndpoint(

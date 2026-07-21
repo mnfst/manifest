@@ -2,6 +2,7 @@ import {
   initSseHeaders,
   pipePassthrough,
   pipeStream,
+  UpstreamStreamError,
   extractUsageFromSse,
   parseUsageObject,
   SSE_HEARTBEAT_INTERVAL_MS,
@@ -493,11 +494,10 @@ describe('pipeStream', () => {
       },
     });
 
-    await expect(pipeStream(stream, res as never)).rejects.toThrow('stream read error');
+    await expect(pipeStream(stream, res as never)).rejects.toBeInstanceOf(UpstreamStreamError);
 
-    // After error, the reader lock should be released (finally block runs).
-    // We verify by checking that end was called (finally block behavior).
-    expect(res.end).toHaveBeenCalled();
+    expect(stream.locked).toBe(false);
+    expect(res.end).not.toHaveBeenCalled();
   });
 
   it('writes a terminal protocol error when a source error handler is provided', async () => {
@@ -1047,6 +1047,22 @@ describe('pipePassthrough', () => {
     await expect(pipePassthrough(stream, res as never, () => null)).rejects.toThrow(
       'SSE buffer overflow',
     );
+  });
+
+  it('leaves the destination open when the upstream reader fails', async () => {
+    const { res } = mockResponse();
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.error(new Error('upstream disconnected'));
+      },
+    });
+
+    await expect(pipePassthrough(stream, res as never, () => null)).rejects.toBeInstanceOf(
+      UpstreamStreamError,
+    );
+
+    expect(stream.locked).toBe(false);
+    expect(res.end).not.toHaveBeenCalled();
   });
 });
 

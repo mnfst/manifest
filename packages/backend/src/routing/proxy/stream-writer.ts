@@ -1,4 +1,5 @@
 import { Response as ExpressResponse } from 'express';
+import { TRANSPORT_NETWORK_HTTP_STATUS } from 'manifest-shared';
 import {
   createSsePayloadParser,
   DEFAULT_MAX_SSE_BUFFER_SIZE,
@@ -14,6 +15,25 @@ export interface StreamUsage {
 }
 
 export type StreamSourceErrorHandler = (error: unknown) => string | null;
+
+export class UpstreamStreamError extends Error {
+  readonly status = TRANSPORT_NETWORK_HTTP_STATUS;
+
+  constructor(cause: unknown) {
+    super(cause instanceof Error ? cause.message : 'Upstream stream interrupted', { cause });
+    this.name = 'UpstreamStreamError';
+  }
+}
+
+async function readUpstreamChunk(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+): Promise<ReadableStreamReadResult<Uint8Array>> {
+  try {
+    return await reader.read();
+  } catch (cause) {
+    throw new UpstreamStreamError(cause);
+  }
+}
 
 /**
  * Read a usage block in either OpenAI-compat (`prompt_tokens`/`completion_tokens`)
@@ -224,6 +244,7 @@ export async function pipePassthrough(
   const reader = source.getReader();
   const decoder = new TextDecoder();
   let capturedUsage: StreamUsage | null = null;
+  let upstreamStreamFailed = false;
   const parser = createSsePayloadParser({ maxBufferSize: MAX_SSE_BUFFER_SIZE });
   const heartbeat = startSseHeartbeat(dest);
 
@@ -231,7 +252,7 @@ export async function pipePassthrough(
     let done = false;
     while (!done) {
       if (dest.writableEnded) break;
-      const result = await reader.read();
+      const result = await readUpstreamChunk(reader);
       done = result.done;
       if (result.value) {
         // Write the upstream bytes through unchanged so the client sees
@@ -273,16 +294,20 @@ export async function pipePassthrough(
       }
     }
   } catch (error) {
-    if (!onSourceError) throw error;
-    const trailing = onSourceError(error);
+    if (!onSourceError) {
+      upstreamStreamFailed = error instanceof UpstreamStreamError;
+      throw error;
+    }
+    const sourceError = error instanceof UpstreamStreamError ? error.cause : error;
+    const trailing = onSourceError(sourceError);
     if (trailing && !dest.writableEnded) {
       dest.write(trailing);
       if (onClientChunk) onClientChunk(trailing);
     }
   } finally {
     clearInterval(heartbeat);
-    if (!dest.writableEnded) dest.end();
     reader.releaseLock();
+    if (!upstreamStreamFailed && !dest.writableEnded) dest.end();
   }
 
   return capturedUsage;
@@ -300,6 +325,7 @@ export async function pipeStream(
   const decoder = new TextDecoder();
   let capturedUsage: StreamUsage | null = null;
   const heartbeat = startSseHeartbeat(dest);
+  let upstreamStreamFailed = false;
 
   const writeOut = (s: string): void => {
     dest.write(s);
@@ -351,7 +377,7 @@ export async function pipeStream(
     while (!done) {
       if (dest.writableEnded) break;
 
-      const result = await reader.read();
+      const result = await readUpstreamChunk(reader);
       done = result.done;
 
       if (result.value) {
@@ -380,13 +406,17 @@ export async function pipeStream(
       }
     }
   } catch (error) {
-    if (!onSourceError) throw error;
-    const trailing = onSourceError(error);
+    if (!onSourceError) {
+      upstreamStreamFailed = error instanceof UpstreamStreamError;
+      throw error;
+    }
+    const sourceError = error instanceof UpstreamStreamError ? error.cause : error;
+    const trailing = onSourceError(sourceError);
     if (trailing && !dest.writableEnded) writeOut(trailing);
   } finally {
     clearInterval(heartbeat);
     reader.releaseLock();
-    if (!dest.writableEnded) dest.end();
+    if (!upstreamStreamFailed && !dest.writableEnded) dest.end();
   }
 
   return capturedUsage;

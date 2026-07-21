@@ -652,7 +652,7 @@ describe('proxy-response-handler', () => {
         expect(res.send).not.toHaveBeenCalled();
         expect(res.json).toHaveBeenCalledWith({
           type: 'error',
-          error: { type: 'api_error', message: 'Upstream provider returned bad gateway' },
+          error: { type: 'api_error', message: 'Upstream endpoint returned HTTP 502' },
         });
         expect(JSON.stringify(res.json.mock.calls)).not.toContain('private upstream details');
       } finally {
@@ -1286,7 +1286,7 @@ describe('proxy-response-handler', () => {
         res,
         undefined,
         undefined,
-        undefined,
+        expect.any(Function),
         expect.any(Function),
       );
     });

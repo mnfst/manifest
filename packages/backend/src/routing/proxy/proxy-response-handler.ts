@@ -14,6 +14,7 @@ import {
   pipeStream,
   StreamUsage,
 } from './stream-writer';
+import { createSsePayloadParser } from './sse-parser';
 import {
   classifyProviderError,
   openAiErrorTypeForStatus,
@@ -71,13 +72,17 @@ function upstreamProtocolError(message: string): ResponsesSseError {
 }
 
 function streamSourceFailure(error: unknown): MessagesStreamFailure {
-  if (isTimeoutError(error)) {
+  if (isTimeoutError(error) || (error instanceof Error && isTimeoutError(error.cause))) {
     return { status: 504, message: 'Upstream provider stream timed out' };
   }
-  return { status: 502, message: 'Upstream provider stream was interrupted' };
+  return { status: 502, message: 'Upstream provider stream was interrupted.' };
 }
 
-function formatClientStreamFailure(apiMode: ProxyApiMode, failure: MessagesStreamFailure): string {
+function formatClientStreamFailure(
+  apiMode: ProxyApiMode,
+  failure: MessagesStreamFailure,
+  sequenceNumber?: number,
+): string {
   if (apiMode === 'messages') {
     return `event: error\ndata: ${JSON.stringify({
       type: 'error',
@@ -88,14 +93,16 @@ function formatClientStreamFailure(apiMode: ProxyApiMode, failure: MessagesStrea
     })}\n\n`;
   }
 
-  const code = failure.status === 504 ? 'upstream_timeout' : 'upstream_stream_error';
+  const code = failure.status === 504 ? 'upstream_timeout' : 'stream_interrupted';
   if (apiMode === 'responses') {
-    return `event: error\ndata: ${JSON.stringify({
+    const event: Record<string, unknown> = {
       type: 'error',
       code,
       message: failure.message,
       param: null,
-    })}\n\ndata: [DONE]\n\n`;
+    };
+    if (sequenceNumber !== undefined) event.sequence_number = sequenceNumber;
+    return `event: error\ndata: ${JSON.stringify(event)}\n\ndata: [DONE]\n\n`;
   }
 
   return `data: ${JSON.stringify({
@@ -190,6 +197,48 @@ function assertAnthropicCompletionIntegrity(responseBody: unknown): void {
   if (typeof body?.stop_reason !== 'string' || !body.stop_reason.trim()) {
     throw upstreamProtocolError('Upstream provider response omitted a terminal stop reason');
   }
+}
+
+interface ResponsesSequenceTracker {
+  feed(chunk: string): void;
+  next(): number;
+}
+
+function createResponsesSequenceTracker(): ResponsesSequenceTracker {
+  const parser = createSsePayloadParser();
+  let nextSequenceNumber = 0;
+
+  const feed = (chunk: string): void => {
+    for (const event of parser.feed(chunk)) {
+      const payload = event
+        .split('\n')
+        .filter((line) => !line.startsWith('event:') && !line.startsWith('id:'))
+        .join('\n');
+      try {
+        const data = JSON.parse(payload) as { sequence_number?: unknown };
+        const sequenceNumber = data.sequence_number;
+        if (
+          typeof sequenceNumber === 'number' &&
+          Number.isInteger(sequenceNumber) &&
+          sequenceNumber >= 0
+        ) {
+          nextSequenceNumber = Math.max(nextSequenceNumber, sequenceNumber + 1);
+        } else {
+          nextSequenceNumber += 1;
+        }
+      } catch {
+        nextSequenceNumber += 1;
+      }
+    }
+  };
+
+  return { feed, next: () => nextSequenceNumber };
+}
+
+const responsesSequenceTrackers = new WeakMap<ExpressResponse, ResponsesSequenceTracker>();
+
+export function nextResponsesSequenceNumber(res: ExpressResponse): number {
+  return responsesSequenceTrackers.get(res)?.next() ?? 0;
 }
 
 function recordSafely(promise: Promise<unknown>, label: string): void {
@@ -665,7 +714,12 @@ export async function handleStreamResponse(
   copySafeProviderResponseHeaders(res, forward.response.headers, apiMode);
   initSseHeaders(res, metaHeaders, 200);
 
-  const onClient = undefined;
+  const responsesSequenceTracker =
+    apiMode === 'responses' ? createResponsesSequenceTracker() : null;
+  if (responsesSequenceTracker) responsesSequenceTrackers.set(res, responsesSequenceTracker);
+  const onClient = responsesSequenceTracker
+    ? (chunk: string) => responsesSequenceTracker.feed(chunk)
+    : undefined;
   let sourceFailure: MessagesStreamFailure | null = null;
   const onSourceError = (error: unknown): string => {
     // A caller disconnect aborts the same upstream fetch. Preserve the
@@ -673,7 +727,7 @@ export async function handleStreamResponse(
     // clientAbort signal and records neither provider failure nor success.
     if (res.destroyed) throw error;
     sourceFailure = streamSourceFailure(error);
-    return formatClientStreamFailure(apiMode, sourceFailure);
+    return formatClientStreamFailure(apiMode, sourceFailure, responsesSequenceTracker?.next());
   };
 
   const messagesTransformer =

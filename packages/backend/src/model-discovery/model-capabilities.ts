@@ -1,5 +1,9 @@
 import { PROVIDER_BY_ID_OR_ALIAS } from '../common/constants/providers';
-import type { ModelCapability, ModelModality } from 'manifest-shared';
+import { resolveProviderMetadataIdentity } from 'manifest-shared';
+import type { AuthType, ModelCapability, ModelModality } from 'manifest-shared';
+import type { DiscoveredModel } from './model-fetcher';
+import type { ModelsDevModelEntry } from '../database/models-dev-sync.service';
+import { lookupKnownModalities } from './known-model-modalities';
 
 type RawModalities = { input?: string[]; output?: string[] } | undefined;
 
@@ -90,6 +94,60 @@ export function capabilitiesFromModelsDev(
   if (toolCall === true) add('tools');
   if (modelSupportsStreaming(providerId, modelId)) add('stream');
   return out;
+}
+
+export interface ResolvedCapabilityMetadata {
+  capabilities?: readonly ModelCapability[];
+  inputModalities?: readonly ModelModality[];
+  outputModalities?: readonly ModelModality[];
+  modelsDevEntry: ModelsDevModelEntry | null;
+}
+
+/**
+ * Resolve a discovered model's capability metadata the way the dashboard's
+ * model picker does: merge discovery-time capabilities with the curated
+ * param-spec catalog, a live models.dev lookup, and the streaming heuristic.
+ * Shared by the routing `available-models` endpoint and the
+ * `/v1/models?capabilities=true` proxy projection so both surfaces report the
+ * same facts. Fields stay undefined when no source knows them — callers, not
+ * this resolver, decide whether to default unknowns for display.
+ */
+export async function resolveModelCapabilityMetadata(
+  model: DiscoveredModel,
+  paramSpecs: {
+    getCapabilities(
+      providerId: string | undefined,
+      authType: AuthType | undefined,
+      model: string | undefined,
+    ): Promise<readonly ModelCapability[] | null>;
+  },
+  modelsDevSync: { lookupModel(providerId: string, modelId: string): ModelsDevModelEntry | null },
+): Promise<ResolvedCapabilityMetadata> {
+  const specCapabilities = await paramSpecs.getCapabilities(
+    model.provider,
+    model.authType ?? 'api_key',
+    model.id,
+  );
+  // Some routable ids proxy another provider's model namespace (gateway ids,
+  // Bedrock vendor-prefixed ids). Resolve that provenance for metadata only.
+  const metadata = resolveProviderMetadataIdentity(model.provider, model.id);
+  const metadataProvider = metadata.provider ?? model.provider;
+  const modelsDevEntry = modelsDevSync.lookupModel(metadataProvider, metadata.model);
+  // Curated facts are the last resort, and applying them here (not only at
+  // discovery time) means stale cached_models still resolve correctly.
+  const known = lookupKnownModalities(metadataProvider, metadata.model);
+  return {
+    capabilities: mergeModelCapabilities(
+      model.capabilities,
+      modelsDevEntry?.capabilities,
+      specCapabilities,
+      modelSupportsStreaming(metadataProvider, metadata.model) ? ['stream'] : undefined,
+      known?.capabilities,
+    ),
+    inputModalities: modelsDevEntry?.inputModalities ?? model.inputModalities ?? known?.input,
+    outputModalities: modelsDevEntry?.outputModalities ?? model.outputModalities ?? known?.output,
+    modelsDevEntry,
+  };
 }
 
 export function modelSupportsStreaming(providerId: string, modelId: string): boolean {
