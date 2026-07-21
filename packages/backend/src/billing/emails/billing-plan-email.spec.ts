@@ -68,6 +68,22 @@ describe('billing plan emails', () => {
     expect(html).toContain('Aug 1, 2026');
   });
 
+  it('uses the actual percentage in the Russian usage-warning title', () => {
+    const html = renderToStaticMarkup(
+      PlanUsageEmail({
+        kind: 'requests_warning',
+        used: 8500,
+        limit: FREE_PLAN_REQUESTS_PER_MONTH,
+        periodEnd: '2026-08-01T00:00:00.000Z',
+        appUrl: 'https://app.manifest.build',
+        locale: 'ru',
+      }),
+    );
+
+    expect(html).toContain('Использовано 85\u00a0% месячного лимита запросов');
+    expect(html).not.toContain('Использовано 80\u00a0% месячного лимита запросов');
+  });
+
   it('normalizes usage CTA URLs with trailing slashes', () => {
     const html = renderToStaticMarkup(
       PlanUsageEmail({

@@ -11,38 +11,48 @@ import AuthGuard from './components/AuthGuard.jsx';
 import GuestGuard from './components/GuestGuard.jsx';
 import NotFound from './pages/NotFound.jsx';
 import ToastContainer from './components/ToastContainer.jsx';
-import { lazyReload, clearReloadFlag } from './services/lazy-reload.js';
+import { lazyReload, loadWithChunkReload } from './services/lazy-reload.js';
 import { initializeI18n, t } from './i18n/index.js';
 import type { ParentComponent } from 'solid-js';
 import './styles/theme.css';
 
-clearReloadFlag();
-
-const GlobalOverview = lazyReload(() => import('./pages/GlobalOverview.jsx'));
-const AgentDetail = lazyReload(() => import('./pages/AgentDetail.jsx'));
-const AgentOverview = lazyReload(() => import('./pages/AgentOverview.jsx'));
-const AgentProviders = lazyReload(() => import('./pages/AgentProviders.jsx'));
-const AgentLimitsRedirect = lazyReload(() => import('./pages/AgentLimitsRedirect.jsx'));
-const AgentMessagesRedirect = lazyReload(() => import('./pages/AgentMessagesRedirect.jsx'));
-const MessageLog = lazyReload(() => import('./pages/MessageLog.jsx'));
-const Settings = lazyReload(() => import('./pages/Settings.jsx'));
-const Routing = lazyReload(() => import('./pages/Routing.jsx'));
-const Playground = lazyReload(() => import('./pages/Playground.jsx'));
-const Limits = lazyReload(() => import('./pages/Limits.jsx'));
-const Account = lazyReload(() => import('./pages/Account.jsx'));
-const Upgrade = lazyReload(() => import('./pages/Upgrade.jsx'));
-const Login = lazyReload(() => import('./pages/Login.jsx'));
-const Register = lazyReload(() => import('./pages/Register.jsx'));
-const ResetPassword = lazyReload(() => import('./pages/ResetPassword.jsx'));
-const Setup = lazyReload(() => import('./pages/Setup.jsx'));
-const ModelPrices = lazyReload(() => import('./pages/ModelPrices.jsx'));
-const Help = lazyReload(() => import('./pages/Help.jsx'));
-const FreeModels = lazyReload(() => import('./pages/FreeModels.jsx'));
-const ConnectProvider = lazyReload(() => import('./pages/ConnectProvider.jsx'));
-const Subscriptions = lazyReload(() => import('./pages/providers/Subscriptions.jsx'));
-const Byok = lazyReload(() => import('./pages/providers/Byok.jsx'));
-const LocalProviders = lazyReload(() => import('./pages/providers/Local.jsx'));
-const ConnectionDetail = lazyReload(() => import('./pages/providers/ConnectionDetail.jsx'));
+const GlobalOverview = lazyReload(() => import('./pages/GlobalOverview.jsx'), 'global-overview');
+const AgentDetail = lazyReload(() => import('./pages/AgentDetail.jsx'), 'agent-detail');
+const AgentOverview = lazyReload(() => import('./pages/AgentOverview.jsx'), 'agent-overview');
+const AgentProviders = lazyReload(() => import('./pages/AgentProviders.jsx'), 'agent-providers');
+const AgentLimitsRedirect = lazyReload(
+  () => import('./pages/AgentLimitsRedirect.jsx'),
+  'agent-limits-redirect',
+);
+const AgentMessagesRedirect = lazyReload(
+  () => import('./pages/AgentMessagesRedirect.jsx'),
+  'agent-messages-redirect',
+);
+const MessageLog = lazyReload(() => import('./pages/MessageLog.jsx'), 'message-log');
+const Settings = lazyReload(() => import('./pages/Settings.jsx'), 'settings');
+const Routing = lazyReload(() => import('./pages/Routing.jsx'), 'routing');
+const Playground = lazyReload(() => import('./pages/Playground.jsx'), 'playground');
+const Limits = lazyReload(() => import('./pages/Limits.jsx'), 'limits');
+const Account = lazyReload(() => import('./pages/Account.jsx'), 'account');
+const Upgrade = lazyReload(() => import('./pages/Upgrade.jsx'), 'upgrade');
+const Login = lazyReload(() => import('./pages/Login.jsx'), 'login');
+const Register = lazyReload(() => import('./pages/Register.jsx'), 'register');
+const ResetPassword = lazyReload(() => import('./pages/ResetPassword.jsx'), 'reset-password');
+const Setup = lazyReload(() => import('./pages/Setup.jsx'), 'setup');
+const ModelPrices = lazyReload(() => import('./pages/ModelPrices.jsx'), 'model-prices');
+const Help = lazyReload(() => import('./pages/Help.jsx'), 'help');
+const FreeModels = lazyReload(() => import('./pages/FreeModels.jsx'), 'free-models');
+const ConnectProvider = lazyReload(() => import('./pages/ConnectProvider.jsx'), 'connect-provider');
+const Subscriptions = lazyReload(
+  () => import('./pages/providers/Subscriptions.jsx'),
+  'provider-subscriptions',
+);
+const Byok = lazyReload(() => import('./pages/providers/Byok.jsx'), 'provider-byok');
+const LocalProviders = lazyReload(() => import('./pages/providers/Local.jsx'), 'provider-local');
+const ConnectionDetail = lazyReload(
+  () => import('./pages/providers/ConnectionDetail.jsx'),
+  'connection-detail',
+);
 
 const GuestLayout: ParentComponent = (props) => (
   <GuestGuard>
@@ -65,7 +75,7 @@ if (!root) {
 const mountRoot = root;
 
 async function bootstrap(): Promise<void> {
-  await initializeI18n();
+  await loadWithChunkReload(() => initializeI18n(), 'i18n-bootstrap');
 
   render(
     () => (
@@ -148,4 +158,23 @@ async function bootstrap(): Promise<void> {
   );
 }
 
-void bootstrap();
+function renderBootstrapError(error: unknown): void {
+  console.error('Failed to load the application language catalogue', error);
+  const alert = document.createElement('main');
+  alert.setAttribute('role', 'alert');
+  alert.className = 'bootstrap-error';
+
+  const title = document.createElement('h1');
+  title.textContent = 'Manifest could not be loaded';
+  const message = document.createElement('p');
+  message.textContent = 'Refresh the page to try again.';
+  const retry = document.createElement('button');
+  retry.type = 'button';
+  retry.textContent = 'Refresh';
+  retry.addEventListener('click', () => window.location.reload());
+
+  alert.append(title, message, retry);
+  mountRoot.replaceChildren(alert);
+}
+
+void bootstrap().catch(renderBootstrapError);

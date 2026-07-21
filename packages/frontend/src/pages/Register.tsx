@@ -17,10 +17,10 @@ import { getLastAuthMethod, setLastAuthMethod } from '../services/last-auth-meth
 import { checkSocialProviders } from '../services/setup-status.js';
 import { getBillingStatus } from '../services/api/billing.js';
 import { markPlanChosen } from '../services/plan-selection.js';
-import { formatBillingPrice } from '../services/billing-display.js';
 import { toast } from '../services/toast-store.js';
-import { t } from '../i18n/index.js';
+import { t, tr } from '../i18n/index.js';
 import { authLocaleFetchOptions } from './auth-locale.js';
+import type { BillingPrice } from 'manifest-shared';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -37,7 +37,7 @@ const Register: Component = () => {
   const [lastAuthMethod] = createSignal(getLastAuthMethod());
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [proPrice, setProPrice] = createSignal<string | null>(null);
+  const [proPrice, setProPrice] = createSignal<BillingPrice | null>(null);
   const [planBusy, setPlanBusy] = createSignal(false);
   const location = useLocation();
   const session = authClient.useSession();
@@ -60,7 +60,7 @@ const Register: Component = () => {
           markPlanChosen(userId());
           navigate('/', { replace: true });
         } else {
-          setProPrice(formatBillingPrice(status?.priceMonthly));
+          setProPrice(status?.priceMonthly ?? null);
         }
       })
       .catch(() => {});
@@ -118,7 +118,7 @@ const Register: Component = () => {
       try {
         const status = await getBillingStatus();
         if (status?.enabled) {
-          setProPrice(formatBillingPrice(status.priceMonthly));
+          setProPrice(status.priceMonthly ?? null);
           window.location.href = '/register?step=plan';
           return;
         }
@@ -189,7 +189,9 @@ const Register: Component = () => {
             <div class="auth-header">
               <h1 class="auth-header__title">{t('pages.register.checkEmail')}</h1>
               <p class="auth-header__subtitle">
-                {t('pages.register.verificationSent', { email: email() })}
+                {tr('pages.register.verificationSent', {
+                  email: <strong>{email()}</strong>,
+                })}
               </p>
             </div>
 

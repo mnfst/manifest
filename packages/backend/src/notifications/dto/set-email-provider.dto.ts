@@ -8,6 +8,7 @@ import {
   IsNotEmpty,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { SUPPORTED_LOCALES, type AppLocale } from '../../common/i18n/locale';
 
 export class SetEmailProviderDto {
   @IsString()
@@ -52,8 +53,9 @@ export class TestEmailProviderDto {
   to!: string;
 
   @IsOptional()
-  @IsIn(['en', 'ru'])
-  locale?: 'en' | 'ru';
+  @IsString()
+  @IsIn([...SUPPORTED_LOCALES])
+  locale?: AppLocale;
 }
 
 export class TestSavedEmailProviderDto {
@@ -63,6 +65,7 @@ export class TestSavedEmailProviderDto {
   to!: string;
 
   @IsOptional()
-  @IsIn(['en', 'ru'])
-  locale?: 'en' | 'ru';
+  @IsString()
+  @IsIn([...SUPPORTED_LOCALES])
+  locale?: AppLocale;
 }

@@ -170,7 +170,7 @@ const LimitRuleModal: Component<Props> = (props) => {
                 {saving() ? (
                   <span class="spinner" />
                 ) : isEdit() ? (
-                  t('headerTier.saveChanges')
+                  t('limit.saveChanges')
                 ) : (
                   t('limit.createRule')
                 )}

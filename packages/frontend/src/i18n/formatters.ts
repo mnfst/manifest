@@ -33,7 +33,3 @@ export function formatRelativeTime(
     unit,
   );
 }
-
-export function formatList(values: readonly string[], options?: Intl.ListFormatOptions): string {
-  return new Intl.ListFormat(localeTag(), options).format(values);
-}

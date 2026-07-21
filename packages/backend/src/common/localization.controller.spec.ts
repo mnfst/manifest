@@ -1,3 +1,4 @@
+import { UnauthorizedException } from '@nestjs/common';
 import { LocaleService } from './services/locale.service';
 import { TenantCacheService } from './services/tenant-cache.service';
 import { LocalizationController } from './localization.controller';
@@ -37,10 +38,10 @@ describe('LocalizationController', () => {
     expect(setTenantLocale).toHaveBeenCalledWith('created-tenant', 'ru');
   });
 
-  it('keeps ownerless contexts on the English fallback', async () => {
+  it('rejects an anomalous session context instead of claiming the locale was saved', async () => {
     await expect(
       controller.setLocale({ tenantId: null, userId: null }, { locale: 'ru' }),
-    ).resolves.toEqual({ locale: 'en' });
+    ).rejects.toBeInstanceOf(UnauthorizedException);
     expect(setTenantLocale).not.toHaveBeenCalled();
   });
 });

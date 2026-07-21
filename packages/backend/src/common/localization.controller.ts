@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Put, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { TenantCtx, TenantContext } from './decorators/tenant-context.decorator';
 import { UpdateLocaleDto } from './dto/update-locale.dto';
 import { AppLocale } from './i18n/locale';
@@ -26,7 +26,9 @@ export class LocalizationController {
   ): Promise<{ locale: AppLocale }> {
     const tenantId =
       ctx.tenantId ?? (ctx.userId ? await this.tenantCache.ensureForUser(ctx.userId) : null);
-    if (!tenantId) return { locale: 'en' };
+    if (!tenantId) {
+      throw new UnauthorizedException('An authenticated user is required to update the locale.');
+    }
     return { locale: await this.locales.setTenantLocale(tenantId, body.locale) };
   }
 }

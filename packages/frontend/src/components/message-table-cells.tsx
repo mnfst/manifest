@@ -21,7 +21,7 @@ import { providerIcon, customProviderLogo } from './ProviderIcon.jsx';
 import { authBadgeFor, authLabel } from './AuthBadge.js';
 import { platformIcon, isSuccessStatus } from 'manifest-shared';
 import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
-import { t } from '../i18n/index.js';
+import { formatNumber as formatLocalizedNumber, t } from '../i18n/index.js';
 
 const MONO = 'font-family: var(--font-mono);';
 const MONO_XS =
@@ -152,7 +152,14 @@ export function CostCell(item: MessageRow): JSX.Element {
           <span
             title={
               isPerRequestSubscription
-                ? t('message.perRequestCost', { cost: item.cost!.toFixed(6) })
+                ? t('message.perRequestCost', {
+                    cost: formatLocalizedNumber(item.cost!, {
+                      style: 'currency',
+                      currency: 'USD',
+                      minimumFractionDigits: 6,
+                      maximumFractionDigits: 6,
+                    }),
+                  })
                 : item.cost != null && item.cost > 0 && item.cost < 0.01
                   ? `$${item.cost.toFixed(6)}`
                   : undefined

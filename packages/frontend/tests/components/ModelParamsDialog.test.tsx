@@ -206,6 +206,19 @@ describe('ModelParamsDialog', () => {
     expect(q('.provider-toggle__switch--on')).not.toBeNull();
   });
 
+  it('formats numeric defaults with the active locale without translating enum values', async () => {
+    await setLocale('ru');
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+
+    const defaults = Array.from(document.querySelectorAll('.model-params__default-hint')).map(
+      (node) => node.textContent,
+    );
+    expect(defaults).toContain('По умолчанию: 4\u00a0096');
+    expect(defaults).toContain('По умолчанию: disabled');
+  });
+
   it('describes params with client-override note when specs exist', () => {
     render(() => <ModelParamsDialog {...baseProps} slotLabel="GPT-5 Nano" />);
     expect(screen.getByText('Defaults for GPT-5 Nano. Client requests override.')).toBeTruthy();

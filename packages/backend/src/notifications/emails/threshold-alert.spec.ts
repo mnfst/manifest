@@ -64,4 +64,22 @@ describe('ThresholdAlertEmail', () => {
     expect(html).toContain('за <strong>день</strong>');
     expect(html).toContain('Открыть панель интеграции');
   });
+
+  it('uses context-appropriate Russian cases for a weekly period', () => {
+    const html = renderEmail({
+      agentName: 'помощник',
+      metricType: 'tokens',
+      threshold: 1000,
+      actualValue: 1500,
+      period: 'week',
+      timestamp: '2026-04-23 12:00',
+      agentUrl: 'https://app.manifest.build/agents/helper',
+      alertType: 'hard',
+      locale: 'ru',
+    });
+
+    expect(html).toContain('за <strong>неделю</strong>');
+    expect(html).toContain('Период: неделя');
+    expect(html).not.toContain('Период: неделю');
+  });
 });

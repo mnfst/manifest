@@ -2,7 +2,7 @@ import { createSignal, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
 import { getNanobotConfigSnippet } from '../services/framework-snippets.js';
-import { t } from '../i18n/index.js';
+import { t, tr } from '../i18n/index.js';
 
 interface Props {
   apiKey: string | null;
@@ -53,10 +53,11 @@ const NanobotSetup: Component<Props> = (props) => {
   return (
     <div class="setup-agents-card">
       <p class="setup-method__hint">
-        {t('setup.nanobotEdit')} <code class="setup-model-hint__code">~/.nanobot/config.json</code>{' '}
-        {t('setup.nanobotUpdate')} <code class="setup-model-hint__code">agents.defaults</code>{' '}
-        {t('setup.nanobotThen')} <code class="setup-model-hint__code">custom</code>{' '}
-        {t('setup.nanobotSuffix')}
+        {tr('setup.nanobotHint', {
+          configFile: <code class="setup-model-hint__code">~/.nanobot/config.json</code>,
+          defaultsPath: <code class="setup-model-hint__code">agents.defaults</code>,
+          providerName: <code class="setup-model-hint__code">custom</code>,
+        })}
       </p>
 
       <div class="setup-cli-block">

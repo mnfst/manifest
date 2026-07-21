@@ -8,7 +8,7 @@ import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { validateProviderConfig } from './email-provider-validation';
 import { createProvider } from './email-providers/resolve-provider';
-import { TestEmail } from '../emails/test-email';
+import { TestEmail, testEmailSubject } from '../emails/test-email';
 import type { AppLocale } from '../../common/i18n/locale';
 import type { EmailProviderConfig as ProviderConfig } from './email-providers/email-provider.interface';
 
@@ -252,7 +252,7 @@ export class EmailProviderConfigService {
       const from = domain ? `Manifest <noreply@${domain}>` : `Manifest <${this.fromEmail}>`;
       const sent = await emailProvider.send({
         to: toEmail,
-        subject: locale === 'ru' ? 'Manifest — тестовое письмо' : 'Manifest — Test Email',
+        subject: testEmailSubject(locale),
         html,
         text,
         from,

@@ -71,13 +71,18 @@ function metricLabel(metric: ThresholdAlertProps['metricType'], locale: AppLocal
   return metric;
 }
 
-function periodLabel(period: string, locale: AppLocale): string {
+type PeriodLabelContext = 'afterPreposition' | 'metadata';
+
+const RUSSIAN_PERIOD_LABELS: Record<string, Record<PeriodLabelContext, string>> = {
+  hour: { afterPreposition: 'час', metadata: 'час' },
+  day: { afterPreposition: 'день', metadata: 'день' },
+  week: { afterPreposition: 'неделю', metadata: 'неделя' },
+  month: { afterPreposition: 'месяц', metadata: 'месяц' },
+};
+
+function periodLabel(period: string, locale: AppLocale, context: PeriodLabelContext): string {
   if (locale !== 'ru') return period;
-  return (
-    ({ hour: 'час', day: 'день', week: 'неделю', month: 'месяц' } as Record<string, string>)[
-      period
-    ] ?? period
-  );
+  return RUSSIAN_PERIOD_LABELS[period]?.[context] ?? period;
 }
 
 export function ThresholdAlertEmail(props: ThresholdAlertProps) {
@@ -95,7 +100,8 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
   } = props;
   const locale = props.locale ?? 'en';
   const metric = metricLabel(metricType, locale);
-  const localizedPeriod = periodLabel(period, locale);
+  const localizedPeriod = periodLabel(period, locale, 'afterPreposition');
+  const localizedPeriodMetadata = periodLabel(period, locale, 'metadata');
 
   const isSoft = alertType === 'soft';
   const accentColor = isSoft ? '#ea580c' : '#dc2626';
@@ -223,7 +229,7 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
             {/* Meta info */}
             <Section style={metaRow}>
               <Text style={metaText}>
-                {locale === 'ru' ? 'Период' : 'Period'}: {localizedPeriod}
+                {locale === 'ru' ? 'Период' : 'Period'}: {localizedPeriodMetadata}
               </Text>
               <Text style={metaText}>
                 {locale === 'ru' ? 'Срабатывание' : 'Triggered'}:{' '}

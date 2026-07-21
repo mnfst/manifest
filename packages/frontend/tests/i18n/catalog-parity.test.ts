@@ -101,6 +101,14 @@ describe('locale catalog integrity', () => {
     }
   });
 
+  it('does not carry unreachable plural forms in the canonical English catalogue', () => {
+    const reachable = new Intl.PluralRules('en').resolvedOptions().pluralCategories.sort();
+    for (const [key, message] of Object.entries(en)) {
+      if (typeof message === 'string') continue;
+      expect(pluralForms(message).sort(), key).toEqual(reachable);
+    }
+  });
+
   it('keeps named placeholders aligned for every supplied plural form', () => {
     for (const key of Object.keys(en) as (keyof typeof en)[]) {
       const source = en[key];

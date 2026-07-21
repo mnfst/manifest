@@ -149,7 +149,15 @@ describe("HermesSetup", () => {
 
   it("renders the config.yaml section heading", () => {
     const { container } = render(() => <HermesSetup {...defaultProps} />);
-    expect(container.textContent).toContain("config.yaml");
+    const hint = Array.from(container.querySelectorAll(".setup-method__hint")).find((node) =>
+      node.textContent?.startsWith("Add the following")
+    );
+    expect(hint?.textContent).toBe("Add the following model: section to your config.yaml:");
+    expect(
+      Array.from(hint?.querySelectorAll("code.setup-model-hint__code") ?? []).map(
+        (node) => node.textContent
+      )
+    ).toEqual(["model:", "config.yaml"]);
   });
 
   it("renders EyeIcon with closed state by default", () => {
@@ -196,7 +204,13 @@ describe("HermesSetup", () => {
     const { container } = render(() => <HermesSetup {...defaultProps} />);
     const segment = container.querySelector(".setup-segment--full");
     fireEvent.click(segment!.querySelectorAll(".setup-segment__btn")[1]);
-    expect(container.textContent).toContain("Custom endpoint");
+    const endpoint = Array.from(container.querySelectorAll("strong")).find(
+      (node) => node.textContent === "Custom endpoint"
+    );
+    expect(endpoint).toBeDefined();
+    expect(endpoint?.parentElement?.textContent).toBe(
+      "Run the onboarding wizard and select Custom endpoint when prompted. Then enter the following values:"
+    );
   });
 
   it("shows onboard fields on wizard tab with Hermes field names", () => {

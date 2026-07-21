@@ -363,9 +363,6 @@ export const enPages = {
   'pages.settings.harnessType': 'Harness type',
   'pages.settings.notSet': 'Not set',
   'pages.settings.change': 'Change',
-  'pages.settings.category.personal': 'AI agents',
-  'pages.settings.category.app': 'App AI SDK',
-  'pages.settings.category.coding': 'Coding Assistant',
   'pages.settings.platform.other': 'Other',
   'pages.settings.error.title': 'Something went wrong',
   'pages.settings.error.message': 'An error occurred.',
@@ -479,8 +476,6 @@ export const enPages = {
   'pages.messages.connectProvider': 'Connect provider',
   'pages.messages.resultCount': {
     one: '{count} result',
-    few: '{count} results',
-    many: '{count} results',
     other: '{count} results',
   },
   'pages.messages.totalCount': '{count} total',
@@ -533,8 +528,6 @@ export const enPages = {
   'pages.globalOverview.noHarnesses': 'No harnesses yet',
   'pages.globalOverview.tokenUnit': {
     one: 'token',
-    few: 'tokens',
-    many: 'tokens',
     other: 'tokens',
   },
 
@@ -579,14 +572,10 @@ export const enPages = {
   'pages.providerConnections.cost30d': 'Cost (30d)',
   'pages.providerConnections.activeConnections': {
     one: '{count} active connection',
-    few: '{count} active connections',
-    many: '{count} active connections',
     other: '{count} active connections',
   },
   'pages.providerConnections.activeKeys': {
     one: '{count} active key',
-    few: '{count} active keys',
-    many: '{count} active keys',
     other: '{count} active keys',
   },
   'pages.providerConnections.connectedLabel': 'Connected',
@@ -606,8 +595,6 @@ export const enPages = {
   'pages.providerConnections.cancel': 'Cancel',
   'pages.providerConnections.tokenUnit': {
     one: 'token',
-    few: 'tokens',
-    many: 'tokens',
     other: 'tokens',
   },
   'pages.providerConnections.viewDetails': 'View details',
@@ -678,8 +665,6 @@ export const enPages = {
   'pages.connectionDetail.save': 'Save',
   'pages.connectionDetail.modelCount': {
     one: '{count} model',
-    few: '{count} models',
-    many: '{count} models',
     other: '{count} models',
   },
   'pages.connectionDetail.refreshing': 'Refreshing...',
@@ -719,8 +704,6 @@ export const enPages = {
   'pages.routing.defaultKey': 'Default',
   'pages.routing.connectionCount': {
     one: '{count} connection',
-    few: '{count} connections',
-    many: '{count} connections',
     other: '{count} connections',
   },
   'pages.routing.resetAll': 'Reset all to auto',

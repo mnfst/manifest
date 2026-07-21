@@ -166,10 +166,8 @@ export const ruComponentsNZ = {
   'setup.connectDescription':
     'Подключите интеграцию к Manifest, чтобы начать маршрутизацию запросов.',
   'setup.terminal': 'Терминал',
-  'setup.nanobotEdit': 'Откройте',
-  'setup.nanobotUpdate': 'и сначала обновите существующие значения',
-  'setup.nanobotThen': '— затем добавьте блок провайдера',
-  'setup.nanobotSuffix': 'ниже.',
+  'setup.nanobotHint':
+    'Откройте {configFile}, сначала обновите существующие значения {defaultsPath}, затем добавьте ниже блок провайдера {providerName}.',
   'setup.openCodePrefix': 'Добавьте этот блок в глобальный файл',
   'setup.openClawPrefix':
     'Зарегистрируйте Manifest в конфигурации OpenClaw, чтобы направлять каждый запрос подходящему провайдеру через модель',

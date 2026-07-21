@@ -310,7 +310,7 @@ export function PlanUsageEmail(props: PlanUsageEmailProps) {
     locale === 'ru'
       ? isLimit
         ? 'Месячный лимит запросов исчерпан'
-        : 'Использовано 80\u00a0% месячного лимита запросов'
+        : `Использовано ${percentage}\u00a0% месячного лимита запросов`
       : isLimit
         ? 'Monthly request limit reached'
         : '80% of monthly requests used';

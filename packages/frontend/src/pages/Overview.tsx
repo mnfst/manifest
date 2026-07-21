@@ -42,7 +42,7 @@ import {
   useOverviewRange,
 } from '../services/use-overview-range.js';
 import { getBillingStatus } from '../services/api/billing.js';
-import { locale, t } from '../i18n/index.js';
+import { locale, t, type PlainTextMessageKey } from '../i18n/index.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/routing.css';
@@ -51,6 +51,14 @@ import { getAutofixCohort } from '../services/api/autofix.js';
 
 const PRO_RANGES = new Set(['30d', '90d', '365d']);
 const AGENT_RANGES = ['24h', '7d', '30d', '90d', '365d'] as const;
+type AgentRange = (typeof AGENT_RANGES)[number];
+const AGENT_RANGE_LABEL_KEYS = {
+  '24h': 'pages.overview.range.24h',
+  '7d': 'pages.overview.range.7d',
+  '30d': 'pages.overview.range.30d',
+  '90d': 'pages.overview.range.90d',
+  '365d': 'pages.overview.range.365d',
+} as const satisfies Record<AgentRange, PlainTextMessageKey>;
 
 interface OverviewData {
   summary: {
@@ -128,13 +136,7 @@ const Overview: Component = () => {
       PRO
     </span>
   );
-  const rangeLabel = (value: (typeof AGENT_RANGES)[number]) => {
-    if (value === '24h') return t('pages.overview.range.24h');
-    if (value === '7d') return t('pages.overview.range.7d');
-    if (value === '30d') return t('pages.overview.range.30d');
-    if (value === '90d') return t('pages.overview.range.90d');
-    return t('pages.overview.range.365d');
-  };
+  const rangeLabel = (value: AgentRange) => t(AGENT_RANGE_LABEL_KEYS[value]);
   const agentRangeOptions = () =>
     AGENT_RANGES.map((value) => ({ label: rangeLabel(value), value })).map((opt) =>
       isProRangeLocked(opt.value) ? { ...opt, disabled: true, badge: proBadge() } : opt,

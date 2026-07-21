@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant } from '../../entities/tenant.entity';
-import { AppLocale, DEFAULT_LOCALE, normalizeLocale } from '../i18n/locale';
+import { AppLocale, DEFAULT_LOCALE, isAppLocale, normalizeLocale } from '../i18n/locale';
 
 @Injectable()
 export class LocaleService {
@@ -20,7 +20,7 @@ export class LocaleService {
   async getStoredTenantLocale(tenantId: string | null | undefined): Promise<AppLocale | null> {
     if (!tenantId) return null;
     const tenant = await this.tenantRepo.findOne({ where: { id: tenantId }, select: ['locale'] });
-    return tenant?.locale === 'en' || tenant?.locale === 'ru' ? tenant.locale : null;
+    return isAppLocale(tenant?.locale) ? tenant.locale : null;
   }
 
   async setTenantLocale(tenantId: string, locale: AppLocale): Promise<AppLocale> {

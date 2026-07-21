@@ -16,7 +16,7 @@ import {
   localizeModelParamLabel,
 } from '../i18n/model-param-metadata.js';
 import Select from './Select.jsx';
-import { t } from '../i18n/index.js';
+import { formatNumber, t } from '../i18n/index.js';
 
 interface Props {
   open: boolean;
@@ -445,8 +445,11 @@ const ModelParamsDialog: Component<Props> = (props) => {
     const spec = () => rowProps.spec;
     const description = () =>
       trimTrailingPunct(localizeModelParamDescription(spec().description)) + '.';
-    const defaultLabel = () =>
-      spec().default === undefined ? t('model.params.none') : String(spec().default);
+    const defaultLabel = () => {
+      const value = spec().default;
+      if (value === undefined) return t('model.params.none');
+      return typeof value === 'number' ? formatNumber(value) : String(value);
+    };
     return (
       <div
         class="model-params__row"

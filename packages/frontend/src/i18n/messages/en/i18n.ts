@@ -6,8 +6,6 @@ export const enI18n = {
   'i18n.language.ru': 'Russian',
   'i18n.itemCount': {
     one: '{count} item',
-    few: '{count} items',
-    many: '{count} items',
     other: '{count} items',
   },
   'i18n.welcome': 'Welcome, {name}',

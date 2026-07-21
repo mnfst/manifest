@@ -52,15 +52,11 @@ export const enComponentsNZ = {
   'provider.beta': 'beta',
   'provider.modelsRefreshed': {
     one: '{provider}: refreshed {count} model',
-    few: '{provider}: refreshed {count} models',
-    many: '{provider}: refreshed {count} models',
     other: '{provider}: refreshed {count} models',
   },
   'provider.refreshFailed': "Couldn't refresh {provider}",
   'provider.cachedModels': {
     one: '{count} model',
-    few: '{count} models',
-    many: '{count} models',
     other: '{count} models',
   },
   'provider.lastRefreshed': 'last refreshed: {time}',
@@ -125,8 +121,6 @@ export const enComponentsNZ = {
     'Responses are streamed token by token as the model generates them. Only models with streaming support are used.',
   'responseMode.incompatible': {
     one: 'Stream mode is unavailable because this model does not support streaming. Change it to enable stream mode.',
-    few: 'Stream mode is unavailable because these models do not support streaming. Change them to enable stream mode.',
-    many: 'Stream mode is unavailable because these models do not support streaming. Change them to enable stream mode.',
     other:
       'Stream mode is unavailable because these models do not support streaming. Change them to enable stream mode.',
   },
@@ -163,10 +157,8 @@ export const enComponentsNZ = {
   'setup.harnessTitlePrefix': 'Set up harness:',
   'setup.connectDescription': 'Connect your harness to Manifest to start routing requests.',
   'setup.terminal': 'Terminal',
-  'setup.nanobotEdit': 'Edit',
-  'setup.nanobotUpdate': 'by updating the existing',
-  'setup.nanobotThen': 'values first, then add the',
-  'setup.nanobotSuffix': 'provider block below.',
+  'setup.nanobotHint':
+    'Edit {configFile} by updating the existing {defaultsPath} values first, then add the {providerName} provider block below.',
   'setup.openCodePrefix': 'Add this block to your global',
   'setup.openClawPrefix':
     'Register Manifest in your OpenClaw config to route each request to the best provider using the model',

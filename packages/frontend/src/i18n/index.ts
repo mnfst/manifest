@@ -16,6 +16,7 @@ export {
   selectPluralForm,
   setLocale,
   t,
+  tr,
   tp,
   type CatalogLoader,
   type LocaleMetadata,
@@ -25,10 +26,4 @@ export {
   type PluralMessageKey,
   type TextMessageKey,
 } from './runtime.js';
-export {
-  formatDate,
-  formatDateTime,
-  formatList,
-  formatNumber,
-  formatRelativeTime,
-} from './formatters.js';
+export { formatDate, formatDateTime, formatNumber, formatRelativeTime } from './formatters.js';

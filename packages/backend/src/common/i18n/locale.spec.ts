@@ -1,6 +1,7 @@
 import {
   DEFAULT_LOCALE,
   intlLocale,
+  isAppLocale,
   localeFromAcceptLanguage,
   normalizeLocale,
   parseLocale,
@@ -18,6 +19,14 @@ describe('locale helpers', () => {
     expect(parseLocale('RU-ru')).toBe('ru');
     expect(parseLocale('de-DE')).toBeNull();
     expect(parseLocale(undefined)).toBeNull();
+  });
+
+  it('recognizes only exact members of the locale registry', () => {
+    expect(isAppLocale('en')).toBe(true);
+    expect(isAppLocale('ru')).toBe(true);
+    expect(isAppLocale('ru-RU')).toBe(false);
+    expect(isAppLocale('de')).toBe(false);
+    expect(isAppLocale(123)).toBe(false);
   });
 
   it('respects Accept-Language quality ordering', () => {

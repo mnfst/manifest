@@ -55,10 +55,8 @@ const Settings: Component = () => {
   const currentCategory = () => (agentInfo()?.agent_category as AgentCategory) ?? null;
   const currentPlatform = () => (agentInfo()?.agent_platform as AgentPlatform) ?? null;
   const categoryLabel = (category: AgentCategory | null) => {
-    if (category === 'personal') return t('pages.settings.category.personal');
-    if (category === 'app') return t('pages.settings.category.app');
-    if (category === 'coding') return t('pages.settings.category.coding');
-    return '';
+    if (!category) return '';
+    return t(`agentType.category.${category}` as const);
   };
   const platformLabel = (platform: AgentPlatform | null) => {
     if (!platform) return t('pages.settings.notSet');

@@ -28,6 +28,11 @@ describe('LocaleService', () => {
     await expect(service.getStoredTenantLocale('tenant-1')).resolves.toBe('en');
   });
 
+  it('rejects stored values outside the locale registry', async () => {
+    findOne.mockResolvedValue({ locale: 'de' });
+    await expect(service.getStoredTenantLocale('tenant-1')).resolves.toBeNull();
+  });
+
   it('falls back when a legacy or invalid value is encountered', async () => {
     findOne.mockResolvedValue({ locale: 'de' });
     await expect(service.getTenantLocale('tenant-1')).resolves.toBe('en');

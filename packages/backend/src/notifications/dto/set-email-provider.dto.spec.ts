@@ -400,6 +400,44 @@ describe('TestEmailProviderDto', () => {
     });
   });
 
+  describe('locale', () => {
+    it.each(['en', 'ru'] as const)('accepts the supported locale %s', async (locale) => {
+      const dto = create({
+        provider: 'resend',
+        apiKey: 'valid-api-key-123',
+        to: 'test@example.com',
+        locale,
+      });
+      await expect(validate(dto)).resolves.toHaveLength(0);
+    });
+
+    it('rejects locale values outside the centralized registry', async () => {
+      const dto = create({
+        provider: 'resend',
+        apiKey: 'valid-api-key-123',
+        to: 'test@example.com',
+        locale: 'ru-RU',
+      });
+      const errors = await validate(dto);
+      expect(errors.find((error) => error.property === 'locale')?.constraints).toHaveProperty(
+        'isIn',
+      );
+    });
+
+    it('reports the string contract for non-string locale values', async () => {
+      const dto = create({
+        provider: 'resend',
+        apiKey: 'valid-api-key-123',
+        to: 'test@example.com',
+        locale: 123,
+      });
+      const errors = await validate(dto);
+      expect(errors.find((error) => error.property === 'locale')?.constraints).toHaveProperty(
+        'isString',
+      );
+    });
+  });
+
   describe('full valid payloads', () => {
     it('should validate with all fields for mailgun', async () => {
       const dto = create({
@@ -428,5 +466,24 @@ describe('TestSavedEmailProviderDto', () => {
   it('trims and lowercases the recipient address', () => {
     const dto = plainToInstance(TestSavedEmailProviderDto, { to: '  Recipient@Example.COM  ' });
     expect(dto.to).toBe('recipient@example.com');
+  });
+
+  it.each(['en', 'ru'] as const)('accepts the supported locale %s', async (locale) => {
+    const dto = plainToInstance(TestSavedEmailProviderDto, {
+      to: 'recipient@example.com',
+      locale,
+    });
+    await expect(validate(dto)).resolves.toHaveLength(0);
+  });
+
+  it('rejects a non-string locale with a clear validation constraint', async () => {
+    const dto = plainToInstance(TestSavedEmailProviderDto, {
+      to: 'recipient@example.com',
+      locale: 123,
+    });
+    const errors = await validate(dto);
+    expect(errors.find((error) => error.property === 'locale')?.constraints).toHaveProperty(
+      'isString',
+    );
   });
 });

@@ -161,6 +161,9 @@ describe('Register', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('Check your email');
     });
+    const email = container.querySelector('.auth-header__subtitle strong');
+    expect(email?.textContent).toBe('test@test.com');
+    expect(email?.parentElement?.textContent).toBe('We sent a verification link to test@test.com');
   });
 
   it('shows error on failed registration', async () => {

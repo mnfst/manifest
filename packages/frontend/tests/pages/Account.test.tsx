@@ -399,7 +399,7 @@ describe('Account', () => {
       mockGetBillingStatus.mockResolvedValue(freeStatus);
       render(() => <Account />);
       const button = await screen.findByText(/Upgrade to Pro/);
-      expect(button.textContent).toContain('$20/mo');
+      expect(button.textContent).toContain('$20/month');
       fireEvent.click(button);
       expect(mockUpgrade).toHaveBeenCalledWith({
         plan: 'pro',
@@ -511,7 +511,7 @@ describe('Account', () => {
       mockGetBillingStatus.mockResolvedValue(proStatus);
       render(() => <Account />);
       const button = await screen.findByText('Manage subscription');
-      expect(screen.getByText('Pro · $20/mo')).toBeDefined();
+      expect(screen.getByText('Pro · $20/month')).toBeDefined();
       expect(screen.getByText('Unlimited')).toBeDefined();
       expect(
         screen.queryByText(new RegExp(`Free: ${FREE_REQUEST_LIMIT_LABEL} requests`)),

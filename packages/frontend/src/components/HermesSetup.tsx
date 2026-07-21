@@ -2,7 +2,7 @@ import { createSignal, Show, type Component } from 'solid-js';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
 import { highlight } from '../services/syntax-highlight.js';
-import { t } from '../i18n/index.js';
+import { t, tr } from '../i18n/index.js';
 
 type SubTab = 'cli' | 'wizard';
 
@@ -107,7 +107,10 @@ const HermesSetup: Component<Props> = (props) => {
         <CodeBlock code="hermes config edit" language="bash" />
 
         <p class="setup-method__hint" style="margin-top: 12px;">
-          {t('hermes.addModelSection')}
+          {tr('hermes.addModelSection', {
+            section: <code class="setup-model-hint__code">model:</code>,
+            file: <code class="setup-model-hint__code">config.yaml</code>,
+          })}
         </p>
         <div class="setup-cli-block">
           <div class="setup-cli-block__actions">
@@ -159,7 +162,11 @@ const HermesSetup: Component<Props> = (props) => {
       </Show>
 
       <Show when={subTab() === 'wizard'}>
-        <p class="setup-method__hint">{t('hermes.wizardHint')}</p>
+        <p class="setup-method__hint">
+          {tr('hermes.wizardHint', {
+            endpoint: <strong>Custom endpoint</strong>,
+          })}
+        </p>
         <CodeBlock code="hermes model" language="bash" />
         <div class="setup-onboard-fields" role="list" aria-label={t('hermes.configurationValues')}>
           <OnboardField label={t('hermes.apiBaseUrl')} value={props.baseUrl} copyable />

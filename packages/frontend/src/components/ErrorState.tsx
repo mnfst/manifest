@@ -4,7 +4,7 @@ import { t } from '../i18n/index.js';
 interface ErrorStateProps {
   /** The error object from createResource (used to extract a message). */
   error?: unknown;
-  /** Override the default title ("Something went wrong"). */
+  /** Override the localized default error title. */
   title?: string;
   /** Override the subtitle derived from the error message. */
   message?: string;

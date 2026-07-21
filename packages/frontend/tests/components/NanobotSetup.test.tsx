@@ -20,11 +20,13 @@ describe("NanobotSetup", () => {
 
   it("renders the config.json instruction with highlighted path and keys", () => {
     const { container } = render(() => <NanobotSetup {...baseProps} />);
+    const hint = container.querySelector(".setup-method__hint");
     const codes = container.querySelectorAll(".setup-model-hint__code");
     const labels = Array.from(codes).map((c) => c.textContent);
-    expect(labels).toContain("~/.nanobot/config.json");
-    expect(labels).toContain("agents.defaults");
-    expect(labels).toContain("custom");
+    expect(hint?.textContent).toBe(
+      "Edit ~/.nanobot/config.json by updating the existing agents.defaults values first, then add the custom provider block below."
+    );
+    expect(labels).toEqual(["~/.nanobot/config.json", "agents.defaults", "custom"]);
   });
 
   it("renders the JSON config with custom provider and apiBase", () => {

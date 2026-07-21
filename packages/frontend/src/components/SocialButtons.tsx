@@ -3,17 +3,19 @@ import { useSearchParams } from '@solidjs/router';
 import { authClient } from '../services/auth-client.js';
 import { buildSocialAuthUrls } from '../services/auth-redirects.js';
 import { setLastAuthMethod } from '../services/last-auth-method.js';
-import { t } from '../i18n/index.js';
+import { t, type PlainTextMessageKey } from '../i18n/index.js';
 
 type Provider = 'google' | 'github' | 'discord';
 
 const allProviderIds: Provider[] = ['google', 'github', 'discord'];
 
-const providerLabel = (provider: Provider): string => {
-  if (provider === 'google') return t('social.continueGoogle');
-  if (provider === 'github') return t('social.continueGitHub');
-  return t('social.continueDiscord');
-};
+const providerLabelKeys = {
+  google: 'social.continueGoogle',
+  github: 'social.continueGitHub',
+  discord: 'social.continueDiscord',
+} as const satisfies Record<Provider, PlainTextMessageKey>;
+
+const providerLabel = (provider: Provider): string => t(providerLabelKeys[provider]);
 
 const handleSocialLogin = (
   provider: Provider,

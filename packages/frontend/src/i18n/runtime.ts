@@ -1,13 +1,9 @@
-import {
-  pluralCategories,
-  type InterpolationValue,
-  type MessageCatalog,
-  type PluralMessage,
-} from './catalog-types.js';
+import type { InterpolationValue, MessageCatalog, PluralMessage } from './catalog-types.js';
 import { formatNumber } from './formatters.js';
 import {
   activateLocale,
   locale,
+  localeTag,
   resolveLocale,
   type Locale,
   type LocaleEnvironment,
@@ -58,7 +54,7 @@ export type PlainTextMessageKey = {
 
 export type InterpolatedMessageKey = Exclude<TextMessageKey, PlainTextMessageKey>;
 
-type Params<Names extends string> = Readonly<Record<Names, InterpolationValue>>;
+type Params<Names extends string, Value = InterpolationValue> = Readonly<Record<Names, Value>>;
 
 type TranslationArgs<Key extends TextMessageKey> = [Placeholders<(typeof en)[Key]>] extends [never]
   ? [params?: Readonly<Record<string, never>>]
@@ -170,7 +166,7 @@ function getMessage(key: MessageKey): string | PluralMessage | undefined {
     | undefined;
   const message = localized?.[key] ?? fallback?.[key];
 
-  if (!message) reportProblem(`Missing message: ${String(key)}`);
+  if (message === undefined) reportProblem(`Missing message: ${String(key)}`);
   return message;
 }
 
@@ -202,8 +198,54 @@ export function t<Key extends TextMessageKey>(
   return interpolate(message, params);
 }
 
+/**
+ * Interpolate non-string values (for example JSX <code> nodes) without taking
+ * a dependency on a rendering framework. The canonical English catalogue
+ * still provides compile-time placeholder names and each occurrence preserves
+ * the locale-specific sentence order.
+ */
+export function tr<Key extends InterpolatedMessageKey, Part>(
+  key: Key,
+  params: Params<Placeholders<(typeof en)[Key]>, Part>,
+): Array<string | Part> {
+  const message = getMessage(key);
+  if (message === undefined) return [String(key)];
+  if (typeof message !== 'string') {
+    reportProblem(`Expected a text message: ${String(key)}`);
+    return [String(key)];
+  }
+
+  const parts: Array<string | Part> = [];
+  const placeholderPattern = /\{([a-zA-Z][\w.]*)\}/g;
+  let cursor = 0;
+  for (const match of message.matchAll(placeholderPattern)) {
+    const index = match.index ?? 0;
+    if (index > cursor) parts.push(message.slice(cursor, index));
+    const placeholder = match[0];
+    const name = match[1] as Placeholders<(typeof en)[Key]>;
+    const value = params[name];
+    if (value === undefined) {
+      reportProblem(`Missing interpolation value: ${String(name)}`);
+      parts.push(placeholder);
+    } else {
+      parts.push(value);
+    }
+    cursor = index + placeholder.length;
+  }
+  if (cursor < message.length) parts.push(message.slice(cursor));
+  return parts;
+}
+
+const pluralRulesByLocale = new Map<string, Intl.PluralRules>();
+
 export function pluralCategory(count: number): Intl.LDMLPluralRule {
-  return new Intl.PluralRules(locale()).select(count);
+  const tag = localeTag();
+  let rules = pluralRulesByLocale.get(tag);
+  if (!rules) {
+    rules = new Intl.PluralRules(tag);
+    pluralRulesByLocale.set(tag, rules);
+  }
+  return rules.select(count);
 }
 
 /** Select a CLDR plural form, always falling back to the mandatory `other`. */
@@ -223,8 +265,6 @@ export function tp<Key extends PluralMessageKey>(
     return String(key);
   }
 
-  const category = pluralCategory(count);
-  const supportedCategory = pluralCategories.find((candidate) => candidate === category);
-  const template = supportedCategory ? selectPluralForm(message, supportedCategory) : message.other;
+  const template = selectPluralForm(message, pluralCategory(count));
   return interpolate(template, { ...params, count: formatNumber(count) });
 }

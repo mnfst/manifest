@@ -22,6 +22,12 @@ async function localeRequest(options?: RequestInit): Promise<LocalePreferenceRes
 // Keep writes in user-selection order. Without this queue two fast switches can
 // complete out of order and leave the workspace on the older language.
 let localeWriteQueue: Promise<void> = Promise.resolve();
+let explicitLocaleIntent: Locale | null = null;
+
+/** Record a selector choice before its async catalogue starts loading. */
+export function registerLocaleIntent(value: Locale): void {
+  explicitLocaleIntent = value;
+}
 
 export function updateLocalePreference(value: Locale): Promise<void> {
   const write = localeWriteQueue.then(async () => {
@@ -53,6 +59,9 @@ export async function syncLocalePreference(): Promise<void> {
   }
 
   const stored = await localeRequest();
+  // Intent exists before localStorage persistence: a slow locale chunk must
+  // not lose to a stale workspace GET that happens to finish first.
+  if (explicitLocaleIntent) return;
   // A user may change the selector while the initial GET is in flight. Never
   // let that stale response overwrite the newer explicit browser choice.
   const preferenceChosenWhileLoading = explicitLocalPreference();

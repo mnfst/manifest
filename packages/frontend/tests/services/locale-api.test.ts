@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { initializeI18n, locale, LOCALE_STORAGE_KEY, setLocale } from '../../src/i18n/index.js';
-import { syncLocalePreference, updateLocalePreference } from '../../src/services/api/locale.js';
+import {
+  registerLocaleIntent,
+  syncLocalePreference,
+  updateLocalePreference,
+} from '../../src/services/api/locale.js';
 
 describe('workspace locale synchronization', () => {
   beforeEach(async () => {
@@ -140,5 +144,37 @@ describe('workspace locale synchronization', () => {
       JSON.stringify({ locale: 'en' }),
     ]);
     expect(storedLocale).toBe('en');
+  });
+
+  it('does not let a stale GET cancel a selector intent while its chunk is loading', async () => {
+    let resolveRequest!: (response: Response) => void;
+    vi.spyOn(globalThis, 'fetch').mockImplementationOnce(
+      () => new Promise<Response>((resolve) => (resolveRequest = resolve)),
+    );
+    const syncing = syncLocalePreference();
+
+    let resolveRussian!: (
+      module: typeof import('../../src/i18n/messages/ru/index.js'),
+    ) => void;
+    const russianChunk = new Promise<typeof import('../../src/i18n/messages/ru/index.js')>(
+      (resolve) => (resolveRussian = resolve),
+    );
+    registerLocaleIntent('ru');
+    const switching = setLocale('ru', {
+      en: () => import('../../src/i18n/messages/en/index.js'),
+      ru: () => russianChunk,
+    });
+
+    resolveRequest(
+      new Response(JSON.stringify({ locale: 'en' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    await syncing;
+    resolveRussian(await import('../../src/i18n/messages/ru/index.js'));
+    await switching;
+
+    expect(locale()).toBe('ru');
   });
 });

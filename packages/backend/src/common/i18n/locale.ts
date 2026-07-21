@@ -6,6 +6,16 @@ export const DEFAULT_LOCALE: AppLocale = 'en';
 
 const SUPPORTED_LOCALE_SET = new Set<string>(SUPPORTED_LOCALES);
 
+const INTL_LOCALES = {
+  en: 'en-US',
+  ru: 'ru-RU',
+} as const satisfies Record<AppLocale, string>;
+
+/** Return whether a value is an exact member of the application locale registry. */
+export function isAppLocale(value: unknown): value is AppLocale {
+  return typeof value === 'string' && SUPPORTED_LOCALE_SET.has(value);
+}
+
 /**
  * Normalizes an application locale without ever propagating an unsupported
  * value into Intl or a translation catalogue.
@@ -18,7 +28,7 @@ export function normalizeLocale(value: unknown): AppLocale {
 export function parseLocale(value: unknown): AppLocale | null {
   if (typeof value !== 'string') return null;
   const base = value.trim().toLowerCase().split(/[-_]/, 1)[0];
-  return SUPPORTED_LOCALE_SET.has(base) ? (base as AppLocale) : null;
+  return isAppLocale(base) ? base : null;
 }
 
 /**
@@ -43,11 +53,11 @@ export function localeFromAcceptLanguage(header: string | string[] | undefined):
 
   for (const candidate of candidates) {
     const base = candidate.tag.toLowerCase().split(/[-_]/, 1)[0];
-    if (SUPPORTED_LOCALE_SET.has(base)) return base as AppLocale;
+    if (isAppLocale(base)) return base;
   }
   return DEFAULT_LOCALE;
 }
 
 export function intlLocale(locale: AppLocale): string {
-  return locale === 'ru' ? 'ru-RU' : 'en-US';
+  return INTL_LOCALES[locale];
 }

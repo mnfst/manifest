@@ -204,7 +204,6 @@ export const ruComponentsAM = {
   'info.aria': 'Справка: {text}',
   'keyPicker.title': 'Какой ключ {provider} использовать?',
   'keyPicker.description': 'Выбор ключа для модели {model}',
-  'keyPicker.descriptionPrefix': 'Выбор ключа для модели',
   'keyPicker.choose': 'Выберите ключ {provider}',
   'custom.estimatedPrice': 'Ориентировочная цена. Фактическая стоимость может отличаться.',
   'custom.baseUrlRequired': 'Сначала укажите базовый URL',
@@ -269,7 +268,7 @@ export const ruComponentsAM = {
   'device.startUrl': 'Начальный URL',
   'device.optional': '(необязательно)',
   'device.connectWith': 'Подключить через {provider}',
-  'device.orPasteToken': 'Или вставьте токен Coding Plan',
+  'device.connected': 'Подписка {provider} подключена',
   'device.tokenAria': 'Токен Coding Plan для {provider}',
   'device.connectToken': 'Подключить с помощью токена',
   'device.approvalHint':
@@ -384,10 +383,10 @@ export const ruComponentsAM = {
   'hermes.configurationFile': 'Файл конфигурации',
   'hermes.onboard': 'Настройка Hermes',
   'hermes.openConfig': 'Откройте файл конфигурации Hermes:',
-  'hermes.addModelSection': 'Добавьте следующий раздел model: в файл config.yaml:',
+  'hermes.addModelSection': 'Добавьте следующий раздел {section} в файл {file}:',
   'hermes.configurationValues': 'Значения конфигурации',
   'hermes.wizardHint':
-    'Запустите мастер настройки и выберите Custom endpoint. Затем введите следующие значения:',
+    'Запустите мастер настройки и выберите {endpoint}. Затем введите следующие значения:',
   'hermes.apiBaseUrl': 'Базовый URL API',
   'hermes.apiKey': 'API-ключ',
   'hermes.modelName': 'Название модели',
@@ -420,6 +419,7 @@ export const ruComponentsAM = {
   'limit.remove': 'Удалить',
   'limit.editRule': 'Изменить правило',
   'limit.createRule': 'Создать правило',
+  'limit.saveChanges': 'Сохранить изменения',
   'limit.alertDescription':
     'Вы получите оповещение по электронной почте, когда использование превысит порог.',
   'limit.metric': 'Метрика',
@@ -600,7 +600,7 @@ export const ruComponentsAM = {
   'message.tooltip.input': 'Токены, отправленные модели в запросе.',
   'message.tooltip.output': 'Токены, полученные в ответе модели.',
   'message.heartbeat': 'Проверка состояния',
-  'message.perRequestCost': 'Стоимость запроса по подписке: ${cost}',
+  'message.perRequestCost': 'Стоимость запроса по подписке: {cost}',
   'message.directTier':
     'Вызывающая сторона указала конкретную модель — маршрутизация не применялась.',
   'message.defaultTier': 'Запрос направлен через уровень по умолчанию.',

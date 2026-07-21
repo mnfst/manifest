@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ResetPasswordEmail } from './reset-password';
-import { TestEmail } from './test-email';
+import { TestEmail, testEmailSubject } from './test-email';
 import { VerifyEmailEmail } from './verify-email';
 
 describe('localized transactional emails', () => {
@@ -36,5 +36,10 @@ describe('localized transactional emails', () => {
     expect(html).toContain('lang="ru"');
     expect(html).toContain('Настройки проверены');
     expect(html).toContain('Электронная почта работает');
+  });
+
+  it('keeps test-email subjects in the same locale catalogue as the body', () => {
+    expect(testEmailSubject('en')).toBe('Manifest — Test Email');
+    expect(testEmailSubject('ru')).toBe('Manifest — тестовое письмо');
   });
 });

@@ -6,6 +6,7 @@ import {
   setLocale,
   selectPluralForm,
   t,
+  tr,
   tp,
   type TextMessageKey,
 } from '../../src/i18n/index.js';
@@ -27,6 +28,11 @@ describe('translations', () => {
     expect(t('i18n.welcome', { name: '<script>alert(1)</script>' })).toBe(
       'Welcome, <script>alert(1)</script>',
     );
+  });
+
+  it('interpolates rich values without a rendering-framework dependency', () => {
+    const nameNode = { kind: 'strong', text: 'Ada' };
+    expect(tr('i18n.welcome', { name: nameNode })).toEqual(['Welcome, ', nameNode]);
   });
 
   it('reacts to locale changes', async () => {
@@ -147,6 +153,18 @@ describe('dynamic catalogue loading', () => {
     await russianChoice;
     expect(t('i18n.language')).toBe('English from loader');
   });
+
+  it('treats an intentional empty translation as present', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const en = vi.fn(async () => ({ default: { ...englishModule.default, 'i18n.language': '' } }));
+    const ru = vi.fn(async () => russianModule);
+
+    await initializeI18n({ storage: null, languages: ['en-US'] }, { en, ru } as never);
+
+    expect(t('i18n.language')).toBe('');
+    expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('Missing message'));
+    warn.mockRestore();
+  });
 });
 
 describe('CLDR plural form selection', () => {
@@ -160,5 +178,35 @@ describe('CLDR plural form selection', () => {
     expect(selectPluralForm(message, 'zero')).toBe('nothing');
     expect(selectPluralForm(message, 'two')).toBe('a pair');
     expect(selectPluralForm(message, 'many')).toBe('fallback');
+  });
+
+  it('reuses one Intl.PluralRules instance per locale', async () => {
+    vi.resetModules();
+    const original = Intl.PluralRules;
+    let constructorCalls = 0;
+    class CountingPluralRules extends original {
+      constructor(locales?: string | string[], options?: Intl.PluralRulesOptions) {
+        super(locales, options);
+        constructorCalls += 1;
+      }
+    }
+    Object.defineProperty(Intl, 'PluralRules', {
+      configurable: true,
+      value: CountingPluralRules,
+    });
+
+    try {
+      const fresh = await import('../../src/i18n/runtime.js');
+      await fresh.initializeI18n({ storage: null, languages: ['en-US'] });
+      fresh.pluralCategory(1);
+      fresh.pluralCategory(2);
+      await fresh.setLocale('ru');
+      fresh.pluralCategory(1);
+      fresh.pluralCategory(2);
+
+      expect(constructorCalls).toBe(2);
+    } finally {
+      Object.defineProperty(Intl, 'PluralRules', { configurable: true, value: original });
+    }
   });
 });

@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   formatDate,
   formatDateTime,
-  formatList,
   formatNumber,
   formatRelativeTime,
   initializeI18n,
@@ -46,12 +45,10 @@ describe('locale-aware formatters', () => {
     expect(formatDateTime(timestamp, dateTimeOptions)).toMatch(/^15\.01\.2024, 09:22$/);
   });
 
-  it('formats relative time and lists naturally in each locale', async () => {
+  it('formats relative time naturally in each locale', async () => {
     expect(formatRelativeTime(-1, 'day')).toBe('yesterday');
-    expect(formatList(['A', 'B', 'C'])).toBe('A, B, and C');
 
     await setLocale('ru');
     expect(formatRelativeTime(-1, 'day')).toBe('вчера');
-    expect(formatList(['A', 'B', 'C'])).toBe('A, B и C');
   });
 });

@@ -13,4 +13,11 @@ describe('UpdateLocaleDto', () => {
     dto.locale = 'ru-RU' as 'ru';
     await expect(validate(dto)).resolves.not.toHaveLength(0);
   });
+
+  it('reports the string contract for non-string values', async () => {
+    const dto = new UpdateLocaleDto();
+    dto.locale = 123 as never;
+    const errors = await validate(dto);
+    expect(errors[0]?.constraints).toHaveProperty('isString');
+  });
 });

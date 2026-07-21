@@ -95,6 +95,7 @@ vi.mock('../../src/components/MessageDetails.jsx', () => ({
 }));
 
 import MessageTable from '../../src/components/MessageTable';
+import { setLocale } from '../../src/i18n/index.js';
 
 function makeRow(overrides: Partial<MessageRow> = {}): MessageRow {
   return {
@@ -259,8 +260,27 @@ describe('MessageTable', () => {
       ));
       expect(container.textContent).toContain('$0.01');
       expect(
-        container.querySelector('[title^="Per-request subscription cost:"]'),
+        container.querySelector('[title="Per-request subscription cost: $0.013636"]'),
       ).not.toBeNull();
+    });
+
+    it('localizes the per-request currency tooltip', async () => {
+      await setLocale('ru');
+      try {
+        const { container } = render(() => (
+          <MessageTable
+            items={[makeRow({ auth_type: 'subscription', cost: 0.013636 })]}
+            columns={['cost']}
+            agentName="agent-1"
+          />
+        ));
+        const tooltip = container.querySelector('[title^="Стоимость запроса по подписке:"]');
+        expect(tooltip?.getAttribute('title')).toMatch(
+          /^Стоимость запроса по подписке: 0,013636[\u00a0\u202f]\$$/,
+        );
+      } finally {
+        await setLocale('en');
+      }
     });
 
     it('renders em dash for null cost', () => {

@@ -33,14 +33,16 @@ describe('billing-display', () => {
   });
 
   it('formats interval suffixes', () => {
-    expect(billingIntervalSuffix({ amount: 20, currency: 'USD', interval: 'month' })).toBe('/mo');
+    expect(billingIntervalSuffix({ amount: 20, currency: 'USD', interval: 'month' })).toBe(
+      '/month',
+    );
     expect(billingIntervalSuffix({ amount: 200, currency: 'USD', interval: 'year' })).toBe('/year');
     expect(billingIntervalSuffix({ amount: 20, currency: 'USD', interval: null })).toBe('');
   });
 
   it('combines price and interval when both are available', () => {
     expect(formatBillingPriceWithInterval({ amount: 20, currency: 'USD', interval: 'month' })).toBe(
-      '$20/mo',
+      '$20/month',
     );
     expect(
       formatBillingPriceWithInterval({ amount: null, currency: 'USD', interval: 'month' }),

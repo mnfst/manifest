@@ -1,6 +1,7 @@
-import { For, Show, createSignal, type Component } from 'solid-js';
-import { freeRequestLimitLabel } from '../services/billing-display.js';
+import { For, Show, createMemo, createSignal, type Component } from 'solid-js';
+import { formatBillingPrice, freeRequestLimitLabel } from '../services/billing-display.js';
 import { formatNumber, t } from '../i18n/index.js';
+import type { BillingPrice } from 'manifest-shared';
 
 /* ── Plan data ───────────────────────────────────────── */
 
@@ -46,8 +47,8 @@ interface PlanDef {
 }
 
 export interface PlanPickerProps {
-  /** Price label for Pro plan (e.g. "$19"). Falls back to "Pro" if null. */
-  proPrice?: string | null;
+  /** Raw Pro price; formatted reactively for the active locale. */
+  proPrice?: BillingPrice | null;
   /** Called when the user clicks "Choose this plan". */
   onSelect: (plan: PlanId) => void;
   /** Show a loading spinner on the selected plan's button. */
@@ -58,6 +59,7 @@ export interface PlanPickerProps {
 
 const PlanPicker: Component<PlanPickerProps> = (props) => {
   const [expanded, setExpanded] = createSignal<PlanId | null>('pro');
+  const proPriceLabel = createMemo(() => formatBillingPrice(props.proPrice));
 
   const plans = (): PlanDef[] => [
     {
@@ -71,8 +73,8 @@ const PlanPicker: Component<PlanPickerProps> = (props) => {
     {
       id: 'pro',
       name: t('plan.pro.name'),
-      price: props.proPrice ?? 'Pro',
-      period: props.proPrice ? t('plan.perMonth') : undefined,
+      price: proPriceLabel() ?? 'Pro',
+      period: proPriceLabel() ? t('plan.perMonth') : undefined,
       desc: t('plan.pro.description'),
       features: proFeatures(),
       popular: true,

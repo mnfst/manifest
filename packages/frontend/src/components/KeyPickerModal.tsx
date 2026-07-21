@@ -1,6 +1,6 @@
 import { For, type Component } from 'solid-js';
 import type { RoutingProvider } from '../services/api.js';
-import { t } from '../i18n/index.js';
+import { t, tr } from '../i18n/index.js';
 
 export interface KeyPickerModalProps {
   /** Display name of the provider (e.g. "Google"). */
@@ -37,7 +37,7 @@ const KeyPickerModal: Component<KeyPickerModalProps> = (props) => (
             {t('keyPicker.title', { provider: props.providerName })}
           </h2>
           <p style="margin: 4px 0 0; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-            {t('keyPicker.descriptionPrefix')} <strong>{props.modelName}</strong>
+            {tr('keyPicker.description', { model: <strong>{props.modelName}</strong> })}
           </p>
         </div>
         <button

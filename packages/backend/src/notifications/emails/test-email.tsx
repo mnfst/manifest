@@ -18,8 +18,20 @@ interface TestEmailProps {
   locale?: AppLocale;
 }
 
+interface TestEmailCopy {
+  subject: string;
+  preview: string;
+  badge: string;
+  heading: string;
+  body: string;
+  notifications: string;
+  footer: string;
+  rights: string;
+}
+
 const COPY = {
   en: {
+    subject: 'Manifest — Test Email',
     preview: 'Your email configuration is working correctly',
     badge: 'Configuration verified',
     heading: 'Email is working',
@@ -29,6 +41,7 @@ const COPY = {
     rights: 'All rights reserved.',
   },
   ru: {
+    subject: 'Manifest — тестовое письмо',
     preview: 'Настройки электронной почты работают правильно',
     badge: 'Настройки проверены',
     heading: 'Электронная почта работает',
@@ -38,7 +51,11 @@ const COPY = {
     footer: 'Это однократное тестовое письмо от Manifest.',
     rights: 'Все права защищены.',
   },
-} as const;
+} as const satisfies Record<AppLocale, TestEmailCopy>;
+
+export function testEmailSubject(locale: AppLocale = 'en'): string {
+  return COPY[locale].subject;
+}
 
 export function TestEmail(props: TestEmailProps = {}) {
   const { logoUrl = 'https://app.manifest.build/manifest-logo.png' } = props;

@@ -1,6 +1,6 @@
 import type { Component } from 'solid-js';
 import { isLocale, locale, setLocale, t } from '../i18n/index.js';
-import { updateLocalePreference } from '../services/api/locale.js';
+import { registerLocaleIntent, updateLocalePreference } from '../services/api/locale.js';
 
 interface LanguageSelectorProps {
   class?: string;
@@ -11,6 +11,7 @@ const LanguageSelector: Component<LanguageSelectorProps> = (props) => {
   const handleChange = async (event: Event) => {
     const value = (event.currentTarget as HTMLSelectElement).value;
     if (isLocale(value)) {
+      registerLocaleIntent(value);
       const activated = await setLocale(value);
       // A newer selector choice may have won while this locale chunk loaded.
       if (props.syncWorkspace !== false && activated === value && locale() === value) {

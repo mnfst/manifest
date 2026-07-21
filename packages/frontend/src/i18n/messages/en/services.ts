@@ -1,7 +1,7 @@
 import type { MessageCatalog } from '../../catalog-types.js';
 
 export const enServices = {
-  'services.billing.perMonth': '/mo',
+  'services.billing.perMonth': '/month',
   'services.billing.perYear': '/year',
   'services.keyLabel': 'Key {number}',
   'services.routing.free': 'Free',

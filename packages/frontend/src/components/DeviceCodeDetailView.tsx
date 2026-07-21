@@ -140,7 +140,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
         region: selectedRegion(),
         ...(label && { label }),
       });
-      toast.success(t('anthropic.connected', { provider: props.provDef.name }));
+      toast.success(t('device.connected', { provider: props.provDef.name }));
       setAddingAccount(false);
       setAltToken('');
       props.onUpdate();
@@ -298,7 +298,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
 
       if (result.status === 'success') {
         clearPollTimer();
-        toast.success(t('anthropic.connected', { provider: props.provDef.name }));
+        toast.success(t('device.connected', { provider: props.provDef.name }));
         setAddingAccount(false);
         setFlow(null);
         props.onUpdate();
@@ -472,9 +472,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                 {(alt) => (
                   <div class="subscription-detail__alt">
                     <div class="subscription-detail__alt-divider">
-                      <span>
-                        {props.provId === 'minimax' ? t('device.orPasteToken') : alt().dividerLabel}
-                      </span>
+                      <span>{alt().dividerLabel}</span>
                     </div>
                     <input
                       id="minimax-alt-token"
