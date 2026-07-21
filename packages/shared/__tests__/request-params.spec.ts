@@ -139,4 +139,198 @@ describe('applyRequestParamDefaults', () => {
     expect(defaults).toEqual({ thinking: { type: 'enabled' } });
     expect(merged).not.toBe(body);
   });
+
+  describe('stale catalog siblings (#2543)', () => {
+    // claude-opus-4-8-shaped spec: `adaptive`-only thinking, NO budget_tokens
+    // param at all — so the applicability scrub has nothing to judge a caller
+    // `thinking.budget_tokens` against.
+    const adaptiveOnlySpecs: readonly ProviderParamSpec[] = [
+      {
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'claude-opus-4-8',
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description: 'Controls Anthropic thinking mode.',
+        default: 'disabled',
+        values: ['disabled', 'adaptive'],
+        group: 'reasoning',
+      },
+      {
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'claude-opus-4-8',
+        path: 'thinking.display',
+        type: 'enum',
+        label: 'Thinking display',
+        description: 'Controls how thinking is surfaced.',
+        default: 'omitted',
+        values: ['summarized', 'omitted'],
+        group: 'reasoning',
+        applicability: { only: { 'thinking.type': ['adaptive'] } },
+      },
+    ];
+    const knownParamPaths = new Set(['thinking.type', 'thinking.display', 'thinking.budget_tokens']);
+    // Claude Code /v1/messages body with extended thinking on.
+    const clientBody = () => ({
+      messages: [],
+      thinking: { type: 'enabled', budget_tokens: 8192 },
+    });
+
+    it('drops a caller param the catalog knows but the spec omits when the merge rewrites its root', () => {
+      const merged = applyRequestParamDefaults(
+        clientBody(),
+        { thinking: { type: 'adaptive', display: 'omitted' } },
+        adaptiveOnlySpecs,
+        knownParamPaths,
+      );
+      expect(merged.thinking).toEqual({ type: 'adaptive', display: 'omitted' });
+    });
+
+    it('keeps caller params when the merge does not change any value under the root', () => {
+      const body = { messages: [], thinking: { type: 'adaptive', budget_tokens: 8192 } };
+      const merged = applyRequestParamDefaults(
+        body,
+        { thinking: { type: 'adaptive' } },
+        adaptiveOnlySpecs,
+        knownParamPaths,
+      );
+      expect((merged.thinking as Record<string, unknown>).budget_tokens).toBe(8192);
+    });
+
+    it('keeps unknown vendor extensions even when the merge rewrites the root', () => {
+      const body = {
+        messages: [],
+        thinking: { type: 'enabled', budget_tokens: 8192, vendor_note: 'client-only' },
+      };
+      const merged = applyRequestParamDefaults(
+        body,
+        { thinking: { type: 'adaptive' } },
+        adaptiveOnlySpecs,
+        knownParamPaths,
+      );
+      expect(merged.thinking).toEqual({
+        type: 'adaptive',
+        display: 'omitted',
+        vendor_note: 'client-only',
+      });
+    });
+
+    it('keeps caller params at paths the current spec still defines', () => {
+      // `thinking.effort` is spec-defined (no default, so the merge never
+      // writes it): the applicability machinery owns spec'd paths, so the
+      // stale-sibling drop must leave it alone even under a rewritten root.
+      const specsWithEffort: readonly ProviderParamSpec[] = [
+        ...adaptiveOnlySpecs,
+        {
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-opus-4-8',
+          path: 'thinking.effort',
+          type: 'enum',
+          label: 'Thinking effort',
+          description: 'Controls thinking effort.',
+          values: ['low', 'high'],
+          group: 'reasoning',
+        },
+      ];
+      const body = {
+        messages: [],
+        thinking: { type: 'enabled', effort: 'high', budget_tokens: 8192 },
+      };
+      const merged = applyRequestParamDefaults(
+        body,
+        { thinking: { type: 'adaptive' } },
+        specsWithEffort,
+        new Set([...knownParamPaths, 'thinking.effort']),
+      );
+      expect(merged.thinking).toEqual({ type: 'adaptive', display: 'omitted', effort: 'high' });
+    });
+
+    it('ignores roots the body does not carry and non-record merged roots', () => {
+      const specsWithMaxTokens: readonly ProviderParamSpec[] = [
+        ...adaptiveOnlySpecs,
+        {
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-opus-4-8',
+          path: 'max_tokens',
+          type: 'integer',
+          label: 'Max tokens',
+          description: 'Maximum output tokens.',
+          default: 4096,
+          range: { min: 1 },
+          group: 'generation_length',
+        },
+      ];
+      const merged = applyRequestParamDefaults(
+        { messages: [], max_tokens: 2048 },
+        { max_tokens: 1024, thinking: { type: 'adaptive' } },
+        specsWithMaxTokens,
+        knownParamPaths,
+      );
+      expect(merged).toEqual({
+        messages: [],
+        max_tokens: 1024,
+        thinking: { type: 'adaptive', display: 'omitted' },
+      });
+    });
+
+    it('scrubs nothing without the catalog path set', () => {
+      const merged = applyRequestParamDefaults(
+        clientBody(),
+        { thinking: { type: 'adaptive', display: 'omitted' } },
+        adaptiveOnlySpecs,
+      );
+      expect((merged.thinking as Record<string, unknown>).budget_tokens).toBe(8192);
+    });
+
+    it('tolerates a stale path whose parent the merge replaced with a scalar', () => {
+      const specsWithScalarDeep: readonly ProviderParamSpec[] = [
+        ...adaptiveOnlySpecs,
+        {
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-opus-4-8',
+          path: 'thinking.deep',
+          type: 'string',
+          label: 'Deep mode',
+          description: 'Scalar param whose path shadows a caller record.',
+          group: 'reasoning',
+        },
+      ];
+      const body = {
+        messages: [],
+        thinking: { type: 'enabled', deep: { budget_tokens: 5 } },
+      };
+      const merged = applyRequestParamDefaults(
+        body,
+        { thinking: { type: 'adaptive', deep: 'off' } },
+        specsWithScalarDeep,
+        new Set([...knownParamPaths, 'thinking.deep.budget_tokens']),
+      );
+      expect(merged.thinking).toEqual({ type: 'adaptive', display: 'omitted', deep: 'off' });
+    });
+
+    it('survives a nested caller record replaced wholesale by the merge', () => {
+      const body = {
+        messages: [],
+        thinking: { type: 'enabled', budget_tokens: { nested: true } },
+      };
+      const merged = applyRequestParamDefaults(
+        body,
+        { thinking: { type: 'adaptive' } },
+        adaptiveOnlySpecs,
+        knownParamPaths,
+      );
+      // The record-valued budget_tokens yields leaf `thinking.budget_tokens.nested`,
+      // which the catalog does not know — preserved as an unknown extension.
+      expect(merged.thinking).toEqual({
+        type: 'adaptive',
+        display: 'omitted',
+        budget_tokens: { nested: true },
+      });
+    });
+  });
 });

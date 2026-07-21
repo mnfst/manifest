@@ -17,11 +17,16 @@ export type RequestParamDefaults = Record<string, JsonValue>;
  * Merge configured Manifest params into a request body using the route's
  * param specs. Storage stays as UI values. The provider wire shape is the
  * same path shape unless a future provider needs a dedicated transformer.
+ *
+ * `knownParamPaths` is the set of param paths defined anywhere in the MPS
+ * catalog. When provided, body params that are stale next to the merged
+ * values are dropped — see {@link dropStaleCatalogSiblings}.
  */
 export function applyRequestParamDefaults<T extends Record<string, unknown>>(
   body: T,
   defaults: RequestParamDefaults | null | undefined,
   specs: readonly ProviderParamSpec[],
+  knownParamPaths?: ReadonlySet<string>,
 ): T {
   const orderedSpecs = [...specs].sort(compareProviderParamSpecs);
   if (!defaults) return omitProviderInapplicableParams(body, orderedSpecs);
@@ -34,7 +39,65 @@ export function applyRequestParamDefaults<T extends Record<string, unknown>>(
     merged = setProviderParamValue(merged, spec.path, getPath(expanded, spec.path) as JsonValue);
   }
 
-  return omitProviderInapplicableParams(deepMerge(body, merged), orderedSpecs) as T;
+  const result = deepMerge(body, merged);
+  dropStaleCatalogSiblings(result, body, merged, orderedSpecs, knownParamPaths);
+  return omitProviderInapplicableParams(result, orderedSpecs) as T;
+}
+
+/**
+ * Drop body params stranded by the merge. When a configured value rewrites a
+ * body value under a nested root (e.g. the caller sent
+ * `thinking: {type: "enabled", budget_tokens: N}` and the route's params flip
+ * `type` to `adaptive`), caller-sent siblings under that root described the
+ * shape the caller chose, not the merged one. A sibling is dropped when the
+ * catalog knows its path as a provider param but the current model's spec
+ * does not carry it — `omitProviderInapplicableParams` can only judge paths
+ * the spec defines, so without this a stale `thinking.budget_tokens` rides
+ * alongside the merged `type: "adaptive"` into an Anthropic 400 (#2543).
+ * Unknown paths (vendor extensions) and untouched roots are preserved.
+ */
+function dropStaleCatalogSiblings(
+  result: Record<string, unknown>,
+  body: Record<string, unknown>,
+  merged: Record<string, unknown>,
+  specs: readonly ProviderParamSpec[],
+  knownParamPaths: ReadonlySet<string> | undefined,
+): void {
+  if (!knownParamPaths) return;
+  for (const root of Object.keys(merged)) {
+    const bodyRoot = body[root];
+    if (!isRecord(merged[root]) || !isRecord(bodyRoot)) continue;
+    const rootRewritten = specs.some(
+      (spec) =>
+        spec.path.startsWith(`${root}.`) &&
+        hasPath(body, spec.path) &&
+        hasPath(merged, spec.path) &&
+        JSON.stringify(getPath(body, spec.path)) !== JSON.stringify(getPath(merged, spec.path)),
+    );
+    if (!rootRewritten) continue;
+    for (const path of leafPaths(bodyRoot, root)) {
+      if (!knownParamPaths.has(path)) continue;
+      if (specs.some((spec) => spec.path === path)) continue;
+      deletePath(result, path);
+    }
+  }
+}
+
+function leafPaths(value: Record<string, unknown>, prefix: string): string[] {
+  return Object.entries(value).flatMap(([key, child]) =>
+    isRecord(child) ? leafPaths(child, `${prefix}.${key}`) : [`${prefix}.${key}`],
+  );
+}
+
+function deletePath(values: Record<string, unknown>, path: string): void {
+  const segments = path.split('.');
+  let current: Record<string, unknown> = values;
+  for (let i = 0; i < segments.length - 1; i++) {
+    const next = current[segments[i]];
+    if (!isRecord(next)) return;
+    current = next;
+  }
+  delete current[segments[segments.length - 1]];
 }
 
 function deepMerge(

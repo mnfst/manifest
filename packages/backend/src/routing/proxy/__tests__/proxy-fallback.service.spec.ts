@@ -34,6 +34,60 @@ const specCatalog: ProviderParamSpecCatalog = [
       },
     ],
   },
+  // Older Anthropic generation: knows both `enabled` and `thinking.budget_tokens`.
+  {
+    provider: 'anthropic',
+    authType: 'subscription',
+    model: 'claude-opus-4',
+    params: [
+      {
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description: 'Controls Anthropic thinking mode.',
+        default: 'disabled',
+        values: ['disabled', 'adaptive', 'enabled'],
+        group: 'reasoning',
+      },
+      {
+        path: 'thinking.budget_tokens',
+        type: 'integer',
+        label: 'Budget tokens',
+        description: 'Extended thinking token budget.',
+        default: 4096,
+        range: { min: 1024 },
+        group: 'reasoning',
+        applicability: { only: { 'thinking.type': 'enabled' } },
+      },
+    ],
+  },
+  // Current generation: adaptive-only, no budget param at all.
+  {
+    provider: 'anthropic',
+    authType: 'subscription',
+    model: 'claude-opus-4-8',
+    params: [
+      {
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description: 'Controls Anthropic thinking mode.',
+        default: 'disabled',
+        values: ['disabled', 'adaptive'],
+        group: 'reasoning',
+      },
+      {
+        path: 'thinking.display',
+        type: 'enum',
+        label: 'Thinking display',
+        description: 'Controls how thinking is surfaced.',
+        default: 'omitted',
+        values: ['summarized', 'omitted'],
+        group: 'reasoning',
+        applicability: { only: { 'thinking.type': ['adaptive'] } },
+      },
+    ],
+  },
 ];
 
 describe('ProxyFallbackService', () => {
@@ -158,6 +212,9 @@ describe('ProxyFallbackService', () => {
         getProviderParamSpecs(specCatalog, provider, authType as 'api_key' | 'subscription', model),
       ),
       list: jest.fn().mockResolvedValue(specCatalog),
+      knownParamPaths: jest.fn(
+        () => new Set(specCatalog.flatMap((entry) => entry.params.map((param) => param.path))),
+      ),
     } as unknown as jest.Mocked<ProviderParamSpecService>;
 
     reasoningCache = {
@@ -548,6 +605,40 @@ describe('ProxyFallbackService', () => {
 
       const forwarded = providerClient.forward.mock.calls[0][0];
       expect(forwarded.body.thinking).toEqual({ type: 'disabled' });
+    });
+
+    it('drops a caller thinking.budget_tokens stranded by a merged adaptive thinking type (#2543)', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+      // The route's saved knobs: adaptive thinking (claude-opus-4-8 has no
+      // budget param). The caller (e.g. Claude Code on /v1/messages) sends the
+      // legacy enabled+budget shape; without the scrub the merge flips `type`
+      // to adaptive and leaves budget_tokens behind → Anthropic 400
+      // "thinking.adaptive.budget_tokens: Extra inputs are not permitted".
+      modelParamsService.get.mockResolvedValueOnce({
+        thinking: { type: 'adaptive', display: 'omitted' },
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'anthropic',
+        apiKey: 'sk-ant',
+        model: 'claude-opus-4-8',
+        body: {
+          messages: [{ role: 'user', content: 'hi' }],
+          thinking: { type: 'enabled', budget_tokens: 8192 },
+        },
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
+      });
+
+      const forwarded = providerClient.forward.mock.calls[0][0];
+      expect(forwarded.body.thinking).toEqual({ type: 'adaptive', display: 'omitted' });
     });
 
     it('skips the lookup when paramMergeContext is omitted (e.g. legacy callers)', async () => {

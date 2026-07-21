@@ -153,7 +153,12 @@ export class ProxyFallbackService {
       model,
     );
     const specs = await this.providerParamSpecs.getSpecs(provider, authType as AuthType, model);
-    return applyRequestParamDefaults(body, modelParams, specs);
+    return applyRequestParamDefaults(
+      body,
+      modelParams,
+      specs,
+      this.providerParamSpecs.knownParamPaths(),
+    );
   }
 
   async tryFallbacks(

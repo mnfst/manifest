@@ -29,6 +29,18 @@ describe('ProviderParamSpecService', () => {
     expect(localSpecs.map((spec) => spec.path)).toEqual([]);
   });
 
+  it('exposes the catalog-wide param path set once, including paths absent from newer specs', () => {
+    const service = new ProviderParamSpecService();
+
+    const paths = service.knownParamPaths();
+    // `thinking.budget_tokens` only exists on older Anthropic specs — the
+    // catalog-wide set is what lets the merge scrub it off routes whose
+    // current spec no longer defines it (#2543).
+    expect(paths.has('thinking.budget_tokens')).toBe(true);
+    expect(paths.has('temperature')).toBe(true);
+    expect(service.knownParamPaths()).toBe(paths);
+  });
+
   it('lists model identities without param details and canonicalizes provider aliases', async () => {
     const service = new ProviderParamSpecService();
 

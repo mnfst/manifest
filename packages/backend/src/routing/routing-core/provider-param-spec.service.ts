@@ -64,9 +64,24 @@ const requireFromThisModule = createRequire(__filename);
 @Injectable()
 export class ProviderParamSpecService {
   private readonly specs: ProviderParamSpecCatalog = loadModelparamsCatalog();
+  private knownPaths?: ReadonlySet<string>;
 
   async list(): Promise<ProviderParamSpecCatalog> {
     return this.specs;
+  }
+
+  /**
+   * Every param path defined anywhere in the catalog, across all providers
+   * and models. Fuel for the merge's stale-sibling scrub: a body param under
+   * a merge-rewritten root is dropped when the catalog knows the path but the
+   * resolved model's spec doesn't (see #2543 — a caller `thinking.budget_tokens`
+   * next to a merged `thinking.type: "adaptive"` is an Anthropic 400).
+   * Catalog-wide on purpose, so routes whose provider id doesn't match a
+   * catalog entry (custom providers proxying claude models) are covered too.
+   */
+  knownParamPaths(): ReadonlySet<string> {
+    this.knownPaths ??= new Set(this.specs.flatMap((entry) => entry.params.map((p) => p.path)));
+    return this.knownPaths;
   }
 
   /**
