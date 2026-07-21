@@ -18,7 +18,18 @@ interface ParsedEvent {
 const encoder = new TextEncoder();
 // Allow quiet Codex reasoning beyond generic stream warm-up without delaying
 // fallback for the full provider request deadline when no output ever arrives.
-const DEFAULT_SEMANTIC_OUTPUT_TIMEOUT_MS = 60_000;
+export const DEFAULT_CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS = 60_000;
+
+export function parseCodexSemanticOutputTimeoutMs(
+  rawValue = process.env.CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS,
+): number {
+  const value = rawValue ?? '';
+  if (!/^\d+$/.test(value)) return DEFAULT_CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS;
+}
+
+const CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS = parseCodexSemanticOutputTimeoutMs();
 
 function parseEvent(payload: string): ParsedEvent | null {
   const lines = payload.split('\n');
@@ -167,12 +178,7 @@ function replayStream(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   buffered: Uint8Array[],
 ): ReadableStream<Uint8Array> {
-  let released = false;
-  const release = () => {
-    if (released) return;
-    released = true;
-    reader.releaseLock();
-  };
+  const release = () => reader.releaseLock();
 
   return new ReadableStream<Uint8Array>({
     start(controller) {
@@ -249,7 +255,7 @@ export async function qualifyChatGptResponse(
     );
   }
 
-  const timeoutMs = options.timeoutMs ?? DEFAULT_SEMANTIC_OUTPUT_TIMEOUT_MS;
+  const timeoutMs = options.timeoutMs ?? CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS;
   const maxBufferSize = options.maxBufferSize ?? DEFAULT_MAX_SSE_BUFFER_SIZE;
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -345,7 +351,6 @@ export async function qualifyChatGptResponse(
         );
       }
 
-      if (!read.value) continue;
       bufferedSize += read.value.byteLength;
       if (bufferedSize > maxBufferSize) {
         await discard(reader);

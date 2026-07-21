@@ -1,5 +1,9 @@
 import { collectChatGptSseResponse } from '../chatgpt-adapter';
-import { qualifyChatGptResponse } from '../chatgpt-response-qualifier';
+import {
+  DEFAULT_CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS,
+  parseCodexSemanticOutputTimeoutMs,
+  qualifyChatGptResponse,
+} from '../chatgpt-response-qualifier';
 
 function event(type: string, data: Record<string, unknown>): string {
   return `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`;
@@ -128,7 +132,7 @@ describe('qualifyChatGptResponse', () => {
   });
 
   it('recovers full terminal text when Codex omitted its delta events', async () => {
-    const completed = event('response.completed', {
+    const completed = `id: event_1\n${event('response.completed', {
       response: {
         output: [
           {
@@ -139,7 +143,7 @@ describe('qualifyChatGptResponse', () => {
         ],
         usage: { input_tokens: 5, output_tokens: 2, total_tokens: 7 },
       },
-    });
+    })}`;
 
     const response = await qualifyChatGptResponse(codexResponse(completed), {
       downstreamFormat: 'chat-completions',
@@ -229,6 +233,49 @@ describe('qualifyChatGptResponse', () => {
     });
   });
 
+  it('recovers a terminal tool call with empty arguments', async () => {
+    const completed = event('response.completed', {
+      response: {
+        output: [
+          {
+            type: 'function_call',
+            call_id: 'call_1',
+            name: 'get_weather',
+            arguments: '',
+          },
+        ],
+      },
+    });
+
+    const response = await qualifyChatGptResponse(codexResponse(completed), {
+      downstreamFormat: 'chat-completions',
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.text()).resolves.not.toContain('response.function_call_arguments.delta');
+  });
+
+  it('recovers output when optional reasoning and tool metadata is absent', async () => {
+    const completed = event('response.completed', {
+      response: {
+        output: [
+          { type: 'reasoning', summary: 'invalid' },
+          { type: 'reasoning', summary: [{ text: 'Reasoning without an id' }] },
+          { type: 'function_call', call_id: 'call_1', name: 'search', arguments: '{}' },
+        ],
+      },
+    });
+
+    const response = await qualifyChatGptResponse(codexResponse(completed), {
+      downstreamFormat: 'chat-completions',
+    });
+    const recovered = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(recovered).toContain('Reasoning without an id');
+    expect(recovered).toContain('response.function_call_arguments.delta');
+  });
+
   it('maps a failed SSE event to its HTTP status before fallback selection', async () => {
     const failed = event('response.failed', {
       response: {
@@ -261,6 +308,30 @@ describe('qualifyChatGptResponse', () => {
     await expect(response.text()).resolves.toBe(completed);
   });
 
+  it('handles a terminal event completed by the parser flush', async () => {
+    const completed = event('response.completed', {
+      response: {
+        output: [{ type: 'message', content: [{ type: 'output_text', text: 'Native answer' }] }],
+      },
+    }).trimEnd();
+
+    const response = await qualifyChatGptResponse(codexResponse(completed), {
+      downstreamFormat: 'responses',
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it('returns upstream HTTP failures unchanged', async () => {
+    const upstream = new Response('rate limited', { status: 429 });
+
+    const response = await qualifyChatGptResponse(upstream, {
+      downstreamFormat: 'chat-completions',
+    });
+
+    expect(response).toBe(upstream);
+  });
+
   it('rejects a successful status with no response body', async () => {
     const response = await qualifyChatGptResponse(new Response(null, { status: 204 }), {
       downstreamFormat: 'chat-completions',
@@ -276,6 +347,32 @@ describe('qualifyChatGptResponse', () => {
 
     expect(response.status).toBe(502);
     await expect(response.json()).resolves.toMatchObject({ error: { code: 'empty_response' } });
+  });
+
+  it('ignores malformed and non-deliverable Responses events', async () => {
+    const malformed = [
+      'data: {"type":"response.created"}\n\n',
+      'event: response.created\ndata: not-json\n\n',
+      event('response.output_item.added', { item: null }),
+      event('response.completed', { response: { output: [] } }),
+    ].join('');
+
+    const response = await qualifyChatGptResponse(codexResponse(malformed), {
+      downstreamFormat: 'chat-completions',
+    });
+
+    expect(response.status).toBe(502);
+  });
+
+  it.each([
+    ['missing terminal response', event('response.completed', {})],
+    ['malformed terminal output', event('response.completed', { response: { output: null } })],
+  ])('rejects %s', async (_case, completed) => {
+    const response = await qualifyChatGptResponse(codexResponse(completed), {
+      downstreamFormat: 'chat-completions',
+    });
+
+    expect(response.status).toBe(502);
   });
 
   it('times out while waiting for semantic output', async () => {
@@ -376,5 +473,15 @@ describe('qualifyChatGptResponse', () => {
     await response.body?.cancel('client disconnected');
 
     expect(cancelled).toBe(true);
+  });
+});
+
+describe('parseCodexSemanticOutputTimeoutMs', () => {
+  it('accepts a positive integer', () => {
+    expect(parseCodexSemanticOutputTimeoutMs('90000')).toBe(90_000);
+  });
+
+  it.each([undefined, '', '0', '-1', '1.5', 'invalid'])('uses the default for %p', (value) => {
+    expect(parseCodexSemanticOutputTimeoutMs(value)).toBe(DEFAULT_CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS);
   });
 });
