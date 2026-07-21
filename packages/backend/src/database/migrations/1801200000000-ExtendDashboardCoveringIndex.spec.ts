@@ -95,6 +95,21 @@ describe('ExtendDashboardCoveringIndex1801200000000', () => {
     ).toBe(false);
   });
 
+  it('runs the swap when the canonical index has every column but is INVALID', async () => {
+    usageIndexdef = CONVERGED_INDEXDEF;
+    invalidIndexes.add('IDX_agent_messages_provider_usage');
+
+    await migration.up(mockQueryRunner);
+
+    expect(
+      queries.some((sql) =>
+        sql.startsWith(
+          'CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_agent_messages_provider_usage_swap"',
+        ),
+      ),
+    ).toBe(true);
+  });
+
   it('drops the legacy v2 interim index in both branches', async () => {
     usageIndexdef = CONVERGED_INDEXDEF;
     await migration.up(mockQueryRunner);

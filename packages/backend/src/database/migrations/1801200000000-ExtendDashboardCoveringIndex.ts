@@ -116,9 +116,18 @@ export class ExtendDashboardCoveringIndex1801200000000 implements MigrationInter
     const match = rows[0].indexdef.match(/INCLUDE \(([^)]*)\)/);
     if (!match) return false;
     const columns = match[1].split(',').map((col) => col.trim().replace(/"/g, ''));
-    return ExtendDashboardCoveringIndex1801200000000.USAGE_INCLUDE.every((col) =>
-      columns.includes(col),
-    );
+    if (
+      !ExtendDashboardCoveringIndex1801200000000.USAGE_INCLUDE.every((col) => columns.includes(col))
+    ) {
+      return false;
+    }
+    // pg_indexes lists INVALID indexes too — an interrupted out-of-band build
+    // under the canonical name would otherwise pass as converged and leave the
+    // dashboard with no usable covering index.
+    return !(await this.indexIsInvalid(
+      queryRunner,
+      ExtendDashboardCoveringIndex1801200000000.USAGE_INDEX,
+    ));
   }
 
   /** True when an index of this name exists but is INVALID (interrupted build). */
