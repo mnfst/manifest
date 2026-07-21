@@ -1,0 +1,39 @@
+packages/backend/.env.example
+  s_2110bf8ec34462::t_b729f52893068e 40-41
+CLAUDE.md
+  s_2110bf8ec34462::t_33fdbd48a1f6a1 410
+deploy/apple-containers/start.sh
+  s_2110bf8ec34462::t_b729f52893068e 102,110,283
+packages/backend/src/routing/proxy/__tests__/chatgpt-response-qualifier.spec.ts
+  s_2110bf8ec34462::t_f00b8f667c245c 135,146,236-255,311-334,352-375
+  s_2110bf8ec34462::t_81c7afca18c73a 485
+  s_2110bf8ec34462::t_b729f52893068e 2-6,256,376,478-484,486
+  s_2110bf8ec34462::t_3ac07520eaa6e3 258-278
+  s_2110bf8ec34462::t_a2c915b4c687b4 257,377,487
+docker/docker-compose.yml
+  s_2110bf8ec34462::t_33fdbd48a1f6a1 70
+packages/backend/src/routing/proxy/chatgpt-response-qualifier.ts
+  s_2110bf8ec34462::t_b729f52893068e 21-28,30-32,258
+  s_2110bf8ec34462::t_81c7afca18c73a 29
+  s_2110bf8ec34462::t_f00b8f667c245c 181
+docker/.env.example
+  s_2110bf8ec34462::t_b729f52893068e 47-48
+.changeset/fuzzy-codex-fallbacks.md
+  s_2110bf8ec34462::t_b729f52893068e 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "90b49e70388f19a5bf58c6f57215fbea97a5e9ed",
+  "prompts": {},
+  "sessions": {
+    "s_2110bf8ec34462": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f834f-55ee-7b11-a73c-ee652058eb35",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
