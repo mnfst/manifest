@@ -65,7 +65,7 @@ describe('MessageDetailsService', () => {
     autofix_group_id: null,
     autofix_role: null,
     autofix_operations: null,
-    autofix_phoenix: null,
+    autofix_decision: null,
   };
 
   beforeEach(async () => {
@@ -118,6 +118,7 @@ describe('MessageDetailsService', () => {
       agent_name: 'my-agent',
       model: 'gpt-4o',
       status: 'ok',
+      autofix_status: null,
       error_message: null,
       error_http_status: null,
       error_origin: null,
@@ -154,19 +155,19 @@ describe('MessageDetailsService', () => {
       autofix_applied: false,
       autofix_role: null,
       autofix_operations: null,
-      autofix_phoenix: null,
+      autofix_decision: null,
       autofix_sibling: null,
     });
   });
 
-  it('maps autofix_phoenix ids when the message carries them', async () => {
+  it('maps autofix_decision ids when the message carries them', async () => {
     // The "maps all fields" test above covers the null case; here the stored
-    // row has a non-null autofix_phoenix, exercising the `?? null` mapping's
+    // row has a non-null autofix_decision, exercising the `?? null` mapping's
     // non-null branch.
-    const phoenix = { issueId: 'i', patchId: 'p', healAttemptId: 'h' };
-    msgQb.getOne.mockResolvedValue({ ...baseMessage, autofix_phoenix: phoenix });
+    const phoenix = { status: 'patched', issueId: 'i', patchId: 'p', healAttemptId: 'h' };
+    msgQb.getOne.mockResolvedValue({ ...baseMessage, autofix_decision: phoenix });
     const result = await service.getDetails('msg-1', 'u1');
-    expect(result.message.autofix_phoenix).toEqual(phoenix);
+    expect(result.message.autofix_decision).toEqual(phoenix);
   });
 
   it('resolves the autofix sibling when the message has a group id', async () => {
@@ -291,5 +292,198 @@ describe('MessageDetailsService', () => {
     expect(result.message.error_origin).toBe('config');
     expect(result.message.error_class).toBe('no_provider_key');
     expect(result.message.superseded).toBe(false);
+  });
+
+  it('rolls up all provider attempts into a request detail', async () => {
+    const requestRow = {
+      id: 'request-1',
+      tenant_id: 't1',
+      timestamp: '2026-07-14T10:00:00Z',
+      agent_name: 'my-agent',
+      requested_model: 'requested-model',
+      status: 'ok',
+      autofix_status: 'retry_failed',
+      error_message: null,
+      error_code: null,
+      error_http_status: null,
+      error_origin: null,
+      error_class: null,
+      duration_ms: 900,
+      trace_id: 'trace-request',
+      session_key: 'session-request',
+      feedback_rating: 'like',
+      feedback_tags: 'Accurate,Fast',
+      feedback_details: 'good',
+      request_headers: { 'x-test': 'yes' },
+      request_params: { temperature: 0.2 },
+      caller_attribution: { sdk: 'openai-js' },
+    };
+    const attempts = [
+      {
+        ...baseMessage,
+        id: 'attempt-1',
+        status: 'error',
+        provider: 'openai',
+        input_tokens: 10,
+        output_tokens: 5,
+        cache_read_tokens: 1,
+        cache_creation_tokens: 2,
+        cost_usd: null,
+        duration_ms: null,
+      },
+      {
+        ...baseMessage,
+        id: 'attempt-2',
+        status: 'ok',
+        provider: 'anthropic',
+        model: 'claude',
+        input_tokens: 20,
+        output_tokens: 8,
+        cache_read_tokens: 3,
+        cache_creation_tokens: 4,
+        cost_usd: 0.12,
+        duration_ms: 400,
+        autofix_applied: true,
+        autofix_role: 'retry',
+        fallback_from_model: 'gpt-4o',
+        fallback_index: 0,
+        request_headers: { 'user-agent': 'test-agent' },
+        request_params: { temperature: 0.2 },
+      },
+    ];
+    const requestAware = new MessageDetailsService(
+      { find: jest.fn().mockResolvedValue(attempts) } as never,
+      { findOne: jest.fn().mockResolvedValue(requestRow) } as never,
+    );
+
+    const result = await requestAware.getDetails('request-1', 't1');
+
+    expect(result.message).toEqual(
+      expect.objectContaining({
+        id: 'request-1',
+        model: 'claude',
+        input_tokens: 30,
+        output_tokens: 13,
+        cache_read_tokens: 4,
+        cache_creation_tokens: 6,
+        cost_usd: 0.12,
+        duration_ms: 400,
+        trace_id: 'trace-request',
+        session_key: 'session-request',
+        feedback_tags: ['Accurate', 'Fast'],
+        autofix_applied: true,
+        autofix_status: 'retry_failed',
+      }),
+    );
+    expect(result.message.attempts).toEqual([
+      expect.objectContaining({ id: 'attempt-1', provider: 'openai' }),
+      expect.objectContaining({ id: 'attempt-2', provider: 'anthropic' }),
+    ]);
+    // The drawer tells each attempt's full story — the projection must carry
+    // the error, fallback, autofix, token and headers/params surface.
+    expect(result.message.attempts![0]).toEqual(
+      expect.objectContaining({
+        status: 'error',
+        input_tokens: 10,
+        output_tokens: 5,
+        error_message: null,
+      }),
+    );
+    expect(result.message.attempts![1]).toEqual(
+      expect.objectContaining({
+        autofix_applied: true,
+        autofix_role: 'retry',
+        fallback_from_model: 'gpt-4o',
+        fallback_index: 0,
+        input_tokens: 20,
+        output_tokens: 8,
+        request_headers: { 'user-agent': 'test-agent' },
+        request_params: { temperature: 0.2 },
+      }),
+    );
+  });
+
+  it('follows a linked attempt to its request after the online backfill', async () => {
+    const linkedAttempt = {
+      ...baseMessage,
+      id: 'attempt-1',
+      request_id: 'request-1',
+    };
+    const attempts = [linkedAttempt, { ...baseMessage, id: 'attempt-2', request_id: 'request-1' }];
+    const request = {
+      id: 'request-1',
+      tenant_id: 't1',
+      timestamp: baseMessage.timestamp,
+      agent_name: baseMessage.agent_name,
+      requested_model: baseMessage.model,
+      status: 'success',
+      duration_ms: baseMessage.duration_ms,
+    };
+    const requestRepo = {
+      findOne: jest.fn().mockResolvedValueOnce(null).mockResolvedValueOnce(request),
+    };
+    const messageRepo = {
+      createQueryBuilder: jest.fn(() => mockQb(linkedAttempt)),
+      find: jest.fn().mockResolvedValue(attempts),
+    };
+    const requestAware = new MessageDetailsService(messageRepo as never, requestRepo as never);
+
+    const result = await requestAware.getDetails('attempt-1', 't1');
+
+    expect(requestRepo.findOne).toHaveBeenNthCalledWith(2, {
+      where: { id: 'request-1', tenant_id: 't1' },
+    });
+    expect(result.message.id).toBe('request-1');
+    expect(result.message.attempts?.map((attempt) => attempt.id)).toEqual([
+      'attempt-1',
+      'attempt-2',
+    ]);
+  });
+
+  it('returns a zero-attempt request with request-level fallbacks', async () => {
+    const requestAware = new MessageDetailsService(
+      { find: jest.fn().mockResolvedValue([]) } as never,
+      {
+        findOne: jest.fn().mockResolvedValue({
+          id: 'request-zero',
+          tenant_id: 't1',
+          timestamp: '2026-07-14T10:00:00Z',
+          agent_name: null,
+          requested_model: 'gpt-4o',
+          status: 'error',
+          autofix_status: null,
+          error_message: 'No provider',
+          error_code: 'MNFST001',
+          error_http_status: 400,
+          error_origin: 'config',
+          error_class: 'no_provider',
+          duration_ms: 15,
+          trace_id: null,
+          session_key: null,
+          feedback_rating: null,
+          feedback_tags: null,
+          feedback_details: null,
+          request_headers: null,
+          request_params: null,
+          caller_attribution: null,
+        }),
+      } as never,
+    );
+
+    const result = await requestAware.getDetails('request-zero', 't1');
+
+    expect(result.message).toEqual(
+      expect.objectContaining({
+        id: 'request-zero',
+        model: 'gpt-4o',
+        status: 'error',
+        error_code: 'MNFST001',
+        input_tokens: 0,
+        output_tokens: 0,
+        cost_usd: 0,
+        duration_ms: 15,
+        attempts: [],
+      }),
+    );
   });
 });

@@ -103,25 +103,9 @@ const Sidebar: Component<SidebarProps> = (props) => {
         classList={{ active: isGlobalActive('/messages') }}
         aria-current={isGlobalActive('/messages') ? 'page' : undefined}
       >
-        Messages
+        Requests
       </A>
       <div class="sidebar__section-label">PROVIDERS</div>
-      <A
-        href="/providers/subscriptions"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/providers/subscriptions') }}
-        aria-current={isGlobalActive('/providers/subscriptions') ? 'page' : undefined}
-      >
-        Subscriptions
-      </A>
-      <A
-        href="/providers/usage-based"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/providers/usage-based') }}
-        aria-current={isGlobalActive('/providers/usage-based') ? 'page' : undefined}
-      >
-        Usage-based
-      </A>
       <Show when={selfHosted()}>
         <A
           href="/providers/local"
@@ -132,6 +116,22 @@ const Sidebar: Component<SidebarProps> = (props) => {
           Local
         </A>
       </Show>
+      <A
+        href="/providers/usage-based"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/usage-based') }}
+        aria-current={isGlobalActive('/providers/usage-based') ? 'page' : undefined}
+      >
+        Usage-based
+      </A>
+      <A
+        href="/providers/subscriptions"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/subscriptions') }}
+        aria-current={isGlobalActive('/providers/subscriptions') ? 'page' : undefined}
+      >
+        Subscriptions
+      </A>
 
       {/* Harnesses — collapsible section with a + create button.
           The collapse toggle and the create button are sibling buttons (never
@@ -244,7 +244,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
               <span class="sidebar-autofix__title">Discover Auto-fix</span>
             </div>
             <p class="sidebar-autofix__desc">
-              Failing requests are automatically fixed before reaching the model.
+              Auto-fix can repair eligible failing requests before they reach the model.
             </p>
             <a
               class="sidebar-autofix__btn"

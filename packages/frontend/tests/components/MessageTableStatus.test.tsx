@@ -42,7 +42,7 @@ describe('MessageTable status labels', () => {
       error_http_status: 402,
     });
 
-    const link = screen.getByText('Failed: Plan limit') as HTMLAnchorElement;
+    const link = screen.getByText('Failed') as HTMLAnchorElement;
     expect(link.getAttribute('href')).toBe('/upgrade?reason=requests');
     expect(link.getAttribute('title')).toBe('Free plan request limit reached - upgrade to Pro');
   });
@@ -54,7 +54,7 @@ describe('MessageTable status labels', () => {
       error_http_status: null,
     });
 
-    const link = screen.getByText('Failed: Custom limit') as HTMLAnchorElement;
+    const link = screen.getByText('Failed') as HTMLAnchorElement;
     expect(link.getAttribute('href')).toBe('/harnesses/demo-agent/limits');
     expect(link.getAttribute('title')).toBe('Manifest usage limit reached - open your limits');
   });

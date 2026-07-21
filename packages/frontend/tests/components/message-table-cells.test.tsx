@@ -7,7 +7,8 @@ import {
   ModelCell,
   AgentCell,
   StatusCell,
-  TriggerCell,
+  AttemptsCell,
+  SelfHealCell,
 } from '../../src/components/message-table-cells';
 import { fireEvent } from '@solidjs/testing-library';
 import type { MessageRow } from '../../src/components/message-table-types';
@@ -100,72 +101,77 @@ describe('AutofixIcon', () => {
   });
 });
 
-describe('TriggerCell', () => {
-  function renderCell(row: MessageRow, onTriggerClick?: (id: string) => void) {
+describe('AttemptsCell', () => {
+  function renderCell(row: MessageRow) {
     return render(() => (
       <table>
         <tbody>
-          <tr>{TriggerCell(row, onTriggerClick)}</tr>
+          <tr>{AttemptsCell(row)}</tr>
         </tbody>
       </table>
     ));
   }
 
-  it('renders an auto-fix badge on a healed retry row', () => {
-    const { container } = renderCell(baseRow({ autofix_role: 'retry' }));
-    const badge = container.querySelector('.trigger-badge--autofix');
-    expect(badge).not.toBeNull();
-    expect(badge!.textContent).toContain('auto-fix');
-    expect(badge!.getAttribute('title')).toBe('Triggered by Auto-fix');
+  it('renders just the attempt count (no icons) for a row with autofix_applied', () => {
+    const { container } = renderCell(baseRow({ attempt_count: 2, autofix_applied: true }));
+    expect(container.querySelector('td')!.textContent).toContain('2');
+    // Icons moved to SelfHealCell
+    expect(container.querySelector('[title="Auto-fix"]')).toBeNull();
   });
 
-  it('renders a fallback badge when a non-retry row fell back', () => {
+  it('renders just the attempt count (no icons) when fallback_from_model is set', () => {
+    const { container } = renderCell(baseRow({ fallback_from_model: 'gpt-4o', attempt_count: 2 }));
+    expect(container.querySelector('td')!.textContent).toContain('2');
+    // Icons moved to SelfHealCell
+    expect(container.querySelector('[title="Fallback"]')).toBeNull();
+  });
+
+  it('renders only the count with no badges when neither autofix nor fallback applies', () => {
+    const { container } = renderCell(baseRow({ attempt_count: 1 }));
+    expect(container.querySelector('[title]')).toBeNull();
+    expect(container.querySelector('td')!.textContent).toContain('1');
+  });
+});
+
+describe('SelfHealCell', () => {
+  function renderCell(row: MessageRow) {
+    return render(() => (
+      <table>
+        <tbody>
+          <tr>{SelfHealCell(row)}</tr>
+        </tbody>
+      </table>
+    ));
+  }
+
+  it('renders a dash when neither autofix nor fallback applies', () => {
+    const { container } = renderCell(baseRow());
+    expect(container.querySelector('td')!.textContent).toContain('\u2014');
+    expect(container.querySelector('[title]')).toBeNull();
+  });
+
+  it('renders autofix badge with icon and text when autofix_applied', () => {
+    const { container } = renderCell(baseRow({ autofix_applied: true }));
+    const badge = container.querySelector('[title="Auto-fix"]') as HTMLElement;
+    expect(badge).not.toBeNull();
+    expect(badge.className).toContain('trigger-badge--autofix');
+    expect(badge.textContent).toContain('auto-fix');
+  });
+
+  it('renders fallback badge with icon and text when fallback_from_model is set', () => {
     const { container } = renderCell(baseRow({ fallback_from_model: 'gpt-4o' }));
-    const badge = container.querySelector('.trigger-badge--fallback');
+    const badge = container.querySelector('[title="Fallback"]') as HTMLElement;
     expect(badge).not.toBeNull();
-    expect(badge!.textContent).toContain('fallback');
-    expect(badge!.getAttribute('title')).toBe('Triggered by fallback');
+    expect(badge.className).toContain('trigger-badge--fallback');
+    expect(badge.textContent).toContain('fallback');
   });
 
-  it('prefers the auto-fix badge over fallback when both apply', () => {
+  it('renders both badges when both autofix and fallback apply', () => {
     const { container } = renderCell(
-      baseRow({ autofix_role: 'retry', fallback_from_model: 'gpt-4o' }),
+      baseRow({ autofix_applied: true, fallback_from_model: 'gpt-4o' }),
     );
-    expect(container.querySelector('.trigger-badge--autofix')).not.toBeNull();
-    expect(container.querySelector('.trigger-badge--fallback')).toBeNull();
-  });
-
-  it('renders an em dash when neither auto-fix nor fallback applies', () => {
-    const { container } = renderCell(baseRow({}));
-    expect(container.querySelector('.trigger-badge')).toBeNull();
-    expect(container.textContent).toContain('—');
-  });
-
-  it('fires onTriggerClick with the row id and does not render as a button without the handler', () => {
-    const onTriggerClick = vi.fn();
-    const { container } = renderCell(
-      baseRow({ id: 'row-9', autofix_role: 'retry' }),
-      onTriggerClick,
-    );
-    const badge = container.querySelector('.trigger-badge--autofix') as HTMLElement;
-    expect(badge.getAttribute('role')).toBe('button');
-    fireEvent.click(badge);
-    expect(onTriggerClick).toHaveBeenCalledWith('row-9');
-
-    const { container: plain } = renderCell(baseRow({ autofix_role: 'retry' }));
-    expect(
-      (plain.querySelector('.trigger-badge--autofix') as HTMLElement).getAttribute('role'),
-    ).toBeNull();
-  });
-
-  it('fires onTriggerClick from a fallback badge too', () => {
-    const onTriggerClick = vi.fn();
-    const { container } = renderCell(
-      baseRow({ id: 'row-3', fallback_from_model: 'gpt-4o' }),
-      onTriggerClick,
-    );
-    fireEvent.click(container.querySelector('.trigger-badge--fallback') as HTMLElement);
-    expect(onTriggerClick).toHaveBeenCalledWith('row-3');
+    expect(container.querySelector('[title="Auto-fix"]')).not.toBeNull();
+    expect(container.querySelector('[title="Fallback"]')).not.toBeNull();
   });
 });
 
@@ -213,23 +219,26 @@ describe('StatusCell merged pill', () => {
     return badges[0]!;
   }
 
-  it('merges a provider error into a single red "Failed: Provider" pill', () => {
+  it('renders a provider error as a plain "Failed" pill with the cause as title', () => {
     const { container } = renderCell(
       baseRow({ status: 'error', error_message: 'boom', error_origin: 'provider' }),
     );
     const badge = onlyBadge(container);
-    expect(badge.textContent).toContain('Failed: Provider');
+    expect(badge.textContent).toContain('Failed');
+    expect(badge.getAttribute('title')).toBe('Provider');
     expect(badge.className).toContain('status-badge--error');
   });
 
-  it('merges a transport error into "Failed: Transport"', () => {
+  it('carries a transport error cause in the pill title', () => {
     const { container } = renderCell(
       baseRow({ status: 'error', error_message: 'net', error_origin: 'transport' }),
     );
-    expect(onlyBadge(container).textContent).toContain('Failed: Transport');
+    const badge = onlyBadge(container);
+    expect(badge.textContent).toContain('Failed');
+    expect(badge.getAttribute('title')).toBe('Transport');
   });
 
-  it('labels a malformed caller body "Failed: Bad request", not "Failed: Provider"', () => {
+  it('titles a malformed caller body "Bad request", not "Provider"', () => {
     const { container } = renderCell(
       baseRow({
         status: 'error',
@@ -239,27 +248,29 @@ describe('StatusCell merged pill', () => {
       }),
     );
     const badge = onlyBadge(container);
-    expect(badge.textContent).toContain('Failed: Bad request');
+    expect(badge.textContent).toContain('Failed');
+    expect(badge.getAttribute('title')).toBe('Bad request');
     // `request` is not a policy origin, so no limits link is rendered.
     expect(container.querySelector('a')).toBeNull();
   });
 
-  it('renders a provider rate limit as "Failed: Provider" with no limits link', () => {
+  it('renders a provider rate limit as plain "Failed" with no limits link', () => {
     const { container } = renderCell(
       baseRow({ status: 'rate_limited', error_message: 'rl', error_origin: 'provider' }),
     );
     expect(container.querySelector('a')).toBeNull();
-    expect(onlyBadge(container).textContent).toContain('Failed: Provider');
+    expect(onlyBadge(container).getAttribute('title')).toBe('Provider');
   });
 
-  it('renders a non-ok fallback_error row as a plain "Failed: Provider" pill', () => {
+  it('renders a non-ok fallback_error row as a plain "Failed" pill', () => {
     // fallback_error is no longer a distinct status pill — anything that isn't
     // `ok` is a failure, and the fallback itself is surfaced in the Trigger column.
     const { container } = renderCell(
       baseRow({ status: 'fallback_error', error_message: 'overloaded', error_origin: 'provider' }),
     );
     const badge = onlyBadge(container);
-    expect(badge.textContent).toContain('Failed: Provider');
+    expect(badge.textContent).toContain('Failed');
+    expect(badge.getAttribute('title')).toBe('Provider');
     expect(badge.className).toContain('status-badge--error');
   });
 
@@ -270,7 +281,7 @@ describe('StatusCell merged pill', () => {
     expect(container.querySelector('a')).toBeNull();
   });
 
-  it("merges a Manifest limit into one red 'Failed: Custom limit' pill linking to its agent's limits", () => {
+  it("merges a Manifest limit into one red 'Failed' pill linking to its agent's limits", () => {
     const { container } = renderCell(
       baseRow({
         agent_name: 'billing-bot',
@@ -283,7 +294,7 @@ describe('StatusCell merged pill', () => {
     const link = container.querySelector('a');
     expect(link).not.toBeNull();
     expect(link!.getAttribute('href')).toContain('/harnesses/billing-bot/limits');
-    expect(link!.textContent).toContain('Failed: Custom limit');
+    expect(link!.textContent).toContain('Failed');
     expect(link!.className).toContain('status-badge--error');
     expect(container.querySelectorAll('a').length).toBe(1);
   });
@@ -299,7 +310,8 @@ describe('StatusCell merged pill', () => {
       }),
     );
     expect(container.querySelector('a')).toBeNull();
-    expect(onlyBadge(container).textContent).toContain('Failed: Custom limit');
+    expect(onlyBadge(container).textContent).toContain('Failed');
+    expect(onlyBadge(container).getAttribute('title')).toBe('Custom limit');
   });
 });
 

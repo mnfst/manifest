@@ -1702,17 +1702,23 @@ describe('ProxyService — orchestration', () => {
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
+        attempt: { id: 'primary-attempt' } as never,
+        providerCallStarted: true,
       });
       fallbackService.tryFallbacks.mockResolvedValue({
         success: null,
         failures: [],
       } as never);
 
-      await svc.proxyRequest(baseOpts());
+      const result = await svc.proxyRequest(baseOpts());
 
       const call = fallbackService.tryFallbacks.mock.calls[0];
       expect(call[2]).toEqual(['claude']);
       expect(call[14]).toEqual([route('anthropic', 'api_key', 'claude')]);
+      // When every eligible fallback fails before invoking a provider, the
+      // terminal response still records the primary provider call.
+      expect(result.meta.attempt).toEqual({ id: 'primary-attempt' });
+      expect(result.meta.providerCallStarted).toBe(true);
     });
 
     it('does not retry a lifted stream fallback as its own fallback', async () => {

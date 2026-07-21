@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import {
   CREATE_LEGACY_FALLBACK_STAGING_SQL,
   CREATE_LEGACY_FALLBACK_GROUPS_SQL,
+  DELETE_STAGED_REJECTIONS_SQL,
   FALLBACK_PRIMARY_WINDOW_END_SQL,
   FINALIZE_PENDING_REQUESTS_SQL,
   INSERT_LEGACY_FALLBACK_DIRECT_MEMBERS_SQL,
@@ -274,6 +275,47 @@ describe('TypeOrmRequestBackfillGateway', () => {
     expect(runner.query).not.toHaveBeenCalledWith(expect.stringContaining('VALIDATE CONSTRAINT'));
     expect(runner.commitTransaction).toHaveBeenCalled();
     expect(runner.release).toHaveBeenCalled();
+  });
+
+  it('removes staged rejections in batches before validating deferred constraints', async () => {
+    const runner = mockQueryRunner();
+    let cleanupBatch = 0;
+    runner.query.mockImplementation(async (sql: string) => {
+      if (sql === DELETE_STAGED_REJECTIONS_SQL) {
+        cleanupBatch += 1;
+        if (cleanupBatch === 1) return [{ n: 2 }];
+        if (cleanupBatch === 2) return [{ n: 1 }];
+        return [];
+      }
+      return undefined;
+    });
+    const gateway = new TypeOrmRequestBackfillGateway({
+      createQueryRunner: jest.fn(() => runner),
+    } as unknown as DataSource);
+    const progress = jest.fn();
+
+    await expect(gateway.finalizeTransition(100, timeouts, progress)).resolves.toBe(3);
+
+    expect(DELETE_STAGED_REJECTIONS_SQL).toContain('pa.request_id = pa.id');
+    expect(DELETE_STAGED_REJECTIONS_SQL).toContain('pa.attempt_number IS NULL');
+    expect(runner.query.mock.calls.filter(([sql]) => sql === DELETE_STAGED_REJECTIONS_SQL)).toEqual(
+      [
+        [DELETE_STAGED_REJECTIONS_SQL, [100]],
+        [DELETE_STAGED_REJECTIONS_SQL, [100]],
+        [DELETE_STAGED_REJECTIONS_SQL, [100]],
+      ],
+    );
+    expect(progress).toHaveBeenNthCalledWith(1, 2);
+    expect(progress).toHaveBeenNthCalledWith(2, 3);
+    expect(runner.query).toHaveBeenCalledWith("SET LOCAL statement_timeout = '0'");
+    expect(runner.query).toHaveBeenCalledWith(
+      'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "FK_agent_messages_request"',
+    );
+    expect(runner.query).toHaveBeenCalledWith(
+      'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "CHK_agent_messages_attempt_number_positive"',
+    );
+    expect(runner.commitTransaction).toHaveBeenCalledTimes(4);
+    expect(runner.release).toHaveBeenCalledTimes(4);
   });
 
   it('rolls back and releases when a window fails', async () => {
