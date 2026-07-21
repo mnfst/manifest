@@ -228,6 +228,15 @@ const GlobalOverview: Component = () => {
     (p) => getOverview(p.range) as Promise<OverviewResponse>,
   );
 
+  // Show the skeleton on a range change, but not on the frequent background SSE
+  // `_ping` refetches (those update in place). Track the range the visible
+  // overview belongs to; while a newer range is loading, treat it as changing.
+  const [loadedRange, setLoadedRange] = createSignal(effectiveChartRange());
+  createEffect(() => {
+    if (!overview.loading && overview() !== undefined) setLoadedRange(effectiveChartRange());
+  });
+  const rangeChanging = () => overview.loading && loadedRange() !== effectiveChartRange();
+
   const [agents] = createResource(
     () => ({ _agentPing: agentPing(), _messagePing: messagePing() }),
     async () => {
@@ -589,6 +598,7 @@ const GlobalOverview: Component = () => {
         when={
           !hasNoAgents() &&
           !hasNoProviders() &&
+          !rangeChanging() &&
           overview() !== undefined &&
           agents() !== undefined &&
           providers() !== undefined

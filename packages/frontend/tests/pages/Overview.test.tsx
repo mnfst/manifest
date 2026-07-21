@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@solidjs/testing-library';
+import { createSignal } from 'solid-js';
+
+// Controllable SSE ping: lets a test bump `messagePing()` to drive a background
+// refetch and assert it does NOT flash the skeleton (unlike a range change).
+const pingBox = vi.hoisted(() => ({ read: (): number => 0, set: (_: number) => {} }));
 
 let mockAgentName = 'test-agent';
 let mockLocationState: any = null;
@@ -33,7 +38,7 @@ vi.mock('../../src/services/api.js', () => ({
 
 vi.mock('../../src/services/sse.js', () => ({
   pingCount: () => 0,
-  messagePing: () => 0,
+  messagePing: () => pingBox.read(),
   agentPing: () => 0,
   routingPing: () => 0,
 }));
@@ -217,6 +222,9 @@ describe('Overview', () => {
     vi.clearAllMocks();
     localStorage.clear();
     sessionStorage.clear();
+    const [ping, setPing] = createSignal(0);
+    pingBox.read = ping;
+    pingBox.set = setPing;
     mockIsRecentlyCreated.mockReturnValue(false);
     mockIsSetupPending.mockReturnValue(false);
     mockAgentName = 'test-agent';
@@ -253,19 +261,38 @@ describe('Overview', () => {
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
-  it('keeps showing stale data during refetch instead of skeletons', async () => {
+  it('shows the loading skeleton when the range changes', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain('$3.50');
     });
 
-    // Trigger a refetch that never resolves
+    // Change the range; the new fetch never resolves.
     mockGetOverview.mockReturnValue(new Promise(() => {}));
     const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
     await fireEvent.change(select, { target: { value: '24h' } });
 
-    // Should still show old data, not skeletons
+    // Stale data is replaced by the skeleton while the new range loads.
+    await vi.waitFor(() => {
+      expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+    });
+    expect(container.textContent).not.toContain('$3.50');
+  });
+
+  it('keeps showing data during a background ping refetch instead of skeletons', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('$3.50');
+    });
+
+    // A background SSE ping refetch (same range) never resolves.
+    mockGetOverview.mockReturnValue(new Promise(() => {}));
+    pingBox.set(1);
+
+    // Old data stays put — no skeleton flash on in-place refreshes.
+    await Promise.resolve();
     expect(container.textContent).toContain('$3.50');
     expect(container.querySelectorAll('.skeleton').length).toBe(0);
   });

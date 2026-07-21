@@ -352,6 +352,28 @@ describe('GlobalOverview filter onUnselectAll', () => {
     expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalledTimes(2);
   });
 
+  it('shows the skeleton on a range change but not on a background ping refetch', async () => {
+    const { container, queryByTestId } = render(() => <GlobalOverview />);
+
+    // Wait for the initial load to paint the dashboard (skeleton gone).
+    await waitFor(() => expect(queryByTestId('provider-chart-card')).not.toBeNull());
+    expect(queryByTestId('global-overview-skeleton')).toBeNull();
+
+    // A background SSE ping refetch keeps the dashboard in place (no skeleton).
+    apiMocks.getOverview.mockReturnValue(new Promise(() => {}));
+    sseMocks.bumpMessage?.();
+    await Promise.resolve();
+    expect(queryByTestId('global-overview-skeleton')).toBeNull();
+    expect(queryByTestId('provider-chart-card')).not.toBeNull();
+
+    // A range change swaps in the skeleton while the new range loads.
+    const rangeSelect = [...container.querySelectorAll('select')].find((s) =>
+      [...s.options].some((o) => o.value === '365d'),
+    ) as HTMLSelectElement;
+    fireEvent.change(rangeSelect, { target: { value: '24h' } });
+    await waitFor(() => expect(queryByTestId('global-overview-skeleton')).not.toBeNull());
+  });
+
   it('opens the Pro success modal when upgraded=1 is present', async () => {
     const replaceState = vi.spyOn(window.history, 'replaceState').mockImplementation(() => {});
     mockSearchParams = { upgraded: '1' };
