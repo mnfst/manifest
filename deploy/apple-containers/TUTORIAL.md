@@ -132,6 +132,23 @@ The PostgreSQL named volume is retained, so a later `up` restores the same datab
 
 Running `up` repeatedly is safe. A running PostgreSQL container is reused, while Manifest is recreated to pick up the current PostgreSQL IP and configuration.
 
+## Upgrade Manifest
+
+The script always launches `manifestdotbuild/manifest:latest`, but `container run` uses the locally cached copy of that tag. To upgrade to a new release, pull the image explicitly and re-run `up`:
+
+```bash
+container image pull manifestdotbuild/manifest:latest
+./deploy/apple-containers/start.sh up
+```
+
+`up` recreates the Manifest container, so it starts from the freshly pulled image. Database migrations run automatically on boot — no manual steps. The PostgreSQL container and the `mnfst-postgres-data` named volume are not touched, so all data is preserved across upgrades.
+
+To back up the database before upgrading:
+
+```bash
+container exec mnfst-postgres pg_dump -U manifest manifest > manifest-backup-$(date +%F).sql
+```
+
 ## Local LLM Servers
 
 Apple Containers does not provide Docker's `host.docker.internal` hostname. By default, the script uses the container network gateway for Ollama:
