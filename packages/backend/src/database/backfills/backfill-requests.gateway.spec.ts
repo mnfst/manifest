@@ -63,6 +63,12 @@ describe('TypeOrmRequestBackfillGateway', () => {
     expect(LINK_ATTEMPTS_SQL).not.toMatch(/WHEN \(\s*SELECT count\(\*\)/);
   });
 
+  it('scopes request refreshes to parents linked by the current window', () => {
+    expect(LINK_ATTEMPTS_SQL).toContain('array_agg(DISTINCT request_id)');
+    expect(REFRESH_ATTEMPT_REQUESTS_SQL).toContain('unnest($1::text[])');
+    expect(REFRESH_ATTEMPT_REQUESTS_SQL).not.toContain('id > $1');
+  });
+
   it('analyzes attempts and finds keyset window ends', async () => {
     const query = jest
       .fn()
@@ -86,7 +92,7 @@ describe('TypeOrmRequestBackfillGateway', () => {
       .mockResolvedValueOnce([{ n: 2 }])
       .mockResolvedValueOnce([{ n: 1 }])
       .mockResolvedValueOnce([{ n: 3 }])
-      .mockResolvedValueOnce([{ n: 4 }])
+      .mockResolvedValueOnce([{ n: 4, request_ids: ['request-1', 'request-2'] }])
       .mockResolvedValueOnce(undefined);
     const gateway = new TypeOrmRequestBackfillGateway({
       createQueryRunner: jest.fn(() => runner),
@@ -101,6 +107,9 @@ describe('TypeOrmRequestBackfillGateway', () => {
     expect(runner.query).toHaveBeenNthCalledWith(2, "SET LOCAL statement_timeout = '60000ms'");
     expect(runner.query).toHaveBeenNthCalledWith(3, INSERT_REJECTIONS_SQL, ['a', 'b', before]);
     expect(runner.query).toHaveBeenNthCalledWith(4, MARK_REJECTIONS_SQL, ['a', 'b', before]);
+    expect(runner.query).toHaveBeenNthCalledWith(7, REFRESH_ATTEMPT_REQUESTS_SQL, [
+      ['request-1', 'request-2'],
+    ]);
     expect(runner.commitTransaction).toHaveBeenCalled();
     expect(runner.rollbackTransaction).not.toHaveBeenCalled();
     expect(runner.release).toHaveBeenCalled();
