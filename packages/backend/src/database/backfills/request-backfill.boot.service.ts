@@ -33,7 +33,6 @@ const defaultRunner: RequestBackfillRunner = (dataSource, logger, options) =>
   runRequestBackfill(new TypeOrmRequestBackfillGateway(dataSource), { logger, ...options });
 
 export const REQUEST_BACKFILL_LOCK_RETRY_MS = 30_000;
-export const REQUEST_BACKFILL_TAIL_INTERVAL_MS = 60_000;
 export const REQUEST_BACKFILL_FALLBACK_GRACE_MS = 5 * 60_000;
 export const REQUEST_BACKFILL_GENERIC_GRACE_MS = 10 * 60_000;
 
@@ -51,9 +50,7 @@ const wait = (ms: number): Promise<void> =>
 @Injectable()
 export class RequestBackfillBootService implements OnApplicationBootstrap, OnApplicationShutdown {
   private readonly logger = new Logger(RequestBackfillBootService.name);
-  private tailTimer: ReturnType<typeof setInterval> | undefined;
   private stopping = false;
-  private managedCoordinator: RequestBackfillBootService | undefined;
   private ownedDataSource: DataSource | undefined;
 
   constructor(
@@ -70,10 +67,6 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
 
   async onApplicationShutdown(): Promise<void> {
     this.stopping = true;
-    if (this.tailTimer) clearInterval(this.tailTimer);
-    if (this.managedCoordinator && this.managedCoordinator !== this) {
-      this.managedCoordinator.stopTailSweep();
-    }
     const ownedDataSource = this.ownedDataSource;
     this.ownedDataSource = undefined;
     if (ownedDataSource?.isInitialized) await ownedDataSource.destroy();
@@ -89,11 +82,11 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
       try {
         const coordinator = isSelfHosted() ? this : await this.createCloudCoordinator();
         if (!coordinator || this.stopping) return;
-        this.managedCoordinator = coordinator;
         await coordinator.runUntilComplete();
         if (this.stopping) return;
-        await coordinator.startTailSweep();
-        if (this.stopping) coordinator.stopTailSweep();
+        // This release only stages historical rows. The requests-backed
+        // rollout owns the final catch-up of legacy writes.
+        await this.releaseCloudCoordinator();
         return;
       } catch (error) {
         await this.releaseCloudCoordinator();
@@ -122,18 +115,9 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
   }
 
   private async releaseCloudCoordinator(): Promise<void> {
-    if (this.managedCoordinator && this.managedCoordinator !== this) {
-      this.managedCoordinator.stopTailSweep();
-    }
-    this.managedCoordinator = undefined;
     const dataSource = this.ownedDataSource;
     this.ownedDataSource = undefined;
     if (dataSource?.isInitialized) await dataSource.destroy().catch(() => undefined);
-  }
-
-  private stopTailSweep(): void {
-    if (this.tailTimer) clearInterval(this.tailTimer);
-    this.tailTimer = undefined;
   }
 
   async runUntilComplete(): Promise<void> {
@@ -226,18 +210,6 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
     return rows[0]?.pending === true;
   }
 
-  private async startTailSweep(): Promise<void> {
-    if (!(await this.hasAttemptTable())) return;
-    this.tailTimer = setInterval(() => {
-      void this.runTailOnce().catch((error) => {
-        this.logger.error(
-          `request backfill tail sweep failed: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      });
-    }, REQUEST_BACKFILL_TAIL_INTERVAL_MS);
-    if (typeof this.tailTimer === 'object' && 'unref' in this.tailTimer) this.tailTimer.unref();
-  }
-
   private runOptions(
     initial: boolean,
   ): Pick<RequestBackfillOptions, 'analyze' | 'before' | 'fallbackBefore' | 'finalize'> {
@@ -260,20 +232,6 @@ export class RequestBackfillBootService implements OnApplicationBootstrap, OnApp
       [before],
     )) as { pending: boolean }[];
     return rows[0]?.pending === true;
-  }
-
-  private async hasAttemptTable(): Promise<boolean> {
-    const rows = (await this.dataSource.query(
-      `SELECT EXISTS (
-         SELECT 1
-         FROM pg_class c
-         JOIN pg_namespace n ON n.oid = c.relnamespace
-         WHERE n.nspname = 'public'
-           AND c.relname = 'agent_messages'
-           AND c.relkind IN ('r', 'p')
-       ) AS present`,
-    )) as { present: boolean }[];
-    return rows[0]?.present === true;
   }
 
   private async isCompleted(): Promise<boolean> {
