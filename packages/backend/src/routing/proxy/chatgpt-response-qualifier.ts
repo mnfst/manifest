@@ -267,7 +267,7 @@ export async function qualifyChatGptResponse(
   const payloads: string[] = [];
   let bufferedSize = 0;
   let sawReasoningDelta = false;
-  const semanticOutputDeadline = Date.now() + timeoutMs;
+  const semanticOutputDeadline = performance.now() + timeoutMs;
 
   const processPayloads = async (newPayloads: string[]): Promise<Response | null> => {
     for (const payload of newPayloads) {
@@ -330,7 +330,7 @@ export async function qualifyChatGptResponse(
 
   try {
     while (true) {
-      const remainingMs = Math.max(0, semanticOutputDeadline - Date.now());
+      const remainingMs = Math.max(0, semanticOutputDeadline - performance.now());
       const read = await readWithTimeout(reader, remainingMs);
       if (!read) {
         await discard(reader);
