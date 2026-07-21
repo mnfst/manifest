@@ -1,4 +1,6 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const test = require('node:test');
 
 const {
@@ -7,6 +9,13 @@ const {
 	parseServerSentEvents,
 	withoutRouteManagedStream,
 } = require('../dist/nodes/Manifest/Manifest.node.js');
+const { ManifestApi } = require('../dist/credentials/ManifestApi.credentials.js');
+
+const packageRoot = path.resolve(__dirname, '..');
+
+function readBuiltTranslation(...segments) {
+	return JSON.parse(fs.readFileSync(path.join(packageRoot, 'dist', ...segments), 'utf8'));
+}
 
 function executionContext(parameters, response, requests) {
 	return {
@@ -38,6 +47,68 @@ test('removes a client stream override without mutating additional fields', () =
 
 	assert.deepEqual(withoutRouteManagedStream(additionalBody), { temperature: 0.2 });
 	assert.deepEqual(additionalBody, { stream: true, temperature: 0.2 });
+});
+
+test('packages Russian node translations using stable parameter and operation IDs', () => {
+	const description = new Manifest().description;
+	const translation = readBuiltTranslation(
+		'nodes',
+		'Manifest',
+		'translations',
+		'ru',
+		'manifest.json',
+	);
+	const operation = description.properties.find((property) => property.name === 'operation');
+	const parameterNames = new Set(description.properties.map((property) => property.name));
+	const operationValues = operation.options.map((option) => option.value);
+
+	assert.equal(description.name, 'manifest');
+	assert.deepEqual(operationValues, ['chatCompletion', 'createResponse', 'listModels']);
+	assert.deepEqual(Object.keys(translation.header), ['description']);
+
+	for (const property of description.properties) {
+		assert.equal(typeof translation.nodeView[`${property.name}.displayName`], 'string');
+		if (property.description) {
+			assert.equal(typeof translation.nodeView[`${property.name}.description`], 'string');
+		}
+	}
+
+	for (const key of Object.keys(translation.nodeView)) {
+		const parameterName = key.split('.')[0];
+		assert.equal(parameterNames.has(parameterName), true, `Unknown translated parameter: ${key}`);
+	}
+
+	for (const operationValue of operationValues) {
+		assert.equal(
+			typeof translation.nodeView[`operation.options.${operationValue}.displayName`],
+			'string',
+		);
+		assert.equal(
+			typeof translation.nodeView[`operation.options.${operationValue}.description`],
+			'string',
+		);
+	}
+});
+
+test('packages Russian credential metadata without changing credential field IDs', () => {
+	const credential = new ManifestApi();
+	const translation = readBuiltTranslation('credentials', 'translations', 'ru', 'manifestApi.json');
+	const propertyNames = credential.properties.map((property) => property.name);
+	const translatedPropertyNames = [
+		...new Set(Object.keys(translation).map((key) => key.split('.')[0])),
+	];
+
+	assert.equal(credential.name, 'manifestApi');
+	assert.deepEqual(propertyNames, ['baseUrl', 'apiKey']);
+	assert.deepEqual(translatedPropertyNames, propertyNames);
+	assert.equal(credential.properties[0].default, 'https://app.manifest.build');
+
+	for (const property of credential.properties) {
+		assert.equal(typeof translation[`${property.name}.displayName`], 'string');
+		if (property.description) {
+			assert.equal(typeof translation[`${property.name}.description`], 'string');
+		}
+	}
 });
 
 test('returns buffered JSON responses as objects', () => {

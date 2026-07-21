@@ -1,0 +1,22 @@
+{
+	"header": {
+		"description": "Направляет запросы к ИИ через Manifest"
+	},
+	"nodeView": {
+		"operation.displayName": "Операция",
+		"operation.options.chatCompletion.displayName": "Создать ответ в чате",
+		"operation.options.chatCompletion.description": "Вызвать Manifest через совместимый с OpenAI API Chat Completions",
+		"operation.options.createResponse.displayName": "Создать ответ",
+		"operation.options.createResponse.description": "Вызвать Manifest через совместимый с OpenAI Responses API",
+		"operation.options.listModels.displayName": "Получить список моделей",
+		"operation.options.listModels.description": "Получить модели, доступные для этого API-ключа Manifest",
+		"model.displayName": "Модель",
+		"model.description": "Идентификатор модели в Manifest. Укажите auto, чтобы Manifest выбрал маршрут запроса.",
+		"messages.displayName": "Сообщения",
+		"messages.description": "Массив сообщений для совместимого с OpenAI API Chat Completions",
+		"input.displayName": "Текст запроса",
+		"input.description": "Текст, передаваемый в Responses API",
+		"additionalBody.displayName": "Дополнительные поля запроса",
+		"additionalBody.description": "Дополнительные поля JSON, добавляемые в тело запроса. Поле stream игнорируется, поскольку потоковым режимом управляет маршрутизация Manifest."
+	}
+}
