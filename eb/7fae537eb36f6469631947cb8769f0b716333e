@@ -1,0 +1,32 @@
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_42c4c1ba0e183e::t_b0af900556fe76 355-376
+packages/frontend/src/pages/Overview.tsx
+  s_42c4c1ba0e183e::t_85e614c10eaef3 166-175
+  s_42c4c1ba0e183e::t_1fe79d5c193aa6 361
+packages/frontend/tests/pages/Overview.test.tsx
+  s_42c4c1ba0e183e::t_e6256e2a62dc17 3-7
+  s_42c4c1ba0e183e::t_1c2b0cb694d14d 264,271,276-295
+  s_42c4c1ba0e183e::t_88d2c5b23b87e7 41
+  s_42c4c1ba0e183e::t_bd8040d6f20ffd 225-227
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_42c4c1ba0e183e::t_3691c2eeaafcd5 601
+  s_42c4c1ba0e183e::t_d4d08a0906d260 231-239
+package-lock.json
+  s_42c4c1ba0e183e::t_9f4f46686ee799 15017
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "eb7fae537eb36f6469631947cb8769f0b716333e",
+  "prompts": {},
+  "sessions": {
+    "s_42c4c1ba0e183e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "999319f3-b4a4-4fd5-acfb-b430061b2ea6",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
