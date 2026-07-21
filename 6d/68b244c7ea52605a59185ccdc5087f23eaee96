@@ -1,0 +1,21 @@
+packages/backend/src/database/migrations/1801200000000-ExtendDashboardCoveringIndex.spec.ts
+  s_9af13e07919cc7::t_b374d7d6743b39 98-112
+packages/backend/src/database/migrations/1801200000000-ExtendDashboardCoveringIndex.ts
+  s_9af13e07919cc7::t_89ebc6834441e7 119-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "6d68b244c7ea52605a59185ccdc5087f23eaee96",
+  "prompts": {},
+  "sessions": {
+    "s_9af13e07919cc7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "87e22e8a-e2f3-4f8c-b6c7-7c4dc94cc83c",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
