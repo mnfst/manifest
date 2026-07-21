@@ -123,18 +123,20 @@ describe('toObservation', () => {
     expect(JSON.stringify(obs)).not.toContain('agent-1');
   });
 
-  it('substitutes the resolved model for a routing alias', () => {
+  it('keeps the provider-facing model and body shape intact', () => {
     const obs = toObservation({
       ...baseInput,
-      requestBody: { ...baseInput.requestBody, model: 'auto' },
-      resolvedModel: 'gpt-5.1',
+      apiMode: 'messages',
+      requestBody: {
+        model: 'claude-opus-4-8',
+        thinking: { type: 'adaptive', budget_tokens: 8192 },
+      },
     });
-    expect(obs!.request.model).toBe('gpt-5.1');
-  });
-
-  it('leaves the model alone when it already matches the resolved one', () => {
-    const obs = toObservation({ ...baseInput, resolvedModel: 'gpt-5.1' });
-    expect(obs!.request.model).toBe('gpt-5.1');
+    expect(obs!.api).toBe('messages');
+    expect(obs!.request).toEqual({
+      model: 'claude-opus-4-8',
+      thinking: { type: 'adaptive', budget_tokens: 8192 },
+    });
   });
 
   it('carries the response time when measured', () => {
