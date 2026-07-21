@@ -30,6 +30,7 @@ import { RenameWaitlistClaimsTable1800000000000 } from './migrations/18000000000
 import { ReclassifyPlanRequestLimitMessages1800100000000 } from './migrations/1800100000000-ReclassifyPlanRequestLimitMessages';
 import { AddMessageErrorCode1800200000000 } from './migrations/1800200000000-AddMessageErrorCode';
 import { DropUnusedAgentMessageIndexes1800300000000 } from './migrations/1800300000000-DropUnusedAgentMessageIndexes';
+import { ExtendDashboardCoveringIndex1801200000000 } from './migrations/1801200000000-ExtendDashboardCoveringIndex';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
 import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
@@ -298,4 +299,5 @@ export const migrations = [
   DropUnusedAgentMessageIndexes1800300000000,
   AddRequestsAndProviderAttempts1801000000000,
   AddProviderAttemptOrdering1801100000000,
+  ExtendDashboardCoveringIndex1801200000000,
 ];
