@@ -51,4 +51,15 @@ describe('LanguageSelector', () => {
     await waitFor(() => expect(locale()).toBe('ru'));
     expect(document.documentElement.lang).toBe('ru');
   });
+
+  it('does not write an authenticated workspace preference on guest surfaces', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    render(() => <LanguageSelector syncWorkspace={false} />);
+
+    await fireEvent.change(screen.getByRole('combobox'), { target: { value: 'ru' } });
+
+    await waitFor(() => expect(locale()).toBe('ru'));
+    expect(localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('ru');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

@@ -4,6 +4,7 @@ import { updateLocalePreference } from '../services/api/locale.js';
 
 interface LanguageSelectorProps {
   class?: string;
+  syncWorkspace?: boolean;
 }
 
 const LanguageSelector: Component<LanguageSelectorProps> = (props) => {
@@ -12,7 +13,7 @@ const LanguageSelector: Component<LanguageSelectorProps> = (props) => {
     if (isLocale(value)) {
       const activated = await setLocale(value);
       // A newer selector choice may have won while this locale chunk loaded.
-      if (activated === value && locale() === value) {
+      if (props.syncWorkspace !== false && activated === value && locale() === value) {
         await updateLocalePreference(value);
       }
     }

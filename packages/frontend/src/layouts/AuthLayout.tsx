@@ -4,7 +4,7 @@ import LanguageSelector from '../components/LanguageSelector.jsx';
 const AuthLayout: ParentComponent = (props) => {
   return (
     <div class="auth-layout">
-      <LanguageSelector class="language-selector--auth" />
+      <LanguageSelector class="language-selector--auth" syncWorkspace={false} />
       <div class="auth-card">
         <div class="auth-logo">
           <a href="https://manifest.build" class="auth-logo__link">
