@@ -1,0 +1,19 @@
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_2829eabab8be8d::t_c5422076316ffe 1252-1287
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "499053786849bd0c2fe4d3613de2ba31aec3c3f5",
+  "prompts": {},
+  "sessions": {
+    "s_2829eabab8be8d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f836d-bf29-71a3-847c-92c24f0e8adf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
