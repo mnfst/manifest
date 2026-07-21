@@ -7,6 +7,14 @@ import {
   MANIFEST_ERROR_ORIGINS,
   TRANSPORT_NETWORK_HTTP_STATUS,
   TRANSPORT_TIMEOUT_HTTP_STATUS,
+  REQUEST_STATUSES,
+  ATTEMPT_STATUSES,
+  PENDING_STATUS,
+  SUCCESS_STATUS,
+  FAILED_STATUS,
+  normalizeStatus,
+  isSuccessStatus,
+  isFailedStatus,
 } from '../src/error-taxonomy';
 
 describe('error-taxonomy constants', () => {
@@ -57,6 +65,13 @@ describe('classifyHttpErrorClass', () => {
 });
 
 describe('classifyMessageError', () => {
+  it('does not classify a pending operation as an error', () => {
+    expect(classifyMessageError({ status: 'pending' })).toEqual({
+      error_origin: null,
+      error_class: null,
+      superseded: false,
+    });
+  });
   it('classifies an ok row as no error and never superseded', () => {
     expect(classifyMessageError({ status: 'ok', errorHttpStatus: 200 })).toEqual({
       error_origin: null,
@@ -68,6 +83,7 @@ describe('classifyMessageError', () => {
   it.each([
     ['no_provider', 'config', 'no_provider'],
     ['no_provider_key', 'config', 'no_provider_key'],
+    ['local_provider_unavailable', 'config', 'local_provider_unavailable'],
     ['key_expired', 'config', 'auth'],
     ['limit_exceeded', 'policy', 'limit_exceeded'],
     ['plan_request_limit_exceeded', 'policy', 'plan_request_limit_exceeded'],
@@ -207,5 +223,66 @@ describe('isManifestErrorOrigin', () => {
     expect(isManifestErrorOrigin(null)).toBe(false);
     expect(isManifestErrorOrigin(undefined)).toBe(false);
     expect(isManifestErrorOrigin('nonsense')).toBe(false);
+  });
+});
+
+describe('canonical status vocabulary', () => {
+  it('pins the canonical request and attempt statuses', () => {
+    expect(REQUEST_STATUSES).toEqual([PENDING_STATUS, SUCCESS_STATUS, FAILED_STATUS]);
+    expect(ATTEMPT_STATUSES).toEqual([PENDING_STATUS, SUCCESS_STATUS, FAILED_STATUS]);
+    expect([PENDING_STATUS, SUCCESS_STATUS, FAILED_STATUS]).toEqual([
+      'pending',
+      'success',
+      'failed',
+    ]);
+  });
+
+  describe('normalizeStatus', () => {
+    it('keeps pending', () => {
+      expect(normalizeStatus('pending')).toBe('pending');
+    });
+
+    it('maps legacy and canonical success onto success', () => {
+      expect(normalizeStatus('ok')).toBe('success');
+      expect(normalizeStatus('success')).toBe('success');
+    });
+
+    it('treats nullish as success (legacy absent-status convention)', () => {
+      expect(normalizeStatus(null)).toBe('success');
+      expect(normalizeStatus(undefined)).toBe('success');
+    });
+
+    it.each(['error', 'rate_limited', 'fallback_error', 'auto_fixed', 'failed', 'anything-else'])(
+      'collapses %s onto failed',
+      (value) => {
+        expect(normalizeStatus(value)).toBe('failed');
+      },
+    );
+  });
+
+  describe('isSuccessStatus / isFailedStatus', () => {
+    it('recognizes success across vocabularies', () => {
+      expect(isSuccessStatus('ok')).toBe(true);
+      expect(isSuccessStatus('success')).toBe(true);
+      expect(isSuccessStatus(null)).toBe(true);
+      expect(isSuccessStatus('error')).toBe(false);
+      expect(isSuccessStatus('failed')).toBe(false);
+    });
+
+    it('recognizes failure across vocabularies', () => {
+      expect(isFailedStatus('error')).toBe(true);
+      expect(isFailedStatus('fallback_error')).toBe(true);
+      expect(isFailedStatus('failed')).toBe(true);
+      expect(isFailedStatus('ok')).toBe(false);
+      expect(isFailedStatus('pending')).toBe(false);
+    });
+  });
+
+  it('classifyMessageError short-circuits the canonical success value', () => {
+    expect(classifyMessageError({ status: 'success' })).toEqual({
+      error_origin: null,
+      error_class: null,
+      superseded: false,
+    });
   });
 });

@@ -325,6 +325,10 @@ components:
             Tenant.id). Optional on the wire; recorded so a failure can be
             attributed to a tenant. Manifest always sends it on the proxy path.
         provider: { type: string, minLength: 1, example: openai }
+        authType:
+          type: string
+          enum: [api_key, subscription, local]
+          description: Provider credential route. Optional during the Manifest rollout.
         api:
           type: string
           enum: [responses, chat_completions, messages]

@@ -9,7 +9,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { MessagesQueryDto } from '../dto/messages-query.dto';
+import { MessagesQueryDto, type MessageTriggerFilter } from '../dto/messages-query.dto';
 import { MessageFeedbackDto } from '../dto/message-feedback.dto';
 import { MessagesQueryService } from '../services/messages-query.service';
 import { MessageDetailsService } from '../services/message-details.service';
@@ -32,6 +32,13 @@ export class MessagesController {
       range: query.range,
       tenantId: ctx.tenantId,
       provider: query.provider,
+      connections: query.connections
+        ? query.connections
+            .split(',')
+            .map((id) => id.trim())
+            .filter(Boolean)
+            .slice(0, 50)
+        : undefined,
       service_type: query.service_type,
       cost_min: query.cost_min,
       cost_max: query.cost_max,
@@ -39,7 +46,12 @@ export class MessagesController {
       cursor: query.cursor,
       agent_name: query.agent_name,
       status: query.status,
-      trigger: query.trigger,
+      attemptStatus: query.attempts
+        ? ([...new Set(query.attempts.split(','))] as ('has_failed' | 'has_succeeded')[])
+        : undefined,
+      triggers: query.trigger
+        ? ([...new Set(query.trigger.split(','))] as MessageTriggerFilter[])
+        : undefined,
       origin: query.origin,
       error_class: query.error_class,
       routing_tier: query.routing_tier,

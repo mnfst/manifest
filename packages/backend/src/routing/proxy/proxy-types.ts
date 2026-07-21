@@ -29,6 +29,30 @@ export type ReasoningContentLookup = (firstToolCallId: string) => string | null;
 
 export type ProxyApiMode = 'chat_completions' | 'responses' | 'messages';
 
+export interface ProviderAttemptStart {
+  provider: string;
+  model: string;
+  authType?: string;
+  tenantProviderId?: string | null;
+}
+
+/** Identity and measured start of one persisted pending Provider Attempt. */
+export interface ProviderAttemptRef {
+  id: string;
+  attemptNumber: number;
+  startedAtMs: number;
+  startedAt: string;
+  completedAtMs?: number;
+  pendingWrite: Promise<boolean>;
+  completeFailure?: (failure: {
+    status: number;
+    errorBody: string;
+    superseded: boolean;
+  }) => Promise<void>;
+}
+
+export type StartProviderAttempt = (attempt: ProviderAttemptStart) => ProviderAttemptRef;
+
 export interface OpenAIMessage {
   role: string;
   content?: unknown;
@@ -93,4 +117,6 @@ export interface ProxyRequestOptions {
   specificityOverride?: string;
   callerAttribution?: CallerAttribution | null;
   headers?: IncomingHttpHeaders;
+  /** Called immediately before Manifest invokes one upstream provider transport. */
+  startProviderAttempt?: StartProviderAttempt;
 }

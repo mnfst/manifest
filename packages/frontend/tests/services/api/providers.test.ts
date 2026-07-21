@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as api from '../../../src/services/api';
 import {
+  connectionUsage,
   getProviders,
   getProviderUsage,
   mergeUsage,
@@ -156,5 +157,37 @@ describe('mergeUsage', () => {
     const merged = mergeUsage(config, usage);
     const openai = merged.find((m) => m.provider === 'openai')!;
     expect(openai.consumption_tokens).toBe(0);
+  });
+});
+
+describe('connectionUsage', () => {
+  it('distinguishes loading from a loaded connection with no usage', () => {
+    expect(connectionUsage(undefined, 'openai', 'api_key', 'Team')).toBeUndefined();
+
+    expect(connectionUsage([], 'openai', 'api_key', 'Team')).toMatchObject({
+      provider: 'openai',
+      auth_type: 'api_key',
+      key_label: 'Team',
+      consumption_tokens: 0,
+      consumption_messages: 0,
+      attempts_30d: 0,
+      succeeded_30d: 0,
+    });
+  });
+
+  it('matches connection labels case-insensitively', () => {
+    const usage = {
+      provider: 'openai',
+      auth_type: 'api_key' as const,
+      key_label: 'Team',
+      consumption_tokens: 10,
+      consumption_messages: 2,
+      consumption_cost: 0.1,
+      attempts_30d: 3,
+      succeeded_30d: 2,
+      last_used_at: null,
+      sparkline_7d: [],
+    };
+    expect(connectionUsage([usage], 'openai', 'api_key', 'team')).toBe(usage);
   });
 });

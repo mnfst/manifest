@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { StreamUsage } from './stream-writer';
+
+// A prior success may have been written as legacy `ok` or canonical `success`
+// (rolling deploy / in-flight status backfill), so dedup must match either.
+const SUCCESS_STATUS_MATCH = In(['ok', 'success']);
 
 export const SUCCESS_SESSION_DEDUP_WINDOW_MS = 30_000;
 export const SUCCESS_END_TIME_GRACE_MS = 5_000;
@@ -18,6 +22,16 @@ export type DedupMatch = Pick<
   | 'duration_ms'
 >;
 
+const DEDUP_SELECT: Array<keyof AgentMessage> = [
+  'id',
+  'timestamp',
+  'input_tokens',
+  'output_tokens',
+  'cache_read_tokens',
+  'cache_creation_tokens',
+  'duration_ms',
+];
+
 @Injectable()
 export class ProxyMessageDedup {
   private readonly successWriteLocks = new Map<string, Promise<void>>();
@@ -29,24 +43,30 @@ export class ProxyMessageDedup {
     usage: StreamUsage,
     traceId?: string,
     sessionKey?: string | null,
+    requestId?: string,
   ): Promise<DedupMatch | null> {
+    if (requestId) {
+      const existing = await messageRepo.findOne({
+        where: {
+          tenant_id: ctx.tenantId,
+          request_id: requestId,
+          status: SUCCESS_STATUS_MATCH,
+        },
+        select: DEDUP_SELECT,
+        order: { timestamp: 'DESC' },
+      });
+      if (existing) return existing;
+    }
+
     if (traceId) {
       const existing = await messageRepo.findOne({
         where: {
           tenant_id: ctx.tenantId,
           agent_id: ctx.agentId,
           trace_id: traceId,
-          status: 'ok',
+          status: SUCCESS_STATUS_MATCH,
         },
-        select: [
-          'id',
-          'timestamp',
-          'input_tokens',
-          'output_tokens',
-          'cache_read_tokens',
-          'cache_creation_tokens',
-          'duration_ms',
-        ],
+        select: DEDUP_SELECT,
         order: { timestamp: 'DESC' },
       });
       if (existing) return existing;
@@ -58,18 +78,10 @@ export class ProxyMessageDedup {
         tenant_id: ctx.tenantId,
         agent_id: ctx.agentId,
         model,
-        status: 'ok',
+        status: SUCCESS_STATUS_MATCH,
         ...(sessionKey ? { session_key: sessionKey } : {}),
       },
-      select: [
-        'id',
-        'timestamp',
-        'input_tokens',
-        'output_tokens',
-        'cache_read_tokens',
-        'cache_creation_tokens',
-        'duration_ms',
-      ],
+      select: DEDUP_SELECT,
       order: { timestamp: 'DESC' },
       take: 10,
     });
@@ -109,7 +121,9 @@ export class ProxyMessageDedup {
     model: string,
     traceId?: string,
     sessionKey?: string | null,
+    requestId?: string,
   ): string {
+    if (requestId) return `request:${requestId}`;
     if (traceId) return `trace:${ctx.tenantId}:${ctx.agentId}:${traceId}`;
     return `success:${ctx.tenantId}:${ctx.agentId}:${sessionKey ?? 'no-session'}:${model}`;
   }
