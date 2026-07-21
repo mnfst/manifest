@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { ProviderUsageService, ProviderUsageSummary } from '../services/provider-usage.service';
+import { filterProvidersForDeployment } from '../../common/utils/provider-availability';
 
 /**
  * Usage half of the provider dashboard split. Config (cheap, from
@@ -19,6 +20,6 @@ export class ProviderUsageController {
   @Get()
   async getUsage(@TenantCtx() ctx: TenantContext): Promise<{ providers: ProviderUsageSummary[] }> {
     const providers = await this.providerUsage.getUsage(ctx.tenantId);
-    return { providers };
+    return { providers: filterProvidersForDeployment(providers) };
   }
 }

@@ -1,3 +1,4 @@
+import type { AuthType } from 'manifest-shared';
 import {
   IsString,
   IsIn,
@@ -73,7 +74,7 @@ export class ConnectProviderDto {
 
   @IsOptional()
   @IsIn(AUTH_TYPES)
-  authType?: 'api_key' | 'subscription';
+  authType?: AuthType;
 
   @IsOptional()
   @IsString()

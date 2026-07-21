@@ -55,7 +55,34 @@ function mockRecorder() {
     recordPrimaryFailure: jest.fn().mockResolvedValue(undefined),
     recordFallbackSuccess: jest.fn().mockResolvedValue(undefined),
     recordSuccessMessage: jest.fn().mockResolvedValue(undefined),
-    recordAutofixOriginals: jest.fn().mockResolvedValue(undefined),
+    recordAutofixOriginal: jest.fn().mockResolvedValue(undefined),
+  };
+}
+
+function failedAutofixRetry(): AutofixRecord {
+  return {
+    groupId: 'grp-failed-retry',
+    outcome: 'exhausted',
+    original_http_status: 400,
+    chain: [
+      {
+        attempt: 0,
+        origin: 'original',
+        request: { max_tokens: 5 },
+        http_status: 400,
+        error: { message: 'Unknown parameter' },
+        issue_id: 'issue-1',
+        patch_id: 'patch-1',
+        heal_attempt_id: 'heal-1',
+      },
+      {
+        attempt: 1,
+        origin: 'autofix',
+        request: { max_output_tokens: 5 },
+        http_status: 422,
+        error: { message: 'Retry also failed' },
+      },
+    ],
   };
 }
 
@@ -192,6 +219,42 @@ describe('proxy-response-handler', () => {
       );
     });
 
+    it('records the original and terminal retry when a patched request fails', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta();
+      const autofix = failedAutofixRetry();
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        422,
+        'Retry also failed',
+        undefined,
+        recorder as any,
+        'trace-retry',
+        null,
+        { 'x-request': '1' },
+        autofix,
+      );
+
+      expect(recorder.recordAutofixOriginal).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        autofix,
+        expect.objectContaining({ traceId: 'trace-retry', provider: 'openai' }),
+      );
+      expect(recorder.recordProviderError).toHaveBeenCalledWith(
+        testCtx,
+        422,
+        'Retry also failed',
+        expect.objectContaining({ autofix }),
+      );
+    });
+
     it('should handle fallback exhausted when failedFallbacks present and no fallbackFromModel', async () => {
       const { res, headers } = mockResponse();
       const recorder = mockRecorder();
@@ -234,9 +297,7 @@ describe('proxy-response-handler', () => {
       );
     });
 
-    it('stamps the Auto-fix audit onto the primary row when the fallback chain exhausted', async () => {
-      // Heal ran but neither it nor any fallback cleared the error: the primary
-      // failure is recorded once (here) and must carry the Auto-fix stamp.
+    it('keeps a no-patch audit unlinked when the fallback chain exhausted', async () => {
       const { res } = mockResponse();
       const recorder = mockRecorder();
       const meta = makeMeta();
@@ -281,8 +342,9 @@ describe('proxy-response-handler', () => {
         expect.any(String),
         expect.any(String),
         undefined,
-        expect.objectContaining({ autofix }),
+        expect.objectContaining({ autofix, httpStatus: 400 }),
       );
+      expect(recorder.recordAutofixOriginal).not.toHaveBeenCalled();
     });
 
     it('preserves provider context overflow code when fallback chain is exhausted', async () => {
@@ -530,10 +592,7 @@ describe('proxy-response-handler', () => {
       expect(recorder.recordFailedFallbacks).toHaveBeenCalled();
     });
 
-    it('stamps the Auto-fix audit onto the primary-failure row when heal-then-fallback ran', () => {
-      // Heal failed → fallback succeeded: the Auto-fix record must ride along to
-      // recordPrimaryFailure so the single fallback_error row carries the stamp,
-      // instead of a duplicate auto_fixed row being written elsewhere.
+    it('passes a no-patch audit to the plain primary failure', () => {
       const recorder = mockRecorder();
       const meta = makeMeta({ fallbackFromModel: 'gpt-4o', primaryErrorStatus: 400 });
       const autofix: AutofixRecord = {
@@ -561,6 +620,66 @@ describe('proxy-response-handler', () => {
         expect.any(String),
         undefined,
         expect.objectContaining({ autofix }),
+      );
+      expect(recorder.recordAutofixOriginal).not.toHaveBeenCalled();
+    });
+
+    it('records the original and failed Auto-fix retry before a successful fallback', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        fallbackFromModel: 'gpt-4o',
+        primaryErrorBody: 'Retry also failed',
+        primaryErrorStatus: 422,
+        primaryProvider: 'openai',
+        primaryAuthType: 'api_key',
+        primaryTenantProviderId: 'primary-key',
+        provider: 'anthropic',
+        model: 'claude-sonnet',
+      });
+      const autofix = failedAutofixRetry();
+
+      recordFallbackFailures(testCtx, meta, undefined, recorder as any, null, null, autofix);
+
+      expect(recorder.recordAutofixOriginal).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        autofix,
+        expect.objectContaining({
+          provider: 'openai',
+          authType: 'api_key',
+          tenantProviderId: 'primary-key',
+        }),
+      );
+      expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
+        testCtx,
+        expect.anything(),
+        'gpt-4o',
+        'Retry also failed',
+        expect.any(String),
+        'api_key',
+        expect.objectContaining({ autofix, httpStatus: 422 }),
+      );
+    });
+
+    it('does not attribute the Auto-fix original to the fallback provider', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        fallbackFromModel: 'gpt-4o',
+        primaryProvider: undefined,
+        provider: 'anthropic',
+        model: 'claude-sonnet',
+      });
+      const autofix = failedAutofixRetry();
+
+      recordFallbackFailures(testCtx, meta, undefined, recorder as any, null, null, autofix);
+
+      expect(recorder.recordAutofixOriginal).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        autofix,
+        expect.objectContaining({ provider: undefined }),
       );
     });
 
@@ -595,7 +714,12 @@ describe('proxy-response-handler', () => {
         'Provider returned HTTP 503',
         expect.any(String),
         undefined,
-        { provider: 'anthropic', reason: 'auto', callerAttribution: undefined },
+        expect.objectContaining({
+          provider: 'anthropic',
+          reason: 'auto',
+          callerAttribution: undefined,
+          httpStatus: 503,
+        }),
       );
     });
 
@@ -1038,7 +1162,7 @@ describe('proxy-response-handler', () => {
         res,
         undefined,
         undefined,
-        undefined,
+        expect.any(Function),
       );
     });
 
@@ -2188,7 +2312,7 @@ describe('proxy-response-handler', () => {
         healedAutofix,
       );
 
-      expect(recorder.recordAutofixOriginals).toHaveBeenCalledWith(
+      expect(recorder.recordAutofixOriginal).toHaveBeenCalledWith(
         testCtx,
         'gpt-4o',
         'standard',
@@ -2220,7 +2344,7 @@ describe('proxy-response-handler', () => {
       );
 
       expect(recorder.recordFallbackSuccess).toHaveBeenCalled();
-      expect(recorder.recordAutofixOriginals).not.toHaveBeenCalled();
+      expect(recorder.recordAutofixOriginal).not.toHaveBeenCalled();
     });
 
     it('does NOT record a separate auto_fixed original when healing EXHAUSTED but a fallback then succeeded', () => {
@@ -2265,12 +2389,12 @@ describe('proxy-response-handler', () => {
       expect(recorder.recordFallbackSuccess).toHaveBeenCalled();
       expect(recorder.recordSuccessMessage).not.toHaveBeenCalled();
       // …and no duplicate auto_fixed row is written for the failed primary.
-      expect(recorder.recordAutofixOriginals).not.toHaveBeenCalled();
+      expect(recorder.recordAutofixOriginal).not.toHaveBeenCalled();
     });
 
     it('does not record Auto-fix originals when healing did not heal (outcome !== healed)', () => {
       // An Auto-fix record that did not heal must not trigger
-      // recordAutofixOriginals — the guard is `outcome === 'healed'`.
+      // recordAutofixOriginal — the guard is the presence of a real retry.
       const recorder = mockRecorder();
       const meta = makeMeta();
       const emptyChainAutofix: AutofixRecord = {
@@ -2294,7 +2418,7 @@ describe('proxy-response-handler', () => {
         emptyChainAutofix,
       );
 
-      expect(recorder.recordAutofixOriginals).not.toHaveBeenCalled();
+      expect(recorder.recordAutofixOriginal).not.toHaveBeenCalled();
     });
 
     it('does not record Auto-fix originals when autofix is absent', () => {
@@ -2310,7 +2434,7 @@ describe('proxy-response-handler', () => {
         recorder as any,
       );
 
-      expect(recorder.recordAutofixOriginals).not.toHaveBeenCalled();
+      expect(recorder.recordAutofixOriginal).not.toHaveBeenCalled();
     });
   });
 

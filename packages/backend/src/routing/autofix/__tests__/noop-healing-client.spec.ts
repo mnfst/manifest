@@ -8,6 +8,7 @@ describe('NoopHealingClient', () => {
     traceId: 'trace-1',
     tenantId: 'tenant-1',
     provider: 'anthropic',
+    authType: 'subscription',
     api: 'chat_completions',
     request: { model: 'gpt', max_tokens: 100 },
     response: { statusCode: 400, error: { message: 'boom' } },

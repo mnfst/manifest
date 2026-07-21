@@ -1,4 +1,5 @@
 import type { ProxyApiMode } from '../proxy/proxy-types';
+import type { AuthType } from 'manifest-shared';
 
 /**
  * Wire contract for the Phoenix healing service (mnfst/phoenix). Mirrors
@@ -21,7 +22,7 @@ export interface PhoenixProviderResponse {
   error: PhoenixProviderError;
 }
 
-/** POST /api/heal request body. `provider` + `api` are the fingerprint dims. */
+/** POST /api/heal request body. Route identity scopes Phoenix's fingerprint. */
 export interface HealRequest {
   /**
    * Correlates every heal within one logical request's retry chain — Phoenix's
@@ -38,6 +39,7 @@ export interface HealRequest {
    */
   tenantId: string;
   provider: string;
+  authType: AuthType;
   api: ProxyApiMode;
   url?: string;
   request: Record<string, unknown>;
