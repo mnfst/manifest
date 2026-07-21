@@ -2,14 +2,18 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Agent } from '../../entities/agent.entity';
+import { AgentMessage } from '../../entities/agent-message.entity';
 import { Tenant } from '../../entities/tenant.entity';
+import { ManifestRequest } from '../../entities/request.entity';
 import { AutofixService } from './autofix.service';
+import { AutofixCohortController } from './autofix-cohort.controller';
 import { AutofixHealthProbe } from './autofix-health-probe';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
 import { HttpHealingClient } from './http-healing-client';
 import { MockHealingClient } from './mock-healing-client';
 import { NoopHealingClient } from './noop-healing-client';
 import { ObservationReporter } from './observation-reporter';
+import { DevAutofixSeederService } from './dev-autofix-seeder.service';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
@@ -22,11 +26,13 @@ const DEFAULT_TIMEOUT_MS = 10_000;
  *   loop can be exercised locally without an external Phoenix.
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([Agent, Tenant])],
+  imports: [TypeOrmModule.forFeature([Agent, AgentMessage, ManifestRequest, Tenant])],
+  controllers: [AutofixCohortController],
   providers: [
     AutofixService,
     AutofixHealthProbe,
     ObservationReporter,
+    DevAutofixSeederService,
     {
       provide: HEALING_CLIENT,
       useFactory: (config: ConfigService): HealingClient => {

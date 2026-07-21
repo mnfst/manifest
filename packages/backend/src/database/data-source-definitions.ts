@@ -4,6 +4,7 @@
 // the exact same migration set. Using an explicit array (not a dist glob) keeps
 // stale compiled .js from deleted migrations out of the run (deleteOutDir is off).
 import { AgentMessage } from '../entities/agent-message.entity';
+import { ManifestRequest } from '../entities/request.entity';
 import { ApiKey } from '../entities/api-key.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { Agent } from '../entities/agent.entity';
@@ -150,6 +151,7 @@ import { AddProviderAttemptOrdering1801100000000 } from './migrations/1801100000
 
 export const entities = [
   AgentMessage,
+  ManifestRequest,
   ApiKey,
   Tenant,
   Agent,

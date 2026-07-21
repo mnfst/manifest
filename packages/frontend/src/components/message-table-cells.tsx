@@ -19,7 +19,7 @@ import { PROVIDERS } from '../services/providers.js';
 import { getModelDisplayName } from '../services/model-display.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.jsx';
 import { authBadgeFor, authLabel } from './AuthBadge.js';
-import { platformIcon } from 'manifest-shared';
+import { platformIcon, isSuccessStatus } from 'manifest-shared';
 import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
 
 const MONO = 'font-family: var(--font-mono);';
@@ -81,7 +81,7 @@ export function FallbackIcon(): JSX.Element {
 
 const HEADER_LABELS: Record<MessageColumnKey, string> = {
   date: 'Date',
-  message: 'Message',
+  message: 'Request',
   cost: 'Cost',
   totalTokens: 'Tokens',
   input: 'Input',
@@ -90,7 +90,8 @@ const HEADER_LABELS: Record<MessageColumnKey, string> = {
   cache: 'Cache',
   duration: 'Latency',
   status: 'Status',
-  trigger: 'Trigger',
+  attempts: 'Attempts',
+  selfheal: 'Recovery attempts',
   agent: 'Harness',
 };
 
@@ -148,9 +149,9 @@ export function CostCell(item: MessageRow): JSX.Element {
           <span
             title={
               isPerRequestSubscription
-                ? `Per-request subscription cost: $${item.cost!.toFixed(6)}`
-                : item.cost != null && item.cost > 0 && item.cost < 0.01
-                  ? `$${item.cost.toFixed(6)}`
+                ? `Per-request subscription cost: $${Number(item.cost!).toFixed(6)}`
+                : item.cost != null && Number(item.cost) > 0 && Number(item.cost) < 0.01
+                  ? `$${Number(item.cost).toFixed(6)}`
                   : undefined
             }
           >
@@ -266,7 +267,7 @@ export function ModelCell(item: MessageRow): JSX.Element {
             {(item.routing_tier === 'direct' || item.routing_tier === 'default') && (
               <span class="tier-badge-tooltip__bubble">
                 {item.routing_tier === 'direct'
-                  ? 'The caller requested a specific model — no routing applied.'
+                  ? 'The caller requested a specific model. No routing applied.'
                   : 'Routed through the default tier.'}
               </span>
             )}
@@ -328,57 +329,42 @@ export function AgentCell(
   );
 }
 
-export function TriggerCell(item: MessageRow, onTriggerClick?: (id: string) => void): JSX.Element {
-  const isAutofix = item.autofix_role === 'retry';
-  const isFallback = !isAutofix && !!item.fallback_from_model;
+export function AttemptsCell(item: MessageRow): JSX.Element {
+  return <td style={MONO_XS}>{item.attempt_count ?? 1}</td>;
+}
 
-  if (isAutofix) {
-    return (
-      <td>
-        <span
-          class="trigger-badge trigger-badge--autofix"
-          title="Triggered by Auto-fix"
-          role={onTriggerClick ? 'button' : undefined}
-          onClick={
-            onTriggerClick
-              ? (e) => {
-                  e.stopPropagation();
-                  onTriggerClick(item.id);
-                }
-              : undefined
-          }
-        >
-          <AutofixIcon />
-          auto-fix
-        </span>
-      </td>
-    );
-  }
+export function SelfHealCell(item: MessageRow): JSX.Element {
+  const hasAutofix = !!item.autofix_applied;
+  const hasFallback = !!item.fallback_from_model;
 
-  if (isFallback) {
-    return (
-      <td>
-        <span
-          class="trigger-badge trigger-badge--fallback"
-          title="Triggered by fallback"
-          role={onTriggerClick ? 'button' : undefined}
-          onClick={
-            onTriggerClick
-              ? (e) => {
-                  e.stopPropagation();
-                  onTriggerClick(item.id);
-                }
-              : undefined
-          }
-        >
-          <FallbackIcon />
-          fallback
-        </span>
-      </td>
-    );
-  }
+  if (!hasAutofix && !hasFallback) return <td style={MONO_XS}>{'\u2014'}</td>;
 
-  return <td style={MONO_XS}>{'\u2014'}</td>;
+  return (
+    <td>
+      <span style="display: inline-flex; align-items: center; gap: 4px;">
+        {hasAutofix && (
+          <span
+            class="trigger-badge trigger-badge--autofix"
+            title="Auto-fix"
+            style="padding: 1px 3px;"
+          >
+            <AutofixIcon />
+            auto-fix
+          </span>
+        )}
+        {hasFallback && (
+          <span
+            class="trigger-badge trigger-badge--fallback"
+            title="Fallback"
+            style="padding: 1px 3px;"
+          >
+            <FallbackIcon />
+            fallback
+          </span>
+        )}
+      </span>
+    </td>
+  );
 }
 
 /**
@@ -404,22 +390,27 @@ function statusErrorDescriptor(item: MessageRow): string | null {
 
 /**
  * Two-state status pill: Success or Failed (with optional origin descriptor).
- * Everything that isn't `ok` is a failure — `fallback_error`, `auto_fixed`,
- * `rate_limited` are now expressed through the Trigger column, not here.
+ * Everything that isn't a success is a failure — the legacy `fallback_error`,
+ * `auto_fixed`, `rate_limited` values (and the canonical `failed`) are expressed
+ * through the Trigger column, not here. `isSuccessStatus` accepts both the legacy
+ * `ok` and the canonical `success`.
  */
 function describeStatusPill(item: MessageRow): {
   label: string;
+  title?: string;
   cls: string;
   limitAgent: string | null;
 } {
-  const isSuccess = item.status === 'ok';
+  const isSuccess = isSuccessStatus(item.status);
   if (isSuccess) {
     return { label: 'Success', cls: 'status-badge status-badge--ok', limitAgent: null };
   }
-  const descriptor = statusErrorDescriptor(item);
-  const label = descriptor ? `Failed: ${descriptor}` : 'Failed';
+  // The pill stays a plain "Failed": the cause (provider, setup, custom
+  // limit...) lives in the drawer's error message, and rides here only as a
+  // hover title so the column reads binary at a glance.
   return {
-    label,
+    label: 'Failed',
+    title: statusErrorDescriptor(item) ?? undefined,
     cls: 'status-badge status-badge--error',
     limitAgent: item.error_origin === 'policy' ? item.agent_name : null,
   };
@@ -461,7 +452,11 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
     );
   }
 
-  const badge = <span class={pill.cls}>{pill.label}</span>;
+  const badge = (
+    <span class={pill.cls} title={pill.title}>
+      {pill.label}
+    </span>
+  );
 
   return <td>{badge}</td>;
 }
@@ -502,8 +497,10 @@ export function renderCell(
       return DurationCell(item);
     case 'status':
       return StatusCell(item, ctx.agentName);
-    case 'trigger':
-      return TriggerCell(item, ctx.onTriggerClick);
+    case 'attempts':
+      return AttemptsCell(item);
+    case 'selfheal':
+      return SelfHealCell(item);
     case 'agent':
       return AgentCell(item, ctx.agentPlatformLookup);
   }

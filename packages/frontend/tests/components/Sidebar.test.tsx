@@ -122,9 +122,9 @@ describe("Sidebar — global nav links", () => {
     expect(screen.getByText("Overview")).toBeDefined();
   });
 
-  it("renders Messages link", () => {
+  it("renders Requests link", () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Messages")).toBeDefined();
+    expect(screen.getByText("Requests")).toBeDefined();
   });
 
   it("renders provider section links (Local resolves async, self-hosted)", async () => {
@@ -186,9 +186,9 @@ describe("Sidebar — global nav links", () => {
     expect(links).toEqual([
       "/overview",
       "/messages",
-      "/providers/subscriptions",
-      "/providers/usage-based",
       "/providers/local",
+      "/providers/usage-based",
+      "/providers/subscriptions",
       "/playground",
     ]);
     // The collapsible section replaces the old static link — there is no
@@ -519,12 +519,13 @@ describe("Sidebar — structure and interaction", () => {
 });
 
 describe("Sidebar — Auto-fix card", () => {
-  it("renders the Auto-fix discovery card with title, description, and external link", () => {
+  it("describes Auto-fix without claiming it is already enabled", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector(".sidebar-autofix")).not.toBeNull();
     expect(container.querySelector(".sidebar-autofix__new-badge")).toBeNull();
     expect(container.querySelector(".sidebar-autofix__title")?.textContent).toBe("Discover Auto-fix");
-    expect(container.textContent).toContain("Failing requests are automatically fixed");
+    expect(container.textContent).toContain("Auto-fix can repair eligible failing requests");
+    expect(container.textContent).not.toContain("Failing requests are automatically fixed");
     const link = container.querySelector(".sidebar-autofix__btn") as HTMLAnchorElement;
     expect(link?.textContent).toBe("Learn more");
     expect(link?.getAttribute("href")).toBe("https://manifest.build/autofix/");

@@ -34,6 +34,7 @@ vi.mock('../../src/services/api/providers.js', async () => {
   return {
     getProviders: (...a: unknown[]) => mocks.getGlobalProviders(...a),
     getProviderUsage: (...a: unknown[]) => mocks.getProviderUsage(...a),
+    connectionUsage: () => Promise.resolve([]),
     mergeUsage: actual.mergeUsage,
   };
 });

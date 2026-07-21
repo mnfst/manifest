@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentMessage } from '../entities/agent-message.entity';
+import { ManifestRequest } from '../entities/request.entity';
 import { Agent } from '../entities/agent.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
@@ -19,6 +20,7 @@ import { PlaygroundAgentService } from './playground-agent.service';
   imports: [
     TypeOrmModule.forFeature([
       AgentMessage,
+      ManifestRequest,
       Agent,
       PlaygroundRun,
       PlaygroundColumn,

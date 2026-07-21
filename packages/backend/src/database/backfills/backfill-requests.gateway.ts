@@ -638,6 +638,27 @@ export const FINALIZE_PENDING_REQUESTS_SQL = `
   WHERE r.id = last_attempt.request_id
 `;
 
+export const DELETE_STAGED_REJECTIONS_SQL = `
+  WITH batch AS (
+    SELECT pa.id
+    FROM "agent_messages" pa
+    JOIN "requests" r ON r.id = pa.request_id
+    WHERE pa.request_id = pa.id
+      AND pa.attempt_number IS NULL
+      AND pa.status NOT IN ('ok', 'success')
+      AND pa.error_origin IN (${REQUEST_LEVEL_ORIGINS})
+    ORDER BY pa.id
+    LIMIT $1
+    FOR UPDATE OF pa SKIP LOCKED
+  ), deleted AS (
+    DELETE FROM "agent_messages" pa
+    USING batch
+    WHERE pa.id = batch.id
+    RETURNING 1
+  )
+  SELECT count(*)::int AS n FROM deleted
+`;
+
 export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
   constructor(private readonly dataSource: DataSource) {}
 
@@ -807,6 +828,36 @@ export class TypeOrmRequestBackfillGateway implements RequestBackfillGateway {
     await this.inTransaction(timeouts, async (runner) => {
       await runner.query(FINALIZE_PENDING_REQUESTS_SQL);
     });
+  }
+
+  async finalizeTransition(
+    batchSize: number,
+    timeouts: RequestBackfillTimeouts,
+    reportProgress?: (deleted: number) => void,
+  ): Promise<number> {
+    let deleted = 0;
+    for (;;) {
+      const batch = await this.inTransaction(timeouts, async (runner) => {
+        const [{ n = 0 } = { n: 0 }] = (await runner.query(DELETE_STAGED_REJECTIONS_SQL, [
+          batchSize,
+        ])) as { n: number }[];
+        return n;
+      });
+      if (batch === 0) break;
+      deleted += batch;
+      reportProgress?.(deleted);
+    }
+
+    await this.inTransaction(timeouts, async (runner) => {
+      await runner.query(`SET LOCAL statement_timeout = '0'`);
+      await runner.query(
+        'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "FK_agent_messages_request"',
+      );
+      await runner.query(
+        'ALTER TABLE "agent_messages" VALIDATE CONSTRAINT "CHK_agent_messages_attempt_number_positive"',
+      );
+    });
+    return deleted;
   }
 
   private async inTransaction<T>(

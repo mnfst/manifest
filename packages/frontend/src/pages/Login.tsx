@@ -153,7 +153,7 @@ const Login: Component = () => {
             disabled={loading()}
             style="background:#f59e0b;color:#1f1400;font-weight:700;margin-bottom:0.75rem;"
           >
-            ⚡ Sign in as dev — admin@manifest.build
+            ⚡ Sign in as dev, admin@manifest.build
           </button>
         )}
         {error() && (

@@ -10,6 +10,7 @@ import { ThinkingBlockCache } from '../thinking-block-cache';
 import { ReasoningContentCache } from '../reasoning-content-cache';
 import { ResponsesSseError } from '../chatgpt-adapter';
 import type { DiscoveredModel } from '../../../model-discovery/model-fetcher';
+import type { StartProviderAttempt } from '../proxy-types';
 
 /**
  * Flush enough microtasks for the recorder's fire-and-forget chain to
@@ -455,6 +456,117 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Reason']).toBe('scored');
   });
 
+  it('keeps routing when pending Request recording fails and tracks the provider attempt', async () => {
+    jest.spyOn(recorder, 'recordPendingRequest').mockRejectedValueOnce(new Error('request write'));
+    proxyService.proxyRequest.mockImplementation(
+      async (opts: {
+        startProviderAttempt: (start: {
+          provider: string;
+          model: string;
+          authType?: string;
+          tenantProviderId?: string;
+        }) => {
+          pendingWrite: Promise<boolean>;
+          completeFailure?: (failure: {
+            status: number;
+            errorBody: string;
+            superseded: boolean;
+          }) => Promise<void>;
+        };
+      }) => {
+        const attempt = opts.startProviderAttempt({
+          provider: 'openai',
+          model: 'gpt-4o',
+          authType: 'api_key',
+          tenantProviderId: 'connection-1',
+        });
+        await attempt.pendingWrite;
+        await attempt.completeFailure?.({
+          status: 429,
+          errorBody: 'retrying',
+          superseded: true,
+        });
+        return {
+          forward: {
+            response: new Response('{"choices":[]}', {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            }),
+            isGoogle: false,
+            isAnthropic: false,
+            isChatGpt: false,
+          },
+          meta: {
+            tier: 'simple',
+            model: 'gpt-4o',
+            provider: 'openai',
+            confidence: 0.9,
+            reason: 'scored',
+          },
+        };
+      },
+    );
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'pending',
+        auth_type: 'api_key',
+        tenant_provider_id: 'connection-1',
+      }),
+    );
+    expect(mockMessageRepo.update).toHaveBeenCalledWith(
+      expect.objectContaining({ id: expect.any(String) }),
+      expect.objectContaining({ status: 'failed', error_http_status: 429, superseded: true }),
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  it('keeps routing when pending Attempt writes and completion writes fail', async () => {
+    jest
+      .spyOn(recorder, 'recordPendingProviderAttempt')
+      .mockRejectedValueOnce(new Error('attempt insert'));
+    jest
+      .spyOn(recorder, 'completePendingProviderFailure')
+      .mockRejectedValueOnce(new Error('attempt update'));
+    proxyService.proxyRequest.mockImplementation(
+      async (opts: { startProviderAttempt: StartProviderAttempt }) => {
+        const attempt = opts.startProviderAttempt({ provider: 'openai', model: 'gpt-4o' });
+        await attempt.pendingWrite;
+        await attempt.completeFailure?.({ status: 500, errorBody: 'failed', superseded: false });
+        return {
+          forward: {
+            response: new Response('{"choices":[]}', {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            }),
+            isGoogle: false,
+            isAnthropic: false,
+            isChatGpt: false,
+          },
+          meta: {
+            tier: 'simple',
+            model: 'gpt-4o',
+            provider: 'openai',
+            confidence: 0.9,
+            reason: 'scored',
+          },
+        };
+      },
+    );
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
   it('enforces the plan request limit before routing and records a Manifest policy row', async () => {
     const block = new HttpException(
       {
@@ -492,7 +604,7 @@ describe('ProxyController', () => {
     );
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
       expect.objectContaining({
-        status: 'error',
+        status: 'failed',
         error_http_status: 402,
         routing_reason: 'plan_request_limit_exceeded',
         error_origin: 'policy',
@@ -675,7 +787,7 @@ describe('ProxyController', () => {
     });
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
       expect.objectContaining({
-        status: 'error',
+        status: 'failed',
         error_http_status: 502,
         provider: 'openai',
         model: 'gpt-5.6-sol',
@@ -887,7 +999,7 @@ describe('ProxyController', () => {
 
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
       expect.objectContaining({
-        status: 'error',
+        status: 'failed',
         error_http_status: 400,
         error_message: errorBody,
         model: 'gpt-5.3-codex',
@@ -1035,7 +1147,7 @@ describe('ProxyController', () => {
     await new Promise((r) => setTimeout(r, 10));
 
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
-      expect.objectContaining({ input_tokens: 0, output_tokens: 0, status: 'ok' }),
+      expect.objectContaining({ input_tokens: 0, output_tokens: 0, status: 'success' }),
     );
   });
 
@@ -1069,7 +1181,12 @@ describe('ProxyController', () => {
     await new Promise((r) => setTimeout(r, 10));
 
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
-      expect.objectContaining({ input_tokens: 0, output_tokens: 0, status: 'ok', model: 'gpt-4o' }),
+      expect.objectContaining({
+        input_tokens: 0,
+        output_tokens: 0,
+        status: 'success',
+        model: 'gpt-4o',
+      }),
     );
   });
 
@@ -1110,7 +1227,7 @@ describe('ProxyController', () => {
     const insertCalls = mockMessageRepo.insert.mock.calls;
     const successRecord = insertCalls.find(
       (call: unknown[]) =>
-        (call[0] as Record<string, unknown>).status === 'ok' &&
+        (call[0] as Record<string, unknown>).status === 'success' &&
         (call[0] as Record<string, unknown>).input_tokens === 500,
     );
     expect(successRecord).toBeDefined();
@@ -1159,7 +1276,7 @@ describe('ProxyController', () => {
     const insertCalls = mockMessageRepo.insert.mock.calls;
     const successRecord = insertCalls.find(
       (call: unknown[]) =>
-        (call[0] as Record<string, unknown>).status === 'ok' &&
+        (call[0] as Record<string, unknown>).status === 'success' &&
         (call[0] as Record<string, unknown>).input_tokens === 800,
     );
     expect(successRecord).toBeDefined();
@@ -1494,7 +1611,8 @@ describe('ProxyController', () => {
         tenant_id: 'tenant-1',
         agent_id: 'agent-1',
         agent_name: 'test-agent',
-        status: 'rate_limited',
+        status: 'failed',
+        error_class: 'rate_limit',
         input_tokens: 0,
         output_tokens: 0,
       }),
@@ -1515,7 +1633,7 @@ describe('ProxyController', () => {
 
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
       expect.objectContaining({
-        status: 'error',
+        status: 'failed',
         error_message: 'Internal failure',
       }),
     );
@@ -1532,7 +1650,7 @@ describe('ProxyController', () => {
 
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
       expect.objectContaining({
-        status: 'error',
+        status: 'failed',
         error_message: 'Bad request',
       }),
     );
@@ -1734,7 +1852,7 @@ describe('ProxyController', () => {
 
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'rate_limited',
+          status: 'failed',
           tenant_id: 'tenant-1',
           error_http_status: 429,
           routing_reason: 'manifest_rate_limited',
@@ -1799,7 +1917,7 @@ describe('ProxyController', () => {
       expect(providerSpy).not.toHaveBeenCalled();
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'error',
+          status: 'failed',
           error_code: 'M300',
           error_http_status: 400,
           error_origin: 'request',
@@ -1900,7 +2018,7 @@ describe('ProxyController', () => {
       expect(successSpy).not.toHaveBeenCalled();
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'error',
+          status: 'failed',
           error_code: 'M100',
           error_message: '[🦚 Manifest M100] No anthropic API key yet.',
           error_origin: 'config',
@@ -1947,7 +2065,7 @@ describe('ProxyController', () => {
         expect.objectContaining({
           tenant_id: 'tenant-1',
           agent_id: 'agent-1',
-          status: 'error',
+          status: 'failed',
           error_message: errorBody,
           model: 'gpt-4o',
           routing_tier: 'standard',
@@ -1988,7 +2106,8 @@ describe('ProxyController', () => {
 
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'rate_limited',
+          status: 'failed',
+          error_class: 'rate_limit',
           model: 'gpt-4o',
           routing_tier: 'standard',
         }),
@@ -2026,7 +2145,7 @@ describe('ProxyController', () => {
 
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'error',
+          status: 'failed',
           model: 'claude-opus-4',
           routing_tier: 'complex',
         }),
@@ -2148,7 +2267,7 @@ describe('ProxyController', () => {
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           trace_id: 'abcdef1234567890abcdef1234567890',
-          status: 'error',
+          status: 'failed',
         }),
       );
     });
@@ -2519,7 +2638,7 @@ describe('ProxyController', () => {
       expect(res.json).not.toHaveBeenCalled();
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'error',
+          status: 'failed',
           error_http_status: 502,
           error_origin: 'provider',
           error_class: 'server_error',
@@ -3004,7 +3123,7 @@ describe('ProxyController', () => {
       expect(written.join('')).not.toContain('message_stop');
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'error',
+          status: 'failed',
           error_http_status: 502,
           error_message: 'Upstream provider returned an empty completion',
           provider: 'openai',
@@ -3056,7 +3175,7 @@ describe('ProxyController', () => {
       expect(written.join('')).not.toContain('message_stop');
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'error',
+          status: 'failed',
           error_http_status: 502,
           error_message: 'Upstream provider stream ended before a terminal event',
         }),
@@ -3118,7 +3237,7 @@ describe('ProxyController', () => {
       expect(written.join('')).not.toContain('message_stop');
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'error',
+          status: 'failed',
           error_http_status: 504,
           error_message: 'Upstream provider stream timed out',
           provider: 'openai',
@@ -3173,7 +3292,7 @@ describe('ProxyController', () => {
       expect(written.join('')).toContain('Upstream provider stream ended before a terminal event');
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'error',
+          status: 'failed',
           error_http_status: 502,
           provider: 'anthropic',
           model: 'claude-sonnet-4-6',
@@ -3449,7 +3568,8 @@ describe('ProxyController', () => {
       // Primary failure recorded with actual error body
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'fallback_error',
+          status: 'failed',
+          superseded: true,
           model: 'gemini-2.5-flash-lite',
           routing_tier: 'simple',
           trace_id: null,
@@ -3460,7 +3580,7 @@ describe('ProxyController', () => {
       // Fallback success recorded with auth_type and cost_usd
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          status: 'ok',
+          status: 'success',
           model: 'deepseek-chat',
           routing_tier: 'simple',
           fallback_from_model: 'gemini-2.5-flash-lite',
@@ -3526,13 +3646,15 @@ describe('ProxyController', () => {
       expect(mockMessageRepo.insert).toHaveBeenCalledWith([
         expect.objectContaining({
           model: 'deepseek-chat',
-          status: 'fallback_error',
+          status: 'failed',
+          superseded: true,
           fallback_from_model: 'gemini-flash',
           fallback_index: 0,
         }),
         expect.objectContaining({
           model: 'gpt-4o-mini',
-          status: 'fallback_error',
+          status: 'failed',
+          superseded: true,
           fallback_from_model: 'gemini-flash',
           fallback_index: 1,
         }),
@@ -3572,7 +3694,7 @@ describe('ProxyController', () => {
         expect.objectContaining({
           input_tokens: 0,
           output_tokens: 0,
-          status: 'ok',
+          status: 'success',
           model: 'gpt-4o',
         }),
       );
@@ -3659,14 +3781,15 @@ describe('ProxyController', () => {
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           model: 'gemini-flash',
-          status: 'fallback_error',
+          status: 'failed',
+          superseded: true,
           error_message: 'primary error',
         }),
       );
       expect(mockMessageRepo.insert).toHaveBeenCalledWith([
         expect.objectContaining({
           model: 'deepseek-chat',
-          status: 'error',
+          status: 'failed',
           fallback_from_model: 'gemini-flash',
           fallback_index: 0,
           error_message: 'auth fail',
@@ -3874,18 +3997,20 @@ describe('ProxyController', () => {
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           model: 'gemini-flash',
-          status: 'fallback_error',
+          status: 'failed',
+          superseded: true,
         }),
       );
       expect(mockMessageRepo.insert).toHaveBeenCalledWith([
         expect.objectContaining({
           model: 'deepseek-chat',
-          status: 'fallback_error',
+          status: 'failed',
+          superseded: true,
           fallback_index: 0,
         }),
         expect.objectContaining({
           model: 'gpt-4o-mini',
-          status: 'error',
+          status: 'failed',
           fallback_index: 1,
         }),
       ]);
@@ -3941,7 +4066,8 @@ describe('ProxyController', () => {
     expect(mockMessageRepo.insert).toHaveBeenCalledWith(
       expect.objectContaining({
         model: 'gemini-flash',
-        status: 'fallback_error',
+        status: 'failed',
+        superseded: true,
         auth_type: 'subscription',
       }),
     );

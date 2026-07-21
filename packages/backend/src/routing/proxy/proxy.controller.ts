@@ -36,6 +36,7 @@ import { sanitizeRequestHeaders } from './request-headers';
 import {
   buildMetaHeaders,
   buildOpenAiCompatibleError,
+  currentPrimaryAttemptNumber,
   handleProviderError,
   recordFallbackFailures,
   handleStreamResponse,
@@ -51,7 +52,7 @@ import {
   ManifestError,
   isRecordableManifestCode,
 } from '../../common/errors/manifest-error';
-import type { ProxyApiMode } from './proxy-types';
+import type { ProviderAttemptRef, ProxyApiMode, StartProviderAttempt } from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
 import { openAiModelId } from './openai-model-id';
@@ -211,6 +212,7 @@ export class ProxyController {
     const requestContext = extractAgentRequestContext(req.headers);
     const traceId = this.extractTraceId(req) ?? uuid().replace(/-/g, '');
     res.setHeader('x-manifest-trace-id', traceId);
+    const requestId = uuid();
     const callerAttribution = classifyCaller(req.headers);
     const requestHeaders = sanitizeRequestHeaders(req.headers);
     const isStream = body.stream === true;
@@ -234,6 +236,43 @@ export class ProxyController {
     });
     const startTime = Date.now();
 
+    // The Request exists as pending from ingress, before Manifest routes it or
+    // starts any provider call. A recording failure must not reject user traffic.
+    await this.recorder
+      .recordPendingRequest(req.ingestionContext, {
+        requestId,
+        timestamp: new Date(startTime).toISOString(),
+        traceId,
+        sessionKey,
+        requestedModel: this.extractRequestedModel(body),
+        callerAttribution,
+        requestHeaders,
+      })
+      .catch((e) => this.logger.warn(`Failed to record pending Request: ${e}`));
+
+    let attemptSequence = 0;
+    const startProviderAttempt: StartProviderAttempt = (start) => {
+      const startedAtMs = Date.now();
+      const attempt: ProviderAttemptRef = {
+        id: uuid(),
+        attemptNumber: ++attemptSequence,
+        startedAtMs,
+        startedAt: new Date(startedAtMs).toISOString(),
+        pendingWrite: Promise.resolve(false),
+      };
+      attempt.pendingWrite = this.recorder
+        .recordPendingProviderAttempt(req.ingestionContext, requestId, attempt, start)
+        .catch((e) => {
+          this.logger.warn(`Failed to record pending Provider Attempt: ${e}`);
+          return false;
+        });
+      attempt.completeFailure = ({ status, errorBody, superseded }) =>
+        this.recorder
+          .completePendingProviderFailure(attempt, status, errorBody, superseded)
+          .catch((e) => this.logger.warn(`Failed to complete Provider Attempt: ${e}`));
+      return attempt;
+    };
+
     // Plan request-limit gate. A 402 must reach ProxyExceptionFilter (friendly
     // upgrade message / real 402), but still gets a Manifest-policy row in
     // agent_messages so the Messages tab explains why the request never routed.
@@ -246,12 +285,14 @@ export class ProxyController {
         this.recordManifestBlockedRequest(
           err,
           req,
+          requestId,
           traceId,
           callerAttribution,
           requestHeaders,
           'plan_request_limit_exceeded',
           HttpStatus.PAYMENT_REQUIRED,
           'M204',
+          Date.now() - startTime,
         );
         throw err;
       }
@@ -261,6 +302,7 @@ export class ProxyController {
         res,
         clientAbort,
         headersSent,
+        requestId,
         traceId,
         callerAttribution,
         requestHeaders,
@@ -293,6 +335,7 @@ export class ProxyController {
         headers: req.headers,
         requestContext,
         apiMode,
+        startProviderAttempt,
       });
       currentMeta = meta;
 
@@ -302,7 +345,16 @@ export class ProxyController {
       const providerResponse = forward.response;
 
       if (meta.manifest_error_code && isCodingClientApiMode(apiMode)) {
-        this.recordManifestStub(req, meta, traceId, sessionKey, callerAttribution, requestHeaders);
+        this.recordManifestStub(
+          req,
+          meta,
+          requestId,
+          traceId,
+          sessionKey,
+          callerAttribution,
+          requestHeaders,
+          Date.now() - startTime,
+        );
         for (const [name, value] of Object.entries(metaHeaders)) res.setHeader(name, value);
         sendProxyProtocolError(
           res,
@@ -366,6 +418,8 @@ export class ProxyController {
             isAnthropic: forward.isAnthropic,
             headers: providerResponse.headers,
           },
+          requestId,
+          Date.now() - startTime,
         );
         return;
       }
@@ -378,6 +432,7 @@ export class ProxyController {
         callerAttribution,
         requestHeaders,
         autofix,
+        requestId,
       );
 
       let streamUsage = null;
@@ -425,7 +480,16 @@ export class ProxyController {
       // proxy as an HTTP 200 assistant message, so it lands here — but it is a
       // Manifest failure, not a completion. Record it as one.
       if (meta.manifest_error_code) {
-        this.recordManifestStub(req, meta, traceId, sessionKey, callerAttribution, requestHeaders);
+        this.recordManifestStub(
+          req,
+          meta,
+          requestId,
+          traceId,
+          sessionKey,
+          callerAttribution,
+          requestHeaders,
+          Date.now() - startTime,
+        );
       } else if (streamIntegrityFailure) {
         const failure: MessagesStreamFailure = streamIntegrityFailure;
         this.logger.error(
@@ -433,6 +497,11 @@ export class ProxyController {
         );
         this.recorder
           .recordProviderError(req.ingestionContext, failure.status, failure.message, {
+            requestId,
+            attemptNumber: currentPrimaryAttemptNumber(autofix),
+            attempt: meta.attempt,
+            skipAttempt: meta.providerCallStarted === false,
+            requestDurationMs: Date.now() - startTime,
             model: meta.model,
             provider: meta.provider,
             tier: meta.tier,
@@ -471,6 +540,9 @@ export class ProxyController {
           callerAttribution,
           requestHeaders,
           autofix,
+          requestId,
+          currentPrimaryAttemptNumber(autofix) +
+            (meta.fallbackFromModel ? (failedFallbacks?.length ?? 0) + 1 : 0),
         );
       }
     } catch (err: unknown) {
@@ -480,11 +552,13 @@ export class ProxyController {
         res,
         clientAbort,
         headersSent,
+        requestId,
         traceId,
         callerAttribution,
         requestHeaders,
         apiMode,
         currentMeta,
+        startTime,
       );
     } finally {
       if (slotAcquired) this.rateLimiter.releaseSlot(tenantId);
@@ -500,15 +574,18 @@ export class ProxyController {
   private recordManifestStub(
     req: Request & { ingestionContext: IngestionContext },
     meta: RoutingMeta,
+    requestId: string,
     traceId: string | undefined,
     sessionKey: string | undefined,
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
+    durationMs: number,
   ): void {
     const code = meta.manifest_error_code;
     if (!code || !isRecordableManifestCode(code)) return;
     this.recorder
       .recordManifestBlockedRequest(req.ingestionContext, {
+        requestId,
         errorMessage: meta.manifest_error_message ?? formatManifestError(code),
         errorCode: code,
         reason: MANIFEST_CODE_TO_REASON[code],
@@ -517,6 +594,7 @@ export class ProxyController {
         sessionKey,
         callerAttribution,
         requestHeaders,
+        durationMs,
       })
       .catch((e) => this.logger.warn(`Failed to record Manifest stub: ${e}`));
   }
@@ -527,11 +605,13 @@ export class ProxyController {
     res: ExpressResponse,
     clientAbort: AbortController,
     headersSent: boolean,
+    requestId: string,
     traceId: string | undefined,
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
     apiMode: ProxyApiMode,
     meta?: RoutingMeta,
+    startTime?: number,
   ): void {
     if (clientAbort.signal.aborted) {
       if (!res.writableEnded) res.end();
@@ -563,12 +643,14 @@ export class ProxyController {
         this.recordManifestBlockedRequest(
           err,
           req,
+          requestId,
           traceId,
           callerAttribution,
           requestHeaders,
           MANIFEST_CODE_TO_REASON[err.code],
           status,
           err.code,
+          startTime == null ? undefined : Date.now() - startTime,
         );
       }
     } else if (
@@ -580,18 +662,24 @@ export class ProxyController {
       this.recordManifestBlockedRequest(
         err,
         req,
+        requestId,
         traceId,
         callerAttribution,
         requestHeaders,
         MANIFEST_CODE_TO_REASON.M500,
         status,
         'M500',
+        startTime == null ? undefined : Date.now() - startTime,
       );
     } else {
       this.recorder
         .recordProviderError(req.ingestionContext, status, providerErrorBody, {
+          requestId,
           ...(meta
             ? {
+                attempt: meta.attempt,
+                attemptNumber: meta.attempt?.attemptNumber,
+                skipAttempt: meta.providerCallStarted === false,
                 model: meta.model,
                 provider: meta.provider,
                 tier: meta.tier,
@@ -611,6 +699,7 @@ export class ProxyController {
           traceId,
           callerAttribution,
           requestHeaders,
+          requestDurationMs: startTime == null ? undefined : Date.now() - startTime,
         })
         .catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
     }
@@ -764,16 +853,19 @@ export class ProxyController {
   private recordManifestBlockedRequest(
     err: unknown,
     req: Request & { ingestionContext: IngestionContext },
+    requestId: string,
     traceId: string | undefined,
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
     reason: ManifestBlockedRequestReason,
     httpStatus?: number,
     errorCode?: ManifestErrorCode,
+    durationMs?: number,
   ): void {
     const body = req.body as Record<string, unknown> | undefined;
     this.recorder
       .recordManifestBlockedRequest(req.ingestionContext, {
+        requestId,
         httpStatus: httpStatus ?? (err instanceof HttpException ? err.getStatus() : 500),
         // The raw internal message, not the friendly M500 text the caller saw —
         // the dashboard row is where you go to find out what actually broke.
@@ -785,6 +877,7 @@ export class ProxyController {
         sessionKey: this.extractSessionKey(req),
         callerAttribution,
         requestHeaders,
+        durationMs,
       })
       .catch((e) => this.logger.warn(`Failed to record Manifest-blocked request: ${e}`));
   }

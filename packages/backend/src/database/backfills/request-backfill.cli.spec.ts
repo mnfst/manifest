@@ -85,8 +85,18 @@ describe('main', () => {
     const dataSource = fakeDataSource();
     const coordinator = {
       runUntilComplete: jest.fn(async () => undefined),
-      runTailOnce: jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
-      hasUnlinkedAttempts: jest.fn().mockResolvedValueOnce(true).mockResolvedValueOnce(false),
+      runTailOnce: jest
+        .fn()
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true),
+      hasUnlinkedAttempts: jest
+        .fn()
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false),
+      runTransitionFinalizeOnce: jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
     };
     const sleep = jest.fn(async () => undefined);
     const logger = { log: jest.fn(), error: jest.fn() };
@@ -100,12 +110,15 @@ describe('main', () => {
     });
 
     expect(coordinator.runUntilComplete).toHaveBeenCalled();
-    expect(coordinator.hasUnlinkedAttempts).toHaveBeenCalledTimes(2);
+    expect(coordinator.hasUnlinkedAttempts).toHaveBeenCalledTimes(4);
     expect(sleep).toHaveBeenNthCalledWith(1, REQUEST_BACKFILL_GENERIC_GRACE_MS);
     expect(sleep).toHaveBeenNthCalledWith(2, REQUEST_BACKFILL_LOCK_RETRY_MS);
-    expect(coordinator.runTailOnce).toHaveBeenCalledTimes(2);
+    expect(sleep).toHaveBeenNthCalledWith(3, REQUEST_BACKFILL_LOCK_RETRY_MS);
+    expect(sleep).toHaveBeenNthCalledWith(4, REQUEST_BACKFILL_GENERIC_GRACE_MS);
+    expect(coordinator.runTailOnce).toHaveBeenCalledTimes(3);
+    expect(coordinator.runTransitionFinalizeOnce).toHaveBeenCalledTimes(2);
     expect(logger.log).toHaveBeenLastCalledWith(
-      'request/provider-attempt backfill and catch-up complete',
+      'request/provider-attempt backfill, catch-up, and transition complete',
     );
     expect(dataSource.destroy).toHaveBeenCalled();
   });
@@ -116,6 +129,7 @@ describe('main', () => {
       runUntilComplete: jest.fn(async () => undefined),
       runTailOnce: jest.fn(),
       hasUnlinkedAttempts: jest.fn(),
+      runTransitionFinalizeOnce: jest.fn(),
     };
     const logger = { log: jest.fn(), error: jest.fn() };
 
@@ -124,6 +138,7 @@ describe('main', () => {
     expect(coordinator.runUntilComplete).toHaveBeenCalledTimes(1);
     expect(coordinator.hasUnlinkedAttempts).not.toHaveBeenCalled();
     expect(coordinator.runTailOnce).not.toHaveBeenCalled();
+    expect(coordinator.runTransitionFinalizeOnce).not.toHaveBeenCalled();
     expect(logger.log).toHaveBeenLastCalledWith(
       'request/provider-attempt historical backfill complete; live-write delta deferred',
     );
@@ -150,6 +165,7 @@ describe('main', () => {
       }),
       runTailOnce: jest.fn(),
       hasUnlinkedAttempts: jest.fn(),
+      runTransitionFinalizeOnce: jest.fn(),
     };
 
     await expect(main({ dataSource, coordinator })).rejects.toBe(failure);
@@ -163,6 +179,7 @@ describe('main', () => {
       runUntilComplete: jest.fn(async () => undefined),
       runTailOnce: jest.fn(async () => true),
       hasUnlinkedAttempts: jest.fn().mockResolvedValueOnce(true).mockResolvedValueOnce(false),
+      runTransitionFinalizeOnce: jest.fn(async () => true),
     };
     try {
       const result = main({
