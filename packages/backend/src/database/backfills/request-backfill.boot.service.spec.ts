@@ -7,7 +7,6 @@ import {
   REQUEST_BACKFILL_LOCK_KEY,
   REQUEST_BACKFILL_LOCK_RETRY_MS,
   REQUEST_BACKFILL_NAME,
-  REQUEST_BACKFILL_TAIL_INTERVAL_MS,
   RequestBackfillBootService,
 } from './request-backfill.boot.service';
 
@@ -95,8 +94,10 @@ describe('RequestBackfillBootService', () => {
     expect(directDataSource.getRepository).toHaveBeenCalledWith(BackfillState);
     expect(providerBackfill).toHaveBeenCalledTimes(1);
     expect(appDataSource.createQueryRunner).not.toHaveBeenCalled();
+    expect(directDataSource.query).not.toHaveBeenCalled();
+    expect(directDataSource.destroy).toHaveBeenCalledTimes(1);
     await service.onApplicationShutdown();
-    expect(directDataSource.destroy).toHaveBeenCalled();
+    expect(directDataSource.destroy).toHaveBeenCalledTimes(1);
   });
 
   it('closes a Cloud direct pool that finishes connecting during shutdown', async () => {
@@ -131,50 +132,6 @@ describe('RequestBackfillBootService', () => {
 
     expect(directDataSource.destroy).toHaveBeenCalledTimes(1);
     expect(directDataSource.getRepository).not.toHaveBeenCalled();
-  });
-
-  it('does not leave a Cloud tail sweep running when shutdown races with startup', async () => {
-    jest.useFakeTimers();
-    process.env['NODE_ENV'] = 'production';
-    process.env['MANIFEST_MODE'] = 'cloud';
-    process.env['MIGRATION_DATABASE_URL'] = 'postgres://direct/cloud';
-    let finishCompatibilityCheck!: () => void;
-    const directState = makeState(true);
-    const directDataSource = {
-      initialize: jest.fn(async () => undefined),
-      destroy: jest.fn(async () => undefined),
-      isInitialized: true,
-      getRepository: jest.fn(() => directState.repo),
-      query: jest.fn(
-        () =>
-          new Promise<Array<{ present: boolean }>>((resolve) => {
-            finishCompatibilityCheck = () => resolve([{ present: true }]);
-          }),
-      ),
-    } as unknown as DataSource;
-    jest
-      .spyOn(requestBackfillDataSource, 'createRequestBackfillDataSource')
-      .mockReturnValue(directDataSource);
-    const service = new RequestBackfillBootService(
-      { createQueryRunner: jest.fn() } as unknown as DataSource,
-      makeState(false).repo,
-    );
-
-    try {
-      service.onApplicationBootstrap();
-      await jest.advanceTimersByTimeAsync(0);
-      expect(directDataSource.query).toHaveBeenCalled();
-
-      await service.onApplicationShutdown();
-      finishCompatibilityCheck();
-      await jest.advanceTimersByTimeAsync(0);
-
-      expect(jest.getTimerCount()).toBe(0);
-      expect(directDataSource.destroy).toHaveBeenCalledTimes(1);
-    } finally {
-      jest.clearAllTimers();
-      jest.useRealTimers();
-    }
   });
 
   it('retries a self-hosted startup failure without requiring a restart or direct URL', async () => {
@@ -596,7 +553,7 @@ describe('RequestBackfillBootService', () => {
     expect(lock.release).toHaveBeenCalled();
   });
 
-  it('starts, reports, and stops the delta tail timer while agent_messages exists', async () => {
+  it('does not schedule delta tail sweeps after the historical pass', async () => {
     jest.useFakeTimers();
     process.env['NODE_ENV'] = 'production';
     process.env['MANIFEST_MODE'] = 'selfhosted';
@@ -605,36 +562,17 @@ describe('RequestBackfillBootService', () => {
       createQueryRunner: jest.fn(),
     } as unknown as DataSource;
     const service = new RequestBackfillBootService(ds, makeState(true).repo);
-    const tail = jest.spyOn(service, 'runTailOnce').mockRejectedValue(new Error('tail failed'));
-
-    service.onApplicationBootstrap();
-    await jest.advanceTimersByTimeAsync(0);
-    await jest.advanceTimersByTimeAsync(REQUEST_BACKFILL_TAIL_INTERVAL_MS);
-
-    expect(tail).toHaveBeenCalledTimes(1);
-    expect(errorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('request backfill tail sweep failed'),
-    );
-    await service.onApplicationShutdown();
-    jest.clearAllTimers();
-    jest.useRealTimers();
-  });
-
-  it('does not schedule tail sweeps when the attempt table is absent', async () => {
-    process.env['NODE_ENV'] = 'production';
-    process.env['MANIFEST_MODE'] = 'selfhosted';
-    const ds = {
-      query: jest.fn().mockResolvedValue([{ present: false }]),
-      createQueryRunner: jest.fn(),
-    } as unknown as DataSource;
-    const service = new RequestBackfillBootService(ds, makeState(true).repo);
     const tail = jest.spyOn(service, 'runTailOnce');
 
     service.onApplicationBootstrap();
-    await new Promise((resolve) => setImmediate(resolve));
+    await jest.advanceTimersByTimeAsync(0);
+    await jest.advanceTimersByTimeAsync(5 * 60_000);
 
-    expect(ds.query).toHaveBeenCalledTimes(1);
+    expect(ds.query).not.toHaveBeenCalled();
     expect(tail).not.toHaveBeenCalled();
+    expect(jest.getTimerCount()).toBe(0);
     await service.onApplicationShutdown();
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 });
