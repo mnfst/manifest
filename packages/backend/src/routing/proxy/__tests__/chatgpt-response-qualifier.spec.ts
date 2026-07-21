@@ -324,7 +324,10 @@ describe('qualifyChatGptResponse', () => {
 
     expect(response.status).toBe(502);
     await expect(response.json()).resolves.toMatchObject({
-      error: { message: 'socket closed', code: 'upstream_stream_error' },
+      error: {
+        message: 'ChatGPT Codex stream failed before producing output',
+        code: 'upstream_stream_error',
+      },
     });
   });
 

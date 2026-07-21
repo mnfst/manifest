@@ -360,9 +360,13 @@ export async function qualifyChatGptResponse(
       );
       if (qualified) return qualified;
     }
-  } catch (error) {
+  } catch {
     await discard(reader);
-    const message = error instanceof Error ? error.message : String(error);
-    return errorResponse(response, 502, message, 'upstream_stream_error');
+    return errorResponse(
+      response,
+      502,
+      'ChatGPT Codex stream failed before producing output',
+      'upstream_stream_error',
+    );
   }
 }

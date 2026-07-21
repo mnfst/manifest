@@ -313,6 +313,7 @@ export class ProviderClient {
             ...result,
             response: await qualifyChatGptResponse(result.response, {
               downstreamFormat: isResponses ? 'responses' : 'chat-completions',
+              timeoutMs: PROVIDER_TIMEOUT_MS,
             }),
           }
         : result;
