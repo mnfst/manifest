@@ -99,6 +99,7 @@ validate_positive_integer() {
 
 PROVIDER_TIMEOUT_MS="${PROVIDER_TIMEOUT_MS:-180000}"
 STREAM_WARMUP_MS="${STREAM_WARMUP_MS:-15000}"
+CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS="${CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS:-60000}"
 validate_positive_integer PORT "$PORT"
 if ((PORT > 65535)); then
   echo "error: PORT must be at most 65535, got '$PORT'." >&2
@@ -106,6 +107,7 @@ if ((PORT > 65535)); then
 fi
 validate_positive_integer PROVIDER_TIMEOUT_MS "$PROVIDER_TIMEOUT_MS"
 validate_positive_integer STREAM_WARMUP_MS "$STREAM_WARMUP_MS"
+validate_positive_integer CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS "$CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS"
 
 component_version() {
   local component="$1"
@@ -278,6 +280,7 @@ cmd_up() {
     --env OLLAMA_HOST="$ollama_host" \
     --env PROVIDER_TIMEOUT_MS="$PROVIDER_TIMEOUT_MS" \
     --env STREAM_WARMUP_MS="$STREAM_WARMUP_MS" \
+    --env CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS="$CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS" \
     --env SEED_DATA=false \
     --env NODE_ENV=production \
     --env MANIFEST_MODE="${MANIFEST_MODE:-selfhosted}" \

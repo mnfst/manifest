@@ -321,7 +321,7 @@ async handler(@CurrentUser() user: AuthUser) {
 ```
 User (Better Auth) ──→ Tenant ──→ Agent ──→ AgentApiKey (mnfst_*)
                                     │
-                                    └──→ requests ──→ provider_attempts (telemetry data)
+                                    └──→ requests ──→ agent_messages (telemetry data)
 ```
 
 - **Tenant** (`tenants` table): Created automatically on first agent creation. `tenant.owner_user_id` = `user.id` is the ONLY user→tenant link (resolved through `TenantCacheService`); `tenant.name` mirrors it for display until repurposed as a slug.
@@ -407,6 +407,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `RUN_MIGRATIONS_ON_BOOT` — Whether the app runs pending migrations at startup. Default: `true`; set `false` for multi-replica deploys where only one instance should migrate.
 - `PROVIDER_TIMEOUT_MS` — Per-attempt timeout (ms) for upstream provider requests. Default: `180000`
 - `STREAM_WARMUP_MS` — Timeout (ms) to wait for the first chunk of a streaming response before trying a fallback. Default: `15000`
+- `CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS` — Timeout (ms) to wait for deliverable ChatGPT Codex text or tool output. Default: `60000`
 - `EMAIL_PROVIDER` — Unified email provider: `resend` (recommended), `mailgun`, or `sendgrid`. Used for Better Auth transactional emails and threshold alerts.
 - `EMAIL_API_KEY` — API key for the configured `EMAIL_PROVIDER`.
 - `EMAIL_DOMAIN` — Sending domain (required for Mailgun).
@@ -437,7 +438,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 Manifest terminology is directional:
 
 - A **Manifest Request** is one logical request from an agent to Manifest and lives in `requests`.
-- A **Provider Attempt** is one request from Manifest to an AI provider and lives in `provider_attempts`.
+- A **Provider Attempt** is one request from Manifest to an AI provider and lives in `agent_messages`.
 - A **Tenant** is a user's data boundary. It is created from `user.id` on first agent creation.
 - An **Agent** is an AI agent owned by a tenant. It has a unique OTLP ingest key.
 
@@ -445,7 +446,7 @@ Manifest terminology is directional:
 
 ### Legacy message/attempt projection contract
 
-Any backend endpoint that returns provider-attempt fields rendered by the frontend `MessageTable` / `ModelCell` component **must** project its SELECT through `selectMessageRowColumns()` in `packages/backend/src/analytics/services/query-helpers.ts`. The helper assumes the `provider_attempts` alias `at` and is the single source of truth for the columns the shared badge/provider/auth rendering reads (including `specificity_category`, `routing_tier`, `routing_reason`, `auth_type`, `fallback_from_model`). Request-level fields still come from `requests`; do not copy attempt fields onto requests to satisfy this legacy UI contract.
+Any backend endpoint that returns provider-attempt fields rendered by the frontend `MessageTable` / `ModelCell` component **must** project its SELECT through `selectMessageRowColumns()` in `packages/backend/src/analytics/services/query-helpers.ts`. The helper assumes the `agent_messages` alias `at` and is the single source of truth for the columns the shared badge/provider/auth rendering reads (including `specificity_category`, `routing_tier`, `routing_reason`, `auth_type`, `fallback_from_model`). Request-level fields still come from `requests`; do not copy attempt fields onto requests to satisfy this legacy UI contract.
 
 - Adding a new column the UI needs → edit the helper once, never duplicate the projection across query services.
 - Endpoint-specific fields that don't belong to the shared `MessageRow` contract (e.g. `description`, `service_type`, `cache_read_tokens`, `duration_ms` for the full Messages log) stay as explicit `.addSelect` chained after the helper call.
@@ -462,7 +463,7 @@ Every failure Manifest itself produces — as opposed to one a provider returned
 
 **Every code is recorded on a Manifest Request**, with four exceptions. `M001`, `M002`, `M003`, and `M005` are raised by `AgentKeyAuthGuard` before a key resolves to a tenant, so there is no agent to attribute a row to — they're listed in `UNRECORDABLE_MANIFEST_CODES` and write nothing. (`M004`, an expired key, *does* resolve an agent, so the guard stashes it on `request.manifestErrorContext` and `ProxyExceptionFilter` records it.) `__tests__/manifest-error.spec.ts` fails if a new code is neither mapped in `MANIFEST_CODE_TO_REASON` nor declared unrecordable.
 
-**`ProxyMessageRecorder.recordManifestBlockedRequest()` is the only writer of Manifest-authored rejected requests.** It creates one `requests` row, stamps `requests.error_code` plus the *rendered* message (the `[🦚 Manifest M100] No anthropic API key yet. Add one here: …` text the caller saw — not a generic stand-in), and creates zero `provider_attempts` rows because no provider was contacted. Do not route these through `recordSuccessMessage` or manufacture a `provider='manifest'` attempt.
+**`ProxyMessageRecorder.recordManifestBlockedRequest()` is the only writer of Manifest-authored rejected requests.** It creates one `requests` row, stamps `requests.error_code` plus the *rendered* message (the `[🦚 Manifest M100] No anthropic API key yet. Add one here: …` text the caller saw — not a generic stand-in), and creates zero `agent_messages` rows because no provider was contacted. Do not route these through `recordSuccessMessage` or manufacture a `provider='manifest'` attempt.
 
 `M500` is the deliberate exception to "store what the caller saw": the caller gets the friendly "Something broke on our end", while the row stores the raw internal error message. The dashboard is where you go to find out what actually broke, so don't "fix" it to match.
 
@@ -501,7 +502,7 @@ send one aggregate usage report per 24h to `TELEMETRY_ENDPOINT` (default
 
 - `schema_version`, `install_id` (random UUIDv4, persisted once in
   `install_metadata`), `manifest_version`
-- Last 24h aggregates from `provider_attempts` (payload field names remain legacy for protocol compatibility): `messages_total`,
+- Last 24h aggregates from `agent_messages` (payload field names remain legacy for protocol compatibility): `messages_total`,
   `messages_by_provider` (bucketed via `PROVIDER_BY_ID_OR_ALIAS` — unknown
   values collapse to `"custom"`, NULL to `"unknown"`), `messages_by_tier`
   (`simple` / `standard` / `complex` / `reasoning`, NULL → `"unknown"`),
@@ -634,7 +635,7 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 - `PATCH /api/heal-attempts/{healAttemptId}` — report the retry outcome `{retryStatusCode, error?}` (`error` required when ≥400). Fire-and-forget; Phoenix decides succeeded/failed. Only possible when a patch handed out a `healAttemptId` — `no_patch`/`resolving` carry none, so those outcomes are **not** reported.
 - `traceId` is stable across the logical request (Manifest reuses the internal `groupId`).
 
-**Recording separates the request verdict from attempt audit.** `requests.autofix_status` is the one outcome for the logical request; only `retry_succeeded` means the request was recovered by Auto-fix. Actual provider calls remain `provider_attempts` rows with their own `status`. When Manifest sends a patched retry, the related attempt rows use `autofix_applied`, `autofix_group_id`, `autofix_role`, and `autofix_operations`; Phoenix's decision metadata lives in `autofix_decision` (`{status,issueId,patchId,healAttemptId,explanation}`). A Phoenix consultation that produces no patched retry must not create a fake provider attempt. The rolling-deploy `agent_messages` view exposes `autofix_decision` under its old alias `autofix_phoenix`; new code must not use that alias.
+**Recording separates the request verdict from attempt audit.** `requests.autofix_status` is the one outcome for the logical request; only `retry_succeeded` means the request was recovered by Auto-fix. Actual provider calls remain `agent_messages` rows with their own `status`. When Manifest sends a patched retry, the related attempt rows use `autofix_applied`, `autofix_group_id`, `autofix_role`, and `autofix_operations`; Phoenix's decision metadata is exposed by the entity as `autofix_decision` (`{status,issueId,patchId,healAttemptId,explanation}`) and mapped to the retained physical column `autofix_phoenix`. A Phoenix consultation that produces no patched retry must not create a fake provider attempt.
 
 **Frontend:** `pages/SettingsAutofixSection.tsx` — a single on/off toggle in the per-agent **Settings** page (shown for every agent; `services/api/routing.ts` `getAutofix`/`updateAutofix`; `.settings-switch` styling). `components/MessageDetails.tsx` renders the Auto-fix panel + sibling link.
 
@@ -714,7 +715,7 @@ All pricing comes from a single source:
 | **Model Prices** | `ModelPricingCacheService.getAll()` | All models from OpenRouter cache, attributed to real providers |
 | **Routing (available models)** | `ModelDiscoveryService.getModelsForAgent()` | Only models from user's connected providers (discovered via native API) |
 | **Routing (tier assignments)** | `TierService` (`routing-core/route-helpers.ts` `effectiveRoute`/`unambiguousRoute`) | Auto-assigned from discovered models based on quality/price scoring |
-| **Requests / Overview attempt details** | Stored in `provider_attempts.model` column | Raw model name from telemetry, display name resolved via `model-display.ts` cache |
+| **Requests / Overview attempt details** | Stored in `agent_messages.model` column | Raw model name from telemetry, display name resolved via `model-display.ts` cache |
 
 ## Releases
 

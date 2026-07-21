@@ -1,4 +1,5 @@
 import { ProviderClient } from '../provider-client';
+import { ManifestError } from '../../../common/errors/manifest-error';
 import { buildCustomEndpoint } from '../provider-endpoints';
 import { ThinkingBlockCache, type ThinkingBlockRouteContext } from '../thinking-block-cache';
 import type { ProviderModelRegistryService } from '../../../model-discovery/provider-model-registry.service';
@@ -7,11 +8,18 @@ const mockFetch = jest.fn();
 (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch;
 
 describe('ProviderClient', () => {
+  const previousMode = process.env['MANIFEST_MODE'];
   let client: ProviderClient;
 
   beforeEach(() => {
+    process.env['MANIFEST_MODE'] = 'selfhosted';
     client = new ProviderClient();
     mockFetch.mockReset();
+  });
+
+  afterAll(() => {
+    if (previousMode === undefined) delete process.env['MANIFEST_MODE'];
+    else process.env['MANIFEST_MODE'] = previousMode;
   });
 
   const body = {
@@ -20,6 +28,25 @@ describe('ProviderClient', () => {
   };
 
   describe('OpenAI-compatible providers', () => {
+    it('refuses to dial a built-in local provider from cloud', async () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+
+      const request = client.forward({
+        provider: 'ollama',
+        apiKey: '',
+        model: 'qwen2.5:0.5b',
+        body,
+        stream: false,
+      });
+
+      await expect(request).rejects.toMatchObject({ code: 'M303' });
+      await expect(request).rejects.toBeInstanceOf(ManifestError);
+      await expect(request).rejects.toThrow(
+        'Built-in local providers are only available in self-hosted Manifest',
+      );
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
     it('builds correct URL and headers for openai', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -1368,6 +1395,48 @@ describe('ProviderClient', () => {
       expect(result.isChatGpt).toBe(false);
       const url = mockFetch.mock.calls[0][0] as string;
       expect(url).toContain('api.openai.com');
+    });
+
+    it('rejects an HTTP 200 Codex stream that completes without output', async () => {
+      mockFetch.mockResolvedValue(
+        new Response('event: response.completed\ndata: {"response":{"output":[]}}\n\n', {
+          status: 200,
+          headers: { 'content-type': 'text/event-stream' },
+        }),
+      );
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'oauth-token',
+        model: 'gpt-5',
+        body,
+        stream: true,
+        authType: 'subscription',
+      });
+
+      expect(result.response.status).toBe(502);
+      await expect(result.response.json()).resolves.toMatchObject({
+        error: { code: 'empty_response' },
+      });
+    });
+
+    it('does not apply Codex stream qualification to API-key Responses requests', async () => {
+      const upstream = new Response('{"output":[]}', {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+      mockFetch.mockResolvedValue(upstream);
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-5.3-codex',
+        body,
+        stream: false,
+      });
+
+      expect(result.response).toBe(upstream);
+      expect(result.response.status).toBe(200);
     });
   });
 

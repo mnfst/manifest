@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, Optional } from '@nestjs/common';
 import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
 import { XAI_RESPONSES_ONLY_RE } from '../../common/constants/xai-models';
 import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './provider-endpoints';
@@ -24,15 +24,22 @@ import {
   createAnthropicTransformer,
   createReasoningContentStreamTransformer as reasoningContentStreamTransformer,
 } from './provider-client-converters';
-import { ForwardOptions } from './proxy-types';
+import { ForwardOptions, type ProviderAttemptRef } from './proxy-types';
 import { CodexSessionAffinity } from './codex-session-affinity';
 import { toNativeResponsesRequest } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { ProviderModelRegistryService } from '../../model-discovery/provider-model-registry.service';
+import { qualifyChatGptResponse } from './chatgpt-response-qualifier';
+import { isProviderAvailableForDeployment } from '../../common/utils/provider-availability';
+import { ManifestError } from '../../common/errors/manifest-error';
 
 export interface ForwardResult {
   response: Response;
+  /** False only when Manifest produced a response without invoking provider transport. */
+  providerCallStarted?: boolean;
+  /** Persisted provider-call identity, when request tracking is available. */
+  attempt?: ProviderAttemptRef;
   /** True when we converted from Google format (needs SSE transform). */
   isGoogle: boolean;
   /** True when we converted from Anthropic format (needs SSE transform). */
@@ -210,6 +217,10 @@ export class ProviderClient {
       authType,
     } = opts;
 
+    if (!customEndpoint && !isProviderAvailableForDeployment(provider)) {
+      throw new ManifestError('M303', HttpStatus.BAD_REQUEST);
+    }
+
     const { endpoint, endpointKey } = await this.resolveEndpoint(
       customEndpoint,
       provider,
@@ -300,8 +311,17 @@ export class ProviderClient {
       structuredOutputToolName,
       responsesTextFormat: textFormat,
     });
-    if (affinity) this.codexAffinity.capture(affinity.storeKey, result.response);
-    return result;
+    const qualifiedResult =
+      endpointKey === 'openai-subscription'
+        ? {
+            ...result,
+            response: await qualifyChatGptResponse(result.response, {
+              downstreamFormat: isResponses ? 'responses' : 'chat-completions',
+            }),
+          }
+        : result;
+    if (affinity) this.codexAffinity.capture(affinity.storeKey, qualifiedResult.response);
+    return qualifiedResult;
   }
 
   private async resolveEndpoint(

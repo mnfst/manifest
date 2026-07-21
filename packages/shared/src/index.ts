@@ -31,11 +31,21 @@ export {
   OK_STATUS,
   RATE_LIMITED_STATUS,
   SUPERSEDED_STATUS,
+  SUPERSEDED_STATUSES,
+  AUTOFIX_ORIGINAL_STATUS,
+  PENDING_STATUS,
+  SUCCESS_STATUS,
+  FAILED_STATUS,
+  REQUEST_STATUSES,
+  ATTEMPT_STATUSES,
   TRANSPORT_NETWORK_HTTP_STATUS,
   TRANSPORT_TIMEOUT_HTTP_STATUS,
   classifyHttpErrorClass,
   classifyMessageError,
   isManifestErrorOrigin,
+  normalizeStatus,
+  isSuccessStatus,
+  isFailedStatus,
 } from './error-taxonomy';
 export type {
   ErrorOrigin,
@@ -43,6 +53,8 @@ export type {
   ManifestErrorOrigin,
   MessageErrorSignals,
   MessageErrorClassification,
+  RequestStatus,
+  AttemptStatus,
 } from './error-taxonomy';
 export { MANIFEST_ERRORS_DOCS_BASE, manifestErrorDocsUrl } from './manifest-error-docs';
 export { DEFAULT_RESPONSE_MODE, RESPONSE_MODES, isResponseMode } from './response-mode';
@@ -156,3 +168,5 @@ export type {
   Plan,
   PlanLimits,
 } from './plan-limits';
+export { AUTOFIX_STATUSES, AUTOFIX_STATUS_LABELS, deriveAutofixStatus } from './autofix-status';
+export type { AutofixStatus, AutofixStatusChainEntry, AutofixStatusRecord } from './autofix-status';

@@ -426,7 +426,7 @@ describe('ProviderDetailView', () => {
       });
       render(() => <ProviderDetailView {...props} />);
       expect(screen.getByLabelText('Refresh models from Anthropic')).toBeDefined();
-      expect(screen.getByText(/12 models – last refreshed: 5m ago/)).toBeDefined();
+      expect(screen.getByText(/12 models - last refreshed: 5m ago/)).toBeDefined();
     });
 
     it('calls refreshProviderModels with the provider and auth type and shows a success toast', async () => {

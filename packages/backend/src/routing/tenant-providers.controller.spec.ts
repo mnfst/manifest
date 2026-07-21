@@ -3,7 +3,17 @@ import type { TenantContext } from '../common/decorators/tenant-context.decorato
 import type { TenantProvider } from '../entities/tenant-provider.entity';
 
 describe('TenantProvidersController', () => {
+  const previousMode = process.env['MANIFEST_MODE'];
   const ctx: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
+
+  beforeEach(() => {
+    process.env['MANIFEST_MODE'] = 'cloud';
+  });
+
+  afterAll(() => {
+    if (previousMode === undefined) delete process.env['MANIFEST_MODE'];
+    else process.env['MANIFEST_MODE'] = previousMode;
+  });
 
   const makeProvider = (id: string, label: string): TenantProvider =>
     ({
@@ -95,6 +105,28 @@ describe('TenantProvidersController', () => {
 
     expect(result.providers).toEqual([]);
     expect(result.model_counts).toEqual({});
+  });
+
+  it('hides legacy built-in local rows in cloud but keeps tunneled custom providers', async () => {
+    const providerRepo = {
+      find: jest.fn().mockResolvedValue([
+        { ...makeProvider('ollama-row', 'Default'), provider: 'ollama', auth_type: 'local' },
+        {
+          ...makeProvider('tunnel-row', 'Default'),
+          provider: 'custom:runtime-id',
+          auth_type: 'local',
+        },
+      ]),
+    };
+    const controller = new TenantProvidersController(
+      providerRepo as never,
+      { getAll: jest.fn().mockReturnValue([]) } as never,
+      { list: jest.fn().mockResolvedValue([{ id: 'runtime-id', name: 'LM Studio' }]) } as never,
+    );
+
+    const result = await controller.listProviders(ctx);
+
+    expect(result.providers.map((provider) => provider.provider)).toEqual(['custom:runtime-id']);
   });
 
   it('returns empty providers when ctx has no tenant (fresh account)', async () => {
