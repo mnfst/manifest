@@ -107,7 +107,7 @@ describe('ProxyService — orchestration', () => {
   >;
   let limitCheck: jest.Mocked<Pick<LimitCheckService, 'checkLimits'>>;
   let fallbackService: jest.Mocked<
-    Pick<ProxyFallbackService, 'tryForwardToProvider' | 'tryFallbacks'>
+    Pick<ProxyFallbackService, 'tryForwardToProvider' | 'retryWireBody' | 'tryFallbacks'>
   >;
   let configService: ConfigService;
   let signatureCache: ThoughtSignatureCache;
@@ -159,6 +159,7 @@ describe('ProxyService — orchestration', () => {
     limitCheck = { checkLimits: jest.fn().mockResolvedValue(null) };
     fallbackService = {
       tryForwardToProvider: jest.fn(),
+      retryWireBody: jest.fn(),
       tryFallbacks: jest.fn(),
     };
     configService = { get: jest.fn().mockReturnValue(undefined) } as unknown as ConfigService;
@@ -319,8 +320,15 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-    const fwd = (status: number) => ({
+    const fwd = (
+      status: number,
+      wireRequestBody: Record<string, unknown> = { model: 'gpt-4o' },
+      wireApiMode: 'chat_completions' | 'responses' | 'messages' = 'chat_completions',
+    ) => ({
       response: okResponse(status),
+      wireRequestBody,
+      wireApiMode,
+      retryWireBody: jest.fn(),
       isGoogle: false,
       isAnthropic: false,
       isChatGpt: false,
@@ -342,20 +350,15 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
-    it('re-forwards the patched same-model body WITH the agent param merge re-applied (M3)', async () => {
+    it('retries the patched same-model wire body without rebuilding it', async () => {
       routableResolve();
       const healed = fwd(200);
-      fallbackService.tryForwardToProvider
-        .mockResolvedValueOnce(fwd(400))
-        .mockResolvedValueOnce(healed);
-      // The request routes via "auto" (so the primary attempt carries a defined
-      // paramMergeContext, not an explicit-model override). The heal keeps the
-      // SAME model ("auto") → reforwardHealed reuses the already-resolved route
-      // and re-applies the agent's param merge, so the healed retry doesn't
-      // silently drop configured model params.
+      const failed = fwd(400, { model: 'gpt-4o', max_tokens: 7 });
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(failed);
+      fallbackService.retryWireBody.mockResolvedValueOnce(healed);
       autofixService.maybeHeal.mockImplementation(
         async (params: { reforward: (b: Record<string, unknown>) => Promise<unknown> }) => {
-          const forward = await params.reforward({ model: 'auto', max_output_tokens: 5 });
+          const forward = await params.reforward({ model: 'gpt-4o', max_tokens: 5 });
           return {
             forward,
             record: { outcome: 'healed', attempts: 1, original_http_status: 400, chain: [] },
@@ -368,21 +371,46 @@ describe('ProxyService — orchestration', () => {
       );
 
       expect(result.forward).toBe(healed);
-      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(2);
-      const primaryOpts = fallbackService.tryForwardToProvider.mock.calls[0][0];
-      const reforwardOpts = fallbackService.tryForwardToProvider.mock.calls[1][0];
-      // Same-model branch reuses the primary route's normalized model.
-      expect(reforwardOpts.model).toBe('gpt-4o');
-      expect(reforwardOpts.body).toEqual({ model: 'auto', max_output_tokens: 5 });
-      // The reforward now carries the SAME defined paramMergeContext the primary
-      // attempt used (previously this was undefined — the param-merge bug M3 fixes).
-      expect(reforwardOpts.paramMergeContext).toBeDefined();
-      expect(reforwardOpts.paramMergeContext).toEqual(primaryOpts.paramMergeContext);
-      expect(reforwardOpts.paramMergeContext).toEqual({
-        agentId: 'agent-1',
-        scopeKey: 'tier:standard',
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(failed, {
+        model: 'gpt-4o',
+        max_tokens: 5,
       });
-      expect(reforwardOpts.chatBody).toBeUndefined();
+    });
+
+    it('reports the captured provider body and provider-facing API mode to Auto-fix', async () => {
+      routableResolve();
+      const wireBody = {
+        model: 'claude-opus-4-8',
+        thinking: { type: 'adaptive', budget_tokens: 8192 },
+      };
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(fwd(400, wireBody, 'messages'));
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(autofixService.maybeHeal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          apiMode: 'messages',
+          requestBody: wireBody,
+        }),
+      );
+      expect(autofixService.maybeHeal.mock.calls[0][0]).not.toHaveProperty('resolvedModel');
+    });
+
+    it('skips Auto-fix when Phoenix cannot represent the provider wire format', async () => {
+      routableResolve();
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce({
+        response: okResponse(400),
+        wireRequestBody: { contents: [{ role: 'user', parts: [{ text: 'hi' }] }] },
+        retryWireBody: jest.fn(),
+        isGoogle: true,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(autofixService.maybeHeal).not.toHaveBeenCalled();
     });
 
     it('re-resolves routing and forwards to the newly-resolved route when the heal changes the model (M5)', async () => {
@@ -537,9 +565,9 @@ describe('ProxyService — orchestration', () => {
     it('takes the same-model branch when the heal drops the model field entirely', async () => {
       routableResolve();
       const healed = fwd(200);
-      fallbackService.tryForwardToProvider
-        .mockResolvedValueOnce(fwd(400))
-        .mockResolvedValueOnce(healed);
+      const failed = fwd(400);
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(failed);
+      fallbackService.retryWireBody.mockResolvedValueOnce(healed);
       // Healed body has no `model` → healedModel is undefined → reforwardHealed
       // falls through to the same-model branch (reuses the primary route).
       autofixService.maybeHeal.mockImplementation(
@@ -555,12 +583,12 @@ describe('ProxyService — orchestration', () => {
       const result = await svc.proxyRequest(baseOpts());
 
       expect(result.forward).toBe(healed);
-      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(2);
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
       // No re-resolve — the same-model branch never consults getModelsForAgent.
       expect(modelDiscovery.getModelsForAgent).not.toHaveBeenCalled();
-      const reforwardOpts = fallbackService.tryForwardToProvider.mock.calls[1][0];
-      expect(reforwardOpts.model).toBe('gpt-4o');
-      expect(reforwardOpts.provider).toBe('openai');
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(failed, {
+        max_output_tokens: 5,
+      });
     });
 
     it('re-resolves via scoring (not the explicit-model path) when the heal switches the model to auto (M5)', async () => {

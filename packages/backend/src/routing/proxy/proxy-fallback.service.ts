@@ -400,6 +400,17 @@ export class ProxyFallbackService {
     }
   }
 
+  /** Re-send a healed body without rebuilding the already-resolved provider request. */
+  retryWireBody(
+    forward: ForwardResult,
+    healedBody: Record<string, unknown>,
+  ): Promise<ForwardResult> {
+    if (!forward.retryWireBody) {
+      throw new Error('Provider forward does not support wire-body retry');
+    }
+    return forward.retryWireBody(healedBody);
+  }
+
   private getActiveRateLimitCooldown(opts: ForwardProviderOptions): number | null {
     const key = this.rateLimitCooldownKey(opts);
     if (!key) return null;

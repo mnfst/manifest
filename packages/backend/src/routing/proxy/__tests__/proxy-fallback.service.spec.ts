@@ -1090,6 +1090,30 @@ describe('ProxyFallbackService', () => {
     });
   });
 
+  describe('retryWireBody', () => {
+    it('delegates the healed body to the captured provider transport', async () => {
+      const healedBody = { model: 'gpt-4o', max_tokens: 128 };
+      const retried = {
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      };
+      const retryWireBody = jest.fn().mockResolvedValue(retried);
+      const original = {
+        response: new Response('{}', { status: 400 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        retryWireBody,
+      };
+
+      await expect(service.retryWireBody(original, healedBody)).resolves.toBe(retried);
+      expect(retryWireBody).toHaveBeenCalledWith(healedBody);
+      expect(providerClient.forward).not.toHaveBeenCalled();
+    });
+  });
+
   describe('tryFallbacks', () => {
     it('returns success on first successful fallback', async () => {
       providerKeyService.getProviderApiKey.mockResolvedValue('sk-ant');

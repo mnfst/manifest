@@ -40,6 +40,10 @@ export interface HealRequest {
   tenantId: string;
   provider: string;
   authType: AuthType;
+  /**
+   * Provider-facing wire protocol. `request` uses this shape, and Phoenix must
+   * return `healedBody` in the same shape so Manifest can resend it verbatim.
+   */
   api: ProxyApiMode;
   url?: string;
   request: Record<string, unknown>;
