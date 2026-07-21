@@ -1,0 +1,27 @@
+packages/shared/src/error-taxonomy.ts
+  s_038aae19f36c81::t_519d0c3fec493d 82,105-108
+packages/backend/src/common/errors/manifest-error.ts
+  s_038aae19f36c81::t_519d0c3fec493d 20,58
+packages/backend/src/common/errors/__tests__/manifest-error.spec.ts
+  s_038aae19f36c81::t_519d0c3fec493d 95-104
+packages/backend/src/entities/agent-message.entity.ts
+  s_038aae19f36c81::t_519d0c3fec493d 98-100
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_038aae19f36c81::t_519d0c3fec493d 71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "3b788d2c399712763bf09851ff67cdd6fc7e3e43",
+  "prompts": {},
+  "sessions": {
+    "s_038aae19f36c81": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7f93-3058-7c83-b327-31139f88fe33",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
