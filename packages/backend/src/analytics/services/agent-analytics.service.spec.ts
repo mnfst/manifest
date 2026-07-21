@@ -45,7 +45,13 @@ describe('AgentAnalyticsService', () => {
   describe('getUsage', () => {
     it('returns token usage with trend', async () => {
       mockGetRawOne
-        .mockResolvedValueOnce({ input: 3000, output: 2000, cache_read: 500, messages: 10 })
+        .mockResolvedValueOnce({
+          input: 3000,
+          output: 2000,
+          cache_read: 500,
+          cache_creation: 300,
+          messages: 10,
+        })
         .mockResolvedValueOnce({ total: 4000 });
 
       const result = await service.getUsage('24h', scope);
@@ -55,13 +61,21 @@ describe('AgentAnalyticsService', () => {
       expect(result.input_tokens).toBe(3000);
       expect(result.output_tokens).toBe(2000);
       expect(result.cache_read_tokens).toBe(500);
+      expect(result.cache_creation_tokens).toBe(300);
+      expect(result.fresh_input_tokens).toBe(2200);
       expect(result.message_count).toBe(10);
       expect(result.trend_pct).toBe(25);
     });
 
     it('handles zero previous period', async () => {
       mockGetRawOne
-        .mockResolvedValueOnce({ input: 100, output: 50, cache_read: 0, messages: 1 })
+        .mockResolvedValueOnce({
+          input: 100,
+          output: 50,
+          cache_read: 0,
+          cache_creation: 0,
+          messages: 1,
+        })
         .mockResolvedValueOnce({ total: 0 });
 
       const result = await service.getUsage('24h', scope);
@@ -69,9 +83,27 @@ describe('AgentAnalyticsService', () => {
       expect(result.trend_pct).toBe(0);
     });
 
+    it('defaults cache totals to zero when aggregate rows omit cache fields', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ input: 100, output: 50, messages: 1 })
+        .mockResolvedValueOnce({ total: 0 });
+
+      const result = await service.getUsage('24h', scope);
+
+      expect(result.cache_read_tokens).toBe(0);
+      expect(result.cache_creation_tokens).toBe(0);
+      expect(result.fresh_input_tokens).toBe(100);
+    });
+
     it('passes tenant and agent params to queries', async () => {
       mockGetRawOne
-        .mockResolvedValueOnce({ input: 0, output: 0, cache_read: 0, messages: 0 })
+        .mockResolvedValueOnce({
+          input: 0,
+          output: 0,
+          cache_read: 0,
+          cache_creation: 0,
+          messages: 0,
+        })
         .mockResolvedValueOnce({ total: 0 });
 
       await service.getUsage('7d', scope);

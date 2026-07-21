@@ -84,7 +84,17 @@ interface CostByModelRow {
 
 interface OverviewResponse {
   summary: {
-    tokens_today: { value: number; trend_pct: number };
+    tokens_today: {
+      value: number;
+      trend_pct: number;
+      sub_values?: {
+        input: number;
+        output: number;
+        fresh_input?: number;
+        cache_read?: number;
+        cache_creation?: number;
+      };
+    };
     cost_today: { value: number; trend_pct: number };
     messages: { value: number; trend_pct: number };
   };
@@ -612,6 +622,7 @@ const GlobalOverview: Component = () => {
                 messagesTrendPct={o().summary.messages.trend_pct}
                 tokensValue={o().summary.tokens_today.value}
                 tokensTrendPct={o().summary.tokens_today.trend_pct}
+                tokenBreakdown={o().summary.tokens_today.sub_values}
                 costValue={o().summary.cost_today.value}
                 costTrendPct={o().summary.cost_today.trend_pct}
                 costInfoTooltip="Actual API key costs only. Subscription usage is not included."

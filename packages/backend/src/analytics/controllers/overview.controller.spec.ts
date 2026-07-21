@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CacheModule } from '@nestjs/cache-manager';
+import { Reflector } from '@nestjs/core';
 import { OverviewController } from './overview.controller';
 import { AggregationService } from '../services/aggregation.service';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
@@ -20,7 +21,14 @@ function mockAggregation(): Record<string, jest.Mock> {
 function mockTimeseries(): Record<string, jest.Mock> {
   return {
     getTimeseries: jest.fn().mockResolvedValue({
-      tokenUsage: [{ input_tokens: 600, output_tokens: 400 }],
+      tokenUsage: [
+        {
+          input_tokens: 600,
+          output_tokens: 400,
+          cache_read_tokens: 250,
+          cache_creation_tokens: 100,
+        },
+      ],
       costUsage: [{ cost: 5.0 }],
       messageUsage: [{ count: 50 }],
     }),
@@ -75,6 +83,7 @@ describe('OverviewController', () => {
         { provide: ProviderService, useValue: { getProviders: mockGetProviders } },
         { provide: ResolveAgentService, useValue: { resolve: mockResolveAgent } },
         { provide: getRepositoryToken(AgentEnabledProvider), useValue: { find: mockAccessFind } },
+        Reflector,
       ],
     }).compile();
 
@@ -105,13 +114,37 @@ describe('OverviewController', () => {
 
     // 600 + 400 input/output tokens, $5 cost, 50 messages from the buckets.
     expect(result.summary.tokens_today.value).toBe(1000);
-    expect(result.summary.tokens_today.sub_values).toEqual({ input: 600, output: 400 });
+    expect(result.summary.tokens_today.sub_values).toEqual({
+      input: 600,
+      output: 400,
+      cache_read: 250,
+      cache_creation: 100,
+      fresh_input: 250,
+    });
     expect(result.summary.cost_today.value).toBe(5.0);
     expect(result.summary.messages.value).toBe(50);
     // Trends are computed against the previous-window totals.
     expect(result.summary.tokens_today.trend_pct).toBe(11); // (1000-900)/900
     expect(result.summary.cost_today.trend_pct).toBe(25); // (5-4)/4
     expect(result.summary.messages.trend_pct).toBe(11); // (50-45)/45
+  });
+
+  it('defaults missing cache bucket totals to zero in the summary', async () => {
+    ts.getTimeseries.mockResolvedValueOnce({
+      tokenUsage: [{ input_tokens: 20, output_tokens: 5 }],
+      costUsage: [],
+      messageUsage: [],
+    });
+
+    const result = await controller.getOverview({ range: '24h' }, ctx as never);
+
+    expect(result.summary.tokens_today.sub_values).toEqual({
+      input: 20,
+      output: 5,
+      cache_read: 0,
+      cache_creation: 0,
+      fresh_input: 20,
+    });
   });
 
   it('returns overview with daily timeseries for 7d range', async () => {

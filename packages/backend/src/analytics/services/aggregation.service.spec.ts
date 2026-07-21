@@ -149,15 +149,31 @@ describe('AggregationService', () => {
   describe('getSummaryMetrics', () => {
     it('returns merged token, cost, and message metrics with trends', async () => {
       mockGetRawOne
-        .mockResolvedValueOnce({ msg_count: 50, inp: 3000, out: 2000, cost: 5.5 })
+        .mockResolvedValueOnce({
+          msg_count: 50,
+          inp: 3000,
+          out: 2000,
+          cache_read: 1000,
+          cache_creation: 400,
+          cost: 5.5,
+        })
         .mockResolvedValueOnce({ msg_count: 40, tokens: 4000, cost: 4.0 });
 
       const result = await service.getSummaryMetrics('24h', 'tenant-123');
       expect(result.tokens.tokens_today.value).toBe(5000);
       expect(result.tokens.tokens_today.trend_pct).toBe(25);
-      expect(result.tokens.tokens_today.sub_values).toEqual({ input: 3000, output: 2000 });
+      expect(result.tokens.tokens_today.sub_values).toEqual({
+        input: 3000,
+        output: 2000,
+        cache_read: 1000,
+        cache_creation: 400,
+        fresh_input: 1600,
+      });
       expect(result.tokens.input_tokens).toBe(3000);
       expect(result.tokens.output_tokens).toBe(2000);
+      expect(result.tokens.cache_read_tokens).toBe(1000);
+      expect(result.tokens.cache_creation_tokens).toBe(400);
+      expect(result.tokens.fresh_input_tokens).toBe(1600);
       expect(result.cost.value).toBe(5.5);
       expect(result.cost.trend_pct).toBeGreaterThan(0);
       expect(result.messages.value).toBe(50);
@@ -171,6 +187,9 @@ describe('AggregationService', () => {
       expect(result.tokens.tokens_today.value).toBe(0);
       expect(result.tokens.input_tokens).toBe(0);
       expect(result.tokens.output_tokens).toBe(0);
+      expect(result.tokens.cache_read_tokens).toBe(0);
+      expect(result.tokens.cache_creation_tokens).toBe(0);
+      expect(result.tokens.fresh_input_tokens).toBe(0);
       expect(result.cost.value).toBe(0);
       expect(result.messages.value).toBe(0);
     });
@@ -301,14 +320,23 @@ describe('AggregationService', () => {
   describe('buildSummary', () => {
     it('assembles summary cards with trends from current and previous totals', () => {
       const result = AggregationService.buildSummary(
-        { input: 3000, output: 2000, cost: 5.5, messages: 50 },
+        { input: 3000, output: 2000, cacheRead: 1000, cacheCreation: 400, cost: 5.5, messages: 50 },
         { tokens: 4000, cost: 4.0, messages: 40 },
       );
       expect(result.tokens.tokens_today.value).toBe(5000);
       expect(result.tokens.tokens_today.trend_pct).toBe(25); // (5000-4000)/4000
-      expect(result.tokens.tokens_today.sub_values).toEqual({ input: 3000, output: 2000 });
+      expect(result.tokens.tokens_today.sub_values).toEqual({
+        input: 3000,
+        output: 2000,
+        cache_read: 1000,
+        cache_creation: 400,
+        fresh_input: 1600,
+      });
       expect(result.tokens.input_tokens).toBe(3000);
       expect(result.tokens.output_tokens).toBe(2000);
+      expect(result.tokens.cache_read_tokens).toBe(1000);
+      expect(result.tokens.cache_creation_tokens).toBe(400);
+      expect(result.tokens.fresh_input_tokens).toBe(1600);
       expect(result.cost.value).toBe(5.5);
       expect(result.cost.trend_pct).toBe(38); // 37.5 rounded
       expect(result.messages.value).toBe(50);

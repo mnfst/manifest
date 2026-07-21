@@ -27,6 +27,8 @@ interface TimeseriesBucketRow {
   date?: string;
   input_tokens: number;
   output_tokens: number;
+  cache_read_tokens: number;
+  cache_creation_tokens: number;
   cost: number;
   count: number;
 }
@@ -72,6 +74,8 @@ export class TimeseriesQueriesService {
       .select(bucketExpr, bucketAlias)
       .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'input_tokens')
       .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output_tokens')
+      .addSelect('COALESCE(SUM(at.cache_read_tokens), 0)', 'cache_read_tokens')
+      .addSelect('COALESCE(SUM(at.cache_creation_tokens), 0)', 'cache_creation_tokens')
       .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'cost')
       .addSelect(sqlCountMessages(), 'count')
       .where('at.timestamp >= :cutoff', { cutoff });
@@ -89,6 +93,8 @@ export class TimeseriesQueriesService {
       date?: string;
       input_tokens: number;
       output_tokens: number;
+      cache_read_tokens: number;
+      cache_creation_tokens: number;
     }[] = [];
     const costUsage: { hour?: string; date?: string; cost: number }[] = [];
     const messageUsage: { hour?: string; date?: string; count: number }[] = [];
@@ -100,6 +106,8 @@ export class TimeseriesQueriesService {
         ...bucketKey,
         input_tokens: parsed.input_tokens,
         output_tokens: parsed.output_tokens,
+        cache_read_tokens: parsed.cache_read_tokens,
+        cache_creation_tokens: parsed.cache_creation_tokens,
       });
       costUsage.push({ ...bucketKey, cost: parsed.cost });
       messageUsage.push({ ...bucketKey, count: parsed.count });
@@ -720,6 +728,8 @@ export class TimeseriesQueriesService {
     const row: TimeseriesBucketRow = {
       input_tokens: Number(r['input_tokens'] ?? 0),
       output_tokens: Number(r['output_tokens'] ?? 0),
+      cache_read_tokens: Number(r['cache_read_tokens'] ?? 0),
+      cache_creation_tokens: Number(r['cache_creation_tokens'] ?? 0),
       cost: Number(r['cost'] ?? 0),
       count: Number(r['count'] ?? 0),
     };

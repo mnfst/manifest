@@ -344,8 +344,24 @@ describe('TimeseriesQueriesService', () => {
   describe('getTimeseries', () => {
     it('returns merged token, cost, and message timeseries for hourly', async () => {
       mockGetRawMany.mockResolvedValue([
-        { hour: '2026-02-16T10:00:00', input_tokens: 100, output_tokens: 50, cost: 1.5, count: 5 },
-        { hour: '2026-02-16T11:00:00', input_tokens: 200, output_tokens: 80, cost: 2.0, count: 8 },
+        {
+          hour: '2026-02-16T10:00:00',
+          input_tokens: 100,
+          output_tokens: 50,
+          cache_read_tokens: 20,
+          cache_creation_tokens: 5,
+          cost: 1.5,
+          count: 5,
+        },
+        {
+          hour: '2026-02-16T11:00:00',
+          input_tokens: 200,
+          output_tokens: 80,
+          cache_read_tokens: 40,
+          cache_creation_tokens: 10,
+          cost: 2.0,
+          count: 8,
+        },
       ]);
 
       const result = await service.getTimeseries('24h', 'tenant-123', true);
@@ -356,6 +372,8 @@ describe('TimeseriesQueriesService', () => {
         hour: '2026-02-16T10:00:00',
         input_tokens: 100,
         output_tokens: 50,
+        cache_read_tokens: 20,
+        cache_creation_tokens: 5,
       });
       expect(result.costUsage[1]).toEqual({ hour: '2026-02-16T11:00:00', cost: 2.0 });
       expect(result.messageUsage[0]).toEqual({ hour: '2026-02-16T10:00:00', count: 5 });
@@ -363,7 +381,15 @@ describe('TimeseriesQueriesService', () => {
 
     it('returns merged timeseries for daily buckets', async () => {
       mockGetRawMany.mockResolvedValue([
-        { date: '2026-02-15', input_tokens: 500, output_tokens: 300, cost: 5.0, count: 20 },
+        {
+          date: '2026-02-15',
+          input_tokens: 500,
+          output_tokens: 300,
+          cache_read_tokens: 100,
+          cache_creation_tokens: 25,
+          cost: 5.0,
+          count: 20,
+        },
       ]);
 
       const result = await service.getTimeseries('7d', 'tenant-123', false);
@@ -372,6 +398,8 @@ describe('TimeseriesQueriesService', () => {
         date: '2026-02-15',
         input_tokens: 500,
         output_tokens: 300,
+        cache_read_tokens: 100,
+        cache_creation_tokens: 25,
       });
       expect(result.costUsage[0]).toEqual({ date: '2026-02-15', cost: 5.0 });
       expect(result.messageUsage[0]).toEqual({ date: '2026-02-15', count: 20 });
@@ -391,6 +419,8 @@ describe('TimeseriesQueriesService', () => {
           hour: '2026-02-16T10:00:00',
           input_tokens: null,
           output_tokens: null,
+          cache_read_tokens: null,
+          cache_creation_tokens: null,
           cost: null,
           count: null,
         },
@@ -401,6 +431,8 @@ describe('TimeseriesQueriesService', () => {
         hour: '2026-02-16T10:00:00',
         input_tokens: 0,
         output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
       });
       expect(result.costUsage[0]).toEqual({ hour: '2026-02-16T10:00:00', cost: 0 });
       expect(result.messageUsage[0]).toEqual({ hour: '2026-02-16T10:00:00', count: 0 });

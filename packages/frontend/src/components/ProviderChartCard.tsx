@@ -8,6 +8,12 @@ const MultiAgentTokenChart = lazy(() => import('./MultiAgentTokenChart.jsx'));
 
 type ProviderView = 'messages' | 'tokens' | 'cost';
 
+interface TokenBreakdown {
+  fresh_input?: number;
+  cache_read?: number;
+  cache_creation?: number;
+}
+
 const trendBadge = (pct: number, value: number) => {
   if (pct === 0 || Math.abs(value) < 0.005) return null;
   const clamped = Math.max(-999, Math.min(999, Math.round(pct)));
@@ -33,6 +39,7 @@ interface ProviderChartCardProps {
   messagesTrendPct: number;
   tokensValue: number;
   tokensTrendPct: number;
+  tokenBreakdown?: TokenBreakdown;
   costValue?: number;
   costTrendPct?: number;
   costInfoTooltip?: string;
@@ -51,6 +58,10 @@ const EMPTY = (msg: string) => (
 
 const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
   const showCost = () => props.costValue != null;
+  const showTokenBreakdown = () =>
+    (props.tokenBreakdown?.fresh_input ?? 0) > 0 ||
+    (props.tokenBreakdown?.cache_read ?? 0) > 0 ||
+    (props.tokenBreakdown?.cache_creation ?? 0) > 0;
 
   return (
     <div class="chart-card">
@@ -97,6 +108,13 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
             <span class="chart-card__value">{formatNumber(props.tokensValue)}</span>
             {trendBadge(props.tokensTrendPct, props.tokensValue)}
           </div>
+          <Show when={showTokenBreakdown()}>
+            <span class="chart-card__subvalue">
+              Fresh {formatNumber(props.tokenBreakdown?.fresh_input ?? 0)} / Cache read{' '}
+              {formatNumber(props.tokenBreakdown?.cache_read ?? 0)} / write{' '}
+              {formatNumber(props.tokenBreakdown?.cache_creation ?? 0)}
+            </span>
+          </Show>
         </button>
       </div>
       <div class="chart-card__body">

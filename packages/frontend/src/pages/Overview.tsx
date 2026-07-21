@@ -56,7 +56,13 @@ interface OverviewData {
     tokens_today: {
       value: number;
       trend_pct: number;
-      sub_values?: { input: number; output: number };
+      sub_values?: {
+        input: number;
+        output: number;
+        fresh_input?: number;
+        cache_read?: number;
+        cache_creation?: number;
+      };
     };
     cost_today: { value: number; trend_pct: number };
     messages: { value: number; trend_pct: number };
@@ -422,6 +428,7 @@ const Overview: Component = () => {
                     costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
                     tokensValue={d().summary?.tokens_today?.value ?? 0}
                     tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
+                    tokenBreakdown={d().summary?.tokens_today?.sub_values}
                     messagesValue={d().summary?.messages?.value ?? 0}
                     messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
                     costInfoTooltip="Actual API key costs only. Subscription usage is not included."
