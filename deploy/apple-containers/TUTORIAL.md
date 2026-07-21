@@ -134,6 +134,12 @@ Running `up` repeatedly is safe. A running PostgreSQL container is reused, while
 
 ## Upgrade Manifest
 
+First, back up the database:
+
+```bash
+container exec mnfst-postgres pg_dump -U manifest manifest > manifest-backup-$(date +%F).sql
+```
+
 The script always launches `manifestdotbuild/manifest:latest`, but `container run` uses the locally cached copy of that tag. To upgrade to a new release, pull the image explicitly and re-run `up`:
 
 ```bash
@@ -142,12 +148,6 @@ container image pull manifestdotbuild/manifest:latest
 ```
 
 `up` recreates the Manifest container, so it starts from the freshly pulled image. Database migrations run automatically on boot — no manual steps. The PostgreSQL container and the `mnfst-postgres-data` named volume are not touched, so all data is preserved across upgrades.
-
-To back up the database before upgrading:
-
-```bash
-container exec mnfst-postgres pg_dump -U manifest manifest > manifest-backup-$(date +%F).sql
-```
 
 ## Local LLM Servers
 
