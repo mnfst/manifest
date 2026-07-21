@@ -38,7 +38,7 @@ Every provider call counts as an Attempt, including failed calls, fallback attem
 
 ### Status
 
-Requests and Provider Attempts use the same status values:
+Requests and newly written Provider Attempts use the same canonical status values:
 
 | Value     | Meaning                                     | UI label |
 | --------- | ------------------------------------------- | -------- |
@@ -48,9 +48,11 @@ Requests and Provider Attempts use the same status values:
 
 `success` and `failed` are terminal. In this document, **completed** means either terminal status; it is not a separate status value.
 
+Historical `agent_messages` rows may retain the legacy physical values `ok`, `error`, `fallback_error`, or `rate_limited`. Analytics readers normalize `ok` to `success` and the legacy failure values to `failed`. Writers must use the canonical values above.
+
 Manifest creates a Request with `pending` status when it accepts the Request and creates an Attempt with `pending` status when it starts the provider call. Each transitions to one terminal status. Pending records remain internal to the current analytics UI, so this contract does not require a visible UI change.
 
-A successful Request has `requests.status = 'success'`. A successful Attempt has `agent_messages.status = 'success'`. `requests.status` is authoritative for the caller-visible outcome.
+A successful Request has `requests.status = 'success'`. A successful newly written Attempt has `agent_messages.status = 'success'`; a historical successful Attempt may retain `ok`. `requests.status` is authoritative for the caller-visible outcome.
 
 When a Request with at least one Attempt succeeds, its Last Attempt must also be successful. A failed Request may have no Attempt at all, and `requests.status` remains authoritative if a Request-level failure happens outside the provider call.
 
@@ -66,7 +68,7 @@ Historical Attempts linked during the migration may have a null `attempt_number`
 
 A Superseded Attempt is a failed Provider Attempt after which Manifest continued the same Request with another Attempt.
 
-It keeps `agent_messages.status = 'failed'` and has `agent_messages.superseded = true`. It counts in Attempt metrics, but it does not determine the Request outcome.
+Newly written Superseded Attempts keep `agent_messages.status = 'failed'` and have `agent_messages.superseded = true`; historical rows may retain a legacy failure status such as `fallback_error`. They count in Attempt metrics, but do not determine the Request outcome.
 
 ### Recovered Request
 

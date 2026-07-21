@@ -23,7 +23,7 @@ export interface AttemptMetric {
 }
 
 export interface AttemptStatsResponse {
-  /** All rows in `agent_messages`. */
+  /** Completed, non-Playground rows in the scoped `agent_messages` window. */
   total_attempts: AttemptMetric;
   /** Fallback destinations: attempts whose `fallback_from_model` is non-null. */
   fallbacked_attempts: AttemptMetric;

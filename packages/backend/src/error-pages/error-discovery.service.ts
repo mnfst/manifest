@@ -103,6 +103,7 @@ export class ErrorDiscoveryService {
         FROM agent_messages e
         WHERE e.status IN ('error','fallback_error','rate_limited','failed')
           AND e.timestamp >= NOW() - INTERVAL '14 days'
+          AND e.tenant_id IS NOT NULL
           AND e.provider IS NOT NULL
           AND e.provider NOT LIKE 'custom:%'
         GROUP BY e.provider, e.error_http_status, day
