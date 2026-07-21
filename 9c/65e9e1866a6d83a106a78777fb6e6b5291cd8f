@@ -1,0 +1,26 @@
+packages/backend/src/database/migrations/1801200000000-ExtendDashboardCoveringIndex.ts
+  s_9af13e07919cc7::t_e3184e0327a7ec 1-132
+.changeset/extend-dashboard-covering-index.md
+  s_9af13e07919cc7::t_c6e50678b79d54 1-5
+packages/backend/src/database/migrations/1801200000000-ExtendDashboardCoveringIndex.spec.ts
+  s_9af13e07919cc7::t_cea67eefebdbc1 1-164
+  s_9af13e07919cc7::t_a28751c5ba409a 165-170
+packages/backend/src/database/data-source-definitions.ts
+  s_9af13e07919cc7::t_6d9a3f57e8d207 33,302
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "9c65e9e1866a6d83a106a78777fb6e6b5291cd8f",
+  "prompts": {},
+  "sessions": {
+    "s_9af13e07919cc7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "87e22e8a-e2f3-4f8c-b6c7-7c4dc94cc83c",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
