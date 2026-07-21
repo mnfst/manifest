@@ -814,18 +814,20 @@ export class ProviderClient {
     // an idle watchdog below. Long active streams can exceed this duration,
     // but a silent provider still fails before Cloudflare's proxy read window.
     const timeoutMs = stream ? PROVIDER_STREAM_TIMEOUT_MS : PROVIDER_TIMEOUT_MS;
-    const timeoutController = new AbortController();
-    const timeout = setTimeout(
-      () =>
-        timeoutController.abort(
-          providerTimeoutError(stream ? 'Provider stream startup timed out' : undefined),
-        ),
-      timeoutMs,
-    );
-    unrefTimer(timeout);
-    const fetchSignal = signal
-      ? AbortSignal.any([timeoutController.signal, signal])
-      : timeoutController.signal;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    let timeoutSignal: AbortSignal;
+    if (stream) {
+      const timeoutController = new AbortController();
+      timeout = setTimeout(
+        () => timeoutController.abort(providerTimeoutError('Provider stream startup timed out')),
+        timeoutMs,
+      );
+      unrefTimer(timeout);
+      timeoutSignal = timeoutController.signal;
+    } else {
+      timeoutSignal = AbortSignal.timeout(timeoutMs);
+    }
+    const fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
 
     let response: Response;
     try {
@@ -844,7 +846,7 @@ export class ProviderClient {
       if (err instanceof Error) sanitized.name = err.name;
       throw sanitized;
     } finally {
-      clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
     }
 
     if (stream && response.body) {
