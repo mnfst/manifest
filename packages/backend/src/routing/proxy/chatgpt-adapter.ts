@@ -168,7 +168,9 @@ function reasoningContentFromOutput(output: Record<string, unknown>[]): string {
 function isReasoningDeltaEvent(eventType: string): boolean {
   return (
     eventType === 'response.reasoning_summary.delta' ||
-    eventType === 'response.reasoning_summary_text.delta'
+    eventType === 'response.reasoning_summary_text.delta' ||
+    // GPT-5.6 can stream its public Responses reasoning output under this event.
+    eventType === 'response.reasoning_text.delta'
   );
 }
 
@@ -488,14 +490,16 @@ export function collectChatGptSseResponse(sseText: string, model: string): Recor
       const output = responseOutputItems(response);
       hasFunctionCalls = output.some((item) => item.type === 'function_call');
       if (hasResponseOutput(response)) {
-        reasoningContent = reasoningContentFromOutput(output);
+        const terminalReasoningContent = reasoningContentFromOutput(output);
+        if (terminalReasoningContent) reasoningContent = terminalReasoningContent;
       }
     } else if (eventType === 'response.incomplete') {
       const response = isObjectRecord(data.response) ? data.response : undefined;
       usage = extractResponseUsage(response) ?? usage;
       finishReasonOverride = incompleteFinishReason(response);
       if (hasResponseOutput(response)) {
-        reasoningContent = reasoningContentFromOutput(responseOutputItems(response));
+        const terminalReasoningContent = reasoningContentFromOutput(responseOutputItems(response));
+        if (terminalReasoningContent) reasoningContent = terminalReasoningContent;
       }
     }
   }

@@ -385,10 +385,16 @@ describe('chatgpt-adapter', () => {
       expect(empty.choices[0].delta).toEqual({ reasoning_content: '' });
     });
 
-    it('does not expose raw reasoning text deltas as summaries', () => {
-      const chunk = 'event: response.reasoning_text.delta\ndata: {"delta":"Private chain."}';
+    it('converts GPT-5.6 reasoning text deltas into reasoning_content', () => {
+      const chunk =
+        'event: response.reasoning_text.delta\ndata: {"delta":"Checked the constraints."}';
+      const parsed = parseFrame(transformResponsesStreamChunk(chunk, 'gpt-5.6-sol'));
 
-      expect(transformResponsesStreamChunk(chunk, 'gpt-5.5')).toBeNull();
+      expect(parsed.choices[0]).toEqual({
+        index: 0,
+        delta: { reasoning_content: 'Checked the constraints.' },
+        finish_reason: null,
+      });
     });
 
     it('returns null for malformed reasoning delta payloads', () => {
@@ -479,6 +485,21 @@ describe('chatgpt-adapter', () => {
       expect(message.reasoning_content).toBe('I checked the constraints.');
     });
 
+    it('collects GPT-5.6 reasoning text deltas into non-streaming reasoning_content', () => {
+      const sse = [
+        'event: response.reasoning_text.delta\ndata: {"delta":"I checked "}',
+        'event: response.reasoning_text.delta\ndata: {"delta":"the constraints."}',
+        'event: response.output_text.delta\ndata: {"delta":"Done."}',
+        'event: response.completed\ndata: {"response":{"output":[{"type":"message"}],"usage":{"input_tokens":1,"output_tokens":2,"total_tokens":3}}}',
+      ].join('\n\n');
+      const out = collectChatGptSseResponse(sse, 'gpt-5.6-sol');
+      const choices = out.choices as Array<Record<string, unknown>>;
+      const message = choices[0].message as Record<string, unknown>;
+
+      expect(message.content).toBe('Done.');
+      expect(message.reasoning_content).toBe('I checked the constraints.');
+    });
+
     it('uses completed reasoning output as the authoritative non-streaming summary', () => {
       const sse = [
         'event: response.reasoning_summary_text.delta\ndata: {"delta":"Partial"}',
@@ -492,7 +513,7 @@ describe('chatgpt-adapter', () => {
       expect(message.reasoning_content).toBe('Complete summary.');
     });
 
-    it('clears partial reasoning when completed output has no reasoning item', () => {
+    it('preserves reasoning deltas when completed output has no reasoning item', () => {
       const sse = [
         'event: response.reasoning_summary_text.delta\ndata: {"delta":"Partial"}',
         'event: response.output_text.delta\ndata: {"delta":"Done."}',
@@ -502,7 +523,7 @@ describe('chatgpt-adapter', () => {
       const choices = out.choices as Array<Record<string, unknown>>;
       const message = choices[0].message as Record<string, unknown>;
 
-      expect(message.reasoning_content).toBeUndefined();
+      expect(message.reasoning_content).toBe('Partial');
     });
 
     it('uses incomplete reasoning output as the authoritative non-streaming summary', () => {
@@ -519,7 +540,7 @@ describe('chatgpt-adapter', () => {
       expect(choices[0].finish_reason).toBe('length');
     });
 
-    it('clears partial reasoning when incomplete output has no reasoning item', () => {
+    it('preserves reasoning deltas when incomplete output has no reasoning item', () => {
       const sse = [
         'event: response.reasoning_summary_text.delta\ndata: {"delta":"Partial"}',
         'event: response.output_text.delta\ndata: {"delta":"Done."}',
@@ -529,7 +550,7 @@ describe('chatgpt-adapter', () => {
       const choices = out.choices as Array<Record<string, unknown>>;
       const message = choices[0].message as Record<string, unknown>;
 
-      expect(message.reasoning_content).toBeUndefined();
+      expect(message.reasoning_content).toBe('Partial');
       expect(choices[0].finish_reason).toBe('length');
     });
 
