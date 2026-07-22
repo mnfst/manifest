@@ -288,3 +288,10 @@
     border-radius: 8px;
   }
 }
+
+/* Empty state of the attempts column: quiet, padded, never glued to its wrapper. */
+.drawer__empty {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  padding: 12px 16px;
+}
