@@ -1,0 +1,21 @@
+packages/frontend/src/pages/MessageLog.tsx
+  s_c73e8dfb24fb16::t_cf9b64a820f161 274-296,519
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_c73e8dfb24fb16::t_cf9b64a820f161 10,62,227-229,415,422,427-444
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "ad4ca4ac1cdfded9d93ef0df6f9f3de9697adef1",
+  "prompts": {},
+  "sessions": {
+    "s_c73e8dfb24fb16": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8957-6df6-7e70-a31e-d69c2c689f66",
+        "model": "gpt-5.6-luna"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
