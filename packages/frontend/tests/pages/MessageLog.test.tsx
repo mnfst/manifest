@@ -7,6 +7,7 @@ let mockSearchParams: Record<string, string | undefined> = {};
 let mockSearchAgentAccessor: (() => string | undefined) | null = null;
 const mockSetSearchParams = vi.fn();
 const mockNavigate = vi.fn();
+const pingBox = vi.hoisted(() => ({ read: (): number => 0, set: (_value: number) => {} }));
 vi.mock('@solidjs/router', () => ({
   useParams: () => ({ agentName: mockAgentName }),
   useSearchParams: () => [
@@ -58,7 +59,7 @@ vi.mock('../../src/services/api.js', () => ({
 
 vi.mock('../../src/services/sse.js', () => ({
   pingCount: () => 0,
-  messagePing: () => 0,
+  messagePing: () => pingBox.read(),
   agentPing: () => 0,
   routingPing: () => 0,
 }));
@@ -223,6 +224,9 @@ describe('MessageLog', () => {
     mockGetSpecificityAssignments.mockResolvedValue([]);
     mockGetRoutingStatus.mockResolvedValue({ enabled: false });
     mockListHeaderTiers.mockResolvedValue([]);
+    const [ping, setPing] = createSignal(0);
+    pingBox.read = ping;
+    pingBox.set = setPing;
   });
 
   it('renders Messages heading', () => {
@@ -408,19 +412,36 @@ describe('MessageLog', () => {
     vi.useRealTimers();
   });
 
-  it('keeps showing stale data during refetch instead of skeletons', async () => {
+  it('shows the loading skeleton when filters change', async () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain('msg-1234');
     });
 
-    // Trigger a refetch that never resolves
+    // A filter change requests a different dataset and never resolves.
     mockGetMessages.mockReturnValue(new Promise(() => {}));
     const selects = container.querySelectorAll('[data-testid="select"]');
     await fireEvent.change(selects[0], { target: { value: 'openai' } });
 
-    // Should still show old data, not skeletons
+    await vi.waitFor(() => {
+      expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+    });
+    expect(container.textContent).not.toContain('msg-1234');
+  });
+
+  it('keeps showing data during a background ping refetch instead of skeletons', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('msg-1234');
+    });
+
+    // A background SSE ping refetches the same query and never resolves.
+    mockGetMessages.mockReturnValue(new Promise(() => {}));
+    pingBox.set(1);
+    await vi.waitFor(() => expect(mockGetMessages).toHaveBeenCalledTimes(2));
+
     expect(container.textContent).toContain('msg-1234');
     expect(container.querySelectorAll('.skeleton').length).toBe(0);
   });

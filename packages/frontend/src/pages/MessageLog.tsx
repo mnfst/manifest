@@ -271,6 +271,29 @@ const MessageLog: Component = () => {
     },
   );
 
+  // The resource retains its previous value during refetches. Show the table
+  // skeleton when the requested filters or page change, but keep existing rows
+  // visible for the frequent background SSE `_ping` refetches.
+  const messageQueryKey = () =>
+    JSON.stringify({
+      provider: providerFilter(),
+      trigger: triggerFilter(),
+      tier: tierFilter(),
+      origin: originFilter(),
+      status: statusFilterValue(),
+      costMin: costMin(),
+      costMax: costMax(),
+      agentName: agentFilter() || params.agentName,
+      cursor: pager.currentCursor(),
+      limit: pager.pageSize,
+    });
+  const [loadedMessageQueryKey, setLoadedMessageQueryKey] = createSignal(messageQueryKey());
+  createEffect(() => {
+    if (!data.loading && data() !== undefined) setLoadedMessageQueryKey(messageQueryKey());
+  });
+  const messageQueryChanging = () =>
+    data.loading && loadedMessageQueryKey() !== messageQueryKey();
+
   const [messageFilterOptions] = createResource(
     () => ({ agentName: agentFilter() || params.agentName, _ping: messagePing() }),
     (p) => {
@@ -493,7 +516,7 @@ const MessageLog: Component = () => {
       </div>
 
       <Show
-        when={data() !== undefined || !data.loading}
+        when={(data() !== undefined || !data.loading) && !messageQueryChanging()}
         fallback={
           <div class="panel">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">
