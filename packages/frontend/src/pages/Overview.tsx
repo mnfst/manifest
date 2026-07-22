@@ -177,6 +177,16 @@ const Overview: Component = () => {
     (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,
   );
 
+  // The resource re-fetches on range, agent, and every SSE `_ping`. We only want
+  // the loading skeleton on a range change — not on the frequent background ping
+  // refetches (which should update in place). Track the range the visible data
+  // belongs to; while a newer range is loading, treat it as a range change.
+  const [loadedRange, setLoadedRange] = createSignal(effectiveRange());
+  createEffect(() => {
+    if (!data.loading && data() !== undefined) setLoadedRange(effectiveRange());
+  });
+  const rangeChanging = () => data.loading && loadedRange() !== effectiveRange();
+
   const showDashboard = () => {
     const d = data();
     return !!d && (d.has_data !== false || d.has_providers === true);
@@ -402,7 +412,7 @@ const Overview: Component = () => {
       </div>
 
       <Show
-        when={!billing.loading && (data() !== undefined || !data.loading)}
+        when={!billing.loading && (data() !== undefined || !data.loading) && !rangeChanging()}
         fallback={<OverviewSkeleton />}
       >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
