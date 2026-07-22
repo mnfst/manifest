@@ -89,6 +89,7 @@ function makeParams(overrides: Partial<MaybeHealParams>): MaybeHealParams {
     agentId: 'agent-1',
     tenantId: 'tenant-1',
     provider: 'anthropic',
+    authType: 'subscription',
     apiMode: 'chat_completions',
     requestBody: { model: 'gpt', max_tokens: 100 },
     url: 'https://api.example.com/v1/chat/completions',
@@ -603,6 +604,7 @@ describe('AutofixService', () => {
       expect(client.heal).toHaveBeenCalledTimes(1);
       const arg = client.heal.mock.calls[0][0] as Record<string, unknown>;
       expect(arg.provider).toBe('openai');
+      expect(arg.authType).toBe('subscription');
       expect(arg.api).toBe('chat_completions');
       expect(arg.url).toBe('u');
       expect(arg.request).toEqual(requestBody);
@@ -616,82 +618,53 @@ describe('AutofixService', () => {
   });
 
   // -------------------------------------------------------------------------
-  // maybeHeal — resolved model reported to Phoenix (routing-alias fix)
+  // maybeHeal — provider wire body
   // -------------------------------------------------------------------------
-  describe('maybeHeal resolved model', () => {
-    it('reports the resolved model to Phoenix but reforwards with the routing alias', async () => {
+  describe('maybeHeal provider wire body', () => {
+    it('reports the failed provider body and reforwards the healed body verbatim', async () => {
       const client = makeHealingClient();
-      // A drop_param heal: Phoenix echoes back the model it received (the
-      // resolved one) with the offending param removed.
+      const requestBody = {
+        model: 'claude-opus-4-8',
+        messages: [],
+        thinking: { type: 'adaptive', budget_tokens: 8192 },
+      };
+      const healedBody = {
+        model: 'claude-opus-4-8',
+        messages: [],
+        thinking: { type: 'adaptive' },
+      };
       client.heal.mockResolvedValue(
         patchedHeal({
           status: 'unverified',
           operations: [{ type: 'drop_param' }],
-          healedBody: { model: 'gpt-5.1', messages: [] },
+          healedBody,
         }),
       );
       const reforward = reforwardMock('{"ok":true}', 200);
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
 
-      const result = await service.maybeHeal(
-        makeParams({
-          reforward,
-          provider: 'openai',
-          requestBody: { model: 'auto', messages: [], top_k: 40 },
-          resolvedModel: 'gpt-5.1',
-        }),
-      );
+      const result = await service.maybeHeal(makeParams({ reforward, requestBody }));
 
       expect(result!.record.outcome).toBe('healed');
-
-      // Phoenix receives the RESOLVED model so its model-keyed catalog can map
-      // it — never the `auto` routing alias.
       const healArg = client.heal.mock.calls[0][0] as { request: Record<string, unknown> };
-      expect(healArg.request.model).toBe('gpt-5.1');
-      expect(healArg.request.top_k).toBe(40);
-
-      // The reforward goes back through the agent's routing, so the body it gets
-      // carries the ORIGINAL `auto` alias (a bare `gpt-5.1` would re-resolve to
-      // no_provider), while the heal itself (top_k dropped) is preserved.
-      const reforwardedBody = reforward.mock.calls[0][0];
-      expect(reforwardedBody.model).toBe('auto');
-      expect(reforwardedBody).not.toHaveProperty('top_k');
+      expect(healArg.request).toBe(requestBody);
+      expect(reforward.mock.calls[0][0]).toBe(healedBody);
     });
 
-    it('does not mutate the caller requestBody when substituting the resolved model', async () => {
+    it('does not mutate the provider body', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(
-        patchedHeal({ healedBody: { model: 'gpt-5.1', messages: [] } }),
+        patchedHeal({ healedBody: { model: 'gpt', max_output_tokens: 100 } }),
       );
       const reforward = reforwardMock('{"ok":true}', 200);
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
-      const requestBody = { model: 'auto', messages: [], top_k: 40 };
+      const requestBody = { model: 'gpt', max_tokens: 100 };
 
-      await service.maybeHeal(makeParams({ reforward, resolvedModel: 'gpt-5.1', requestBody }));
+      await service.maybeHeal(makeParams({ reforward, requestBody }));
 
-      // Substitution spreads into a new object; the caller's body is untouched.
-      expect(requestBody.model).toBe('auto');
-    });
-
-    it('leaves the heal request and reforward untouched when no resolvedModel is given', async () => {
-      const client = makeHealingClient();
-      const heal = patchedHeal({ healedBody: { model: 'gpt', max_output_tokens: 100 } });
-      client.heal.mockResolvedValue(heal);
-      const reforward = reforwardMock('{"ok":true}', 200);
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
-      const service = makeService({ client: client as unknown as HealingClient, repo });
-
-      await service.maybeHeal(
-        makeParams({ reforward, requestBody: { model: 'gpt', max_tokens: 100 } }),
-      );
-
-      // Backward compatible: Phoenix gets the body verbatim and the reforward
-      // gets the healedBody verbatim (no alias restoration).
-      const healArg = client.heal.mock.calls[0][0] as { request: Record<string, unknown> };
-      expect(healArg.request.model).toBe('gpt');
-      expect(reforward.mock.calls[0][0]).toEqual(heal.healedBody);
+      expect(requestBody).toEqual({ model: 'gpt', max_tokens: 100 });
     });
   });
 
@@ -777,11 +750,11 @@ describe('AutofixService', () => {
   // maybeHeal — single attempt (no retry budget)
   // -------------------------------------------------------------------------
   describe('maybeHeal single attempt', () => {
-    it('applies the patch once; if the retry still fails, reports it and gives up as unfixable', async () => {
+    it('preserves a failed patched retry as the terminal exhausted attempt', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
       // The patched retry still fails with a repairable 400 — Auto-fix does NOT
-      // re-heal; it reports the retry outcome to Phoenix and returns the original.
+      // re-heal; it reports and returns the retry as the terminal attempt.
       const reforward = reforwardMock('{"error":{"message":"still-broken","code":"dup"}}', 400);
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
@@ -791,7 +764,7 @@ describe('AutofixService', () => {
         makeParams({ forward: makeForward(originalBody, 400), reforward }),
       );
 
-      expect(result!.record.outcome).toBe('unfixable');
+      expect(result!.record.outcome).toBe('exhausted');
       // Exactly one heal + one reforward — there is no retry budget.
       expect(client.heal).toHaveBeenCalledTimes(1);
       expect(reforward).toHaveBeenCalledTimes(1);
@@ -802,14 +775,22 @@ describe('AutofixService', () => {
         error: { message: 'still-broken', type: null, param: null, code: 'dup' },
       });
 
-      // The original entry is marked with the patch that didn't work; no terminal
-      // success entry is appended.
-      expect(result!.record.chain).toHaveLength(1);
+      // The original is linked to the distinct failed retry that Phoenix produced.
+      expect(result!.record.chain).toHaveLength(2);
       expect(result!.record.chain[0].patch_worked).toBe(false);
+      expect(result!.record.chain[1]).toEqual({
+        attempt: 1,
+        origin: 'autofix',
+        request: { model: 'gpt', max_output_tokens: 100 },
+        http_status: 400,
+        error: { message: 'still-broken', type: null, param: null, code: 'dup' },
+      });
 
-      // Falls back to the rebuilt original error, still readable.
+      // Continues with the rebuilt retry error, still readable downstream.
       expect(result!.forward.response.status).toBe(400);
-      await expect(result!.forward.response.text()).resolves.toBe(originalBody);
+      await expect(result!.forward.response.text()).resolves.toBe(
+        '{"error":{"message":"still-broken","code":"dup"}}',
+      );
     });
   });
 

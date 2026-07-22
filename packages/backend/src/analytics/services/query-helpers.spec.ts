@@ -494,28 +494,24 @@ describe('selectMessageRowColumns', () => {
 });
 
 describe('sqlCountMessages', () => {
-  it('excludes every error status and counts NULL status as a real message', () => {
-    expect(sqlCountMessages()).toBe(
-      "COUNT(*) FILTER (WHERE at.status IS NULL OR at.status NOT IN ('error', 'fallback_error', 'rate_limited', 'auto_fixed'))",
-    );
+  it('counts logical requests rather than provider hops', () => {
+    expect(sqlCountMessages()).toContain('COUNT(DISTINCT COALESCE(at.request_id, at.id))');
+    expect(sqlCountMessages()).toContain("at.status NOT IN ('error', 'fallback_error'");
   });
 
   it('honours a custom table alias', () => {
-    expect(sqlCountMessages('m')).toBe(
-      "COUNT(*) FILTER (WHERE m.status IS NULL OR m.status NOT IN ('error', 'fallback_error', 'rate_limited', 'auto_fixed'))",
-    );
+    expect(sqlCountMessages('m')).toContain('COUNT(DISTINCT COALESCE(m.request_id, m.id))');
+    expect(sqlCountMessages('m')).toContain('m.status IS NULL');
   });
 
-  it('derives the excluded list from the shared error-status set', () => {
+  it('keeps the shared error-status set for request log filters', () => {
     expect(ERROR_MESSAGE_STATUSES).toEqual([
       'error',
       'fallback_error',
       'rate_limited',
       'auto_fixed',
+      'failed',
     ]);
-    for (const status of ERROR_MESSAGE_STATUSES) {
-      expect(sqlCountMessages()).toContain(`'${status}'`);
-    }
   });
 });
 

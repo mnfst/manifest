@@ -9,7 +9,6 @@ import {
 import { ProxyService } from '../proxy.service';
 import type { ResolveService } from '../../resolve/resolve.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
-import type { TierService } from '../../routing-core/tier.service';
 import type { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
 import type { MinimaxOauthService } from '../../oauth/minimax/minimax-oauth.service';
 import type { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
@@ -94,7 +93,6 @@ describe('ProxyService — orchestration', () => {
       'getProviderApiKey' | 'getProviderRegion' | 'getProviderKeyId' | 'selectProviderKey'
     >
   >;
-  let tierService: jest.Mocked<Pick<TierService, 'getTiers'>>;
   let openaiOauth: jest.Mocked<Pick<OpenaiOauthService, 'unwrapToken'>>;
   let minimaxOauth: jest.Mocked<Pick<MinimaxOauthService, 'unwrapToken'>>;
   let anthropicOauth: jest.Mocked<Pick<AnthropicOauthService, 'unwrapToken'>>;
@@ -109,7 +107,7 @@ describe('ProxyService — orchestration', () => {
   >;
   let limitCheck: jest.Mocked<Pick<LimitCheckService, 'checkLimits'>>;
   let fallbackService: jest.Mocked<
-    Pick<ProxyFallbackService, 'tryForwardToProvider' | 'tryFallbacks'>
+    Pick<ProxyFallbackService, 'tryForwardToProvider' | 'retryWireBody' | 'tryFallbacks'>
   >;
   let configService: ConfigService;
   let signatureCache: ThoughtSignatureCache;
@@ -146,7 +144,6 @@ describe('ProxyService — orchestration', () => {
         priority: 0,
       }),
     };
-    tierService = { getTiers: jest.fn().mockResolvedValue([]) };
     openaiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     minimaxOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     anthropicOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
@@ -162,6 +159,7 @@ describe('ProxyService — orchestration', () => {
     limitCheck = { checkLimits: jest.fn().mockResolvedValue(null) };
     fallbackService = {
       tryForwardToProvider: jest.fn(),
+      retryWireBody: jest.fn(),
       tryFallbacks: jest.fn(),
     };
     configService = { get: jest.fn().mockReturnValue(undefined) } as unknown as ConfigService;
@@ -191,7 +189,6 @@ describe('ProxyService — orchestration', () => {
       resolveService as unknown as ResolveService,
       modelDiscovery as unknown as ModelDiscoveryService,
       providerKeyService as unknown as ProviderKeyService,
-      tierService as unknown as TierService,
       openaiOauth as unknown as OpenaiOauthService,
       minimaxOauth as unknown as MinimaxOauthService,
       anthropicOauth as unknown as AnthropicOauthService,
@@ -323,8 +320,15 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-    const fwd = (status: number) => ({
+    const fwd = (
+      status: number,
+      wireRequestBody: Record<string, unknown> = { model: 'gpt-4o' },
+      wireApiMode: 'chat_completions' | 'responses' | 'messages' = 'chat_completions',
+    ) => ({
       response: okResponse(status),
+      wireRequestBody,
+      wireApiMode,
+      retryWireBody: jest.fn(),
       isGoogle: false,
       isAnthropic: false,
       isChatGpt: false,
@@ -341,22 +345,20 @@ describe('ProxyService — orchestration', () => {
 
       expect(result.forward).toBe(healed);
       expect(result.autofix).toBe(record);
+      expect(autofixService.maybeHeal).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'openai', authType: 'api_key' }),
+      );
     });
 
-    it('re-forwards the patched same-model body WITH the agent param merge re-applied (M3)', async () => {
+    it('retries the patched same-model wire body without rebuilding it', async () => {
       routableResolve();
       const healed = fwd(200);
-      fallbackService.tryForwardToProvider
-        .mockResolvedValueOnce(fwd(400))
-        .mockResolvedValueOnce(healed);
-      // The request routes via "auto" (so the primary attempt carries a defined
-      // paramMergeContext, not an explicit-model override). The heal keeps the
-      // SAME model ("auto") → reforwardHealed reuses the already-resolved route
-      // and re-applies the agent's param merge, so the healed retry doesn't
-      // silently drop configured model params.
+      const failed = fwd(400, { model: 'gpt-4o', max_tokens: 7 });
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(failed);
+      fallbackService.retryWireBody.mockResolvedValueOnce(healed);
       autofixService.maybeHeal.mockImplementation(
         async (params: { reforward: (b: Record<string, unknown>) => Promise<unknown> }) => {
-          const forward = await params.reforward({ model: 'auto', max_output_tokens: 5 });
+          const forward = await params.reforward({ model: 'gpt-4o', max_tokens: 5 });
           return {
             forward,
             record: { outcome: 'healed', attempts: 1, original_http_status: 400, chain: [] },
@@ -369,21 +371,51 @@ describe('ProxyService — orchestration', () => {
       );
 
       expect(result.forward).toBe(healed);
-      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(2);
-      const primaryOpts = fallbackService.tryForwardToProvider.mock.calls[0][0];
-      const reforwardOpts = fallbackService.tryForwardToProvider.mock.calls[1][0];
-      // Same-model branch reuses the primary route's normalized model.
-      expect(reforwardOpts.model).toBe('gpt-4o');
-      expect(reforwardOpts.body).toEqual({ model: 'auto', max_output_tokens: 5 });
-      // The reforward now carries the SAME defined paramMergeContext the primary
-      // attempt used (previously this was undefined — the param-merge bug M3 fixes).
-      expect(reforwardOpts.paramMergeContext).toBeDefined();
-      expect(reforwardOpts.paramMergeContext).toEqual(primaryOpts.paramMergeContext);
-      expect(reforwardOpts.paramMergeContext).toEqual({
-        agentId: 'agent-1',
-        scopeKey: 'tier:standard',
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        failed,
+        { model: 'gpt-4o', max_tokens: 5 },
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'gpt-4o',
+          authType: 'api_key',
+        }),
+      );
+    });
+
+    it('reports the captured provider body and provider-facing API mode to Auto-fix', async () => {
+      routableResolve();
+      const wireBody = {
+        model: 'claude-opus-4-8',
+        thinking: { type: 'adaptive', budget_tokens: 8192 },
+      };
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(fwd(400, wireBody, 'messages'));
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(autofixService.maybeHeal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          apiMode: 'messages',
+          requestBody: wireBody,
+        }),
+      );
+      expect(autofixService.maybeHeal.mock.calls[0][0]).not.toHaveProperty('resolvedModel');
+    });
+
+    it('skips Auto-fix when Phoenix cannot represent the provider wire format', async () => {
+      routableResolve();
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce({
+        response: okResponse(400),
+        wireRequestBody: { contents: [{ role: 'user', parts: [{ text: 'hi' }] }] },
+        retryWireBody: jest.fn(),
+        isGoogle: true,
+        isAnthropic: false,
+        isChatGpt: false,
       });
-      expect(reforwardOpts.chatBody).toBeUndefined();
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(autofixService.maybeHeal).not.toHaveBeenCalled();
     });
 
     it('re-resolves routing and forwards to the newly-resolved route when the heal changes the model (M5)', async () => {
@@ -538,9 +570,9 @@ describe('ProxyService — orchestration', () => {
     it('takes the same-model branch when the heal drops the model field entirely', async () => {
       routableResolve();
       const healed = fwd(200);
-      fallbackService.tryForwardToProvider
-        .mockResolvedValueOnce(fwd(400))
-        .mockResolvedValueOnce(healed);
+      const failed = fwd(400);
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(failed);
+      fallbackService.retryWireBody.mockResolvedValueOnce(healed);
       // Healed body has no `model` → healedModel is undefined → reforwardHealed
       // falls through to the same-model branch (reuses the primary route).
       autofixService.maybeHeal.mockImplementation(
@@ -556,12 +588,18 @@ describe('ProxyService — orchestration', () => {
       const result = await svc.proxyRequest(baseOpts());
 
       expect(result.forward).toBe(healed);
-      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(2);
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
       // No re-resolve — the same-model branch never consults getModelsForAgent.
       expect(modelDiscovery.getModelsForAgent).not.toHaveBeenCalled();
-      const reforwardOpts = fallbackService.tryForwardToProvider.mock.calls[1][0];
-      expect(reforwardOpts.model).toBe('gpt-4o');
-      expect(reforwardOpts.provider).toBe('openai');
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        failed,
+        { max_output_tokens: 5 },
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'gpt-4o',
+          authType: 'api_key',
+        }),
+      );
     });
 
     it('re-resolves via scoring (not the explicit-model path) when the heal switches the model to auto (M5)', async () => {
@@ -1660,7 +1698,6 @@ describe('ProxyService — orchestration', () => {
     });
 
     it('falls through to the resolver-provided fallback_routes', async () => {
-      // resolved.fallback_routes is non-null — tier service should NOT be consulted.
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: new Response('boom', { status: 500 }),
         isGoogle: false,
@@ -1683,7 +1720,7 @@ describe('ProxyService — orchestration', () => {
       } as never);
 
       await svc.proxyRequest(baseOpts());
-      expect(tierService.getTiers).not.toHaveBeenCalled();
+      expect(fallbackService.tryFallbacks).toHaveBeenCalled();
     });
 
     it('skips non-stream fallback routes when response mode is stream', async () => {
@@ -1704,17 +1741,23 @@ describe('ProxyService — orchestration', () => {
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
+        attempt: { id: 'primary-attempt' } as never,
+        providerCallStarted: true,
       });
       fallbackService.tryFallbacks.mockResolvedValue({
         success: null,
         failures: [],
       } as never);
 
-      await svc.proxyRequest(baseOpts());
+      const result = await svc.proxyRequest(baseOpts());
 
       const call = fallbackService.tryFallbacks.mock.calls[0];
       expect(call[2]).toEqual(['claude']);
       expect(call[14]).toEqual([route('anthropic', 'api_key', 'claude')]);
+      // When every eligible fallback fails before invoking a provider, the
+      // terminal response still records the primary provider call.
+      expect(result.meta.attempt).toEqual({ id: 'primary-attempt' });
+      expect(result.meta.providerCallStarted).toBe(true);
     });
 
     it('does not retry a lifted stream fallback as its own fallback', async () => {
@@ -1727,12 +1770,6 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      tierService.getTiers.mockResolvedValue([
-        {
-          tier: 'standard',
-          fallback_routes: [route('anthropic', 'api_key', 'claude')],
-        } as never,
-      ]);
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: new Response('boom', { status: 500 }),
         isGoogle: false,
@@ -1746,37 +1783,29 @@ describe('ProxyService — orchestration', () => {
       expect(result.forward.response.status).toBe(500);
     });
 
-    it('looks up tier fallbacks when the resolver returned null', async () => {
+    it('does not reload persisted fallbacks when the resolver returned null', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
-        route: route('openai', 'api_key', 'gpt-4o'),
+        // This route represents a configured fallback promoted to primary.
+        route: route('anthropic', 'api_key', 'claude'),
         fallback_routes: null,
         confidence: 0.9,
         score: 5,
         reason: 'scored',
       });
-      tierService.getTiers.mockResolvedValue([
-        {
-          tier: 'standard',
-          fallback_routes: [route('anthropic', 'api_key', 'claude')],
-        } as never,
-      ]);
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: new Response('boom', { status: 500 }),
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
       });
-      fallbackService.tryFallbacks.mockResolvedValue({
-        success: null,
-        failures: [],
-      } as never);
 
-      await svc.proxyRequest(baseOpts());
-      expect(tierService.getTiers).toHaveBeenCalledWith('agent-1');
+      const result = await svc.proxyRequest(baseOpts());
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(500);
     });
 
-    it('returns null fallback chain when neither resolver nor tier provides routes', async () => {
+    it('returns the primary error when the resolver provides no fallback routes', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('openai', 'api_key', 'gpt-4o'),
@@ -1785,7 +1814,6 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      tierService.getTiers.mockResolvedValue([]);
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: new Response('boom', { status: 500 }),
         isGoogle: false,
@@ -1882,7 +1910,6 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      tierService.getTiers.mockResolvedValue([]);
       const streamRes = new Response(new ReadableStream(), {
         status: 200,
         headers: { 'content-type': 'text/event-stream' },
@@ -1933,7 +1960,6 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      tierService.getTiers.mockResolvedValue([]);
       const streamRes = new Response(new ReadableStream(), {
         status: 200,
         headers: { 'content-type': 'text/event-stream' },

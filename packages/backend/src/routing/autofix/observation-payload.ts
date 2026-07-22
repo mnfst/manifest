@@ -1,5 +1,6 @@
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import type { ProxyApiMode } from '../proxy/proxy-types';
+import type { AuthType } from 'manifest-shared';
 import { normalizeProviderError } from './provider-error-normalizer';
 import type { HealRequest } from './phoenix.types';
 
@@ -108,22 +109,13 @@ export interface ObservationInput {
    */
   agentId: string;
   provider: string;
+  authType: AuthType;
   apiMode: ProxyApiMode;
   /**
-   * The forwarded body, with inline base64 images already redacted
-   * (`routingBody`). The heal path reports the raw body instead, because a patch
-   * has to be applied to what the provider actually received; an observation is
-   * only evidence, and no operation Phoenix can resolve looks at image bytes —
-   * so the smaller, less sensitive body is the right one to ship.
+   * The provider-facing body. Inline base64 images are redacted below because an
+   * observation is evidence only and no Phoenix operation needs the image bytes.
    */
   requestBody: Record<string, unknown>;
-  /**
-   * The concrete provider model the request routed to. The body may name a
-   * routing alias (`auto`) that Phoenix's model-keyed catalog can't resolve, so
-   * the reported body carries the resolved id instead — same substitution the
-   * heal path makes.
-   */
-  resolvedModel?: string;
   status: number;
   /** Raw text of the provider's error response. */
   errorBody: string;
@@ -139,17 +131,13 @@ export function toObservation(input: ObservationInput): HealRequest | null {
   const scrubbed = scrubBody(input.requestBody);
   if (!scrubbed) return null;
 
-  const request =
-    input.resolvedModel && input.resolvedModel !== scrubbed.model
-      ? { ...scrubbed, model: input.resolvedModel }
-      : scrubbed;
-
   return {
     traceId: input.traceId,
     tenantId: input.tenantId,
     provider: input.provider,
+    authType: input.authType,
     api: input.apiMode,
-    request,
+    request: scrubbed,
     response: { statusCode: input.status, error: normalizeProviderError(input.errorBody) },
     ...(input.responseTimeMs != null ? { responseTimeMs: input.responseTimeMs } : {}),
   };

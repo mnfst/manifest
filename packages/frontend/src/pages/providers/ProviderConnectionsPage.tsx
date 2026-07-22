@@ -18,6 +18,7 @@ import {
   getProviders as getGlobalProviders,
   getProviderUsage,
   mergeUsage,
+  connectionUsage,
   type TenantProviderSummary,
 } from '../../services/api/providers.js';
 import { messagePing, routingPing } from '../../services/sse.js';
@@ -31,13 +32,20 @@ import {
   formatNumber,
   formatTimeAgo,
 } from '../../services/formatters.js';
-import { providerIcon } from '../../components/ProviderIcon.jsx';
 import InfoTooltip from '../../components/InfoTooltip.jsx';
+import { providerIcon } from '../../components/ProviderIcon.jsx';
 import { toast } from '../../services/toast-store.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
+import {
+  attemptSuccessRate,
+  totalAttemptsTooltip,
+  CONNECTION_SUCCESS_RATE_TOOLTIP_30D,
+} from '../../services/api/analytics.js';
+import { getAutofixCohort } from '../../services/api/autofix.js';
 import '../../styles/routing.css';
+import '../../styles/analytics-overview.css';
 
 type ProviderPageKind = 'subscriptions' | 'byok' | 'local';
 type ViewMode = 'list' | 'grid';
@@ -205,19 +213,6 @@ const ListIcon: Component = () => (
 const GridIcon: Component = () => (
   <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
     <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
-  </svg>
-);
-
-const CustomProviderIcon: Component = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="14"
-    height="14"
-    fill="currentColor"
-    viewBox="0 0 24 24"
-    aria-hidden="true"
-  >
-    <path d="M7 11h10c.37 0 .72-.21.89-.54s.14-.73-.08-1.04l-5-7c-.38-.53-1.25-.53-1.63 0l-5 7A.997.997 0 0 0 6.99 11Zm5-6.28L15.06 9H8.95l3.06-4.28ZM17.5 13c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5m0 7a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5M3 22h7c.55 0 1-.45 1-1v-7c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v7c0 .55.45 1 1 1m1-7h5v5H4z" />
   </svg>
 );
 
@@ -407,6 +402,22 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     connectedSummaries().reduce((sum, summary) => sum + summary.consumption_cost, 0),
   );
 
+  const [autofixCohort] = createResource(
+    () => ({ _ping: messagePing() }),
+    () => getAutofixCohort(),
+  );
+  const autofixEligible = () => autofixCohort()?.eligible ?? false;
+
+  // Attempt-world totals for the header cards: summed over THIS page's rows
+  // (provider + auth_type grain), so the Subscriptions page never blends an
+  // api_key connection's failures into its numbers, and vice versa.
+  const totalAttempts = createMemo(() =>
+    connectedSummaries().reduce((sum, s) => sum + s.attempts_30d, 0),
+  );
+  const totalAttemptsSucceeded = createMemo(() =>
+    connectedSummaries().reduce((sum, s) => sum + s.succeeded_30d, 0),
+  );
+
   const connectionDenominator = (summary: TenantProviderSummary) =>
     Math.max(
       summary.connections.filter((connection) => connection.is_active || hasUsage(summary)).length,
@@ -414,14 +425,34 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
       1,
     );
 
-  const perConnectionTokens = (summary: TenantProviderSummary) =>
+  // Per-connection usage at the (provider, auth_type, label) grain: two
+  // connections of the same provider and type never share numbers. Falls back
+  // to the group's even split only while the label rows are missing.
+  const usageForConnection = (
+    summary: TenantProviderSummary,
+    connection: { label?: string | null },
+  ) => connectionUsage(usage(), summary.provider, summary.auth_type, connection.label);
+
+  const perConnectionTokens = (
+    summary: TenantProviderSummary,
+    connection: { label?: string | null },
+  ) =>
+    usageForConnection(summary, connection)?.consumption_tokens ??
     Math.round(summary.consumption_tokens / connectionDenominator(summary));
 
-  const perConnectionCost = (summary: TenantProviderSummary) =>
+  const perConnectionCost = (
+    summary: TenantProviderSummary,
+    connection: { label?: string | null },
+  ) =>
+    usageForConnection(summary, connection)?.consumption_cost ??
     summary.consumption_cost / connectionDenominator(summary);
 
-  const connectionLastUsedAt = (summary: TenantProviderSummary) =>
-    summary.connections.length === 1 ? summary.last_used_at : null;
+  const connectionLastUsedAt = (
+    summary: TenantProviderSummary,
+    connection: { label?: string | null },
+  ) =>
+    usageForConnection(summary, connection)?.last_used_at ??
+    (summary.connections.length === 1 ? summary.last_used_at : null);
 
   const showMetricCard = () =>
     !!copy().metricLabel && (connectedRows().length > 0 || totalApiCost() > 0);
@@ -508,23 +539,48 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
         </Show>
       </div>
 
-      <Show when={showMetricCard()}>
-        <div class="chart-card" style="margin-bottom: 24px; padding: 20px 24px;">
-          <span class="chart-card__label" style="display: flex; align-items: center; gap: 0;">
-            {copy().metricLabel}
-            <InfoTooltip text={copy().metricTooltip!} />
-          </span>
-          <div class="chart-card__value-row" style="margin-top: 4px;">
-            <Show
-              when={!usageLoading()}
-              fallback={
-                <span class="chart-card__value">
-                  <UsageShimmer width={72} />
-                </span>
-              }
-            >
-              <span class="chart-card__value">{formatCost(totalApiCost()) ?? '$0.00'}</span>
-            </Show>
+      <Show when={connectedRows().length > 0}>
+        <div
+          class="overview-stats"
+          style={`grid-template-columns: repeat(${showMetricCard() ? 4 : 3}, 1fr); margin-bottom: 24px;`}
+        >
+          <Show when={showMetricCard()}>
+            <div class="overview-stat-card">
+              <span class="overview-stat-card__label">Total API cost (30d)</span>
+              <div class="overview-stat-card__value-row">
+                <Show when={!usageLoading()} fallback={<UsageShimmer width={72} />}>
+                  <span class="overview-stat-card__value">
+                    {formatCost(totalApiCost()) ?? '$0.00'}
+                  </span>
+                </Show>
+              </div>
+            </div>
+          </Show>
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">
+              Total attempts (30d)
+              <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+            </span>
+            <div class="overview-stat-card__value-row">
+              <span class="overview-stat-card__value">{formatNumber(totalAttempts())}</span>
+            </div>
+          </div>
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">
+              Success rate (30d)
+              <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP_30D} />
+            </span>
+            <div class="overview-stat-card__value-row">
+              <span class="overview-stat-card__value">
+                {(() => {
+                  const rate = attemptSuccessRate({
+                    attempts: totalAttempts(),
+                    succeeded: totalAttemptsSucceeded(),
+                  });
+                  return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                })()}
+              </span>
+            </div>
           </div>
         </div>
       </Show>
@@ -539,11 +595,19 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
               <tr>
                 <th>Provider</th>
                 <th>Connection</th>
+                <th>Status</th>
                 <th>Usage (30d)</th>
                 <Show when={copy().rowMetricHeading}>
                   <th>{copy().rowMetricHeading}</th>
                 </Show>
-                <th>Status</th>
+                <th class="rel-col">
+                  Total attempts (30d)
+                  <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                </th>
+                <th class="rel-col">
+                  Success rate (30d)
+                  <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP_30D} />
+                </th>
                 <th>Last used</th>
                 <th />
               </tr>
@@ -656,31 +720,65 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       </Show>
                     </td>
                     <td>
+                      <StatusBadge active={row.connection.is_active} />
+                    </td>
+                    <td>
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={96} />}>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                          <Show when={row.summary.sparkline_7d?.length}>
-                            <span style="flex-shrink: 0;">
-                              <Sparkline data={row.summary.sparkline_7d} width={60} height={20} />
-                            </span>
-                          </Show>
-                          <span>{formatNumber(perConnectionTokens(row.summary))} tokens</span>
+                          {(() => {
+                            const u = usageForConnection(row.summary, row.connection);
+                            const spark = u?.sparkline_7d ?? row.summary.sparkline_7d;
+                            return (
+                              <>
+                                <Show when={spark?.length}>
+                                  <span style="flex-shrink: 0;">
+                                    <Sparkline data={spark} width={60} height={20} />
+                                  </span>
+                                </Show>
+                                <span>
+                                  {formatNumber(perConnectionTokens(row.summary, row.connection))}{' '}
+                                  tokens
+                                </span>
+                              </>
+                            );
+                          })()}
                         </div>
                       </Show>
                     </td>
                     <Show when={copy().rowMetricHeading}>
                       <td>
                         <Show when={!usageLoading()} fallback={<UsageShimmer />}>
-                          {formatCost(perConnectionCost(row.summary)) ?? '$0.00'}
+                          {formatCost(perConnectionCost(row.summary, row.connection)) ?? '$0.00'}
                         </Show>
                       </td>
                     </Show>
-                    <td>
-                      <StatusBadge active={row.connection.is_active} />
+                    {/* Attempt reliability at the row's own grain (provider +
+                        auth_type): a subscription row never shows a rate
+                        blended with the provider's api_key traffic. */}
+                    <td class="rel-col">
+                      <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
+                        {formatNumber(
+                          usageForConnection(row.summary, row.connection)?.attempts_30d ??
+                            row.summary.attempts_30d,
+                        )}
+                      </Show>
+                    </td>
+                    <td class="rel-col">
+                      <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
+                        {(() => {
+                          const u = usageForConnection(row.summary, row.connection);
+                          const rate = attemptSuccessRate({
+                            attempts: u?.attempts_30d ?? row.summary.attempts_30d,
+                            succeeded: u?.succeeded_30d ?? row.summary.succeeded_30d,
+                          });
+                          return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                        })()}
+                      </Show>
                     </td>
                     <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
-                        {connectionLastUsedAt(row.summary)
-                          ? formatTimeAgo(connectionLastUsedAt(row.summary)!)
+                        {connectionLastUsedAt(row.summary, row.connection)
+                          ? formatTimeAgo(connectionLastUsedAt(row.summary, row.connection)!)
                           : '-'}
                       </Show>
                     </td>

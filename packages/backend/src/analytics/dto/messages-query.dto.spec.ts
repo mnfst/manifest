@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { MessagesQueryDto } from './messages-query.dto';
+import { MESSAGE_STATUS_FILTER_VALUES, MessagesQueryDto } from './messages-query.dto';
 
 describe('MessagesQueryDto', () => {
   it('allows omitting all fields', async () => {
@@ -57,7 +57,7 @@ describe('MessagesQueryDto', () => {
   });
 
   it('accepts each known status value', async () => {
-    for (const status of ['ok', 'failed', 'error', 'rate_limited', 'fallback_error', 'errors']) {
+    for (const status of MESSAGE_STATUS_FILTER_VALUES) {
       const dto = plainToInstance(MessagesQueryDto, { status });
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
@@ -85,7 +85,26 @@ describe('MessagesQueryDto', () => {
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
     const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
-    expect(flat.join('\n')).toMatch(/trigger must be one of/);
+    expect(flat.join('\n')).toMatch(/trigger must be a comma-separated list of/);
+  });
+
+  it('rejects an unknown attempts facet value', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { attempts: 'has_exploded' });
+    const errors = await validate(dto);
+    const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+    expect(flat.join('\n')).toMatch(/attempts must be a comma-separated list of/);
+  });
+
+  it('accepts the attempts facet list', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { attempts: 'has_failed,has_succeeded' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts a comma-separated trigger list', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { trigger: 'autofix,fallback' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
   });
 
   it('coerces include_total and include_filter_options flags', async () => {

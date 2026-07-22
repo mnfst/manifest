@@ -8,6 +8,7 @@ import { Tenant } from '../../entities/tenant.entity';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import type { ForwardResult } from '../proxy/provider-client';
 import type { ProxyApiMode } from '../proxy/proxy-types';
+import type { AuthType } from 'manifest-shared';
 import { HEALING_CLIENT, HealContractError, type HealingClient } from './healing-client';
 import { normalizeProviderError } from './provider-error-normalizer';
 import type { AutofixChainEntry, AutofixRecord } from './autofix.types';
@@ -18,17 +19,10 @@ export interface MaybeHealParams {
   agentId: string;
   tenantId: string;
   provider: string;
+  authType: AuthType;
   apiMode: ProxyApiMode;
   /** The request body that was actually forwarded and failed. */
   requestBody: Record<string, unknown>;
-  /**
-   * The resolved provider model (e.g. `gpt-5.1`) the request was routed to.
-   * `requestBody.model` may be a routing alias (`auto`) Phoenix can't map to its
-   * model-keyed catalog; this concrete model is reported to Phoenix instead so
-   * its resolver can identify the model. The reforward still goes through the
-   * agent's routing. Omit when the body already carries the concrete model.
-   */
-  resolvedModel?: string;
   /** Optional endpoint URL, forwarded to Phoenix as readability context. */
   url?: string;
   /** Re-send a patched body to the provider and return the fresh forward. */
@@ -36,7 +30,7 @@ export interface MaybeHealParams {
 }
 
 export interface AutofixAttempt {
-  /** Forward to continue with: a healed 200, or the original error rebuilt. */
+  /** Forward to continue with: the latest provider response, rebuilt if consumed. */
   forward: ForwardResult;
   record: AutofixRecord;
 }
@@ -364,27 +358,16 @@ export class AutofixService {
     };
     const chain: AutofixChainEntry[] = [entry];
 
-    // The agent's body may carry a routing alias as its model (e.g. `auto`), but
-    // Phoenix fingerprints and resolves against the concrete provider model.
-    // Report the resolved model to Phoenix so its model-keyed catalog resolver
-    // can identify the model; the reforward below still routes via the alias.
-    const routingModel = params.requestBody.model;
-    const phoenixRequest =
-      typeof params.resolvedModel === 'string' &&
-      params.resolvedModel.length > 0 &&
-      params.resolvedModel !== routingModel
-        ? { ...params.requestBody, model: params.resolvedModel }
-        : params.requestBody;
-
     let heal: HealResponse;
     try {
       heal = await this.client.heal({
         traceId: groupId,
         tenantId: params.tenantId,
         provider: params.provider,
+        authType: params.authType,
         api: params.apiMode,
         url: params.url,
-        request: phoenixRequest,
+        request: params.requestBody,
         response: { statusCode: status, error: normalized },
       });
     } catch (err) {
@@ -436,19 +419,9 @@ export class AutofixService {
     // allow-list. Keep it that way so a new Phoenix status never silently no-ops.
     const healAttemptId = heal.healAttemptId;
     const healedBody = heal.healedBody;
-    // Phoenix echoes back the model we sent it (the resolved provider model). The
-    // reforward must go through the agent's routing, so restore the original
-    // routing alias — unless Phoenix itself changed the model (a model-fix patch),
-    // which `reforwardHealed` intentionally re-resolves.
-    const bodyToReforward =
-      typeof routingModel === 'string' &&
-      healedBody.model === phoenixRequest.model &&
-      phoenixRequest.model !== routingModel
-        ? { ...healedBody, model: routingModel }
-        : healedBody;
     let next: ForwardResult;
     try {
-      next = await params.reforward(bodyToReforward);
+      next = await params.reforward(healedBody);
     } catch (err) {
       // The patched resend threw (a provider transport error, NOT a Phoenix
       // failure — so it must not trip the heal breaker). Preserve the audit chain
@@ -471,7 +444,7 @@ export class AutofixService {
       chain.push({
         attempt: 1,
         origin: 'autofix',
-        request: bodyToReforward,
+        request: healedBody,
         http_status: next.response.status,
       });
       return {
@@ -480,16 +453,25 @@ export class AutofixService {
       };
     }
 
-    // The patch didn't clear the error. Report the retry outcome to Phoenix and
-    // give up — a single attempt, no re-heal.
+    // The patch didn't clear the error. Preserve that retry as its own provider
+    // attempt, report it to Phoenix, and continue with its rebuilt response so
+    // fallback and terminal recording see what actually happened last.
     const retryText = await next.response.text();
+    const retryError = normalizeProviderError(retryText);
+    chain.push({
+      attempt: 1,
+      origin: 'autofix',
+      request: healedBody,
+      http_status: next.response.status,
+      error: retryError,
+    });
     this.reportOutcome(healAttemptId, {
       retryStatusCode: next.response.status,
-      error: normalizeProviderError(retryText),
+      error: retryError,
     });
     return {
-      forward: originalForward,
-      record: { groupId, outcome: 'unfixable', original_http_status: status, chain },
+      forward: rebuildForward(next, retryText, next.response.status),
+      record: { groupId, outcome: 'exhausted', original_http_status: status, chain },
     };
   }
 

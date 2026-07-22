@@ -40,6 +40,7 @@ import {
   getSubscriptionEndpointRegionConfig,
   SubscriptionEndpointRegionConfig,
 } from '../subscription-region';
+import { filterProvidersForDeployment } from '../../common/utils/provider-availability';
 
 const MAX_KEYS_PER_PROVIDER = 5;
 const MAX_LABEL_LENGTH = 50;
@@ -128,11 +129,13 @@ export class ProviderService {
 
   async getProviders(tenantId: string): Promise<TenantProvider[]> {
     const cached = this.routingCache.getProviders(tenantId);
-    if (cached) return cached;
+    if (cached) return filterProvidersForDeployment(cached);
 
     await this.cleanupUnsupportedSubscriptionProviders(tenantId);
-    const providers = (await this.providerRepo.find({ where: { tenant_id: tenantId } })).filter(
-      isManifestUsableProvider,
+    const providers = filterProvidersForDeployment(
+      (await this.providerRepo.find({ where: { tenant_id: tenantId } })).filter(
+        isManifestUsableProvider,
+      ),
     );
     this.routingCache.setProviders(tenantId, providers);
     return providers;
