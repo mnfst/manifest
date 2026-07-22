@@ -730,6 +730,12 @@ export async function handleNonStreamResponse(
     responseBody = providerClient.collectChatGptSseResponse(sseText, meta.model);
   } else {
     responseBody = await forward.response.json();
+    // cline-pass wraps non-streaming chat completions in a { data, success }
+    // envelope. Unwrap so downstream code and clients see a standard OpenAI shape.
+    const r = responseBody as Record<string, unknown> | undefined;
+    if (r && typeof r === 'object' && 'data' in r && !('choices' in r)) {
+      responseBody = (r as { data: unknown; success?: boolean }).data;
+    }
     if (supportsReasoningContent(meta.provider, meta.model)) {
       cacheReasoningContent(responseBody, reasoningCache, sessionKey);
     }
