@@ -1,11 +1,8 @@
 {
-    "node": "n8n-nodes-manifest",
+    "node": "n8n-nodes-manifest.manifest",
     "nodeVersion": "1.0",
     "codexVersion": "1.0",
-    "categories": ["Core Nodes"],
-    "subcategories": {
-        "Core Nodes": ["Helpers"]
-    },
+    "categories": ["Development"],
     "resources": {
         "credentialDocumentation": [
             {
