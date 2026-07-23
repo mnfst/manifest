@@ -1729,6 +1729,58 @@ describe('proxy-response-handler', () => {
       expect(res.json).toHaveBeenCalledWith(body);
     });
 
+    it('should unwrap cline-pass { data, success } envelope', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const inner = {
+        id: 'chatcmpl-cp-1',
+        object: 'chat.completion',
+        model: 'qwen3.7-plus',
+        choices: [
+          { index: 0, message: { role: 'assistant', content: 'hi' }, finish_reason: 'stop' },
+        ],
+        usage: { prompt_tokens: 10, completion_tokens: 1 },
+      };
+      const wrapped = { data: inner, success: true };
+      const forward = mockForward(wrapped);
+      const meta = makeMeta();
+
+      const usage = await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+      );
+
+      expect(usage).toEqual({
+        prompt_tokens: 10,
+        completion_tokens: 1,
+        cache_read_tokens: undefined,
+        cache_creation_tokens: undefined,
+      });
+      expect(res.json).toHaveBeenCalledWith(inner);
+    });
+
+    it('should not unwrap standard OpenAI responses that happen to have a data field', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const body = {
+        id: 'chatcmpl-123',
+        data: [{ foo: 'bar' }],
+        choices: [
+          { index: 0, message: { role: 'assistant', content: 'hello' }, finish_reason: 'stop' },
+        ],
+        usage: { prompt_tokens: 5, completion_tokens: 3 },
+      };
+      const forward = mockForward(body);
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      expect(res.json).toHaveBeenCalledWith(body);
+    });
+
     it('should extract cached prompt tokens from prompt_tokens_details', async () => {
       const { res } = mockResponse();
       const client = mockProviderClient();
