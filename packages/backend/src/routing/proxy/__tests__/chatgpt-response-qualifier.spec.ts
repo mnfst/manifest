@@ -131,6 +131,58 @@ describe('qualifyChatGptResponse', () => {
     await expect(response.text()).resolves.toBe(incomplete);
   });
 
+  it('turns max-output-token exhaustion without output into a retryable HTTP failure', async () => {
+    const incomplete = event('response.incomplete', {
+      response: {
+        output: [],
+        incomplete_details: { reason: 'max_output_tokens' },
+        usage: { input_tokens: 100, output_tokens: 64, total_tokens: 164 },
+      },
+    });
+
+    const response = await qualifyChatGptResponse(codexResponse(incomplete), {
+      downstreamFormat: 'chat-completions',
+    });
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        message: 'ChatGPT Codex exhausted its output budget without text or tool output',
+        type: 'upstream_response_error',
+        code: 'empty_response',
+      },
+    });
+  });
+
+  it('recovers terminal text from an incomplete response when deltas were omitted', async () => {
+    const incomplete = event('response.incomplete', {
+      response: {
+        output: [
+          {
+            type: 'message',
+            content: [{ type: 'output_text', text: 'Partial but usable answer' }],
+          },
+        ],
+        incomplete_details: { reason: 'max_output_tokens' },
+      },
+    });
+
+    const response = await qualifyChatGptResponse(codexResponse(incomplete), {
+      downstreamFormat: 'chat-completions',
+    });
+    const collected = collectChatGptSseResponse(await response.text(), 'gpt-5');
+
+    expect(response.status).toBe(200);
+    expect(collected).toMatchObject({
+      choices: [
+        {
+          finish_reason: 'length',
+          message: { content: 'Partial but usable answer' },
+        },
+      ],
+    });
+  });
+
   it('recovers full terminal text when Codex omitted its delta events', async () => {
     const completed = `id: event_1\n${event('response.completed', {
       response: {
