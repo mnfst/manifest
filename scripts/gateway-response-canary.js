@@ -4,6 +4,7 @@ const { createHash } = require('node:crypto');
 
 const DEFAULT_MARKER = 'MANIFEST_GATEWAY_CANARY_OK';
 const DEFAULT_TIMEOUT_MS = 100_000;
+const DEFAULT_M203_RETRY_DELAYS_MS = [2_000, 5_000, 10_000];
 
 class CanaryError extends Error {
   constructor(code, evidence = {}) {
@@ -187,6 +188,17 @@ function validateCanaryResult(state, expectedText) {
   return evidence;
 }
 
+async function isManifestConcurrencyLimit(response) {
+  if (response.status !== 429) return false;
+  let body = '';
+  try {
+    body = await response.text();
+  } catch {
+    return false;
+  }
+  return body.includes('[🦚 Manifest M203]') || body.includes('[Manifest M203]');
+}
+
 async function runCanary(options) {
   const {
     baseUrl,
@@ -244,8 +256,12 @@ async function runCanary(options) {
       request_model: model,
     };
     if (!response.ok) {
-      await response.body?.cancel();
-      throw new CanaryError('unexpected_http_status', baseEvidence);
+      const retryableConcurrency = await isManifestConcurrencyLimit(response);
+      if (response.body && !response.bodyUsed) await response.body.cancel();
+      throw new CanaryError('unexpected_http_status', {
+        ...baseEvidence,
+        retryable_concurrency: retryableConcurrency,
+      });
     }
     if (!/^[0-9a-f]{32}$/i.test(traceId ?? '')) {
       await response.body?.cancel();
@@ -295,6 +311,34 @@ async function runCanary(options) {
   }
 }
 
+async function runCanaryWithRetries(options) {
+  const {
+    retryDelaysMs = DEFAULT_M203_RETRY_DELAYS_MS,
+    sleepImpl = (delayMs) => new Promise((resolve) => setTimeout(resolve, delayMs)),
+  } = options;
+  let attempt = 0;
+  while (true) {
+    attempt += 1;
+    try {
+      return { ...(await runCanary(options)), attempts: attempt };
+    } catch (error) {
+      const retryable =
+        error instanceof CanaryError &&
+        error.code === 'unexpected_http_status' &&
+        error.evidence.status === 429 &&
+        error.evidence.retryable_concurrency === true;
+      const delayMs = retryDelaysMs[attempt - 1];
+      if (!retryable || delayMs === undefined) {
+        if (error instanceof CanaryError) {
+          error.evidence.attempts = attempt;
+        }
+        throw error;
+      }
+      await sleepImpl(delayMs);
+    }
+  }
+}
+
 function failureReport(error) {
   if (error instanceof CanaryError) {
     return {
@@ -313,7 +357,7 @@ function failureReport(error) {
 
 async function main() {
   try {
-    const result = await runCanary({
+    const result = await runCanaryWithRetries({
       baseUrl: process.env.MANIFEST_CANARY_BASE_URL,
       apiKey: process.env.MANIFEST_CANARY_API_KEY,
       model: process.env.MANIFEST_CANARY_MODEL || 'default',
@@ -330,11 +374,13 @@ if (require.main === module) void main();
 
 module.exports = {
   DEFAULT_MARKER,
+  DEFAULT_M203_RETRY_DELAYS_MS,
   CanaryError,
   createSseParser,
   inspectAnthropicEvent,
   validateCanaryResult,
   runCanary,
+  runCanaryWithRetries,
   failureReport,
   sha256,
 };

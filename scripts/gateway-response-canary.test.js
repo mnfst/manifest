@@ -2,7 +2,12 @@
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { DEFAULT_MARKER, runCanary, failureReport } = require('./gateway-response-canary');
+const {
+  DEFAULT_MARKER,
+  runCanary,
+  runCanaryWithRetries,
+  failureReport,
+} = require('./gateway-response-canary');
 
 const TRACE_ID = '0123456789abcdef0123456789abcdef';
 
@@ -162,4 +167,69 @@ test('canary reports an HTTP failure without reading or printing its body', asyn
   assert.equal(bodyCancelled, true);
   assert.ok(!JSON.stringify(report).includes(privateBody));
   assert.ok(!JSON.stringify(report).includes('secret-test-key'));
+});
+
+test('canary retries a Manifest M203 concurrency response with bounded backoff', async () => {
+  let requests = 0;
+  const delays = [];
+  const result = await runCanaryWithRetries({
+    baseUrl: 'https://manifest.example',
+    apiKey: 'secret-test-key',
+    retryDelaysMs: [2, 5],
+    sleepImpl: async (delayMs) => delays.push(delayMs),
+    fetchImpl: async () => {
+      requests += 1;
+      if (requests === 1) {
+        return new Response(
+          JSON.stringify({
+            type: 'error',
+            error: {
+              type: 'rate_limit_error',
+              message: '[🦚 Manifest M203] Too many concurrent requests. Give it a moment.',
+            },
+          }),
+          { status: 429, headers: { 'x-manifest-trace-id': TRACE_ID } },
+        );
+      }
+      return sseResponse();
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.attempts, 2);
+  assert.equal(requests, 2);
+  assert.deepEqual(delays, [2]);
+});
+
+test('canary does not retry provider or generic 429 responses', async () => {
+  let requests = 0;
+  let error;
+  try {
+    await runCanaryWithRetries({
+      baseUrl: 'https://manifest.example',
+      apiKey: 'secret-test-key',
+      retryDelaysMs: [0],
+      sleepImpl: async () => {},
+      fetchImpl: async () => {
+        requests += 1;
+        return new Response(
+          JSON.stringify({
+            type: 'error',
+            error: { type: 'rate_limit_error', message: 'Provider subscription is rate limited' },
+          }),
+          { status: 429, headers: { 'x-manifest-trace-id': TRACE_ID } },
+        );
+      },
+    });
+  } catch (caught) {
+    error = caught;
+  }
+
+  const report = failureReport(error);
+  assert.equal(requests, 1);
+  assert.equal(report.error_code, 'unexpected_http_status');
+  assert.equal(report.status, 429);
+  assert.equal(report.retryable_concurrency, false);
+  assert.equal(report.attempts, 1);
+  assert.ok(!JSON.stringify(report).includes('Provider subscription is rate limited'));
 });
