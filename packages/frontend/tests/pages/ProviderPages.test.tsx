@@ -75,6 +75,7 @@ vi.mock('../../src/services/formatters.js', () => ({
 }));
 
 const mockGetProviderUsage = vi.fn();
+const mockGetProviderSubscriptionUsage = vi.fn();
 // Use the real mergeUsage so the merge logic stays under test through the page.
 vi.mock('../../src/services/api/providers.js', async () => {
   const actual = await vi.importActual<typeof import('../../src/services/api/providers')>(
@@ -83,6 +84,7 @@ vi.mock('../../src/services/api/providers.js', async () => {
   return {
     getProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
     getProviderUsage: (...args: unknown[]) => mockGetProviderUsage(...args),
+    getProviderSubscriptionUsage: (...args: unknown[]) => mockGetProviderSubscriptionUsage(...args),
     mergeUsage: actual.mergeUsage,
     connectionUsage: actual.connectionUsage,
   };
@@ -232,6 +234,38 @@ describe('provider pages', () => {
         sparkline_7d: p.sparkline_7d,
       })),
     });
+    mockGetProviderSubscriptionUsage.mockResolvedValue({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          status: 'ok',
+          updated_at: '2026-06-01T00:00:00Z',
+          connections: [
+            {
+              id: 'sub-openai',
+              label: 'ChatGPT',
+              status: 'ok',
+              message: null,
+              updated_at: '2026-06-01T00:00:00Z',
+              windows: [
+                {
+                  id: 'codex-5h',
+                  label: 'Codex 5h',
+                  used_percent: 20,
+                  remaining_percent: 80,
+                  resets_at: null,
+                  window_seconds: null,
+                  current: null,
+                  limit: null,
+                  unit: null,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
     mockGetAgents.mockResolvedValue({ agents: [{ agent_name: 'demo-agent' }] });
     mockGetAgentProviders.mockResolvedValue([{ id: 'route-provider' }]);
     mockGetCustomProviders.mockResolvedValue([
@@ -284,6 +318,8 @@ describe('provider pages', () => {
       expect(screen.getByText('Subscriptions')).toBeDefined();
       expect(screen.getByText('My subscription connections')).toBeDefined();
       expect(screen.getByText('ChatGPT')).toBeDefined();
+      expect(screen.getByText('Codex 5h')).toBeDefined();
+      expect(screen.getByText('80% left')).toBeDefined();
     });
 
     fireEvent.click(screen.getAllByText('Connect')[0]!);
@@ -304,6 +340,151 @@ describe('provider pages', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'provider modal' })).toBeNull();
     });
+  });
+
+  it('combines multiple subscription connections into compact limit meters', async () => {
+    const resetIn = (milliseconds: number) => new Date(Date.now() + milliseconds).toISOString();
+    const quotaWindow = (overrides: Record<string, unknown>) => ({
+      id: 'quota',
+      label: 'Quota',
+      used_percent: 20,
+      remaining_percent: 80,
+      resets_at: resetIn(30 * 60 * 1000),
+      window_seconds: 18_000,
+      current: null,
+      limit: null,
+      unit: null,
+      ...overrides,
+    });
+    mockGetGlobalProviders.mockResolvedValueOnce({
+      ...globalProvidersResponse,
+      providers: globalProvidersResponse.providers.map((provider) =>
+        provider.provider === 'openai'
+          ? {
+              ...provider,
+              connection_count: 2,
+              connections: [
+                connection('sub-openai', 'ChatGPT'),
+                connection('sub-openai-backup', 'Backup'),
+              ],
+            }
+          : provider,
+      ),
+    });
+    mockGetProviderSubscriptionUsage.mockResolvedValueOnce({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          status: 'partial',
+          updated_at: new Date().toISOString(),
+          connections: [
+            {
+              id: 'sub-openai',
+              label: 'ChatGPT',
+              status: 'ok',
+              message: null,
+              updated_at: new Date().toISOString(),
+              windows: [
+                quotaWindow({
+                  id: 'five-hour',
+                  label: 'Codex 5h',
+                  current: 2,
+                  limit: 10,
+                  unit: 'requests',
+                }),
+                quotaWindow({
+                  id: 'balance',
+                  label: 'Credits balance',
+                  used_percent: null,
+                  remaining_percent: null,
+                  resets_at: null,
+                  current: 25,
+                  unit: 'credits',
+                }),
+              ],
+            },
+            {
+              id: 'sub-openai-backup',
+              label: 'Backup',
+              status: 'error',
+              message: 'Usage lookup failed',
+              updated_at: null,
+              windows: [
+                quotaWindow({
+                  id: 'weekly',
+                  label: 'Codex weekly',
+                  used_percent: 100,
+                  remaining_percent: 0,
+                  limit: 100,
+                  unit: 'credits',
+                }),
+                quotaWindow({
+                  id: 'monthly',
+                  label: 'Monthly quota',
+                  used_percent: 30,
+                  remaining_percent: 70,
+                  resets_at: resetIn(2 * 24 * 60 * 60 * 1000),
+                }),
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const { container } = render(() => <Subscriptions />);
+
+    await waitFor(() => expect(screen.getByText('Credits balance')).toBeDefined());
+    expect(screen.getByLabelText(/Codex 5h.*2 requests.*80% left/)).toBeDefined();
+    expect(screen.getByLabelText(/Credits balance.*25 credits/)).toBeDefined();
+    expect(screen.getByLabelText(/Codex weekly.*100 credits limit.*0% left/)).toBeDefined();
+    expect(container.querySelectorAll('table.data-table tbody > tr')).toHaveLength(1);
+    expect(screen.getByText('42 tokens')).toBeDefined();
+    expect(screen.getByLabelText('View ChatGPT details')).toBeDefined();
+    fireEvent.click(screen.getByLabelText('View Backup details'));
+    expect(mockNavigate).toHaveBeenCalledWith('/providers/connections/sub-openai-backup');
+    expect(screen.getByText('+1 more limits')).toBeDefined();
+    expect(screen.getByText('Usage lookup failed')).toBeDefined();
+  });
+
+  it('shows loading and unavailable limit states without disturbing the connection row', async () => {
+    mockGetProviderSubscriptionUsage.mockReturnValueOnce(new Promise(() => {}));
+    const loading = render(() => <Subscriptions />);
+
+    await waitFor(() => expect(screen.getByText('ChatGPT')).toBeDefined());
+    expect(loading.container.querySelector('[style*="width: 148px"]')).not.toBeNull();
+    loading.unmount();
+
+    mockGetProviderSubscriptionUsage.mockRejectedValueOnce(new Error('network down'));
+    render(() => <Subscriptions />);
+    await waitFor(() => expect(screen.getByText('Not available')).toBeDefined());
+  });
+
+  it('shows a provider message when no subscription windows are available', async () => {
+    mockGetProviderSubscriptionUsage.mockResolvedValueOnce({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          status: 'unavailable',
+          updated_at: null,
+          connections: [
+            {
+              id: 'sub-openai',
+              label: 'ChatGPT',
+              status: 'unavailable',
+              message: null,
+              updated_at: null,
+              windows: [],
+            },
+          ],
+        },
+      ],
+    });
+
+    render(() => <Subscriptions />);
+    await waitFor(() => expect(screen.getByText('Not available')).toBeDefined());
   });
 
   it('renders inactive subscription rows even when they have no usage', async () => {

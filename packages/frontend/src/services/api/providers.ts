@@ -49,6 +49,35 @@ export interface TenantProviderUsage {
   sparkline_7d: number[];
 }
 
+export interface SubscriptionUsageWindow {
+  id: string;
+  label: string;
+  used_percent: number | null;
+  remaining_percent: number | null;
+  resets_at: string | null;
+  window_seconds: number | null;
+  current: number | null;
+  limit: number | null;
+  unit: string | null;
+}
+
+export interface SubscriptionUsageConnection {
+  id: string;
+  label: string;
+  status: 'ok' | 'unavailable' | 'error';
+  message: string | null;
+  updated_at: string;
+  windows: SubscriptionUsageWindow[];
+}
+
+export interface SubscriptionUsageSummary {
+  provider: string;
+  auth_type: 'subscription';
+  status: 'ok' | 'partial' | 'unavailable' | 'error';
+  updated_at: string;
+  connections: SubscriptionUsageConnection[];
+}
+
 /**
  * Config decorated with usage. This is the shape the provider pages render —
  * usage fields are zeroed until the usage fetch resolves (callers track the
@@ -65,6 +94,10 @@ export interface ProviderUsageResponse {
   providers: TenantProviderUsage[];
 }
 
+export interface SubscriptionUsageResponse {
+  providers: SubscriptionUsageSummary[];
+}
+
 /** Fetch provider CONFIG only (cheap; paints immediately). */
 export function getProviders() {
   return fetchJson<ProvidersResponse>('/providers');
@@ -73,6 +106,11 @@ export function getProviders() {
 /** Fetch provider USAGE stats (the expensive 30d aggregation). */
 export function getProviderUsage() {
   return fetchJson<ProviderUsageResponse>('/providers/usage');
+}
+
+/** Fetch live subscription quota/limit windows for supported OAuth providers. */
+export function getProviderSubscriptionUsage() {
+  return fetchJson<SubscriptionUsageResponse>('/providers/subscription-usage');
 }
 
 const USAGE_ZERO: Omit<TenantProviderUsage, 'provider' | 'auth_type'> = {

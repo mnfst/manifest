@@ -39,8 +39,26 @@ import {
   formatTimeAgo,
   customProviderColor,
 } from '../../services/formatters.js';
+import {
+  formatLimitAmountLine,
+  formatLimitPercent,
+  formatLimitResetAbsolute,
+  formatLimitResetRelative,
+  formatLimitWindowDuration,
+  subscriptionLimitPaceDetail,
+  subscriptionLimitPaceLabel,
+  subscriptionLimitPace,
+  subscriptionLimitTone,
+  type SubscriptionLimitTone,
+} from '../../services/subscription-usage-display.js';
 import { getAgents, getCustomProviders as fetchCustomProviders } from '../../services/api.js';
 import {
+  getProviderSubscriptionUsage,
+  type SubscriptionUsageConnection,
+  type SubscriptionUsageWindow,
+} from '../../services/api/providers.js';
+import {
+  getProviders as getAgentProviders,
   renameProviderKey,
   disconnectProvider,
   refreshModels,
@@ -118,6 +136,194 @@ interface AnalyticsResponse {
   attempts: { total: number; successful: number; success_rate: number };
 }
 
+const SubscriptionLimitGauge: Component<{
+  usedPercent: number | null;
+  tone: SubscriptionLimitTone;
+}> = (props) => {
+  const label = () => (props.usedPercent === null ? '' : Math.round(props.usedPercent).toString());
+
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: 'inline-flex',
+        width: '36px',
+        height: '36px',
+        'border-radius': '999px',
+        'align-items': 'center',
+        'justify-content': 'center',
+        background:
+          props.usedPercent === null
+            ? 'hsl(var(--muted) / 0.8)'
+            : `conic-gradient(${props.tone.color} ${props.usedPercent}%, hsl(var(--muted)) 0)`,
+        'box-shadow': `inset 0 0 0 1px ${props.tone.background}`,
+        'flex-shrink': 0,
+      }}
+    >
+      <span
+        style={{
+          display: 'inline-flex',
+          width: '26px',
+          height: '26px',
+          'border-radius': '999px',
+          'align-items': 'center',
+          'justify-content': 'center',
+          background: 'hsl(var(--background))',
+          color: props.tone.foreground,
+          'font-size': '10px',
+          'font-weight': 700,
+          'line-height': 1,
+        }}
+      >
+        {label()}
+      </span>
+    </span>
+  );
+};
+
+const SubscriptionLimitDetailRow: Component<{ window: SubscriptionUsageWindow }> = (props) => {
+  const pace = createMemo(() => subscriptionLimitPace(props.window));
+  const tone = createMemo(() => subscriptionLimitTone(pace()));
+  const usedPercent = createMemo(() => pace().usedPercent);
+  const usedLabel = createMemo(() => formatLimitPercent(usedPercent()));
+  const remainingLabel = createMemo(() => formatLimitPercent(props.window.remaining_percent));
+  const amountLine = createMemo(() => formatLimitAmountLine(props.window));
+  const paceDetail = createMemo(() => subscriptionLimitPaceDetail(pace()));
+  const absoluteReset = createMemo(() => formatLimitResetAbsolute(props.window.resets_at));
+
+  return (
+    <tr>
+      <td style="min-width: 180px;">
+        <div style="font-weight: 600; color: hsl(var(--foreground));">{props.window.label}</div>
+        <Show when={amountLine()}>
+          <div style="margin-top: 2px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+            {amountLine()}
+          </div>
+        </Show>
+      </td>
+      <td style="min-width: 260px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <SubscriptionLimitGauge usedPercent={usedPercent()} tone={tone()} />
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+              <span>{usedLabel() ? `${usedLabel()} used` : 'Balance only'}</span>
+              <Show when={remainingLabel()}>
+                <span>{remainingLabel()} left</span>
+              </Show>
+            </div>
+            <Show when={usedPercent() !== null}>
+              <div style="height: 6px; width: 100%; border-radius: 999px; background: hsl(var(--muted)); overflow: hidden; margin-top: 6px;">
+                <span
+                  style={{
+                    display: 'block',
+                    height: '100%',
+                    width: `${usedPercent() ?? 0}%`,
+                    'border-radius': '999px',
+                    background: tone().color,
+                  }}
+                />
+              </div>
+            </Show>
+          </div>
+        </div>
+      </td>
+      <td style="min-width: 150px;">
+        <span
+          style={{
+            display: 'inline-flex',
+            'align-items': 'center',
+            padding: '2px 8px',
+            'border-radius': '999px',
+            background: tone().background,
+            color: tone().foreground,
+            'font-size': 'var(--font-size-xs)',
+            'font-weight': 700,
+            'white-space': 'nowrap',
+          }}
+        >
+          {subscriptionLimitPaceLabel(pace())}
+        </span>
+        <Show when={paceDetail()}>
+          <div style="margin-top: 4px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); white-space: nowrap;">
+            {paceDetail()}
+          </div>
+        </Show>
+      </td>
+      <td style="white-space: nowrap; color: hsl(var(--muted-foreground));">
+        {formatLimitWindowDuration(props.window.window_seconds)}
+      </td>
+      <td style="white-space: nowrap;">
+        <span style="color: hsl(var(--foreground));">
+          {formatLimitResetRelative(props.window.resets_at)}
+        </span>
+        <Show when={absoluteReset()}>
+          <div style="margin-top: 2px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+            {absoluteReset()}
+          </div>
+        </Show>
+      </td>
+    </tr>
+  );
+};
+
+const SubscriptionLimitsDetailPanel: Component<{
+  connection: SubscriptionUsageConnection | null | undefined;
+  loading: boolean;
+}> = (props) => {
+  const windows = () => props.connection?.windows ?? [];
+
+  return (
+    <div class="panel scroll-panel" style="margin-bottom: 24px;">
+      <div
+        class="panel__title"
+        style="display: flex; justify-content: space-between; align-items: center; gap: 12px;"
+      >
+        <span>Subscription limits</span>
+        <Show when={props.connection?.updated_at}>
+          {(updatedAt) => (
+            <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+              Updated {formatTimeAgo(updatedAt())}
+            </span>
+          )}
+        </Show>
+      </div>
+      <Show
+        when={!props.loading}
+        fallback={
+          <div style="height: 96px; margin: 16px; border-radius: var(--radius); background: hsl(var(--muted) / 0.45); animation: skeleton-pulse 1.2s ease-in-out infinite;" />
+        }
+      >
+        <Show
+          when={windows().length > 0}
+          fallback={
+            <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
+              {props.connection?.message ?? 'Usage limits unavailable.'}
+            </div>
+          }
+        >
+          <div class="scroll-panel__body" onScroll={toggleScrollFade}>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Limit</th>
+                  <th>Usage</th>
+                  <th>Pace</th>
+                  <th>Window</th>
+                  <th>Reset</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={windows()}>
+                  {(window) => <SubscriptionLimitDetailRow window={window} />}
+                </For>
+              </tbody>
+            </table>
+          </div>
+        </Show>
+      </Show>
+    </div>
+  );
+};
 const PRO_RANGES_CD = new Set(['30d', '90d', '365d']);
 const CD_RANGE_OPTIONS = [
   { label: 'Last 24 hours', value: '24h' },
@@ -156,7 +362,26 @@ const ConnectionDetail: Component = () => {
   );
 
   const conn = () => (detail.error ? null : (detail()?.connection ?? null));
+  const [subscriptionUsageDetail] = createResource(
+    () => {
+      const c = conn();
+      return c?.auth_type === 'subscription' ? c.id : undefined;
+    },
+    async (connectionId) => {
+      const response = await getProviderSubscriptionUsage();
+      for (const summary of response.providers) {
+        const match = summary.connections.find((connection) => connection.id === connectionId);
+        if (match) return match;
+      }
+      return null;
+    },
+  );
   const provDef = () => PROVIDERS.find((p) => p.id === conn()?.provider);
+  const currentSubscriptionUsageDetail = () => {
+    const usage = subscriptionUsageDetail();
+    return usage?.id === conn()?.id ? usage : usage === null ? null : undefined;
+  };
+
   const isCustomProvider = () => conn()?.provider?.startsWith('custom:') ?? false;
 
   // Fetch custom provider name for custom: providers
@@ -710,9 +935,12 @@ const ConnectionDetail: Component = () => {
               </div>
 
               {/* Header */}
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-                <div>
-                  <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+              <div
+                class="connection-detail-header"
+                style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;"
+              >
+                <div style="flex: 1 1 320px; min-width: 0;">
+                  <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
                     <span style="display: flex; align-items: center; width: 32px; height: 32px;">
                       <Show
                         when={providerIcon(c.provider, 32)}
@@ -765,7 +993,7 @@ const ConnectionDetail: Component = () => {
                       </span>
                     </Show>
                   </div>
-                  <div style="display: flex; gap: 24px; font-size: var(--font-size-sm);">
+                  <div style="display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: var(--font-size-sm);">
                     <span>
                       <span style="font-weight: 600; color: hsl(var(--foreground));">
                         Connection name:
@@ -796,7 +1024,10 @@ const ConnectionDetail: Component = () => {
                     </span>
                   </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                <div
+                  class="connection-detail-header__actions"
+                  style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; flex-shrink: 0; max-width: 100%; margin-left: auto;"
+                >
                   <Show when={allAgents().length > 1}>
                     <FilterSelect
                       noun="harnesses"
@@ -1010,6 +1241,16 @@ const ConnectionDetail: Component = () => {
                     />
                   );
                 })()}
+              </Show>
+
+              <Show when={c.auth_type === 'subscription'}>
+                <SubscriptionLimitsDetailPanel
+                  connection={currentSubscriptionUsageDetail()}
+                  loading={
+                    subscriptionUsageDetail.loading ||
+                    currentSubscriptionUsageDetail() === undefined
+                  }
+                />
               </Show>
 
               {/* Recent Requests (full width) */}

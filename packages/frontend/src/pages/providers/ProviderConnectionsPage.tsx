@@ -15,9 +15,12 @@ import {
   getProviders as getAgentProviders,
 } from '../../services/api.js';
 import {
+  getProviderSubscriptionUsage,
   getProviders as getGlobalProviders,
   getProviderUsage,
   mergeUsage,
+  type SubscriptionUsageSummary,
+  type SubscriptionUsageWindow,
   connectionUsage,
   type TenantProviderSummary,
 } from '../../services/api/providers.js';
@@ -32,6 +35,14 @@ import {
   formatNumber,
   formatTimeAgo,
 } from '../../services/formatters.js';
+import {
+  formatLimitWindowDetails,
+  formatLimitPercent,
+  subscriptionConnectionLimitMessage,
+  subscriptionLimitPace as limitUsagePace,
+  subscriptionLimitTone as limitUsageTone,
+  type SubscriptionLimitTone as LimitUsageTone,
+} from '../../services/subscription-usage-display.js';
 import InfoTooltip from '../../components/InfoTooltip.jsx';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
 import { toast } from '../../services/toast-store.js';
@@ -157,6 +168,238 @@ const UsageShimmer: Component<{ width?: number }> = (props) => (
     }}
   />
 );
+
+const MAX_LIMIT_ROWS = 3;
+
+interface SubscriptionLimitRow {
+  connectionLabel: string | null;
+  window: SubscriptionUsageWindow;
+}
+
+const LimitUsageGauge: Component<{
+  usedPercent: number | null;
+  tone: LimitUsageTone;
+}> = (props) => {
+  const value = () => props.usedPercent;
+  const label = () => (value() === null ? '' : Math.round(value() ?? 0).toString());
+
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: 'inline-flex',
+        width: '24px',
+        height: '24px',
+        'border-radius': '999px',
+        'align-items': 'center',
+        'justify-content': 'center',
+        background:
+          value() === null
+            ? 'hsl(var(--muted) / 0.8)'
+            : `conic-gradient(${props.tone.color} ${value()}%, hsl(var(--muted)) 0)`,
+        'box-shadow': `inset 0 0 0 1px ${props.tone.background}`,
+        'flex-shrink': 0,
+      }}
+    >
+      <span
+        style={{
+          display: 'inline-flex',
+          width: '17px',
+          height: '17px',
+          'border-radius': '999px',
+          'align-items': 'center',
+          'justify-content': 'center',
+          background: 'hsl(var(--background))',
+          color: props.tone.foreground,
+          'font-size': '7px',
+          'font-weight': 700,
+          'line-height': 1,
+        }}
+      >
+        {label()}
+      </span>
+    </span>
+  );
+};
+
+const SubscriptionLimitMeter: Component<{ row: SubscriptionLimitRow }> = (props) => {
+  const pace = createMemo(() => limitUsagePace(props.row.window));
+  const usedPercent = createMemo(() => pace().usedPercent);
+  const tone = createMemo(() => limitUsageTone(pace()));
+  const percentLabel = createMemo(() => formatLimitPercent(usedPercent()));
+  const details = createMemo(() => formatLimitWindowDetails(props.row.window));
+  const topMetric = createMemo(() => percentLabel() ?? details()[0] ?? 'Available');
+  const accessibilityMetric = createMemo(() => {
+    const percent = percentLabel();
+    return percent ? `${percent} used` : topMetric();
+  });
+  const detailLine = createMemo(() => {
+    const visibleDetails = percentLabel() ? details() : details().slice(1);
+    return visibleDetails.join(' | ');
+  });
+  const accessibilityLabel = createMemo(() =>
+    [props.row.window.label, accessibilityMetric(), detailLine(), props.row.connectionLabel]
+      .filter(Boolean)
+      .join(' | '),
+  );
+
+  return (
+    <div
+      aria-label={accessibilityLabel()}
+      style={{
+        display: 'grid',
+        'grid-template-columns': '24px minmax(0, 1fr)',
+        gap: '6px',
+        'align-items': 'center',
+        'min-width': '238px',
+      }}
+    >
+      <LimitUsageGauge usedPercent={usedPercent()} tone={tone()} />
+      <div style={{ 'min-width': 0 }}>
+        <div
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            'justify-content': 'space-between',
+            gap: '6px',
+            'min-width': 0,
+          }}
+        >
+          <span
+            style={{
+              color: 'hsl(var(--foreground))',
+              'font-size': 'var(--font-size-xs)',
+              'font-weight': 650,
+              overflow: 'hidden',
+              'text-overflow': 'ellipsis',
+              'white-space': 'nowrap',
+            }}
+          >
+            {props.row.window.label}
+          </span>
+          <span
+            style={{
+              display: 'inline-flex',
+              'align-items': 'center',
+              padding: '1px 5px',
+              'border-radius': '999px',
+              background: tone().background,
+              color: tone().foreground,
+              'font-size': '9px',
+              'font-weight': 700,
+              'white-space': 'nowrap',
+            }}
+          >
+            {topMetric()}
+          </span>
+        </div>
+        <Show when={usedPercent() !== null}>
+          <div
+            style={{
+              height: '4px',
+              width: '100%',
+              'border-radius': '999px',
+              background: 'hsl(var(--muted))',
+              overflow: 'hidden',
+              'margin-top': '3px',
+            }}
+          >
+            <span
+              style={{
+                display: 'block',
+                height: '100%',
+                width: `${usedPercent() ?? 0}%`,
+                'border-radius': '999px',
+                background: tone().color,
+              }}
+            />
+          </div>
+        </Show>
+        <Show when={props.row.connectionLabel || detailLine()}>
+          <div
+            style={{
+              color: 'hsl(var(--muted-foreground))',
+              'font-size': '10px',
+              'line-height': 1.2,
+              'margin-top': '4px',
+              overflow: 'hidden',
+              'text-overflow': 'ellipsis',
+              'white-space': 'nowrap',
+            }}
+          >
+            <Show when={props.row.connectionLabel}>
+              <span>{props.row.connectionLabel}</span>
+              <Show when={detailLine()}>
+                <span> | </span>
+              </Show>
+            </Show>
+            <span>{detailLine()}</span>
+          </div>
+        </Show>
+      </div>
+    </div>
+  );
+};
+
+const SubscriptionLimitsCell: Component<{
+  usage: SubscriptionUsageSummary | undefined;
+  loading: boolean;
+}> = (props) => {
+  const rows = createMemo<SubscriptionLimitRow[]>(() => {
+    const usage = props.usage;
+    if (!usage) return [];
+    const showConnectionLabel = usage.connections.length > 1;
+    return usage.connections.flatMap((connection) =>
+      connection.windows.map((window) => ({
+        connectionLabel: showConnectionLabel ? connection.label : null,
+        window,
+      })),
+    );
+  });
+  const messages = createMemo(() =>
+    (props.usage?.connections ?? [])
+      .map(subscriptionConnectionLimitMessage)
+      .filter((message): message is string => !!message),
+  );
+  const visibleRows = createMemo(() => rows().slice(0, MAX_LIMIT_ROWS));
+  const hiddenCount = createMemo(() => Math.max(0, rows().length - MAX_LIMIT_ROWS));
+
+  return (
+    <Show when={!props.loading} fallback={<UsageShimmer width={148} />}>
+      <Show
+        when={props.usage}
+        fallback={
+          <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+            Not available
+          </span>
+        }
+      >
+        <Show
+          when={visibleRows().length > 0}
+          fallback={
+            <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+              {messages()[0] ?? 'Not available'}
+            </span>
+          }
+        >
+          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 245px; max-width: 360px;">
+            <For each={visibleRows()}>{(row) => <SubscriptionLimitMeter row={row} />}</For>
+            <Show when={hiddenCount() > 0}>
+              <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                +{hiddenCount()} more limits
+              </span>
+            </Show>
+            <Show when={messages().length > 0}>
+              <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                {messages()[0]}
+              </span>
+            </Show>
+          </div>
+        </Show>
+      </Show>
+    </Show>
+  );
+};
 
 const StatusBadge: Component<{ active: boolean }> = (props) => (
   <Show
@@ -308,15 +551,31 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     },
   );
 
+  const [subscriptionUsage, { refetch: refetchSubscriptionUsage }] = createResource(
+    () => (props.kind === 'subscriptions' ? { m: messagePing(), r: routingPing() } : undefined),
+    async () => {
+      try {
+        return (await getProviderSubscriptionUsage()).providers;
+      } catch {
+        return [];
+      }
+    },
+  );
+
   // Distinguish "loading" (shimmer the usage cells) from "loaded-zero" (a real
   // 0). Only the FIRST load shimmers; SSE-driven refetches keep the prior
   // numbers on screen (usage() stays defined) so the table doesn't flicker.
   const usageLoading = () => usage.loading && usage() === undefined;
+  const subscriptionUsageLoading = () =>
+    props.kind === 'subscriptions' &&
+    subscriptionUsage.loading &&
+    subscriptionUsage() === undefined;
 
   // Coordinate a usage refetch alongside config on connect/disconnect/rename.
   const refetchGlobalProviders = () => {
     void refetchConfig();
     void refetchUsage();
+    if (props.kind === 'subscriptions') void refetchSubscriptionUsage();
   };
 
   // Merge config + usage by (provider, auth_type). While usage is still loading
@@ -325,6 +584,12 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const data = () => ({
     providers: mergeUsage(config()?.providers ?? [], usage()),
     model_counts: config()?.model_counts ?? {},
+  });
+
+  const subscriptionUsageByProvider = createMemo(() => {
+    const byProvider = new Map<string, SubscriptionUsageSummary>();
+    for (const summary of subscriptionUsage() ?? []) byProvider.set(summary.provider, summary);
+    return byProvider;
   });
 
   const [agents] = createResource(async () => {
@@ -372,15 +637,31 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     const rows: Array<{
       summary: TenantProviderSummary;
       connection: TenantProviderSummary['connections'][number];
+      connections: TenantProviderSummary['connections'];
       name: string;
     }> = [];
     for (const summary of connectedSummaries()) {
+      const name = providerDisplayName(summary.provider, customProviders() ?? []);
+      if (props.kind === 'subscriptions') {
+        const connection =
+          summary.connections.find((candidate) => candidate.is_active) ?? summary.connections[0];
+        if (connection) {
+          rows.push({
+            summary,
+            connection,
+            connections: summary.connections,
+            name,
+          });
+        }
+        continue;
+      }
       for (const connection of summary.connections) {
-        if (!connection.is_active && props.kind !== 'subscriptions' && !hasUsage(summary)) continue;
+        if (!connection.is_active && !hasUsage(summary)) continue;
         rows.push({
           summary,
           connection,
-          name: providerDisplayName(summary.provider, customProviders() ?? []),
+          connections: [connection],
+          name,
         });
       }
     }
@@ -597,6 +878,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                 <th>Connection</th>
                 <th>Status</th>
                 <th>Usage (30d)</th>
+                <Show when={props.kind === 'subscriptions'}>
+                  <th>Limits</th>
+                </Show>
                 <Show when={copy().rowMetricHeading}>
                   <th>{copy().rowMetricHeading}</th>
                 </Show>
@@ -643,90 +927,122 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Show
-                        when={renamingId() === row.connection.id}
+                        when={row.connections.length === 1}
                         fallback={
-                          <span
-                            style="display: inline-flex; align-items: center; gap: 6px; cursor: default;"
-                            class="connection-label-cell"
-                          >
-                            {row.connection.label}
-                            <button
-                              type="button"
-                              class="connection-label-cell__edit"
-                              onClick={(e) =>
-                                startRename(row.connection.id, row.connection.label, e)
-                              }
-                              aria-label={`Rename ${row.connection.label}`}
-                              style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s; display: inline-flex; align-items: center; line-height: 1;"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M5 21h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2" />
-                                <path d="M7 13v3c0 .55.45 1 1 1h3c.27 0 .52-.11.71-.29l9-9a.996.996 0 0 0 0-1.41l-3-3a.996.996 0 0 0-1.41 0l-9.01 8.99A1 1 0 0 0 7 13m10-7.59L18.59 7 17.5 8.09 15.91 6.5zm-8 8 5.5-5.5 1.59 1.59-5.5 5.5H9z" />
-                              </svg>
-                            </button>
-                          </span>
+                          <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+                            <For each={row.connections}>
+                              {(connection) => (
+                                <button
+                                  type="button"
+                                  aria-label={`View ${connection.label} details`}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    navigate(`/providers/connections/${connection.id}`);
+                                  }}
+                                  style="border: 0; background: none; padding: 0; color: hsl(var(--muted-foreground)); font: inherit; cursor: pointer; text-align: left;"
+                                >
+                                  {connection.label}
+                                </button>
+                              )}
+                            </For>
+                          </div>
                         }
                       >
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                          <input
-                            type="text"
-                            class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
-                            value={renameValue()}
-                            onInput={(e) => {
-                              setRenameValue(e.currentTarget.value);
-                              setRenameError('');
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter')
+                        <Show
+                          when={renamingId() === row.connection.id}
+                          fallback={
+                            <span
+                              style="display: inline-flex; align-items: center; gap: 6px; cursor: default;"
+                              class="connection-label-cell"
+                            >
+                              {row.connection.label}
+                              <button
+                                type="button"
+                                class="connection-label-cell__edit"
+                                onClick={(e) =>
+                                  startRename(row.connection.id, row.connection.label, e)
+                                }
+                                aria-label={`Rename ${row.connection.label}`}
+                                style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s; display: inline-flex; align-items: center; line-height: 1;"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                  <path d="M5 21h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2" />
+                                  <path d="M7 13v3c0 .55.45 1 1 1h3c.27 0 .52-.11.71-.29l9-9a.996.996 0 0 0 0-1.41l-3-3a.996.996 0 0 0-1.41 0l-9.01 8.99A1 1 0 0 0 7 13m10-7.59L18.59 7 17.5 8.09 15.91 6.5zm-8 8 5.5-5.5 1.59 1.59-5.5 5.5H9z" />
+                                </svg>
+                              </button>
+                            </span>
+                          }
+                        >
+                          <div style="display: flex; align-items: center; gap: 6px;">
+                            <input
+                              type="text"
+                              class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
+                              value={renameValue()}
+                              onInput={(e) => {
+                                setRenameValue(e.currentTarget.value);
+                                setRenameError('');
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter')
+                                  submitRename(
+                                    row.summary.provider,
+                                    row.connection.label,
+                                    row.summary.auth_type ?? copy().authType,
+                                    e,
+                                  );
+                                if (e.key === 'Escape') cancelRename(e);
+                              }}
+                              style="width: 120px;"
+                              ref={(el) => requestAnimationFrame(() => el.focus())}
+                            />
+                            <button
+                              class="btn btn--primary btn--sm"
+                              style="font-size: var(--font-size-xs); padding: 4px 10px;"
+                              disabled={renameBusy()}
+                              onClick={(e) =>
                                 submitRename(
                                   row.summary.provider,
                                   row.connection.label,
                                   row.summary.auth_type ?? copy().authType,
                                   e,
-                                );
-                              if (e.key === 'Escape') cancelRename(e);
-                            }}
-                            style="width: 120px;"
-                            ref={(el) => requestAnimationFrame(() => el.focus())}
-                          />
-                          <button
-                            class="btn btn--primary btn--sm"
-                            style="font-size: var(--font-size-xs); padding: 4px 10px;"
-                            disabled={renameBusy()}
-                            onClick={(e) =>
-                              submitRename(
-                                row.summary.provider,
-                                row.connection.label,
-                                row.summary.auth_type ?? copy().authType,
-                                e,
-                              )
-                            }
-                          >
-                            Save
-                          </button>
-                          <button
-                            class="btn btn--outline btn--sm"
-                            style="font-size: var(--font-size-xs); padding: 4px 10px;"
-                            onClick={cancelRename}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                        <Show when={renameError()}>
-                          <div style="color: hsl(var(--destructive)); font-size: var(--font-size-xs); margin-top: 2px;">
-                            {renameError()}
+                                )
+                              }
+                            >
+                              Save
+                            </button>
+                            <button
+                              class="btn btn--outline btn--sm"
+                              style="font-size: var(--font-size-xs); padding: 4px 10px;"
+                              onClick={cancelRename}
+                            >
+                              Cancel
+                            </button>
                           </div>
+                          <Show when={renameError()}>
+                            <div style="color: hsl(var(--destructive)); font-size: var(--font-size-xs); margin-top: 2px;">
+                              {renameError()}
+                            </div>
+                          </Show>
                         </Show>
                       </Show>
                     </td>
                     <td>
-                      <StatusBadge active={row.connection.is_active} />
+                      <StatusBadge
+                        active={
+                          props.kind === 'subscriptions'
+                            ? row.connections.some((connection) => connection.is_active)
+                            : row.connection.is_active
+                        }
+                      />
                     </td>
                     <td>
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={96} />}>
                         <div style="display: flex; align-items: center; gap: 8px;">
                           {(() => {
-                            const u = usageForConnection(row.summary, row.connection);
+                            const u =
+                              props.kind === 'subscriptions'
+                                ? undefined
+                                : usageForConnection(row.summary, row.connection);
                             const spark = u?.sparkline_7d ?? row.summary.sparkline_7d;
                             return (
                               <>
@@ -736,7 +1052,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                                   </span>
                                 </Show>
                                 <span>
-                                  {formatNumber(perConnectionTokens(row.summary, row.connection))}{' '}
+                                  {formatNumber(
+                                    props.kind === 'subscriptions'
+                                      ? row.summary.consumption_tokens
+                                      : perConnectionTokens(row.summary, row.connection),
+                                  )}{' '}
                                   tokens
                                 </span>
                               </>
@@ -745,6 +1065,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         </div>
                       </Show>
                     </td>
+                    <Show when={props.kind === 'subscriptions'}>
+                      <td>
+                        <SubscriptionLimitsCell
+                          usage={subscriptionUsageByProvider().get(row.summary.provider)}
+                          loading={subscriptionUsageLoading()}
+                        />
+                      </td>
+                    </Show>
                     <Show when={copy().rowMetricHeading}>
                       <td>
                         <Show when={!usageLoading()} fallback={<UsageShimmer />}>
@@ -758,7 +1086,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                     <td class="rel-col">
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
                         {formatNumber(
-                          usageForConnection(row.summary, row.connection)?.attempts_30d ??
+                          (props.kind === 'subscriptions'
+                            ? undefined
+                            : usageForConnection(row.summary, row.connection)?.attempts_30d) ??
                             row.summary.attempts_30d,
                         )}
                       </Show>
@@ -766,7 +1096,10 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                     <td class="rel-col">
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
                         {(() => {
-                          const u = usageForConnection(row.summary, row.connection);
+                          const u =
+                            props.kind === 'subscriptions'
+                              ? undefined
+                              : usageForConnection(row.summary, row.connection);
                           const rate = attemptSuccessRate({
                             attempts: u?.attempts_30d ?? row.summary.attempts_30d,
                             succeeded: u?.succeeded_30d ?? row.summary.succeeded_30d,
@@ -777,8 +1110,16 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                     </td>
                     <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
                       <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
-                        {connectionLastUsedAt(row.summary, row.connection)
-                          ? formatTimeAgo(connectionLastUsedAt(row.summary, row.connection)!)
+                        {(
+                          props.kind === 'subscriptions'
+                            ? row.summary.last_used_at
+                            : connectionLastUsedAt(row.summary, row.connection)
+                        )
+                          ? formatTimeAgo(
+                              (props.kind === 'subscriptions'
+                                ? row.summary.last_used_at
+                                : connectionLastUsedAt(row.summary, row.connection))!,
+                            )
                           : '-'}
                       </Show>
                     </td>
