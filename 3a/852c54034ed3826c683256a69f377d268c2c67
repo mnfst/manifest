@@ -1,0 +1,25 @@
+packages/shared/src/request-params-snapshot.ts
+  s_124528bf5c8582::t_df32c04c3ea2bd 54-58,62-111
+  s_124528bf5c8582::t_3e1e6c1a780674 112
+packages/shared/__tests__/request-params-snapshot.spec.ts
+  s_124528bf5c8582::t_9225ad3768be0b 121-160
+  s_124528bf5c8582::t_11f0064a18745f 161
+.changeset/snapshot-specless-knobs.md
+  s_124528bf5c8582::t_c8d98c761fc03b 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "3a852c54034ed3826c683256a69f377d268c2c67",
+  "prompts": {},
+  "sessions": {
+    "s_124528bf5c8582": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "02f8e5dc-c736-4db3-aa5a-d7841afcbeee",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
