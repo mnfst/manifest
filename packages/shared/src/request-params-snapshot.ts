@@ -68,6 +68,7 @@ const NON_KNOB_KEYS = new Set([
   'messages',
   'input',
   'tools',
+  'functions',
   'system',
   'instructions',
   'prompt',
@@ -105,6 +106,9 @@ function addSpeclessKnobs(
   let out = effective;
   for (const [key, value] of Object.entries(body)) {
     if (specRoots.has(key) || NON_KNOB_KEYS.has(key)) continue;
+    // setProviderParamValue reads the key as a dotted path — a literal dotted
+    // key would be recorded as a nested object, so skip rather than mangle.
+    if (key.includes('.')) continue;
     if (!knobValueFits(value)) continue;
     out = setProviderParamValue(out, key, value as JsonValue);
   }

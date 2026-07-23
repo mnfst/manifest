@@ -150,6 +150,7 @@ describe('snapshotRequestParams', () => {
           response_format: { type: 'json_object' },
           thinking: { type: 'enabled' },
           stop: ['\\n\\n'],
+          logit_bias: null,
         },
         modelParams: null,
         specs: [],
@@ -158,6 +159,8 @@ describe('snapshotRequestParams', () => {
       response_format: { type: 'json_object' },
       thinking: { type: 'enabled' },
       stop: ['\\n\\n'],
+      // An explicit null is part of the raw request and is kept as sent.
+      logit_bias: null,
     });
   });
 
@@ -170,6 +173,8 @@ describe('snapshotRequestParams', () => {
           user: 'user-123',
           seed_note: 'x'.repeat(65),
           smuggled: { nested: { prompt: 'y'.repeat(65) } },
+          functions: [{ name: 'f', parameters: { type: 'object' } }],
+          'dotted.key': true,
           oversized: { keys: Array.from({ length: 600 }, (_, i) => `key_${i}`) },
           not_json: { cb: () => 'x' },
           verbosity: 'high',
