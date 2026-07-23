@@ -203,6 +203,25 @@ export function getOverviewProviderUsage(range = '24h'): UsageTimeseries {
   return fetchJson('/overview/providers/usage', { range }) as UsageTimeseries;
 }
 
+/**
+ * Request-level volume per provider (terminal attribution) for the Requests
+ * chart's By provider view: one logical request counts once, so the view
+ * stacks to the same total as By request status and the Requests KPI.
+ * Distinct from getOverviewProviderUsage (served-attempt tokens/cost).
+ */
+export function getOverviewProviderRequestUsage(range = '24h'): PivotedTimeseries {
+  return fetchJson('/overview/providers/request-usage', { range }) as PivotedTimeseries;
+}
+
+export function getOverviewModelUsage(range = '24h'): UsageTimeseries {
+  return fetchJson('/overview/models/usage', { range }) as UsageTimeseries;
+}
+
+/** Request-level volume per model (terminal attribution), Requests By model. */
+export function getOverviewModelRequestUsage(range = '24h'): PivotedTimeseries {
+  return fetchJson('/overview/models/request-usage', { range }) as PivotedTimeseries;
+}
+
 export function getGlobalPerModelTimeseries(range = '24h'): PivotedTimeseries {
   return fetchJson('/overview/per-model-timeseries', { range }) as PivotedTimeseries;
 }
@@ -234,6 +253,43 @@ export function getPerProviderMessageTimeseries(
 
 export function getPerProviderCostTimeseries(agentName: string, range = '24h'): PivotedTimeseries {
   return fetchJson('/overview/per-provider-cost-timeseries', {
+    agent_name: agentName,
+    range,
+  }) as PivotedTimeseries;
+}
+
+export function getPerModelTimeseries(agentName: string, range = '24h'): PivotedTimeseries {
+  return fetchJson('/overview/per-model-timeseries', {
+    agent_name: agentName,
+    range,
+  }) as PivotedTimeseries;
+}
+
+export function getPerModelMessageTimeseries(agentName: string, range = '24h'): PivotedTimeseries {
+  return fetchJson('/overview/per-model-message-timeseries', {
+    agent_name: agentName,
+    range,
+  }) as PivotedTimeseries;
+}
+
+export function getPerModelCostTimeseries(agentName: string, range = '24h'): PivotedTimeseries {
+  return fetchJson('/overview/per-model-cost-timeseries', {
+    agent_name: agentName,
+    range,
+  }) as PivotedTimeseries;
+}
+
+/** Agent-scoped request-level per-provider volume (Requests By provider). */
+export function getPerProviderRequestUsage(agentName: string, range = '24h'): PivotedTimeseries {
+  return fetchJson('/overview/providers/request-usage', {
+    agent_name: agentName,
+    range,
+  }) as PivotedTimeseries;
+}
+
+/** Agent-scoped request-level per-model volume (Requests By model). */
+export function getPerModelRequestUsage(agentName: string, range = '24h'): PivotedTimeseries {
+  return fetchJson('/overview/models/request-usage', {
     agent_name: agentName,
     range,
   }) as PivotedTimeseries;

@@ -55,6 +55,11 @@ function mockTimeseries(): Record<string, jest.Mock> {
     getPerModelTimeseries: jest.fn().mockResolvedValue({ agents: [], timeseries: [] }),
     getPerModelMessageTimeseries: jest.fn().mockResolvedValue({ agents: [], timeseries: [] }),
     getPerModelCostTimeseries: jest.fn().mockResolvedValue({ agents: [], timeseries: [] }),
+    getModelUsageTimeseries: jest.fn().mockResolvedValue({
+      tokenUsage: { agents: [], timeseries: [] },
+      messageUsage: { agents: [], timeseries: [] },
+      costUsage: { agents: [], timeseries: [] },
+    }),
   };
 }
 
@@ -393,6 +398,86 @@ describe('OverviewController', () => {
       const nullCtx = { tenantId: null, userId: 'u1' };
       await controller.getPerAgentTimeseries({ range: '24h' }, nullCtx as never);
       expect(ts.getPerAgentTimeseries).toHaveBeenCalledWith('24h', null, true);
+    });
+  });
+
+  describe('request-level provider/model volume and model usage', () => {
+    function withRequestVolume(rows: Array<Record<string, unknown>>) {
+      const requestVolume = {
+        getVolumeByDimensionTimeseries: jest.fn().mockResolvedValue(rows),
+      };
+      const c = new OverviewController(
+        agg as never,
+        ts as never,
+        { getProviders: mockGetProviders } as never,
+        { resolve: mockResolveAgent } as never,
+        { find: mockAccessFind } as never,
+        undefined,
+        requestVolume as never,
+      );
+      return { c, requestVolume };
+    }
+
+    it('providers/request-usage pivots terminal-attributed volume per provider', async () => {
+      const { c, requestVolume } = withRequestVolume([
+        { hour: '1', provider: 'openai', messages: 5 },
+        { hour: '1', provider: 'anthropic', messages: 3 },
+        { hour: '2', provider: 'openai', messages: 7 },
+      ]);
+      const result = await c.getOverviewProvidersRequestUsage(
+        { range: '24h', agent_name: 'bot-1' },
+        ctx as never,
+      );
+      expect(requestVolume.getVolumeByDimensionTimeseries).toHaveBeenCalledWith(
+        'provider',
+        '24h',
+        'tenant-123',
+        true,
+        'bot-1',
+      );
+      expect(result).toEqual({
+        agents: ['anthropic', 'openai'],
+        timeseries: [
+          { hour: '1', anthropic: 3, openai: 5 },
+          { hour: '2', anthropic: 0, openai: 7 },
+        ],
+      });
+    });
+
+    it('providers/request-usage returns empty shape when volume service absent', async () => {
+      const result = await controller.getOverviewProvidersRequestUsage(
+        { range: '24h' },
+        ctx as never,
+      );
+      expect(result).toEqual({ agents: [], timeseries: [] });
+    });
+
+    it('models/request-usage uses the model dimension and date buckets for 7d', async () => {
+      const { c, requestVolume } = withRequestVolume([
+        { date: '2026-07-01', model: 'gpt-4o', messages: 4 },
+      ]);
+      const result = await c.getOverviewModelsRequestUsage({ range: '7d' }, ctx as never);
+      expect(requestVolume.getVolumeByDimensionTimeseries).toHaveBeenCalledWith(
+        'model',
+        '7d',
+        'tenant-123',
+        false,
+        undefined,
+      );
+      expect(result).toEqual({
+        agents: ['gpt-4o'],
+        timeseries: [{ date: '2026-07-01', 'gpt-4o': 4 }],
+      });
+    });
+
+    it('models/request-usage returns empty shape when volume service absent', async () => {
+      const result = await controller.getOverviewModelsRequestUsage({ range: '24h' }, ctx as never);
+      expect(result).toEqual({ agents: [], timeseries: [] });
+    });
+
+    it('models/usage delegates to combined model usage timeseries', async () => {
+      await controller.getOverviewModelsUsage({ range: '7d', agent_name: 'bot-1' }, ctx as never);
+      expect(ts.getModelUsageTimeseries).toHaveBeenCalledWith('7d', 'tenant-123', false, 'bot-1');
     });
   });
 });
