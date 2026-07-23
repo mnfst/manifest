@@ -1,0 +1,65 @@
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_2829eabab8be8d::t_cc80d85845926e 284-285,293-294
+  s_2829eabab8be8d::t_4c20533a90bd55 286
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_2829eabab8be8d::t_b7a21b7d5b8bed 1093-1116
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_2829eabab8be8d::t_fef0b02ab67c66 621,623-624,626-635,640,647,651-652,655,658,663,665,667
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_2829eabab8be8d::t_d2655632d59087 447
+  s_2829eabab8be8d::t_fef0b02ab67c66 370,424
+  s_2829eabab8be8d::t_1f663b0dfedf7a 464
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_2829eabab8be8d::t_16916377d41716 403-413
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_2829eabab8be8d::t_b7a21b7d5b8bed 79-103
+  s_2829eabab8be8d::t_ea31aec2b72243 718
+  s_2829eabab8be8d::t_2b23c2f67b2ee9 747-748,1276
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_2829eabab8be8d::t_47d5f989f5ceb9 401,569
+  s_2829eabab8be8d::t_2b23c2f67b2ee9 402-413,568
+  s_2829eabab8be8d::t_b7a21b7d5b8bed 110,162,323-327,329-331,353,356-358,361,374-377,379-400,570,586,589-591
+packages/backend/src/routing/autofix/observation-payload.spec.ts
+  s_2829eabab8be8d::t_cc80d85845926e 126,129-138
+.changeset/autofix-wire-body.md
+  s_2829eabab8be8d::t_2b23c2f67b2ee9 1-4
+  s_2829eabab8be8d::t_92f8050388db0c 5
+packages/backend/src/routing/autofix/observation-payload.ts
+  s_2829eabab8be8d::t_cc80d85845926e 115-116,140
+packages/backend/src/routing/proxy/provider-client.ts
+  s_2829eabab8be8d::t_16916377d41716 27,39-44,65-71,246,300-303,305-314,317-325,336,338-344
+  s_2829eabab8be8d::t_4c20533a90bd55 326-335,337
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_30eda74aacd124::t_77348b81e6a8ba 1225-1226
+  s_2829eabab8be8d::t_cc80d85845926e 149,189,221,1184-1224
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_2829eabab8be8d::t_b9e075da0123a9 350-352,354,361-362,367
+  s_2829eabab8be8d::t_16916377d41716 353,355-359,363-366,368-387,536-538,542,545,547,550
+  s_2829eabab8be8d::t_4c20533a90bd55 360
+packages/backend/src/routing/autofix/phoenix.types.ts
+  s_2829eabab8be8d::t_ecd94337986dcd 43-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "0071809216d8e882b1b044da3111d13793584e55",
+  "prompts": {},
+  "sessions": {
+    "s_2829eabab8be8d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f836d-bf29-71a3-847c-92c24f0e8adf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null
+    },
+    "s_30eda74aacd124": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8464-5808-7153-991e-dd4ea57fb663",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

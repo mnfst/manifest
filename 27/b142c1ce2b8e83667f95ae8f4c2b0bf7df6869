@@ -1,0 +1,37 @@
+.changeset/stale-thinking-budget-scrub.md
+  s_786773920d85c8::t_94cf6774ab9bfe 1-5
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_786773920d85c8::t_b18c77d3a9611e 156-161
+packages/shared/src/request-params.ts
+  s_786773920d85c8::t_97240acc66b562 20-23,29,42-100
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_786773920d85c8::t_4f31673c16667b 37-90
+  s_786773920d85c8::t_07e275ed336e2f 610-643
+  s_786773920d85c8::t_0a39ea306e2aa5 215-217
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_786773920d85c8::t_78f7f300843c45 67,73-84
+  s_786773920d85c8::t_aadffbe0fecf3a 85-86
+packages/shared/__tests__/request-params.spec.ts
+  s_786773920d85c8::t_db50a46ea135a4 221-241,243-246,248
+  s_786773920d85c8::t_7b6c3449077dc8 142-220,242,247,249-251,267,271-274,276-288,316-335
+  s_786773920d85c8::t_fbf29cca6b9f1d 289-315
+  s_786773920d85c8::t_63145ba13e151d 252-266,268-270,275
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_786773920d85c8::t_c44d8da41a67e5 32-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "27b142c1ce2b8e83667f95ae8f4c2b0bf7df6869",
+  "prompts": {},
+  "sessions": {
+    "s_786773920d85c8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7166e418-4f5e-407b-a049-b95d1dcc500b",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

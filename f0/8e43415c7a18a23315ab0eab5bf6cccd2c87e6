@@ -1,0 +1,40 @@
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_6c9ca7fc8edb9e::t_57e0ca52ebe63a 67-72,96,111-113
+.changeset/fix-request-tail-refresh.md
+  s_6c9ca7fc8edb9e::t_57e0ca52ebe63a 1-5
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_57e0ca52ebe63a 226-247
+  s_6c9ca7fc8edb9e::t_b60cd679bfc03c 248-250
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_6c9ca7fc8edb9e::t_57e0ca52ebe63a 555,557-559,566-567,818-822
+packages/backend/src/database/backfills/request-backfill.cli.ts
+  s_6c9ca7fc8edb9e::t_f99d7dc2128df3 21,61-62,64-67,69-70,72
+  s_6c9ca7fc8edb9e::t_cb7d369bc48972 59-60,63
+packages/backend/src/database/backfills/request-backfill.cli.spec.ts
+  s_6c9ca7fc8edb9e::t_367c61a4e62f03 88-99,116-119,121,132,141,168,182
+  s_6c9ca7fc8edb9e::t_8ed1b805d4e3ad 113
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_6c9ca7fc8edb9e::t_57e0ca52ebe63a 118
+  s_6c9ca7fc8edb9e::t_b6b550e483eaf8 94,108-109,113-117,249,263
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_6c9ca7fc8edb9e::t_a71d9d0ac16736 717,723,742,744
+  s_6c9ca7fc8edb9e::t_57e0ca52ebe63a 103-104,106
+.changeset/stop-request-tail-sweep.md
+  s_6c9ca7fc8edb9e::t_57e0ca52ebe63a 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "f08e43415c7a18a23315ab0eab5bf6cccd2c87e6",
+  "prompts": {},
+  "sessions": {
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

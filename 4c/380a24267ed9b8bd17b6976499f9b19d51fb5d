@@ -1,0 +1,437 @@
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_2829eabab8be8d::t_0bc302962cf5d2 331-340,367,372-378,454-460,469,474-540,1208-1249,1251
+  s_2829eabab8be8d::t_a72e24a07400d4 1250
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_2829eabab8be8d::t_0bc302962cf5d2 440,456
+  s_2829eabab8be8d::t_797a18f2ae4696 441
+  s_2829eabab8be8d::t_a5abdb21a8f062 45-46,76-82,98-104,120-122,195,351-352,382-383,419-420,429,432-435,442-455,457-471,505,602-611,615-628,726,728,730,732-768
+packages/backend/src/routing/proxy/provider-client.ts
+  s_2829eabab8be8d::t_a5abdb21a8f062 27,45-48
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_2829eabab8be8d::t_797a18f2ae4696 594-602
+  s_2829eabab8be8d::t_0bc302962cf5d2 375-383,1744-1745,1752,1757-1760
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_2829eabab8be8d::t_a5abdb21a8f062 48-49,144-155,188-189,219-229,369-370,372-373,414-415,445,447-457,479,488-491,506,514,534,536-546,558-561,574-577,618-625,677-678,893,949,995-998,1055-1059
+.changeset/autofix-count-errors-breakdown.md
+  s_2829eabab8be8d::t_1b35f684c3ea0c 1-5
+.changeset/calm-requests-attempts.md
+  s_2829eabab8be8d::t_b03d205bacd995 1-5
+.changeset/gentle-attempt-aggregates.md
+  s_2829eabab8be8d::t_8725aae52e34f9 1-5
+.gitignore
+  s_2829eabab8be8d::t_354487fb8d8893 14
+AGENTS.md
+  s_2829eabab8be8d::t_edc7b3de5e4802 8
+CLAUDE.md
+  s_2829eabab8be8d::t_b651aff97eb6a0 324,441,449,466,505,638,718
+dashboard-redesign-brief.md
+  s_2829eabab8be8d::t_9ea013745e71d1 1-238
+docs/glossary.md
+  s_2829eabab8be8d::t_61a2d6fb063824 32-35,41,51-52,55,63-65,71,84,89,91,95,99,105-117,132,171-172,176,178
+package-lock.json
+  s_2829eabab8be8d::t_f33c4f976cb562 4203,4216,4229,4242,4255,4268,4281,4294,4307,4320,4333,4346,4359,4372,4385,4398,4409,4420,4433,4446,4459,4472,4485,4498,12508
+packages/backend/.env.example
+  s_2829eabab8be8d::t_7943eb1694bb06 25-26,116-121
+packages/backend/package.json
+  s_2829eabab8be8d::t_0b4f9386f4917b 18
+packages/backend/src/analytics/analytics.module.ts
+  s_2829eabab8be8d::t_d202b6b04aef1e 4,37-41,43,49,64,76-77,91-93
+packages/backend/src/analytics/controllers/attempt-analytics.controller.spec.ts
+  s_2829eabab8be8d::t_a238fdaa3714ea 1-53
+packages/backend/src/analytics/controllers/attempt-analytics.controller.ts
+  s_2829eabab8be8d::t_d61b2fccfdffc1 1-32
+packages/backend/src/analytics/controllers/autofix-analytics.controller.spec.ts
+  s_2829eabab8be8d::t_907e5c713a141f 1-63
+packages/backend/src/analytics/controllers/autofix-analytics.controller.ts
+  s_2829eabab8be8d::t_1e441c217e9dfa 1-78
+packages/backend/src/analytics/controllers/messages.controller.spec.ts
+  s_2829eabab8be8d::t_8e286ab9f235e7 83-85,125-127
+packages/backend/src/analytics/controllers/messages.controller.ts
+  s_2829eabab8be8d::t_f48dede77b0ef2 12,35-41,49-54
+packages/backend/src/analytics/controllers/overview.controller.spec.ts
+  s_2829eabab8be8d::t_3e69a7b3502ce1 16-24,112,115-116,125-133,151-180,201
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_2829eabab8be8d::t_88a76f6f78caa1 1,15-16,46-47,57-99,102-105,120
+packages/backend/src/analytics/controllers/provider-analytics.controller.spec.ts
+  s_2829eabab8be8d::t_dee254fb01247a 52-56,77-94,99-100,136-143,173-186,297-309
+packages/backend/src/analytics/controllers/provider-analytics.controller.ts
+  s_2829eabab8be8d::t_a3354569bd880a 6-7,16-19,23,30-31,38-120,138,162-170,180-212,225,248,271,346-350,360,423-424,449
+packages/backend/src/analytics/controllers/provider-usage.controller.spec.ts
+  s_2829eabab8be8d::t_56e3670c4dc536 22,25-26
+packages/backend/src/analytics/dto/messages-query.dto.spec.ts
+  s_2829eabab8be8d::t_fbf548807845be 4,60,88-107
+packages/backend/src/analytics/dto/messages-query.dto.ts
+  s_2829eabab8be8d::t_a27e0fa173d8a2 2-11,22-25,27,57-66,105-116,118-119,121
+packages/backend/src/analytics/services/agent-lifecycle.service.spec.ts
+  s_2829eabab8be8d::t_80d47a0690b83e 297,307,314
+packages/backend/src/analytics/services/agent-lifecycle.service.ts
+  s_2829eabab8be8d::t_a6e861ed12ff5e 153
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_2829eabab8be8d::t_5e07e7349bc833 101-153,354-416
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_2829eabab8be8d::t_f26b577e6f639a 1,13-16,19,33-35,43-44,48-71,202-320
+packages/backend/src/analytics/services/attempt-stats.service.spec.ts
+  s_2829eabab8be8d::t_561da8f7c0a55d 1-249
+packages/backend/src/analytics/services/attempt-stats.service.ts
+  s_2829eabab8be8d::t_df941f28cf98e4 1-413
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_2829eabab8be8d::t_dae1f39f4dd9c6 1-360
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_2829eabab8be8d::t_1941a515435184 1-476
+packages/backend/src/analytics/services/error-breakdown.service.spec.ts
+  s_2829eabab8be8d::t_831f8e504e42af 11,17,21-25,29-30,100-121
+packages/backend/src/analytics/services/error-breakdown.service.ts
+  s_2829eabab8be8d::t_71075bc67061a6 6,9,23-29,57,60,63,101,109-139,144,164
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_2829eabab8be8d::t_f0f39a9b318d8b 68,121,158,163,165,167-168,170,296-488
+packages/backend/src/analytics/services/message-details.service.ts
+  s_2829eabab8be8d::t_7c93f865374306 1,6-8,17,55-57,61,65-87,96-98,105-143,145,149-170,172-220,224,227-256,259
+packages/backend/src/analytics/services/message-feedback.service.spec.ts
+  s_2829eabab8be8d::t_f77eb4c34f2a02 131-252
+packages/backend/src/analytics/services/message-feedback.service.ts
+  s_2829eabab8be8d::t_07e59323b8c7ce 1,5,12-14,24-25,29-34,38-39,43-76,86,89-90
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_2829eabab8be8d::t_caddd226440e33 1-466
+packages/backend/src/analytics/services/messages-query.service.spec.ts
+  s_2829eabab8be8d::t_cdd9a8093d8b63 710,714,719,721,744-746,766,1008,1021
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_2829eabab8be8d::t_9baa95184507d9 1-3,6,13,15-19,29,83-84,91-93,101-139,158-166,170,231-613,658,694-695,700,745,747-759,940,956
+packages/backend/src/analytics/services/provider-usage.service.spec.ts
+  s_2829eabab8be8d::t_1e18db45a9172b 227-279
+packages/backend/src/analytics/services/provider-usage.service.ts
+  s_2829eabab8be8d::t_2cf9ab9ce77bda 5-10,20-21,28-31,47,53-54,107,114-118,121,124,136,140-141,153-154,161,165-166,177-178,199,203-204
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_2829eabab8be8d::t_33c53f47cea7fa 497-499,503-504,507,513
+packages/backend/src/analytics/services/query-helpers.ts
+  s_2829eabab8be8d::t_302339877e987c 38-43,49,52-76,92-95,205-209
+packages/backend/src/analytics/services/request-volume.service.spec.ts
+  s_2829eabab8be8d::t_d9169684aa940b 1-156
+packages/backend/src/analytics/services/request-volume.service.ts
+  s_2829eabab8be8d::t_ff0730637ebdf4 1-342
+packages/backend/src/analytics/services/specificity-feedback.service.spec.ts
+  s_2829eabab8be8d::t_78c9036af834d8 59-82
+packages/backend/src/analytics/services/specificity-feedback.service.ts
+  s_2829eabab8be8d::t_c310563de540cd 87-96
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_2829eabab8be8d::t_c5ca4152c47cbb 414-579,633-693,836-897
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_2829eabab8be8d::t_970a019ed249e7 1-3,5,16-17,20,56-63,97-147,170-181,323-369,377-393,430,436-439,502-555,655-668,867-868,918-941
+packages/backend/src/billing/plan.service.spec.ts
+  s_2829eabab8be8d::t_cb6b3c26562e73 164,308-316,417,432-433,464,477,483
+packages/backend/src/billing/plan.service.ts
+  s_2829eabab8be8d::t_054d4ce1c2e4cf 202-204,222-233,235-244,248
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_2829eabab8be8d::t_8c388333da7275 6,280-320
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_2829eabab8be8d::t_a69e2fa3fa148a 641-661,833-862
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_2829eabab8be8d::t_df548f46f708b0 7,11-12,26,33-36,562-695,704-705,709-713,715-716,722-747
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_2829eabab8be8d::t_0127b7c9766002 12,22-23,35-39,44,54-66,75,78,94,108-109,113-117,152-156,247-305,330-343,347-350
+packages/backend/src/database/backfills/request-backfill.cli.spec.ts
+  s_2829eabab8be8d::t_49825c29a2cc47 88-99,113,116-119,121,132,141,168,182
+packages/backend/src/database/backfills/request-backfill.cli.ts
+  s_2829eabab8be8d::t_26970275840bec 21,59-67,69-70,72
+packages/backend/src/database/data-source-definitions.spec.ts
+  s_2829eabab8be8d::t_f06c14ea53e576 1-18
+packages/backend/src/database/data-source-definitions.ts
+  s_2829eabab8be8d::t_f187ed578087c5 7,154
+packages/backend/src/database/database-seeder.service.spec.ts
+  s_2829eabab8be8d::t_b90468f55610c9 34,54,68
+packages/backend/src/database/database-seeder.service.ts
+  s_2829eabab8be8d::t_d62ee1f5e31b38 11,37-38,227
+packages/backend/src/database/database.module.ts
+  s_2829eabab8be8d::t_6b5977bcb12674 12,79
+packages/backend/src/database/migrations/1800300000000-DropUnusedAgentMessageIndexes.ts
+  s_2829eabab8be8d::t_75680a176fbffb 31-33
+packages/backend/src/database/seed-messages.spec.ts
+  s_2829eabab8be8d::t_7d8f5907d47843 82-150,387,391-392,394-395,404,408,413,427-429,440-445,447,457,461,473,486-488,490-492,494-495,514-516,526-527,536-537,539
+packages/backend/src/database/seed-messages.ts
+  s_2829eabab8be8d::t_0049cc046e9cbd 3-8,10,21-26,28-53,55-56,58-59,61,63-106,121,133-144,218,226,228,230,241-250,252-266,268-324,326-330,335-344,347-350
+packages/backend/src/entities/agent-message.entity.spec.ts
+  s_2829eabab8be8d::t_3f21d1bf7f4d2b 1-26
+packages/backend/src/entities/agent-message.entity.ts
+  s_2829eabab8be8d::t_670faa63aaf69a 30-40,77,236-240
+packages/backend/src/entities/request.entity.ts
+  s_2829eabab8be8d::t_f01ead7f36bd14 1-94
+packages/backend/src/error-pages/error-cluster-seeder.service.spec.ts
+  s_2829eabab8be8d::t_b8ae17c0fb6a71 98
+packages/backend/src/error-pages/error-cluster-seeder.service.ts
+  s_2829eabab8be8d::t_63028b2659bb31 4,193,208
+packages/backend/src/error-pages/error-discovery.service.spec.ts
+  s_2829eabab8be8d::t_df04118efbc12f 59-68
+packages/backend/src/error-pages/error-discovery.service.ts
+  s_2829eabab8be8d::t_d7da6ee6ba31f0 86,88,104,106,129
+packages/backend/src/notifications/emails/doctor-release.spec.ts
+  s_2829eabab8be8d::t_ef703e5ca501c7 1-37
+packages/backend/src/notifications/emails/doctor-release.tsx
+  s_2829eabab8be8d::t_8b3c6f19c61d2b 1-217
+packages/backend/src/otlp/interfaces/ingestion-context.interface.ts
+  s_2829eabab8be8d::t_3447022451bdef 7
+packages/backend/src/playground/playground.module.ts
+  s_2829eabab8be8d::t_f4f34eaa287c4b 4,23
+packages/backend/src/playground/playground.service.spec.ts
+  s_2829eabab8be8d::t_e6965202c0ccfd 185-188,282,434-448,490-491,498-501,511-514,716-753,769-775,783-788,825,906
+packages/backend/src/playground/playground.service.truncation.spec.ts
+  s_2829eabab8be8d::t_01524ee4f8294b 216
+packages/backend/src/playground/playground.service.ts
+  s_2829eabab8be8d::t_e7ff567501a300 37,70,87,94-96,114-116,136-138,162-171,248-259,445-497,514,519-593,598-601,603-606,608-617,622,627-639
+packages/backend/src/routing/autofix/__tests__/autofix-cohort.controller.spec.ts
+  s_2829eabab8be8d::t_6deba6b4a94c47 1-88
+packages/backend/src/routing/autofix/__tests__/autofix.module.spec.ts
+  s_2829eabab8be8d::t_5995d6d198b7b6 5,7,31-34
+packages/backend/src/routing/autofix/__tests__/dev-autofix-seeder.service.spec.ts
+  s_2829eabab8be8d::t_72ce495a857388 1-69
+packages/backend/src/routing/autofix/autofix-cohort.controller.ts
+  s_2829eabab8be8d::t_1f1b8aa46c4c6c 1-77
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_2829eabab8be8d::t_eb9c910c15f88f 5,7,9,16,29-30,35
+packages/backend/src/routing/autofix/autofix.types.ts
+  s_2829eabab8be8d::t_5cee8e8fc30aa8 48-49
+packages/backend/src/routing/autofix/dev-autofix-seeder.service.ts
+  s_2829eabab8be8d::t_8cc67fc513f66a 1-137
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.failures.spec.ts
+  s_2829eabab8be8d::t_29a80e14a759cb 217,219
+packages/backend/src/routing/proxy/__tests__/proxy-message-dedup.spec.ts
+  s_2829eabab8be8d::t_e4b0a6c47b256c 1,200-234,259
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_2829eabab8be8d::t_c05d68329f5287 7,43,49,52-56,60-62,92-199,211,227,264,281,470,481,489-490,574,605,672,694,704,719-720,725-760,853-855,871-873,897-907,980,1056-1057,1172,1408,1427,1433,1457,1635,1649-1650,1670-1671,1693-1694,1713-1714,1740-1741,1749,1779-1780,1788,1790,1805
+packages/backend/src/routing/proxy/__tests__/proxy-request-recorder.spec.ts
+  s_2829eabab8be8d::t_abbf00d262680c 1-245
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_2829eabab8be8d::t_7c8380bf041e8a 170-171,181,223-246,620-655,779,804-808,846-850,2196-2201,2204-2220,2236-2238,2245,2318-2333
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_2829eabab8be8d::t_ab98488ca6c5c4 13,455-565,603,933,1081,1115-1120,1161,1210,1484-1485,1506,1523,1725,1790,1891,1938,1979-1980,2018,2140,2503-2505,3218-3219,3230,3296-3297,3303-3304,3344,3431-3432,3439,3647-3648,3654-3655,3660,3716-3717
+packages/backend/src/routing/proxy/proxy-message-dedup.ts
+  s_2829eabab8be8d::t_196001c4a61cf0 2,7-10,25-34,46,48-60,67,69,81,84,124,126
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_2829eabab8be8d::t_4585c5594afbc0 5-11,13,23,42,45,52,77,79,86,101-106,142,158-169,173-176,205-206,210-212,234-236,269-326,339-341,376-447,465-535,543-547,569-575,587-618,639,649,658-688,699-700,716-717,730,765-769,795-805,818-823,840-841,849-888,890,901-904,921,950-979,992-994,1011,1042-1079,1082-1088,1098,1107-1108,1138,1149-1150,1210,1212-1213,1240,1242-1243
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_2829eabab8be8d::t_dceeb7d6ac89fe 2,55-59,114,122-123,126-128,220-221,231,248-249,256-260,306-311,314,317-318,345-349,361,402,408,422,439-442,474-475,790-791,794,797-800,817,826-828,860
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_2829eabab8be8d::t_4cfac6279c7c90 32-55,120-121
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_2829eabab8be8d::t_63ea5346831a47 37,53,188,201-237,250,257,267,299,356-357,370,410-419,433-435,445,451,467,472,478,487,498,504,536,543,555,562,567,570-572,592,732,739,744,756
+packages/backend/src/routing/tier.controller.spec.ts
+  s_2829eabab8be8d::t_33dccde8defdd0 161-162,165,195-196,202
+packages/backend/src/routing/tier.controller.ts
+  s_2829eabab8be8d::t_85700bb33c715d 162,164-165,167-168,193
+packages/backend/test/attempt-analytics.e2e-spec.ts
+  s_2829eabab8be8d::t_718ed8a80f699e 1-82
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_2829eabab8be8d::t_009b4491dea313 10,31,106-109,115,133-136,141-142,155,159,163
+packages/backend/test/custom-provider-fk-data-loss.e2e-spec.ts
+  s_2829eabab8be8d::t_ad8ee55fd938a1 5,61-64
+packages/backend/test/custom-provider-fk-migrations.e2e-spec.ts
+  s_2829eabab8be8d::t_27dea211cfbac5 5,12,16-18
+packages/backend/test/custom-providers-lift-migrations.e2e-spec.ts
+  s_2829eabab8be8d::t_ef98197219cabd 6,100-102
+packages/backend/test/helpers.ts
+  s_2829eabab8be8d::t_00566922b6d552 21,64
+packages/backend/test/message-count-consistency.e2e-spec.ts
+  s_2829eabab8be8d::t_d7e0e54cae6fe5 7-9,13,19,21-36,39,60,62,71,76,93,102
+packages/backend/test/message-error-code-migrations.e2e-spec.ts
+  s_2829eabab8be8d::t_38d19c9ea7ea3d 9,107-110
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_2829eabab8be8d::t_c3eaf12fb865d6 208
+packages/backend/test/playground-flow.e2e-spec.ts
+  s_2829eabab8be8d::t_23f394f652ed83 150,191
+packages/backend/test/proxy-fallback-auth.e2e-spec.ts
+  s_2829eabab8be8d::t_76ba632a0aa423 229,235,245-247,249-250
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_2829eabab8be8d::t_0ab3c6fae753d3 179-225
+packages/backend/test/seed-playground-agents-migrations.e2e-spec.ts
+  s_2829eabab8be8d::t_33b7f3a3866167 6,37-40
+packages/backend/test/tenant-scoping-migrations.e2e-spec.ts
+  s_2829eabab8be8d::t_781499f63de1db 6-9,17,71-72
+packages/backend/test/user-provider-backfill-migrations.e2e-spec.ts
+  s_2829eabab8be8d::t_16b54dc6e721ae 9,50-53,120-123
+packages/frontend/src/components/AutofixKpiCards.tsx
+  s_2829eabab8be8d::t_16647b9c11b4be 1-185
+packages/frontend/src/components/ChartHoverTooltip.tsx
+  s_2829eabab8be8d::t_1ab02723c7a401 1-123
+packages/frontend/src/components/CostByModelTable.tsx
+  s_2829eabab8be8d::t_fdf78f8487f3a7 13-19,34-38,63-64,67,69,78-89,174-190
+packages/frontend/src/components/DevAutofixToggle.tsx
+  s_2829eabab8be8d::t_9b2abb45a81fa5 1-45
+packages/frontend/src/components/DuplicateAgentModal.tsx
+  s_2829eabab8be8d::t_e7b722aeb50338 124,178
+packages/frontend/src/components/ErrorClassCard.tsx
+  s_2829eabab8be8d::t_71006af232092c 1-62
+packages/frontend/src/components/FilterSelect.tsx
+  s_2829eabab8be8d::t_d7a7ad83497fc8 101
+packages/frontend/src/components/Header.tsx
+  s_2829eabab8be8d::t_79e9b0ab95efc1 2-11,17,29-30,58-62,164,312
+packages/frontend/src/components/MessageDetails.tsx
+  s_2829eabab8be8d::t_8a1a511709dce8 11,112,116,231,262-264,266,272-276,286,292-295,425,427,429,566,683,728-761
+packages/frontend/src/components/MessageTable.tsx
+  s_2829eabab8be8d::t_07088a923d56e7 21-24,62-63,67-71,78,82-97,99,139
+packages/frontend/src/components/MultiAgentTokenChart.tsx
+  s_2829eabab8be8d::t_0d27a72227d487 1,4-9,52,62,141,155,163,230
+packages/frontend/src/components/MultiSelect.tsx
+  s_2829eabab8be8d::t_85d5342583b267 1-136
+packages/frontend/src/components/NotificationBell.tsx
+  s_2829eabab8be8d::t_84fc6c5cfb3af8 1-202
+packages/frontend/src/components/OverviewSkeleton.tsx
+  s_2829eabab8be8d::t_b25484908d861c 8,35,44
+packages/frontend/src/components/ProviderChartCard.tsx
+  s_2829eabab8be8d::t_9f497e8112dde2 34-35,85-96,120,127
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_2829eabab8be8d::t_6b6433f519b8b8 275
+packages/frontend/src/components/ReliabilityChart.tsx
+  s_2829eabab8be8d::t_58b8fc5f8aba1c 1-281
+packages/frontend/src/components/RequestDrawer.tsx
+  s_2829eabab8be8d::t_86468543d9241d 1-752
+packages/frontend/src/components/Sidebar.tsx
+  s_2829eabab8be8d::t_31e62b47f246ef 106,119-134,247
+packages/frontend/src/components/SocialFollowBanner.tsx
+  s_2829eabab8be8d::t_847d387528a604 34
+packages/frontend/src/components/UnifiedChartCard.tsx
+  s_2829eabab8be8d::t_341c7c9adccbe9 1-246
+packages/frontend/src/components/message-table-cells.tsx
+  s_2829eabab8be8d::t_dd94ec8b23b62d 22,84,93-94,152-154,270,332-334,336-338,340,342-367,393-396,400,404,408-410,412-413,455-459,500-503
+packages/frontend/src/components/message-table-types.ts
+  s_2829eabab8be8d::t_04239aa60276b5 37,56-57,60-62,67-68,80-81
+packages/frontend/src/pages/AgentMessagesRedirect.tsx
+  s_2829eabab8be8d::t_7e8e84e0b13848 1,7-8,12-18
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_2829eabab8be8d::t_ba25ec6b1ceea9 38-41,60-76,110-117,207,211,224-226,296-362,485-493,674-677,679,681-686,688-729,731-774,778-783,789,809-810,828-835,901,904-921,948,951-962,966-975,980,1029-1031,1057-1111,1119,1139-1150,1181-1195,1197-1217,1219-1257
+packages/frontend/src/pages/Login.tsx
+  s_2829eabab8be8d::t_b8c407a1d2c9b7 156
+packages/frontend/src/pages/MessageLog.tsx
+  s_2829eabab8be8d::t_989c84cbe6175b 16,19-20,23,35,82-93,97-115,119-128,191-278,333-355,369,371,375,388,390,394,404-409,420,427-429,436-440,444,464,466,470,492-494,498,537-573,582-598,600-636,658-683,685,688-689,695-696,699-701,703,715-720,726-732,747-752,798,858,863-865,876-878,890,899,915,927,934,948,954,968-969,998-1002
+packages/frontend/src/pages/Overview.tsx
+  s_2829eabab8be8d::t_98311fd774df4e 12-14,29-30,48-49,71-78,113,150,260-311,379,472-528,530-533,539,549-553,555-557,561-565
+packages/frontend/src/pages/SettingsAutofixSection.tsx
+  s_2829eabab8be8d::t_0c086e42926be7 1-2,46-54,58
+packages/frontend/src/pages/Workspace.tsx
+  s_2829eabab8be8d::t_fd0c71d1065832 116,213
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_2829eabab8be8d::t_686f576b7bc741 21-28,30-31,48-49,78-79,118,188-193,224,239-240,250-270,331-417,438-443,472-473,525,825-918,932-938,944-954,959-1009,1015,1021,1027,1036,1160-1167,1213-1222
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_2829eabab8be8d::t_43a5661c1d0f48 21,36,41-46,48,405-420,428-440,443-447,450-455,542-583,598,603-610,722-724,728-744,751,755-776,780-781
+packages/frontend/src/services/api.ts
+  s_2829eabab8be8d::t_05c43964a9e467 6
+packages/frontend/src/services/api/analytics.ts
+  s_2829eabab8be8d::t_4a6de5af44840c 56-137,246-474
+packages/frontend/src/services/api/autofix.ts
+  s_2829eabab8be8d::t_ef666ea8bcf5a7 1-35
+packages/frontend/src/services/api/messages.ts
+  s_2829eabab8be8d::t_5f2051f25a4215 2,11-23,31,88-89,92-114,122-125
+packages/frontend/src/services/api/providers.ts
+  s_2829eabab8be8d::t_bd3bc851075348 39-40,44-47,79,83-84,94-121,133-141,144-163,166-173
+packages/frontend/src/styles/agents.css
+  s_2829eabab8be8d::t_1c8eeb30c4d44d 203-221
+packages/frontend/src/styles/analytics-overview.css
+  s_2829eabab8be8d::t_f9e4298acc05be 46,56-256
+packages/frontend/src/styles/cards.css
+  s_2829eabab8be8d::t_18b73b7a4953cf 137
+packages/frontend/src/styles/controls.css
+  s_2829eabab8be8d::t_8a4f941d499e24 377-423
+packages/frontend/src/styles/custom-select.css
+  s_2829eabab8be8d::t_067aec82fa31d4 115-151
+packages/frontend/src/styles/data.css
+  s_2829eabab8be8d::t_a86a05ad8ee2b5 112,117,163-197,747-750,1356-1359,1366-1379,1386,1399
+packages/frontend/src/styles/filter-select.css
+  s_2829eabab8be8d::t_7ab052f61e1dfb 65-70
+packages/frontend/src/styles/notifications-bell.css
+  s_2829eabab8be8d::t_907e5081eeb069 1-92
+packages/frontend/src/styles/reliability-card.css
+  s_2829eabab8be8d::t_b5f0d38918c0bf 1-27
+packages/frontend/src/styles/request-drawer.css
+  s_2829eabab8be8d::t_63fd6067280274 1-290
+packages/frontend/src/styles/theme.css
+  s_2829eabab8be8d::t_2397602bda324a 240-290,447-490,558-571,1688-1713
+packages/frontend/tests/components/AnalyticsChartSurfaces.test.tsx
+  s_2829eabab8be8d::t_2177be09a43dee 7-12,59-66,70-85,91-94,118-459,498,504,506,514-548,576,622,708-712,764,790
+packages/frontend/tests/components/CostByModelTable.test.tsx
+  s_2829eabab8be8d::t_13c6fed68ba5f8 25-44,282-310
+packages/frontend/tests/components/DevAutofixToggle.test.tsx
+  s_2829eabab8be8d::t_9969aea384da6c 1-63
+packages/frontend/tests/components/DuplicateAgentModal.test.tsx
+  s_2829eabab8be8d::t_0fa2b0aecc6cf6 94
+packages/frontend/tests/components/ErrorClassCard.preserved.test.tsx
+  s_2829eabab8be8d::t_696ada31edb5bf 1-88
+packages/frontend/tests/components/Header.test.tsx
+  s_2829eabab8be8d::t_4f7627dfd96e98 58-65
+packages/frontend/tests/components/MessageDetails.autofix.test.tsx
+  s_2829eabab8be8d::t_c1c9cad784c9bb 44,77,88,103,120-134,154,192,340,346,373,391-392,409,417,422-423
+packages/frontend/tests/components/MessageDetails.test.tsx
+  s_2829eabab8be8d::t_c7a77913fbef99 244-287,295,301-332,476,621,634,649,799,812,825
+packages/frontend/tests/components/MessageTable.onOpenMessage.test.tsx
+  s_2829eabab8be8d::t_1a691dfc1a6bfd 163
+packages/frontend/tests/components/MessageTable.test.tsx
+  s_2829eabab8be8d::t_f0b014d3a2cb2b 126-127,129-137,150,152-159,173,501-502,505-506,510-512,515,518-519,523-538,540-564,624
+packages/frontend/tests/components/MessageTableStatus.test.tsx
+  s_2829eabab8be8d::t_078cf4dcd88ba3 45,57
+packages/frontend/tests/components/MultiSelect.test.tsx
+  s_2829eabab8be8d::t_d21a385af0ba8f 1-116
+packages/frontend/tests/components/NotificationBell.test.tsx
+  s_2829eabab8be8d::t_20ccd248f00665 1-190
+packages/frontend/tests/components/ProviderDetailView.test.tsx
+  s_2829eabab8be8d::t_cdb193d40acf2f 429
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_2829eabab8be8d::t_80e80f7b6044c2 1-300
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_2829eabab8be8d::t_3fb4b65de58cb2 125,127,190-191,522,527-528
+packages/frontend/tests/components/SocialFollowBanner.test.tsx
+  s_2829eabab8be8d::t_f28e73dc145550 18
+packages/frontend/tests/components/message-table-cells.test.tsx
+  s_2829eabab8be8d::t_2710151d431841 10-11,104-105,109,115-119,122-126,129-132,134,136-150,153-166,169,171,173-174,222,227-228,232,236-238,241,251-252,257,262,265,272-273,284,297,313-314
+packages/frontend/tests/pages/AgentMessagesRedirect.test.tsx
+  s_2829eabab8be8d::t_9aeefa87f24c80 5,8,17,24,27-36
+packages/frontend/tests/pages/AgentRedirects.test.tsx
+  s_2829eabab8be8d::t_c94104e28349d1 10,52,59
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_2829eabab8be8d::t_4d6c86b2f126b9 34,64-83,87-107,142-145,263-271,320,323,366-390,399-401
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_2829eabab8be8d::t_a64c4acac9d052 20-25,65-154,219-224,313-317,333,336,339,345,406,423-428,430,451,464,466-474,476-479,481-487,489-491,493-496,660,664,667-670,673-684,686-731,737-749,901-906,908,1068,1072,1122-1127,1130,1238,1273-1274,1276,1367,1369,1372-1373,1375,1543-1544,1546,1690,1716,1856,1861,1870,1906,1926,1936-1947
+packages/frontend/tests/pages/Overview-limits.test.tsx
+  s_2829eabab8be8d::t_4044eeabac67d7 61-79,83-104,171
+packages/frontend/tests/pages/Overview.test.tsx
+  s_2829eabab8be8d::t_b7fd62e619e724 72-73,75-93,97-118,262,268-276,346,351,361,385,395,427,442,495,501,508,511,513,516,518-520,523-524,526,529,531-535,538,541-542,544-547,549,551,553,555-558,561,563-565,1038,1137-1138,1140,1178-1191
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_2829eabab8be8d::t_a7a45fb039bb08 29-33,53,81-100,109-116,118-130,167-168,174,176-179,183,188-189,195,198-254,380,383,730,759,765-789,821,823,879,891,921,999,1019,1027-1029,1031-1064,1066-1070,1072-1090,1093-1094,1096-1112,1114-1116,1118-1162,1211,1481
+packages/frontend/tests/pages/ProviderPages.test.tsx
+  s_2829eabab8be8d::t_b7d69257b5ea9e 87,97-124,225,229-230,265-279,703,841,845-846
+packages/frontend/tests/pages/ProviderUsageLive.test.tsx
+  s_2829eabab8be8d::t_87531ca8c242a7 37
+packages/frontend/tests/pages/Settings.test.tsx
+  s_2829eabab8be8d::t_3ef6e9c9a6d0f4 10
+packages/frontend/tests/pages/SettingsAutofixSection.test.tsx
+  s_2829eabab8be8d::t_70b113611175a9 17-20
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_2829eabab8be8d::t_961c8e6a18a30f 236
+packages/frontend/tests/services/api/analytics.test.ts
+  s_2829eabab8be8d::t_94ef24b02e35b3 45-122
+packages/frontend/tests/services/api/autofix.test.ts
+  s_2829eabab8be8d::t_4a778c448cb7e2 1-59
+packages/frontend/tests/services/api/providers.test.ts
+  s_2829eabab8be8d::t_545b4c207da537 4,162-193
+packages/shared/__tests__/autofix-status.spec.ts
+  s_2829eabab8be8d::t_66234ffe02e37b 1-70
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_2829eabab8be8d::t_6a6d66aa6b29e3 10-17,68-74,228-288
+packages/shared/src/autofix-status.ts
+  s_2829eabab8be8d::t_fd530d733ce7ea 1-54
+packages/shared/src/error-taxonomy.ts
+  s_2829eabab8be8d::t_abe9cab885a725 42-93,220-227
+packages/shared/src/index.ts
+  s_2829eabab8be8d::t_4610a58df5ebf9 34-40,46-48,56-57,171-172
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4c380a24267ed9b8bd17b6976499f9b19d51fb5d",
+  "prompts": {},
+  "sessions": {
+    "s_2829eabab8be8d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f836d-bf29-71a3-847c-92c24f0e8adf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

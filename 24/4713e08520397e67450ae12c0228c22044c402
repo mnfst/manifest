@@ -1,0 +1,60 @@
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.spec.ts
+  s_6c9ca7fc8edb9e::t_d86cf381ce2c87 1-23
+packages/backend/src/database/backfills/message-provider-backfill.boot.service.ts
+  s_6c9ca7fc8edb9e::t_4087d30d76c255 15,17-23,63,70-75,77,79,90-91,96,104
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_6c9ca7fc8edb9e::t_619edb1fc6820b 1-146
+packages/backend/src/database/backfills/request-backfill.cli.spec.ts
+  s_6c9ca7fc8edb9e::t_87889246c5d404 1-179
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_6c9ca7fc8edb9e::t_2c427803db956f 1-629
+packages/backend/package.json
+  s_6c9ca7fc8edb9e::t_18dafb177c85eb 22-24
+railway.toml
+  s_6c9ca7fc8edb9e::t_18dafb177c85eb 11-14
+.changeset/quiet-request-history.md
+  s_6c9ca7fc8edb9e::t_ba903a6e4ada40 1-5
+packages/backend/src/database/backfills/request-backfill.cli.ts
+  s_6c9ca7fc8edb9e::t_1fe190589d3a18 1-79
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_6c9ca7fc8edb9e::t_5a0696ed159fc0 143-165
+  s_6c9ca7fc8edb9e::t_b6d3643c352c3c 1-142,166-302
+packages/backend/src/database/backfills/request-backfill.datasource.ts
+  s_6c9ca7fc8edb9e::t_6c6142a58e0a71 1-32
+packages/backend/src/database/backfills/backfill-requests.ts
+  s_6c9ca7fc8edb9e::t_21d9cebfcec57c 1-205
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_6c9ca7fc8edb9e::t_7bf9c75ec5c40c 1-282
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_6c9ca7fc8edb9e::t_4c961a39bcbbb6 1-637
+packages/backend/src/database/backfills/backfill.module.ts
+  s_6c9ca7fc8edb9e::t_18dafb177c85eb 6,14
+packages/backend/src/database/backfills/message-provider-backfill.boot.service.spec.ts
+  s_6c9ca7fc8edb9e::t_460bf140f996bf 70-102,110-112,121-123,136-138,157-159,196
+packages/backend/src/database/data-source-definitions.ts
+  s_6c9ca7fc8edb9e::t_18dafb177c85eb 148-149,297-298
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_6c9ca7fc8edb9e::t_230e5d90589c54 1-132
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_6c9ca7fc8edb9e::t_2872a019974e43 1-865
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.ts
+  s_6c9ca7fc8edb9e::t_d4adbe52c1a98f 1-65
+packages/backend/src/database/backfills/backfill-requests.spec.ts
+  s_6c9ca7fc8edb9e::t_c4983486cc5332 1-336
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "244713e08520397e67450ae12c0228c22044c402",
+  "prompts": {},
+  "sessions": {
+    "s_6c9ca7fc8edb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f7e81-831e-78b2-a68b-98f457c7ade4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

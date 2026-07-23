@@ -1,0 +1,322 @@
+packages/backend/src/routing/tenant-providers.controller.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 6,9-17,110-130
+  s_2110bf8ec34462::t_708ab089003ea0 131
+packages/manifest/CHANGELOG.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 3-16
+packages/backend/src/analytics/controllers/provider-usage.controller.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 4,23
+packages/backend/src/routing/resolve/__tests__/resolve.service.edge.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 88,110
+packages/backend/src/routing/model.controller.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 34,47,98-102,168-176,305-312
+  s_2110bf8ec34462::t_68f35ce3c5da4f 313-314
+packages/backend/src/routing/provider.controller.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 17,29,74-78,515-518,524-547
+  s_2110bf8ec34462::t_f98e9839a31ad0 548
+packages/backend/src/sentry/debug-sentry.controller.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-11
+.changeset/model-capabilities-projection.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-5
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 856-869,883,891,897-898,1434-1447,1449-1452,1456,1460-1511,1519-1520,1526-1528,1531,1539-1542,1546,1554,1557,1571-1572,1580,1593,1609-1610,1618,1621,1634-1635,1638-1639,1646-1651,1653
+  s_2110bf8ec34462::t_418ba0c31b76e1 1652,1654
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-691
+packages/backend/src/routing/autofix/__tests__/mock-healing-client.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 13
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.d.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-8
+nodes/Manifest/manifest-logo.dark.svg
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-80
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 21-25,27,50-53,67-70,80-83,319-323,338-340,342,503-505,546-547,565-569,824-825,827,834-836,843-872
+packages/backend/src/setup/setup.controller.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 17,26,40,59,72,86,101,116,128-132
+  s_2110bf8ec34462::t_8745edc05c9fba 133-134
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 5,17,54-95,100-136,210-219,329-331,380-394,423-425,467-472,797-807
+packages/backend/src/routing/proxy/proxy-error-sanitizer.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 4,40,56-96,167-197
+  s_2110bf8ec34462::t_8af437c8501dd6 198-199
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-200
+packages/backend/test/setup.e2e-spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 44
+integrations/n8n-nodes-manifest/dist/package.json
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-62
+packages/shared/src/error-taxonomy.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 82,105-108
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 136-137
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 96-114,145-146,186-187,220-221,290-414,2306,2309-2311,2323,2326,2328-2332,2335-2344,2347-2356,2358,2361-2375,2378-2381,2385,2390-2451,2459,2464,2914-2915,2927-2929,2939
+packages/backend/src/database/backfills/message-provider-backfill.boot.service.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 5,16,18-24,38-39,62,65,72-77,79,81,92-93,98,106
+nodes/Manifest/manifest-logo.svg
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-80
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-282
+packages/backend/src/sentry/__tests__/debug-sentry.controller.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-7
+packages/backend/src/routing/autofix/observation-reporter.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 29
+packages/backend/src/sentry/sentry-options.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-29
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-45
+packages/backend/src/model-discovery/known-model-modalities.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-50
+nodes/Manifest/Manifest.node.json
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-21
+packages/backend/src/app.module.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 2-3,36,60-67,70,107,112
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-166
+packages/backend/src/common/errors/__tests__/manifest-error.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 95-104
+.changeset/clean-tunnel-errors.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-5
+packages/backend/src/database/backfills/request-backfill.cli.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-179
+packages/backend/src/sentry/__tests__/sentry-options.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-52
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-295
+packages/backend/src/database/backfills/request-backfill.cli.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-79
+packages/backend/src/model-discovery/known-model-modalities.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-33
+packages/backend/src/routing/autofix/__tests__/phoenix-contract.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 70,99-101
+  s_2110bf8ec34462::t_d30c2ed07d4806 102
+packages/backend/package.json
+  s_2110bf8ec34462::t_ac91eb2b1127ea 22-24,27,39,50,99
+.changeset/quiet-request-history.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-5
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 5,466,468-469,984-998
+  s_2110bf8ec34462::t_ab0d623cdc890f 999
+packages/backend/src/analytics/controllers/provider-usage.controller.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 6-16,48-69
+nodes/Manifest/Manifest.node.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-373
+packages/backend/src/routing/autofix/__tests__/http-healing-client.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 19
+packages/backend/src/routing/tenant-providers.controller.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 8,39-41
+.changeset/quiet-local-runtimes.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-5
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 57,83,556-635,899-902,929-932
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 11,22,41,387,486-488,490-497,500,503-504
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 112-128
+packages/backend/src/setup/setup.service.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 225-267
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 89,107,143-147,155-166,222-250,581-594,712-735
+packages/backend/src/common/errors/manifest-error.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 20,58
+packages/backend/src/routing/routing-core/__tests__/provider-key.service.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 665-698
+packages/frontend/tests/services/setup-status.test.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 8,259-301
+  s_2110bf8ec34462::t_39d49502f7c500 302-303
+packages/backend/src/setup/setup.controller.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 18,28
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-640
+packages/shared/__tests__/subscription.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 388-394,580
+packages/backend/src/routing/dto/routing.dto.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1,77
+packages/backend/src/routing/autofix/autofix.types.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 14-16,45-48,51,57-60
+  s_2110bf8ec34462::t_db5b9780e64996 61
+integrations/n8n-nodes-manifest/README.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 11-31,66
+docs/glossary.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-174
+packages/backend/src/common/utils/provider-availability.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-48
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 2-6,99-151
+  s_2110bf8ec34462::t_ed1aad23a88070 152
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/manifest-logo.dark.svg
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-80
+packages/backend/src/setup/setup.service.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 6,54-61
+  s_2110bf8ec34462::t_07d3188a99f8df 62-63
+packages/backend/src/routing/autofix/phoenix.types.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 2,25,42
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 59,74,98-102,1076-1087
+  s_2110bf8ec34462::t_1bae8a7d5e374f 1088
+deploy/apple-containers/start.sh
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-354
+packages/backend/test/proxy.e2e-spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 17,22,163-209
+  s_2110bf8ec34462::t_9c63cb71c8be7f 210-211
+integrations/n8n-nodes-manifest/.gitignore
+  s_2110bf8ec34462::t_ac91eb2b1127ea 2-3
+packages/backend/src/notifications/services/email-providers/send-email.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 66-76
+packages/frontend/src/services/setup-status.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 12,21,39,48-50,59,91-92
+  s_2110bf8ec34462::t_d52de488b80dae 93-94
+packages/backend/src/database/backfills/message-provider-backfill.boot.service.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 40,43,51-52,63-72,84-116,124-126,135-137,150-152,171-173,210
+packages/backend/src/database/backfills/backfill.module.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 6,14
+packages/backend/src/instrument.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-9
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 92,356,849-853
+packages/shared/src/subscription/configs.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 157,161-163,334
+packages/backend/src/database/backfills/backfill-requests.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-323
+deploy/apple-containers/TUTORIAL.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-254
+packages/backend/src/routing/model.controller.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1,14,21-24,110-112,136-140,142
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 340-342,1684,1741,1744-1745,1758-1760,1763
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 44,46-50,135,355-359,391-398,495-499,598-609
+credentials/ManifestApi.credentials.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-48
+integrations/n8n-nodes-manifest/test/manifest-node.test.js
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-186
+packages/backend/src/routing/proxy/openai-model-capabilities.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-35
+packages/backend/src/routing/autofix/observation-payload.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 14,108
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 394-400,413-419,426-441
+packages/frontend/tests/pages/ResetPassword.test.tsx
+  s_2110bf8ec34462::t_ac91eb2b1127ea 7,26-29,35,111-143,147
+packages/manifest/package.json
+  s_2110bf8ec34462::t_ac91eb2b1127ea 3
+.changeset/fix-request-tail-refresh.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-5
+integrations/n8n-nodes-manifest/CHANGELOG.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 3-15
+integrations/n8n-nodes-manifest/dist/credentials/ManifestApi.credentials.js
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-48
+packages/backend/src/routing/autofix/__tests__/noop-healing-client.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 11
+packages/backend/src/routing/autofix/observation-payload.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 3,112,153
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 58-85,222-257,300,345,347,595,624-683,717-722,1165,2315,2347,2392,2397,2421,2437
+packages/frontend/src/styles/auth.css
+  s_2110bf8ec34462::t_ac91eb2b1127ea 176-191,364-366,423-424
+railway.toml
+  s_2110bf8ec34462::t_ac91eb2b1127ea 11-14
+CLAUDE.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 3,7,9,60,70,86-87,91,130-134,152-154,156-157,161,164,223,268,295,324,330-331,354-355,359-368,370,372-374,384,394,406-407,418,422-425,432-433,437,439-442,444-448,452,463,465,469,475,484,504,509-510,532-557,569,637,649,673,716-717,798
+packages/backend/src/common/utils/provider-availability.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-24
+packages/backend/src/model-discovery/model-capabilities.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-34,53-148
+  s_2110bf8ec34462::t_e84786500fc39a 149
+packages/frontend/src/pages/Account.tsx
+  s_2110bf8ec34462::t_ac91eb2b1127ea 24-72,74-76,257-324
+  s_2110bf8ec34462::t_d5c26a1c15c78f 325
+packages/backend/src/common/errors/error-codes.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 70-74
+integrations/n8n-nodes-manifest/dist/credentials/ManifestApi.credentials.d.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-12
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-850
+packages/backend/src/database/backfills/backfill-requests.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-207
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 71
+packages/frontend/src/pages/ResetPassword.tsx
+  s_2110bf8ec34462::t_ac91eb2b1127ea 3,5,12-15,19-22,48-52,56-69
+packages/frontend/src/styles/agents.css
+  s_2110bf8ec34462::t_ac91eb2b1127ea 352-362
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 390-393
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-72
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 92,607,782,786,796,807-808,810-816,818,820-822
+integrations/n8n-nodes-manifest/nodes/Manifest/Manifest.node.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 2,6,81-157,175-181,194-200,229-230,238-239,336
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 43,132,135-138
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 2,17-35,228,235,269-271,274,290,342,370-372,375
+packages/backend/src/routing/autofix/contract/phoenix-openapi.yaml
+  s_2110bf8ec34462::t_ac91eb2b1127ea 328-331
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/manifest-logo.svg
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-80
+.changeset/report-interrupted-streams.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-5
+AGENTS.md
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-10
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 54-66
+packages/backend/src/database/data-source-definitions.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 148-149,297-298
+integrations/n8n-nodes-manifest/package.json
+  s_2110bf8ec34462::t_ac91eb2b1127ea 3,36
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-296
+packages/backend/src/entities/agent-message.entity.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 98-100
+packages/backend/src/routing/proxy/proxy-error-sanitizer.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 59-83,135-136,150-156
+packages/backend/src/routing/proxy/__tests__/openai-model-capabilities.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-56
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.json
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-21
+packages/frontend/tests/pages/Account.test.tsx
+  s_2110bf8ec34462::t_ac91eb2b1127ea 26-27,39-40,127-128,172-282
+  s_2110bf8ec34462::t_885b499a579b14 283
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 2,11,15,20-24,31-49
+packages/backend/src/routing/proxy/provider-client.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 2,34-35,216-218
+  s_2110bf8ec34462::t_5f4bd185a8d3e5 219
+packages/backend/src/routing/provider.controller.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 35-38,115-120
+packages/backend/src/main.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-2
+packages/backend/src/notifications/services/email-providers/send-email.spec.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 5,8-43
+  s_2110bf8ec34462::t_d6f47641d9e47c 44
+packages/backend/src/database/backfills/request-backfill.datasource.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 1-32
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_2110bf8ec34462::t_ac91eb2b1127ea 5,28-30,41,56,58,62,70,98-99,105,107,112-113,128,133-145,229,284,290,389,436,446,448-452,456-459,477-481,522-528,576-610
+  s_2110bf8ec34462::t_724d73714b0303 611-612
+integrations/n8n-nodes-manifest/dist/credentials/ManifestApi.credentials.js.map
+  s_2110bf8ec34462::t_47aef14dc09ad2 1
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js.map
+  s_2110bf8ec34462::t_f29942736e2224 1
+integrations/n8n-nodes-manifest/package-lock.json
+  s_2110bf8ec34462::t_2bade34f30cbdd 3,9
+package-lock.json
+  s_2110bf8ec34462::t_e428eddbf87a09 491-551,3799-3902,4560-4694,6101-6109,7633-7635,9478-9497,11247-11255,11379-11383,12390-12402,12706-12711,15106,15117,15186-15194,15377
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "87301007ad36575b1e7966167a6a87748ddf919b",
+  "prompts": {},
+  "sessions": {
+    "s_2110bf8ec34462": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f834f-55ee-7b11-a73c-ee652058eb35",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
