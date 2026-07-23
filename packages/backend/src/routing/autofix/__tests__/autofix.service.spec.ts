@@ -618,82 +618,53 @@ describe('AutofixService', () => {
   });
 
   // -------------------------------------------------------------------------
-  // maybeHeal — resolved model reported to Phoenix (routing-alias fix)
+  // maybeHeal — provider wire body
   // -------------------------------------------------------------------------
-  describe('maybeHeal resolved model', () => {
-    it('reports the resolved model to Phoenix but reforwards with the routing alias', async () => {
+  describe('maybeHeal provider wire body', () => {
+    it('reports the failed provider body and reforwards the healed body verbatim', async () => {
       const client = makeHealingClient();
-      // A drop_param heal: Phoenix echoes back the model it received (the
-      // resolved one) with the offending param removed.
+      const requestBody = {
+        model: 'claude-opus-4-8',
+        messages: [],
+        thinking: { type: 'adaptive', budget_tokens: 8192 },
+      };
+      const healedBody = {
+        model: 'claude-opus-4-8',
+        messages: [],
+        thinking: { type: 'adaptive' },
+      };
       client.heal.mockResolvedValue(
         patchedHeal({
           status: 'unverified',
           operations: [{ type: 'drop_param' }],
-          healedBody: { model: 'gpt-5.1', messages: [] },
+          healedBody,
         }),
       );
       const reforward = reforwardMock('{"ok":true}', 200);
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
 
-      const result = await service.maybeHeal(
-        makeParams({
-          reforward,
-          provider: 'openai',
-          requestBody: { model: 'auto', messages: [], top_k: 40 },
-          resolvedModel: 'gpt-5.1',
-        }),
-      );
+      const result = await service.maybeHeal(makeParams({ reforward, requestBody }));
 
       expect(result!.record.outcome).toBe('healed');
-
-      // Phoenix receives the RESOLVED model so its model-keyed catalog can map
-      // it — never the `auto` routing alias.
       const healArg = client.heal.mock.calls[0][0] as { request: Record<string, unknown> };
-      expect(healArg.request.model).toBe('gpt-5.1');
-      expect(healArg.request.top_k).toBe(40);
-
-      // The reforward goes back through the agent's routing, so the body it gets
-      // carries the ORIGINAL `auto` alias (a bare `gpt-5.1` would re-resolve to
-      // no_provider), while the heal itself (top_k dropped) is preserved.
-      const reforwardedBody = reforward.mock.calls[0][0];
-      expect(reforwardedBody.model).toBe('auto');
-      expect(reforwardedBody).not.toHaveProperty('top_k');
+      expect(healArg.request).toBe(requestBody);
+      expect(reforward.mock.calls[0][0]).toBe(healedBody);
     });
 
-    it('does not mutate the caller requestBody when substituting the resolved model', async () => {
+    it('does not mutate the provider body', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(
-        patchedHeal({ healedBody: { model: 'gpt-5.1', messages: [] } }),
+        patchedHeal({ healedBody: { model: 'gpt', max_output_tokens: 100 } }),
       );
       const reforward = reforwardMock('{"ok":true}', 200);
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
-      const requestBody = { model: 'auto', messages: [], top_k: 40 };
+      const requestBody = { model: 'gpt', max_tokens: 100 };
 
-      await service.maybeHeal(makeParams({ reforward, resolvedModel: 'gpt-5.1', requestBody }));
+      await service.maybeHeal(makeParams({ reforward, requestBody }));
 
-      // Substitution spreads into a new object; the caller's body is untouched.
-      expect(requestBody.model).toBe('auto');
-    });
-
-    it('leaves the heal request and reforward untouched when no resolvedModel is given', async () => {
-      const client = makeHealingClient();
-      const heal = patchedHeal({ healedBody: { model: 'gpt', max_output_tokens: 100 } });
-      client.heal.mockResolvedValue(heal);
-      const reforward = reforwardMock('{"ok":true}', 200);
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
-      const service = makeService({ client: client as unknown as HealingClient, repo });
-
-      await service.maybeHeal(
-        makeParams({ reforward, requestBody: { model: 'gpt', max_tokens: 100 } }),
-      );
-
-      // Backward compatible: Phoenix gets the body verbatim and the reforward
-      // gets the healedBody verbatim (no alias restoration).
-      const healArg = client.heal.mock.calls[0][0] as { request: Record<string, unknown> };
-      expect(healArg.request.model).toBe('gpt');
-      expect(reforward.mock.calls[0][0]).toEqual(heal.healedBody);
+      expect(requestBody).toEqual({ model: 'gpt', max_tokens: 100 });
     });
   });
 

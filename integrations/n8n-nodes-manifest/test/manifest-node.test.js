@@ -1,4 +1,6 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const test = require('node:test');
 
 const {
@@ -7,6 +9,31 @@ const {
 	parseServerSentEvents,
 	withoutRouteManagedStream,
 } = require('../dist/nodes/Manifest/Manifest.node.js');
+
+test('keeps codex metadata valid in package and repository files', () => {
+	const expectedNode = `${require('../package.json').name}.${new Manifest().description.name}`;
+	const allowedFields = new Set([
+		'alias',
+		'categories',
+		'codexVersion',
+		'node',
+		'nodeVersion',
+		'resources',
+	]);
+	const codexFiles = [
+		'../nodes/Manifest/Manifest.node.json',
+		'../dist/nodes/Manifest/Manifest.node.json',
+		'../../../nodes/Manifest/Manifest.node.json',
+	];
+
+	for (const relativePath of codexFiles) {
+		const codex = JSON.parse(fs.readFileSync(path.join(__dirname, relativePath), 'utf8'));
+
+		assert.equal(codex.node, expectedNode);
+		assert.deepEqual(codex.categories, ['Development']);
+		assert.ok(Object.keys(codex).every((field) => allowedFields.has(field)));
+	}
+});
 
 function executionContext(parameters, response, requests) {
 	return {

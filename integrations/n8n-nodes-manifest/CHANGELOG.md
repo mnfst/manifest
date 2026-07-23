@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Correct the node codex identifier and category for n8n verification.
+- Remove unsupported node codex metadata.
+
 ## 0.1.3
 
 - Respect the response mode configured by Manifest routing.

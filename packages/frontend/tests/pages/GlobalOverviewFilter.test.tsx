@@ -363,6 +363,29 @@ describe('GlobalOverview filter onUnselectAll', () => {
     expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalledTimes(2);
   });
 
+  it('shows the skeleton on a range change but not on a background ping refetch', async () => {
+    const { container, queryByTestId } = render(() => <GlobalOverview />);
+
+    // Wait for the initial load to paint the dashboard (skeleton gone).
+    await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
+    expect(queryByTestId('global-overview-skeleton')).toBeNull();
+
+    // A background SSE ping refetch keeps the dashboard in place (no skeleton).
+    apiMocks.getOverview.mockReturnValue(new Promise(() => {}));
+    sseMocks.bumpMessage?.();
+    await Promise.resolve();
+    expect(queryByTestId('global-overview-skeleton')).toBeNull();
+    expect(container.querySelector('.chart-card')).not.toBeNull();
+
+    // A range change swaps in the skeleton while the new range loads.
+    const rangeSelect = [...container.querySelectorAll('select')].find((s) =>
+      [...s.options].some((o) => o.value === '365d'),
+    ) as HTMLSelectElement;
+    rangeSelect.value = '24h';
+    fireEvent.change(rangeSelect);
+    await waitFor(() => expect(queryByTestId('global-overview-skeleton')).not.toBeNull());
+  });
+
   it('links the harness total-requests count to the agent-scoped Requests log', async () => {
     const { container } = render(() => <GlobalOverview />);
     await waitFor(() => {

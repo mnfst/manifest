@@ -76,6 +76,31 @@ describe('ProviderClient', () => {
       expect(result.isAnthropic).toBe(false);
     });
 
+    it('captures the wire body and retries a healed body without rebuilding it', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const first = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+      });
+      const healedBody = {
+        model: 'gpt-4o',
+        messages: body.messages,
+        healed_provider_extension: true,
+      };
+      const retry = await first.retryWireBody!(healedBody);
+
+      expect(first.wireApiMode).toBe('chat_completions');
+      expect(first.wireRequestBody).toEqual(JSON.parse(mockFetch.mock.calls[0][1].body));
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(JSON.parse(mockFetch.mock.calls[1][1].body)).toEqual(healedBody);
+      expect(retry.wireRequestBody).toBe(healedBody);
+      expect(retry.retryWireBody).toBe(first.retryWireBody);
+    });
+
     it('preserves image parts for OpenAI-compatible providers', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       const imageBody = {
@@ -690,7 +715,7 @@ describe('ProviderClient', () => {
         max_tokens: 1024,
       };
 
-      await client.forward({
+      const result = await client.forward({
         provider: 'anthropic',
         apiKey: 'sk-ant-test',
         model: 'claude-sonnet-4-5-20250929',
@@ -719,6 +744,8 @@ describe('ProviderClient', () => {
       ]);
       // Inbound body untouched (no surprise mutations).
       expect((anthropicBody.tools[1] as Record<string, unknown>).cache_control).toBeUndefined();
+      expect(result.wireApiMode).toBe('messages');
+      expect(result.wireRequestBody).toEqual(sent);
     });
 
     it('still uses toAnthropicRequest for chat_completions inbound forwarded to an Anthropic upstream', async () => {
@@ -1246,6 +1273,7 @@ describe('ProviderClient', () => {
       expect(init.headers['x-goog-api-key']).toBe('AIza-test');
       expect(result.isGoogle).toBe(true);
       expect(result.isAnthropic).toBe(false);
+      expect(result.wireApiMode).toBeUndefined();
     });
 
     it('adds alt=sse for streaming', async () => {

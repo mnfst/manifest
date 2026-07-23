@@ -425,6 +425,52 @@ export class ProxyFallbackService {
     }
   }
 
+  /** Re-send a healed body without rebuilding the already-resolved provider request. */
+  async retryWireBody(
+    forward: ForwardResult,
+    healedBody: Record<string, unknown>,
+    opts?: Pick<
+      ForwardProviderOptions,
+      'provider' | 'model' | 'authType' | 'tenantProviderId' | 'startProviderAttempt' | 'signal'
+    >,
+  ): Promise<ForwardResult> {
+    if (!forward.retryWireBody) {
+      throw new Error('Provider forward does not support wire-body retry');
+    }
+    if (!opts) return forward.retryWireBody(healedBody);
+    const attempt = opts.startProviderAttempt?.({
+      provider: opts.provider,
+      model: opts.model,
+      authType: opts.authType,
+      tenantProviderId: opts.tenantProviderId,
+    });
+    try {
+      const retried = await forward.retryWireBody(healedBody);
+      if (attempt) attempt.completedAtMs = Date.now();
+      return { ...retried, attempt, providerCallStarted: true };
+    } catch (error) {
+      if (attempt) attempt.completedAtMs = Date.now();
+      if (attempt && error instanceof Error) {
+        (error as AttemptTaggedError)[PROVIDER_ATTEMPT_REF] = attempt;
+      }
+      if (opts.signal?.aborted || !isTransportError(error)) throw error;
+
+      const failureResponse = buildTransportErrorResponse(error);
+      const message = describeTransportError(error);
+      this.logger.warn(
+        `Provider transport failure: provider=${opts.provider} model=${opts.model} status=${failureResponse.status} message=${message}`,
+      );
+      return {
+        response: failureResponse,
+        attempt,
+        providerCallStarted: true,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      };
+    }
+  }
+
   private getActiveRateLimitCooldown(opts: ForwardProviderOptions): number | null {
     const key = this.rateLimitCooldownKey(opts);
     if (!key) return null;
