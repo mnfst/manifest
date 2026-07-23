@@ -51,8 +51,63 @@ export function snapshotRequestParams(
     }
   }
 
-  const effective = omitProviderInapplicableParams(out, orderedSpecs);
+  const effective = addSpeclessKnobs(
+    omitProviderInapplicableParams(out, orderedSpecs),
+    body,
+    orderedSpecs,
+  );
   return Object.keys(effective).length > 0 ? effective : null;
+}
+
+/**
+ * Top-level body keys that are never model knobs: routing identity, message
+ * content, tool definitions, and transport flags.
+ */
+const NON_KNOB_KEYS = new Set([
+  'model',
+  'messages',
+  'input',
+  'tools',
+  'system',
+  'instructions',
+  'prompt',
+  'metadata',
+  'user',
+  'stream',
+  'stream_options',
+]);
+
+/** Longest string still plausibly a knob value rather than prompt content. */
+const MAX_KNOB_STRING = 64;
+
+/**
+ * Keep spec-less scalar knobs the caller sent. The spec walk above only records
+ * params the MPS catalog knows for the resolved route, but a param without a
+ * spec still reaches the provider verbatim — and when the provider rejects it,
+ * a snapshot that silently omitted it hides the very knob that caused the
+ * failure (a caller-sent `temperature` on a model whose catalog entry dropped
+ * the knob left a snapshot showing only `thinking`/`max_tokens` while the wire
+ * error said temperature). Scalars only: an unknown object or long string may
+ * carry content, which the snapshot must never store.
+ */
+function addSpeclessKnobs(
+  effective: RequestParamDefaults,
+  body: Record<string, unknown>,
+  specs: readonly ProviderParamSpec[],
+): RequestParamDefaults {
+  const specRoots = new Set(specs.map((spec) => spec.path.split('.')[0]));
+  let out = effective;
+  for (const [key, value] of Object.entries(body)) {
+    if (specRoots.has(key) || NON_KNOB_KEYS.has(key)) continue;
+    if (!isKnobScalar(value)) continue;
+    out = setProviderParamValue(out, key, value as JsonValue);
+  }
+  return out;
+}
+
+function isKnobScalar(value: unknown): boolean {
+  if (typeof value === 'number' || typeof value === 'boolean') return true;
+  return typeof value === 'string' && value.length <= MAX_KNOB_STRING;
 }
 
 function getPath(values: Record<string, unknown>, path: string): unknown {

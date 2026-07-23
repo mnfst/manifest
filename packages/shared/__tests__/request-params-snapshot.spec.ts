@@ -118,6 +118,47 @@ describe('snapshotRequestParams', () => {
     ).toEqual({ thinking: { type: 'adaptive' } });
   });
 
+  it('records a caller-sent knob the route has no spec for', () => {
+    // claude-opus-4-8-style case: the catalog (correctly) dropped temperature
+    // for the model, the caller sent it anyway, the provider rejected it — the
+    // snapshot must show the knob that was actually on the wire.
+    const speclessTemperature = specs.filter((s) => s.path.split('.')[0] !== 'temperature');
+    expect(
+      snapshotRequestParams({
+        body: { temperature: 0.2, messages: [] },
+        modelParams: { thinking: { type: 'enabled' } },
+        specs: speclessTemperature,
+      }),
+    ).toEqual({ temperature: 0.2, thinking: { type: 'enabled', budget_tokens: 4096 } });
+  });
+
+  it('records spec-less scalar knobs even when the route has no specs at all', () => {
+    expect(
+      snapshotRequestParams({
+        body: { temperature: 0.7, parallel_tool_calls: false, service_tier: 'flex', messages: [] },
+        modelParams: null,
+        specs: [],
+      }),
+    ).toEqual({ temperature: 0.7, parallel_tool_calls: false, service_tier: 'flex' });
+  });
+
+  it('never records content-bearing or non-scalar spec-less keys', () => {
+    expect(
+      snapshotRequestParams({
+        body: {
+          messages: [{ role: 'user', content: 'hi' }],
+          system: 'you are a bot',
+          user: 'user-123',
+          response_format: { type: 'json_object' },
+          seed_note: 'x'.repeat(65),
+          verbosity: 'high',
+        },
+        modelParams: null,
+        specs: [],
+      }),
+    ).toEqual({ verbosity: 'high' });
+  });
+
   it('omits conflicted defaults from the snapshot', () => {
     expect(
       snapshotRequestParams({
