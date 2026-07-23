@@ -328,6 +328,16 @@ describe('ProxyFallbackService', () => {
       'refreshes and retries rejected $provider OAuth subscription tokens',
       async ({ provider, rawBlob, setup, unwrap, expectedApiKey, expectedProviderResource }) => {
         setup();
+        const completeFailure = jest.fn().mockResolvedValue(undefined);
+        let attemptNumber = 0;
+        const startProviderAttempt = jest.fn(() => ({
+          id: `attempt-${attemptNumber + 1}`,
+          attemptNumber: ++attemptNumber,
+          startedAtMs: Date.now(),
+          startedAt: new Date().toISOString(),
+          pendingWrite: Promise.resolve(true),
+          completeFailure,
+        }));
         providerClient.forward
           .mockResolvedValueOnce({
             response: new Response('unauthorized', { status: 401 }),
@@ -354,10 +364,18 @@ describe('ProxyFallbackService', () => {
           stream: false,
           sessionKey: 'sess-1',
           authType: 'subscription',
+          startProviderAttempt,
         });
 
         expect(result.response.status).toBe(200);
         expect(providerClient.forward).toHaveBeenCalledTimes(2);
+        expect(startProviderAttempt).toHaveBeenCalledTimes(2);
+        expect(result.attempt?.attemptNumber).toBe(2);
+        expect(completeFailure).toHaveBeenCalledWith({
+          status: 401,
+          errorBody: 'unauthorized',
+          superseded: true,
+        });
         expect(providerClient.forward.mock.calls[0][0].apiKey).toBe('old-access-token');
         expect(providerClient.forward.mock.calls[1][0].apiKey).toBe(expectedApiKey);
         expect(providerClient.forward.mock.calls[1][0].providerResource).toBe(
@@ -433,6 +451,13 @@ describe('ProxyFallbackService', () => {
 
     it('catches transport errors and returns synthetic response', async () => {
       providerClient.forward.mockRejectedValue(new Error('fetch failed'));
+      const attempt = {
+        id: 'attempt-transport',
+        attemptNumber: 1,
+        startedAtMs: Date.now(),
+        startedAt: new Date().toISOString(),
+        pendingWrite: Promise.resolve(true),
+      };
 
       const result = await service.tryForwardToProvider({
         provider: 'OpenAI',
@@ -441,10 +466,78 @@ describe('ProxyFallbackService', () => {
         body,
         stream: false,
         sessionKey: 'sess-1',
+        startProviderAttempt: jest.fn(() => attempt),
       });
 
       expect(result.response.ok).toBe(false);
       expect(result.response.status).toBe(503);
+      expect(result.attempt).toBe(attempt);
+      expect(attempt).toEqual(expect.objectContaining({ completedAtMs: expect.any(Number) }));
+    });
+
+    it('returns a tagged transport failure when an OAuth retry cannot connect', async () => {
+      openaiOauth.unwrapToken.mockResolvedValue('fresh-access-token');
+      const completeFailure = jest.fn().mockResolvedValue(undefined);
+      let attemptNumber = 0;
+      const attempts: Array<{
+        id: string;
+        attemptNumber: number;
+        startedAtMs: number;
+        startedAt: string;
+        pendingWrite: Promise<boolean>;
+        completeFailure: jest.Mock;
+        completedAtMs?: number;
+      }> = [];
+      const startProviderAttempt = jest.fn(() => {
+        const attempt = {
+          id: `attempt-${attemptNumber + 1}`,
+          attemptNumber: ++attemptNumber,
+          startedAtMs: Date.now(),
+          startedAt: new Date().toISOString(),
+          pendingWrite: Promise.resolve(true),
+          completeFailure,
+        };
+        attempts.push(attempt);
+        return attempt;
+      });
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: {
+            status: 401,
+            clone: () => ({ text: () => Promise.reject(new Error('body unavailable')) }),
+          } as unknown as Response,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: true,
+        })
+        .mockRejectedValueOnce(new Error('fetch failed'));
+
+      const result = await service.tryForwardToProvider({
+        provider: 'openai',
+        apiKey: 'old-access-token',
+        rawApiKey: JSON.stringify({
+          t: 'old-access-token',
+          r: 'refresh-token',
+          e: Date.now() + 10 * 60 * 1000,
+        }),
+        agentId: 'agent-1',
+        tenantId: 'tenant-1',
+        model: 'gpt-5.3-codex',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        startProviderAttempt,
+      });
+
+      expect(result.response.status).toBe(503);
+      expect(result.attempt).toBe(attempts[1]);
+      expect(result.providerCallStarted).toBe(true);
+      expect(completeFailure).toHaveBeenCalledWith({
+        status: 401,
+        errorBody: 'OAuth token rejected',
+        superseded: true,
+      });
     });
 
     it('rethrows non-transport errors', async () => {
@@ -1087,6 +1180,110 @@ describe('ProxyFallbackService', () => {
           model: 'mimo-v2.5-pro',
         }),
       );
+    });
+  });
+
+  describe('retryWireBody', () => {
+    it('delegates the healed body to the captured provider transport', async () => {
+      const healedBody = { model: 'gpt-4o', max_tokens: 128 };
+      const retried = {
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      };
+      const retryWireBody = jest.fn().mockResolvedValue(retried);
+      const original = {
+        response: new Response('{}', { status: 400 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        retryWireBody,
+      };
+
+      await expect(service.retryWireBody(original, healedBody)).resolves.toBe(retried);
+      expect(retryWireBody).toHaveBeenCalledWith(healedBody);
+      expect(providerClient.forward).not.toHaveBeenCalled();
+    });
+
+    it('tracks the provider attempt for an exact wire-body retry', async () => {
+      const healedBody = { model: 'gpt-4o', max_tokens: 128 };
+      const attempt = {
+        id: 'attempt-2',
+        attemptNumber: 2,
+        startedAtMs: Date.now(),
+        startedAt: new Date().toISOString(),
+        pendingWrite: Promise.resolve(true),
+      };
+      const startProviderAttempt = jest.fn(() => attempt);
+      const retryWireBody = jest.fn().mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const original = {
+        response: new Response('{}', { status: 400 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        retryWireBody,
+      };
+
+      const result = await service.retryWireBody(original, healedBody, {
+        provider: 'openai',
+        model: 'gpt-4o',
+        authType: 'api_key',
+        tenantProviderId: 'connection-1',
+        startProviderAttempt,
+      });
+
+      expect(startProviderAttempt).toHaveBeenCalledWith({
+        provider: 'openai',
+        model: 'gpt-4o',
+        authType: 'api_key',
+        tenantProviderId: 'connection-1',
+      });
+      expect(result.attempt).toBe(attempt);
+      expect(result.providerCallStarted).toBe(true);
+      expect(attempt).toEqual(expect.objectContaining({ completedAtMs: expect.any(Number) }));
+      expect(providerClient.forward).not.toHaveBeenCalled();
+    });
+
+    it('tracks transport failures from an exact wire-body retry', async () => {
+      const healedBody = { model: 'gpt-4o', max_tokens: 128 };
+      const attempt = {
+        id: 'attempt-2',
+        attemptNumber: 2,
+        startedAtMs: Date.now(),
+        startedAt: new Date().toISOString(),
+        pendingWrite: Promise.resolve(true),
+      };
+      const retryWireBody = jest.fn().mockRejectedValue(new Error('fetch failed'));
+      const original = {
+        response: new Response('{}', { status: 400 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        retryWireBody,
+      };
+
+      const result = await service.retryWireBody(original, healedBody, {
+        provider: 'openai',
+        model: 'gpt-4o',
+        authType: 'api_key',
+        tenantProviderId: 'connection-1',
+        startProviderAttempt: jest.fn(() => attempt),
+      });
+
+      expect(result.response.status).toBe(503);
+      await expect(result.response.json()).resolves.toEqual({
+        error: { message: 'Failed to reach upstream provider' },
+      });
+      expect(result.attempt).toBe(attempt);
+      expect(result.providerCallStarted).toBe(true);
+      expect(attempt).toEqual(expect.objectContaining({ completedAtMs: expect.any(Number) }));
+      expect(providerClient.forward).not.toHaveBeenCalled();
     });
   });
 

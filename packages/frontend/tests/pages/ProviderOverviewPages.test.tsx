@@ -26,6 +26,11 @@ const apiMocks = vi.hoisted(() => ({
   getProviderAnalytics: vi.fn(),
   getPerAgentTimeseries: vi.fn(),
   getPerAgentMessageTimeseries: vi.fn(),
+  getConnectionAttemptStatusTimeseries: vi.fn(),
+  getConnectionAttemptHttpStatusTimeseries: vi.fn(),
+  getConnectionAttemptBreakdown: vi.fn(),
+  getConnectionAttemptsByAgentTimeseries: vi.fn(),
+  getAutofixCohort: vi.fn(),
   getPerAgentCostTimeseries: vi.fn(),
 }));
 
@@ -45,6 +50,7 @@ vi.mock('@solidjs/router', () => ({
 }));
 
 vi.mock('../../src/services/api/core.js', () => ({
+  fetchJson: () => Promise.resolve({ by_class: {}, by_origin: {} }),
   fetchMutate: (...args: unknown[]) => apiMocks.fetchMutate(...args),
   routingPath: (agent: string, path: string) => `/api/v1/routing/${agent}/${path}`,
 }));
@@ -72,6 +78,26 @@ vi.mock('../../src/services/api/routing.js', () => ({
 }));
 
 vi.mock('../../src/services/api/analytics.js', () => ({
+  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
+  totalAttemptsTooltip: (doctor: boolean) =>
+    doctor
+      ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
+      : 'Every provider call counts here, including fallback retries. One request can produce several attempts.',
+  MODEL_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this model.',
+  PROVIDER_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this provider.',
+  CONNECTION_SUCCESS_RATE_TOOLTIP_30D:
+    'Successful attempts over all attempts for this connection, over the last 30 days.',
+  CONNECTION_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this connection, on the filtered period.',
+  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this harness on this connection.',
+  HARNESS_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this harness.',
+  HARNESS_TOTAL_REQUESTS_TOOLTIP:
+    'Logical requests from this harness, one per call, whatever the number of attempts.',
+  attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
+    !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
   getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
   getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
@@ -80,7 +106,28 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getPerAgentTimeseries: (...args: unknown[]) => apiMocks.getPerAgentTimeseries(...args),
   getPerAgentMessageTimeseries: (...args: unknown[]) =>
     apiMocks.getPerAgentMessageTimeseries(...args),
+  getConnectionAttemptStatusTimeseries: (...args: unknown[]) =>
+    apiMocks.getConnectionAttemptStatusTimeseries(...args),
+  getConnectionAttemptHttpStatusTimeseries: (...args: unknown[]) =>
+    apiMocks.getConnectionAttemptHttpStatusTimeseries(...args),
+  getConnectionAttemptBreakdown: (...args: unknown[]) =>
+    apiMocks.getConnectionAttemptBreakdown(...args),
+  getConnectionAttemptsByAgentTimeseries: (...args: unknown[]) =>
+    apiMocks.getConnectionAttemptsByAgentTimeseries(...args),
   getPerAgentCostTimeseries: (...args: unknown[]) => apiMocks.getPerAgentCostTimeseries(...args),
+  getWorkspaceAutofixStatus: () =>
+    Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
+  getAutofixStats: () => Promise.resolve(null),
+  getAutofixTimeseries: () =>
+    Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
+  getPerProviderReliability: () => Promise.resolve([]),
+  getPerModelReliability: () => Promise.resolve([]),
+  getPerAgentReliability: () => Promise.resolve([]),
+  getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
+}));
+
+vi.mock('../../src/services/api/autofix.js', () => ({
+  getAutofixCohort: () => apiMocks.getAutofixCohort(),
 }));
 
 vi.mock('../../src/services/api/billing.js', () => ({
@@ -117,38 +164,94 @@ vi.mock('../../src/components/ProviderChartCard.jsx', () => ({
     onViewChange: (view: 'messages' | 'tokens' | 'cost') => void;
     tokensValue: number;
     tokensTrendPct?: number;
-    messagesValue: number;
-    messagesTrendPct?: number;
+    requestsValue: number;
+    requestsTrendPct?: number;
     costValue?: number;
     costTrendPct?: number;
     costInfoTooltip?: string;
-    tokenUsage?: unknown[];
-    messageChartData?: unknown[];
     range?: string;
     agentTimeseries?: { agents: string[]; timeseries: unknown[] };
-    agentMessageTimeseries?: { agents: string[]; timeseries: unknown[] };
+    agentRequestTimeseries?: { agents: string[]; timeseries: unknown[] };
     agentCostTimeseries?: { agents: string[]; timeseries: unknown[] };
+    requestStatusTimeseries?: { keys: string[] };
+    selfHealedTimeseries?: { keys: string[] };
+    selfHealedValue?: number;
+    seriesFilters?: unknown;
     colorMap?: Record<string, string>;
   }) => (
     <div data-active-view={props.activeView} data-testid="provider-chart-card">
-      <button onClick={() => props.onViewChange('messages')}>Messages chart</button>
+      <button onClick={() => props.onViewChange('messages')}>Requests chart</button>
       <button onClick={() => props.onViewChange('tokens')}>Tokens chart</button>
       <button onClick={() => props.onViewChange('cost')}>Cost chart</button>
-      {/* Read every prop so each prop accessor is exercised for coverage. */}
       <span>{props.tokensValue}</span>
       <span>{props.tokensTrendPct ?? 0}</span>
-      <span>{props.messagesValue}</span>
-      <span>{props.messagesTrendPct ?? 0}</span>
+      <span>{props.requestsValue}</span>
+      <span>{props.requestsTrendPct ?? 0}</span>
       <span>{props.costValue ?? 0}</span>
       <span>{props.costTrendPct ?? 0}</span>
       <span>{props.costInfoTooltip ?? ''}</span>
-      <span>{props.tokenUsage?.length ?? 0}</span>
-      <span>{props.messageChartData?.length ?? 0}</span>
       <span>{props.range}</span>
       <span data-testid="ts-agents">{props.agentTimeseries?.agents.join(',') ?? ''}</span>
-      <span data-testid="msg-agents">{props.agentMessageTimeseries?.agents.join(',') ?? ''}</span>
+      <span data-testid="msg-agents">{props.agentRequestTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="cost-agents">{props.agentCostTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="color-keys">{Object.keys(props.colorMap ?? {}).join(',')}</span>
+      <span data-testid="status-keys">{props.requestStatusTimeseries?.keys.join(',') ?? ''}</span>
+      <span data-testid="healed-keys">{props.selfHealedTimeseries?.keys.join(',') ?? ''}</span>
+      <span data-testid="healed-value">{props.selfHealedValue ?? ''}</span>
+      <div data-testid="series-filters">{props.seriesFilters as any}</div>
+    </div>
+  ),
+}));
+
+vi.mock('../../src/components/UnifiedChartCard.jsx', () => ({
+  default: (props: {
+    activeTab: string;
+    onTabChange: (tab: 'requests' | 'failed' | 'tokens' | 'cost') => void;
+    tokensValue: number;
+    tokensTrendPct?: number;
+    requestsValue: number;
+    requestsTrendPct?: number;
+    failedValue?: number;
+    failedTrendPct?: number;
+    failedTimeseries?: unknown;
+    failedFilter?: string;
+    onFailedFilterChange?: (f: string) => void;
+    costValue?: number;
+    costTrendPct?: number;
+    costInfoTooltip?: string;
+    range?: string;
+    agentTimeseries?: { agents: string[]; timeseries: unknown[] };
+    agentRequestTimeseries?: { agents: string[]; timeseries: unknown[] };
+    agentCostTimeseries?: { agents: string[]; timeseries: unknown[] };
+    requestStatusTimeseries?: { keys: string[] };
+    selfHealedTimeseries?: { keys: string[] };
+    selfHealedValue?: number;
+    seriesFilters?: unknown;
+    colorMap?: Record<string, string>;
+  }) => (
+    <div data-active-view={props.activeTab} data-testid="provider-chart-card">
+      <button onClick={() => props.onTabChange('requests')}>Requests chart</button>
+      <button onClick={() => props.onTabChange('failed')}>Failed chart</button>
+      <button onClick={() => props.onTabChange('tokens')}>Tokens chart</button>
+      <button onClick={() => props.onTabChange('cost')}>Cost chart</button>
+      <span>{props.tokensValue}</span>
+      <span>{props.tokensTrendPct ?? 0}</span>
+      <span>{props.requestsValue}</span>
+      <span>{props.requestsTrendPct ?? 0}</span>
+      <span>{props.failedValue ?? 0}</span>
+      <span>{props.failedTrendPct ?? 0}</span>
+      <span>{props.costValue ?? 0}</span>
+      <span>{props.costTrendPct ?? 0}</span>
+      <span>{props.costInfoTooltip ?? ''}</span>
+      <span>{props.range}</span>
+      <span data-testid="ts-agents">{props.agentTimeseries?.agents.join(',') ?? ''}</span>
+      <span data-testid="msg-agents">{props.agentRequestTimeseries?.agents.join(',') ?? ''}</span>
+      <span data-testid="cost-agents">{props.agentCostTimeseries?.agents.join(',') ?? ''}</span>
+      <span data-testid="color-keys">{Object.keys(props.colorMap ?? {}).join(',')}</span>
+      <span data-testid="status-keys">{props.requestStatusTimeseries?.keys.join(',') ?? ''}</span>
+      <span data-testid="healed-keys">{props.selfHealedTimeseries?.keys.join(',') ?? ''}</span>
+      <span data-testid="healed-value">{props.selfHealedValue ?? ''}</span>
+      <div data-testid="series-filters">{props.seriesFilters as any}</div>
     </div>
   ),
 }));
@@ -274,11 +377,10 @@ vi.mock('manifest-shared', () => ({
   // these at module scope.
   SHARED_PROVIDERS: [],
   inferProviderFromModel: (m: string) => (m.startsWith('custom:') ? 'custom' : null),
+  isSuccessStatus: (s: string | null | undefined) => s == null || s === 'ok' || s === 'success',
 }));
 
-// Local providers only exist on self-hosted installs; GlobalOverview hides
-// the Local stat card in cloud. Default to self-hosted so the dashboard
-// tests keep covering the card; cloud tests flip the flag.
+// Local providers only exist on self-hosted installs.
 let mockIsSelfHosted = true;
 vi.mock('../../src/services/setup-status.js', () => ({
   checkIsSelfHosted: () => Promise.resolve(mockIsSelfHosted),
@@ -625,6 +727,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   ensureStorageLike('localStorage').clear();
   ensureStorageLike('sessionStorage').clear();
+  localStorage.setItem('manifest_global_group', 'provider');
   routerState.navigate.mockReset();
   routerState.params = { connectionId: 'conn-openai' };
   mockIsSelfHosted = true;
@@ -653,11 +756,37 @@ beforeEach(() => {
     cancelAtPeriodEnd: false,
     subscriptionPeriodEnd: null,
   });
+  apiMocks.getAutofixCohort.mockResolvedValue({ eligible: false });
   apiMocks.getConnectionDetail.mockResolvedValue(connectionDetail);
   apiMocks.getProviderAnalytics.mockResolvedValue(connectionAnalytics);
   apiMocks.getPerAgentTimeseries.mockResolvedValue(agentTimeseries);
   apiMocks.getPerAgentMessageTimeseries.mockResolvedValue(agentTimeseries);
   apiMocks.getPerAgentCostTimeseries.mockResolvedValue(agentTimeseries);
+  apiMocks.getConnectionAttemptStatusTimeseries.mockResolvedValue({
+    range: '7d',
+    by: 'metric',
+    keys: ['success', 'error'],
+    buckets: [{ bucket: '2026-06-04', counts: [9, 3] }],
+  });
+  apiMocks.getConnectionAttemptsByAgentTimeseries.mockResolvedValue({
+    agents: ['demo-agent'],
+    timeseries: [{ date: '2026-06-04', 'demo-agent': 12 }],
+  });
+  apiMocks.getConnectionAttemptHttpStatusTimeseries.mockResolvedValue({
+    range: '7d',
+    by: 'metric',
+    keys: ['200', '429'],
+    buckets: [{ bucket: '2026-06-04', counts: [9, 3] }],
+  });
+  apiMocks.getConnectionAttemptBreakdown.mockResolvedValue({
+    attempts: 12,
+    succeeded: 9,
+    failed: 3,
+    fallback_retries: 10,
+    fallback_retries_succeeded: 8,
+    autofix_attempts: 5,
+    autofix_attempts_succeeded: 4,
+  });
 });
 
 afterEach(() => {
@@ -665,34 +794,6 @@ afterEach(() => {
 });
 
 describe('GlobalOverview (analytics)', () => {
-  it('shows the Local stat card with a 4-column grid when self-hosted', async () => {
-    const { container } = render(() => <GlobalOverview />);
-    await waitFor(() => {
-      const labels = Array.from(container.querySelectorAll('.overview-stat-card__label')).map(
-        (el) => el.textContent,
-      );
-      expect(labels).toContain('Local');
-    });
-    expect(container.querySelector('.overview-stats')?.getAttribute('style')).toContain(
-      'repeat(4, 1fr)',
-    );
-  });
-
-  it('hides the Local stat card and drops to a 3-column grid in cloud', async () => {
-    mockIsSelfHosted = false;
-    const { container } = render(() => <GlobalOverview />);
-    await waitFor(() => {
-      expect(container.querySelector('.overview-stats')?.getAttribute('style')).toContain(
-        'repeat(3, 1fr)',
-      );
-    });
-    const labels = Array.from(container.querySelectorAll('.overview-stat-card__label')).map(
-      (el) => el.textContent,
-    );
-    expect(labels).not.toContain('Local');
-    expect(labels).toContain('Subscriptions');
-  });
-
   it('renders the dashboard with harness and provider data', async () => {
     const { container } = render(() => <GlobalOverview />);
 
@@ -717,9 +818,9 @@ describe('GlobalOverview (analytics)', () => {
     expect(container.textContent).not.toContain('custom:cp-1/');
     expect(container.textContent).not.toContain('custom:cp-gone/');
 
-    fireEvent.click(screen.getByText('Messages chart'));
+    fireEvent.click(screen.getByText('Requests chart'));
     expect(screen.getByTestId('provider-chart-card').getAttribute('data-active-view')).toBe(
-      'messages',
+      'requests',
     );
 
     for (const scroller of container.querySelectorAll('.scroll-panel__body')) {
@@ -753,38 +854,6 @@ describe('GlobalOverview (analytics)', () => {
     expect(routerState.navigate).toHaveBeenCalledWith('/harnesses/worker-agent');
   });
 
-  it('updates grouping, range, and harness filter controls', async () => {
-    // Selection is scoped per grouping; seed the harness-grouping key.
-    sessionStorage.setItem('global-agent-filter:agent', JSON.stringify(['demo-agent']));
-    render(() => <GlobalOverview />);
-
-    await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
-
-    const selects = screen.getAllByRole('combobox');
-    fireEvent.change(selects[0]!, { target: { value: 'agent' } });
-    expect(localStorage.getItem('manifest_global_group')).toBe('agent');
-
-    fireEvent.change(selects[1]!, { target: { value: '90d' } });
-    expect(localStorage.getItem('manifest_global_range')).toBe('90d');
-
-    // After grouping by harness, the filter trigger lists harnesses.
-    await waitFor(() => expect(screen.getByText('1 of 2 harnesses')).toBeDefined());
-    fireEvent.click(screen.getByText('1 of 2 harnesses'));
-    fireEvent.click(screen.getByText('Select all'));
-    expect(sessionStorage.getItem('global-agent-filter:agent')).toContain('demo-agent');
-
-    // With all selected, toggling one off persists the remaining selection.
-    const toggle = screen
-      .getAllByText('worker-agent')
-      .find((el) => el.closest('.agent-filter-select'));
-    fireEvent.click(toggle!);
-    const saved = sessionStorage.getItem('global-agent-filter:agent')!;
-    expect(saved).toContain('demo-agent');
-    expect(saved).not.toContain('worker-agent');
-
-    fireEvent.keyDown(document, { key: 'Escape' });
-  });
-
   it('limits Free users to 7-day dashboard ranges and labels longer ranges as Pro-only', async () => {
     localStorage.setItem('manifest_global_range', '365d');
     apiMocks.getBillingStatus.mockResolvedValue({
@@ -807,8 +876,7 @@ describe('GlobalOverview (analytics)', () => {
     await waitFor(() => expect(localStorage.getItem('manifest_global_range')).toBe('7d'));
     expect(apiMocks.getOverview).toHaveBeenCalledWith('7d');
 
-    const selects = screen.getAllByRole('combobox') as HTMLSelectElement[];
-    const rangeSelect = selects[1]!;
+    const rangeSelect = screen.getByRole('combobox') as HTMLSelectElement;
     const lockedOptions = Array.from(rangeSelect.options).filter((option) =>
       ['30d', '90d', '365d'].includes(option.value),
     );
@@ -819,55 +887,8 @@ describe('GlobalOverview (analytics)', () => {
     expect(localStorage.getItem('manifest_global_range')).toBe('7d');
   });
 
-  it('keeps series visible when switching groupings (selection scoped per group)', async () => {
-    // Provider mode: deselect everything except 'openai'. That persisted set
-    // must NOT bleed into harness mode (which lists demo-agent/worker-agent) —
-    // otherwise the intersection is empty and the chart blanks out.
-    render(() => <GlobalOverview />);
-    await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
-
-    // In provider grouping the series list is the provider timeseries agents.
-    await waitFor(() => expect(screen.getByText('All providers (2)')).toBeDefined());
-    fireEvent.click(screen.getByText('All providers (2)'));
-    // Toggle 'openai' off (from the all-selected set) so only 'anthropic'
-    // remains — a partial provider-mode selection that must persist per group.
-    const openaiToggle = screen
-      .getAllByText('openai')
-      .find((el) => el.closest('.agent-filter-select'));
-    fireEvent.click(openaiToggle!);
-    expect(sessionStorage.getItem('global-agent-filter:provider')).toContain('anthropic');
-    expect(sessionStorage.getItem('global-agent-filter:provider')).not.toContain('openai');
-
-    // Switch to harness grouping. The harness selection is independent and
-    // defaults to all selected, so the chart still shows every harness series.
-    const selects = screen.getAllByRole('combobox');
-    fireEvent.change(selects[0]!, { target: { value: 'agent' } });
-    await waitFor(() => expect(screen.getByText('All harnesses (2)')).toBeDefined());
-    // The chart card receives both harness series (not blanked out).
-    expect(screen.getByTestId('ts-agents').textContent).toContain('demo-agent');
-    expect(screen.getByTestId('ts-agents').textContent).toContain('worker-agent');
-
-    // Switch back to provider grouping: the earlier provider selection is
-    // restored (only anthropic), proving per-group isolation.
-    fireEvent.change(selects[0]!, { target: { value: 'provider' } });
-    await waitFor(() => expect(screen.getByText('1 of 2 providers')).toBeDefined());
-    expect(screen.getByTestId('ts-agents').textContent).toBe('anthropic');
-  });
-
-  it('defaults to all-selected when a persisted selection no longer intersects', async () => {
-    // A stale selection (e.g. left over from another grouping) that shares no
-    // members with the current series must fall back to "all selected" rather
-    // than blanking the chart.
-    sessionStorage.setItem('global-agent-filter:provider', JSON.stringify(['ghost-series']));
-    render(() => <GlobalOverview />);
-    await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
-    await waitFor(() => expect(screen.getByText('All providers (2)')).toBeDefined());
-    // Both providers still render despite the stale persisted set.
-    expect(screen.getByTestId('ts-agents').textContent).toContain('openai');
-    expect(screen.getByTestId('ts-agents').textContent).toContain('anthropic');
-  });
-
   it('shows custom provider names instead of custom:<uuid> in provider series', async () => {
+    localStorage.setItem('manifest_global_group', 'provider');
     const customSeries = {
       agents: ['openai', 'custom:cp-1'],
       timeseries: [{ hour: '2026-06-04 10:00:00', openai: 1200, 'custom:cp-1': 300 }],
@@ -897,15 +918,11 @@ describe('GlobalOverview (analytics)', () => {
     render(() => <GlobalOverview />);
     await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
 
-    // Chart series and filter list the resolved name once customProviderData loads.
+    // Chart series lists the resolved name once customProviderData loads.
     await waitFor(() =>
       expect(screen.getByTestId('ts-agents').textContent).toContain('Custom Provider'),
     );
     expect(screen.getByTestId('ts-agents').textContent).not.toContain('custom:cp-1');
-    fireEvent.click(screen.getByText('All providers (2)'));
-    expect(
-      screen.getAllByText('Custom Provider').some((el) => el.closest('.agent-filter-select')),
-    ).toBe(true);
 
     // Model usage renders the stripped model name.
     expect(screen.getByText('qwen-2.5')).toBeDefined();
@@ -924,54 +941,6 @@ describe('GlobalOverview (analytics)', () => {
     await waitFor(() => expect(screen.getByTestId('add-agent-modal')).toBeDefined());
     fireEvent.click(screen.getByText('Dismiss add agent'));
     await waitFor(() => expect(screen.queryByTestId('add-agent-modal')).toBeNull());
-  });
-
-  it('adds a harness back to a partial selection via the filter toggle', async () => {
-    localStorage.setItem('manifest_global_group', 'agent');
-    sessionStorage.setItem('global-agent-filter:agent', JSON.stringify(['demo-agent']));
-    render(() => <GlobalOverview />);
-
-    await waitFor(() => expect(screen.getByText('1 of 2 harnesses')).toBeDefined());
-    fireEvent.click(screen.getByText('1 of 2 harnesses'));
-
-    const toggle = screen
-      .getAllByText('worker-agent')
-      .find((el) => el.closest('.agent-filter-select'));
-    fireEvent.click(toggle!);
-    const saved = sessionStorage.getItem('global-agent-filter:agent')!;
-    expect(saved).toContain('demo-agent');
-    expect(saved).toContain('worker-agent');
-  });
-
-  it('survives storage failures when reading and writing filter state', async () => {
-    const getItem = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-      throw new Error('storage blocked');
-    });
-    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new Error('storage blocked');
-    });
-
-    render(() => <GlobalOverview />);
-    await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
-
-    const selects = screen.getAllByRole('combobox');
-    // group → harness, range → 365d both attempt to persist and swallow errors
-    fireEvent.change(selects[0]!, { target: { value: 'agent' } });
-    fireEvent.change(selects[1]!, { target: { value: '365d' } });
-
-    await waitFor(() => expect(screen.getByText('All harnesses (2)')).toBeDefined());
-    fireEvent.click(screen.getByText('All harnesses (2)'));
-    // Toggle one harness off → partial selection enables "Select all", letting
-    // us exercise the Select all persistence handler (which swallows the thrown
-    // storage error).
-    const toggle = screen
-      .getAllByText('demo-agent')
-      .find((el) => el.closest('.agent-filter-select'));
-    fireEvent.click(toggle!);
-    fireEvent.click(screen.getByText('Select all'));
-
-    getItem.mockRestore();
-    setItem.mockRestore();
   });
 
   it('swallows storage errors when dismissing the onboarding modal', async () => {
@@ -1027,7 +996,7 @@ describe('ConnectionDetail (analytics)', () => {
     expect(screen.getAllByText('Harnesses').length).toBeGreaterThan(0);
     expect(screen.getAllByText('gpt-5').length).toBeGreaterThan(0);
     // Recent messages table renders model and token data (description is no longer displayed).
-    expect(screen.getByText('Recent Messages')).toBeDefined();
+    expect(screen.getByText('Recent Requests')).toBeDefined();
     // BYOK connection → cost columns present
     expect(screen.getByText('Active')).toBeDefined();
 
@@ -1047,7 +1016,7 @@ describe('ConnectionDetail (analytics)', () => {
     }
   });
 
-  it('persists chart range/view and harness filter selection', async () => {
+  it('persists chart range and view selection', async () => {
     render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
 
@@ -1055,44 +1024,142 @@ describe('ConnectionDetail (analytics)', () => {
     fireEvent.change(rangeSelect, { target: { value: '365d' } });
     expect(sessionStorage.getItem('chart-range:conn-openai')).toBe('365d');
 
-    fireEvent.click(screen.getByText('Messages chart'));
-    expect(sessionStorage.getItem('chart-view:conn-openai')).toBe('messages');
-
-    fireEvent.click(screen.getByText('All harnesses (2)'));
-
-    const filterToggle = () =>
-      screen.getAllByText('demo-agent').find((el) => el.closest('.agent-filter-select'))!;
-    // Toggle demo-agent off from the all-selected set → partial selection.
-    fireEvent.click(filterToggle());
-    expect(sessionStorage.getItem('agent-filter:conn-openai')).not.toContain('demo-agent');
-    expect(sessionStorage.getItem('agent-filter:conn-openai')).toContain('worker-agent');
-    // Toggle demo-agent back on.
-    fireEvent.click(filterToggle());
-    expect(sessionStorage.getItem('agent-filter:conn-openai')).toContain('demo-agent');
-
-    fireEvent.click(screen.getByText('Select all'));
-    expect(sessionStorage.getItem('agent-filter:conn-openai')).toContain('demo-agent');
-    expect(sessionStorage.getItem('agent-filter:conn-openai')).toContain('worker-agent');
-    fireEvent.keyDown(document, { key: 'Escape' });
+    fireEvent.click(screen.getByText('Requests chart'));
+    expect(sessionStorage.getItem('chart-view:conn-openai')).toBe('requests');
   });
 
-  it('defaults to all harnesses selected when no selection is persisted, then honors a saved empty selection', async () => {
-    // No persisted preference → effectiveSelected() is all agents.
-    sessionStorage.removeItem('agent-filter:conn-openai');
-    const first = render(() => <ConnectionDetail />);
-    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
-    fireEvent.click(screen.getByText('All harnesses (2)'));
-    // "All harnesses (2)" label reflects all-selected by default.
-    expect(screen.getAllByText('All harnesses (2)').length).toBeGreaterThan(0);
-    first.unmount();
-
-    // A persisted empty selection ([]) must be restored as a genuine empty
-    // selection on reload, not reset to "all selected".
-    sessionStorage.setItem('agent-filter:conn-openai', '[]');
+  it('shows the Attempts tab, By HTTP status default, and no Healed tab', async () => {
     render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
-    fireEvent.click(screen.getByText('0 of 2 harnesses'));
-    expect(screen.getAllByText('0 of 2 harnesses').length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByText('Requests chart'));
+
+    // Grouping buttons, in order: HTTP status (default), attempt status,
+    // harness. No provider grouping and no request notion here.
+    await waitFor(() => expect(screen.getByText('By HTTP status')).toBeDefined());
+    expect(screen.getByText('By HTTP status').className).toContain('--active');
+    const buttons = screen
+      .getAllByRole('button')
+      .map((b) => b.textContent?.trim())
+      .filter((t) => t?.startsWith('By '));
+    expect(buttons).toEqual(['By HTTP status', 'By attempt status', 'By harness']);
+
+    // Default view feeds the HTTP-status series.
+    await waitFor(() => expect(screen.getByTestId('status-keys').textContent).toBe('200,429'));
+
+    // Switching to attempt status feeds the success/error series.
+    fireEvent.click(screen.getByText('By attempt status'));
+    await waitFor(() =>
+      expect(screen.getByTestId('status-keys').textContent).toBe('success,error'),
+    );
+    // The healed tab is gone: healing belongs to requests, not connections.
+    expect(screen.getByTestId('healed-keys').textContent).toBe('');
+
+    // Scoped fetch to this exact connection.
+    expect(apiMocks.getConnectionAttemptStatusTimeseries).toHaveBeenCalledWith(
+      'api_key',
+      'openai',
+      expect.any(String),
+      'Default',
+      'conn-openai',
+    );
+
+    // Switching to By harness hands the chart the attempts-per-agent series.
+    fireEvent.click(screen.getByText('By harness'));
+    await waitFor(() => expect(screen.getByTestId('status-keys').textContent).toBe(''));
+    expect(screen.getByTestId('msg-agents').textContent).toBe('demo-agent');
+  });
+
+  it('applies the harness selection to the attempts-by-harness series', async () => {
+    const emptySeries = { agents: [], timeseries: [] };
+    apiMocks.getPerAgentTimeseries.mockResolvedValue(emptySeries);
+    apiMocks.getPerAgentMessageTimeseries.mockResolvedValue(emptySeries);
+    apiMocks.getPerAgentCostTimeseries.mockResolvedValue(emptySeries);
+    apiMocks.getConnectionAttemptsByAgentTimeseries.mockResolvedValue({
+      agents: ['alpha', 'beta'],
+      timeseries: [{ date: '2026-06-04', alpha: 7, beta: 5 }],
+    });
+
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    fireEvent.click(screen.getByText('Requests chart'));
+    fireEvent.click(screen.getByText('By harness'));
+    await waitFor(() => expect(screen.getByTestId('msg-agents').textContent).toBe('alpha,beta'));
+
+    fireEvent.click(screen.getAllByText('All harnesses (2)').at(-1)!);
+    fireEvent.click(screen.getByText('beta'));
+    await waitFor(() => expect(screen.getByTestId('msg-agents').textContent).toBe('alpha'));
+  });
+
+  it('shows the attempt cards row: rate, counts and both retry families', async () => {
+    const { container } = render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    await waitFor(() => {
+      const cards = [...container.querySelectorAll('.overview-stat-card')].map((c) =>
+        c.textContent?.trim(),
+      );
+      // 9 ok / 12 attempts = 75.0%.
+      expect(cards.join(' | ')).toContain('75.0%');
+      expect(cards.find((c) => c?.includes('Succeeded attempts'))).toContain('9');
+      expect(cards.find((c) => c?.includes('Failed attempts'))).toContain('3');
+      // A fallback is a retry: 10 sent, 8 of them succeeded.
+      const fb = cards.find((c) => c?.includes('Fallback retries'));
+      expect(fb).toContain('10');
+      expect(fb).toContain('8 succeeded');
+    });
+    // No Doctor version in this fixture: no auto-fixed card, no recovered cards.
+    expect(screen.queryByText('Auto-fixed attempts')).toBeNull();
+    expect(screen.queryByText('Recovered by Auto-fix')).toBeNull();
+  });
+
+  it('shows the auto-fixed attempts card with the Doctor version', async () => {
+    apiMocks.getAutofixCohort.mockResolvedValue({ eligible: true });
+    const { container } = render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    await waitFor(() => {
+      const card = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
+        c.textContent?.includes('Auto-fixed attempts'),
+      );
+      expect(card?.textContent).toContain('5');
+      expect(card?.textContent).toContain('4 succeeded');
+    });
+  });
+
+  it.each([
+    ['Failed attempts', '&attempts=has_failed'],
+    ['Succeeded attempts', '&attempts=has_succeeded'],
+    ['Fallback retries', '&trigger=fallback'],
+  ])('links the %s card to the connection-scoped Requests log', async (label, extra) => {
+    const { container } = render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    const card = await waitFor(() => {
+      const found = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
+        c.textContent?.includes(label),
+      );
+      expect(found).toBeDefined();
+      return found!;
+    });
+    fireEvent.click(card);
+    // Scoped to THIS connection and the card's window, never the whole provider.
+    expect(routerState.navigate).toHaveBeenCalledWith(
+      `/messages?connections=conn-openai&range=7d${extra}`,
+    );
+  });
+
+  it('links the Auto-fixed attempts card when the Doctor version is available', async () => {
+    apiMocks.getAutofixCohort.mockResolvedValue({ eligible: true });
+    const { container } = render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    const card = await waitFor(() => {
+      const found = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
+        c.textContent?.includes('Auto-fixed attempts'),
+      );
+      expect(found).toBeDefined();
+      return found!;
+    });
+    fireEvent.click(card);
+    expect(routerState.navigate).toHaveBeenCalledWith(
+      '/messages?connections=conn-openai&range=7d&trigger=autofix',
+    );
   });
 
   it('opens the inline manage modal from the connection detail', async () => {
@@ -1141,7 +1208,7 @@ describe('ConnectionDetail (analytics)', () => {
     // "Custom" appears both as the badge and as the connection label.
     expect(screen.getAllByText('Custom').length).toBeGreaterThan(0);
     expect(screen.getByText('Inactive')).toBeDefined();
-    expect(screen.getByText('No messages yet.')).toBeDefined();
+    expect(screen.getByText('No requests yet.')).toBeDefined();
     expect(screen.getByText('No model usage data yet.')).toBeDefined();
     expect(screen.getByText('No harnesses have used this provider yet.')).toBeDefined();
     // Manage button is present even for inactive connections.
@@ -1411,7 +1478,7 @@ describe('ConnectionDetail (analytics)', () => {
 
     // range + view persistence both throw and are swallowed
     fireEvent.change(screen.getByRole('combobox'), { target: { value: '30d' } });
-    fireEvent.click(screen.getByText('Messages chart'));
+    fireEvent.click(screen.getByText('Requests chart'));
 
     // filter persistence (toggle / select all) all throw + swallow
     fireEvent.click(screen.getByText('All harnesses (2)'));

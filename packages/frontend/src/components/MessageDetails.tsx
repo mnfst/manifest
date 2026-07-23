@@ -8,7 +8,7 @@ import {
 } from '../services/api.js';
 import { inferProviderName } from '../services/routing-utils.js';
 import { getModelDisplayName } from '../services/model-display.js';
-import { manifestErrorDocsUrl } from 'manifest-shared';
+import { AUTOFIX_STATUS_LABELS, manifestErrorDocsUrl, isSuccessStatus } from 'manifest-shared';
 import { formatErrorClass, formatErrorOrigin } from '../services/formatters.js';
 import { isPlanRequestLimitMessage } from '../services/message-error-taxonomy.js';
 import { ModelParamsSection, RequestHeadersSection } from './MessageDetailsSections.jsx';
@@ -109,10 +109,11 @@ function describeOperation(op: AutofixOperation): string {
  * Auto-fix card. Shows the branding, a human phrase, the operation details,
  * Phoenix IDs, and a link to the paired row.
  */
-function AutofixSection(props: {
+export function AutofixSection(props: {
   role: string | null;
   operations: AutofixOperation[] | null;
   phoenix: {
+    status: string | null;
     issueId: string | null;
     patchId: string | null;
     healAttemptId: string | null;
@@ -227,7 +228,7 @@ function AutofixSection(props: {
                 >
                   <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
                 </svg>
-                View autofix retry
+                View Auto-fix retry
               </>
             ) : (
               <>← View original request</>
@@ -258,15 +259,21 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
           const d = data()!;
           const m = d.message;
           const provider = m.model ? inferProviderName(m.model) : null;
-          // Normalize status for display: auto_fixed/fallback_error → the real outcome
+          // Normalize status for display: a superseded failure (fallback / auto-fix
+          // original) still renders its real two-state outcome. isSuccessStatus
+          // accepts both the legacy `ok` and the canonical `success`.
           const displayStatus = () => {
-            if (m.status === 'ok')
+            if (isSuccessStatus(m.status))
               return { label: 'Success', cls: 'status-badge status-badge--ok' };
             return { label: 'Failed', cls: 'status-badge status-badge--error' };
           };
           const isAutofixOriginal = m.autofix_applied && m.autofix_role === 'original';
           const isAutofixRetry = m.autofix_applied && m.autofix_role === 'retry';
-          const isFallbackError = m.status === 'fallback_error';
+          // The superseded primary of a fallback flow (legacy status `fallback_error`,
+          // now the canonical `failed` + `superseded`), excluding the Auto-fix original
+          // which has its own next-action panel.
+          const isFallbackError =
+            m.status === 'fallback_error' || (m.superseded === true && !isAutofixOriginal);
           const isFallbackTrigger = !!m.fallback_from_model && !isFallbackError;
           const hasTrigger = isAutofixRetry || isFallbackTrigger;
           const hasNextAction = isAutofixOriginal || isFallbackError;
@@ -276,12 +283,16 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
             <>
               {/* ── Message section — always first ─────────────────── */}
               <div class="msg-detail__section">
-                <div class="msg-detail__section-title">Message</div>
+                <div class="msg-detail__section-title">Request</div>
                 <div class="msg-detail__meta">
                   <span class="msg-detail__meta-item">
                     <span class="msg-detail__meta-label">Status</span>
                     <span class={displayStatus().cls}>{displayStatus().label}</span>
                   </span>
+                  <MetaField
+                    label="Auto-fix"
+                    value={m.autofix_status ? AUTOFIX_STATUS_LABELS[m.autofix_status] : null}
+                  />
                   <MetaField label="ID" value={m.id} />
                   <MetaField label="Provider" value={provider} />
                   <MetaField label="Auth" value={m.auth_type} />
@@ -411,11 +422,11 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                                 <strong>{formatErrorClass(m.error_class)}</strong>
                                 <span class="error-autofix-row__meta-hint">
                                   {m.error_class === 'invalid_request' &&
-                                    'The request is malformed — wrong parameter, unsupported value, or missing field.'}
+                                    'The request is malformed. Wrong parameter, unsupported value, or missing field.'}
                                   {m.error_class === 'rate_limit' &&
-                                    'Too many requests — the provider is throttling.'}
+                                    'Too many requests. The provider is throttling.'}
                                   {m.error_class === 'auth' &&
-                                    'Authentication failed — invalid or expired API key.'}
+                                    'Authentication failed. Invalid or expired API key.'}
                                   {m.error_class === 'billing' &&
                                     'The provider rejected the request for billing or quota reasons.'}
                                   {m.error_class === 'timeout' &&
@@ -552,7 +563,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                           >
                             <path d="m21.45 11.11-3-1.5-2.68-1.34-.03-.03-1.34-2.68-1.5-3c-.34-.68-1.45-.68-1.79 0l-1.5 3-1.34 2.68-.03.03-2.68 1.34-3 1.5c-.34.17-.55.52-.55.89s.21.72.55.89l3 1.5 2.68 1.34.03.03 1.34 2.68 1.5 3c.17.34.52.55.89.55s.72-.21.89-.55l1.5-3 1.34-2.68.03-.03 2.68-1.34 3-1.5c.34-.17.55-.52.55-.89s-.21-.72-.55-.89Z" />
                           </svg>
-                          View autofix retry
+                          View Auto-fix retry
                         </button>
                       </Show>
                     </div>
@@ -669,7 +680,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                       <AutofixSection
                         role={m.autofix_role}
                         operations={m.autofix_operations}
-                        phoenix={m.autofix_phoenix}
+                        phoenix={m.autofix_decision}
                         sibling={m.autofix_sibling}
                         onOpenMessage={props.onOpenMessage}
                       />
@@ -712,6 +723,40 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
 
                   return null;
                 })()}
+              </Show>
+
+              <Show when={(m.attempts?.length ?? 0) > 0}>
+                <div class="message-details__section">
+                  <h4>Provider attempts</h4>
+                  <table class="details-table" aria-label="Provider attempts">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Provider</th>
+                        <th>Model</th>
+                        <th>Status</th>
+                        <th>Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <For each={m.attempts}>
+                        {(attempt, index) => (
+                          <tr>
+                            <td>{index() + 1}</td>
+                            <td>{attempt.provider ?? 'Unknown'}</td>
+                            <td>{attempt.model ? getModelDisplayName(attempt.model) : '—'}</td>
+                            <td>{attempt.status}</td>
+                            <td>
+                              {attempt.cost_usd == null
+                                ? '—'
+                                : `$${Number(attempt.cost_usd).toFixed(6)}`}
+                            </td>
+                          </tr>
+                        )}
+                      </For>
+                    </tbody>
+                  </table>
+                </div>
               </Show>
 
               {/* Model Parameters renders above Request Headers — params

@@ -161,7 +161,7 @@ describe('PlanService', () => {
     it('reports plan, usage and limits when enabled', async () => {
       enableBilling();
       mockQuery.mockImplementation((sql: string) =>
-        sql.includes('agent_messages')
+        sql.includes('FROM requests r')
           ? Promise.resolve([{ n: 42 }])
           : Promise.resolve([{ subscriptionPlan: 'free' }]),
       );
@@ -305,6 +305,15 @@ describe('PlanService', () => {
       expect(params[1]).toBe(toLocalSqlTimestamp(new Date(ROLLOUT_RESET)));
     });
 
+    it('casts PostgreSQL bigint counts to numbers before caching', async () => {
+      mockQuery.mockResolvedValue([{ n: '7' }]);
+
+      const count = await service.countRequestsSince('t1', START);
+
+      expect(count).toBe(7);
+      expect(typeof count).toBe('number');
+    });
+
     it('allows the quota reset window to be moved by env override', async () => {
       process.env['PLAN_REQUEST_QUOTA_RESET_AT'] = '2026-07-10T12:34:56Z';
       mockQuery.mockResolvedValue([{ n: 4 }]);
@@ -405,7 +414,7 @@ describe('PlanService', () => {
     // Route subscription lookups vs the request COUNT to the right mock result.
     function routeQuery(plan: string, count: number) {
       mockQuery.mockImplementation((sql: string) =>
-        sql.includes('agent_messages')
+        sql.includes('FROM requests r')
           ? Promise.resolve([{ n: count }])
           : Promise.resolve([{ subscriptionPlan: plan }]),
       );
@@ -420,8 +429,8 @@ describe('PlanService', () => {
       enableBilling();
       mockQuery.mockResolvedValue([{ subscriptionPlan: 'pro' }]); // plan null limit
       await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
-      // Only the subscription lookup ran; no agent_messages COUNT.
-      expect(mockQuery.mock.calls.every(([sql]) => !String(sql).includes('agent_messages'))).toBe(
+      // Only the subscription lookup ran; no request COUNT.
+      expect(mockQuery.mock.calls.every(([sql]) => !String(sql).includes('FROM requests r'))).toBe(
         true,
       );
     });
@@ -452,7 +461,7 @@ describe('PlanService', () => {
     it('fails open (allows the request) when the count query errors', async () => {
       enableBilling();
       mockQuery.mockImplementation((sql: string) =>
-        sql.includes('agent_messages')
+        sql.includes('FROM requests r')
           ? Promise.reject(new Error('db down'))
           : Promise.resolve([{ subscriptionPlan: 'free' }]),
       );
@@ -465,13 +474,13 @@ describe('PlanService', () => {
       mockQuery.mockRejectedValue(new Error('snapshot down'));
       await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
       expect(mockQuery).toHaveBeenCalledTimes(1);
-      expect(String(mockQuery.mock.calls[0][0])).not.toContain('agent_messages');
+      expect(String(mockQuery.mock.calls[0][0])).not.toContain('FROM requests r');
     });
 
     it('throttles the fail-open warning and reports the suppressed count', async () => {
       enableBilling();
       mockQuery.mockImplementation((sql: string) =>
-        sql.includes('agent_messages')
+        sql.includes('FROM requests r')
           ? Promise.reject(new Error('db down'))
           : Promise.resolve([{ subscriptionPlan: 'free' }]),
       );

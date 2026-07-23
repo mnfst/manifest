@@ -11,6 +11,7 @@ Thumbs.db
 
 # Local dev artifacts (playwright snapshots, /serve port pin)
 .playwright-mcp/
+.fieldflow/
 .serve-ports
 *.tmp
 *.swp

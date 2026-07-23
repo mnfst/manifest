@@ -92,6 +92,16 @@ describe('every documented error code is accounted for', () => {
     expect(error_class).toBe('not_found');
   });
 
+  it('puts a cloud-inaccessible local provider on the config origin', () => {
+    const { error_origin, error_class } = classifyMessageError({
+      status: 'error',
+      routingReason: MANIFEST_CODE_TO_REASON.M303,
+    });
+
+    expect(error_origin).toBe('config');
+    expect(error_class).toBe('local_provider_unavailable');
+  });
+
   it('keeps a Manifest internal error off the provider reliability signal', () => {
     const { error_origin } = classifyMessageError({
       status: 'error',

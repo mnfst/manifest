@@ -237,6 +237,57 @@ h6 {
   margin-top: 2px;
 }
 
+/* Filter-heavy pages (Requests log): when the intro text would touch the
+   filter row, the header breaks into two rows — intro full width on top,
+   filters wrapping freely below so every control stays reachable on a
+   small screen. */
+.page-header--wrap {
+  flex-wrap: wrap;
+  row-gap: var(--gap-sm);
+}
+
+.page-header--wrap .page-header__intro {
+  /* flex-basis stays auto: a small-screen media query flips the header to a
+     column, where a length basis would become a forced HEIGHT. min-width
+     triggers the row-mode wrap instead. */
+  flex: 1 1 auto;
+  min-width: min(260px, 100%);
+}
+
+.page-header--wrap .header-controls {
+  flex-wrap: wrap;
+  row-gap: var(--gap-sm);
+  justify-content: flex-start;
+}
+
+/* Clickable counts inside tables: a small tag, the same pill language as
+   the status badges beside them. Theme variables keep it right in both
+   light and dark modes. */
+.count-link {
+  display: inline-block;
+  padding: 1px 8px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.count-link:hover {
+  background: hsl(var(--border));
+  border-color: hsl(var(--foreground) / 0.35);
+}
+
+.count-link:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
 .header-controls {
   display: flex;
   gap: var(--gap-sm);
@@ -393,6 +444,50 @@ h6 {
   align-items: center;
 }
 
+.chart-card__subtitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--gap-lg) var(--gap-lg) 0;
+  min-height: 36px;
+}
+.chart-card__subtitle-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.chart-card__filters {
+  display: flex;
+  gap: 4px;
+}
+.chart-card__filter-btn {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.chart-card__filter-btn:hover {
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  border-color: hsl(var(--foreground));
+}
+.chart-card__filter-btn--active {
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  border-color: hsl(var(--foreground));
+}
+.chart-card__filter-btn--active:hover {
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+}
+
 .chart-card__body {
   padding: var(--gap-md) var(--gap-lg) var(--gap-lg);
 }
@@ -458,6 +553,20 @@ h6 {
   table-layout: auto;
   border-collapse: collapse;
   font-size: var(--font-size-sm);
+}
+
+/* Trailing reliability columns (Total requests · Healed · Success rate):
+   fixed width + right alignment so consecutive tables line up and the trio
+   reads as one continuous block down the page. */
+.data-table th.rel-col,
+.data-table td.rel-col {
+  text-align: right;
+  width: 130px;
+  min-width: 130px;
+  font-variant-numeric: tabular-nums;
+}
+.data-table td.rel-col {
+  white-space: nowrap;
 }
 
 .data-table th {
@@ -1575,4 +1684,30 @@ h6 {
   .header__gear {
     display: none;
   }
+}
+
+/* ── Dark-mode icon overrides ─────────────────────── */
+.dark img[src$='/icons/hermes.svg'] {
+  filter: brightness(0) invert(1);
+}
+
+/* ── Requests tables: pinned lead-column widths ──
+   Status is binary now (Success / Failed; the failure cause lives in the
+   drawer), Date is sized for the short timestamp, Attempts for its own
+   header, Recovery attempts for both method badges side by side. Trailing
+   usage columns (cache, latency) flex. */
+.data-table th[data-col='status'] {
+  width: 96px;
+}
+.data-table th[data-col='date'] {
+  width: 118px;
+}
+.data-table th[data-col='attempts'] {
+  width: 72px;
+}
+.data-table th[data-col='selfheal'] {
+  width: 138px;
+}
+.data-table th[data-col] {
+  white-space: nowrap;
 }

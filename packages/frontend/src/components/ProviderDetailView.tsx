@@ -272,7 +272,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           <span>
             {activeProviderRow()?.cached_model_count ?? 0} model
             {(activeProviderRow()?.cached_model_count ?? 0) === 1 ? '' : 's'}
-            <Show when={lastFetchedAgo()}> – last refreshed: {lastFetchedAgo()}</Show>
+            <Show when={lastFetchedAgo()}> - last refreshed: {lastFetchedAgo()}</Show>
           </span>
           <button
             class="btn btn--outline btn--sm provider-detail__refresh-btn"

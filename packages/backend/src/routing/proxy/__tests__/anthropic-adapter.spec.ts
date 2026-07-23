@@ -168,6 +168,22 @@ describe('Anthropic Adapter', () => {
       });
     });
 
+    it('drops the manual budget when forwarding adaptive thinking', () => {
+      const thinking = { type: 'adaptive', budget_tokens: 8192, display: 'omitted' };
+
+      const result = toAnthropicRequest(
+        { messages: [{ role: 'user', content: 'Hi' }], thinking },
+        'claude-opus-4-8',
+      );
+
+      expect(result.thinking).toEqual({ type: 'adaptive', display: 'omitted' });
+      expect(thinking).toEqual({
+        type: 'adaptive',
+        budget_tokens: 8192,
+        display: 'omitted',
+      });
+    });
+
     it('wraps a bare string `stop` value into stop_sequences (chat_completions accepts both shapes)', () => {
       // Cubic flagged: if a chat_completions client sends `stop: "END"`,
       // the previous code dropped it because it only handled arrays.
@@ -2183,6 +2199,33 @@ describe('Anthropic Adapter', () => {
   });
 
   describe('applyAnthropicMessagesMutations', () => {
+    it('drops the manual budget from native adaptive thinking without mutating the body', () => {
+      const inbound = {
+        messages: [{ role: 'user', content: 'hi' }],
+        thinking: { type: 'adaptive', budget_tokens: 8192, display: 'omitted' },
+      };
+
+      const result = applyAnthropicMessagesMutations(inbound);
+
+      expect(result.thinking).toEqual({ type: 'adaptive', display: 'omitted' });
+      expect(inbound.thinking).toEqual({
+        type: 'adaptive',
+        budget_tokens: 8192,
+        display: 'omitted',
+      });
+    });
+
+    it('preserves the budget for native manual thinking', () => {
+      const thinking = { type: 'enabled', budget_tokens: 8192 };
+
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        thinking,
+      });
+
+      expect(result.thinking).toBe(thinking);
+    });
+
     it('preserves Anthropic server tools with their type discriminator and skips input_schema (issue #1886)', () => {
       const inbound = {
         model: 'claude-sonnet-4-20250514',

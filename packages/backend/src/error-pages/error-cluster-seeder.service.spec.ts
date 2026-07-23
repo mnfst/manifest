@@ -95,7 +95,7 @@ describe('ErrorClusterSeederService', () => {
       const okRows = allRows.filter((r) => String(r['id']).endsWith('-ok'));
       expect(okRows.length).toBeGreaterThan(0);
       okRows.forEach((r) => {
-        expect(r['status']).toBe('ok');
+        expect(r['status']).toBe('success');
         expect(r['input_tokens']).toBe(50);
         expect(r['output_tokens']).toBe(80);
       });

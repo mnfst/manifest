@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-manifest",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "Use Manifest's OpenAI-compatible model router from n8n workflows.",
   "license": "MIT",
   "homepage": "https://manifest.build",
@@ -33,6 +33,7 @@
     "lint": "n8n-node lint",
     "lint:fix": "n8n-node lint --fix",
     "release": "n8n-node release",
+    "test": "npm run build && node --test",
     "prepublishOnly": "n8n-node prerelease"
   },
   "files": [
