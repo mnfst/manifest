@@ -28,11 +28,14 @@ import {
   getOverview,
   getOverviewAgentUsage,
   getOverviewProviderUsage,
+  getOverviewProviderRequestUsage,
+  getOverviewModelUsage,
+  getOverviewModelRequestUsage,
 } from '../services/api/analytics.js';
 import { getBillingStatus } from '../services/api/billing.js';
 import { formatNumber, formatCost } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
-import { preloadModelDisplayNames } from '../services/model-display.js';
+import { preloadModelDisplayNames, getModelDisplayName } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import InfoTooltip from '../components/InfoTooltip.jsx';
@@ -204,7 +207,7 @@ const GlobalOverview: Component = () => {
   const loadGroup = (): string => {
     try {
       const v = localStorage.getItem(GROUP_STORAGE_KEY);
-      if (v === 'status' || v === 'provider' || v === 'agent') return v;
+      if (v === 'status' || v === 'provider' || v === 'model' || v === 'agent') return v;
     } catch {
       /* ignore */
     }
@@ -385,12 +388,28 @@ const GlobalOverview: Component = () => {
   type UsageTSResult = { tokenUsage: TSResult; messageUsage: TSResult; costUsage: TSResult };
   const usageFetcher = (range: string, group: string): Promise<UsageTSResult> => {
     if (group === 'provider') return getOverviewProviderUsage(range) as Promise<UsageTSResult>;
+    if (group === 'model') return getOverviewModelUsage(range) as Promise<UsageTSResult>;
     return getOverviewAgentUsage(range) as Promise<UsageTSResult>;
   };
 
   const [usageTimeseries] = createResource(
     () => ({ range: effectiveChartRange(), group: groupBy(), _ping: messagePing() }),
     (p) => usageFetcher(p.range, p.group),
+  );
+
+  // Request-level volume for the Requests tab's By provider / By model views
+  // (terminal attribution: one logical request counts once, so these stack to
+  // the Requests KPI total like By request status does).
+  const requestGroupFetcher = (range: string, group: string): Promise<TSResult> => {
+    if (group === 'provider') return getOverviewProviderRequestUsage(range) as Promise<TSResult>;
+    return getOverviewModelRequestUsage(range) as Promise<TSResult>;
+  };
+  const [requestGroupTimeseries] = createResource(
+    () =>
+      groupBy() === 'provider' || groupBy() === 'model'
+        ? { range: effectiveChartRange(), group: groupBy(), _ping: messagePing() }
+        : false,
+    (p) => requestGroupFetcher(p.range, p.group),
   );
 
   // Provider-grouped series key custom providers as 'custom:<uuid>'. Remap
@@ -417,6 +436,7 @@ const GlobalOverview: Component = () => {
   const tokenSeries = createMemo(() => remapCustomSeries(usageTimeseries()?.tokenUsage));
   const messageSeries = createMemo(() => remapCustomSeries(usageTimeseries()?.messageUsage));
   const costSeries = createMemo(() => remapCustomSeries(usageTimeseries()?.costUsage));
+  const requestGroupSeries = createMemo(() => remapCustomSeries(requestGroupTimeseries()));
 
   // ── Harness filter state (sessionStorage) ────────────────────────────
   // Scope the persisted selection by groupBy(): the provider grouping and the
@@ -447,12 +467,17 @@ const GlobalOverview: Component = () => {
     ),
   );
   const allAgents = createMemo(() => {
-    const tokenAgents = tokenSeries()?.agents ?? [];
-    const msgAgents = messageSeries()?.agents ?? [];
-    const costAgents = costSeries()?.agents ?? [];
-    const set = new Set([...tokenAgents, ...msgAgents, ...costAgents]);
+    const set = new Set<string>();
+    for (const s of [tokenSeries(), messageSeries(), costSeries(), requestGroupSeries()]) {
+      for (const a of s?.agents ?? []) set.add(a);
+    }
     return [...set].sort();
   });
+
+  // Model-grouped series carry model slugs; resolve display names for the
+  // filter dropdown so it reads like the Model usage table.
+  const seriesDisplayName = (key: string) =>
+    groupBy() === 'model' ? getModelDisplayName(key) : key;
 
   const agentColorMap = createMemo(() => {
     const map: Record<string, string> = {};
@@ -540,6 +565,22 @@ const GlobalOverview: Component = () => {
     if (sel.size === 0) return raw;
     const filtered_agents = raw.agents.filter((a: string) => sel.has(a));
     const timeseries = raw.timeseries.map((row: Record<string, number | string>) => {
+      const filtered: Record<string, number | string> = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
+      }
+      return filtered;
+    });
+    return { agents: filtered_agents, timeseries };
+  });
+
+  const filteredRequestGroupTimeseries = createMemo(() => {
+    const raw = requestGroupSeries();
+    if (!raw) return undefined;
+    const sel = effectiveSelected();
+    if (sel.size === 0) return raw;
+    const filtered_agents = raw.agents.filter((a) => sel.has(a));
+    const timeseries = raw.timeseries.map((row) => {
       const filtered: Record<string, number | string> = {};
       for (const [k, v] of Object.entries(row)) {
         if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
@@ -689,11 +730,17 @@ const GlobalOverview: Component = () => {
         {/* ── 2. Unified Chart Card ─────────────────────────────────── */}
         {(() => {
           const o = () => overview()!;
-          // A request can touch several providers, so the Requests tab only
-          // groups by status or harness; usage tabs (tokens/cost) only group
-          // by provider or harness. One stored groupBy, coerced per tab.
-          const requestsGroup = () => (groupBy() === 'agent' ? 'agent' : 'status');
-          const usageGroup = () => (groupBy() === 'provider' ? 'provider' : 'agent');
+          // Requests groups by status (request grain) or by provider/model
+          // (terminal attribution) or by harness; usage tabs (tokens/cost)
+          // group by provider, model, or harness. One stored groupBy.
+          const requestsGroup = () =>
+            groupBy() === 'provider' || groupBy() === 'model'
+              ? groupBy()
+              : groupBy() === 'agent'
+                ? 'agent'
+                : 'status';
+          const usageGroup = () =>
+            groupBy() === 'provider' || groupBy() === 'model' ? groupBy() : 'agent';
           return (
             <UnifiedChartCard
               activeTab={chartView()}
@@ -723,7 +770,9 @@ const GlobalOverview: Component = () => {
               agentRequestTimeseries={
                 requestsGroup() === 'agent'
                   ? (filteredAgentMessageTimeseries() ?? undefined)
-                  : undefined
+                  : requestsGroup() === 'provider' || requestsGroup() === 'model'
+                    ? (filteredRequestGroupTimeseries() ?? undefined)
+                    : undefined
               }
               agentTimeseries={filteredAgentTimeseries() ?? undefined}
               agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
@@ -739,6 +788,22 @@ const GlobalOverview: Component = () => {
                       onClick={() => setGroupBy('status')}
                     >
                       By request status
+                    </button>
+                    <button
+                      class="chart-card__filter-btn"
+                      classList={{
+                        'chart-card__filter-btn--active': requestsGroup() === 'provider',
+                      }}
+                      onClick={() => setGroupBy('provider')}
+                    >
+                      By provider
+                    </button>
+                    <button
+                      class="chart-card__filter-btn"
+                      classList={{ 'chart-card__filter-btn--active': requestsGroup() === 'model' }}
+                      onClick={() => setGroupBy('model')}
+                    >
+                      By model
                     </button>
                     <button
                       class="chart-card__filter-btn"
@@ -760,19 +825,33 @@ const GlobalOverview: Component = () => {
                     </button>
                     <button
                       class="chart-card__filter-btn"
+                      classList={{ 'chart-card__filter-btn--active': usageGroup() === 'model' }}
+                      onClick={() => setGroupBy('model')}
+                    >
+                      By model
+                    </button>
+                    <button
+                      class="chart-card__filter-btn"
                       classList={{ 'chart-card__filter-btn--active': usageGroup() === 'agent' }}
                       onClick={() => setGroupBy('agent')}
                     >
                       By harness
                     </button>
                   </Show>
-                  <Show when={chartView() !== 'requests' || requestsGroup() === 'agent'}>
+                  <Show when={groupBy() !== 'status'}>
                     <div style="min-width: 140px;">
                       <FilterSelect
-                        noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}
+                        noun={
+                          groupBy() === 'provider'
+                            ? 'providers'
+                            : groupBy() === 'model'
+                              ? 'models'
+                              : 'harnesses'
+                        }
                         items={allAgents()}
                         selected={effectiveSelected()}
                         colorMap={agentColorMap()}
+                        displayName={seriesDisplayName}
                         onToggle={toggleAgent}
                         onSelectAll={() => setAllAgents(true)}
                         onUnselectAll={() => setAllAgents(false)}

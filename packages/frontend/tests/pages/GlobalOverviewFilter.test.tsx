@@ -84,6 +84,14 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
   getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
   getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
+  getOverviewProviderRequestUsage: () => Promise.resolve({ agents: [], timeseries: [] }),
+  getOverviewModelUsage: () =>
+    Promise.resolve({
+      tokenUsage: { agents: [], timeseries: [] },
+      messageUsage: { agents: [], timeseries: [] },
+      costUsage: { agents: [], timeseries: [] },
+    }),
+  getOverviewModelRequestUsage: () => Promise.resolve({ agents: [], timeseries: [] }),
   getAttemptStats: () =>
     Promise.resolve({
       total_attempts: { value: 20, previous: 10 },

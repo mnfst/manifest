@@ -74,6 +74,11 @@ const mockPerProvider = vi.fn(() => Promise.resolve({ agents: [], timeseries: []
 const mockPerProviderTokens = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockPerProviderMessages = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockPerProviderCosts = vi.fn((...a: unknown[]) => mockPerProvider(...a));
+const mockPerModelTokens = vi.fn((...a: unknown[]) => mockPerProvider(...a));
+const mockPerModelMessages = vi.fn((...a: unknown[]) => mockPerProvider(...a));
+const mockPerModelCosts = vi.fn((...a: unknown[]) => mockPerProvider(...a));
+const mockPerProviderRequests = vi.fn((...a: unknown[]) => mockPerProvider(...a));
+const mockPerModelRequests = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockGetAutofixStats = vi.fn();
 let mockAutofixEligible = false;
 vi.mock('../../src/services/api/analytics.js', () => ({
@@ -99,6 +104,11 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getPerProviderTimeseries: (...a: unknown[]) => mockPerProviderTokens(...a),
   getPerProviderMessageTimeseries: (...a: unknown[]) => mockPerProviderMessages(...a),
   getPerProviderCostTimeseries: (...a: unknown[]) => mockPerProviderCosts(...a),
+  getPerModelTimeseries: (...a: unknown[]) => mockPerModelTokens(...a),
+  getPerModelMessageTimeseries: (...a: unknown[]) => mockPerModelMessages(...a),
+  getPerModelCostTimeseries: (...a: unknown[]) => mockPerModelCosts(...a),
+  getPerProviderRequestUsage: (...a: unknown[]) => mockPerProviderRequests(...a),
+  getPerModelRequestUsage: (...a: unknown[]) => mockPerModelRequests(...a),
   getAttemptStats: () =>
     Promise.resolve({
       total_attempts: { value: 50, previous: 40 },
@@ -505,6 +515,36 @@ describe('Overview', () => {
     expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
     expect(mockPerProviderTokens).not.toHaveBeenCalled();
     expect(mockPerProviderCosts).not.toHaveBeenCalled();
+  });
+
+  it('fetches request-level provider and model volume when those groupings are chosen', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    mockPerProvider.mockResolvedValue({
+      agents: ['openai'],
+      timeseries: [{ hour: '1', openai: 5 }],
+    });
+    const { container } = render(() => <Overview />);
+
+    await vi.waitFor(() => {
+      expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
+    });
+    expect(mockPerProviderRequests).not.toHaveBeenCalled();
+    expect(mockPerModelRequests).not.toHaveBeenCalled();
+
+    const groupBtn = (label: string) =>
+      [...container.querySelectorAll('.chart-card__filter-btn')].find(
+        (b) => b.textContent === label,
+      ) as HTMLButtonElement;
+
+    fireEvent.click(groupBtn('By provider'));
+    await vi.waitFor(() => {
+      expect(mockPerProviderRequests).toHaveBeenCalledWith('test-agent', '30d');
+    });
+
+    fireEvent.click(groupBtn('By model'));
+    await vi.waitFor(() => {
+      expect(mockPerModelRequests).toHaveBeenCalledWith('test-agent', '30d');
+    });
   });
 
   it('fetches token and cost provider series when those chart views are opened', async () => {
