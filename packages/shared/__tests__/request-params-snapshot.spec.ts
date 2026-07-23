@@ -142,15 +142,36 @@ describe('snapshotRequestParams', () => {
     ).toEqual({ temperature: 0.7, parallel_tool_calls: false, service_tier: 'flex' });
   });
 
-  it('never records content-bearing or non-scalar spec-less keys', () => {
+  it('records spec-less structured knobs from the raw body', () => {
+    expect(
+      snapshotRequestParams({
+        body: {
+          messages: [{ role: 'user', content: 'hi' }],
+          response_format: { type: 'json_object' },
+          thinking: { type: 'enabled' },
+          stop: ['\\n\\n'],
+        },
+        modelParams: null,
+        specs: [],
+      }),
+    ).toEqual({
+      response_format: { type: 'json_object' },
+      thinking: { type: 'enabled' },
+      stop: ['\\n\\n'],
+    });
+  });
+
+  it('never records content-bearing spec-less keys', () => {
     expect(
       snapshotRequestParams({
         body: {
           messages: [{ role: 'user', content: 'hi' }],
           system: 'you are a bot',
           user: 'user-123',
-          response_format: { type: 'json_object' },
           seed_note: 'x'.repeat(65),
+          smuggled: { nested: { prompt: 'y'.repeat(65) } },
+          oversized: { keys: Array.from({ length: 600 }, (_, i) => `key_${i}`) },
+          not_json: { cb: () => 'x' },
           verbosity: 'high',
         },
         modelParams: null,
