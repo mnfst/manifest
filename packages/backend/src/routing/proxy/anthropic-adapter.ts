@@ -59,6 +59,15 @@ function shouldForwardAnthropicThinking(thinking: unknown, model: string): boole
   return true;
 }
 
+function normalizeAnthropicThinking(thinking: unknown): unknown {
+  if (!isObjectRecord(thinking) || thinking.type !== 'adaptive' || !('budget_tokens' in thinking)) {
+    return thinking;
+  }
+  const normalized = { ...thinking };
+  delete normalized.budget_tokens;
+  return normalized;
+}
+
 /**
  * System prompt required by Anthropic's subscription OAuth API to unlock
  * sonnet/opus model families. Without it, subscription tokens can only
@@ -399,7 +408,7 @@ export function toAnthropicRequest(
   // Anthropic Messages (POST /v1/messages). Chat-completions clients won't
   // set these, so this is a no-op for the OpenAI-compat path.
   if (body.thinking !== undefined && shouldForwardAnthropicThinking(body.thinking, _model)) {
-    result.thinking = body.thinking;
+    result.thinking = normalizeAnthropicThinking(body.thinking);
   }
   // chat_completions `stop` accepts string OR string[]; Anthropic
   // `stop_sequences` is always an array. Wrap a bare string so a single
@@ -466,6 +475,9 @@ export function applyAnthropicMessagesMutations(
 ): Record<string, unknown> {
   const result: Record<string, unknown> = { ...body };
   const preserveNativeBody = options?.preserveNativeBody === true;
+  if (body.thinking !== undefined) {
+    result.thinking = normalizeAnthropicThinking(body.thinking);
+  }
   if (isClaudeOpus48Model(options?.targetModel)) delete result.temperature;
   if (preserveNativeBody && !options?.injectSubscriptionIdentity) return result;
   const cacheBudget = {

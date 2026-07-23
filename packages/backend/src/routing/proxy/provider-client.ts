@@ -24,7 +24,7 @@ import {
   createAnthropicTransformer,
   createReasoningContentStreamTransformer as reasoningContentStreamTransformer,
 } from './provider-client-converters';
-import { ForwardOptions, type ProviderAttemptRef } from './proxy-types';
+import { ForwardOptions, ProxyApiMode, type ProviderAttemptRef } from './proxy-types';
 import { CodexSessionAffinity } from './codex-session-affinity';
 import { toNativeResponsesRequest, type ResponsesToolCallType } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
@@ -42,6 +42,12 @@ import { ManifestError } from '../../common/errors/manifest-error';
 
 export interface ForwardResult {
   response: Response;
+  /** Exact JSON body sent to the resolved provider transport. */
+  wireRequestBody?: Record<string, unknown>;
+  /** Provider-facing API shape of {@link wireRequestBody}. */
+  wireApiMode?: ProxyApiMode;
+  /** Re-send a healed wire body through the already-resolved transport. */
+  retryWireBody?: (body: Record<string, unknown>) => Promise<ForwardResult>;
   /** False only when Manifest produced a response without invoking provider transport. */
   providerCallStarted?: boolean;
   /** Persisted provider-call identity, when request tracking is available. */
@@ -66,6 +72,13 @@ export interface ForwardResult {
   responsesTextFormat?: Record<string, unknown>;
   /** Internal: original Responses tool types keyed by tool name. */
   responsesToolTypesByName?: Readonly<Record<string, ResponsesToolCallType>>;
+}
+
+function wireApiMode(endpoint: ProviderEndpoint): ProxyApiMode | undefined {
+  if (endpoint.format === 'openai') return 'chat_completions';
+  if (endpoint.format === 'anthropic') return 'messages';
+  if (endpoint.format === 'chatgpt') return 'responses';
+  return undefined;
 }
 
 interface BuiltProviderRequest {
@@ -347,6 +360,7 @@ export class ProviderClient {
     const isCodeAssist = !!endpoint.codeAssistEnvelope;
     const textFormat = responsesTextFormat(body, opts.apiMode);
     const toolTypesByName = responsesToolTypesByName(body, opts.apiMode);
+    const resolvedWireApiMode = wireApiMode(endpoint);
 
     const bareModel = stripModelPrefix(model, endpointKey);
     if (endpoint.format === 'kiro') {
@@ -426,42 +440,52 @@ export class ProviderClient {
         : protocolHeaders;
     reapplyProviderOwnedHeaders(finalHeaders, headers);
 
-    this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
+    const retryWireBody = async (
+      wireRequestBody: Record<string, unknown>,
+    ): Promise<ForwardResult> => {
+      this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 
-    // SSRF defense in depth for user-supplied endpoint URLs (custom providers,
-    // subscription resource URLs). validatePublicUrl was called when the URL
-    // was stored, but DNS for the hostname may have rebound to a private or
-    // cloud-metadata address since then. Re-resolve and re-check now.
-    if (endpoint.requiresSsrfRevalidation) {
-      try {
-        await validatePublicUrl(url, { allowPrivate: isSelfHosted() });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        throw new Error(`Refusing to forward to disallowed URL: ${message}`);
+      // SSRF defense in depth for user-supplied endpoint URLs (custom providers,
+      // subscription resource URLs). Re-check every actual forward, including
+      // an immediate Auto-fix retry, because DNS may have rebound in between.
+      if (endpoint.requiresSsrfRevalidation) {
+        try {
+          await validatePublicUrl(url, { allowPrivate: isSelfHosted() });
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          throw new Error(`Refusing to forward to disallowed URL: ${message}`);
+        }
       }
-    }
 
-    const result = await this.executeFetch(url, finalHeaders, requestBody, signal, stream, {
-      isGoogle,
-      isAnthropic,
-      isChatGpt,
-      isResponses,
-      isCodeAssist,
-      structuredOutputToolName,
-      responsesTextFormat: textFormat,
-      responsesToolTypesByName: toolTypesByName,
-    });
-    const qualifiedResult =
-      endpointKey === 'openai-subscription'
-        ? {
-            ...result,
-            response: await qualifyChatGptResponse(result.response, {
-              downstreamFormat: isResponses ? 'responses' : 'chat-completions',
-            }),
-          }
-        : result;
-    if (affinity) this.codexAffinity.capture(affinity.storeKey, qualifiedResult.response);
-    return qualifiedResult;
+      const result = await this.executeFetch(url, finalHeaders, wireRequestBody, signal, stream, {
+        isGoogle,
+        isAnthropic,
+        isChatGpt,
+        isResponses,
+        isCodeAssist,
+        structuredOutputToolName,
+        responsesTextFormat: textFormat,
+        responsesToolTypesByName: toolTypesByName,
+      });
+      const qualifiedResult =
+        endpointKey === 'openai-subscription'
+          ? {
+              ...result,
+              response: await qualifyChatGptResponse(result.response, {
+                downstreamFormat: isResponses ? 'responses' : 'chat-completions',
+              }),
+            }
+          : result;
+      if (affinity) this.codexAffinity.capture(affinity.storeKey, qualifiedResult.response);
+      return {
+        ...qualifiedResult,
+        wireRequestBody,
+        wireApiMode: resolvedWireApiMode,
+        retryWireBody,
+      };
+    };
+
+    return retryWireBody(requestBody);
   }
 
   private async resolveEndpoint(

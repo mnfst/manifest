@@ -1,5 +1,29 @@
 # manifest
 
+## 6.16.0
+
+### Minor Changes
+
+- c1e7717: Separate caller requests from provider attempts in storage, analytics, and the dashboard.
+- c1e7717: Expose provider-attempt and fallback aggregate analytics.
+- c7e0be7: Expose structured model capability metadata (input/output modalities, endpoint features, supported endpoints) from `GET /v1/models?capabilities=true`, keeping the default response unchanged, resolved through the same pipeline as the routing model picker. Curated modality facts identify `gpt-5.3-codex-spark` as text-only input and mainline ChatGPT subscription models as image-capable in both the API and the picker.
+
+### Patch Changes
+
+- c1e7717: Add an `auto_fixed` count to the `GET /api/v1/errors/breakdown` response (number of requests healed by Auto-fix in the window), plus a typed `getErrorBreakdown()` frontend API wrapper — so a dashboard can surface auto-fixed alongside errors.
+- 2c81871: Report the exact provider-facing request body to Phoenix and retry healed bodies through the already-resolved transport without reapplying routing parameter merges or protocol translations.
+- 1943921: Clarify offline tunnel errors and keep HTML error pages out of message records.
+- d24cd21: Extend the dashboard covering index with the columns the request-first dashboard reads (key label, status, request id) and add a partial index for the skills panel, restoring index-only scans on the Overview and Provider Usage endpoints for large installs
+- 275fbfa: Limit request backfill refreshes to parents linked by the current batch.
+- 4e6e74a: Treat empty ChatGPT Codex streams as provider failures so routing can use fallbacks. Self-hosted deployments can tune the semantic-output wait with `CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS`.
+- ae1213e: Strip legacy `budget_tokens` from Anthropic adaptive thinking requests.
+- 0b91ff3: Update OpenRouter logo to the current brand mark
+- 79856bc: Block built-in local providers on Manifest Cloud.
+- 26b0635: Prepare request history in the background before the request-level dashboard rollout.
+- aa767db: Refresh every matching provider connection so models returned by an API key are cached for each connected key.
+- 8412baf: Surface interrupted upstream streams as terminal SSE errors.
+- 6ec0136: Stop request-history tail sweeps after the initial backfill.
+
 ## 6.15.2
 
 ### Patch Changes

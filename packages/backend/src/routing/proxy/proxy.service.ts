@@ -208,7 +208,6 @@ interface HealedReforwardContext {
   specificityOverride?: ProxyRequestOptions['specificityOverride'];
   headers?: ProxyRequestOptions['headers'];
   requestContext?: ProxyRequestOptions['requestContext'];
-  originalModel: string | undefined;
   provider: string;
   apiKey: string;
   rawApiKey: string;
@@ -416,46 +415,48 @@ export class ProxyService {
     // the patched request, so a fixable request isn't sprayed across every
     // fallback provider. A no-op unless the agent opted in and the forward
     // failed with a repairable status, so successful traffic is untouched.
-    const autofixAttempt = await this.autofixService.maybeHeal({
-      forward,
-      agentId,
-      tenantId,
-      provider: route.provider,
-      authType: route.authType,
-      apiMode,
-      requestBody: body,
-      // Report the resolved provider model to Phoenix (the body may carry the
-      // `auto` routing alias, which Phoenix's model-keyed catalog can't map).
-      resolvedModel: primaryModel,
-      reforward: (healedBody) =>
-        this.reforwardHealed(healedBody, {
-          agentId,
-          tenantId,
-          apiMode,
-          sessionKey,
-          signal,
-          stream,
-          specificityOverride,
-          headers,
-          requestContext,
-          originalModel: typeof body.model === 'string' ? body.model : undefined,
-          provider: route.provider,
-          apiKey: credentials.apiKey,
-          rawApiKey: credentials.rawApiKey,
-          model: primaryModel,
-          keyLabel: route.keyLabel ?? undefined,
-          authType: route.authType,
-          resourceUrl: credentials.resourceUrl,
-          subscriptionMetadata: credentials.subscriptionMetadata,
-          providerRegion: credentials.providerRegion,
-          paramMergeContext,
-          signatureLookup,
-          thinkingLookup,
-          reasoningContentLookup,
-          tenantProviderId: credentials.tenantProviderId,
-          startProviderAttempt,
-        }),
-    });
+    const wireRequestBody = forward.wireRequestBody;
+    const wireApiMode = forward.wireApiMode;
+    const retryWireBody = forward.retryWireBody;
+    const autofixAttempt =
+      wireRequestBody && wireApiMode && retryWireBody
+        ? await this.autofixService.maybeHeal({
+            forward,
+            agentId,
+            tenantId,
+            provider: route.provider,
+            authType: route.authType,
+            apiMode: wireApiMode,
+            requestBody: wireRequestBody,
+            reforward: (healedBody) =>
+              this.reforwardHealed(healedBody, forward, {
+                agentId,
+                tenantId,
+                apiMode: wireApiMode,
+                sessionKey,
+                signal,
+                stream,
+                specificityOverride,
+                headers,
+                requestContext,
+                provider: route.provider,
+                apiKey: credentials.apiKey,
+                rawApiKey: credentials.rawApiKey,
+                model: primaryModel,
+                keyLabel: route.keyLabel ?? undefined,
+                authType: route.authType,
+                resourceUrl: credentials.resourceUrl,
+                subscriptionMetadata: credentials.subscriptionMetadata,
+                providerRegion: credentials.providerRegion,
+                paramMergeContext,
+                signatureLookup,
+                thinkingLookup,
+                reasoningContentLookup,
+                tenantProviderId: credentials.tenantProviderId,
+                startProviderAttempt,
+              }),
+          })
+        : null;
     const autofixRecord = autofixAttempt?.record;
     if (autofixAttempt) forward = autofixAttempt.forward;
 
@@ -645,42 +646,25 @@ export class ProxyService {
   }
 
   /**
-   * Re-send an Auto-fix-healed body to a provider. Same model → reuse the
-   * already-resolved route and re-apply the agent's param merge so configured
-   * model params aren't dropped (M3). Model changed (e.g. an unknown-model fix)
-   * → re-resolve so the new model reaches the right provider/key (M5).
+   * Re-send an Auto-fix-healed wire body. Same model → use the exact resolved
+   * transport without re-merging or translating. Model changed (e.g. an
+   * unknown-model fix) → re-resolve so it reaches the right provider/key (M5).
    */
   private reforwardHealed(
     healedBody: Record<string, unknown>,
+    originalForward: ForwardResult,
     ctx: HealedReforwardContext,
   ): Promise<ForwardResult> {
+    const originalModel = originalForward.wireRequestBody?.model;
     const healedModel = typeof healedBody.model === 'string' ? healedBody.model : undefined;
-    if (healedModel && healedModel !== ctx.originalModel) {
+    if (healedModel && healedModel !== originalModel) {
       return this.forwardResolvedHealed(healedBody, ctx);
     }
-    return this.fallbackService.tryForwardToProvider({
+    return this.fallbackService.retryWireBody(originalForward, healedBody, {
       provider: ctx.provider,
-      apiKey: ctx.apiKey,
       model: ctx.model,
-      body: healedBody,
-      chatBody: this.toChatBody(ctx.apiMode, healedBody),
-      stream: ctx.stream,
-      sessionKey: ctx.sessionKey,
       signal: ctx.signal,
-      agentId: ctx.agentId,
-      tenantId: ctx.tenantId,
-      rawApiKey: ctx.rawApiKey,
-      providerKeyLabel: ctx.keyLabel,
       authType: ctx.authType,
-      apiMode: ctx.apiMode,
-      resourceUrl: ctx.resourceUrl,
-      subscriptionMetadata: ctx.subscriptionMetadata,
-      providerRegion: ctx.providerRegion,
-      signatureLookup: ctx.signatureLookup,
-      thinkingLookup: ctx.thinkingLookup,
-      reasoningContentLookup: ctx.reasoningContentLookup,
-      paramMergeContext: ctx.paramMergeContext,
-      requestContext: ctx.requestContext,
       tenantProviderId: ctx.tenantProviderId,
       startProviderAttempt: ctx.startProviderAttempt,
     });

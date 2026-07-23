@@ -147,6 +147,7 @@ describe('ProxyController', () => {
   let modelsDevSync: { lookupModel: jest.Mock };
   let recorder: ProxyMessageRecorder;
   let planService: { assertWithinRequestLimit: jest.Mock };
+  let observationReporter: { report: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -186,6 +187,7 @@ describe('ProxyController', () => {
     };
     providerParamSpecs = { getCapabilities: jest.fn().mockResolvedValue(null) };
     modelsDevSync = { lookupModel: jest.fn().mockReturnValue(null) };
+    observationReporter = { report: jest.fn() };
     const mockCustomProviders = {
       canonicalizeAgentMessageKeys: jest
         .fn()
@@ -217,7 +219,7 @@ describe('ProxyController', () => {
       new ReasoningContentCache(),
       modelDiscovery as never,
       planService as never,
-      { report: jest.fn() } as never,
+      observationReporter as never,
       providerParamSpecs as never,
       modelsDevSync as never,
     );
@@ -1365,6 +1367,51 @@ describe('ProxyController', () => {
         model: 'gpt-4o',
       }),
     });
+  });
+
+  it('should report the provider-facing body and API mode to Phoenix', async () => {
+    const wireRequestBody = {
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'test' }],
+      thinking: { type: 'adaptive', budget_tokens: 8192 },
+    };
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: new Response('{"error":"invalid thinking"}', { status: 400 }),
+        wireRequestBody,
+        wireApiMode: 'messages',
+        retryWireBody: jest.fn(),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'standard',
+        model: 'claude-opus-4-8',
+        provider: 'Anthropic',
+        auth_type: 'api_key',
+        confidence: 0.8,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({
+      model: 'auto',
+      messages: [{ role: 'user', content: 'test' }],
+    });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(observationReporter.report).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'Anthropic',
+        authType: 'api_key',
+        apiMode: 'messages',
+        requestBody: wireRequestBody,
+      }),
+    );
+    expect(observationReporter.report.mock.calls[0][0]).not.toHaveProperty('resolvedModel');
   });
 
   it('should handle 500 errors from proxyService as friendly chat message', async () => {
