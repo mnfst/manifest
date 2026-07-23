@@ -1,0 +1,23 @@
+packages/frontend/src/pages/AgentProviders.tsx
+  s_c97f20dff257d9::t_d6f0b2303e168e 158,213-222
+  s_c97f20dff257d9::t_f477eb3904de8d 159,212,223-224
+packages/frontend/tests/pages/AgentProviders.test.tsx
+  s_c97f20dff257d9::t_d6f0b2303e168e 179,200-201
+  s_c97f20dff257d9::t_f477eb3904de8d 180-199,202-203
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "c14959ec357ec428275a8f34b61a5285eee5ffdc",
+  "prompts": {},
+  "sessions": {
+    "s_c97f20dff257d9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8e44-c64c-7fe0-aa3d-f88070ff438f",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
