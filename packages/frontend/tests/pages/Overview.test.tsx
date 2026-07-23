@@ -547,6 +547,124 @@ describe('Overview', () => {
     });
   });
 
+  it('fires the model token-series fetcher when By model is chosen on the Tokens tab', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    mockPerProvider.mockResolvedValue({
+      agents: ['openai', 'anthropic'],
+      timeseries: [{ hour: '1', openai: 5, anthropic: 3 }],
+    });
+    const { container } = render(() => <Overview />);
+
+    await vi.waitFor(() => {
+      expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
+    });
+
+    const groupBtn = (label: string) =>
+      [...container.querySelectorAll('.chart-card__filter-btn')].find(
+        (b) => b.textContent === label,
+      ) as HTMLButtonElement;
+
+    fireEvent.click(groupBtn('By model'));
+    // Open the Token usage tab so tokenChartRequested() flips true.
+    const tokenStat = [...container.querySelectorAll('.chart-card__stat--clickable')].find((s) =>
+      s.textContent?.includes('Token usage'),
+    ) as HTMLButtonElement;
+    fireEvent.click(tokenStat);
+
+    await vi.waitFor(() => {
+      expect(mockPerModelTokens).toHaveBeenCalledWith('test-agent', '30d');
+    });
+  });
+
+  it('fires the model cost-series fetcher when By model is chosen on the Cost tab', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    mockPerProvider.mockResolvedValue({
+      agents: ['openai', 'anthropic'],
+      timeseries: [{ hour: '1', openai: 5, anthropic: 3 }],
+    });
+    const { container } = render(() => <Overview />);
+
+    await vi.waitFor(() => {
+      expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
+    });
+
+    const groupBtn = (label: string) =>
+      [...container.querySelectorAll('.chart-card__filter-btn')].find(
+        (b) => b.textContent === label,
+      ) as HTMLButtonElement;
+
+    fireEvent.click(groupBtn('By model'));
+    const costStat = [...container.querySelectorAll('.chart-card__stat--clickable')].find((s) =>
+      s.textContent?.includes('Cost'),
+    ) as HTMLButtonElement;
+    fireEvent.click(costStat);
+
+    await vi.waitFor(() => {
+      expect(mockPerModelCosts).toHaveBeenCalledWith('test-agent', '30d');
+    });
+  });
+
+  it('labels the FilterSelect with "models" noun when grouped By model', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    mockPerProvider.mockResolvedValue({
+      agents: ['openai', 'anthropic'],
+      timeseries: [{ hour: '1', openai: 5, anthropic: 3 }],
+    });
+    const { container } = render(() => <Overview />);
+
+    await vi.waitFor(() => {
+      expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
+    });
+
+    const groupBtn = (label: string) =>
+      [...container.querySelectorAll('.chart-card__filter-btn')].find(
+        (b) => b.textContent === label,
+      ) as HTMLButtonElement;
+
+    fireEvent.click(groupBtn('By model'));
+
+    // The real FilterSelect renders a trigger label containing the noun.
+    await vi.waitFor(() => {
+      const trigger = container.querySelector('.agent-filter-select__trigger');
+      expect(trigger).not.toBeNull();
+      expect(trigger!.textContent).toContain('models');
+    });
+  });
+
+  it('resolves model display names via getModelDisplayName in model mode', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    // Two model series so FilterSelect renders and displayName is exercised.
+    mockPerProvider.mockResolvedValue({
+      agents: ['gpt-4o', 'claude-3.5-sonnet'],
+      timeseries: [{ hour: '1', 'gpt-4o': 5, 'claude-3.5-sonnet': 3 }],
+    });
+    const { container } = render(() => <Overview />);
+
+    await vi.waitFor(() => {
+      expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
+    });
+
+    const groupBtn = (label: string) =>
+      [...container.querySelectorAll('.chart-card__filter-btn')].find(
+        (b) => b.textContent === label,
+      ) as HTMLButtonElement;
+
+    fireEvent.click(groupBtn('By model'));
+
+    // Wait for FilterSelect to render, then open its dropdown to read item names.
+    await vi.waitFor(() => {
+      expect(container.querySelector('.agent-filter-select__trigger')).not.toBeNull();
+    });
+    fireEvent.click(container.querySelector('.agent-filter-select__trigger')!);
+
+    await vi.waitFor(() => {
+      const names = container.querySelectorAll('.agent-filter-select__name');
+      expect(names.length).toBeGreaterThanOrEqual(2);
+      expect([...names].some((n) => n.textContent === 'gpt-4o')).toBe(true);
+      expect([...names].some((n) => n.textContent === 'claude-3.5-sonnet')).toBe(true);
+    });
+  });
+
   it('fetches token and cost provider series when those chart views are opened', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     mockPerProvider.mockResolvedValue({
