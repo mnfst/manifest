@@ -36,7 +36,11 @@ import {
 } from './agent-request-context';
 import { extractOpenAiSubscriptionMetadata } from '../oauth/openai/openai-token-metadata';
 import { stripAnthropicServerToolsForFallback } from './anthropic-messages-adapter';
-import { qualifyChatGptResponse } from './chatgpt-response-qualifier';
+import {
+  parseCodexSemanticOutputTimeoutMs,
+  qualifyChatGptResponse,
+} from './chatgpt-response-qualifier';
+import { qualifyGoogleResponse } from './google-response-qualifier';
 import { isProviderAvailableForDeployment } from '../../common/utils/provider-availability';
 import { ManifestError } from '../../common/errors/manifest-error';
 
@@ -479,16 +483,23 @@ export class ProviderClient {
           responsesToolTypesByName: toolTypesByName,
         },
       );
-      const qualifiedResult =
+      const semanticOutputTimeoutMs =
+        retryOptions?.semanticOutputTimeoutMs ??
+        opts.semanticOutputTimeoutMs ??
+        parseCodexSemanticOutputTimeoutMs();
+      const qualifiedResponse =
         endpointKey === 'openai-subscription'
-          ? {
-              ...result,
-              response: await qualifyChatGptResponse(result.response, {
-                downstreamFormat: isResponses ? 'responses' : 'chat-completions',
-                timeoutMs: retryOptions?.semanticOutputTimeoutMs ?? opts.semanticOutputTimeoutMs,
-              }),
-            }
-          : result;
+          ? await qualifyChatGptResponse(result.response, {
+              downstreamFormat: isResponses ? 'responses' : 'chat-completions',
+              timeoutMs: semanticOutputTimeoutMs,
+            })
+          : isGoogle && stream && opts.apiMode === 'messages'
+            ? await qualifyGoogleResponse(result.response, {
+                codeAssistEnvelope: isCodeAssist,
+                timeoutMs: semanticOutputTimeoutMs,
+              })
+            : result.response;
+      const qualifiedResult = { ...result, response: qualifiedResponse };
       if (affinity) this.codexAffinity.capture(affinity.storeKey, qualifiedResult.response);
       return {
         ...qualifiedResult,
