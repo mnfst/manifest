@@ -714,7 +714,7 @@ describe('ProxyFallbackService', () => {
     it('rethrows when signal is aborted', async () => {
       const ac = new AbortController();
       ac.abort();
-      providerClient.forward.mockRejectedValue(new Error('aborted'));
+      const startProviderAttempt = jest.fn();
 
       await expect(
         service.tryForwardToProvider({
@@ -725,8 +725,11 @@ describe('ProxyFallbackService', () => {
           stream: false,
           sessionKey: 'sess-1',
           signal: ac.signal,
+          startProviderAttempt,
         }),
-      ).rejects.toThrow('aborted');
+      ).rejects.toMatchObject({ name: 'AbortError' });
+      expect(startProviderAttempt).not.toHaveBeenCalled();
+      expect(providerClient.forward).not.toHaveBeenCalled();
     });
 
     it('returns timeout response for TimeoutError', async () => {

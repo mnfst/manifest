@@ -635,6 +635,68 @@ describe('ProxyController', () => {
     );
   });
 
+  it('sweeps a fallback attempt inserted after the initial disconnect recording', async () => {
+    mockMessageRepo.find
+      .mockResolvedValueOnce([
+        {
+          id: 'pending-primary',
+          timestamp: new Date(Date.now() - 50).toISOString(),
+          attempt_number: 1,
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 'late-fallback',
+          timestamp: new Date(Date.now() - 25).toISOString(),
+          attempt_number: 2,
+        },
+      ]);
+    proxyService.proxyRequest.mockImplementation(
+      async (opts: { signal: AbortSignal; startProviderAttempt: StartProviderAttempt }) => {
+        const primary = opts.startProviderAttempt({
+          provider: 'openai',
+          model: 'gpt-5.6-sol',
+          authType: 'subscription',
+        });
+        await primary.pendingWrite;
+        await new Promise<void>((resolve) => {
+          opts.signal.addEventListener('abort', () => resolve(), { once: true });
+        });
+        const fallback = opts.startProviderAttempt({
+          provider: 'anthropic',
+          model: 'claude-opus-4-8',
+          authType: 'subscription',
+        });
+        await fallback.pendingWrite;
+        throw new Error('client aborted');
+      },
+    );
+
+    const req = mockRequest({ stream: true, messages: [{ role: 'user', content: 'hi' }] });
+    const { res, listeners } = mockResponse();
+    const pending = controller.messages(req as never, res as never);
+    await flushRecorderMicrotasks();
+
+    listeners.close();
+    await pending;
+    await flushRecorderMicrotasks();
+
+    expect(mockMessageRepo.update).toHaveBeenCalledWith(
+      { id: 'pending-primary', status: 'pending' },
+      expect.objectContaining({
+        status: 'failed',
+        error_http_status: 499,
+      }),
+    );
+    expect(mockMessageRepo.update).toHaveBeenCalledWith(
+      { id: 'late-fallback', status: 'pending' },
+      expect.objectContaining({
+        status: 'failed',
+        error_http_status: 499,
+      }),
+    );
+  });
+
   it('enforces the plan request limit before routing and records a Manifest policy row', async () => {
     const block = new HttpException(
       {

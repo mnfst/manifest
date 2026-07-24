@@ -221,6 +221,8 @@ export class ProxyController {
     let slotAcquired = false;
     let currentMeta: RoutingMeta | undefined;
     let responseFinished = false;
+    let clientDisconnected = false;
+    let initialCancellationWrite: Promise<void> | undefined;
     const startTime = Date.now();
 
     const clientAbort = new AbortController();
@@ -229,12 +231,15 @@ export class ProxyController {
     });
     res.once('close', () => {
       if (!responseFinished && !res.writableEnded) {
+        clientDisconnected = true;
+        clientAbort.abort();
         this.logger.warn(
           `Client disconnected before response completion: trace_id=${traceId} api_mode=${apiMode} provider=${currentMeta?.provider ?? 'unresolved'} model=${currentMeta?.model ?? 'unresolved'}`,
         );
-        this.recorder
+        initialCancellationWrite = this.recorder
           .recordClientCancellation(req.ingestionContext, requestId, Date.now() - startTime)
           .catch((e) => this.logger.warn(`Failed to record client cancellation: ${e}`));
+        return;
       }
       clientAbort.abort();
     });
@@ -567,6 +572,16 @@ export class ProxyController {
         startTime,
       );
     } finally {
+      if (clientDisconnected) {
+        // The first sweep starts immediately on `close`, but an already-running
+        // fallback selection can race that query and insert a pending Attempt
+        // just afterward. Once the aborted proxy chain has unwound, sweep again
+        // so no late Provider Attempt survives its terminal 499 Request.
+        await initialCancellationWrite;
+        await this.recorder
+          .recordClientCancellation(req.ingestionContext, requestId, Date.now() - startTime)
+          .catch((e) => this.logger.warn(`Failed to finalize client cancellation: ${e}`));
+      }
       if (slotAcquired) this.rateLimiter.releaseSlot(tenantId);
     }
   }

@@ -240,6 +240,7 @@ export class ProxyFallbackService {
       Array.isArray(fallbackRoutes) && fallbackRoutes.length === fallbackModels.length;
 
     for (let i = 0; i < fallbackModels.length; i++) {
+      signal?.throwIfAborted();
       if (requestDeadlineAtMs !== undefined && requestDeadlineAtMs <= Date.now()) break;
       const requestedModel = fallbackModels[i];
       const route = useStructuredRoutes ? fallbackRoutes![i] : null;
@@ -419,6 +420,7 @@ export class ProxyFallbackService {
   }
 
   async tryForwardToProvider(opts: ForwardProviderOptions): Promise<ForwardResult> {
+    opts.signal?.throwIfAborted();
     const cooldown = this.getActiveRateLimitCooldown(opts);
     if (cooldown) {
       return this.buildRateLimitCooldownForward(opts, cooldown);
@@ -463,6 +465,7 @@ export class ProxyFallbackService {
       throw new Error('Provider forward does not support wire-body retry');
     }
     if (!opts) return forward.retryWireBody(healedBody);
+    opts.signal?.throwIfAborted();
     const attempt = opts.startProviderAttempt?.({
       provider: opts.provider,
       model: opts.model,
@@ -752,6 +755,7 @@ export class ProxyFallbackService {
     const providerResource =
       authType === 'subscription' && provider.toLowerCase() === 'gemini' ? resourceUrl : undefined;
 
+    signal?.throwIfAborted();
     const attempt = opts.startProviderAttempt?.({
       provider,
       model: opts.model,
