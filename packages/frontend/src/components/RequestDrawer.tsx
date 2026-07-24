@@ -19,6 +19,7 @@ import { formatParamValue } from './MessageDetailsSections.jsx';
 import { providerIcon } from './ProviderIcon.jsx';
 import { AutofixIcon, FallbackIcon } from './message-table-cells.jsx';
 import { authBadgeFor } from './AuthBadge.js';
+import RequestMessages from './RequestMessages.jsx';
 import '../styles/request-drawer.css';
 
 export interface RequestDrawerProps {
@@ -27,7 +28,7 @@ export interface RequestDrawerProps {
   onOpenMessage?: (id: string) => void;
 }
 
-type AttemptTab = 'details' | 'headers' | 'params';
+type AttemptTab = 'details' | 'messages' | 'headers' | 'params';
 
 interface Attempt {
   id: string;
@@ -233,6 +234,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
     const att = currentAttempt();
     const tabs: Array<{ value: AttemptTab; label: string }> = [
       { value: 'details', label: 'Details' },
+      { value: 'messages', label: 'Messages' },
     ];
     if (att?.request_headers && Object.keys(att.request_headers).length > 0) {
       tabs.push({ value: 'headers', label: 'Request headers' });
@@ -394,9 +396,32 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                   <Show
                     when={currentAttempt()}
                     fallback={
-                      <div class="drawer__body" style="color: hsl(var(--muted-foreground));">
-                        Manifest rejected this request before contacting a provider.
-                      </div>
+                      <>
+                        <div class="panel__tabs drawer__tabs-full" role="tablist">
+                          <For each={visibleTabs()}>
+                            {(t) => (
+                              <button
+                                class="panel__tab"
+                                classList={{ 'panel__tab--active': tab() === t.value }}
+                                role="tab"
+                                onClick={() => setTab(t.value)}
+                              >
+                                {t.label}
+                              </button>
+                            )}
+                          </For>
+                        </div>
+                        <div class="drawer__body">
+                          <Show when={tab() === 'details'}>
+                            <div style="color: hsl(var(--muted-foreground));">
+                              Manifest rejected this request before contacting a provider.
+                            </div>
+                          </Show>
+                          <Show when={tab() === 'messages'}>
+                            <RequestMessages recording={data()?.recording ?? null} />
+                          </Show>
+                        </div>
+                      </>
                     }
                   >
                     {(att) => (
@@ -418,6 +443,11 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                         </div>
 
                         <div class="drawer__body">
+                          {/* Request-level recorded conversation */}
+                          <Show when={tab() === 'messages'}>
+                            <RequestMessages recording={data()?.recording ?? null} />
+                          </Show>
+
                           {/* Details tab */}
                           <Show when={tab() === 'details'}>
                             <div class="drawer-metadata">

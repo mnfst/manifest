@@ -22,6 +22,17 @@ export interface AutofixDecision {
 }
 
 export interface MessageDetailResponse {
+  recording: {
+    request_body: Record<string, unknown>;
+    response_body: {
+      type: 'json' | 'stream';
+      body?: unknown;
+      raw_sse?: string;
+    } | null;
+    api_format: string;
+    size_bytes: number;
+    created_at: string;
+  } | null;
   message: {
     id: string;
     timestamp: string;

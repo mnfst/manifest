@@ -10,6 +10,7 @@ import {
   Logger,
   HttpException,
   HttpStatus,
+  Optional,
 } from '@nestjs/common';
 import { Request, Response as ExpressResponse } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -63,6 +64,12 @@ import { openAiModelId } from './openai-model-id';
 import { openAiModelCapabilities, type OpenAiModelCapabilities } from './openai-model-capabilities';
 import { PlanService } from '../../billing/plan.service';
 import { StreamFailure } from './stream-writer';
+import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
+import { RequestRecordingService } from './request-recording.service';
+import {
+  createRequestRecordingCapture,
+  type RequestRecordingCapture,
+} from './request-recording-capture';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
@@ -130,6 +137,10 @@ export class ProxyController {
     private readonly observationReporter: ObservationReporter,
     private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly modelsDevSync: ModelsDevSyncService,
+    @Optional()
+    private readonly recordingCache?: AgentRecordingCacheService,
+    @Optional()
+    private readonly requestRecording?: RequestRecordingService,
   ) {}
 
   @Get('models')
@@ -233,6 +244,7 @@ export class ProxyController {
     let currentMeta: RoutingMeta | undefined;
     let currentAttempt: ProviderAttemptRef | undefined;
     let currentAttemptStart: ProviderAttemptStart | undefined;
+    let recordingCapture: RequestRecordingCapture | undefined;
 
     const clientAbort = new AbortController();
     res.once('close', () => clientAbort.abort());
@@ -251,6 +263,18 @@ export class ProxyController {
         requestHeaders,
       })
       .catch((e) => this.logger.warn(`Failed to record pending Request: ${e}`));
+
+    if (this.recordingCache && this.requestRecording) {
+      try {
+        if (await this.recordingCache.isRecording(req.ingestionContext.agentId)) {
+          recordingCapture = createRequestRecordingCapture();
+          await this.requestRecording.start(requestId, body, apiMode);
+        }
+      } catch (e) {
+        recordingCapture = undefined;
+        this.logger.warn(`Failed to start request recording: ${e}`);
+      }
+    }
 
     let attemptSequence = 0;
     const startProviderAttempt: StartProviderAttempt = (start) => {
@@ -311,7 +335,11 @@ export class ProxyController {
         callerAttribution,
         requestHeaders,
         apiMode,
+        undefined,
+        undefined,
+        recordingCapture,
       );
+      await this.finishRecording(requestId, recordingCapture);
       return;
     }
 
@@ -404,7 +432,9 @@ export class ProxyController {
           autofix,
           requestId,
           Date.now() - startTime,
+          recordingCapture,
         );
+        await this.finishRecording(requestId, recordingCapture);
         return;
       }
 
@@ -436,6 +466,7 @@ export class ProxyController {
           this.thinkingCache,
           apiMode,
           this.reasoningCache,
+          recordingCapture,
         );
       } else {
         streamUsage = await handleNonStreamResponse(
@@ -449,8 +480,11 @@ export class ProxyController {
           this.thinkingCache,
           apiMode,
           this.reasoningCache,
+          recordingCapture,
         );
       }
+
+      await this.finishRecording(requestId, recordingCapture);
 
       // A friendly stub (no provider key, no providers, usage limit) leaves the
       // proxy as an HTTP 200 assistant message, so it lands here — but it is a
@@ -501,7 +535,9 @@ export class ProxyController {
         startTime,
         currentAttempt,
         currentAttemptStart,
+        recordingCapture,
       );
+      await this.finishRecording(requestId, recordingCapture);
     } finally {
       if (slotAcquired) this.rateLimiter.releaseSlot(tenantId);
     }
@@ -560,6 +596,7 @@ export class ProxyController {
     startTime?: number,
     currentAttempt?: ProviderAttemptRef,
     currentAttemptStart?: ProviderAttemptStart,
+    capture?: RequestRecordingCapture,
   ): Promise<void> {
     if (clientAbort.signal.aborted) {
       await this.recorder
@@ -673,26 +710,27 @@ export class ProxyController {
     }
 
     if (err instanceof ResponsesSseError) {
-      res.status(err.status).json({
+      const responseBody = {
         error: buildOpenAiCompatibleError(
           err.status,
           err.body,
           meta ? { provider: meta.provider, model: meta.model } : {},
         ),
-      });
+      };
+      capture?.setJson(responseBody);
+      res.status(err.status).json(responseBody);
       return;
     }
 
     // Rate limit errors stay as HTTP 429 so clients can backoff
     if (status === 429) {
       const response = err instanceof HttpException ? err.getResponse() : message;
-      res
-        .status(429)
-        .json(
-          typeof response === 'string'
-            ? { error: { message: response, type: 'proxy_error' } }
-            : response,
-        );
+      const responseBody =
+        typeof response === 'string'
+          ? { error: { message: response, type: 'proxy_error' } }
+          : response;
+      capture?.setJson(responseBody);
+      res.status(429).json(responseBody);
       return;
     }
 
@@ -708,12 +746,25 @@ export class ProxyController {
     // friendly stub as success.
     const errorMessage =
       status >= 500 ? 'Manifest encountered an internal error. Try again shortly.' : message;
-    res.status(status).json({
+    const responseBody = {
       error: {
         message: errorMessage,
         type: status >= 500 ? 'server_error' : 'invalid_request_error',
       },
-    });
+    };
+    capture?.setJson(responseBody);
+    res.status(status).json(responseBody);
+  }
+
+  private async finishRecording(
+    requestId: string,
+    capture: RequestRecordingCapture | undefined,
+  ): Promise<void> {
+    const responseBody = capture?.buildResponseBody();
+    if (!responseBody || !this.requestRecording) return;
+    await this.requestRecording
+      .finish(requestId, responseBody)
+      .catch((e) => this.logger.warn(`Failed to finish request recording: ${e}`));
   }
 
   private writeStreamError(
