@@ -36,4 +36,18 @@ describe('SettingsRecordingSection', () => {
     expect(updateRecording).toHaveBeenCalledWith('demo', { enabled: true });
     await waitFor(() => expect(toggle.getAttribute('aria-checked')).toBe('true'));
   });
+
+  it('restores the toggle after an update fails', async () => {
+    getRecording.mockResolvedValue({ enabled: false });
+    updateRecording.mockRejectedValue(new Error('save failed'));
+    const { getByRole } = render(() => <SettingsRecordingSection agentName={() => 'demo'} />);
+    const toggle = getByRole('switch');
+
+    await waitFor(() => expect(toggle.hasAttribute('disabled')).toBe(false));
+    fireEvent.click(toggle);
+
+    expect(updateRecording).toHaveBeenCalledWith('demo', { enabled: true });
+    await waitFor(() => expect(toggle.hasAttribute('disabled')).toBe(false));
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
+  });
 });

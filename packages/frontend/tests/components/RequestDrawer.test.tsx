@@ -214,6 +214,9 @@ describe('RequestDrawer', () => {
     expect(
       screen.getByText('Manifest rejected this request before contacting a provider.'),
     ).toBeDefined();
+
+    fireEvent.click(screen.getByText('Messages'));
+    expect(screen.getByText('No messages recorded')).toBeDefined();
   });
 
   it('shows the request-level recorded conversation in the Messages tab', async () => {

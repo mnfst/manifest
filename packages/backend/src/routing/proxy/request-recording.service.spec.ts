@@ -37,6 +37,22 @@ describe('RequestRecordingService', () => {
     );
   });
 
+  it('keeps recording available when a payload cannot be serialized for accounting', async () => {
+    const requestBody: Record<string, unknown> = {};
+    requestBody.self = requestBody;
+    save.mockResolvedValue(undefined);
+
+    await service.start('request-circular', requestBody, 'chat_completions');
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_id: 'request-circular',
+        request_body: requestBody,
+        size_bytes: 0,
+      }),
+    );
+  });
+
   it('finishes the recording and accounts for both payloads', async () => {
     findOne.mockResolvedValue({ request_id: 'request-1', request_body: { input: 'hello' } });
     save.mockResolvedValue(undefined);
@@ -52,5 +68,13 @@ describe('RequestRecordingService', () => {
           Buffer.byteLength(JSON.stringify(response)),
       }),
     );
+  });
+
+  it('does nothing when the recording was not started', async () => {
+    findOne.mockResolvedValue(null);
+
+    await service.finish('missing-request', { type: 'json', body: {} });
+
+    expect(save).not.toHaveBeenCalled();
   });
 });

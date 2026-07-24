@@ -78,7 +78,8 @@ function systemMessages(value: unknown): ChatMessage[] {
 
 function anthropicMessage(message: JsonRecord): ChatMessage[] {
   const role = typeof message.role === 'string' ? message.role : 'unknown';
-  const content = Array.isArray(message.content) ? message.content : [];
+  // Callers only route array-form Anthropic content here.
+  const content = message.content as unknown[];
   const toolCalls: ToolCall[] = [];
   const normalContent: unknown[] = [];
   const toolResults: ChatMessage[] = [];

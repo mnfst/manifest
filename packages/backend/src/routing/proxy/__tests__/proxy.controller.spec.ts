@@ -501,6 +501,38 @@ describe('ProxyController', () => {
     });
   });
 
+  it('keeps routing when starting an opted-in recording fails', async () => {
+    recordingCache.isRecording.mockResolvedValue(true);
+    requestRecording.start.mockRejectedValueOnce(new Error('recording unavailable'));
+    proxyService.proxyRequest.mockRejectedValueOnce(new HttpException('Too many requests', 429));
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(mockRequest({ messages: [] }) as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(429);
+    expect(requestRecording.finish).not.toHaveBeenCalled();
+  });
+
+  it('keeps serving a captured response when finishing its recording fails', async () => {
+    recordingCache.isRecording.mockResolvedValue(true);
+    requestRecording.finish.mockRejectedValueOnce(new Error('recording unavailable'));
+    proxyService.proxyRequest.mockRejectedValueOnce(new HttpException('Too many requests', 429));
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(mockRequest({ messages: [] }) as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(429);
+    expect(requestRecording.finish).toHaveBeenCalledWith(expect.any(String), {
+      type: 'json',
+      body: {
+        error: {
+          message: 'Rate limited by upstream provider',
+          type: 'rate_limit_error',
+        },
+      },
+    });
+  });
+
   it('keeps routing when pending Request recording fails and tracks the provider attempt', async () => {
     jest.spyOn(recorder, 'recordPendingRequest').mockRejectedValueOnce(new Error('request write'));
     proxyService.proxyRequest.mockImplementation(
