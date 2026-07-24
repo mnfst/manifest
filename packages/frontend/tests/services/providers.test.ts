@@ -206,6 +206,20 @@ describe('validateApiKey', () => {
     });
     expect(validateApiKey(nvidia, 'x'.repeat(20))).toEqual({ valid: true });
   });
+
+  it('validates Meta Model API keys by length without enforcing an undocumented prefix', () => {
+    const meta = getProvider('meta')!;
+    expect(meta.keyPlaceholder).toBe('MODEL_API_KEY');
+    expect(validateApiKey(meta, '')).toEqual({
+      valid: false,
+      error: 'API key is required',
+    });
+    expect(validateApiKey(meta, 'short')).toEqual({
+      valid: false,
+      error: 'Key is too short (minimum 20 characters)',
+    });
+    expect(validateApiKey(meta, 'x'.repeat(20))).toEqual({ valid: true });
+  });
 });
 
 /* ── validateSubscriptionKey ────────────────────── */
@@ -696,6 +710,18 @@ describe('PROVIDERS', () => {
     expect(kilo.models).toEqual([]);
   });
 
+  it('Meta is an API-key provider for Muse Spark', () => {
+    const meta = PROVIDERS.find((p) => p.id === 'meta')!;
+    expect(meta).toBeDefined();
+    expect(meta.name).toBe('Meta');
+    expect(meta.supportsSubscription).toBeUndefined();
+    expect(meta.subscriptionOnly).toBeUndefined();
+    expect(meta.keyPrefix).toBe('');
+    expect(meta.keyPlaceholder).toBe('MODEL_API_KEY');
+    expect(meta.minKeyLength).toBe(20);
+    expect(meta.models).toEqual([{ label: 'Muse Spark 1.1', value: 'muse-spark-1.1' }]);
+  });
+
   it('provides an API key URL for ollama-cloud in both the API-key and subscription maps', () => {
     expect(getRoutingProviderApiKeyUrl('ollama-cloud')).toBe('https://ollama.com/settings/keys');
     expect(getSubscriptionProviderKeyUrl('ollama-cloud')).toBe('https://ollama.com/settings/keys');
@@ -745,6 +771,13 @@ describe('PROVIDERS', () => {
   it('provides an API-key URL for Kilo', () => {
     expect(getRoutingProviderApiKeyUrl('kilo')).toBe('https://app.kilo.ai');
     expect(getSubscriptionProviderKeyUrl('kilo')).toBeUndefined();
+  });
+
+  it('provides an official Meta Model API URL', () => {
+    expect(getRoutingProviderApiKeyUrl('meta')).toBe(
+      'https://ai.meta.com/blog/introducing-muse-spark-meta-model-api/',
+    );
+    expect(getSubscriptionProviderKeyUrl('meta')).toBeUndefined();
   });
 
   it('exposes a subscription-key URL for every token-mode subscription-only provider', () => {
