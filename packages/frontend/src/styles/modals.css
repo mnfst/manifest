@@ -152,6 +152,13 @@
   animation: fadeIn 150ms ease-out;
 }
 
+/* Safari can miscompose a dynamically mounted backdrop filter. */
+@supports (hanging-punctuation: first) and (font: -apple-system-body) and (-webkit-appearance: none) {
+  .modal-overlay {
+    backdrop-filter: none;
+  }
+}
+
 .dark .modal-overlay {
   background: rgb(0 0 0 / 0.7);
 }
