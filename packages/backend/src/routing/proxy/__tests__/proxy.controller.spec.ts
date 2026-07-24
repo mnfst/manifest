@@ -148,6 +148,8 @@ describe('ProxyController', () => {
   let recorder: ProxyMessageRecorder;
   let planService: { assertWithinRequestLimit: jest.Mock };
   let observationReporter: { report: jest.Mock };
+  let recordingCache: { isRecording: jest.Mock };
+  let requestRecording: { start: jest.Mock; finish: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -188,6 +190,11 @@ describe('ProxyController', () => {
     providerParamSpecs = { getCapabilities: jest.fn().mockResolvedValue(null) };
     modelsDevSync = { lookupModel: jest.fn().mockReturnValue(null) };
     observationReporter = { report: jest.fn() };
+    recordingCache = { isRecording: jest.fn().mockResolvedValue(false) };
+    requestRecording = {
+      start: jest.fn().mockResolvedValue(undefined),
+      finish: jest.fn().mockResolvedValue(undefined),
+    };
     const mockCustomProviders = {
       canonicalizeAgentMessageKeys: jest
         .fn()
@@ -222,6 +229,8 @@ describe('ProxyController', () => {
       observationReporter as never,
       providerParamSpecs as never,
       modelsDevSync as never,
+      recordingCache as never,
+      requestRecording as never,
     );
   });
 
@@ -450,6 +459,78 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     expect(headers['X-Manifest-Confidence']).toBe('0.9');
     expect(headers['X-Manifest-Reason']).toBe('scored');
+  });
+
+  it('records the request and client-facing response when the agent opted in', async () => {
+    recordingCache.isRecording.mockResolvedValue(true);
+    const responseBody = {
+      choices: [{ message: { role: 'assistant', content: 'recorded reply' } }],
+    };
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: new Response(JSON.stringify(responseBody), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+    const requestBody = { messages: [{ role: 'user', content: 'record this' }] };
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(mockRequest(requestBody) as never, res as never);
+
+    expect(recordingCache.isRecording).toHaveBeenCalledWith('agent-1');
+    expect(requestRecording.start).toHaveBeenCalledWith(
+      expect.any(String),
+      requestBody,
+      'chat_completions',
+    );
+    expect(requestRecording.finish).toHaveBeenCalledWith(requestRecording.start.mock.calls[0][0], {
+      type: 'json',
+      body: responseBody,
+    });
+  });
+
+  it('keeps routing when starting an opted-in recording fails', async () => {
+    recordingCache.isRecording.mockResolvedValue(true);
+    requestRecording.start.mockRejectedValueOnce(new Error('recording unavailable'));
+    proxyService.proxyRequest.mockRejectedValueOnce(new HttpException('Too many requests', 429));
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(mockRequest({ messages: [] }) as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(429);
+    expect(requestRecording.finish).not.toHaveBeenCalled();
+  });
+
+  it('keeps serving a captured response when finishing its recording fails', async () => {
+    recordingCache.isRecording.mockResolvedValue(true);
+    requestRecording.finish.mockRejectedValueOnce(new Error('recording unavailable'));
+    proxyService.proxyRequest.mockRejectedValueOnce(new HttpException('Too many requests', 429));
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(mockRequest({ messages: [] }) as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(429);
+    expect(requestRecording.finish).toHaveBeenCalledWith(expect.any(String), {
+      type: 'json',
+      body: {
+        error: {
+          message: 'Rate limited by upstream provider',
+          type: 'rate_limit_error',
+        },
+      },
+    });
   });
 
   it('keeps routing when pending Request recording fails and tracks the provider attempt', async () => {
@@ -1663,7 +1744,7 @@ describe('ProxyController', () => {
       expect(res.status).toHaveBeenCalledWith(429);
     });
 
-    it('should wrap string HttpException response in proxy_error envelope on 429', async () => {
+    it('should return a stable public envelope for provider 429 errors', async () => {
       rateLimiter.checkLimit.mockImplementation(() => {
         throw new HttpException('Too many requests', 429);
       });
@@ -1675,7 +1756,31 @@ describe('ProxyController', () => {
 
       expect(res.status).toHaveBeenCalledWith(429);
       expect(res.json).toHaveBeenCalledWith({
-        error: { message: 'Too many requests', type: 'proxy_error' },
+        error: { message: 'Rate limited by upstream provider', type: 'rate_limit_error' },
+      });
+    });
+
+    it('should not expose structured exception details on 429', async () => {
+      rateLimiter.checkLimit.mockImplementation(() => {
+        throw new HttpException(
+          {
+            error: {
+              message: '<script>alert("leak")</script>',
+              stack: 'Error: secret stack trace',
+            },
+          },
+          429,
+        );
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith({
+        error: { message: 'Rate limited by upstream provider', type: 'rate_limit_error' },
       });
     });
 

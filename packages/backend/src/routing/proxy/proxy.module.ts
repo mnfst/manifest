@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { ReasoningContentCacheEntry } from '../../entities/reasoning-content-cache-entry.entity';
+import { RequestRecording } from '../../entities/request-recording.entity';
 import { RoutingCoreModule } from '../routing-core/routing-core.module';
 import { ModelPricesModule } from '../../model-prices/model-prices.module';
 import { ModelDiscoveryModule } from '../../model-discovery/model-discovery.module';
@@ -28,10 +29,16 @@ import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { CodexSessionAffinity } from './codex-session-affinity';
 import { ProxyExceptionFilter } from './proxy-exception.filter';
+import { RequestRecordingService } from './request-recording.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AgentMessage, CustomProvider, ReasoningContentCacheEntry]),
+    TypeOrmModule.forFeature([
+      AgentMessage,
+      CustomProvider,
+      ReasoningContentCacheEntry,
+      RequestRecording,
+    ]),
     RoutingCoreModule,
     ModelPricesModule,
     ModelDiscoveryModule,
@@ -59,6 +66,7 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     ReasoningContentCache,
     CodexSessionAffinity,
     ProxyExceptionFilter,
+    RequestRecordingService,
   ],
   exports: [ProviderClient],
 })
