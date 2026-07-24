@@ -1072,6 +1072,54 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
+    it('resolves the Claude default alias to the best connected Anthropic subscription', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({
+          id: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          authType: 'subscription',
+          qualityScore: 4,
+        }),
+        discoveredModel({
+          id: 'claude-opus-4-8',
+          provider: 'anthropic',
+          authType: 'subscription',
+          qualityScore: 5,
+        }),
+        discoveredModel({
+          id: 'claude-opus-4-8',
+          provider: 'anthropic',
+          authType: 'api_key',
+          qualityScore: 5,
+        }),
+      ]);
+
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          headers: {
+            'user-agent': 'claude-cli/2.1.214 (external, claude-vscode)',
+            'x-stainless-timeout': '60',
+            'anthropic-beta': 'claude-code-20250219,context-1m-2025-08-07',
+          },
+          body: {
+            model: 'default',
+            max_tokens: 256,
+            messages: [{ role: 'user', content: 'classify' }],
+          },
+        }),
+      );
+
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-opus-4-8',
+        }),
+      );
+    });
+
     it('uses an Anthropic API key for the classifier when no subscription is connected', async () => {
       modelDiscovery.getModelsForAgent.mockResolvedValue([
         discoveredModel({
@@ -1086,6 +1134,7 @@ describe('ProxyService — orchestration', () => {
           apiMode: 'messages',
           headers: {
             'user-agent': 'claude-cli/2.1.212 (external, claude-vscode)',
+            'x-stainless-timeout': '60',
             'anthropic-beta': 'claude-code-20250219',
           },
           body: {
