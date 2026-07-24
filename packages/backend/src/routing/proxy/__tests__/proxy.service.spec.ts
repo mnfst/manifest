@@ -1037,12 +1037,12 @@ describe('ProxyService — orchestration', () => {
         discoveredModel({
           id: 'claude-sonnet-5',
           provider: 'anthropic',
-          authType: 'subscription',
+          authType: 'api_key',
         }),
         discoveredModel({
           id: 'claude-sonnet-5',
           provider: 'anthropic',
-          authType: 'api_key',
+          authType: 'subscription',
         }),
       ]);
 

@@ -878,16 +878,17 @@ export class ProxyService {
     const anthropicModels = models.filter(
       (model) => model.provider.toLowerCase() === 'anthropic' && model.authType,
     );
-    const candidates =
-      requestedModel === 'default'
-        ? [...anthropicModels].sort(
-            (a, b) =>
-              Number(b.authType === 'subscription') - Number(a.authType === 'subscription') ||
-              b.qualityScore - a.qualityScore ||
-              b.contextWindow - a.contextWindow ||
-              a.id.localeCompare(b.id),
-          )
-        : anthropicModels.filter((model) => model.id === requestedModel);
+    const candidates = [
+      ...(requestedModel === 'default'
+        ? anthropicModels
+        : anthropicModels.filter((model) => model.id === requestedModel)),
+    ].sort(
+      (a, b) =>
+        Number(b.authType === 'subscription') - Number(a.authType === 'subscription') ||
+        b.qualityScore - a.qualityScore ||
+        b.contextWindow - a.contextWindow ||
+        a.id.localeCompare(b.id),
+    );
     const model = candidates[0];
     if (!model?.authType) {
       this.logger.warn(
