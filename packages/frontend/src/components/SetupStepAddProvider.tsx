@@ -4,6 +4,7 @@ import OpenClawSetup from './OpenClawSetup.jsx';
 import HermesSetup from './HermesSetup.jsx';
 import NanobotSetup from './NanobotSetup.jsx';
 import CraftAgentSetup from './CraftAgentSetup.jsx';
+import N8nSetup from './N8nSetup.jsx';
 import ClaudeCodeSetup from './ClaudeCodeSetup.jsx';
 import OpenCodeSetup from './OpenCodeSetup.jsx';
 import type { ToolkitId } from '../services/framework-snippets.js';
@@ -51,11 +52,13 @@ const SetupStepAddProvider: Component<Props> = (props) => {
               ? 'Connect your Nanobot harness to Manifest'
               : props.platform === 'craft'
                 ? 'Connect your Craft harness to Manifest'
-                : props.platform === 'claude-code'
-                  ? 'Connect Claude Code to Manifest'
-                  : props.platform === 'opencode'
-                    ? 'Connect OpenCode to Manifest'
-                    : 'Connect your harness to Manifest'}
+                : props.platform === 'n8n'
+                  ? 'Connect n8n to Manifest'
+                  : props.platform === 'claude-code'
+                    ? 'Connect Claude Code to Manifest'
+                    : props.platform === 'opencode'
+                      ? 'Connect OpenCode to Manifest'
+                      : 'Connect your harness to Manifest'}
       </h3>
 
       {/* Platform-filtered mode: show only relevant content */}
@@ -72,6 +75,9 @@ const SetupStepAddProvider: Component<Props> = (props) => {
           </Match>
           <Match when={props.platform === 'craft'}>
             <CraftAgentSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'n8n'}>
+            <N8nSetup {...snippetProps()} />
           </Match>
           <Match when={props.platform === 'claude-code'}>
             <ClaudeCodeSetup {...snippetProps()} />
