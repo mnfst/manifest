@@ -280,6 +280,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Llama, Gemma, Mixtral. Fast inference',
     models: [],
   },
+  huggingface: {
+    initial: 'HF',
+    subtitle: 'Open models through Hugging Face Inference Providers',
+    models: [],
+  },
   kilo: {
     initial: 'K',
     subtitle: 'Kilo Gateway unified model access',
@@ -488,6 +493,7 @@ const PROVIDER_ORDER = [
   'copilot',
   'gemini',
   'groq',
+  'huggingface',
   'kilo',
   'kiro',
   'llamacpp',

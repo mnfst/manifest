@@ -25,6 +25,7 @@ const STREAMING_ENDPOINT_PROVIDERS = new Set([
   'fireworks',
   'gemini',
   'groq',
+  'huggingface',
   'minimax',
   'mistral',
   'moonshot',

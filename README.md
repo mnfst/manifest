@@ -81,7 +81,7 @@ Full deployment guides: [Railway](https://manifest.build/docs/deploy/railway), [
 
 ## Providers
 
-Manifest connects to **300+ models through 31 built-in provider connections** plus any custom OpenAI/Anthropic-compatible endpoint. Bring your own API key, reuse one of **18 subscription flows**, or run models locally. Everything is routed through the same `/auto` endpoint.
+Manifest connects to **300+ models through 32 built-in provider connections** plus any custom OpenAI/Anthropic-compatible endpoint. Bring your own API key, reuse one of **18 subscription flows**, or run models locally. Everything is routed through the same `/auto` endpoint.
 
 Provider catalogs are discovered dynamically when credentials are connected. The examples below are representative, not exhaustive.
 
@@ -115,6 +115,7 @@ Provider catalogs are discovered dynamically when credentials are connected. The
 | [**Cerebras**](https://www.cerebras.ai/) | ✅ | — | GPT OSS, GLM on Cerebras inference |
 | [**Fireworks AI**](https://fireworks.ai/) | ✅ | — | GLM 5.2, DeepSeek, Kimi, Qwen, Llama |
 | [**Groq**](https://groq.com/) | ✅ | — | Llama, Gemma, Mixtral |
+| [**Hugging Face**](https://huggingface.co/docs/inference-providers/) | ✅ | — | Open models through Hugging Face Inference Providers |
 | [**NVIDIA NIM**](https://build.nvidia.com/) | ✅ | — | Nemotron, Llama, Mistral |
 | [**Pioneer**](https://pioneer.ai/) | ✅ | — | OpenAI-compatible and fine-tuned Pioneer models |
 | **Custom** | ✅ | — | Any `/v1/chat/completions` or `/v1/messages` endpoint |

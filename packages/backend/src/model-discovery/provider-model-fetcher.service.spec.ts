@@ -26,6 +26,7 @@ describe('ProviderModelFetcherService', () => {
       'commandcode',
       'fireworks',
       'groq',
+      'huggingface',
       'kilo',
       'mistral',
       'mistral-subscription',
@@ -52,6 +53,134 @@ describe('ProviderModelFetcherService', () => {
     for (const id of expected) {
       expect(PROVIDER_CONFIGS[id]).toBeDefined();
     }
+  });
+
+  describe('huggingface provider', () => {
+    it('discovers chat models using the fastest live provider metadata', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'Qwen/Qwen3-Coder',
+              architecture: {
+                input_modalities: ['text', 'image', 'unknown'],
+                output_modalities: ['text'],
+              },
+              providers: [
+                {
+                  provider: 'slow-provider',
+                  status: 'live',
+                  context_length: 128000,
+                  pricing: { input: 0.2, output: 0.8 },
+                  supports_tools: false,
+                  throughput: 20,
+                },
+                {
+                  provider: 'fast-provider',
+                  status: 'live',
+                  context_length: 262144,
+                  pricing: { input: 0.5, output: 1.5 },
+                  supports_tools: true,
+                  throughput: 80,
+                },
+              ],
+            },
+            {
+              id: 'unavailable/model',
+              providers: [{ provider: 'down', status: 'error' }],
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('huggingface', 'hf_test_token');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://router.huggingface.co/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer hf_test_token' },
+        }),
+      );
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'Qwen/Qwen3-Coder',
+          provider: 'huggingface',
+          contextWindow: 262144,
+          inputPricePerToken: 0.5 / 1_000_000,
+          outputPricePerToken: 1.5 / 1_000_000,
+          capabilityCode: true,
+          capabilities: ['text', 'image', 'stream', 'tools'],
+          inputModalities: ['text', 'image'],
+          outputModalities: ['text'],
+        }),
+      ]);
+    });
+
+    it('uses safe defaults when optional provider metadata is absent', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'openai/gpt-oss-120b', providers: [{ status: 'live' }] }],
+        }),
+      });
+
+      const result = await service.fetch('huggingface', 'hf_test_token');
+
+      expect(result[0]).toMatchObject({
+        contextWindow: 128000,
+        inputPricePerToken: null,
+        outputPricePerToken: null,
+        capabilityCode: false,
+        capabilities: ['stream'],
+      });
+    });
+
+    it('ignores malformed model and provider metadata', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 42, providers: [] },
+            { id: '', providers: [] },
+            { id: 'missing-provider-array', providers: {} },
+            {
+              id: 'mixed/metadata',
+              architecture: {
+                input_modalities: ['text', 42],
+                output_modalities: [],
+              },
+              providers: [
+                null,
+                { status: 'live', throughput: 'unknown' },
+                { status: 'live', throughput: 10 },
+                { status: 'live' },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('huggingface', 'hf_test_token');
+
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'mixed/metadata',
+          capabilities: ['text', 'stream'],
+          inputModalities: ['text'],
+        }),
+      ]);
+      expect(result[0]).not.toHaveProperty('outputModalities');
+    });
+
+    it('returns no models when the catalog data is malformed', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: {} }),
+      });
+
+      await expect(service.fetch('huggingface', 'hf_test_token')).resolves.toEqual([]);
+    });
   });
 
   it('should fetch AWS Bedrock models from the selected Mantle region', async () => {

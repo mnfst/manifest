@@ -3335,6 +3335,21 @@ describe('ProviderClient', () => {
       expect(sentBody.model).toBe('nvidia/nemotron-3-super-120b-a12b');
     });
 
+    it('preserves Hugging Face model names and routing suffixes', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'huggingface',
+        apiKey: 'hf_test',
+        model: 'openai/gpt-oss-120b:cheapest',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('openai/gpt-oss-120b:cheapest');
+    });
+
     it('preserves Fireworks account model names', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -4009,6 +4024,7 @@ describe('ProviderClient', () => {
       ['moonshot', 'kimi-k2-0905-preview'],
       ['kilo', 'kilo-auto/free'],
       ['minimax', 'MiniMax-M2'],
+      ['huggingface', 'openai/gpt-oss-120b'],
       ['nvidia', 'nvidia/nemotron-3-super-120b-a12b'],
       ['qwen', 'qwen-max'],
       ['xiaomi', 'mimo-v2.5-pro'],
