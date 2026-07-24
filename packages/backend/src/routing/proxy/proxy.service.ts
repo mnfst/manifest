@@ -102,6 +102,10 @@ function remainingCodexSemanticTimeoutMs(deadlineAtMs: number): number {
   return Math.max(1, Math.min(parseCodexSemanticOutputTimeoutMs(), deadlineAtMs - Date.now()));
 }
 
+function remainingGatewayPreResponseTimeoutMs(deadlineAtMs: number): number {
+  return Math.max(1, deadlineAtMs - Date.now());
+}
+
 function isCodexSemanticTimeout(status: number, body: string): boolean {
   return (
     status === HttpStatus.GATEWAY_TIMEOUT &&
@@ -428,6 +432,7 @@ export class ProxyService {
       stream,
       sessionKey,
       signal,
+      preResponseTimeoutMs: remainingGatewayPreResponseTimeoutMs(requestDeadlineAtMs),
       semanticOutputTimeoutMs: remainingCodexSemanticTimeoutMs(requestDeadlineAtMs),
       agentId,
       tenantId,
@@ -1202,6 +1207,7 @@ export class ProxyService {
         tenantProviderId: args.primaryTenantProviderId,
         startProviderAttempt: args.startProviderAttempt,
         signal,
+        preResponseTimeoutMs: remainingGatewayPreResponseTimeoutMs(args.requestDeadlineAtMs),
         semanticOutputTimeoutMs: remainingCodexSemanticTimeoutMs(args.requestDeadlineAtMs),
       });
       if (retried.response.ok) {

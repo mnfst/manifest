@@ -30,6 +30,7 @@ interface ForwardProviderOptions {
   stream: boolean;
   sessionKey: string;
   signal?: AbortSignal;
+  preResponseTimeoutMs?: number;
   semanticOutputTimeoutMs?: number;
   authType?: string;
   rawApiKey?: string;
@@ -105,6 +106,11 @@ const PROVIDER_ATTEMPT_REF = Symbol('providerAttemptRef');
 function remainingSemanticOutputTimeoutMs(deadlineAtMs?: number): number | undefined {
   if (deadlineAtMs === undefined) return undefined;
   return Math.max(1, Math.min(parseCodexSemanticOutputTimeoutMs(), deadlineAtMs - Date.now()));
+}
+
+function remainingPreResponseTimeoutMs(deadlineAtMs?: number): number | undefined {
+  if (deadlineAtMs === undefined) return undefined;
+  return Math.max(1, deadlineAtMs - Date.now());
 }
 
 type AttemptTaggedError = Error & { [PROVIDER_ATTEMPT_REF]?: ProviderAttemptRef };
@@ -351,6 +357,7 @@ export class ProxyFallbackService {
         stream,
         sessionKey,
         signal,
+        preResponseTimeoutMs: remainingPreResponseTimeoutMs(requestDeadlineAtMs),
         semanticOutputTimeoutMs: remainingSemanticOutputTimeoutMs(requestDeadlineAtMs),
         agentId,
         tenantId,
@@ -450,7 +457,7 @@ export class ProxyFallbackService {
     opts?: Pick<
       ForwardProviderOptions,
       'provider' | 'model' | 'authType' | 'tenantProviderId' | 'startProviderAttempt' | 'signal'
-    > & { semanticOutputTimeoutMs?: number },
+    > & { preResponseTimeoutMs?: number; semanticOutputTimeoutMs?: number },
   ): Promise<ForwardResult> {
     if (!forward.retryWireBody) {
       throw new Error('Provider forward does not support wire-body retry');
@@ -464,6 +471,7 @@ export class ProxyFallbackService {
     });
     try {
       const retried = await forward.retryWireBody(healedBody, {
+        preResponseTimeoutMs: opts.preResponseTimeoutMs,
         semanticOutputTimeoutMs: opts.semanticOutputTimeoutMs,
       });
       if (attempt) attempt.completedAtMs = Date.now();
@@ -759,6 +767,7 @@ export class ProxyFallbackService {
         chatBody,
         stream,
         signal,
+        preResponseTimeoutMs: opts.preResponseTimeoutMs,
         semanticOutputTimeoutMs: opts.semanticOutputTimeoutMs,
         extraHeaders,
         customEndpoint,

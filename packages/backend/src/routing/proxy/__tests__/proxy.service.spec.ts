@@ -1908,6 +1908,7 @@ describe('ProxyService — orchestration', () => {
           model: 'gpt-5.6-sol',
           authType: 'subscription',
           semanticOutputTimeoutMs: 44_000,
+          preResponseTimeoutMs: 44_000,
         }),
       );
       expect(result.forward.response.status).toBe(200);

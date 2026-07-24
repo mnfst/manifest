@@ -81,6 +81,12 @@ export interface ForwardOptions {
   stream: boolean;
   signal?: AbortSignal;
   /**
+   * Maximum time for this provider attempt to return response headers. The
+   * timer is released after headers arrive, so active streaming bodies remain
+   * governed by the provider idle watchdog rather than the gateway deadline.
+   */
+  preResponseTimeoutMs?: number;
+  /**
    * Maximum time to wait for semantically useful Codex output before the
    * response is eligible for retry/fallback. This is attempt-scoped and does
    * not terminate an active stream after useful output has begun.

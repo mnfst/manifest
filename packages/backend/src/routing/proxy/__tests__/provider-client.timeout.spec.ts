@@ -68,6 +68,41 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
     expect(finalSignal.aborted).toBe(true);
   }, 5000);
 
+  it('uses a shorter attempt pre-response budget for provider startup', async () => {
+    process.env.PROVIDER_TIMEOUT_MS = '60000';
+    process.env.PROVIDER_STREAM_TIMEOUT_MS = '60000';
+
+    let abortObserved = false;
+    mockFetch.mockImplementation((_url: string, init: RequestInit) => {
+      const sig = init.signal as AbortSignal;
+      return new Promise((_resolve, reject) => {
+        sig.addEventListener('abort', () => {
+          abortObserved = true;
+          reject(new Error('The operation was aborted'));
+        });
+      });
+    });
+
+    await jest.isolateModulesAsync(async () => {
+      const { ProviderClient: FreshClient } = await import('../provider-client');
+      const fresh = new FreshClient();
+      await expect(
+        fresh.forward({
+          provider: 'openai',
+          apiKey: 'sk-test',
+          model: 'gpt-4o',
+          body,
+          stream: true,
+          preResponseTimeoutMs: 25,
+        }),
+      ).rejects.toThrow(/aborted/i);
+    });
+
+    expect(abortObserved).toBe(true);
+    const finalSignal = (mockFetch.mock.calls[0][1] as RequestInit).signal as AbortSignal;
+    expect(finalSignal.aborted).toBe(true);
+  }, 5000);
+
   it('does NOT abort fetch when neither client signal nor timeout has elapsed', async () => {
     // Long timeout so it never fires inside the assertion window.
     process.env.PROVIDER_TIMEOUT_MS = '60000';

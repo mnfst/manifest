@@ -1236,6 +1236,8 @@ describe('ProxyFallbackService', () => {
         authType: 'api_key',
         tenantProviderId: 'connection-1',
         startProviderAttempt,
+        preResponseTimeoutMs: 12_000,
+        semanticOutputTimeoutMs: 11_000,
       });
 
       expect(startProviderAttempt).toHaveBeenCalledWith({
@@ -1247,6 +1249,10 @@ describe('ProxyFallbackService', () => {
       expect(result.attempt).toBe(attempt);
       expect(result.providerCallStarted).toBe(true);
       expect(attempt).toEqual(expect.objectContaining({ completedAtMs: expect.any(Number) }));
+      expect(retryWireBody).toHaveBeenCalledWith(healedBody, {
+        preResponseTimeoutMs: 12_000,
+        semanticOutputTimeoutMs: 11_000,
+      });
       expect(providerClient.forward).not.toHaveBeenCalled();
     });
 
@@ -1313,6 +1319,36 @@ describe('ProxyFallbackService', () => {
       expect(result.success!.provider).toBe('Anthropic');
       expect(result.success!.fallbackIndex).toBe(0);
       expect(result.failures).toHaveLength(0);
+    });
+
+    it('bounds fallback provider startup and semantic output by the request deadline', async () => {
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-ant');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+      pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
+      const deadline = Date.now() + 30_000;
+      const args: Parameters<typeof service.tryFallbacks> = [
+        'agent-1',
+        'tenant-1',
+        ['claude-sonnet-4'],
+        body,
+        true,
+        'sess-1',
+        'gpt-5.6-sol',
+      ];
+      args[19] = deadline;
+
+      await service.tryFallbacks(...args);
+
+      const forwarded = providerClient.forward.mock.calls[0][0];
+      expect(forwarded.preResponseTimeoutMs).toBeGreaterThan(29_000);
+      expect(forwarded.preResponseTimeoutMs).toBeLessThanOrEqual(30_000);
+      expect(forwarded.semanticOutputTimeoutMs).toBeGreaterThan(29_000);
+      expect(forwarded.semanticOutputTimeoutMs).toBeLessThanOrEqual(30_000);
     });
 
     it('returns null success when all fallbacks fail', async () => {
