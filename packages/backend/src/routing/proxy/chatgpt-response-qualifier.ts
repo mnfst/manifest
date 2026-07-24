@@ -64,7 +64,11 @@ function hasUsableOutput(output: Record<string, unknown>[]): boolean {
 }
 
 function isDeliverable(event: ParsedEvent): boolean {
-  if (event.type === 'response.output_text.delta') {
+  if (
+    event.type === 'response.output_text.delta' ||
+    event.type === 'response.reasoning_summary.delta' ||
+    event.type === 'response.reasoning_summary_text.delta'
+  ) {
     return typeof event.data.delta === 'string' && event.data.delta.length > 0;
   }
   if (event.type !== 'response.output_item.added') return false;

@@ -584,7 +584,6 @@ export function createAnthropicPassthroughStreamValidator(): AnthropicPassthroug
           if (typeof block.thinking === 'string') thinkingCharacters += block.thinking.length;
           if (
             (typeof block.text === 'string' && block.text.trim()) ||
-            (typeof block.thinking === 'string' && block.thinking.trim()) ||
             (typeof block.data === 'string' && block.data.trim()) ||
             (typeof block.name === 'string' && block.name.trim()) ||
             (Array.isArray(block.content) && block.content.length > 0)
@@ -603,10 +602,7 @@ export function createAnthropicPassthroughStreamValidator(): AnthropicPassthroug
             const block = openBlocks.get(index);
             if (block) block.toolArguments += delta.partial_json;
           }
-          if (
-            (typeof delta.text === 'string' && delta.text.trim()) ||
-            (typeof delta.thinking === 'string' && delta.thinking.trim())
-          ) {
+          if (typeof delta.text === 'string' && delta.text.trim()) {
             hasMeaningfulOutput = true;
           }
         }
@@ -748,7 +744,6 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     if (typeof delta.reasoning_content === 'string' && delta.reasoning_content.length > 0) {
       state.thinkingCharacters += delta.reasoning_content.length;
       if (!hasOpenToolCall(state)) {
-        if (delta.reasoning_content.trim().length > 0) state.hasMeaningfulOutput = true;
         closeTextBlock(state, events);
         if (!state.thinkingOpened) {
           state.thinkingIndex = nextBlockIndex(state);

@@ -787,6 +787,28 @@ describe('Anthropic Messages adapter', () => {
       expect(sse).not.toContain('message_stop');
     });
 
+    it('streams thinking progress but rejects a terminal thinking-only completion', () => {
+      const t = createMessagesStreamTransformer('gpt-5');
+      const sse = flushChunks(t, [
+        'data: {"choices":[{"delta":{"reasoning_content":"Still planning"}}]}\n\n',
+        'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n',
+        'data: [DONE]\n\n',
+      ]);
+
+      expect(sse).toContain('thinking_delta');
+      expect(sse).toContain('Still planning');
+      expect(sse).toContain('event: error');
+      expect(sse).toContain('Upstream provider returned an empty completion');
+      expect(sse).not.toContain('message_stop');
+      expect(t.getEvidence()).toEqual(
+        expect.objectContaining({
+          thinking_characters: 14,
+          meaningful_output: false,
+          terminal_event: 'error',
+        }),
+      );
+    });
+
     it('rejects a truncated SSE stream that emitted content without a terminal event', () => {
       const t = createMessagesStreamTransformer('gpt-5');
       const sse = flushChunks(t, ['data: {"choices":[{"delta":{"content":"partial"}}]}\n\n']);
@@ -897,7 +919,7 @@ describe('Anthropic Messages adapter', () => {
       expect(events[6].data.delta).toEqual({ type: 'text_delta', text: '42' });
     });
 
-    it('closes the thinking block on finalize when the stream emits only reasoning_content', () => {
+    it('fails a stream that finalizes with only reasoning_content', () => {
       const t = createMessagesStreamTransformer('deepseek-v4-flash');
       const sse = flushChunks(t, [
         'data: {"choices":[{"delta":{"reasoning_content":"hmm"}}]}\n\n',
@@ -907,9 +929,9 @@ describe('Anthropic Messages adapter', () => {
         'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}',
       );
       expect(sse).toContain('"delta":{"type":"thinking_delta","thinking":"hmm"}');
-      expect(sse).toContain(
-        'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}',
-      );
+      expect(sse).toContain('event: error');
+      expect(sse).toContain('Upstream provider returned an empty completion');
+      expect(sse).not.toContain('message_stop');
     });
 
     it('closes the thinking block before opening a tool_use block', () => {
@@ -1388,6 +1410,30 @@ describe('Anthropic Messages adapter', () => {
       expect(validator.getFailure()).toBeNull();
     });
 
+    it('rejects a native thinking-only completion after streaming its progress', () => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe(
+        'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}\n\n',
+      );
+      validator.observe(
+        'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"Still planning"}}\n\n',
+      );
+      validator.observe(
+        'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}\n\n',
+      );
+      validator.observe('event: message_stop\ndata: {"type":"message_stop"}\n\n');
+
+      expect(validator.finalize()).toContain('Upstream provider returned an empty completion');
+      expect(validator.getFailure()?.status).toBe(502);
+      expect(validator.getEvidence()).toEqual(
+        expect.objectContaining({
+          thinking_characters: 14,
+          meaningful_output: false,
+          terminal_event: 'error',
+        }),
+      );
+    });
+
     it('marks an upstream Anthropic error event as failed telemetry', () => {
       const validator = createAnthropicPassthroughStreamValidator();
       validator.observe(
@@ -1400,7 +1446,6 @@ describe('Anthropic Messages adapter', () => {
 
     it.each([
       ['text', { type: 'text', text: 'hello' }],
-      ['thinking', { type: 'thinking', thinking: 'working' }],
       ['data', { type: 'document', data: 'payload' }],
       ['tool name', { type: 'tool_use', name: 'read_file' }],
       ['nested content', { type: 'container', content: [{ type: 'text', text: 'inside' }] }],
