@@ -169,6 +169,9 @@ export interface PendingRequestOpts {
   requestHeaders?: Record<string, string> | null;
 }
 
+const CLIENT_CLOSED_HTTP_STATUS = 499;
+const CLIENT_CLOSED_MESSAGE = 'Client disconnected before response completion';
+
 export interface FallbackSuccessOpts extends HeaderTierRef {
   requestId?: string;
   attemptNumber?: number;
@@ -506,6 +509,51 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       }),
     );
     return true;
+  }
+
+  /**
+   * Close every still-pending row for a request when the downstream caller
+   * disconnects. The provider AbortSignal is best-effort and can race with
+   * fallback startup, so the conditional updates deliberately cover both the
+   * parent Request and any provider Attempts that reached the call boundary.
+   */
+  async recordClientCancellation(
+    ctx: IngestionContext,
+    requestId: string,
+    durationMs: number,
+  ): Promise<void> {
+    const terminal = {
+      status: normalizeStatus('error'),
+      duration_ms: Math.max(0, durationMs),
+      error_message: CLIENT_CLOSED_MESSAGE,
+      error_http_status: CLIENT_CLOSED_HTTP_STATUS,
+      error_origin: 'request',
+      error_class: 'client_error',
+      superseded: false,
+    };
+    await this.messageRepo.update(
+      { request_id: requestId, status: PENDING_STATUS },
+      terminal as Partial<AgentMessage>,
+    );
+
+    const getRepository = this.messageRepo.manager?.getRepository?.bind(this.messageRepo.manager);
+    if (getRepository) {
+      const requestRepo = getRepository(ManifestRequest);
+      if (typeof requestRepo.update === 'function') {
+        await requestRepo.update(
+          { id: requestId, status: PENDING_STATUS },
+          {
+            status: normalizeStatus('error'),
+            duration_ms: Math.max(0, durationMs),
+            error_message: CLIENT_CLOSED_MESSAGE,
+            error_http_status: CLIENT_CLOSED_HTTP_STATUS,
+            error_origin: 'request',
+            error_class: 'client_error',
+          },
+        );
+      }
+    }
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
   /** Complete an intermediate provider call that is retried below the proxy layer. */

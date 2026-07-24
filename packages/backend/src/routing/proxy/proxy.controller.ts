@@ -221,6 +221,7 @@ export class ProxyController {
     let slotAcquired = false;
     let currentMeta: RoutingMeta | undefined;
     let responseFinished = false;
+    const startTime = Date.now();
 
     const clientAbort = new AbortController();
     res.once('finish', () => {
@@ -231,10 +232,12 @@ export class ProxyController {
         this.logger.warn(
           `Client disconnected before response completion: trace_id=${traceId} api_mode=${apiMode} provider=${currentMeta?.provider ?? 'unresolved'} model=${currentMeta?.model ?? 'unresolved'}`,
         );
+        this.recorder
+          .recordClientCancellation(req.ingestionContext, requestId, Date.now() - startTime)
+          .catch((e) => this.logger.warn(`Failed to record client cancellation: ${e}`));
       }
       clientAbort.abort();
     });
-    const startTime = Date.now();
 
     // The Request exists as pending from ingress, before Manifest routes it or
     // starts any provider call. A recording failure must not reject user traffic.

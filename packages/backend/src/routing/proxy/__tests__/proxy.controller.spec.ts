@@ -26,10 +26,12 @@ function mockResponse(): {
   res: Record<string, jest.Mock | boolean | number>;
   written: string[];
   headers: Record<string, string>;
+  listeners: Record<string, () => void>;
   statusCode: number;
 } {
   const written: string[] = [];
   const headers: Record<string, string> = {};
+  const listeners: Record<string, () => void> = {};
   let statusCode = 200;
   const res: Record<string, jest.Mock | boolean | number> = {
     setHeader: jest.fn((k: string, v: string) => {
@@ -46,13 +48,16 @@ function mockResponse(): {
       statusCode = code;
       return res;
     }),
-    once: jest.fn(),
+    once: jest.fn((event: string, listener: () => void) => {
+      listeners[event] = listener;
+    }),
     writableEnded: false,
   };
   return {
     res,
     written,
     headers,
+    listeners,
     get statusCode() {
       return statusCode;
     },
@@ -567,6 +572,44 @@ describe('ProxyController', () => {
     await controller.chatCompletions(req as never, res as never);
 
     expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  it('completes pending telemetry as a client cancellation when the caller disconnects', async () => {
+    proxyService.proxyRequest.mockImplementation(
+      async (opts: { signal: AbortSignal; startProviderAttempt: StartProviderAttempt }) => {
+        const attempt = opts.startProviderAttempt({
+          provider: 'openai',
+          model: 'gpt-5.6-sol',
+          authType: 'subscription',
+        });
+        await attempt.pendingWrite;
+        await new Promise<void>((_resolve, reject) => {
+          opts.signal.addEventListener('abort', () => reject(new Error('client aborted')), {
+            once: true,
+          });
+        });
+        throw new Error('unreachable');
+      },
+    );
+
+    const req = mockRequest({ stream: true, messages: [{ role: 'user', content: 'hi' }] });
+    const { res, listeners } = mockResponse();
+    const pending = controller.messages(req as never, res as never);
+    await flushRecorderMicrotasks();
+
+    listeners.close();
+    await pending;
+    await flushRecorderMicrotasks();
+
+    expect(mockMessageRepo.update).toHaveBeenCalledWith(
+      expect.objectContaining({ request_id: expect.any(String), status: 'pending' }),
+      expect.objectContaining({
+        status: 'failed',
+        error_http_status: 499,
+        error_origin: 'request',
+        error_class: 'client_error',
+      }),
+    );
   });
 
   it('enforces the plan request limit before routing and records a Manifest policy row', async () => {
