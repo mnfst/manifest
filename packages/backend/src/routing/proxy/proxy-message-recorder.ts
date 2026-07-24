@@ -522,19 +522,27 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     requestId: string,
     durationMs: number,
   ): Promise<void> {
-    const terminal = {
-      status: normalizeStatus('error'),
-      duration_ms: Math.max(0, durationMs),
-      error_message: CLIENT_CLOSED_MESSAGE,
-      error_http_status: CLIENT_CLOSED_HTTP_STATUS,
-      error_origin: 'request',
-      error_class: 'client_error',
-      superseded: false,
-    };
-    await this.messageRepo.update(
-      { request_id: requestId, status: PENDING_STATUS },
-      terminal as Partial<AgentMessage>,
-    );
+    const completedAtMs = Date.now();
+    const pendingAttempts = await this.messageRepo.find({
+      select: { id: true, timestamp: true, attempt_number: true },
+      where: { request_id: requestId, status: PENDING_STATUS },
+      order: { attempt_number: 'ASC' },
+    });
+    for (let index = 0; index < pendingAttempts.length; index++) {
+      const attempt = pendingAttempts[index];
+      const startedAtMs = new Date(attempt.timestamp).getTime();
+      await this.messageRepo.update({ id: attempt.id, status: PENDING_STATUS }, {
+        status: normalizeStatus('error'),
+        duration_ms: Number.isFinite(startedAtMs)
+          ? Math.max(0, completedAtMs - startedAtMs)
+          : Math.max(0, durationMs),
+        error_message: CLIENT_CLOSED_MESSAGE,
+        error_http_status: CLIENT_CLOSED_HTTP_STATUS,
+        error_origin: 'request',
+        error_class: 'client_error',
+        superseded: index < pendingAttempts.length - 1,
+      } as Partial<AgentMessage>);
+    }
 
     const getRepository = this.messageRepo.manager?.getRepository?.bind(this.messageRepo.manager);
     if (getRepository) {

@@ -575,6 +575,18 @@ describe('ProxyController', () => {
   });
 
   it('completes pending telemetry as a client cancellation when the caller disconnects', async () => {
+    mockMessageRepo.find.mockResolvedValueOnce([
+      {
+        id: 'pending-primary',
+        timestamp: new Date(Date.now() - 50).toISOString(),
+        attempt_number: 1,
+      },
+      {
+        id: 'pending-last-attempt',
+        timestamp: new Date(Date.now() - 25).toISOString(),
+        attempt_number: 2,
+      },
+    ]);
     proxyService.proxyRequest.mockImplementation(
       async (opts: { signal: AbortSignal; startProviderAttempt: StartProviderAttempt }) => {
         const attempt = opts.startProviderAttempt({
@@ -602,12 +614,23 @@ describe('ProxyController', () => {
     await flushRecorderMicrotasks();
 
     expect(mockMessageRepo.update).toHaveBeenCalledWith(
-      expect.objectContaining({ request_id: expect.any(String), status: 'pending' }),
+      { id: 'pending-primary', status: 'pending' },
       expect.objectContaining({
         status: 'failed',
         error_http_status: 499,
         error_origin: 'request',
         error_class: 'client_error',
+        superseded: true,
+      }),
+    );
+    expect(mockMessageRepo.update).toHaveBeenCalledWith(
+      { id: 'pending-last-attempt', status: 'pending' },
+      expect.objectContaining({
+        status: 'failed',
+        error_http_status: 499,
+        error_origin: 'request',
+        error_class: 'client_error',
+        superseded: false,
       }),
     );
   });
