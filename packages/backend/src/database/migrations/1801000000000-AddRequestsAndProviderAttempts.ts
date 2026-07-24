@@ -161,6 +161,10 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
       `ALTER TABLE "agent_messages" DROP CONSTRAINT IF EXISTS "FK_agent_messages_request"`,
     );
     await queryRunner.query(`ALTER TABLE "agent_messages" DROP COLUMN IF EXISTS "request_id"`);
+    // Migration tests and manual recovery can invoke this historical down()
+    // directly after newer migrations have run. Remove the newer dependent
+    // table first so PostgreSQL can safely drop requests.
+    await queryRunner.query(`DROP TABLE IF EXISTS "request_recordings"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "requests"`);
   }
 }

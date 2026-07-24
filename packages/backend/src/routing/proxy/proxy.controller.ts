@@ -657,11 +657,17 @@ export class ProxyController {
 
     // Rate limit errors stay as HTTP 429 so clients can backoff
     if (status === 429) {
-      const response = err instanceof HttpException ? err.getResponse() : message;
-      const responseBody =
-        typeof response === 'string'
-          ? { error: { message: response, type: 'proxy_error' } }
-          : response;
+      // Never return the exception response object itself: framework and
+      // provider exceptions can carry stack traces or markup. Manifest's
+      // rate-limit messages come from our static catalogue; provider failures
+      // use a stable public message.
+      const rateLimitMessage =
+        err instanceof ManifestError
+          ? formatManifestError(err.code)
+          : 'Rate limited by upstream provider';
+      const responseBody = {
+        error: { message: rateLimitMessage, type: 'rate_limit_error' },
+      };
       capture?.setJson(responseBody);
       res.status(429).json(responseBody);
       return;

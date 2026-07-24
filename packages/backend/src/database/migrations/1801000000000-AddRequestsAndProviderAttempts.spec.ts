@@ -193,7 +193,11 @@ describe('AddRequestsAndProviderAttempts1801000000000', () => {
 
     const sql = queries.join('\n');
     expect(sql).toContain('DROP COLUMN IF EXISTS "request_id"');
+    expect(sql).toContain('DROP TABLE IF EXISTS "request_recordings"');
     expect(sql).toContain('DROP TABLE IF EXISTS "requests"');
+    expect(
+      queries.findIndex((query) => query.includes('DROP TABLE IF EXISTS "request_recordings"')),
+    ).toBeLessThan(queries.findIndex((query) => query.includes('DROP TABLE IF EXISTS "requests"')));
     expect(sql).not.toContain('DROP VIEW');
     expect(sql).not.toContain('RENAME');
   });

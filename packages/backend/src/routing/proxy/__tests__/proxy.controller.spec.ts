@@ -1712,7 +1712,7 @@ describe('ProxyController', () => {
       expect(res.status).toHaveBeenCalledWith(429);
     });
 
-    it('should wrap string HttpException response in proxy_error envelope on 429', async () => {
+    it('should return a stable public envelope for provider 429 errors', async () => {
       rateLimiter.checkLimit.mockImplementation(() => {
         throw new HttpException('Too many requests', 429);
       });
@@ -1724,7 +1724,31 @@ describe('ProxyController', () => {
 
       expect(res.status).toHaveBeenCalledWith(429);
       expect(res.json).toHaveBeenCalledWith({
-        error: { message: 'Too many requests', type: 'proxy_error' },
+        error: { message: 'Rate limited by upstream provider', type: 'rate_limit_error' },
+      });
+    });
+
+    it('should not expose structured exception details on 429', async () => {
+      rateLimiter.checkLimit.mockImplementation(() => {
+        throw new HttpException(
+          {
+            error: {
+              message: '<script>alert("leak")</script>',
+              stack: 'Error: secret stack trace',
+            },
+          },
+          429,
+        );
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith({
+        error: { message: 'Rate limited by upstream provider', type: 'rate_limit_error' },
       });
     });
 
