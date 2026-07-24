@@ -47,7 +47,10 @@ export interface ForwardResult {
   /** Provider-facing API shape of {@link wireRequestBody}. */
   wireApiMode?: ProxyApiMode;
   /** Re-send a healed wire body through the already-resolved transport. */
-  retryWireBody?: (body: Record<string, unknown>) => Promise<ForwardResult>;
+  retryWireBody?: (
+    body: Record<string, unknown>,
+    options?: { semanticOutputTimeoutMs?: number },
+  ) => Promise<ForwardResult>;
   /** False only when Manifest produced a response without invoking provider transport. */
   providerCallStarted?: boolean;
   /** Persisted provider-call identity, when request tracking is available. */
@@ -442,6 +445,7 @@ export class ProviderClient {
 
     const retryWireBody = async (
       wireRequestBody: Record<string, unknown>,
+      retryOptions?: { semanticOutputTimeoutMs?: number },
     ): Promise<ForwardResult> => {
       this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 
@@ -473,6 +477,7 @@ export class ProviderClient {
               ...result,
               response: await qualifyChatGptResponse(result.response, {
                 downstreamFormat: isResponses ? 'responses' : 'chat-completions',
+                timeoutMs: retryOptions?.semanticOutputTimeoutMs ?? opts.semanticOutputTimeoutMs,
               }),
             }
           : result;

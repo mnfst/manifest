@@ -543,7 +543,9 @@ export class ProxyController {
           autofix,
           requestId,
           currentPrimaryAttemptNumber(autofix) +
-            (meta.fallbackFromModel ? (failedFallbacks?.length ?? 0) + 1 : 0),
+            (meta.fallbackFromModel || meta.retryFromModel
+              ? (failedFallbacks?.length ?? 0) + 1
+              : 0),
         );
       }
     } catch (err: unknown) {

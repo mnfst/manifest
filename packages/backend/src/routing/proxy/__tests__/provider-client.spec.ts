@@ -1448,6 +1448,56 @@ describe('ProviderClient', () => {
       });
     });
 
+    it('applies an attempt-specific semantic timeout to initial and exact-body retry forwards', async () => {
+      const silentStream = () =>
+        new ReadableStream<Uint8Array>({
+          start() {
+            // Deliberately silent: the qualifier must end the attempt.
+          },
+        });
+      mockFetch
+        .mockResolvedValueOnce(
+          new Response(silentStream(), {
+            status: 200,
+            headers: { 'content-type': 'text/event-stream' },
+          }),
+        )
+        .mockResolvedValueOnce(
+          new Response(silentStream(), {
+            status: 200,
+            headers: { 'content-type': 'text/event-stream' },
+          }),
+        );
+
+      const first = await client.forward({
+        provider: 'openai',
+        apiKey: 'oauth-token',
+        model: 'gpt-5',
+        body,
+        stream: true,
+        authType: 'subscription',
+        semanticOutputTimeoutMs: 20,
+      });
+      expect(first.response.status).toBe(504);
+      await expect(first.response.clone().json()).resolves.toMatchObject({
+        error: {
+          code: 'stream_timeout',
+          message: expect.stringContaining('20ms'),
+        },
+      });
+
+      const retry = await first.retryWireBody!(first.wireRequestBody!, {
+        semanticOutputTimeoutMs: 5,
+      });
+      expect(retry.response.status).toBe(504);
+      await expect(retry.response.json()).resolves.toMatchObject({
+        error: {
+          code: 'stream_timeout',
+          message: expect.stringContaining('5ms'),
+        },
+      });
+    });
+
     it('does not apply Codex stream qualification to API-key Responses requests', async () => {
       const upstream = new Response('{"output":[]}', {
         status: 200,

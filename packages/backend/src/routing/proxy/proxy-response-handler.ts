@@ -648,7 +648,8 @@ export function recordFallbackFailures(
   autofix?: AutofixRecord,
   requestId: string = uuid(),
 ): string | undefined {
-  if (!meta.fallbackFromModel) return undefined;
+  const recoverySourceModel = meta.fallbackFromModel ?? meta.retryFromModel;
+  if (!recoverySourceModel) return undefined;
 
   const fallbackBaseTime = Date.now();
   const failures = failedFallbacks ?? [];
@@ -668,7 +669,7 @@ export function recordFallbackFailures(
     requestHeaders,
     requestId,
     {
-      model: meta.fallbackFromModel,
+      model: recoverySourceModel,
       provider: meta.primaryProvider,
       authType: primaryAuthType,
       tenantProviderId: meta.primaryTenantProviderId,
@@ -678,7 +679,7 @@ export function recordFallbackFailures(
     recorder.recordPrimaryFailure(
       ctx,
       meta.tier,
-      meta.fallbackFromModel,
+      recoverySourceModel,
       meta.primaryErrorBody ?? `Provider returned HTTP ${meta.primaryErrorStatus ?? 500}`,
       new Date(fallbackBaseTime).toISOString(),
       primaryAuthType,
@@ -717,7 +718,7 @@ export function recordFallbackFailures(
 
   if (failures.length > 0) {
     recordSafely(
-      recorder.recordFailedFallbacks(ctx, meta.tier, meta.fallbackFromModel, failures, {
+      recorder.recordFailedFallbacks(ctx, meta.tier, recoverySourceModel, failures, {
         requestId,
         firstAttemptNumber: primaryAttemptNumber + 1,
         baseTimeMs: fallbackBaseTime,
@@ -1162,7 +1163,7 @@ export function recordSuccess(
 
   // Fallback-success flows recorded the original and failed retry above in
   // recordFallbackFailures. A direct Auto-fix success records its original here.
-  if (!meta.fallbackFromModel) {
+  if (!meta.fallbackFromModel && !meta.retryFromModel) {
     recordAutofixOriginalIfRetried(
       ctx,
       meta,

@@ -778,8 +778,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           provider: canonical.provider,
           routing_tier: tier,
           routing_reason: reason ?? null,
-          fallback_from_model: canonicalPrimary.model,
-          fallback_index: f.fallbackIndex,
+          fallback_from_model: f.recoveryKind === 'retry' ? null : canonicalPrimary.model,
+          fallback_index: f.recoveryKind === 'retry' ? null : f.fallbackIndex,
           auth_type: recordedAuth,
           // Per-failure connection: each failed fallback carries its own key id.
           tenant_provider_id: f.tenantProviderId ?? null,

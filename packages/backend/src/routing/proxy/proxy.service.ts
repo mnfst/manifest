@@ -63,6 +63,7 @@ import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-gu
 import { OPENAI_MODEL_ID_AUTO, routeForOpenAiModelId } from './openai-model-id';
 import { AutofixService } from '../autofix/autofix.service';
 import type { AutofixRecord } from '../autofix/autofix.types';
+import { parseCodexSemanticOutputTimeoutMs } from './chatgpt-response-qualifier';
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>> & {
   explicit_model_override?: boolean;
@@ -78,6 +79,35 @@ type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>> & {
  */
 const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
+export const DEFAULT_GATEWAY_PRE_RESPONSE_BUDGET_MS = 105_000;
+const MAX_GATEWAY_PRE_RESPONSE_BUDGET_MS = 110_000;
+const MIN_GATEWAY_PRE_RESPONSE_BUDGET_MS = 10_000;
+const MIN_SAME_ROUTE_RETRY_BUDGET_MS = 5_000;
+
+export function parseGatewayPreResponseBudgetMs(rawValue: unknown): number {
+  const parsed =
+    typeof rawValue === 'number'
+      ? rawValue
+      : typeof rawValue === 'string' && /^\d+$/.test(rawValue)
+        ? Number(rawValue)
+        : Number.NaN;
+  return Number.isSafeInteger(parsed) &&
+    parsed >= MIN_GATEWAY_PRE_RESPONSE_BUDGET_MS &&
+    parsed <= MAX_GATEWAY_PRE_RESPONSE_BUDGET_MS
+    ? parsed
+    : DEFAULT_GATEWAY_PRE_RESPONSE_BUDGET_MS;
+}
+
+function remainingCodexSemanticTimeoutMs(deadlineAtMs: number): number {
+  return Math.max(1, Math.min(parseCodexSemanticOutputTimeoutMs(), deadlineAtMs - Date.now()));
+}
+
+function isCodexSemanticTimeout(status: number, body: string): boolean {
+  return (
+    status === HttpStatus.GATEWAY_TIMEOUT &&
+    (/"code"\s*:\s*"stream_timeout"/.test(body) || body.includes('produced no text or tool output'))
+  );
+}
 
 /**
  * Claude Code's Permission Auto classifier is a separate control-plane call.
@@ -140,6 +170,8 @@ export interface RoutingMeta {
    */
   tenantProviderId?: string | null;
   fallbackFromModel?: string;
+  /** Present when a silent primary recovered on one bounded same-route retry. */
+  retryFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
   primaryErrorBody?: string;
@@ -252,6 +284,11 @@ export class ProxyService {
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
+    const requestDeadlineAtMs =
+      Date.now() +
+      parseGatewayPreResponseBudgetMs(
+        this.config.get<string | number>('GATEWAY_PRE_RESPONSE_BUDGET_MS'),
+      );
     const {
       agentId,
       tenantId,
@@ -391,6 +428,7 @@ export class ProxyService {
       stream,
       sessionKey,
       signal,
+      semanticOutputTimeoutMs: remainingCodexSemanticTimeoutMs(requestDeadlineAtMs),
       agentId,
       tenantId,
       rawApiKey: credentials.rawApiKey,
@@ -485,6 +523,7 @@ export class ProxyService {
         primaryTenantProviderId: credentials.tenantProviderId,
         requestContext,
         startProviderAttempt,
+        requestDeadlineAtMs,
       });
       if (fallbackResult) {
         return {
@@ -577,6 +616,7 @@ export class ProxyService {
           primaryTenantProviderId: credentials.tenantProviderId,
           requestContext,
           startProviderAttempt,
+          requestDeadlineAtMs,
         });
         if (fallbackResult) {
           return {
@@ -993,6 +1033,7 @@ export class ProxyService {
     primaryTenantProviderId: string | null;
     requestContext?: ProxyRequestOptions['requestContext'];
     startProviderAttempt?: StartProviderAttempt;
+    requestDeadlineAtMs: number;
   }): Promise<ProxyResult | null> {
     const {
       agentId,
@@ -1023,34 +1064,39 @@ export class ProxyService {
         (route) => !routeEquals(route, resolved.route),
       );
     }
-    if (!fallbackRoutes || fallbackRoutes.length === 0) return null;
-    const fallbackModels = fallbackRoutes.map((r) => r.model);
-
     const primaryStatus = forward.response.status;
-    const primaryErrorBody = await forward.response.text();
+    // Clone so a no-fallback/non-retry path can return the original response
+    // untouched; consuming it here would make the controller see an empty body.
+    const primaryErrorBody = await forward.response.clone().text();
     const primaryProvider = resolved.route?.provider;
     const primaryAuth = resolved.route?.authType;
-    const { success, failures } = await this.fallbackService.tryFallbacks(
-      agentId,
-      tenantId,
-      fallbackModels,
-      body,
-      stream,
-      sessionKey,
-      primaryModel,
-      signal,
-      primaryProvider,
-      primaryAuth,
-      args.signatureLookup,
-      args.thinkingLookup,
-      apiMode,
-      chatBody,
-      fallbackRoutes,
-      args.paramMergeContext,
-      args.reasoningContentLookup,
-      args.requestContext,
-      args.startProviderAttempt,
-    );
+    const effectiveFallbackRoutes = fallbackRoutes ?? [];
+    const fallbackModels = effectiveFallbackRoutes.map((route) => route.model);
+    const { success, failures } =
+      effectiveFallbackRoutes.length > 0
+        ? await this.fallbackService.tryFallbacks(
+            agentId,
+            tenantId,
+            fallbackModels,
+            body,
+            stream,
+            sessionKey,
+            primaryModel,
+            signal,
+            primaryProvider,
+            primaryAuth,
+            args.signatureLookup,
+            args.thinkingLookup,
+            apiMode,
+            chatBody,
+            effectiveFallbackRoutes,
+            args.paramMergeContext,
+            args.reasoningContentLookup,
+            args.requestContext,
+            args.startProviderAttempt,
+            args.requestDeadlineAtMs,
+          )
+        : { success: null, failures: [] as FailedFallback[] };
 
     this.recordTierIfScoring(sessionKey, resolved.tier);
     this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
@@ -1106,19 +1152,8 @@ export class ProxyService {
       };
     }
 
-    // All fallbacks exhausted — preserve the primary provider's real HTTP status.
-    // The gateway uses the X-Manifest-Fallback-Exhausted header (set by the
-    // response handler) to detect this case.
-    const safeHeaders = new Headers(forward.response.headers);
-    safeHeaders.delete('content-encoding');
-    safeHeaders.delete('content-length');
-    safeHeaders.delete('transfer-encoding');
-    const rebuilt = new Response(primaryErrorBody, { status: primaryStatus, headers: safeHeaders });
-
-    // Fallback exhausted — recorded against the primary provider, so use
-    // the primary-provider snapshot for the row. Look up the primary's
-    // model-params one more time so the snapshot reflects what was sent
-    // before the chain failed.
+    // Re-snapshot the primary parameters once for either a same-route retry or
+    // an exhausted chain. Both outcomes must describe the exact primary route.
     const [primaryModelParams, exhaustedSpecs] = await Promise.all([
       primaryProvider && primaryAuth && resolved.route
         ? this.modelParamsService.get(
@@ -1142,6 +1177,105 @@ export class ProxyService {
       modelParams: primaryModelParams,
       specs: exhaustedSpecs,
     });
+
+    const retryUnavailableFallback =
+      effectiveFallbackRoutes.length === 0 ||
+      failures.length === 0 ||
+      failures.every((failure) => failure.status === HttpStatus.TOO_MANY_REQUESTS);
+    const retryRemainingMs = args.requestDeadlineAtMs - Date.now();
+    if (
+      primaryProvider &&
+      primaryAuth &&
+      forward.wireRequestBody &&
+      forward.retryWireBody &&
+      isCodexSemanticTimeout(primaryStatus, primaryErrorBody) &&
+      retryUnavailableFallback &&
+      retryRemainingMs >= MIN_SAME_ROUTE_RETRY_BUDGET_MS
+    ) {
+      this.logger.warn(
+        `Retrying silent primary within gateway budget: provider=${primaryProvider} model=${primaryModel} remaining_ms=${retryRemainingMs}`,
+      );
+      const retried = await this.fallbackService.retryWireBody(forward, forward.wireRequestBody, {
+        provider: primaryProvider,
+        model: primaryModel,
+        authType: primaryAuth,
+        tenantProviderId: args.primaryTenantProviderId,
+        startProviderAttempt: args.startProviderAttempt,
+        signal,
+        semanticOutputTimeoutMs: remainingCodexSemanticTimeoutMs(args.requestDeadlineAtMs),
+      });
+      if (retried.response.ok) {
+        return {
+          forward: retried,
+          meta: this.buildBaseMeta(resolved, primaryModel, {
+            retryFromModel: primaryModel,
+            primaryErrorStatus: primaryStatus,
+            primaryErrorBody,
+            primaryProvider,
+            primaryAuthType: primaryAuth,
+            primaryTenantProviderId: args.primaryTenantProviderId,
+            primaryAttempt: forward.attempt,
+            primaryProviderCallStarted: forward.providerCallStarted,
+            attempt: retried.attempt,
+            providerCallStarted: retried.providerCallStarted,
+            tenantProviderId: args.primaryTenantProviderId,
+            request_params: exhaustedRequestParams,
+          }),
+          failedFallbacks: failures,
+        };
+      }
+
+      const retryErrorBody = await retried.response.text();
+      const retryHeaders = new Headers(retried.response.headers);
+      retryHeaders.delete('content-encoding');
+      retryHeaders.delete('content-length');
+      retryHeaders.delete('transfer-encoding');
+      const retryFailure = new Response(retryErrorBody, {
+        status: retried.response.status,
+        headers: retryHeaders,
+      });
+      return {
+        forward: {
+          ...retried,
+          response: retryFailure,
+        },
+        meta: this.buildBaseMeta(resolved, primaryModel, {
+          tenantProviderId: args.primaryTenantProviderId,
+          primaryAttempt: retried.attempt,
+          primaryProviderCallStarted: retried.providerCallStarted,
+          attempt: retried.attempt,
+          providerCallStarted: retried.providerCallStarted,
+          request_params: exhaustedRequestParams,
+        }),
+        failedFallbacks: [
+          {
+            model: primaryModel,
+            provider: primaryProvider,
+            fallbackIndex: -1,
+            status: primaryStatus,
+            errorBody: primaryErrorBody,
+            authType: primaryAuth,
+            tenantProviderId: args.primaryTenantProviderId,
+            attempt: forward.attempt,
+            providerCallStarted: forward.providerCallStarted,
+            recoveryKind: 'retry',
+          },
+          ...failures,
+        ],
+      };
+    }
+
+    if (effectiveFallbackRoutes.length === 0) return null;
+
+    // All fallbacks exhausted — preserve the primary provider's real HTTP status.
+    // The gateway uses the X-Manifest-Fallback-Exhausted header (set by the
+    // response handler) to detect this case.
+    const safeHeaders = new Headers(forward.response.headers);
+    safeHeaders.delete('content-encoding');
+    safeHeaders.delete('content-length');
+    safeHeaders.delete('transfer-encoding');
+    const rebuilt = new Response(primaryErrorBody, { status: primaryStatus, headers: safeHeaders });
+
     return {
       forward: {
         response: rebuilt,

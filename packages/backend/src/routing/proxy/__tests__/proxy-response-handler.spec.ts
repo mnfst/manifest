@@ -714,6 +714,30 @@ describe('proxy-response-handler', () => {
       expect(recorder.recordPrimaryFailure).toHaveBeenCalled();
     });
 
+    it('records the original primary failure before a successful same-route retry', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        retryFromModel: 'gpt-5.6-sol',
+        primaryErrorBody: '{"error":{"code":"stream_timeout"}}',
+        primaryErrorStatus: 504,
+        primaryProvider: 'openai',
+        primaryAuthType: 'subscription',
+      });
+
+      const result = recordFallbackFailures(testCtx, meta, [], recorder as any);
+
+      expect(result).toBeDefined();
+      expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
+        testCtx,
+        meta.tier,
+        'gpt-5.6-sol',
+        meta.primaryErrorBody,
+        expect.any(String),
+        'subscription',
+        expect.objectContaining({ provider: 'openai', httpStatus: 504 }),
+      );
+    });
+
     it('should record failed fallbacks when present', () => {
       const recorder = mockRecorder();
       const meta = makeMeta({ fallbackFromModel: 'gpt-4o' });
@@ -2635,6 +2659,49 @@ describe('proxy-response-handler', () => {
           sessionKey: 'session-1',
           durationMs: expect.any(Number),
           specificityCategory: undefined,
+        }),
+      );
+    });
+
+    it('records a same-route retry as a normal success attempt, not a fallback row', () => {
+      const recorder = mockRecorder();
+      const retryAttempt = { id: 'attempt-3', attemptNumber: 3 } as never;
+      const meta = makeMeta({
+        model: 'gpt-5.6-sol',
+        provider: 'openai',
+        retryFromModel: 'gpt-5.6-sol',
+        attempt: retryAttempt,
+      });
+      const usage: StreamUsage = { prompt_tokens: 100, completion_tokens: 50 };
+
+      recordSuccess(
+        testCtx,
+        meta,
+        usage,
+        '2025-01-01T00:00:00Z',
+        recorder as any,
+        'trace-retry',
+        'session-retry',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'request-retry',
+        3,
+      );
+
+      expect(recorder.recordFallbackSuccess).not.toHaveBeenCalled();
+      expect(recorder.recordSuccessMessage).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-5.6-sol',
+        'standard',
+        'auto',
+        usage,
+        expect.objectContaining({
+          requestId: 'request-retry',
+          attemptNumber: 3,
+          attempt: retryAttempt,
+          traceId: 'trace-retry',
         }),
       );
     });

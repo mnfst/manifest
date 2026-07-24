@@ -6,7 +6,11 @@ import {
   type ModelRoute,
   type ProviderParamSpecCatalog,
 } from 'manifest-shared';
-import { ProxyService } from '../proxy.service';
+import {
+  DEFAULT_GATEWAY_PRE_RESPONSE_BUDGET_MS,
+  parseGatewayPreResponseBudgetMs,
+  ProxyService,
+} from '../proxy.service';
 import type { ResolveService } from '../../resolve/resolve.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
 import type { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
@@ -84,6 +88,18 @@ const specCatalog: ProviderParamSpecCatalog = [
 ];
 
 describe('ProxyService — orchestration', () => {
+  describe('pre-response budget configuration', () => {
+    it.each([
+      [undefined, DEFAULT_GATEWAY_PRE_RESPONSE_BUDGET_MS],
+      ['invalid', DEFAULT_GATEWAY_PRE_RESPONSE_BUDGET_MS],
+      ['120000', DEFAULT_GATEWAY_PRE_RESPONSE_BUDGET_MS],
+      ['105000', 105_000],
+      [90_000, 90_000],
+    ])('parses %p as %p', (raw, expected) => {
+      expect(parseGatewayPreResponseBudgetMs(raw)).toBe(expected);
+    });
+  });
+
   let resolveService: jest.Mocked<
     Pick<ResolveService, 'resolve' | 'resolveForTier' | 'resolveHeaderTier'>
   >;
@@ -1816,6 +1832,183 @@ describe('ProxyService — orchestration', () => {
       const result = await svc.proxyRequest(baseOpts());
       expect(result.forward.response.status).toBe(503);
       expect(result.failedFallbacks).toHaveLength(1);
+    });
+
+    it('retries a silent Codex primary within the remaining gateway budget when fallbacks only rate-limit', async () => {
+      let now = 1_000;
+      const nowSpy = jest.spyOn(Date, 'now').mockImplementation(() => now);
+      (configService.get as jest.Mock).mockImplementation((key: string) =>
+        key === 'GATEWAY_PRE_RESPONSE_BUDGET_MS' ? '105000' : undefined,
+      );
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.6-sol'),
+        fallback_routes: [route('anthropic', 'subscription', 'claude-opus-4-8')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      const originalAttempt = { id: 'attempt-1', attemptNumber: 1 } as never;
+      const retryAttempt = { id: 'attempt-3', attemptNumber: 3 } as never;
+      const original = {
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message: 'ChatGPT Codex produced no text or tool output within 60000ms',
+              type: 'upstream_response_error',
+              code: 'stream_timeout',
+            },
+          }),
+          { status: 504, headers: { 'content-type': 'application/json' } },
+        ),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+        wireRequestBody: { model: 'gpt-5.6-sol', input: [] },
+        wireApiMode: 'responses' as const,
+        retryWireBody: jest.fn(),
+        attempt: originalAttempt,
+        providerCallStarted: true,
+      };
+      fallbackService.tryForwardToProvider.mockResolvedValue(original);
+      fallbackService.tryFallbacks.mockImplementation(async () => {
+        now = 62_000;
+        return {
+          success: null,
+          failures: [
+            {
+              model: 'claude-opus-4-8',
+              provider: 'anthropic',
+              fallbackIndex: 0,
+              status: 429,
+              errorBody: 'rate limited',
+              authType: 'subscription',
+              providerCallStarted: true,
+              attempt: { id: 'attempt-2', attemptNumber: 2 },
+            },
+          ],
+        } as never;
+      });
+      fallbackService.retryWireBody.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+        attempt: retryAttempt,
+        providerCallStarted: true,
+      });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        original,
+        original.wireRequestBody,
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'gpt-5.6-sol',
+          authType: 'subscription',
+          semanticOutputTimeoutMs: 44_000,
+        }),
+      );
+      expect(result.forward.response.status).toBe(200);
+      expect(result.meta).toMatchObject({
+        retryFromModel: 'gpt-5.6-sol',
+        primaryAttempt: originalAttempt,
+        attempt: retryAttempt,
+      });
+      expect(result.meta.fallbackFromModel).toBeUndefined();
+      expect(result.failedFallbacks).toHaveLength(1);
+      nowSpy.mockRestore();
+    });
+
+    it('does not retry a silent Codex primary when a fallback fails for a non-rate-limit reason', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.6-sol'),
+        fallback_routes: [route('anthropic', 'subscription', 'claude-opus-4-8')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response(
+          JSON.stringify({ error: { code: 'stream_timeout', message: 'no output' } }),
+          { status: 504 },
+        ),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+        wireRequestBody: { model: 'gpt-5.6-sol', input: [] },
+        wireApiMode: 'responses',
+        retryWireBody: jest.fn(),
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: null,
+        failures: [
+          {
+            model: 'claude-opus-4-8',
+            provider: 'anthropic',
+            fallbackIndex: 0,
+            status: 503,
+            errorBody: 'provider unavailable',
+          },
+        ],
+      } as never);
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.retryWireBody).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(504);
+      expect(result.meta.retryFromModel).toBeUndefined();
+    });
+
+    it('does not start a same-route retry when less than five seconds remain in the gateway budget', async () => {
+      let now = 1_000;
+      const nowSpy = jest.spyOn(Date, 'now').mockImplementation(() => now);
+      (configService.get as jest.Mock).mockImplementation((key: string) =>
+        key === 'GATEWAY_PRE_RESPONSE_BUDGET_MS' ? '105000' : undefined,
+      );
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.6-sol'),
+        fallback_routes: [route('anthropic', 'subscription', 'claude-opus-4-8')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response(
+          JSON.stringify({ error: { code: 'stream_timeout', message: 'no output' } }),
+          { status: 504 },
+        ),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+        wireRequestBody: { model: 'gpt-5.6-sol', input: [] },
+        wireApiMode: 'responses',
+        retryWireBody: jest.fn(),
+      });
+      fallbackService.tryFallbacks.mockImplementation(async () => {
+        now = 102_000;
+        return {
+          success: null,
+          failures: [
+            {
+              model: 'claude-opus-4-8',
+              provider: 'anthropic',
+              fallbackIndex: 0,
+              status: 429,
+              errorBody: 'rate limited',
+            },
+          ],
+        } as never;
+      });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.retryWireBody).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(504);
+      nowSpy.mockRestore();
     });
 
     it('falls through to the resolver-provided fallback_routes', async () => {
