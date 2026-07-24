@@ -46,6 +46,7 @@ const ToolCalls: Component<{ calls: ToolCall[] }> = (props) => (
 const MessageTurn: Component<{ message: ChatMessage; index: number }> = (props) => {
   const role = () => normalizeRole(props.message.role);
   const content = () => coerceContentToText(props.message.content);
+  const toolCalls = () => props.message.tool_calls ?? [];
   return (
     <article class={`request-message request-message--${role()}`}>
       <header class="request-message__header">
@@ -63,8 +64,8 @@ const MessageTurn: Component<{ message: ChatMessage; index: number }> = (props) 
       <Show when={content()}>
         <div class="request-message__content">{content()}</div>
       </Show>
-      <Show when={(props.message.tool_calls?.length ?? 0) > 0}>
-        <ToolCalls calls={props.message.tool_calls ?? []} />
+      <Show when={toolCalls().length > 0}>
+        <ToolCalls calls={toolCalls()} />
       </Show>
     </article>
   );

@@ -21,4 +21,8 @@ describe('request recording capture', () => {
       body: { choices: [{ message: { role: 'assistant', content: 'hello' } }] },
     });
   });
+
+  it('returns no response before anything is captured', () => {
+    expect(createRequestRecordingCapture().buildResponseBody()).toBeNull();
+  });
 });
