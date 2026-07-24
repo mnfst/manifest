@@ -25,6 +25,10 @@ import {
   parseKiroModels,
 } from '../routing/proxy/kiro-adapter';
 import { getSubscriptionCapabilities, getSubscriptionKnownModels } from 'manifest-shared';
+import {
+  extractOpenAiSubscriptionMetadata,
+  type OpenAiSubscriptionMetadata,
+} from '../routing/oauth/openai/openai-token-metadata';
 
 const FETCH_TIMEOUT_MS = 5000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
@@ -610,12 +614,18 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
   },
   'openai-subscription': {
     endpoint: `https://chatgpt.com/backend-api/codex/models?client_version=${CODEX_CLI_VERSION}`,
-    buildHeaders: (key: string) => ({
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-      originator: CODEX_CLI_ORIGINATOR,
-      'user-agent': CODEX_CLI_USER_AGENT,
-    }),
+    buildHeaders: (key: string) => {
+      const metadata = extractOpenAiSubscriptionMetadata(key);
+      return {
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        originator: CODEX_CLI_ORIGINATOR,
+        version: CODEX_CLI_VERSION,
+        'user-agent': CODEX_CLI_USER_AGENT,
+        ...(metadata.accountId ? { 'ChatGPT-Account-ID': metadata.accountId } : {}),
+        ...(metadata.fedramp ? { 'X-OpenAI-Fedramp': 'true' } : {}),
+      };
+    },
     parse: parseOpenaiSubscription,
   },
   deepseek: {
@@ -794,6 +804,7 @@ const OPENCODE_GO_CONTEXT_WINDOW = 200000;
 
 export interface ProviderModelFetchOptions {
   forceRefresh?: boolean;
+  subscriptionMetadata?: OpenAiSubscriptionMetadata;
 }
 
 @Injectable()
@@ -895,6 +906,11 @@ export class ProviderModelFetcherService {
     }
 
     const headers = config.buildHeaders(apiKey, authType);
+    if (configKey === 'openai-subscription' && options?.subscriptionMetadata) {
+      const metadata = options.subscriptionMetadata;
+      if (metadata.accountId) headers['ChatGPT-Account-ID'] = metadata.accountId;
+      if (metadata.fedramp) headers['X-OpenAI-Fedramp'] = 'true';
+    }
 
     try {
       const controller = new AbortController();

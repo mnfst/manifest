@@ -18,6 +18,11 @@ import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/core';
+import {
+  extractOpenAiSubscriptionMetadata,
+  parseOpenAiSubscriptionMetadata,
+  type OpenAiSubscriptionMetadata,
+} from '../routing/oauth/openai/openai-token-metadata';
 import { getQwenCompatibleBaseUrl, isQwenResolvedEndpoint } from '../routing/qwen-region';
 import {
   getBedrockMantleBaseUrl,
@@ -135,6 +140,7 @@ export class ModelDiscoveryService {
     if (!isProviderAvailableForDeployment(provider.provider)) return [];
     let apiKey = '';
     let endpointOverride: string | undefined;
+    let subscriptionMetadata: OpenAiSubscriptionMetadata | undefined;
     const lowerProvider = provider.provider.toLowerCase();
     if (provider.api_key_encrypted) {
       try {
@@ -162,6 +168,13 @@ export class ModelDiscoveryService {
         const blob = parseOAuthTokenBlob(apiKey);
         if (blob?.t) {
           apiKey = blob.t;
+          if (lowerProvider === 'openai') {
+            const metadata = {
+              ...extractOpenAiSubscriptionMetadata(blob.t),
+              ...parseOpenAiSubscriptionMetadata(blob.m),
+            };
+            if (metadata.accountId || metadata.fedramp) subscriptionMetadata = metadata;
+          }
           if (lowerProvider === 'minimax' && blob.u) {
             endpointOverride = blob.u;
           }
@@ -214,12 +227,21 @@ export class ModelDiscoveryService {
     const useCuratedSubscriptionModels =
       provider.auth_type === 'subscription' && (!apiKey || lowerProvider === 'anthropic');
 
-    const fetchProviderModels = () =>
-      options.forceRefresh
-        ? this.fetcher.fetch(provider.provider, apiKey, provider.auth_type, endpointOverride, {
-            forceRefresh: true,
-          })
+    const fetchProviderModels = () => {
+      const fetchOptions = {
+        ...(options.forceRefresh ? { forceRefresh: true } : {}),
+        ...(subscriptionMetadata ? { subscriptionMetadata } : {}),
+      };
+      return Object.keys(fetchOptions).length > 0
+        ? this.fetcher.fetch(
+            provider.provider,
+            apiKey,
+            provider.auth_type,
+            endpointOverride,
+            fetchOptions,
+          )
         : this.fetcher.fetch(provider.provider, apiKey, provider.auth_type, endpointOverride);
+    };
 
     const buildModelsDevModels = () => {
       const models = buildModelsDevFallback(this.modelsDevSync, provider.provider, {

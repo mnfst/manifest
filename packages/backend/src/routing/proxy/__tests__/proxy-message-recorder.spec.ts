@@ -822,6 +822,30 @@ describe('ProxyMessageRecorder', () => {
       expect(rows[1].provider).toBe('ollama-cloud');
     });
 
+    it('keeps a same-route retry failure distinct from configured fallback metadata', async () => {
+      const failures = [
+        {
+          model: 'gpt-5.6-sol',
+          provider: 'openai',
+          status: 504,
+          errorBody: '{"error":{"code":"stream_timeout"}}',
+          fallbackIndex: -1,
+          recoveryKind: 'retry' as const,
+        },
+      ];
+
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'gpt-5.6-sol', failures);
+
+      const rows = insertMock.mock.calls[0][0] as Array<{
+        fallback_from_model: string | null;
+        fallback_index: number | null;
+      }>;
+      expect(rows[0]).toMatchObject({
+        fallback_from_model: null,
+        fallback_index: null,
+      });
+    });
+
     it('persists provider=null when the failure has no provider (line 164 falsy branch)', async () => {
       const failures = [
         {

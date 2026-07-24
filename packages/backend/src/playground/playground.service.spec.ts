@@ -173,7 +173,7 @@ interface Mocks {
     createAnthropicStreamTransformer: jest.Mock;
     convertChatGptStreamChunk: jest.Mock;
   };
-  openaiOauth: { unwrapToken: jest.Mock };
+  openaiOauth: { unwrapToken: jest.Mock; unwrapTokenWithMetadata?: jest.Mock };
   minimaxOauth: { unwrapToken: jest.Mock };
   anthropicOauth: { unwrapToken: jest.Mock };
   geminiOauth: { unwrapToken: jest.Mock };
@@ -621,9 +621,17 @@ describe('PlaygroundService.runStream', () => {
       { ...DEFAULT_PROVIDER_KEY, label: 'Work', apiKey: oauthBlob },
     ]);
     mocks.providerKeyService.getProviderApiKey.mockResolvedValue(refreshedBlob);
-    mocks.openaiOauth.unwrapToken
-      .mockResolvedValueOnce('fresh-access-token')
-      .mockResolvedValueOnce('refreshed-access-token');
+    const unwrapTokenWithMetadata = jest
+      .fn()
+      .mockResolvedValueOnce({
+        accessToken: 'fresh-access-token',
+        metadata: { accountId: 'old-workspace' },
+      })
+      .mockResolvedValueOnce({
+        accessToken: 'refreshed-access-token',
+        metadata: { accountId: 'new-workspace', fedramp: true },
+      });
+    mocks.openaiOauth.unwrapTokenWithMetadata = unwrapTokenWithMetadata;
     mocks.providerClient.forward
       .mockResolvedValueOnce(errorForward(401, 'expired token'))
       .mockResolvedValueOnce(
@@ -646,14 +654,16 @@ describe('PlaygroundService.runStream', () => {
       model: 'gpt-5.5',
       authType: 'subscription',
       apiKey: 'fresh-access-token',
+      subscriptionMetadata: { accountId: 'old-workspace' },
     });
     expect(mocks.providerClient.forward.mock.calls[1][0]).toMatchObject({
       provider: 'openai',
       model: 'gpt-5.5',
       authType: 'subscription',
       apiKey: 'refreshed-access-token',
+      subscriptionMetadata: { accountId: 'new-workspace', fedramp: true },
     });
-    const forcedRefreshBlob = JSON.parse(mocks.openaiOauth.unwrapToken.mock.calls[1][0]) as Record<
+    const forcedRefreshBlob = JSON.parse(unwrapTokenWithMetadata.mock.calls[1][0]) as Record<
       string,
       unknown
     >;
@@ -662,7 +672,7 @@ describe('PlaygroundService.runStream', () => {
       r: 'rotated-refresh-token',
       e: 0,
     });
-    expect(mocks.openaiOauth.unwrapToken).toHaveBeenNthCalledWith(
+    expect(unwrapTokenWithMetadata).toHaveBeenNthCalledWith(
       2,
       expect.any(String),
       AGENT.id,

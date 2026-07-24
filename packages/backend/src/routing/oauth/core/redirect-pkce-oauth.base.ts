@@ -72,10 +72,11 @@ export interface RedirectPkceOauthConfig {
 
 const STATE_TTL_MS = 10 * 60 * 1000;
 
-interface OAuthTokenResponse {
+export interface OAuthTokenResponse {
   access_token: string;
   refresh_token?: string;
   expires_in: number;
+  id_token?: string;
 }
 
 interface RedirectPkcePendingOAuth {
@@ -194,10 +195,12 @@ export abstract class RedirectPkceOauthBaseService {
       throw new Error('Token exchange failed');
     }
     const data = (await response.json()) as OAuthTokenResponse;
+    const tokenMetadata = this.extractTokenMetadata(data);
     const baseBlob: OAuthTokenBlob = {
       t: data.access_token,
       r: data.refresh_token ?? '',
       e: Date.now() + data.expires_in * 1000,
+      ...(tokenMetadata ? { m: tokenMetadata } : {}),
     };
     // Subclass hook: providers like Gemini run a per-account onboarding
     // call (CodeAssist `loadCodeAssist`/`onboardUser`) immediately after
@@ -229,7 +232,11 @@ export abstract class RedirectPkceOauthBaseService {
     this.shutdownCallbackServerIfIdle();
   }
 
-  async refreshAccessToken(refreshToken: string, resourceField?: string): Promise<OAuthTokenBlob> {
+  async refreshAccessToken(
+    refreshToken: string,
+    resourceField?: string,
+    metadataField?: string,
+  ): Promise<OAuthTokenBlob> {
     const body = new URLSearchParams({
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
@@ -249,6 +256,7 @@ export abstract class RedirectPkceOauthBaseService {
       throw new Error('Token refresh failed');
     }
     const data = (await response.json()) as OAuthTokenResponse;
+    const refreshedMetadata = this.extractTokenMetadata(data) ?? metadataField;
     return {
       t: data.access_token,
       r: data.refresh_token || refreshToken,
@@ -256,6 +264,7 @@ export abstract class RedirectPkceOauthBaseService {
       // Preserve provider-specific resource field (e.g. Gemini's CodeAssist
       // project id, MiniMax's resource URL) across refreshes.
       ...(resourceField ? { u: resourceField } : {}),
+      ...(refreshedMetadata ? { m: refreshedMetadata } : {}),
     };
   }
 
@@ -292,7 +301,7 @@ export abstract class RedirectPkceOauthBaseService {
         readFreshRaw: () =>
           this.providerService.getFreshSubscriptionCredential(tenantId, providerId, keyLabel),
         parse: parseOAuthTokenBlob,
-        refresh: (current) => this.refreshAccessToken(current.r, current.u),
+        refresh: (current) => this.refreshAccessToken(current.r, current.u, current.m),
         persist: (refreshed) =>
           this.providerService
             .upsertProvider(
@@ -370,6 +379,11 @@ export abstract class RedirectPkceOauthBaseService {
    */
   protected async enrichBlob(blob: OAuthTokenBlob): Promise<OAuthTokenBlob> {
     return blob;
+  }
+
+  /** Capture compact, non-secret routing metadata from a token response. */
+  protected extractTokenMetadata(_response: OAuthTokenResponse): string | undefined {
+    return undefined;
   }
 
   /** Spins up a one-shot HTTP server on `callbackPort` to receive the redirect. */

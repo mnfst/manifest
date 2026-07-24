@@ -120,6 +120,12 @@ function isClaudeSonnetModel(model: string | undefined): boolean {
   return bareAnthropicModel(model).replace(/\./g, '-').startsWith('claude-sonnet-');
 }
 
+function isClaudeOpus48Model(model: string | undefined): boolean {
+  if (!model) return false;
+  const bare = bareAnthropicModel(model).replace(/\./g, '-').toLowerCase();
+  return bare === 'claude-opus-4-8' || bare.startsWith('claude-opus-4-8-');
+}
+
 function normalizeOutputConfigForModel(outputConfig: unknown, model: string | undefined): unknown {
   if (!isObjectRecord(outputConfig)) return outputConfig;
   if (outputConfig.effort !== 'xhigh' || !isClaudeSonnetModel(model)) return outputConfig;
@@ -333,6 +339,8 @@ function toAnthropicOutputConfig(
 export interface AnthropicRequestOptions {
   /** When true, prepends the Claude Code agent system prompt required for subscription OAuth tokens. */
   injectSubscriptionIdentity?: boolean;
+  /** Preserve a native Claude Code Messages body except for invalid unsigned thinking cleanup. */
+  preserveNativeBody?: boolean;
   /** Lookup for re-injecting cached extended-thinking blocks. */
   thinkingLookup?: ThinkingBlockLookup;
   /** Route context for replaying only compatible cached thinking blocks. */
@@ -388,7 +396,12 @@ export function toAnthropicRequest(
     );
   }
 
-  if (body.temperature !== undefined) result.temperature = body.temperature;
+  // Opus 4.8 rejects the otherwise-valid Anthropic `temperature` field as
+  // deprecated. Older Claude clients and OpenAI-compatible callers may still
+  // send it, so normalize at the provider boundary instead of returning 400.
+  if (body.temperature !== undefined && !isClaudeOpus48Model(_model)) {
+    result.temperature = body.temperature;
+  }
   if (body.top_p !== undefined) result.top_p = body.top_p;
   if (body.top_k !== undefined) result.top_k = body.top_k;
   // Anthropic-native fields forwarded when the inbound request originated as
@@ -422,7 +435,8 @@ export function extractThinkingBlocksFromMessagesResponse(
   if (!Array.isArray(content)) return undefined;
   let firstToolUseId: string | null = null;
   const blocks: ThinkingBlock[] = [];
-  for (const block of content as Array<Record<string, unknown>>) {
+  for (const block of content) {
+    if (!isObjectRecord(block)) continue;
     if (block.type === 'thinking' || block.type === 'redacted_thinking') {
       blocks.push(block as ThinkingBlock);
     } else if (
@@ -443,7 +457,10 @@ export function extractThinkingBlocksFromMessagesResponse(
  * Bypasses the lossy OpenAI round-trip used by `toAnthropicRequest`: server
  * tools keep their `type` discriminator, `cache_control` placement matches
  * what Anthropic would see natively, and Anthropic-only fields don't leak
- * through a chat-completions stencil. Mutations:
+ * through a chat-completions stencil. Normalized proxy calls may apply all
+ * mutations below; native Claude Code passthrough sets `preserveNativeBody`
+ * and applies only the subscription identity/cache mutation required by the
+ * OAuth endpoint:
  *
  * - Default `max_tokens` to 4096 if unset.
  * - Inject the subscription-identity system block for OAuth tokens.
@@ -457,9 +474,12 @@ export function applyAnthropicMessagesMutations(
   options?: AnthropicRequestOptions,
 ): Record<string, unknown> {
   const result: Record<string, unknown> = { ...body };
+  const preserveNativeBody = options?.preserveNativeBody === true;
   if (body.thinking !== undefined) {
     result.thinking = normalizeAnthropicThinking(body.thinking);
   }
+  if (isClaudeOpus48Model(options?.targetModel)) delete result.temperature;
+  if (preserveNativeBody && !options?.injectSubscriptionIdentity) return result;
   const cacheBudget = {
     remaining: Math.max(0, MAX_CACHE_CONTROL_BLOCKS - countCacheControlBlocks(body)),
   };
@@ -478,16 +498,21 @@ export function applyAnthropicMessagesMutations(
     } else if (Array.isArray(body.system)) {
       systemBlocks = (body.system as ContentBlock[]).map((b) => ({ ...b }));
     }
-    tryAddCacheControl(systemBlocks[systemBlocks.length - 1], cacheBudget);
     if (options?.injectSubscriptionIdentity) {
       systemBlocks.unshift({ ...SUBSCRIPTION_IDENTITY_BLOCK });
     }
+    tryAddCacheControl(systemBlocks[systemBlocks.length - 1], cacheBudget);
     if (systemBlocks.length > 0) {
       result.system = systemBlocks;
     } else {
       delete result.system;
     }
   }
+
+  // Native Claude Code payloads keep every other field and content block
+  // untouched. In particular, do not normalize tools, max_tokens, output
+  // config, or thinking history after adding the OAuth identity system block.
+  if (preserveNativeBody) return result;
 
   // Tools: shallow-clone the array + last entry so the cache_control mutation
   // doesn't bleed back into the inbound body. Server tools' `type` tag and
@@ -719,6 +744,39 @@ interface StreamState {
   thinkingBlocksByIndex: Map<number, ThinkingBlock>;
   firstToolUseId: string | null;
   onThinkingBlocks?: ThinkingBlocksCallback;
+  terminalError: boolean;
+}
+
+const ANTHROPIC_STREAM_ERROR_STATUS: Record<string, number> = {
+  invalid_request_error: 400,
+  authentication_error: 401,
+  permission_error: 403,
+  not_found_error: 404,
+  request_too_large: 413,
+  rate_limit_error: 429,
+  overloaded_error: 529,
+};
+
+function handleAnthropicStreamError(state: StreamState, data: Record<string, unknown>): string {
+  state.terminalError = true;
+  const upstreamError = isObjectRecord(data.error) ? data.error : data;
+  const type =
+    typeof upstreamError.type === 'string' && upstreamError.type ? upstreamError.type : 'api_error';
+  const message =
+    typeof upstreamError.message === 'string' && upstreamError.message
+      ? upstreamError.message
+      : 'Upstream provider stream failed';
+  const code = typeof upstreamError.code === 'string' ? upstreamError.code : undefined;
+  return `data: ${JSON.stringify({
+    error: {
+      message,
+      type,
+      ...(code ? { code } : {}),
+      ...(ANTHROPIC_STREAM_ERROR_STATUS[type]
+        ? { status: ANTHROPIC_STREAM_ERROR_STATUS[type] }
+        : {}),
+    },
+  })}\n\n`;
 }
 
 function handleMessageStart(state: StreamState, data: Record<string, unknown>): string {
@@ -881,9 +939,11 @@ export function createAnthropicStreamTransformer(
     thinkingBlocksByIndex: new Map(),
     firstToolUseId: null,
     onThinkingBlocks,
+    terminalError: false,
   };
 
   return (chunk: string): string | null => {
+    if (state.terminalError) return null;
     const parsed = parseStreamEvent(chunk);
     if (!parsed) return null;
     const { eventType, data } = parsed;
@@ -892,6 +952,7 @@ export function createAnthropicStreamTransformer(
     if (type === 'content_block_start') return handleContentBlockStart(state, data);
     if (type === 'content_block_delta') return handleContentBlockDelta(state, data);
     if (type === 'message_delta') return handleMessageDelta(state, data);
+    if (type === 'error') return handleAnthropicStreamError(state, data);
     return null;
   };
 }

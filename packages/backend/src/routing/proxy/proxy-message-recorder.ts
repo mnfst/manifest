@@ -169,6 +169,9 @@ export interface PendingRequestOpts {
   requestHeaders?: Record<string, string> | null;
 }
 
+const CLIENT_CLOSED_HTTP_STATUS = 499;
+const CLIENT_CLOSED_MESSAGE = 'Client disconnected before response completion';
+
 export interface FallbackSuccessOpts extends HeaderTierRef {
   requestId?: string;
   attemptNumber?: number;
@@ -508,6 +511,59 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     return true;
   }
 
+  /**
+   * Close every still-pending row for a request when the downstream caller
+   * disconnects. The provider AbortSignal is best-effort and can race with
+   * fallback startup, so the conditional updates deliberately cover both the
+   * parent Request and any provider Attempts that reached the call boundary.
+   */
+  async recordClientCancellation(
+    ctx: IngestionContext,
+    requestId: string,
+    durationMs: number,
+  ): Promise<void> {
+    const completedAtMs = Date.now();
+    const pendingAttempts = await this.messageRepo.find({
+      select: { id: true, timestamp: true, attempt_number: true },
+      where: { request_id: requestId, status: PENDING_STATUS },
+      order: { attempt_number: 'ASC' },
+    });
+    for (let index = 0; index < pendingAttempts.length; index++) {
+      const attempt = pendingAttempts[index];
+      const startedAtMs = new Date(attempt.timestamp).getTime();
+      await this.messageRepo.update({ id: attempt.id, status: PENDING_STATUS }, {
+        status: normalizeStatus('error'),
+        duration_ms: Number.isFinite(startedAtMs)
+          ? Math.max(0, completedAtMs - startedAtMs)
+          : Math.max(0, durationMs),
+        error_message: CLIENT_CLOSED_MESSAGE,
+        error_http_status: CLIENT_CLOSED_HTTP_STATUS,
+        error_origin: 'request',
+        error_class: 'client_error',
+        superseded: index < pendingAttempts.length - 1,
+      } as Partial<AgentMessage>);
+    }
+
+    const getRepository = this.messageRepo.manager?.getRepository?.bind(this.messageRepo.manager);
+    if (getRepository) {
+      const requestRepo = getRepository(ManifestRequest);
+      if (typeof requestRepo.update === 'function') {
+        await requestRepo.update(
+          { id: requestId, status: PENDING_STATUS },
+          {
+            status: normalizeStatus('error'),
+            duration_ms: Math.max(0, durationMs),
+            error_message: CLIENT_CLOSED_MESSAGE,
+            error_http_status: CLIENT_CLOSED_HTTP_STATUS,
+            error_origin: 'request',
+            error_class: 'client_error',
+          },
+        );
+      }
+    }
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
+  }
+
   /** Complete an intermediate provider call that is retried below the proxy layer. */
   async completePendingProviderFailure(
     attempt: ProviderAttemptRef,
@@ -778,8 +834,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           provider: canonical.provider,
           routing_tier: tier,
           routing_reason: reason ?? null,
-          fallback_from_model: canonicalPrimary.model,
-          fallback_index: f.fallbackIndex,
+          fallback_from_model: f.recoveryKind === 'retry' ? null : canonicalPrimary.model,
+          fallback_index: f.recoveryKind === 'retry' ? null : f.fallbackIndex,
           auth_type: recordedAuth,
           // Per-failure connection: each failed fallback carries its own key id.
           tenant_provider_id: f.tenantProviderId ?? null,

@@ -34,6 +34,7 @@ import { PlaygroundHistoryService } from './playground-history.service';
 import { buildForwardBody, derivePromptForHistory } from './playground-payload';
 import { consumeProviderStream } from './playground-stream';
 import type { RunPlaygroundDto } from './dto/run-playground.dto';
+import type { OpenAiSubscriptionMetadata } from '../routing/oauth/openai/openai-token-metadata';
 import { ManifestRequest } from '../entities/request.entity';
 
 @Injectable()
@@ -73,6 +74,7 @@ export class PlaygroundService {
     let rawApiKey: string;
     let providerKeyLabel: string | undefined;
     let providerResource: string | undefined;
+    let subscriptionMetadata: OpenAiSubscriptionMetadata | undefined;
     // Region/resource inputs for the shared endpoint resolver, so Playground
     // forwarding (region overrides + vendor-prefix stripping) stays in lock-step
     // with the proxy for minimax/qwen/zai/copilot/custom.
@@ -138,6 +140,7 @@ export class PlaygroundService {
         return this.sendPreStreamError(res, 404, message);
       }
       apiKey = resolved.apiKey;
+      subscriptionMetadata = resolved.subscriptionMetadata;
       if (authType === 'subscription' && isRefreshableOAuthCredential(rawApiKey)) {
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
@@ -209,6 +212,7 @@ export class PlaygroundService {
         customEndpoint,
         signal: abort.signal,
         providerResource,
+        subscriptionMetadata,
       };
       forward = await this.providerClient.forward(forwardOptions);
       if (forward.response.status === 401 && authType === 'subscription') {
@@ -232,6 +236,7 @@ export class PlaygroundService {
             `OAuth token rejected upstream in Playground; refreshed provider=${dto.provider} agent=${agent.id}`,
           );
           apiKey = refreshed.apiKey;
+          subscriptionMetadata = refreshed.subscriptionMetadata ?? subscriptionMetadata;
           providerResource =
             authType === 'subscription' && dto.provider.toLowerCase() === 'gemini'
               ? (refreshed.resourceUrl ?? providerResource)
@@ -240,6 +245,7 @@ export class PlaygroundService {
             ...forwardOptions,
             apiKey,
             providerResource,
+            subscriptionMetadata,
           });
         }
       }

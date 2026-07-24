@@ -26,11 +26,21 @@ import {
 } from './provider-client-converters';
 import { ForwardOptions, ProxyApiMode, type ProviderAttemptRef } from './proxy-types';
 import { CodexSessionAffinity } from './codex-session-affinity';
-import { toNativeResponsesRequest } from './responses-adapter';
+import { toNativeResponsesRequest, type ResponsesToolCallType } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { ProviderModelRegistryService } from '../../model-discovery/provider-model-registry.service';
-import { qualifyChatGptResponse } from './chatgpt-response-qualifier';
+import {
+  buildEndpointAwareUpstreamHeaders,
+  reapplyProviderOwnedHeaders,
+} from './agent-request-context';
+import { extractOpenAiSubscriptionMetadata } from '../oauth/openai/openai-token-metadata';
+import { stripAnthropicServerToolsForFallback } from './anthropic-messages-adapter';
+import {
+  parseCodexSemanticOutputTimeoutMs,
+  qualifyChatGptResponse,
+} from './chatgpt-response-qualifier';
+import { qualifyGoogleResponse } from './google-response-qualifier';
 import { isProviderAvailableForDeployment } from '../../common/utils/provider-availability';
 import { ManifestError } from '../../common/errors/manifest-error';
 
@@ -41,7 +51,10 @@ export interface ForwardResult {
   /** Provider-facing API shape of {@link wireRequestBody}. */
   wireApiMode?: ProxyApiMode;
   /** Re-send a healed wire body through the already-resolved transport. */
-  retryWireBody?: (body: Record<string, unknown>) => Promise<ForwardResult>;
+  retryWireBody?: (
+    body: Record<string, unknown>,
+    options?: { preResponseTimeoutMs?: number; semanticOutputTimeoutMs?: number },
+  ) => Promise<ForwardResult>;
   /** False only when Manifest produced a response without invoking provider transport. */
   providerCallStarted?: boolean;
   /** Persisted provider-call identity, when request tracking is available. */
@@ -64,6 +77,8 @@ export interface ForwardResult {
   structuredOutputToolName?: string;
   /** Internal: original Responses text.format metadata for synthesized Responses bodies. */
   responsesTextFormat?: Record<string, unknown>;
+  /** Internal: original Responses tool types keyed by tool name. */
+  responsesToolTypesByName?: Readonly<Record<string, ResponsesToolCallType>>;
 }
 
 function wireApiMode(endpoint: ProviderEndpoint): ProxyApiMode | undefined {
@@ -85,9 +100,100 @@ const PROVIDER_TIMEOUT_MS =
   Number.isFinite(parsedProviderTimeout) && parsedProviderTimeout > 0
     ? parsedProviderTimeout
     : 180_000;
+const parsedProviderStreamTimeout = Number.parseInt(
+  process.env.PROVIDER_STREAM_TIMEOUT_MS ?? '',
+  10,
+);
+const PROVIDER_STREAM_TIMEOUT_MS =
+  Number.isFinite(parsedProviderStreamTimeout) && parsedProviderStreamTimeout > 0
+    ? parsedProviderStreamTimeout
+    : 180_000;
 const QWEN_TOKEN_PLAN_RESPONSES_RE = /^qwen3\.7-max$/i;
 const COPILOT_CHAT_COMPLETIONS_ENDPOINT = '/chat/completions';
 const COPILOT_RESPONSES_ENDPOINTS = new Set(['/responses', 'ws:/responses']);
+
+function providerTimeoutError(message = 'Provider stream idle timeout'): Error {
+  const error = new Error(message);
+  error.name = 'TimeoutError';
+  return error;
+}
+
+function unrefTimer(timer: ReturnType<typeof setTimeout>): void {
+  if (typeof timer === 'object' && 'unref' in timer) timer.unref();
+}
+
+function withProviderStreamIdleTimeout(
+  source: ReadableStream<Uint8Array>,
+  timeoutMs: number,
+  signal?: AbortSignal,
+): ReadableStream<Uint8Array> {
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let settled = false;
+
+  const clearTimer = (): void => {
+    if (timer) clearTimeout(timer);
+    timer = undefined;
+  };
+
+  return new ReadableStream<Uint8Array>({
+    start(controller) {
+      reader = source.getReader();
+      const fail = (reason: unknown): void => {
+        if (settled) return;
+        settled = true;
+        clearTimer();
+        void reader?.cancel(reason).catch(() => undefined);
+        controller.error(reason);
+      };
+      const resetTimer = (): void => {
+        clearTimer();
+        timer = setTimeout(() => fail(providerTimeoutError()), timeoutMs);
+        unrefTimer(timer);
+      };
+      const onAbort = (): void => {
+        fail(
+          signal?.reason ??
+            Object.assign(new Error('The operation was aborted'), { name: 'AbortError' }),
+        );
+      };
+
+      if (signal?.aborted) {
+        onAbort();
+        return;
+      }
+      signal?.addEventListener('abort', onAbort, { once: true });
+
+      resetTimer();
+      void (async () => {
+        try {
+          for (;;) {
+            const result = await reader.read();
+            if (result.done) {
+              settled = true;
+              clearTimer();
+              controller.close();
+              return;
+            }
+            resetTimer();
+            controller.enqueue(result.value);
+          }
+        } catch (error) {
+          fail(error);
+        } finally {
+          signal?.removeEventListener('abort', onAbort);
+          if (settled) clearTimer();
+          reader?.releaseLock();
+        }
+      })();
+    },
+    cancel(reason) {
+      clearTimer();
+      settled = true;
+      return reader?.cancel(reason);
+    },
+  });
+}
 
 function shouldApplyAnthropicAutomaticCacheControl(
   endpointKey: string,
@@ -120,6 +226,19 @@ function responsesTextFormat(
     out.description = format.description;
   }
   return out;
+}
+
+function responsesToolTypesByName(
+  body: Record<string, unknown>,
+  apiMode: ForwardOptions['apiMode'],
+): Readonly<Record<string, ResponsesToolCallType>> | undefined {
+  if (apiMode !== 'responses' || !Array.isArray(body.tools)) return undefined;
+  const result: Record<string, ResponsesToolCallType> = {};
+  for (const tool of body.tools) {
+    if (!isRecord(tool) || typeof tool.name !== 'string') continue;
+    if (tool.type === 'function' || tool.type === 'custom') result[tool.name] = tool.type;
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
 }
 
 function isStructuredResponseFormat(responseFormat: unknown): boolean {
@@ -247,6 +366,7 @@ export class ProviderClient {
     const isChatGpt = endpoint.format === 'chatgpt' && !isResponses;
     const isCodeAssist = !!endpoint.codeAssistEnvelope;
     const textFormat = responsesTextFormat(body, opts.apiMode);
+    const toolTypesByName = responsesToolTypesByName(body, opts.apiMode);
     const resolvedWireApiMode = wireApiMode(endpoint);
 
     const bareModel = stripModelPrefix(model, endpointKey);
@@ -259,7 +379,7 @@ export class ProviderClient {
         body: requestSource,
         stream,
         signal,
-        timeoutMs: PROVIDER_TIMEOUT_MS,
+        timeoutMs: stream ? PROVIDER_STREAM_TIMEOUT_MS : PROVIDER_TIMEOUT_MS,
         extraHeaders,
       });
       return {
@@ -268,6 +388,7 @@ export class ProviderClient {
         isAnthropic: false,
         isChatGpt: false,
         responsesTextFormat: textFormat,
+        responsesToolTypesByName: toolTypesByName,
       };
     }
     const { url, headers, requestBody, structuredOutputToolName } = this.buildRequest({
@@ -288,21 +409,47 @@ export class ProviderClient {
       reasoningContentLookup: opts.reasoningContentLookup,
       providerResource: opts.providerResource,
       sessionKey: opts.sessionKey,
+      requestContext: opts.requestContext,
     });
 
     // The Codex backend only serves prompt-cache hits with session affinity
     // headers the real Codex CLI sends — see CodexSessionAffinity.
+    if (endpointKey === 'openai-subscription') {
+      const metadata = {
+        ...extractOpenAiSubscriptionMetadata(apiKey),
+        ...opts.subscriptionMetadata,
+      };
+      if (metadata.accountId) headers['ChatGPT-Account-ID'] = metadata.accountId;
+      if (metadata.fedramp) headers['X-OpenAI-Fedramp'] = 'true';
+    }
+    const protocolHeaders = opts.requestContext
+      ? buildEndpointAwareUpstreamHeaders(headers, opts.requestContext, {
+          apiMode: opts.apiMode ?? 'chat_completions',
+          endpointKey,
+          authType,
+        })
+      : headers;
+    const hasNativeCodexAffinity =
+      endpointKey === 'openai-subscription' &&
+      opts.apiMode === 'responses' &&
+      opts.requestContext?.caller === 'codex' &&
+      typeof opts.requestContext.codexHeaders['session-id'] === 'string' &&
+      typeof opts.requestContext.codexHeaders['thread-id'] === 'string';
     const affinity =
-      endpointKey === 'openai-subscription'
+      endpointKey === 'openai-subscription' && !hasNativeCodexAffinity
         ? this.codexAffinity.prepare(apiKey, requestBody)
         : undefined;
     // Affinity headers are routing-critical and must win over caller-supplied
     // extraHeaders (provider-side observability hints), so they spread last.
     const finalHeaders =
-      affinity || extraHeaders ? { ...headers, ...extraHeaders, ...affinity?.headers } : headers;
+      affinity || extraHeaders
+        ? { ...protocolHeaders, ...extraHeaders, ...affinity?.headers }
+        : protocolHeaders;
+    reapplyProviderOwnedHeaders(finalHeaders, headers);
 
     const retryWireBody = async (
       wireRequestBody: Record<string, unknown>,
+      retryOptions?: { preResponseTimeoutMs?: number; semanticOutputTimeoutMs?: number },
     ): Promise<ForwardResult> => {
       this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 
@@ -318,24 +465,41 @@ export class ProviderClient {
         }
       }
 
-      const result = await this.executeFetch(url, finalHeaders, wireRequestBody, signal, stream, {
-        isGoogle,
-        isAnthropic,
-        isChatGpt,
-        isResponses,
-        isCodeAssist,
-        structuredOutputToolName,
-        responsesTextFormat: textFormat,
-      });
-      const qualifiedResult =
+      const result = await this.executeFetch(
+        url,
+        finalHeaders,
+        wireRequestBody,
+        signal,
+        stream,
+        retryOptions?.preResponseTimeoutMs ?? opts.preResponseTimeoutMs,
+        {
+          isGoogle,
+          isAnthropic,
+          isChatGpt,
+          isResponses,
+          isCodeAssist,
+          structuredOutputToolName,
+          responsesTextFormat: textFormat,
+          responsesToolTypesByName: toolTypesByName,
+        },
+      );
+      const semanticOutputTimeoutMs =
+        retryOptions?.semanticOutputTimeoutMs ??
+        opts.semanticOutputTimeoutMs ??
+        parseCodexSemanticOutputTimeoutMs();
+      const qualifiedResponse =
         endpointKey === 'openai-subscription'
-          ? {
-              ...result,
-              response: await qualifyChatGptResponse(result.response, {
-                downstreamFormat: isResponses ? 'responses' : 'chat-completions',
-              }),
-            }
-          : result;
+          ? await qualifyChatGptResponse(result.response, {
+              downstreamFormat: isResponses ? 'responses' : 'chat-completions',
+              timeoutMs: semanticOutputTimeoutMs,
+            })
+          : isGoogle && stream && opts.apiMode === 'messages'
+            ? await qualifyGoogleResponse(result.response, {
+                codeAssistEnvelope: isCodeAssist,
+                timeoutMs: semanticOutputTimeoutMs,
+              })
+            : result.response;
+      const qualifiedResult = { ...result, response: qualifiedResponse };
       if (affinity) this.codexAffinity.capture(affinity.storeKey, qualifiedResult.response);
       return {
         ...qualifiedResult,
@@ -502,14 +666,19 @@ export class ProviderClient {
     reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
     providerResource?: string;
     sessionKey?: string;
+    requestContext?: ForwardOptions['requestContext'];
   }): BuiltProviderRequest {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // For non-chat_completions inbound modes ('responses', 'messages'), the
     // routing layer pre-translated the request into chat_completions form
     // (`chatBody`). Provider adapters all consume chat_completions, so prefer
     // `chatBody` when present.
-    const requestSource =
+    const baseRequestSource =
       ctx.apiMode && ctx.apiMode !== 'chat_completions' ? (chatBody ?? body) : body;
+    const requestSource =
+      ctx.apiMode === 'messages' && endpoint.format !== 'anthropic'
+        ? stripAnthropicServerToolsForFallback(body, baseRequestSource)
+        : baseRequestSource;
 
     if (endpoint.format === 'google') {
       // Google accepts the API key via header (set by buildHeaders below) so
@@ -537,6 +706,10 @@ export class ProviderClient {
     }
 
     if (endpoint.format === 'anthropic') {
+      const preserveNativeBody =
+        ctx.apiMode === 'messages' &&
+        endpointKey === 'anthropic' &&
+        ctx.requestContext?.caller === 'claude-code';
       const injectSubscriptionIdentity =
         authType === 'subscription' && !endpoint.skipSubscriptionIdentity;
       const thinkingRouteContext = ctx.thinkingRouteContext ?? {
@@ -557,6 +730,7 @@ export class ProviderClient {
         ctx.apiMode === 'messages'
           ? applyAnthropicMessagesMutations(body, {
               injectSubscriptionIdentity,
+              preserveNativeBody,
               thinkingLookup: ctx.thinkingLookup,
               thinkingRouteContext,
               targetModel: bareModel,
@@ -572,7 +746,7 @@ export class ProviderClient {
           : undefined;
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
-      if (shouldApplyAnthropicAutomaticCacheControl(endpointKey, authType)) {
+      if (!preserveNativeBody && shouldApplyAnthropicAutomaticCacheControl(endpointKey, authType)) {
         applyAnthropicAutomaticCacheControl(requestBody);
       }
       return {
@@ -676,6 +850,7 @@ export class ProviderClient {
     requestBody: Record<string, unknown>,
     signal: AbortSignal | undefined,
     stream: boolean,
+    preResponseTimeoutMs: number | undefined,
     formatFlags: {
       isGoogle: boolean;
       isAnthropic: boolean;
@@ -684,21 +859,32 @@ export class ProviderClient {
       isCodeAssist?: boolean;
       structuredOutputToolName?: string;
       responsesTextFormat?: Record<string, unknown>;
+      responsesToolTypesByName?: Readonly<Record<string, ResponsesToolCallType>>;
     },
   ): Promise<ForwardResult> {
-    let fetchSignal: AbortSignal;
+    // For streaming requests, the fetch signal is only the startup deadline:
+    // fetch() resolves as soon as headers arrive, then the body is guarded by
+    // an idle watchdog below. Long active streams can exceed this duration,
+    // but a silent provider still fails before Cloudflare's proxy read window.
+    const providerTimeoutMs = stream ? PROVIDER_STREAM_TIMEOUT_MS : PROVIDER_TIMEOUT_MS;
+    const timeoutMs =
+      preResponseTimeoutMs === undefined
+        ? providerTimeoutMs
+        : Math.max(1, Math.min(providerTimeoutMs, Math.floor(preResponseTimeoutMs)));
     let timeout: ReturnType<typeof setTimeout> | undefined;
-    let timeoutController: AbortController | undefined;
+    let timeoutSignal: AbortSignal;
     if (stream) {
-      timeoutController = new AbortController();
-      timeout = setTimeout(() => timeoutController?.abort(), PROVIDER_TIMEOUT_MS);
-      fetchSignal = signal
-        ? AbortSignal.any([timeoutController.signal, signal])
-        : timeoutController.signal;
+      const timeoutController = new AbortController();
+      timeout = setTimeout(
+        () => timeoutController.abort(providerTimeoutError('Provider stream startup timed out')),
+        timeoutMs,
+      );
+      unrefTimer(timeout);
+      timeoutSignal = timeoutController.signal;
     } else {
-      const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
-      fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
+      timeoutSignal = AbortSignal.timeout(timeoutMs);
     }
+    const fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
 
     let response: Response;
     try {
@@ -713,9 +899,22 @@ export class ProviderClient {
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      throw new Error(message.replace(/key=[^&\s]+/gi, 'key=***'));
+      const sanitized = new Error(message.replace(/key=[^&\s]+/gi, 'key=***'));
+      if (err instanceof Error) sanitized.name = err.name;
+      throw sanitized;
     } finally {
       if (timeout) clearTimeout(timeout);
+    }
+
+    if (stream && response.body) {
+      response = new Response(
+        withProviderStreamIdleTimeout(response.body, PROVIDER_STREAM_TIMEOUT_MS, signal),
+        {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers,
+        },
+      );
     }
 
     return { response, ...formatFlags };

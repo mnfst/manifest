@@ -1,18 +1,15 @@
-// Tests that the PROVIDER_TIMEOUT_MS abort signal actually fires and
+// Tests that the provider abort signals actually fire and
 // aborts the in-flight fetch. The existing AbortSignal passthrough
 // tests in provider-client.spec.ts only verify the signal is *created*
 // and combined — they mock fetch to resolve immediately, so the timeout
 // behavior is never exercised.
 //
-// PROVIDER_TIMEOUT_MS is captured at module import time, so each test
+// Provider timeout values are captured at module import time, so each test
 // imports a fresh copy of the module under jest.isolateModulesAsync
 // with a short timeout override. The fetch mock returns a promise that
 // only settles when the signal aborts — if the timeout doesn't fire,
 // the test would block until Jest's per-test timeout (still a clear
 // failure, but we keep the per-test cap at 5 seconds for speed).
-
-import { ProviderClient } from '../provider-client';
-
 const mockFetch = jest.fn();
 (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch;
 
@@ -23,6 +20,7 @@ const body = {
 
 describe('ProviderClient — timeout signal actually aborts the in-flight fetch', () => {
   const originalEnv = process.env.PROVIDER_TIMEOUT_MS;
+  const originalStreamEnv = process.env.PROVIDER_STREAM_TIMEOUT_MS;
 
   beforeEach(() => {
     mockFetch.mockReset();
@@ -31,6 +29,8 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
   afterEach(() => {
     if (originalEnv === undefined) delete process.env.PROVIDER_TIMEOUT_MS;
     else process.env.PROVIDER_TIMEOUT_MS = originalEnv;
+    if (originalStreamEnv === undefined) delete process.env.PROVIDER_STREAM_TIMEOUT_MS;
+    else process.env.PROVIDER_STREAM_TIMEOUT_MS = originalStreamEnv;
   });
 
   it('fires PROVIDER_TIMEOUT_MS abort on pending fetch and surfaces the error', async () => {
@@ -64,6 +64,41 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
 
     expect(abortObserved).toBe(true);
     // Sanity-check that the signal we received was the one that aborted.
+    const finalSignal = (mockFetch.mock.calls[0][1] as RequestInit).signal as AbortSignal;
+    expect(finalSignal.aborted).toBe(true);
+  }, 5000);
+
+  it('uses a shorter attempt pre-response budget for provider startup', async () => {
+    process.env.PROVIDER_TIMEOUT_MS = '60000';
+    process.env.PROVIDER_STREAM_TIMEOUT_MS = '60000';
+
+    let abortObserved = false;
+    mockFetch.mockImplementation((_url: string, init: RequestInit) => {
+      const sig = init.signal as AbortSignal;
+      return new Promise((_resolve, reject) => {
+        sig.addEventListener('abort', () => {
+          abortObserved = true;
+          reject(new Error('The operation was aborted'));
+        });
+      });
+    });
+
+    await jest.isolateModulesAsync(async () => {
+      const { ProviderClient: FreshClient } = await import('../provider-client');
+      const fresh = new FreshClient();
+      await expect(
+        fresh.forward({
+          provider: 'openai',
+          apiKey: 'sk-test',
+          model: 'gpt-4o',
+          body,
+          stream: true,
+          preResponseTimeoutMs: 25,
+        }),
+      ).rejects.toThrow(/aborted/i);
+    });
+
+    expect(abortObserved).toBe(true);
     const finalSignal = (mockFetch.mock.calls[0][1] as RequestInit).signal as AbortSignal;
     expect(finalSignal.aborted).toBe(true);
   }, 5000);
@@ -146,8 +181,9 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
     expect(abortObserved).toBe(true);
   }, 5000);
 
-  it('does not abort a streaming response body after headers arrive', async () => {
-    process.env.PROVIDER_TIMEOUT_MS = '25';
+  it('applies PROVIDER_STREAM_TIMEOUT_MS as an idle timeout after streaming headers arrive', async () => {
+    process.env.PROVIDER_TIMEOUT_MS = '5';
+    process.env.PROVIDER_STREAM_TIMEOUT_MS = '25';
 
     let fetchSignal: AbortSignal | undefined;
     mockFetch.mockImplementation((_url: string, init: RequestInit) => {
@@ -157,6 +193,9 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
           new ReadableStream<Uint8Array>({
             start(controller) {
               controller.enqueue(new TextEncoder().encode('data: {"choices":[]}\n\n'));
+              fetchSignal!.addEventListener('abort', () => controller.error(fetchSignal!.reason), {
+                once: true,
+              });
             },
           }),
           { status: 200, headers: { 'content-type': 'text/event-stream' } },
@@ -167,16 +206,66 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
     await jest.isolateModulesAsync(async () => {
       const { ProviderClient: FreshClient } = await import('../provider-client');
       const fresh = new FreshClient();
-      await fresh.forward({
+      const forward = await fresh.forward({
         provider: 'openai',
         apiKey: 'sk-test',
         model: 'gpt-4o',
         body,
         stream: true,
       });
+      const reader = forward.response.body!.getReader();
+      await expect(reader.read()).resolves.toMatchObject({ done: false });
+      await expect(reader.read()).rejects.toMatchObject({ name: 'TimeoutError' });
     });
 
-    await new Promise((r) => setTimeout(r, 50));
+    expect(fetchSignal).toBeDefined();
+    expect(fetchSignal!.aborted).toBe(false);
+  }, 5000);
+
+  it('keeps an active streaming body alive beyond the idle timeout duration', async () => {
+    process.env.PROVIDER_TIMEOUT_MS = '5';
+    process.env.PROVIDER_STREAM_TIMEOUT_MS = '35';
+
+    let fetchSignal: AbortSignal | undefined;
+    mockFetch.mockImplementation((_url: string, init: RequestInit) => {
+      fetchSignal = init.signal as AbortSignal;
+      return Promise.resolve(
+        new Response(
+          new ReadableStream<Uint8Array>({
+            start(controller) {
+              const encoder = new TextEncoder();
+              controller.enqueue(encoder.encode('data: {"choices":[1]}\n\n'));
+              setTimeout(() => {
+                controller.enqueue(encoder.encode('data: {"choices":[2]}\n\n'));
+              }, 20);
+              setTimeout(() => {
+                controller.enqueue(encoder.encode('data: {"choices":[3]}\n\n'));
+                controller.close();
+              }, 40);
+            },
+          }),
+          { status: 200, headers: { 'content-type': 'text/event-stream' } },
+        ),
+      );
+    });
+
+    await jest.isolateModulesAsync(async () => {
+      const { ProviderClient: FreshClient } = await import('../provider-client');
+      const fresh = new FreshClient();
+      const forward = await fresh.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: true,
+      });
+      const reader = forward.response.body!.getReader();
+      await expect(reader.read()).resolves.toMatchObject({ done: false });
+      await expect(reader.read()).resolves.toMatchObject({ done: false });
+      await expect(reader.read()).resolves.toMatchObject({ done: false });
+      await expect(reader.read()).resolves.toMatchObject({ done: true });
+    });
+
     expect(fetchSignal).toBeDefined();
     expect(fetchSignal!.aborted).toBe(false);
   }, 5000);

@@ -7,6 +7,7 @@
 import { randomUUID } from 'crypto';
 
 import { OpenAIMessage } from './proxy-types';
+import { anthropicErrorTypeForStatus } from './proxy-protocol-error';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -17,11 +18,8 @@ const DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA = {
 } as const;
 
 const ANTHROPIC_SERVER_TOOL_PREFIXES = [
-  'bash_',
+  'advisor_',
   'code_execution_',
-  'computer_',
-  'memory_',
-  'text_editor_',
   'tool_search_tool_',
   'web_fetch_',
   'web_search_',
@@ -181,12 +179,12 @@ function buildUserMessages(content: unknown): OpenAIMessage[] {
   return messages;
 }
 
-// chatBody is fed to the routing/scoring layer when the inbound is Anthropic
-// Messages — `toolCount` and the specificity detector read `function.name`
-// and array length, nothing else. The Anthropic wire body is emitted by
-// `applyAnthropicMessagesMutations` directly from the inbound body, so this
-// translation can lose Anthropic-only tool fields (e.g. server-tool `type`
-// tags, omitted input_schema) without affecting upstream behavior.
+// chatBody feeds the routing/scoring layer and generic Chat Completions
+// fallbacks when the inbound is Anthropic Messages. The scorer only reads
+// `function.name` and array length. Anthropic server tools stay represented
+// here for scoring, then `stripAnthropicServerToolsForFallback` removes them
+// from a non-Anthropic wire body. Client-executed Anthropic tools remain so
+// the caller can execute them after a cross-provider fallback.
 function toChatTools(tools: unknown[]): JsonRecord[] {
   return tools.filter(isRecord).map((tool) => ({
     type: 'function',
@@ -214,6 +212,42 @@ function toChatToolChoice(choice: unknown): unknown {
   return undefined;
 }
 
+/**
+ * Server tools execute inside Anthropic and cannot be delegated to a generic
+ * Chat Completions fallback. Keep them in the scoring body, but remove them
+ * (and a forced choice targeting one) from the actual non-Anthropic wire body
+ * so Claude Code is never asked to execute a server-only tool locally.
+ */
+export function stripAnthropicServerToolsForFallback(
+  messagesBody: JsonRecord,
+  chatBody: JsonRecord,
+): JsonRecord {
+  const serverToolNames = new Set(
+    (Array.isArray(messagesBody.tools) ? messagesBody.tools : [])
+      .filter(isRecord)
+      .filter((tool) => typeof tool.type === 'string' && isAnthropicServerToolType(tool.type))
+      .map((tool) => (typeof tool.name === 'string' ? tool.name : ''))
+      .filter(Boolean),
+  );
+  if (serverToolNames.size === 0) return chatBody;
+
+  const result = { ...chatBody };
+  if (Array.isArray(chatBody.tools)) {
+    const tools = chatBody.tools.filter((tool) => {
+      if (!isRecord(tool) || !isRecord(tool.function)) return true;
+      return !(typeof tool.function.name === 'string' && serverToolNames.has(tool.function.name));
+    });
+    if (tools.length > 0) result.tools = tools;
+    else delete result.tools;
+  }
+
+  if (isRecord(chatBody.tool_choice) && isRecord(chatBody.tool_choice.function)) {
+    const name = chatBody.tool_choice.function.name;
+    if (typeof name === 'string' && serverToolNames.has(name)) delete result.tool_choice;
+  }
+  return result;
+}
+
 /** Anthropic Messages request → chat_completions request (used for routing/forwarding). */
 export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   const messages: OpenAIMessage[] = [];
@@ -224,12 +258,14 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   const inputMessages = Array.isArray(body.messages) ? body.messages : [];
   for (const item of inputMessages) {
     if (!isRecord(item)) continue;
-    const role = item.role === 'assistant' ? 'assistant' : 'user';
-    messages.push(
-      ...(role === 'assistant'
-        ? buildAssistantMessage(item.content)
-        : buildUserMessages(item.content)),
-    );
+    if (item.role === 'assistant') {
+      messages.push(...buildAssistantMessage(item.content));
+    } else if (item.role === 'system' || item.role === 'developer') {
+      const content = systemToString(item.content);
+      if (content) messages.push({ role: 'system', content });
+    } else {
+      messages.push(...buildUserMessages(item.content));
+    }
   }
 
   const chatBody: JsonRecord = { messages };
@@ -246,6 +282,26 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   // provider is Anthropic; harmlessly ignored by other adapters.
   if (body.thinking !== undefined) chatBody.thinking = body.thinking;
   if (body.top_k !== undefined) chatBody.top_k = body.top_k;
+  if (isRecord(body.output_config)) {
+    if (typeof body.output_config.effort === 'string') {
+      chatBody.reasoning_effort = body.output_config.effort;
+    }
+    if (isRecord(body.output_config.format) && body.output_config.format.type === 'json_schema') {
+      chatBody.response_format = {
+        type: 'json_schema',
+        json_schema: {
+          name: 'anthropic_output',
+          schema: isRecord(body.output_config.format.schema)
+            ? body.output_config.format.schema
+            : { type: 'object' },
+          strict: true,
+        },
+      };
+    }
+  }
+  // `context_management` describes Anthropic server-side context editing and
+  // has no generic Chat Completions equivalent; it is intentionally omitted
+  // rather than forwarded as an unknown parameter that breaks the fallback.
 
   if (Array.isArray(body.tools)) chatBody.tools = toChatTools(body.tools);
   const toolChoice = toChatToolChoice(body.tool_choice);
@@ -376,12 +432,52 @@ interface StreamState {
   nextBlockIndexCounter: number;
   finalUsage: JsonRecord | null;
   stopReason: string | null;
+  hasMeaningfulOutput: boolean;
+  sawTerminalEvent: boolean;
+  sourceEventCount: number;
+  textCharacters: number;
+  thinkingCharacters: number;
+  malformedEvents: number;
+  failure: MessagesStreamFailure | null;
   endedMessage: boolean;
+}
+
+export interface MessagesStreamFailure {
+  status: number;
+  message: string;
+}
+
+/**
+ * Content-blind evidence about one Anthropic Messages stream. These counters
+ * deliberately omit response text, tool names, tool arguments, and provider
+ * payloads so operators can diagnose protocol failures without retaining
+ * model output.
+ */
+export interface MessagesStreamEvidence {
+  source_events: number;
+  content_blocks: number;
+  text_characters: number;
+  thinking_characters: number;
+  tool_calls: number;
+  tool_argument_characters: number;
+  malformed_events: number;
+  meaningful_output: boolean;
+  terminal_event: 'message_stop' | 'error' | null;
+  stop_reason: string | null;
 }
 
 export interface MessagesStreamTransformer {
   transform: (chunk: string) => string | null;
   finalize: () => string | null;
+  getFailure: () => MessagesStreamFailure | null;
+  getEvidence: () => MessagesStreamEvidence;
+}
+
+export interface AnthropicPassthroughStreamValidator {
+  observe: (event: string) => void;
+  finalize: () => string | null;
+  getFailure: () => MessagesStreamFailure | null;
+  getEvidence: () => MessagesStreamEvidence;
 }
 
 export function createMessagesStreamTransformer(model: string): MessagesStreamTransformer {
@@ -397,6 +493,13 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
     nextBlockIndexCounter: 0,
     finalUsage: null,
     stopReason: null,
+    hasMeaningfulOutput: false,
+    sawTerminalEvent: false,
+    sourceEventCount: 0,
+    textCharacters: 0,
+    thinkingCharacters: 0,
+    malformedEvents: 0,
+    failure: null,
     endedMessage: false,
   };
 
@@ -406,7 +509,168 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
       const events = closeStream(state);
       return events.length > 0 ? events.join('') : null;
     },
+    getFailure: () => state.failure,
+    getEvidence: () => streamStateEvidence(state),
   };
+}
+
+export function createAnthropicPassthroughStreamValidator(): AnthropicPassthroughStreamValidator {
+  let hasMeaningfulOutput = false;
+  let sawMessageStop = false;
+  let ended = false;
+  let failure: MessagesStreamFailure | null = null;
+  let failureAlreadyForwarded = false;
+  let sourceEventCount = 0;
+  let contentBlockCount = 0;
+  let textCharacters = 0;
+  let thinkingCharacters = 0;
+  let toolCalls = 0;
+  let toolArgumentCharacters = 0;
+  let malformedEvents = 0;
+  let stopReason: string | null = null;
+  const openBlocks = new Map<number, { type: string; toolArguments: string }>();
+
+  const fail = (nextFailure: MessagesStreamFailure): string => {
+    failure = nextFailure;
+    ended = true;
+    return formatMessagesEvent('error', {
+      type: 'error',
+      error: {
+        type: anthropicErrorTypeForStatus(nextFailure.status),
+        message: nextFailure.message,
+      },
+    });
+  };
+
+  return {
+    observe: (event: string) => {
+      for (const payload of extractDataPayloads(event)) {
+        sourceEventCount += 1;
+        const data = safeParse(payload);
+        if (!data) {
+          malformedEvents += 1;
+          failure = {
+            status: 502,
+            message: 'Upstream provider returned malformed SSE data',
+          };
+          continue;
+        }
+        const type = typeof data.type === 'string' ? data.type : '';
+
+        if (type === 'error' && isRecord(data.error)) {
+          const errorType = typeof data.error.type === 'string' ? data.error.type : '';
+          failure = {
+            status: anthropicErrorStatus(errorType),
+            message:
+              typeof data.error.message === 'string' && data.error.message
+                ? data.error.message
+                : 'Upstream provider stream failed',
+          };
+          failureAlreadyForwarded = true;
+          ended = true;
+          continue;
+        }
+
+        if (type === 'content_block_start' && isRecord(data.content_block)) {
+          const block = data.content_block;
+          const index = typeof data.index === 'number' ? data.index : contentBlockCount;
+          const blockType = typeof block.type === 'string' ? block.type : '';
+          contentBlockCount += 1;
+          openBlocks.set(index, { type: blockType, toolArguments: '' });
+          if (blockType === 'tool_use' && typeof block.name === 'string' && block.name.trim()) {
+            toolCalls += 1;
+          }
+          if (typeof block.text === 'string') textCharacters += block.text.length;
+          if (typeof block.thinking === 'string') thinkingCharacters += block.thinking.length;
+          if (
+            (typeof block.text === 'string' && block.text.trim()) ||
+            (typeof block.data === 'string' && block.data.trim()) ||
+            (typeof block.name === 'string' && block.name.trim()) ||
+            (Array.isArray(block.content) && block.content.length > 0)
+          ) {
+            hasMeaningfulOutput = true;
+          }
+        }
+
+        if (type === 'content_block_delta' && isRecord(data.delta)) {
+          const delta = data.delta;
+          if (typeof delta.text === 'string') textCharacters += delta.text.length;
+          if (typeof delta.thinking === 'string') thinkingCharacters += delta.thinking.length;
+          if (typeof delta.partial_json === 'string') {
+            toolArgumentCharacters += delta.partial_json.length;
+            const index = typeof data.index === 'number' ? data.index : -1;
+            const block = openBlocks.get(index);
+            if (block) block.toolArguments += delta.partial_json;
+          }
+          if (typeof delta.text === 'string' && delta.text.trim()) {
+            hasMeaningfulOutput = true;
+          }
+        }
+
+        if (type === 'content_block_stop') {
+          const index = typeof data.index === 'number' ? data.index : -1;
+          const block = openBlocks.get(index);
+          if (block?.type === 'tool_use' && !isValidToolInput(block.toolArguments)) {
+            failure = {
+              status: 502,
+              message: 'Upstream provider returned malformed tool input',
+            };
+          }
+          openBlocks.delete(index);
+        }
+
+        if (type === 'message_delta' && isRecord(data.delta)) {
+          stopReason = typeof data.delta.stop_reason === 'string' ? data.delta.stop_reason : null;
+        }
+
+        if (type === 'message_stop') sawMessageStop = true;
+      }
+    },
+    finalize: () => {
+      if (failure && !failureAlreadyForwarded) return fail(failure);
+      if (ended) return null;
+      if (openBlocks.size > 0) {
+        return fail({
+          status: 502,
+          message: 'Upstream provider stream ended with an incomplete content block',
+        });
+      }
+      if (!hasMeaningfulOutput) {
+        return fail({ status: 502, message: 'Upstream provider returned an empty completion' });
+      }
+      if (!sawMessageStop) {
+        return fail({
+          status: 502,
+          message: 'Upstream provider stream ended before a terminal event',
+        });
+      }
+      ended = true;
+      return null;
+    },
+    getFailure: () => failure,
+    getEvidence: () => ({
+      source_events: sourceEventCount,
+      content_blocks: contentBlockCount,
+      text_characters: textCharacters,
+      thinking_characters: thinkingCharacters,
+      tool_calls: toolCalls,
+      tool_argument_characters: toolArgumentCharacters,
+      malformed_events: malformedEvents,
+      meaningful_output: hasMeaningfulOutput,
+      terminal_event: failure ? 'error' : sawMessageStop ? 'message_stop' : null,
+      stop_reason: stopReason,
+    }),
+  };
+}
+
+function anthropicErrorStatus(type: string): number {
+  const normalized = type.toLowerCase();
+  if (normalized.includes('rate_limit')) return 429;
+  if (normalized.includes('authentication')) return 401;
+  if (normalized.includes('permission')) return 403;
+  if (normalized.includes('invalid_request')) return 400;
+  if (normalized.includes('overloaded')) return 529;
+  return 502;
 }
 
 function transformStreamChunk(chunk: string, state: StreamState): string | null {
@@ -414,14 +678,36 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
   for (const payload of extractDataPayloads(chunk)) {
     if (state.endedMessage) break;
     if (payload === '[DONE]') continue;
+    state.sourceEventCount += 1;
     const data = safeParse(payload);
-    if (!data) continue;
+    if (!data) {
+      state.malformedEvents += 1;
+      state.failure = {
+        status: 502,
+        message: 'Upstream provider returned malformed SSE data',
+      };
+      events.push(
+        buildStreamErrorEvent(state, {
+          status: 502,
+          message: state.failure.message,
+        }),
+      );
+      break;
+    }
 
     // Terminal upstream errors arrive as OpenAI-shape `{"error":{...}}` chunks
     // (e.g. from the ChatGPT Responses adapter). Surface them as a native
     // Anthropic `error` event instead of dropping them — otherwise closeStream
     // would fabricate a successful empty `end_turn` message.
     if (isRecord(data.error)) {
+      const status = validErrorStatus(data.error.status) ?? 502;
+      state.failure = {
+        status,
+        message:
+          typeof data.error.message === 'string' && data.error.message
+            ? data.error.message
+            : 'Upstream provider stream failed',
+      };
       events.push(buildStreamErrorEvent(state, data.error));
       break;
     }
@@ -456,6 +742,7 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     // safely replay. Keeping the tool_use block contiguous is the more
     // defensible tradeoff than surfacing a fragment that breaks replay.
     if (typeof delta.reasoning_content === 'string' && delta.reasoning_content.length > 0) {
+      state.thinkingCharacters += delta.reasoning_content.length;
       if (!hasOpenToolCall(state)) {
         closeTextBlock(state, events);
         if (!state.thinkingOpened) {
@@ -481,6 +768,8 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     }
 
     if (typeof delta.content === 'string' && delta.content.length > 0) {
+      state.textCharacters += delta.content.length;
+      if (delta.content.trim().length > 0) state.hasMeaningfulOutput = true;
       closeThinkingBlock(state, events);
       closeOpenToolCalls(state, events);
       if (!state.textOpened) {
@@ -520,6 +809,9 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
           state.toolCalls.set(callIndex, entry);
         }
         const fn = isRecord(call.function) ? call.function : {};
+        if (typeof fn.name === 'string' && fn.name.trim().length > 0) {
+          state.hasMeaningfulOutput = true;
+        }
         if (!entry.opened) {
           events.push(
             formatMessagesEvent('content_block_start', {
@@ -549,6 +841,7 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     }
 
     if (choice.finish_reason) {
+      state.sawTerminalEvent = true;
       state.stopReason = toAnthropicStopReason(choice.finish_reason);
       if (isRecord(data.usage) && !state.finalUsage) {
         state.finalUsage = toAnthropicUsage(data.usage);
@@ -626,15 +919,6 @@ function buildMessageStartEvent(state: StreamState, data: JsonRecord): string {
   });
 }
 
-const ANTHROPIC_ERROR_TYPE_BY_STATUS: Record<number, string> = {
-  400: 'invalid_request_error',
-  401: 'authentication_error',
-  403: 'permission_error',
-  404: 'not_found_error',
-  429: 'rate_limit_error',
-  529: 'overloaded_error',
-};
-
 function buildStreamErrorEvent(state: StreamState, error: JsonRecord): string {
   // Marking the message ended makes closeStream a no-op, so the error event is
   // the terminal event the client sees (matching Anthropic's own stream
@@ -645,15 +929,61 @@ function buildStreamErrorEvent(state: StreamState, error: JsonRecord): string {
       ? error.message
       : 'Upstream provider stream failed';
   const status = typeof error.status === 'number' ? error.status : undefined;
-  const errorType = (status && ANTHROPIC_ERROR_TYPE_BY_STATUS[status]) || 'api_error';
+  const errorType = anthropicErrorTypeForStatus(status);
   return formatMessagesEvent('error', {
     type: 'error',
     error: { type: errorType, message },
   });
 }
 
+function validErrorStatus(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 400 && value <= 599
+    ? value
+    : null;
+}
+
+function buildIntegrityFailureEvent(state: StreamState, failure: MessagesStreamFailure): string {
+  state.failure = failure;
+  state.endedMessage = true;
+  return formatMessagesEvent('error', {
+    type: 'error',
+    error: {
+      type: anthropicErrorTypeForStatus(failure.status),
+      message: failure.message,
+    },
+  });
+}
+
 function closeStream(state: StreamState): string[] {
   if (state.endedMessage) return [];
+
+  if (!state.hasMeaningfulOutput) {
+    return [
+      buildIntegrityFailureEvent(state, {
+        status: 502,
+        message: 'Upstream provider returned an empty completion',
+      }),
+    ];
+  }
+
+  if (!state.sawTerminalEvent) {
+    return [
+      buildIntegrityFailureEvent(state, {
+        status: 502,
+        message: 'Upstream provider stream ended before a terminal event',
+      }),
+    ];
+  }
+
+  if (hasMalformedToolInput(state)) {
+    return [
+      buildIntegrityFailureEvent(state, {
+        status: 502,
+        message: 'Upstream provider returned malformed tool input',
+      }),
+    ];
+  }
+
   const events: string[] = [];
 
   closeThinkingBlock(state, events);
@@ -675,11 +1005,58 @@ function closeStream(state: StreamState): string[] {
   return events;
 }
 
+function isValidToolInput(argumentsText: string): boolean {
+  if (!argumentsText) return true;
+  try {
+    const value: unknown = JSON.parse(argumentsText);
+    return isRecord(value);
+  } catch {
+    return false;
+  }
+}
+
+function hasMalformedToolInput(state: StreamState): boolean {
+  for (const toolCall of state.toolCalls.values()) {
+    if (!isValidToolInput(toolCall.argBuffer)) return true;
+  }
+  return false;
+}
+
+function streamStateEvidence(state: StreamState): MessagesStreamEvidence {
+  let toolArgumentCharacters = 0;
+  for (const toolCall of state.toolCalls.values()) {
+    toolArgumentCharacters += toolCall.argBuffer.length;
+  }
+  return {
+    source_events: state.sourceEventCount,
+    content_blocks: state.nextBlockIndexCounter,
+    text_characters: state.textCharacters,
+    thinking_characters: state.thinkingCharacters,
+    tool_calls: state.toolCalls.size,
+    tool_argument_characters: toolArgumentCharacters,
+    malformed_events: state.malformedEvents,
+    meaningful_output: state.hasMeaningfulOutput,
+    terminal_event: state.failure ? 'error' : state.endedMessage ? 'message_stop' : null,
+    stop_reason: state.stopReason,
+  };
+}
+
 function extractDataPayloads(chunk: string): string[] {
   const lines = chunk.split('\n').map((line) => line.trim());
   const dataLines = lines.filter((line) => line.startsWith('data:'));
   if (dataLines.length > 0) return dataLines.map((line) => line.slice(5).trim());
-  return [chunk.trim()].filter(Boolean);
+  const payload = lines
+    .filter(
+      (line) =>
+        line &&
+        !line.startsWith('event:') &&
+        !line.startsWith('id:') &&
+        !line.startsWith('retry:') &&
+        !line.startsWith(':'),
+    )
+    .join('\n')
+    .trim();
+  return [payload].filter(Boolean);
 }
 
 function safeParse(data: string): JsonRecord | null {

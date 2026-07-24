@@ -118,10 +118,33 @@ export function toResponsesRequest(
 
   if (isObjectRecord(body.reasoning)) {
     request.reasoning = body.reasoning;
+  } else if (typeof body.reasoning_effort === 'string') {
+    request.reasoning = { effort: body.reasoning_effort };
   }
 
   if (isObjectRecord(body.text)) {
     request.text = body.text;
+  } else if (isObjectRecord(body.response_format)) {
+    const responseFormat = body.response_format;
+    if (responseFormat.type === 'json_object') {
+      request.text = { format: { type: 'json_object' } };
+    } else if (
+      responseFormat.type === 'json_schema' &&
+      isObjectRecord(responseFormat.json_schema)
+    ) {
+      const jsonSchema = responseFormat.json_schema;
+      request.text = {
+        format: {
+          type: 'json_schema',
+          ...(typeof jsonSchema.name === 'string' ? { name: jsonSchema.name } : {}),
+          ...(jsonSchema.schema !== undefined ? { schema: jsonSchema.schema } : {}),
+          ...(jsonSchema.strict !== undefined ? { strict: jsonSchema.strict } : {}),
+          ...(typeof jsonSchema.description === 'string'
+            ? { description: jsonSchema.description }
+            : {}),
+        },
+      };
+    }
   }
 
   if (Array.isArray(body.tools)) {

@@ -26,10 +26,12 @@ function mockResponse(): {
   res: Record<string, jest.Mock | boolean | number>;
   written: string[];
   headers: Record<string, string>;
+  listeners: Record<string, () => void>;
   statusCode: number;
 } {
   const written: string[] = [];
   const headers: Record<string, string> = {};
+  const listeners: Record<string, () => void> = {};
   let statusCode = 200;
   const res: Record<string, jest.Mock | boolean | number> = {
     setHeader: jest.fn((k: string, v: string) => {
@@ -46,13 +48,16 @@ function mockResponse(): {
       statusCode = code;
       return res;
     }),
-    once: jest.fn(),
+    once: jest.fn((event: string, listener: () => void) => {
+      listeners[event] = listener;
+    }),
     writableEnded: false,
   };
   return {
     res,
     written,
     headers,
+    listeners,
     get statusCode() {
       return statusCode;
     },
@@ -232,6 +237,7 @@ describe('ProxyController', () => {
   it('should expose /v1/models as an OpenAI-compatible list with the Manifest auto route', async () => {
     await expect(controller.models(mockRequest({}) as never)).resolves.toEqual({
       object: 'list',
+      models: [],
       data: [
         {
           id: 'auto',
@@ -264,6 +270,7 @@ describe('ProxyController', () => {
 
     await expect(controller.models(mockRequest({}) as never)).resolves.toEqual({
       object: 'list',
+      models: [],
       data: [
         { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
         { id: 'openai/gpt-4o', object: 'model', created: 0, owned_by: 'openai' },
@@ -304,6 +311,7 @@ describe('ProxyController', () => {
 
     await expect(controller.models(mockRequest({}) as never)).resolves.toEqual({
       object: 'list',
+      models: [],
       data: [
         { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
         { id: 'openai/gpt-4o', object: 'model', created: 0, owned_by: 'openai' },
@@ -326,6 +334,7 @@ describe('ProxyController', () => {
 
     await expect(controller.models(mockRequest({}) as never, 'true')).resolves.toEqual({
       object: 'list',
+      models: [],
       data: [
         { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
         {
@@ -358,6 +367,7 @@ describe('ProxyController', () => {
 
     await expect(controller.models(mockRequest({}) as never, 'true')).resolves.toEqual({
       object: 'list',
+      models: [],
       data: [
         { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
         { id: 'kiro/mystery-model', object: 'model', created: 0, owned_by: 'kiro' },
@@ -396,6 +406,7 @@ describe('ProxyController', () => {
 
     await expect(controller.models(mockRequest({}) as never, 'true')).resolves.toEqual({
       object: 'list',
+      models: [],
       data: [
         { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
         {
@@ -563,6 +574,129 @@ describe('ProxyController', () => {
     expect(res.status).toHaveBeenCalledWith(200);
   });
 
+  it('completes pending telemetry as a client cancellation when the caller disconnects', async () => {
+    mockMessageRepo.find.mockResolvedValueOnce([
+      {
+        id: 'pending-primary',
+        timestamp: new Date(Date.now() - 50).toISOString(),
+        attempt_number: 1,
+      },
+      {
+        id: 'pending-last-attempt',
+        timestamp: new Date(Date.now() - 25).toISOString(),
+        attempt_number: 2,
+      },
+    ]);
+    proxyService.proxyRequest.mockImplementation(
+      async (opts: { signal: AbortSignal; startProviderAttempt: StartProviderAttempt }) => {
+        const attempt = opts.startProviderAttempt({
+          provider: 'openai',
+          model: 'gpt-5.6-sol',
+          authType: 'subscription',
+        });
+        await attempt.pendingWrite;
+        await new Promise<void>((_resolve, reject) => {
+          opts.signal.addEventListener('abort', () => reject(new Error('client aborted')), {
+            once: true,
+          });
+        });
+        throw new Error('unreachable');
+      },
+    );
+
+    const req = mockRequest({ stream: true, messages: [{ role: 'user', content: 'hi' }] });
+    const { res, listeners } = mockResponse();
+    const pending = controller.messages(req as never, res as never);
+    await flushRecorderMicrotasks();
+
+    listeners.close();
+    await pending;
+    await flushRecorderMicrotasks();
+
+    expect(mockMessageRepo.update).toHaveBeenCalledWith(
+      { id: 'pending-primary', status: 'pending' },
+      expect.objectContaining({
+        status: 'failed',
+        error_http_status: 499,
+        error_origin: 'request',
+        error_class: 'client_error',
+        superseded: true,
+      }),
+    );
+    expect(mockMessageRepo.update).toHaveBeenCalledWith(
+      { id: 'pending-last-attempt', status: 'pending' },
+      expect.objectContaining({
+        status: 'failed',
+        error_http_status: 499,
+        error_origin: 'request',
+        error_class: 'client_error',
+        superseded: false,
+      }),
+    );
+  });
+
+  it('sweeps a fallback attempt inserted after the initial disconnect recording', async () => {
+    mockMessageRepo.find
+      .mockResolvedValueOnce([
+        {
+          id: 'pending-primary',
+          timestamp: new Date(Date.now() - 50).toISOString(),
+          attempt_number: 1,
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 'late-fallback',
+          timestamp: new Date(Date.now() - 25).toISOString(),
+          attempt_number: 2,
+        },
+      ]);
+    proxyService.proxyRequest.mockImplementation(
+      async (opts: { signal: AbortSignal; startProviderAttempt: StartProviderAttempt }) => {
+        const primary = opts.startProviderAttempt({
+          provider: 'openai',
+          model: 'gpt-5.6-sol',
+          authType: 'subscription',
+        });
+        await primary.pendingWrite;
+        await new Promise<void>((resolve) => {
+          opts.signal.addEventListener('abort', () => resolve(), { once: true });
+        });
+        const fallback = opts.startProviderAttempt({
+          provider: 'anthropic',
+          model: 'claude-opus-4-8',
+          authType: 'subscription',
+        });
+        await fallback.pendingWrite;
+        throw new Error('client aborted');
+      },
+    );
+
+    const req = mockRequest({ stream: true, messages: [{ role: 'user', content: 'hi' }] });
+    const { res, listeners } = mockResponse();
+    const pending = controller.messages(req as never, res as never);
+    await flushRecorderMicrotasks();
+
+    listeners.close();
+    await pending;
+    await flushRecorderMicrotasks();
+
+    expect(mockMessageRepo.update).toHaveBeenCalledWith(
+      { id: 'pending-primary', status: 'pending' },
+      expect.objectContaining({
+        status: 'failed',
+        error_http_status: 499,
+      }),
+    );
+    expect(mockMessageRepo.update).toHaveBeenCalledWith(
+      { id: 'late-fallback', status: 'pending' },
+      expect.objectContaining({
+        status: 'failed',
+        error_http_status: 499,
+      }),
+    );
+  });
+
   it('enforces the plan request limit before routing and records a Manifest policy row', async () => {
     const block = new HttpException(
       {
@@ -728,6 +862,71 @@ describe('ProxyController', () => {
     expect(json.content).toEqual([{ type: 'text', text: 'hi there' }]);
     expect(json.stop_reason).toBe('end_turn');
     expect(json.usage).toMatchObject({ input_tokens: 4, output_tokens: 2 });
+  });
+
+  it('serves /v1/messages/count_tokens locally without consuming an inference slot', () => {
+    const req = mockRequest({
+      model: 'claude-sonnet-4',
+      system: 'You are a coding assistant.',
+      messages: [{ role: 'user', content: 'Inspect this change.' }],
+      tools: [{ name: 'read_file', input_schema: { type: 'object' } }],
+    });
+
+    const result = controller.countMessageTokens(req as never);
+
+    expect(result.input_tokens).toBeGreaterThan(1);
+    expect(proxyService.proxyRequest).not.toHaveBeenCalled();
+    expect(rateLimiter.acquireSlot).not.toHaveBeenCalled();
+  });
+
+  it('turns an empty non-streaming provider HTTP 200 into an Anthropic error and failed row', async () => {
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: new Response('', {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'standard',
+        model: 'gpt-5.6-sol',
+        provider: 'openai',
+        confidence: 0.9,
+        reason: 'auto',
+        auth_type: 'subscription',
+      },
+    });
+
+    const req = mockRequest({
+      model: 'default',
+      max_tokens: 64,
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+    const { res } = mockResponse();
+
+    await controller.messages(req as never, res as never);
+    await flushRecorderMicrotasks();
+
+    expect(res.status).toHaveBeenCalledWith(502);
+    expect(res.json).toHaveBeenCalledWith({
+      type: 'error',
+      error: { type: 'api_error', message: 'Upstream provider returned an empty response' },
+    });
+    expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'failed',
+        error_http_status: 502,
+        provider: 'openai',
+        model: 'gpt-5.6-sol',
+        auth_type: 'subscription',
+      }),
+    );
+    expect(mockMessageRepo.insert).not.toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'ok' }),
+    );
   });
 
   it('should pass through native Responses JSON bodies', async () => {
@@ -1416,6 +1615,112 @@ describe('ProxyController', () => {
         status: 404,
         source: 'provider',
       }),
+    });
+  });
+
+  it('returns thrown failures as Anthropic errors on /v1/messages even when streaming', async () => {
+    proxyService.proxyRequest.mockRejectedValue(new Error('Sensitive internal failure'));
+    const req = mockRequest({
+      model: 'auto',
+      max_tokens: 1024,
+      stream: true,
+      messages: [{ role: 'user', content: 'test' }],
+    });
+    const { res } = mockResponse();
+
+    await controller.messages(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      type: 'error',
+      error: {
+        type: 'api_error',
+        message: 'Manifest encountered an internal error. Try again shortly.',
+      },
+    });
+  });
+
+  it('maps collected Responses SSE failures to Anthropic errors on /v1/messages', async () => {
+    proxyService.proxyRequest.mockRejectedValue(
+      new ResponsesSseError('Bad upstream request', 400, '{"error":"bad"}'),
+    );
+    const req = mockRequest({
+      model: 'auto',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: 'test' }],
+    });
+    const { res } = mockResponse();
+
+    await controller.messages(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      type: 'error',
+      error: { type: 'invalid_request_error', message: 'Bad upstream request' },
+    });
+  });
+
+  it('returns thrown failures as OpenAI errors on /v1/responses even when streaming', async () => {
+    proxyService.proxyRequest.mockRejectedValue(new HttpException('Bad Responses input', 400));
+    const req = mockRequest({ model: 'auto', stream: true, input: 'test' });
+    const { res } = mockResponse();
+
+    await controller.responses(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: { message: 'Bad Responses input', type: 'invalid_request_error' },
+    });
+  });
+
+  it('maps rate limits to an OpenAI error on /v1/responses', async () => {
+    proxyService.proxyRequest.mockRejectedValue(new HttpException('Slow down', 429));
+    const req = mockRequest({ model: 'auto', input: 'test' });
+    const { res } = mockResponse();
+
+    await controller.responses(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(429);
+    expect(res.json).toHaveBeenCalledWith({
+      error: { message: 'Slow down', type: 'rate_limit_error' },
+    });
+  });
+
+  it('returns Manifest setup stubs as real Anthropic errors instead of assistant success', async () => {
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: new Response(
+          JSON.stringify({ choices: [{ message: { role: 'assistant', content: 'setup' } }] }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        ),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'simple',
+        model: 'manifest',
+        provider: 'manifest',
+        confidence: 1,
+        reason: 'no_provider',
+        manifest_error_code: 'M101',
+        manifest_error_message: 'No providers configured',
+      },
+    });
+    const req = mockRequest({
+      model: 'auto',
+      max_tokens: 1024,
+      stream: true,
+      messages: [{ role: 'user', content: 'test' }],
+    });
+    const { res } = mockResponse();
+
+    await controller.messages(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.json).toHaveBeenCalledWith({
+      type: 'error',
+      error: { type: 'api_error', message: 'No providers configured' },
     });
   });
 
@@ -2142,7 +2447,7 @@ describe('ProxyController', () => {
       );
     });
 
-    it('should store null trace_id when traceparent header is absent', async () => {
+    it('should generate and return a trace_id when traceparent header is absent', async () => {
       const errorBody = '{"error":"bad"}';
       const mockProviderResp = new Response(errorBody, {
         status: 403,
@@ -2161,19 +2466,23 @@ describe('ProxyController', () => {
       });
 
       const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
-      const { res } = mockResponse();
+      const { res, headers } = mockResponse();
 
       await controller.chatCompletions(req as never, res as never);
       await new Promise((r) => setTimeout(r, 10));
 
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          trace_id: null,
+          trace_id: expect.stringMatching(/^[0-9a-f]{32}$/),
         }),
+      );
+      expect(headers['x-manifest-trace-id']).toMatch(/^[0-9a-f]{32}$/);
+      expect(mockMessageRepo.insert.mock.calls[0]?.[0]?.trace_id).toBe(
+        headers['x-manifest-trace-id'],
       );
     });
 
-    it('should store null trace_id when traceparent has less than 2 parts', async () => {
+    it('should generate and return a trace_id when traceparent is invalid', async () => {
       const errorBody = '{"error":"bad"}';
       const mockProviderResp = new Response(errorBody, {
         status: 500,
@@ -2199,15 +2508,19 @@ describe('ProxyController', () => {
       const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] }, 'user-1', {
         traceparent: 'invalidnodashes',
       });
-      const { res } = mockResponse();
+      const { res, headers } = mockResponse();
 
       await controller.chatCompletions(req as never, res as never);
       await new Promise((r) => setTimeout(r, 10));
 
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          trace_id: null,
+          trace_id: expect.stringMatching(/^[0-9a-f]{32}$/),
         }),
+      );
+      expect(headers['x-manifest-trace-id']).toMatch(/^[0-9a-f]{32}$/);
+      expect(mockMessageRepo.insert.mock.calls[0]?.[0]?.trace_id).toBe(
+        headers['x-manifest-trace-id'],
       );
     });
 
@@ -2500,12 +2813,10 @@ describe('ProxyController', () => {
       expect(res.json).not.toHaveBeenCalled();
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          // Provider Attempts keep the canonical storage status; the parent
-          // Request carries the caller-visible error outcome and taxonomy.
           status: 'failed',
-          error_http_status: 503,
-          error_origin: 'transport',
-          error_class: 'network',
+          error_http_status: 502,
+          error_origin: 'provider',
+          error_class: 'server_error',
           provider: 'OpenAI',
           model: 'gpt-4o',
         }),
@@ -2951,6 +3262,223 @@ describe('ProxyController', () => {
       expect(written.length).toBeGreaterThan(0);
     });
 
+    it('returns an Anthropic error and records failed telemetry for an empty HTTP 200 stream', async () => {
+      const mockProviderResp = createMockStreamResponse(['data: [DONE]\n\n']);
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-5.6-sol',
+          provider: 'openai',
+          confidence: 0.8,
+          reason: 'auto',
+          auth_type: 'subscription',
+        },
+      });
+
+      const req = mockRequest({
+        model: 'default',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'test' }],
+        stream: true,
+      });
+      const { res, written } = mockResponse();
+
+      await controller.messages(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(written.join('')).toContain('event: error');
+      expect(written.join('')).toContain('Upstream provider returned an empty completion');
+      expect(written.join('')).not.toContain('message_stop');
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'failed',
+          error_http_status: 502,
+          error_message: 'Upstream provider returned an empty completion',
+          provider: 'openai',
+          model: 'gpt-5.6-sol',
+          auth_type: 'subscription',
+        }),
+      );
+      expect(mockMessageRepo.insert).not.toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'ok' }),
+      );
+    });
+
+    it('returns an Anthropic error and records failure when SSE ends before finish_reason', async () => {
+      const mockProviderResp = createMockStreamResponse([
+        'data: {"choices":[{"delta":{"content":"partial"}}]}\n\n',
+      ]);
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-5.6-sol',
+          provider: 'openai',
+          confidence: 0.8,
+          reason: 'auto',
+          auth_type: 'subscription',
+        },
+      });
+
+      const req = mockRequest({
+        model: 'default',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'test' }],
+        stream: true,
+      });
+      const { res, written } = mockResponse();
+
+      await controller.messages(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(written.join('')).toContain('"text":"partial"');
+      expect(written.join('')).toContain('event: error');
+      expect(written.join('')).toContain('Upstream provider stream ended before a terminal event');
+      expect(written.join('')).not.toContain('message_stop');
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'failed',
+          error_http_status: 502,
+          error_message: 'Upstream provider stream ended before a terminal event',
+        }),
+      );
+      expect(mockMessageRepo.insert).not.toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'ok' }),
+      );
+    });
+
+    it('returns an Anthropic timeout event and failed telemetry when the body read aborts', async () => {
+      const encoder = new TextEncoder();
+      let pullCount = 0;
+      const mockProviderResp = new Response(
+        new ReadableStream<Uint8Array>({
+          pull(controller) {
+            if (pullCount++ === 0) {
+              controller.enqueue(
+                encoder.encode('data: {"choices":[{"delta":{"content":"partial"}}]}\n\n'),
+              );
+              return;
+            }
+            controller.error(Object.assign(new Error('deadline'), { name: 'TimeoutError' }));
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'text/event-stream' } },
+      );
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-5.6-sol',
+          provider: 'openai',
+          confidence: 0.8,
+          reason: 'auto',
+          auth_type: 'subscription',
+        },
+      });
+
+      const req = mockRequest({
+        model: 'default',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'test' }],
+        stream: true,
+      });
+      const { res, written } = mockResponse();
+
+      await controller.messages(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(written.join('')).toContain('"text":"partial"');
+      expect(written.join('')).toContain('event: error');
+      expect(written.join('')).toContain('Upstream provider stream timed out');
+      expect(written.join('')).not.toContain('message_stop');
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'failed',
+          error_http_status: 504,
+          error_message: 'Upstream provider stream timed out',
+          provider: 'openai',
+          model: 'gpt-5.6-sol',
+          auth_type: 'subscription',
+        }),
+      );
+      expect(mockMessageRepo.insert).not.toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'ok' }),
+      );
+    });
+
+    it('rejects a truncated native Anthropic passthrough stream and records provider failure', async () => {
+      const mockProviderResp = createMockStreamResponse([
+        'event: message_start\ndata: {"type":"message_start","message":{"usage":{"input_tokens":5}}}\n\n',
+        'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"partial"}}\n\n',
+      ]);
+
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: true,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'standard',
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          confidence: 0.8,
+          reason: 'requested-model',
+          auth_type: 'subscription',
+        },
+      });
+      (providerClient as Record<string, jest.Mock>).createAnthropicStreamTransformer = jest
+        .fn()
+        .mockReturnValue(jest.fn(() => null));
+
+      const req = mockRequest({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'test' }],
+        stream: true,
+      });
+      const { res, written } = mockResponse();
+
+      await controller.messages(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(written.join('')).toContain('"text":"partial"');
+      expect(written.join('')).toContain('event: error');
+      expect(written.join('')).toContain('Upstream provider stream ended before a terminal event');
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'failed',
+          error_http_status: 502,
+          provider: 'anthropic',
+          model: 'claude-sonnet-4-6',
+          auth_type: 'subscription',
+        }),
+      );
+      expect(mockMessageRepo.insert).not.toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'ok' }),
+      );
+    });
+
     it('should transform Anthropic streaming through createAnthropicStreamTransformer', async () => {
       const mockProviderResp = createMockStreamResponse([
         'event: message_start\ndata: {"type":"message_start","message":{"usage":{"input_tokens":10}}}\n\n',
@@ -3104,7 +3632,7 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      expect(res.end).toHaveBeenCalledTimes(2);
+      expect(res.end).toHaveBeenCalledTimes(1);
     });
   });
 

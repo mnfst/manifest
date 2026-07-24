@@ -1,7 +1,10 @@
 import type { IncomingHttpHeaders } from 'http';
 import { ProviderEndpoint } from './provider-endpoints';
+import type { AgentRequestContext } from './agent-request-context';
+export type { AgentRequestContext } from './agent-request-context';
 import type { ThinkingBlock, ThinkingBlockRouteContext } from './thinking-block-cache';
 import { CallerAttribution } from './caller-classifier';
+import type { OpenAiSubscriptionMetadata } from '../oauth/openai/openai-token-metadata';
 
 /**
  * Optional lookup to re-inject cached thought_signature values that were
@@ -77,7 +80,23 @@ export interface ForwardOptions {
   sessionKey?: string;
   stream: boolean;
   signal?: AbortSignal;
+  /**
+   * Maximum time for this provider attempt to return response headers. The
+   * timer is released after headers arrive, so active streaming bodies remain
+   * governed by the provider idle watchdog rather than the gateway deadline.
+   */
+  preResponseTimeoutMs?: number;
+  /**
+   * Maximum time to wait for semantically useful Codex output before the
+   * response is eligible for retry/fallback. This is attempt-scoped and does
+   * not terminate an active stream after useful output has begun.
+   */
+  semanticOutputTimeoutMs?: number;
   extraHeaders?: Record<string, string>;
+  /** Auth-free caller protocol metadata, safe only for endpoint-aware forwarding. */
+  requestContext?: AgentRequestContext;
+  /** Provider-owned workspace routing decoded from the stored OAuth blob. */
+  subscriptionMetadata?: OpenAiSubscriptionMetadata;
   customEndpoint?: ProviderEndpoint;
   authType?: string;
   /** Lookup for re-injecting cached thought_signature values (Google only). */
@@ -117,6 +136,8 @@ export interface ProxyRequestOptions {
   specificityOverride?: string;
   callerAttribution?: CallerAttribution | null;
   headers?: IncomingHttpHeaders;
+  /** Auth-free caller protocol metadata captured once by the controller. */
+  requestContext?: AgentRequestContext;
   /** Called immediately before Manifest invokes one upstream provider transport. */
   startProviderAttempt?: StartProviderAttempt;
 }

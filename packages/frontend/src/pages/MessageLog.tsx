@@ -454,8 +454,7 @@ const MessageLog: Component = () => {
   createEffect(() => {
     if (!data.loading && data() !== undefined) setLoadedMessageQueryKey(messageQueryKey());
   });
-  const messageQueryChanging = () =>
-    data.loading && loadedMessageQueryKey() !== messageQueryKey();
+  const messageQueryChanging = () => data.loading && loadedMessageQueryKey() !== messageQueryKey();
 
   const [messageFilterOptions] = createResource(
     () => ({

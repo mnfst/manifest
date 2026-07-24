@@ -30,18 +30,22 @@ interface ForwardProviderOptions {
   stream: boolean;
   sessionKey: string;
   signal?: AbortSignal;
+  preResponseTimeoutMs?: number;
+  semanticOutputTimeoutMs?: number;
   authType?: string;
   rawApiKey?: string;
   providerKeyLabel?: string;
   agentId?: string;
   tenantId?: string;
   resourceUrl?: string;
+  subscriptionMetadata?: import('../oauth/openai/openai-token-metadata').OpenAiSubscriptionMetadata;
   providerRegion?: string | null;
   apiMode?: ProxyApiMode;
   signatureLookup?: SignatureLookup;
   thinkingLookup?: ThinkingBlockLookup;
   reasoningContentLookup?: ReasoningContentLookup;
   paramMergeContext?: ParamMergeContext;
+  requestContext?: AgentRequestContext;
   tenantProviderId?: string | null;
   startProviderAttempt?: StartProviderAttempt;
 }
@@ -74,18 +78,20 @@ import {
   describeTransportError,
 } from './proxy-transport';
 import type {
+  AgentRequestContext,
+  ProxyApiMode,
+  ReasoningContentLookup,
   SignatureLookup,
   ThinkingBlockLookup,
-  ReasoningContentLookup,
   ProviderAttemptRef,
   StartProviderAttempt,
 } from './proxy-types';
-import type { ProxyApiMode } from './proxy-types';
 import {
   isRefreshableOAuthCredential,
   refreshRejectedOAuthCredential,
   resolveApiKey,
 } from './oauth-credentials';
+import { parseCodexSemanticOutputTimeoutMs } from './chatgpt-response-qualifier';
 
 // Fallback cooldown applied when an upstream 429 carries no usable Retry-After.
 // Kept short (15s) on purpose: many providers rate-limit on brief RPM/burst
@@ -96,6 +102,16 @@ const RATE_LIMIT_COOLDOWN_DEFAULT_MS = 15_000;
 const RATE_LIMIT_COOLDOWN_MAX_MS = 5 * 60_000;
 const MAX_RATE_LIMIT_COOLDOWNS = 2_000;
 const PROVIDER_ATTEMPT_REF = Symbol('providerAttemptRef');
+
+function remainingSemanticOutputTimeoutMs(deadlineAtMs?: number): number | undefined {
+  if (deadlineAtMs === undefined) return undefined;
+  return Math.max(1, Math.min(parseCodexSemanticOutputTimeoutMs(), deadlineAtMs - Date.now()));
+}
+
+function remainingPreResponseTimeoutMs(deadlineAtMs?: number): number | undefined {
+  if (deadlineAtMs === undefined) return undefined;
+  return Math.max(1, deadlineAtMs - Date.now());
+}
 
 type AttemptTaggedError = Error & { [PROVIDER_ATTEMPT_REF]?: ProviderAttemptRef };
 
@@ -120,6 +136,8 @@ export interface FailedFallback {
   attempt?: ProviderAttemptRef;
   /** False when the route was rejected locally (for example by a cooldown). */
   providerCallStarted?: boolean;
+  /** A same-route recovery attempt, rather than a configured fallback route. */
+  recoveryKind?: 'retry';
 }
 
 @Injectable()
@@ -192,7 +210,9 @@ export class ProxyFallbackService {
     fallbackRoutes?: ModelRoute[] | null,
     paramMergeContext?: ParamMergeContext,
     reasoningContentLookup?: ReasoningContentLookup,
+    requestContext?: AgentRequestContext,
     startProviderAttempt?: StartProviderAttempt,
+    requestDeadlineAtMs?: number,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -220,6 +240,8 @@ export class ProxyFallbackService {
       Array.isArray(fallbackRoutes) && fallbackRoutes.length === fallbackModels.length;
 
     for (let i = 0; i < fallbackModels.length; i++) {
+      signal?.throwIfAborted();
+      if (requestDeadlineAtMs !== undefined && requestDeadlineAtMs <= Date.now()) break;
       const requestedModel = fallbackModels[i];
       const route = useStructuredRoutes ? fallbackRoutes![i] : null;
       let provider: string | undefined;
@@ -336,6 +358,8 @@ export class ProxyFallbackService {
         stream,
         sessionKey,
         signal,
+        preResponseTimeoutMs: remainingPreResponseTimeoutMs(requestDeadlineAtMs),
+        semanticOutputTimeoutMs: remainingSemanticOutputTimeoutMs(requestDeadlineAtMs),
         agentId,
         tenantId,
         rawApiKey,
@@ -343,11 +367,13 @@ export class ProxyFallbackService {
         authType,
         apiMode,
         resourceUrl: resolvedCredentials.resourceUrl,
+        subscriptionMetadata: resolvedCredentials.subscriptionMetadata,
         providerRegion,
         signatureLookup,
         thinkingLookup,
         reasoningContentLookup,
         paramMergeContext,
+        requestContext,
         tenantProviderId,
         startProviderAttempt,
       });
@@ -394,6 +420,7 @@ export class ProxyFallbackService {
   }
 
   async tryForwardToProvider(opts: ForwardProviderOptions): Promise<ForwardResult> {
+    opts.signal?.throwIfAborted();
     const cooldown = this.getActiveRateLimitCooldown(opts);
     if (cooldown) {
       return this.buildRateLimitCooldownForward(opts, cooldown);
@@ -432,12 +459,13 @@ export class ProxyFallbackService {
     opts?: Pick<
       ForwardProviderOptions,
       'provider' | 'model' | 'authType' | 'tenantProviderId' | 'startProviderAttempt' | 'signal'
-    >,
+    > & { preResponseTimeoutMs?: number; semanticOutputTimeoutMs?: number },
   ): Promise<ForwardResult> {
     if (!forward.retryWireBody) {
       throw new Error('Provider forward does not support wire-body retry');
     }
     if (!opts) return forward.retryWireBody(healedBody);
+    opts.signal?.throwIfAborted();
     const attempt = opts.startProviderAttempt?.({
       provider: opts.provider,
       model: opts.model,
@@ -445,7 +473,10 @@ export class ProxyFallbackService {
       tenantProviderId: opts.tenantProviderId,
     });
     try {
-      const retried = await forward.retryWireBody(healedBody);
+      const retried = await forward.retryWireBody(healedBody, {
+        preResponseTimeoutMs: opts.preResponseTimeoutMs,
+        semanticOutputTimeoutMs: opts.semanticOutputTimeoutMs,
+      });
       if (attempt) attempt.completedAtMs = Date.now();
       return { ...retried, attempt, providerCallStarted: true };
     } catch (error) {
@@ -612,6 +643,7 @@ export class ProxyFallbackService {
       ...opts,
       apiKey: refreshed.apiKey,
       resourceUrl: refreshed.resourceUrl ?? opts.resourceUrl,
+      subscriptionMetadata: refreshed.subscriptionMetadata ?? opts.subscriptionMetadata,
     };
     try {
       return await this.forwardToProvider(retryOpts);
@@ -723,6 +755,7 @@ export class ProxyFallbackService {
     const providerResource =
       authType === 'subscription' && provider.toLowerCase() === 'gemini' ? resourceUrl : undefined;
 
+    signal?.throwIfAborted();
     const attempt = opts.startProviderAttempt?.({
       provider,
       model: opts.model,
@@ -738,6 +771,8 @@ export class ProxyFallbackService {
         chatBody,
         stream,
         signal,
+        preResponseTimeoutMs: opts.preResponseTimeoutMs,
+        semanticOutputTimeoutMs: opts.semanticOutputTimeoutMs,
         extraHeaders,
         customEndpoint,
         authType,
@@ -756,6 +791,8 @@ export class ProxyFallbackService {
           : {}),
         reasoningContentLookup,
         providerResource,
+        requestContext: opts.requestContext,
+        subscriptionMetadata: opts.subscriptionMetadata,
       });
       if (attempt) attempt.completedAtMs = Date.now();
       return { ...forward, attempt, providerCallStarted: true };
