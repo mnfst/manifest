@@ -49,6 +49,7 @@ import {
   unwrapCodeAssistResponse,
   unwrapCodeAssistStreamPayload,
 } from '../oauth/gemini/codeassist-envelope';
+import type { RequestRecordingCapture } from './request-recording-capture';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -219,6 +220,7 @@ export async function handleProviderError(
   autofix?: AutofixRecord,
   requestId: string = uuid(),
   requestDurationMs?: number,
+  capture?: RequestRecordingCapture,
 ): Promise<void> {
   recordAutofixOriginalIfRetried(
     ctx,
@@ -247,6 +249,7 @@ export async function handleProviderError(
       autofix,
       requestId,
       requestDurationMs,
+      capture,
     );
     return;
   }
@@ -285,13 +288,15 @@ export async function handleProviderError(
   );
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
-  res.json({
+  const responseBody = {
     error: buildOpenAiCompatibleError(errorStatus, errorBody, {
       source: 'provider',
       provider: meta.provider,
       model: meta.model,
     }),
-  });
+  };
+  capture?.setJson(responseBody);
+  res.json(responseBody);
 }
 
 function handleFallbackExhausted(
@@ -309,6 +314,7 @@ function handleFallbackExhausted(
   autofix: AutofixRecord | undefined,
   requestId: string,
   requestDurationMs?: number,
+  capture?: RequestRecordingCapture,
 ): void {
   const baseTime = Date.now();
   const primaryAttemptNumber = currentPrimaryAttemptNumber(autofix);
@@ -372,7 +378,7 @@ function handleFallbackExhausted(
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
   res.setHeader('X-Manifest-Fallback-Exhausted', 'true');
-  res.json({
+  const responseBody = {
     error: buildOpenAiCompatibleError(errorStatus, errorBody, {
       source: classified?.source ?? 'manifest',
       code: classified?.code ?? 'fallback_exhausted',
@@ -388,7 +394,9 @@ function handleFallbackExhausted(
         })),
       },
     }),
-  });
+  };
+  capture?.setJson(responseBody);
+  res.json(responseBody);
 }
 
 export function recordFallbackFailures(
@@ -502,15 +510,20 @@ export async function handleStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
+  capture?: RequestRecordingCapture,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders, 200);
 
   const responsesSequenceTracker =
     apiMode === 'responses' ? createResponsesSequenceTracker() : null;
   if (responsesSequenceTracker) responsesSequenceTrackers.set(res, responsesSequenceTracker);
-  const onClient = responsesSequenceTracker
-    ? (chunk: string) => responsesSequenceTracker.feed(chunk)
-    : undefined;
+  const onClient =
+    responsesSequenceTracker || capture
+      ? (chunk: string) => {
+          responsesSequenceTracker?.feed(chunk);
+          capture?.appendRaw(chunk);
+        }
+      : undefined;
 
   const messagesTransformer =
     apiMode === 'messages' ? createMessagesStreamTransformer(meta.model) : null;
@@ -673,6 +686,7 @@ export async function handleNonStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
+  capture?: RequestRecordingCapture,
 ): Promise<StreamUsage | null> {
   let responseBody: unknown;
 
@@ -753,6 +767,7 @@ export async function handleNonStreamResponse(
   const body = responseBody as Record<string, unknown> | undefined;
   const streamUsage = parseUsageObject(body?.usage);
 
+  capture?.setJson(responseBody);
   res.status(200);
   setHeaders(res, metaHeaders);
   res.json(responseBody);

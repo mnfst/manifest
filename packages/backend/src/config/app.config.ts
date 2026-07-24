@@ -8,6 +8,12 @@ function resolveDatabaseUrl(): string {
   throw new Error('DATABASE_URL is required. Set it in your .env file.');
 }
 
+function optionalPositiveInteger(value: string | undefined): number | null {
+  if (!value || !/^\d+$/.test(value)) return null;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 export const appConfig = registerAs('app', () => ({
   port: Number(process.env['PORT'] ?? 3001),
   nodeEnv: process.env['NODE_ENV'] ?? 'development',
@@ -51,6 +57,12 @@ export const appConfig = registerAs('app', () => ({
   // When true, /api/v1/public/* endpoints expose aggregate stats without auth.
   // Off by default — only Manifest Cloud's marketing homepage should enable it.
   publicStatsEnabled: process.env['MANIFEST_PUBLIC_STATS'] === 'true',
+  // Optional instance-wide override. When unset, request recordings follow the
+  // Cloud plan policy (Free 7 days, Pro 365 days); non-billing deployments use
+  // the 365-day default.
+  requestRecordingRetentionDays: optionalPositiveInteger(
+    process.env['REQUEST_RECORDING_RETENTION_DAYS'],
+  ),
   // Shared secret guarding the internal error-page push endpoint
   // (/api/v1/internal/error-pages). The Peacock CMS sends it in the
   // `x-internal-secret` header to publish/unpublish curated error pages.

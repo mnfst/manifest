@@ -23,6 +23,8 @@ const mockRotateAgentKey = vi.fn();
 const mockUpdateAgent = vi.fn();
 const mockGetAutofix = vi.fn(() => Promise.resolve({ enabled: false, available: true }));
 const mockUpdateAutofix = vi.fn(() => Promise.resolve({ enabled: false, available: true }));
+const mockGetRecording = vi.fn(() => Promise.resolve({ enabled: false }));
+const mockUpdateRecording = vi.fn(() => Promise.resolve({ enabled: false }));
 vi.mock("../../src/services/api.js", () => ({
   getAgentKey: (...args: unknown[]) => mockGetAgentKey(...args),
   getAgentInfo: (...args: unknown[]) => mockGetAgentInfo(...args),
@@ -32,6 +34,8 @@ vi.mock("../../src/services/api.js", () => ({
   updateAgent: (...args: unknown[]) => mockUpdateAgent(...args),
   getAutofix: (...args: unknown[]) => mockGetAutofix(...args),
   updateAutofix: (...args: unknown[]) => mockUpdateAutofix(...args),
+  getRecording: (...args: unknown[]) => mockGetRecording(...args),
+  updateRecording: (...args: unknown[]) => mockUpdateRecording(...args),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({

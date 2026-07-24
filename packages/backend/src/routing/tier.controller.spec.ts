@@ -6,6 +6,7 @@ import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { Agent } from '../entities/agent.entity';
 import { AutofixService } from './autofix/autofix.service';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
+import { AgentRecordingCacheService } from '../common/services/agent-recording-cache.service';
 
 describe('TierController', () => {
   const ctx: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
@@ -15,6 +16,7 @@ describe('TierController', () => {
     tenant_id: 'tenant-1',
     complexity_routing_enabled: true,
     autofix_enabled: false,
+    record_messages: false,
   };
   let tierService: jest.Mocked<Partial<TierService>>;
   let resolveAgentService: { resolve: jest.Mock; invalidate: jest.Mock };
@@ -25,6 +27,7 @@ describe('TierController', () => {
     hasAccess: jest.Mock;
   };
   let controller: TierController;
+  let recordingCache: { invalidate: jest.Mock };
 
   beforeEach(() => {
     tierService = {
@@ -50,11 +53,13 @@ describe('TierController', () => {
       // Default: tenant has early access, so the toggle is available.
       hasAccess: jest.fn().mockResolvedValue(true),
     };
+    recordingCache = { invalidate: jest.fn() };
     controller = new TierController(
       tierService as unknown as TierService,
       resolveAgentService as unknown as ResolveAgentService,
       agentRepo as unknown as Repository<Agent>,
       autofixService as unknown as AutofixService,
+      recordingCache as unknown as AgentRecordingCacheService,
     );
   });
 
@@ -200,6 +205,25 @@ describe('TierController', () => {
     expect(agentRepo.update).not.toHaveBeenCalled();
     expect(autofixService.invalidateConfig).not.toHaveBeenCalled();
     expect(autofixService.resolveEnabled).not.toHaveBeenCalled();
+  });
+
+  it('GET recording returns the per-agent opt-in flag', async () => {
+    expect(await controller.getRecording(ctx, 'demo')).toEqual({ enabled: false });
+  });
+
+  it('PATCH recording updates the flag and invalidates both agent caches', async () => {
+    expect(await controller.updateRecording(ctx, 'demo', { enabled: true })).toEqual({
+      enabled: true,
+    });
+    expect(agentRepo.update).toHaveBeenCalledWith('agent-1', { record_messages: true });
+    expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
+    expect(recordingCache.invalidate).toHaveBeenCalledWith('agent-1');
+  });
+
+  it('PATCH recording with no boolean is a no-op', async () => {
+    expect(await controller.updateRecording(ctx, 'demo', {})).toEqual({ enabled: false });
+    expect(agentRepo.update).not.toHaveBeenCalled();
+    expect(recordingCache.invalidate).not.toHaveBeenCalled();
   });
 
   it('PATCH response-mode sets the mode for a valid tier', async () => {

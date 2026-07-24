@@ -235,3 +235,9 @@ export class UpdateAutofixDto {
   @IsBoolean()
   enabled?: boolean;
 }
+
+export class UpdateRecordingDto {
+  @IsOptional()
+  @IsBoolean()
+  enabled?: boolean;
+}

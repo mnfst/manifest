@@ -195,11 +195,11 @@ describe('MessageDetailsService', () => {
     expect(result.message.autofix_sibling).toBeNull();
   });
 
-  it('does not return recording, llm_calls, tool_executions, or agent_logs', async () => {
+  it('returns a null recording without restoring legacy trace payloads', async () => {
     const result = (await service.getDetails('msg-1', 'u1')) as unknown as Record<string, unknown>;
 
-    expect(Object.keys(result)).toEqual(['message']);
-    expect(result['recording']).toBeUndefined();
+    expect(Object.keys(result)).toEqual(['recording', 'message']);
+    expect(result['recording']).toBeNull();
     expect(result['llm_calls']).toBeUndefined();
     expect(result['tool_executions']).toBeUndefined();
     expect(result['agent_logs']).toBeUndefined();
@@ -351,9 +351,19 @@ describe('MessageDetailsService', () => {
         request_params: { temperature: 0.2 },
       },
     ];
+    const recording = {
+      request_id: 'request-1',
+      request_body: { messages: [{ role: 'user', content: 'hello' }] },
+      response_body: { type: 'json', body: { choices: [] } },
+      api_format: 'chat_completions',
+      size_bytes: 120,
+      created_at: '2026-07-14T10:00:00Z',
+    };
+    const recordingRepo = { findOne: jest.fn().mockResolvedValue(recording) };
     const requestAware = new MessageDetailsService(
       { find: jest.fn().mockResolvedValue(attempts) } as never,
       { findOne: jest.fn().mockResolvedValue(requestRow) } as never,
+      recordingRepo as never,
     );
 
     const result = await requestAware.getDetails('request-1', 't1');
@@ -379,6 +389,14 @@ describe('MessageDetailsService', () => {
       expect.objectContaining({ id: 'attempt-1', provider: 'openai' }),
       expect.objectContaining({ id: 'attempt-2', provider: 'anthropic' }),
     ]);
+    expect(recordingRepo.findOne).toHaveBeenCalledWith({ where: { request_id: 'request-1' } });
+    expect(result.recording).toEqual({
+      request_body: recording.request_body,
+      response_body: recording.response_body,
+      api_format: 'chat_completions',
+      size_bytes: 120,
+      created_at: '2026-07-14T10:00:00Z',
+    });
     // The drawer tells each attempt's full story — the projection must carry
     // the error, fallback, autofix, token and headers/params surface.
     expect(result.message.attempts![0]).toEqual(

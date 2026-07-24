@@ -148,6 +148,8 @@ describe('ProxyController', () => {
   let recorder: ProxyMessageRecorder;
   let planService: { assertWithinRequestLimit: jest.Mock };
   let observationReporter: { report: jest.Mock };
+  let recordingCache: { isRecording: jest.Mock };
+  let requestRecording: { start: jest.Mock; finish: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -188,6 +190,11 @@ describe('ProxyController', () => {
     providerParamSpecs = { getCapabilities: jest.fn().mockResolvedValue(null) };
     modelsDevSync = { lookupModel: jest.fn().mockReturnValue(null) };
     observationReporter = { report: jest.fn() };
+    recordingCache = { isRecording: jest.fn().mockResolvedValue(false) };
+    requestRecording = {
+      start: jest.fn().mockResolvedValue(undefined),
+      finish: jest.fn().mockResolvedValue(undefined),
+    };
     const mockCustomProviders = {
       canonicalizeAgentMessageKeys: jest
         .fn()
@@ -222,6 +229,8 @@ describe('ProxyController', () => {
       observationReporter as never,
       providerParamSpecs as never,
       modelsDevSync as never,
+      recordingCache as never,
+      requestRecording as never,
     );
   });
 
@@ -450,6 +459,46 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     expect(headers['X-Manifest-Confidence']).toBe('0.9');
     expect(headers['X-Manifest-Reason']).toBe('scored');
+  });
+
+  it('records the request and client-facing response when the agent opted in', async () => {
+    recordingCache.isRecording.mockResolvedValue(true);
+    const responseBody = {
+      choices: [{ message: { role: 'assistant', content: 'recorded reply' } }],
+    };
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: new Response(JSON.stringify(responseBody), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'simple',
+        model: 'gpt-4o',
+        provider: 'OpenAI',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+    const requestBody = { messages: [{ role: 'user', content: 'record this' }] };
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(mockRequest(requestBody) as never, res as never);
+
+    expect(recordingCache.isRecording).toHaveBeenCalledWith('agent-1');
+    expect(requestRecording.start).toHaveBeenCalledWith(
+      expect.any(String),
+      requestBody,
+      'chat_completions',
+    );
+    expect(requestRecording.finish).toHaveBeenCalledWith(requestRecording.start.mock.calls[0][0], {
+      type: 'json',
+      body: responseBody,
+    });
   });
 
   it('keeps routing when pending Request recording fails and tracks the provider attempt', async () => {

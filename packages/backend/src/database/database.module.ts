@@ -10,6 +10,7 @@ import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { ManifestRequest } from '../entities/request.entity';
+import { RequestRecording } from '../entities/request-recording.entity';
 import { ApiKey } from '../entities/api-key.entity';
 import { TenantProvider } from '../entities/tenant-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
@@ -23,6 +24,7 @@ import { DatabaseSeederService } from './database-seeder.service';
 import { DbTuningService } from './db-tuning.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { shouldRetryDbConnection } from '../common/utils/db-retry';
+import { RequestRecordingRetentionService } from './request-recording-retention.service';
 
 @Module({
   imports: [
@@ -77,6 +79,7 @@ import { shouldRetryDbConnection } from '../common/utils/db-retry';
       AgentApiKey,
       AgentMessage,
       ManifestRequest,
+      RequestRecording,
       ApiKey,
       TenantProvider,
       TierAssignment,
@@ -89,7 +92,7 @@ import { shouldRetryDbConnection } from '../common/utils/db-retry';
     ]),
     ModelPricesModule,
   ],
-  providers: [DatabaseSeederService, DbTuningService],
+  providers: [DatabaseSeederService, DbTuningService, RequestRecordingRetentionService],
   exports: [DatabaseSeederService],
 })
 export class DatabaseModule {}

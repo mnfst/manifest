@@ -216,6 +216,31 @@ describe('RequestDrawer', () => {
     ).toBeDefined();
   });
 
+  it('shows the request-level recorded conversation in the Messages tab', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: fullMessage,
+      recording: {
+        request_body: { messages: [{ role: 'user', content: 'Recorded user turn' }] },
+        response_body: {
+          type: 'json',
+          body: {
+            choices: [{ message: { role: 'assistant', content: 'Recorded assistant turn' } }],
+          },
+        },
+        api_format: 'chat_completions',
+        size_bytes: 200,
+        created_at: '2026-07-15T10:11:12Z',
+      },
+    });
+    render(() => <RequestDrawer messageId="recorded-request" onClose={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByText('Messages')).toBeDefined());
+    fireEvent.click(screen.getByText('Messages'));
+
+    expect(screen.getByText('Recorded user turn')).toBeDefined();
+    expect(screen.getByText('Recorded assistant turn')).toBeDefined();
+  });
+
   it('shows loading state while an open request is unresolved and stays closed for null', () => {
     mockGetMessageDetails.mockReturnValue(new Promise(() => {}));
     const { container, unmount } = render(() => (

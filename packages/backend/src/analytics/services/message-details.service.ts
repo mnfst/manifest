@@ -6,8 +6,19 @@ import type { CallerAttribution } from '../../routing/proxy/caller-classifier';
 import type { PhoenixExplanation, PhoenixOperation } from '../../routing/autofix/phoenix.types';
 import { isSuccessStatus, type AutofixStatus, type RequestParamDefaults } from 'manifest-shared';
 import { ManifestRequest } from '../../entities/request.entity';
+import {
+  RequestRecording,
+  type RecordingResponseBody,
+} from '../../entities/request-recording.entity';
 
 export interface MessageDetailResponse {
+  recording: {
+    request_body: Record<string, unknown>;
+    response_body: RecordingResponseBody | null;
+    api_format: string;
+    size_bytes: number;
+    created_at: string;
+  } | null;
   message: {
     id: string;
     timestamp: string;
@@ -96,6 +107,9 @@ export class MessageDetailsService {
     @Optional()
     @InjectRepository(ManifestRequest)
     private readonly requestRepo?: Repository<ManifestRequest>,
+    @Optional()
+    @InjectRepository(RequestRecording)
+    private readonly recordingRepo?: Repository<RequestRecording>,
   ) {}
 
   async getDetails(messageId: string, tenantId: string | null): Promise<MessageDetailResponse> {
@@ -142,6 +156,11 @@ export class MessageDetailsService {
     }
     if (!message && !request) throw new NotFoundException('Message not found');
 
+    const recording =
+      request && this.recordingRepo
+        ? await this.recordingRepo.findOne({ where: { request_id: request.id } })
+        : null;
+
     const autofix_sibling = message?.autofix_group_id
       ? await this.findAutofixSibling(message.id, message.autofix_group_id, tenantId)
       : null;
@@ -168,6 +187,15 @@ export class MessageDetailsService {
       : message!.duration_ms;
 
     const response: MessageDetailResponse = {
+      recording: recording
+        ? {
+            request_body: recording.request_body,
+            response_body: recording.response_body,
+            api_format: recording.api_format,
+            size_bytes: recording.size_bytes,
+            created_at: recording.created_at,
+          }
+        : null,
       message: {
         id: request?.id ?? message!.id,
         timestamp: request?.timestamp ?? message!.timestamp,
