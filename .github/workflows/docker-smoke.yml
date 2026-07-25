@@ -105,6 +105,23 @@ jobs:
             exit 1
           fi
 
+      - name: Verify chunked Claude requests reach authentication
+        run: |
+          status=$(
+            printf '%s' '{"model":"claude-sonnet-4-6","max_tokens":1,"messages":[{"role":"user","content":"probe"}]}' |
+              curl -sS -o /tmp/chunked-response.json -w "%{http_code}" \
+                -X POST http://127.0.0.1:2099/v1/messages \
+                -H 'Authorization: Bearer invalid-ci-probe' \
+                -H 'Content-Type: application/json' \
+                -H 'Transfer-Encoding: chunked' \
+                --data-binary @-
+          )
+          if [[ "$status" != "401" ]]; then
+            echo "expected chunked invalid-key probe to return 401, got $status" >&2
+            sed -n '1,20p' /tmp/chunked-response.json >&2
+            exit 1
+          fi
+
       - name: Dump backend logs on success (for diff inspection)
         if: success()
         working-directory: docker

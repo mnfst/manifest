@@ -99,7 +99,7 @@ describe('qualifyChatGptResponse', () => {
     });
   });
 
-  it('does not treat reasoning-only output as a usable assistant response', async () => {
+  it('releases reasoning-only progress for downstream terminal validation', async () => {
     const sse = [
       event('response.reasoning_summary.delta', { delta: 'Internal reasoning' }),
       event('response.completed', {
@@ -115,7 +115,8 @@ describe('qualifyChatGptResponse', () => {
       downstreamFormat: 'chat-completions',
     });
 
-    expect(response.status).toBe(502);
+    expect(response.status).toBe(200);
+    await expect(response.text()).resolves.toBe(sse);
   });
 
   it('keeps incomplete terminal events valid instead of bypassing content filtering', async () => {
@@ -129,6 +130,58 @@ describe('qualifyChatGptResponse', () => {
 
     expect(response.status).toBe(200);
     await expect(response.text()).resolves.toBe(incomplete);
+  });
+
+  it('turns max-output-token exhaustion without output into a retryable HTTP failure', async () => {
+    const incomplete = event('response.incomplete', {
+      response: {
+        output: [],
+        incomplete_details: { reason: 'max_output_tokens' },
+        usage: { input_tokens: 100, output_tokens: 64, total_tokens: 164 },
+      },
+    });
+
+    const response = await qualifyChatGptResponse(codexResponse(incomplete), {
+      downstreamFormat: 'chat-completions',
+    });
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        message: 'ChatGPT Codex exhausted its output budget without text or tool output',
+        type: 'upstream_response_error',
+        code: 'empty_response',
+      },
+    });
+  });
+
+  it('recovers terminal text from an incomplete response when deltas were omitted', async () => {
+    const incomplete = event('response.incomplete', {
+      response: {
+        output: [
+          {
+            type: 'message',
+            content: [{ type: 'output_text', text: 'Partial but usable answer' }],
+          },
+        ],
+        incomplete_details: { reason: 'max_output_tokens' },
+      },
+    });
+
+    const response = await qualifyChatGptResponse(codexResponse(incomplete), {
+      downstreamFormat: 'chat-completions',
+    });
+    const collected = collectChatGptSseResponse(await response.text(), 'gpt-5');
+
+    expect(response.status).toBe(200);
+    expect(collected).toMatchObject({
+      choices: [
+        {
+          finish_reason: 'length',
+          message: { content: 'Partial but usable answer' },
+        },
+      ],
+    });
   });
 
   it('recovers full terminal text when Codex omitted its delta events', async () => {
@@ -393,11 +446,43 @@ describe('qualifyChatGptResponse', () => {
     expect(response.status).toBe(504);
   });
 
-  it('applies the semantic-output timeout across non-deliverable chunks', async () => {
+  it('releases visible reasoning summaries before text so long plans keep streaming', async () => {
     jest.useFakeTimers();
     try {
       const encoder = new TextEncoder();
       const reasoning = event('response.reasoning_summary.delta', { delta: 'Still thinking' });
+      const source = new Response(
+        new ReadableStream<Uint8Array>({
+          async pull(controller) {
+            await new Promise((resolve) => setTimeout(resolve, 4));
+            controller.enqueue(encoder.encode(reasoning));
+          },
+        }),
+        { status: 200 },
+      );
+
+      const pending = qualifyChatGptResponse(source, {
+        downstreamFormat: 'chat-completions',
+        timeoutMs: 10,
+      });
+      await jest.advanceTimersByTimeAsync(10);
+
+      const response = await pending;
+      expect(response.status).toBe(200);
+      const reader = response.body!.getReader();
+      const first = await reader.read();
+      expect(new TextDecoder().decode(first.value)).toContain('Still thinking');
+      await reader.cancel();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('applies the semantic-output timeout across private reasoning chunks', async () => {
+    jest.useFakeTimers();
+    try {
+      const encoder = new TextEncoder();
+      const reasoning = event('response.reasoning_text.delta', { delta: 'Private chain' });
       const source = new Response(
         new ReadableStream<Uint8Array>({
           async pull(controller) {

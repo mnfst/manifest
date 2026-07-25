@@ -109,6 +109,107 @@ describe('ProxyExceptionFilter', () => {
     });
   });
 
+  describe('coding-client protocol errors', () => {
+    it('returns a real Anthropic authentication error for streaming /v1/messages', () => {
+      const { host, res, req } = createMockHost({ stream: true }, { accept: 'text/event-stream' });
+      req.originalUrl = '/v1/messages';
+
+      filter.catch(new UnauthorizedException('Invalid API key'), host);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        error: {
+          type: 'authentication_error',
+          message: expect.stringContaining("I don't recognize this key"),
+        },
+      });
+    });
+
+    it('returns a real OpenAI rate-limit error for streaming /v1/responses', () => {
+      const { host, res, req } = createMockHost({ stream: true }, { accept: 'text/event-stream' });
+      req.originalUrl = '/v1/responses';
+
+      filter.catch(new HttpException('Slow down', 429), host);
+
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith({
+        error: { message: 'Slow down', type: 'rate_limit_error' },
+      });
+    });
+
+    it('masks internal details in an Anthropic error instead of a friendly success', () => {
+      const { host, res, req } = createMockHost({ stream: true }, { accept: 'text/event-stream' });
+      req.originalUrl = '/v1/messages';
+
+      filter.catch(new HttpException('private stack detail', 500), host);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        error: {
+          type: 'api_error',
+          message: 'Manifest encountered an internal error. Try again shortly.',
+        },
+      });
+    });
+
+    it.each([
+      [401, 'authentication_error'],
+      [402, 'insufficient_quota'],
+      [500, 'server_error'],
+    ])('returns the generic Responses envelope for HTTP %i', (status, type) => {
+      const { host, res, req } = createMockHost({ stream: true });
+      req.path = '/v1/responses';
+
+      filter.catch(new HttpException('Upstream rejected the request', status), host);
+
+      expect(res.status).toHaveBeenCalledWith(status);
+      expect(res.json).toHaveBeenCalledWith({
+        error: {
+          message:
+            status >= 500
+              ? 'Manifest encountered an internal error. Try again shortly.'
+              : 'Upstream rejected the request',
+          type,
+        },
+      });
+    });
+
+    it('keeps a 400 Manifest auth failure in an OpenAI-compatible error envelope', () => {
+      const { host, res, req } = createMockHost({ stream: true });
+      req.url = '/v1/responses?trace=1';
+
+      filter.catch(new BadRequestException('Invalid API key format'), host);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        error: {
+          message: expect.stringContaining('mnfst_'),
+          type: 'invalid_request_error',
+          code: 'manifest_auth',
+        },
+      });
+    });
+
+    it('explains how to remove conflicting credentials for coding clients', () => {
+      const { host, res, req } = createMockHost({ stream: true });
+      req.originalUrl = '/v1/messages';
+
+      filter.catch(new UnauthorizedException('Conflicting API credentials'), host);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        error: {
+          type: 'authentication_error',
+          message: expect.stringContaining('remove either Authorization or x-api-key'),
+        },
+      });
+      expect(JSON.stringify(res.json.mock.calls[0][0])).not.toContain('start with');
+    });
+  });
+
   describe('recording an expired key (M004)', () => {
     it('records the rejection against the agent the guard resolved', () => {
       const { host, req } = chatHost({ model: 'gpt-4o' });
@@ -405,6 +506,22 @@ describe('ProxyExceptionFilter', () => {
       );
       const payload = res.json.mock.calls[0][0];
       expect(payload.error.message).toContain('http://localhost:3001/upgrade?reason=requests');
+    });
+
+    it('returns an OpenAI Responses plan-limit envelope on /v1/responses', () => {
+      const { host, req, res } = createMockHost({ stream: true }, { accept: 'text/event-stream' });
+      req.originalUrl = '/v1/responses';
+
+      filter.catch(blockExc(), host);
+
+      expect(res.status).toHaveBeenCalledWith(402);
+      expect(res.json).toHaveBeenCalledWith({
+        error: {
+          type: 'insufficient_quota',
+          code: 'PLAN_LIMIT_REQUESTS',
+          message: expect.stringContaining('Upgrade to Pro'),
+        },
+      });
     });
 
     it('ignores a 402 without the PLAN_LIMIT_REQUESTS code (falls through)', () => {

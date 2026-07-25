@@ -6,8 +6,10 @@ describe('oauth-blob', () => {
       expect(isOAuthTokenBlob({ t: 'access', r: 'refresh', e: 123 })).toBe(true);
     });
 
-    it('accepts the optional resource URL field', () => {
-      expect(isOAuthTokenBlob({ t: 'a', r: 'b', e: 1, u: 'https://x' })).toBe(true);
+    it('accepts optional resource and metadata fields', () => {
+      expect(isOAuthTokenBlob({ t: 'a', r: 'b', e: 1, u: 'https://x', m: '{"a":"id"}' })).toBe(
+        true,
+      );
     });
 
     it('rejects missing or wrong-typed fields', () => {
@@ -17,6 +19,7 @@ describe('oauth-blob', () => {
       expect(isOAuthTokenBlob({ t: 'a', r: 'b' })).toBe(false); // missing e
       expect(isOAuthTokenBlob({ t: 'a', r: 'b', e: '1' })).toBe(false); // e wrong type
       expect(isOAuthTokenBlob({ t: 'a', r: 'b', e: 1, u: 5 })).toBe(false); // u wrong type
+      expect(isOAuthTokenBlob({ t: 'a', r: 'b', e: 1, m: 5 })).toBe(false); // m wrong type
     });
   });
 
@@ -27,7 +30,7 @@ describe('oauth-blob', () => {
     });
 
     it('preserves the optional resource URL when present', () => {
-      const blob = { t: 'a', r: 'b', e: 5, u: 'https://api.example.com' };
+      const blob = { t: 'a', r: 'b', e: 5, u: 'https://api.example.com', m: '{"a":"id"}' };
       expect(parseOAuthTokenBlob(serializeOAuthTokenBlob(blob))).toEqual(blob);
     });
 

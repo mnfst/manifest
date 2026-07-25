@@ -28,18 +28,11 @@ export function createProxyBodyBudgetMiddleware(): express.RequestHandler {
     const rawLength = req.headers['content-length'];
     const contentLength = Array.isArray(rawLength) ? rawLength[0] : rawLength;
     if (!contentLength) {
-      const rawTransferEncoding = req.headers['transfer-encoding'];
-      const transferEncoding = Array.isArray(rawTransferEncoding)
-        ? rawTransferEncoding.join(',')
-        : rawTransferEncoding;
-      if (transferEncoding?.toLowerCase().includes('chunked')) {
-        res.status(411).json({
-          message: 'Content-Length is required for proxy request bodies',
-          error: 'Length Required',
-          statusCode: 411,
-        });
-        return;
-      }
+      // HTTP/1.1 clients are allowed to stream a request with chunked transfer
+      // encoding instead of declaring Content-Length. Claude Code does this for
+      // some classifier/tool requests. The process-wide preflight budget cannot
+      // reserve an unknown size, but express.json's PROXY_BODY_LIMIT still
+      // enforces the per-request limit while it reads the stream.
       next();
       return;
     }

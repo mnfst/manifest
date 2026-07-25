@@ -1,11 +1,10 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createHash } from 'crypto';
-import { AgentKeyAuthGuard } from './agent-key-auth.guard';
+import { AgentKeyAuthGuard, agentKeyCacheKey } from './agent-key-auth.guard';
 import { hashKey } from '../../common/utils/hash.util';
 
 function testCacheKey(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
+  return agentKeyCacheKey(token);
 }
 
 function makeContext(headers: Record<string, string | undefined>, ip = '203.0.113.1') {
@@ -32,6 +31,17 @@ function createMockConfig(overrides: Record<string, string> = {}): ConfigService
     get: (key: string, fallback?: string) => values[key] ?? fallback,
   } as unknown as ConfigService;
 }
+
+describe('agentKeyCacheKey', () => {
+  it('produces a stable opaque process-local cache index', () => {
+    const token = 'mnfst_high-entropy-test-token';
+    const cacheKey = agentKeyCacheKey(token);
+
+    expect(cacheKey).toMatch(/^[0-9a-f]{64}$/);
+    expect(agentKeyCacheKey(token)).toBe(cacheKey);
+    expect(agentKeyCacheKey(`${token}-other`)).not.toBe(cacheKey);
+  });
+});
 
 describe('AgentKeyAuthGuard', () => {
   let guard: AgentKeyAuthGuard;
@@ -194,6 +204,45 @@ describe('AgentKeyAuthGuard', () => {
       agentName: 'test-agent',
       userId: 'user-1',
     });
+  });
+
+  it('accepts, caches, and invalidates a Manifest key from Claude-compatible x-api-key', async () => {
+    const token = 'mnfst_claude-key';
+    mockGetMany.mockResolvedValue([
+      {
+        id: 'key-claude',
+        tenant_id: 'tenant-claude',
+        agent_id: 'agent-claude',
+        key_hash: hashKey(token),
+        expires_at: null,
+        agent: { name: 'claude-agent' },
+        tenant: { owner_user_id: 'user-claude' },
+      },
+    ]);
+
+    const { ctx, req } = makeContext({ 'x-api-key': token });
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
+    expect(req.ingestionContext).toEqual(
+      expect.objectContaining({ tenantId: 'tenant-claude', agentId: 'agent-claude' }),
+    );
+    expect(mockGetMany).toHaveBeenCalledTimes(1);
+
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
+    expect(mockGetMany).toHaveBeenCalledTimes(1);
+
+    guard.invalidateCache(token);
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
+    expect(mockGetMany).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects conflicting Authorization and x-api-key credentials', async () => {
+    const { ctx } = makeContext({
+      authorization: 'Bearer mnfst_first-key',
+      'x-api-key': 'mnfst_second-key',
+    });
+
+    await expect(guard.canActivate(ctx)).rejects.toThrow('Conflicting API credentials');
+    expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
   });
 
   it('returns true when raw token (no Bearer prefix) matches', async () => {

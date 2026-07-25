@@ -1448,6 +1448,56 @@ describe('ProviderClient', () => {
       });
     });
 
+    it('applies an attempt-specific semantic timeout to initial and exact-body retry forwards', async () => {
+      const silentStream = () =>
+        new ReadableStream<Uint8Array>({
+          start() {
+            // Deliberately silent: the qualifier must end the attempt.
+          },
+        });
+      mockFetch
+        .mockResolvedValueOnce(
+          new Response(silentStream(), {
+            status: 200,
+            headers: { 'content-type': 'text/event-stream' },
+          }),
+        )
+        .mockResolvedValueOnce(
+          new Response(silentStream(), {
+            status: 200,
+            headers: { 'content-type': 'text/event-stream' },
+          }),
+        );
+
+      const first = await client.forward({
+        provider: 'openai',
+        apiKey: 'oauth-token',
+        model: 'gpt-5',
+        body,
+        stream: true,
+        authType: 'subscription',
+        semanticOutputTimeoutMs: 20,
+      });
+      expect(first.response.status).toBe(504);
+      await expect(first.response.clone().json()).resolves.toMatchObject({
+        error: {
+          code: 'stream_timeout',
+          message: expect.stringContaining('20ms'),
+        },
+      });
+
+      const retry = await first.retryWireBody!(first.wireRequestBody!, {
+        semanticOutputTimeoutMs: 5,
+      });
+      expect(retry.response.status).toBe(504);
+      await expect(retry.response.json()).resolves.toMatchObject({
+        error: {
+          code: 'stream_timeout',
+          message: expect.stringContaining('5ms'),
+        },
+      });
+    });
+
     it('does not apply Codex stream qualification to API-key Responses requests', async () => {
       const upstream = new Response('{"output":[]}', {
         status: 200,
@@ -4365,6 +4415,74 @@ describe('ProviderClient', () => {
   });
 
   describe('Gemini subscription (CodeAssist envelope)', () => {
+    it('rejects an empty HTTP 200 Messages stream before fallback selection', async () => {
+      mockFetch.mockResolvedValue(
+        new Response(
+          `data: ${JSON.stringify({
+            response: {
+              candidates: [{ content: { parts: [] }, finishReason: 'MAX_TOKENS' }],
+              usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 0 },
+            },
+          })}\n\n`,
+          {
+            status: 200,
+            headers: { 'content-type': 'text/event-stream' },
+          },
+        ),
+      );
+
+      const result = await client.forward({
+        provider: 'gemini',
+        apiKey: 'access-token',
+        model: 'gemini-3.1-pro-preview',
+        body,
+        stream: true,
+        apiMode: 'messages',
+        authType: 'subscription',
+        providerResource: 'proj-123',
+        semanticOutputTimeoutMs: 1_000,
+      });
+
+      expect(result.response.status).toBe(502);
+      await expect(result.response.json()).resolves.toMatchObject({
+        error: { code: 'empty_response' },
+      });
+    });
+
+    it('preserves a meaningful HTTP 200 Messages stream for the response handler', async () => {
+      const upstream = `data: ${JSON.stringify({
+        response: {
+          candidates: [
+            {
+              content: { parts: [{ functionCall: { name: 'read_file', args: {} } }] },
+              finishReason: 'STOP',
+            },
+          ],
+        },
+      })}\n\n`;
+      mockFetch.mockResolvedValue(
+        new Response(upstream, {
+          status: 200,
+          headers: { 'content-type': 'text/event-stream' },
+        }),
+      );
+
+      const result = await client.forward({
+        provider: 'gemini',
+        apiKey: 'access-token',
+        model: 'gemini-3.1-pro-preview',
+        body,
+        stream: true,
+        apiMode: 'messages',
+        authType: 'subscription',
+        providerResource: 'proj-123',
+        semanticOutputTimeoutMs: 1_000,
+      });
+
+      expect(result.response.status).toBe(200);
+      await expect(result.response.text()).resolves.toBe(upstream);
+    });
+
     it('wraps the request body in the CodeAssist envelope for gemini subscription', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

@@ -109,7 +109,32 @@ describe('Proxy E2E — /v1/models', () => {
         { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
         { id: 'openai/gpt-4o-mini', object: 'model', created: 0, owned_by: 'openai' },
       ],
+      models: [],
     });
+  });
+});
+
+describe('Proxy E2E — /v1/messages/count_tokens', () => {
+  it('rejects unauthenticated token counts with HTTP 401', async () => {
+    await api()
+      .post('/v1/messages/count_tokens?beta=true')
+      .send({ messages: [{ role: 'user', content: 'hello' }] })
+      .expect(401);
+  });
+
+  it('returns an authenticated local estimate with HTTP 200', async () => {
+    const res = await bearer(api().post('/v1/messages/count_tokens?beta=true'))
+      .set('anthropic-version', '2023-06-01')
+      .send({
+        model: 'claude-sonnet-4-6',
+        system: 'You are a coding assistant.',
+        messages: [{ role: 'user', content: 'Inspect this repository.' }],
+        tools: [{ name: 'read_file', input_schema: { type: 'object' } }],
+      })
+      .expect(200);
+
+    expect(res.body).toEqual({ input_tokens: expect.any(Number) });
+    expect(res.body.input_tokens).toBeGreaterThan(1);
   });
 });
 
@@ -132,7 +157,7 @@ describe('Proxy E2E — /v1/chat/completions', () => {
   it('rejects unauthenticated Responses API requests with HTTP 401', async () => {
     const res = await api().post('/v1/responses').send({ input: 'hello' }).expect(401);
 
-    expect(res.body.error.type).toBe('auth_error');
+    expect(res.body.error.type).toBe('authentication_error');
     expect(res.body.error.message).toContain('Missing the Authorization header');
   });
 
@@ -188,7 +213,7 @@ describe('Proxy E2E — /v1/chat/completions', () => {
     try {
       const res = await bearer(api().post('/v1/responses'))
         .send({ model: 'auto', input: 'Hello', store: false })
-        .expect(200);
+        .expect(503);
       const body = JSON.stringify(res.body);
 
       expect(body).toContain('M101');

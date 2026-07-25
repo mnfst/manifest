@@ -54,7 +54,8 @@ const ClaudeCodeSetup: Component<Props> = (props) => {
       <p class="setup-method__hint">
         Add this block to <code class="setup-model-hint__code">~/.claude/settings.json</code>. Every{' '}
         <code class="setup-model-hint__code">claude</code> run will route through Manifest with{' '}
-        <code class="setup-model-hint__code">auto</code>.
+        automatic routing while keeping Claude Code's{' '}
+        <code class="setup-model-hint__code">Auto</code> permission mode available.
       </p>
 
       <div class="setup-cli-block">

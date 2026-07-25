@@ -1,5 +1,7 @@
 import express, { Request, Response } from 'express';
 import { EventEmitter } from 'events';
+import { request as httpRequest } from 'http';
+import { AddressInfo } from 'net';
 import request from 'supertest';
 import {
   API_BODY_LIMIT,
@@ -114,7 +116,7 @@ describe('body parser limits', () => {
     expect(next).toHaveBeenCalledTimes(1);
   });
 
-  it('rejects chunked proxy request bodies without a Content-Length budget', () => {
+  it('allows chunked proxy request bodies and leaves the streaming limit to the parser', () => {
     const middleware = createProxyBodyBudgetMiddleware();
     const res = createMockResponse();
     const next = jest.fn();
@@ -128,13 +130,52 @@ describe('body parser limits', () => {
       next,
     );
 
-    expect(next).not.toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(411);
-    expect(res.json).toHaveBeenCalledWith({
-      message: 'Content-Length is required for proxy request bodies',
-      error: 'Length Required',
-      statusCode: 411,
-    });
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('parses a chunked proxy JSON body end to end', async () => {
+    const server = createParserTestApp().listen(0, '127.0.0.1');
+    await new Promise<void>((resolve) => server.once('listening', resolve));
+
+    try {
+      const { port } = server.address() as AddressInfo;
+      const payload = JSON.stringify({ messages: [{ role: 'user', content: 'chunked' }] });
+      const response = await new Promise<{ body: string; statusCode?: number }>(
+        (resolve, reject) => {
+          const req = httpRequest(
+            {
+              host: '127.0.0.1',
+              port,
+              path: '/v1/chat/completions',
+              method: 'POST',
+              headers: {
+                'content-type': 'application/json',
+                'transfer-encoding': 'chunked',
+              },
+            },
+            (res) => {
+              let body = '';
+              res.setEncoding('utf8');
+              res.on('data', (chunk: string) => {
+                body += chunk;
+              });
+              res.on('end', () => resolve({ body, statusCode: res.statusCode }));
+            },
+          );
+          req.on('error', reject);
+          req.write(payload.slice(0, 10));
+          req.end(payload.slice(10));
+        },
+      );
+
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body)).toEqual({ contentLength: 7 });
+    } finally {
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
+    }
   });
 
   it('rejects invalid proxy Content-Length headers', () => {

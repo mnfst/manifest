@@ -5,6 +5,10 @@ import { GeminiOauthService } from '../oauth/gemini/gemini-oauth.service';
 import { parseOAuthTokenBlob } from '../oauth/core';
 import { KiroOauthService } from '../oauth/kiro/kiro-oauth.service';
 import { XaiOauthService } from '../oauth/xai/xai-oauth.service';
+import {
+  extractOpenAiSubscriptionMetadata,
+  type OpenAiSubscriptionMetadata,
+} from '../oauth/openai/openai-token-metadata';
 
 export interface OAuthServiceSet {
   openaiOauth: OpenaiOauthService;
@@ -18,6 +22,24 @@ export interface OAuthServiceSet {
 export interface ResolvedCredentials {
   apiKey: string | null;
   resourceUrl?: string;
+  subscriptionMetadata?: OpenAiSubscriptionMetadata;
+}
+
+async function unwrapOpenAiCredential(
+  service: OpenaiOauthService,
+  rawValue: string,
+  agentId: string,
+  tenantId: string,
+  keyLabel?: string,
+): Promise<{ accessToken: string; metadata: OpenAiSubscriptionMetadata } | null> {
+  if (typeof service.unwrapTokenWithMetadata === 'function') {
+    return service.unwrapTokenWithMetadata(rawValue, agentId, tenantId, keyLabel);
+  }
+  // Compatibility for narrow test doubles and older embedders.
+  const accessToken = await service.unwrapToken(rawValue, agentId, tenantId, keyLabel);
+  return accessToken
+    ? { accessToken, metadata: extractOpenAiSubscriptionMetadata(accessToken) }
+    : null;
 }
 
 function expireRefreshableOAuthBlob(rawValue: string): string | null {
@@ -52,13 +74,16 @@ export async function refreshRejectedOAuthCredential(
 
   const lower = provider.toLowerCase();
   if (lower === 'openai') {
-    const unwrapped = await services.openaiOauth.unwrapToken(
+    const unwrapped = await unwrapOpenAiCredential(
+      services.openaiOauth,
       expiredRawValue,
       agentId,
       tenantId,
       keyLabel,
     );
-    return unwrapped ? { apiKey: unwrapped } : null;
+    return unwrapped
+      ? { apiKey: unwrapped.accessToken, subscriptionMetadata: unwrapped.metadata }
+      : null;
   }
   if (lower === 'minimax') {
     const unwrapped = await services.minimaxOauth.unwrapToken(
@@ -125,8 +150,19 @@ export async function resolveApiKey(
   if (authType === 'subscription') {
     const lower = provider.toLowerCase();
     if (lower === 'openai') {
-      const unwrapped = await openaiOauth.unwrapToken(apiKey, agentId, tenantId, keyLabel);
-      if (unwrapped) return { apiKey: unwrapped };
+      const unwrapped = await unwrapOpenAiCredential(
+        openaiOauth,
+        apiKey,
+        agentId,
+        tenantId,
+        keyLabel,
+      );
+      if (unwrapped) {
+        return {
+          apiKey: unwrapped.accessToken,
+          subscriptionMetadata: unwrapped.metadata,
+        };
+      }
       if (parseOAuthTokenBlob(apiKey)) return { apiKey: null };
     }
     if (lower === 'minimax') {

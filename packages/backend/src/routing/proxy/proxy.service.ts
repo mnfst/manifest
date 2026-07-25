@@ -63,6 +63,7 @@ import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-gu
 import { OPENAI_MODEL_ID_AUTO, routeForOpenAiModelId } from './openai-model-id';
 import { AutofixService } from '../autofix/autofix.service';
 import type { AutofixRecord } from '../autofix/autofix.types';
+import { parseCodexSemanticOutputTimeoutMs } from './chatgpt-response-qualifier';
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>> & {
   explicit_model_override?: boolean;
@@ -78,6 +79,73 @@ type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>> & {
  */
 const SCORING_EXCLUDED_ROLES = new Set(['system', 'developer']);
 const SCORING_RECENT_MESSAGES = 10;
+export const DEFAULT_GATEWAY_PRE_RESPONSE_BUDGET_MS = 105_000;
+const MAX_GATEWAY_PRE_RESPONSE_BUDGET_MS = 110_000;
+const MIN_GATEWAY_PRE_RESPONSE_BUDGET_MS = 10_000;
+const MIN_SAME_ROUTE_RETRY_BUDGET_MS = 5_000;
+
+export function parseGatewayPreResponseBudgetMs(rawValue: unknown): number {
+  const parsed =
+    typeof rawValue === 'number'
+      ? rawValue
+      : typeof rawValue === 'string' && /^\d+$/.test(rawValue)
+        ? Number(rawValue)
+        : Number.NaN;
+  return Number.isSafeInteger(parsed) &&
+    parsed >= MIN_GATEWAY_PRE_RESPONSE_BUDGET_MS &&
+    parsed <= MAX_GATEWAY_PRE_RESPONSE_BUDGET_MS
+    ? parsed
+    : DEFAULT_GATEWAY_PRE_RESPONSE_BUDGET_MS;
+}
+
+function remainingCodexSemanticTimeoutMs(deadlineAtMs: number): number {
+  return Math.max(1, Math.min(parseCodexSemanticOutputTimeoutMs(), deadlineAtMs - Date.now()));
+}
+
+function remainingGatewayPreResponseTimeoutMs(deadlineAtMs: number): number {
+  return Math.max(1, deadlineAtMs - Date.now());
+}
+
+function isCodexSemanticTimeout(status: number, body: string): boolean {
+  return (
+    status === HttpStatus.GATEWAY_TIMEOUT &&
+    (/"code"\s*:\s*"stream_timeout"/.test(body) || body.includes('produced no text or tool output'))
+  );
+}
+
+/**
+ * Claude Code's Permission Auto classifier is a separate control-plane call.
+ * Current clients give it a 60-second Stainless timeout and omit the
+ * `afk-mode` beta flag carried by the main Auto session. Letting Manifest
+ * complexity-route that call to a non-Anthropic model breaks the classifier's
+ * private response contract and Claude reports the requested Claude model as
+ * "temporarily unavailable".
+ */
+function isClaudeAutoClassifierRequest(
+  apiMode: ProxyApiMode,
+  headers: ProxyRequestOptions['headers'],
+): boolean {
+  if (apiMode !== 'messages' || !headers) return false;
+  const first = (value: string | string[] | undefined): string | undefined =>
+    Array.isArray(value) ? value[0] : value;
+  const userAgent = first(headers['user-agent'])?.toLowerCase();
+  const timeout = first(headers['x-stainless-timeout']);
+  const betaFlags = (
+    Array.isArray(headers['anthropic-beta'])
+      ? headers['anthropic-beta']
+      : [headers['anthropic-beta']]
+  )
+    .filter((value): value is string => typeof value === 'string')
+    .flatMap((value) => value.toLowerCase().split(','))
+    .map((flag) => flag.trim())
+    .filter(Boolean);
+  return (
+    userAgent?.startsWith('claude-cli/') === true &&
+    timeout === '60' &&
+    betaFlags.some((flag) => flag.startsWith('claude-code-')) &&
+    !betaFlags.some((flag) => flag.startsWith('afk-mode-'))
+  );
+}
 
 export interface RoutingMeta {
   tier: TierSlot | 'direct';
@@ -106,6 +174,8 @@ export interface RoutingMeta {
    */
   tenantProviderId?: string | null;
   fallbackFromModel?: string;
+  /** Present when a silent primary recovered on one bounded same-route retry. */
+  retryFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
   primaryErrorBody?: string;
@@ -173,6 +243,7 @@ interface HealedReforwardContext {
   stream: boolean;
   specificityOverride?: ProxyRequestOptions['specificityOverride'];
   headers?: ProxyRequestOptions['headers'];
+  requestContext?: ProxyRequestOptions['requestContext'];
   provider: string;
   apiKey: string;
   rawApiKey: string;
@@ -180,6 +251,7 @@ interface HealedReforwardContext {
   keyLabel?: string;
   authType?: AuthType;
   resourceUrl?: string;
+  subscriptionMetadata?: import('../oauth/openai/openai-token-metadata').OpenAiSubscriptionMetadata;
   providerRegion?: string | null;
   paramMergeContext: ParamMergeContext | undefined;
   signatureLookup: SignatureLookup;
@@ -216,6 +288,11 @@ export class ProxyService {
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
+    const requestDeadlineAtMs =
+      Date.now() +
+      parseGatewayPreResponseBudgetMs(
+        this.config.get<string | number>('GATEWAY_PRE_RESPONSE_BUDGET_MS'),
+      );
     const {
       agentId,
       tenantId,
@@ -225,6 +302,7 @@ export class ProxyService {
       signal,
       specificityOverride,
       headers,
+      requestContext,
       startProviderAttempt,
     } = opts;
     const apiMode = opts.apiMode ?? 'chat_completions';
@@ -354,6 +432,8 @@ export class ProxyService {
       stream,
       sessionKey,
       signal,
+      preResponseTimeoutMs: remainingGatewayPreResponseTimeoutMs(requestDeadlineAtMs),
+      semanticOutputTimeoutMs: remainingCodexSemanticTimeoutMs(requestDeadlineAtMs),
       agentId,
       tenantId,
       rawApiKey: credentials.rawApiKey,
@@ -361,11 +441,13 @@ export class ProxyService {
       authType: route.authType,
       apiMode,
       resourceUrl: credentials.resourceUrl,
+      subscriptionMetadata: credentials.subscriptionMetadata,
       providerRegion: credentials.providerRegion,
       signatureLookup,
       thinkingLookup,
       reasoningContentLookup,
       paramMergeContext,
+      requestContext,
       tenantProviderId: credentials.tenantProviderId,
       startProviderAttempt,
     });
@@ -399,6 +481,7 @@ export class ProxyService {
                 stream,
                 specificityOverride,
                 headers,
+                requestContext,
                 provider: route.provider,
                 apiKey: credentials.apiKey,
                 rawApiKey: credentials.rawApiKey,
@@ -406,6 +489,7 @@ export class ProxyService {
                 keyLabel: route.keyLabel ?? undefined,
                 authType: route.authType,
                 resourceUrl: credentials.resourceUrl,
+                subscriptionMetadata: credentials.subscriptionMetadata,
                 providerRegion: credentials.providerRegion,
                 paramMergeContext,
                 signatureLookup,
@@ -442,7 +526,9 @@ export class ProxyService {
         apiMode,
         paramMergeContext,
         primaryTenantProviderId: credentials.tenantProviderId,
+        requestContext,
         startProviderAttempt,
+        requestDeadlineAtMs,
       });
       if (fallbackResult) {
         return {
@@ -476,7 +562,9 @@ export class ProxyService {
           isCodeAssist: forward.isCodeAssist,
           structuredOutputToolName: forward.structuredOutputToolName,
           responsesTextFormat: forward.responsesTextFormat,
+          responsesToolTypesByName: forward.responsesToolTypesByName,
           providerCallStarted: forward.providerCallStarted,
+          attempt: forward.attempt,
         };
         this.recordTierIfScoring(sessionKey, resolved.tier);
         this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
@@ -531,7 +619,9 @@ export class ProxyService {
           apiMode,
           paramMergeContext,
           primaryTenantProviderId: credentials.tenantProviderId,
+          requestContext,
           startProviderAttempt,
+          requestDeadlineAtMs,
         });
         if (fallbackResult) {
           return {
@@ -669,11 +759,13 @@ export class ProxyService {
       authType: route.authType,
       apiMode: ctx.apiMode,
       resourceUrl: credentials.resourceUrl,
+      subscriptionMetadata: credentials.subscriptionMetadata,
       providerRegion: credentials.providerRegion,
       signatureLookup: ctx.signatureLookup,
       thinkingLookup: ctx.thinkingLookup,
       reasoningContentLookup: ctx.reasoningContentLookup,
       paramMergeContext: explicitModelOverride ? undefined : { agentId: ctx.agentId, scopeKey },
+      requestContext: ctx.requestContext,
       tenantProviderId: credentials.tenantProviderId,
       startProviderAttempt: ctx.startProviderAttempt,
     });
@@ -715,6 +807,21 @@ export class ProxyService {
     apiMode: ProxyApiMode,
   ): Promise<ResolvedRouting> {
     const requestedModel = typeof body.model === 'string' ? body.model : undefined;
+    const preserveClaudeClassifierModel = isClaudeAutoClassifierRequest(apiMode, headers);
+    if (preserveClaudeClassifierModel && requestedModel) {
+      const explicit = await this.resolveClaudeClassifierModel(agentId, tenantId, requestedModel);
+      if (explicit) return explicit;
+      return {
+        tier: 'default' as const,
+        route: null,
+        fallback_routes: null,
+        response_mode: DEFAULT_RESPONSE_MODE,
+        confidence: 0,
+        score: 0,
+        reason: 'default' as const,
+        explicit_model_unavailable: requestedModel,
+      };
+    }
     // Anthropic Messages requests require a provider-native model field; only
     // OpenAI-compatible surfaces use /v1/models IDs as route overrides.
     if (apiMode !== 'messages' && requestedModel && requestedModel !== OPENAI_MODEL_ID_AUTO) {
@@ -759,6 +866,51 @@ export class ProxyService {
         ));
 
     return baseResolved;
+  }
+
+  /** Keep Claude's Permission Auto classifier on a native Anthropic connection. */
+  private async resolveClaudeClassifierModel(
+    agentId: string,
+    tenantId: string,
+    requestedModel: string,
+  ): Promise<ResolvedRouting | null> {
+    const models = await this.modelDiscovery.getModelsForAgent(tenantId, agentId);
+    const anthropicModels = models.filter(
+      (model) => model.provider.toLowerCase() === 'anthropic' && model.authType,
+    );
+    const candidates = [
+      ...(requestedModel === 'default'
+        ? anthropicModels
+        : anthropicModels.filter((model) => model.id === requestedModel)),
+    ].sort(
+      (a, b) =>
+        Number(b.authType === 'subscription') - Number(a.authType === 'subscription') ||
+        b.qualityScore - a.qualityScore ||
+        b.contextWindow - a.contextWindow ||
+        a.id.localeCompare(b.id),
+    );
+    const model = candidates[0];
+    if (!model?.authType) {
+      this.logger.warn(
+        `Claude Auto classifier model "${requestedModel}" is unavailable for agent=${agentId}`,
+      );
+      return null;
+    }
+
+    this.logger.debug(
+      `Claude Auto classifier: preserving model=${model.id} provider=anthropic auth_type=${model.authType}` +
+        (model.id === requestedModel ? '' : ` requested_model=${requestedModel}`),
+    );
+    return {
+      tier: 'default' as const,
+      route: { provider: model.provider, authType: model.authType, model: model.id },
+      fallback_routes: null,
+      response_mode: DEFAULT_RESPONSE_MODE,
+      confidence: 1,
+      score: 0,
+      reason: 'default' as const,
+      explicit_model_override: true,
+    };
   }
 
   /**
@@ -813,6 +965,7 @@ export class ProxyService {
     apiKey: string;
     rawApiKey: string;
     resourceUrl?: string;
+    subscriptionMetadata?: import('../oauth/openai/openai-token-metadata').OpenAiSubscriptionMetadata;
     providerRegion?: string | null;
     tenantProviderId: string | null;
   } | null> {
@@ -866,6 +1019,7 @@ export class ProxyService {
       apiKey: unwrappedApiKey,
       rawApiKey,
       resourceUrl: unwrapped.resourceUrl,
+      subscriptionMetadata: unwrapped.subscriptionMetadata,
       providerRegion: key.region,
       tenantProviderId,
     };
@@ -890,7 +1044,9 @@ export class ProxyService {
     /** Primary connection id, carried so a fallback-success flow can attribute
      * its recorded primary-failure row to the connection that actually failed. */
     primaryTenantProviderId: string | null;
+    requestContext?: ProxyRequestOptions['requestContext'];
     startProviderAttempt?: StartProviderAttempt;
+    requestDeadlineAtMs: number;
   }): Promise<ProxyResult | null> {
     const {
       agentId,
@@ -921,33 +1077,39 @@ export class ProxyService {
         (route) => !routeEquals(route, resolved.route),
       );
     }
-    if (!fallbackRoutes || fallbackRoutes.length === 0) return null;
-    const fallbackModels = fallbackRoutes.map((r) => r.model);
-
     const primaryStatus = forward.response.status;
-    const primaryErrorBody = await forward.response.text();
+    // Clone so a no-fallback/non-retry path can return the original response
+    // untouched; consuming it here would make the controller see an empty body.
+    const primaryErrorBody = await forward.response.clone().text();
     const primaryProvider = resolved.route?.provider;
     const primaryAuth = resolved.route?.authType;
-    const { success, failures } = await this.fallbackService.tryFallbacks(
-      agentId,
-      tenantId,
-      fallbackModels,
-      body,
-      stream,
-      sessionKey,
-      primaryModel,
-      signal,
-      primaryProvider,
-      primaryAuth,
-      args.signatureLookup,
-      args.thinkingLookup,
-      apiMode,
-      chatBody,
-      fallbackRoutes,
-      args.paramMergeContext,
-      args.reasoningContentLookup,
-      args.startProviderAttempt,
-    );
+    const effectiveFallbackRoutes = fallbackRoutes ?? [];
+    const fallbackModels = effectiveFallbackRoutes.map((route) => route.model);
+    const { success, failures } =
+      effectiveFallbackRoutes.length > 0
+        ? await this.fallbackService.tryFallbacks(
+            agentId,
+            tenantId,
+            fallbackModels,
+            body,
+            stream,
+            sessionKey,
+            primaryModel,
+            signal,
+            primaryProvider,
+            primaryAuth,
+            args.signatureLookup,
+            args.thinkingLookup,
+            apiMode,
+            chatBody,
+            effectiveFallbackRoutes,
+            args.paramMergeContext,
+            args.reasoningContentLookup,
+            args.requestContext,
+            args.startProviderAttempt,
+            args.requestDeadlineAtMs,
+          )
+        : { success: null, failures: [] as FailedFallback[] };
 
     this.recordTierIfScoring(sessionKey, resolved.tier);
     this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
@@ -1003,19 +1165,8 @@ export class ProxyService {
       };
     }
 
-    // All fallbacks exhausted — preserve the primary provider's real HTTP status.
-    // The gateway uses the X-Manifest-Fallback-Exhausted header (set by the
-    // response handler) to detect this case.
-    const safeHeaders = new Headers(forward.response.headers);
-    safeHeaders.delete('content-encoding');
-    safeHeaders.delete('content-length');
-    safeHeaders.delete('transfer-encoding');
-    const rebuilt = new Response(primaryErrorBody, { status: primaryStatus, headers: safeHeaders });
-
-    // Fallback exhausted — recorded against the primary provider, so use
-    // the primary-provider snapshot for the row. Look up the primary's
-    // model-params one more time so the snapshot reflects what was sent
-    // before the chain failed.
+    // Re-snapshot the primary parameters once for either a same-route retry or
+    // an exhausted chain. Both outcomes must describe the exact primary route.
     const [primaryModelParams, exhaustedSpecs] = await Promise.all([
       primaryProvider && primaryAuth && resolved.route
         ? this.modelParamsService.get(
@@ -1039,6 +1190,106 @@ export class ProxyService {
       modelParams: primaryModelParams,
       specs: exhaustedSpecs,
     });
+
+    const retryUnavailableFallback =
+      effectiveFallbackRoutes.length === 0 ||
+      failures.length === 0 ||
+      failures.every((failure) => failure.status === HttpStatus.TOO_MANY_REQUESTS);
+    const retryRemainingMs = args.requestDeadlineAtMs - Date.now();
+    if (
+      primaryProvider &&
+      primaryAuth &&
+      forward.wireRequestBody &&
+      forward.retryWireBody &&
+      isCodexSemanticTimeout(primaryStatus, primaryErrorBody) &&
+      retryUnavailableFallback &&
+      retryRemainingMs >= MIN_SAME_ROUTE_RETRY_BUDGET_MS
+    ) {
+      this.logger.warn(
+        `Retrying silent primary within gateway budget: provider=${primaryProvider} model=${primaryModel} remaining_ms=${retryRemainingMs}`,
+      );
+      const retried = await this.fallbackService.retryWireBody(forward, forward.wireRequestBody, {
+        provider: primaryProvider,
+        model: primaryModel,
+        authType: primaryAuth,
+        tenantProviderId: args.primaryTenantProviderId,
+        startProviderAttempt: args.startProviderAttempt,
+        signal,
+        preResponseTimeoutMs: remainingGatewayPreResponseTimeoutMs(args.requestDeadlineAtMs),
+        semanticOutputTimeoutMs: remainingCodexSemanticTimeoutMs(args.requestDeadlineAtMs),
+      });
+      if (retried.response.ok) {
+        return {
+          forward: retried,
+          meta: this.buildBaseMeta(resolved, primaryModel, {
+            retryFromModel: primaryModel,
+            primaryErrorStatus: primaryStatus,
+            primaryErrorBody,
+            primaryProvider,
+            primaryAuthType: primaryAuth,
+            primaryTenantProviderId: args.primaryTenantProviderId,
+            primaryAttempt: forward.attempt,
+            primaryProviderCallStarted: forward.providerCallStarted,
+            attempt: retried.attempt,
+            providerCallStarted: retried.providerCallStarted,
+            tenantProviderId: args.primaryTenantProviderId,
+            request_params: exhaustedRequestParams,
+          }),
+          failedFallbacks: failures,
+        };
+      }
+
+      const retryErrorBody = await retried.response.text();
+      const retryHeaders = new Headers(retried.response.headers);
+      retryHeaders.delete('content-encoding');
+      retryHeaders.delete('content-length');
+      retryHeaders.delete('transfer-encoding');
+      const retryFailure = new Response(retryErrorBody, {
+        status: retried.response.status,
+        headers: retryHeaders,
+      });
+      return {
+        forward: {
+          ...retried,
+          response: retryFailure,
+        },
+        meta: this.buildBaseMeta(resolved, primaryModel, {
+          tenantProviderId: args.primaryTenantProviderId,
+          primaryAttempt: retried.attempt,
+          primaryProviderCallStarted: retried.providerCallStarted,
+          attempt: retried.attempt,
+          providerCallStarted: retried.providerCallStarted,
+          request_params: exhaustedRequestParams,
+        }),
+        failedFallbacks: [
+          {
+            model: primaryModel,
+            provider: primaryProvider,
+            fallbackIndex: -1,
+            status: primaryStatus,
+            errorBody: primaryErrorBody,
+            authType: primaryAuth,
+            tenantProviderId: args.primaryTenantProviderId,
+            attempt: forward.attempt,
+            providerCallStarted: forward.providerCallStarted,
+            recoveryKind: 'retry',
+          },
+          ...failures,
+        ],
+      };
+    }
+
+    if (effectiveFallbackRoutes.length === 0) return null;
+
+    // All fallbacks exhausted — preserve the primary provider's real HTTP status.
+    // The gateway uses the X-Manifest-Fallback-Exhausted header (set by the
+    // response handler) to detect this case.
+    const safeHeaders = new Headers(forward.response.headers);
+    safeHeaders.delete('content-encoding');
+    safeHeaders.delete('content-length');
+    safeHeaders.delete('transfer-encoding');
+    const rebuilt = new Response(primaryErrorBody, { status: primaryStatus, headers: safeHeaders });
+
     return {
       forward: {
         response: rebuilt,

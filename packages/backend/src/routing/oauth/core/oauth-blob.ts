@@ -12,6 +12,8 @@ export interface OAuthTokenBlob {
   e: number;
   /** Provider-specific resource URL (e.g. MiniMax region base URL). */
   u?: string;
+  /** Provider-specific non-secret routing metadata (compact serialized form). */
+  m?: string;
 }
 
 export function isOAuthTokenBlob(value: unknown): value is OAuthTokenBlob {
@@ -21,7 +23,8 @@ export function isOAuthTokenBlob(value: unknown): value is OAuthTokenBlob {
     typeof v.t === 'string' &&
     typeof v.r === 'string' &&
     typeof v.e === 'number' &&
-    (v.u === undefined || typeof v.u === 'string')
+    (v.u === undefined || typeof v.u === 'string') &&
+    (v.m === undefined || typeof v.m === 'string')
   );
 }
 
@@ -29,9 +32,13 @@ export function parseOAuthTokenBlob(rawValue: string): OAuthTokenBlob | null {
   try {
     const parsed = JSON.parse(rawValue) as unknown;
     if (!isOAuthTokenBlob(parsed)) return null;
-    return parsed.u !== undefined
-      ? { t: parsed.t, r: parsed.r, e: parsed.e, u: parsed.u }
-      : { t: parsed.t, r: parsed.r, e: parsed.e };
+    return {
+      t: parsed.t,
+      r: parsed.r,
+      e: parsed.e,
+      ...(parsed.u !== undefined ? { u: parsed.u } : {}),
+      ...(parsed.m !== undefined ? { m: parsed.m } : {}),
+    };
   } catch {
     return null;
   }

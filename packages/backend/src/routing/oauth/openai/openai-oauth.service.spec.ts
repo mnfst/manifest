@@ -2,6 +2,7 @@ import { createServer } from 'http';
 import { ConfigService } from '@nestjs/config';
 import { OpenaiOauthService, OAuthTokenBlob } from './openai-oauth.service';
 import { ProviderService } from '../../routing-core/provider.service';
+import { parseOpenAiSubscriptionMetadata } from './openai-token-metadata';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fetchMock = jest.fn() as jest.Mock<Promise<any>>;
@@ -23,6 +24,10 @@ jest.mock('http', () => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createServerMock = createServer as unknown as jest.Mock<any>;
+
+function jwt(payload: Record<string, unknown>): string {
+  return `header.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.signature`;
+}
 
 describe('OpenaiOauthService', () => {
   let service: OpenaiOauthService;
@@ -132,6 +137,66 @@ describe('OpenaiOauthService', () => {
       expect(storedBlob.e).toBeGreaterThan(Date.now());
     });
 
+    it('stores compact workspace routing metadata from id_token without persisting that token', async () => {
+      const url = await service.generateAuthorizationUrl('agent-1', 'tenant-1');
+      const state = new URL(url).searchParams.get('state')!;
+      const idToken = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'workspace-123',
+          chatgpt_account_is_fedramp: true,
+        },
+      });
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          access_token: 'opaque-access',
+          refresh_token: 'refresh-token',
+          expires_in: 3600,
+          id_token: idToken,
+        }),
+      });
+
+      await service.exchangeCode(state, 'auth-code');
+
+      const storedRaw = providerService.upsertProvider.mock.calls[0][3] as string;
+      const storedBlob = JSON.parse(storedRaw) as OAuthTokenBlob;
+      expect(parseOpenAiSubscriptionMetadata(storedBlob.m)).toEqual({
+        accountId: 'workspace-123',
+        fedramp: true,
+      });
+      expect(storedRaw).not.toContain(idToken);
+    });
+
+    it('merges access-token routing claims with an id_token that has only partial metadata', async () => {
+      const url = await service.generateAuthorizationUrl('agent-1', 'tenant-1');
+      const state = new URL(url).searchParams.get('state')!;
+      const accessToken = jwt({
+        'https://api.openai.com/auth': { chatgpt_account_id: 'workspace-from-access' },
+      });
+      const idToken = jwt({
+        'https://api.openai.com/auth': { chatgpt_account_is_fedramp: true },
+      });
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          access_token: accessToken,
+          refresh_token: 'refresh-token',
+          expires_in: 3600,
+          id_token: idToken,
+        }),
+      });
+
+      await service.exchangeCode(state, 'auth-code');
+
+      const storedBlob = JSON.parse(
+        providerService.upsertProvider.mock.calls[0][3] as string,
+      ) as OAuthTokenBlob;
+      expect(parseOpenAiSubscriptionMetadata(storedBlob.m)).toEqual({
+        accountId: 'workspace-from-access',
+        fedramp: true,
+      });
+    });
+
     it('throws for invalid state', async () => {
       await expect(service.exchangeCode('bad-state', 'code')).rejects.toThrow(
         'Invalid or expired OAuth state',
@@ -233,6 +298,18 @@ describe('OpenaiOauthService', () => {
       expect(result.r).toBe('original-refresh');
     });
 
+    it('keeps stored workspace metadata when refresh omits id_token', async () => {
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ access_token: 'new-access', expires_in: 3600 }),
+      });
+      const metadata = '{"a":"workspace-123","f":true}';
+
+      const result = await service.refreshAccessToken('original-refresh', undefined, metadata);
+
+      expect(result.m).toBe(metadata);
+    });
+
     it('throws when refresh fails', async () => {
       fetchMock.mockResolvedValueOnce({
         ok: false,
@@ -240,6 +317,195 @@ describe('OpenaiOauthService', () => {
       });
 
       await expect(service.refreshAccessToken('bad-token')).rejects.toThrow('Token refresh failed');
+    });
+  });
+
+  describe('unwrapTokenWithMetadata', () => {
+    it('returns null without attempting to unwrap a malformed OAuth blob', async () => {
+      await expect(
+        service.unwrapTokenWithMetadata('not-an-oauth-blob', 'agent-1', 'tenant-1'),
+      ).resolves.toBeNull();
+
+      expect(providerService.getFreshSubscriptionCredential).not.toHaveBeenCalled();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('returns stored routing metadata with a fresh access token', async () => {
+      const accessToken = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'account-from-access-token',
+        },
+      });
+      const blob: OAuthTokenBlob = {
+        t: accessToken,
+        r: 'refresh-token',
+        e: Date.now() + 120_000,
+        m: '{"a":"account-from-id-token","f":true}',
+      };
+
+      await expect(
+        service.unwrapTokenWithMetadata(JSON.stringify(blob), 'agent-1', 'tenant-1', 'Work'),
+      ).resolves.toEqual({
+        accessToken,
+        metadata: { accountId: 'account-from-id-token', fedramp: true },
+      });
+
+      expect(providerService.getFreshSubscriptionCredential).not.toHaveBeenCalled();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('re-reads refreshed metadata after rotating an expired token', async () => {
+      const original: OAuthTokenBlob = {
+        t: 'expired-access',
+        r: 'old-refresh',
+        e: Date.now() - 1,
+        m: '{"a":"old-account"}',
+      };
+      const refreshedAccess = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'account-from-refreshed-access',
+        },
+      });
+      const refreshed: OAuthTokenBlob = {
+        t: refreshedAccess,
+        r: 'new-refresh',
+        e: Date.now() + 3_600_000,
+        m: '{"a":"account-from-refreshed-id-token","f":true}',
+      };
+      providerService.getFreshSubscriptionCredential
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(JSON.stringify(refreshed));
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          access_token: refreshedAccess,
+          refresh_token: 'new-refresh',
+          expires_in: 3600,
+          id_token: jwt({
+            chatgpt_account_id: 'account-from-refreshed-id-token',
+            chatgpt_account_is_fedramp: true,
+          }),
+        }),
+      });
+
+      await expect(
+        service.unwrapTokenWithMetadata(
+          JSON.stringify(original),
+          'agent-1',
+          'tenant-refreshed',
+          'Work',
+        ),
+      ).resolves.toEqual({
+        accessToken: refreshedAccess,
+        metadata: { accountId: 'account-from-refreshed-id-token', fedramp: true },
+      });
+
+      expect(providerService.getFreshSubscriptionCredential).toHaveBeenNthCalledWith(
+        1,
+        'tenant-refreshed',
+        'openai',
+        'Work',
+      );
+      expect(providerService.getFreshSubscriptionCredential).toHaveBeenNthCalledWith(
+        2,
+        'tenant-refreshed',
+        'openai',
+        'Work',
+      );
+      const persistedBlob = JSON.parse(
+        providerService.upsertProvider.mock.calls[0][3] as string,
+      ) as OAuthTokenBlob;
+      expect(persistedBlob.m).toBe(refreshed.m);
+    });
+
+    it('uses access-token claims when the refreshed blob has malformed metadata', async () => {
+      const original: OAuthTokenBlob = {
+        t: 'expired-access',
+        r: 'old-refresh',
+        e: Date.now() - 1,
+        m: '{"a":"old-account"}',
+      };
+      const refreshedAccess = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'account-from-refreshed-access',
+        },
+      });
+      const freshBlob = JSON.stringify({
+        t: refreshedAccess,
+        r: 'new-refresh',
+        e: Date.now() + 3_600_000,
+        m: '{bad',
+      });
+      providerService.getFreshSubscriptionCredential.mockResolvedValue(freshBlob);
+
+      await expect(
+        service.unwrapTokenWithMetadata(
+          JSON.stringify(original),
+          'agent-1',
+          'tenant-malformed-metadata',
+        ),
+      ).resolves.toEqual({
+        accessToken: refreshedAccess,
+        metadata: { accountId: 'account-from-refreshed-access' },
+      });
+
+      expect(providerService.getFreshSubscriptionCredential).toHaveBeenCalledTimes(2);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('falls back to original metadata when the post-refresh credential cannot be parsed', async () => {
+      const original: OAuthTokenBlob = {
+        t: 'expired-access',
+        r: 'old-refresh',
+        e: Date.now() - 1,
+        m: '{"a":"original-account","f":true}',
+      };
+      const refreshedAccess = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'account-from-refreshed-access',
+        },
+      });
+      providerService.getFreshSubscriptionCredential
+        .mockResolvedValueOnce(
+          JSON.stringify({
+            t: refreshedAccess,
+            r: 'new-refresh',
+            e: Date.now() + 3_600_000,
+          }),
+        )
+        .mockResolvedValueOnce('{"not":"an-oauth-blob"}');
+
+      await expect(
+        service.unwrapTokenWithMetadata(
+          JSON.stringify(original),
+          'agent-1',
+          'tenant-unparseable-refresh',
+        ),
+      ).resolves.toEqual({
+        accessToken: refreshedAccess,
+        metadata: { accountId: 'original-account', fedramp: true },
+      });
+
+      expect(providerService.getFreshSubscriptionCredential).toHaveBeenCalledTimes(2);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('returns null when an expired token cannot be refreshed', async () => {
+      const blob: OAuthTokenBlob = {
+        t: 'expired-access',
+        r: 'invalid-refresh',
+        e: Date.now() - 1,
+      };
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        text: async () => 'invalid refresh token',
+      });
+
+      await expect(
+        service.unwrapTokenWithMetadata(JSON.stringify(blob), 'agent-1', 'tenant-failed'),
+      ).resolves.toBeNull();
+
+      expect(providerService.getFreshSubscriptionCredential).toHaveBeenCalledTimes(1);
     });
   });
 

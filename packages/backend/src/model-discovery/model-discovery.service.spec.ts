@@ -56,6 +56,10 @@ function makeProvider(overrides: Partial<TenantProvider> = {}): TenantProvider {
   } as TenantProvider;
 }
 
+function jwt(payload: Record<string, unknown>): string {
+  return `header.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.signature`;
+}
+
 function makeCustomProvider(overrides: Partial<CustomProvider> = {}): CustomProvider {
   return {
     id: 'cp-1',
@@ -1547,6 +1551,77 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).toHaveBeenCalledWith(
         'openai',
         'access-token-123',
+        'subscription',
+        undefined,
+      );
+    });
+
+    it('passes stored OpenAI routing metadata and force-refresh together', async () => {
+      const accessToken = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'account-from-access-token',
+        },
+      });
+      mockDecrypt.mockReturnValue(
+        JSON.stringify({
+          t: accessToken,
+          r: 'refresh-token',
+          e: Date.now() + 60_000,
+          m: '{"a":"stored-account","f":true}',
+        }),
+      );
+      fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-5.5' })]);
+
+      await service.discoverModels(
+        makeProvider({ provider: 'openai', auth_type: 'subscription' }),
+        { forceRefresh: true, skipModelsDevRefresh: true },
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith('openai', accessToken, 'subscription', undefined, {
+        forceRefresh: true,
+        subscriptionMetadata: { accountId: 'stored-account', fedramp: true },
+      });
+    });
+
+    it('derives OpenAI routing metadata from JWT claims when no stored metadata exists', async () => {
+      const accessToken = jwt({
+        'https://api.openai.com/auth': {
+          chatgpt_account_id: 'jwt-account',
+          chatgpt_account_is_fedramp: true,
+        },
+      });
+      mockDecrypt.mockReturnValue(
+        JSON.stringify({
+          t: accessToken,
+          r: 'refresh-token',
+          e: Date.now() + 60_000,
+        }),
+      );
+      fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-5.5' })]);
+
+      await service.discoverModels(makeProvider({ provider: 'openai', auth_type: 'subscription' }));
+
+      expect(fetcher.fetch).toHaveBeenCalledWith('openai', accessToken, 'subscription', undefined, {
+        subscriptionMetadata: { accountId: 'jwt-account', fedramp: true },
+      });
+    });
+
+    it('omits OpenAI routing options when stored metadata is malformed and the token is opaque', async () => {
+      mockDecrypt.mockReturnValue(
+        JSON.stringify({
+          t: 'opaque-access-token',
+          r: 'refresh-token',
+          e: Date.now() + 60_000,
+          m: '{bad',
+        }),
+      );
+      fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-5.5' })]);
+
+      await service.discoverModels(makeProvider({ provider: 'openai', auth_type: 'subscription' }));
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'openai',
+        'opaque-access-token',
         'subscription',
         undefined,
       );

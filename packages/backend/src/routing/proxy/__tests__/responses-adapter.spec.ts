@@ -5,6 +5,7 @@ import {
   toChatCompletionsRequest,
   toNativeResponsesRequest,
 } from '../responses-adapter';
+import { createAnthropicStreamTransformer } from '../anthropic-adapter';
 
 /** Ordered list of every event payload's `type` in a concatenated SSE string. */
 function eventTypes(sse: string): string[] {
@@ -40,6 +41,23 @@ function firstEventData(sse: string, type: string): Record<string, any> | null {
     }
   }
   return null;
+}
+
+/** Parses every event payload with the given `type`. */
+function allEventData(sse: string, type: string): Array<Record<string, unknown>> {
+  const events: Array<Record<string, unknown>> = [];
+  for (const line of sse.split('\n')) {
+    if (!line.startsWith('data: ')) continue;
+    const json = line.slice(6).trim();
+    if (json === '[DONE]') continue;
+    try {
+      const parsed = JSON.parse(json);
+      if (parsed?.type === type) events.push(parsed);
+    } catch {
+      /* ignore */
+    }
+  }
+  return events;
 }
 
 describe('Responses adapter', () => {
@@ -124,6 +142,100 @@ describe('Responses adapter', () => {
       });
     });
 
+    it('preserves a sparse Responses json_schema without inventing optional fields', () => {
+      const result = toChatCompletionsRequest({
+        input: 'Return structured data.',
+        text: { format: { type: 'json_schema' } },
+      });
+
+      expect(result.response_format).toEqual({
+        type: 'json_schema',
+        json_schema: {},
+      });
+    });
+
+    it('converts custom tools to string-input functions and drops hosted tools', () => {
+      const result = toChatCompletionsRequest({
+        input: 'Run the command.',
+        tools: [
+          { type: 'custom', name: 'shell', description: 'Run a shell command' },
+          { type: 'web_search_preview' },
+        ],
+        tool_choice: { type: 'custom', name: 'shell' },
+      });
+
+      expect(result.tools).toEqual([
+        {
+          type: 'function',
+          function: {
+            name: 'shell',
+            description: 'Run a shell command',
+            parameters: {
+              type: 'object',
+              properties: { input: { type: 'string' } },
+              required: ['input'],
+              additionalProperties: false,
+            },
+          },
+        },
+      ]);
+      expect(result.tool_choice).toEqual({ type: 'function', function: { name: 'shell' } });
+    });
+
+    it.each(['auto', 'required', 'none'])(
+      'keeps %s tool_choice when at least one fallback tool remains',
+      (toolChoice) => {
+        const result = toChatCompletionsRequest({
+          input: 'Use the local tool.',
+          tools: [{ type: 'function', name: 'local_lookup', parameters: { type: 'object' } }],
+          tool_choice: toolChoice,
+        });
+
+        expect(result.tool_choice).toBe(toolChoice);
+      },
+    );
+
+    it('drops a hosted tool choice when that tool cannot cross the fallback boundary', () => {
+      const result = toChatCompletionsRequest({
+        input: 'Search the web.',
+        tools: [
+          { type: 'function', name: 'local_lookup', parameters: { type: 'object' } },
+          { type: 'web_search_preview' },
+        ],
+        tool_choice: { type: 'web_search_preview' },
+      });
+
+      expect(result.tools).toEqual([
+        expect.objectContaining({ function: expect.objectContaining({ name: 'local_lookup' }) }),
+      ]);
+      expect(result).not.toHaveProperty('tool_choice');
+    });
+
+    it.each(['auto', 'required', 'none'])(
+      'drops %s tool_choice when every Responses tool is hosted',
+      (toolChoice) => {
+        const result = toChatCompletionsRequest({
+          input: 'Search the web.',
+          tools: [{ type: 'web_search_preview' }, { type: 'mcp', server_label: 'docs' }],
+          tool_choice: toolChoice,
+        });
+
+        expect(result).not.toHaveProperty('tools');
+        expect(result).not.toHaveProperty('tool_choice');
+      },
+    );
+
+    it('drops a forced function choice when its tool was not converted', () => {
+      const result = toChatCompletionsRequest({
+        input: 'Run it.',
+        tools: [{ type: 'custom', name: 'shell' }],
+        tool_choice: { type: 'custom', name: 'missing_tool' },
+      });
+
+      expect(result.tools).toHaveLength(1);
+      expect(result).not.toHaveProperty('tool_choice');
+    });
+
     it('maps Responses json_object text format to Chat Completions response_format', () => {
       const result = toChatCompletionsRequest({
         input: 'Return JSON.',
@@ -191,8 +303,90 @@ describe('Responses adapter', () => {
         },
         { role: 'tool', tool_call_id: 'call_1', content: '{"ok":true}' },
       ]);
-      expect(result.tools).toEqual([{ type: 'web_search_preview' }]);
-      expect(result.tool_choice).toBe('auto');
+      expect(result).not.toHaveProperty('tools');
+      expect(result).not.toHaveProperty('tool_choice');
+    });
+
+    it('normalizes Responses developer messages for older Chat fallback providers', () => {
+      const result = toChatCompletionsRequest({
+        input: [{ role: 'developer', content: [{ type: 'input_text', text: 'Be concise.' }] }],
+      });
+
+      expect(result.messages).toEqual([{ role: 'system', content: 'Be concise.' }]);
+    });
+
+    it('converts custom tool-call history through the Chat function shape', () => {
+      const result = toChatCompletionsRequest({
+        input: [
+          {
+            type: 'custom_tool_call',
+            call_id: 'call_shell',
+            name: 'shell',
+            input: 'echo hello',
+          },
+          {
+            type: 'custom_tool_call_output',
+            call_id: 'call_shell',
+            output: 'hello',
+          },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        {
+          role: 'assistant',
+          content: null,
+          tool_calls: [
+            {
+              id: 'call_shell',
+              type: 'function',
+              function: { name: 'shell', arguments: '{"input":"echo hello"}' },
+            },
+          ],
+        },
+        { role: 'tool', tool_call_id: 'call_shell', content: 'hello' },
+      ]);
+    });
+
+    it('normalizes non-string custom history inputs and outputs safely', () => {
+      const result = toChatCompletionsRequest({
+        input: [
+          {
+            type: 'custom_tool_call',
+            call_id: 'call_shell',
+            name: 'shell',
+            input: { command: 'pwd' },
+          },
+          {
+            type: 'custom_tool_call_output',
+            call_id: 'call_shell',
+            output: { stdout: '/workspace', exitCode: 0 },
+          },
+          {
+            type: 'custom_tool_call_output',
+            call_id: 'call_empty',
+            output: null,
+          },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        expect.objectContaining({
+          role: 'assistant',
+          tool_calls: [
+            expect.objectContaining({
+              id: 'call_shell',
+              function: { name: 'shell', arguments: '{"input":""}' },
+            }),
+          ],
+        }),
+        {
+          role: 'tool',
+          tool_call_id: 'call_shell',
+          content: '{"stdout":"/workspace","exitCode":0}',
+        },
+        { role: 'tool', tool_call_id: 'call_empty', content: '' },
+      ]);
     });
 
     it('uses safe defaults for malformed input items', () => {
@@ -453,6 +647,69 @@ describe('Responses adapter', () => {
       });
     });
 
+    it('restores a Chat function result to a custom tool call', () => {
+      const result = fromChatCompletionResponse(
+        {
+          choices: [
+            {
+              message: {
+                content: null,
+                tool_calls: [
+                  {
+                    id: 'call_shell',
+                    type: 'function',
+                    function: { name: 'shell', arguments: '{"input":"echo hello"}' },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        'claude-sonnet-4',
+        { toolTypesByName: { shell: 'custom' } },
+      );
+
+      expect(result.output).toEqual([
+        expect.objectContaining({
+          type: 'custom_tool_call',
+          call_id: 'call_shell',
+          name: 'shell',
+          input: 'echo hello',
+          status: 'completed',
+        }),
+      ]);
+    });
+
+    it.each([
+      ['"echo hello"', 'echo hello'],
+      ['already raw input', 'already raw input'],
+    ])('restores custom input from %s', (argumentsValue, expectedInput) => {
+      const result = fromChatCompletionResponse(
+        {
+          choices: [
+            {
+              message: {
+                content: null,
+                tool_calls: [
+                  {
+                    id: 'call_shell',
+                    type: 'function',
+                    function: { name: 'shell', arguments: argumentsValue },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        'claude-sonnet-4',
+        { toolTypesByName: { shell: 'custom' } },
+      );
+
+      expect(result.output).toEqual([
+        expect.objectContaining({ type: 'custom_tool_call', input: expectedInput }),
+      ]);
+    });
+
     it('handles missing choices, non-string content, and missing usage', () => {
       const result = fromChatCompletionResponse({ choices: [{ message: { content: 7 } }] }, 'm');
       expect(result.model).toBe('m');
@@ -529,6 +786,35 @@ describe('Responses adapter', () => {
       expect(result.text).toEqual({ format: { type: 'text' } });
     });
 
+    it('uses safe defaults for malformed ordinary function calls', () => {
+      const result = fromChatCompletionResponse(
+        {
+          choices: [
+            {
+              message: {
+                content: null,
+                tool_calls: [
+                  null,
+                  { id: 'missing_function' },
+                  { id: 42, function: { name: 7, arguments: { invalid: true } } },
+                ],
+              },
+            },
+          ],
+        },
+        'fallback-model',
+      );
+
+      expect(result.output).toEqual([
+        expect.objectContaining({
+          type: 'function_call',
+          name: '',
+          arguments: '{}',
+          call_id: expect.any(String),
+        }),
+      ]);
+    });
+
     it('unwraps the configured structured-output tool call into response text', () => {
       const schema = { type: 'object', properties: { title: { type: 'string' } } };
       const result = fromChatCompletionResponse(
@@ -593,6 +879,28 @@ describe('Responses adapter', () => {
       );
 
       expect(result).toEqual(response);
+    });
+
+    it('does not duplicate collected text when completed output already contains text', () => {
+      const output = [
+        null,
+        { type: 'reasoning' },
+        { type: 'message', content: null },
+        {
+          type: 'message',
+          content: [null, { type: 'output_text', text: 'Authoritative', annotations: [] }],
+        },
+      ];
+      const result = collectResponsesSseResponse(
+        [
+          'event: response.output_text.delta\ndata: {"delta":"Partial"}',
+          `event: response.completed\ndata: ${JSON.stringify({ response: { output } })}`,
+          '',
+        ].join('\n\n'),
+      );
+
+      expect(result.output).toEqual(output);
+      expect(JSON.stringify(result.output)).not.toContain('Partial');
     });
 
     it('keeps collected text when the completed response omits output', () => {
@@ -951,10 +1259,326 @@ describe('Responses adapter', () => {
       expect(tail).toBe('');
     });
 
+    it('turns an upstream stream error into response.failed and never fabricates completion', () => {
+      const t = createResponsesStreamTransformer('claude-sonnet-4');
+      t.transform('{"choices":[{"delta":{"content":"partial"}}]}');
+      const failed =
+        t.transform(
+          '{"error":{"message":"Too many requests","type":"rate_limit_error","status":429}}',
+        ) ?? '';
+
+      expect(eventTypes(failed)).toEqual(['response.failed', '[DONE]']);
+      const event = firstEventData(failed, 'response.failed')!;
+      expect(event.response).toMatchObject({
+        status: 'failed',
+        completed_at: null,
+        error: { code: 'rate_limit_error', message: 'Too many requests' },
+        output: [],
+      });
+      expect(failed).not.toContain('response.completed');
+      expect(t.finalize()).toBeNull();
+      expect(t.transform('{"choices":[{"delta":{"content":"ignored"}}]}')).toBeNull();
+    });
+
+    it('handles top-level and empty upstream stream errors', () => {
+      const topLevel = createResponsesStreamTransformer('gpt-5');
+      const topLevelFailure =
+        topLevel.transform(
+          '{"type":"error","message":"Authentication failed","code":"authentication_error"}',
+        ) ?? '';
+      expect(firstEventData(topLevelFailure, 'response.failed')!.response.error).toEqual({
+        code: 'authentication_error',
+        message: 'Authentication failed',
+      });
+
+      const empty = createResponsesStreamTransformer('gpt-5');
+      const emptyFailure = empty.transform('{"error":{}}') ?? '';
+      expect(firstEventData(emptyFailure, 'response.failed')!.response.error).toEqual({
+        code: 'server_error',
+        message: 'Upstream provider stream failed',
+      });
+      expect(empty.finalize()).toBeNull();
+    });
+
+    it('keeps an Anthropic fallback stream error terminal through the composed Codex path', () => {
+      const fromAnthropic = createAnthropicStreamTransformer('claude-sonnet-4-6');
+      const toResponses = createResponsesStreamTransformer('claude-sonnet-4-6');
+      const chatError = fromAnthropic(
+        'event: error\n{"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}',
+      );
+      const responsesError = toResponses.transform(chatError ?? '') ?? '';
+
+      expect(eventTypes(responsesError)).toEqual([
+        'response.created',
+        'response.in_progress',
+        'response.failed',
+        '[DONE]',
+      ]);
+      expect(responsesError).not.toContain('response.completed');
+      expect(toResponses.finalize()).toBeNull();
+    });
+
+    it('streams fragmented parallel function calls with stable output indexes', () => {
+      const t = createResponsesStreamTransformer('claude-sonnet-4');
+      const text =
+        t.transform(JSON.stringify({ choices: [{ delta: { content: 'Checking' } }] })) ?? '';
+      const first =
+        t.transform(
+          JSON.stringify({
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'call_lookup',
+                      function: { name: 'lookup', arguments: '{"id":' },
+                    },
+                    {
+                      index: 1,
+                      id: 'call_search',
+                      function: { name: 'search', arguments: '{"q":"' },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ) ?? '';
+      const second =
+        t.transform(
+          JSON.stringify({
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    { index: 0, function: { arguments: '1}' } },
+                    { index: 1, function: { arguments: 'docs"}' } },
+                  ],
+                },
+              },
+            ],
+          }),
+        ) ?? '';
+      const end = t.finalize() ?? '';
+
+      expect(firstEventData(text, 'response.output_item.added')!.output_index).toBe(0);
+      const added = allEventData(first, 'response.output_item.added');
+      expect(added.map((event) => event.output_index)).toEqual([1, 2]);
+      expect(added.map((event) => event.item)).toEqual([
+        expect.objectContaining({
+          type: 'function_call',
+          call_id: 'call_lookup',
+          name: 'lookup',
+          arguments: '',
+        }),
+        expect.objectContaining({
+          type: 'function_call',
+          call_id: 'call_search',
+          name: 'search',
+          arguments: '',
+        }),
+      ]);
+
+      expect(
+        allEventData(first + second, 'response.function_call_arguments.delta').map((event) => [
+          event.output_index,
+          event.delta,
+        ]),
+      ).toEqual([
+        [1, '{"id":'],
+        [2, '{"q":"'],
+        [1, '1}'],
+        [2, 'docs"}'],
+      ]);
+      expect(
+        allEventData(end, 'response.function_call_arguments.done').map((event) => [
+          event.output_index,
+          event.arguments,
+        ]),
+      ).toEqual([
+        [1, '{"id":1}'],
+        [2, '{"q":"docs"}'],
+      ]);
+      expect(
+        allEventData(end, 'response.output_item.done').map((event) => event.output_index),
+      ).toEqual([0, 1, 2]);
+
+      const completed = firstEventData(end, 'response.completed')!;
+      expect(completed.response.output).toEqual([
+        expect.objectContaining({
+          type: 'message',
+          content: [expect.objectContaining({ text: 'Checking' })],
+        }),
+        expect.objectContaining({
+          type: 'function_call',
+          call_id: 'call_lookup',
+          arguments: '{"id":1}',
+        }),
+        expect.objectContaining({
+          type: 'function_call',
+          call_id: 'call_search',
+          arguments: '{"q":"docs"}',
+        }),
+      ]);
+    });
+
+    it('buffers custom arguments until the name identifies their Responses type', () => {
+      const t = createResponsesStreamTransformer('claude-sonnet-4', {
+        toolTypesByName: { shell: 'custom' },
+      });
+      const beforeName =
+        t.transform(
+          JSON.stringify({
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'call_shell',
+                      function: { arguments: '{"input":"echo ' },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ) ?? '';
+      const named =
+        t.transform(
+          JSON.stringify({
+            choices: [
+              {
+                delta: {
+                  tool_calls: [{ index: 0, function: { name: 'shell', arguments: 'hello"}' } }],
+                },
+              },
+            ],
+          }),
+        ) ?? '';
+      const end = t.finalize() ?? '';
+
+      expect(allEventData(beforeName, 'response.output_item.added')).toEqual([]);
+      expect(firstEventData(named, 'response.output_item.added')).toMatchObject({
+        output_index: 0,
+        item: {
+          type: 'custom_tool_call',
+          call_id: 'call_shell',
+          name: 'shell',
+          input: '',
+        },
+      });
+      expect(firstEventData(named, 'response.custom_tool_call_input.delta')).toMatchObject({
+        output_index: 0,
+        delta: 'echo hello',
+      });
+      expect(firstEventData(end, 'response.custom_tool_call_input.done')).toMatchObject({
+        output_index: 0,
+        input: 'echo hello',
+      });
+      expect(firstEventData(end, 'response.output_item.done')!.item).toMatchObject({
+        type: 'custom_tool_call',
+        input: 'echo hello',
+        status: 'completed',
+      });
+      expect(firstEventData(end, 'response.completed')!.response.output).toEqual([
+        expect.objectContaining({ type: 'custom_tool_call', input: 'echo hello' }),
+      ]);
+    });
+
+    it.each([
+      ['"echo hello"', 'echo hello'],
+      ['raw shell input', 'raw shell input'],
+      ['{}', '{}'],
+    ])('streams and finalizes custom input encoded as %s', (argumentsValue, expectedInput) => {
+      const t = createResponsesStreamTransformer('claude-sonnet-4', {
+        toolTypesByName: { shell: 'custom' },
+      });
+      const out =
+        t.transform(
+          JSON.stringify({
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'call_shell',
+                      function: { name: 'shell', arguments: argumentsValue },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ) ?? '';
+      const end = t.finalize() ?? '';
+
+      const deltas = allEventData(out, 'response.custom_tool_call_input.delta');
+      if (expectedInput !== '{}') {
+        expect(deltas).toEqual([expect.objectContaining({ delta: expectedInput })]);
+      }
+      expect(firstEventData(end, 'response.custom_tool_call_input.done')).toMatchObject({
+        input: expectedInput,
+      });
+    });
+
+    it('buffers an incomplete wrapped custom input but streams already-raw input immediately', () => {
+      const wrapped = createResponsesStreamTransformer('claude-sonnet-4', {
+        toolTypesByName: { shell: 'custom' },
+      });
+      const wrappedOut =
+        wrapped.transform(
+          JSON.stringify({
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'call_wrapped',
+                      function: { name: 'shell', arguments: '{"input":"echo' },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ) ?? '';
+      expect(allEventData(wrappedOut, 'response.custom_tool_call_input.delta')).toEqual([]);
+
+      const raw = createResponsesStreamTransformer('claude-sonnet-4', {
+        toolTypesByName: { shell: 'custom' },
+      });
+      const rawOut =
+        raw.transform(
+          JSON.stringify({
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'call_raw',
+                      function: { name: 'shell', arguments: 'echo now' },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ) ?? '';
+      expect(firstEventData(rawOut, 'response.custom_tool_call_input.delta')).toMatchObject({
+        delta: 'echo now',
+      });
+    });
+
     it('streams configured structured-output tool arguments as response text', () => {
       const t = createResponsesStreamTransformer('claude-sonnet-4', {
         structuredOutputToolName: 'patient_summary',
         textFormat: { type: 'json_object' },
+        toolTypesByName: { patient_summary: 'custom' },
       });
       const first =
         t.transform(
@@ -968,6 +1592,7 @@ describe('Responses adapter', () => {
 
       expect(firstEventData(first, 'response.output_text.delta')!.delta).toBe('{"title"');
       expect(firstEventData(second, 'response.output_text.delta')!.delta).toBe(':"ok"}');
+      expect(eventTypes(first + second)).not.toContain('response.custom_tool_call_input.delta');
       const completed = firstEventData(end, 'response.completed')!;
       expect(completed.response.output).toEqual([
         expect.objectContaining({
@@ -976,6 +1601,37 @@ describe('Responses adapter', () => {
         }),
       ]);
       expect(completed.response.text).toEqual({ format: { type: 'json_object' } });
+    });
+
+    it('opens an empty structured-output message during finalization', () => {
+      const t = createResponsesStreamTransformer('claude-sonnet-4', {
+        structuredOutputToolName: 'patient_summary',
+      });
+      const out =
+        t.transform(
+          JSON.stringify({
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'toolu_empty',
+                      function: { name: 'patient_summary', arguments: '' },
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+        ) ?? '';
+      const end = t.finalize() ?? '';
+
+      expect(eventTypes(out)).not.toContain('response.output_item.added');
+      expect(eventTypes(end)).toContain('response.output_item.added');
+      expect(firstEventData(end, 'response.completed')!.response.output).toEqual([
+        expect.objectContaining({ type: 'message' }),
+      ]);
     });
 
     it('ignores malformed structured-output stream tool-call entries', () => {

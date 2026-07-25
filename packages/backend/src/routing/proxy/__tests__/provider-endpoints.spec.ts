@@ -1,4 +1,5 @@
 import { PROVIDER_REGISTRY } from '../../../common/constants/providers';
+import { CODEX_CLI_USER_AGENT } from '../../../common/constants/subscription-clients';
 import {
   buildCustomEndpoint,
   buildEndpointOverride,
@@ -483,7 +484,7 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers['Authorization']).toBe('Bearer oauth-token');
     expect(headers['Content-Type']).toBe('application/json');
     expect(headers['originator']).toBe('codex_cli_rs');
-    expect(headers['user-agent']).toBe('codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown');
+    expect(headers['user-agent']).toBe(CODEX_CLI_USER_AGENT);
   });
 
   it('minimax-subscription buildPath returns /messages', () => {

@@ -3,6 +3,7 @@ import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 import {
   CODEX_CLI_ORIGINATOR,
   CODEX_CLI_USER_AGENT,
+  CODEX_CLI_VERSION,
   COPILOT_EDITOR_VERSION,
   COPILOT_PLUGIN_VERSION,
   buildClaudeCodeSubscriptionHeaders,
@@ -124,6 +125,7 @@ const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
   originator: CODEX_CLI_ORIGINATOR,
+  version: CODEX_CLI_VERSION,
   'user-agent': CODEX_CLI_USER_AGENT,
 });
 

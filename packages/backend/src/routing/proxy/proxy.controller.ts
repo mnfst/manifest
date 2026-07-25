@@ -8,6 +8,7 @@ import {
   UseGuards,
   UseFilters,
   Logger,
+  HttpCode,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
@@ -29,6 +30,7 @@ import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { resolveModelCapabilityMetadata } from '../../model-discovery/model-capabilities';
 import { classifyCaller } from './caller-classifier';
+import { chooseAgentSessionKey, extractAgentRequestContext } from './agent-request-context';
 import { ObservationReporter } from '../autofix/observation-reporter';
 import { sanitizeRequestHeaders } from './request-headers';
 import {
@@ -56,12 +58,21 @@ import { redactInlineImageDataUrls } from './inline-image-redaction';
 import { openAiModelId } from './openai-model-id';
 import { openAiModelCapabilities, type OpenAiModelCapabilities } from './openai-model-capabilities';
 import { PlanService } from '../../billing/plan.service';
+import { isCodingClientApiMode, sendProxyProtocolError } from './proxy-protocol-error';
+import type { MessagesStreamEvidence, MessagesStreamFailure } from './anthropic-messages-adapter';
+import { countAnthropicInputTokens } from './anthropic-token-count';
 import { UpstreamStreamError } from './stream-writer';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
 const STREAM_INTERRUPTED_MESSAGE = 'Upstream provider stream was interrupted.';
 const MODEL_CREATED_UNKNOWN = 0;
+const MANIFEST_STUB_STATUS: Partial<Record<ManifestErrorCode, number>> = {
+  M100: 503,
+  M101: 503,
+  M200: 429,
+  M302: 400,
+};
 
 interface OpenAiModelObject {
   id: string;
@@ -82,6 +93,13 @@ interface OpenAiModelCost {
 interface OpenAiModelList {
   object: 'list';
   data: OpenAiModelObject[];
+  /**
+   * Codex uses the same endpoint but expects a top-level `models` field with
+   * Codex-specific metadata. Keep this empty so Codex retains its bundled
+   * model metadata while OpenAI-compatible clients use the authoritative
+   * Manifest routes in `data`.
+   */
+  models: [];
 }
 
 function openAiModelCost(
@@ -182,6 +200,7 @@ export class ProxyController {
     return {
       object: 'list',
       data,
+      models: [],
     };
   }
 
@@ -209,6 +228,12 @@ export class ProxyController {
     await this.handleProxyRequest(req, res, 'messages');
   }
 
+  @Post('messages/count_tokens')
+  @HttpCode(HttpStatus.OK)
+  countMessageTokens(@Req() req: Request): { input_tokens: number } {
+    return { input_tokens: countAnthropicInputTokens(req.body) };
+  }
+
   private async handleProxyRequest(
     req: Request & { ingestionContext: IngestionContext },
     res: ExpressResponse,
@@ -217,7 +242,9 @@ export class ProxyController {
     const { tenantId } = req.ingestionContext;
     const body = req.body as Record<string, unknown>;
     const sessionKey = this.extractSessionKey(req);
-    const traceId = this.extractTraceId(req);
+    const requestContext = extractAgentRequestContext(req.headers);
+    const traceId = this.extractTraceId(req) ?? uuid().replace(/-/g, '');
+    res.setHeader('x-manifest-trace-id', traceId);
     const requestId = uuid();
     const callerAttribution = classifyCaller(req.headers);
     const requestHeaders = sanitizeRequestHeaders(req.headers);
@@ -226,10 +253,29 @@ export class ProxyController {
     let headersSent = false;
     let slotAcquired = false;
     let currentMeta: RoutingMeta | undefined;
+    let responseFinished = false;
+    let clientDisconnected = false;
+    let initialCancellationWrite: Promise<void> | undefined;
+    const startTime = Date.now();
 
     const clientAbort = new AbortController();
-    res.once('close', () => clientAbort.abort());
-    const startTime = Date.now();
+    res.once('finish', () => {
+      responseFinished = true;
+    });
+    res.once('close', () => {
+      if (!responseFinished && !res.writableEnded) {
+        clientDisconnected = true;
+        clientAbort.abort();
+        this.logger.warn(
+          `Client disconnected before response completion: trace_id=${traceId} api_mode=${apiMode} provider=${currentMeta?.provider ?? 'unresolved'} model=${currentMeta?.model ?? 'unresolved'}`,
+        );
+        initialCancellationWrite = this.recorder
+          .recordClientCancellation(req.ingestionContext, requestId, Date.now() - startTime)
+          .catch((e) => this.logger.warn(`Failed to record client cancellation: ${e}`));
+        return;
+      }
+      clientAbort.abort();
+    });
 
     // The Request exists as pending from ingress, before Manifest routes it or
     // starts any provider call. A recording failure must not reject user traffic.
@@ -328,6 +374,7 @@ export class ProxyController {
         signal: clientAbort.signal,
         specificityOverride,
         headers: req.headers,
+        requestContext,
         apiMode,
         startProviderAttempt,
       });
@@ -337,6 +384,28 @@ export class ProxyController {
 
       const metaHeaders = buildMetaHeaders(meta);
       const providerResponse = forward.response;
+
+      if (meta.manifest_error_code && isCodingClientApiMode(apiMode)) {
+        this.recordManifestStub(
+          req,
+          meta,
+          requestId,
+          traceId,
+          sessionKey,
+          callerAttribution,
+          requestHeaders,
+          Date.now() - startTime,
+        );
+        for (const [name, value] of Object.entries(metaHeaders)) res.setHeader(name, value);
+        sendProxyProtocolError(
+          res,
+          apiMode,
+          MANIFEST_STUB_STATUS[meta.manifest_error_code] ?? 500,
+          meta.manifest_error_message ?? formatManifestError(meta.manifest_error_code),
+          { code: meta.manifest_error_code },
+        );
+        return;
+      }
 
       if (!providerResponse.ok) {
         const errorBody = await providerResponse.text();
@@ -386,6 +455,11 @@ export class ProxyController {
           callerAttribution,
           requestHeaders,
           autofix,
+          {
+            apiMode,
+            isAnthropic: forward.isAnthropic,
+            headers: providerResponse.headers,
+          },
           requestId,
           Date.now() - startTime,
         );
@@ -404,6 +478,8 @@ export class ProxyController {
       );
 
       let streamUsage = null;
+      let streamIntegrityFailure: MessagesStreamFailure | null = null;
+      let streamContractEvidence: MessagesStreamEvidence | null = null;
 
       const shouldStreamResponse = isStream || meta.response_mode === 'stream';
 
@@ -420,6 +496,12 @@ export class ProxyController {
           this.thinkingCache,
           apiMode,
           this.reasoningCache,
+          (failure) => {
+            streamIntegrityFailure = failure;
+          },
+          (evidence) => {
+            streamContractEvidence = evidence;
+          },
         );
       } else {
         streamUsage = await handleNonStreamResponse(
@@ -450,7 +532,44 @@ export class ProxyController {
           requestHeaders,
           Date.now() - startTime,
         );
+      } else if (streamIntegrityFailure) {
+        const failure: MessagesStreamFailure = streamIntegrityFailure;
+        this.logger.error(
+          `Upstream stream integrity failure: trace_id=${traceId} provider=${meta.provider} model=${meta.model} ${failure.message} evidence=${JSON.stringify(streamContractEvidence)}`,
+        );
+        this.recorder
+          .recordProviderError(req.ingestionContext, failure.status, failure.message, {
+            requestId,
+            attemptNumber: currentPrimaryAttemptNumber(autofix),
+            attempt: meta.attempt,
+            skipAttempt: meta.providerCallStarted === false,
+            requestDurationMs: Date.now() - startTime,
+            model: meta.model,
+            provider: meta.provider,
+            tier: meta.tier,
+            traceId,
+            fallbackFromModel: meta.fallbackFromModel,
+            fallbackIndex: meta.fallbackIndex,
+            authType: meta.auth_type,
+            reason: meta.reason,
+            specificityCategory: meta.specificity_category,
+            providerKeyLabel: meta.provider_key_label,
+            tenantProviderId: meta.tenantProviderId,
+            callerAttribution,
+            requestHeaders,
+            requestParams: meta.request_params,
+            headerTierId: meta.header_tier_id,
+            headerTierName: meta.header_tier_name,
+            headerTierColor: meta.header_tier_color,
+            autofix,
+          })
+          .catch((e) => this.logger.warn(`Failed to record stream integrity error: ${e}`));
       } else {
+        if (streamContractEvidence) {
+          this.logger.debug(
+            `Response contract satisfied: trace_id=${traceId} provider=${meta.provider} model=${meta.model} evidence=${JSON.stringify(streamContractEvidence)}`,
+          );
+        }
         recordSuccess(
           req.ingestionContext,
           meta,
@@ -465,7 +584,9 @@ export class ProxyController {
           autofix,
           requestId,
           currentPrimaryAttemptNumber(autofix) +
-            (meta.fallbackFromModel ? (failedFallbacks?.length ?? 0) + 1 : 0),
+            (meta.fallbackFromModel || meta.retryFromModel
+              ? (failedFallbacks?.length ?? 0) + 1
+              : 0),
         );
       }
     } catch (err: unknown) {
@@ -484,6 +605,16 @@ export class ProxyController {
         startTime,
       );
     } finally {
+      if (clientDisconnected) {
+        // The first sweep starts immediately on `close`, but an already-running
+        // fallback selection can race that query and insert a pending Attempt
+        // just afterward. Once the aborted proxy chain has unwound, sweep again
+        // so no late Provider Attempt survives its terminal 499 Request.
+        await initialCancellationWrite;
+        await this.recorder
+          .recordClientCancellation(req.ingestionContext, requestId, Date.now() - startTime)
+          .catch((e) => this.logger.warn(`Failed to finalize client cancellation: ${e}`));
+      }
       if (slotAcquired) this.rateLimiter.releaseSlot(tenantId);
     }
   }
@@ -639,6 +770,10 @@ export class ProxyController {
     }
 
     if (err instanceof ResponsesSseError) {
+      if (apiMode === 'messages') {
+        sendProxyProtocolError(res, apiMode, err.status, err.message);
+        return;
+      }
       res.status(err.status).json({
         error: buildOpenAiCompatibleError(
           err.status,
@@ -651,6 +786,10 @@ export class ProxyController {
 
     // Rate limit errors stay as HTTP 429 so clients can backoff
     if (status === 429) {
+      if (isCodingClientApiMode(apiMode)) {
+        sendProxyProtocolError(res, apiMode, status, message);
+        return;
+      }
       const response = err instanceof HttpException ? err.getResponse() : message;
       res
         .status(429)
@@ -663,6 +802,12 @@ export class ProxyController {
     }
 
     const isStream = (req.body as Record<string, unknown>)?.stream === true;
+    if (isCodingClientApiMode(apiMode)) {
+      const clientMessage =
+        status >= 500 ? 'Manifest encountered an internal error. Try again shortly.' : message;
+      sendProxyProtocolError(res, apiMode, status, clientMessage);
+      return;
+    }
     if (isChatRenderingClient(req)) {
       const clientMessage = status >= 500 ? formatManifestError('M500') : message;
       sendFriendlyResponse(res, clientMessage, isStream);
@@ -727,7 +872,7 @@ export class ProxyController {
   }
 
   private extractSessionKey(req: Request): string {
-    return (req.headers['x-session-key'] as string) || 'default';
+    return chooseAgentSessionKey(req.headers);
   }
 
   private extractRequestedModel(body: Record<string, unknown> | undefined): string | undefined {

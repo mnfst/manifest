@@ -1,7 +1,9 @@
 import {
   chatCompletionsResponseToMessages,
+  createAnthropicPassthroughStreamValidator,
   createMessagesStreamTransformer,
   messagesToChatCompletionsRequest,
+  stripAnthropicServerToolsForFallback,
 } from '../anthropic-messages-adapter';
 
 describe('Anthropic Messages adapter', () => {
@@ -61,6 +63,31 @@ describe('Anthropic Messages adapter', () => {
         messages: [{ role: 'user', content: 'x' }],
       });
       expect(emptyArray.messages).toEqual([{ role: 'user', content: 'x' }]);
+    });
+
+    it('preserves mid-conversation system instructions and representable output settings', () => {
+      const schema = { type: 'object', properties: { answer: { type: 'string' } } };
+      const result = messagesToChatCompletionsRequest({
+        messages: [
+          { role: 'user', content: 'First request' },
+          { role: 'system', content: [{ type: 'text', text: 'New operator instruction' }] },
+          { role: 'user', content: 'Second request' },
+        ],
+        output_config: { effort: 'high', format: { type: 'json_schema', schema } },
+        context_management: { edits: [{ type: 'clear_tool_uses_20250919' }] },
+      });
+
+      expect(result.messages).toEqual([
+        { role: 'user', content: 'First request' },
+        { role: 'system', content: 'New operator instruction' },
+        { role: 'user', content: 'Second request' },
+      ]);
+      expect(result.reasoning_effort).toBe('high');
+      expect(result.response_format).toEqual({
+        type: 'json_schema',
+        json_schema: { name: 'anthropic_output', schema, strict: true },
+      });
+      expect(result).not.toHaveProperty('context_management');
     });
 
     it('keeps text-only multimodal user content as a string', () => {
@@ -230,11 +257,9 @@ describe('Anthropic Messages adapter', () => {
       expect(ignoredNamed.tool_choice).toBeUndefined();
     });
 
-    it('exposes Anthropic server tools to the scorer by function.name (issue #1886)', () => {
-      // chatBody is only consumed by the routing/scoring layer in messages
-      // mode — the wire body goes through applyAnthropicMessagesMutations
-      // direct from the inbound body, so server-tool `type` tags are
-      // preserved upstream. Scoring just needs tool count + function.name.
+    it('exposes all Anthropic tools to the scorer by function.name (issue #1886)', () => {
+      // Scoring needs tool count + function.name regardless of where a tool
+      // executes. The fallback wire-body pass filters only server tools.
       const result = messagesToChatCompletionsRequest({
         messages: [{ role: 'user', content: 'x' }],
         tools: [
@@ -259,18 +284,97 @@ describe('Anthropic Messages adapter', () => {
       ]);
     });
 
+    it('removes Anthropic server tools and their forced choice from fallback wire bodies', () => {
+      const messagesBody = {
+        messages: [{ role: 'user', content: 'search' }],
+        tools: [
+          { type: 'web_search_20250305', name: 'web_search' },
+          { type: 'advisor_20260301', name: 'advisor' },
+          { type: 'bash_20250124', name: 'bash' },
+          { type: 'memory_20250818', name: 'memory' },
+          { type: 'text_editor_20250728', name: 'text_editor' },
+          { type: 'computer_20251124', name: 'computer' },
+          { name: 'local_tool', input_schema: { type: 'object' } },
+        ],
+        tool_choice: { type: 'tool', name: 'advisor' },
+      };
+      const scoringBody = messagesToChatCompletionsRequest(messagesBody);
+
+      const fallbackBody = stripAnthropicServerToolsForFallback(messagesBody, scoringBody);
+
+      expect(scoringBody.tools as unknown[]).toHaveLength(7);
+      expect(
+        (fallbackBody.tools as Array<Record<string, Record<string, unknown>>>).map(
+          (tool) => tool.function.name,
+        ),
+      ).toEqual(['bash', 'memory', 'text_editor', 'computer', 'local_tool']);
+      expect(fallbackBody).not.toHaveProperty('tool_choice');
+    });
+
+    it('removes the tools field when every Anthropic tool executes server-side', () => {
+      const messagesBody = {
+        messages: [{ role: 'user', content: 'search' }],
+        tools: [
+          { type: 'web_search_20260318', name: 'web_search' },
+          { type: 'advisor_20260301', name: 'advisor' },
+        ],
+      };
+
+      const fallbackBody = stripAnthropicServerToolsForFallback(
+        messagesBody,
+        messagesToChatCompletionsRequest(messagesBody),
+      );
+
+      expect(fallbackBody).not.toHaveProperty('tools');
+    });
+
+    it('ignores unnamed server tools and retains malformed fallback tool records', () => {
+      const messagesBody = {
+        messages: [{ role: 'user', content: 'search' }],
+        tools: [
+          { type: 'web_search_20260318' },
+          { type: 'web_search_20260318', name: 'web_search' },
+        ],
+      };
+      const malformedTool = { type: 'function' };
+      const fallbackBody = stripAnthropicServerToolsForFallback(messagesBody, {
+        messages: [],
+        tools: [null, malformedTool, { type: 'function', function: { name: 'web_search' } }],
+      });
+
+      expect(fallbackBody.tools).toEqual([null, malformedTool]);
+    });
+
+    it('uses a safe object schema when Anthropic output schema metadata is malformed', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [{ role: 'user', content: 'Return JSON.' }],
+        output_config: {
+          format: { type: 'json_schema', schema: 'not-an-object' },
+        },
+      });
+
+      expect(result.response_format).toEqual({
+        type: 'json_schema',
+        json_schema: {
+          name: 'anthropic_output',
+          schema: { type: 'object' },
+          strict: true,
+        },
+      });
+    });
+
     it('treats unknown non-custom tool types as custom tools with a safe empty schema (issue #1897)', () => {
       const result = messagesToChatCompletionsRequest({
         messages: [{ role: 'user', content: 'x' }],
-        tools: [{ type: 'advisor_20260301', name: 'advisor', description: 'Plan the task' }],
+        tools: [{ type: 'future_client_20260301', name: 'future', description: 'Do the task' }],
       });
 
       expect(result.tools).toEqual([
         {
           type: 'function',
           function: {
-            name: 'advisor',
-            description: 'Plan the task',
+            name: 'future',
+            description: 'Do the task',
             parameters: { type: 'object', properties: {}, additionalProperties: false },
           },
         },
@@ -653,6 +757,70 @@ describe('Anthropic Messages adapter', () => {
       // No fabricated message_start / message_delta / message_stop around the error.
       expect(sse).not.toContain('message_start');
       expect(sse).not.toContain('message_stop');
+      expect(t.getFailure()).toEqual({ status: 429, message: 'Too many requests' });
+    });
+
+    it('turns an empty HTTP 200 stream into an Anthropic error', () => {
+      const t = createMessagesStreamTransformer('gpt-5');
+
+      expect(t.finalize()).toBe(
+        'event: error\ndata: {"type":"error","error":{"type":"api_error","message":"Upstream provider returned an empty completion"}}\n\n',
+      );
+      expect(t.getFailure()).toEqual({
+        status: 502,
+        message: 'Upstream provider returned an empty completion',
+      });
+      expect(t.finalize()).toBeNull();
+    });
+
+    it('rejects a terminal completion that contains no meaningful output', () => {
+      const t = createMessagesStreamTransformer('gpt-5');
+      const sse = flushChunks(t, [
+        'data: {"choices":[{"delta":{}}]}\n\n',
+        'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n',
+        'data: [DONE]\n\n',
+      ]);
+
+      expect(sse).toContain('event: message_start');
+      expect(sse).toContain('event: error');
+      expect(sse).toContain('Upstream provider returned an empty completion');
+      expect(sse).not.toContain('message_stop');
+    });
+
+    it('streams thinking progress but rejects a terminal thinking-only completion', () => {
+      const t = createMessagesStreamTransformer('gpt-5');
+      const sse = flushChunks(t, [
+        'data: {"choices":[{"delta":{"reasoning_content":"Still planning"}}]}\n\n',
+        'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n',
+        'data: [DONE]\n\n',
+      ]);
+
+      expect(sse).toContain('thinking_delta');
+      expect(sse).toContain('Still planning');
+      expect(sse).toContain('event: error');
+      expect(sse).toContain('Upstream provider returned an empty completion');
+      expect(sse).not.toContain('message_stop');
+      expect(t.getEvidence()).toEqual(
+        expect.objectContaining({
+          thinking_characters: 14,
+          meaningful_output: false,
+          terminal_event: 'error',
+        }),
+      );
+    });
+
+    it('rejects a truncated SSE stream that emitted content without a terminal event', () => {
+      const t = createMessagesStreamTransformer('gpt-5');
+      const sse = flushChunks(t, ['data: {"choices":[{"delta":{"content":"partial"}}]}\n\n']);
+
+      expect(sse).toContain('"text":"partial"');
+      expect(sse).toContain('event: error');
+      expect(sse).toContain('Upstream provider stream ended before a terminal event');
+      expect(sse).not.toContain('message_stop');
+      expect(t.getFailure()).toEqual({
+        status: 502,
+        message: 'Upstream provider stream ended before a terminal event',
+      });
     });
 
     it('ignores later stream payloads after a terminal error event', () => {
@@ -751,7 +919,7 @@ describe('Anthropic Messages adapter', () => {
       expect(events[6].data.delta).toEqual({ type: 'text_delta', text: '42' });
     });
 
-    it('closes the thinking block on finalize when the stream emits only reasoning_content', () => {
+    it('fails a stream that finalizes with only reasoning_content', () => {
       const t = createMessagesStreamTransformer('deepseek-v4-flash');
       const sse = flushChunks(t, [
         'data: {"choices":[{"delta":{"reasoning_content":"hmm"}}]}\n\n',
@@ -761,9 +929,9 @@ describe('Anthropic Messages adapter', () => {
         'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}',
       );
       expect(sse).toContain('"delta":{"type":"thinking_delta","thinking":"hmm"}');
-      expect(sse).toContain(
-        'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}',
-      );
+      expect(sse).toContain('event: error');
+      expect(sse).toContain('Upstream provider returned an empty completion');
+      expect(sse).not.toContain('message_stop');
     });
 
     it('closes the thinking block before opening a tool_use block', () => {
@@ -1036,10 +1204,29 @@ describe('Anthropic Messages adapter', () => {
       expect(out).toContain('event: message_start');
     });
 
-    it('ignores unparseable payloads without breaking the stream', () => {
+    it('turns an unparseable payload into a terminal Anthropic error', () => {
       const t = createMessagesStreamTransformer('m');
-      expect(t.transform('data: not-json\n\n')).toBeNull();
-      expect(t.transform('data: "scalar"\n\n')).toBeNull();
+      const out = t.transform('data: not-json\n\n');
+
+      expect(out).toContain('event: error');
+      expect(out).toContain('Upstream provider returned malformed SSE data');
+      expect(t.getFailure()).toEqual({
+        status: 502,
+        message: 'Upstream provider returned malformed SSE data',
+      });
+      expect(t.getEvidence()).toEqual(
+        expect.objectContaining({
+          source_events: 1,
+          malformed_events: 1,
+          meaningful_output: false,
+          terminal_event: 'error',
+        }),
+      );
+      expect(t.finalize()).toBeNull();
+    });
+
+    it('ignores the OpenAI [DONE] sentinel', () => {
+      const t = createMessagesStreamTransformer('m');
       expect(t.transform('data: [DONE]\n\n')).toBeNull();
 
       const real = t.transform('data: {"choices":[{"delta":{"content":"a"}}]}\n\n');
@@ -1131,12 +1318,11 @@ describe('Anthropic Messages adapter', () => {
       });
     });
 
-    it('finalize closes an incomplete tool_use block opened mid-stream', () => {
+    it('finalize rejects an incomplete tool_use stream without a terminal event', () => {
       // The stream opens a tool_use and emits a partial input_json_delta, then
       // the upstream cuts off (no finish_reason, no second arg chunk, no usage).
-      // finalize() must emit the matching content_block_stop for the open
-      // tool_use plus the terminal message_delta / message_stop so clients
-      // don't hang on an orphan content_block_start.
+      // Fabricating message_stop here would turn a truncated provider response
+      // into a successful Claude turn.
       const t = createMessagesStreamTransformer('m');
       const opened = t.transform(
         'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"tc_partial","function":{"name":"search","arguments":"{\\"arg\\""}}]}}]}\n\n',
@@ -1157,15 +1343,161 @@ describe('Anthropic Messages adapter', () => {
           };
         });
 
-      expect(events.map((e) => e.event)).toEqual([
-        'content_block_stop',
-        'message_delta',
-        'message_stop',
-      ]);
-      // Stop must reference the tool_use's index (0, the first/only block).
-      expect(events[0].data).toEqual({ type: 'content_block_stop', index: 0 });
-      // No finish_reason was ever seen, so stop_reason defaults to end_turn.
-      expect(events[1].data.delta.stop_reason).toBe('end_turn');
+      expect(events.map((e) => e.event)).toEqual(['error']);
+      expect(events[0].data).toEqual({
+        type: 'error',
+        error: {
+          type: 'api_error',
+          message: 'Upstream provider stream ended before a terminal event',
+        },
+      });
+      expect(t.getFailure()?.status).toBe(502);
+    });
+
+    it('rejects malformed tool input after a valid upstream terminal event', () => {
+      const t = createMessagesStreamTransformer('m');
+      t.transform(
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"tc_bad","function":{"name":"search","arguments":"{bad"}}]},"finish_reason":"tool_calls"}]}\n\n',
+      );
+
+      const tail = t.finalize();
+      expect(tail).toContain('event: error');
+      expect(tail).toContain('Upstream provider returned malformed tool input');
+      expect(t.getFailure()?.status).toBe(502);
+      expect(t.getEvidence()).toEqual(
+        expect.objectContaining({
+          tool_calls: 1,
+          tool_argument_characters: 4,
+          meaningful_output: true,
+          terminal_event: 'error',
+          stop_reason: 'tool_use',
+        }),
+      );
+    });
+  });
+
+  describe('createAnthropicPassthroughStreamValidator', () => {
+    it('rejects an empty native Anthropic stream', () => {
+      const validator = createAnthropicPassthroughStreamValidator();
+
+      expect(validator.finalize()).toContain('Upstream provider returned an empty completion');
+      expect(validator.getFailure()).toEqual({
+        status: 502,
+        message: 'Upstream provider returned an empty completion',
+      });
+    });
+
+    it('rejects native Anthropic content when message_stop is missing', () => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe(
+        'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"partial"}}\n\n',
+      );
+
+      expect(validator.finalize()).toContain(
+        'Upstream provider stream ended before a terminal event',
+      );
+      expect(validator.getFailure()?.status).toBe(502);
+    });
+
+    it('accepts native Anthropic content followed by message_stop', () => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe(
+        'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"done"}}\n\n',
+      );
+      validator.observe('event: message_stop\ndata: {"type":"message_stop"}\n\n');
+
+      expect(validator.finalize()).toBeNull();
+      expect(validator.getFailure()).toBeNull();
+    });
+
+    it('rejects a native thinking-only completion after streaming its progress', () => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe(
+        'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":""}}\n\n',
+      );
+      validator.observe(
+        'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"Still planning"}}\n\n',
+      );
+      validator.observe(
+        'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}\n\n',
+      );
+      validator.observe('event: message_stop\ndata: {"type":"message_stop"}\n\n');
+
+      expect(validator.finalize()).toContain('Upstream provider returned an empty completion');
+      expect(validator.getFailure()?.status).toBe(502);
+      expect(validator.getEvidence()).toEqual(
+        expect.objectContaining({
+          thinking_characters: 14,
+          meaningful_output: false,
+          terminal_event: 'error',
+        }),
+      );
+    });
+
+    it('marks an upstream Anthropic error event as failed telemetry', () => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe(
+        'event: error\ndata: {"type":"error","error":{"type":"rate_limit_error","message":"Slow down"}}\n\n',
+      );
+
+      expect(validator.finalize()).toBeNull();
+      expect(validator.getFailure()).toEqual({ status: 429, message: 'Slow down' });
+    });
+
+    it.each([
+      ['text', { type: 'text', text: 'hello' }],
+      ['data', { type: 'document', data: 'payload' }],
+      ['tool name', { type: 'tool_use', name: 'read_file' }],
+      ['nested content', { type: 'container', content: [{ type: 'text', text: 'inside' }] }],
+    ])('accepts meaningful native content_block_start output from %s', (_label, block) => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe(
+        `event: content_block_start\ndata: ${JSON.stringify({
+          type: 'content_block_start',
+          index: 0,
+          content_block: block,
+        })}\n\n`,
+      );
+      validator.observe(
+        'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}\n\n',
+      );
+      validator.observe('event: message_stop\ndata: {"type":"message_stop"}\n\n');
+
+      expect(validator.finalize()).toBeNull();
+      expect(validator.getFailure()).toBeNull();
+    });
+
+    it.each([
+      ['authentication_error', 401],
+      ['permission_error', 403],
+      ['invalid_request_error', 400],
+      ['overloaded_error', 529],
+      ['unknown_provider_error', 502],
+    ])('maps native Anthropic %s events to HTTP %i telemetry', (type, status) => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe(
+        `event: error\ndata: ${JSON.stringify({
+          type: 'error',
+          error: { type, message: 'provider failed' },
+        })}\n\n`,
+      );
+
+      expect(validator.finalize()).toBeNull();
+      expect(validator.getFailure()).toEqual({ status, message: 'provider failed' });
+    });
+
+    it('ignores malformed events and uses safe defaults for malformed native errors', () => {
+      const validator = createAnthropicPassthroughStreamValidator();
+      validator.observe('event: ping\ndata: {not-json}\n\ndata: {"type":123}\n\n');
+      validator.observe(
+        'event: error\ndata: {"type":"error","error":{"type":123,"message":false}}\n\n',
+      );
+
+      expect(validator.finalize()).toBeNull();
+      expect(validator.getFailure()).toEqual({
+        status: 502,
+        message: 'Upstream provider stream failed',
+      });
     });
   });
 });

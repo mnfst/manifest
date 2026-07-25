@@ -41,6 +41,7 @@ function mockResponse(): {
       headers[k] = v;
     }),
     json: jest.fn(),
+    send: jest.fn(),
     write: jest.fn(),
     end: jest.fn(),
   };
@@ -576,6 +577,114 @@ describe('proxy-response-handler', () => {
         }
       }
     });
+
+    it('passes a native Anthropic Messages error body and protocol headers through unchanged', async () => {
+      const { res, headers } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-sonnet-4-6' });
+      const errorBody = JSON.stringify({
+        type: 'error',
+        error: { type: 'invalid_request_error', message: 'Unsupported beta flag' },
+        request_id: 'req_native',
+      });
+      const upstreamHeaders = new Headers({
+        'content-type': 'application/json; charset=utf-8',
+        'request-id': 'req_native',
+        'retry-after': '3',
+        'anthropic-ratelimit-requests-remaining': '0',
+        'set-cookie': 'must-not-forward=1',
+      });
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        400,
+        errorBody,
+        undefined,
+        recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { apiMode: 'messages', isAnthropic: true, headers: upstreamHeaders },
+      );
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(errorBody);
+      expect(res.json).not.toHaveBeenCalled();
+      expect(headers['request-id']).toBe('req_native');
+      expect(headers['retry-after']).toBe('3');
+      expect(headers['anthropic-ratelimit-requests-remaining']).toBe('0');
+      expect(headers['content-type']).toBe('application/json; charset=utf-8');
+      expect(headers['set-cookie']).toBeUndefined();
+    });
+
+    it('returns an Anthropic-shaped error when a Messages request fails on a fallback provider', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'openai', model: 'gpt-5.4' });
+      const upstreamHeaders = new Headers({ 'x-request-id': 'req_fallback' });
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        429,
+        JSON.stringify({ error: { message: 'Rate limit reached' } }),
+        undefined,
+        recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { apiMode: 'messages', isAnthropic: false, headers: upstreamHeaders },
+      );
+
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        error: { type: 'rate_limit_error', message: 'Rate limit reached' },
+        request_id: 'req_fallback',
+      });
+    });
+
+    it('sanitizes non-Anthropic error bodies from Anthropic-compatible providers', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        const { res } = mockResponse();
+        const recorder = mockRecorder();
+        const meta = makeMeta({ provider: 'moonshot', model: 'kimi-k2' });
+
+        await handleProviderError(
+          res as any,
+          testCtx,
+          meta,
+          buildMetaHeaders(meta),
+          502,
+          '<html>private upstream details</html>',
+          undefined,
+          recorder as any,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          { apiMode: 'messages', isAnthropic: true, headers: new Headers() },
+        );
+
+        expect(res.send).not.toHaveBeenCalled();
+        expect(res.json).toHaveBeenCalledWith({
+          type: 'error',
+          error: { type: 'api_error', message: 'Upstream endpoint returned HTTP 502' },
+        });
+        expect(JSON.stringify(res.json.mock.calls)).not.toContain('private upstream details');
+      } finally {
+        if (originalEnv === undefined) delete process.env.NODE_ENV;
+        else process.env.NODE_ENV = originalEnv;
+      }
+    });
   });
 
   /* ── recordFallbackFailures ── */
@@ -603,6 +712,30 @@ describe('proxy-response-handler', () => {
 
       expect(result).toBeDefined();
       expect(recorder.recordPrimaryFailure).toHaveBeenCalled();
+    });
+
+    it('records the original primary failure before a successful same-route retry', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        retryFromModel: 'gpt-5.6-sol',
+        primaryErrorBody: '{"error":{"code":"stream_timeout"}}',
+        primaryErrorStatus: 504,
+        primaryProvider: 'openai',
+        primaryAuthType: 'subscription',
+      });
+
+      const result = recordFallbackFailures(testCtx, meta, [], recorder as any);
+
+      expect(result).toBeDefined();
+      expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
+        testCtx,
+        meta.tier,
+        'gpt-5.6-sol',
+        meta.primaryErrorBody,
+        expect.any(String),
+        'subscription',
+        expect.objectContaining({ provider: 'openai', httpStatus: 504 }),
+      );
     });
 
     it('should record failed fallbacks when present', () => {
@@ -917,6 +1050,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         undefined,
         undefined,
+        expect.any(Function),
       );
     });
 
@@ -999,7 +1133,17 @@ describe('proxy-response-handler', () => {
       // Dispatched to pipePassthrough, not pipeStream. Tap is the Anthropic
       // stream transformer so thinking-block extraction + OpenAI-shape
       // usage parsing still happen as a side effect.
-      expect(pipePassthroughSpy).toHaveBeenCalledWith(forward.response.body, res, tap, undefined);
+      expect(pipePassthroughSpy).toHaveBeenCalledWith(
+        forward.response.body,
+        res,
+        expect.any(Function),
+        undefined,
+        expect.any(Function),
+        expect.any(Function),
+      );
+      const wrappedTap = pipePassthroughSpy.mock.calls[0][2] as (event: string) => string | null;
+      wrappedTap('event: ping\ndata: {"type":"ping"}\n\n');
+      expect(tap).toHaveBeenCalledWith('event: ping\ndata: {"type":"ping"}\n\n');
       expect(pipeStreamSpy).not.toHaveBeenCalled();
       expect(usage).toBeNull();
     });
@@ -1051,6 +1195,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         undefined,
         undefined,
+        expect.any(Function),
       );
     });
 
@@ -1091,6 +1236,7 @@ describe('proxy-response-handler', () => {
         undefined,
         undefined,
         undefined,
+        expect.any(Function),
       );
     });
 
@@ -1114,6 +1260,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         undefined,
         undefined,
+        expect.any(Function),
       );
     });
 
@@ -1141,6 +1288,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         expect.any(Function),
         undefined,
+        expect.any(Function),
       );
     });
 
@@ -1232,6 +1380,7 @@ describe('proxy-response-handler', () => {
         res,
         undefined,
         undefined,
+        expect.any(Function),
         expect.any(Function),
       );
     });
@@ -1368,6 +1517,13 @@ describe('proxy-response-handler', () => {
       const sessionKey = 'sess-reasoning-stream';
       const transformer = jest.fn((chunk: string) => `data: ${chunk}\n\n`);
       client.createReasoningContentStreamTransformer.mockReturnValue(transformer);
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_body: unknown, _res: unknown, transform?: (chunk: string) => string | null) => {
+          capturedTransform = transform;
+          return null;
+        },
+      );
 
       await handleStreamResponse(
         res as any,
@@ -1390,12 +1546,16 @@ describe('proxy-response-handler', () => {
         'call_1',
         'streamed reasoning',
       );
+      expect(capturedTransform!('reasoning')).toBe('data: reasoning\n\n');
+      transformer.mockReturnValueOnce(null as unknown as string);
+      expect(capturedTransform!('empty')).toBeNull();
       expect(pipeStreamSpy).toHaveBeenCalledWith(
         forward.response.body,
         res,
         expect.any(Function),
         undefined,
         undefined,
+        expect.any(Function),
       );
     });
 
@@ -1464,6 +1624,232 @@ describe('proxy-response-handler', () => {
       };
     }
 
+    it('rejects an empty HTTP 200 body as an upstream protocol error', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward('');
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          forward as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({
+        status: 502,
+        message: 'Upstream provider returned an empty response',
+      });
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it('rejects malformed JSON in an HTTP 200 body as an upstream protocol error', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward('{not json');
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          forward as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({
+        status: 502,
+        message: 'Upstream provider returned malformed JSON',
+      });
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it('rejects a non-streaming completion with no meaningful output', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({
+        choices: [{ message: { role: 'assistant', content: '   ' }, finish_reason: 'stop' }],
+      });
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          forward as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({
+        status: 502,
+        message: 'Upstream provider returned an empty completion',
+      });
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it('rejects a non-streaming completion without a terminal finish reason', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({
+        choices: [{ message: { role: 'assistant', content: 'partial' } }],
+      });
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          forward as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({
+        status: 502,
+        message: 'Upstream provider response omitted a terminal finish reason',
+      });
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['reasoning content', { role: 'assistant', content: '', reasoning_content: 'worked it out' }],
+      [
+        'content blocks',
+        { role: 'assistant', content: [null, [], {}, { type: 'text', text: 'answer' }] },
+      ],
+      [
+        'a named tool call',
+        {
+          role: 'assistant',
+          content: null,
+          tool_calls: [null, [], {}, { function: null }, { function: { name: 'read_file' } }],
+        },
+      ],
+    ])('accepts a terminal chat completion with meaningful %s', async (_label, message) => {
+      const { res } = mockResponse();
+      const forward = mockForward({ choices: [{ message, finish_reason: 'stop' }] });
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          forward as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).resolves.toMatchObject({ prompt_tokens: 0, completion_tokens: 0 });
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it.each([
+      ['no choices', { choices: [] }],
+      ['an array message', { choices: [{ message: [], finish_reason: 'stop' }] }],
+      [
+        'only malformed content blocks',
+        { choices: [{ message: { content: [null, [], {}] }, finish_reason: 'stop' }] },
+      ],
+    ])('rejects a chat completion with %s', async (_label, body) => {
+      const { res } = mockResponse();
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          mockForward(body) as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({
+        status: 502,
+        message: 'Upstream provider returned an empty completion',
+      });
+      expect(res.json).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['string text', 'answer'],
+      ['text block', [{ type: 'text', text: 'answer' }]],
+      ['thinking block', [{ type: 'thinking', thinking: 'working' }]],
+      ['data block', [{ type: 'document', data: 'payload' }]],
+      ['named tool block', [{ type: 'tool_use', name: 'read_file' }]],
+      ['nested content block', [{ type: 'container', content: [{ type: 'text', text: 'x' }] }]],
+    ])('accepts a terminal native Anthropic completion with %s', async (_label, content) => {
+      const { res } = mockResponse();
+      const body = { content, stop_reason: 'end_turn' };
+
+      await expect(
+        handleNonStreamResponse(
+          res as any,
+          mockForward(body, { isAnthropic: true }) as any,
+          makeMeta({ provider: 'anthropic', model: 'claude-sonnet-4-6' }),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).resolves.toBeNull();
+      expect(res.json).toHaveBeenCalledWith(body);
+    });
+
+    it('rejects malformed native Anthropic content and a missing stop reason', async () => {
+      const malformed = mockForward(
+        { content: [null, [], {}], stop_reason: 'end_turn' },
+        { isAnthropic: true },
+      );
+      const truncated = mockForward(
+        { content: [{ type: 'text', text: 'partial' }] },
+        { isAnthropic: true },
+      );
+
+      await expect(
+        handleNonStreamResponse(
+          mockResponse().res as any,
+          malformed as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({ message: 'Upstream provider returned an empty completion' });
+      await expect(
+        handleNonStreamResponse(
+          mockResponse().res as any,
+          truncated as any,
+          makeMeta(),
+          {},
+          mockProviderClient() as any,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        ),
+      ).rejects.toMatchObject({
+        message: 'Upstream provider response omitted a terminal stop reason',
+      });
+    });
+
     it('should convert Google response and extract usage', async () => {
       const { res } = mockResponse();
       const client = mockProviderClient();
@@ -1489,6 +1875,35 @@ describe('proxy-response-handler', () => {
         cache_creation_tokens: undefined,
       });
       expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('forwards safe Codex response metadata without forwarding unrelated provider headers', async () => {
+      const { res, headers } = mockResponse();
+      const client = mockProviderClient();
+      const forward = mockForward({ id: 'resp_1', usage: {} }, { isResponses: true });
+      forward.response.headers = new Headers({
+        'x-codex-turn-state': 'turn-state-token',
+        'x-request-id': 'req_codex',
+        'x-ratelimit-remaining-requests': '7',
+        'set-cookie': 'must-not-forward=1',
+      }) as any;
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        makeMeta({ provider: 'openai', model: 'gpt-5.4' }),
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'responses',
+      );
+
+      expect(headers['x-codex-turn-state']).toBe('turn-state-token');
+      expect(headers['x-request-id']).toBe('req_codex');
+      expect(headers['x-ratelimit-remaining-requests']).toBe('7');
+      expect(headers['set-cookie']).toBeUndefined();
     });
 
     it('apiMode=messages + Anthropic upstream returns the upstream body verbatim, preserving server-tool blocks (issue #1886)', async () => {
@@ -1517,6 +1932,7 @@ describe('proxy-response-handler', () => {
           },
           { type: 'text', text: 'Found some cats.' },
         ],
+        stop_reason: 'end_turn',
         usage: { input_tokens: 50, output_tokens: 12, cache_read_input_tokens: 0 },
       };
       const forward = mockForward(body, { isAnthropic: true });
@@ -1562,6 +1978,7 @@ describe('proxy-response-handler', () => {
           { type: 'thinking', thinking: 'searching...', signature: 'sig' },
           { type: 'tool_use', id: 'toolu_1', name: 'web_search', input: { q: 'x' } },
         ],
+        stop_reason: 'tool_use',
         usage: { input_tokens: 1, output_tokens: 1 },
       };
       const forward = mockForward(body, { isAnthropic: true });
@@ -2242,6 +2659,49 @@ describe('proxy-response-handler', () => {
           sessionKey: 'session-1',
           durationMs: expect.any(Number),
           specificityCategory: undefined,
+        }),
+      );
+    });
+
+    it('records a same-route retry as a normal success attempt, not a fallback row', () => {
+      const recorder = mockRecorder();
+      const retryAttempt = { id: 'attempt-3', attemptNumber: 3 } as never;
+      const meta = makeMeta({
+        model: 'gpt-5.6-sol',
+        provider: 'openai',
+        retryFromModel: 'gpt-5.6-sol',
+        attempt: retryAttempt,
+      });
+      const usage: StreamUsage = { prompt_tokens: 100, completion_tokens: 50 };
+
+      recordSuccess(
+        testCtx,
+        meta,
+        usage,
+        '2025-01-01T00:00:00Z',
+        recorder as any,
+        'trace-retry',
+        'session-retry',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'request-retry',
+        3,
+      );
+
+      expect(recorder.recordFallbackSuccess).not.toHaveBeenCalled();
+      expect(recorder.recordSuccessMessage).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-5.6-sol',
+        'standard',
+        'auto',
+        usage,
+        expect.objectContaining({
+          requestId: 'request-retry',
+          attemptNumber: 3,
+          attempt: retryAttempt,
+          traceId: 'trace-retry',
         }),
       );
     });

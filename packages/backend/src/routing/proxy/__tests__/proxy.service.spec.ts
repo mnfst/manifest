@@ -6,7 +6,11 @@ import {
   type ModelRoute,
   type ProviderParamSpecCatalog,
 } from 'manifest-shared';
-import { ProxyService } from '../proxy.service';
+import {
+  DEFAULT_GATEWAY_PRE_RESPONSE_BUDGET_MS,
+  parseGatewayPreResponseBudgetMs,
+  ProxyService,
+} from '../proxy.service';
 import type { ResolveService } from '../../resolve/resolve.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
 import type { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
@@ -84,6 +88,18 @@ const specCatalog: ProviderParamSpecCatalog = [
 ];
 
 describe('ProxyService — orchestration', () => {
+  describe('pre-response budget configuration', () => {
+    it.each([
+      [undefined, DEFAULT_GATEWAY_PRE_RESPONSE_BUDGET_MS],
+      ['invalid', DEFAULT_GATEWAY_PRE_RESPONSE_BUDGET_MS],
+      ['120000', DEFAULT_GATEWAY_PRE_RESPONSE_BUDGET_MS],
+      ['105000', 105_000],
+      [90_000, 90_000],
+    ])('parses %p as %p', (raw, expected) => {
+      expect(parseGatewayPreResponseBudgetMs(raw)).toBe(expected);
+    });
+  });
+
   let resolveService: jest.Mocked<
     Pick<ResolveService, 'resolve' | 'resolveForTier' | 'resolveHeaderTier'>
   >;
@@ -1016,6 +1032,176 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
+    it('keeps Claude Permission Auto classifier calls on the requested Anthropic model', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({
+          id: 'claude-sonnet-5',
+          provider: 'anthropic',
+          authType: 'api_key',
+        }),
+        discoveredModel({
+          id: 'claude-sonnet-5',
+          provider: 'anthropic',
+          authType: 'subscription',
+        }),
+      ]);
+
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          headers: {
+            'user-agent': 'claude-cli/2.1.212 (external, claude-vscode)',
+            'x-stainless-timeout': '60',
+            'anthropic-beta': 'claude-code-20250219,context-1m-2025-08-07',
+          },
+          body: {
+            model: 'claude-sonnet-5',
+            max_tokens: 256,
+            messages: [{ role: 'user', content: 'classify' }],
+          },
+        }),
+      );
+
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-sonnet-5',
+        }),
+      );
+    });
+
+    it('resolves the Claude default alias to the best connected Anthropic subscription', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({
+          id: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          authType: 'subscription',
+          qualityScore: 4,
+        }),
+        discoveredModel({
+          id: 'claude-opus-4-8',
+          provider: 'anthropic',
+          authType: 'subscription',
+          qualityScore: 5,
+        }),
+        discoveredModel({
+          id: 'claude-opus-4-8',
+          provider: 'anthropic',
+          authType: 'api_key',
+          qualityScore: 5,
+        }),
+      ]);
+
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          headers: {
+            'user-agent': 'claude-cli/2.1.214 (external, claude-vscode)',
+            'x-stainless-timeout': '60',
+            'anthropic-beta': 'claude-code-20250219,context-1m-2025-08-07',
+          },
+          body: {
+            model: 'default',
+            max_tokens: 256,
+            messages: [{ role: 'user', content: 'classify' }],
+          },
+        }),
+      );
+
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-opus-4-8',
+        }),
+      );
+    });
+
+    it('uses an Anthropic API key for the classifier when no subscription is connected', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({
+          id: 'claude-sonnet-5',
+          provider: 'anthropic',
+          authType: 'api_key',
+        }),
+      ]);
+
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          headers: {
+            'user-agent': 'claude-cli/2.1.212 (external, claude-vscode)',
+            'x-stainless-timeout': '60',
+            'anthropic-beta': 'claude-code-20250219',
+          },
+          body: {
+            model: 'claude-sonnet-5',
+            max_tokens: 256,
+            messages: [{ role: 'user', content: 'classify' }],
+          },
+        }),
+      );
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'anthropic', authType: 'api_key' }),
+      );
+    });
+
+    it('returns model-not-available when the classifier model has no Anthropic route', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-5.6-sol', provider: 'openai', authType: 'subscription' }),
+      ]);
+
+      const result = await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          headers: {
+            'user-agent': ['claude-cli/2.1.212 (external, claude-vscode)'] as never,
+            'x-stainless-timeout': '60',
+            'anthropic-beta': ['claude-code-20250219'] as never,
+          },
+          body: {
+            model: 'claude-sonnet-5',
+            max_tokens: 256,
+            messages: [{ role: 'user', content: 'classify' }],
+          },
+        }),
+      );
+      const body = await result.forward.response.text();
+
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(body).toContain('M302');
+      expect(body).toContain('claude-sonnet-5');
+      expect(result.meta).toMatchObject({
+        reason: 'model_not_available',
+        manifest_error_code: 'M302',
+      });
+    });
+
+    it('does not pin ordinary Messages requests when claude-code is only a beta substring', async () => {
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          headers: {
+            'user-agent': 'claude-cli/2.1.212 (external, claude-vscode)',
+            'x-stainless-timeout': '60',
+            'anthropic-beta': 'future-claude-code-compatibility-20260718',
+          },
+          body: {
+            model: 'claude-sonnet-5',
+            max_tokens: 256,
+            messages: [{ role: 'user', content: 'normal turn' }],
+          },
+        }),
+      );
+
+      expect(resolveService.resolve).toHaveBeenCalled();
+      expect(modelDiscovery.getModelsForAgent).not.toHaveBeenCalled();
+    });
+
     it('does not trigger Manifest fallbacks for explicit model failures', async () => {
       modelDiscovery.getModelsForAgent.mockResolvedValue([
         discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
@@ -1695,6 +1881,184 @@ describe('ProxyService — orchestration', () => {
       const result = await svc.proxyRequest(baseOpts());
       expect(result.forward.response.status).toBe(503);
       expect(result.failedFallbacks).toHaveLength(1);
+    });
+
+    it('retries a silent Codex primary within the remaining gateway budget when fallbacks only rate-limit', async () => {
+      let now = 1_000;
+      const nowSpy = jest.spyOn(Date, 'now').mockImplementation(() => now);
+      (configService.get as jest.Mock).mockImplementation((key: string) =>
+        key === 'GATEWAY_PRE_RESPONSE_BUDGET_MS' ? '105000' : undefined,
+      );
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.6-sol'),
+        fallback_routes: [route('anthropic', 'subscription', 'claude-opus-4-8')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      const originalAttempt = { id: 'attempt-1', attemptNumber: 1 } as never;
+      const retryAttempt = { id: 'attempt-3', attemptNumber: 3 } as never;
+      const original = {
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message: 'ChatGPT Codex produced no text or tool output within 60000ms',
+              type: 'upstream_response_error',
+              code: 'stream_timeout',
+            },
+          }),
+          { status: 504, headers: { 'content-type': 'application/json' } },
+        ),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+        wireRequestBody: { model: 'gpt-5.6-sol', input: [] },
+        wireApiMode: 'responses' as const,
+        retryWireBody: jest.fn(),
+        attempt: originalAttempt,
+        providerCallStarted: true,
+      };
+      fallbackService.tryForwardToProvider.mockResolvedValue(original);
+      fallbackService.tryFallbacks.mockImplementation(async () => {
+        now = 62_000;
+        return {
+          success: null,
+          failures: [
+            {
+              model: 'claude-opus-4-8',
+              provider: 'anthropic',
+              fallbackIndex: 0,
+              status: 429,
+              errorBody: 'rate limited',
+              authType: 'subscription',
+              providerCallStarted: true,
+              attempt: { id: 'attempt-2', attemptNumber: 2 },
+            },
+          ],
+        } as never;
+      });
+      fallbackService.retryWireBody.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+        attempt: retryAttempt,
+        providerCallStarted: true,
+      });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        original,
+        original.wireRequestBody,
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'gpt-5.6-sol',
+          authType: 'subscription',
+          semanticOutputTimeoutMs: 44_000,
+          preResponseTimeoutMs: 44_000,
+        }),
+      );
+      expect(result.forward.response.status).toBe(200);
+      expect(result.meta).toMatchObject({
+        retryFromModel: 'gpt-5.6-sol',
+        primaryAttempt: originalAttempt,
+        attempt: retryAttempt,
+      });
+      expect(result.meta.fallbackFromModel).toBeUndefined();
+      expect(result.failedFallbacks).toHaveLength(1);
+      nowSpy.mockRestore();
+    });
+
+    it('does not retry a silent Codex primary when a fallback fails for a non-rate-limit reason', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.6-sol'),
+        fallback_routes: [route('anthropic', 'subscription', 'claude-opus-4-8')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response(
+          JSON.stringify({ error: { code: 'stream_timeout', message: 'no output' } }),
+          { status: 504 },
+        ),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+        wireRequestBody: { model: 'gpt-5.6-sol', input: [] },
+        wireApiMode: 'responses',
+        retryWireBody: jest.fn(),
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: null,
+        failures: [
+          {
+            model: 'claude-opus-4-8',
+            provider: 'anthropic',
+            fallbackIndex: 0,
+            status: 503,
+            errorBody: 'provider unavailable',
+          },
+        ],
+      } as never);
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.retryWireBody).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(504);
+      expect(result.meta.retryFromModel).toBeUndefined();
+    });
+
+    it('does not start a same-route retry when less than five seconds remain in the gateway budget', async () => {
+      let now = 1_000;
+      const nowSpy = jest.spyOn(Date, 'now').mockImplementation(() => now);
+      (configService.get as jest.Mock).mockImplementation((key: string) =>
+        key === 'GATEWAY_PRE_RESPONSE_BUDGET_MS' ? '105000' : undefined,
+      );
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.6-sol'),
+        fallback_routes: [route('anthropic', 'subscription', 'claude-opus-4-8')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response(
+          JSON.stringify({ error: { code: 'stream_timeout', message: 'no output' } }),
+          { status: 504 },
+        ),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+        wireRequestBody: { model: 'gpt-5.6-sol', input: [] },
+        wireApiMode: 'responses',
+        retryWireBody: jest.fn(),
+      });
+      fallbackService.tryFallbacks.mockImplementation(async () => {
+        now = 102_000;
+        return {
+          success: null,
+          failures: [
+            {
+              model: 'claude-opus-4-8',
+              provider: 'anthropic',
+              fallbackIndex: 0,
+              status: 429,
+              errorBody: 'rate limited',
+            },
+          ],
+        } as never;
+      });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.retryWireBody).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(504);
+      nowSpy.mockRestore();
     });
 
     it('falls through to the resolver-provided fallback_routes', async () => {

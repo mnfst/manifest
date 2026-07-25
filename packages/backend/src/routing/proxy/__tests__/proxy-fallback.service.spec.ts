@@ -714,7 +714,7 @@ describe('ProxyFallbackService', () => {
     it('rethrows when signal is aborted', async () => {
       const ac = new AbortController();
       ac.abort();
-      providerClient.forward.mockRejectedValue(new Error('aborted'));
+      const startProviderAttempt = jest.fn();
 
       await expect(
         service.tryForwardToProvider({
@@ -725,8 +725,11 @@ describe('ProxyFallbackService', () => {
           stream: false,
           sessionKey: 'sess-1',
           signal: ac.signal,
+          startProviderAttempt,
         }),
-      ).rejects.toThrow('aborted');
+      ).rejects.toMatchObject({ name: 'AbortError' });
+      expect(startProviderAttempt).not.toHaveBeenCalled();
+      expect(providerClient.forward).not.toHaveBeenCalled();
     });
 
     it('returns timeout response for TimeoutError', async () => {
@@ -1236,6 +1239,8 @@ describe('ProxyFallbackService', () => {
         authType: 'api_key',
         tenantProviderId: 'connection-1',
         startProviderAttempt,
+        preResponseTimeoutMs: 12_000,
+        semanticOutputTimeoutMs: 11_000,
       });
 
       expect(startProviderAttempt).toHaveBeenCalledWith({
@@ -1247,6 +1252,10 @@ describe('ProxyFallbackService', () => {
       expect(result.attempt).toBe(attempt);
       expect(result.providerCallStarted).toBe(true);
       expect(attempt).toEqual(expect.objectContaining({ completedAtMs: expect.any(Number) }));
+      expect(retryWireBody).toHaveBeenCalledWith(healedBody, {
+        preResponseTimeoutMs: 12_000,
+        semanticOutputTimeoutMs: 11_000,
+      });
       expect(providerClient.forward).not.toHaveBeenCalled();
     });
 
@@ -1313,6 +1322,36 @@ describe('ProxyFallbackService', () => {
       expect(result.success!.provider).toBe('Anthropic');
       expect(result.success!.fallbackIndex).toBe(0);
       expect(result.failures).toHaveLength(0);
+    });
+
+    it('bounds fallback provider startup and semantic output by the request deadline', async () => {
+      providerKeyService.getProviderApiKey.mockResolvedValue('sk-ant');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+      pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
+      const deadline = Date.now() + 30_000;
+      const args: Parameters<typeof service.tryFallbacks> = [
+        'agent-1',
+        'tenant-1',
+        ['claude-sonnet-4'],
+        body,
+        true,
+        'sess-1',
+        'gpt-5.6-sol',
+      ];
+      args[19] = deadline;
+
+      await service.tryFallbacks(...args);
+
+      const forwarded = providerClient.forward.mock.calls[0][0];
+      expect(forwarded.preResponseTimeoutMs).toBeGreaterThan(29_000);
+      expect(forwarded.preResponseTimeoutMs).toBeLessThanOrEqual(30_000);
+      expect(forwarded.semanticOutputTimeoutMs).toBeGreaterThan(29_000);
+      expect(forwarded.semanticOutputTimeoutMs).toBeLessThanOrEqual(30_000);
     });
 
     it('returns null success when all fallbacks fail', async () => {
@@ -1849,6 +1888,60 @@ describe('ProxyFallbackService', () => {
   });
 
   describe('resolveApiKey', () => {
+    it('uses the metadata-aware OpenAI subscription unwrap path when available', async () => {
+      const unwrapTokenWithMetadata = jest.fn().mockResolvedValue({
+        accessToken: 'metadata-aware-access-token',
+        metadata: { accountId: 'workspace-123', fedramp: true },
+      });
+      Object.assign(openaiOauth, { unwrapTokenWithMetadata });
+
+      const result = await resolveApiKey(
+        'openai',
+        'blob',
+        'subscription',
+        'agent-1',
+        'tenant-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
+        'Work',
+      );
+
+      expect(result).toEqual({
+        apiKey: 'metadata-aware-access-token',
+        subscriptionMetadata: { accountId: 'workspace-123', fedramp: true },
+      });
+      expect(unwrapTokenWithMetadata).toHaveBeenCalledWith('blob', 'agent-1', 'tenant-1', 'Work');
+      expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
+    });
+
+    it('returns null when the metadata-aware OpenAI unwrap cannot recover a stored blob', async () => {
+      const unwrapTokenWithMetadata = jest.fn().mockResolvedValue(null);
+      Object.assign(openaiOauth, { unwrapTokenWithMetadata });
+      const blob = JSON.stringify({ t: 'old', r: 'refresh', e: Date.now() - 1000 });
+
+      const result = await resolveApiKey(
+        'openai',
+        blob,
+        'subscription',
+        'agent-1',
+        'tenant-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
+      );
+
+      expect(result).toEqual({ apiKey: null });
+      expect(unwrapTokenWithMetadata).toHaveBeenCalledWith(blob, 'agent-1', 'tenant-1', undefined);
+      expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
+    });
+
     it('unwraps OpenAI subscription token', async () => {
       openaiOauth.unwrapToken.mockResolvedValue('access-token');
 

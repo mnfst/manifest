@@ -64,7 +64,11 @@ function hasUsableOutput(output: Record<string, unknown>[]): boolean {
 }
 
 function isDeliverable(event: ParsedEvent): boolean {
-  if (event.type === 'response.output_text.delta') {
+  if (
+    event.type === 'response.output_text.delta' ||
+    event.type === 'response.reasoning_summary.delta' ||
+    event.type === 'response.reasoning_summary_text.delta'
+  ) {
     return typeof event.data.delta === 'string' && event.data.delta.length > 0;
   }
   if (event.type !== 'response.output_item.added') return false;
@@ -296,7 +300,38 @@ export async function qualifyChatGptResponse(
         );
       }
       if (event.type === 'response.incomplete') {
-        return responseWithBody(response, replayStream(reader, buffered));
+        const terminal = terminalOutput(event);
+        if (terminal && hasUsableOutput(terminal)) {
+          if (options.downstreamFormat === 'responses') {
+            return responseWithBody(response, replayStream(reader, buffered));
+          }
+
+          await discard(reader);
+          const terminalIndex = payloads.length - 1;
+          const recovered = [
+            ...payloads.slice(0, terminalIndex).map(normalizePayload),
+            ...recoveryEvents(terminal, !sawReasoningDelta),
+            normalizePayload(payloads[terminalIndex]),
+            'data: [DONE]\n\n',
+          ].join('');
+          return responseWithBody(response, encoder.encode(recovered));
+        }
+
+        const responseData = isObjectRecord(event.data.response) ? event.data.response : undefined;
+        const incompleteDetails = isObjectRecord(responseData?.incomplete_details)
+          ? responseData.incomplete_details
+          : undefined;
+        if (incompleteDetails?.reason === 'content_filter') {
+          return responseWithBody(response, replayStream(reader, buffered));
+        }
+
+        await discard(reader);
+        return errorResponse(
+          response,
+          502,
+          'ChatGPT Codex exhausted its output budget without text or tool output',
+          'empty_response',
+        );
       }
       if (event.type !== 'response.completed') continue;
 
