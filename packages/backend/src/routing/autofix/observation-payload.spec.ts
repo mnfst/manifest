@@ -12,6 +12,7 @@ const baseInput: ObservationInput = {
   tenantId: 'tenant-1',
   agentId: 'agent-1',
   provider: 'openai',
+  model: 'gpt-5.1',
   authType: 'api_key',
   apiMode: 'chat_completions',
   requestBody: { model: 'gpt-5.1', temperature: 5, messages: [{ role: 'user', content: 'hi' }] },
@@ -160,13 +161,17 @@ describe('toObservation', () => {
     const obs = toObservation({
       ...baseInput,
       provider: 'gemini',
-      requestBody: { model: 'gemini-2.5-flash-lite', ...wireBody },
+      model: 'gemini-2.5-flash-lite',
+      requestBody: wireBody,
       providerWire: {
         format: 'google_generate_content',
         url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
         body: wireBody,
       },
     });
+    expect(obs?.model).toBe('gemini-2.5-flash-lite');
+    expect(obs?.request).toEqual(wireBody);
+    expect(obs?.request).not.toHaveProperty('model');
     expect(obs?.providerExchange).toEqual({
       format: 'google_generate_content',
       url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',

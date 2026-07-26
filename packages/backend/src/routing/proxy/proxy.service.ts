@@ -411,22 +411,25 @@ export class ProxyService {
     // failed with a repairable status, so successful traffic is untouched.
     const wireRequestBody = forward.wireRequestBody;
     const wireApiMode = forward.wireApiMode;
+    const wireFormat = forward.wireFormat;
     const retryWireBody = forward.retryWireBody;
+    const autofixApiMode = wireApiMode ?? apiMode;
     const autofixAttempt =
-      wireRequestBody && wireApiMode && retryWireBody
+      wireRequestBody && retryWireBody && (wireApiMode || wireFormat)
         ? await this.autofixService.maybeHeal({
             forward,
             agentId,
             tenantId,
             provider: route.provider,
+            model: primaryModel,
             authType: route.authType,
-            apiMode: wireApiMode,
+            apiMode: autofixApiMode,
             requestBody: wireRequestBody,
             reforward: (healedBody) =>
               this.reforwardHealed(healedBody, forward, {
                 agentId,
                 tenantId,
-                apiMode: wireApiMode,
+                apiMode: autofixApiMode,
                 sessionKey,
                 signal,
                 stream,
@@ -1208,6 +1211,7 @@ export class ProxyService {
       // No provider was resolved — fingerprint under the vendor the model id
       // implies (`openrouter/x` → openrouter), or `manifest` for bare names.
       provider: inferProviderFromModel(requestedModel) ?? 'manifest',
+      model: requestedModel,
       // No connection resolved, so there is no real credential type to report.
       // Use the protocol's non-subscription baseline for this synthetic error.
       authType: 'api_key',

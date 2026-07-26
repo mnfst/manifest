@@ -21,6 +21,8 @@ export interface MaybeHealParams {
   agentId: string;
   tenantId: string;
   provider: string;
+  /** Logical model identity when the provider encodes it outside the JSON body. */
+  model: string;
   authType: AuthType;
   apiMode: ProxyApiMode;
   /** The request body that was actually forwarded and failed. */
@@ -375,6 +377,7 @@ export class AutofixService {
         traceId: groupId,
         tenantId: params.tenantId,
         provider: params.provider,
+        model: params.model,
         authType: params.authType,
         api: params.apiMode,
         url: params.url,
