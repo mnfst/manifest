@@ -24,7 +24,12 @@ import {
   createAnthropicTransformer,
   createReasoningContentStreamTransformer as reasoningContentStreamTransformer,
 } from './provider-client-converters';
-import { ForwardOptions, ProxyApiMode, type ProviderAttemptRef } from './proxy-types';
+import {
+  ForwardOptions,
+  ProxyApiMode,
+  ProviderWireFormat,
+  type ProviderAttemptRef,
+} from './proxy-types';
 import { CodexSessionAffinity } from './codex-session-affinity';
 import { toNativeResponsesRequest } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
@@ -38,6 +43,10 @@ export interface ForwardResult {
   response: Response;
   /** Exact JSON body sent to the resolved provider transport. */
   wireRequestBody?: Record<string, unknown>;
+  /** Exact URL used by the resolved provider transport. */
+  wireRequestUrl?: string;
+  /** Provider-native protocol emitted at the transport boundary. */
+  wireFormat?: ProviderWireFormat;
   /** Provider-facing API shape of {@link wireRequestBody}. */
   wireApiMode?: ProxyApiMode;
   /** Re-send a healed wire body through the already-resolved transport. */
@@ -70,6 +79,16 @@ function wireApiMode(endpoint: ProviderEndpoint): ProxyApiMode | undefined {
   if (endpoint.format === 'openai') return 'chat_completions';
   if (endpoint.format === 'anthropic') return 'messages';
   if (endpoint.format === 'chatgpt') return 'responses';
+  return undefined;
+}
+
+function wireFormat(endpoint: ProviderEndpoint): ProviderWireFormat | undefined {
+  if (endpoint.format === 'openai') return 'openai_chat_completions';
+  if (endpoint.format === 'anthropic') return 'anthropic_messages';
+  if (endpoint.format === 'chatgpt') return 'openai_responses';
+  if (endpoint.format === 'google') {
+    return endpoint.codeAssistEnvelope ? 'google_code_assist' : 'google_generate_content';
+  }
   return undefined;
 }
 
@@ -248,6 +267,7 @@ export class ProviderClient {
     const isCodeAssist = !!endpoint.codeAssistEnvelope;
     const textFormat = responsesTextFormat(body, opts.apiMode);
     const resolvedWireApiMode = wireApiMode(endpoint);
+    const resolvedWireFormat = wireFormat(endpoint);
 
     const bareModel = stripModelPrefix(model, endpointKey);
     if (endpoint.format === 'kiro') {
@@ -340,6 +360,8 @@ export class ProviderClient {
       return {
         ...qualifiedResult,
         wireRequestBody,
+        wireRequestUrl: url,
+        wireFormat: resolvedWireFormat,
         wireApiMode: resolvedWireApiMode,
         retryWireBody,
       };

@@ -476,6 +476,11 @@ export class ProxyService {
           isCodeAssist: forward.isCodeAssist,
           structuredOutputToolName: forward.structuredOutputToolName,
           responsesTextFormat: forward.responsesTextFormat,
+          wireRequestBody: forward.wireRequestBody,
+          wireRequestUrl: forward.wireRequestUrl,
+          wireFormat: forward.wireFormat,
+          wireApiMode: forward.wireApiMode,
+          retryWireBody: forward.retryWireBody,
           providerCallStarted: forward.providerCallStarted,
         };
         this.recordTierIfScoring(sessionKey, resolved.tier);
@@ -511,6 +516,11 @@ export class ProxyService {
         isCodeAssist: forward.isCodeAssist,
         structuredOutputToolName: forward.structuredOutputToolName,
         responsesTextFormat: forward.responsesTextFormat,
+        wireRequestBody: forward.wireRequestBody,
+        wireRequestUrl: forward.wireRequestUrl,
+        wireFormat: forward.wireFormat,
+        wireApiMode: forward.wireApiMode,
+        retryWireBody: forward.retryWireBody,
         providerCallStarted: forward.providerCallStarted,
       };
       if (!explicitModelOverride && paramMergeContext) {

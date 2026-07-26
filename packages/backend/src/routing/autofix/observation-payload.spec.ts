@@ -2,6 +2,7 @@ import {
   MAX_BODY_BYTES,
   isReportableStatus,
   scrubBody,
+  scrubProviderUrl,
   toObservation,
   type ObservationInput,
 } from './observation-payload';
@@ -98,6 +99,18 @@ describe('scrubBody', () => {
   });
 });
 
+describe('scrubProviderUrl', () => {
+  it('keeps routing query parameters but removes credentials', () => {
+    expect(scrubProviderUrl('https://provider.test/generate?alt=sse&key=secret-value')).toBe(
+      'https://provider.test/generate?alt=sse&key=%5BREDACTED%5D',
+    );
+  });
+
+  it('scrubs secrets even when the provider URL is malformed', () => {
+    expect(scrubProviderUrl('not-a-url sk-ant-abcdefghijklmno')).toBe('not-a-url [REDACTED]');
+  });
+});
+
 describe('toObservation', () => {
   it('builds the observe payload with the normalized provider error', () => {
     const obs = toObservation(baseInput);
@@ -137,6 +150,64 @@ describe('toObservation', () => {
       model: 'claude-opus-4-8',
       thinking: { type: 'adaptive', budget_tokens: 8192 },
     });
+  });
+
+  it('keeps a native Gemini provider exchange separate from Phoenix patch identity', () => {
+    const wireBody = {
+      generationConfig: { maxOutputTokens: 32000, topP: 1, temperature: 1 },
+      contents: [{ role: 'user', parts: [{ text: 'hi' }] }],
+    };
+    const obs = toObservation({
+      ...baseInput,
+      provider: 'gemini',
+      requestBody: { model: 'gemini-2.5-flash-lite', ...wireBody },
+      providerWire: {
+        format: 'google_generate_content',
+        url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
+        body: wireBody,
+      },
+    });
+    expect(obs?.providerExchange).toEqual({
+      format: 'google_generate_content',
+      url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
+      request: { body: wireBody, redactedFields: [] },
+      response: {
+        statusCode: 400,
+        body: { error: { message: 'temperature must be <= 2', code: 'bad_param' } },
+      },
+    });
+  });
+
+  it('omits an absent provider URL from the exchange', () => {
+    const obs = toObservation({
+      ...baseInput,
+      providerWire: {
+        format: 'openai_chat_completions',
+        body: { model: 'gpt-5.1', max_tokens: 128 },
+      },
+      errorBody: 'plain provider failure',
+    });
+
+    expect(obs?.providerExchange).toEqual({
+      format: 'openai_chat_completions',
+      request: {
+        body: { model: 'gpt-5.1', max_tokens: 128 },
+        redactedFields: [],
+      },
+      response: { statusCode: 400, body: 'plain provider failure' },
+    });
+  });
+
+  it('returns null when the provider-native body is too large to ship', () => {
+    expect(
+      toObservation({
+        ...baseInput,
+        providerWire: {
+          format: 'google_generate_content',
+          body: { contents: [{ text: 'x'.repeat(MAX_BODY_BYTES) }] },
+        },
+      }),
+    ).toBeNull();
   });
 
   it('carries the response time when measured', () => {

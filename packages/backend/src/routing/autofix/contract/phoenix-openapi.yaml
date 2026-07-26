@@ -343,6 +343,32 @@ components:
           properties:
             statusCode: { type: integer, example: 400 }
             error: { $ref: '#/components/schemas/ProviderError' }
+        providerExchange:
+          type: object
+          description: Final provider-native transport exchange, separate from the patch input.
+          required: [format, request, response]
+          properties:
+            format:
+              type: string
+              enum:
+                - openai_chat_completions
+                - openai_responses
+                - anthropic_messages
+                - google_generate_content
+                - google_code_assist
+            url: { type: string, format: uri }
+            request:
+              type: object
+              required: [body]
+              properties:
+                body: { type: object, additionalProperties: true }
+                redactedFields: { type: array, items: { type: string } }
+            response:
+              type: object
+              required: [statusCode, body]
+              properties:
+                statusCode: { type: integer }
+                body: {}
         responseTimeMs: { type: integer, minimum: 0 }
         responseSizeBytes: { type: integer, minimum: 0 }
 

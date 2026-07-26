@@ -11,6 +11,8 @@ import type { ProxyApiMode } from '../proxy/proxy-types';
 import type { AuthType } from 'manifest-shared';
 import { HEALING_CLIENT, HealContractError, type HealingClient } from './healing-client';
 import { normalizeProviderError } from './provider-error-normalizer';
+import { scrubSecrets } from '../../common/utils/secret-scrub';
+import { scrubProviderUrl } from './observation-payload';
 import type { AutofixChainEntry, AutofixRecord } from './autofix.types';
 import type { HealOutcome, HealResponse } from './phoenix.types';
 
@@ -83,6 +85,15 @@ function headersToObject(headers: Headers): Record<string, string> {
     out[key] = value;
   });
   return out;
+}
+
+function parseProviderBody(raw: string): unknown {
+  const scrubbed = scrubSecrets(raw);
+  try {
+    return JSON.parse(scrubbed) as unknown;
+  } catch {
+    return scrubbed;
+  }
 }
 
 function rebuildForward(base: ForwardResult, body: string, status: number): ForwardResult {
@@ -369,6 +380,21 @@ export class AutofixService {
         url: params.url,
         request: params.requestBody,
         response: { statusCode: status, error: normalized },
+        ...(originalForward.wireFormat
+          ? {
+              providerExchange: {
+                format: originalForward.wireFormat,
+                ...(originalForward.wireRequestUrl
+                  ? { url: scrubProviderUrl(originalForward.wireRequestUrl) }
+                  : {}),
+                request: { body: params.requestBody, redactedFields: [] },
+                response: {
+                  statusCode: status,
+                  body: parseProviderBody(originalText),
+                },
+              },
+            }
+          : {}),
       });
     } catch (err) {
       if (err instanceof HealContractError) {

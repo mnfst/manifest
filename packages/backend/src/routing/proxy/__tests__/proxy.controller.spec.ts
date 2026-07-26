@@ -1425,6 +1425,8 @@ describe('ProxyController', () => {
       forward: {
         response: new Response('{"error":"invalid thinking"}', { status: 400 }),
         wireRequestBody,
+        wireRequestUrl: 'https://api.anthropic.com/v1/messages',
+        wireFormat: 'anthropic_messages',
         wireApiMode: 'messages',
         retryWireBody: jest.fn(),
         isGoogle: false,
@@ -1455,9 +1457,58 @@ describe('ProxyController', () => {
         authType: 'api_key',
         apiMode: 'messages',
         requestBody: wireRequestBody,
+        providerWire: {
+          format: 'anthropic_messages',
+          url: 'https://api.anthropic.com/v1/messages',
+          body: wireRequestBody,
+        },
       }),
     );
     expect(observationReporter.report.mock.calls[0][0]).not.toHaveProperty('resolvedModel');
+  });
+
+  it('reports native Gemini failures even though that wire format is not patchable', async () => {
+    const wireRequestBody = {
+      contents: [{ role: 'user', parts: [{ text: 'test' }] }],
+      generationConfig: { maxOutputTokens: 32000, topP: 1, temperature: 1 },
+    };
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: new Response('{"error":{"message":"model unavailable"}}', { status: 404 }),
+        wireRequestBody,
+        wireRequestUrl:
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
+        wireFormat: 'google_generate_content',
+        wireApiMode: undefined,
+        isGoogle: true,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'standard',
+        model: 'gemini-2.5-flash-lite',
+        provider: 'Gemini',
+        auth_type: 'api_key',
+        confidence: 0.8,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({ model: 'auto', messages: [{ role: 'user', content: 'test' }] });
+    const { res } = mockResponse();
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(observationReporter.report).toHaveBeenCalledWith(
+      expect.objectContaining({
+        apiMode: 'chat_completions',
+        requestBody: { model: 'gemini-2.5-flash-lite', ...wireRequestBody },
+        providerWire: {
+          format: 'google_generate_content',
+          url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
+          body: wireRequestBody,
+        },
+      }),
+    );
   });
 
   it('should handle 500 errors from proxyService as friendly chat message', async () => {

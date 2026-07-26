@@ -29,6 +29,14 @@ export type ReasoningContentLookup = (firstToolCallId: string) => string | null;
 
 export type ProxyApiMode = 'chat_completions' | 'responses' | 'messages';
 
+/** The protocol shape actually emitted at the provider transport boundary. */
+export type ProviderWireFormat =
+  | 'openai_chat_completions'
+  | 'openai_responses'
+  | 'anthropic_messages'
+  | 'google_generate_content'
+  | 'google_code_assist';
+
 export interface ProviderAttemptStart {
   provider: string;
   model: string;

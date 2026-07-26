@@ -526,6 +526,70 @@ describe('AutofixService', () => {
   // maybeHeal — happy heal on the single attempt
   // -------------------------------------------------------------------------
   describe('maybeHeal happy path', () => {
+    it('sends the provider exchange to Phoenix and preserves provider response headers', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-wire' });
+      const forward = {
+        ...makeForward('{"error":{"message":"invalid thinking"}}', 400),
+        response: new Response('{"error":{"message":"invalid thinking"}}', {
+          status: 400,
+          headers: { 'x-provider-request-id': 'provider-request-1' },
+        }),
+        wireFormat: 'anthropic_messages' as const,
+        wireRequestUrl: 'https://api.anthropic.com/v1/messages?key=provider-secret',
+      };
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      const result = await service.maybeHeal(makeParams({ forward }));
+
+      expect(client.heal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerExchange: {
+            format: 'anthropic_messages',
+            url: 'https://api.anthropic.com/v1/messages?key=%5BREDACTED%5D',
+            request: {
+              body: { model: 'gpt', max_tokens: 100 },
+              redactedFields: [],
+            },
+            response: {
+              statusCode: 400,
+              body: { error: { message: 'invalid thinking' } },
+            },
+          },
+        }),
+      );
+      expect(result!.forward.response.headers.get('x-provider-request-id')).toBe(
+        'provider-request-1',
+      );
+    });
+
+    it('keeps a plain-text provider response and omits an absent provider URL', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-wire-text' });
+      const forward = {
+        ...makeForward('invalid thinking', 400),
+        wireFormat: 'anthropic_messages' as const,
+      };
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      await service.maybeHeal(makeParams({ forward }));
+
+      expect(client.heal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerExchange: {
+            format: 'anthropic_messages',
+            request: {
+              body: { model: 'gpt', max_tokens: 100 },
+              redactedFields: [],
+            },
+            response: { statusCode: 400, body: 'invalid thinking' },
+          },
+        }),
+      );
+    });
+
     it('heals on the patched retry, reports the cleared retry, and records the chain', async () => {
       const client = makeHealingClient();
       const heal = patchedHeal();

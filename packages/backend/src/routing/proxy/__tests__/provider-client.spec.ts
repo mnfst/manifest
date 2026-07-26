@@ -1274,6 +1274,9 @@ describe('ProviderClient', () => {
       expect(result.isGoogle).toBe(true);
       expect(result.isAnthropic).toBe(false);
       expect(result.wireApiMode).toBeUndefined();
+      expect(result.wireFormat).toBe('google_generate_content');
+      expect(result.wireRequestUrl).toBe(url);
+      expect(result.wireRequestBody).toEqual(JSON.parse(mockFetch.mock.calls[0][1].body));
     });
 
     it('adds alt=sse for streaming', async () => {

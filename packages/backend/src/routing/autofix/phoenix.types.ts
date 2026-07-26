@@ -1,4 +1,4 @@
-import type { ProxyApiMode } from '../proxy/proxy-types';
+import type { ProviderWireFormat, ProxyApiMode } from '../proxy/proxy-types';
 import type { AuthType } from 'manifest-shared';
 
 /**
@@ -20,6 +20,20 @@ export interface PhoenixProviderError {
 export interface PhoenixProviderResponse {
   statusCode: number;
   error: PhoenixProviderError;
+}
+
+/** Final provider-side exchange, separate from the request shape Phoenix patches. */
+export interface PhoenixProviderExchange {
+  format: ProviderWireFormat;
+  url?: string;
+  request: {
+    body: Record<string, unknown>;
+    redactedFields?: string[];
+  };
+  response: {
+    statusCode: number;
+    body: unknown;
+  };
 }
 
 /** POST /api/heal request body. Route identity scopes Phoenix's fingerprint. */
@@ -48,6 +62,7 @@ export interface HealRequest {
   url?: string;
   request: Record<string, unknown>;
   response: PhoenixProviderResponse;
+  providerExchange?: PhoenixProviderExchange;
   responseTimeMs?: number;
   responseSizeBytes?: number;
 }

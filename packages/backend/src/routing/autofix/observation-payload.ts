@@ -1,5 +1,5 @@
 import { scrubSecrets } from '../../common/utils/secret-scrub';
-import type { ProxyApiMode } from '../proxy/proxy-types';
+import type { ProviderWireFormat, ProxyApiMode } from '../proxy/proxy-types';
 import type { AuthType } from 'manifest-shared';
 import { normalizeProviderError } from './provider-error-normalizer';
 import type { HealRequest } from './phoenix.types';
@@ -56,6 +56,21 @@ function normalizeKey(key: string): string {
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** Keep the resolved endpoint while removing credentials from query parameters. */
+export function scrubProviderUrl(raw: string): string {
+  try {
+    const url = new URL(raw);
+    for (const key of [...url.searchParams.keys()]) {
+      if (/key|token|secret|signature|credential/i.test(key)) {
+        url.searchParams.set(key, '[REDACTED]');
+      }
+    }
+    return url.toString();
+  } catch {
+    return scrubSecrets(raw);
+  }
 }
 
 /**
@@ -116,6 +131,11 @@ export interface ObservationInput {
    * observation is evidence only and no Phoenix operation needs the image bytes.
    */
   requestBody: Record<string, unknown>;
+  providerWire?: {
+    format: ProviderWireFormat;
+    url?: string;
+    body: Record<string, unknown>;
+  };
   status: number;
   /** Raw text of the provider's error response. */
   errorBody: string;
@@ -130,6 +150,16 @@ export function toObservation(input: ObservationInput): HealRequest | null {
   if (!isReportableStatus(input.status)) return null;
   const scrubbed = scrubBody(input.requestBody);
   if (!scrubbed) return null;
+  const scrubbedProviderBody = input.providerWire ? scrubBody(input.providerWire.body) : null;
+  if (input.providerWire && !scrubbedProviderBody) return null;
+
+  const safeErrorBody = scrubSecrets(input.errorBody);
+  let providerResponseBody: unknown = safeErrorBody;
+  try {
+    providerResponseBody = JSON.parse(safeErrorBody) as unknown;
+  } catch {
+    // Plain-text provider responses remain plain text.
+  }
 
   return {
     traceId: input.traceId,
@@ -139,6 +169,16 @@ export function toObservation(input: ObservationInput): HealRequest | null {
     api: input.apiMode,
     request: scrubbed,
     response: { statusCode: input.status, error: normalizeProviderError(input.errorBody) },
+    ...(input.providerWire
+      ? {
+          providerExchange: {
+            format: input.providerWire.format,
+            ...(input.providerWire.url ? { url: scrubProviderUrl(input.providerWire.url) } : {}),
+            request: { body: scrubbedProviderBody!, redactedFields: [] },
+            response: { statusCode: input.status, body: providerResponseBody },
+          },
+        }
+      : {}),
     ...(input.responseTimeMs != null ? { responseTimeMs: input.responseTimeMs } : {}),
   };
 }
