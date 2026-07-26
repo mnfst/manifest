@@ -522,9 +522,15 @@ raw IPs.
 `NODE_ENV !== 'production'` so dev instances never report.
 
 **Cadence**: `@Cron(CronExpression.EVERY_HOUR)` fires once an hour but
-short-circuits unless the last send was ≥24h ago (and the first-send jitter
-window has elapsed). Hourly tick + timestamp check beats a daily cron
-because it survives restarts without missing windows.
+short-circuits unless the last send was ≥23h ago (and the first-send jitter
+window has elapsed). The guard is 23h, not 24h, on purpose: `last_sent_at` is
+stamped just after the tick, so a 24h guard never passed at the same-hour tick
+the next day and every send drifted one hour later per day — when the send hour
+crossed UTC midnight, the install's report skipped a calendar day in
+received-at-binned daily stats. Real cadence stays ~24h; the ingest's
+duplicate-report window is also 23h, so the guard can never trip it. Hourly
+tick + timestamp check beats a daily cron because it survives restarts without
+missing windows.
 
 **Extending the payload**: bump `TELEMETRY_SCHEMA_VERSION` and add fields
 additively — the ingest (peacock-backend) rejects unknown `schema_version`
