@@ -29,10 +29,13 @@ interface TotalsRow {
   cost: string | null;
 }
 
+const WINDOW_MS = 24 * 60 * 60 * 1000;
+
 /**
  * Builds the daily telemetry payload by aggregating the last 24h of
- * `agent_messages` plus the total agent count + runtime metadata. All
- * SELECTs are parameterised so the window is consistent across queries.
+ * `agent_messages` plus the total agent count + runtime metadata. One
+ * JS-computed window bounds every SELECT, so the `window_start`/`window_end`
+ * the payload declares are exactly what was aggregated.
  */
 @Injectable()
 export class PayloadBuilderService {
@@ -44,12 +47,14 @@ export class PayloadBuilderService {
   ) {}
 
   async build(installId: string, manifestVersion: string): Promise<TelemetryPayloadV1> {
+    const windowEnd = new Date();
+    const windowStart = new Date(windowEnd.getTime() - WINDOW_MS);
     const [providerRows, tierRows, authRows, totals, agentsTotal, agentPlatformRows] =
       await Promise.all([
-        this.messagesByProvider(),
-        this.messagesByBucket('routing_tier'),
-        this.messagesByBucket('auth_type'),
-        this.totals(),
+        this.messagesByProvider(windowStart),
+        this.messagesByBucket('routing_tier', windowStart),
+        this.messagesByBucket('auth_type', windowStart),
+        this.totals(windowStart),
         this.userAgentsCount(),
         this.agentsByPlatform(),
       ]);
@@ -74,16 +79,18 @@ export class PayloadBuilderService {
       agents_by_platform: this.bucketsToRecord(agentPlatformRows, 'unknown'),
       platform: process.platform,
       arch: process.arch,
+      window_start: windowStart.toISOString(),
+      window_end: windowEnd.toISOString(),
     };
   }
 
-  private async messagesByProvider(): Promise<ProviderAggregateRow[]> {
+  private async messagesByProvider(since: Date): Promise<ProviderAggregateRow[]> {
     return this.messages
       .createQueryBuilder('m')
       .select('m.provider', 'provider')
       .addSelect('COUNT(*)', 'count')
       .addSelect('COALESCE(SUM(m.cost_usd), 0)', 'cost')
-      .where(`m.timestamp >= NOW() - INTERVAL '24 hours'`)
+      .where('m.timestamp >= :since', { since: since.toISOString() })
       .groupBy('m.provider')
       .getRawMany<ProviderAggregateRow>();
   }
@@ -93,12 +100,15 @@ export class PayloadBuilderService {
    * short stable set (`routing_tier`, `auth_type`). We trust the set because
    * the producer — our own proxy — writes known enum strings.
    */
-  private async messagesByBucket(column: 'routing_tier' | 'auth_type'): Promise<BucketRow[]> {
+  private async messagesByBucket(
+    column: 'routing_tier' | 'auth_type',
+    since: Date,
+  ): Promise<BucketRow[]> {
     return this.messages
       .createQueryBuilder('m')
       .select(`m.${column}`, 'bucket')
       .addSelect('COUNT(*)', 'count')
-      .where(`m.timestamp >= NOW() - INTERVAL '24 hours'`)
+      .where('m.timestamp >= :since', { since: since.toISOString() })
       .groupBy(`m.${column}`)
       .getRawMany<BucketRow>();
   }
@@ -142,14 +152,14 @@ export class PayloadBuilderService {
     return Number(result?.count ?? 0);
   }
 
-  private async totals(): Promise<TotalsRow> {
+  private async totals(since: Date): Promise<TotalsRow> {
     const row = await this.messages
       .createQueryBuilder('m')
       .select('COUNT(*)', 'total')
       .addSelect('SUM(m.input_tokens)', 'input_tokens')
       .addSelect('SUM(m.output_tokens)', 'output_tokens')
       .addSelect('COALESCE(SUM(m.cost_usd), 0)', 'cost')
-      .where(`m.timestamp >= NOW() - INTERVAL '24 hours'`)
+      .where('m.timestamp >= :since', { since: since.toISOString() })
       .getRawOne<TotalsRow>();
     return row ?? { total: '0', input_tokens: '0', output_tokens: '0', cost: '0' };
   }

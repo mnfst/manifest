@@ -511,6 +511,9 @@ send one aggregate usage report per 24h to `TELEMETRY_ENDPOINT` (default
   cents)
 - Configuration: `agents_total`, `agents_by_platform`
 - Runtime: `platform` (`process.platform`), `arch` (`process.arch`)
+- Coverage: `window_start` / `window_end` — ISO-8601 UTC bounds of the
+  aggregation window (`window_end` = build time), so the ingest can attribute
+  the report to calendar days exactly instead of assuming it ended at arrival
 
 User-facing spec: https://manifest.build/docs/self-hosted#telemetry
 
@@ -532,9 +535,14 @@ duplicate-report window is also 23h, so the guard can never trip it. Hourly
 tick + timestamp check beats a daily cron because it survives restarts without
 missing windows.
 
-**Extending the payload**: bump `TELEMETRY_SCHEMA_VERSION` and add fields
-additively — the ingest (peacock-backend) rejects unknown `schema_version`
-values with 400, so downgrades stay safe.
+**Extending the payload**: add fields additively and keep `schema_version: 1` —
+receivers feature-detect on field presence (see `dto/telemetry-payload.ts`;
+precedent: `cost_usd_total`, `window_start`/`window_end`). The ingest
+(peacock-backend) validates with `forbidNonWhitelisted`, so the new field must
+be whitelisted in peacock's `TelemetryReportDto` **and deployed** before a
+Manifest release ships it, or every report carrying it gets 400'd. Reserve a
+`TELEMETRY_SCHEMA_VERSION` bump for breaking changes — the ingest rejects
+unknown versions with 400, so downgrades stay safe.
 
 ## Error Monitoring (Sentry, opt-in)
 

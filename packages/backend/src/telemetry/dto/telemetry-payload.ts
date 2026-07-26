@@ -48,4 +48,14 @@ export interface TelemetryPayloadV1 {
   // Runtime
   platform: string;
   arch: string;
+
+  /**
+   * ISO-8601 UTC bounds of the 24h window the aggregates cover
+   * (`window_end` = payload build time, `window_start` = 24h earlier).
+   * They make the coverage explicit so the ingest can attribute the report
+   * to calendar days exactly instead of assuming a 24h window ending at
+   * *arrival* time.
+   */
+  window_start?: string;
+  window_end?: string;
 }
