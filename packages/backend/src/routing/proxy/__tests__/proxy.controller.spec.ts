@@ -2017,10 +2017,19 @@ describe('ProxyController', () => {
       );
     });
 
-    it('threads the Auto-fix audit of a failed M302 heal onto the stub row', async () => {
+    it('threads the failed M302 retry into terminal stub recording', async () => {
+      const completeFailure = jest.fn().mockResolvedValue(undefined);
+      const retryAttempt = {
+        id: 'attempt-m302-retry',
+        attemptNumber: 1,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        pendingWrite: Promise.resolve(true),
+        completeFailure,
+      };
       const autofix = {
         groupId: 'g-302',
-        outcome: 'unfixable',
+        outcome: 'exhausted',
         original_http_status: 404,
         chain: [
           {
@@ -2031,6 +2040,13 @@ describe('ProxyController', () => {
             error: { message: 'model not found' },
             phoenix_status: 'no_patch',
             issue_id: 'issue-302',
+          },
+          {
+            attempt: 1,
+            origin: 'autofix',
+            request: { model: 'still-ghost' },
+            http_status: 503,
+            error: { message: 'patched provider failed' },
           },
         ],
         manifestOrigin: { code: 'M302', message: 'unavailable', model: 'ghost' },
@@ -2056,6 +2072,8 @@ describe('ProxyController', () => {
           reason: 'model_not_available',
           manifest_error_code: 'M302',
           manifest_error_message: '[🦚 Manifest M302] Model "ghost" is not available.',
+          attempt: retryAttempt,
+          providerCallStarted: true,
         },
         failedFallbacks: [],
         autofix,
@@ -2070,8 +2088,13 @@ describe('ProxyController', () => {
 
       expect(manifestSpy).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({ errorCode: 'M302', autofix }),
+        expect.objectContaining({ errorCode: 'M302', autofix, attempt: retryAttempt }),
       );
+      expect(completeFailure).toHaveBeenCalledWith({
+        status: 503,
+        errorBody: JSON.stringify({ error: { message: 'patched provider failed' } }),
+        superseded: false,
+      });
       expect(mockMessageRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'failed',

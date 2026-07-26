@@ -140,6 +140,8 @@ export type { ManifestBlockedRequestReason };
 
 export interface ManifestBlockedRequestOpts {
   requestId?: string;
+  /** Real provider retry to finalize when Auto-fix did not clear a Manifest block. */
+  attempt?: ProviderAttemptRef;
   /**
    * The status the caller saw, when there was one. Omitted for the HTTP-200
    * friendly stubs (no provider was contacted, so there is no upstream status
@@ -655,6 +657,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       requestHeaders,
       autofix,
       durationMs,
+      attempt,
     } = opts;
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
@@ -690,8 +693,18 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       header_tier_name: null,
       header_tier_color: null,
     });
-    // A Manifest-level rejection is a real request with zero provider attempts.
+    // A Manifest-level rejection normally has zero provider attempts. An M302
+    // patched retry is real provider work, though, even when Manifest ultimately
+    // returns its friendly stub; finish that pending Attempt from the audit.
     const wroteRequest = await this.persistRequest(ctx, requestId, row, true, autofix);
+    const retry = getAutofixRetry(autofix);
+    if (attempt && retry?.error) {
+      await attempt.completeFailure?.({
+        status: retry.http_status,
+        errorBody: serializeProviderError(retry.error),
+        superseded: false,
+      });
+    }
     // Legacy unit-test doubles have no request repository. Keep their observed
     // write shape without affecting the production zero-attempt model.
     if (!wroteRequest) await this.messageRepo.insert(row);

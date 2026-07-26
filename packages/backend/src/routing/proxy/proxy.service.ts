@@ -1243,7 +1243,16 @@ export class ProxyService {
         autofix,
       };
     }
-    return { ...friendly(), autofix };
+    const rejected = friendly();
+    return {
+      ...rejected,
+      meta: {
+        ...rejected.meta,
+        attempt: attempt.forward.attempt,
+        providerCallStarted: attempt.forward.providerCallStarted,
+      },
+      autofix,
+    };
   }
 
   /** The 404 a provider would return for an unknown model, synthesized for the heal contract. */

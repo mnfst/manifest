@@ -651,6 +651,61 @@ describe('ProxyMessageRecorder', () => {
       expect(new Date(row.timestamp).getTime()).toBeGreaterThanOrEqual(before - 100);
     });
 
+    it('finalizes the real provider retry when a patched M302 still fails', async () => {
+      const completeFailure = jest.fn().mockResolvedValue(undefined);
+      await recorder.recordManifestBlockedRequest(ctx, {
+        errorMessage: '[🦚 Manifest M302] Model "ghost" is not available for this agent.',
+        errorCode: 'M302',
+        reason: 'model_not_available',
+        attempt: {
+          id: 'attempt-m302-retry',
+          attemptNumber: 1,
+          startedAtMs: 1_000,
+          startedAt: '1970-01-01T00:00:01.000Z',
+          pendingWrite: Promise.resolve(true),
+          completeFailure,
+        },
+        autofix: {
+          groupId: 'g-retry-failed',
+          outcome: 'exhausted',
+          original_http_status: 404,
+          chain: [
+            {
+              attempt: 0,
+              origin: 'original',
+              request: { model: 'ghost' },
+              http_status: 404,
+              error: { message: 'model not found' },
+            },
+            {
+              attempt: 1,
+              origin: 'autofix',
+              request: { model: 'still-ghost' },
+              http_status: 503,
+              error: {
+                message: 'patched provider failed',
+                type: 'server_error',
+                param: null,
+                code: 'upstream_unavailable',
+              },
+            },
+          ],
+        },
+      });
+
+      expect(completeFailure).toHaveBeenCalledWith({
+        status: 503,
+        errorBody: JSON.stringify({
+          error: {
+            message: 'patched provider failed',
+            type: 'server_error',
+            code: 'upstream_unavailable',
+          },
+        }),
+        superseded: false,
+      });
+    });
+
     it('records an expired key as a setup error against its agent', async () => {
       await recorder.recordManifestBlockedRequest(ctx, {
         httpStatus: 401,

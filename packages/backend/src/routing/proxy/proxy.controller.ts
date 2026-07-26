@@ -522,6 +522,7 @@ export class ProxyController {
         requestHeaders,
         // A failed heal attempt still stamps its Phoenix audit on the M row.
         autofix,
+        attempt: meta.attempt,
         durationMs,
       })
       .catch((e) => this.logger.warn(`Failed to record Manifest stub: ${e}`));

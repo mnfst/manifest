@@ -1045,16 +1045,38 @@ describe('ProxyService — orchestration', () => {
       expect(result.autofix?.manifestOrigin?.message).toContain('some-retired-model');
     });
 
-    it('keeps the friendly M302 and attaches the audit when the heal does not clear the error', async () => {
+    it('keeps the friendly M302 and preserves the failed provider retry attempt', async () => {
       modelDiscovery.getModelsForAgent.mockResolvedValue([]);
+      const retryAttempt = {
+        id: 'attempt-m302-retry',
+        attemptNumber: 1,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        pendingWrite: Promise.resolve(true),
+      };
       autofixService.maybeHeal.mockResolvedValue({
         forward: {
           response: okResponse(404),
           isGoogle: false,
           isAnthropic: false,
           isChatGpt: false,
+          attempt: retryAttempt,
+          providerCallStarted: true,
         },
-        record: { groupId: 'g-2', outcome: 'unfixable', original_http_status: 404, chain: [] },
+        record: {
+          groupId: 'g-2',
+          outcome: 'exhausted',
+          original_http_status: 404,
+          chain: [
+            {
+              attempt: 1,
+              origin: 'autofix',
+              request: { model: 'still-unavailable' },
+              http_status: 404,
+              error: { message: 'patched model not found' },
+            },
+          ],
+        },
       });
 
       const result = await svc.proxyRequest(
@@ -1070,10 +1092,12 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta).toMatchObject({
         reason: 'model_not_available',
         manifest_error_code: 'M302',
+        attempt: retryAttempt,
+        providerCallStarted: true,
       });
       expect(result.autofix).toMatchObject({
         groupId: 'g-2',
-        outcome: 'unfixable',
+        outcome: 'exhausted',
         manifestOrigin: { code: 'M302', model: 'some-retired-model' },
       });
     });
