@@ -30,6 +30,7 @@ import { ProviderParamSpecService } from '../routing-core/provider-param-spec.se
 import { resolveModelCapabilityMetadata } from '../../model-discovery/model-capabilities';
 import { classifyCaller } from './caller-classifier';
 import { ObservationReporter } from '../autofix/observation-reporter';
+import type { AutofixRecord } from '../autofix/autofix.types';
 import { sanitizeRequestHeaders } from './request-headers';
 import {
   buildMetaHeaders,
@@ -458,6 +459,7 @@ export class ProxyController {
           sessionKey,
           callerAttribution,
           requestHeaders,
+          autofix,
           Date.now() - startTime,
         );
       } else {
@@ -512,6 +514,7 @@ export class ProxyController {
     sessionKey: string | undefined,
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
+    autofix: AutofixRecord | undefined,
     durationMs: number,
   ): void {
     const code = meta.manifest_error_code;
@@ -527,6 +530,9 @@ export class ProxyController {
         sessionKey,
         callerAttribution,
         requestHeaders,
+        // A failed heal attempt still stamps its Phoenix audit on the M row.
+        autofix,
+        attempt: meta.attempt,
         durationMs,
       })
       .catch((e) => this.logger.warn(`Failed to record Manifest stub: ${e}`));

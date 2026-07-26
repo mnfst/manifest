@@ -28,6 +28,7 @@ import type {
 import {
   DEFAULT_RESPONSE_MODE,
   SPECIFICITY_CATEGORIES,
+  inferProviderFromModel,
   modelParamsScopeForRouting,
   routeEquals,
   snapshotRequestParams,
@@ -163,8 +164,15 @@ export interface ProxyResult {
   autofix?: AutofixRecord;
 }
 
-/** Everything Auto-fix's reforward needs to re-send a healed body to a provider. */
-interface HealedReforwardContext {
+/** Route info captured when a healed body is re-resolved through routing. */
+interface HealedRouteInfo {
+  resolved: ResolvedRouting;
+  model: string;
+  tenantProviderId: string | null;
+}
+
+/** The subset of {@link HealedReforwardContext} that re-resolving a healed body needs. */
+interface ResolvedHealContext {
   agentId: string;
   tenantId: string;
   apiMode: ProxyApiMode;
@@ -173,6 +181,16 @@ interface HealedReforwardContext {
   stream: boolean;
   specificityOverride?: ProxyRequestOptions['specificityOverride'];
   headers?: ProxyRequestOptions['headers'];
+  signatureLookup: SignatureLookup;
+  thinkingLookup: ThinkingBlockLookup;
+  reasoningContentLookup: ReasoningContentLookup;
+  /** Called with the re-resolved route so the caller can build accurate response meta. */
+  onRouteResolved?: (info: HealedRouteInfo) => void;
+  startProviderAttempt?: StartProviderAttempt;
+}
+
+/** Everything Auto-fix's reforward needs to re-send a healed body to a provider. */
+interface HealedReforwardContext extends ResolvedHealContext {
   provider: string;
   apiKey: string;
   rawApiKey: string;
@@ -182,10 +200,22 @@ interface HealedReforwardContext {
   resourceUrl?: string;
   providerRegion?: string | null;
   paramMergeContext: ParamMergeContext | undefined;
-  signatureLookup: SignatureLookup;
-  thinkingLookup: ThinkingBlockLookup;
-  reasoningContentLookup: ReasoningContentLookup;
   tenantProviderId: string | null;
+}
+
+/** Inputs for {@link ProxyService.healOrRejectUnavailableModel}. */
+interface UnavailableModelHealContext {
+  agentId: string;
+  tenantId: string;
+  agentName?: string;
+  apiMode: ProxyApiMode;
+  sessionKey: string;
+  signal?: AbortSignal;
+  stream: boolean;
+  specificityOverride?: ProxyRequestOptions['specificityOverride'];
+  headers?: ProxyRequestOptions['headers'];
+  body: ProxyRequestOptions['body'];
+  requestedModel: string;
   startProviderAttempt?: StartProviderAttempt;
 }
 
@@ -266,11 +296,20 @@ export class ProxyService {
           `tier=${resolved.tier} confidence=${resolved.confidence} reason=${resolved.reason}`,
       );
       if (resolved.explicit_model_unavailable) {
-        return this.buildModelUnavailableResult(
-          stream,
+        return this.healOrRejectUnavailableModel({
+          agentId,
+          tenantId,
           agentName,
-          resolved.explicit_model_unavailable,
-        );
+          apiMode,
+          sessionKey,
+          signal,
+          stream,
+          specificityOverride,
+          headers,
+          body,
+          requestedModel: resolved.explicit_model_unavailable,
+          startProviderAttempt,
+        });
       }
       return this.buildNoProviderResult(stream, agentName);
     }
@@ -292,14 +331,8 @@ export class ProxyService {
       `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${route.provider} auth_type=${route.authType} confidence=${resolved.confidence}`,
     );
 
-    const signatureLookup = (toolCallId: string) =>
-      this.signatureCache.retrieve(sessionKey, toolCallId);
-    const thinkingLookup: ThinkingBlockLookup = (firstToolUseId, routeContext) =>
-      routeContext
-        ? this.thinkingCache.retrieve(sessionKey, firstToolUseId, routeContext)
-        : this.thinkingCache.retrieve(sessionKey, firstToolUseId);
-    const reasoningContentLookup = (firstToolCallId: string) =>
-      this.reasoningCache.retrieve(sessionKey, firstToolCallId);
+    const { signatureLookup, thinkingLookup, reasoningContentLookup } =
+      this.buildCacheLookups(sessionKey);
 
     // Per-attempt param-defaults merge happens inside the fallback service
     // so each forward (primary + every fallback iteration) looks up its
@@ -637,7 +670,7 @@ export class ProxyService {
 
   private async forwardResolvedHealed(
     healedBody: Record<string, unknown>,
-    ctx: HealedReforwardContext,
+    ctx: ResolvedHealContext,
   ): Promise<ForwardResult> {
     const routingBody = this.toChatBody(ctx.apiMode, healedBody) ?? healedBody;
     const resolved = await this.resolveRouting(
@@ -657,6 +690,8 @@ export class ProxyService {
       provider_key_label: route.keyLabel ?? undefined,
     });
     if (!credentials) return this.autofixReforwardError('no provider key for the healed model');
+    const model = normalizeProviderModel(route.provider, route.model);
+    ctx.onRouteResolved?.({ resolved, model, tenantProviderId: credentials.tenantProviderId });
     const explicitModelOverride = resolved.explicit_model_override === true;
     const scopeKey = modelParamsScopeForRouting({
       tier: resolved.tier,
@@ -666,7 +701,7 @@ export class ProxyService {
     return this.fallbackService.tryForwardToProvider({
       provider: route.provider,
       apiKey: credentials.apiKey,
-      model: normalizeProviderModel(route.provider, route.model),
+      model,
       body: healedBody,
       chatBody: this.toChatBody(ctx.apiMode, healedBody),
       stream: ctx.stream,
@@ -1149,14 +1184,123 @@ export class ProxyService {
     return buildFriendlyResponse(content, stream, 'no_provider', 'M101');
   }
 
-  private buildModelUnavailableResult(
-    stream: boolean,
-    agentName: string | undefined,
-    model: string,
-  ): ProxyResult {
+  /**
+   * Give Auto-fix a chance to repair an explicit `model` that resolves to no
+   * connected model (M302) before rejecting the request. No provider was ever
+   * contacted, so the failure is synthesized as the 404 a provider would return
+   * for an unknown model and run through the standard heal gates — when the
+   * agent has Auto-fix off (or healing doesn't produce a working request) the
+   * caller gets the friendly M302 exactly as before this hook existed.
+   */
+  private async healOrRejectUnavailableModel(
+    ctx: UnavailableModelHealContext,
+  ): Promise<ProxyResult> {
+    const { requestedModel, stream, agentName } = ctx;
     const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
-    const content = formatManifestError('M302', { model, dashboardUrl });
-    return buildFriendlyResponse(content, stream, 'model_not_available', 'M302');
+    const content = formatManifestError('M302', { model: requestedModel, dashboardUrl });
+    const friendly = () => buildFriendlyResponse(content, stream, 'model_not_available', 'M302');
+
+    let healedRoute: HealedRouteInfo | null = null;
+    const attempt = await this.autofixService.maybeHeal({
+      forward: this.modelNotFoundForward(requestedModel),
+      agentId: ctx.agentId,
+      tenantId: ctx.tenantId,
+      // No provider was resolved — fingerprint under the vendor the model id
+      // implies (`openrouter/x` → openrouter), or `manifest` for bare names.
+      provider: inferProviderFromModel(requestedModel) ?? 'manifest',
+      // No connection resolved, so there is no real credential type to report.
+      // Use the protocol's non-subscription baseline for this synthetic error.
+      authType: 'api_key',
+      apiMode: ctx.apiMode,
+      requestBody: ctx.body,
+      reforward: (healedBody) =>
+        this.forwardResolvedHealed(healedBody, {
+          ...this.buildCacheLookups(ctx.sessionKey),
+          agentId: ctx.agentId,
+          tenantId: ctx.tenantId,
+          apiMode: ctx.apiMode,
+          sessionKey: ctx.sessionKey,
+          signal: ctx.signal,
+          stream,
+          specificityOverride: ctx.specificityOverride,
+          headers: ctx.headers,
+          startProviderAttempt: ctx.startProviderAttempt,
+          onRouteResolved: (info) => {
+            healedRoute = info;
+          },
+        }),
+    });
+    // Auto-fix inactive for this agent (gates, breaker) — reject as before.
+    if (!attempt) return friendly();
+
+    const autofix: AutofixRecord = {
+      ...attempt.record,
+      manifestOrigin: { code: 'M302', message: content, model: requestedModel },
+    };
+    if (attempt.record.outcome === 'healed' && healedRoute) {
+      const { resolved, model, tenantProviderId } = healedRoute as HealedRouteInfo;
+      return {
+        forward: attempt.forward,
+        meta: this.buildBaseMeta(resolved, model, {
+          tenantProviderId,
+          attempt: attempt.forward.attempt,
+          providerCallStarted: attempt.forward.providerCallStarted,
+          autofixOriginalProviderCallStarted: false,
+          // The forward's streaminess followed the caller's request, not the
+          // healed route's configured transport — keep the meta in agreement.
+          response_mode: stream ? 'stream' : 'buffered',
+        }),
+        autofix,
+      };
+    }
+    const rejected = friendly();
+    return {
+      ...rejected,
+      meta: {
+        ...rejected.meta,
+        attempt: attempt.forward.attempt,
+        providerCallStarted: attempt.forward.providerCallStarted,
+      },
+      autofix,
+    };
+  }
+
+  /** The 404 a provider would return for an unknown model, synthesized for the heal contract. */
+  private modelNotFoundForward(model: string): ForwardResult {
+    const error = {
+      message: `Model "${model}" is not available for this agent.`,
+      type: 'invalid_request_error',
+      param: 'model',
+      code: 'model_not_found',
+    };
+    return {
+      response: new Response(JSON.stringify({ error }), {
+        status: 404,
+        headers: { 'content-type': 'application/json' },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+      isResponses: false,
+      isCodeAssist: false,
+    };
+  }
+
+  /** Session-scoped cache lookups threaded into every provider forward. */
+  private buildCacheLookups(sessionKey: string): {
+    signatureLookup: SignatureLookup;
+    thinkingLookup: ThinkingBlockLookup;
+    reasoningContentLookup: ReasoningContentLookup;
+  } {
+    return {
+      signatureLookup: (toolCallId) => this.signatureCache.retrieve(sessionKey, toolCallId),
+      thinkingLookup: (firstToolUseId, routeContext) =>
+        routeContext
+          ? this.thinkingCache.retrieve(sessionKey, firstToolUseId, routeContext)
+          : this.thinkingCache.retrieve(sessionKey, firstToolUseId),
+      reasoningContentLookup: (firstToolCallId) =>
+        this.reasoningCache.retrieve(sessionKey, firstToolCallId),
+    };
   }
 }
 

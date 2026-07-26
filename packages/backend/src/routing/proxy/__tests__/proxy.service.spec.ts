@@ -947,6 +947,161 @@ describe('ProxyService — orchestration', () => {
       expect(body).toContain('gpt-4o');
     });
 
+    it('hands an unavailable explicit model to Auto-fix as a synthetic model-not-found 404', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
+      ]);
+
+      const result = await svc.proxyRequest(
+        baseOpts({
+          body: { model: 'some-retired-model', messages: [{ role: 'user', content: 'hi' }] },
+        }),
+      );
+
+      expect(autofixService.maybeHeal).toHaveBeenCalledTimes(1);
+      const params = autofixService.maybeHeal.mock.calls[0][0];
+      // A bare name implies no vendor — the fingerprint falls back to `manifest`.
+      expect(params.provider).toBe('manifest');
+      expect(params.requestBody).toEqual({
+        model: 'some-retired-model',
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      expect(params.forward.response.status).toBe(404);
+      const syntheticBody = JSON.parse(await params.forward.response.text());
+      expect(syntheticBody.error).toMatchObject({
+        message: 'Model "some-retired-model" is not available for this agent.',
+        type: 'invalid_request_error',
+        param: 'model',
+        code: 'model_not_found',
+      });
+      // maybeHeal resolved null (gates closed) → the friendly M302, no audit.
+      expect(result.meta.manifest_error_code).toBe('M302');
+      expect(result.autofix).toBeUndefined();
+    });
+
+    it('fingerprints the heal under the vendor a prefixed model id implies', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([]);
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: { model: 'openrouter/elephant-alpha', messages: [{ role: 'user', content: 'hi' }] },
+        }),
+      );
+
+      expect(autofixService.maybeHeal).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'openrouter' }),
+      );
+    });
+
+    it('returns the healed forward with the re-resolved route meta when Auto-fix repairs the model', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
+      ]);
+      const healed = {
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      };
+      fallbackService.tryForwardToProvider.mockResolvedValue(healed);
+      autofixService.maybeHeal.mockImplementation(
+        async (params: { reforward: (b: Record<string, unknown>) => Promise<unknown> }) => {
+          const forward = await params.reforward({
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: 'hi' }],
+          });
+          return {
+            forward,
+            record: { groupId: 'g-1', outcome: 'healed', original_http_status: 404, chain: [] },
+          };
+        },
+      );
+
+      const result = await svc.proxyRequest(
+        baseOpts({
+          body: { model: 'some-retired-model', messages: [{ role: 'user', content: 'hi' }] },
+        }),
+      );
+
+      expect(result.forward).toBe(healed);
+      // Meta reflects the re-resolved route, not the friendly manifest stub.
+      expect(result.meta).toMatchObject({
+        tier: 'direct',
+        reason: 'direct',
+        model: 'gpt-4o-mini',
+        provider: 'openai',
+        tenantProviderId: 'up-default',
+        response_mode: 'buffered',
+      });
+      expect(result.meta.manifest_error_code).toBeUndefined();
+      // The audit marks the Manifest origin so recording does not invent an
+      // original Provider Attempt before the real healed retry.
+      expect(result.autofix).toMatchObject({
+        groupId: 'g-1',
+        outcome: 'healed',
+        manifestOrigin: { code: 'M302', model: 'some-retired-model' },
+      });
+      expect(result.autofix?.manifestOrigin?.message).toContain('M302');
+      expect(result.autofix?.manifestOrigin?.message).toContain('some-retired-model');
+    });
+
+    it('keeps the friendly M302 and preserves the failed provider retry attempt', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([]);
+      const retryAttempt = {
+        id: 'attempt-m302-retry',
+        attemptNumber: 1,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        pendingWrite: Promise.resolve(true),
+      };
+      autofixService.maybeHeal.mockResolvedValue({
+        forward: {
+          response: okResponse(404),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+          attempt: retryAttempt,
+          providerCallStarted: true,
+        },
+        record: {
+          groupId: 'g-2',
+          outcome: 'exhausted',
+          original_http_status: 404,
+          chain: [
+            {
+              attempt: 1,
+              origin: 'autofix',
+              request: { model: 'still-unavailable' },
+              http_status: 404,
+              error: { message: 'patched model not found' },
+            },
+          ],
+        },
+      });
+
+      const result = await svc.proxyRequest(
+        baseOpts({
+          body: { model: 'some-retired-model', messages: [{ role: 'user', content: 'hi' }] },
+        }),
+      );
+      const body = await result.forward.response.text();
+
+      // The caller still sees the friendly M302 assistant message, not the 404.
+      expect(result.forward.response.status).toBe(200);
+      expect(body).toContain('M302');
+      expect(result.meta).toMatchObject({
+        reason: 'model_not_available',
+        manifest_error_code: 'M302',
+        attempt: retryAttempt,
+        providerCallStarted: true,
+      });
+      expect(result.autofix).toMatchObject({
+        groupId: 'g-2',
+        outcome: 'exhausted',
+        manifestOrigin: { code: 'M302', model: 'some-retired-model' },
+      });
+    });
+
     // A header rule is an override the operator configured on purpose; the
     // `model` field is mandatory in every OpenAI SDK, so it cannot outrank it.
     it('lets a matching header tier outrank the explicit model', async () => {
