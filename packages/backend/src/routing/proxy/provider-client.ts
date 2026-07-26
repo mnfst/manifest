@@ -713,7 +713,11 @@ export class ProviderClient {
     let timeoutController: AbortController | undefined;
     if (stream) {
       timeoutController = new AbortController();
-      timeout = setTimeout(() => timeoutController?.abort(), PROVIDER_TIMEOUT_MS);
+      timeout = setTimeout(() => {
+        const timeoutError = new Error('Upstream provider request timed out');
+        timeoutError.name = 'TimeoutError';
+        timeoutController?.abort(timeoutError);
+      }, PROVIDER_TIMEOUT_MS);
       fetchSignal = signal
         ? AbortSignal.any([timeoutController.signal, signal])
         : timeoutController.signal;
@@ -734,8 +738,14 @@ export class ProviderClient {
         redirect: 'error',
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      throw new Error(message.replace(/key=[^&\s]+/gi, 'key=***'));
+      const errorLike =
+        err !== null && typeof err === 'object'
+          ? (err as { message?: unknown; name?: unknown })
+          : undefined;
+      const message = typeof errorLike?.message === 'string' ? errorLike.message : String(err);
+      const sanitizedError = new Error(message.replace(/key=[^&\s]+/gi, 'key=***'));
+      if (typeof errorLike?.name === 'string') sanitizedError.name = errorLike.name;
+      throw sanitizedError;
     } finally {
       if (timeout) clearTimeout(timeout);
     }

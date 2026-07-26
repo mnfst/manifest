@@ -1692,6 +1692,35 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.primaryProvider).toBe('openai');
     });
 
+    it('triggers the fallback chain on a provider timeout response', async () => {
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('upstream timed out', { status: 504 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: {
+            response: okResponse(),
+            isGoogle: false,
+            isAnthropic: true,
+            isChatGpt: false,
+          },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+        },
+        failures: [],
+      } as never);
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.tryFallbacks).toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(200);
+      expect(result.meta.fallbackFromModel).toBe('gpt-4o');
+    });
+
     it('triggers fallback on provider context length errors', async () => {
       const message =
         "This model's maximum context length is 262144 tokens. However, your messages resulted in 334146 tokens.";
