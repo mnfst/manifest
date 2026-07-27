@@ -267,7 +267,7 @@ export class ProxyController {
     if (this.recordingCache && this.requestRecording) {
       try {
         if (await this.recordingCache.isRecording(req.ingestionContext.agentId)) {
-          if (await this.requestRecording.start(requestId, apiMode)) {
+          if (await this.requestRecording.start(tenantId, requestId, apiMode)) {
             recordingCapture = createRequestRecordingCapture(body);
           }
         }

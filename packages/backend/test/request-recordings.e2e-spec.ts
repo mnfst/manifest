@@ -11,7 +11,7 @@ import { DataSource } from 'typeorm';
 import { RequestRecordingStorageService } from '../src/common/services/request-recording-storage.service';
 import { decodeRequestRecording } from '../src/common/utils/request-recording-codec';
 import { RequestRecordingRetentionService } from '../src/database/request-recording-retention.service';
-import { createTestApp, TEST_API_KEY, TEST_OTLP_KEY } from './helpers';
+import { createTestApp, TEST_API_KEY, TEST_OTLP_KEY, TEST_TENANT_ID } from './helpers';
 
 type RecordingMetadata = {
   request_id: string;
@@ -106,6 +106,9 @@ describe(`request recording E2E (${expectedBackend})`, () => {
       }),
     );
     expect(jsonRecording.size_bytes).toBeGreaterThan(0);
+    expect(jsonRecording.storage_key).toBe(
+      `request-recordings/v1/tenants/${TEST_TENANT_ID}/${jsonRecording.request_id}.json.gz`,
+    );
 
     const columns = (await dataSource.query(
       `SELECT column_name

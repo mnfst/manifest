@@ -17,14 +17,14 @@ export class RequestRecordingService {
     private readonly storage: RequestRecordingStorageService,
   ) {}
 
-  async start(requestId: string, apiFormat: ProxyApiMode): Promise<boolean> {
+  async start(tenantId: string, requestId: string, apiFormat: ProxyApiMode): Promise<boolean> {
     const backend = this.storage.backend;
     if (!backend) return false;
 
     await this.recordingRepo.save(
       this.recordingRepo.create({
         request_id: requestId,
-        storage_key: this.storage.objectKey(requestId),
+        storage_key: this.storage.objectKey(tenantId, requestId),
         storage_backend: backend,
         status: 'pending',
         api_format: apiFormat,

@@ -222,13 +222,47 @@ describe('RequestRecordingStorageService filesystem driver', () => {
       }) as never,
     );
     await service.onModuleInit();
-    const key = service.objectKey('request-1');
+    const key = service.objectKey('tenant-1', 'request-1');
     const body = Buffer.from('recording');
 
+    expect(key).toBe('request-recordings/v1/tenants/tenant-1/request-1.json.gz');
     await service.put(key, body);
     await expect(service.get('filesystem', key)).resolves.toEqual(body);
     await service.delete('filesystem', key);
     await expect(service.get('filesystem', key)).rejects.toHaveProperty('code', 'ENOENT');
+  });
+
+  it('keeps storage segments inside their tenant namespace', async () => {
+    const service = new RequestRecordingStorageService(
+      config({
+        'app.requestRecordingStorage': 'filesystem',
+        'app.requestRecordingFilesystemPath': directory,
+      }) as never,
+    );
+    await service.onModuleInit();
+
+    expect(service.objectKey('../tenant', 'request/1')).toBe(
+      'request-recordings/v1/tenants/%2E%2E%2Ftenant/request%2F1.json.gz',
+    );
+    expect(() => service.objectKey('', 'request-1')).toThrow(
+      'Request recording storage key segments cannot be empty',
+    );
+  });
+
+  it('continues reading legacy unscoped object keys', async () => {
+    const service = new RequestRecordingStorageService(
+      config({
+        'app.requestRecordingStorage': 'filesystem',
+        'app.requestRecordingFilesystemPath': directory,
+      }) as never,
+    );
+    await service.onModuleInit();
+    const legacyKey = 'request-recordings/v1/request-1.json.gz';
+    const body = Buffer.from('legacy recording');
+
+    await service.put(legacyKey, body);
+
+    await expect(service.get('filesystem', legacyKey)).resolves.toEqual(body);
   });
 
   it('rejects keys that escape the configured recording directory', async () => {

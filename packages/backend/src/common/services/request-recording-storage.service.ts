@@ -33,6 +33,11 @@ export type ResolvedRecordingStorage =
   | ({ backend: 's3' } & S3StorageConfig)
   | { backend: null; reason: string };
 
+function storageKeySegment(value: string): string {
+  if (!value) throw new Error('Request recording storage key segments cannot be empty');
+  return encodeURIComponent(value).replaceAll('.', '%2E');
+}
+
 interface RecordingStorageConfigSource {
   get<T = unknown>(key: string): T | undefined;
 }
@@ -227,8 +232,8 @@ export class RequestRecordingStorageService implements OnModuleInit {
     return this.storage?.backend ?? null;
   }
 
-  objectKey(requestId: string): string {
-    return `request-recordings/v1/${requestId}.json.gz`;
+  objectKey(tenantId: string, requestId: string): string {
+    return `request-recordings/v1/tenants/${storageKeySegment(tenantId)}/${storageKeySegment(requestId)}.json.gz`;
   }
 
   async put(key: string, body: Buffer): Promise<void> {

@@ -9,7 +9,10 @@ describe('RequestRecordingService', () => {
   const repository = { create, save, findOne };
   const storage = {
     backend: 'filesystem' as const,
-    objectKey: jest.fn((requestId: string) => `request-recordings/v1/${requestId}.json.gz`),
+    objectKey: jest.fn(
+      (tenantId: string, requestId: string) =>
+        `request-recordings/v1/tenants/${tenantId}/${requestId}.json.gz`,
+    ),
     put: jest.fn(),
   };
   const service = new RequestRecordingService(repository as never, storage as never);
@@ -26,17 +29,18 @@ describe('RequestRecordingService', () => {
   });
 
   it('starts a request-owned metadata row without putting payloads in PostgreSQL', async () => {
-    await expect(service.start('request-1', 'messages')).resolves.toBe(true);
+    await expect(service.start('tenant-1', 'request-1', 'messages')).resolves.toBe(true);
 
     expect(save).toHaveBeenCalledWith({
       request_id: 'request-1',
-      storage_key: 'request-recordings/v1/request-1.json.gz',
+      storage_key: 'request-recordings/v1/tenants/tenant-1/request-1.json.gz',
       storage_backend: 'filesystem',
       status: 'pending',
       api_format: 'messages',
       content_encoding: 'gzip',
       size_bytes: 0,
     });
+    expect(storage.objectKey).toHaveBeenCalledWith('tenant-1', 'request-1');
     expect(save.mock.calls[0][0]).not.toHaveProperty('request_body');
     expect(save.mock.calls[0][0]).not.toHaveProperty('response_body');
   });
@@ -44,7 +48,7 @@ describe('RequestRecordingService', () => {
   it('does not start recording when storage is unavailable', async () => {
     storage.backend = null as never;
 
-    await expect(service.start('request-1', 'messages')).resolves.toBe(false);
+    await expect(service.start('tenant-1', 'request-1', 'messages')).resolves.toBe(false);
 
     expect(save).not.toHaveBeenCalled();
   });

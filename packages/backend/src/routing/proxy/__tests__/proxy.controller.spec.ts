@@ -605,8 +605,12 @@ describe('ProxyController', () => {
     await controller.chatCompletions(mockRequest(requestBody) as never, res as never);
 
     expect(recordingCache.isRecording).toHaveBeenCalledWith('agent-1');
-    expect(requestRecording.start).toHaveBeenCalledWith(expect.any(String), 'chat_completions');
-    expect(requestRecording.finish).toHaveBeenCalledWith(requestRecording.start.mock.calls[0][0], {
+    expect(requestRecording.start).toHaveBeenCalledWith(
+      'tenant-1',
+      expect.any(String),
+      'chat_completions',
+    );
+    expect(requestRecording.finish).toHaveBeenCalledWith(requestRecording.start.mock.calls[0][1], {
       version: 1,
       request_body: requestBody,
       response_body: {
