@@ -28,7 +28,8 @@ export interface RequestDrawerProps {
   onOpenMessage?: (id: string) => void;
 }
 
-type AttemptTab = 'details' | 'messages' | 'headers' | 'params';
+type AttemptTab = 'details' | 'headers' | 'params';
+type DrawerTab = 'attempts' | 'messages';
 
 interface Attempt {
   id: string;
@@ -209,6 +210,7 @@ function buildAttempts(msg: any): Attempt[] {
 const RequestDrawer: Component<RequestDrawerProps> = (props) => {
   const [selectedAttempt, setSelectedAttempt] = createSignal(0);
   const [tab, setTab] = createSignal<AttemptTab>('details');
+  const [drawerTab, setDrawerTab] = createSignal<DrawerTab>('attempts');
   const open = () => props.messageId !== null;
 
   const [data] = createResource(
@@ -234,7 +236,6 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
     const att = currentAttempt();
     const tabs: Array<{ value: AttemptTab; label: string }> = [
       { value: 'details', label: 'Details' },
-      { value: 'messages', label: 'Messages' },
     ];
     if (att?.request_headers && Object.keys(att.request_headers).length > 0) {
       tabs.push({ value: 'headers', label: 'Request headers' });
@@ -250,6 +251,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
     if (props.messageId) {
       setSelectedAttempt(0);
       setTab('details');
+      setDrawerTab('attempts');
     }
   });
 
@@ -341,7 +343,37 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                 </div>
               </div>
 
-              {/* ── Body: sidebar + content ── */}
+              {/* ── Top-level drawer tabs: Attempts | Messages ── */}
+              <div class="panel__tabs drawer__tabs-full" role="tablist">
+                <button
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': drawerTab() === 'attempts' }}
+                  role="tab"
+                  onClick={() => setDrawerTab('attempts')}
+                >
+                  Attempts
+                </button>
+                <Show when={data()?.recording}>
+                  <button
+                    class="panel__tab"
+                    classList={{ 'panel__tab--active': drawerTab() === 'messages' }}
+                    role="tab"
+                    onClick={() => setDrawerTab('messages')}
+                  >
+                    Messages
+                  </button>
+                </Show>
+              </div>
+
+              {/* ── Messages view ── */}
+              <Show when={drawerTab() === 'messages'}>
+                <div class="drawer__messages-pane">
+                  <RequestMessages recording={data()?.recording ?? null} />
+                </div>
+              </Show>
+
+              {/* ── Attempts view ── */}
+              <Show when={drawerTab() === 'attempts'}>
               <div class="drawer__split">
                 {/* Attempts sidebar — hidden when no attempts */}
                 <Show when={attempts().length > 0}>
@@ -416,9 +448,6 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                             <div style="color: hsl(var(--muted-foreground));">
                               Manifest rejected this request before contacting a provider.
                             </div>
-                          </Show>
-                          <Show when={tab() === 'messages'}>
-                            <RequestMessages recording={data()?.recording ?? null} />
                           </Show>
                         </div>
                       </>
@@ -782,6 +811,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                   </Show>
                 </div>
               </div>
+              </Show>{/* end Attempts view */}
             </>
           )}
         </Show>
