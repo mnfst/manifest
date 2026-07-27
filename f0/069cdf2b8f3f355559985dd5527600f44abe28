@@ -1,0 +1,21 @@
+integrations/n8n-nodes-manifest/README.md
+  s_63dcf43eedb8bd::t_563580d740fefb 56-58,60-61,63-65,67-68
+.github/workflows/publish-n8n-node.yml
+  s_63dcf43eedb8bd::t_7b4d566058d5c0 3-8,11-15,23,44-55,57,61,67-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f0069cdf2b8f3f355559985dd5527600f44abe28",
+  "prompts": {},
+  "sessions": {
+    "s_63dcf43eedb8bd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dc6fec7f-ee5a-4f08-97a9-7de8bb347291",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
