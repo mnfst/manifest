@@ -3483,6 +3483,30 @@ describe('ProviderClient', () => {
       expect(sentBody.service_tier).toBeUndefined();
     });
 
+    it('preserves DeepSeek reasoning_effort in the provider-facing request', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'deepseek',
+        apiKey: 'sk-ds',
+        model: 'deepseek-v4-pro',
+        body: {
+          messages: [{ role: 'user', content: 'Solve this carefully.' }],
+          thinking: { type: 'enabled' },
+          reasoning_effort: 'max',
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).toMatchObject({
+        model: 'deepseek-v4-pro',
+        thinking: { type: 'enabled' },
+        reasoning_effort: 'max',
+      });
+      expect(result.wireRequestBody).toEqual(sentBody);
+    });
+
     it('caps DeepSeek max_tokens at the provider limit', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
