@@ -63,6 +63,17 @@ export const appConfig = registerAs('app', () => ({
   requestRecordingRetentionDays: optionalPositiveInteger(
     process.env['REQUEST_RECORDING_RETENTION_DAYS'],
   ),
+  // Recording storage uses capability detection by default: complete S3
+  // credentials win, otherwise self-hosted installs use their mounted
+  // filesystem. The explicit selector is an escape hatch for custom setups.
+  requestRecordingStorage: process.env['REQUEST_RECORDING_STORAGE'] ?? 'auto',
+  requestRecordingFilesystemPath: process.env['REQUEST_RECORDING_FILESYSTEM_PATH'] ?? '',
+  requestRecordingS3Bucket: process.env['REQUEST_RECORDING_S3_BUCKET'] ?? '',
+  requestRecordingS3Endpoint: process.env['REQUEST_RECORDING_S3_ENDPOINT'] ?? '',
+  requestRecordingS3Region: process.env['REQUEST_RECORDING_S3_REGION'] ?? '',
+  requestRecordingS3AccessKeyId: process.env['REQUEST_RECORDING_S3_ACCESS_KEY_ID'] ?? '',
+  requestRecordingS3SecretAccessKey: process.env['REQUEST_RECORDING_S3_SECRET_ACCESS_KEY'] ?? '',
+  requestRecordingS3ForcePathStyle: process.env['REQUEST_RECORDING_S3_FORCE_PATH_STYLE'] === 'true',
   // Shared secret guarding the internal error-page push endpoint
   // (/api/v1/internal/error-pages). The Peacock CMS sends it in the
   // `x-internal-secret` header to publish/unpublish curated error pages.

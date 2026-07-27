@@ -7,11 +7,20 @@ export interface RecordingResponseBody {
   raw_sse?: string;
 }
 
+export interface StoredRequestRecording {
+  version: 1;
+  request_body: Record<string, unknown>;
+  response_body: RecordingResponseBody;
+}
+
+export type RequestRecordingStatus = 'pending' | 'ready' | 'failed';
+export type RequestRecordingStorageBackend = 'filesystem' | 's3';
+
 /**
  * Opt-in request/response payload capture.
  *
- * The request is the ownership boundary: provider attempts remain in
- * agent_messages, while the caller's original conversation is stored once.
+ * PostgreSQL keeps only the request-owned pointer and lifecycle metadata.
+ * Complete payloads live in the configured filesystem or S3-compatible store.
  */
 @Entity('request_recordings')
 @Index('idx_request_recordings_created_at', ['created_at'])
@@ -19,14 +28,20 @@ export class RequestRecording {
   @PrimaryColumn('varchar')
   request_id!: string;
 
-  @Column('jsonb')
-  request_body!: Record<string, unknown>;
+  @Column('varchar')
+  storage_key!: string;
 
-  @Column('jsonb', { nullable: true })
-  response_body!: RecordingResponseBody | null;
+  @Column('varchar')
+  storage_backend!: RequestRecordingStorageBackend;
+
+  @Column('varchar', { default: 'pending' })
+  status!: RequestRecordingStatus;
 
   @Column('varchar')
   api_format!: string;
+
+  @Column('varchar', { default: 'gzip' })
+  content_encoding!: 'gzip';
 
   @Column('integer', { default: 0 })
   size_bytes!: number;

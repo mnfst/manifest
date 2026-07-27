@@ -82,6 +82,9 @@ services:
       # exotic runtimes produce neither marker. Setting this avoids
       # silently flipping users back to cloud-mode SSRF rules (issue #1780).
       - MANIFEST_MODE=${MANIFEST_MODE:-selfhosted}
+      # Message recordings use this mounted Docker volume automatically when
+      # S3-compatible bucket credentials are not present.
+      - REQUEST_RECORDING_FILESYSTEM_PATH=/data/request-recordings
       # Email provider (optional). Covers both login/verification emails
       # and threshold alert notifications. Set one provider block — see
       # DOCKER_README.md "Email setup". Supports resend, mailgun, sendgrid.
@@ -169,6 +172,8 @@ services:
       - ALL
     mem_limit: 1g
     pids_limit: 512
+    volumes:
+      - recordings:/data/request-recordings
     networks:
       - internal
       - frontend
@@ -212,3 +217,5 @@ volumes:
   # against a fresh empty DB — i.e. data loss.
   pgdata:
     name: manifest_pgdata
+  recordings:
+    name: manifest_request_recordings

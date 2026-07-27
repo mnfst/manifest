@@ -267,8 +267,9 @@ export class ProxyController {
     if (this.recordingCache && this.requestRecording) {
       try {
         if (await this.recordingCache.isRecording(req.ingestionContext.agentId)) {
-          recordingCapture = createRequestRecordingCapture();
-          await this.requestRecording.start(requestId, body, apiMode);
+          if (await this.requestRecording.start(requestId, apiMode)) {
+            recordingCapture = createRequestRecordingCapture(body);
+          }
         }
       } catch (e) {
         recordingCapture = undefined;
@@ -766,10 +767,10 @@ export class ProxyController {
     requestId: string,
     capture: RequestRecordingCapture | undefined,
   ): Promise<void> {
-    const responseBody = capture?.buildResponseBody();
-    if (!responseBody || !this.requestRecording) return;
+    const recording = capture?.buildRecording();
+    if (!recording || !this.requestRecording) return;
     await this.requestRecording
-      .finish(requestId, responseBody)
+      .finish(requestId, recording)
       .catch((e) => this.logger.warn(`Failed to finish request recording: ${e}`));
   }
 

@@ -3,8 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   RequestRecording,
-  type RecordingResponseBody,
+  type StoredRequestRecording,
 } from '../../entities/request-recording.entity';
+import { RequestRecordingStorageService } from '../../common/services/request-recording-storage.service';
+import { encodeRequestRecording } from '../../common/utils/request-recording-codec';
 import type { ProxyApiMode } from './proxy-types';
 
 @Injectable()
@@ -12,42 +14,45 @@ export class RequestRecordingService {
   constructor(
     @InjectRepository(RequestRecording)
     private readonly recordingRepo: Repository<RequestRecording>,
+    private readonly storage: RequestRecordingStorageService,
   ) {}
 
-  async start(
-    requestId: string,
-    requestBody: Record<string, unknown>,
-    apiFormat: ProxyApiMode,
-  ): Promise<void> {
+  async start(requestId: string, apiFormat: ProxyApiMode): Promise<boolean> {
+    const backend = this.storage.backend;
+    if (!backend) return false;
+
     await this.recordingRepo.save(
       this.recordingRepo.create({
         request_id: requestId,
-        request_body: requestBody,
-        response_body: null,
+        storage_key: this.storage.objectKey(requestId),
+        storage_backend: backend,
+        status: 'pending',
         api_format: apiFormat,
-        size_bytes: serializedBytes(requestBody),
+        content_encoding: 'gzip',
+        size_bytes: 0,
       }),
     );
+    return true;
   }
 
-  async finish(requestId: string, responseBody: RecordingResponseBody): Promise<void> {
+  async finish(requestId: string, payload: StoredRequestRecording): Promise<void> {
     const recording = await this.recordingRepo.findOne({
       where: { request_id: requestId },
-      select: ['request_id', 'request_body'],
     });
     if (!recording) return;
 
-    recording.response_body = responseBody;
-    recording.size_bytes = serializedBytes(recording.request_body) + serializedBytes(responseBody);
-    recording.updated_at = new Date().toISOString();
-    await this.recordingRepo.save(recording);
-  }
-}
-
-function serializedBytes(value: unknown): number {
-  try {
-    return Buffer.byteLength(JSON.stringify(value), 'utf8');
-  } catch {
-    return 0;
+    try {
+      const encoded = await encodeRequestRecording(payload);
+      await this.storage.put(recording.storage_key, encoded);
+      recording.status = 'ready';
+      recording.size_bytes = encoded.byteLength;
+      recording.updated_at = new Date().toISOString();
+      await this.recordingRepo.save(recording);
+    } catch (error) {
+      recording.status = 'failed';
+      recording.updated_at = new Date().toISOString();
+      await this.recordingRepo.save(recording).catch(() => undefined);
+      throw error;
+    }
   }
 }

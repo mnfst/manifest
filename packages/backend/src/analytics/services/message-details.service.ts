@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -10,6 +10,8 @@ import {
   RequestRecording,
   type RecordingResponseBody,
 } from '../../entities/request-recording.entity';
+import { RequestRecordingStorageService } from '../../common/services/request-recording-storage.service';
+import { decodeRequestRecording } from '../../common/utils/request-recording-codec';
 
 export interface MessageDetailResponse {
   recording: {
@@ -101,6 +103,8 @@ export interface MessageDetailResponse {
 
 @Injectable()
 export class MessageDetailsService {
+  private readonly logger = new Logger(MessageDetailsService.name);
+
   constructor(
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
@@ -110,6 +114,8 @@ export class MessageDetailsService {
     @Optional()
     @InjectRepository(RequestRecording)
     private readonly recordingRepo?: Repository<RequestRecording>,
+    @Optional()
+    private readonly recordingStorage?: RequestRecordingStorageService,
   ) {}
 
   async getDetails(messageId: string, tenantId: string | null): Promise<MessageDetailResponse> {
@@ -156,10 +162,13 @@ export class MessageDetailsService {
     }
     if (!message && !request) throw new NotFoundException('Message not found');
 
-    const recording =
+    const recordingMetadata =
       request && this.recordingRepo
-        ? await this.recordingRepo.findOne({ where: { request_id: request.id } })
+        ? await this.recordingRepo.findOne({
+            where: { request_id: request.id, status: 'ready' },
+          })
         : null;
+    const recording = recordingMetadata ? await this.loadRecording(recordingMetadata) : null;
 
     const autofix_sibling = message?.autofix_group_id
       ? await this.findAutofixSibling(message.id, message.autofix_group_id, tenantId)
@@ -191,9 +200,9 @@ export class MessageDetailsService {
         ? {
             request_body: recording.request_body,
             response_body: recording.response_body,
-            api_format: recording.api_format,
-            size_bytes: recording.size_bytes,
-            created_at: recording.created_at,
+            api_format: recordingMetadata!.api_format,
+            size_bytes: recordingMetadata!.size_bytes,
+            created_at: recordingMetadata!.created_at,
           }
         : null,
       message: {
@@ -285,6 +294,22 @@ export class MessageDetailsService {
       },
     };
     return response;
+  }
+
+  private async loadRecording(recording: RequestRecording) {
+    if (!this.recordingStorage || recording.content_encoding !== 'gzip') return null;
+    try {
+      return await decodeRequestRecording(
+        await this.recordingStorage.get(recording.storage_backend, recording.storage_key),
+      );
+    } catch (error) {
+      this.logger.warn(
+        `Failed to load request recording ${recording.request_id}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      return null;
+    }
   }
 
   /** Resolve the paired Auto-fix row (failed original ↔ successful retry). */

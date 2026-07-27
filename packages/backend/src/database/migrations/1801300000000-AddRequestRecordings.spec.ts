@@ -13,8 +13,14 @@ describe('AddRequestRecordings1801300000000', () => {
     const sql = query.mock.calls.map(([statement]) => statement).join(' ');
     expect(sql).toContain('"record_messages" boolean NOT NULL DEFAULT false');
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS "request_recordings"');
+    expect(sql).toContain('"storage_key" varchar NOT NULL');
+    expect(sql).toContain('"storage_backend" varchar NOT NULL');
+    expect(sql).toContain('"status" varchar NOT NULL DEFAULT \'pending\'');
+    expect(sql).toContain('"content_encoding" varchar NOT NULL DEFAULT \'gzip\'');
+    expect(sql).not.toContain('"request_body" jsonb');
+    expect(sql).not.toContain('"response_body" jsonb');
     expect(sql).toContain(
-      'FOREIGN KEY ("request_id") REFERENCES "requests"("id") ON DELETE CASCADE',
+      'FOREIGN KEY ("request_id") REFERENCES "requests"("id") ON DELETE RESTRICT',
     );
     expect(sql).toContain(
       'CREATE INDEX IF NOT EXISTS "idx_request_recordings_created_at" ON "request_recordings" ("created_at")',

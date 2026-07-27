@@ -1,3 +1,5 @@
+import { decodeRequestRecording } from '../../common/utils/request-recording-codec';
+import type { StoredRequestRecording } from '../../entities/request-recording.entity';
 import { RequestRecordingService } from './request-recording.service';
 
 describe('RequestRecordingService', () => {
@@ -5,76 +7,114 @@ describe('RequestRecordingService', () => {
   const save = jest.fn();
   const findOne = jest.fn();
   const repository = { create, save, findOne };
-  const service = new RequestRecordingService(repository as never);
+  const storage = {
+    backend: 'filesystem' as const,
+    objectKey: jest.fn((requestId: string) => `request-recordings/v1/${requestId}.json.gz`),
+    put: jest.fn(),
+  };
+  const service = new RequestRecordingService(repository as never, storage as never);
+  const payload: StoredRequestRecording = {
+    version: 1,
+    request_body: { messages: [{ role: 'user', content: 'hello' }] },
+    response_body: { type: 'json', body: { output_text: 'hi' } },
+  };
 
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    save.mockImplementation(async (value) => value);
+    storage.backend = 'filesystem';
+  });
 
-  it('starts a request-owned recording with the API format', async () => {
-    save.mockResolvedValue(undefined);
-    await service.start('request-1', { messages: [{ role: 'user', content: 'hi' }] }, 'messages');
+  it('starts a request-owned metadata row without putting payloads in PostgreSQL', async () => {
+    await expect(service.start('request-1', 'messages')).resolves.toBe(true);
 
-    expect(save).toHaveBeenCalledWith(
+    expect(save).toHaveBeenCalledWith({
+      request_id: 'request-1',
+      storage_key: 'request-recordings/v1/request-1.json.gz',
+      storage_backend: 'filesystem',
+      status: 'pending',
+      api_format: 'messages',
+      content_encoding: 'gzip',
+      size_bytes: 0,
+    });
+    expect(save.mock.calls[0][0]).not.toHaveProperty('request_body');
+    expect(save.mock.calls[0][0]).not.toHaveProperty('response_body');
+  });
+
+  it('does not start recording when storage is unavailable', async () => {
+    storage.backend = null as never;
+
+    await expect(service.start('request-1', 'messages')).resolves.toBe(false);
+
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it('gzip-encodes the complete accepted payload and marks metadata ready', async () => {
+    const recording = {
+      request_id: 'request-1',
+      storage_key: 'request-recordings/v1/request-1.json.gz',
+      storage_backend: 'filesystem',
+      status: 'pending',
+      api_format: 'messages',
+      content_encoding: 'gzip',
+      size_bytes: 0,
+    };
+    findOne.mockResolvedValue(recording);
+
+    await service.finish('request-1', payload);
+
+    const encoded = storage.put.mock.calls[0][1] as Buffer;
+    expect(storage.put).toHaveBeenCalledWith(recording.storage_key, expect.any(Buffer));
+    await expect(decodeRequestRecording(encoded)).resolves.toEqual(payload);
+    expect(save).toHaveBeenLastCalledWith(
       expect.objectContaining({
         request_id: 'request-1',
-        api_format: 'messages',
-        response_body: null,
+        status: 'ready',
+        size_bytes: encoded.byteLength,
       }),
     );
   });
 
-  it('stores an accepted request body without truncating it', async () => {
-    const requestBody = { input: 'x'.repeat(2 * 1024 * 1024) };
-    save.mockResolvedValue(undefined);
+  it('stores large accepted recordings completely rather than truncating them', async () => {
+    const largePayload: StoredRequestRecording = {
+      ...payload,
+      request_body: { input: 'x'.repeat(2 * 1024 * 1024) },
+    };
+    findOne.mockResolvedValue({
+      request_id: 'request-large',
+      storage_key: 'request-recordings/v1/request-large.json.gz',
+      storage_backend: 'filesystem',
+      status: 'pending',
+    });
 
-    await service.start('request-large', requestBody, 'responses');
+    await service.finish('request-large', largePayload);
 
-    expect(save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        request_id: 'request-large',
-        request_body: requestBody,
-        size_bytes: Buffer.byteLength(JSON.stringify(requestBody)),
-      }),
+    await expect(decodeRequestRecording(storage.put.mock.calls[0][1] as Buffer)).resolves.toEqual(
+      largePayload,
     );
   });
 
-  it('keeps recording available when a payload cannot be serialized for accounting', async () => {
-    const requestBody: Record<string, unknown> = {};
-    requestBody.self = requestBody;
-    save.mockResolvedValue(undefined);
+  it('marks metadata failed when object storage rejects the write', async () => {
+    const recording = {
+      request_id: 'request-1',
+      storage_key: 'request-recordings/v1/request-1.json.gz',
+      storage_backend: 'filesystem',
+      status: 'pending',
+    };
+    findOne.mockResolvedValue(recording);
+    storage.put.mockRejectedValue(new Error('offline'));
 
-    await service.start('request-circular', requestBody, 'chat_completions');
+    await expect(service.finish('request-1', payload)).rejects.toThrow('offline');
 
-    expect(create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        request_id: 'request-circular',
-        request_body: requestBody,
-        size_bytes: 0,
-      }),
-    );
+    expect(save).toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }));
   });
 
-  it('finishes the recording and accounts for both payloads', async () => {
-    findOne.mockResolvedValue({ request_id: 'request-1', request_body: { input: 'hello' } });
-    save.mockResolvedValue(undefined);
-    const response = { type: 'json' as const, body: { output_text: 'hi' } };
-
-    await service.finish('request-1', response);
-
-    expect(save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        response_body: response,
-        size_bytes:
-          Buffer.byteLength(JSON.stringify({ input: 'hello' })) +
-          Buffer.byteLength(JSON.stringify(response)),
-      }),
-    );
-  });
-
-  it('does nothing when the recording was not started', async () => {
+  it('does nothing when the metadata row was not started', async () => {
     findOne.mockResolvedValue(null);
 
-    await service.finish('missing-request', { type: 'json', body: {} });
+    await service.finish('missing-request', payload);
 
+    expect(storage.put).not.toHaveBeenCalled();
     expect(save).not.toHaveBeenCalled();
   });
 });

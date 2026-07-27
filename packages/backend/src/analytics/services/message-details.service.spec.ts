@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { gzipSync } from 'node:zlib';
 import { MessageDetailsService } from './message-details.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 
@@ -353,17 +354,28 @@ describe('MessageDetailsService', () => {
     ];
     const recording = {
       request_id: 'request-1',
-      request_body: { messages: [{ role: 'user', content: 'hello' }] },
-      response_body: { type: 'json', body: { choices: [] } },
+      storage_key: 'request-recordings/v1/request-1.json.gz',
+      storage_backend: 'filesystem',
+      status: 'ready',
       api_format: 'chat_completions',
+      content_encoding: 'gzip',
       size_bytes: 120,
       created_at: '2026-07-14T10:00:00Z',
     };
+    const storedPayload = {
+      version: 1,
+      request_body: { messages: [{ role: 'user', content: 'hello' }] },
+      response_body: { type: 'json', body: { choices: [] } },
+    };
     const recordingRepo = { findOne: jest.fn().mockResolvedValue(recording) };
+    const recordingStorage = {
+      get: jest.fn().mockResolvedValue(gzipSync(JSON.stringify(storedPayload))),
+    };
     const requestAware = new MessageDetailsService(
       { find: jest.fn().mockResolvedValue(attempts) } as never,
       { findOne: jest.fn().mockResolvedValue(requestRow) } as never,
       recordingRepo as never,
+      recordingStorage as never,
     );
 
     const result = await requestAware.getDetails('request-1', 't1');
@@ -389,10 +401,16 @@ describe('MessageDetailsService', () => {
       expect.objectContaining({ id: 'attempt-1', provider: 'openai' }),
       expect.objectContaining({ id: 'attempt-2', provider: 'anthropic' }),
     ]);
-    expect(recordingRepo.findOne).toHaveBeenCalledWith({ where: { request_id: 'request-1' } });
+    expect(recordingRepo.findOne).toHaveBeenCalledWith({
+      where: { request_id: 'request-1', status: 'ready' },
+    });
+    expect(recordingStorage.get).toHaveBeenCalledWith(
+      'filesystem',
+      'request-recordings/v1/request-1.json.gz',
+    );
     expect(result.recording).toEqual({
-      request_body: recording.request_body,
-      response_body: recording.response_body,
+      request_body: storedPayload.request_body,
+      response_body: storedPayload.response_body,
       api_format: 'chat_completions',
       size_bytes: 120,
       created_at: '2026-07-14T10:00:00Z',
@@ -419,6 +437,35 @@ describe('MessageDetailsService', () => {
         request_params: { temperature: 0.2 },
       }),
     );
+  });
+
+  it('keeps request details available when the recording object cannot be loaded', async () => {
+    const requestAware = new MessageDetailsService(
+      { find: jest.fn().mockResolvedValue([baseMessage]) } as never,
+      {
+        findOne: jest.fn().mockResolvedValue({
+          id: 'request-1',
+          tenant_id: 't1',
+          timestamp: baseMessage.timestamp,
+          status: 'ok',
+        }),
+      } as never,
+      {
+        findOne: jest.fn().mockResolvedValue({
+          request_id: 'request-1',
+          storage_key: 'request-recordings/v1/request-1.json.gz',
+          storage_backend: 's3',
+          status: 'ready',
+          content_encoding: 'gzip',
+        }),
+      } as never,
+      { get: jest.fn().mockRejectedValue(new Error('bucket offline')) } as never,
+    );
+
+    const result = await requestAware.getDetails('request-1', 't1');
+
+    expect(result.message.id).toBe('request-1');
+    expect(result.recording).toBeNull();
   });
 
   it('follows a linked attempt to its request after the online backfill', async () => {

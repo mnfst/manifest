@@ -8,6 +8,7 @@ import { TenantCacheService } from './services/tenant-cache.service';
 import { UserCacheInterceptor } from './interceptors/user-cache.interceptor';
 import { AgentCacheInterceptor } from './interceptors/agent-cache.interceptor';
 import { AgentRecordingCacheService } from './services/agent-recording-cache.service';
+import { RequestRecordingStorageService } from './services/request-recording-storage.service';
 
 @Global()
 @Module({
@@ -19,6 +20,7 @@ import { AgentRecordingCacheService } from './services/agent-recording-cache.ser
     UserCacheInterceptor,
     AgentCacheInterceptor,
     AgentRecordingCacheService,
+    RequestRecordingStorageService,
   ],
   exports: [
     IngestEventBusService,
@@ -27,6 +29,7 @@ import { AgentRecordingCacheService } from './services/agent-recording-cache.ser
     UserCacheInterceptor,
     AgentCacheInterceptor,
     AgentRecordingCacheService,
+    RequestRecordingStorageService,
   ],
 })
 export class CommonModule {}

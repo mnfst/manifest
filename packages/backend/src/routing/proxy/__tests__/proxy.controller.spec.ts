@@ -191,7 +191,7 @@ describe('ProxyController', () => {
     observationReporter = { report: jest.fn() };
     recordingCache = { isRecording: jest.fn().mockResolvedValue(false) };
     requestRecording = {
-      start: jest.fn().mockResolvedValue(undefined),
+      start: jest.fn().mockResolvedValue(true),
       finish: jest.fn().mockResolvedValue(undefined),
     };
     const mockCustomProviders = {
@@ -605,14 +605,14 @@ describe('ProxyController', () => {
     await controller.chatCompletions(mockRequest(requestBody) as never, res as never);
 
     expect(recordingCache.isRecording).toHaveBeenCalledWith('agent-1');
-    expect(requestRecording.start).toHaveBeenCalledWith(
-      expect.any(String),
-      requestBody,
-      'chat_completions',
-    );
+    expect(requestRecording.start).toHaveBeenCalledWith(expect.any(String), 'chat_completions');
     expect(requestRecording.finish).toHaveBeenCalledWith(requestRecording.start.mock.calls[0][0], {
-      type: 'json',
-      body: responseBody,
+      version: 1,
+      request_body: requestBody,
+      response_body: {
+        type: 'json',
+        body: responseBody,
+      },
     });
   });
 
@@ -638,11 +638,15 @@ describe('ProxyController', () => {
 
     expect(res.status).toHaveBeenCalledWith(429);
     expect(requestRecording.finish).toHaveBeenCalledWith(expect.any(String), {
-      type: 'json',
-      body: {
-        error: {
-          message: 'Rate limited by upstream provider',
-          type: 'rate_limit_error',
+      version: 1,
+      request_body: { messages: [] },
+      response_body: {
+        type: 'json',
+        body: {
+          error: {
+            message: 'Rate limited by upstream provider',
+            type: 'rate_limit_error',
+          },
         },
       },
     });

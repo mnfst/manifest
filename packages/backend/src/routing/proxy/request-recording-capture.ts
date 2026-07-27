@@ -1,14 +1,26 @@
-import type { RecordingResponseBody } from '../../entities/request-recording.entity';
+import type {
+  RecordingResponseBody,
+  StoredRequestRecording,
+} from '../../entities/request-recording.entity';
 
 export interface RequestRecordingCapture {
   appendRaw(text: string): void;
   setJson(body: unknown): void;
   buildResponseBody(): RecordingResponseBody | null;
+  buildRecording(): StoredRequestRecording | null;
 }
 
-export function createRequestRecordingCapture(): RequestRecordingCapture {
+export function createRequestRecordingCapture(
+  requestBody: Record<string, unknown> = {},
+): RequestRecordingCapture {
   let rawSse = '';
   let jsonBody: unknown;
+
+  const buildResponseBody = (): RecordingResponseBody | null => {
+    if (jsonBody !== undefined) return { type: 'json', body: jsonBody };
+    if (rawSse) return { type: 'stream', raw_sse: rawSse };
+    return null;
+  };
 
   return {
     appendRaw(text: string): void {
@@ -18,10 +30,16 @@ export function createRequestRecordingCapture(): RequestRecordingCapture {
       jsonBody = body;
       rawSse = '';
     },
-    buildResponseBody(): RecordingResponseBody | null {
-      if (jsonBody !== undefined) return { type: 'json', body: jsonBody };
-      if (rawSse) return { type: 'stream', raw_sse: rawSse };
-      return null;
+    buildResponseBody,
+    buildRecording(): StoredRequestRecording | null {
+      const responseBody = buildResponseBody();
+      return responseBody
+        ? {
+            version: 1,
+            request_body: requestBody,
+            response_body: responseBody,
+          }
+        : null;
     },
   };
 }
