@@ -461,6 +461,27 @@ describe('ProviderModelFetcherService', () => {
       expect(result.map((m) => m.id)).toEqual(['gpt-4o', 'gpt-4.1']);
     });
 
+    it('should keep GPT-5.6 models returned by OpenAI', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'gpt-5.6-sol', object: 'model', created: 1782228018, owned_by: 'system' },
+            { id: 'gpt-5.6-terra', object: 'model', created: 1782228459, owned_by: 'system' },
+            { id: 'gpt-5.6-luna', object: 'model', created: 1782228658, owned_by: 'system' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'sk-test');
+
+      expect(result.map((model) => model.id)).toEqual([
+        'gpt-5.6-sol',
+        'gpt-5.6-terra',
+        'gpt-5.6-luna',
+      ]);
+    });
+
     it('should keep Responses-only chat models (Codex/-pro/o1-pro/deep-research) so the proxy can route them to /v1/responses', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,

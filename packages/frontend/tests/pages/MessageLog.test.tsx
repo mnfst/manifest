@@ -7,6 +7,7 @@ let mockSearchParams: Record<string, string | undefined> = {};
 let mockSearchAgentAccessor: (() => string | undefined) | null = null;
 const mockSetSearchParams = vi.fn();
 const mockNavigate = vi.fn();
+const pingBox = vi.hoisted(() => ({ read: (): number => 0, set: (_value: number) => {} }));
 vi.mock('@solidjs/router', () => ({
   useParams: () => ({ agentName: mockAgentName }),
   useSearchParams: () => [
@@ -16,6 +17,12 @@ vi.mock('@solidjs/router', () => ({
       },
       get status() {
         return mockSearchParams.status;
+      },
+      get request() {
+        return mockSearchParams.request;
+      },
+      get range() {
+        return mockSearchParams.range;
       },
     },
     mockSetSearchParams,
@@ -56,9 +63,99 @@ vi.mock('../../src/services/api.js', () => ({
   clearMessageFeedback: (...args: unknown[]) => mockClearMessageFeedback(...args),
 }));
 
+const mockGetProviderConnections = vi.fn().mockResolvedValue({
+  providers: [
+    {
+      provider: 'openai',
+      auth_type: 'api_key',
+      display_name: null,
+      connection_count: 1,
+      total_models: 0,
+      connections: [
+        {
+          id: 'conn-openai-1',
+          label: 'Default',
+          key_prefix: null,
+          priority: 0,
+          connected_at: '',
+          models_fetched_at: null,
+          cached_model_count: 0,
+          is_active: true,
+        },
+      ],
+    },
+    {
+      provider: 'anthropic',
+      auth_type: 'subscription',
+      display_name: null,
+      connection_count: 1,
+      total_models: 0,
+      connections: [
+        {
+          id: 'conn-anthropic-1',
+          label: 'Team',
+          key_prefix: null,
+          priority: 0,
+          connected_at: '',
+          models_fetched_at: null,
+          cached_model_count: 0,
+          is_active: false,
+        },
+      ],
+    },
+    {
+      provider: 'custom:abc-123',
+      auth_type: 'api_key',
+      display_name: 'Cohere',
+      connection_count: 1,
+      total_models: 0,
+      connections: [
+        {
+          id: 'conn-custom-1',
+          label: 'Default',
+          key_prefix: null,
+          priority: 0,
+          connected_at: '',
+          models_fetched_at: null,
+          cached_model_count: 0,
+          is_active: true,
+        },
+      ],
+    },
+  ],
+  model_counts: {},
+});
+vi.mock('../../src/services/api/providers.js', () => ({
+  getProviders: (...args: unknown[]) => mockGetProviderConnections(...args),
+}));
+
+vi.mock('../../src/components/MultiSelect.jsx', () => ({
+  default: (props: any) => (
+    <select
+      data-testid="multiselect"
+      aria-label={props.label}
+      value={props.values?.[0] ?? ''}
+      onChange={(e: any) => {
+        const value = e.target.value;
+        props.onChange(value ? [value] : []);
+      }}
+    >
+      <option value="">{props.placeholder}</option>
+      {props.options?.map((o: any) => (
+        <option value={o.value}>{o.label}</option>
+      ))}
+    </select>
+  ),
+}));
+
+const mockGetBillingStatus = vi.fn().mockResolvedValue({ enabled: false, plan: 'free' });
+vi.mock('../../src/services/api/billing.js', () => ({
+  getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
+}));
+
 vi.mock('../../src/services/sse.js', () => ({
   pingCount: () => 0,
-  messagePing: () => 0,
+  messagePing: () => pingBox.read(),
   agentPing: () => 0,
   routingPing: () => 0,
 }));
@@ -118,6 +215,12 @@ vi.mock('../../src/components/FeedbackModal.jsx', () => ({
 
 vi.mock('../../src/components/InfoTooltip.jsx', () => ({
   default: () => <span data-testid="info-tooltip" />,
+}));
+
+vi.mock('../../src/components/RequestDrawer.jsx', () => ({
+  default: (props: { messageId: string | null }) => (
+    <div data-testid="request-drawer" data-message-id={props.messageId ?? ''} />
+  ),
 }));
 
 vi.mock('../../src/components/Select.jsx', () => ({
@@ -208,6 +311,11 @@ const selectWithOption = (container: HTMLElement, optionText: string): HTMLSelec
   return select!;
 };
 
+const connectionMultiselect = (container: HTMLElement) =>
+  container.querySelector(
+    '[data-testid="multiselect"][aria-label="Connection filter"]',
+  ) as HTMLSelectElement;
+
 describe('MessageLog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -223,18 +331,22 @@ describe('MessageLog', () => {
     mockGetSpecificityAssignments.mockResolvedValue([]);
     mockGetRoutingStatus.mockResolvedValue({ enabled: false });
     mockListHeaderTiers.mockResolvedValue([]);
+    const [ping, setPing] = createSignal(0);
+    pingBox.read = ping;
+    pingBox.set = setPing;
+    mockGetBillingStatus.mockResolvedValue({ enabled: false, plan: 'free' });
   });
 
-  it('renders Messages heading', () => {
+  it('renders Requests heading', () => {
     mockGetMessages.mockResolvedValue(messagesData);
     render(() => <MessageLog />);
-    expect(screen.getByText('Messages')).toBeDefined();
+    expect(screen.getByText('Requests')).toBeDefined();
   });
 
   it('renders breadcrumb subtitle', () => {
     mockGetMessages.mockResolvedValue(messagesData);
     render(() => <MessageLog />);
-    expect(screen.getByText(/Full log of every LLM call/)).toBeDefined();
+    expect(screen.getByText(/Full log of requests from your app/)).toBeDefined();
   });
 
   it('shows loading skeleton while fetching', () => {
@@ -295,7 +407,7 @@ describe('MessageLog', () => {
     });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('No messages yet');
+      expect(container.textContent).toContain('No requests yet');
     });
   });
 
@@ -306,16 +418,20 @@ describe('MessageLog', () => {
       const selects = container.querySelectorAll('[data-testid="select"]');
       expect(selects.length).toBeGreaterThanOrEqual(1);
     });
-    const selects = container.querySelectorAll('[data-testid="select"]');
     mockGetMessages.mockResolvedValue({
       items: [],
       next_cursor: null,
       total_count: 0,
       providers: ['openai'],
     });
-    await fireEvent.change(selects[0], { target: { value: 'openai' } });
+    await vi.waitFor(() =>
+      expect(connectionMultiselect(container)?.textContent).toContain('OpenAI · Default'),
+    );
+    await fireEvent.change(connectionMultiselect(container), {
+      target: { value: 'conn-openai-1' },
+    });
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('No messages match your filters');
+      expect(container.textContent).toContain('No requests match your filters');
     });
   });
 
@@ -336,7 +452,7 @@ describe('MessageLog', () => {
     await fireEvent.change(selects[0], { target: { value: 'openai' } });
     await vi.waitFor(() => {
       expect(container.textContent).not.toContain('Waiting for data');
-      expect(container.textContent).not.toContain('No messages yet');
+      expect(container.textContent).not.toContain('No requests yet');
     });
   });
 
@@ -349,22 +465,39 @@ describe('MessageLog', () => {
     });
   });
 
-  it('renders provider display names in the filter dropdown', async () => {
+  it('lists every connection in the filter, inactive ones included', async () => {
     mockGetMessages.mockResolvedValue(messagesData);
-    mockGetMessageFilterOptions.mockResolvedValue({
-      providers: ['anthropic', 'openai', 'unknown-provider'],
-    });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      const select = container.querySelector('[data-testid="select"]');
-      expect(select).not.toBeNull();
-      // Known providers resolve to display names
-      expect(select!.textContent).toContain('Anthropic');
-      expect(select!.textContent).toContain('OpenAI');
-      // Unknown providers fall back to the raw ID
-      expect(select!.textContent).toContain('unknown-provider');
-      expect(select!.textContent).toContain('All providers');
+      const ms = connectionMultiselect(container);
+      expect(ms).not.toBeNull();
+      // Connection labels are "<provider display name> · <key label>".
+      expect(ms.textContent).toContain('OpenAI · Default');
+      // Inactive connections stay listed: the log keeps their history.
+      expect(ms.textContent).toContain('Anthropic · Team');
+      expect(ms.textContent).toContain('All connections');
     });
+  });
+
+  it('sends the selected connection ids to the API', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() =>
+      expect(connectionMultiselect(container)?.textContent).toContain('OpenAI · Default'),
+    );
+    mockGetMessages.mockClear();
+    await fireEvent.change(connectionMultiselect(container), {
+      target: { value: 'conn-openai-1' },
+    });
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(
+        expect.objectContaining({ connections: 'conn-openai-1' }),
+      );
+    });
+    expect(mockSetSearchParams).toHaveBeenCalledWith(
+      { connections: 'conn-openai-1' },
+      { replace: true },
+    );
   });
 
   it('debounces cost filter inputs', async () => {
@@ -408,19 +541,37 @@ describe('MessageLog', () => {
     vi.useRealTimers();
   });
 
-  it('keeps showing stale data during refetch instead of skeletons', async () => {
+  it('shows the loading skeleton when filters change', async () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain('msg-1234');
     });
 
-    // Trigger a refetch that never resolves
+    // A filter change requests a different dataset and never resolves.
     mockGetMessages.mockReturnValue(new Promise(() => {}));
-    const selects = container.querySelectorAll('[data-testid="select"]');
-    await fireEvent.change(selects[0], { target: { value: 'openai' } });
+    await fireEvent.change(connectionMultiselect(container), {
+      target: { value: 'conn-openai-1' },
+    });
 
-    // Should still show old data, not skeletons
+    await vi.waitFor(() => {
+      expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+    });
+    expect(container.textContent).not.toContain('msg-1234');
+  });
+
+  it('keeps showing data during a background ping refetch instead of skeletons', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('msg-1234');
+    });
+
+    // A background SSE ping refetches the same query and never resolves.
+    mockGetMessages.mockReturnValue(new Promise(() => {}));
+    pingBox.set(1);
+    await vi.waitFor(() => expect(mockGetMessages).toHaveBeenCalledTimes(2));
+
     expect(container.textContent).toContain('msg-1234');
     expect(container.querySelectorAll('.skeleton').length).toBe(0);
   });
@@ -528,24 +679,94 @@ describe('MessageLog', () => {
     expect(mockSetSearchParams).toHaveBeenCalledWith({ status: 'failed' }, { replace: true });
   });
 
-  it('filters messages by trigger', async () => {
+  it('filters messages by period range', async () => {
     mockGetMessages.mockResolvedValue(messagesData);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(selectWithOption(container, 'All triggers')).toBeDefined();
+      expect(selectWithOption(container, 'All time')).toBeDefined();
     });
 
-    const triggerSelect = selectWithOption(container, 'All triggers');
-    expect(triggerSelect.textContent).toContain('No trigger');
-    expect(triggerSelect.textContent).toContain('Fallback');
-    expect(triggerSelect.textContent).toContain('Auto-fix');
+    const rangeSelect = selectWithOption(container, 'All time');
+    expect(rangeSelect.textContent).toContain('Last 24 hours');
+    expect(rangeSelect.textContent).toContain('Last 7 days');
+    expect(rangeSelect.textContent).toContain('Last 365 days');
+
+    mockGetMessages.mockClear();
+    await fireEvent.change(rangeSelect, { target: { value: '7d' } });
+
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(expect.objectContaining({ range: '7d' }));
+    });
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ range: '7d' }, { replace: true });
+  });
+
+  it('clamps a Pro-range deep link before loading data for a free plan', async () => {
+    mockSearchParams = { range: '365d' };
+    mockGetBillingStatus.mockResolvedValue({ enabled: true, plan: 'free' });
+    mockGetMessages.mockResolvedValue(messagesData);
+
+    render(() => <MessageLog />);
+
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(expect.objectContaining({ range: '7d' }));
+    });
+    expect(mockGetMessages).not.toHaveBeenCalledWith(expect.objectContaining({ range: '365d' }));
+    await vi.waitFor(() => {
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ range: '7d' }, { replace: true });
+    });
+  });
+
+  it('filters messages by attempt status (plain select, URL-synced)', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(selectWithOption(container, 'All attempt statuses')).toBeDefined();
+    });
+    const attemptSelect = selectWithOption(container, 'All attempt statuses');
+    expect(attemptSelect.textContent).toContain('With a failed attempt');
+    expect(attemptSelect.textContent).toContain('With a succeeded attempt');
+
+    mockGetMessages.mockClear();
+    await fireEvent.change(attemptSelect, { target: { value: 'has_failed' } });
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(
+        expect.objectContaining({ attempts: 'has_failed' }),
+      );
+    });
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ attempts: 'has_failed' }, { replace: true });
+  });
+
+  it('filters messages by recovery reading (plain select, URL-synced)', async () => {
+    mockGetMessages.mockResolvedValue(messagesData);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(selectWithOption(container, 'All attempts')).toBeDefined();
+    });
+
+    const triggerSelect = selectWithOption(container, 'All attempts');
+    expect(triggerSelect.textContent).toContain('With any recovery attempt');
+    expect(triggerSelect.textContent).toContain('With an auto-fix attempt');
+    expect(triggerSelect.textContent).toContain('With a fallback attempt');
+    expect(triggerSelect.textContent).toContain('No recovery attempt');
 
     mockGetMessages.mockClear();
     await fireEvent.change(triggerSelect, { target: { value: 'fallback' } });
-
     await vi.waitFor(() => {
       expect(mockGetMessages).toHaveBeenCalledWith(
         expect.objectContaining({ trigger: 'fallback' }),
+      );
+    });
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ trigger: 'fallback' }, { replace: true });
+
+    // 'With any recovery attempt' folds both kinds on the wire, so it matches
+    // exactly what the recovered-requests deep links send.
+    mockGetMessages.mockClear();
+    await fireEvent.change(selectWithOption(container, 'All attempts'), {
+      target: { value: 'any' },
+    });
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(
+        expect.objectContaining({ trigger: 'autofix,fallback' }),
       );
     });
   });
@@ -693,16 +914,20 @@ describe('MessageLog', () => {
       expect(selects.length).toBeGreaterThanOrEqual(1);
     });
     // Set a filter to trigger filtered empty state
-    const selects = container.querySelectorAll('[data-testid="select"]');
     mockGetMessages.mockResolvedValue({
       items: [],
       next_cursor: null,
       total_count: 0,
       providers: ['openai'],
     });
-    await fireEvent.change(selects[0], { target: { value: 'openai' } });
+    await vi.waitFor(() =>
+      expect(connectionMultiselect(container)?.textContent).toContain('OpenAI · Default'),
+    );
+    await fireEvent.change(connectionMultiselect(container), {
+      target: { value: 'conn-openai-1' },
+    });
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('No messages match your filters');
+      expect(container.textContent).toContain('No requests match your filters');
     });
     // Click Clear filters
     const clearBtn = container.querySelector('.btn--outline')!;
@@ -862,15 +1087,11 @@ describe('MessageLog', () => {
       });
     });
 
-    it('labels the provider filter option with the custom provider name', async () => {
+    it('labels the connection filter option with the custom provider name', async () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
-      mockGetMessageFilterOptions.mockResolvedValue({
-        providers: ['custom:abc-123'],
-        provider_labels: { 'custom:abc-123': 'Cohere' },
-      });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('Cohere');
+        expect(connectionMultiselect(container)?.textContent).toContain('Cohere · Default');
       });
     });
 
@@ -914,17 +1135,21 @@ describe('MessageLog', () => {
       });
 
       // Set a filter
-      const selects = container.querySelectorAll('[data-testid="select"]');
       mockGetMessages.mockResolvedValue({
         items: [],
         next_cursor: null,
         total_count: 0,
         providers: ['openai'],
       });
-      await fireEvent.change(selects[0], { target: { value: 'openai' } });
+      await vi.waitFor(() =>
+        expect(connectionMultiselect(container)?.textContent).toContain('OpenAI · Default'),
+      );
+      await fireEvent.change(connectionMultiselect(container), {
+        target: { value: 'conn-openai-1' },
+      });
 
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('No messages match your filters');
+        expect(container.textContent).toContain('No requests match your filters');
       });
 
       // Click clear filters
@@ -1032,7 +1257,7 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(messagesData);
     render(() => <MessageLog />);
     // Meta is mocked as null, just ensure it renders without error
-    expect(screen.getByText('Messages')).toBeDefined();
+    expect(screen.getByText('Requests')).toBeDefined();
   });
 
   it('renders routing tier badge when present', async () => {
@@ -1067,11 +1292,10 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(dataWithFallback);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      // Fallback is now shown in the Trigger column, not a Model-cell tier badge.
-      const badge = container.querySelector('.trigger-badge--fallback');
+      // Fallback is now shown in the Self-heal column, not a Model-cell tier badge.
+      const badge = container.querySelector('[title="Fallback"]');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toContain('fallback');
-      expect(badge!.getAttribute('title')).toBe('Triggered by fallback');
+      expect(badge!.getAttribute('title')).toBe('Fallback');
     });
   });
 
@@ -1162,152 +1386,15 @@ describe('MessageLog', () => {
     mockGetMessages.mockResolvedValue(dataWithChain);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      const badge = container.querySelector('.trigger-badge--fallback');
+      const badge = container.querySelector('[title="Fallback"]');
       expect(badge).not.toBeNull();
-      expect(badge!.textContent).toContain('fallback');
+      expect(badge!.getAttribute('title')).toBe('Fallback');
     });
     // The badge lives on the recovered row, and there's exactly one (the failed
-    // original carries no fallback_from_model, so no Trigger badge).
-    expect(container.querySelectorAll('.trigger-badge--fallback').length).toBe(1);
+    // original carries no fallback_from_model, so no Self-heal badge).
+    expect(container.querySelectorAll('[title="Fallback"]').length).toBe(1);
     const successRow = container.querySelector('#msg-success-1')!;
-    expect(successRow.querySelector('.trigger-badge--fallback')).not.toBeNull();
-  });
-
-  it('scrolls to the Auto-fix sibling when the link in an expanded row is clicked', async () => {
-    // The failed original (msg-12345678) links to its successful retry
-    // (msg-87654321). Expanding the original renders the real MessageDetails,
-    // whose Auto-fix link calls MessageLog's scrollToMessage(sibling.id).
-    mockGetMessages.mockResolvedValue(messagesData);
-    mockGetMessageDetails.mockResolvedValue({
-      message: {
-        id: 'msg-12345678',
-        timestamp: '2026-02-18T10:00:00Z',
-        agent_name: 'test-agent',
-        model: 'gpt-4o',
-        status: 'error',
-        error_message: 'Unknown parameter: max_tokens',
-        description: null,
-        service_type: 'agent',
-        input_tokens: 100,
-        output_tokens: 50,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        cost_usd: 0.01,
-        duration_ms: 1200,
-        trace_id: null,
-        routing_tier: 'standard',
-        routing_reason: null,
-        specificity_category: null,
-        specificity_miscategorized: false,
-        auth_type: 'api_key',
-        provider_key_label: null,
-        skill_name: null,
-        fallback_from_model: null,
-        fallback_index: null,
-        session_key: null,
-        feedback_rating: null,
-        feedback_tags: null,
-        feedback_details: null,
-        request_headers: null,
-        request_params: null,
-        header_tier_id: null,
-        header_tier_name: null,
-        header_tier_color: null,
-        caller_attribution: null,
-        autofix_applied: true,
-        autofix_role: 'original',
-        autofix_operations: [{ type: 'rename_param', from: 'max_tokens', to: 'max_output_tokens' }],
-        autofix_sibling: { id: 'msg-87654321', role: 'retry', status: 'ok' },
-      },
-    });
-    const { container } = render(() => <MessageLog />);
-    await vi.waitFor(() => {
-      expect(container.querySelector('.msg-detail__chevron-btn')).not.toBeNull();
-    });
-
-    // The sibling row is the target scrollToMessage() looks up by id.
-    const siblingRow = container.querySelector('#msg-msg-87654321') as HTMLElement;
-    expect(siblingRow).not.toBeNull();
-    const scrollSpy = vi.fn();
-    siblingRow.scrollIntoView = scrollSpy;
-
-    // Expand the failed original's row.
-    const chevron = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
-    fireEvent.click(chevron);
-
-    // Wait for the real MessageDetails to render the Auto-fix link, then click it.
-    const link = await vi.waitFor(() => {
-      const el = container.querySelector('.error-autofix-row__autofix-btn');
-      expect(el).not.toBeNull();
-      return el as HTMLButtonElement;
-    });
-    fireEvent.click(link);
-
-    expect(scrollSpy).toHaveBeenCalled();
-    expect(siblingRow.classList.contains('msg-highlight')).toBe(true);
-  });
-
-  it('scrollToMessage is a no-op when the sibling row is not in the DOM', async () => {
-    // The Auto-fix sibling points at a row that isn't on this page. The lookup
-    // misses and scrollToMessage bails without throwing.
-    mockGetMessages.mockResolvedValue(messagesData);
-    mockGetMessageDetails.mockResolvedValue({
-      message: {
-        id: 'msg-12345678',
-        timestamp: '2026-02-18T10:00:00Z',
-        agent_name: 'test-agent',
-        model: 'gpt-4o',
-        status: 'error',
-        error_message: 'Unknown parameter: max_tokens',
-        description: null,
-        service_type: 'agent',
-        input_tokens: 100,
-        output_tokens: 50,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        cost_usd: 0.01,
-        duration_ms: 1200,
-        trace_id: null,
-        routing_tier: 'standard',
-        routing_reason: null,
-        specificity_category: null,
-        specificity_miscategorized: false,
-        auth_type: 'api_key',
-        provider_key_label: null,
-        skill_name: null,
-        fallback_from_model: null,
-        fallback_index: null,
-        session_key: null,
-        feedback_rating: null,
-        feedback_tags: null,
-        feedback_details: null,
-        request_headers: null,
-        request_params: null,
-        header_tier_id: null,
-        header_tier_name: null,
-        header_tier_color: null,
-        caller_attribution: null,
-        autofix_applied: true,
-        autofix_role: 'original',
-        autofix_operations: null,
-        autofix_sibling: { id: 'not-on-this-page', role: 'retry', status: 'ok' },
-      },
-    });
-    const { container } = render(() => <MessageLog />);
-    await vi.waitFor(() => {
-      expect(container.querySelector('.msg-detail__chevron-btn')).not.toBeNull();
-    });
-
-    const chevron = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
-    fireEvent.click(chevron);
-    const link = await vi.waitFor(() => {
-      const el = container.querySelector('.error-autofix-row__autofix-btn');
-      expect(el).not.toBeNull();
-      return el as HTMLButtonElement;
-    });
-    // No matching #msg-not-on-this-page element — click must not throw.
-    expect(() => fireEvent.click(link)).not.toThrow();
-    expect(container.querySelector('#msg-not-on-this-page')).toBeNull();
+    expect(successRow.querySelector('[title="Fallback"]')).not.toBeNull();
   });
 
   describe('Tier filter', () => {
@@ -1475,9 +1562,10 @@ describe('MessageLog', () => {
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         const selects = container.querySelectorAll('[data-testid="select"]');
-        // In agent mode, first select is provider filter (no "All harnesses" option)
+        // In agent mode, no harness select renders; the first Select is the
+        // recovery filter (connections stay a multiselect, rendered apart).
         expect(selects[0].textContent).not.toContain('All harnesses');
-        expect(selects[0].textContent).toContain('All providers');
+        expect(selects[0].textContent).toContain('All attempts');
       });
     });
 
@@ -1621,7 +1709,7 @@ describe('MessageLog', () => {
       )[0] as HTMLSelectElement;
       fireEvent.change(agentSelect, { target: { value: 'agent-alpha' } });
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('No messages match your filters');
+        expect(container.textContent).toContain('No requests match your filters');
       });
     });
 
@@ -1647,7 +1735,7 @@ describe('MessageLog', () => {
       )[0] as HTMLSelectElement;
       fireEvent.change(agentSelect, { target: { value: 'agent-alpha' } });
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('No messages match your filters');
+        expect(container.textContent).toContain('No requests match your filters');
       });
       // Clear filters — restores data
       mockGetMessages.mockResolvedValue(messagesData);
@@ -1787,12 +1875,12 @@ describe('MessageLog', () => {
   });
 
   describe('global mode title and CTA (Bug 2 + Bug 3)', () => {
-    it("renders 'Messages - Manifest' title without agent prefix in global mode", () => {
+    it("renders 'Requests - Manifest' title without agent prefix in global mode", () => {
       mockAgentName = '';
       mockGetMessages.mockResolvedValue(messagesData);
       const { container } = render(() => <MessageLog />);
       const title = container.querySelector('title');
-      expect(title?.textContent).toBe('Messages - Manifest');
+      expect(title?.textContent).toBe('Requests - Manifest');
     });
 
     it('renders agent-scoped title in agent mode', () => {
@@ -1801,7 +1889,7 @@ describe('MessageLog', () => {
       const { container } = render(() => <MessageLog />);
       const title = container.querySelector('title');
       expect(title?.textContent).toContain('test-agent');
-      expect(title?.textContent).toContain('Messages - Manifest');
+      expect(title?.textContent).toContain('Requests - Manifest');
     });
 
     it("does not render 'undefined' in the title in global mode", () => {
@@ -1837,7 +1925,7 @@ describe('MessageLog', () => {
       });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('No messages yet');
+        expect(container.textContent).toContain('No requests yet');
         // Global empty state guides to /harnesses, not set-up-agent modal
         const link = container.querySelector('a[href="/harnesses"]') as HTMLAnchorElement;
         expect(link).not.toBeNull();
@@ -1857,7 +1945,7 @@ describe('MessageLog', () => {
       });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('No messages yet');
+        expect(container.textContent).toContain('No requests yet');
       });
       // Clicking the "Go to Harnesses" link should use the href attribute, not navigate()
       // Verify no button triggers mockNavigate with "/harnesses/undefined/routing"
@@ -1865,6 +1953,18 @@ describe('MessageLog', () => {
         expect.stringContaining('undefined'),
         expect.anything(),
       );
+    });
+  });
+
+  describe('drawer deep-link (?request=)', () => {
+    it('opens the side panel for the request named in the URL', async () => {
+      mockSearchParams = { request: 'msg-deeplink-1' };
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const drawer = screen.getByTestId('request-drawer');
+        expect(drawer.getAttribute('data-message-id')).toBe('msg-deeplink-1');
+      });
+      mockSearchParams = {};
     });
   });
 });

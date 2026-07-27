@@ -42,6 +42,8 @@ interface ForwardProviderOptions {
   thinkingLookup?: ThinkingBlockLookup;
   reasoningContentLookup?: ReasoningContentLookup;
   paramMergeContext?: ParamMergeContext;
+  tenantProviderId?: string | null;
+  startProviderAttempt?: StartProviderAttempt;
 }
 
 import {
@@ -71,7 +73,13 @@ import {
   buildTransportErrorResponse,
   describeTransportError,
 } from './proxy-transport';
-import type { SignatureLookup, ThinkingBlockLookup, ReasoningContentLookup } from './proxy-types';
+import type {
+  SignatureLookup,
+  ThinkingBlockLookup,
+  ReasoningContentLookup,
+  ProviderAttemptRef,
+  StartProviderAttempt,
+} from './proxy-types';
 import type { ProxyApiMode } from './proxy-types';
 import {
   isRefreshableOAuthCredential,
@@ -87,6 +95,13 @@ import {
 const RATE_LIMIT_COOLDOWN_DEFAULT_MS = 15_000;
 const RATE_LIMIT_COOLDOWN_MAX_MS = 5 * 60_000;
 const MAX_RATE_LIMIT_COOLDOWNS = 2_000;
+const PROVIDER_ATTEMPT_REF = Symbol('providerAttemptRef');
+
+type AttemptTaggedError = Error & { [PROVIDER_ATTEMPT_REF]?: ProviderAttemptRef };
+
+function attemptFromError(error: unknown): ProviderAttemptRef | undefined {
+  return error instanceof Error ? (error as AttemptTaggedError)[PROVIDER_ATTEMPT_REF] : undefined;
+}
 
 export interface FailedFallback {
   model: string;
@@ -102,6 +117,9 @@ export interface FailedFallback {
   // The tenant_providers row that served this failed attempt, so the recorded
   // error row is scoped to the right connection. NULL for local/Ollama.
   tenantProviderId?: string | null;
+  attempt?: ProviderAttemptRef;
+  /** False when the route was rejected locally (for example by a cooldown). */
+  providerCallStarted?: boolean;
 }
 
 @Injectable()
@@ -174,6 +192,7 @@ export class ProxyFallbackService {
     fallbackRoutes?: ModelRoute[] | null,
     paramMergeContext?: ParamMergeContext,
     reasoningContentLookup?: ReasoningContentLookup,
+    startProviderAttempt?: StartProviderAttempt,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -329,6 +348,8 @@ export class ProxyFallbackService {
         thinkingLookup,
         reasoningContentLookup,
         paramMergeContext,
+        tenantProviderId,
+        startProviderAttempt,
       });
 
       if (forward.response.ok) {
@@ -358,6 +379,8 @@ export class ProxyFallbackService {
         errorBody,
         authType,
         tenantProviderId,
+        attempt: forward.attempt,
+        providerCallStarted: forward.providerCallStarted,
       });
 
       const existing = failedAuthByProvider.get(provider.toLowerCase());
@@ -393,6 +416,54 @@ export class ProxyFallbackService {
 
       return {
         response: failureResponse,
+        attempt: attemptFromError(error),
+        providerCallStarted: true,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      };
+    }
+  }
+
+  /** Re-send a healed body without rebuilding the already-resolved provider request. */
+  async retryWireBody(
+    forward: ForwardResult,
+    healedBody: Record<string, unknown>,
+    opts?: Pick<
+      ForwardProviderOptions,
+      'provider' | 'model' | 'authType' | 'tenantProviderId' | 'startProviderAttempt' | 'signal'
+    >,
+  ): Promise<ForwardResult> {
+    if (!forward.retryWireBody) {
+      throw new Error('Provider forward does not support wire-body retry');
+    }
+    if (!opts) return forward.retryWireBody(healedBody);
+    const attempt = opts.startProviderAttempt?.({
+      provider: opts.provider,
+      model: opts.model,
+      authType: opts.authType,
+      tenantProviderId: opts.tenantProviderId,
+    });
+    try {
+      const retried = await forward.retryWireBody(healedBody);
+      if (attempt) attempt.completedAtMs = Date.now();
+      return { ...retried, attempt, providerCallStarted: true };
+    } catch (error) {
+      if (attempt) attempt.completedAtMs = Date.now();
+      if (attempt && error instanceof Error) {
+        (error as AttemptTaggedError)[PROVIDER_ATTEMPT_REF] = attempt;
+      }
+      if (opts.signal?.aborted || !isTransportError(error)) throw error;
+
+      const failureResponse = buildTransportErrorResponse(error);
+      const message = describeTransportError(error);
+      this.logger.warn(
+        `Provider transport failure: provider=${opts.provider} model=${opts.model} status=${failureResponse.status} message=${message}`,
+      );
+      return {
+        response: failureResponse,
+        attempt,
+        providerCallStarted: true,
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
@@ -431,6 +502,7 @@ export class ProxyFallbackService {
       isGoogle: false,
       isAnthropic: false,
       isChatGpt: false,
+      providerCallStarted: false,
     };
   }
 
@@ -527,11 +599,33 @@ export class ProxyFallbackService {
     this.logger.log(
       `OAuth token rejected upstream; refreshed provider=${opts.provider} agent=${opts.agentId}`,
     );
-    return this.forwardToProvider({
+    const rejectedBody = await forward.response
+      .clone()
+      .text()
+      .catch(() => 'OAuth token rejected');
+    await forward.attempt?.completeFailure?.({
+      status: forward.response.status,
+      errorBody: rejectedBody,
+      superseded: true,
+    });
+    const retryOpts = {
       ...opts,
       apiKey: refreshed.apiKey,
       resourceUrl: refreshed.resourceUrl ?? opts.resourceUrl,
-    });
+    };
+    try {
+      return await this.forwardToProvider(retryOpts);
+    } catch (error) {
+      if (opts.signal?.aborted || !isTransportError(error)) throw error;
+      return {
+        response: buildTransportErrorResponse(error),
+        attempt: attemptFromError(error),
+        providerCallStarted: true,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      };
+    }
   }
 
   private async forwardToProvider(opts: ForwardProviderOptions): Promise<ForwardResult> {
@@ -629,33 +723,49 @@ export class ProxyFallbackService {
     const providerResource =
       authType === 'subscription' && provider.toLowerCase() === 'gemini' ? resourceUrl : undefined;
 
-    return this.providerClient.forward({
+    const attempt = opts.startProviderAttempt?.({
       provider,
-      apiKey: effectiveKey,
-      model: forwardModel,
-      body,
-      chatBody,
-      stream,
-      signal,
-      extraHeaders,
-      customEndpoint,
+      model: opts.model,
       authType,
-      apiMode: opts.apiMode,
-      sessionKey: opts.sessionKey,
-      signatureLookup,
-      thinkingLookup,
-      ...(thinkingLookup
-        ? {
-            thinkingRouteContext: {
-              provider,
-              authType,
-              model: opts.model,
-            },
-          }
-        : {}),
-      reasoningContentLookup,
-      providerResource,
+      tenantProviderId: opts.tenantProviderId,
     });
+    try {
+      const forward = await this.providerClient.forward({
+        provider,
+        apiKey: effectiveKey,
+        model: forwardModel,
+        body,
+        chatBody,
+        stream,
+        signal,
+        extraHeaders,
+        customEndpoint,
+        authType,
+        apiMode: opts.apiMode,
+        sessionKey: opts.sessionKey,
+        signatureLookup,
+        thinkingLookup,
+        ...(thinkingLookup
+          ? {
+              thinkingRouteContext: {
+                provider,
+                authType,
+                model: opts.model,
+              },
+            }
+          : {}),
+        reasoningContentLookup,
+        providerResource,
+      });
+      if (attempt) attempt.completedAtMs = Date.now();
+      return { ...forward, attempt, providerCallStarted: true };
+    } catch (error) {
+      if (attempt) attempt.completedAtMs = Date.now();
+      if (attempt && error instanceof Error) {
+        (error as AttemptTaggedError)[PROVIDER_ATTEMPT_REF] = attempt;
+      }
+      throw error;
+    }
   }
 }
 

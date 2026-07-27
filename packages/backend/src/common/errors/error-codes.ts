@@ -67,6 +67,11 @@ export const MANIFEST_ERRORS = {
     template:
       'Model "{model}" is not available for this agent. Use GET /v1/models to list available model IDs, or make the provider available for this agent here: {dashboardUrl}',
   },
+  M303: {
+    title: 'Local provider unavailable on Manifest Cloud',
+    template:
+      'Built-in local providers are only available in self-hosted Manifest. On Manifest Cloud, expose the runtime through a public URL or tunnel and connect it as a custom provider.',
+  },
   M500: {
     title: 'Internal server error',
     template: 'Something broke on our end. Try again in a moment.',

@@ -56,6 +56,16 @@ describe('ErrorDiscoveryService', () => {
     expect(query).toHaveBeenCalledTimes(3);
   });
 
+  it('excludes rows without a tenant from every public aggregate', async () => {
+    setup([], []);
+
+    await service.discover();
+
+    for (const [sql] of query.mock.calls) {
+      expect(sql).toContain('AND e.tenant_id IS NOT NULL');
+    }
+  });
+
   it('returns an empty list when there are no clusters', async () => {
     setup([], []);
 

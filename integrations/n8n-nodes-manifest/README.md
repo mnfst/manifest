@@ -8,7 +8,27 @@ Use [Manifest](https://manifest.build) from n8n workflows. Manifest routes reque
 - Create chat completions with `POST /v1/chat/completions`
 - Create Responses API calls with `POST /v1/responses`
 
-The first version intentionally returns non-streaming JSON responses.
+## Response output
+
+The node handles both response formats returned by Manifest:
+
+- Buffered responses are returned as the API's JSON object.
+- Streamed responses are returned as parsed server-sent events after the stream completes:
+
+```json
+{
+  "responseMode": "stream",
+  "events": [
+    {
+      "event": "message",
+      "data": { "choices": [{ "delta": { "content": "Hello" } }] }
+    },
+    { "event": "message", "data": "[DONE]" }
+  ]
+}
+```
+
+The node waits for a streamed response to finish before passing its parsed events to the next workflow node. Do not set `stream` in **Additional Body**; the node ignores that field so response behavior remains consistent with the route configured in Manifest.
 
 ## Credentials
 
@@ -43,7 +63,7 @@ npm run dev
 
 This package is designed to publish from GitHub Actions with npm provenance.
 
-1. Update the package version in `package.json` and `CHANGELOG.md`.
+1. Update the package version in `package.json`, `package-lock.json`, and `CHANGELOG.md`.
 2. Commit the change.
 3. Push a tag named `n8n-nodes-manifest-v<version>`, for example:
 

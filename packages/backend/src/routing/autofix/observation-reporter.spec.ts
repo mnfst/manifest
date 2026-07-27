@@ -26,6 +26,8 @@ const input: ObservationInput = {
   tenantId: 'tenant-1',
   agentId: 'agent-1',
   provider: 'openai',
+  model: 'gpt-5.1',
+  authType: 'api_key',
   apiMode: 'chat_completions',
   requestBody: { model: 'gpt-5.1', messages: [{ role: 'user', content: 'hi' }] },
   status: 400,

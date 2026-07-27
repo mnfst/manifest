@@ -385,8 +385,13 @@ describe('getSubscriptionKnownModels', () => {
     expect(getSubscriptionKnownModels('qwen')).toBeNull();
   });
 
-  it('returns the fixed model id for moonshot Kimi Coding Plan', () => {
-    expect(getSubscriptionKnownModels('moonshot')).toEqual(['kimi-for-coding']);
+  it('returns the fixed model ids for moonshot Kimi Coding Plan', () => {
+    expect(getSubscriptionKnownModels('moonshot')).toEqual(['kimi-for-coding', 'kimi-k3']);
+  });
+
+  it('returns known models for cline-pass including Kimi K3', () => {
+    const models = getSubscriptionKnownModels('cline-pass');
+    expect(models).toContain('cline-pass/kimi-k3');
   });
 
   it('returns null known models for ollama-cloud (relies on live /api/tags discovery)', () => {
@@ -572,6 +577,7 @@ describe('getSubscriptionCapabilities', () => {
       supportsPromptCaching: true,
       supportsBatching: false,
     });
+    expect(caps?.modelContextWindows?.['kimi-k3']).toBe(1048576);
   });
 
   it('returns capabilities for Qwen Token Plan', () => {
