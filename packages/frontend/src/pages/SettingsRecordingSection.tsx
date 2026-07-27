@@ -1,5 +1,6 @@
 import { createResource, createSignal, type Component } from 'solid-js';
 import { getRecording, updateRecording } from '../services/api.js';
+import { toast } from '../services/toast-store.js';
 
 const SettingsRecordingSection: Component<{ agentName: () => string }> = (props) => {
   const [config, { mutate }] = createResource(() => props.agentName(), getRecording);
@@ -14,7 +15,10 @@ const SettingsRecordingSection: Component<{ agentName: () => string }> = (props)
     setSaving(true);
     try {
       const next = await updateRecording(agentName, { enabled: !enabled() });
-      if (props.agentName() === agentName) mutate(next);
+      if (props.agentName() === agentName) {
+        mutate(next);
+        toast.success(`Message recording ${next.enabled ? 'enabled' : 'disabled'}`);
+      }
     } catch {
       // fetchMutate already shows the backend error.
     } finally {
@@ -30,8 +34,7 @@ const SettingsRecordingSection: Component<{ agentName: () => string }> = (props)
           <div class="settings-card__label">
             <span class="settings-card__label-title">Record request messages</span>
             <span class="settings-card__label-desc">
-              Store new request conversations, tool definitions, and final responses so you can
-              inspect them in the Requests drawer. Existing requests are not affected.
+              Save new request conversations in the Requests drawer.
             </span>
           </div>
           <div class="settings-card__control settings-card__control--end">
