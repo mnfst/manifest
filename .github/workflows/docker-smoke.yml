@@ -65,6 +65,34 @@ jobs:
           done < .env
           printf '%s' "$new" > .env
 
+      - name: Verify self-host configuration wiring
+        working-directory: docker
+        env:
+          HOST_BIND_ADDRESS: 0.0.0.0
+          HOST_PORT: "28080"
+          MANIFEST_VERSION: "6"
+          REQUEST_RECORDING_RETENTION_DAYS: "42"
+          REQUEST_RECORDING_S3_BUCKET: recordings
+          REQUEST_RECORDING_S3_ENDPOINT: http://minio:9000
+          REQUEST_RECORDING_S3_REGION: auto
+          REQUEST_RECORDING_S3_ACCESS_KEY_ID: access
+          REQUEST_RECORDING_S3_SECRET_ACCESS_KEY: secret
+          REQUEST_RECORDING_S3_FORCE_PATH_STYLE: "true"
+        run: |
+          docker compose config --format json > /tmp/compose.json
+          jq -e '
+            .services.manifest.image == "manifestdotbuild/manifest:6" and
+            .services.manifest.ports[0].host_ip == "0.0.0.0" and
+            .services.manifest.ports[0].published == "28080" and
+            .services.manifest.environment.REQUEST_RECORDING_RETENTION_DAYS == "42" and
+            .services.manifest.environment.REQUEST_RECORDING_S3_BUCKET == "recordings" and
+            .services.manifest.environment.REQUEST_RECORDING_S3_ENDPOINT == "http://minio:9000" and
+            .services.manifest.environment.REQUEST_RECORDING_S3_REGION == "auto" and
+            .services.manifest.environment.REQUEST_RECORDING_S3_ACCESS_KEY_ID == "access" and
+            .services.manifest.environment.REQUEST_RECORDING_S3_SECRET_ACCESS_KEY == "secret" and
+            .services.manifest.environment.REQUEST_RECORDING_S3_FORCE_PATH_STYLE == "true"
+          ' /tmp/compose.json
+
       - name: Boot the stack
         working-directory: docker
         run: |
@@ -186,6 +214,84 @@ jobs:
           docker ps --format '{{.Names}}' | tee /tmp/containers.txt
           grep -Eq '^mnfst-manifest-1$' /tmp/containers.txt
           grep -Eq '^mnfst-postgres-1$' /tmp/containers.txt
+
+      - name: Recreate the installation with the pre-feature Compose file
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          install_dir="$RUNNER_TEMP/install-smoke"
+          printf '\nUPGRADE_TEST_SENTINEL=preserve-me\n' >> "$install_dir/.env"
+          sha256sum "$install_dir/.env" > /tmp/install-env.sha256
+
+          (cd "$install_dir" && docker compose down)
+          docker volume rm manifest_request_recordings
+
+          git fetch origin "$BASE_SHA" --depth=1
+          git show "$BASE_SHA:docker/docker-compose.yml" > "$install_dir/docker-compose.yml"
+          (cd "$install_dir" && docker compose up -d)
+
+          for i in $(seq 1 60); do
+            if curl -sSf http://127.0.0.1:2099/api/v1/health >/dev/null; then
+              echo "legacy configuration healthy after ${i}s"
+              break
+            fi
+            if [ "$i" -eq 60 ]; then
+              echo "legacy configuration never became healthy" >&2
+              exit 1
+            fi
+            sleep 2
+          done
+
+          (cd "$install_dir" && docker compose exec -T postgres \
+            psql -U manifest -d manifest -v ON_ERROR_STOP=1 \
+              -c "CREATE TABLE upgrade_sentinel (value text PRIMARY KEY);" \
+              -c "INSERT INTO upgrade_sentinel VALUES ('preserved');")
+
+      - name: Upgrade the pre-feature installation
+        if: github.event_name == 'pull_request'
+        env:
+          MANIFEST_INSTALLER_SOURCE: http://127.0.0.1:38000
+          MANIFEST_INSTALLER_SKIP_PULL: "1"
+        run: |
+          bash docker/install.sh --upgrade --dir "$RUNNER_TEMP/install-smoke" --yes
+
+      - name: Verify the upgrade preserves configuration and data
+        if: github.event_name == 'pull_request'
+        run: |
+          install_dir="$RUNNER_TEMP/install-smoke"
+          sha256sum -c /tmp/install-env.sha256
+          grep -q '^UPGRADE_TEST_SENTINEL=preserve-me$' "$install_dir/.env"
+
+          backup=$(find "$install_dir" -maxdepth 1 \
+            -name 'docker-compose.yml.backup.*' -print -quit)
+          test -n "$backup"
+          ! grep -q 'request-recordings' "$backup"
+          grep -q '^# manifest-compose-version: 1$' "$install_dir/docker-compose.yml"
+
+          (cd "$install_dir" && docker compose config --format json) > /tmp/upgraded-compose.json
+          jq -e '
+            .services.manifest.volumes[] |
+            select(.source == "recordings" and .target == "/data/request-recordings")
+          ' /tmp/upgraded-compose.json
+          jq -e '.volumes.recordings.name == "manifest_request_recordings"' \
+            /tmp/upgraded-compose.json
+          docker volume inspect manifest_request_recordings >/dev/null
+
+          count=$(cd "$install_dir" && docker compose exec -T postgres \
+            psql -U manifest -d manifest -Atc \
+              "SELECT COUNT(*) FROM upgrade_sentinel WHERE value = 'preserved'")
+          test "$count" = "1"
+
+          docker run --rm --user 65532:65532 \
+            -v manifest_request_recordings:/data/request-recordings \
+            --entrypoint /nodejs/bin/node \
+            manifestdotbuild/manifest:latest \
+            -e "const fs=require('fs');const p='/data/request-recordings/.write-test';fs.writeFileSync(p,'ok');fs.unlinkSync(p)"
+
+          curl -sSf http://127.0.0.1:2099/api/v1/health | grep -q '"status":"healthy"'
+          (cd "$install_dir" && docker compose logs manifest) |
+            grep -q 'Request recording storage: filesystem'
 
       - name: Dump backend logs on failure
         if: failure()
