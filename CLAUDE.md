@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-07-20
+Last updated: 2026-07-27
 
 ## What Manifest Is
 
@@ -78,24 +78,34 @@ packages/
 │   │   │   └── current-user.decorator.ts    # @CurrentUser() param decorator
 │   │   ├── database/
 │   │   │   ├── database.module.ts           # TypeORM PostgreSQL config
-│   │   │   ├── database-seeder.service.ts   # Seeds demo data (users, agents, security events)
-│   │   │   ├── datasource.ts               # CLI DataSource for migration commands
+│   │   │   ├── data-source-definitions.ts   # Entities array shared by app + CLI DataSource
+│   │   │   ├── database-seeder.service.ts   # Seeds demo data (users, agents)
+│   │   │   ├── datasource.ts                # CLI DataSource for migration commands
+│   │   │   ├── migrations/                  # TypeORM migration files
+│   │   │   ├── migrate.ts, run-migrations-with-lock.ts # Boot-time migration runner
 │   │   │   ├── pricing-sync.service.ts      # OpenRouter pricing data sync
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
+│   │   │   ├── models-dev-sync.service.ts   # models.dev catalog sync
+│   │   │   ├── db-tuning.service.ts         # Session-level PostgreSQL tuning
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
+│   │   │   ├── seed-cohorts.ts              # Seeds clean/legacy routing-cohort demo logins
+│   │   │   ├── backfills/                   # One-off data backfill scripts
 │   │   │   └── seed-messages.ts             # Demo request/provider-attempt seed data
-│   │   ├── entities/                        # TypeORM entities (22 files)
+│   │   ├── entities/                        # TypeORM entities (32 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
 │   │   │   └── ...                          # request, agent-message (provider attempt), tenant-provider, tier-assignment, header-tier, etc.
 │   │   ├── common/
 │   │   │   ├── guards/api-key.guard.ts      # X-API-Key header auth (timing-safe)
-│   │   │   ├── decorators/public.decorator.ts
+│   │   │   ├── decorators/                  # public.decorator, tenant-context.decorator
 │   │   │   ├── dto/                         # create-agent, range-query, rename-agent DTOs
 │   │   │   ├── filters/spa-fallback.filter.ts
 │   │   │   ├── interceptors/               # agent-cache, user-cache
 │   │   │   ├── constants/                   # api-key, cache, ollama, providers, openai-models, xai-models, subscription-clients
+│   │   │   ├── errors/                      # error-codes (MANIFEST_ERRORS), manifest-error
+│   │   │   ├── cache/                       # dashboard-cache.factory
+│   │   │   ├── middleware/                  # body-parser-limits, http-error-logger, rate-limit-log
 │   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache
 │   │   │   └── utils/                       # crypto, hash, range, period, slugify, url-validation, provider-inference, postgres-sql, cost-calculator, detect-self-hosted, frontend-path, og-rewrite, secret-scrub, ttl-cache, local-ip, etc.
 │   │   ├── health/                          # @Public() health check
@@ -114,9 +124,12 @@ packages/
 │   │   │   ├── header-tiers/               # Header-based tier overrides
 │   │   │   ├── oauth/                       # OAuth flows (Gemini, OpenAI, Kiro, MiniMax)
 │   │   │   └── specificity.controller.ts   # Specificity routing CRUD endpoints
-│   │   ├── scoring/                         # Request complexity scoring engine
-│   │   │   ├── keywords.ts                 # Keyword lists for all dimensions (complexity + specificity)
+│   │   ├── scoring/                         # Request complexity + specificity scoring engine
+│   │   │   ├── config.ts                    # DEFAULT_CONFIG dimension weights
+│   │   │   ├── keywords.ts, keywords/        # Keyword lists for all dimensions (complexity + specificity)
+│   │   │   ├── dimensions/                  # Per-dimension scoring logic
 │   │   │   ├── specificity-detector.ts     # Task-type detection (coding, trading, etc.)
+│   │   │   ├── specificity-signals.ts, specificity-weights.ts
 │   │   │   └── scan-messages.ts            # Message scanner for specificity detection
 │   │   ├── model-prices/                    # Model pricing management + sync
 │   │   ├── notifications/                   # Alert rules, email providers, cron
@@ -149,8 +162,9 @@ packages/
 │   │   │   ├── Login.tsx, Register.tsx       # Auth pages
 │   │   │   ├── ResetPassword.tsx            # Password reset flow
 │   │   │   ├── Workspace.tsx                # Agent grid + create agent
-│   │   │   ├── GlobalOverview.tsx, AgentOverview.tsx # Cross-agent + per-agent dashboards (split from one Overview.tsx)
+│   │   │   ├── GlobalOverview.tsx, AgentOverview.tsx # Cross-agent + per-agent dashboards (both render Overview.tsx; AgentOverview.tsx is a thin re-export)
 │   │   │   ├── AgentDetail.tsx, AgentProviders.tsx   # Per-agent detail + provider connections
+│   │   │   ├── AgentLimitsRedirect.tsx, AgentMessagesRedirect.tsx # Legacy-URL redirects (old /limits, /harnesses/:agent/messages)
 │   │   │   ├── MessageLog.tsx               # Paginated Requests log (legacy filename)
 │   │   │   ├── Account.tsx                  # User profile (session data)
 │   │   │   ├── Settings.tsx, SettingsAutofixSection.tsx # Agent settings + Auto-fix toggle
@@ -166,7 +180,7 @@ packages/
 │   │   │   └── NotFound.tsx                 # 404 page
 │   │   ├── services/
 │   │   │   ├── auth-client.ts               # Better Auth SolidJS client
-│   │   │   ├── api.ts                       # API functions (credentials: include)
+│   │   │   ├── api.ts, api/                 # API functions (credentials: include), split by domain (agents, analytics, autofix, billing, routing, etc.)
 │   │   │   ├── providers.ts                 # ProviderDef list + SPECIFICITY_STAGES + STAGES
 │   │   │   ├── model-display.ts             # Model display-name cache
 │   │   │   ├── formatters.ts               # Number/cost formatting
@@ -217,9 +231,8 @@ Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test onl
 
 - **Admin user**: `admin@manifest.build` / `manifest` (email verification email is skipped if Mailgun is not configured — user is created but unverified)
 - **Tenant**: `seed-tenant-001` linked to the admin user
-- **Agent**: `demo-agent` with OTLP key `dev-otlp-key-001`
+- **Agent**: `demo-agent` with OTLP key `mnfst_dev-otlp-key-001`
 - **API key**: `dev-api-key-manifest-001`
-- **Security events**: 12 sample events for the security dashboard
 - **Requests and provider attempts**: Sample telemetry for the demo agent
 
 Seeding is idempotent — it checks for existing records before inserting.
@@ -325,7 +338,7 @@ User (Better Auth) ──→ Tenant ──→ Agent ──→ AgentApiKey (mnfst
 ```
 
 - **Tenant** (`tenants` table): Created automatically on first agent creation. `tenant.owner_user_id` = `user.id` is the ONLY user→tenant link (resolved through `TenantCacheService`); `tenant.name` mirrors it for display until repurposed as a slug.
-- **Agent** (`agents` table): Belongs to a tenant. Unique constraint on `[tenant_id, name]`.
+- **Agent** (`agents` table): Belongs to a tenant. Unique partial index on `[tenant_id, name]` excluding soft-deleted rows, so a deleted agent's name can be reused.
 - **AgentApiKey** (`agent_api_keys` table): One-to-one with agent. `mnfst_*` format key for OTLP ingestion.
 - **ApiKey** (`api_keys` table): A separate, tenant-scoped credential (not per-agent) used for dashboard/API access — the primary key `ApiKeyGuard` checks. Distinct from `AgentApiKey`.
 - **Onboarding flow**: `ApiKeyGeneratorService.onboardAgent()` creates tenant (if new) + agent + API key via three sequential inserts.
@@ -353,7 +366,6 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | PATCH | `/api/v1/agents/:agentName` | Session/API Key | Rename agent |
 | GET | `/api/v1/messages` | Session/API Key | Paginated Requests log (legacy route name) |
 | GET/PATCH/DELETE | `/api/v1/messages/:id/*` | Session/API Key | Request details, feedback, miscategorized flag (legacy route name) |
-| GET | `/api/v1/security` | Session/API Key | Security score + events |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
 | GET | `/api/v1/free-models` | Session/API Key | Free LLM model catalog |
 | GET | `/api/v1/agent/usage` | Bearer (mnfst_*) | Token usage for the calling agent |
@@ -367,6 +379,8 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET/POST/DELETE | `/api/v1/internal/error-pages*` | Public (`x-internal-secret` header) | Custom error-page config (Peacock CMS push API) |
 | GET/PUT/DELETE | `/api/v1/agents/:agentName/enabled-providers*` | Session/API Key | Per-agent provider enable/disable + impact preview |
 | GET/POST/PATCH/DELETE | `/api/v1/notifications/*` | Session/API Key | Notification rules CRUD + email provider config |
+| GET/PATCH | `/api/v1/autofix/cohort` | Session/API Key | Auto-fix beta cohort eligibility (`PATCH` dev-only) |
+| GET | `/api/v1/autofix/status` | Session/API Key | Auto-fix on/off status (analytics) |
 | GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*` | Session/API Key | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, etc.) |
 | POST | `/api/v1/routing/ollama/sync` | Session/API Key | Sync Ollama models |
 | GET | `/api/v1/routing/pricing-health` | Session/API Key | OpenRouter pricing sync health |
@@ -381,10 +395,12 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
 | POST | `/v1/responses` | Bearer (mnfst_*) | LLM proxy (OpenAI Responses API) |
 | POST | `/v1/messages` | Bearer (mnfst_*) | LLM proxy (Anthropic Messages API) |
-| POST | `/chat/completions` | Bearer (mnfst_*) | Legacy root-level OTLP-compatible proxy alias |
+| POST | `/chat/completions` | Public | Wrong-baseURL guard — 404 pointing callers at `/v1/chat/completions` (not a working proxy alias) |
+| ALL | `/otlp/v1/*`, `/api/v1/otlp/v1/*`, `/v1/{traces,metrics,logs}` | Public | Removed OTLP ingestion paths — return 410 Gone |
 | GET/POST/PATCH | `/api/v1/playground/*` | Session/API Key | Playground runs (run, list, star, mark best) |
 | GET | `/api/v1/events` | Session | SSE real-time events |
 | GET | `/api/v1/github/stars` | Public | GitHub star count |
+| GET | `/api/v1/debug-sentry` | Public | Throws a test error to verify Sentry wiring (dev-only, registered only when Sentry is enabled outside production) |
 
 ## Environment Variables
 
@@ -417,8 +433,8 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` — GitHub OAuth (optional)
 - `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` — Discord OAuth (optional)
 - `SEED_DATA` — Set `true` to seed demo data on startup. Dev/test only — ignored when `NODE_ENV=production` (use the first-run setup wizard instead).
-- `MANIFEST_MODE` — `selfhosted` or `cloud` (default: `cloud`; auto-detected as `selfhosted` inside Docker via `/.dockerenv` or Podman via `/run/.containerenv`). Self-hosted mode enables loopback auth shortcuts and allows custom-provider URLs with `http://` / private IPs. `local` is accepted as a legacy alias for `selfhosted`.
-- `MANIFEST_TELEMETRY_DISABLED` — Set `1` to opt out of anonymous telemetry (self-hosted only).
+- `MANIFEST_MODE` — `selfhosted` or `cloud` (default: `cloud`; auto-detected as `selfhosted` inside Docker via `/.dockerenv`, inside Podman via `/run/.containerenv`, or under Kubernetes via `KUBERNETES_SERVICE_HOST`). Self-hosted mode enables loopback auth shortcuts and allows custom-provider URLs with `http://` / private IPs. `local` is accepted as a legacy alias for `selfhosted`.
+- `MANIFEST_TELEMETRY_DISABLED` — Set `1` or `true` to opt out of anonymous telemetry (self-hosted only).
 - `MANIFEST_PUBLIC_STATS` — Set `true` to expose `/api/v1/public/*` aggregate stats without auth (cloud-only marketing use).
 - `TELEMETRY_ENDPOINT` — Where self-hosted installs POST the anonymous usage report. Default: `https://telemetry.manifest.build/v1/report`. See [Telemetry](#anonymous-usage-telemetry-self-hosted).
 - `SENTRY_DSN` / `SENTRY_ENVIRONMENT` / `SENTRY_RELEASE` — Opt-in Sentry error monitoring. Unset `SENTRY_DSN` disables Sentry entirely; `SENTRY_ENVIRONMENT` defaults to `NODE_ENV`. See [Error Monitoring](#error-monitoring-sentry-opt-in).
@@ -746,7 +762,7 @@ Changesets are **not** required on every PR — they're optional and only meanin
 
 Merging the `chore: version packages` PR to `main` automatically publishes a new Docker image — no manual step required.
 
-1. Merge the pending `chore: version packages` PR. `release.yml` detects the version bump in `packages/manifest/package.json` (by diffing `HEAD~1` against `HEAD`) and calls `docker.yml` as a reusable workflow.
+1. Merge the pending `chore: version packages` PR. `release.yml` detects the version bump in `packages/manifest/package.json` by diffing the push event's `before`/`after` SHAs (not local `HEAD~1` — that gave false positives once `changesets/action` had already committed the bump in the same job) and calls `docker.yml` as a reusable workflow.
 2. The `publish` job reads `packages/manifest/package.json`, resolves the version automatically, and pushes `manifestdotbuild/manifest:{version}` + `{major}.{minor}` + `{major}` + `sha-<short>` to Docker Hub. The image is multi-arch (amd64 + arm64) and cosign-signed.
 3. **Manually update the Docker Hub description** on hub.docker.com by copy-pasting the current contents of `docker/DOCKER_README.md`. (Automating this sync hit a wall because `docker-pushrm` and the Docker Hub web API need a personal-user PAT and the existing secrets are scoped to the org — tracked as a follow-up, not blocking releases.)
 
@@ -770,23 +786,17 @@ Codecov runs on every PR via the `codecov/patch` and `codecov/project` checks. C
 - **Project coverage** (`codecov/project`): Must not drop more than **1%** below the base branch (`target: auto`, `threshold: 1%`).
 - **Patch coverage** (`codecov/patch`): New/changed lines must have at least **auto - 5%** coverage (`target: auto`, `threshold: 5%`).
 
-### CRITICAL: 100% Line Coverage Required
+### Coverage Policy: aim for 100%, not just the Codecov thresholds
 
-**Every PR must maintain 100% line coverage across all packages.** The codebase currently has full line coverage and every PR must preserve it. This means:
+The `codecov/patch` and `codecov/project` checks above are safety nets, not the real bar — they only fail below `auto - 5%` patch coverage or `auto - 1%` project coverage, so a PR could pass them while leaving new lines untested. The project standard is stricter: **every new or modified line, including error paths, should be covered by a test**, for new services, guards, controllers, and utilities in `packages/backend/src/`, new components or functions in `packages/frontend/src/`, and new modules in `packages/shared/src/`.
 
-- All new source files must have corresponding tests with 100% line coverage
-- All modified functions must have tests covering every line, including error paths
-- **Patch coverage must be 100%** — no new uncovered lines allowed
-- Run coverage locally before creating a PR:
-  - `cd packages/backend && npx jest --coverage`
-  - `cd packages/frontend && npx vitest run --coverage`
-  - `cd packages/shared && npx jest --coverage`
+Run coverage locally before opening a PR:
 
-This applies to:
-
-- New services, guards, controllers, or utilities in `packages/backend/src/`
-- New components or functions in `packages/frontend/src/`
-- New modules in `packages/shared/src/`
+```bash
+cd packages/backend && npx jest --coverage
+cd packages/frontend && npx vitest run --coverage
+cd packages/shared && npx jest --coverage
+```
 
 ### Coverage Flags
 
