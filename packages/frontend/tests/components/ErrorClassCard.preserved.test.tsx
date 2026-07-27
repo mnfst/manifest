@@ -47,7 +47,9 @@ vi.mock('../../src/services/sse.js', () => ({ messagePing: () => 0 }));
 import ErrorClassCard from '../../src/components/ErrorClassCard';
 
 describe('ErrorClassCard (unmounted, preserved for reintroduction)', () => {
-  it('is intentionally not mounted on any dashboard yet', async () => {
+  // Raw-imports every page source; under heavy parallel-suite load that can
+  // exceed the default 5s timeout (same headroom as sse.test.ts).
+  it('is intentionally not mounted on any dashboard yet', { timeout: 20000 }, async () => {
     const pages = import.meta.glob('../../src/pages/**/*.tsx', {
       query: '?raw',
       import: 'default',

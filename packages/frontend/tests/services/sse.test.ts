@@ -17,7 +17,9 @@ describe("sse", { timeout: 20000 }, () => {
       addEventListener: vi.fn(),
       close: vi.fn(),
     };
-    vi.stubGlobal("EventSource", vi.fn(() => mockEventSource));
+    // Must be a `function` (not an arrow): the source does `new EventSource(...)`,
+    // and vitest 4 constructs the mock implementation — arrows can't be `new`ed.
+    vi.stubGlobal("EventSource", vi.fn(function (this: unknown) { return mockEventSource; }));
     vi.resetModules();
   });
 
@@ -160,7 +162,9 @@ describe("sse cache invalidation", () => {
   beforeEach(() => {
     order = [];
     mockEventSource = { addEventListener: vi.fn(), close: vi.fn() };
-    vi.stubGlobal("EventSource", vi.fn(() => mockEventSource));
+    // Must be a `function` (not an arrow): the source does `new EventSource(...)`,
+    // and vitest 4 constructs the mock implementation — arrows can't be `new`ed.
+    vi.stubGlobal("EventSource", vi.fn(function (this: unknown) { return mockEventSource; }));
     vi.resetModules();
     invalidateGroup.mockReset();
     invalidateCustomProvidersCache.mockReset();
