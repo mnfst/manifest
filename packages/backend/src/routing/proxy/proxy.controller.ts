@@ -362,18 +362,15 @@ export class ProxyController {
         const wireApiMode = forward.wireApiMode;
         const wireFormat = forward.wireFormat;
         if (!alreadyReportedByAutofix && meta.auth_type && wireRequestBody && wireFormat) {
-          const phoenixRequest =
-            wireApiMode || typeof wireRequestBody.model === 'string'
-              ? wireRequestBody
-              : { model: meta.model, ...wireRequestBody };
           this.observationReporter.report({
             traceId: traceId ?? uuid(),
             tenantId,
             agentId: req.ingestionContext.agentId,
             provider: meta.provider,
+            model: meta.model,
             authType: meta.auth_type,
             apiMode: wireApiMode ?? apiMode,
-            requestBody: phoenixRequest,
+            requestBody: wireRequestBody,
             providerWire: {
               format: wireFormat,
               ...(forward.wireRequestUrl ? { url: forward.wireRequestUrl } : {}),

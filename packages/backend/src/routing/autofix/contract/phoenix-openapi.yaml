@@ -325,6 +325,13 @@ components:
             Tenant.id). Optional on the wire; recorded so a failure can be
             attributed to a tenant. Manifest always sends it on the proxy path.
         provider: { type: string, minLength: 1, example: openai }
+        model:
+          type: string
+          minLength: 1
+          maxLength: 1024
+          description: >
+            Logical provider model identity. Native transports may encode it in
+            the URL rather than in the JSON request body.
         authType:
           type: string
           enum: [api_key, subscription, local]

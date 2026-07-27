@@ -53,6 +53,8 @@ export interface HealRequest {
    */
   tenantId: string;
   provider: string;
+  /** Logical model identity; native transports may encode it in the URL. */
+  model?: string;
   authType: AuthType;
   /**
    * Provider-facing wire protocol. `request` uses this shape, and Phoenix must

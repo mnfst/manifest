@@ -402,11 +402,25 @@ describe('ProxyService — orchestration', () => {
       expect(autofixService.maybeHeal.mock.calls[0][0]).not.toHaveProperty('resolvedModel');
     });
 
-    it('skips Auto-fix when Phoenix cannot represent the provider wire format', async () => {
-      routableResolve();
+    it('sends native Gemini failures to Auto-fix with the exact provider body', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('gemini', 'api_key', 'gemini-2.5-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      const wireRequestBody = {
+        contents: [{ role: 'user', parts: [{ text: 'hi' }] }],
+        generationConfig: { maxOutputTokens: 32_000, topP: 1 },
+      };
       fallbackService.tryForwardToProvider.mockResolvedValueOnce({
         response: okResponse(400),
-        wireRequestBody: { contents: [{ role: 'user', parts: [{ text: 'hi' }] }] },
+        wireRequestBody,
+        wireRequestUrl:
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+        wireFormat: 'google_generate_content',
         retryWireBody: jest.fn(),
         isGoogle: true,
         isAnthropic: false,
@@ -415,7 +429,15 @@ describe('ProxyService — orchestration', () => {
 
       await svc.proxyRequest(baseOpts());
 
-      expect(autofixService.maybeHeal).not.toHaveBeenCalled();
+      expect(autofixService.maybeHeal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'gemini',
+          model: 'gemini-2.5-flash',
+          apiMode: 'chat_completions',
+          requestBody: wireRequestBody,
+        }),
+      );
+      expect(autofixService.maybeHeal.mock.calls[0][0].requestBody).not.toHaveProperty('model');
     });
 
     it('re-resolves routing and forwards to the newly-resolved route when the heal changes the model (M5)', async () => {

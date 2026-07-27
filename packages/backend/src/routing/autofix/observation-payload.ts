@@ -124,6 +124,8 @@ export interface ObservationInput {
    */
   agentId: string;
   provider: string;
+  /** Logical model identity when the provider encodes it in the URL. */
+  model: string;
   authType: AuthType;
   apiMode: ProxyApiMode;
   /**
@@ -165,6 +167,7 @@ export function toObservation(input: ObservationInput): HealRequest | null {
     traceId: input.traceId,
     tenantId: input.tenantId,
     provider: input.provider,
+    model: input.model,
     authType: input.authType,
     api: input.apiMode,
     request: scrubbed,

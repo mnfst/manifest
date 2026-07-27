@@ -89,6 +89,7 @@ function makeParams(overrides: Partial<MaybeHealParams>): MaybeHealParams {
     agentId: 'agent-1',
     tenantId: 'tenant-1',
     provider: 'anthropic',
+    model: 'gpt',
     authType: 'subscription',
     apiMode: 'chat_completions',
     requestBody: { model: 'gpt', max_tokens: 100 },
@@ -714,6 +715,58 @@ describe('AutofixService', () => {
       const healArg = client.heal.mock.calls[0][0] as { request: Record<string, unknown> };
       expect(healArg.request).toBe(requestBody);
       expect(reforward.mock.calls[0][0]).toBe(healedBody);
+    });
+
+    it('keeps native Gemini model metadata outside the exact provider request', async () => {
+      const client = makeHealingClient();
+      const requestBody = {
+        contents: [{ role: 'user', parts: [{ text: 'hi' }] }],
+        generationConfig: { maxOutputTokens: 32_000, topP: 1 },
+      };
+      const healedBody = {
+        contents: [{ role: 'user', parts: [{ text: 'hi' }] }],
+        generationConfig: { maxOutputTokens: 32_000 },
+      };
+      client.heal.mockResolvedValue(
+        patchedHeal({
+          status: 'unverified',
+          operations: [{ type: 'drop_param' }],
+          healedBody,
+        }),
+      );
+      const forward = {
+        ...makeForward('{"error":{"message":"topP is unsupported"}}', 400),
+        wireFormat: 'google_generate_content' as const,
+        wireRequestUrl:
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+      };
+      const reforward = reforwardMock('{"ok":true}', 200);
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      await service.maybeHeal(
+        makeParams({
+          forward,
+          reforward,
+          provider: 'gemini',
+          model: 'gemini-2.5-flash',
+          requestBody,
+        }),
+      );
+
+      expect(client.heal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'gemini-2.5-flash',
+          request: requestBody,
+          providerExchange: expect.objectContaining({
+            format: 'google_generate_content',
+            request: { body: requestBody, redactedFields: [] },
+          }),
+        }),
+      );
+      expect(requestBody).not.toHaveProperty('model');
+      expect(reforward).toHaveBeenCalledWith(healedBody);
+      expect(healedBody).not.toHaveProperty('model');
     });
 
     it('does not mutate the provider body', async () => {

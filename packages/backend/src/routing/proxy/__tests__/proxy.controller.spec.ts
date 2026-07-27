@@ -1453,6 +1453,7 @@ describe('ProxyController', () => {
 
     expect(observationReporter.report).toHaveBeenCalledWith(
       expect.objectContaining({
+        model: 'claude-opus-4-8',
         provider: 'Anthropic',
         authType: 'api_key',
         apiMode: 'messages',
@@ -1467,7 +1468,7 @@ describe('ProxyController', () => {
     expect(observationReporter.report.mock.calls[0][0]).not.toHaveProperty('resolvedModel');
   });
 
-  it('reports native Gemini failures even though that wire format is not patchable', async () => {
+  it('reports native Gemini failures with model metadata outside the exact provider body', async () => {
     const wireRequestBody = {
       contents: [{ role: 'user', parts: [{ text: 'test' }] }],
       generationConfig: { maxOutputTokens: 32000, topP: 1, temperature: 1 },
@@ -1500,8 +1501,9 @@ describe('ProxyController', () => {
 
     expect(observationReporter.report).toHaveBeenCalledWith(
       expect.objectContaining({
+        model: 'gemini-2.5-flash-lite',
         apiMode: 'chat_completions',
-        requestBody: { model: 'gemini-2.5-flash-lite', ...wireRequestBody },
+        requestBody: wireRequestBody,
         providerWire: {
           format: 'google_generate_content',
           url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
@@ -1509,6 +1511,7 @@ describe('ProxyController', () => {
         },
       }),
     );
+    expect(observationReporter.report.mock.calls[0][0].requestBody).not.toHaveProperty('model');
   });
 
   it('should handle 500 errors from proxyService as friendly chat message', async () => {
