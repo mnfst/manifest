@@ -1,0 +1,100 @@
+packages/backend/src/analytics/services/message-details.service.ts
+  s_8b2a2ccaff9d01::t_9ea7435edf7bc3 171
+  s_8b2a2ccaff9d01::t_f941d436c5f153 1,13-14,106-107,117-118,165,167-169,203-205,299-312
+  s_8b2a2ccaff9d01::t_f5ccd2dcc62afd 313-314
+packages/backend/src/database/migrations/1801300000000-AddRequestRecordings.ts
+  s_8b2a2ccaff9d01::t_16f3afd62eac70 13-15,17,21-26
+  s_8b2a2ccaff9d01::t_babac2021307dc 29
+packages/backend/src/common/services/request-recording-storage.service.spec.ts
+  s_8b2a2ccaff9d01::t_979ffd80edb272 129
+  s_8b2a2ccaff9d01::t_d6a72f8b6f5087 2-3,5-6,8-86,203-244,275,292-293
+  s_8b2a2ccaff9d01::t_a64c48271ca7ae 1,88-128,130-134,177-184,193-202,245-274,276-291
+  s_8b2a2ccaff9d01::t_9f5218efa65a0c 4,7,87,135-176,185-192
+packages/backend/src/database/request-recording-retention.service.ts
+  s_8b2a2ccaff9d01::t_55d7f9d4bff05e 149,152-153
+  s_8b2a2ccaff9d01::t_ad7a51d5a1bc98 4,6-7,14-24,27-33,43-44,55,57-63,66-71,80,91-92,94-99,101-106,119-121,125-131,134-138,141-148,150-151,154-163
+  s_8b2a2ccaff9d01::t_742470614676a7 45
+docker/Dockerfile
+  s_8b2a2ccaff9d01::t_a8652ba6bd6df9 39,84
+packages/backend/src/routing/proxy/request-recording.service.spec.ts
+  s_8b2a2ccaff9d01::t_53342c9db84f79 1-2,10-26,28-41,44-45,47-50,52-69,71-73,78-91,97-105,107,109,112,115,117
+  s_8b2a2ccaff9d01::t_9ea7435edf7bc3 92-93
+packages/backend/src/routing/proxy/request-recording-capture.ts
+  s_8b2a2ccaff9d01::t_79d3b0c39850df 1-4,10,13-15,19-24,33-42
+packages/backend/src/common/services/request-recording-storage.service.ts
+  s_8b2a2ccaff9d01::t_856fc5c988dfc1 14,22
+  s_8b2a2ccaff9d01::t_9f5218efa65a0c 140,144-161
+  s_8b2a2ccaff9d01::t_16f3afd62eac70 1-13,15-21,23-44,46-54,56-57,59-60,64-139,141-143,162-186,188-257
+  s_8b2a2ccaff9d01::t_9ea7435edf7bc3 45,55,58,61-63,187
+packages/backend/src/common/common.module.ts
+  s_8b2a2ccaff9d01::t_16f3afd62eac70 11,23,32
+packages/backend/test/request-recordings.e2e-spec.ts
+  s_8b2a2ccaff9d01::t_55d7f9d4bff05e 341,359
+  s_8b2a2ccaff9d01::t_b26067ba357e9a 26,51,120,308
+  s_8b2a2ccaff9d01::t_bd86bcbb2d3c0f 1-2,4-7,9-13,15-25,31-50,52-56,58-119,121-210,248-307,309-340,343,345-358,360-363,377-443
+  s_8b2a2ccaff9d01::t_9e572316747857 57
+  s_8b2a2ccaff9d01::t_7e37a07764cd1d 14
+  s_8b2a2ccaff9d01::t_905f6dcd1c9bcf 242,364-376
+  s_8b2a2ccaff9d01::t_6ff6a094ac0377 3,8,27-30,211-241,243-247,342,344
+packages/backend/src/entities/request-recording.entity.ts
+  s_8b2a2ccaff9d01::t_16f3afd62eac70 10-18,22-23,31-32,34-38,43-44
+  s_8b2a2ccaff9d01::t_f5ccd2dcc62afd 45
+docker/.env.example
+  s_8b2a2ccaff9d01::t_a8652ba6bd6df9 37-44
+.gitignore
+  s_8b2a2ccaff9d01::t_a8652ba6bd6df9 21
+packages/backend/src/common/utils/request-recording-codec.ts
+  s_8b2a2ccaff9d01::t_79d3b0c39850df 1-23
+packages/backend/.env.example
+  s_8b2a2ccaff9d01::t_a8652ba6bd6df9 30-40
+packages/backend/test/helpers.ts
+  s_8b2a2ccaff9d01::t_222099fc39a177 22,66,147-152,158,227,259-294
+  s_8b2a2ccaff9d01::t_b26067ba357e9a 214
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_8b2a2ccaff9d01::t_4ac3d3cb6928d7 195,610,612-617,643-651
+packages/backend/src/config/app.config.spec.ts
+  s_8b2a2ccaff9d01::t_4ac3d3cb6928d7 121-139
+packages/backend/src/config/app.config.ts
+  s_8b2a2ccaff9d01::t_16f3afd62eac70 66-74
+  s_8b2a2ccaff9d01::t_9ea7435edf7bc3 75-76
+packages/backend/src/database/migrations/1801300000000-AddRequestRecordings.spec.ts
+  s_8b2a2ccaff9d01::t_4ac3d3cb6928d7 16-21
+  s_8b2a2ccaff9d01::t_babac2021307dc 23
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_8b2a2ccaff9d01::t_931895a1264ded 442-470
+  s_8b2a2ccaff9d01::t_b5003dad7aa9f5 4,357-359,361,365-369,371-373,378,404-410,412-413
+packages/backend/src/database/request-recording-retention.service.spec.ts
+  s_8b2a2ccaff9d01::t_55d7f9d4bff05e 32-34,55-57
+  s_8b2a2ccaff9d01::t_f5ccd2dcc62afd 112,115-116,132-133
+  s_8b2a2ccaff9d01::t_3cc6a43e365d15 13-16,18,25-27,29-31,35-41,47-54,58-77,82-86,88,90-93,95-97,105,108-109,113-114,117-131,134-135,140,145,150
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_8b2a2ccaff9d01::t_79d3b0c39850df 264-266,752-753,755
+docker/docker-compose.yml
+  s_8b2a2ccaff9d01::t_a8652ba6bd6df9 80-82,134-135,179-180
+packages/backend/src/common/utils/request-recording-codec.spec.ts
+  s_8b2a2ccaff9d01::t_a64c48271ca7ae 1-28
+packages/backend/src/routing/proxy/request-recording.service.ts
+  s_8b2a2ccaff9d01::t_79d3b0c39850df 6,8-9,17,20-23,27-29,31-32,35,38,44-56
+packages/backend/package.json
+  s_8b2a2ccaff9d01::t_697cb01e04483d 27
+packages/backend/src/routing/proxy/request-recording-capture.spec.ts
+  s_8b2a2ccaff9d01::t_4ac3d3cb6928d7 5-6,14-21,36
+package-lock.json
+  s_8b2a2ccaff9d01::t_50948bf8d5b664 569-876,1923,1940,1957,1974,1991,2008,2025,2042,2059,2076,2093,2110,2127,2144,2161,2178,2210,2227,2244,2261,2278,2295,2312,2329,2346,4536-4537,4550-4551,4564-4565,4578-4579,4592-4593,4606-4607,4620-4621,4634-4635,4648-4649,4662-4663,4676-4677,4690-4691,4704-4705,4718-4719,4732-4733,4746-4747,4758-4759,4770-4771,4784-4785,4798-4799,4812-4813,4826-4827,4840-4841,4854-4855,5024-5104,6895-6900,12952-12953,14833,15489
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "11e94edad6eda0d0af55dd89b095209c6fac9d49",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
