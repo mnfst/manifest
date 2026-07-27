@@ -32,6 +32,14 @@ class ManifestApi {
                 description: 'Manifest agent API key, usually starting with mnfst_',
             },
         ];
+        this.authenticate = {
+            type: 'generic',
+            properties: {
+                headers: {
+                    Authorization: '=Bearer {{$credentials.apiKey}}',
+                },
+            },
+        };
         this.test = {
             request: {
                 method: 'GET',
