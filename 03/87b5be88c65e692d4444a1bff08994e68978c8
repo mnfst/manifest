@@ -1,0 +1,43 @@
+.changeset/record-request-payloads.md
+  s_8b2a2ccaff9d01::t_a0f1569054abcf 4-5
+  s_8b2a2ccaff9d01::t_b03e05ad24fb41 2
+.github/workflows/docker-smoke.yml
+  s_8b2a2ccaff9d01::t_af60947e86ee5b 68-71,75-79,81-95,218-254,256-294
+  s_8b2a2ccaff9d01::t_b03e05ad24fb41 72-74,80,255
+  s_8b2a2ccaff9d01::t_84e3b7f39ea14c 295
+docker/DOCKER_README.md
+  s_8b2a2ccaff9d01::t_aac867ff7d9b8a 291-293
+  s_8b2a2ccaff9d01::t_64ee505c165f07 419-435
+  s_8b2a2ccaff9d01::t_69f67bc95d852c 42,100-102,106-108,153,170,187,219,222,230-232,255-256,259-281,285-289,295-296,299,301-306,314-318,325,329-352
+  s_8b2a2ccaff9d01::t_d567611419b836 290,353
+docker/.env.example
+  s_8b2a2ccaff9d01::t_14037d2187b60a 23-29,31,34-36,54-62
+  s_8b2a2ccaff9d01::t_45bf4fd3f12401 63
+docker/docker-compose.yml
+  s_8b2a2ccaff9d01::t_b03e05ad24fb41 50
+  s_8b2a2ccaff9d01::t_14037d2187b60a 31,48,67,85,87-93
+  s_8b2a2ccaff9d01::t_4078990740316e 1-4
+docker/install.sh
+  s_8b2a2ccaff9d01::t_257a3a7d89cf6a 50,67
+  s_8b2a2ccaff9d01::t_d2df3564aa3b88 187,193,271,290,302,344
+  s_8b2a2ccaff9d01::t_7a64ee9f72830a 2,4-7,12-13,42-44,51-57,74,88-97,99-101,104-112,115-142,144,148-154,157-161,181,186,188-192,194-196,198-200,202-248,250-258,261-270,272-275,279-284,287-289,291,295-296,298,300-301,303-305,308,313-322,332-333,336,343,345-346
+  s_8b2a2ccaff9d01::t_4078990740316e 164-170
+  s_8b2a2ccaff9d01::t_295cc9be97c915 259-260
+  s_8b2a2ccaff9d01::t_f9435607828061 347
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "0387b5be88c65e692d4444a1bff08994e68978c8",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
