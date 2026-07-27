@@ -59,7 +59,7 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Stage 4: Distroless runtime. Runs as the built-in `nonroot` user (UID
 # 65532) by default. No shell, no apk/apt, minimal CVE surface.
-FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:f16acace4aa70086d4a2caad6c716f01e3e2fe0dd8274c4530c7c17d987bdb1a AS runtime
+FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:b087b405441cd3e8eab9bd53ae3dd1c2b824e7ce13f25c5e9bb353fbdb3f4544 AS runtime
 WORKDIR /app
 
 LABEL org.opencontainers.image.title="Manifest" \
