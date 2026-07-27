@@ -79,7 +79,6 @@ ENV BIND_ADDRESS=0.0.0.0
 ENV PATH=/nodejs/bin:$PATH
 
 COPY --from=prod-deps --chown=nonroot:nonroot /app/node_modules node_modules
-COPY --from=prod-deps --chown=nonroot:nonroot /app/packages/backend/node_modules packages/backend/node_modules
 COPY --from=prod-deps --chown=nonroot:nonroot /app/package.json package.json
 COPY --from=build --chown=nonroot:nonroot /app/packages/shared/dist packages/shared/dist
 COPY --from=build --chown=nonroot:nonroot /app/packages/backend/dist packages/backend/dist
