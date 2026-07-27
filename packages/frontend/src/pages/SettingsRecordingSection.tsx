@@ -34,7 +34,7 @@ const SettingsRecordingSection: Component<{ agentName: () => string }> = (props)
           <div class="settings-card__label">
             <span class="settings-card__label-title">Record request messages</span>
             <span class="settings-card__label-desc">
-              Save new request conversations in the Requests drawer.
+              Observe request messages in the Requests drawer.
             </span>
           </div>
           <div class="settings-card__control settings-card__control--end">

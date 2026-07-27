@@ -27,7 +27,7 @@ describe('SettingsRecordingSection', () => {
 
     await waitFor(() => expect(toggle.hasAttribute('disabled')).toBe(false));
     expect(toggle.getAttribute('aria-checked')).toBe('false');
-    expect(getByText('Save new request conversations in the Requests drawer.')).toBeTruthy();
+    expect(getByText('Observe request messages in the Requests drawer.')).toBeTruthy();
     expect(getRecording).toHaveBeenCalledWith('demo', expect.anything());
   });
 
