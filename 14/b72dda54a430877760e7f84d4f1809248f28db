@@ -1,0 +1,119 @@
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 527-539,562,584,606-612,623,637,661,665,667
+packages/shared/src/error-taxonomy.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 51,64,68-73,76-81,92,233
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 405-417,420-423,432-440
+packages/frontend/tests/components/WingmanDevTools.test.tsx
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 82-95
+packages/frontend/tests/components/message-table-cells.test.tsx
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 284-294
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 2,8-23,33,35-38,43,45,47-52,54,56-57,61-78,267,272-278,284,288-291,293,319,321-322,326,338,343-345,354,362-365,393,401,416,431-432,436
+packages/backend/src/analytics/services/attempt-stats.service.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 151
+packages/frontend/src/components/MessageDetails.tsx
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 266-271
+packages/frontend/src/components/message-table-cells.tsx
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 392-393,405-410
+  s_8b2a2ccaff9d01::t_fc558ecf4d98dd 411
+packages/frontend/wingman-dev-proxy.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 1-104
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 24-25,380
+packages/frontend/vite.config.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 6,51-58,68-73,77
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 211
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 12,232-244,246,257-260,286,293
+packages/backend/src/routing/autofix/observation-payload.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 127-128,170
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 921,1004-1006,1058,1099,1123,1151,1244,1408
+packages/backend/src/routing/autofix/observation-payload.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 15,164-165,172-174
+packages/backend/.env.example
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 56-57
+packages/backend/src/analytics/services/provider-usage.service.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 278
+packages/backend/src/analytics/services/request-volume.service.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 29,92
+packages/backend/src/routing/autofix/observation-reporter.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 29
+packages/backend/src/routing/autofix/phoenix.types.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 56-57
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 143-199,520-530
+.changeset/heal-native-google-requests.md
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 1-5
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 146,195-201
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 414,416,418,424,426,432,1214
+packages/backend/src/routing/proxy/stream-protocol.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 1-163
+packages/frontend/tests/wingman-dev-proxy.test.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 1-42
+docs/glossary.md
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 43-48,50,54-56,85-89,127,160
+packages/backend/src/analytics/services/query-helpers.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 69,72,74,95
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 1541,1556,1589,1591,1599,2885-2924
+  s_8b2a2ccaff9d01::t_c4138fa8016745 2925-2928
+packages/backend/src/routing/proxy/__tests__/stream-protocol.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 1-151
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 8,10,39-40,185-192,295-301,328-333,347,544-564,582
+packages/frontend/src/components/WingmanDevTools.tsx
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 42-47,195-200,206
+packages/frontend/src/styles/theme.css
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 625-629
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 54,56-57
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 278,287-289
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 92,720-769
+  s_8b2a2ccaff9d01::t_290f19f37ada9b 770-771
+packages/backend/src/routing/proxy/sse-parser.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 12,15,36
+packages/frontend/src/styles/request-drawer.css
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 96-99,210-213
+.changeset/clean-stream-lifecycle.md
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 1-5
+packages/frontend/src/styles/data.css
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 89-93
+packages/shared/src/index.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 37
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 49
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 6-9,186-234
+packages/backend/src/routing/autofix/contract/phoenix-openapi.yaml
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 328-334
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 249-301
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 55-60,246-247,290-291,328,407,410,524,538-539,585,599-601,603-611,618,630,652,704,780,783,785,789,795,803
+  s_8b2a2ccaff9d01::t_47f5526d2dc697 66
+packages/frontend/src/components/RequestDrawer.tsx
+  s_8b2a2ccaff9d01::t_bbaee8e9c1b5cc 12-17,78-79,89-90,97,101-118,140,181,385,458,717
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "14b72dda54a430877760e7f84d4f1809248f28db",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
