@@ -152,18 +152,19 @@ jobs:
         working-directory: docker
         run: |
           base_url=http://127.0.0.1:2099
+          auth_origin=http://localhost:2099
           cookie_jar=/tmp/manifest-recording-smoke.cookies
           prompt="persist this request through a container recreation"
           expected_answer="persisted through Docker volume"
 
           curl -sSf -X POST "$base_url/api/v1/setup/admin" \
             -H 'Content-Type: application/json' \
-            -H "Origin: $base_url" \
+            -H "Origin: $auth_origin" \
             --data '{"email":"volume-smoke@example.com","name":"Volume Smoke","password":"volume-smoke-password"}' \
             >/dev/null
           curl -sSf -c "$cookie_jar" -X POST "$base_url/api/auth/sign-in/email" \
             -H 'Content-Type: application/json' \
-            -H "Origin: $base_url" \
+            -H "Origin: $auth_origin" \
             --data '{"email":"volume-smoke@example.com","password":"volume-smoke-password"}' \
             >/dev/null
           test -s "$cookie_jar"
