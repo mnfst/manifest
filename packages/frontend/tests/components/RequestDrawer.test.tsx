@@ -219,7 +219,7 @@ describe('RequestDrawer', () => {
   });
 
   it.each([
-    ['pending', 'Pending', '…'],
+    ['pending', 'Pending', '—'],
     ['cancelled', 'Cancelled', 'CXL'],
   ])('renders %s as a neutral non-error outcome', async (status, label, code) => {
     mockGetMessageDetails.mockResolvedValue({

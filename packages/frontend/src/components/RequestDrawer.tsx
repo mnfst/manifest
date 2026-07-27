@@ -85,7 +85,7 @@ function statusLabel(status: string): string {
 /** The attempt's HTTP code as displayed: 200 for success, the provider's
     error code otherwise, ERR when the failure carried no HTTP response. */
 function attemptCode(att: { status: string; error_http_status?: number }): string {
-  if (att.status === 'pending') return '…';
+  if (att.status === 'pending') return '—';
   if (att.status === 'cancelled') return 'CXL';
   if (isSuccessStatus(att.status)) return '200';
   return att.error_http_status != null ? String(att.error_http_status) : 'ERR';
