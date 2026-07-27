@@ -1,0 +1,35 @@
+.changeset/bright-lions-spark.md
+  s_33bd43dc2796c1::t_63d3489c967815 1-5
+packages/shared/src/subscription/configs.ts
+  s_94d741403b50e8::t_864932af0ed2e1 33
+  s_94d741403b50e8::t_acc434d602bfcf 19-21
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_94d741403b50e8::t_b098ff2fcb137a 353-383
+packages/shared/__tests__/subscription.spec.ts
+  s_94d741403b50e8::t_5e12bd6aad0292 66-77
+  s_94d741403b50e8::t_39b89e82e2198e 518-519
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "0b4ee214dece39773d53140630d005a0c0393734",
+  "prompts": {},
+  "sessions": {
+    "s_33bd43dc2796c1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa38c-2c28-74c1-8217-90f5c5d6b62c",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_94d741403b50e8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "43c70fe0-8e25-467f-b3cd-e39c25996f36",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
