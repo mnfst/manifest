@@ -387,7 +387,7 @@ export function sanitizeOpenAiBody(
       cleaned[key] = value;
       continue;
     }
-    if (key === 'reasoning_effort' && endpointKey === 'xai') {
+    if (key === 'reasoning_effort' && (endpointKey === 'xai' || endpointKey === 'deepseek')) {
       cleaned[key] = value;
       continue;
     }
