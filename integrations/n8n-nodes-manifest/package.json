@@ -56,11 +56,19 @@
     "@n8n/node-cli": "^0.38.7",
     "eslint": "9.32.0",
     "prettier": "3.6.2",
-    "release-it": "^19.0.4",
+    "release-it": "^21.0.0",
     "typescript": "5.9.2"
   },
   "peerDependencies": {
     "@n8n/ai-node-sdk": "*",
     "n8n-workflow": "*"
+  },
+  "overrides": {
+    "@langchain/classic": {
+      "uuid": "11.1.1"
+    },
+    "@langchain/community": {
+      "uuid": "11.1.1"
+    }
   }
 }
