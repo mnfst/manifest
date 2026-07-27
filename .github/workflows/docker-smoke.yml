@@ -158,6 +158,7 @@ jobs:
 
           curl -sSf -X POST "$base_url/api/v1/setup/admin" \
             -H 'Content-Type: application/json' \
+            -H "Origin: $base_url" \
             --data '{"email":"volume-smoke@example.com","name":"Volume Smoke","password":"volume-smoke-password"}' \
             >/dev/null
           curl -sSf -c "$cookie_jar" -X POST "$base_url/api/auth/sign-in/email" \
