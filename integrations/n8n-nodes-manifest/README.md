@@ -2,15 +2,27 @@
 
 Use [Manifest](https://manifest.build) from n8n workflows. Manifest routes requests through the right AI model behind one OpenAI-compatible API.
 
-## Operations
+This package ships two nodes:
+
+## Manifest Chat Model (recommended)
+
+A language-model sub-node built on [`@n8n/ai-node-sdk`](https://github.com/n8n-io/n8n/tree/master/packages/%40n8n/ai-node-sdk). Connect it to the **AI Agent** or **Basic LLM Chain** node exactly like the OpenAI Chat Model node — Manifest sits between your agent and the providers and routes each request to the cheapest capable model.
+
+- Model list is loaded from your Manifest instance; the default `auto` lets Manifest route every request.
+- Supports streaming, tool calling, and (optionally) the OpenAI Responses API.
+- Requires an n8n version that ships `@n8n/ai-node-sdk` (2026 releases).
+
+## Manifest (action node)
+
+A regular node for calling Manifest directly from a workflow, without an AI Agent:
 
 - List models from `GET /v1/models`
 - Create chat completions with `POST /v1/chat/completions`
 - Create Responses API calls with `POST /v1/responses`
 
-## Response output
+### Response output
 
-The node handles both response formats returned by Manifest:
+The action node handles both response formats returned by Manifest:
 
 - Buffered responses are returned as the API's JSON object.
 - Streamed responses are returned as parsed server-sent events after the stream completes:
@@ -28,7 +40,7 @@ The node handles both response formats returned by Manifest:
 }
 ```
 
-The node waits for a streamed response to finish before passing its parsed events to the next workflow node. Do not set `stream` in **Additional Body**; the node ignores that field so response behavior remains consistent with the route configured in Manifest.
+The action node waits for a streamed response to finish before passing its parsed events to the next workflow node. Do not set `stream` in **Additional Body**; the node ignores that field so response behavior remains consistent with the route configured in Manifest.
 
 ## Credentials
 

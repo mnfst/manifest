@@ -1,4 +1,4 @@
-import type { ICredentialTestRequest, ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { IAuthenticateGeneric, ICredentialTestRequest, ICredentialType, INodeProperties } from 'n8n-workflow';
 export declare class ManifestApi implements ICredentialType {
     name: string;
     displayName: string;
@@ -8,5 +8,6 @@ export declare class ManifestApi implements ICredentialType {
     };
     documentationUrl: string;
     properties: INodeProperties[];
+    authenticate: IAuthenticateGeneric;
     test: ICredentialTestRequest;
 }

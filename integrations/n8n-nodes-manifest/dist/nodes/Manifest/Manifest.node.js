@@ -178,7 +178,6 @@ class Manifest {
             },
             inputs: [n8n_workflow_1.NodeConnectionTypes.Main],
             outputs: [n8n_workflow_1.NodeConnectionTypes.Main],
-            usableAsTool: true,
             credentials: [
                 {
                     name: 'manifestApi',

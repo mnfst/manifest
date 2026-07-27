@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+- Add the **Manifest Chat Model** sub-node (`lmChatManifest`), built on `@n8n/ai-node-sdk`. It plugs into the AI Agent and Basic LLM Chain nodes as a language model, so Manifest can be used as a drop-in replacement for any chat model provider.
+- The Manifest Chat Model node loads the model list from your Manifest instance, with `auto` (Manifest routing) as the default.
+- **Breaking:** the Manifest action node is no longer exposed as an AI Agent tool (`usableAsTool` removed). Manifest is a model router, not a tool — use the new Manifest Chat Model node to connect agents to Manifest. Existing workflows that call the action node directly are unaffected.
+
 ## 0.1.4
 
 - Correct the node codex identifier and category for n8n verification.

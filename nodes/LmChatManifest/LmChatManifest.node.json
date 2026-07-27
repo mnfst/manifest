@@ -1,8 +1,12 @@
 {
-	"node": "n8n-nodes-manifest.manifest",
+	"node": "n8n-nodes-manifest.lmChatManifest",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
-	"categories": ["Development"],
+	"categories": ["AI"],
+	"subcategories": {
+		"AI": ["Language Models", "Root Nodes"],
+		"Language Models": ["Chat Models (Recommended)"]
+	},
 	"resources": {
 		"credentialDocumentation": [
 			{
