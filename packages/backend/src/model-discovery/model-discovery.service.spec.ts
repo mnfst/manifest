@@ -1632,6 +1632,7 @@ describe('ModelDiscoveryService', () => {
         'claude-fable-5',
         'claude-haiku-4',
         'claude-opus-4',
+        'claude-opus-5',
         'claude-sonnet-4',
         'claude-sonnet-5',
       ]);
@@ -1946,14 +1947,15 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Should only include models matching knownModels prefixes (claude-opus-4, claude-sonnet-4, claude-haiku-4)
-      // and NOT claude-2.1 or openai models. claude-fable-5 and claude-sonnet-5
-      // have no OpenRouter pricing entry, so they are appended directly as
-      // zero-cost known models.
-      expect(result).toHaveLength(5);
+      // and NOT claude-2.1 or openai models. Claude Fable 5, Opus 5, and
+      // Sonnet 5 have no OpenRouter pricing entry, so they are appended
+      // directly as zero-cost known models.
+      expect(result).toHaveLength(6);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
         'claude-haiku-4-20260301',
         'claude-opus-4-20260301',
+        'claude-opus-5',
         'claude-sonnet-4-20260301',
         'claude-sonnet-5',
       ]);
@@ -2150,11 +2152,12 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Even without pricingSync, knownModels are returned directly
-      expect(result).toHaveLength(5);
+      expect(result).toHaveLength(6);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
         'claude-haiku-4',
         'claude-opus-4',
+        'claude-opus-5',
         'claude-sonnet-4',
         'claude-sonnet-5',
       ]);
@@ -2531,11 +2534,12 @@ describe('ModelDiscoveryService', () => {
       const result = buildSubscriptionFallbackModels(null as never, 'anthropic');
 
       // No OpenRouter data, but knownModels are added directly
-      expect(result).toHaveLength(5);
+      expect(result).toHaveLength(6);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
         'claude-haiku-4',
         'claude-opus-4',
+        'claude-opus-5',
         'claude-sonnet-4',
         'claude-sonnet-5',
       ]);

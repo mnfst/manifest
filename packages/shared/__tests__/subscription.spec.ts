@@ -63,6 +63,18 @@ describe('getSubscriptionProviderConfig', () => {
     });
   });
 
+  it('lists claude-opus-5 explicitly — the claude-opus-4 prefix does not cover it', () => {
+    const config = getSubscriptionProviderConfig('anthropic');
+    const knownModels = config?.knownModels ?? [];
+    expect(knownModels).toContain('claude-opus-5');
+    // Anthropic matches by prefix, so claude-opus-4-8 rides on 'claude-opus-4'.
+    // The 5 generation dropped that prefix — without its own entry, an Opus 5
+    // subscription model would be filtered out of the curated catalog.
+    expect(knownModels.some((m) => 'claude-opus-5'.startsWith(m) && m !== 'claude-opus-5')).toBe(
+      false,
+    );
+  });
+
   it('returns config for openai', () => {
     const config = getSubscriptionProviderConfig('openai');
     expect(config).toMatchObject({
@@ -508,6 +520,8 @@ describe('getSubscriptionCapabilities', () => {
       supportsBatching: false,
     });
     expect(caps?.modelContextWindows?.['claude-opus-4-8']).toBe(1000000);
+    // Opus 5 is 1M too; without an entry it would fall back to the 200k default.
+    expect(caps?.modelContextWindows?.['claude-opus-5']).toBe(1000000);
   });
 
   it('returns capabilities for OpenAI subscription', () => {

@@ -16,7 +16,9 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       'claude-sonnet-4',
       'claude-haiku-4',
       // claude-opus-4-6 / claude-haiku-4-5 are already matched by the
-      // claude-opus-4 / claude-haiku-4 prefixes above.
+      // claude-opus-4 / claude-haiku-4 prefixes above. claude-opus-5 is not —
+      // the 5 generation dropped the 4.x prefix, so it needs its own entry.
+      'claude-opus-5',
       'claude-sonnet-5',
     ]),
     // `claude-*-fast` ids exist in the OpenRouter pricing cache but 404 at
@@ -28,6 +30,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       maxContextWindow: 200000,
       modelContextWindows: Object.freeze({
         'claude-opus-4-8': 1000000,
+        'claude-opus-5': 1000000,
         'claude-sonnet-5': 1000000,
       }),
       supportsPromptCaching: true,
