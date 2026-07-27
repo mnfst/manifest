@@ -73,15 +73,16 @@ npm run dev
 
 ## Release
 
-This package is designed to publish from GitHub Actions with npm provenance.
+This package publishes from GitHub Actions with npm provenance (required for
+n8n verified community nodes since May 2026). The committed `package.json`
+version is the single source of truth — never publish from a local machine.
 
-1. Update the package version in `package.json`, `package-lock.json`, and `CHANGELOG.md`.
-2. Commit the change.
-3. Push a tag named `n8n-nodes-manifest-v<version>`, for example:
+1. Bump the version in `package.json` (and `package-lock.json`) and add a `CHANGELOG.md` entry.
+2. Merge to `main`.
 
-```bash
-git tag n8n-nodes-manifest-v0.1.0
-git push origin n8n-nodes-manifest-v0.1.0
-```
+That's it. The `publish-n8n-node.yml` workflow detects the version change,
+skips if that version is already on npm, publishes with provenance, and pushes
+the matching `n8n-nodes-manifest-v<version>` tag automatically.
 
-Configure npm Trusted Publishing for the GitHub workflow named `publish-n8n-node.yml`, or set an `NPM_TOKEN` repository secret. The workflow runs `npm run release`, which n8n uses to publish with npm provenance inside GitHub Actions.
+Configure npm Trusted Publishing for the workflow, or set an `NPM_TOKEN`
+repository secret.
