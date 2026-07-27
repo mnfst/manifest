@@ -9,6 +9,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - ".github/scripts/mock-openai-provider.py"
       - ".github/workflows/docker-smoke.yml"
       - "docker/Dockerfile"
       - ".dockerignore"
@@ -93,6 +94,20 @@ jobs:
             .services.manifest.environment.REQUEST_RECORDING_S3_FORCE_PATH_STYLE == "true"
           ' /tmp/compose.json
 
+      - name: Start mock OpenAI provider
+        run: |
+          nohup python3 -u .github/scripts/mock-openai-provider.py 38001 \
+            >/tmp/mock-openai-provider.log 2>&1 &
+          echo "$!" >/tmp/mock-openai-provider.pid
+          for _ in $(seq 1 20); do
+            if curl -sSf http://127.0.0.1:38001/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/mock-openai-provider.log
+          exit 1
+
       - name: Boot the stack
         working-directory: docker
         run: |
@@ -133,6 +148,115 @@ jobs:
             exit 1
           fi
 
+      - name: Verify recording survives Manifest container recreation
+        working-directory: docker
+        run: |
+          base_url=http://127.0.0.1:2099
+          cookie_jar=/tmp/manifest-recording-smoke.cookies
+          prompt="persist this request through a container recreation"
+          expected_answer="persisted through Docker volume"
+
+          curl -sSf -X POST "$base_url/api/v1/setup/admin" \
+            -H 'Content-Type: application/json' \
+            --data '{"email":"volume-smoke@example.com","name":"Volume Smoke","password":"volume-smoke-password"}'
+          curl -sSf -c "$cookie_jar" -X POST "$base_url/api/auth/sign-in/email" \
+            -H 'Content-Type: application/json' \
+            -H "Origin: $base_url" \
+            --data '{"email":"volume-smoke@example.com","password":"volume-smoke-password"}'
+          test -s "$cookie_jar"
+
+          agent=$(curl -sSf -b "$cookie_jar" -X POST "$base_url/api/v1/agents" \
+            -H 'Content-Type: application/json' \
+            --data '{"name":"Volume Smoke Agent"}')
+          agent_key=$(jq -er '.apiKey | select(startswith("mnfst_"))' <<<"$agent")
+
+          provider=$(curl -sSf -b "$cookie_jar" -X POST \
+            "$base_url/api/v1/routing/volume-smoke-agent/custom-providers" \
+            -H 'Content-Type: application/json' \
+            --data '{
+              "name":"Volume Smoke Provider",
+              "base_url":"http://host.docker.internal:38001/v1",
+              "apiKey":"volume-smoke-key",
+              "models":[{
+                "model_name":"volume-smoke-model",
+                "input_price_per_million_tokens":0,
+                "output_price_per_million_tokens":0
+              }]
+            }')
+          provider_id=$(jq -er '.id' <<<"$provider")
+          model="custom:${provider_id}/volume-smoke-model"
+          route=$(jq -cn --arg model "$model" '{model:$model}')
+
+          for tier in simple standard complex reasoning default; do
+            curl -sSf -b "$cookie_jar" -X PUT \
+              "$base_url/api/v1/routing/volume-smoke-agent/tiers/$tier" \
+              -H 'Content-Type: application/json' \
+              --data "$route" >/dev/null
+          done
+          curl -sSf -b "$cookie_jar" -X PATCH \
+            "$base_url/api/v1/routing/volume-smoke-agent/recording" \
+            -H 'Content-Type: application/json' \
+            --data '{"enabled":true}' |
+            jq -e '.enabled == true' >/dev/null
+
+          request_body=$(jq -cn --arg model "$model" --arg prompt "$prompt" \
+            '{model:$model,messages:[{role:"user",content:$prompt}],stream:false}')
+          response=$(curl -sSf -X POST "$base_url/v1/chat/completions" \
+            -H "Authorization: Bearer $agent_key" \
+            -H 'Content-Type: application/json' \
+            --data "$request_body")
+          jq -e --arg answer "$expected_answer" \
+            '.choices[0].message.content == $answer' <<<"$response" >/dev/null
+
+          recording_row=""
+          for i in $(seq 1 100); do
+            recording_row=$(docker compose exec -T postgres \
+              psql -U manifest -d manifest -AtF '|' -c \
+              "SELECT request_id, storage_key
+               FROM request_recordings
+               WHERE storage_backend = 'filesystem' AND status = 'ready'
+               ORDER BY created_at DESC
+               LIMIT 1")
+            if [[ -n "$recording_row" ]]; then
+              break
+            fi
+            sleep 0.1
+          done
+          test -n "$recording_row"
+          IFS='|' read -r request_id storage_key <<<"$recording_row"
+
+          docker run --rm --user 65532:65532 \
+            -e RECORDING_KEY="$storage_key" \
+            -v manifest_request_recordings:/recordings:ro \
+            --entrypoint /nodejs/bin/node \
+            manifestdotbuild/manifest:latest \
+            -e "const fs=require('fs');const b=fs.readFileSync('/recordings/'+process.env.RECORDING_KEY);if(b[0]!==0x1f||b[1]!==0x8b)process.exit(1)"
+
+          docker compose up -d --force-recreate --no-deps manifest
+          for i in $(seq 1 60); do
+            if curl -sSf "$base_url/api/v1/health" >/dev/null; then
+              break
+            fi
+            if [[ "$i" -eq 60 ]]; then
+              docker compose logs manifest
+              exit 1
+            fi
+            sleep 2
+          done
+
+          details=$(curl -sSf -b "$cookie_jar" \
+            "$base_url/api/v1/messages/$request_id/details")
+          jq -e \
+            --arg request_id "$request_id" \
+            --arg prompt "$prompt" \
+            --arg answer "$expected_answer" \
+            '.message.id == $request_id and
+             .recording.api_format == "chat_completions" and
+             .recording.request_body.messages[0].content == $prompt and
+             .recording.response_body.type == "json" and
+             .recording.response_body.body.choices[0].message.content == $answer' \
+            <<<"$details" >/dev/null
+
       - name: Dump backend logs on success (for diff inspection)
         if: success()
         working-directory: docker
@@ -148,7 +272,11 @@ jobs:
       - name: Tear down
         if: always()
         working-directory: docker
-        run: docker compose down -v
+        run: |
+          docker compose down -v
+          if [[ -f /tmp/mock-openai-provider.pid ]]; then
+            kill "$(cat /tmp/mock-openai-provider.pid)" || true
+          fi
 
   install-script:
     name: install.sh end-to-end
