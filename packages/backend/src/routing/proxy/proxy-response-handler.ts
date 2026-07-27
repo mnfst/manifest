@@ -511,6 +511,19 @@ export async function handleStreamResponse(
   const onClient = responsesSequenceTracker
     ? (chunk: string) => responsesSequenceTracker.feed(chunk)
     : undefined;
+  const relayOptions = {
+    protocol:
+      forward.wireFormat ??
+      (forward.isGoogle
+        ? forward.isCodeAssist
+          ? ('google_code_assist' as const)
+          : ('google_generate_content' as const)
+        : forward.isAnthropic
+          ? ('anthropic_messages' as const)
+          : forward.isChatGpt || forward.isResponses
+            ? ('openai_responses' as const)
+            : ('openai_chat_completions' as const)),
+  };
 
   const messagesTransformer =
     apiMode === 'messages' ? createMessagesStreamTransformer(meta.model) : null;
@@ -533,7 +546,7 @@ export async function handleStreamResponse(
     : (chunk: string) => chunk;
 
   if (apiMode === 'responses' && forward.isResponses) {
-    return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
+    return pipeStream(forward.response.body!, res, undefined, undefined, onClient, relayOptions);
   }
 
   if (forward.isGoogle) {
@@ -555,6 +568,7 @@ export async function handleStreamResponse(
       },
       finalize,
       onClient,
+      relayOptions,
     );
   }
   if (forward.isAnthropic) {
@@ -576,7 +590,13 @@ export async function handleStreamResponse(
     // transformer runs purely as a tap — thinking-block cache via callback
     // and OpenAI-shape usage parsed off its return value by pipePassthrough.
     if (apiMode === 'messages') {
-      return pipePassthrough(forward.response.body!, res, anthropicTransformer, onClient);
+      return pipePassthrough(
+        forward.response.body!,
+        res,
+        anthropicTransformer,
+        onClient,
+        relayOptions,
+      );
     }
     return pipeStream(
       forward.response.body!,
@@ -587,6 +607,7 @@ export async function handleStreamResponse(
       },
       finalize,
       onClient,
+      relayOptions,
     );
   }
   if (forward.isChatGpt) {
@@ -600,6 +621,7 @@ export async function handleStreamResponse(
       },
       finalize,
       onClient,
+      relayOptions,
     );
   }
   const reasoningStreamFormat = getOpenAiReasoningStreamFormat(meta.provider, meta.model);
@@ -623,12 +645,13 @@ export async function handleStreamResponse(
       },
       finalize,
       onClient,
+      relayOptions,
     );
   }
   if (apiMode === 'responses' || apiMode === 'messages') {
-    return pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient);
+    return pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient, relayOptions);
   }
-  return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
+  return pipeStream(forward.response.body!, res, undefined, undefined, onClient, relayOptions);
 }
 
 function cacheReasoningContent(

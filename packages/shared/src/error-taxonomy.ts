@@ -48,6 +48,7 @@ export const SUPERSEDED_STATUSES: readonly string[] = [SUPERSEDED_STATUS, AUTOFI
  * and the `autofix_*` columns — so `status` carries only the terminal outcome:
  *
  *  - `pending` — accepted, no terminal outcome yet.
+ *  - `cancelled` — the caller disconnected before a terminal provider outcome.
  *  - `success` — completed successfully (legacy `ok`).
  *  - `failed`  — completed without succeeding (legacy `error` / `rate_limited` /
  *    `fallback_error` / `auto_fixed`).
@@ -60,13 +61,24 @@ export const SUPERSEDED_STATUSES: readonly string[] = [SUPERSEDED_STATUS, AUTOFI
  * still classify unnormalized historical rows.
  */
 export const PENDING_STATUS = 'pending';
+export const CANCELLED_STATUS = 'cancelled';
 export const SUCCESS_STATUS = 'success';
 export const FAILED_STATUS = 'failed';
 
-export const REQUEST_STATUSES = [PENDING_STATUS, SUCCESS_STATUS, FAILED_STATUS] as const;
+export const REQUEST_STATUSES = [
+  PENDING_STATUS,
+  CANCELLED_STATUS,
+  SUCCESS_STATUS,
+  FAILED_STATUS,
+] as const;
 export type RequestStatus = (typeof REQUEST_STATUSES)[number];
 
-export const ATTEMPT_STATUSES = [PENDING_STATUS, SUCCESS_STATUS, FAILED_STATUS] as const;
+export const ATTEMPT_STATUSES = [
+  PENDING_STATUS,
+  CANCELLED_STATUS,
+  SUCCESS_STATUS,
+  FAILED_STATUS,
+] as const;
 export type AttemptStatus = (typeof ATTEMPT_STATUSES)[number];
 
 /**
@@ -77,6 +89,7 @@ export type AttemptStatus = (typeof ATTEMPT_STATUSES)[number];
  */
 export function normalizeStatus(status: string | null | undefined): RequestStatus {
   if (status === PENDING_STATUS) return PENDING_STATUS;
+  if (status === CANCELLED_STATUS) return CANCELLED_STATUS;
   if (status == null || status === OK_STATUS || status === SUCCESS_STATUS) return SUCCESS_STATUS;
   return FAILED_STATUS;
 }
@@ -217,7 +230,7 @@ export interface MessageErrorClassification {
  * response (the fetch failed before the provider replied ⇒ transport/network).
  */
 export function classifyMessageError(signals: MessageErrorSignals): MessageErrorClassification {
-  if (signals.status === PENDING_STATUS) {
+  if (signals.status === PENDING_STATUS || signals.status === CANCELLED_STATUS) {
     return { error_origin: null, error_class: null, superseded: false };
   }
   // Accepts both the legacy `ok` and the canonical `success`, so re-classifying

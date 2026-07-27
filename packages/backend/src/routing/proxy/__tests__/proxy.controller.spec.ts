@@ -2770,6 +2770,50 @@ describe('ProxyController', () => {
       );
     });
 
+    it('normalizes provider-declared SSE errors and records their message', async () => {
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: new Response(
+            'data: {"error":{"message":"Provider quota exhausted","status":429}}\n\n',
+            { status: 200, headers: { 'Content-Type': 'text/event-stream' } },
+          ),
+          wireFormat: 'openai_chat_completions',
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'standard',
+          model: 'gpt-4o',
+          provider: 'OpenAI',
+          confidence: 0.8,
+        },
+      });
+
+      const req = mockRequest({
+        messages: [{ role: 'user', content: 'hi' }],
+        stream: true,
+      });
+      const { res, written } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      const payload = written.join('');
+      expect(payload).toContain('Provider quota exhausted');
+      expect(payload).toContain('"code":"upstream_error"');
+      expect(payload).toContain('data: [DONE]');
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'failed',
+          error_message: 'Provider quota exhausted',
+          error_http_status: 429,
+          error_origin: 'provider',
+          error_class: 'rate_limit',
+        }),
+      );
+    });
+
     it('should emit a sequenced Responses error when a converted chat stream dies', async () => {
       proxyService.proxyRequest.mockResolvedValue({
         forward: {

@@ -622,6 +622,11 @@ h6 {
   color: hsl(var(--destructive));
 }
 
+.status-badge--neutral {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
 .free-tag {
   display: inline-flex;
   align-items: center;

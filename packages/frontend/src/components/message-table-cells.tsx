@@ -389,11 +389,8 @@ function statusErrorDescriptor(item: MessageRow): string | null {
 }
 
 /**
- * Two-state status pill: Success or Failed (with optional origin descriptor).
- * Everything that isn't a success is a failure — the legacy `fallback_error`,
- * `auto_fixed`, `rate_limited` values (and the canonical `failed`) are expressed
- * through the Trigger column, not here. `isSuccessStatus` accepts both the legacy
- * `ok` and the canonical `success`.
+ * Outcome status pill. Pending and caller-cancelled work is neutral; completed
+ * outcomes remain the familiar Success/Failed binary.
  */
 function describeStatusPill(item: MessageRow): {
   label: string;
@@ -404,6 +401,13 @@ function describeStatusPill(item: MessageRow): {
   const isSuccess = isSuccessStatus(item.status);
   if (isSuccess) {
     return { label: 'Success', cls: 'status-badge status-badge--ok', limitAgent: null };
+  }
+  if (item.status === 'pending' || item.status === 'cancelled') {
+    return {
+      label: item.status === 'pending' ? 'Pending' : 'Cancelled',
+      cls: 'status-badge status-badge--neutral',
+      limitAgent: null,
+    };
   }
   // The pill stays a plain "Failed": the cause (provider, setup, custom
   // limit...) lives in the drawer's error message, and rides here only as a

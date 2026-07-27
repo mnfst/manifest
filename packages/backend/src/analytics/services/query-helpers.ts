@@ -66,12 +66,12 @@ export function sqlIsSuccessStatus(column: string): string {
 
 /** SQL predicate for a completed failure, excluding in-flight rows. */
 export function sqlIsFailedStatus(column: string): string {
-  return `(${column} IS NOT NULL AND ${column} <> 'pending' AND ${column} NOT IN (${SUCCESS_STATUS_SQL_LIST}))`;
+  return `(${column} IS NOT NULL AND ${column} NOT IN ('pending', 'cancelled', ${SUCCESS_STATUS_SQL_LIST}))`;
 }
 
-/** SQL predicate for any completed row. Legacy NULL statuses mean success. */
+/** SQL predicate for rows included in outcome metrics. Legacy NULL statuses mean success. */
 export function sqlIsCompletedStatus(column: string): string {
-  return `(${column} IS NULL OR ${column} <> 'pending')`;
+  return `(${column} IS NULL OR ${column} NOT IN ('pending', 'cancelled'))`;
 }
 
 /**
@@ -92,7 +92,7 @@ export function sqlCountMessages(alias = 'at'): string {
   // COALESCE keeps dashboards correct while the online backfill is in flight:
   // linked attempts collapse to one request, while an unlinked historical row
   // temporarily remains its own synthetic request.
-  return `COUNT(DISTINCT COALESCE(${alias}.request_id, ${alias}.id)) FILTER (WHERE ${alias}.status IS NULL OR (${alias}.status <> 'pending' AND ${alias}.status NOT IN (${list})))`;
+  return `COUNT(DISTINCT COALESCE(${alias}.request_id, ${alias}.id)) FILTER (WHERE ${alias}.status IS NULL OR (${alias}.status NOT IN ('pending', 'cancelled') AND ${alias}.status NOT IN (${list})))`;
 }
 
 /** Comma-quoted list of Manifest-originated error origins, e.g. `'config', 'policy', …`. */

@@ -9,6 +9,7 @@ import {
   TRANSPORT_TIMEOUT_HTTP_STATUS,
   REQUEST_STATUSES,
   ATTEMPT_STATUSES,
+  CANCELLED_STATUS,
   PENDING_STATUS,
   SUCCESS_STATUS,
   FAILED_STATUS,
@@ -228,10 +229,21 @@ describe('isManifestErrorOrigin', () => {
 
 describe('canonical status vocabulary', () => {
   it('pins the canonical request and attempt statuses', () => {
-    expect(REQUEST_STATUSES).toEqual([PENDING_STATUS, SUCCESS_STATUS, FAILED_STATUS]);
-    expect(ATTEMPT_STATUSES).toEqual([PENDING_STATUS, SUCCESS_STATUS, FAILED_STATUS]);
-    expect([PENDING_STATUS, SUCCESS_STATUS, FAILED_STATUS]).toEqual([
+    expect(REQUEST_STATUSES).toEqual([
+      PENDING_STATUS,
+      CANCELLED_STATUS,
+      SUCCESS_STATUS,
+      FAILED_STATUS,
+    ]);
+    expect(ATTEMPT_STATUSES).toEqual([
+      PENDING_STATUS,
+      CANCELLED_STATUS,
+      SUCCESS_STATUS,
+      FAILED_STATUS,
+    ]);
+    expect([PENDING_STATUS, CANCELLED_STATUS, SUCCESS_STATUS, FAILED_STATUS]).toEqual([
       'pending',
+      'cancelled',
       'success',
       'failed',
     ]);
@@ -240,6 +252,10 @@ describe('canonical status vocabulary', () => {
   describe('normalizeStatus', () => {
     it('keeps pending', () => {
       expect(normalizeStatus('pending')).toBe('pending');
+    });
+
+    it('keeps cancelled', () => {
+      expect(normalizeStatus('cancelled')).toBe('cancelled');
     });
 
     it('maps legacy and canonical success onto success', () => {
@@ -267,12 +283,14 @@ describe('canonical status vocabulary', () => {
       expect(isSuccessStatus(null)).toBe(true);
       expect(isSuccessStatus('error')).toBe(false);
       expect(isSuccessStatus('failed')).toBe(false);
+      expect(isSuccessStatus('cancelled')).toBe(false);
     });
 
     it('recognizes failure across vocabularies', () => {
       expect(isFailedStatus('error')).toBe(true);
       expect(isFailedStatus('fallback_error')).toBe(true);
       expect(isFailedStatus('failed')).toBe(true);
+      expect(isFailedStatus('cancelled')).toBe(false);
       expect(isFailedStatus('ok')).toBe(false);
       expect(isFailedStatus('pending')).toBe(false);
     });

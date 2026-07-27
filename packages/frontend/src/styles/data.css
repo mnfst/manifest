@@ -86,6 +86,11 @@
   color: hsl(var(--destructive));
 }
 
+.status-badge--neutral {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
 .status-badge--rate_limited {
   background: hsl(var(--destructive) / 0.1);
   color: hsl(var(--destructive));

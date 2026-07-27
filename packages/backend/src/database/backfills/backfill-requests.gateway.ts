@@ -46,7 +46,7 @@ const REQUEST_LEVEL_ORIGINS = `'config', 'policy', 'request', 'internal'`;
  * attempt status onto the request outcome while preserving in-flight work.
  */
 const normalizeAttemptStatusSql = (expr: string): string =>
-  `CASE WHEN ${expr} = 'pending' THEN 'pending' WHEN ${expr} IN ('ok', 'success') THEN 'success' ELSE 'failed' END`;
+  `CASE WHEN ${expr} IN ('pending', 'cancelled') THEN ${expr} WHEN ${expr} IN ('ok', 'success') THEN 'success' ELSE 'failed' END`;
 
 /**
  * Historical decisions written before this migration have no JSON `status`.

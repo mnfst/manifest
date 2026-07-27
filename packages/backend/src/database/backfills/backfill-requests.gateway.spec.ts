@@ -51,10 +51,10 @@ describe('TypeOrmRequestBackfillGateway', () => {
     expect(sql).toContain("autofix_phoenix->>'healAttemptId'");
   });
 
-  it('preserves pending attempts when deriving request status', () => {
+  it('preserves non-outcome attempts when deriving request status', () => {
     const sql = `${INSERT_ATTEMPT_REQUESTS_SQL}\n${REFRESH_ATTEMPT_REQUESTS_SQL}`;
-    expect(sql).toContain("WHEN terminal.status = 'pending' THEN 'pending'");
-    expect(sql).toContain("WHEN status = 'pending' THEN 'pending'");
+    expect(sql).toContain("WHEN terminal.status IN ('pending', 'cancelled') THEN terminal.status");
+    expect(sql).toContain("WHEN status IN ('pending', 'cancelled') THEN status");
   });
 
   it('precomputes legacy Auto-fix group sizes once per window', () => {
