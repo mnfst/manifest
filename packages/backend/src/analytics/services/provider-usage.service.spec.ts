@@ -275,6 +275,6 @@ describe('ProviderUsageService', () => {
     // Canonical success and legacy NULL/ok all read as successful attempts.
     const selects = (qb.sql as string[]).join(' ');
     expect(selects).toContain("at.status IN ('ok', 'success')");
-    expect(selects).toContain("at.status <> 'pending'");
+    expect(selects).toContain("at.status NOT IN ('pending', 'cancelled')");
   });
 });

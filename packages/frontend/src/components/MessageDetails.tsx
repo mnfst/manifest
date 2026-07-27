@@ -263,6 +263,12 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
           // original) still renders its real two-state outcome. isSuccessStatus
           // accepts both the legacy `ok` and the canonical `success`.
           const displayStatus = () => {
+            if (m.status === 'pending' || m.status === 'cancelled') {
+              return {
+                label: m.status === 'pending' ? 'Pending' : 'Cancelled',
+                cls: 'status-badge status-badge--neutral',
+              };
+            }
             if (isSuccessStatus(m.status))
               return { label: 'Success', cls: 'status-badge status-badge--ok' };
             return { label: 'Failed', cls: 'status-badge status-badge--error' };

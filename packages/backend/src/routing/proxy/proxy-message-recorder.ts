@@ -5,7 +5,9 @@ import { v4 as uuid } from 'uuid';
 import {
   classifyMessageError,
   deriveAutofixStatus,
+  FAILED_STATUS,
   normalizeStatus,
+  CANCELLED_STATUS,
   PENDING_STATUS,
   type RequestParamDefaults,
 } from 'manifest-shared';
@@ -33,6 +35,8 @@ import {
 } from '../autofix/autofix.types';
 import { serializeProviderError } from '../autofix/provider-error-normalizer';
 import { normalizeProviderErrorForStorage } from './proxy-error-sanitizer';
+
+export const FAILED_WITHOUT_MESSAGE = 'Request failed without an error message.';
 
 /**
  * Phoenix's decision metadata for a healed row: its issue/patch/heal-attempt ids
@@ -178,6 +182,14 @@ export interface PendingRequestOpts {
   requestHeaders?: Record<string, string> | null;
 }
 
+export interface CancelledRequestOpts {
+  requestId: string;
+  attempt?: ProviderAttemptRef;
+  attemptStart?: ProviderAttemptStart;
+  requestDurationMs?: number;
+  traceId?: string;
+}
+
 export interface FallbackSuccessOpts extends HeaderTierRef {
   requestId?: string;
   attemptNumber?: number;
@@ -280,7 +292,13 @@ function buildMessageRow(
   // collapsed onto the canonical `success`/`failed` vocabulary — the reason it
   // failed now lives entirely on those orthogonal columns.
   const classified = classifyRow(row);
-  return { ...row, ...classified, status: normalizeStatus(row.status) };
+  const status = normalizeStatus(row.status);
+  const errorMessage =
+    status === FAILED_STATUS &&
+    (typeof row.error_message !== 'string' || row.error_message.trim().length === 0)
+      ? FAILED_WITHOUT_MESSAGE
+      : row.error_message;
+  return { ...row, ...classified, status, error_message: errorMessage };
 }
 
 function attemptIdentity(
@@ -307,6 +325,12 @@ function buildRequestRow(
   // classifyRow above reads the rich attempt status; the request row stores the
   // collapsed canonical outcome. A non-terminal request is still `pending`.
   const status = terminal ? normalizeStatus(attempt.status) : PENDING_STATUS;
+  const errorMessage =
+    terminal && status === FAILED_STATUS
+      ? typeof attempt.error_message === 'string' && attempt.error_message.trim().length > 0
+        ? attempt.error_message
+        : FAILED_WITHOUT_MESSAGE
+      : null;
   return {
     id: requestId,
     tenant_id: ctx.tenantId,
@@ -320,7 +344,7 @@ function buildRequestRow(
     duration_ms: attempt.duration_ms ?? null,
     status,
     autofix_status: deriveAutofixStatus(autofix),
-    error_message: terminal ? (attempt.error_message ?? null) : null,
+    error_message: errorMessage,
     error_http_status: terminal ? (attempt.error_http_status ?? null) : null,
     error_code: terminal ? (attempt.error_code ?? null) : null,
     error_origin: terminal ? classified.error_origin : null,
@@ -517,6 +541,27 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     return true;
   }
 
+  /** Finish caller-disconnected work without attributing an error to Manifest or the provider. */
+  async recordCancelledRequest(ctx: IngestionContext, opts: CancelledRequestOpts): Promise<void> {
+    const row = buildMessageRow(ctx, {
+      request_id: opts.requestId,
+      ...attemptIdentity(opts.attempt, opts.attempt?.attemptNumber),
+      timestamp: new Date().toISOString(),
+      duration_ms: opts.requestDurationMs ?? null,
+      status: CANCELLED_STATUS,
+      trace_id: opts.traceId ?? null,
+      provider: opts.attemptStart?.provider ?? null,
+      model: opts.attemptStart?.model ?? null,
+      auth_type: opts.attemptStart?.authType ?? null,
+      tenant_provider_id: opts.attemptStart?.tenantProviderId ?? null,
+      error_message: null,
+      error_http_status: null,
+    });
+    await this.persistRequest(ctx, opts.requestId, row, true);
+    if (opts.attempt) await this.persistAttempt(row, opts.attempt);
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
+  }
+
   /** Complete an intermediate provider call that is retried below the proxy layer. */
   async completePendingProviderFailure(
     attempt: ProviderAttemptRef,
@@ -534,7 +579,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       { id: attempt.id },
       {
         status: normalizeStatus(richStatus),
-        error_message: scrubSecrets(errorBody).slice(0, 2000),
+        error_message: scrubSecrets(errorBody).trim().slice(0, 2000) || FAILED_WITHOUT_MESSAGE,
         error_http_status: status,
         duration_ms: Math.max(0, (attempt.completedAtMs ?? Date.now()) - attempt.startedAtMs),
         ...classified,

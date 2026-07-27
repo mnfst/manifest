@@ -40,17 +40,20 @@ Every provider call counts as an Attempt, including failed calls, fallback attem
 
 Requests and newly written Provider Attempts use the same canonical status values:
 
-| Value     | Meaning                                     | UI label |
-| --------- | ------------------------------------------- | -------- |
-| `pending` | The operation has no terminal outcome yet.  | Pending  |
-| `success` | The operation completed successfully.       | Success  |
-| `failed`  | The operation completed without succeeding. | Failed   |
+| Value       | Meaning                                            | UI label  |
+| ----------- | -------------------------------------------------- | --------- |
+| `pending`   | The operation has no terminal outcome yet.         | Pending   |
+| `cancelled` | The caller disconnected before a provider outcome. | Cancelled |
+| `success`   | The operation completed successfully.              | Success   |
+| `failed`    | The operation completed without succeeding.        | Failed    |
 
-`success` and `failed` are terminal. In this document, **completed** means either terminal status; it is not a separate status value.
+`cancelled`, `success`, and `failed` are terminal. Outcome metrics use only `success` and `failed`; caller cancellations do not count as provider or Manifest errors. In this document, **completed** means a terminal outcome included in metrics (`success` or `failed`); it is not a separate status value.
 
 Historical `agent_messages` rows may retain the legacy physical values `ok`, `error`, `fallback_error`, or `rate_limited`. Analytics readers normalize `ok` to `success` and the legacy failure values to `failed`. Writers must use the canonical values above.
 
-Manifest creates a Request with `pending` status when it accepts the Request and creates an Attempt with `pending` status when it starts the provider call. Each transitions to one terminal status. Pending records remain internal to the current analytics UI, so this contract does not require a visible UI change.
+Manifest creates a Request with `pending` status when it accepts the Request and creates an Attempt with `pending` status when it starts the provider call. Each transitions to one terminal status. If the caller disconnects first, active rows transition to `cancelled` without error fields.
+
+Every newly written `failed` Request and Attempt has a non-empty `error_message`. Machine classification remains in the `error_origin`, `error_class`, and `error_http_status` fields; the message is the human-readable explanation.
 
 A successful Request has `requests.status = 'success'`. A successful newly written Attempt has `agent_messages.status = 'success'`; a historical successful Attempt may retain `ok`. `requests.status` is authoritative for the caller-visible outcome.
 
@@ -79,10 +82,11 @@ Recovery belongs to Requests only. Providers, Provider Connections, models, and 
 Each Request belongs to exactly one outcome category, evaluated in this order:
 
 1. **Pending:** `requests.status = 'pending'`.
-2. **Failed:** `requests.status = 'failed'`.
-3. **Recovered by Auto-fix:** `requests.status = 'success'` and `requests.autofix_status = 'retry_succeeded'`.
-4. **Recovered by fallback:** `requests.status = 'success'`, the Last Attempt has a non-null `agent_messages.fallback_from_model`, and the Request was not recovered by Auto-fix.
-5. **Success:** any other Request with `requests.status = 'success'`.
+2. **Cancelled:** `requests.status = 'cancelled'`.
+3. **Failed:** `requests.status = 'failed'`.
+4. **Recovered by Auto-fix:** `requests.status = 'success'` and `requests.autofix_status = 'retry_succeeded'`.
+5. **Recovered by fallback:** `requests.status = 'success'`, the Last Attempt has a non-null `agent_messages.fallback_from_model`, and the Request was not recovered by Auto-fix.
+6. **Success:** any other Request with `requests.status = 'success'`.
 
 The ordering makes Auto-fix the tie-breaker if inconsistent or historical data satisfies both recovery criteria. If an Auto-fix retry fails and a fallback succeeds, the Request is recovered by fallback because `requests.autofix_status` is not `retry_succeeded`.
 
@@ -120,7 +124,7 @@ An Attempt identifies the Connection it used through `agent_messages.tenant_prov
 
 Dashboard metrics use completed Requests and Attempts within the selected tenant, agent, and time filters:
 
-- Pending Requests and Attempts are excluded from totals and success rates.
+- Pending and cancelled Requests and Attempts are excluded from totals and success rates.
 - Playground traffic is excluded.
 - Completed zero-attempt Requests are included in Request metrics.
 - During the historical transition, each unlinked legacy Attempt may be represented as one synthetic Request. It counts once in Request metrics and still counts normally in Attempt metrics.
@@ -153,6 +157,7 @@ Only `retry_succeeded` means the Request was recovered by Auto-fix.
 | Scenario                                       | Counted Requests | Counted Attempts | Request status | Attempt statuses              | Recovery |
 | ---------------------------------------------- | ---------------: | ---------------: | -------------- | ----------------------------- | -------- |
 | Request or Attempt is still in progress        |                0 |                0 | `pending`      | `pending` where applicable    | Excluded |
+| Caller disconnects before an outcome           |                0 |                0 | `cancelled`    | `cancelled` where applicable  | Excluded |
 | Primary Provider succeeds                      |                1 |                1 | `success`      | `success`                     | None     |
 | Manifest rejects before contacting a Provider  |                1 |                0 | `failed`       | None                          | None     |
 | Primary Attempt fails, fallback succeeds       |                1 |                2 | `success`      | `failed`, `success`           | Fallback |

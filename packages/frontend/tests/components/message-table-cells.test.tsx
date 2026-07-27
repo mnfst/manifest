@@ -281,6 +281,17 @@ describe('StatusCell merged pill', () => {
     expect(container.querySelector('a')).toBeNull();
   });
 
+  it.each([
+    ['pending', 'Pending'],
+    ['cancelled', 'Cancelled'],
+  ])('renders %s as a neutral outcome', (status, label) => {
+    const { container } = renderCell(baseRow({ status }));
+    const badge = onlyBadge(container);
+    expect(badge.textContent!.trim()).toBe(label);
+    expect(badge.className).toContain('status-badge--neutral');
+    expect(badge.className).not.toContain('status-badge--error');
+  });
+
   it("merges a Manifest limit into one red 'Failed' pill linking to its agent's limits", () => {
     const { container } = renderCell(
       baseRow({

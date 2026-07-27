@@ -275,7 +275,7 @@ describe('MessagesQueryService request-first queries', () => {
 
     const clauses = requestQb.andWhere.mock.calls.map((call) => String(call[0]));
     const failed = clauses.find((c) =>
-      c.includes("outcome_attempt.status NOT IN ('ok', 'success')"),
+      c.includes("outcome_attempt.status NOT IN ('pending', 'cancelled', 'ok', 'success')"),
     );
     const succeeded = clauses.find((c) =>
       c.includes("outcome_attempt.status IN ('ok', 'success')"),
@@ -284,7 +284,9 @@ describe('MessagesQueryService request-first queries', () => {
     expect(failed).toBeDefined();
     expect(succeeded).toBeDefined();
     expect(failed).not.toBe(succeeded);
-    expect(failed).toContain("outcome_attempt.status <> 'pending'");
+    expect(failed).toContain(
+      "outcome_attempt.status NOT IN ('pending', 'cancelled', 'ok', 'success')",
+    );
     // ...and each attempt must be ON a selected connection.
     expect(failed).toContain('outcome_attempt.tenant_provider_id');
     expect(succeeded).toContain('outcome_attempt.tenant_provider_id');

@@ -93,6 +93,10 @@
   background: hsl(var(--destructive) / 0.1);
   color: hsl(var(--destructive));
 }
+.drawer-status--neutral {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
 .drawer__badge {
   font-size: 10px;
   font-weight: 600;
@@ -202,6 +206,10 @@
 .attempt-code--error {
   background: hsl(var(--destructive) / 0.12);
   color: hsl(var(--destructive));
+}
+.attempt-code--neutral {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
 }
 
 .attempt-item__empty {

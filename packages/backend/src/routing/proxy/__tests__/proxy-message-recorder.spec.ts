@@ -140,6 +140,63 @@ describe('ProxyMessageRecorder', () => {
       expect(updateMock).not.toHaveBeenCalled();
     });
 
+    it('guarantees a message when a pending Attempt fails', async () => {
+      const attempt: ProviderAttemptRef = {
+        id: 'attempt-empty-error',
+        attemptNumber: 1,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        pendingWrite: Promise.resolve(true),
+      };
+
+      await recorder.completePendingProviderFailure(attempt, 503, '   ', false);
+
+      expect(updateMock).toHaveBeenCalledWith(
+        { id: 'attempt-empty-error' },
+        expect.objectContaining({
+          status: 'failed',
+          error_message: 'Request failed without an error message.',
+        }),
+      );
+    });
+
+    it('finalizes caller-disconnected Requests and Attempts as cancelled without errors', async () => {
+      const attempt: ProviderAttemptRef = {
+        id: 'attempt-cancelled',
+        attemptNumber: 1,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        completedAtMs: 1_125,
+        pendingWrite: Promise.resolve(true),
+      };
+
+      await recorder.recordCancelledRequest(ctx, {
+        requestId: 'request-cancelled',
+        attempt,
+        attemptStart: {
+          provider: 'openai',
+          model: 'gpt-5',
+          authType: 'subscription',
+        },
+        requestDurationMs: 150,
+        traceId: 'trace-cancelled',
+      });
+
+      expect(updateMock).toHaveBeenCalledWith(
+        { id: 'attempt-cancelled' },
+        expect.objectContaining({
+          status: 'cancelled',
+          error_message: null,
+          error_http_status: null,
+          provider: 'openai',
+          model: 'gpt-5',
+          auth_type: 'subscription',
+          duration_ms: 125,
+        }),
+      );
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
+    });
+
     it('updates the same pending row with terminal status and measured duration', async () => {
       const attempt: ProviderAttemptRef = {
         id: 'attempt-1',
@@ -460,6 +517,17 @@ describe('ProxyMessageRecorder', () => {
   });
 
   describe('recordProviderError', () => {
+    it('guarantees a message for failed rows when the provider body is empty', async () => {
+      await recorder.recordProviderError(ctx, 503, '');
+
+      expect(insertMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'failed',
+          error_message: 'Request failed without an error message.',
+        }),
+      );
+    });
+
     it('records error and emits SSE event', async () => {
       await recorder.recordProviderError(ctx, 500, 'Internal error', {
         model: 'gpt-4o',

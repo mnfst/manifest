@@ -918,6 +918,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         undefined,
         undefined,
+        { protocol: 'google_generate_content' },
       );
     });
 
@@ -1000,7 +1001,9 @@ describe('proxy-response-handler', () => {
       // Dispatched to pipePassthrough, not pipeStream. Tap is the Anthropic
       // stream transformer so thinking-block extraction + OpenAI-shape
       // usage parsing still happen as a side effect.
-      expect(pipePassthroughSpy).toHaveBeenCalledWith(forward.response.body, res, tap, undefined);
+      expect(pipePassthroughSpy).toHaveBeenCalledWith(forward.response.body, res, tap, undefined, {
+        protocol: 'anthropic_messages',
+      });
       expect(pipeStreamSpy).not.toHaveBeenCalled();
       expect(usage).toBeNull();
     });
@@ -1052,6 +1055,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         undefined,
         undefined,
+        { protocol: 'openai_responses' },
       );
     });
 
@@ -1092,6 +1096,7 @@ describe('proxy-response-handler', () => {
         undefined,
         undefined,
         undefined,
+        { protocol: 'openai_chat_completions' },
       );
     });
 
@@ -1115,6 +1120,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         undefined,
         undefined,
+        { protocol: 'openai_chat_completions' },
       );
     });
 
@@ -1142,6 +1148,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         expect.any(Function),
         undefined,
+        { protocol: 'openai_chat_completions' },
       );
     });
 
@@ -1234,6 +1241,7 @@ describe('proxy-response-handler', () => {
         undefined,
         undefined,
         expect.any(Function),
+        { protocol: 'openai_responses' },
       );
     });
 
@@ -1397,6 +1405,7 @@ describe('proxy-response-handler', () => {
         expect.any(Function),
         undefined,
         undefined,
+        { protocol: 'openai_chat_completions' },
       );
     });
 

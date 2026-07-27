@@ -51,17 +51,21 @@ import {
   ManifestError,
   isRecordableManifestCode,
 } from '../../common/errors/manifest-error';
-import type { ProviderAttemptRef, ProxyApiMode, StartProviderAttempt } from './proxy-types';
+import type {
+  ProviderAttemptRef,
+  ProviderAttemptStart,
+  ProxyApiMode,
+  StartProviderAttempt,
+} from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
 import { openAiModelId } from './openai-model-id';
 import { openAiModelCapabilities, type OpenAiModelCapabilities } from './openai-model-capabilities';
 import { PlanService } from '../../billing/plan.service';
-import { UpstreamStreamError } from './stream-writer';
+import { StreamFailure } from './stream-writer';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
-const STREAM_INTERRUPTED_MESSAGE = 'Upstream provider stream was interrupted.';
 const MODEL_CREATED_UNKNOWN = 0;
 
 interface OpenAiModelObject {
@@ -227,6 +231,8 @@ export class ProxyController {
     let headersSent = false;
     let slotAcquired = false;
     let currentMeta: RoutingMeta | undefined;
+    let currentAttempt: ProviderAttemptRef | undefined;
+    let currentAttemptStart: ProviderAttemptStart | undefined;
 
     const clientAbort = new AbortController();
     res.once('close', () => clientAbort.abort());
@@ -256,6 +262,8 @@ export class ProxyController {
         startedAt: new Date(startedAtMs).toISOString(),
         pendingWrite: Promise.resolve(false),
       };
+      currentAttempt = attempt;
+      currentAttemptStart = start;
       attempt.pendingWrite = this.recorder
         .recordPendingProviderAttempt(req.ingestionContext, requestId, attempt, start)
         .catch((e) => {
@@ -292,7 +300,7 @@ export class ProxyController {
         );
         throw err;
       }
-      this.handleProxyError(
+      await this.handleProxyError(
         err,
         req,
         res,
@@ -478,7 +486,7 @@ export class ProxyController {
         );
       }
     } catch (err: unknown) {
-      this.handleProxyError(
+      await this.handleProxyError(
         err,
         req,
         res,
@@ -491,6 +499,8 @@ export class ProxyController {
         apiMode,
         currentMeta,
         startTime,
+        currentAttempt,
+        currentAttemptStart,
       );
     } finally {
       if (slotAcquired) this.rateLimiter.releaseSlot(tenantId);
@@ -535,7 +545,7 @@ export class ProxyController {
       .catch((e) => this.logger.warn(`Failed to record Manifest stub: ${e}`));
   }
 
-  private handleProxyError(
+  private async handleProxyError(
     err: unknown,
     req: Request & { ingestionContext: IngestionContext },
     res: ExpressResponse,
@@ -548,15 +558,26 @@ export class ProxyController {
     apiMode: ProxyApiMode,
     meta?: RoutingMeta,
     startTime?: number,
-  ): void {
+    currentAttempt?: ProviderAttemptRef,
+    currentAttemptStart?: ProviderAttemptStart,
+  ): Promise<void> {
     if (clientAbort.signal.aborted) {
+      await this.recorder
+        .recordCancelledRequest(req.ingestionContext, {
+          requestId,
+          attempt: meta?.attempt ?? currentAttempt,
+          attemptStart: currentAttemptStart,
+          requestDurationMs: startTime == null ? undefined : Date.now() - startTime,
+          traceId,
+        })
+        .catch((e) => this.logger.warn(`Failed to record cancelled Request: ${e}`));
       if (!res.writableEnded) res.end();
       return;
     }
 
     const message = this.extractErrorMessage(err);
     const status =
-      err instanceof UpstreamStreamError
+      err instanceof StreamFailure
         ? err.status
         : err instanceof ResponsesSseError
           ? err.status
@@ -568,7 +589,7 @@ export class ProxyController {
 
     // Who failed? A ManifestError says so explicitly. Pre-response dead sockets
     // and timeouts become synthetic 503/504 responses in proxy-transport. A
-    // socket that dies after streaming starts is thrown as UpstreamStreamError.
+    // socket that dies after streaming starts is thrown as StreamFailure.
     // Other non-HTTP throws are Manifest's own bugs (M500).
     //
     // An unrecordable ManifestError (M001–M003, M005) writes NOTHING: it has no
@@ -590,7 +611,7 @@ export class ProxyController {
         );
       }
     } else if (
-      !(err instanceof UpstreamStreamError) &&
+      !(err instanceof StreamFailure) &&
       !(err instanceof ResponsesSseError) &&
       !(err instanceof HttpException)
     ) {
@@ -642,7 +663,7 @@ export class ProxyController {
 
     if (headersSent) {
       if (!res.writableEnded) {
-        if (err instanceof UpstreamStreamError) {
+        if (err instanceof StreamFailure) {
           this.writeStreamError(res, apiMode, err, meta);
         } else {
           res.end();
@@ -698,22 +719,22 @@ export class ProxyController {
   private writeStreamError(
     res: ExpressResponse,
     apiMode: ProxyApiMode,
-    streamError: UpstreamStreamError,
+    streamError: StreamFailure,
     meta: RoutingMeta | undefined,
   ): void {
-    const error = buildOpenAiCompatibleError(streamError.status, STREAM_INTERRUPTED_MESSAGE, {
+    const error = buildOpenAiCompatibleError(streamError.status, streamError.message, {
       source: 'provider',
-      code: 'stream_interrupted',
+      code: streamError.reason,
       provider: meta?.provider,
       model: meta?.model,
     });
-    error.message = STREAM_INTERRUPTED_MESSAGE;
+    error.message = streamError.message;
 
     if (apiMode === 'messages') {
       res.write(
         `event: error\ndata: ${JSON.stringify({
           type: 'error',
-          error: { type: 'api_error', message: STREAM_INTERRUPTED_MESSAGE },
+          error: { type: 'api_error', message: streamError.message },
         })}\n\n`,
       );
     } else if (apiMode === 'responses') {
@@ -721,7 +742,7 @@ export class ProxyController {
         `event: error\ndata: ${JSON.stringify({
           type: 'error',
           code: error.code ?? 'server_error',
-          message: STREAM_INTERRUPTED_MESSAGE,
+          message: streamError.message,
           param: null,
           sequence_number: nextResponsesSequenceNumber(res),
         })}\n\n`,

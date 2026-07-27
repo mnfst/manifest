@@ -9,7 +9,12 @@ import {
   type Component,
 } from 'solid-js';
 import { getMessageDetails, type AutofixDecision } from '../services/api/messages.js';
-import { AUTOFIX_STATUS_LABELS, isSuccessStatus, type AutofixStatus } from 'manifest-shared';
+import {
+  AUTOFIX_STATUS_LABELS,
+  isFailedStatus,
+  isSuccessStatus,
+  type AutofixStatus,
+} from 'manifest-shared';
 import { formatParamValue } from './MessageDetailsSections.jsx';
 import { providerIcon } from './ProviderIcon.jsx';
 import { AutofixIcon, FallbackIcon } from './message-table-cells.jsx';
@@ -69,6 +74,8 @@ function fmtDate(iso: string): string {
 }
 
 function statusLabel(status: string): string {
+  if (status === 'pending') return 'Pending';
+  if (status === 'cancelled') return 'Cancelled';
   if (isSuccessStatus(status)) return 'Success';
   if (status === 'auto_fixed') return 'Auto-fixed';
   if (status === 'rate_limited') return 'Rate limited';
@@ -78,13 +85,34 @@ function statusLabel(status: string): string {
 /** The attempt's HTTP code as displayed: 200 for success, the provider's
     error code otherwise, ERR when the failure carried no HTTP response. */
 function attemptCode(att: { status: string; error_http_status?: number }): string {
+  if (att.status === 'pending') return '—';
+  if (att.status === 'cancelled') return 'CXL';
   if (isSuccessStatus(att.status)) return '200';
   return att.error_http_status != null ? String(att.error_http_status) : 'ERR';
 }
 
 function requestStatusClass(status: string): string {
   if (isSuccessStatus(status)) return 'drawer-status--success';
+  if (status === 'pending' || status === 'cancelled') return 'drawer-status--neutral';
   return 'drawer-status--error';
+}
+
+function attemptStatusClass(status: string): string {
+  if (isSuccessStatus(status)) return 'attempt-code--ok';
+  if (status === 'pending' || status === 'cancelled') return 'attempt-code--neutral';
+  return 'attempt-code--error';
+}
+
+function attemptErrorMessage(
+  att: Pick<Attempt, 'status' | 'error_message'>,
+  requestMessage: unknown,
+): string | undefined {
+  if (!isFailedStatus(att.status)) return undefined;
+  if (typeof att.error_message === 'string' && att.error_message.trim()) {
+    return att.error_message;
+  }
+  if (typeof requestMessage === 'string' && requestMessage.trim()) return requestMessage;
+  return 'Request failed without an error message.';
 }
 
 function inferType(att: any, index: number, msg: any): Attempt['type'] {
@@ -108,8 +136,7 @@ function buildAttempts(msg: any): Attempt[] {
       provider: att.provider ?? msg.provider,
       model: att.model ?? msg.model ?? msg.model_id,
       auth_type: att.auth_type ?? msg.auth_type,
-      error_message:
-        att.error_message ?? (!isSuccessStatus(att.status) ? msg.error_message : undefined),
+      error_message: attemptErrorMessage(att, msg.error_message),
       error_origin: att.error_origin ?? undefined,
       error_class: att.error_class ?? undefined,
       error_http_status: att.error_http_status ?? undefined,
@@ -150,7 +177,7 @@ function buildAttempts(msg: any): Attempt[] {
       provider: msg.provider,
       model: msg.model || msg.model_id,
       auth_type: msg.auth_type,
-      error_message: msg.error_message,
+      error_message: attemptErrorMessage(msg, msg.error_message),
       error_origin: msg.error_origin,
       error_class: msg.error_class,
       error_http_status: msg.error_http_status,
@@ -353,9 +380,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                             )}
                           </span>
                           <span class="attempt-item__model">{att.model ?? 'No provider'}</span>
-                          <span
-                            class={`attempt-code ${isSuccessStatus(att.status) ? 'attempt-code--ok' : 'attempt-code--error'}`}
-                          >
+                          <span class={`attempt-code ${attemptStatusClass(att.status)}`}>
                             {attemptCode(att)}
                           </span>
                         </button>
@@ -400,9 +425,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                 <span class="drawer-kv__key">Status</span>
                                 <span style="display: inline-flex; align-items: center; gap: 6px;">
                                   {statusLabel(att().status)}
-                                  <span
-                                    class={`attempt-code ${isSuccessStatus(att().status) ? 'attempt-code--ok' : 'attempt-code--error'}`}
-                                  >
+                                  <span class={`attempt-code ${attemptStatusClass(att().status)}`}>
                                     {attemptCode(att())}
                                   </span>
                                 </span>
@@ -661,7 +684,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                   a LATER fallback attempt */}
                               <Show
                                 when={
-                                  !isSuccessStatus(att().status) &&
+                                  isFailedStatus(att().status) &&
                                   !(att().autofix_applied && att().autofix_role !== 'retry') &&
                                   attempts().length > att().index &&
                                   attempts()[att().index]?.fallback_from_model

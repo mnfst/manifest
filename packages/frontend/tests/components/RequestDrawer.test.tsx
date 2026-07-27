@@ -218,6 +218,59 @@ describe('RequestDrawer', () => {
     expect(container.querySelector('.drawer__sidebar')).toBeNull();
   });
 
+  it.each([
+    ['pending', 'Pending', '—'],
+    ['cancelled', 'Cancelled', 'CXL'],
+  ])('renders %s as a neutral non-error outcome', async (status, label, code) => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        id: `request-${status}`,
+        status,
+        timestamp: '2026-07-15T10:11:12Z',
+        attempts: [
+          {
+            id: `attempt-${status}`,
+            status,
+            provider: 'openai',
+            model: 'gpt-5',
+          },
+        ],
+      },
+    });
+    const { container } = render(() => (
+      <RequestDrawer messageId={`request-${status}`} onClose={vi.fn()} />
+    ));
+
+    await waitFor(() => expect(screen.getAllByText(label).length).toBeGreaterThan(0));
+    expect(screen.getAllByText(code).length).toBeGreaterThan(0);
+    expect(container.querySelector('.drawer-status--neutral')).not.toBeNull();
+    expect(container.querySelector('.attempt-code--neutral')).not.toBeNull();
+    expect(container.querySelector('.attempt-code--error')).toBeNull();
+  });
+
+  it('shows a stable message for historical failed Attempts with no captured message', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        id: 'request-failed-empty',
+        status: 'failed',
+        timestamp: '2026-07-15T10:11:12Z',
+        attempts: [
+          {
+            id: 'attempt-failed-empty',
+            status: 'failed',
+            provider: 'openai',
+            model: 'gpt-5',
+          },
+        ],
+      },
+    });
+    render(() => <RequestDrawer messageId="request-failed-empty" onClose={vi.fn()} />);
+
+    await waitFor(() =>
+      expect(screen.getByText('Request failed without an error message.')).toBeDefined(),
+    );
+  });
+
   it('shows loading state while an open request is unresolved and stays closed for null', () => {
     mockGetMessageDetails.mockReturnValue(new Promise(() => {}));
     const { container, unmount } = render(() => (

@@ -208,7 +208,7 @@ describe('AutofixStatsService', () => {
     const providerSql = providerQb.addSelect.mock.calls.flat().join(' ');
     // Canonical success and legacy NULL/ok remain compatible.
     expect(providerSql).toContain("at.status IN ('ok', 'success')");
-    expect(providerSql).toContain("at.status <> 'pending'");
+    expect(providerSql).toContain("at.status NOT IN ('pending', 'cancelled', 'ok', 'success')");
     // No retry exclusion: an auto-fix retry is a real provider call here.
     expect(providerQb.andWhere.mock.calls.flat()).not.toContain(
       "(at.autofix_role IS NULL OR at.autofix_role != 'retry')",
