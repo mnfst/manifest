@@ -156,6 +156,35 @@ describe('ProxyMessageRecorder', () => {
         expect.objectContaining({
           status: 'failed',
           error_message: 'Request failed without an error message.',
+          error_code: null,
+        }),
+      );
+    });
+
+    it('stamps error_code when completing a pending attempt with a Manifest body', async () => {
+      const attempt: ProviderAttemptRef = {
+        id: 'attempt-m102',
+        attemptNumber: 1,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        completedAtMs: 1_050,
+        pendingWrite: Promise.resolve(true),
+      };
+
+      await recorder.completePendingProviderFailure(
+        attempt,
+        401,
+        '[🦚 Manifest M102] openai subscription credentials could not be refreshed.',
+        true,
+      );
+
+      expect(updateMock).toHaveBeenCalledWith(
+        { id: 'attempt-m102' },
+        expect.objectContaining({
+          status: 'failed',
+          error_code: 'M102',
+          error_http_status: 401,
+          superseded: true,
         }),
       );
     });
@@ -922,6 +951,34 @@ describe('ProxyMessageRecorder', () => {
       );
     });
 
+    it('stamps error_code on mid-chain Manifest credential failures', async () => {
+      const failures = [
+        {
+          model: 'claude-sonnet-4',
+          provider: 'anthropic',
+          status: 401,
+          errorBody: JSON.stringify({
+            error: {
+              message:
+                '[🦚 Manifest M100] No anthropic API key yet. Add one here: https://x/routing See https://manifest.build/docs/errors/M100',
+            },
+          }),
+          fallbackIndex: 0,
+          authType: 'api_key' as const,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
+      expect(insertMock.mock.calls[0][0]).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            error_code: 'M100',
+            error_http_status: 401,
+            provider: 'anthropic',
+          }),
+        ]),
+      );
+    });
+
     it('records all failures and emits SSE event once', async () => {
       const failures = [
         { model: 'gpt-4o', provider: 'openai', status: 500, errorBody: 'fail-1', fallbackIndex: 0 },
@@ -1148,8 +1205,35 @@ describe('ProxyMessageRecorder', () => {
         superseded: true,
         error_origin: 'transport',
         error_class: 'network',
+        error_code: null,
       });
       expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
+    });
+
+    it('stamps error_code when the primary body is a Manifest credential failure', async () => {
+      const body = JSON.stringify({
+        error: {
+          message:
+            '[🦚 Manifest M102] openai subscription credentials could not be refreshed. Reconnect OAuth here: https://x/routing See https://manifest.build/docs/errors/M102',
+        },
+      });
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'default',
+        'gpt-5.5',
+        body,
+        '2025-01-01T00:00:00.000Z',
+        'subscription',
+        { provider: 'openai', httpStatus: 401 },
+      );
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'failed',
+        error_code: 'M102',
+        error_http_status: 401,
+        auth_type: 'subscription',
+        provider: 'openai',
+      });
+      expect(insertMock.mock.calls[0][0].error_message).toContain('M102');
     });
 
     it('persists the provider column when passed a provider', async () => {

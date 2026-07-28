@@ -1,4 +1,5 @@
 import {
+  extractManifestErrorCode,
   formatManifestError,
   MANIFEST_ERRORS,
   MANIFEST_ERRORS_DOCS_BASE,
@@ -70,6 +71,43 @@ describe('formatManifestError', () => {
       const out = formatManifestError(code);
       expect(out.startsWith(`[🦚 Manifest ${code}]`)).toBe(true);
       expect(out.endsWith(`See ${MANIFEST_ERRORS_DOCS_BASE}/${code}`)).toBe(true);
+    }
+  });
+});
+
+describe('extractManifestErrorCode', () => {
+  it('returns null for empty or non-Manifest text', () => {
+    expect(extractManifestErrorCode(null)).toBeNull();
+    expect(extractManifestErrorCode(undefined)).toBeNull();
+    expect(extractManifestErrorCode('')).toBeNull();
+    expect(extractManifestErrorCode('upstream 500')).toBeNull();
+    expect(extractManifestErrorCode('[Manifest M999] unknown')).toBeNull();
+  });
+
+  it('extracts the code from a formatted peacock message', () => {
+    expect(extractManifestErrorCode(formatManifestError('M102', { provider: 'openai' }))).toBe(
+      'M102',
+    );
+    expect(
+      extractManifestErrorCode('[🦚 Manifest M100] No openai API key yet. Add one here: https://x'),
+    ).toBe('M100');
+  });
+
+  it('finds the code when nested inside a JSON error body', () => {
+    const body = JSON.stringify({
+      error: {
+        message: formatManifestError('M102', {
+          provider: 'openai',
+          dashboardUrl: 'https://dash/routing',
+        }),
+      },
+    });
+    expect(extractManifestErrorCode(body)).toBe('M102');
+  });
+
+  it('round-trips every registered code', () => {
+    for (const code of Object.keys(MANIFEST_ERRORS) as ManifestErrorCode[]) {
+      expect(extractManifestErrorCode(formatManifestError(code))).toBe(code);
     }
   });
 });
