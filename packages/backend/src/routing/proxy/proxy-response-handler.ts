@@ -666,7 +666,8 @@ function cacheReasoningContent(
   const firstChoice = choices[0];
   if (!firstChoice || typeof firstChoice !== 'object' || Array.isArray(firstChoice)) return;
   const message = (firstChoice as Record<string, unknown>).message as
-    Record<string, unknown> | undefined;
+    | Record<string, unknown>
+    | undefined;
   if (!message) return;
   const reasoningContent = message.reasoning_content;
   if (typeof reasoningContent !== 'string' || !reasoningContent) return;
@@ -705,7 +706,8 @@ export async function handleNonStreamResponse(
     const googleData = forward.isCodeAssist ? unwrapCodeAssistResponse(rawData) : rawData;
     responseBody = providerClient.convertGoogleResponse(googleData, meta.model);
     const sigs = (responseBody as Record<string, unknown>)?._extractedSignatures as
-      ExtractedSignature[] | undefined;
+      | ExtractedSignature[]
+      | undefined;
     if (sigs && signatureCache && sessionKey) {
       for (const s of sigs) signatureCache.store(sessionKey, s.toolCallId, s.signature);
     }
@@ -733,7 +735,8 @@ export async function handleNonStreamResponse(
     const anthropicData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertAnthropicResponse(anthropicData, meta.model);
     const extracted = (responseBody as Record<string, unknown>)?._extractedThinkingBlocks as
-      ExtractedThinkingBlocks | undefined;
+      | ExtractedThinkingBlocks
+      | undefined;
     if (extracted && thinkingCache && sessionKey) {
       thinkingCache.store(
         sessionKey,

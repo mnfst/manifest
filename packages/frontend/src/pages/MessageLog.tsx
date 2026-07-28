@@ -156,7 +156,8 @@ const MessageLog: Component = () => {
       // includePlayground=true so the reserved Playground agent appears in the
       // filter and the log can be narrowed to Playground runs.
       const data = (await getAgents(true)) as
-        { agents?: AgentFilterOption[] } | AgentFilterOption[];
+        | { agents?: AgentFilterOption[] }
+        | AgentFilterOption[];
       return (Array.isArray(data) ? data : (data?.agents ?? [])) as AgentFilterOption[];
     },
   );
@@ -453,7 +454,8 @@ const MessageLog: Component = () => {
   createEffect(() => {
     if (!data.loading && data() !== undefined) setLoadedMessageQueryKey(messageQueryKey());
   });
-  const messageQueryChanging = () => data.loading && loadedMessageQueryKey() !== messageQueryKey();
+  const messageQueryChanging = () =>
+    data.loading && loadedMessageQueryKey() !== messageQueryKey();
 
   const [messageFilterOptions] = createResource(
     () => ({
