@@ -1,0 +1,35 @@
+packages/backend/src/database/database-seeder.service.spec.ts
+  s_8b2a2ccaff9d01::t_96b302c0308885 2,40-44,65-74,89,143-201
+  s_8b2a2ccaff9d01::t_272bb8bb540608 342
+  s_a9f7edb247fde7::t_bc4021c189a704 202-203
+.github/workflows/docker-smoke.yml
+  s_8b2a2ccaff9d01::t_a88e262e8f83bc 219-222,230,255,259-265
+packages/backend/src/database/database-seeder.service.ts
+  s_8b2a2ccaff9d01::t_28246c87485f6e 17-19,27-113,135,174,275,339-419
+  s_8b2a2ccaff9d01::t_97610be9b54832 20
+  s_8b2a2ccaff9d01::t_e32d698550e38c 420
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "efc820575583ad3987432e99ecf7b9094416bce9",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_a9f7edb247fde7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa7f0-b19d-7cd3-9970-5015f75bb89d",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
