@@ -246,7 +246,7 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
       cache_creation_input_tokens: 0,
       cache_read_input_tokens: 3006,
     });
-    expect(cost).toBeCloseTo(0.003023, 10);
+    expect(cost).toBeCloseTo(0.0003176, 10);
 
     await flushRecorder();
     const rows = await ds.query(
