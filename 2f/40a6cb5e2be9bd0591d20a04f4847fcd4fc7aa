@@ -1,0 +1,59 @@
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_844b0288ca9e6d::t_2beff8cb81a7d1 36,40
+  s_844b0288ca9e6d::t_fe437758496df5 37-39,41
+packages/backend/src/routing/proxy/provider-client.ts
+  s_844b0288ca9e6d::t_db2c85fb5f3158 19
+  s_844b0288ca9e6d::t_051bd0650186b3 686
+packages/backend/src/playground/playground-stream.ts
+  s_844b0288ca9e6d::t_449c0a507e1cce 41-42
+packages/backend/src/playground/playground-stream.spec.ts
+  s_844b0288ca9e6d::t_6adbfd80060456 27
+  s_844b0288ca9e6d::t_25099793a3cee6 179-180,183,185,195-196,202
+packages/backend/src/playground/playground.service.spec.ts
+  s_844b0288ca9e6d::t_c0bee506f73824 174,204
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_844b0288ca9e6d::t_b7dd09fdaa3a59 389-405,410-412
+  s_844b0288ca9e6d::t_adacd91bbc6dba 558-568
+  s_844b0288ca9e6d::t_07a5c3a56552c2 474-543
+  s_844b0288ca9e6d::t_924d96be41527c 3
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_844b0288ca9e6d::t_0791f512b4aab7 395-399,409
+  s_844b0288ca9e6d::t_9df3643823fda5 419-423,431
+  s_844b0288ca9e6d::t_815d2ef4d8cc84 332-334
+  s_844b0288ca9e6d::t_58c44d0f7f0a8a 288-296,301-305
+  s_844b0288ca9e6d::t_75d6f1068dec94 168-173,175,179-206,287
+  s_844b0288ca9e6d::t_edf016ccab8c0d 381,385
+.changeset/chatgpt-reasoning-summary-backfill.md
+  s_844b0288ca9e6d::t_9588118bd4871d 1-5
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_844b0288ca9e6d::t_1e210936d730bb 441-442,447
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_844b0288ca9e6d::t_dc34d417804390 994
+  s_844b0288ca9e6d::t_4d4e6f0458d11e 686
+  s_844b0288ca9e6d::t_eb8d45dcdd1667 2514
+  s_844b0288ca9e6d::t_d86dce0b1dba36 959-960
+  s_844b0288ca9e6d::t_ae44fe742ac655 863,867-868,884-885
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_844b0288ca9e6d::t_ae33b5c57306da 2652,2655-2657,2667
+  s_844b0288ca9e6d::t_8092b3ed919807 2631
+packages/backend/src/playground/playground.service.truncation.spec.ts
+  s_844b0288ca9e6d::t_c0bee506f73824 99,129
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_844b0288ca9e6d::t_5fad9a901595ce 2502,2505,2512-2514
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2f40a6cb5e2be9bd0591d20a04f4847fcd4fc7aa",
+  "prompts": {},
+  "sessions": {
+    "s_844b0288ca9e6d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b5f0c8fc-5ca5-4775-9624-c9ba26024067",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
