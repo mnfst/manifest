@@ -134,7 +134,7 @@ describe('Register', () => {
         name: 'Test',
         email: 'test@test.com',
         password: 'pass123',
-        callbackURL: '/upgrade',
+        callbackURL: '/welcome',
       });
     });
   });
@@ -264,7 +264,7 @@ describe('Register', () => {
     fireEvent.click(freeCard);
     fireEvent.click(container.querySelector('.plan-picker__cta')!);
 
-    expect(replace).toHaveBeenCalledWith('/');
+    expect(replace).toHaveBeenCalledWith('/welcome');
     locationSpy.mockRestore();
   });
 
@@ -371,7 +371,7 @@ describe('Register', () => {
       await vi.waitFor(() => {
         expect(mockSendVerificationEmail).toHaveBeenCalledWith({
           email: 'test@test.com',
-          callbackURL: '/upgrade',
+          callbackURL: '/welcome',
         });
       });
     }
