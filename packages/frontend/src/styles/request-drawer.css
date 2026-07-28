@@ -523,6 +523,10 @@
   padding: 10px;
   overflow-y: auto;
 }
+/* Articles must not shrink — flex-shrink: 0 lets overflow-y: auto scroll them */
+.conv-turns .request-message {
+  flex-shrink: 0;
+}
 
 /* Active turn highlight */
 .request-message--active {
