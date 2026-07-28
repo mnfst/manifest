@@ -1,0 +1,41 @@
+.changeset/fifty-provider-connections.md
+  s_7a8015ffc36530::t_f5ca295ff28569 2
+  s_7a8015ffc36530::t_58f5b421290291 1,3-5
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_7a8015ffc36530::t_feef1ffb7dfdc0 1,1640-1665
+  s_7a8015ffc36530::t_aa631bfde291b4 1666-1667
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_7a8015ffc36530::t_58f5b421290291 25
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_7a8015ffc36530::t_58f5b421290291 13,31
+packages/backend/test/multi-key-providers.e2e-spec.ts
+  s_7a8015ffc36530::t_f5ca295ff28569 93-98,114,154-156
+  s_7a8015ffc36530::t_58f5b421290291 4,82-83,88-89
+packages/frontend/src/components/CopilotDeviceLogin.tsx
+  s_7a8015ffc36530::t_58f5b421290291 2
+packages/shared/src/index.ts
+  s_7a8015ffc36530::t_58f5b421290291 116
+packages/shared/src/provider-limits.ts
+  s_7a8015ffc36530::t_58f5b421290291 1-7
+packages/frontend/tests/components/ProviderDetailView.test.tsx
+  s_7a8015ffc36530::t_58f5b421290291 63
+  s_7a8015ffc36530::t_89b648569fbd0f 401-418
+packages/backend/src/database/migrations/1785000000000-AddProviderKeyLabelAndPriority.ts
+  s_7a8015ffc36530::t_58f5b421290291 9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "16c57aeaaebaeca46154312d36e7eae2f8b5131c",
+  "prompts": {},
+  "sessions": {
+    "s_7a8015ffc36530": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa8c8-1bc8-7083-bfe2-af4c10e92d86",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
