@@ -1,6 +1,8 @@
 import {
   attachCostToResponseBody,
   attachCostToUsageObject,
+  createResponseCostState,
+  injectCostIntoSseChunk,
   injectCostIntoSseEvent,
   resolveResponseCostUsd,
   type ResponseCostContext,
@@ -61,6 +63,15 @@ describe('response-cost', () => {
       attachCostToUsageObject(usage, null);
       expect(usage.cost).toBe(0.99);
     });
+
+    it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+      'leaves usage untouched when cost is non-finite (%s)',
+      (cost) => {
+        const usage = { prompt_tokens: 10, completion_tokens: 5, cost: 0.99 };
+        attachCostToUsageObject(usage, cost);
+        expect(usage.cost).toBe(0.99);
+      },
+    );
   });
 
   describe('attachCostToResponseBody', () => {
@@ -128,11 +139,96 @@ describe('response-cost', () => {
       expect(JSON.parse(dataLine).usage.cost).toBeCloseTo(0.0015, 10);
     });
 
+    it('restores data framing for parsed events without usage', () => {
+      const event = [
+        'event: content_block_delta',
+        JSON.stringify({
+          type: 'content_block_delta',
+          index: 0,
+          delta: { type: 'text_delta', text: 'hello' },
+        }),
+      ].join('\n');
+
+      expect(injectCostIntoSseEvent(event, pricingCtx)).toEqual({
+        text:
+          'event: content_block_delta\n' +
+          'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"hello"}}',
+        usage: null,
+      });
+    });
+
+    it('accumulates Anthropic input and output usage before pricing message_delta', () => {
+      const state = createResponseCostState();
+      const start = injectCostIntoSseEvent(
+        [
+          'event: message_start',
+          JSON.stringify({
+            type: 'message_start',
+            message: {
+              usage: {
+                input_tokens: 100,
+                output_tokens: 1,
+                cache_read_input_tokens: 20,
+                cache_creation_input_tokens: 5,
+              },
+            },
+          }),
+        ].join('\n'),
+        pricingCtx,
+        state,
+      );
+      const delta = injectCostIntoSseEvent(
+        [
+          'event: message_delta',
+          JSON.stringify({
+            type: 'message_delta',
+            usage: { output_tokens: 50 },
+          }),
+        ].join('\n'),
+        pricingCtx,
+        state,
+      );
+
+      expect(start.text).not.toContain('"cost"');
+      expect(delta.usage).toMatchObject({
+        prompt_tokens: 125,
+        completion_tokens: 50,
+        cache_read_tokens: 20,
+        cache_creation_tokens: 5,
+      });
+      const data = delta.text
+        .split('\n')
+        .find((line) => line.startsWith('data: '))!
+        .slice('data: '.length);
+      expect(JSON.parse(data).usage.cost).toBeCloseTo(0.001625, 10);
+    });
+
     it('passes through [DONE] unchanged', () => {
       expect(injectCostIntoSseEvent('data: [DONE]', pricingCtx)).toEqual({
         text: 'data: [DONE]',
         usage: null,
       });
+    });
+  });
+
+  describe('injectCostIntoSseChunk', () => {
+    it('rewrites each event in a multi-event finalizer independently', () => {
+      const chunk =
+        'event: response.output_item.done\n' +
+        'data: {"type":"response.output_item.done"}\n\n' +
+        'event: response.completed\n' +
+        'data: {"type":"response.completed","response":{"usage":{"input_tokens":100,"output_tokens":50}}}\n\n' +
+        'data: [DONE]\n\n';
+
+      const result = injectCostIntoSseChunk(chunk, pricingCtx);
+
+      expect(result.text).toContain(
+        'event: response.output_item.done\ndata: {"type":"response.output_item.done"}\n\n',
+      );
+      expect(result.text).toContain('event: response.completed\n');
+      expect(result.text).toContain('"cost":0.0015');
+      expect(result.text.endsWith('data: [DONE]\n\n')).toBe(true);
+      expect(result.usage).toMatchObject({ prompt_tokens: 100, completion_tokens: 50 });
     });
   });
 });

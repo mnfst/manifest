@@ -12,7 +12,12 @@ import {
   StreamProtocolObserver,
   UpstreamStreamError,
 } from './stream-protocol';
-import { injectCostIntoSseEvent, type ResponseCostContext } from './response-cost';
+import {
+  createResponseCostState,
+  injectCostIntoSseChunk,
+  injectCostIntoSseEvent,
+  type ResponseCostContext,
+} from './response-cost';
 
 export {
   StreamFailure,
@@ -288,10 +293,18 @@ export async function pipePassthrough(
   let capturedUsage: StreamUsage | null = null;
   let streamFailed = false;
   const costContext = options.costContext;
+  const costState = costContext ? createResponseCostState() : undefined;
   const protocol = createProtocolParser(options);
+  const writeOut = (text: string): void => {
+    dest.write(text);
+    if (onClientChunk) onClientChunk(text);
+  };
   const parser = createSsePayloadParser({
     maxBufferSize: MAX_SSE_BUFFER_SIZE,
     ...protocol.parserOptions,
+    onComment: (comment) => {
+      if (costContext && !dest.writableEnded) writeOut(formatSseComment(comment));
+    },
   });
   const idleTimeoutMs = options.idleTimeoutMs ?? parseStreamIdleTimeoutMs();
 
@@ -303,11 +316,10 @@ export async function pipePassthrough(
         if (usage) capturedUsage = usage;
       }
       if (costContext) {
-        const injected = injectCostIntoSseEvent(event, costContext);
+        const injected = injectCostIntoSseEvent(event, costContext, costState);
         if (injected.usage) capturedUsage = injected.usage;
         const framed = frameSseEvent(injected.text);
-        dest.write(framed);
-        if (onClientChunk) onClientChunk(framed);
+        writeOut(framed);
       }
     }
   };
@@ -361,6 +373,7 @@ export async function pipeStream(
   let capturedUsage: StreamUsage | null = null;
   let streamFailed = false;
   const costContext = options.costContext;
+  const costState = costContext ? createResponseCostState() : undefined;
   const appendDone = options.appendDone === true;
   const protocol = createProtocolParser(options);
   const idleTimeoutMs = options.idleTimeoutMs ?? parseStreamIdleTimeoutMs();
@@ -370,14 +383,24 @@ export async function pipeStream(
     if (onClientChunk) onClientChunk(s);
   };
 
-  const writeWithCost = (chunk: string): void => {
+  const writeTransformedChunk = (chunk: string): void => {
     if (!costContext) {
       writeOut(chunk);
       const usage = extractUsageFromSse(chunk);
       if (usage) capturedUsage = usage;
       return;
     }
-    const injected = injectCostIntoSseEvent(chunk, costContext);
+    const injected = injectCostIntoSseChunk(chunk, costContext, costState);
+    if (injected.usage) capturedUsage = injected.usage;
+    writeOut(injected.text);
+  };
+
+  const writeParsedEvent = (event: string): void => {
+    if (!costContext) {
+      writeTransformedChunk(event);
+      return;
+    }
+    const injected = injectCostIntoSseEvent(event, costContext, costState);
     if (injected.usage) capturedUsage = injected.usage;
     writeOut(frameSseEvent(injected.text));
   };
@@ -404,8 +427,12 @@ export async function pipeStream(
 
   const applyTransformedEvents = (events: string[]): void => {
     for (const event of events) {
-      const transformed = transform ? transform(event) : event;
-      if (transformed) writeWithCost(transformed);
+      if (transform) {
+        const transformed = transform(event);
+        if (transformed) writeTransformedChunk(transformed);
+      } else {
+        writeParsedEvent(event);
+      }
     }
   };
 
@@ -452,7 +479,7 @@ export async function pipeStream(
       if (finalize) {
         const trailing = finalize();
         if (trailing && !dest.writableEnded) {
-          writeWithCost(trailing);
+          writeTransformedChunk(trailing);
         }
       } else if (transform || appendDone) {
         // Transform path historically always terminated with [DONE] when no

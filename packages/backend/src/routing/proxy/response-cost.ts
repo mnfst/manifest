@@ -13,6 +13,18 @@ export interface ResponseCostContext {
   perRequestCostUsd?: number | null;
 }
 
+export interface ResponseCostState {
+  promptTokens?: number;
+  completionTokens?: number;
+  cacheReadTokens?: number;
+  cacheCreationTokens?: number;
+  reportedCostUsd?: number;
+}
+
+export function createResponseCostState(): ResponseCostState {
+  return {};
+}
+
 /**
  * Resolve USD cost for a parsed usage block. Returns null when pricing is
  * unavailable (same semantics as computeTokenCost / dashboard).
@@ -42,51 +54,109 @@ export function resolveResponseCostUsd(
  * pricing. When cost cannot be resolved, leaves any upstream `cost` intact.
  */
 export function attachCostToUsageObject(usage: unknown, costUsd: number | null): void {
-  if (costUsd == null || !usage || typeof usage !== 'object' || Array.isArray(usage)) {
+  if (
+    costUsd == null ||
+    !Number.isFinite(costUsd) ||
+    costUsd < 0 ||
+    !usage ||
+    typeof usage !== 'object' ||
+    Array.isArray(usage)
+  ) {
     return;
   }
   (usage as Record<string, unknown>).cost = costUsd;
+}
+
+function mergeUsage(usageValue: unknown, state: ResponseCostState): StreamUsage | null {
+  if (!usageValue || typeof usageValue !== 'object' || Array.isArray(usageValue)) {
+    return null;
+  }
+
+  const parsed = parseUsageObject(usageValue);
+  if (parsed) {
+    state.promptTokens = parsed.prompt_tokens;
+    state.completionTokens = parsed.completion_tokens;
+    state.cacheReadTokens = parsed.cache_read_tokens;
+    state.cacheCreationTokens = parsed.cache_creation_tokens;
+    state.reportedCostUsd = parsed.reported_cost_usd;
+  } else {
+    const usage = usageValue as Record<string, unknown>;
+    const completionTokens =
+      typeof usage.completion_tokens === 'number'
+        ? usage.completion_tokens
+        : typeof usage.output_tokens === 'number'
+          ? usage.output_tokens
+          : undefined;
+    if (completionTokens === undefined) return null;
+    state.completionTokens = completionTokens;
+  }
+
+  if (state.promptTokens === undefined) return null;
+  return {
+    prompt_tokens: state.promptTokens,
+    completion_tokens: state.completionTokens ?? 0,
+    cache_read_tokens: state.cacheReadTokens,
+    cache_creation_tokens: state.cacheCreationTokens,
+    ...(state.reportedCostUsd !== undefined ? { reported_cost_usd: state.reportedCostUsd } : {}),
+  };
 }
 
 /**
  * Inject cost into every usage object nested under a non-stream response body:
  * - Chat Completions / Messages: top-level `usage`
  * - Responses API: top-level `usage` and/or nested `response.usage`
+ * - Anthropic stream start: nested `message.usage` is accumulated so the
+ *   output-only terminal `message_delta.usage` can receive the full cost
  */
 export function attachCostToResponseBody(
   body: unknown,
   ctx: ResponseCostContext,
+  state: ResponseCostState = createResponseCostState(),
 ): StreamUsage | null {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
   const record = body as Record<string, unknown>;
 
   let lastUsage: StreamUsage | null = null;
 
-  const tryAttach = (usageValue: unknown): void => {
-    const parsed = parseUsageObject(usageValue);
-    if (!parsed) return;
-    lastUsage = parsed;
-    attachCostToUsageObject(usageValue, resolveResponseCostUsd(parsed, ctx));
+  const tryAttach = (usageValue: unknown, attach = true): void => {
+    const merged = mergeUsage(usageValue, state);
+    if (!merged) return;
+    lastUsage = merged;
+    if (attach) {
+      attachCostToUsageObject(usageValue, resolveResponseCostUsd(merged, ctx));
+    }
   };
 
   tryAttach(record.usage);
 
-  const nested = record.response;
-  if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
-    tryAttach((nested as Record<string, unknown>).usage);
+  const response = record.response;
+  if (response && typeof response === 'object' && !Array.isArray(response)) {
+    tryAttach((response as Record<string, unknown>).usage);
+  }
+
+  const message = record.message;
+  if (message && typeof message === 'object' && !Array.isArray(message)) {
+    // `message_start.message.usage` contains the input side of Anthropic
+    // streaming usage. Accumulate it, but stamp the total on message_delta.
+    tryAttach((message as Record<string, unknown>).usage, false);
   }
 
   return lastUsage;
 }
 
+function serializeSseEvent(prefixLines: string[], payload: string): string {
+  return [...prefixLines, ...payload.split('\n').map((line) => `data: ${line}`)].join('\n');
+}
+
 /**
  * Rewrite a single parsed SSE event (the shape produced by createSsePayloadParser)
- * so any JSON `usage` block includes Manifest cost. Preserves event:/id: lines
- * and multi-line data: framing.
+ * so any JSON `usage` block includes Manifest cost. Always restores valid
+ * `data:` framing, including for events without usage.
  */
 export function injectCostIntoSseEvent(
   eventText: string,
   ctx: ResponseCostContext,
+  state: ResponseCostState = createResponseCostState(),
 ): { text: string; usage: StreamUsage | null } {
   const lines = eventText.split('\n');
   const dataLines: string[] = [];
@@ -111,27 +181,56 @@ export function injectCostIntoSseEvent(
   }
 
   if (dataLines.length === 0) {
-    return { text: eventText, usage: null };
+    return { text: prefixLines.join('\n'), usage: null };
   }
 
   const payload = dataLines.join('\n');
   if (!payload || payload === '[DONE]') {
-    return { text: eventText, usage: null };
+    return { text: serializeSseEvent(prefixLines, payload), usage: null };
   }
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(payload);
   } catch {
-    return { text: eventText, usage: null };
+    return { text: serializeSseEvent(prefixLines, payload), usage: null };
   }
 
-  const usage = attachCostToResponseBody(parsed, ctx);
+  const usage = attachCostToResponseBody(parsed, ctx, state);
   if (!usage) {
-    return { text: eventText, usage: null };
+    return { text: serializeSseEvent(prefixLines, payload), usage: null };
   }
 
-  const rewritten = JSON.stringify(parsed);
-  const out: string[] = [...prefixLines, `data: ${rewritten}`];
-  return { text: out.join('\n'), usage };
+  return { text: serializeSseEvent(prefixLines, JSON.stringify(parsed)), usage };
+}
+
+function frameSseEvent(eventText: string): string {
+  if (eventText.endsWith('\n\n')) return eventText;
+  if (eventText.endsWith('\n')) return `${eventText}\n`;
+  return `${eventText}\n\n`;
+}
+
+/**
+ * Rewrite complete outbound SSE produced by protocol transformers/finalizers.
+ * Those callbacks may return several events in one string, so process each
+ * event independently instead of trying to parse all data lines as one JSON
+ * document.
+ */
+export function injectCostIntoSseChunk(
+  chunk: string,
+  ctx: ResponseCostContext,
+  state: ResponseCostState = createResponseCostState(),
+): { text: string; usage: StreamUsage | null } {
+  const events = chunk.replace(/\r\n/g, '\n').split('\n\n');
+  let lastUsage: StreamUsage | null = null;
+  let text = '';
+
+  for (const event of events) {
+    if (!event.trim()) continue;
+    const injected = injectCostIntoSseEvent(event, ctx, state);
+    if (injected.usage) lastUsage = injected.usage;
+    if (injected.text) text += frameSseEvent(injected.text);
+  }
+
+  return { text, usage: lastUsage };
 }
