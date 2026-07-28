@@ -1,0 +1,25 @@
+.changeset/exact-request-usage-counter.md
+  s_2917deb1d5505f::t_5359a834e2c088 5
+packages/backend/src/database/migrations/1801300000000-AddTenantRequestUsage.ts
+  s_2917deb1d5505f::t_5359a834e2c088 34,49-53,173,213
+packages/backend/src/database/migrations/1801300000000-AddTenantRequestUsage.spec.ts
+  s_2917deb1d5505f::t_5359a834e2c088 28
+packages/backend/test/tenant-request-usage-migration.e2e-spec.ts
+  s_2917deb1d5505f::t_5359a834e2c088 274-292
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "096c6529abbf66aae840aa603bba6d1df1eb7e85",
+  "prompts": {},
+  "sessions": {
+    "s_2917deb1d5505f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa81c-3f8c-75b1-bf46-fd76c46071ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
