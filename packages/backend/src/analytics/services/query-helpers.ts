@@ -35,12 +35,44 @@ export function computeTrend(current: number, previous: number): number {
 // `auto_fixed` is the failed-original row of a healed Auto-fix pair; its paired
 // `ok` retry row is the real success, so the original is excluded here to avoid
 // double-counting one logical request.
+//
+// Both vocabularies are listed on purpose: `error`/`rate_limited`/`fallback_error`/
+// `auto_fixed` are the legacy values still present on historical rows and on writes
+// from not-yet-drained replicas, while `failed` is the canonical value new writes
+// use. Listing both keeps the "real message" count correct across the transition —
+// the reason a row failed now lives on `error_class` / `superseded`, not on `status`.
 export const ERROR_MESSAGE_STATUSES = [
   'error',
   'fallback_error',
   'rate_limited',
   'auto_fixed',
+  'failed',
 ] as const;
+
+/**
+ * Status values that mean "terminal success", across both the legacy (`ok`) and
+ * canonical (`success`) vocabularies. Use in SQL as `status IN (...)` so success
+ * detection survives the rolling deploy and the in-flight status backfill.
+ */
+export const SUCCESS_MESSAGE_STATUSES = ['ok', 'success'] as const;
+
+/** `'ok', 'success'` — ready to splice into a SQL `IN (...)`/`NOT IN (...)`. */
+export const SUCCESS_STATUS_SQL_LIST = SUCCESS_MESSAGE_STATUSES.map((s) => `'${s}'`).join(', ');
+
+/** SQL predicate for a successful legacy or canonical status. */
+export function sqlIsSuccessStatus(column: string): string {
+  return `(${column} IS NULL OR ${column} IN (${SUCCESS_STATUS_SQL_LIST}))`;
+}
+
+/** SQL predicate for a completed failure, excluding in-flight rows. */
+export function sqlIsFailedStatus(column: string): string {
+  return `(${column} IS NOT NULL AND ${column} NOT IN ('pending', 'cancelled', ${SUCCESS_STATUS_SQL_LIST}))`;
+}
+
+/** SQL predicate for rows included in outcome metrics. Legacy NULL statuses mean success. */
+export function sqlIsCompletedStatus(column: string): string {
+  return `(${column} IS NULL OR ${column} NOT IN ('pending', 'cancelled'))`;
+}
 
 /**
  * SQL `COUNT(*)` expression that counts only real (non-error) messages.
@@ -57,7 +89,10 @@ export const ERROR_MESSAGE_STATUSES = [
  */
 export function sqlCountMessages(alias = 'at'): string {
   const list = ERROR_MESSAGE_STATUSES.map((s) => `'${s}'`).join(', ');
-  return `COUNT(*) FILTER (WHERE ${alias}.status IS NULL OR ${alias}.status NOT IN (${list}))`;
+  // COALESCE keeps dashboards correct while the online backfill is in flight:
+  // linked attempts collapse to one request, while an unlinked historical row
+  // temporarily remains its own synthetic request.
+  return `COUNT(DISTINCT COALESCE(${alias}.request_id, ${alias}.id)) FILTER (WHERE ${alias}.status IS NULL OR (${alias}.status NOT IN ('pending', 'cancelled') AND ${alias}.status NOT IN (${list})))`;
 }
 
 /** Comma-quoted list of Manifest-originated error origins, e.g. `'config', 'policy', …`. */
@@ -167,13 +202,53 @@ export function addTenantFilter<T extends ObjectLiteral>(
  * call sites and tests reference one string instead of duplicating (and
  * drifting on) the SQL.
  */
-export const EXCLUDE_PLAYGROUND_AGENTS_PREDICATE =
-  'NOT EXISTS (SELECT 1 FROM agents playag WHERE playag.tenant_id = at.tenant_id AND playag.is_playground = true AND (playag.id = at.agent_id OR playag.name = at.agent_name))';
+export function sqlExcludePlayground(alias: string): string {
+  return `NOT EXISTS (SELECT 1 FROM agents playag WHERE playag.tenant_id = ${alias}.tenant_id AND playag.is_playground = true AND (playag.id = ${alias}.agent_id OR playag.name = ${alias}.agent_name))`;
+}
+
+export const EXCLUDE_PLAYGROUND_AGENTS_PREDICATE = sqlExcludePlayground('at');
 
 export function excludePlaygroundAgents<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
 ): SelectQueryBuilder<T> {
   return qb.andWhere(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+}
+
+/**
+ * Exclude `direct` traffic — the requests where the caller pinned an explicit
+ * model in the request body, so the agent's configured routing never chose
+ * anything (the proxy stamps `routing_tier`/`routing_reason` = `direct` on the
+ * attempt, see `buildBaseMeta` in `proxy.service.ts`).
+ *
+ * A harness's own Overview answers "what did MY routing do", and a client-pinned
+ * model is not that harness's routing — it bypassed it. The global Overview and
+ * the Messages log stay complete, so those requests are still visible and total
+ * spend still reconciles there; these predicates are only for agent-scoped
+ * Overview widgets.
+ *
+ * `routing_reason` lives on the ATTEMPT (`agent_messages`), never on the parent
+ * request, so there are two predicates:
+ *
+ *  - `EXCLUDE_DIRECT_ATTEMPTS_PREDICATE` filters an attempt-level aggregate
+ *    directly. `IS DISTINCT FROM` rather than `!=` because an attempt recorded
+ *    before a route was chosen (pending/cancelled) carries a NULL
+ *    `routing_reason`, which `!=` would drop (NULL comparison yields NULL).
+ *  - `sqlExcludeDirectRequests(alias)` filters a request-level aggregate via
+ *    `NOT EXISTS` on its attempts — mirroring how `getRequests` applies every
+ *    other attempt-level facet. A request with no attempts at all (recorded
+ *    before any provider was contacted) has nothing claiming `direct`, so it
+ *    correctly survives.
+ */
+export const EXCLUDE_DIRECT_ATTEMPTS_PREDICATE = "at.routing_reason IS DISTINCT FROM 'direct'";
+
+export function excludeDirectAttempts<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+): SelectQueryBuilder<T> {
+  return qb.andWhere(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+}
+
+export function sqlExcludeDirectRequests(alias: string): string {
+  return `NOT EXISTS (SELECT 1 FROM agent_messages direct_attempt WHERE direct_attempt.request_id = ${alias}.id AND direct_attempt.routing_reason = 'direct')`;
 }
 
 /**

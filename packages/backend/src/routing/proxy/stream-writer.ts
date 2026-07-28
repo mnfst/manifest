@@ -1,9 +1,26 @@
 import { Response as ExpressResponse } from 'express';
+import type { EventSourceMessage } from 'eventsource-parser';
 import {
   createSsePayloadParser,
   DEFAULT_MAX_SSE_BUFFER_SIZE,
   formatSseComment,
 } from './sse-parser';
+import type { ProviderWireFormat } from './proxy-types';
+import {
+  StreamFailure,
+  StreamIdleTimeoutError,
+  StreamProtocolObserver,
+  UpstreamStreamError,
+} from './stream-protocol';
+
+export {
+  StreamFailure,
+  StreamIdleTimeoutError,
+  UpstreamStreamError,
+  STREAM_IDLE_TIMEOUT_MESSAGE,
+  STREAM_INTERRUPTED_MESSAGE,
+  INCOMPLETE_STREAM_MESSAGE,
+} from './stream-protocol';
 
 export interface StreamUsage {
   prompt_tokens: number;
@@ -11,6 +28,52 @@ export interface StreamUsage {
   cache_read_tokens?: number;
   cache_creation_tokens?: number;
   reported_cost_usd?: number;
+}
+
+export const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 180_000;
+
+export function parseStreamIdleTimeoutMs(rawValue = process.env.STREAM_IDLE_TIMEOUT_MS): number {
+  if (!rawValue) return DEFAULT_STREAM_IDLE_TIMEOUT_MS;
+  const parsed = Number.parseInt(rawValue, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_STREAM_IDLE_TIMEOUT_MS;
+}
+
+async function readUpstreamChunk(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  idleTimeoutMs: number,
+): Promise<ReadableStreamReadResult<Uint8Array>> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      reader.read(),
+      new Promise<never>((_resolve, reject) => {
+        timeout = setTimeout(() => reject(new StreamIdleTimeoutError()), idleTimeoutMs);
+      }),
+    ]);
+  } catch (cause) {
+    if (cause instanceof StreamFailure) throw cause;
+    throw new UpstreamStreamError(cause);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
+export interface StreamRelayOptions {
+  idleTimeoutMs?: number;
+  protocol?: ProviderWireFormat;
+}
+
+function createProtocolParser(options: StreamRelayOptions): {
+  observer: StreamProtocolObserver | null;
+  parserOptions: object;
+} {
+  const observer = options.protocol ? new StreamProtocolObserver(options.protocol) : null;
+  return {
+    observer,
+    parserOptions: observer
+      ? { onEvent: (event: EventSourceMessage) => observer.observe(event) }
+      : {},
+  };
 }
 
 /**
@@ -201,25 +264,33 @@ export async function pipePassthrough(
   dest: ExpressResponse,
   tap: (parsedEvent: string) => string | null,
   onClientChunk?: (text: string) => void,
+  options: StreamRelayOptions = {},
 ): Promise<StreamUsage | null> {
   const reader = source.getReader();
   const decoder = new TextDecoder();
   let capturedUsage: StreamUsage | null = null;
-  const parser = createSsePayloadParser({ maxBufferSize: MAX_SSE_BUFFER_SIZE });
+  let streamFailed = false;
+  const protocol = createProtocolParser(options);
+  const parser = createSsePayloadParser({
+    maxBufferSize: MAX_SSE_BUFFER_SIZE,
+    ...protocol.parserOptions,
+  });
+  const idleTimeoutMs = options.idleTimeoutMs ?? parseStreamIdleTimeoutMs();
 
   try {
     let done = false;
     while (!done) {
       if (dest.writableEnded) break;
-      const result = await reader.read();
+      const result = await readUpstreamChunk(reader, idleTimeoutMs);
       done = result.done;
       if (result.value) {
-        // Write the upstream bytes through unchanged so the client sees
-        // intact SSE framing.
-        dest.write(Buffer.from(result.value));
         const text = decoder.decode(result.value, { stream: !done });
+        const events = parser.feed(text);
+        // Observe provider errors before forwarding their bytes. The controller
+        // then emits one normalized error event in the caller's API format.
+        dest.write(Buffer.from(result.value));
         if (onClientChunk) onClientChunk(text);
-        for (const event of parser.feed(text)) {
+        for (const event of events) {
           const tapped = tap(event);
           if (tapped) {
             const usage = extractUsageFromSse(tapped);
@@ -245,9 +316,14 @@ export async function pipePassthrough(
         if (usage) capturedUsage = usage;
       }
     }
+    protocol.observer?.assertComplete();
+  } catch (error) {
+    streamFailed = error instanceof StreamFailure;
+    if (error instanceof StreamIdleTimeoutError) await reader.cancel(error).catch(() => undefined);
+    throw error;
   } finally {
-    if (!dest.writableEnded) dest.end();
     reader.releaseLock();
+    if (!streamFailed && !dest.writableEnded) dest.end();
   }
 
   return capturedUsage;
@@ -259,10 +335,14 @@ export async function pipeStream(
   transform?: (chunk: string) => string | null,
   finalize?: () => string | null,
   onClientChunk?: (text: string) => void,
+  options: StreamRelayOptions = {},
 ): Promise<StreamUsage | null> {
   const reader = source.getReader();
   const decoder = new TextDecoder();
   let capturedUsage: StreamUsage | null = null;
+  let streamFailed = false;
+  const protocol = createProtocolParser(options);
+  const idleTimeoutMs = options.idleTimeoutMs ?? parseStreamIdleTimeoutMs();
 
   const writeOut = (s: string): void => {
     dest.write(s);
@@ -271,6 +351,7 @@ export async function pipeStream(
   const transformParser = transform
     ? createSsePayloadParser({
         maxBufferSize: MAX_SSE_BUFFER_SIZE,
+        ...protocol.parserOptions,
         onComment: (comment) => {
           if (!dest.writableEnded) writeOut(formatSseComment(comment));
         },
@@ -278,7 +359,10 @@ export async function pipeStream(
     : null;
   const passthroughParser = transform
     ? null
-    : createSsePayloadParser({ maxBufferSize: MAX_SSE_BUFFER_SIZE });
+    : createSsePayloadParser({
+        maxBufferSize: MAX_SSE_BUFFER_SIZE,
+        ...protocol.parserOptions,
+      });
 
   const applyTransformedEvents = (events: string[]): void => {
     if (!transform) return;
@@ -305,8 +389,8 @@ export async function pipeStream(
       applyTransformedEvents(transformParser.feed(text));
       return;
     }
-    writeOut(text);
     if (passthroughParser) capturePassthroughUsage(passthroughParser.feed(text));
+    writeOut(text);
   };
 
   try {
@@ -314,7 +398,7 @@ export async function pipeStream(
     while (!done) {
       if (dest.writableEnded) break;
 
-      const result = await reader.read();
+      const result = await readUpstreamChunk(reader, idleTimeoutMs);
       done = result.done;
 
       if (result.value) {
@@ -329,6 +413,7 @@ export async function pipeStream(
     } else if (passthroughParser) {
       capturePassthroughUsage(passthroughParser.flush());
     }
+    protocol.observer?.assertComplete();
 
     if (transform && !dest.writableEnded) {
       if (finalize) {
@@ -342,9 +427,13 @@ export async function pipeStream(
         writeOut('data: [DONE]\n\n');
       }
     }
+  } catch (error) {
+    streamFailed = error instanceof StreamFailure;
+    if (error instanceof StreamIdleTimeoutError) await reader.cancel(error).catch(() => undefined);
+    throw error;
   } finally {
     reader.releaseLock();
-    if (!dest.writableEnded) dest.end();
+    if (!streamFailed && !dest.writableEnded) dest.end();
   }
 
   return capturedUsage;

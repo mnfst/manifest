@@ -387,6 +387,10 @@ export function sanitizeOpenAiBody(
       cleaned[key] = value;
       continue;
     }
+    if (key === 'reasoning_effort' && (endpointKey === 'xai' || endpointKey === 'deepseek')) {
+      cleaned[key] = value;
+      continue;
+    }
     if (OPENAI_ONLY_FIELDS.has(key)) continue;
     if (key === 'thinking' && OLLAMA_ENDPOINTS.has(endpointKey.toLowerCase())) continue;
     if (key === 'max_completion_tokens') {

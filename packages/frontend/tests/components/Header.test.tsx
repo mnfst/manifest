@@ -55,6 +55,14 @@ vi.mock("../../src/services/api/billing.js", () => ({
   getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
 }));
 
+vi.mock("../../src/components/NotificationBell.jsx", () => ({
+  default: () => null,
+}));
+
+vi.mock("../../src/components/DevAutofixToggle.jsx", () => ({
+  default: () => <span data-testid="dev-autofix-toggle" />,
+}));
+
 import Header from "../../src/components/Header";
 import { setConnectionBreadcrumb } from "../../src/services/connection-breadcrumb-store";
 

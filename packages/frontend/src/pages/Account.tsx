@@ -21,7 +21,59 @@ const Account: Component = () => {
   const session = authClient.useSession();
   const [copied, setCopied] = createSignal(false);
   const [theme, setTheme] = createSignal<'light' | 'dark' | 'system'>('system');
+  const [currentPassword, setCurrentPassword] = createSignal('');
+  const [newPassword, setNewPassword] = createSignal('');
+  const [confirmPassword, setConfirmPassword] = createSignal('');
+  const [pwError, setPwError] = createSignal('');
+  const [pwBusy, setPwBusy] = createSignal(false);
+
+  const handleChangePassword = async (e: Event) => {
+    e.preventDefault();
+    setPwError('');
+
+    const current = currentPassword();
+    const next = newPassword();
+
+    if (next !== confirmPassword()) {
+      setPwError('New passwords do not match');
+      return;
+    }
+    if (next.length < 8) {
+      setPwError('New password must be at least 8 characters');
+      return;
+    }
+    if (next === current) {
+      setPwError('New password must differ from the current password');
+      return;
+    }
+
+    setPwBusy(true);
+    try {
+      const { error } = await authClient.changePassword({
+        currentPassword: current,
+        newPassword: next,
+        revokeOtherSessions: true,
+      });
+
+      if (error) {
+        setPwError(error.message ?? 'Failed to change password');
+        return;
+      }
+
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      toast.success('Password changed. Other devices have been signed out.');
+    } catch {
+      setPwError('Failed to change password');
+    } finally {
+      setPwBusy(false);
+    }
+  };
   const [billing, { refetch: refetchBilling }] = createResource(() => getBillingStatus());
+  const [accounts] = createResource(() => authClient.listAccounts());
+  const hasCredentialAccount = () =>
+    (accounts()?.data ?? []).some((a) => a.providerId === 'credential');
   const [searchParams, setSearchParams] = useSearchParams();
   const [billingBusy, setBillingBusy] = createSignal(false);
   const [emailPrefsBusy, setEmailPrefsBusy] = createSignal(false);
@@ -201,6 +253,75 @@ const Account: Component = () => {
             </span>
           </div>
         </div>
+
+        {/* Security */}
+        <Show when={hasCredentialAccount()}>
+          <h2 class="settings-section__title">Security</h2>
+
+          <form class="settings-card" onSubmit={handleChangePassword}>
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Current password</span>
+                <span class="settings-card__label-desc">Confirm the password you use today.</span>
+              </div>
+              <div class="settings-card__control">
+                <input
+                  class="settings-card__input"
+                  type="password"
+                  autocomplete="current-password"
+                  aria-label="Current password"
+                  value={currentPassword()}
+                  onInput={(e) => setCurrentPassword(e.currentTarget.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">New password</span>
+                <span class="settings-card__label-desc">At least 8 characters.</span>
+              </div>
+              <div class="settings-card__control">
+                <input
+                  class="settings-card__input"
+                  type="password"
+                  autocomplete="new-password"
+                  aria-label="New password"
+                  value={newPassword()}
+                  onInput={(e) => setNewPassword(e.currentTarget.value)}
+                  required
+                  minLength={8}
+                />
+              </div>
+            </div>
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Confirm new password</span>
+                <span class="settings-card__label-desc">Re-enter the new password to confirm.</span>
+              </div>
+              <div class="settings-card__control">
+                <input
+                  class="settings-card__input"
+                  type="password"
+                  autocomplete="new-password"
+                  aria-label="Confirm new password"
+                  value={confirmPassword()}
+                  onInput={(e) => setConfirmPassword(e.currentTarget.value)}
+                  required
+                  minLength={8}
+                />
+              </div>
+            </div>
+            <div class="settings-card__footer account-security-footer">
+              <span class="account-security-error" role="alert">
+                {pwError()}
+              </span>
+              <button class="btn btn--primary btn--sm" type="submit" disabled={pwBusy()}>
+                {pwBusy() ? <span class="spinner" /> : 'Change password'}
+              </button>
+            </div>
+          </form>
+        </Show>
 
         {/* Workspace ID */}
         <h2 class="settings-section__title">Workspace</h2>

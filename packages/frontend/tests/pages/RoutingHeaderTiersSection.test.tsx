@@ -195,6 +195,10 @@ function makeProps(overrides: Partial<Parameters<typeof RoutingHeaderTiersSectio
   } as Parameters<typeof RoutingHeaderTiersSection>[0];
 }
 
+async function waitForTierModal() {
+  await waitFor(() => expect(screen.getByTestId('tier-modal')).not.toBeNull());
+}
+
 describe('RoutingHeaderTiersSection', () => {
   beforeEach(() => {
     cardCalls.length = 0;
@@ -250,11 +254,12 @@ describe('RoutingHeaderTiersSection', () => {
     expect(await findByTestId('tier-modal')).not.toBeNull();
   });
 
-  it('opens edit modal when card.onEdit is invoked', () => {
+  it('opens edit modal when card.onEdit is invoked', async () => {
     const { getByTestId } = render(() => (
       <RoutingHeaderTiersSection {...makeProps({ externalTiers: () => [tier1] })} />
     ));
     fireEvent.click(getByTestId('edit-ht-1'));
+    await waitForTierModal();
     expect(getByTestId('tier-modal')).toBeDefined();
     expect(getByTestId('tier-modal-mode').textContent).toBe('edit');
   });
@@ -428,29 +433,32 @@ describe('RoutingHeaderTiersSection', () => {
     });
   });
 
-  it('opens the create modal from inside the manage modal', () => {
+  it('opens the create modal from inside the manage modal', async () => {
     const { getByTestId } = render(() => (
       <RoutingHeaderTiersSection {...makeProps({ externalTiers: () => [tier1, tier2] })} />
     ));
     fireEvent.click(screen.getByText('Manage custom routing'));
     fireEvent.click(screen.getByText('Create new tier'));
+    await waitForTierModal();
     expect(getByTestId('tier-modal-mode').textContent).toBe('create');
   });
 
-  it('auto-opens the SDK snippet modal after a fresh tier is created', () => {
+  it('auto-opens the SDK snippet modal after a fresh tier is created', async () => {
     const { getByTestId, queryByTestId } = render(() => (
       <RoutingHeaderTiersSection {...makeProps({ externalTiers: () => [] })} />
     ));
     fireEvent.click(screen.getByText('Create custom tier'));
+    await waitForTierModal();
     fireEvent.click(getByTestId('tier-modal-save'));
     expect(queryByTestId('snippet-modal')).not.toBeNull();
   });
 
-  it('does NOT auto-open the snippet modal after an edit', () => {
+  it('does NOT auto-open the snippet modal after an edit', async () => {
     const { getByTestId, queryByTestId } = render(() => (
       <RoutingHeaderTiersSection {...makeProps({ externalTiers: () => [tier1] })} />
     ));
     fireEvent.click(getByTestId('edit-ht-1'));
+    await waitForTierModal();
     fireEvent.click(getByTestId('tier-modal-save'));
     expect(queryByTestId('snippet-modal')).toBeNull();
   });
@@ -460,6 +468,7 @@ describe('RoutingHeaderTiersSection', () => {
       <RoutingHeaderTiersSection {...makeProps({ externalTiers: () => [tier1] })} />
     ));
     fireEvent.click(getByTestId('edit-ht-1'));
+    await waitForTierModal();
     fireEvent.click(getByTestId('tier-modal-delete'));
     await waitFor(() => {
       expect(mockDeleteHeaderTier).toHaveBeenCalledWith('demo', 'ht-1');
@@ -492,6 +501,7 @@ describe('RoutingHeaderTiersSection', () => {
       <RoutingHeaderTiersSection {...makeProps({ externalTiers: () => [tier1] })} />
     ));
     fireEvent.click(getByTestId('edit-ht-1'));
+    await waitForTierModal();
     fireEvent.click(getByTestId('tier-modal-delete'));
     await waitFor(() => {
       expect(mockToastError).toHaveBeenCalledWith('delete-fail');

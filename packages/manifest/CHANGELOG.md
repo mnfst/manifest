@@ -1,5 +1,43 @@
 # manifest
 
+## 6.16.0
+
+### Minor Changes
+
+- c1e7717: Separate caller requests from provider attempts in storage, analytics, and the dashboard.
+- c1e7717: Expose provider-attempt and fallback aggregate analytics.
+- c7e0be7: Expose structured model capability metadata (input/output modalities, endpoint features, supported endpoints) from `GET /v1/models?capabilities=true`, keeping the default response unchanged, resolved through the same pipeline as the routing model picker. Curated modality facts identify `gpt-5.3-codex-spark` as text-only input and mainline ChatGPT subscription models as image-capable in both the API and the picker.
+
+### Patch Changes
+
+- c1e7717: Add an `auto_fixed` count to the `GET /api/v1/errors/breakdown` response (number of requests healed by Auto-fix in the window), plus a typed `getErrorBreakdown()` frontend API wrapper — so a dashboard can surface auto-fixed alongside errors.
+- 2c81871: Report the exact provider-facing request body to Phoenix and retry healed bodies through the already-resolved transport without reapplying routing parameter merges or protocol translations.
+- 1943921: Clarify offline tunnel errors and keep HTML error pages out of message records.
+- d24cd21: Extend the dashboard covering index with the columns the request-first dashboard reads (key label, status, request id) and add a partial index for the skills panel, restoring index-only scans on the Overview and Provider Usage endpoints for large installs
+- 275fbfa: Limit request backfill refreshes to parents linked by the current batch.
+- 4e6e74a: Treat empty ChatGPT Codex streams as provider failures so routing can use fallbacks. Self-hosted deployments can tune the semantic-output wait with `CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS`.
+- ae1213e: Strip legacy `budget_tokens` from Anthropic adaptive thinking requests.
+- 0b91ff3: Update OpenRouter logo to the current brand mark
+- 79856bc: Block built-in local providers on Manifest Cloud.
+- 26b0635: Prepare request history in the background before the request-level dashboard rollout.
+- aa767db: Refresh every matching provider connection so models returned by an API key are cached for each connected key.
+- 8412baf: Surface interrupted upstream streams as terminal SSE errors.
+- 6ec0136: Stop request-history tail sweeps after the initial backfill.
+
+## 6.15.2
+
+### Patch Changes
+
+- 2cdaee6: Fix auto routing resolving to a provider the agent never connected. A stale legacy auto-assigned (or promoted fallback) route now reuses the gateway's provider-key lookup before it becomes primary, so an unconfigured provider is skipped without adding a separate model-discovery query. When nothing routable remains, the request returns the neutral `M101` "no providers configured" error. The proxy also treats the resolver's fallback chain as definitive so a fallback promoted to primary is not retried as its own fallback.
+- 9cf2571: Bump `modelparams` to 0.0.13 to pick up the new xAI Grok model parameter specs, including `grok-4.5` and subscription entries for the Grok subscription models.
+- 6f1345c: Scope Auto-fix parameter repairs by provider authentication type.
+- d3d44e3: Add Kimi K3 (`cline-pass/kimi-k3`) to the ClinePass subscription's known models list.
+- d8fb0b2: Fix Auto-fix attempt recording so no-patch consultations remain plain provider failures and failed patched retries keep their own outcome.
+- 84b2112: The password reset page now detects when no email provider is configured and shows a clear notice (pointing to the authenticated Change Password flow) instead of silently pretending a reset link was sent. Self-hosted installs without an `EMAIL_PROVIDER` no longer dead-end here.
+- 6519ea5: Add opt-in Sentry error monitoring. It stays disabled without a `SENTRY_DSN`; request contents, user data, tracing, and profiling remain off.
+- 189a6eb: Sync the model parameter catalog to `modelparams@0.0.15`. Adds 24 new model routes (including a new `xiaomi` provider) with no schema changes — the param types, groups, and auth types are unchanged, so the bump is purely additive.
+- 89c1757: Preserve xAI reasoning effort when forwarding Chat Completions requests.
+
 ## 6.15.1
 
 ### Patch Changes

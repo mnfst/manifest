@@ -226,13 +226,13 @@ describe('Proxy fallback success — auth_type/cost_usd attribution (#1173)', ()
     await new Promise((r) => setTimeout(r, 200));
 
     const rows = await ds.query(
-      `SELECT model, provider, auth_type, cost_usd, fallback_from_model, status
+      `SELECT model, provider, auth_type, cost_usd, fallback_from_model, status, superseded
          FROM agent_messages
         WHERE agent_id = $1
         ORDER BY timestamp DESC`,
       [TEST_AGENT_ID],
     );
-    const success = rows.find((r: { status: string }) => r.status === 'ok');
+    const success = rows.find((r: { status: string }) => r.status === 'success');
     expect(success).toBeDefined();
     // Without the fix, success.auth_type carried 'api_key' (the primary's)
     // and cost_usd was computed from token pricing — non-zero.
@@ -242,10 +242,12 @@ describe('Proxy fallback success — auth_type/cost_usd attribution (#1173)', ()
     expect(success.provider).toBe('openai');
 
     // The primary failure row should keep the primary's auth_type so cost
-    // dashboards still attribute the failure to the right credential.
+    // dashboards still attribute the failure to the right credential. The
+    // superseded primary now stores the canonical `failed` status; the
+    // recovered-hop signal lives on `superseded`, not the old `fallback_error`.
     const primaryFailure = rows.find(
-      (r: { status: string; fallback_from_model: string | null }) =>
-        r.status === 'fallback_error' && r.fallback_from_model === null,
+      (r: { status: string; superseded: boolean; fallback_from_model: string | null }) =>
+        r.status === 'failed' && r.superseded === true && r.fallback_from_model === null,
     );
     expect(primaryFailure).toBeDefined();
     expect(primaryFailure.auth_type).toBe('api_key');

@@ -16,7 +16,9 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       'claude-sonnet-4',
       'claude-haiku-4',
       // claude-opus-4-6 / claude-haiku-4-5 are already matched by the
-      // claude-opus-4 / claude-haiku-4 prefixes above.
+      // claude-opus-4 / claude-haiku-4 prefixes above. claude-opus-5 is not —
+      // the 5 generation dropped the 4.x prefix, so it needs its own entry.
+      'claude-opus-5',
       'claude-sonnet-5',
     ]),
     // `claude-*-fast` ids exist in the OpenRouter pricing cache but 404 at
@@ -28,6 +30,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       maxContextWindow: 200000,
       modelContextWindows: Object.freeze({
         'claude-opus-4-8': 1000000,
+        'claude-opus-5': 1000000,
         'claude-sonnet-5': 1000000,
       }),
       supportsPromptCaching: true,
@@ -154,10 +157,13 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionLabel: 'Kimi Coding Plan',
     subscriptionAuthMode: 'token' as const,
     subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
-    knownModels: Object.freeze(['kimi-for-coding']),
+    knownModels: Object.freeze(['kimi-for-coding', 'kimi-k3']),
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 262144,
+      modelContextWindows: Object.freeze({
+        'kimi-k3': 1048576,
+      }),
       supportsPromptCaching: true,
       supportsBatching: false,
     }),
@@ -328,6 +334,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       'cline-pass/glm-5.2',
       'cline-pass/kimi-k2.7-code',
       'cline-pass/kimi-k2.6',
+      'cline-pass/kimi-k3',
       'cline-pass/deepseek-v4-pro',
       'cline-pass/deepseek-v4-flash',
       'cline-pass/mimo-v2.5',

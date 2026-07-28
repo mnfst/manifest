@@ -85,6 +85,7 @@ describe('ResolveService — edge cases', () => {
       | 'hasActiveProvider'
       | 'getAuthType'
       | 'getDefaultKeyLabel'
+      | 'hasRouteCredentials'
     >
   >;
   let specificityService: jest.Mocked<Pick<SpecificityService, 'getActiveAssignments'>>;
@@ -106,6 +107,7 @@ describe('ResolveService — edge cases', () => {
       hasActiveProvider: jest.fn().mockResolvedValue(true),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       getDefaultKeyLabel: jest.fn().mockResolvedValue(undefined),
+      hasRouteCredentials: jest.fn().mockResolvedValue(true),
     };
     specificityService = { getActiveAssignments: jest.fn().mockResolvedValue([]) };
     pricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };

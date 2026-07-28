@@ -31,7 +31,7 @@ const SocialFollowBanner: Component = () => {
       <aside class="overview-social-banner" aria-label="Manifest announcement">
         <div class="overview-social-banner__inner">
           <span class="overview-social-banner__text">
-            🔥 Introducing Self-healing requests and paid plans for Manifest Cloud.{' '}
+            🔥 Introducing request recovery and paid plans for Manifest Cloud.{' '}
             <a
               href="https://manifest.build/blog/introducing-paid-plans/"
               target="_blank"
