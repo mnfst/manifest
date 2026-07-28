@@ -1,0 +1,31 @@
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_5e6f83e323e2ec::t_226fe2d92b904f 1106
+  s_5e6f83e323e2ec::t_94462a95c0d05e 303-308
+  s_5e6f83e323e2ec::t_17d0b62af0d6d5 1144-1145
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_5e6f83e323e2ec::t_f6a7360b673e28 1288-1298,1300,1302-1303,1306-1313,1315-1316,1318,1327,1344-1352,1360,1363,1365,1368-1370,1374,1384
+  s_5e6f83e323e2ec::t_3b7aadc126e72f 1476,1487-1495,1502
+  s_5e6f83e323e2ec::t_e21a3f30b96358 1752-1759,1766
+packages/backend/test/message-log-completeness.e2e-spec.ts
+  s_5e6f83e323e2ec::t_195c16b1721e47 1-350
+packages/backend/src/entities/agent-message.entity.ts
+  s_5e6f83e323e2ec::t_63e54e93f7c703 15-17
+.changeset/drop-success-message-dedup.md
+  s_5e6f83e323e2ec::t_db7f8d65b30cd4 1-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "b57a9a196806e250c23cbbf2cd1392d760f33471",
+  "prompts": {},
+  "sessions": {
+    "s_5e6f83e323e2ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "492f78cb-0aae-4a01-a7c5-864aa85cacfa",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
