@@ -85,7 +85,7 @@ const specCatalog: ProviderParamSpecCatalog = [
 
 describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<
-    Pick<ResolveService, 'resolve' | 'resolveForTier' | 'resolveHeaderTier'>
+    Pick<ResolveService, 'resolve' | 'resolveLazy' | 'resolveForTier' | 'resolveHeaderTier'>
   >;
   let providerKeyService: jest.Mocked<
     Pick<
@@ -122,8 +122,21 @@ describe('ProxyService — orchestration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    const resolve = jest.fn();
     resolveService = {
-      resolve: jest.fn(),
+      resolve,
+      resolveLazy: jest.fn(async (agentId, tenantId, resolveInput, ...rest) => {
+        const input = await resolveInput();
+        return resolve(
+          agentId,
+          tenantId,
+          input.messages,
+          input.tools,
+          input.tool_choice,
+          input.max_tokens,
+          ...rest,
+        );
+      }),
       resolveForTier: jest.fn(),
       resolveHeaderTier: jest.fn().mockResolvedValue(null),
     };
@@ -240,6 +253,31 @@ describe('ProxyService — orchestration', () => {
       await expect(
         svc.proxyRequest(baseOpts({ body: { messages: [] } as never })),
       ).rejects.toMatchObject({ status: 400 });
+    });
+
+    it('rejects Responses requests without input or instructions', async () => {
+      await expect(
+        svc.proxyRequest(baseOpts({ apiMode: 'responses', body: {} } as never)),
+      ).rejects.toMatchObject({ code: 'M300', status: 400 });
+
+      await expect(
+        svc.proxyRequest(
+          baseOpts({ apiMode: 'responses', body: { instructions: '   ' } } as never),
+        ),
+      ).rejects.toMatchObject({ code: 'M300', status: 400 });
+    });
+
+    it('accepts string and object items in Responses input arrays', () => {
+      const validatePayload = (
+        svc as unknown as {
+          validatePayload: (body: Record<string, unknown>, apiMode: string) => void;
+        }
+      ).validatePayload.bind(svc);
+
+      expect(() => validatePayload({ input: ['Hello'] }, 'responses')).not.toThrow();
+      expect(() =>
+        validatePayload({ input: [{ role: 'user', content: 'Hello' }] }, 'responses'),
+      ).not.toThrow();
     });
 
     it('forwards long message arrays unchanged', async () => {
@@ -1468,9 +1506,16 @@ describe('ProxyService — orchestration', () => {
       expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toBe(body);
     });
 
-    it('reuses converted Responses bodies for routing when no separate routing body is provided', async () => {
+    it('reuses one converted Responses body for routing and forwarding', async () => {
       const body = {
         input: 'Describe this image',
+        tools: [
+          {
+            type: 'function',
+            name: 'inspect_image',
+            parameters: { type: 'object', properties: {} },
+          },
+        ],
         stream: false,
       };
       resolveService.resolve.mockResolvedValue({
@@ -1491,13 +1536,32 @@ describe('ProxyService — orchestration', () => {
         svc as unknown as { validatePayload: (body: Record<string, unknown>) => void },
         'validatePayload',
       );
+      const convertSpy = jest.spyOn(
+        svc as unknown as {
+          toChatBody: (apiMode: string, body: Record<string, unknown>) => Record<string, unknown>;
+        },
+        'toChatBody',
+      );
 
       await svc.proxyRequest(baseOpts({ body, apiMode: 'responses' } as never));
 
-      const forwardedBody = fallbackService.tryForwardToProvider.mock.calls[0][0].chatBody;
+      const resolveChatBody = fallbackService.tryForwardToProvider.mock.calls[0][0].resolveChatBody;
+      expect(resolveChatBody).toBeDefined();
+      const forwardedBody = await resolveChatBody!();
+      const repeatedBody = await resolveChatBody!();
       expect(validateSpy).toHaveBeenCalledTimes(1);
-      expect(forwardedBody).toBeDefined();
-      expect(forwardedBody?.messages).toEqual([{ role: 'user', content: 'Describe this image' }]);
+      expect(convertSpy).toHaveBeenCalledTimes(1);
+      expect(repeatedBody).toBe(forwardedBody);
+      expect(forwardedBody.messages).toEqual([{ role: 'user', content: 'Describe this image' }]);
+      expect(resolveService.resolve.mock.calls[0][3]).toEqual([
+        {
+          type: 'function',
+          function: {
+            name: 'inspect_image',
+            parameters: { type: 'object', properties: {} },
+          },
+        },
+      ]);
     });
 
     it('returns the forward result and records tier momentum on a 200 non-stream response', async () => {
@@ -2406,6 +2470,83 @@ describe('ProxyService — orchestration', () => {
   });
 
   describe('routing dispatch', () => {
+    it('treats non-array messages from a healed body as empty scorer input', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      const resolveRouting = (
+        svc as unknown as {
+          resolveRouting: (
+            agentId: string,
+            tenantId: string,
+            body: Record<string, unknown>,
+            resolveChatBody: undefined,
+            sessionKey: string,
+            specificityOverride: undefined,
+            headers: undefined,
+            apiMode: 'chat_completions',
+          ) => Promise<unknown>;
+        }
+      ).resolveRouting.bind(svc);
+
+      await resolveRouting(
+        'agent-1',
+        'tenant-1',
+        { messages: { malformed: true } },
+        undefined,
+        'session-1',
+        undefined,
+        undefined,
+        'chat_completions',
+      );
+
+      expect(resolveService.resolve.mock.calls[0][2]).toEqual([]);
+    });
+
+    it('keeps native Messages unconverted when routing does not request scorer input', async () => {
+      resolveService.resolveLazy.mockResolvedValue({
+        tier: 'default',
+        route: route('anthropic', 'api_key', 'claude-sonnet-4-5'),
+        fallback_routes: null,
+        confidence: 1,
+        score: 0,
+        reason: 'default',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+      const convertSpy = jest.spyOn(
+        svc as unknown as {
+          toChatBody: (apiMode: string, body: Record<string, unknown>) => Record<string, unknown>;
+        },
+        'toChatBody',
+      );
+
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          body: {
+            model: 'claude-sonnet-4-5',
+            messages: [{ role: 'user', content: 'Hello' }],
+          },
+        } as never),
+      );
+
+      expect(convertSpy).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toEqual({
+        model: 'claude-sonnet-4-5',
+        messages: [{ role: 'user', content: 'Hello' }],
+      });
+    });
+
     it('invokes resolveForTier with simple when the last user message contains HEARTBEAT_OK', async () => {
       resolveService.resolveForTier.mockResolvedValue({
         tier: 'simple',
@@ -2429,6 +2570,88 @@ describe('ProxyService — orchestration', () => {
       );
       expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'tenant-1', 'simple');
       expect(resolveService.resolve).not.toHaveBeenCalled();
+    });
+
+    it('detects Responses heartbeats without resolving a Chat Completions body', async () => {
+      resolveService.resolveForTier.mockResolvedValue({
+        tier: 'simple',
+        route: route('openai', 'api_key', 'gpt-4o-mini'),
+        fallback_routes: null,
+        confidence: 1,
+        score: 0,
+        reason: 'heartbeat',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const convertSpy = jest.spyOn(
+        svc as unknown as {
+          toChatBody: (apiMode: string, body: Record<string, unknown>) => Record<string, unknown>;
+        },
+        'toChatBody',
+      );
+
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'responses',
+          body: { input: 'HEARTBEAT_OK' },
+        } as never),
+      );
+
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'tenant-1', 'simple');
+      expect(convertSpy).not.toHaveBeenCalled();
+    });
+
+    it('detects Responses heartbeats across native input item shapes', () => {
+      const detectHeartbeatBody = (
+        svc as unknown as {
+          detectHeartbeatBody: (body: Record<string, unknown>, apiMode: string) => boolean;
+        }
+      ).detectHeartbeatBody.bind(svc);
+
+      expect(detectHeartbeatBody({}, 'responses')).toBe(false);
+      expect(detectHeartbeatBody({ messages: 'invalid' }, 'chat_completions')).toBe(false);
+      expect(detectHeartbeatBody({ input: ['HEARTBEAT_OK'] }, 'responses')).toBe(true);
+      expect(detectHeartbeatBody({ input: ['HEARTBEAT_OK', 42] }, 'responses')).toBe(true);
+      expect(detectHeartbeatBody({ input: [{ content: 'HEARTBEAT_OK' }] }, 'responses')).toBe(true);
+      expect(
+        detectHeartbeatBody({ input: [{ role: 'user', content: 'HEARTBEAT_OK' }] }, 'responses'),
+      ).toBe(true);
+      expect(
+        detectHeartbeatBody(
+          { input: [{ role: 'user', content: { custom: 'object' } }] },
+          'responses',
+        ),
+      ).toBe(false);
+      expect(
+        detectHeartbeatBody(
+          {
+            input: [
+              null,
+              [],
+              { type: 'function_call' },
+              { type: 'function_call_output' },
+              { role: 'assistant', content: 'HEARTBEAT_OK' },
+              {
+                role: 'user',
+                content: [null, 'ignored', [], { text: 'HEARTBEAT_OK' }],
+              },
+            ],
+          },
+          'responses',
+        ),
+      ).toBe(true);
+      expect(
+        detectHeartbeatBody(
+          {
+            input: [{ type: 'function_call' }, { role: 'assistant', content: 'HEARTBEAT_OK' }],
+          },
+          'responses',
+        ),
+      ).toBe(false);
     });
 
     it('detects HEARTBEAT_OK in array-content user messages', async () => {

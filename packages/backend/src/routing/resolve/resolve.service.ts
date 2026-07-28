@@ -87,6 +87,26 @@ export class ResolveService {
     recentCategories?: readonly SpecificityCategory[],
     headers?: IncomingHttpHeaders,
   ): Promise<ResolveResponse> {
+    return this.resolveLazy(
+      agentId,
+      tenantId,
+      async () => ({ messages, tools, tool_choice: toolChoice, max_tokens: maxTokens }),
+      recentTiers,
+      specificityOverride,
+      recentCategories,
+      headers,
+    );
+  }
+
+  async resolveLazy(
+    agentId: string,
+    tenantId: string,
+    resolveInput: () => Promise<ScorerInput>,
+    recentTiers?: MomentumInput['recentTiers'],
+    specificityOverride?: string,
+    recentCategories?: readonly SpecificityCategory[],
+    headers?: IncomingHttpHeaders,
+  ): Promise<ResolveResponse> {
     if (headers) {
       const headerTierResult = await this.resolveHeaderTier(agentId, tenantId, headers);
       if (headerTierResult) return headerTierResult;
@@ -97,6 +117,12 @@ export class ResolveService {
       return this.resolveForTier(agentId, tenantId, 'default', 'default');
     }
 
+    const {
+      messages,
+      tools,
+      tool_choice: toolChoice,
+      max_tokens: maxTokens,
+    } = await resolveInput();
     const specificityResult = await this.resolveSpecificity(
       agentId,
       tenantId,

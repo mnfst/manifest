@@ -29,6 +29,9 @@ export type ReasoningContentLookup = (firstToolCallId: string) => string | null;
 
 export type ProxyApiMode = 'chat_completions' | 'responses' | 'messages';
 
+/** Lazily derive the Chat Completions view used by legacy routing or cross-protocol adapters. */
+export type ResolveChatBody = () => Promise<Record<string, unknown>>;
+
 /** The protocol shape actually emitted at the provider transport boundary. */
 export type ProviderWireFormat =
   | 'openai_chat_completions'
@@ -79,7 +82,7 @@ export interface ForwardOptions {
   apiKey: string;
   model: string;
   body: Record<string, unknown>;
-  chatBody?: Record<string, unknown>;
+  resolveChatBody?: ResolveChatBody;
   apiMode?: ProxyApiMode;
   /** Stable Manifest conversation/session key for provider prompt-cache affinity. */
   sessionKey?: string;
