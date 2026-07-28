@@ -393,16 +393,26 @@ export class ProxyService {
         `Primary ${route.provider}/${primaryModel} credentials unusable for ` +
           `agent=${agentId} reason=${credentials.reason}`,
       );
+      // A synthetic provider attempt is only recorded by the fallback chain
+      // (recordPrimaryFailure completes it). When no chain will run — explicit
+      // model override, no merge context, or zero fallback routes — the Manifest
+      // stub is the sole record (a Manifest rejection has zero provider
+      // attempts), so DON'T start one here: it would INSERT a pending
+      // agent_messages row that nothing ever completes (orphan).
+      const willRunChain =
+        !explicitModelOverride &&
+        !!paramMergeContext &&
+        this.effectiveFallbackRoutes(resolved).length > 0;
       const forward = buildCredentialFailureForward({
         provider: route.provider,
         model: primaryModel,
         authType: route.authType,
         tenantProviderId: credentials.tenantProviderId,
         presentation: credentialFailure,
-        startProviderAttempt,
+        startProviderAttempt: willRunChain ? startProviderAttempt : undefined,
       });
 
-      if (!explicitModelOverride && paramMergeContext) {
+      if (willRunChain && paramMergeContext) {
         const fallbackResult = await this.tryFallbackChain({
           agentId,
           tenantId,
@@ -495,7 +505,12 @@ export class ProxyService {
                 apiKey: credentials.apiKey,
                 rawApiKey: credentials.rawApiKey,
                 model: primaryModel,
-                keyLabel: route.keyLabel ?? undefined,
+                // Use the resolved (unpinned-subscription-pinned) label so the
+                // healed-retry row stamps the same connection its
+                // tenant_provider_id points at — otherwise a null/blank label
+                // rides next to the selected connection id (the divergence the
+                // primary forward already avoids).
+                keyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
                 authType: route.authType,
                 resourceUrl: credentials.resourceUrl,
                 providerRegion: credentials.providerRegion,
@@ -771,7 +786,9 @@ export class ProxyService {
       agentId: ctx.agentId,
       tenantId: ctx.tenantId,
       rawApiKey: credentials.rawApiKey,
-      providerKeyLabel: route.keyLabel ?? undefined,
+      // Resolved label (pins an unpinned subscription to the selected row) so
+      // the recorded connection matches credentials.tenantProviderId.
+      providerKeyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
       authType: route.authType,
       apiMode: ctx.apiMode,
       resourceUrl: credentials.resourceUrl,
@@ -939,6 +956,29 @@ export class ProxyService {
     });
   }
 
+  /**
+   * The effective fallback routes `tryFallbackChain` will actually attempt,
+   * after response-mode filtering. Empty when nothing remains. Callers use this
+   * to decide whether a chain will run *before* starting work that only the
+   * chain would record (see the credential-failure primary path).
+   */
+  private effectiveFallbackRoutes(
+    resolved: ResolvedRouting,
+  ): NonNullable<ResolvedRouting['fallback_routes']> {
+    let fallbackRoutes = resolved.fallback_routes ?? null;
+    if ((resolved.response_mode ?? DEFAULT_RESPONSE_MODE) === 'stream') {
+      const effectiveRoutes = effectiveRoutesForResponseMode(
+        resolved.response_mode,
+        resolved.route,
+        fallbackRoutes,
+      );
+      fallbackRoutes = (effectiveRoutes.fallbackRoutes ?? []).filter(
+        (route) => !routeEquals(route, resolved.route),
+      );
+    }
+    return fallbackRoutes ?? [];
+  }
+
   private async tryFallbackChain(args: {
     agentId: string;
     tenantId: string;
@@ -980,18 +1020,8 @@ export class ProxyService {
     // promoted to primary. Reloading the persisted tier here would retry that
     // promoted route as its own fallback and could resurrect routes the
     // resolver deliberately skipped.
-    let fallbackRoutes = resolved.fallback_routes ?? null;
-    if ((resolved.response_mode ?? DEFAULT_RESPONSE_MODE) === 'stream') {
-      const effectiveRoutes = effectiveRoutesForResponseMode(
-        resolved.response_mode,
-        resolved.route,
-        fallbackRoutes,
-      );
-      fallbackRoutes = (effectiveRoutes.fallbackRoutes ?? []).filter(
-        (route) => !routeEquals(route, resolved.route),
-      );
-    }
-    if (!fallbackRoutes || fallbackRoutes.length === 0) return null;
+    const fallbackRoutes = this.effectiveFallbackRoutes(resolved);
+    if (fallbackRoutes.length === 0) return null;
     const fallbackModels = fallbackRoutes.map((r) => r.model);
 
     const primaryStatus = forward.response.status;

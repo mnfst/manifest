@@ -747,6 +747,62 @@ describe('ProxyService — orchestration', () => {
       expect(body).toContain('No openai API key yet');
     });
 
+    it('does NOT start a provider attempt when credentials fail with no fallback routes (no orphan row)', async () => {
+      // With no chain to record it, a synthetic attempt would INSERT a pending
+      // agent_messages row that nothing ever completes. The Manifest stub is the
+      // sole record, so no provider attempt must be started.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      providerKeyService.selectProviderKey.mockResolvedValue(null);
+      const startProviderAttempt = jest.fn(() => ({
+        id: 'attempt-1',
+        attemptNumber: 1,
+        startedAtMs: Date.now(),
+        startedAt: new Date().toISOString(),
+        pendingWrite: Promise.resolve(true),
+      }));
+
+      const result = await svc.proxyRequest(baseOpts({ startProviderAttempt }));
+
+      expect(startProviderAttempt).not.toHaveBeenCalled();
+      expect(await result.forward.response.text()).toContain('M100');
+    });
+
+    it('starts the synthetic primary attempt only when a fallback chain will run', async () => {
+      // Fallback routes exist → the chain records/completes the primary
+      // credential-failure attempt, so starting it here is safe.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: [route('anthropic', 'api_key', 'claude-sonnet-4')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      providerKeyService.selectProviderKey.mockResolvedValue(null);
+      fallbackService.tryFallbacks.mockResolvedValue({ success: null, failures: [] });
+      const startProviderAttempt = jest.fn(() => ({
+        id: 'attempt-1',
+        attemptNumber: 1,
+        startedAtMs: Date.now(),
+        startedAt: new Date().toISOString(),
+        pendingWrite: Promise.resolve(true),
+      }));
+
+      await svc.proxyRequest(baseOpts({ startProviderAttempt }));
+
+      expect(startProviderAttempt).toHaveBeenCalledTimes(1);
+      expect(startProviderAttempt).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'openai', model: 'gpt-4o' }),
+      );
+    });
+
     it('returns M102 when a subscription OAuth blob cannot be refreshed', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
