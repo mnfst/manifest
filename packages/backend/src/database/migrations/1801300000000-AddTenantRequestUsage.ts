@@ -48,8 +48,7 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
       );
       await queryRunner.query(`
         ALTER TABLE "requests"
-          ADD COLUMN IF NOT EXISTS "quota_counted" boolean NOT NULL DEFAULT false,
-          ADD COLUMN IF NOT EXISTS "quota_window_start" timestamp
+          ADD COLUMN IF NOT EXISTS "quota_counted" boolean NOT NULL DEFAULT false
       `);
 
       await queryRunner.query(`
@@ -120,17 +119,7 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
           END IF;
 
           UPDATE "requests" r
-             SET "quota_counted" = true,
-                 "quota_window_start" = COALESCE(
-                   r."quota_window_start",
-                   GREATEST(
-                     date_trunc(
-                       'month',
-                       (r."timestamp" AT TIME ZONE '${storageTimeZoneSql}') AT TIME ZONE 'UTC'
-                     ),
-                     '${resetWindow}'::timestamp
-                   )
-                 )
+             SET "quota_counted" = true
            WHERE r."id" = NEW.request_id
              AND r."quota_counted" = false
              AND r."tenant_id" IS NOT NULL
@@ -141,7 +130,15 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
                 WHERE a."id" = r."agent_id"
                   AND a."is_playground" = true
              )
-          RETURNING r."tenant_id", r."quota_window_start"
+          RETURNING
+            r."tenant_id",
+            GREATEST(
+              date_trunc(
+                'month',
+                (r."timestamp" AT TIME ZONE '${storageTimeZoneSql}') AT TIME ZONE 'UTC'
+              ),
+              '${resetWindow}'::timestamp
+            )
                INTO counted_tenant_id, counted_window_start;
 
           IF counted_tenant_id IS NULL THEN
@@ -219,7 +216,6 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
       await queryRunner.query(
         `DELETE FROM "backfill_state" WHERE "name" = '${REQUEST_USAGE_CUTOVER_STATE}'`,
       );
-      await queryRunner.query(`ALTER TABLE "requests" DROP COLUMN IF EXISTS "quota_window_start"`);
       await queryRunner.query(`ALTER TABLE "requests" DROP COLUMN IF EXISTS "quota_counted"`);
       await queryRunner.query(`DROP TABLE IF EXISTS "tenant_request_usage"`);
     } finally {

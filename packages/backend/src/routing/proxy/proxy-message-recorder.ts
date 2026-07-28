@@ -38,8 +38,6 @@ import {
 } from '../autofix/autofix.types';
 import { serializeProviderError } from '../autofix/provider-error-normalizer';
 import { normalizeProviderErrorForStorage } from './proxy-error-sanitizer';
-import { requestQuotaWindowStartForTimestamp } from '../../billing/request-quota-window';
-import { toSqlTimestamp } from '../../common/utils/postgres-sql';
 
 export const FAILED_WITHOUT_MESSAGE = 'Request failed without an error message.';
 
@@ -356,7 +354,6 @@ function buildRequestRow(
     duration_ms: attempt.duration_ms ?? null,
     status,
     quota_counted: false,
-    quota_window_start: toSqlTimestamp(new Date(requestQuotaWindowStartForTimestamp(timestamp))),
     autofix_status: deriveAutofixStatus(autofix),
     error_message: errorMessage,
     error_http_status: terminal ? (attempt.error_http_status ?? null) : null,

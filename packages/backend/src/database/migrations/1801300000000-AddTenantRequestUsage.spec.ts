@@ -31,7 +31,7 @@ describe('AddTenantRequestUsage1801300000000', () => {
     expect(sql).toContain('PRIMARY KEY ("tenant_id", "window_start")');
     expect(sql).toContain('ADD COLUMN IF NOT EXISTS "baseline_counted" boolean');
     expect(sql).toContain('ADD COLUMN IF NOT EXISTS "quota_counted" boolean');
-    expect(sql).toContain('ADD COLUMN IF NOT EXISTS "quota_window_start" timestamp');
+    expect(sql).not.toContain('quota_window_start');
     expect(sql).not.toContain('legacy_quota_counted');
     expect(sql).toContain('CREATE OR REPLACE FUNCTION "count_tenant_request_usage"()');
     expect(sql).toContain('AFTER INSERT OR UPDATE OF "request_id" ON "agent_messages"');
@@ -82,7 +82,6 @@ describe('AddTenantRequestUsage1801300000000', () => {
     expect(sql).toContain(
       `DELETE FROM "backfill_state" WHERE "name" = 'tenant_request_usage_cutover_v1'`,
     );
-    expect(sql).toContain('DROP COLUMN IF EXISTS "quota_window_start"');
     expect(sql).toContain('DROP COLUMN IF EXISTS "quota_counted"');
     expect(sql).toContain('DROP TABLE IF EXISTS "tenant_request_usage"');
     expect(statements.at(-1)?.sql).toContain('RESET lock_timeout');

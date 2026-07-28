@@ -11,9 +11,3 @@ export function requestQuotaResetAtMs(): number {
 export function requestQuotaWindowStartMs(monthStartMs: number): number {
   return Math.max(monthStartMs, requestQuotaResetAtMs());
 }
-
-export function requestQuotaWindowStartForTimestamp(timestamp: string): number {
-  const date = new Date(timestamp);
-  const monthStartMs = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1);
-  return requestQuotaWindowStartMs(monthStartMs);
-}
