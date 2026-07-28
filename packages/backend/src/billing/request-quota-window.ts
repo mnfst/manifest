@@ -1,0 +1,18 @@
+export const DEFAULT_REQUEST_QUOTA_RESET_AT = '2026-07-09T09:06:52Z';
+export const REQUEST_QUOTA_RESET_AT_ENV = 'PLAN_REQUEST_QUOTA_RESET_AT';
+
+export function requestQuotaResetAtMs(): number {
+  const raw = process.env[REQUEST_QUOTA_RESET_AT_ENV]?.trim() || DEFAULT_REQUEST_QUOTA_RESET_AT;
+  const parsed = Date.parse(raw);
+  return Number.isFinite(parsed) ? parsed : Date.parse(DEFAULT_REQUEST_QUOTA_RESET_AT);
+}
+
+export function requestQuotaWindowStartMs(monthStartMs: number): number {
+  return Math.max(monthStartMs, requestQuotaResetAtMs());
+}
+
+export function requestQuotaWindowStartForTimestamp(timestamp: string): number {
+  const date = new Date(timestamp);
+  const monthStartMs = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1);
+  return requestQuotaWindowStartMs(monthStartMs);
+}

@@ -1,7 +1,7 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { MANIFEST_ERROR_ORIGINS, PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
+import { PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
 import type {
   BillingEmailPreferences,
   BillingPrice,
@@ -12,12 +12,13 @@ import type {
 import type Stripe from 'stripe';
 import { Tenant } from '../entities/tenant.entity';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
-import { toLocalSqlTimestamp } from '../common/utils/postgres-sql';
+import { toSqlTimestamp } from '../common/utils/postgres-sql';
 import { getStripeClient, isBillingEnabled } from './billing.config';
 import {
   DEFAULT_BILLING_EMAIL_PREFERENCES,
   normalizeBillingEmailPreferences,
 } from './billing-email-preferences';
+import { requestQuotaWindowStartMs } from './request-quota-window';
 
 const PRICE_CACHE_TTL_MS = 60 * 60 * 1000;
 const BILLING_PRICE_UNAVAILABLE: BillingPrice = Object.freeze({
@@ -25,18 +26,6 @@ const BILLING_PRICE_UNAVAILABLE: BillingPrice = Object.freeze({
   currency: null,
   interval: null,
 });
-// Short TTL keeps the hot proxy path O(1) between refreshes. Staleness is
-// bounded to this window: a tenant can slip at most ~TTL worth of requests past
-// the cap before the next refresh blocks them (per process — multiple pods
-// multiply that). Acceptable for a Free-tier gate; it only ever errs toward
-// letting a few extra requests through, never toward false blocks.
-const REQUEST_COUNT_CACHE_TTL_MS = 30 * 1000;
-const MAX_REQUEST_COUNT_CACHE_SIZE = 10_000;
-const DEFAULT_REQUEST_QUOTA_RESET_AT = '2026-07-09T09:06:52Z';
-const REQUEST_QUOTA_RESET_AT_ENV = 'PLAN_REQUEST_QUOTA_RESET_AT';
-const MANIFEST_ERROR_ORIGIN_SQL_LIST = MANIFEST_ERROR_ORIGINS.map((origin) => `'${origin}'`).join(
-  ', ',
-);
 // Throttle the "count failed → failing open" warning: a sustained DB outage
 // hits this on every proxied request, which would flood logs and add avoidable
 // pressure to the hot path. One line per window, with a suppressed-count tail so
@@ -53,23 +42,6 @@ function envLimit(name: string): number | undefined {
   if (!/^\d+$/.test(raw)) return undefined;
   const n = Number(raw);
   return Number.isFinite(n) ? n : undefined;
-}
-
-function requestQuotaResetAtMs(): number {
-  const raw = process.env[REQUEST_QUOTA_RESET_AT_ENV]?.trim() || DEFAULT_REQUEST_QUOTA_RESET_AT;
-  const parsed = Date.parse(raw);
-  return Number.isFinite(parsed) ? parsed : Date.parse(DEFAULT_REQUEST_QUOTA_RESET_AT);
-}
-
-/** Cached monthly request count for one tenant. Keyed by the effective quota
- * window start so a month rollover invalidates naturally instead of serving
- * last month's total under this month's periodEnd. `pending` coalesces concurrent
- * misses (single-flight) so a burst can't stampede the DB with COUNT(*). */
-interface RequestCountEntry {
-  windowStartMs: number;
-  count?: number;
-  fetchedAt?: number;
-  pending?: Promise<number>;
 }
 
 interface BillingSnapshot {
@@ -92,7 +64,6 @@ interface BillingSnapshotRow {
 export class PlanService {
   private readonly logger = new Logger(PlanService.name);
   private priceCache: { value: BillingPrice; fetchedAt: number } | null = null;
-  private requestCountCache = new Map<string, RequestCountEntry>();
   private lastCountFailureWarnAtMs = 0;
   private suppressedCountFailureWarns = 0;
   private lastLimitFailureWarnAtMs = 0;
@@ -192,93 +163,28 @@ export class PlanService {
     return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
   }
 
-  private requestQuotaWindowStartMs(monthStartMs: number): number {
-    return Math.max(monthStartMs, requestQuotaResetAtMs());
-  }
-
   /**
-   * Routed requests recorded for the tenant since the effective quota window
-   * start, cached per tenant+window with single-flight coalescing. "Routed request" = one
-   * explicit request with at least one provider attempt that does not belong to
-   * the tenant's Playground agent. The unlinked-attempt term preserves exact
-   * quota behavior while the online historical backfill is still running.
-   *  - excluding Playground keeps the dashboard test tool from consuming (or
-   *    being blocked by) the production request quota.
+   * Routed requests recorded for the tenant in the effective monthly quota
+   * window. The database increments this counter atomically when the first real
+   * Provider Attempt is written, so this admission-path lookup is one PK read.
+   * Playground and zero-attempt Manifest rejections never increment it.
    */
   async countRequestsSince(tenantId: string | null, monthStartMs: number): Promise<number> {
     if (!tenantId) return 0;
-    const windowStartMs = this.requestQuotaWindowStartMs(monthStartMs);
-
-    const cached = this.requestCountCache.get(tenantId);
-    if (cached && cached.windowStartMs === windowStartMs) {
-      if (cached.pending) return cached.pending;
-      if (cached.count !== undefined && cached.fetchedAt !== undefined) {
-        if (Date.now() - cached.fetchedAt < REQUEST_COUNT_CACHE_TTL_MS) return cached.count;
-      }
-    }
-
-    const pending = this.dataSource
-      .query(
-        `SELECT (
-           SELECT COUNT(*)
-           FROM requests r
-           WHERE r.tenant_id = $1
-             AND r.timestamp >= $2
-             AND EXISTS (SELECT 1 FROM agent_messages pa WHERE pa.request_id = r.id)
-             AND NOT EXISTS (
-               SELECT 1 FROM agents a
-               WHERE a.id = r.agent_id AND a.is_playground = true
-             )
-         ) + (
-           SELECT COUNT(*)
-           FROM agent_messages m
-           WHERE m.tenant_id = $1
-             AND m.timestamp >= $2
-             AND m.request_id IS NULL
-             AND m.superseded = false
-             AND (m.error_origin IS NULL OR m.error_origin NOT IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST}))
-             AND NOT EXISTS (
-               SELECT 1 FROM agents a
-               WHERE a.id = m.agent_id AND a.is_playground = true
-             )
-         ) AS n`,
-        [tenantId, toLocalSqlTimestamp(new Date(windowStartMs))],
-      )
-      .then((rows: Array<{ n: number }>) => {
-        const count = Number(rows[0]?.n ?? 0);
-        this.requestCountCache.set(tenantId, { windowStartMs, count, fetchedAt: Date.now() });
-        this.evictRequestCountCache();
-        return count;
-      })
-      .catch((err: Error) => {
-        // On a DB error, drop the pending entry so the next call retries rather
-        // than awaiting a rejected promise forever, then rethrow. Callers decide
-        // how to handle it: the proxy gate (assertWithinRequestLimit) fails open
-        // so a COUNT hiccup never blocks a request; getBillingStatus surfaces it.
-        this.requestCountCache.delete(tenantId);
-        throw err;
-      });
-
-    this.requestCountCache.set(tenantId, { windowStartMs, pending });
-    return pending;
+    const windowStartMs = requestQuotaWindowStartMs(monthStartMs);
+    const rows: Array<{ n: number | string }> = await this.dataSource.query(
+      `SELECT "request_count" AS n
+         FROM "tenant_request_usage"
+        WHERE "tenant_id" = $1
+          AND "window_start" = $2`,
+      [tenantId, toSqlTimestamp(new Date(windowStartMs))],
+    );
+    return Number(rows[0]?.n ?? 0);
   }
 
-  /** Routed requests for the tenant so far this calendar month (UTC), cached. */
+  /** Routed requests for the tenant so far this calendar month (UTC). */
   async countRequestsThisMonth(tenantId: string | null): Promise<number> {
     return this.countRequestsSince(tenantId, this.monthStartMsUtc(new Date()));
-  }
-
-  /** Drop the cached request count so the next countRequestsSince() hits the DB. */
-  invalidateRequestCountCache(tenantId: string): void {
-    this.requestCountCache.delete(tenantId);
-  }
-
-  private evictRequestCountCache(): void {
-    while (this.requestCountCache.size > MAX_REQUEST_COUNT_CACHE_SIZE) {
-      const firstKey = this.requestCountCache.keys().next().value;
-      if (firstKey === undefined) break;
-      this.requestCountCache.delete(firstKey);
-    }
   }
 
   /**
@@ -301,7 +207,7 @@ export class PlanService {
         ? ` (${suppressed} more suppressed in the last ${COUNT_FAILURE_WARN_WINDOW_MS / 1000}s)`
         : '';
     this.logger.warn(
-      `Request-limit count failed for tenant ${tenantId}; allowing request: ${err.message}${tail}`,
+      `Request-limit usage lookup failed for tenant ${tenantId}; allowing request: ${err.message}${tail}`,
     );
   }
 
@@ -338,7 +244,7 @@ export class PlanService {
     try {
       used = await this.countRequestsThisMonth(ctx.tenantId);
     } catch (err) {
-      // Fail open: a transient COUNT failure must never block a request. The
+      // Fail open: a transient usage lookup failure must never block a request. The
       // limit is a soft Free-tier gate, not a hard financial guard, so erring
       // toward "allow" is correct. The next request retries the count. Warn is
       // throttled so a sustained outage can't flood the log / hot path.

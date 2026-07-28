@@ -100,12 +100,10 @@ describe('request limit gate (/v1 proxy)', () => {
     const tenantId = tenantRows[0].id;
     const monthStartMs = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1);
     const planService = app.get(PlanService);
-    planService.invalidateRequestCountCache(tenantId);
     const billableBefore = await planService.countRequestsSince(tenantId, monthStartMs);
-    const before = await ds.query(
-      `SELECT COUNT(*)::int AS n FROM requests WHERE tenant_id = $1`,
-      [tenantId],
-    );
+    const before = await ds.query(`SELECT COUNT(*)::int AS n FROM requests WHERE tenant_id = $1`, [
+      tenantId,
+    ]);
     const attemptsBefore = await ds.query(
       `SELECT COUNT(*)::int AS n FROM agent_messages WHERE tenant_id = $1`,
       [tenantId],
@@ -129,10 +127,9 @@ describe('request limit gate (/v1 proxy)', () => {
       tenantId,
       manifestBlocksBefore[0].n + 1,
     );
-    const after = await ds.query(
-      `SELECT COUNT(*)::int AS n FROM requests WHERE tenant_id = $1`,
-      [tenantId],
-    );
+    const after = await ds.query(`SELECT COUNT(*)::int AS n FROM requests WHERE tenant_id = $1`, [
+      tenantId,
+    ]);
     const attemptsAfter = await ds.query(
       `SELECT COUNT(*)::int AS n FROM agent_messages WHERE tenant_id = $1`,
       [tenantId],
@@ -148,7 +145,6 @@ describe('request limit gate (/v1 proxy)', () => {
         LIMIT 1`,
       [tenantId],
     );
-    planService.invalidateRequestCountCache(tenantId);
     const billableAfter = await planService.countRequestsSince(tenantId, monthStartMs);
 
     expect(after[0].n).toBe(before[0].n + 1);
