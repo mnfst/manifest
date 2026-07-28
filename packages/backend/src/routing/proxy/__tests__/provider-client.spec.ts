@@ -1354,6 +1354,22 @@ describe('ProviderClient', () => {
       expect(sentBody.instructions).toBe('You are a helpful assistant.');
     });
 
+    it('maps reasoning_effort onto the Responses reasoning object with summary auto', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'token',
+        model: 'gpt-5.6-sol',
+        body: { messages: [{ role: 'user', content: 'Hello' }], reasoning_effort: 'xhigh' },
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.reasoning).toEqual({ effort: 'xhigh', summary: 'auto' });
+    });
+
     it('sets isChatGpt=false for regular OpenAI api_key auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

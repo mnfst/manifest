@@ -52,6 +52,14 @@ export interface ToResponsesRequestOptions {
    * ChatGPT-subscription behavior, which expects SSE collection.
    */
   stream?: boolean;
+  /**
+   * Map the standard Chat Completions `reasoning_effort` param onto the
+   * Responses `reasoning` object, requesting `summary: 'auto'` alongside so
+   * the effort yields visible `reasoning_content` (issue #2531 — GPT-5.6
+   * doesn't reason at all without it). Opt-in per endpoint: only backends
+   * known to accept `reasoning.summary` (OpenAI infrastructure).
+   */
+  mapReasoningEffort?: boolean;
 }
 
 export function toResponsesRequest(
@@ -118,6 +126,8 @@ export function toResponsesRequest(
 
   if (isObjectRecord(body.reasoning)) {
     request.reasoning = body.reasoning;
+  } else if (options.mapReasoningEffort && typeof body.reasoning_effort === 'string') {
+    request.reasoning = { effort: body.reasoning_effort, summary: 'auto' };
   }
 
   if (isObjectRecord(body.text)) {

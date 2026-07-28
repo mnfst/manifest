@@ -570,6 +570,10 @@ export class ProviderClient {
                 endpointKey === 'openai-subscription' ||
                 endpointKey === 'openai-responses' ||
                 endpointKey === 'xai-responses',
+              // Only OpenAI infrastructure is known to accept
+              // reasoning.summary; other Responses backends may 400 on it.
+              mapReasoningEffort:
+                endpointKey === 'openai-subscription' || endpointKey === 'openai-responses',
             });
       if (endpointKey === 'xai-responses') {
         applyXaiResponsesPromptCacheKey(requestBody, ctx.sessionKey);

@@ -94,6 +94,47 @@ describe('chatgpt-adapter', () => {
       ]);
     });
 
+    it('forwards an explicit Responses-style reasoning object verbatim', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'hi' }],
+        reasoning: { effort: 'xhigh', summary: 'detailed' },
+      };
+      const req = toResponsesRequest(body, 'gpt-5.6-sol');
+      expect(req.reasoning).toEqual({ effort: 'xhigh', summary: 'detailed' });
+    });
+
+    it('maps the Chat Completions reasoning_effort param when opted in', () => {
+      // OpenWebUI and other CC-mode clients send `reasoning_effort`, not the
+      // nested Responses object. Dropping it means models like GPT-5.6 never
+      // reason, so no summary exists to surface (issue #2531). `summary: auto`
+      // is requested alongside so the effort yields visible reasoning_content.
+      const body = {
+        messages: [{ role: 'user', content: 'hi' }],
+        reasoning_effort: 'xhigh',
+      };
+      const req = toResponsesRequest(body, 'gpt-5.6-sol', { mapReasoningEffort: true });
+      expect(req.reasoning).toEqual({ effort: 'xhigh', summary: 'auto' });
+    });
+
+    it('prefers an explicit reasoning object over reasoning_effort', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'hi' }],
+        reasoning: { effort: 'low' },
+        reasoning_effort: 'xhigh',
+      };
+      const req = toResponsesRequest(body, 'gpt-5.6-sol', { mapReasoningEffort: true });
+      expect(req.reasoning).toEqual({ effort: 'low' });
+    });
+
+    it('drops reasoning_effort for endpoints that did not opt in', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'hi' }],
+        reasoning_effort: 'high',
+      };
+      const req = toResponsesRequest(body, 'gpt-5.6-sol');
+      expect(req.reasoning).toBeUndefined();
+    });
+
     // Integration-style check for the api.openai.com/v1/responses branch:
     // Codex-family models (e.g. gpt-5.3-codex) route through this adapter
     // when hit with an API key. The output must be a valid Responses API
