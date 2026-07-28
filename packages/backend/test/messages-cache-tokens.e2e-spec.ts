@@ -191,12 +191,14 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
       messages: [{ role: 'user', content: 'Say pong.' }],
     });
 
-    expect(res.body.usage).toEqual({
+    const { cost, ...usage } = res.body.usage;
+    expect(usage).toEqual({
       input_tokens: 7,
       output_tokens: 2,
       cache_creation_input_tokens: 3006,
       cache_read_input_tokens: 0,
     });
+    expect(cost).toBeCloseTo(0.003023, 10);
 
     await flushRecorder();
     const rows = await ds.query(
@@ -237,12 +239,14 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
       messages: [{ role: 'user', content: 'Say pong.' }],
     });
 
-    expect(res.body.usage).toEqual({
+    const { cost, ...usage } = res.body.usage;
+    expect(usage).toEqual({
       input_tokens: 7,
       output_tokens: 2,
       cache_creation_input_tokens: 0,
       cache_read_input_tokens: 3006,
     });
+    expect(cost).toBeCloseTo(0.0003176, 10);
 
     await flushRecorder();
     const rows = await ds.query(

@@ -12,6 +12,18 @@ import {
 } from '../stream-writer';
 import { createSsePayloadParser } from '../sse-parser';
 
+const responseCostContext = {
+  model: 'gpt-4o',
+  authType: 'api_key',
+  pricing: {
+    model_name: 'gpt-4o',
+    provider: 'openai',
+    input_price_per_token: 0.000005,
+    output_price_per_token: 0.00002,
+    display_name: 'GPT-4o',
+  },
+};
+
 function mockResponse(): {
   res: Record<string, jest.Mock | boolean | number>;
   written: string[];
@@ -269,6 +281,55 @@ describe('pipeStream', () => {
     expect(written).toContain('transformed:chunk2\n\n');
     // Should end with [DONE] for transformed streams
     expect(written).toContain('data: [DONE]\n\n');
+  });
+
+  it('preserves valid SSE framing while injecting cost into a native chat stream', async () => {
+    const { res, written } = mockResponse();
+    const content = { choices: [{ delta: { content: 'hello' } }] };
+    const usage = {
+      choices: [],
+      usage: { prompt_tokens: 100, completion_tokens: 50 },
+    };
+    const stream = createReadableStream([
+      `data: ${JSON.stringify(content)}\n\n`,
+      `data: ${JSON.stringify(usage)}\n\n`,
+      'data: [DONE]\n\n',
+    ]);
+
+    const captured = await pipeStream(stream, res as never, undefined, undefined, undefined, {
+      costContext: responseCostContext,
+      appendDone: true,
+    });
+
+    const output = written.join('');
+    expect(output).toContain(`data: ${JSON.stringify(content)}\n\n`);
+    expect(output).toContain('"cost":0.0015');
+    expect(output.endsWith('data: [DONE]\n\n')).toBe(true);
+    expect(createSsePayloadParser().feed(output)).toHaveLength(2);
+    expect(captured).toMatchObject({ prompt_tokens: 100, completion_tokens: 50 });
+  });
+
+  it('injects cost into a multi-event Responses finalizer', async () => {
+    const { res, written } = mockResponse();
+    const stream = createReadableStream(['data: {"choices":[{"delta":{"content":"hi"}}]}\n\n']);
+    const transform = (chunk: string) => `data: ${chunk}\n\n`;
+    const finalize = () =>
+      'event: response.output_item.done\n' +
+      'data: {"type":"response.output_item.done"}\n\n' +
+      'event: response.completed\n' +
+      'data: {"type":"response.completed","response":{"usage":{"input_tokens":100,"output_tokens":50}}}\n\n' +
+      'data: [DONE]\n\n';
+
+    const captured = await pipeStream(stream, res as never, transform, finalize, undefined, {
+      costContext: responseCostContext,
+    });
+
+    const output = written.join('');
+    expect(output).toContain('event: response.output_item.done\n');
+    expect(output).toContain('event: response.completed\n');
+    expect(output).toContain('"cost":0.0015');
+    expect(output.endsWith('data: [DONE]\n\n')).toBe(true);
+    expect(captured).toMatchObject({ prompt_tokens: 100, completion_tokens: 50 });
   });
 
   it('should skip null results from transform', async () => {
@@ -868,6 +929,43 @@ describe('pipePassthrough', () => {
     expect(written.join('')).toBe(raw);
   });
 
+  it('preserves Anthropic framing and prices cumulative terminal usage', async () => {
+    const { res, written } = mockResponse();
+    const onClientChunk = jest.fn();
+    const raw =
+      ': keep-alive\n\n' +
+      'event: message_start\n' +
+      'data: {"type":"message_start","message":{"usage":{"input_tokens":100,"output_tokens":1}}}\n\n' +
+      'event: ping\n' +
+      'data: {"type":"ping"}\n\n' +
+      'event: content_block_delta\n' +
+      'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"hello"}}\n\n' +
+      'event: message_delta\n' +
+      'data: {"type":"message_delta","usage":{"output_tokens":50}}\n\n' +
+      'event: message_stop\n' +
+      'data: {"type":"message_stop"}\n\n';
+    const stream = createReadableStream([raw]);
+
+    const captured = await pipePassthrough(stream, res as never, () => null, onClientChunk, {
+      costContext: responseCostContext,
+    });
+
+    const output = written.join('');
+    expect(onClientChunk.mock.calls.map(([chunk]) => chunk).join('')).toBe(output);
+    expect(output.startsWith(': keep-alive\n\n')).toBe(true);
+    expect(output).toContain(
+      'event: content_block_delta\n' +
+        'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"hello"}}\n\n',
+    );
+    expect(output).toContain('event: ping\ndata: {"type":"ping"}\n\n');
+    expect(output).toContain(
+      'event: message_delta\n' +
+        'data: {"type":"message_delta","usage":{"output_tokens":50,"cost":0.0015}}\n\n',
+    );
+    expect(output.endsWith('event: message_stop\ndata: {"type":"message_stop"}\n\n')).toBe(true);
+    expect(captured).toMatchObject({ prompt_tokens: 100, completion_tokens: 50 });
+  });
+
   it('passes upstream SSE comments through unchanged without tapping them as events', async () => {
     const { res, written } = mockResponse();
     const raw =
@@ -984,6 +1082,23 @@ describe('pipePassthrough', () => {
       cache_read_tokens: undefined,
       cache_creation_tokens: 0,
     });
+  });
+
+  it('flushes an incomplete UTF-8 sequence through the decoder', async () => {
+    const { res } = mockResponse();
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(Uint8Array.of(0xe2));
+        controller.close();
+      },
+    });
+    const tap = jest.fn(() => null);
+
+    await pipePassthrough(stream, res as never, tap, undefined, {
+      costContext: responseCostContext,
+    });
+
+    expect(tap).not.toHaveBeenCalled();
   });
 
   it('ignores a whitespace-only trailing buffer', async () => {

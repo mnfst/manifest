@@ -17,6 +17,10 @@ import {
 } from './stream-writer';
 import { createSsePayloadParser } from './sse-parser';
 import {
+  attachCostToResponseBody,
+  type ResponseCostContext,
+} from './response-cost';
+import {
   classifyProviderError,
   openAiErrorTypeForStatus,
   sanitizeProviderError,
@@ -502,6 +506,7 @@ export async function handleStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
+  costContext?: ResponseCostContext,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders, 200);
 
@@ -511,20 +516,6 @@ export async function handleStreamResponse(
   const onClient = responsesSequenceTracker
     ? (chunk: string) => responsesSequenceTracker.feed(chunk)
     : undefined;
-  const relayOptions = {
-    protocol:
-      forward.wireFormat ??
-      (forward.isGoogle
-        ? forward.isCodeAssist
-          ? ('google_code_assist' as const)
-          : ('google_generate_content' as const)
-        : forward.isAnthropic
-          ? ('anthropic_messages' as const)
-          : forward.isChatGpt || forward.isResponses
-            ? ('openai_responses' as const)
-            : ('openai_chat_completions' as const)),
-  };
-
   const messagesTransformer =
     apiMode === 'messages' ? createMessagesStreamTransformer(meta.model) : null;
   // Responses inbound over a Chat Completions upstream needs a stateful
@@ -544,6 +535,20 @@ export async function handleStreamResponse(
   const toClientChunk = streamTransformer
     ? (chunk: string) => streamTransformer.transform(chunk)
     : (chunk: string) => chunk;
+  const relayOptions = {
+    protocol:
+      forward.wireFormat ??
+      (forward.isGoogle
+        ? forward.isCodeAssist
+          ? ('google_code_assist' as const)
+          : ('google_generate_content' as const)
+        : forward.isAnthropic
+          ? ('anthropic_messages' as const)
+          : forward.isChatGpt || forward.isResponses
+            ? ('openai_responses' as const)
+            : ('openai_chat_completions' as const)),
+    ...(costContext ? { costContext } : {}),
+  };
 
   if (apiMode === 'responses' && forward.isResponses) {
     return pipeStream(forward.response.body!, res, undefined, undefined, onClient, relayOptions);
@@ -583,12 +588,10 @@ export async function handleStreamResponse(
       onThinkingBlocks,
     );
     // Anthropic Messages inbound + Anthropic upstream: forward the upstream
-    // SSE bytes byte-for-byte so Anthropic SSE framing (`event:` headers,
-    // multi-line `data:` payloads, blank-line separators) reaches the
-    // client intact, and Anthropic-only content blocks (`server_tool_use`,
-    // `web_search_tool_result`, etc.) are not lost to translation. The
-    // transformer runs purely as a tap — thinking-block cache via callback
-    // and OpenAI-shape usage parsed off its return value by pipePassthrough.
+    // SSE (optionally re-framed when cost injection is enabled) so Anthropic
+    // SSE framing (`event:` headers, multi-line `data:` payloads) reaches the
+    // client intact. The transformer runs as a tap for thinking-block cache
+    // and OpenAI-shape usage for telemetry.
     if (apiMode === 'messages') {
       return pipePassthrough(
         forward.response.body!,
@@ -651,7 +654,11 @@ export async function handleStreamResponse(
   if (apiMode === 'responses' || apiMode === 'messages') {
     return pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient, relayOptions);
   }
-  return pipeStream(forward.response.body!, res, undefined, undefined, onClient, relayOptions);
+  // OpenAI chat completions: cost rewrite drops upstream [DONE], so restore it.
+  return pipeStream(forward.response.body!, res, undefined, undefined, onClient, {
+    ...relayOptions,
+    ...(costContext ? { appendDone: true } : {}),
+  });
 }
 
 function cacheReasoningContent(
@@ -696,6 +703,7 @@ export async function handleNonStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
+  costContext?: ResponseCostContext,
 ): Promise<StreamUsage | null> {
   let responseBody: unknown;
 
@@ -774,7 +782,9 @@ export async function handleNonStreamResponse(
   }
 
   const body = responseBody as Record<string, unknown> | undefined;
-  const streamUsage = parseUsageObject(body?.usage);
+  const streamUsage = costContext
+    ? (attachCostToResponseBody(responseBody, costContext) ?? parseUsageObject(body?.usage))
+    : parseUsageObject(body?.usage);
 
   res.status(200);
   setHeaders(res, metaHeaders);
