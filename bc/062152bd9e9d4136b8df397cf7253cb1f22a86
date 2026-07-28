@@ -1,0 +1,64 @@
+deploy/apple-containers/TUTORIAL.md
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 135-151
+packages/backend/src/telemetry/telemetry.config.ts
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 30-33
+packages/backend/test/message-log-completeness.e2e-spec.ts
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 1-350
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 303-308,1106,1144-1145
+docker/DOCKER_README.md
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 37,40,69,73,125-126,132-136,145,149-150,213-244,257-269,278-279,499-506
+  s_8b2a2ccaff9d01::t_e99f32a97565e5 478-498
+  s_8b2a2ccaff9d01::t_b84f96e9e0c4d7 102-109
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 1288-1298,1300,1302-1303,1306-1313,1315-1316,1318,1327,1344-1352,1360,1363,1365,1368-1370,1374,1384,1476,1487-1495,1502,1752-1759,1766
+package.json
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 65
+.changeset/resume-self-host-install.md
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 1-5
+docker/.env.example
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 16-24,126-160,170-172
+.changeset/drop-success-message-dedup.md
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 1-11
+docker/install.sh
+  s_8b2a2ccaff9d01::t_dfc8cea7f20950 5-8,14,21-22,47,51,85,93,114-115,122-125,147,152-162,165-167,169,175-176,192,212,217-222,238-239,263,274-278,379-380
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 20,23,84,86,126,128,183,190-191,236-237,259,262,265-266,269,272,283-284,290-292,373-377
+  s_8b2a2ccaff9d01::t_3373adabf6be37 59-66,102,151
+  s_8b2a2ccaff9d01::t_bbe8ea72cfa1c0 103
+  s_8b2a2ccaff9d01::t_52f80820555a26 223
+  s_8b2a2ccaff9d01::t_0180e5c37593b0 378
+integrations/n8n-nodes-manifest/dist/package.json
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 59,65-72
+packages/backend/src/entities/agent-message.entity.ts
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 15-17
+docker/docker-compose.yml
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 74-78,113-149,151
+integrations/n8n-nodes-manifest/package.json
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 59,65-72
+packages/backend/src/routing/oauth/core/redirect-pkce-oauth.base.spec.ts
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 89-126
+packages/backend/src/routing/oauth/core/redirect-pkce-oauth.base.ts
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 117-120,122,124-125
+packages/backend/src/telemetry/telemetry.config.spec.ts
+  s_8b2a2ccaff9d01::t_f18641bd011bcc 44-63
+integrations/n8n-nodes-manifest/package-lock.json
+  s_8b2a2ccaff9d01::t_012bed8ccf76d7 16,526-528,532,536-538,542-545,548,560-562,566-567,570,582-584,588-590,592-594,597,609-611,615-617,620,632-634,638-639,642,654-656,661,664,693-695,699,703-705,709-710,713,725-727,731-732,735,747-749,753-755,758,770-772,776-785,788,800-802,806-807,810,822-824,828-830,833,845-847,851-854,857,869-871,875,3599-3602,3605-3611,3613-3616,3619-3624,3626-3629,3632-3634,3636-3639,3642-3644,3646-3649,3652-3658,3660-3663,3666-3675,3995-3997,4002-4004,4006,4010,4012,4503-4505,4509,4632-4634,4643-4646,5193-5195,5289-5315,5692-5694,5698-5699,5703,5707-5709,6116-6118,6236-6248,6365-6367,6371,6447-6449,7162-7164,7168,7364-7365,7460-7462,7466,7468,7470-7471,7474,7538-7540,7550-7551,7587-7589,7604-7606,7610-7611,7614,7709-7711,7715,7717-7722,7725-7765,7769-7771,7775,7779-7782,8027-8039,8088-8090,8094,8096-8097,8099-8101,8104-8162,8175-8184,8261-8267,8269-8271,8275-8276,8344-8346,8360,8364-8367,8369,8373-8379,8381,8387,8418-8420,8424,8843-8845,8849,8854-8864,8914-8916,9490-9492,9499,9597-9599,9603,9606-9619,9760-9762,9766-9767,9770,9897-9899
+package-lock.json
+  s_8b2a2ccaff9d01::t_5307f73538971f 7163-7165,7171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "bc062152bd9e9d4136b8df397cf7253cb1f22a86",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
