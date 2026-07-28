@@ -1,4 +1,4 @@
-import type { ModelRoute } from 'manifest-shared';
+import { MAX_KEYS_PER_PROVIDER, type ModelRoute } from 'manifest-shared';
 import { ProviderService } from '../provider.service';
 import { TenantProvider } from '../../../entities/tenant-provider.entity';
 import { TierAssignment } from '../../../entities/tier-assignment.entity';
@@ -1635,6 +1635,34 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
         { agent: 'agent-1', provider: provider.id },
         { agent: 'agent-2', provider: provider.id },
       ]);
+    });
+
+    it('rejects a new credential only at the 50-key safety ceiling', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1'], enabled);
+      providerRepo.find.mockResolvedValue(
+        Array.from({ length: MAX_KEYS_PER_PROVIDER }, (_, index) => ({
+          id: `provider-${index}`,
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: `Key ${index + 1}`,
+          priority: index,
+          is_active: true,
+        })) as TenantProvider[],
+      );
+
+      await expect(
+        svc.upsertProvider(
+          'agent-1',
+          'tenant-1',
+          'openai',
+          'sk-overflow',
+          'api_key',
+          undefined,
+          'Overflow',
+        ),
+      ).rejects.toThrow(`at most ${MAX_KEYS_PER_PROVIDER}`);
+      expect(providerRepo.insert).not.toHaveBeenCalled();
     });
 
     it('enables a brand-new tokenless subscription provider for every owned agent', async () => {

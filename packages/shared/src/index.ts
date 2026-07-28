@@ -113,6 +113,7 @@ export {
 } from './model-params-scope';
 export type { ModelParamsRoutingScopeInput } from './model-params-scope';
 export { API_KEY_PREFIX } from './api-key';
+export { MAX_KEYS_PER_PROVIDER } from './provider-limits';
 export {
   FALLBACK_KEY_DELIMITER,
   parseFallbackEntry,
