@@ -6,6 +6,7 @@ import { Agent } from '../../entities/agent.entity';
 import {
   MESSAGE_ROW_SELECT_ALIASES,
   EXCLUDE_PLAYGROUND_AGENTS_PREDICATE,
+  EXCLUDE_DIRECT_ATTEMPTS_PREDICATE,
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
 } from './query-helpers';
@@ -338,6 +339,87 @@ describe('TimeseriesQueriesService', () => {
       await service.getRecentActivity('24h', 'tenant-1', 5);
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
       expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
+
+    it('excludes client-pinned (direct) requests when excludeDirect=true', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getRecentActivity('24h', 'tenant-1', 5, 'bot-1', true, true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+    });
+
+    it('keeps direct requests by default', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getRecentActivity('24h', 'tenant-1', 5, 'bot-1', true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).not.toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+    });
+  });
+
+  describe('direct-request exclusion', () => {
+    const clauses = () => mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+
+    it.each([
+      [
+        'getTimeseries',
+        () =>
+          service.getTimeseries(
+            '24h',
+            't1',
+            true,
+            'bot-1',
+            undefined,
+            undefined,
+            true,
+            undefined,
+            undefined,
+            true,
+          ),
+      ],
+      ['getActiveSkills', () => service.getActiveSkills('24h', 't1', 'bot-1', true, true)],
+      ['getCostByModel', () => service.getCostByModel('24h', 't1', 'bot-1', true, true)],
+    ])('%s applies the predicate when excludeDirect=true', async (_name, call) => {
+      await call();
+      expect(clauses()).toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+    });
+
+    it.each([
+      [
+        'getTimeseries',
+        () => service.getTimeseries('24h', 't1', true, 'bot-1', undefined, undefined, true),
+      ],
+      ['getActiveSkills', () => service.getActiveSkills('24h', 't1', 'bot-1', true)],
+      ['getCostByModel', () => service.getCostByModel('24h', 't1', 'bot-1', true)],
+    ])('%s keeps direct requests by default', async (_name, call) => {
+      await call();
+      expect(clauses()).not.toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+    });
+
+    // The per-provider charts render on the SAME harness Overview page as the
+    // KPI cards (they feed the card sparklines), so they follow the page's rule
+    // implicitly: agent-scoped => this harness's routing only. Their only caller
+    // is OverviewController, which passes agentName exactly when the request is
+    // for one harness.
+    it.each([
+      [
+        'getPerProviderTimeseries',
+        (agent?: string) => service.getPerProviderTimeseries('24h', 't1', true, agent),
+      ],
+      [
+        'getPerProviderMessageTimeseries',
+        (agent?: string) => service.getPerProviderMessageTimeseries('24h', 't1', true, agent),
+      ],
+      [
+        'getPerProviderCostTimeseries',
+        (agent?: string) => service.getPerProviderCostTimeseries('24h', 't1', true, agent),
+      ],
+    ])('%s excludes direct when agent-scoped and keeps it globally', async (_name, call) => {
+      await call('bot-1');
+      expect(clauses()).toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+
+      mockTurnQb.andWhere.mockClear();
+      await call(undefined);
+      expect(clauses()).not.toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
     });
   });
 

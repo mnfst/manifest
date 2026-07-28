@@ -15,6 +15,8 @@ import {
   CUSTOM_PROVIDER_JOIN_CONDITION,
   excludePlaygroundAgents,
   sqlExcludePlayground,
+  excludeDirectAttempts,
+  sqlExcludeDirectRequests,
   sqlIsFailedStatus,
   sqlIsSuccessStatus,
 } from './query-helpers';
@@ -99,6 +101,14 @@ interface MessageQueryParams extends MessageFilterParams {
   include_total?: boolean;
   include_filter_options?: boolean;
   exclude_playground?: boolean;
+  /**
+   * Drop requests whose model the caller pinned in the request body, so the
+   * agent's routing never chose it (`routing_reason='direct'` on the attempt).
+   * Opt-in and used ONLY by the harness Overview's Recent Messages panel — the
+   * Requests log itself must keep showing them, which is where they are
+   * accounted for. See `sqlExcludeDirectRequests` in query-helpers.
+   */
+  exclude_direct?: boolean;
 }
 
 interface ConnectionIdentity {
@@ -252,6 +262,9 @@ export class MessagesQueryService {
     }
     if (params.exclude_playground) {
       qb.andWhere(sqlExcludePlayground('r'));
+    }
+    if (params.exclude_direct) {
+      qb.andWhere(sqlExcludeDirectRequests('r'));
     }
     if (params.status === 'failed' || params.status === 'errors') {
       // "Not a success" across both vocabularies: a normalized `success` row must
@@ -490,6 +503,9 @@ export class MessagesQueryService {
       }
     }
     if (params.exclude_playground) excludePlaygroundAgents(legacyBase);
+    // An unlinked attempt is its own synthetic request here, so `direct` is read
+    // off the attempt row itself rather than through NOT EXISTS on a parent.
+    if (params.exclude_direct) excludeDirectAttempts(legacyBase);
     const legacyCountQb = legacyBase.clone().select('COUNT(*)', 'total');
     const legacyDataQb = selectMessageRowColumns(
       legacyBase.clone(),
