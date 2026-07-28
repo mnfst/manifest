@@ -232,6 +232,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-...',
   },
   {
+    id: 'meta',
+    displayName: 'Meta',
+    aliases: ['meta-model-api', 'meta model api'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#0668E1',
+    keyPrefix: '',
+    minKeyLength: 20,
+    keyPlaceholder: 'MODEL_API_KEY',
+  },
+  {
     id: 'xiaomi',
     displayName: 'Xiaomi MiMo',
     aliases: ['mimo', 'xiaomi-mimo', 'xiaomi mimo'],

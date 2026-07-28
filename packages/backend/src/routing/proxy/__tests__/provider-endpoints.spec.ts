@@ -78,6 +78,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('nvidia')).toBe('nvidia');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
     expect(resolveEndpointKey('kilo')).toBe('kilo');
+    expect(resolveEndpointKey('meta')).toBe('meta');
     expect(resolveEndpointKey('zai')).toBe('zai');
     expect(resolveEndpointKey('xiaomi')).toBe('xiaomi');
   });
@@ -115,6 +116,11 @@ describe('resolveEndpointKey', () => {
   it('resolves Pioneer aliases to pioneer', () => {
     expect(resolveEndpointKey('pioneer-ai')).toBe('pioneer');
     expect(resolveEndpointKey('Pioneer AI')).toBe('pioneer');
+  });
+
+  it('resolves Meta Model API aliases to meta', () => {
+    expect(resolveEndpointKey('meta-model-api')).toBe('meta');
+    expect(resolveEndpointKey('Meta Model API')).toBe('meta');
   });
 
   it('resolves Xiaomi MiMo aliases to xiaomi', () => {
@@ -162,6 +168,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('nous');
     expect(known).toContain('openrouter');
     expect(known).toContain('nvidia');
+    expect(known).toContain('meta');
     expect(known).toContain('ollama');
     expect(known).toContain('ollama-cloud');
     expect(known).toContain('qwen-subscription');
@@ -343,6 +350,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     const headers = PROVIDER_ENDPOINTS['nvidia'].buildHeaders('nvapi-test-key');
     expect(headers).toEqual({
       Authorization: 'Bearer nvapi-test-key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('meta uses the Meta Model API OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['meta'];
+    expect(ep.baseUrl).toBe('https://api.meta.ai');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('muse-spark-1.1')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('meta-api-key')).toEqual({
+      Authorization: 'Bearer meta-api-key',
       'Content-Type': 'application/json',
     });
   });
@@ -691,6 +709,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'mistral',
       'xai',
       'minimax',
+      'meta',
       'xiaomi',
       'moonshot',
       'nous',

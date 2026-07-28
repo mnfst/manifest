@@ -221,6 +221,18 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(xiaomi!.minKeyLength).toBe(50);
     expect(xiaomi!.keyPlaceholder).toBe('sk-xxxxx');
   });
+
+  it('meta exposes the Meta Model API as a native API-key provider', () => {
+    const meta = SHARED_PROVIDER_BY_ID.get('meta');
+    expect(meta).toBeDefined();
+    expect(meta!.displayName).toBe('Meta');
+    expect(meta!.aliases).toEqual(['meta-model-api', 'meta model api']);
+    expect(meta!.openRouterPrefixes).toEqual([]);
+    expect(meta!.requiresApiKey).toBe(true);
+    expect(meta!.localOnly).toBe(false);
+    expect(meta!.keyPrefix).toBe('');
+    expect(meta!.keyPlaceholder).toBe('MODEL_API_KEY');
+  });
 });
 
 describe('LOCAL_SERVER_HINTS', () => {

@@ -168,6 +168,17 @@ describe('PROVIDER_REGISTRY', () => {
     expect(pioneer!.keyPrefix).toBe('pio_sk_');
     expect(pioneer!.keyPlaceholder).toBe('pio_sk_...');
   });
+
+  it('meta is registered as a native API-key provider without OpenRouter prefixes', () => {
+    const meta = PROVIDER_REGISTRY.find((p) => p.id === 'meta');
+    expect(meta).toBeDefined();
+    expect(meta!.displayName).toBe('Meta');
+    expect(meta!.aliases).toEqual(['meta-model-api', 'meta model api']);
+    expect(meta!.openRouterPrefixes).toEqual([]);
+    expect(meta!.requiresApiKey).toBe(true);
+    expect(meta!.localOnly).toBe(false);
+    expect(meta!.keyPlaceholder).toBe('MODEL_API_KEY');
+  });
 });
 
 describe('PROVIDER_BY_ID', () => {
@@ -257,6 +268,15 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
       expect(entry).toBeDefined();
       expect(entry.id).toBe('pioneer');
       expect(entry.displayName).toBe('Pioneer');
+    }
+  });
+
+  it('resolves Meta Model API aliases to meta', () => {
+    for (const name of ['meta', 'meta-model-api', 'meta model api']) {
+      const entry = PROVIDER_BY_ID_OR_ALIAS.get(name) as ProviderRegistryEntry;
+      expect(entry).toBeDefined();
+      expect(entry.id).toBe('meta');
+      expect(entry.displayName).toBe('Meta');
     }
   });
 

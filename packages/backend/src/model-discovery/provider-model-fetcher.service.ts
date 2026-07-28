@@ -45,6 +45,8 @@ const NOUS_PORTAL_MODELS_URL = 'https://inference-api.nousresearch.com/v1/models
 const OPENCODE_GO_MODELS_URL = 'https://opencode.ai/zen/go/v1/models';
 const PIONEER_MODELS_URL = 'https://api.pioneer.ai/v1/models';
 const PIONEER_BASE_MODELS_URL = 'https://api.pioneer.ai/base-models';
+const META_MODELS_URL = 'https://api.meta.ai/v1/models';
+const MUSE_SPARK_CONTEXT_WINDOW = 1048576;
 
 /* ── Generic parser factory ── */
 
@@ -221,6 +223,22 @@ const parseXiaomiMimo = createModelParser<OpenAIModelEntry>({
   contextWindow: (entry) => XIAOMI_MIMO_CONTEXT_WINDOWS.get(entry.id) ?? DEFAULT_CONTEXT_WINDOW,
   capabilityCode: true,
 });
+
+const parseMeta = createModelParser<OpenAIModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => entry.id === 'muse-spark-1.1',
+  getId: (entry) => entry.id,
+  getDisplayName: (_entry, id) => id,
+  contextWindow: MUSE_SPARK_CONTEXT_WINDOW,
+});
+
+function enrichMetaModels(models: DiscoveredModel[]): DiscoveredModel[] {
+  return models.map((model) =>
+    model.id === 'muse-spark-1.1'
+      ? { ...model, inputModalities: ['text', 'image'] as const }
+      : model,
+  );
+}
 
 /* ── OpenAI-specific structural filters (not non-chat) ── */
 
@@ -692,6 +710,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.minimaxi.chat/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  meta: {
+    endpoint: META_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: (body, provider) => enrichMetaModels(parseMeta(body, provider)),
   },
   'minimax-subscription': {
     endpoint: MINIMAX_SUBSCRIPTION_MODELS_URL,

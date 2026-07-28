@@ -35,6 +35,7 @@ describe('ProviderModelFetcherService', () => {
       'nvidia',
       'xai',
       'minimax',
+      'meta',
       'minimax-subscription',
       'xiaomi',
       'xiaomi-subscription',
@@ -106,6 +107,38 @@ describe('ProviderModelFetcherService', () => {
       contextWindow: 128000,
       inputPricePerToken: null,
       outputPricePerToken: null,
+    });
+  });
+
+  it('should fetch Meta Model API models and keep only verified Muse Spark', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'muse-spark-1.1' },
+          { id: 'unknown-meta-model' },
+          { id: 'text-embedding-test' },
+        ],
+      }),
+    });
+
+    const result = await service.fetch('meta', 'meta-api-key');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.meta.ai/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer meta-api-key' },
+      }),
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      id: 'muse-spark-1.1',
+      displayName: 'muse-spark-1.1',
+      provider: 'meta',
+      contextWindow: 1048576,
+      inputPricePerToken: null,
+      outputPricePerToken: null,
+      inputModalities: ['text', 'image'],
     });
   });
 

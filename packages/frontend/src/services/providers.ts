@@ -312,6 +312,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     },
     models: [],
   },
+  meta: {
+    initial: 'Me',
+    subtitle: 'Muse Spark via Meta Model API',
+    models: [{ label: 'Muse Spark 1.1', value: 'muse-spark-1.1' }],
+  },
   xiaomi: {
     initial: 'Mi',
     subtitle: 'MiMo V2.5 Pro, V2.5, Flash',
@@ -492,6 +497,7 @@ const PROVIDER_ORDER = [
   'kiro',
   'llamacpp',
   'lmstudio',
+  'meta',
   'minimax',
   'mistral',
   'moonshot',

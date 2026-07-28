@@ -9,6 +9,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   kiro: 'https://app.kiro.dev',
   groq: 'https://console.groq.com/keys',
   kilo: 'https://app.kilo.ai',
+  meta: 'https://ai.meta.com/blog/introducing-muse-spark-meta-model-api/',
   minimax: 'https://platform.minimax.io/user-center/basic-information/interface-key',
   mistral: 'https://console.mistral.ai/api-keys/',
   moonshot: 'https://platform.moonshot.ai/',
