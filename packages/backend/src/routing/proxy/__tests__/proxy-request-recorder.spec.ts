@@ -32,7 +32,6 @@ describe('ProxyMessageRecorder request parents', () => {
     const recorder = new ProxyMessageRecorder(
       messageRepo as never,
       { getByModel: jest.fn() } as never,
-      { normalizeSessionKey: jest.fn((sessionKey: string | undefined) => sessionKey) } as never,
       { emit: jest.fn() } as never,
       {
         canonicalizeAgentMessageKeys: jest.fn(

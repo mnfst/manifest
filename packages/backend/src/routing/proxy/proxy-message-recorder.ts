@@ -18,7 +18,6 @@ import { IngestEventBusService } from '../../common/services/ingest-event-bus.se
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { FailedFallback } from './proxy-fallback.service';
 import { StreamUsage } from './stream-writer';
-import { ProxyMessageDedup } from './proxy-message-dedup';
 import { computeTokenCost } from '../../common/utils/cost-calculator';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
@@ -301,6 +300,12 @@ function buildMessageRow(
   return { ...row, ...classified, status, error_message: errorMessage };
 }
 
+/** `default` is the placeholder the proxy sends when the caller names no session. */
+function normalizeSessionKey(sessionKey?: string | null): string | null {
+  if (!sessionKey || sessionKey === 'default') return null;
+  return sessionKey;
+}
+
 function attemptIdentity(
   attempt: ProviderAttemptRef | undefined,
   attemptNumber: number | undefined,
@@ -391,7 +396,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
     private readonly pricingCache: ModelPricingCacheService,
-    private readonly dedup: ProxyMessageDedup,
     private readonly eventBus: IngestEventBusService,
     private readonly customProviders: CustomProviderService,
     private readonly opencodeGoCatalog: OpencodeGoCatalogService,
@@ -1099,7 +1103,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const canonicalModel = canonical.model;
     const canonicalProvider = canonical.provider;
 
-    const normalizedSessionKey = this.dedup.normalizeSessionKey(sessionKey);
+    const normalizedSessionKey = normalizeSessionKey(sessionKey);
 
     // Manifest's own canned stubs never reach here — the controller routes them
     // to recordManifestBlockedRequest, which is the sole writer of Manifest rows.
@@ -1137,121 +1141,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       ...autofixColumns(autofix, 'retry'),
     });
     await this.persistRequest(ctx, requestId, requestRow, true, autofix);
-
-    if (attempt) {
-      await this.persistAttempt(requestRow, attempt);
-      this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
-      return;
-    }
-
-    let wrote = false;
-    await this.dedup.withSuccessWriteLock(
-      this.dedup.getSuccessWriteLockKey(
-        ctx,
-        canonicalModel,
-        traceId,
-        normalizedSessionKey,
-        providedRequestId,
-      ),
-      async () => {
-        await this.dedup.withAgentMessageTransaction(this.messageRepo, ctx, async (messageRepo) => {
-          const existing = await this.dedup.findExistingSuccessMessage(
-            messageRepo,
-            ctx,
-            canonicalModel,
-            usage,
-            traceId,
-            normalizedSessionKey,
-            providedRequestId,
-          );
-
-          if (existing) {
-            const hasRecordedTokens =
-              (existing.input_tokens ?? 0) > 0 || (existing.output_tokens ?? 0) > 0;
-            if (hasRecordedTokens) return;
-
-            const updatePayload: Partial<AgentMessage> = {
-              request_id: requestId,
-              attempt_number: attemptNumber ?? null,
-              status,
-              ...autofixColumns(autofix, 'retry'),
-              error_message: errorMessage,
-              model: canonicalModel,
-              provider: canonicalProvider,
-              routing_tier: tier,
-              routing_reason: reason,
-              input_tokens: usage.prompt_tokens,
-              output_tokens: usage.completion_tokens,
-              cache_read_tokens: usage.cache_read_tokens ?? 0,
-              cache_creation_tokens: usage.cache_creation_tokens ?? 0,
-              cost_usd: costUsd,
-              auth_type: authType ?? null,
-              user_id: ctx.userId,
-              duration_ms: durationMs ?? null,
-              specificity_category: specificityCategory ?? null,
-              provider_key_label: providerKeyLabel ?? null,
-              tenant_provider_id: tenantProviderId ?? null,
-              caller_attribution: callerAttribution ?? null,
-              request_headers: requestHeaders ?? null,
-              request_params: requestParams ?? null,
-              header_tier_id: headerTierId ?? null,
-              header_tier_name: headerTierName ?? null,
-              header_tier_color: headerTierColor ?? null,
-            };
-            if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
-            // This update path bypasses buildMessageRow, so classify inline to
-            // keep every write site stamping the same orthogonal error axes.
-            Object.assign(updatePayload, classifyRow(updatePayload));
-            updatePayload.status = normalizeStatus(updatePayload.status);
-
-            await messageRepo.update({ id: existing.id }, updatePayload);
-            wrote = true;
-            return;
-          }
-
-          const newId = uuid();
-          await messageRepo.insert(
-            buildMessageRow(ctx, {
-              id: newId,
-              request_id: requestId,
-              attempt_number: attemptNumber ?? null,
-              ...autofixColumns(autofix, 'retry'),
-              trace_id: traceId ?? null,
-              session_key: normalizedSessionKey,
-              timestamp: new Date().toISOString(),
-              status,
-              error_message: errorMessage,
-              model: canonicalModel,
-              provider: canonicalProvider,
-              routing_tier: tier,
-              routing_reason: reason,
-              input_tokens: usage.prompt_tokens,
-              output_tokens: usage.completion_tokens,
-              cache_read_tokens: usage.cache_read_tokens ?? 0,
-              cache_creation_tokens: usage.cache_creation_tokens ?? 0,
-              cost_usd: costUsd,
-              auth_type: authType ?? null,
-              fallback_from_model: null,
-              fallback_index: null,
-              duration_ms: durationMs ?? null,
-              specificity_category: specificityCategory ?? null,
-              provider_key_label: providerKeyLabel ?? null,
-              tenant_provider_id: tenantProviderId ?? null,
-              caller_attribution: callerAttribution ?? null,
-              request_headers: requestHeaders ?? null,
-              request_params: requestParams ?? null,
-              header_tier_id: headerTierId ?? null,
-              header_tier_name: headerTierName ?? null,
-              header_tier_color: headerTierColor ?? null,
-            }),
-          );
-          wrote = true;
-        });
-      },
-    );
-    if (wrote) {
-      this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
-    }
+    await this.persistAttempt(requestRow, attempt);
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
   /**

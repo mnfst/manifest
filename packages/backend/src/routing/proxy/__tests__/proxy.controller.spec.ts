@@ -3,7 +3,6 @@ import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
 import { ManifestError } from '../../../common/errors/manifest-error';
 import { ProxyController } from '../proxy.controller';
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
-import { ProxyMessageDedup } from '../proxy-message-dedup';
 import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 import { ThoughtSignatureCache } from '../thought-signature-cache';
 import { ThinkingBlockCache } from '../thinking-block-cache';
@@ -201,7 +200,6 @@ describe('ProxyController', () => {
     recorder = new ProxyMessageRecorder(
       mockMessageRepo as never,
       mockPricingCache as never,
-      new ProxyMessageDedup(),
       { emit: jest.fn() } as unknown as IngestEventBusService,
       mockCustomProviders as never,
       {
@@ -1070,96 +1068,6 @@ describe('ProxyController', () => {
         model: 'gpt-5.3-codex',
       }),
     });
-  });
-
-  it('should not record success message for non-fallback responses (OTLP pipeline records them)', async () => {
-    const responseBody = {
-      choices: [{ message: { content: 'hello' } }],
-      usage: { prompt_tokens: 500, completion_tokens: 200, cache_read_tokens: 100 },
-    };
-    const mockProviderResp = new Response(JSON.stringify(responseBody), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    proxyService.proxyRequest.mockResolvedValue({
-      forward: {
-        response: mockProviderResp,
-        isGoogle: false,
-        isAnthropic: false,
-        isChatGpt: false,
-      },
-      meta: {
-        tier: 'simple',
-        model: 'gpt-4o',
-        provider: 'OpenAI',
-        confidence: 0.9,
-        reason: 'scored',
-      },
-    });
-
-    const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
-    const { res } = mockResponse();
-
-    await controller.chatCompletions(req as never, res as never);
-    await new Promise((r) => setTimeout(r, 10));
-
-    // Success message is recorded by the proxy recorder (dedup handles OTLP overlap)
-    expect(mockMessageRepo.find).toHaveBeenCalled();
-  });
-
-  it('should serialize concurrent success dedup checks for the same trace', async () => {
-    let releaseInsert!: () => void;
-    const insertGate = new Promise<void>((resolve) => {
-      releaseInsert = resolve;
-    });
-    mockMessageRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce({
-      id: 'existing-otlp-row',
-      input_tokens: 500,
-      output_tokens: 200,
-    });
-    mockMessageRepo.insert.mockImplementationOnce(async () => {
-      await insertGate;
-      return {};
-    });
-
-    const ctx = {
-      userId: 'user-1',
-      tenantId: 'tenant-1',
-      agentId: 'agent-1',
-      agentName: 'test-agent',
-    };
-    const usage = {
-      prompt_tokens: 500,
-      completion_tokens: 200,
-      cache_read_tokens: 100,
-    };
-    const recordSuccessMessage = (
-      recorder as unknown as {
-        recordSuccessMessage: (...args: unknown[]) => Promise<void>;
-      }
-    ).recordSuccessMessage.bind(recorder);
-
-    const firstWrite = recordSuccessMessage(ctx, 'gpt-4o', 'simple', 'scored', usage, {
-      traceId: 'abcdef1234567890abcdef1234567890',
-      sessionKey: 'sess-1',
-    });
-
-    await new Promise((r) => setTimeout(r, 0));
-
-    const secondWrite = recordSuccessMessage(ctx, 'gpt-4o', 'simple', 'scored', usage, {
-      traceId: 'abcdef1234567890abcdef1234567890',
-      sessionKey: 'sess-1',
-    });
-
-    await new Promise((r) => setTimeout(r, 0));
-    expect(mockMessageRepo.findOne).toHaveBeenCalledTimes(1);
-
-    releaseInsert();
-    await Promise.all([firstWrite, secondWrite]);
-
-    expect(mockMessageRepo.findOne).toHaveBeenCalledTimes(2);
-    expect(mockMessageRepo.insert).toHaveBeenCalledTimes(1);
   });
 
   it('should record message with zero tokens when response reports zero usage', async () => {
@@ -3064,7 +2972,6 @@ describe('ProxyController', () => {
       const timedRecorder = new ProxyMessageRecorder(
         mockMessageRepo as never,
         mockPricingCache as never,
-        new ProxyMessageDedup(),
         { emit: jest.fn() } as unknown as IngestEventBusService,
         {
           canonicalizeAgentMessageKeys: jest
@@ -3099,7 +3006,6 @@ describe('ProxyController', () => {
       const timedRecorder = new ProxyMessageRecorder(
         mockMessageRepo as never,
         mockPricingCache as never,
-        new ProxyMessageDedup(),
         { emit: jest.fn() } as unknown as IngestEventBusService,
         {
           canonicalizeAgentMessageKeys: jest

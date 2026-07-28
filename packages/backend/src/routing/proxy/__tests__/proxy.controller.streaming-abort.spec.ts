@@ -1,6 +1,5 @@
 import { ProxyController } from '../proxy.controller';
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
-import { ProxyMessageDedup } from '../proxy-message-dedup';
 import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 import { ThoughtSignatureCache } from '../thought-signature-cache';
 import { ThinkingBlockCache } from '../thinking-block-cache';
@@ -65,7 +64,6 @@ function makeRecorder(repo: { insert: jest.Mock; findOne: jest.Mock; find: jest.
   return new ProxyMessageRecorder(
     repo as never,
     pricingCache as never,
-    new ProxyMessageDedup(),
     { emit: jest.fn() } as unknown as IngestEventBusService,
     {
       canonicalizeAgentMessageKeys: jest
