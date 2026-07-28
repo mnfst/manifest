@@ -1,0 +1,26 @@
+.changeset/refresh-routing-models-daily.md
+  s_f1ca1ad0cc6ca4::t_aaf409561e4861 1-5
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_f1ca1ad0cc6ca4::t_aaf409561e4861 125-126,139
+  s_f1ca1ad0cc6ca4::t_e2a80a06d62963 1,3,74-84,122-124,127-138,140-147,622,642
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_f1ca1ad0cc6ca4::t_da521e00f8fb05 130,145
+  s_f1ca1ad0cc6ca4::t_e2a80a06d62963 53-60,66,164,173-248
+  s_f1ca1ad0cc6ca4::t_3d0a1b0c7a9888 249-250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "5bf74e7514f817addc43e196b86d1312288b04b6",
+  "prompts": {},
+  "sessions": {
+    "s_f1ca1ad0cc6ca4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa8d2-33ad-7d10-bda8-bc1e3299919d",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
