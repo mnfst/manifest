@@ -2,4 +2,4 @@
 'manifest': minor
 ---
 
-Add the managed Manifest Credits provider with automatic or manually gifted access.
+Add the managed Manifest Credits provider with manual keys by default and allowlisted credits.

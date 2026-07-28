@@ -22,7 +22,7 @@ export function getManifestCreditsMaxBudgetUsd(): number {
   return Number.isFinite(n) && n >= 0 ? n : DEFAULT_MAX_BUDGET_USD;
 }
 
-/** Comma-separated emails. Empty list means auto-provision for any user when master key is set. */
+/** Comma-separated emails explicitly eligible for automatic credit provisioning. */
 export function getManifestCreditsAutoAllowlist(): string[] {
   const raw = process.env['MANIFEST_CREDITS_AUTO_PROVISION_ALLOWLIST']?.trim() ?? '';
   if (!raw) return [];
@@ -35,8 +35,7 @@ export function getManifestCreditsAutoAllowlist(): string[] {
 export function isManifestCreditsAutoEligible(email: string | null | undefined): boolean {
   if (!getManifestCreditsMasterKey()) return false;
   const allowlist = getManifestCreditsAutoAllowlist();
-  if (allowlist.length === 0) return true;
-  if (!email) return false;
+  if (allowlist.length === 0 || !email) return false;
   return allowlist.includes(email.trim().toLowerCase());
 }
 

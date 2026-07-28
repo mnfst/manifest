@@ -46,7 +46,7 @@ describe('ManifestProviderService', () => {
       connected: true,
       connection_id: 'conn-1',
       source: 'existing',
-      auto_available: true,
+      auto_available: false,
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -64,7 +64,7 @@ describe('ManifestProviderService', () => {
       connected: false,
       connection_id: null,
       source: 'none',
-      auto_available: true,
+      auto_available: false,
     });
     expect(global.fetch).not.toHaveBeenCalled();
     expect(providerService.upsertProvider).not.toHaveBeenCalled();
@@ -136,6 +136,7 @@ describe('ManifestProviderService', () => {
   });
 
   it('auto-mints a virtual key when eligible', async () => {
+    process.env['MANIFEST_CREDITS_AUTO_PROVISION_ALLOWLIST'] = 'a@x.com';
     providerRepo.find.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
@@ -187,7 +188,27 @@ describe('ManifestProviderService', () => {
     });
   });
 
+  it('does not auto-mint with a master key but no allowlist', async () => {
+    providerRepo.find.mockResolvedValue([]);
+
+    await expect(
+      service.ensureConnection({
+        tenantId: 't1',
+        userId: 'u1',
+        userEmail: 'a@x.com',
+      }),
+    ).resolves.toEqual({
+      connected: false,
+      connection_id: null,
+      source: 'none',
+      auto_available: false,
+    });
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(providerService.upsertProvider).not.toHaveBeenCalled();
+  });
+
   it('throws when credit-key generation fails', async () => {
+    process.env['MANIFEST_CREDITS_AUTO_PROVISION_ALLOWLIST'] = 'a@x.com';
     providerRepo.find.mockResolvedValue([]);
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
@@ -204,6 +225,7 @@ describe('ManifestProviderService', () => {
   });
 
   it('throws when the credit-key request rejects or times out', async () => {
+    process.env['MANIFEST_CREDITS_AUTO_PROVISION_ALLOWLIST'] = 'a@x.com';
     providerRepo.find.mockResolvedValue([]);
     (global.fetch as jest.Mock).mockRejectedValue(new Error('request timed out'));
 
@@ -217,6 +239,7 @@ describe('ManifestProviderService', () => {
   });
 
   it('throws when the credits service omits the key', async () => {
+    process.env['MANIFEST_CREDITS_AUTO_PROVISION_ALLOWLIST'] = 'a@x.com';
     providerRepo.find.mockResolvedValue([]);
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,

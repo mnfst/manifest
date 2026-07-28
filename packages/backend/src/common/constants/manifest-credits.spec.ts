@@ -55,17 +55,20 @@ describe('Manifest Credits config', () => {
     expect(getManifestCreditsAutoAllowlist()).toEqual(['a@x.com', 'b@y.com']);
   });
 
-  it('auto-eligible requires master key', () => {
+  it('keeps automatic provisioning disabled without an explicit allowlist', () => {
     expect(isManifestCreditsAutoEligible('a@x.com')).toBe(false);
     process.env['MANIFEST_CREDITS_MASTER_KEY'] = 'sk-test';
-    expect(isManifestCreditsAutoEligible('a@x.com')).toBe(true);
+    expect(isManifestCreditsAutoEligible('a@x.com')).toBe(false);
   });
 
-  it('honors allowlist when set', () => {
-    process.env['MANIFEST_CREDITS_MASTER_KEY'] = 'sk-test';
+  it('requires both a master key and an allowlist match', () => {
     process.env['MANIFEST_CREDITS_AUTO_PROVISION_ALLOWLIST'] = 'guillaume.gay@protonmail.com';
+    expect(isManifestCreditsAutoEligible('guillaume.gay@protonmail.com')).toBe(false);
+
+    process.env['MANIFEST_CREDITS_MASTER_KEY'] = 'sk-test';
     expect(isManifestCreditsAutoEligible('guillaume.gay@protonmail.com')).toBe(true);
     expect(isManifestCreditsAutoEligible('other@example.com')).toBe(false);
+    expect(isManifestCreditsAutoEligible(null)).toBe(false);
     expect(getManifestCreditsMasterKey()).toBe('sk-test');
   });
 });
