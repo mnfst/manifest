@@ -51,10 +51,6 @@ export class ManifestRequest {
   @Column('varchar')
   status!: string;
 
-  /** True once the first real Provider Attempt increments monthly quota usage. */
-  @Column('boolean', { default: false })
-  quota_counted!: boolean;
-
   /** How Auto-fix ended for this request. NULL means it was not recorded. */
   @Column('varchar', { nullable: true })
   autofix_status!: AutofixStatus | null;

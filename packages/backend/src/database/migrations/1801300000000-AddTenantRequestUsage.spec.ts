@@ -2,6 +2,7 @@ import { AddTenantRequestUsage1801300000000 } from './1801300000000-AddTenantReq
 
 describe('AddTenantRequestUsage1801300000000', () => {
   let statements: Array<{ sql: string; params?: unknown[] }>;
+  const originalManifestMode = process.env['MANIFEST_MODE'];
   const queryRunner = {
     query: jest.fn(async (sql: string, params?: unknown[]) => {
       statements.push({ sql, params });
@@ -12,11 +13,29 @@ describe('AddTenantRequestUsage1801300000000', () => {
   };
 
   beforeEach(() => {
+    process.env['MANIFEST_MODE'] = 'cloud';
     statements = [];
     jest.clearAllMocks();
     queryRunner.query.mockImplementation(async (sql: string, params?: unknown[]) => {
       statements.push({ sql, params });
     });
+  });
+
+  afterAll(() => {
+    if (originalManifestMode === undefined) {
+      delete process.env['MANIFEST_MODE'];
+    } else {
+      process.env['MANIFEST_MODE'] = originalManifestMode;
+    }
+  });
+
+  it('does not add quota counter artifacts to self-hosted installations', async () => {
+    process.env['MANIFEST_MODE'] = 'selfhosted';
+
+    await new AddTenantRequestUsage1801300000000().up(queryRunner as never);
+
+    expect(queryRunner.query).not.toHaveBeenCalled();
+    expect(queryRunner.startTransaction).not.toHaveBeenCalled();
   });
 
   it('adds the exact counter and atomically publishes a trigger cutover without scanning data', async () => {

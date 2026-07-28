@@ -353,7 +353,6 @@ function buildRequestRow(
     timestamp,
     duration_ms: attempt.duration_ms ?? null,
     status,
-    quota_counted: false,
     autofix_status: deriveAutofixStatus(autofix),
     error_message: errorMessage,
     error_http_status: terminal ? (attempt.error_http_status ?? null) : null,

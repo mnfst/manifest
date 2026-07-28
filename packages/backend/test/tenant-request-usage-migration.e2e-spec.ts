@@ -88,8 +88,11 @@ async function usageRow(
 
 describe('AddTenantRequestUsage migration (e2e)', () => {
   let ds: DataSource;
+  let originalManifestMode: string | undefined;
 
   beforeAll(async () => {
+    originalManifestMode = process.env['MANIFEST_MODE'];
+    process.env['MANIFEST_MODE'] = 'cloud';
     ds = new DataSource({
       type: 'postgres',
       url:
@@ -159,6 +162,11 @@ describe('AddTenantRequestUsage migration (e2e)', () => {
 
   afterAll(async () => {
     if (ds?.isInitialized) await ds.destroy();
+    if (originalManifestMode === undefined) {
+      delete process.env['MANIFEST_MODE'];
+    } else {
+      process.env['MANIFEST_MODE'] = originalManifestMode;
+    }
   });
 
   it('publishes only schema and cutover metadata during migration', async () => {
@@ -289,5 +297,62 @@ describe('AddTenantRequestUsage migration (e2e)', () => {
       await blocker.rollbackTransaction();
       await blocker.release();
     }
+  });
+});
+
+describe('AddTenantRequestUsage self-hosted migration (e2e)', () => {
+  let ds: DataSource;
+  let originalManifestMode: string | undefined;
+
+  beforeAll(async () => {
+    originalManifestMode = process.env['MANIFEST_MODE'];
+    process.env['MANIFEST_MODE'] = 'selfhosted';
+    ds = new DataSource({
+      type: 'postgres',
+      url:
+        process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
+      entities: ['src/entities/!(*.spec).ts'],
+      migrations: ['src/database/migrations/!(*.spec).ts'],
+      synchronize: false,
+      dropSchema: true,
+      logging: false,
+    });
+    await ds.initialize();
+    await ds.runMigrations({ transaction: 'each' });
+  }, 60_000);
+
+  afterAll(async () => {
+    if (ds?.isInitialized) await ds.destroy();
+    if (originalManifestMode === undefined) {
+      delete process.env['MANIFEST_MODE'];
+    } else {
+      process.env['MANIFEST_MODE'] = originalManifestMode;
+    }
+  });
+
+  it('does not create the Cloud quota counter schema or trigger', async () => {
+    const artifacts = await ds.query(`
+      SELECT
+        to_regclass('tenant_request_usage') AS "usageTable",
+        EXISTS (
+          SELECT 1
+            FROM information_schema.columns
+           WHERE table_name = 'requests'
+             AND column_name = 'quota_counted'
+        ) AS "requestFlag",
+        EXISTS (
+          SELECT 1
+            FROM pg_trigger
+           WHERE tgname = 'TRG_agent_messages_count_tenant_request_usage'
+        ) AS "usageTrigger"
+    `);
+
+    expect(artifacts).toEqual([
+      {
+        usageTable: null,
+        requestFlag: false,
+        usageTrigger: false,
+      },
+    ]);
   });
 });

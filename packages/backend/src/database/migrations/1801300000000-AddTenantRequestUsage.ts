@@ -3,6 +3,7 @@ import {
   REQUEST_USAGE_CUTOVER_STATE,
   requestQuotaResetAtMs,
 } from '../../billing/request-quota-window';
+import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { toLocalSqlTimestamp, toSqlTimestamp } from '../../common/utils/postgres-sql';
 
 // Keep the migration self-contained: these are the request-level origins at
@@ -25,6 +26,10 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
   transaction = false;
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // Request quotas are a Cloud billing concern. Keep self-hosted schemas and
+    // their write path free of the counter table, request flag, and trigger.
+    if (isSelfHosted()) return;
+
     const resetDate = new Date(requestQuotaResetAtMs());
     const resetCutoff = toLocalSqlTimestamp(resetDate);
     const resetWindow = toSqlTimestamp(resetDate);
