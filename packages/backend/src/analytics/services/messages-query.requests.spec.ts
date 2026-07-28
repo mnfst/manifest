@@ -465,4 +465,53 @@ describe('MessagesQueryService request-first queries', () => {
 
     expect(requestQb.andWhere).toHaveBeenCalled();
   });
+
+  describe('exclude_direct', () => {
+    function runWith(params: Record<string, unknown>) {
+      const requestQb = makeQb();
+      requestQb.clone.mockReturnValue(makeQb());
+      const legacyBase = makeQb();
+      legacyBase.clone.mockReturnValueOnce(makeQb()).mockReturnValueOnce(makeQb());
+      const service = new MessagesQueryService(
+        {
+          createQueryBuilder: jest.fn(() => legacyBase),
+          query: jest.fn().mockResolvedValue([]),
+        } as never,
+        { find: jest.fn() } as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+      return service
+        .getMessages({
+          tenantId: 'tenant-1',
+          limit: 10,
+          include_total: false,
+          include_filter_options: false,
+          ...params,
+        })
+        .then(() => ({
+          requestClauses: requestQb.andWhere.mock.calls.map((c) => String(c[0])),
+          legacyClauses: legacyBase.andWhere.mock.calls.map((c) => String(c[0])),
+        }));
+    }
+
+    it('drops client-pinned requests from both the request and legacy branches', async () => {
+      const { requestClauses, legacyClauses } = await runWith({ exclude_direct: true });
+
+      // Parent requests carry no routing_reason, so they are tested through
+      // their attempts; an unlinked legacy attempt is tested directly.
+      expect(requestClauses).toContainEqual(
+        expect.stringContaining('direct_attempt.request_id = r.id'),
+      );
+      expect(legacyClauses).toContainEqual(
+        expect.stringContaining("at.routing_reason IS DISTINCT FROM 'direct'"),
+      );
+    });
+
+    it('is opt-in, so the Requests log keeps showing them', async () => {
+      const { requestClauses, legacyClauses } = await runWith({});
+
+      expect(requestClauses.join(' ')).not.toContain('direct_attempt');
+      expect(legacyClauses.join(' ')).not.toContain('routing_reason');
+    });
+  });
 });

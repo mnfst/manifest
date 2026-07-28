@@ -1,5 +1,41 @@
 # manifest
 
+## 6.17.0
+
+### Minor Changes
+
+- c7243c9: Auto-fix now gets a chance to heal requests naming an unavailable model (M302). When an explicit `model` resolves to no connected model and the agent has Auto-fix enabled, the failure is handed to the healing service as a synthetic model-not-found 404; a successful patch re-resolves routing and serves the repaired request, recording the real provider retry without inventing a provider attempt for the Manifest-blocked original. Agents without Auto-fix keep the friendly M302 response unchanged.
+- ca55f79: Expose model input and output costs in USD per million tokens from `GET /v1/models?cost=true`, while keeping the default response unchanged.
+- 8b07c7f: Add Hugging Face Inference Providers as a first-class API-key provider with dynamic model discovery and OpenAI-compatible chat routing.
+- 43cf52b: Invite users to a short discovery call: a one-time modal on the dashboard and a persistent banner offer $10 of Gemini credit for 30 minutes of feedback.
+
+### Patch Changes
+
+- f1e0dc7: Clean up request drawer when no provider attempts: hide the sidebar, show "-" for blank provider/model fields in attempt details, and show "No provider" in the attempt list.
+- ebf49fd: Add Claude Opus 5 to the Anthropic subscription model catalog.
+- 6f649fc: Route streaming provider timeouts through configured fallbacks instead of returning M500.
+- 24174dd: Report provider-native failed request parameters and response bodies directly to Phoenix diagnostics.
+- 4e9a09c: Record streaming timeouts, protocol errors, incomplete streams, and caller cancellations with explicit terminal outcomes.
+- ed712ab: Refresh the model lists shown on provider tiles and in the README so they match the catalogs providers actually serve today
+- 3caacde: Stop silently discarding successful requests from the Messages log. A heuristic
+  deduplicator treated two distinct successes as the same completion whenever they
+  hit the same agent and model with identical input/output token counts inside a
+  30s window — which an agent looping over one model satisfies routinely — and
+  dropped the second one. It was added to suppress double-writes when the old OTLP
+  telemetry pipeline and the proxy both recorded a request; that second writer has
+  since been removed, so every match it could still find was a false positive.
+- 92430b1: Raise the per-provider credential safety ceiling from 5 to 50 connections.
+- cf5d6d8: Send native Google provider failures through Auto-fix with their exact request and response bodies.
+- cc0da80: When primary credentials fail to resolve, treat it as a failed attempt and enter the normal fallback chain instead of hard-failing with M100. Dead subscription OAuth (refresh/unwrap failed) now surfaces as M102 rather than the misleading "no API key" M100.
+- 10a17a7: Add real-Postgres e2e coverage for the subscription OAuth credential lock (row-lock serialization, savepoint retry, lock_timeout bound).
+- cc0da80: Serialize OAuth subscription token refreshes with a DB row lock (`SELECT … FOR UPDATE` on `tenant_providers`) so multi-replica backends cannot rotate the same refresh token concurrently
+- a31dae6: Preserve configured reasoning effort when forwarding requests to native DeepSeek V4 models.
+- 08404f2: Refresh provider model lists on the first routing model picker opened each day.
+- e3bb269: Self-hosting fixes. The install script now resumes instead of failing when the install directory already exists, so a run that died at `docker compose up` can be retried without losing the generated secret. Adds `--port` for installing on a port other than 2099, and generates `MANIFEST_ENCRYPTION_KEY` so provider credentials are no longer encrypted with the session-signing secret by default. The bundled compose file now forwards 16 documented variables it was silently dropping, including `TELEMETRY_ENDPOINT` and `MANIFEST_DISABLE_HSTS`. Blank values for `TELEMETRY_ENDPOINT` and the provider OAuth client IDs fall back to their defaults instead of being treated as an override.
+- a0bfab8: Security: bump transitive dependency `seroval` 1.5.1 → 1.5.6, fixing a critical deserialization advisory (`fromJSON()` Promise resolver type confusion, GHSA — patched in 1.5.3).
+- fd1dd88: Request-params snapshots are now derived from the raw request body: caller-sent parameters the model catalog has no spec for (scalars and small structured knobs, content excluded) are recorded, so failure evidence shows the exact knob a provider rejected instead of silently omitting it.
+- 0a1ee2c: Scope a harness's Overview to that harness's own routing: requests where the caller pinned an explicit model in the request body (`direct`) no longer appear in its Recent Messages, charts, cost breakdown or summary cards. They stay fully visible on the global Overview and the Messages log, so total spend still reconciles.
+
 ## 6.16.0
 
 ### Minor Changes

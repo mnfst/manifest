@@ -60,7 +60,7 @@ vi.mock('../../src/components/ProviderKeyForm.js', () => ({
       data-validation-error={props.validationError() ?? ''}
     />
   ),
-  MAX_KEYS_PER_PROVIDER: 5,
+  MAX_KEYS_PER_PROVIDER: 50,
 }));
 
 vi.mock('../../src/components/OAuthDetailView.js', () => ({
@@ -396,6 +396,24 @@ describe('ProviderDetailView', () => {
     const props = createTestProps({ provId: 'anthropic' });
     render(() => <ProviderDetailView {...props} />);
     expect(screen.getByTestId('provider-key-form')).toBeDefined();
+  });
+
+  it('keeps the add-key action available after 5 active keys', () => {
+    const providers: RoutingProvider[] = Array.from({ length: 6 }, (_, index) => ({
+      id: `p${index + 1}`,
+      provider: 'openai',
+      auth_type: 'api_key',
+      is_active: true,
+      has_api_key: true,
+      label: `Key ${index + 1}`,
+      priority: index,
+      connected_at: '2026-01-01',
+    }));
+    const props = createTestProps({ provId: 'openai', providers });
+
+    render(() => <ProviderDetailView {...props} />);
+
+    expect(screen.getByText('Add another key')).toBeDefined();
   });
 
   describe('per-provider refresh button', () => {

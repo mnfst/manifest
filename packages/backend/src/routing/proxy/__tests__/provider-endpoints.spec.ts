@@ -74,6 +74,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
     expect(resolveEndpointKey('commandcode')).toBe('commandcode');
     expect(resolveEndpointKey('fireworks')).toBe('fireworks');
+    expect(resolveEndpointKey('huggingface')).toBe('huggingface');
     expect(resolveEndpointKey('nous')).toBe('nous');
     expect(resolveEndpointKey('nvidia')).toBe('nvidia');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
@@ -99,6 +100,12 @@ describe('resolveEndpointKey', () => {
   it('resolves Fireworks AI aliases to fireworks', () => {
     expect(resolveEndpointKey('fireworks-ai')).toBe('fireworks');
     expect(resolveEndpointKey('fireworks ai')).toBe('fireworks');
+  });
+
+  it('resolves Hugging Face aliases to huggingface', () => {
+    expect(resolveEndpointKey('hugging-face')).toBe('huggingface');
+    expect(resolveEndpointKey('Hugging Face')).toBe('huggingface');
+    expect(resolveEndpointKey('hf')).toBe('huggingface');
   });
 
   it('resolves Command Code aliases to commandcode', () => {
@@ -159,6 +166,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('commandcode');
     expect(known).toContain('commandcode-anthropic');
     expect(known).toContain('fireworks');
+    expect(known).toContain('huggingface');
     expect(known).toContain('nous');
     expect(known).toContain('openrouter');
     expect(known).toContain('nvidia');
@@ -219,6 +227,17 @@ describe('resolveEndpointKey', () => {
 });
 
 describe('PROVIDER_ENDPOINTS', () => {
+  it('huggingface uses the OpenAI-compatible Inference Providers endpoint', () => {
+    const endpoint = PROVIDER_ENDPOINTS['huggingface'];
+    expect(endpoint.baseUrl).toBe('https://router.huggingface.co');
+    expect(endpoint.buildPath('openai/gpt-oss-120b')).toBe('/v1/chat/completions');
+    expect(endpoint.buildHeaders('hf_test_token')).toEqual({
+      Authorization: 'Bearer hf_test_token',
+      'Content-Type': 'application/json',
+    });
+    expect(endpoint.streamUsageReporting).toBe('openai_stream_options');
+  });
+
   it('zai buildPath returns correct path', () => {
     const path = PROVIDER_ENDPOINTS['zai'].buildPath('test-model');
     expect(path).toBe('/api/paas/v4/chat/completions');

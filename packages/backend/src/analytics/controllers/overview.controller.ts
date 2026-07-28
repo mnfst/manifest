@@ -53,6 +53,12 @@ export class OverviewController {
     const agentName = query.agent_name;
     const hourly = isHourlyRange(range);
     const tenantId = ctx.tenantId;
+    // Scoped to one harness => show only what that harness's routing did. A
+    // `direct` row is a model the caller pinned in the request body, which
+    // bypassed routing entirely, so it is not this harness's traffic. The
+    // unscoped (global) Overview and the Messages log stay complete — that is
+    // where direct requests are accounted for and where spend reconciles.
+    const excludeDirect = !!agentName;
 
     const [
       prevMetrics,
@@ -72,14 +78,28 @@ export class OverviewController {
       // never disagree (a Playground-only tenant reads as empty, not a populated
       // state painted over blank charts).
       //
+      // `excludeDirect` rides along on exactly the same rule: every widget on
+      // this page has to drop it or none of them can.
+      //
       // The current-window summary is derived from the timeseries buckets
       // below (which scan the same Playground-excluded rows), so we only query
       // the previous window here for the trend arrows instead of repeating the
       // full current+previous double-scan.
-      this.aggregation.getPreviousWindowMetrics(range, tenantId, agentName, true),
-      this.aggregation.getRequestReliability(range, tenantId, agentName, true),
-      this.timeseries.getTimeseries(range, tenantId, hourly, agentName, undefined, undefined, true),
-      this.timeseries.getCostByModel(range, tenantId, agentName, true),
+      this.aggregation.getPreviousWindowMetrics(range, tenantId, agentName, true, excludeDirect),
+      this.aggregation.getRequestReliability(range, tenantId, agentName, true, excludeDirect),
+      this.timeseries.getTimeseries(
+        range,
+        tenantId,
+        hourly,
+        agentName,
+        undefined,
+        undefined,
+        true,
+        undefined,
+        undefined,
+        excludeDirect,
+      ),
+      this.timeseries.getCostByModel(range, tenantId, agentName, true, excludeDirect),
       this.messagesQuery
         ? this.messagesQuery
             .getMessages({
@@ -90,11 +110,12 @@ export class OverviewController {
               include_total: false,
               include_filter_options: false,
               exclude_playground: true,
+              exclude_direct: excludeDirect,
             })
             .then((result) => result.items)
-        : this.timeseries.getRecentActivity(range, tenantId, 5, agentName, true),
-      this.timeseries.getActiveSkills(range, tenantId, agentName, true),
-      this.aggregation.hasAnyData(tenantId, agentName, true),
+        : this.timeseries.getRecentActivity(range, tenantId, 5, agentName, true, excludeDirect),
+      this.timeseries.getActiveSkills(range, tenantId, agentName, true, excludeDirect),
+      this.aggregation.hasAnyData(tenantId, agentName, true, excludeDirect),
       this.hasActiveProviders(tenantId, agentName),
     ]);
 

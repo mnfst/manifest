@@ -22,7 +22,7 @@ import {
   isManifestUsableProvider,
   isSupportedSubscriptionProvider,
 } from '../../common/utils/subscription-support';
-import type { AuthType, ModelRoute } from 'manifest-shared';
+import { MAX_KEYS_PER_PROVIDER, type AuthType, type ModelRoute } from 'manifest-shared';
 import {
   QWEN_REGION_VALIDATION_MESSAGE,
   detectQwenRegion,
@@ -42,7 +42,6 @@ import {
 } from '../subscription-region';
 import { filterProvidersForDeployment } from '../../common/utils/provider-availability';
 
-const MAX_KEYS_PER_PROVIDER = 5;
 /** Managed LiteLLM gateway: one connection per tenant. */
 const MAX_KEYS_MANIFEST_PROVIDER = 1;
 const MAX_LABEL_LENGTH = 50;

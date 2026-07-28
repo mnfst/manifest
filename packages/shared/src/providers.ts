@@ -160,6 +160,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'gsk_...',
   },
   {
+    id: 'huggingface',
+    displayName: 'Hugging Face',
+    aliases: ['hugging-face', 'hugging face', 'hf'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#FFD21E',
+    keyPrefix: 'hf_',
+    minKeyLength: 20,
+    keyPlaceholder: 'hf_...',
+  },
+  {
     id: 'kilo',
     displayName: 'Kilo',
     aliases: ['kilocode', 'kilo-code'],

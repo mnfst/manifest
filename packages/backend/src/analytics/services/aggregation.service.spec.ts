@@ -3,7 +3,10 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Brackets } from 'typeorm';
 import { AggregationService } from './aggregation.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { EXCLUDE_PLAYGROUND_AGENTS_PREDICATE } from './query-helpers';
+import {
+  EXCLUDE_PLAYGROUND_AGENTS_PREDICATE,
+  EXCLUDE_DIRECT_ATTEMPTS_PREDICATE,
+} from './query-helpers';
 
 describe('AggregationService', () => {
   let service: AggregationService;
@@ -156,6 +159,20 @@ describe('AggregationService', () => {
       await service.hasAnyData('tenant-1');
       const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
       expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
+
+    it('excludes client-pinned (direct) requests when excludeDirect=true', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ '?column?': 1 });
+      await service.hasAnyData('tenant-1', 'bot-1', true, true);
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(clauses).toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+    });
+
+    it('keeps direct requests by default', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ '?column?': 1 });
+      await service.hasAnyData('tenant-1', 'bot-1', true);
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(clauses).not.toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
     });
   });
 
@@ -349,6 +366,20 @@ describe('AggregationService', () => {
         clauses.some((c: unknown) => typeof c === 'string' && c.includes('is_playground')),
       ).toBe(true);
     });
+
+    it('excludes client-pinned (direct) requests when excludeDirect=true', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ msg_count: 8, tokens: 120, cost: 0.8 });
+      await service.getPreviousWindowMetrics('7d', 'tenant-123', 'bot-1', true, true);
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(clauses).toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+    });
+
+    it('keeps direct requests by default', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ msg_count: 8, tokens: 120, cost: 0.8 });
+      await service.getPreviousWindowMetrics('7d', 'tenant-123', 'bot-1', true);
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(clauses).not.toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+    });
   });
 
   describe('getRequestReliability', () => {
@@ -395,6 +426,31 @@ describe('AggregationService', () => {
         'agent-1',
       ]);
       expect(query.mock.calls[0][0]).toContain('playag.is_playground = true');
+    });
+
+    it('excludes client-pinned (direct) traffic from both scoped_requests branches', async () => {
+      const query = jest.fn().mockResolvedValue([]);
+      const requestAware = new AggregationService({ query } as never, {} as never);
+
+      await requestAware.getRequestReliability('24h', 'tenant-1', 'agent-1', true, true);
+
+      const sql = query.mock.calls[0][0] as string;
+      // Linked requests are dropped via NOT EXISTS over their attempts...
+      expect(sql).toContain('direct_attempt.request_id = r.id');
+      // ...and unlinked legacy attempts, which are their own synthetic request,
+      // are tested on the attempt row itself.
+      expect(sql).toContain("pa.routing_reason IS DISTINCT FROM 'direct'");
+    });
+
+    it('keeps direct traffic by default', async () => {
+      const query = jest.fn().mockResolvedValue([]);
+      const requestAware = new AggregationService({ query } as never, {} as never);
+
+      await requestAware.getRequestReliability('24h', 'tenant-1', 'agent-1', true);
+
+      const sql = query.mock.calls[0][0] as string;
+      expect(sql).not.toContain('direct_attempt');
+      expect(sql).not.toContain('routing_reason');
     });
 
     it('avoids division by zero when no scoped rows exist', async () => {

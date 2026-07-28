@@ -8,6 +8,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   gemini: 'https://aistudio.google.com/apikey',
   kiro: 'https://app.kiro.dev',
   groq: 'https://console.groq.com/keys',
+  huggingface: 'https://huggingface.co/settings/tokens',
   kilo: 'https://app.kilo.ai',
   // LiteLLM virtual keys power the managed Manifest gateway (auto-mint or paste).
   manifest: 'https://docs.litellm.ai/docs/proxy/virtual_keys',

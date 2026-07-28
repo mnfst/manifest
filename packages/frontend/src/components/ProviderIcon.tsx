@@ -206,6 +206,19 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── Hugging Face ──────────────────────────────── */
+    case 'huggingface':
+      return (
+        <img
+          src="/icons/huggingface.svg"
+          alt=""
+          width={size}
+          height={size}
+          style={{ ...s, display: 'block', 'object-fit': 'contain' }}
+          aria-hidden="true"
+        />
+      );
+
     /* ── Kilo ─────────────────────────────────────── */
     case 'kilo':
       return (

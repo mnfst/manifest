@@ -8,6 +8,8 @@ import {
   computeTrend,
   addTenantFilter,
   excludePlaygroundAgents,
+  excludeDirectAttempts,
+  sqlExcludeDirectRequests,
   scopeToConnection,
   sqlCountMessages,
   sqlExcludePlayground,
@@ -39,6 +41,7 @@ export class AggregationService {
     tenantId: string | null,
     agentName?: string,
     excludePlayground = false,
+    excludeDirect = false,
   ): Promise<boolean> {
     const attemptQb = this.turnRepo.createQueryBuilder('at').select('1').limit(1);
     addTenantFilter(attemptQb, tenantId, agentName);
@@ -46,6 +49,9 @@ export class AggregationService {
     // must read as empty, or has_data=true paints a non-empty state over cards
     // and charts that all dropped Playground and so render blank.
     if (excludePlayground) excludePlaygroundAgents(attemptQb);
+    // Same reasoning for client-pinned (direct) traffic on a harness Overview:
+    // a harness whose only traffic bypassed its routing must read as empty.
+    if (excludeDirect) excludeDirectAttempts(attemptQb);
 
     let requestRow: Promise<unknown> = Promise.resolve(null);
     if (this.requestRepo) {
@@ -64,6 +70,7 @@ export class AggregationService {
         );
       }
       if (excludePlayground) requestQb.andWhere(sqlExcludePlayground('r'));
+      if (excludeDirect) requestQb.andWhere(sqlExcludeDirectRequests('r'));
       requestRow = requestQb.getRawOne();
     }
 
@@ -176,6 +183,7 @@ export class AggregationService {
     tenantId: string | null,
     agentName?: string,
     excludePlayground = false,
+    excludeDirect = false,
   ): Promise<{ tokens: number; cost: number; messages: number }> {
     const { cutoff, prevCutoff } = this.computeWindow(range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
@@ -187,6 +195,9 @@ export class AggregationService {
       undefined,
       undefined,
       excludePlayground,
+      undefined,
+      undefined,
+      excludeDirect,
     )
       .select(sqlCountMessages(), 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
@@ -205,6 +216,7 @@ export class AggregationService {
     tenantId: string | null,
     agentName?: string,
     excludePlayground = false,
+    excludeDirect = false,
   ): Promise<{
     total: number;
     successful: number;
@@ -244,6 +256,14 @@ export class AggregationService {
     const unlinkedPlaygroundPredicate = excludePlayground
       ? `AND ${sqlExcludePlayground('pa')}`
       : '';
+    // `routing_reason` lives on the attempt, so a linked request is dropped via
+    // NOT EXISTS over its attempts while an unlinked legacy attempt is tested
+    // directly. This feeds the Overview's *messages* card, so it has to drop the
+    // same traffic as the token/cost cards beside it.
+    const directPredicate = excludeDirect ? `AND ${sqlExcludeDirectRequests('r')}` : '';
+    const unlinkedDirectPredicate = excludeDirect
+      ? `AND pa.routing_reason IS DISTINCT FROM 'direct'`
+      : '';
     const queryParams = agentName
       ? [tenantId, prevCutoff, cutoff, agentName]
       : [tenantId, prevCutoff, cutoff];
@@ -256,6 +276,7 @@ export class AggregationService {
            AND ${sqlIsCompletedStatus('r.status')}
            ${agentPredicate}
            ${playgroundPredicate}
+           ${directPredicate}
          UNION ALL
          SELECT 'unlinked:' || pa.id, pa.timestamp, pa.status
          FROM agent_messages pa
@@ -265,6 +286,7 @@ export class AggregationService {
            AND ${sqlIsCompletedStatus('pa.status')}
            ${unlinkedAgentPredicate}
            ${unlinkedPlaygroundPredicate}
+           ${unlinkedDirectPredicate}
        ), attempt_stats AS (
          SELECT pa.request_id,
                 COUNT(*) FILTER (WHERE ${sqlIsCompletedStatus('pa.status')}) AS attempts,
@@ -367,6 +389,7 @@ export class AggregationService {
     excludePlayground = false,
     label?: string,
     tenantProviderId?: string,
+    excludeDirect = false,
   ): SelectQueryBuilder<AgentMessage> {
     const qb = this.turnRepo
       .createQueryBuilder('at')
@@ -376,6 +399,7 @@ export class AggregationService {
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
     if (excludePlayground) excludePlaygroundAgents(qb);
+    if (excludeDirect) excludeDirectAttempts(qb);
     scopeToConnection(qb, tenantProviderId, label);
     return qb;
   }
