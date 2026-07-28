@@ -49,7 +49,7 @@ import {
   unwrapCodeAssistResponse,
   unwrapCodeAssistStreamPayload,
 } from '../oauth/gemini/codeassist-envelope';
-import type { RequestRecordingCapture } from './request-recording-capture';
+import type { AttemptRecordingCapture } from './attempt-recording-capture';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -220,7 +220,6 @@ export async function handleProviderError(
   autofix?: AutofixRecord,
   requestId: string = uuid(),
   requestDurationMs?: number,
-  capture?: RequestRecordingCapture,
 ): Promise<void> {
   recordAutofixOriginalIfRetried(
     ctx,
@@ -249,7 +248,6 @@ export async function handleProviderError(
       autofix,
       requestId,
       requestDurationMs,
-      capture,
     );
     return;
   }
@@ -295,7 +293,6 @@ export async function handleProviderError(
       model: meta.model,
     }),
   };
-  capture?.setJson(responseBody);
   res.json(responseBody);
 }
 
@@ -314,7 +311,6 @@ function handleFallbackExhausted(
   autofix: AutofixRecord | undefined,
   requestId: string,
   requestDurationMs?: number,
-  capture?: RequestRecordingCapture,
 ): void {
   const baseTime = Date.now();
   const primaryAttemptNumber = currentPrimaryAttemptNumber(autofix);
@@ -395,7 +391,6 @@ function handleFallbackExhausted(
       },
     }),
   };
-  capture?.setJson(responseBody);
   res.json(responseBody);
 }
 
@@ -510,20 +505,16 @@ export async function handleStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
-  capture?: RequestRecordingCapture,
+  capture?: AttemptRecordingCapture,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders, 200);
 
   const responsesSequenceTracker =
     apiMode === 'responses' ? createResponsesSequenceTracker() : null;
   if (responsesSequenceTracker) responsesSequenceTrackers.set(res, responsesSequenceTracker);
-  const onClient =
-    responsesSequenceTracker || capture
-      ? (chunk: string) => {
-          responsesSequenceTracker?.feed(chunk);
-          capture?.appendRaw(chunk);
-        }
-      : undefined;
+  const onClient = responsesSequenceTracker
+    ? (chunk: string) => responsesSequenceTracker.feed(chunk)
+    : undefined;
   const relayOptions = {
     protocol:
       forward.wireFormat ??
@@ -536,6 +527,7 @@ export async function handleStreamResponse(
           : forward.isChatGpt || forward.isResponses
             ? ('openai_responses' as const)
             : ('openai_chat_completions' as const)),
+    ...(capture ? { onUpstreamChunk: (chunk: string) => capture.appendRaw(chunk) } : {}),
   };
 
   const messagesTransformer =
@@ -679,8 +671,7 @@ function cacheReasoningContent(
   const firstChoice = choices[0];
   if (!firstChoice || typeof firstChoice !== 'object' || Array.isArray(firstChoice)) return;
   const message = (firstChoice as Record<string, unknown>).message as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
   if (!message) return;
   const reasoningContent = message.reasoning_content;
   if (typeof reasoningContent !== 'string' || !reasoningContent) return;
@@ -709,9 +700,10 @@ export async function handleNonStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
-  capture?: RequestRecordingCapture,
+  capture?: AttemptRecordingCapture,
 ): Promise<StreamUsage | null> {
   let responseBody: unknown;
+  const recordedResponse = capture ? forward.response.clone() : null;
 
   if (apiMode === 'responses' && forward.isResponses) {
     responseBody = await readNativeResponsesBody(forward.response);
@@ -720,8 +712,7 @@ export async function handleNonStreamResponse(
     const googleData = forward.isCodeAssist ? unwrapCodeAssistResponse(rawData) : rawData;
     responseBody = providerClient.convertGoogleResponse(googleData, meta.model);
     const sigs = (responseBody as Record<string, unknown>)?._extractedSignatures as
-      | ExtractedSignature[]
-      | undefined;
+      ExtractedSignature[] | undefined;
     if (sigs && signatureCache && sessionKey) {
       for (const s of sigs) signatureCache.store(sessionKey, s.toolCallId, s.signature);
     }
@@ -749,8 +740,7 @@ export async function handleNonStreamResponse(
     const anthropicData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertAnthropicResponse(anthropicData, meta.model);
     const extracted = (responseBody as Record<string, unknown>)?._extractedThinkingBlocks as
-      | ExtractedThinkingBlocks
-      | undefined;
+      ExtractedThinkingBlocks | undefined;
     if (extracted && thinkingCache && sessionKey) {
       thinkingCache.store(
         sessionKey,
@@ -790,7 +780,24 @@ export async function handleNonStreamResponse(
   const body = responseBody as Record<string, unknown> | undefined;
   const streamUsage = parseUsageObject(body?.usage);
 
-  capture?.setJson(responseBody);
+  if (recordedResponse && capture) {
+    const raw = await recordedResponse.text();
+    const contentType = recordedResponse.headers.get('content-type') ?? '';
+    const trimmed = raw.trimStart();
+    if (
+      contentType.includes('text/event-stream') ||
+      trimmed.startsWith('event:') ||
+      trimmed.startsWith('data:')
+    ) {
+      capture.setRaw(raw);
+    } else {
+      try {
+        capture.setJson(JSON.parse(raw) as unknown);
+      } catch {
+        capture.setJson(raw);
+      }
+    }
+  }
   res.status(200);
   setHeaders(res, metaHeaders);
   res.json(responseBody);

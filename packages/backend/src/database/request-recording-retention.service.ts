@@ -4,7 +4,6 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { DataSource, QueryRunner } from 'typeorm';
 import { isBillingEnabled } from '../billing/billing.config';
 import { RequestRecordingStorageService } from '../common/services/request-recording-storage.service';
-import type { RequestRecordingStorageBackend } from '../entities/request-recording.entity';
 
 const FREE_RETENTION_DAYS = 7;
 const PRO_RETENTION_DAYS = 365;
@@ -18,19 +17,21 @@ const TRY_LOCK_SQL = `
 const UNLOCK_SQL = `SELECT pg_advisory_unlock(${RETENTION_LOCK_KEY}::bigint)`;
 
 const SELECT_ALL_EXPIRED_SQL = `
-  SELECT request_id, storage_key, storage_backend
-  FROM request_recordings
-  WHERE created_at < CURRENT_TIMESTAMP - ($1 * INTERVAL '1 day')
-  ORDER BY created_at ASC
+  SELECT id AS attempt_id, recording_key AS storage_key
+  FROM agent_messages
+  WHERE recording_key IS NOT NULL
+    AND timestamp < CURRENT_TIMESTAMP - ($1 * INTERVAL '1 day')
+  ORDER BY timestamp ASC
 `;
 
 const SELECT_PLAN_EXPIRED_SQL = `
-  SELECT recording.request_id, recording.storage_key, recording.storage_backend
-  FROM request_recordings recording
-  JOIN requests request ON request.id = recording.request_id
-  WHERE (
+  SELECT attempt.id AS attempt_id, attempt.recording_key AS storage_key
+  FROM agent_messages attempt
+  JOIN requests request ON request.id = attempt.request_id
+  WHERE attempt.recording_key IS NOT NULL
+    AND (
     (
-      recording.created_at < CURRENT_TIMESTAMP - ($1 * INTERVAL '1 day')
+      attempt.timestamp < CURRENT_TIMESTAMP - ($1 * INTERVAL '1 day')
       AND NOT EXISTS (
         SELECT 1
         FROM tenants tenant
@@ -42,7 +43,7 @@ const SELECT_PLAN_EXPIRED_SQL = `
       )
     )
     OR (
-      recording.created_at < CURRENT_TIMESTAMP - ($2 * INTERVAL '1 day')
+      attempt.timestamp < CURRENT_TIMESTAMP - ($2 * INTERVAL '1 day')
       AND EXISTS (
         SELECT 1
         FROM tenants tenant
@@ -54,19 +55,19 @@ const SELECT_PLAN_EXPIRED_SQL = `
       )
     )
   )
-  ORDER BY recording.created_at ASC
+  ORDER BY attempt.timestamp ASC
 `;
 
 const DELETE_METADATA_SQL = `
-  DELETE FROM request_recordings
-  WHERE request_id = $1 AND storage_key = $2
-  RETURNING request_id
+  UPDATE agent_messages
+  SET recording_key = NULL
+  WHERE id = $1 AND recording_key = $2
+  RETURNING id
 `;
 
 interface ExpiredRecording {
-  request_id: string;
+  attempt_id: string;
   storage_key: string;
-  storage_backend: RequestRecordingStorageBackend;
 }
 
 @Injectable()
@@ -106,7 +107,7 @@ export class RequestRecordingRetentionService {
       const deleted = await this.deleteRecordings(queryRunner, recordings);
 
       if (deleted > 0) {
-        this.logger.log(`Deleted ${deleted} expired request recording(s)`);
+        this.logger.log(`Deleted ${deleted} expired Provider Attempt recording(s)`);
       }
       return deleted;
     } catch (error) {
@@ -145,16 +146,16 @@ export class RequestRecordingRetentionService {
     let deleted = 0;
     for (const recording of recordings) {
       try {
-        await this.storage.delete(recording.storage_backend, recording.storage_key);
+        await this.storage.delete(recording.storage_key);
         const result = (await queryRunner.query(DELETE_METADATA_SQL, [
-          recording.request_id,
+          recording.attempt_id,
           recording.storage_key,
-        ])) as Array<{ request_id: string }> | [Array<{ request_id: string }>, number];
+        ])) as Array<{ id: string }> | [Array<{ id: string }>, number];
         const rows = Array.isArray(result[0]) ? result[0] : result;
         deleted += rows.length;
       } catch (error) {
         this.logger.warn(
-          `Could not delete request recording ${recording.request_id}: ${
+          `Could not delete Provider Attempt recording ${recording.attempt_id}: ${
             error instanceof Error ? error.message : String(error)
           }`,
         );

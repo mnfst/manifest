@@ -61,6 +61,8 @@ async function readUpstreamChunk(
 export interface StreamRelayOptions {
   idleTimeoutMs?: number;
   protocol?: ProviderWireFormat;
+  /** Exact decoded bytes received from the provider, before any API adaptation. */
+  onUpstreamChunk?: (text: string) => void;
 }
 
 function createProtocolParser(options: StreamRelayOptions): {
@@ -285,6 +287,7 @@ export async function pipePassthrough(
       done = result.done;
       if (result.value) {
         const text = decoder.decode(result.value, { stream: !done });
+        options.onUpstreamChunk?.(text);
         const events = parser.feed(text);
         // Observe provider errors before forwarding their bytes. The controller
         // then emits one normalized error event in the caller's API format.
@@ -301,6 +304,7 @@ export async function pipePassthrough(
     }
     const finalText = decoder.decode();
     if (finalText) {
+      options.onUpstreamChunk?.(finalText);
       for (const event of parser.feed(finalText)) {
         const tapped = tap(event);
         if (tapped) {
@@ -403,11 +407,14 @@ export async function pipeStream(
 
       if (result.value) {
         const text = decoder.decode(result.value, { stream: !done });
+        options.onUpstreamChunk?.(text);
         consumeText(text);
       }
     }
 
-    consumeText(decoder.decode());
+    const finalText = decoder.decode();
+    if (finalText) options.onUpstreamChunk?.(finalText);
+    consumeText(finalText);
     if (transform && transformParser) {
       applyTransformedEvents(transformParser.flush());
     } else if (passthroughParser) {

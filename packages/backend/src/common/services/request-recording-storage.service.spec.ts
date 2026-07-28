@@ -222,14 +222,16 @@ describe('RequestRecordingStorageService filesystem driver', () => {
       }) as never,
     );
     await service.onModuleInit();
-    const key = service.objectKey('tenant-1', 'request-1');
+    const key = service.objectKey('tenant-1', 'request-1', 'attempt-1');
     const body = Buffer.from('recording');
 
-    expect(key).toBe('request-recordings/v1/tenants/tenant-1/request-1.json.gz');
+    expect(key).toBe(
+      'request-recordings/v2/tenants/tenant-1/requests/request-1/attempts/attempt-1.json.gz',
+    );
     await service.put(key, body);
-    await expect(service.get('filesystem', key)).resolves.toEqual(body);
-    await service.delete('filesystem', key);
-    await expect(service.get('filesystem', key)).rejects.toHaveProperty('code', 'ENOENT');
+    await expect(service.get(key)).resolves.toEqual(body);
+    await service.delete(key);
+    await expect(service.get(key)).rejects.toHaveProperty('code', 'ENOENT');
   });
 
   it('keeps storage segments inside their tenant namespace', async () => {
@@ -241,10 +243,10 @@ describe('RequestRecordingStorageService filesystem driver', () => {
     );
     await service.onModuleInit();
 
-    expect(service.objectKey('../tenant', 'request/1')).toBe(
-      'request-recordings/v1/tenants/%2E%2E%2Ftenant/request%2F1.json.gz',
+    expect(service.objectKey('../tenant', 'request/1', 'attempt/1')).toBe(
+      'request-recordings/v2/tenants/%2E%2E%2Ftenant/requests/request%2F1/attempts/attempt%2F1.json.gz',
     );
-    expect(() => service.objectKey('', 'request-1')).toThrow(
+    expect(() => service.objectKey('', 'request-1', 'attempt-1')).toThrow(
       'Request recording storage key segments cannot be empty',
     );
   });
@@ -262,7 +264,7 @@ describe('RequestRecordingStorageService filesystem driver', () => {
 
     await service.put(legacyKey, body);
 
-    await expect(service.get('filesystem', legacyKey)).resolves.toEqual(body);
+    await expect(service.get(legacyKey)).resolves.toEqual(body);
   });
 
   it('rejects keys that escape the configured recording directory', async () => {
@@ -279,7 +281,7 @@ describe('RequestRecordingStorageService filesystem driver', () => {
     );
   });
 
-  it('initializes S3 storage and rejects reads through the wrong backend', async () => {
+  it('initializes S3 storage', async () => {
     const service = new RequestRecordingStorageService(
       config({
         'app.requestRecordingStorage': 's3',
@@ -291,9 +293,6 @@ describe('RequestRecordingStorageService filesystem driver', () => {
     await service.onModuleInit();
 
     expect(service.backend).toBe('s3');
-    await expect(service.get('filesystem', 'recording.json.gz')).rejects.toThrow(
-      'Request recording uses filesystem storage, but s3 is configured',
-    );
   });
 
   it('reports explicitly disabled storage as unavailable', async () => {

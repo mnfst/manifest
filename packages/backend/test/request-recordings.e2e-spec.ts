@@ -13,14 +13,10 @@ import { decodeRequestRecording } from '../src/common/utils/request-recording-co
 import { RequestRecordingRetentionService } from '../src/database/request-recording-retention.service';
 import { createTestApp, TEST_API_KEY, TEST_OTLP_KEY, TEST_TENANT_ID } from './helpers';
 
-type RecordingMetadata = {
+type AttemptRecordingPointer = {
+  attempt_id: string;
   request_id: string;
-  storage_key: string;
-  storage_backend: 'filesystem' | 's3';
-  status: 'pending' | 'ready' | 'failed';
-  api_format: string;
-  content_encoding: string;
-  size_bytes: number;
+  recording_key: string;
 };
 
 const expectedBackend = process.env['E2E_RECORDING_BACKEND'] === 's3' ? 's3' : 'filesystem';
@@ -42,9 +38,10 @@ let mockServer: http.Server;
 let mockPort: number;
 let filesystemRoot: string | null = null;
 let customProviderId: string;
-let jsonRecording: RecordingMetadata;
+let jsonRecording: AttemptRecordingPointer;
 let jsonResponseBody: unknown;
-let streamRecording: RecordingMetadata;
+let streamRecording: AttemptRecordingPointer;
+const providerRequestBodies: Record<string, unknown>[] = [];
 
 const api = () => request(app.getHttpServer());
 const dashboardAuth = (test: request.Test) => test.set('x-api-key', TEST_API_KEY);
@@ -80,8 +77,8 @@ afterAll(async () => {
   }
 });
 
-describe(`request recording E2E (${expectedBackend})`, () => {
-  it('records a complete JSON request/response outside PostgreSQL and serves it through the authenticated drawer API', async () => {
+describe(`Provider Attempt recording E2E (${expectedBackend})`, () => {
+  it('records the exact provider JSON exchange outside PostgreSQL and serves it through the authenticated drawer API', async () => {
     const largeTail = `${'complete-payload-'.repeat(3_500)}__END_OF_REQUEST__`;
     const requestBody = {
       model: modelKey(),
@@ -95,70 +92,71 @@ describe(`request recording E2E (${expectedBackend})`, () => {
       .expect(200);
     jsonResponseBody = response.body;
     jsonRecording = await waitForLatestRecording();
+    const providerRequestBody = providerRequestBodies.at(-1)!;
 
-    expect(jsonRecording).toEqual(
-      expect.objectContaining({
-        storage_backend: expectedBackend,
-        status: 'ready',
-        api_format: 'chat_completions',
-        content_encoding: 'gzip',
-        size_bytes: expect.any(Number),
-      }),
-    );
-    expect(jsonRecording.size_bytes).toBeGreaterThan(0);
-    expect(jsonRecording.storage_key).toBe(
-      `request-recordings/v1/tenants/${TEST_TENANT_ID}/${jsonRecording.request_id}.json.gz`,
+    expect(storage.backend).toBe(expectedBackend);
+    expect(jsonRecording.recording_key).toBe(
+      `request-recordings/v2/tenants/${TEST_TENANT_ID}` +
+        `/requests/${jsonRecording.request_id}` +
+        `/attempts/${jsonRecording.attempt_id}.json.gz`,
     );
 
     const columns = (await dataSource.query(
       `SELECT column_name
        FROM information_schema.columns
-       WHERE table_name = 'request_recordings'
+       WHERE table_name = 'agent_messages'
        ORDER BY ordinal_position`,
     )) as Array<{ column_name: string }>;
+    expect(columns.map((column) => column.column_name)).toContain('recording_key');
     expect(columns.map((column) => column.column_name)).not.toEqual(
       expect.arrayContaining(['request_body', 'response_body']),
     );
+    const metadataTables = (await dataSource.query(
+      `SELECT table_name
+       FROM information_schema.tables
+       WHERE table_schema = 'public' AND table_name = 'request_recordings'`,
+    )) as Array<{ table_name: string }>;
+    expect(metadataTables).toHaveLength(0);
 
-    const objectBytes = await storage.get(jsonRecording.storage_backend, jsonRecording.storage_key);
+    const objectBytes = await storage.get(jsonRecording.recording_key);
     expect([...objectBytes.subarray(0, 2)]).toEqual([0x1f, 0x8b]);
-    expect(objectBytes.byteLength).toBe(jsonRecording.size_bytes);
     await expect(decodeRequestRecording(objectBytes)).resolves.toEqual({
       version: 1,
-      request_body: requestBody,
+      wire_format: 'openai_chat_completions',
+      request_body: providerRequestBody,
       response_body: { type: 'json', body: response.body },
     });
 
     const details = await dashboardAuth(
       api().get(`/api/v1/messages/${jsonRecording.request_id}/details`),
     ).expect(200);
-    expect(details.body.recording).toEqual({
-      request_body: requestBody,
+    const attempt = details.body.message.attempts.find(
+      (item: { id: string }) => item.id === jsonRecording.attempt_id,
+    );
+    expect(attempt.recording).toEqual({
+      request_body: providerRequestBody,
       response_body: { type: 'json', body: response.body },
-      api_format: 'chat_completions',
-      size_bytes: objectBytes.byteLength,
-      created_at: expect.any(String),
+      wire_format: 'openai_chat_completions',
     });
-    expect(JSON.stringify(details.body)).not.toContain(jsonRecording.storage_key);
+    expect(details.body.recording).toBeUndefined();
+    expect(JSON.stringify(details.body)).not.toContain(jsonRecording.recording_key);
   });
 
-  it('captures the exact caller-facing SSE stream', async () => {
+  it('captures the exact upstream SSE stream on its Provider Attempt', async () => {
     const requestBody = {
       model: modelKey(),
       messages: [{ role: 'user', content: 'stream this response' }],
       stream: true,
     };
-
     const response = await agentAuth(api().post('/v1/chat/completions'))
       .set('Accept', 'text/event-stream')
       .send(requestBody)
       .expect(200);
-    streamRecording = await waitForLatestRecording(jsonRecording.request_id);
+    streamRecording = await waitForLatestRecording(jsonRecording.request_id, 10_000);
 
-    const payload = await decodeRequestRecording(
-      await storage.get(streamRecording.storage_backend, streamRecording.storage_key),
-    );
-    expect(payload.request_body).toEqual(requestBody);
+    const payload = await decodeRequestRecording(await storage.get(streamRecording.recording_key));
+    expect(payload.wire_format).toBe('openai_chat_completions');
+    expect(payload.request_body).toEqual(providerRequestBodies.at(-1));
     expect(payload.response_body).toEqual({
       type: 'stream',
       raw_sse: response.text,
@@ -167,8 +165,11 @@ describe(`request recording E2E (${expectedBackend})`, () => {
     const details = await dashboardAuth(
       api().get(`/api/v1/messages/${streamRecording.request_id}/details`),
     ).expect(200);
-    expect(details.body.recording.response_body.raw_sse).toBe(response.text);
-  });
+    const attempt = details.body.message.attempts.find(
+      (item: { id: string }) => item.id === streamRecording.attempt_id,
+    );
+    expect(attempt.recording.response_body.raw_sse).toBe(response.text);
+  }, 15_000);
 
   it('does not expose a recording across tenant boundaries', async () => {
     const timestamp = new Date().toISOString();
@@ -185,9 +186,7 @@ describe(`request recording E2E (${expectedBackend})`, () => {
         .set('x-test-user-id', 'intruder-user'),
     ).expect(404);
 
-    await expect(
-      storage.get(jsonRecording.storage_backend, jsonRecording.storage_key),
-    ).resolves.toBeInstanceOf(Buffer);
+    await expect(storage.get(jsonRecording.recording_key)).resolves.toBeInstanceOf(Buffer);
   });
 
   it('stops creating payload objects immediately when recording is disabled', async () => {
@@ -234,8 +233,8 @@ describe(`request recording E2E (${expectedBackend})`, () => {
           .expect(200);
         expect(response.body.choices[0].message.content).toBe('recorded JSON response');
 
-        const failed = await waitForLatestRecording(undefined, before + 1, 'failed', 15_000);
-        expect(failed.status).toBe('failed');
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        expect(await recordingCount()).toBe(before);
       } finally {
         if (expectedBackend === 'filesystem') {
           await rm(filesystemRoot!, { force: true });
@@ -257,21 +256,22 @@ describe(`request recording E2E (${expectedBackend})`, () => {
     const details = await dashboardAuth(
       api().get(`/api/v1/messages/${jsonRecording.request_id}/details`),
     ).expect(200);
-    expect(details.body.recording.response_body).toEqual({
+    const attempt = details.body.message.attempts.find(
+      (item: { id: string }) => item.id === jsonRecording.attempt_id,
+    );
+    expect(attempt.recording.response_body).toEqual({
       type: 'json',
       body: jsonResponseBody,
     });
-    await expect(
-      storage.get(jsonRecording.storage_backend, jsonRecording.storage_key),
-    ).resolves.toBeInstanceOf(Buffer);
+    await expect(storage.get(jsonRecording.recording_key)).resolves.toBeInstanceOf(Buffer);
   });
 
-  it('retention removes the object before its pointer while preserving the parent Request', async () => {
+  it('retention removes the object before clearing its attempt pointer and preserves the parent Request', async () => {
     await dataSource.query(
-      `UPDATE request_recordings
-       SET created_at = CURRENT_TIMESTAMP - INTERVAL '10 days'
-       WHERE request_id = $1`,
-      [jsonRecording.request_id],
+      `UPDATE agent_messages
+       SET timestamp = CURRENT_TIMESTAMP - INTERVAL '10 days'
+       WHERE id = $1`,
+      [jsonRecording.attempt_id],
     );
     const retention = new RequestRecordingRetentionService(
       dataSource,
@@ -284,13 +284,11 @@ describe(`request recording E2E (${expectedBackend})`, () => {
     await expect(retention.deleteExpiredRecordings()).resolves.toBe(1);
 
     const metadata = await dataSource.query(
-      `SELECT request_id FROM request_recordings WHERE request_id = $1`,
-      [jsonRecording.request_id],
+      `SELECT recording_key FROM agent_messages WHERE id = $1`,
+      [jsonRecording.attempt_id],
     );
-    expect(metadata).toHaveLength(0);
-    await expect(
-      storage.get(jsonRecording.storage_backend, jsonRecording.storage_key),
-    ).rejects.toBeDefined();
+    expect(metadata).toEqual([{ recording_key: null }]);
+    await expect(storage.get(jsonRecording.recording_key)).rejects.toBeDefined();
     const parent = await dataSource.query(`SELECT id FROM requests WHERE id = $1`, [
       jsonRecording.request_id,
     ]);
@@ -333,44 +331,50 @@ async function configureRecordingAgent(): Promise<void> {
 
 async function recordingCount(): Promise<number> {
   const rows = (await dataSource.query(
-    `SELECT COUNT(*)::int AS count FROM request_recordings`,
+    `SELECT COUNT(*)::int AS count
+     FROM agent_messages
+     WHERE recording_key IS NOT NULL`,
   )) as Array<{ count: number }>;
   return Number(rows[0]?.count ?? 0);
 }
 
 async function waitForLatestRecording(
   excludeRequestId?: string,
-  minimumCount?: number,
-  expectedStatus: RecordingMetadata['status'] = 'ready',
   timeoutMs = 5_000,
-): Promise<RecordingMetadata> {
+): Promise<AttemptRecordingPointer> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    if (minimumCount === undefined || (await recordingCount()) >= minimumCount) {
-      const parameters: string[] = [];
-      const exclusion = excludeRequestId ? 'WHERE request_id <> $1' : '';
-      if (excludeRequestId) parameters.push(excludeRequestId);
-      const rows = (await dataSource.query(
-        `SELECT request_id, storage_key, storage_backend, status, api_format,
-                content_encoding, size_bytes
-         FROM request_recordings
-         ${exclusion}
-         ORDER BY created_at DESC, request_id DESC
-         LIMIT 1`,
-        parameters,
-      )) as RecordingMetadata[];
-      if (rows[0]?.status === expectedStatus) return rows[0];
-    }
+    const parameters: string[] = [];
+    const exclusion = excludeRequestId ? 'AND request_id <> $1' : '';
+    if (excludeRequestId) parameters.push(excludeRequestId);
+    const rows = (await dataSource.query(
+      `SELECT id AS attempt_id, request_id, recording_key
+       FROM agent_messages
+       WHERE recording_key IS NOT NULL
+       ${exclusion}
+       ORDER BY timestamp DESC, id DESC
+       LIMIT 1`,
+      parameters,
+    )) as AttemptRecordingPointer[];
+    if (rows[0]) return rows[0];
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
-  throw new Error('Timed out waiting for a request recording');
+  const attempts = await dataSource.query(
+    `SELECT id, request_id, status, recording_key
+     FROM agent_messages
+     ORDER BY timestamp DESC, id DESC
+     LIMIT 5`,
+  );
+  throw new Error(
+    `Timed out waiting for a Provider Attempt recording: ${JSON.stringify(attempts)}`,
+  );
 }
 
-async function waitForStorageObject(recording: RecordingMetadata): Promise<void> {
+async function waitForStorageObject(recording: AttemptRecordingPointer): Promise<void> {
   const deadline = Date.now() + 10_000;
   while (Date.now() < deadline) {
     try {
-      await storage.get(recording.storage_backend, recording.storage_key);
+      await storage.get(recording.recording_key);
       return;
     } catch {
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -387,7 +391,11 @@ async function startMockProvider(): Promise<void> {
         raw += chunk.toString('utf8');
       });
       incoming.on('end', () => {
-        const body = JSON.parse(raw) as { model: string; stream?: boolean };
+        const body = JSON.parse(raw) as Record<string, unknown> & {
+          model: string;
+          stream?: boolean;
+        };
+        providerRequestBodies.push(body);
         if (body.stream) {
           outgoing.writeHead(200, {
             'Content-Type': 'text/event-stream',

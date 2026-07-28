@@ -216,6 +216,55 @@ describe('RequestDrawer', () => {
     );
     expect(container.querySelector('.attempt-item')).toBeNull();
     expect(container.querySelector('.drawer__sidebar')).toBeNull();
+    expect(screen.queryByText('Messages')).toBeNull();
+  });
+
+  it('shows Messages inside each attempt and scopes the payload to the selected attempt', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...fullMessage,
+        attempts: fullMessage.attempts.map((attempt, index) =>
+          index === 0
+            ? {
+                ...attempt,
+                recording: {
+                  request_body: {
+                    messages: [{ role: 'user', content: 'Recorded user turn' }],
+                  },
+                  response_body: {
+                    type: 'json',
+                    body: {
+                      choices: [
+                        {
+                          message: {
+                            role: 'assistant',
+                            content: 'Recorded assistant turn',
+                          },
+                        },
+                      ],
+                    },
+                  },
+                  api_format: 'chat_completions',
+                },
+              }
+            : { ...attempt, recording: null },
+        ),
+      },
+    });
+    const { container } = render(() => (
+      <RequestDrawer messageId="recorded-request" onClose={vi.fn()} />
+    ));
+
+    await waitFor(() => expect(screen.getByText('Messages')).toBeDefined());
+    fireEvent.click(screen.getByText('Messages'));
+
+    expect(screen.getByText('Recorded user turn')).toBeDefined();
+    expect(screen.getByText('Recorded assistant turn')).toBeDefined();
+
+    fireEvent.click(container.querySelectorAll('.attempt-item')[1]!);
+    fireEvent.click(screen.getByText('Messages'));
+    expect(screen.getByText('No messages recorded')).toBeDefined();
+    expect(screen.queryByText('Recorded user turn')).toBeNull();
   });
 
   it.each([
@@ -269,31 +318,6 @@ describe('RequestDrawer', () => {
     await waitFor(() =>
       expect(screen.getByText('Request failed without an error message.')).toBeDefined(),
     );
-  });
-
-  it('shows the request-level recorded conversation in the Messages tab', async () => {
-    mockGetMessageDetails.mockResolvedValue({
-      message: fullMessage,
-      recording: {
-        request_body: { messages: [{ role: 'user', content: 'Recorded user turn' }] },
-        response_body: {
-          type: 'json',
-          body: {
-            choices: [{ message: { role: 'assistant', content: 'Recorded assistant turn' } }],
-          },
-        },
-        api_format: 'chat_completions',
-        size_bytes: 200,
-        created_at: '2026-07-15T10:11:12Z',
-      },
-    });
-    render(() => <RequestDrawer messageId="recorded-request" onClose={vi.fn()} />);
-
-    await waitFor(() => expect(screen.getByText('Messages')).toBeDefined());
-    fireEvent.click(screen.getByText('Messages'));
-
-    expect(screen.getByText('Recorded user turn')).toBeDefined();
-    expect(screen.getByText('Recorded assistant turn')).toBeDefined();
   });
 
   it('shows loading state while an open request is unresolved and stays closed for null', () => {

@@ -196,11 +196,11 @@ describe('MessageDetailsService', () => {
     expect(result.message.autofix_sibling).toBeNull();
   });
 
-  it('returns a null recording without restoring legacy trace payloads', async () => {
+  it('does not expose a request-level recording or restore legacy trace payloads', async () => {
     const result = (await service.getDetails('msg-1', 'u1')) as unknown as Record<string, unknown>;
 
-    expect(Object.keys(result)).toEqual(['recording', 'message']);
-    expect(result['recording']).toBeNull();
+    expect(Object.keys(result)).toEqual(['message']);
+    expect(result['recording']).toBeUndefined();
     expect(result['llm_calls']).toBeUndefined();
     expect(result['tool_executions']).toBeUndefined();
     expect(result['agent_logs']).toBeUndefined();
@@ -335,6 +335,7 @@ describe('MessageDetailsService', () => {
       {
         ...baseMessage,
         id: 'attempt-2',
+        recording_key: 'request-recordings/v2/attempt-2.json.gz',
         status: 'ok',
         provider: 'anthropic',
         model: 'claude',
@@ -352,29 +353,18 @@ describe('MessageDetailsService', () => {
         request_params: { temperature: 0.2 },
       },
     ];
-    const recording = {
-      request_id: 'request-1',
-      storage_key: 'request-recordings/v1/request-1.json.gz',
-      storage_backend: 'filesystem',
-      status: 'ready',
-      api_format: 'chat_completions',
-      content_encoding: 'gzip',
-      size_bytes: 120,
-      created_at: '2026-07-14T10:00:00Z',
-    };
     const storedPayload = {
       version: 1,
+      wire_format: 'anthropic_messages',
       request_body: { messages: [{ role: 'user', content: 'hello' }] },
       response_body: { type: 'json', body: { choices: [] } },
     };
-    const recordingRepo = { findOne: jest.fn().mockResolvedValue(recording) };
     const recordingStorage = {
       get: jest.fn().mockResolvedValue(gzipSync(JSON.stringify(storedPayload))),
     };
     const requestAware = new MessageDetailsService(
       { find: jest.fn().mockResolvedValue(attempts) } as never,
       { findOne: jest.fn().mockResolvedValue(requestRow) } as never,
-      recordingRepo as never,
       recordingStorage as never,
     );
 
@@ -401,19 +391,11 @@ describe('MessageDetailsService', () => {
       expect.objectContaining({ id: 'attempt-1', provider: 'openai' }),
       expect.objectContaining({ id: 'attempt-2', provider: 'anthropic' }),
     ]);
-    expect(recordingRepo.findOne).toHaveBeenCalledWith({
-      where: { request_id: 'request-1', status: 'ready' },
-    });
-    expect(recordingStorage.get).toHaveBeenCalledWith(
-      'filesystem',
-      'request-recordings/v1/request-1.json.gz',
-    );
-    expect(result.recording).toEqual({
+    expect(recordingStorage.get).toHaveBeenCalledWith('request-recordings/v2/attempt-2.json.gz');
+    expect(result.message.attempts![1]!.recording).toEqual({
       request_body: storedPayload.request_body,
       response_body: storedPayload.response_body,
-      api_format: 'chat_completions',
-      size_bytes: 120,
-      created_at: '2026-07-14T10:00:00Z',
+      wire_format: 'anthropic_messages',
     });
     // The drawer tells each attempt's full story — the projection must carry
     // the error, fallback, autofix, token and headers/params surface.
@@ -441,7 +423,14 @@ describe('MessageDetailsService', () => {
 
   it('keeps request details available when the recording object cannot be loaded', async () => {
     const requestAware = new MessageDetailsService(
-      { find: jest.fn().mockResolvedValue([baseMessage]) } as never,
+      {
+        find: jest.fn().mockResolvedValue([
+          {
+            ...baseMessage,
+            recording_key: 'request-recordings/v2/msg-1.json.gz',
+          },
+        ]),
+      } as never,
       {
         findOne: jest.fn().mockResolvedValue({
           id: 'request-1',
@@ -450,22 +439,13 @@ describe('MessageDetailsService', () => {
           status: 'ok',
         }),
       } as never,
-      {
-        findOne: jest.fn().mockResolvedValue({
-          request_id: 'request-1',
-          storage_key: 'request-recordings/v1/request-1.json.gz',
-          storage_backend: 's3',
-          status: 'ready',
-          content_encoding: 'gzip',
-        }),
-      } as never,
       { get: jest.fn().mockRejectedValue(new Error('bucket offline')) } as never,
     );
 
     const result = await requestAware.getDetails('request-1', 't1');
 
     expect(result.message.id).toBe('request-1');
-    expect(result.recording).toBeNull();
+    expect(result.message.attempts![0]!.recording).toBeNull();
   });
 
   it('follows a linked attempt to its request after the online backfill', async () => {

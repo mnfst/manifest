@@ -29,8 +29,8 @@ describe('RequestRecordingRetentionService', () => {
     query.mockImplementation(async (sql: string) => {
       if (sql.includes('pg_try_advisory_lock')) return [{ acquired: true }];
       if (sql.includes('pg_advisory_unlock')) return [{ unlocked: true }];
-      if (sql.includes('DELETE FROM request_recordings')) {
-        return [[{ request_id: 'request-1' }], 1];
+      if (sql.includes('UPDATE agent_messages')) {
+        return [[{ id: 'attempt-1' }], 1];
       }
       return [];
     });
@@ -45,15 +45,14 @@ describe('RequestRecordingRetentionService', () => {
 
   it('deletes Free recordings after 7 days and Pro recordings after 365 days', async () => {
     const expired = {
-      request_id: 'request-1',
-      storage_key: 'request-recordings/v1/request-1.json.gz',
-      storage_backend: 's3',
+      attempt_id: 'attempt-1',
+      storage_key: 'request-recordings/v2/attempt-1.json.gz',
     };
     query.mockImplementation(async (sql: string) => {
       if (sql.includes('pg_try_advisory_lock')) return [{ acquired: true }];
-      if (sql.includes('FROM request_recordings recording')) return [expired];
-      if (sql.includes('DELETE FROM request_recordings')) {
-        return [[{ request_id: 'request-1' }], 1];
+      if (sql.includes('FROM agent_messages attempt')) return [expired];
+      if (sql.includes('UPDATE agent_messages')) {
+        return [[{ id: 'attempt-1' }], 1];
       }
       return [];
     });
@@ -61,16 +60,16 @@ describe('RequestRecordingRetentionService', () => {
     await expect(service.deleteExpiredRecordings()).resolves.toBe(1);
 
     const planQuery = query.mock.calls.find(([sql]) =>
-      String(sql).includes('FROM request_recordings recording'),
+      String(sql).includes('FROM agent_messages attempt'),
     );
     expect(planQuery).toBeDefined();
     expect(planQuery![0]).toContain('AND NOT EXISTS');
     expect(planQuery![0]).toContain('AND EXISTS');
     expect(planQuery![0]).toContain("subscription.status IN ('active', 'trialing')");
     expect(planQuery![1]).toEqual([7, 365]);
-    expect(storage.delete).toHaveBeenCalledWith('s3', expired.storage_key);
+    expect(storage.delete).toHaveBeenCalledWith(expired.storage_key);
     const deleteCall = query.mock.calls.findIndex(([sql]) =>
-      String(sql).includes('DELETE FROM request_recordings'),
+      String(sql).includes('UPDATE agent_messages'),
     );
     expect(storage.delete.mock.invocationCallOrder[0]).toBeLessThan(
       query.mock.invocationCallOrder[deleteCall]!,
@@ -89,8 +88,8 @@ describe('RequestRecordingRetentionService', () => {
 
     const select = query.mock.calls.find(
       ([sql]) =>
-        String(sql).includes('FROM request_recordings') &&
-        !String(sql).includes('FROM request_recordings recording'),
+        String(sql).includes('FROM agent_messages') &&
+        !String(sql).includes('FROM agent_messages attempt'),
     );
     expect(select).toBeDefined();
     expect(select![0]).not.toContain('subscription');
@@ -102,7 +101,7 @@ describe('RequestRecordingRetentionService', () => {
 
     await expect(service.deleteExpiredRecordings()).resolves.toBe(0);
 
-    expect(query).toHaveBeenCalledWith(expect.stringContaining('FROM request_recordings'), [365]);
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('FROM agent_messages'), [365]);
   });
 
   it('does no work when another replica owns the advisory lock', async () => {
@@ -117,12 +116,11 @@ describe('RequestRecordingRetentionService', () => {
   it('keeps metadata when object deletion fails so cleanup can retry', async () => {
     query.mockImplementation(async (sql: string) => {
       if (sql.includes('pg_try_advisory_lock')) return [{ acquired: true }];
-      if (sql.includes('FROM request_recordings recording')) {
+      if (sql.includes('FROM agent_messages attempt')) {
         return [
           {
-            request_id: 'request-1',
-            storage_key: 'request-recordings/v1/request-1.json.gz',
-            storage_backend: 's3',
+            attempt_id: 'attempt-1',
+            storage_key: 'request-recordings/v2/attempt-1.json.gz',
           },
         ];
       }
@@ -132,7 +130,9 @@ describe('RequestRecordingRetentionService', () => {
 
     await expect(service.deleteExpiredRecordings()).resolves.toBe(0);
 
-    expect(query.mock.calls.some(([sql]) => String(sql).includes('DELETE FROM'))).toBe(false);
+    expect(query.mock.calls.some(([sql]) => String(sql).includes('UPDATE agent_messages'))).toBe(
+      false,
+    );
   });
 
   it('logs and swallows cleanup failures', async () => {

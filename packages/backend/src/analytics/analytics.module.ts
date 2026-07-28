@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { ManifestRequest } from '../entities/request.entity';
-import { RequestRecording } from '../entities/request-recording.entity';
 import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
@@ -48,7 +47,6 @@ import { AutofixModule } from '../routing/autofix/autofix.module';
     TypeOrmModule.forFeature([
       AgentMessage,
       ManifestRequest,
-      RequestRecording,
       Agent,
       Tenant,
       CustomProvider,

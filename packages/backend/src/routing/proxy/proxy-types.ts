@@ -1,5 +1,7 @@
 import type { IncomingHttpHeaders } from 'http';
+import type { RecordingResponseBody } from './attempt-recording.types';
 import { ProviderEndpoint } from './provider-endpoints';
+import type { AttemptRecordingCapture } from './attempt-recording-capture';
 import type { ThinkingBlock, ThinkingBlockRouteContext } from './thinking-block-cache';
 import { CallerAttribution } from './caller-classifier';
 
@@ -35,7 +37,13 @@ export type ProviderWireFormat =
   | 'openai_responses'
   | 'anthropic_messages'
   | 'google_generate_content'
-  | 'google_code_assist';
+  | 'google_code_assist'
+  | 'kiro_chat';
+
+export interface ProviderAttemptRecordingStart {
+  requestBody: Record<string, unknown>;
+  wireFormat: ProviderWireFormat;
+}
 
 export interface ProviderAttemptStart {
   provider: string;
@@ -57,6 +65,10 @@ export interface ProviderAttemptRef {
     errorBody: string;
     superseded: boolean;
   }) => Promise<void>;
+  /** Capture owned by this exact provider call, never by the parent Request. */
+  recordingCapture?: AttemptRecordingCapture;
+  startRecording?: (recording: ProviderAttemptRecordingStart) => void;
+  finishRecording?: (response?: RecordingResponseBody | null) => Promise<void>;
 }
 
 export type StartProviderAttempt = (attempt: ProviderAttemptStart) => ProviderAttemptRef;
@@ -102,6 +114,8 @@ export interface ForwardOptions {
    * `cloudaicompanionProject` id assigned during `enrichBlob`.
    */
   providerResource?: string;
+  /** Persisted identity of this exact upstream call. */
+  attempt?: ProviderAttemptRef;
 }
 
 /** Options for ProxyService.proxyRequest. */

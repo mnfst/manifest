@@ -6,21 +6,11 @@ import type { CallerAttribution } from '../../routing/proxy/caller-classifier';
 import type { PhoenixExplanation, PhoenixOperation } from '../../routing/autofix/phoenix.types';
 import { isSuccessStatus, type AutofixStatus, type RequestParamDefaults } from 'manifest-shared';
 import { ManifestRequest } from '../../entities/request.entity';
-import {
-  RequestRecording,
-  type RecordingResponseBody,
-} from '../../entities/request-recording.entity';
+import type { RecordingResponseBody } from '../../routing/proxy/attempt-recording.types';
 import { RequestRecordingStorageService } from '../../common/services/request-recording-storage.service';
 import { decodeRequestRecording } from '../../common/utils/request-recording-codec';
 
 export interface MessageDetailResponse {
-  recording: {
-    request_body: Record<string, unknown>;
-    response_body: RecordingResponseBody | null;
-    api_format: string;
-    size_bytes: number;
-    created_at: string;
-  } | null;
   message: {
     id: string;
     timestamp: string;
@@ -97,8 +87,15 @@ export interface MessageDetailResponse {
       autofix_role: string | null;
       autofix_operations: object | null;
       autofix_decision: object | null;
+      recording: AttemptRecordingDetail | null;
     }>;
   };
+}
+
+export interface AttemptRecordingDetail {
+  request_body: Record<string, unknown>;
+  response_body: RecordingResponseBody | null;
+  wire_format: string;
 }
 
 @Injectable()
@@ -111,9 +108,6 @@ export class MessageDetailsService {
     @Optional()
     @InjectRepository(ManifestRequest)
     private readonly requestRepo?: Repository<ManifestRequest>,
-    @Optional()
-    @InjectRepository(RequestRecording)
-    private readonly recordingRepo?: Repository<RequestRecording>,
     @Optional()
     private readonly recordingStorage?: RequestRecordingStorageService,
   ) {}
@@ -162,13 +156,7 @@ export class MessageDetailsService {
     }
     if (!message && !request) throw new NotFoundException('Message not found');
 
-    const recordingMetadata =
-      request && this.recordingRepo
-        ? await this.recordingRepo.findOne({
-            where: { request_id: request.id, status: 'ready' },
-          })
-        : null;
-    const recording = recordingMetadata ? await this.loadRecording(recordingMetadata) : null;
+    const recordingsByAttempt = await this.loadAttemptRecordings(attempts);
 
     const autofix_sibling = message?.autofix_group_id
       ? await this.findAutofixSibling(message.id, message.autofix_group_id, tenantId)
@@ -196,15 +184,6 @@ export class MessageDetailsService {
       : message!.duration_ms;
 
     const response: MessageDetailResponse = {
-      recording: recording
-        ? {
-            request_body: recording.request_body,
-            response_body: recording.response_body,
-            api_format: recordingMetadata!.api_format,
-            size_bytes: recordingMetadata!.size_bytes,
-            created_at: recordingMetadata!.created_at,
-          }
-        : null,
       message: {
         id: request?.id ?? message!.id,
         timestamp: request?.timestamp ?? message!.timestamp,
@@ -288,6 +267,7 @@ export class MessageDetailsService {
                 autofix_role: attempt.autofix_role,
                 autofix_operations: attempt.autofix_operations,
                 autofix_decision: attempt.autofix_decision,
+                recording: recordingsByAttempt.get(attempt.id) ?? null,
               })),
             }
           : {}),
@@ -296,15 +276,34 @@ export class MessageDetailsService {
     return response;
   }
 
-  private async loadRecording(recording: RequestRecording) {
-    if (!this.recordingStorage || recording.content_encoding !== 'gzip') return null;
+  private async loadAttemptRecordings(
+    attempts: AgentMessage[],
+  ): Promise<Map<string, AttemptRecordingDetail>> {
+    const result = new Map<string, AttemptRecordingDetail>();
+    if (!this.recordingStorage || attempts.length === 0) return result;
+
+    await Promise.all(
+      attempts.map(async (attempt) => {
+        if (!attempt.recording_key) return;
+        const payload = await this.loadRecording(attempt.id, attempt.recording_key);
+        if (!payload) return;
+        result.set(attempt.id, {
+          request_body: payload.request_body,
+          response_body: payload.response_body,
+          wire_format: payload.wire_format,
+        });
+      }),
+    );
+    return result;
+  }
+
+  private async loadRecording(attemptId: string, storageKey: string) {
+    if (!this.recordingStorage) return null;
     try {
-      return await decodeRequestRecording(
-        await this.recordingStorage.get(recording.storage_backend, recording.storage_key),
-      );
+      return await decodeRequestRecording(await this.recordingStorage.get(storageKey));
     } catch (error) {
       this.logger.warn(
-        `Failed to load request recording ${recording.request_id}: ${
+        `Failed to load Provider Attempt recording ${attemptId}: ${
           error instanceof Error ? error.message : String(error)
         }`,
       );

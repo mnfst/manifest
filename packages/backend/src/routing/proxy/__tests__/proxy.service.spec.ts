@@ -2243,8 +2243,10 @@ describe('ProxyService — orchestration', () => {
         status: 200,
         headers: { 'content-type': 'text/event-stream' },
       });
+      const attempt = { id: 'attempt-stream' } as never;
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: streamRes,
+        attempt,
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
@@ -2258,6 +2260,7 @@ describe('ProxyService — orchestration', () => {
         ...baseOpts({ body: { messages: [{ role: 'user', content: 'hi' }], stream: true } }),
       });
       expect(result.forward.response.status).toBe(200);
+      expect(result.forward.attempt).toBe(attempt);
       expect(mockedPeek).toHaveBeenCalledWith(streamRes.body, 15_000);
       expect(momentum.recordTier).toHaveBeenCalled();
     });

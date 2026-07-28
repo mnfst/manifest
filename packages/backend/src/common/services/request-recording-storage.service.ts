@@ -8,11 +8,12 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
-import type { RequestRecordingStorageBackend } from '../../entities/request-recording.entity';
 import { isSelfHosted } from '../utils/detect-self-hosted';
 
+export type RecordingStorageBackend = 'filesystem' | 's3';
+
 export interface RecordingStorage {
-  readonly backend: RequestRecordingStorageBackend;
+  readonly backend: RecordingStorageBackend;
   prepare(): Promise<void>;
   put(key: string, body: Buffer): Promise<void>;
   get(key: string): Promise<Buffer>;
@@ -228,34 +229,33 @@ export class RequestRecordingStorageService implements OnModuleInit {
     }
   }
 
-  get backend(): RequestRecordingStorageBackend | null {
+  get backend(): RecordingStorageBackend | null {
     return this.storage?.backend ?? null;
   }
 
-  objectKey(tenantId: string, requestId: string): string {
-    return `request-recordings/v1/tenants/${storageKeySegment(tenantId)}/${storageKeySegment(requestId)}.json.gz`;
+  objectKey(tenantId: string, requestId: string, attemptId: string): string {
+    return (
+      `request-recordings/v2/tenants/${storageKeySegment(tenantId)}` +
+      `/requests/${storageKeySegment(requestId)}` +
+      `/attempts/${storageKeySegment(attemptId)}.json.gz`
+    );
   }
 
   async put(key: string, body: Buffer): Promise<void> {
     await this.requireStorage().put(key, body);
   }
 
-  async get(backend: RequestRecordingStorageBackend, key: string): Promise<Buffer> {
-    return this.requireStorage(backend).get(key);
+  async get(key: string): Promise<Buffer> {
+    return this.requireStorage().get(key);
   }
 
-  async delete(backend: RequestRecordingStorageBackend, key: string): Promise<void> {
-    await this.requireStorage(backend).delete(key);
+  async delete(key: string): Promise<void> {
+    await this.requireStorage().delete(key);
   }
 
-  private requireStorage(expected?: RequestRecordingStorageBackend): RecordingStorage {
+  private requireStorage(): RecordingStorage {
     if (!this.storage) {
       throw new Error(this.unavailableReason ?? 'Request recording storage is unavailable');
-    }
-    if (expected && this.storage.backend !== expected) {
-      throw new Error(
-        `Request recording uses ${expected} storage, but ${this.storage.backend} is configured`,
-      );
     }
     return this.storage;
   }

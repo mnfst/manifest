@@ -15,6 +15,7 @@ import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { scrubProviderUrl } from './observation-payload';
 import type { AutofixChainEntry, AutofixRecord } from './autofix.types';
 import type { HealOutcome, HealResponse } from './phoenix.types';
+import { recordingResponseFromText } from '../proxy/attempt-recording-capture';
 
 export interface MaybeHealParams {
   forward: ForwardResult;
@@ -330,6 +331,7 @@ export class AutofixService {
     // Read the original error once, then rebuild it so it stays readable
     // downstream (fallback / recorder) whether or not we heal.
     const originalText = await forward.response.text();
+    await forward.attempt?.finishRecording?.(recordingResponseFromText(originalText));
     const originalForward = rebuildForward(forward, originalText, status);
 
     try {

@@ -65,11 +65,11 @@ import { openAiModelCapabilities, type OpenAiModelCapabilities } from './openai-
 import { PlanService } from '../../billing/plan.service';
 import { StreamFailure } from './stream-writer';
 import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
-import { RequestRecordingService } from './request-recording.service';
+import { AttemptRecordingService } from './attempt-recording.service';
 import {
-  createRequestRecordingCapture,
-  type RequestRecordingCapture,
-} from './request-recording-capture';
+  createAttemptRecordingCapture,
+  recordingResponseFromText,
+} from './attempt-recording-capture';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
@@ -140,7 +140,7 @@ export class ProxyController {
     @Optional()
     private readonly recordingCache?: AgentRecordingCacheService,
     @Optional()
-    private readonly requestRecording?: RequestRecordingService,
+    private readonly attemptRecording?: AttemptRecordingService,
   ) {}
 
   @Get('models')
@@ -242,6 +242,7 @@ export class ProxyController {
     let headersSent = false;
     let slotAcquired = false;
     let currentMeta: RoutingMeta | undefined;
+    let recordingEnabled = false;
     let currentAttempt: ProviderAttemptRef | undefined;
     let currentAttemptStart: ProviderAttemptStart | undefined;
     let recordingCapture: RequestRecordingCapture | undefined;
@@ -264,16 +265,14 @@ export class ProxyController {
       })
       .catch((e) => this.logger.warn(`Failed to record pending Request: ${e}`));
 
-    if (this.recordingCache && this.requestRecording) {
+    if (this.recordingCache && this.attemptRecording) {
       try {
-        if (await this.recordingCache.isRecording(req.ingestionContext.agentId)) {
-          if (await this.requestRecording.start(tenantId, requestId, apiMode)) {
-            recordingCapture = createRequestRecordingCapture(body);
-          }
-        }
+        recordingEnabled =
+          this.attemptRecording.available &&
+          (await this.recordingCache.isRecording(req.ingestionContext.agentId));
       } catch (e) {
-        recordingCapture = undefined;
-        this.logger.warn(`Failed to start request recording: ${e}`);
+        recordingEnabled = false;
+        this.logger.warn(`Failed to resolve attempt recording config: ${e}`);
       }
     }
 
@@ -286,6 +285,28 @@ export class ProxyController {
         startedAtMs,
         startedAt: new Date(startedAtMs).toISOString(),
         pendingWrite: Promise.resolve(false),
+      };
+      let recordingFinished = false;
+      attempt.startRecording = ({ requestBody, wireFormat }) => {
+        if (!recordingEnabled || !this.attemptRecording || attempt.recordingCapture) {
+          return;
+        }
+        attempt.recordingCapture = createAttemptRecordingCapture(requestBody, wireFormat);
+      };
+      attempt.finishRecording = async (response) => {
+        if (recordingFinished) return;
+        const capture = attempt.recordingCapture;
+        if (!capture || !this.attemptRecording) return;
+        if (response?.type === 'stream') {
+          capture.setRaw(response.raw_sse ?? '');
+        } else if (response?.type === 'json') {
+          capture.setJson(response.body);
+        }
+        recordingFinished = true;
+        if (!(await attempt.pendingWrite.catch(() => false))) return;
+        await this.attemptRecording
+          .save(tenantId, requestId, attempt.id, capture.buildRecording())
+          .catch((e) => this.logger.warn(`Failed to finish Provider Attempt recording: ${e}`));
       };
       currentAttempt = attempt;
       currentAttemptStart = start;
@@ -338,9 +359,7 @@ export class ProxyController {
         apiMode,
         undefined,
         undefined,
-        recordingCapture,
       );
-      await this.finishRecording(requestId, recordingCapture);
       return;
     }
 
@@ -375,9 +394,11 @@ export class ProxyController {
 
       const metaHeaders = buildMetaHeaders(meta);
       const providerResponse = forward.response;
+      const responseCapture = forward.attempt?.recordingCapture;
 
       if (!providerResponse.ok) {
         const errorBody = await providerResponse.text();
+        await forward.attempt?.finishRecording?.(recordingResponseFromText(errorBody));
         // Evidence feed (AUTOFIX_REPORT_ALL_4XX). Auto-fix already hands Phoenix
         // the full body for the requests it heals; every other request-side 4xx
         // reaches Phoenix only via Peacock's hourly scrape, which carries the
@@ -433,9 +454,7 @@ export class ProxyController {
           autofix,
           requestId,
           Date.now() - startTime,
-          recordingCapture,
         );
-        await this.finishRecording(requestId, recordingCapture);
         return;
       }
 
@@ -467,7 +486,7 @@ export class ProxyController {
           this.thinkingCache,
           apiMode,
           this.reasoningCache,
-          recordingCapture,
+          responseCapture,
         );
       } else {
         streamUsage = await handleNonStreamResponse(
@@ -481,11 +500,11 @@ export class ProxyController {
           this.thinkingCache,
           apiMode,
           this.reasoningCache,
-          recordingCapture,
+          responseCapture,
         );
       }
 
-      await this.finishRecording(requestId, recordingCapture);
+      await forward.attempt?.finishRecording?.();
 
       // A friendly stub (no provider key, no providers, usage limit) leaves the
       // proxy as an HTTP 200 assistant message, so it lands here — but it is a
@@ -538,7 +557,7 @@ export class ProxyController {
         currentAttemptStart,
         recordingCapture,
       );
-      await this.finishRecording(requestId, recordingCapture);
+      await (currentMeta?.attempt ?? currentAttempt)?.finishRecording?.();
     } finally {
       if (slotAcquired) this.rateLimiter.releaseSlot(tenantId);
     }
@@ -599,6 +618,7 @@ export class ProxyController {
     currentAttemptStart?: ProviderAttemptStart,
     capture?: RequestRecordingCapture,
   ): Promise<void> {
+    const capture = (meta?.attempt ?? currentAttempt)?.recordingCapture;
     if (clientAbort.signal.aborted) {
       await this.recorder
         .recordCancelledRequest(req.ingestionContext, {
@@ -761,17 +781,6 @@ export class ProxyController {
     };
     capture?.setJson(responseBody);
     res.status(status).json(responseBody);
-  }
-
-  private async finishRecording(
-    requestId: string,
-    capture: RequestRecordingCapture | undefined,
-  ): Promise<void> {
-    const recording = capture?.buildRecording();
-    if (!recording || !this.requestRecording) return;
-    await this.requestRecording
-      .finish(requestId, recording)
-      .catch((e) => this.logger.warn(`Failed to finish request recording: ${e}`));
   }
 
   private writeStreamError(

@@ -19,7 +19,6 @@ import { IS_PUBLIC_KEY } from '../src/common/decorators/public.decorator';
 import { hashKey, keyPrefix } from '../src/common/utils/hash.util';
 import { AgentMessage } from '../src/entities/agent-message.entity';
 import { ManifestRequest } from '../src/entities/request.entity';
-import { RequestRecording } from '../src/entities/request-recording.entity';
 import { ApiKey } from '../src/entities/api-key.entity';
 import { Tenant } from '../src/entities/tenant.entity';
 import { Agent } from '../src/entities/agent.entity';
@@ -64,7 +63,6 @@ export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 const entities = [
   AgentMessage,
   ManifestRequest,
-  RequestRecording,
   ApiKey,
   Tenant,
   Agent,

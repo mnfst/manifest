@@ -8,7 +8,11 @@ import {
   onCleanup,
   type Component,
 } from 'solid-js';
-import { getMessageDetails, type AutofixDecision } from '../services/api/messages.js';
+import {
+  getMessageDetails,
+  type AttemptRecording,
+  type AutofixDecision,
+} from '../services/api/messages.js';
 import {
   AUTOFIX_STATUS_LABELS,
   isFailedStatus,
@@ -28,8 +32,7 @@ export interface RequestDrawerProps {
   onOpenMessage?: (id: string) => void;
 }
 
-type AttemptTab = 'details' | 'headers' | 'params';
-type DrawerTab = 'attempts' | 'messages';
+type AttemptTab = 'details' | 'messages' | 'headers' | 'params';
 
 interface Attempt {
   id: string;
@@ -63,6 +66,7 @@ interface Attempt {
   autofix_decision?: AutofixDecision;
   autofix_role?: string;
   autofix_sibling?: any;
+  recording?: AttemptRecording | null;
 }
 
 function fmtDate(iso: string): string {
@@ -162,6 +166,7 @@ function buildAttempts(msg: any): Attempt[] {
       autofix_decision: att.autofix_decision ?? msg.autofix_decision,
       autofix_role: att.autofix_role ?? undefined,
       autofix_sibling: att.autofix_sibling ?? msg.autofix_sibling,
+      recording: att.recording ?? null,
     }));
   }
 
@@ -203,6 +208,7 @@ function buildAttempts(msg: any): Attempt[] {
       autofix_decision: msg.autofix_decision,
       autofix_role: msg.autofix_role,
       autofix_sibling: msg.autofix_sibling,
+      recording: null,
     },
   ];
 }
@@ -210,7 +216,6 @@ function buildAttempts(msg: any): Attempt[] {
 const RequestDrawer: Component<RequestDrawerProps> = (props) => {
   const [selectedAttempt, setSelectedAttempt] = createSignal(0);
   const [tab, setTab] = createSignal<AttemptTab>('details');
-  const [drawerTab, setDrawerTab] = createSignal<DrawerTab>('attempts');
   const open = () => props.messageId !== null;
 
   const [data] = createResource(
@@ -237,6 +242,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
     const tabs: Array<{ value: AttemptTab; label: string }> = [
       { value: 'details', label: 'Details' },
     ];
+    if (att) tabs.push({ value: 'messages', label: 'Messages' });
     if (att?.request_headers && Object.keys(att.request_headers).length > 0) {
       tabs.push({ value: 'headers', label: 'Request headers' });
     }
@@ -251,7 +257,6 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
     if (props.messageId) {
       setSelectedAttempt(0);
       setTab('details');
-      setDrawerTab('attempts');
     }
   });
 
@@ -343,35 +348,6 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                 </div>
               </div>
 
-              {/* ── Top-level drawer tabs: Attempts | Messages ── */}
-              <div class="panel__tabs drawer__tabs-full" role="tablist">
-                <button
-                  class="panel__tab"
-                  classList={{ 'panel__tab--active': drawerTab() === 'attempts' }}
-                  role="tab"
-                  onClick={() => setDrawerTab('attempts')}
-                >
-                  Attempts
-                </button>
-                <button
-                  class="panel__tab"
-                  classList={{ 'panel__tab--active': drawerTab() === 'messages' }}
-                  role="tab"
-                  onClick={() => setDrawerTab('messages')}
-                >
-                  Messages
-                </button>
-              </div>
-
-              {/* ── Messages view ── */}
-              <Show when={drawerTab() === 'messages'}>
-                <div class="drawer__messages-pane">
-                  <RequestMessages recording={data()?.recording ?? null} />
-                </div>
-              </Show>
-
-              {/* ── Attempts view ── */}
-              <Show when={drawerTab() === 'attempts'}>
               <div class="drawer__split">
                 {/* Attempts sidebar — hidden when no attempts */}
                 <Show when={attempts().length > 0}>
@@ -761,6 +737,11 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                             </div>
                           </Show>
 
+                          {/* Messages tab — payload belongs to this selected attempt. */}
+                          <Show when={tab() === 'messages'}>
+                            <RequestMessages recording={att().recording ?? null} />
+                          </Show>
+
                           {/* Headers tab */}
                           <Show when={tab() === 'headers' && att().request_headers}>
                             <div class="drawer-metadata">
@@ -804,7 +785,6 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                   </Show>
                 </div>
               </div>
-              </Show>{/* end Attempts view */}
             </>
           )}
         </Show>

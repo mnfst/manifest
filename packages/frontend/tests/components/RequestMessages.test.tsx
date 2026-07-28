@@ -20,9 +20,7 @@ const recording = {
     type: 'json' as const,
     body: { choices: [{ message: { role: 'assistant', content: 'Sunny.' } }] },
   },
-  api_format: 'chat_completions',
-  size_bytes: 400,
-  created_at: '2026-07-23T10:00:00.000Z',
+  wire_format: 'openai_chat_completions',
 };
 
 describe('RequestMessages', () => {

@@ -8,9 +8,9 @@ import {
   type Role,
   type ToolCall,
 } from 'manifest-shared';
-import type { MessageDetailResponse } from '../services/api/messages.js';
+import type { AttemptRecording } from '../services/api/messages.js';
 
-type Recording = NonNullable<MessageDetailResponse['recording']>;
+type Recording = AttemptRecording;
 type View = 'conversation' | 'tools' | 'raw';
 
 const CAP_CHARS = 2000;
@@ -314,7 +314,7 @@ const RequestMessages: Component<{ recording: Recording | null }> = (props) => {
             ◌
           </div>
           <strong>No messages recorded</strong>
-          <span>Message recording was not enabled when this request ran.</span>
+          <span>Message recording was not enabled when this attempt ran.</span>
         </div>
       }
     >
@@ -353,7 +353,7 @@ const RequestMessages: Component<{ recording: Recording | null }> = (props) => {
               </button>
             </div>
             <span class="request-messages__format">
-              {recording().api_format.replaceAll('_', ' ')}
+              {recording().wire_format.replaceAll('_', ' ')}
             </span>
           </div>
 
