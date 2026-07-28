@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { DiscoveredModel, FetcherConfig, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
+import { getLitellmModelsUrl } from '../common/constants/litellm';
 import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../common/constants/ollama';
 import {
   CODEX_CLI_ORIGINATOR,
@@ -135,6 +136,30 @@ const parseOpenAI = createModelParser<OpenAIModelEntry>({
   getId: (entry) => entry.id,
   getDisplayName: (_entry, id) => id,
 });
+
+/**
+ * LiteLLM model catalogs often list both `gemini-2.5-flash` and
+ * `gemini/gemini-2.5-flash`, plus wildcard group ids. Prefer the
+ * provider-prefixed form LiteLLM expects on the wire.
+ */
+function parseManifestLiteLlm(body: unknown, provider: string): DiscoveredModel[] {
+  const models = parseOpenAI(body, provider).filter((m) => !m.id.includes('*'));
+  const byBare = new Map<string, DiscoveredModel>();
+  for (const model of models) {
+    const slash = model.id.lastIndexOf('/');
+    const bare = slash >= 0 ? model.id.slice(slash + 1) : model.id;
+    const existing = byBare.get(bare);
+    if (!existing) {
+      byBare.set(bare, model);
+      continue;
+    }
+    // Prefer `vendor/model` over bare model id.
+    if (slash >= 0 && !existing.id.includes('/')) {
+      byBare.set(bare, model);
+    }
+  }
+  return Array.from(byBare.values());
+}
 
 const parsePioneer = createModelParser<PioneerModelEntry>({
   arrayKey: 'data',
@@ -274,6 +299,11 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   // must NOT be filtered.
   gemini:
     /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview-\d{2}-\d{4}$|robotics)/i,
+  // LiteLLM (Manifest gateway) surfaces the full Gemini catalog including
+  // wildcards, media-only models, bare duplicates, retired snapshots, and
+  // experimental SKUs that 404 or aren't chat-completions eligible.
+  manifest:
+    /(?:\*|(?:^|\/)aqs-|nano-banana|deep-research|computer-use|lyria|veo-|native-audio|audio-preview|image-generation|(?:^|\/)imagen|-image(?:$|-|\/)|live-preview|(?:^|\/|-)live-|embedding|robotics|tts|gemini-1\.5|gemini-2\.0-flash-001|gemini-2\.0-flash-lite|flash-lite-preview-\d|\/gemini-exp-|-exp-\d|learnlm|gemma-|omni-flash|customtools)/i,
   mistral:
     /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-|^mistral-vibe-cli)/i,
   'mistral-subscription': /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-)/i,
@@ -761,6 +791,12 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://openrouter.ai/api/v1/models',
     buildHeaders: () => ({}),
     parse: parseOpenRouter,
+  },
+  manifest: {
+    // Lazy so LITELLM_BASE_URL can be set after module load (tests, boot order).
+    endpoint: (_key: string) => getLitellmModelsUrl(),
+    buildHeaders: bearerHeaders,
+    parse: parseManifestLiteLlm,
   },
   ollama: {
     endpoint: `${OLLAMA_HOST}/api/tags`,

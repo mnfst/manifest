@@ -284,7 +284,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   };
 
   // CONFIG resource — paints the page immediately (cheap endpoint, no
-  // agent_messages scan).
+  // agent_messages scan). getGlobalProviders best-effort ensures Manifest.
   const [config, { refetch: refetchConfig }] = createResource(async () => {
     try {
       return await getGlobalProviders();

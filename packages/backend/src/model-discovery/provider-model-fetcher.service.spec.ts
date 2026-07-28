@@ -44,6 +44,7 @@ describe('ProviderModelFetcherService', () => {
       'anthropic',
       'gemini',
       'openrouter',
+      'manifest',
       'ollama',
       'ollama-cloud',
       'copilot',

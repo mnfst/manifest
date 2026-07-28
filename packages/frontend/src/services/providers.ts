@@ -195,6 +195,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'GPT-OSS, GLM, Gemma on Cerebras inference',
     models: [],
   },
+  manifest: {
+    initial: 'M',
+    subtitle: 'Managed models via Manifest gateway',
+    models: [],
+  },
   'cline-pass': {
     initial: 'CP',
     subtitle: 'GLM, Kimi, DeepSeek, MiMo, MiniMax, Qwen via ClinePass',
@@ -492,6 +497,7 @@ const PROVIDER_ORDER = [
   'kiro',
   'llamacpp',
   'lmstudio',
+  'manifest',
   'minimax',
   'mistral',
   'moonshot',

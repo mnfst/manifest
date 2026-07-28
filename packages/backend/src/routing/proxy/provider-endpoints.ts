@@ -1,3 +1,4 @@
+import { getLitellmBaseUrl } from '../../common/constants/litellm';
 import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../../common/constants/ollama';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 import {
@@ -412,6 +413,16 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
       'X-Title': 'Manifest',
     }),
     buildPath: () => '/api/v1/chat/completions',
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  // Managed LiteLLM gateway. Base URL is env-driven (default litellm.manifest.build).
+  manifest: {
+    get baseUrl() {
+      return getLitellmBaseUrl();
+    },
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
     format: 'openai',
     ...openaiStreamUsage,
   },

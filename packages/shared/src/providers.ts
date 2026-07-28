@@ -244,6 +244,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-xxxxx',
   },
   {
+    id: 'manifest',
+    displayName: 'Manifest',
+    aliases: ['manifest-gateway', 'manifest gateway', 'litellm'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#7C3AED',
+    keyPrefix: 'sk-',
+    minKeyLength: 10,
+    keyPlaceholder: 'sk-... (LiteLLM virtual key)',
+  },
+  {
     id: 'mistral',
     displayName: 'Mistral',
     aliases: [],

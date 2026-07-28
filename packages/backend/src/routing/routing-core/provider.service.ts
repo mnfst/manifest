@@ -43,6 +43,8 @@ import {
 import { filterProvidersForDeployment } from '../../common/utils/provider-availability';
 
 const MAX_KEYS_PER_PROVIDER = 5;
+/** Managed LiteLLM gateway: one connection per tenant. */
+const MAX_KEYS_MANIFEST_PROVIDER = 1;
 const MAX_LABEL_LENGTH = 50;
 const DEFAULT_LABEL = 'Default';
 // Bounds for withSubscriptionCredentialLock's critical section (the provider
@@ -485,9 +487,13 @@ export class ProviderService {
     }
 
     const activeCount = existingRows.filter((r) => r.is_active).length;
-    if (activeCount >= MAX_KEYS_PER_PROVIDER) {
+    const maxKeys =
+      provider.toLowerCase() === 'manifest' ? MAX_KEYS_MANIFEST_PROVIDER : MAX_KEYS_PER_PROVIDER;
+    if (activeCount >= maxKeys) {
       throw new BadRequestException(
-        `You can connect at most ${MAX_KEYS_PER_PROVIDER} keys per provider`,
+        maxKeys === 1
+          ? 'You can connect at most 1 key for Manifest'
+          : `You can connect at most ${maxKeys} keys per provider`,
       );
     }
 

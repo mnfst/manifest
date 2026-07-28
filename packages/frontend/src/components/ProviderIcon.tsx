@@ -457,13 +457,11 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
     /* ── OpenRouter ─────────────────────────────────── */
     case 'openrouter':
       return (
-        <svg
-          style={s}
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path d="M18.654 3.87a5.087 5.087 0 110 10.174L23.7 19.09c.64.641.187 1.737-.72 1.737H8.48a8.479 8.479 0 010-16.958h10.175zM8.479 7.26a5.087 5.087 0 100 10.176 5.087 5.087 0 000-10.175z" fill="#7624F4" />
+        <svg style={s} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path
+            d="M18.654 3.87a5.087 5.087 0 110 10.174L23.7 19.09c.64.641.187 1.737-.72 1.737H8.48a8.479 8.479 0 010-16.958h10.175zM8.479 7.26a5.087 5.087 0 100 10.176 5.087 5.087 0 000-10.175z"
+            fill="#7624F4"
+          />
         </svg>
       );
 
@@ -653,6 +651,9 @@ const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
   huggingface: '/icons/huggingface.svg',
   'kilo code': '/icons/kilocode.svg',
   kilocode: '/icons/kilocode.svg',
+  manifest: '/icons/manifest.svg',
+  'manifest gateway': '/icons/manifest.svg',
+  litellm: '/icons/manifest.svg',
   mistral: '/icons/providers/mistral.svg',
   'mistral ai': '/icons/providers/mistral.svg',
   nvidia: '/icons/nvidia.svg',
