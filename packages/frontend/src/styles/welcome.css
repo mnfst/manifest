@@ -637,15 +637,12 @@
 
 .welcome__panel {
   width: 100%;
-  max-width: 600px;
+  max-width: 640px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.welcome__panel--routing {
-  max-width: 680px;
-}
 .welcome__panel--playground {
   max-width: min(1100px, 100%);
 }
@@ -695,41 +692,6 @@
 
 /* ── Providers step ─────────────────────────────── */
 
-.welcome__tab-bar {
-  display: flex;
-  justify-content: flex-start;
-  gap: 0;
-  flex-shrink: 0;
-}
-
-.welcome__tab-btn {
-  padding: 6px 20px;
-  border: 1px solid hsl(var(--border));
-  background: transparent;
-  font: inherit;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.welcome__tab-btn:first-child {
-  border-radius: var(--radius) 0 0 var(--radius);
-}
-.welcome__tab-btn:last-child {
-  border-radius: 0 var(--radius) var(--radius) 0;
-  margin-left: -1px;
-}
-.welcome__tab-btn.active {
-  background: hsl(var(--card));
-  border-color: hsl(var(--border));
-  color: hsl(var(--foreground));
-  z-index: 1;
-}
-
-.welcome__tab-btn:focus-visible,
-.welcome__tile:focus-visible,
-.welcome__show-all:focus-visible,
 .welcome__textarea:focus-visible,
 .welcome__text-link:focus-visible,
 .settings-switch:focus-visible {
@@ -737,92 +699,32 @@
   outline-offset: 2px;
 }
 
-/* Scrollable grid so the Continue button stays visible */
-.welcome__grid-wrapper {
-  max-height: min(52vh, 560px);
-  overflow-y: auto;
+/* Tabs — fit-content width inside the flex column */
+.welcome__panel .panel__tabs {
+  align-self: flex-start;
+}
+
+/* Container border for the provider list (content from routing-providers.css) */
+.welcome__provider-list {
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   background: hsl(var(--card));
 }
 
-.welcome__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: hsl(var(--border));
+.welcome__provider-list .provider-toggle {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
 }
 
-.welcome__tile {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  margin: 0;
-  border: none;
-  border-radius: 0;
-  cursor: pointer;
-  font: inherit;
-  font-size: var(--font-size-sm);
-  color: hsl(var(--foreground));
-  text-align: left;
-  transition: background 0.15s;
-  background: hsl(var(--card));
+.welcome__provider-list .provider-toggle:last-child {
+  border-bottom: none;
 }
 
-.welcome__tile:hover {
-  background: hsl(var(--muted));
-}
-.welcome__tile--connected {
-  background: hsl(var(--success) / 0.04);
-}
-.welcome__tile--connected:hover {
-  background: hsl(var(--success) / 0.08);
-}
-
-.welcome__tile-name {
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-}
-
-.welcome__tile-status {
-  flex-shrink: 0;
-  font-size: 11px;
-  color: hsl(var(--muted-foreground));
-  font-weight: 500;
-  padding: 3px 8px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 999px;
-}
-
-.welcome__tile-status--on {
-  color: hsl(var(--success));
-  border-color: hsl(var(--success) / 0.4);
-}
-
-.welcome__show-all {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  border: none;
-  border-top: 1px solid hsl(var(--border));
-  background: hsl(var(--card));
-  font: inherit;
+.welcome__provider-connected {
   font-size: var(--font-size-xs);
   font-weight: 500;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  transition:
-    color 0.15s,
-    background 0.15s;
-}
-
-.welcome__show-all:hover {
-  color: hsl(var(--foreground));
-  background: hsl(var(--muted));
+  color: hsl(var(--success));
 }
 
 .welcome__actions {
@@ -1046,7 +948,7 @@
 /* ── Agent connection step ─────────────────────── */
 
 .welcome__panel--setup {
-  max-width: 700px;
+  max-width: 640px;
 }
 
 .welcome__setup-snippets {
@@ -1614,6 +1516,13 @@
 
 /* ── Responsive ─────────────────────────────────── */
 
+@media (min-width: 861px) and (max-width: 1100px) {
+  .welcome__main {
+    padding-left: clamp(12px, 1.8vw, 28px);
+    padding-right: clamp(12px, 1.8vw, 28px);
+  }
+}
+
 @media (max-width: 860px) {
   .welcome {
     flex-direction: column;
@@ -1646,6 +1555,11 @@
 
   .welcome__autofix-examples {
     grid-template-columns: 1fr;
+  }
+
+  .welcome__panel .routing-cards--centered {
+    max-width: 100%;
+    min-width: 340px;
   }
 
   .welcome__progress {
@@ -1689,9 +1603,6 @@
 
   .welcome__main {
     padding: 24px 16px;
-  }
-  .welcome__grid {
-    grid-template-columns: 1fr;
   }
 
   .welcome__section-heading,

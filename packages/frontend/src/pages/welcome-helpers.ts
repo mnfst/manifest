@@ -26,11 +26,21 @@ export interface OnboardingMessageSummary {
   duration_ms?: number | null;
 }
 
-/** Agents are returned newest first, so resume the newest unfinished setup. */
+/** Agents are returned newest first, so resume the newest unfinished setup.
+ *
+ * The backend returns `message_count` but not `has_successful_message`.
+ * `has_successful_message` is kept in the interface for forward-compatibility
+ * if the backend ever adds it. Until then, an agent with zero provider
+ * attempts (`message_count === 0`) is the safe signal for "never activated". */
 export function findResumableAgent(
   agents: OnboardingAgentSummary[],
 ): OnboardingAgentSummary | null {
-  return agents.find((agent) => !agent.has_successful_message) ?? null;
+  return (
+    agents.find((agent) => {
+      if (typeof agent.has_successful_message === 'boolean') return !agent.has_successful_message;
+      return !agent.message_count;
+    }) ?? null
+  );
 }
 
 export function isSuccessfulAgentMessage(

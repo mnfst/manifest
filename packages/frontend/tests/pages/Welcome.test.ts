@@ -5,7 +5,7 @@ import {
   isSuccessfulAgentMessage,
   proposeChain,
 } from '../../src/pages/welcome-helpers.js';
-import { markOnboardingDone } from '../../src/services/onboarding.js';
+import { hasOnboardingBeenDone, markOnboardingDone } from '../../src/services/onboarding.js';
 
 const model = (
   provider: string,
@@ -72,14 +72,27 @@ describe('proposeChain', () => {
 });
 
 describe('onboarding activation helpers', () => {
-  it('resumes the newest unfinished harness', () => {
+  it('resumes the newest zero-attempt harness when backend omits has_successful_message', () => {
+    // The backend does not return has_successful_message; it only returns message_count.
+    // An agent with message_count > 0 is treated as active regardless of success status.
+    expect(
+      findResumableAgent([
+        { agent_name: 'activated', message_count: 3 },
+        { agent_name: 'zero-attempts', message_count: 0 },
+        { agent_name: 'also-zero', message_count: 0 },
+      ])?.agent_name,
+    ).toBe('zero-attempts');
+  });
+
+  it('uses has_successful_message when the backend provides it', () => {
+    // Forward-compat: if the backend ever adds the field, it takes priority over message_count.
     expect(
       findResumableAgent([
         { agent_name: 'activated', message_count: 3, has_successful_message: true },
-        { agent_name: 'newest-unfinished', message_count: 1, has_successful_message: false },
-        { agent_name: 'older-unfinished', message_count: 0, has_successful_message: false },
+        { agent_name: 'failed-attempts', message_count: 1, has_successful_message: false },
+        { agent_name: 'no-attempts', message_count: 0, has_successful_message: false },
       ])?.agent_name,
-    ).toBe('newest-unfinished');
+    ).toBe('failed-attempts');
   });
 
   it('does not treat a failed request as activation', () => {
@@ -108,6 +121,31 @@ describe('onboarding activation helpers', () => {
     });
 
     expect(() => markOnboardingDone('user-1')).not.toThrow();
+    vi.unstubAllGlobals();
+  });
+
+  it('hasOnboardingBeenDone returns true after markOnboardingDone', () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      setItem: (k: string, v: string) => store.set(k, v),
+      getItem: (k: string) => store.get(k) ?? null,
+    });
+
+    expect(hasOnboardingBeenDone('user-2')).toBe(false);
+    markOnboardingDone('user-2');
+    expect(hasOnboardingBeenDone('user-2')).toBe(true);
+    expect(hasOnboardingBeenDone('user-3')).toBe(false);
+    vi.unstubAllGlobals();
+  });
+
+  it('hasOnboardingBeenDone returns false when localStorage throws', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => {
+        throw new Error('unavailable');
+      },
+    });
+
+    expect(hasOnboardingBeenDone('user-4')).toBe(false);
     vi.unstubAllGlobals();
   });
 });

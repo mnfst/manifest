@@ -7,3 +7,11 @@ export function markOnboardingDone(userId: string): void {
     /* storage full or unavailable */
   }
 }
+
+export function hasOnboardingBeenDone(userId: string): boolean {
+  try {
+    return localStorage.getItem(`${PREFIX}${userId}`) === '1';
+  } catch {
+    return false;
+  }
+}

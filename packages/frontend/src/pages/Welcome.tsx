@@ -39,7 +39,6 @@ import {
   deleteModelParams,
   getAgentKey,
   getAgents,
-  getAutofix,
   getAvailableModels,
   getCustomProviders,
   getPlaygroundAgent,
@@ -51,7 +50,6 @@ import {
   refreshModels,
   setFallbacks,
   setModelParams as setModelParamsApi,
-  updateAutofix,
   type AgentModelParamsRow,
   type AuthType,
   type AvailableModel,
@@ -62,7 +60,7 @@ import { getMessages } from '../services/api/messages.js';
 import { customProviderColor } from '../services/formatters.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { useRightSidebar } from '../services/right-sidebar.jsx';
-import { markOnboardingDone } from '../services/onboarding.js';
+import { hasOnboardingBeenDone, markOnboardingDone } from '../services/onboarding.js';
 import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'manifest-shared';
 import '../styles/routing.css';
 import '../styles/routing-providers.css';
@@ -76,8 +74,8 @@ const WingmanDevTools = __DEV_MODE__
   ? lazy(() => import('../components/WingmanDevTools.jsx'))
   : null;
 
-type StepId = 'harness' | 'providers' | 'playground' | 'route' | 'autofix' | 'activate';
-const STEP_ORDER: StepId[] = ['harness', 'providers', 'playground', 'route', 'autofix', 'activate'];
+type StepId = 'harness' | 'providers' | 'playground' | 'route' | 'activate';
+const STEP_ORDER: StepId[] = ['harness', 'providers', 'playground', 'route', 'activate'];
 
 /** The theme lives in "Launch sequence"; the rest is plain wayfinding. */
 const eyebrow = (id: StepId) =>
@@ -88,7 +86,6 @@ const STEP_META: Record<StepId, { label: string }> = {
   providers: { label: 'Connect providers' },
   playground: { label: 'Test models' },
   route: { label: 'Configure routing' },
-  autofix: { label: 'Activate Auto-fix' },
   activate: { label: 'Connect harness & go live' },
 };
 
@@ -141,6 +138,12 @@ const Welcome: Component = () => {
   const liftoffPreview = () => import.meta.env.DEV && searchParams.preview === 'liftoff';
   const session = authClient.useSession();
   const userId = () => session()?.data?.user?.id ?? '';
+  // Redirect users who already completed onboarding so they don't see the
+  // wizard again on a manual visit to /welcome.
+  createEffect(() => {
+    const uid = userId();
+    if (uid && hasOnboardingBeenDone(uid)) navigate('/', { replace: true });
+  });
   const [step, setStep] = createSignal<StepId>('harness');
   const [maxStepReached, setMaxStepReached] = createSignal(0);
   createEffect(() => {
@@ -169,7 +172,7 @@ const Welcome: Component = () => {
   // and screen-reader users at its heading whenever that task changes.
   createEffect(() => {
     step();
-    requestAnimationFrame(() => panelTitle?.focus());
+    requestAnimationFrame(() => panelTitle?.focus({ preventScroll: true }));
   });
 
   // ── Shared resources ─────────────────────────────────────────────────
@@ -214,15 +217,11 @@ const Welcome: Component = () => {
     return ids.size;
   });
 
-  // null = no user action yet — use the server-resolved setting.
-  const [autofixOverride, setAutofixOverride] = createSignal<boolean | null>(null);
-  const autofixOn = () => autofixOverride() ?? autofixConfig()?.enabled ?? false;
   const [preferredRoute, setPreferredRoute] = createSignal<PlaygroundModelSelection | null>(null);
 
   // ── Step: providers ──────────────────────────────────────────────────
   const [connectTarget, setConnectTarget] = createSignal<string | null>(null);
   const [tab, setTab] = createSignal<'subscription' | 'api_key'>('api_key');
-  const [showAllProviders, setShowAllProviders] = createSignal(false);
   const selectProviderTab = (next: 'subscription' | 'api_key', focus = false) => {
     setTab(next);
     if (focus) {
@@ -254,18 +253,12 @@ const Welcome: Component = () => {
       ? PROVIDERS.filter((p) => p.supportsSubscription)
       : PROVIDERS.filter((p) => !p.subscriptionOnly && !p.localOnly);
 
+  // Popular providers first, then the rest in catalog order.
   const tabProviders = () => {
     const all = allTabProviders();
-    if (showAllProviders()) {
-      // Popular first, then the rest in catalog order.
-      const popular = all.filter((p) => POPULAR.includes(p.id));
-      return [...popular, ...all.filter((p) => !POPULAR.includes(p.id))];
-    }
     const popular = all.filter((p) => POPULAR.includes(p.id));
-    return popular.length >= 4 ? popular : all;
+    return [...popular, ...all.filter((p) => !POPULAR.includes(p.id))];
   };
-
-  const hiddenProviderCount = () => allTabProviders().length - tabProviders().length;
 
   const isConnected = (id: string, authType: 'subscription' | 'api_key') =>
     (providers() ?? []).some(
@@ -738,17 +731,8 @@ const Welcome: Component = () => {
     });
   });
 
-  // ── Step: Auto-fix ───────────────────────────────────────────────────
-  // Cloud agents default to Auto-fix ON (resolved server-side), so read the
-  // effective value; a user toggle overrides it.
-  const [autofixConfig] = createResource(harnessSlug, (slug) =>
-    slug ? getAutofix(slug).catch(() => null) : Promise.resolve(null),
-  );
-  const [togglingAutofix, setTogglingAutofix] = createSignal(false);
-  const autofixAvailable = () => autofixConfig()?.available ?? false;
-
   // Resume the newest zero-message harness after a reload. Server state is the
-  // source of truth: providers, routes and Auto-fix determine the next useful
+  // source of truth: providers, routes determine the next useful
   // stage, while the restored key keeps the connection instructions usable.
   const [resumeHydrated, setResumeHydrated] = createSignal(false);
   const [resumeChecked, setResumeChecked] = createSignal(false);
@@ -785,26 +769,11 @@ const Welcome: Component = () => {
       resumeStageResolved = true;
       return;
     }
-    if (tiers.loading || autofixConfig.loading) return;
+    if (tiers.loading) return;
     if (routedProviderCount() === 0) setStep('playground');
-    else if (autofixAvailable() && !autofixOn()) setStep('autofix');
     else setStep('activate');
     resumeStageResolved = true;
   });
-
-  const toggleAutofix = async () => {
-    const slug = harnessSlug();
-    if (!slug || togglingAutofix() || autofixConfig.loading || !autofixAvailable()) return;
-    setTogglingAutofix(true);
-    try {
-      const next = await updateAutofix(slug, { enabled: !autofixOn() });
-      setAutofixOverride(next.enabled);
-    } catch {
-      // fetchMutate already surfaced the backend error as a toast.
-    } finally {
-      setTogglingAutofix(false);
-    }
-  };
 
   // Never trap users: setup resumes from server state on the next visit, so
   // skipping only skips the guidance, not the work.
@@ -823,26 +792,8 @@ const Welcome: Component = () => {
     navigate(`/upgrade?${params.toString()}`);
   };
 
-  // On first successful request the wizard is done. Let the user see "Your
-  // harness is live" for a moment, then go straight to the overview — the
-  // activate step already said "it works" and a 5.6 s cinematic would frustrate.
-  createEffect(() => {
-    if (!agentRequestSeen() && !liftoffPreview()) return;
-    if (!import.meta.env.DEV || !String(searchParams.preview).startsWith('liftoff')) {
-      const uid = userId();
-      if (uid) markOnboardingDone(uid);
-      const slug = harnessSlug();
-      const timer = setTimeout(() => {
-        const params = new URLSearchParams({ from: 'onboarding' });
-        if (slug) params.set('harness', slug);
-        navigate(`/upgrade?${params.toString()}`, { replace: true });
-      }, 1800);
-      onCleanup(() => clearTimeout(timer));
-    }
-  });
-
   // Which steps are completed, for the sidebar checkmarks. Steps without
-  // server state ('playground', 'autofix') count the furthest step reached,
+  // server state ('playground') count the furthest step reached,
   // not the current one, so navigating back never un-ticks them.
   const stepDone = (id: StepId): boolean => {
     switch (id) {
@@ -854,8 +805,6 @@ const Welcome: Component = () => {
         return maxStepReached() > STEP_ORDER.indexOf('playground');
       case 'route':
         return routedProviderCount() > 0;
-      case 'autofix':
-        return maxStepReached() > STEP_ORDER.indexOf('autofix');
       case 'activate':
         return agentRequestSeen();
     }
@@ -911,6 +860,7 @@ const Welcome: Component = () => {
                     type="button"
                     class="welcome__nav-btn"
                     disabled={index() > maxStepReached()}
+                    tabindex={index() > maxStepReached() ? -1 : undefined}
                     aria-current={step() === id ? 'step' : undefined}
                     onClick={() => goTo(id)}
                   >
@@ -939,7 +889,7 @@ const Welcome: Component = () => {
         </section>
 
         <div class="welcome__sidebar-footer">
-          <button type="button" class="welcome__text-link" onClick={skipOnboarding}>
+          <button type="button" class="btn btn--ghost btn--sm" onClick={skipOnboarding}>
             Skip setup for now
           </button>
         </div>
@@ -1046,11 +996,11 @@ const Welcome: Component = () => {
                 </p>
               </div>
 
-              <div class="welcome__tab-bar" role="tablist">
+              <div class="panel__tabs" role="tablist">
                 <button
                   id="welcome-provider-tab-api-key"
-                  class="welcome__tab-btn"
-                  classList={{ active: tab() === 'api_key' }}
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': tab() === 'api_key' }}
                   type="button"
                   role="tab"
                   aria-selected={tab() === 'api_key'}
@@ -1063,8 +1013,8 @@ const Welcome: Component = () => {
                 </button>
                 <button
                   id="welcome-provider-tab-subscription"
-                  class="welcome__tab-btn"
-                  classList={{ active: tab() === 'subscription' }}
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': tab() === 'subscription' }}
                   type="button"
                   role="tab"
                   aria-selected={tab() === 'subscription'}
@@ -1088,45 +1038,35 @@ const Welcome: Component = () => {
               >
                 <div
                   id={`welcome-provider-panel-${tab()}`}
-                  class="welcome__grid-wrapper"
+                  class="provider-modal__list welcome__provider-list"
                   role="tabpanel"
                   aria-labelledby={`welcome-provider-tab-${tab()}`}
                 >
-                  <div class="welcome__grid">
-                    <For each={tabProviders()}>
-                      {(p) => {
-                        const con = () => isConnected(p.id, tab());
-                        return (
-                          <button
-                            type="button"
-                            class="panel welcome__tile"
-                            classList={{ 'welcome__tile--connected': con() }}
-                            onClick={() => setConnectTarget(p.id)}
+                  <For each={tabProviders()}>
+                    {(p) => {
+                      const con = () => isConnected(p.id, tab());
+                      return (
+                        <button
+                          type="button"
+                          class="provider-toggle"
+                          onClick={() => setConnectTarget(p.id)}
+                        >
+                          <span class="provider-toggle__icon">
+                            <ProviderMark providerId={p.id} name={p.name} size={22} />
+                          </span>
+                          <span class="provider-toggle__info">
+                            <span class="provider-toggle__name">{p.name}</span>
+                          </span>
+                          <Show
+                            when={con()}
+                            fallback={<span class="btn btn--outline btn--sm">Connect</span>}
                           >
-                            <span style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
-                              <ProviderMark providerId={p.id} name={p.name} size={22} />
-                              <span class="welcome__tile-name">{p.name}</span>
-                            </span>
-                            <span
-                              class="welcome__tile-status"
-                              classList={{ 'welcome__tile-status--on': con() }}
-                            >
-                              {con() ? 'Connected' : 'Connect'}
-                            </span>
-                          </button>
-                        );
-                      }}
-                    </For>
-                  </div>
-                  <Show when={!showAllProviders() && hiddenProviderCount() > 0}>
-                    <button
-                      type="button"
-                      class="welcome__show-all"
-                      onClick={() => setShowAllProviders(true)}
-                    >
-                      Show all {allTabProviders().length} providers
-                    </button>
-                  </Show>
+                            <span class="welcome__provider-connected">Connected</span>
+                          </Show>
+                        </button>
+                      );
+                    }}
+                  </For>
                 </div>
               </Show>
               <Show when={agent.error || providers.error}>
@@ -1136,27 +1076,34 @@ const Welcome: Component = () => {
               </Show>
 
               <div class="welcome__actions welcome__actions--split welcome__actions--sticky">
-                <span class="welcome__actions-note">
-                  <Show
-                    when={connectedCount() === 0}
-                    fallback={
-                      <Show when={connectedCount() < 3} fallback={<>Full provider redundancy.</>}>
-                        {connectedCount()}/3 connected — add {3 - connectedCount()} more for full
-                        redundancy
-                      </Show>
-                    }
-                  >
-                    Connect at least one provider to continue
-                  </Show>
-                </span>
-                <button
-                  type="button"
-                  class="btn btn--primary"
-                  disabled={connectedCount() === 0}
-                  onClick={() => goTo('playground')}
+                <Show
+                  when={connectedCount() > 0}
+                  fallback={
+                    <span class="welcome__actions-note">
+                      Connect at least one provider to continue.
+                    </span>
+                  }
                 >
-                  Test connected models
-                </button>
+                  <button type="button" class="welcome__text-link" onClick={() => goTo('route')}>
+                    Test models later
+                  </button>
+                </Show>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <Show when={connectedCount() > 0}>
+                    <span class="welcome__actions-note">
+                      {connectedCount()} {connectedCount() === 1 ? 'provider' : 'providers'}{' '}
+                      connected.
+                    </span>
+                  </Show>
+                  <button
+                    type="button"
+                    class="btn btn--primary"
+                    disabled={connectedCount() === 0}
+                    onClick={() => goTo('playground')}
+                  >
+                    Test models
+                  </button>
+                </div>
               </div>
             </div>
           </Show>
@@ -1167,7 +1114,7 @@ const Welcome: Component = () => {
               <div class="welcome__panel-header">
                 <p class="welcome__eyebrow">{eyebrow('playground')}</p>
                 <h1 ref={(el) => (panelTitle = el)} class="welcome__panel-title" tabindex="-1">
-                  Test your connected models
+                  Test your models
                 </h1>
                 <p class="welcome__panel-desc">
                   Compare how your available models handle one representative prompt without leaving
@@ -1247,123 +1194,14 @@ const Welcome: Component = () => {
 
               <div class="welcome__actions welcome__actions--split">
                 <button class="btn btn--ghost" onClick={() => goTo('playground')}>
-                  Back to Playground
+                  Back to test models
                 </button>
                 <button
                   class="btn btn--primary"
                   disabled={routedProviderCount() === 0 || proposing()}
-                  onClick={() => goTo('autofix')}
-                >
-                  Continue
-                </button>
-              </div>
-            </div>
-          </Show>
-
-          {/* ====== Auto-fix ====== */}
-          <Show when={step() === 'autofix'}>
-            <div class="welcome__panel">
-              <div class="welcome__panel-header">
-                <p class="welcome__eyebrow">{eyebrow('autofix')}</p>
-                <h1 ref={(el) => (panelTitle = el)} class="welcome__panel-title" tabindex="-1">
-                  Activate Auto-fix
-                </h1>
-                <p class="welcome__panel-desc">
-                  Let Manifest repair fixable request problems once before the fallback route takes
-                  over.
-                </p>
-              </div>
-
-              <Show when={autofixConfig.loading}>
-                <div class="welcome__pending">
-                  <span class="welcome__spinner" />
-                  <span>Checking Auto-fix…</span>
-                </div>
-              </Show>
-              <Show when={!autofixConfig.loading && autofixAvailable()}>
-                <div class="settings-card">
-                  <div class="settings-card__row">
-                    <div class="settings-card__label">
-                      <span class="settings-card__label-title">Auto-fix failing requests</span>
-                      <span class="settings-card__label-desc">
-                        {autofixOn()
-                          ? 'On — fixable errors are repaired before the fallback chain is used.'
-                          : 'Off — failed requests go straight to your fallback route.'}
-                      </span>
-                    </div>
-                    <div class="settings-card__control settings-card__control--end">
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={autofixOn()}
-                        aria-label="Auto-fix failing requests"
-                        class="settings-switch"
-                        classList={{ 'settings-switch--on': autofixOn() }}
-                        disabled={togglingAutofix()}
-                        onClick={() => void toggleAutofix()}
-                      >
-                        <span class="settings-switch__track">
-                          <span class="settings-switch__thumb" />
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </Show>
-              <Show when={!autofixConfig.loading && !autofixAvailable()}>
-                <p class="welcome__availability-note">
-                  Auto-fix is not available for this workspace yet. You can continue with your
-                  protected fallback route.
-                </p>
-              </Show>
-
-              {/* Concrete over abstract: errors a developer recognizes on sight
-                  beat a feature pitch. Examples stay within what the healer
-                  actually repairs (request-side 400/404/422). */}
-              <div class="welcome__autofix-details">
-                <p class="welcome__autofix-heading">What it repairs</p>
-                <ul class="welcome__autofix-examples">
-                  <li>
-                    <code>model 'gpt-4' has been deprecated</code>
-                    <span>Retired model ids are swapped for the current equivalent.</span>
-                  </li>
-                  <li>
-                    <code>unsupported parameter: 'max_tokens'</code>
-                    <span>Provider-specific parameter names are corrected in place.</span>
-                  </li>
-                  <li>
-                    <code>'additionalProperties' is not supported</code>
-                    <span>Tool schemas are trimmed to what the provider accepts.</span>
-                  </li>
-                  <li>
-                    <code>invalid role: 'developer'</code>
-                    <span>Message structure is normalized for the target API.</span>
-                  </li>
-                </ul>
-                <p class="welcome__autofix-how">
-                  A failing request is patched and retried once; if it still fails, your fallback
-                  route takes over. Every repair is recorded in Messages.{' '}
-                  <a
-                    class="welcome__text-link"
-                    href="https://manifest.build/autofix/"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Learn more
-                  </a>
-                </p>
-              </div>
-
-              <div class="welcome__actions welcome__actions--split">
-                <button class="btn btn--ghost" onClick={() => goTo('route')}>
-                  Back to routing
-                </button>
-                <button
-                  class="btn btn--primary"
-                  disabled={autofixConfig.loading}
                   onClick={() => goTo('activate')}
                 >
-                  Test your harness
+                  Continue
                 </button>
               </div>
             </div>
@@ -1396,6 +1234,11 @@ const Welcome: Component = () => {
                   platform={platform()}
                 />
               </section>
+
+              <p class="welcome__panel-desc">
+                Once configured, send a message from your agent. Manifest detects the first
+                successful request automatically.
+              </p>
 
               <section class="welcome__agent-wait" aria-live="polite">
                 <Show
@@ -1484,12 +1327,12 @@ const Welcome: Component = () => {
               </section>
 
               <div class="welcome__actions welcome__actions--split">
-                <button class="btn btn--ghost" onClick={() => goTo('autofix')}>
-                  Back to Auto-fix
+                <button class="btn btn--ghost" onClick={() => goTo('route')}>
+                  Back to routing
                 </button>
                 <Show when={agentRequestSeen()}>
                   <button class="btn btn--primary" onClick={openOnboardingPaywall}>
-                    Continue
+                    Go to dashboard
                     <svg
                       width="14"
                       height="14"
@@ -1675,7 +1518,7 @@ const Welcome: Component = () => {
               class="welcome__liftoff-action btn btn--primary"
               onClick={openOnboardingPaywall}
             >
-              Continue
+              Go to dashboard
               <svg
                 width="16"
                 height="16"

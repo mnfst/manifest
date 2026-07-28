@@ -35,6 +35,10 @@
   max-height: 46vh;
 }
 
+.playground--embedded .playground__add {
+  min-height: 300px;
+}
+
 .playground__columns {
   display: flex;
   flex-wrap: nowrap;
