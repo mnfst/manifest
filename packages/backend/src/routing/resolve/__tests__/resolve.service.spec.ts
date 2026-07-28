@@ -134,6 +134,30 @@ describe('ResolveService', () => {
     });
   });
 
+  describe('resolveLazy', () => {
+    it('does not resolve scorer input when complexity routing is disabled', async () => {
+      agentRepo.findOne.mockResolvedValue({
+        id: 'agent-1',
+        complexity_routing_enabled: false,
+      });
+      const resolveInput = jest.fn().mockResolvedValue({ messages });
+
+      const result = await svc.resolveLazy('agent-1', 'user-1', resolveInput);
+
+      expect(result.reason).toBe('default');
+      expect(resolveInput).not.toHaveBeenCalled();
+    });
+
+    it('resolves scorer input once when scoring runs', async () => {
+      const resolveInput = jest.fn().mockResolvedValue({ messages });
+
+      await svc.resolveLazy('agent-1', 'user-1', resolveInput);
+
+      expect(resolveInput).toHaveBeenCalledTimes(1);
+      expect(mockedScore).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('resolve — header tier match', () => {
     it('returns the header-tier route when the rule matches', async () => {
       const tier = {

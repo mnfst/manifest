@@ -26,7 +26,7 @@ interface ForwardProviderOptions {
   apiKey: string;
   model: string;
   body: Record<string, unknown>;
-  chatBody?: Record<string, unknown>;
+  resolveChatBody?: ResolveChatBody;
   stream: boolean;
   sessionKey: string;
   signal?: AbortSignal;
@@ -74,6 +74,7 @@ import type {
   SignatureLookup,
   ThinkingBlockLookup,
   ReasoningContentLookup,
+  ResolveChatBody,
   ProviderAttemptRef,
   StartProviderAttempt,
 } from './proxy-types';
@@ -187,7 +188,7 @@ export class ProxyFallbackService {
     signatureLookup?: SignatureLookup,
     thinkingLookup?: ThinkingBlockLookup,
     apiMode?: ProxyApiMode,
-    chatBody?: Record<string, unknown>,
+    resolveChatBody?: ResolveChatBody,
     fallbackRoutes?: ModelRoute[] | null,
     paramMergeContext?: ParamMergeContext,
     reasoningContentLookup?: ReasoningContentLookup,
@@ -303,7 +304,7 @@ export class ProxyFallbackService {
         apiKey: credentials.apiKey,
         model,
         body,
-        chatBody,
+        resolveChatBody,
         stream,
         sessionKey,
         signal,
@@ -639,16 +640,6 @@ export class ProxyFallbackService {
       authType,
       opts.model,
     );
-    let chatBody = opts.chatBody
-      ? await this.applyParamMerge(
-          opts.chatBody,
-          opts.paramMergeContext,
-          provider,
-          authType,
-          opts.model,
-        )
-      : undefined;
-
     const extraHeaders = buildProviderExtraHeaders(provider, opts.sessionKey);
 
     // Copilot: exchange the stored GitHub OAuth token for a short-lived API token
@@ -687,6 +678,31 @@ export class ProxyFallbackService {
         : customEndpoint
           ? 'custom'
           : resolveEndpointKey(provider);
+    let resolvedChatBody: Promise<Record<string, unknown>> | undefined;
+    const resolveChatBody = opts.resolveChatBody
+      ? () => {
+          resolvedChatBody ??= (async () => {
+            let resolved = await opts.resolveChatBody!();
+            resolved = await this.applyParamMerge(
+              resolved,
+              opts.paramMergeContext,
+              provider,
+              authType,
+              opts.model,
+            );
+            if (this.reasoningCache) {
+              resolved = await this.reasoningCache.reinjectMissingReasoningContent(
+                resolved,
+                opts.sessionKey,
+                reasoningEndpointKey,
+                forwardModel,
+              );
+            }
+            return resolved;
+          })();
+          return resolvedChatBody;
+        }
+      : undefined;
     if (this.reasoningCache) {
       body = await this.reasoningCache.reinjectMissingReasoningContent(
         body,
@@ -694,14 +710,6 @@ export class ProxyFallbackService {
         reasoningEndpointKey,
         forwardModel,
       );
-      if (chatBody) {
-        chatBody = await this.reasoningCache.reinjectMissingReasoningContent(
-          chatBody,
-          opts.sessionKey,
-          reasoningEndpointKey,
-          forwardModel,
-        );
-      }
     }
 
     // For Gemini OAuth, the OAuth blob's `u` field is the
@@ -722,7 +730,7 @@ export class ProxyFallbackService {
         apiKey: effectiveKey,
         model: forwardModel,
         body,
-        chatBody,
+        resolveChatBody,
         stream,
         signal,
         extraHeaders,

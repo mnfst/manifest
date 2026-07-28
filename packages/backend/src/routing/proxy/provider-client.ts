@@ -269,11 +269,18 @@ export class ProviderClient {
     const textFormat = responsesTextFormat(body, opts.apiMode);
     const resolvedWireApiMode = wireApiMode(endpoint);
     const resolvedWireFormat = wireFormat(endpoint);
+    const nativeTarget =
+      (opts.apiMode === 'messages' && endpoint.format === 'anthropic') ||
+      (opts.apiMode === 'responses' && endpoint.format === 'chatgpt');
+    const chatBody =
+      opts.apiMode && opts.apiMode !== 'chat_completions' && !nativeTarget
+        ? await opts.resolveChatBody?.()
+        : undefined;
 
     const bareModel = stripModelPrefix(model, endpointKey);
     if (endpoint.format === 'kiro') {
       const requestSource =
-        opts.apiMode && opts.apiMode !== 'chat_completions' ? (opts.chatBody ?? body) : body;
+        opts.apiMode && opts.apiMode !== 'chat_completions' ? (chatBody ?? body) : body;
       const response = await forwardKiroChat({
         apiKey,
         model: bareModel,
@@ -300,7 +307,7 @@ export class ProviderClient {
       apiKey,
       authType,
       body,
-      chatBody: opts.chatBody,
+      chatBody,
       apiMode: opts.apiMode,
       stream,
       signatureLookup: opts.signatureLookup,
@@ -527,10 +534,8 @@ export class ProviderClient {
     sessionKey?: string;
   }): BuiltProviderRequest {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
-    // For non-chat_completions inbound modes ('responses', 'messages'), the
-    // routing layer pre-translated the request into chat_completions form
-    // (`chatBody`). Provider adapters all consume chat_completions, so prefer
-    // `chatBody` when present.
+    // Native matching targets read `body` directly. Cross-protocol targets
+    // receive the lazily resolved Chat Completions view as `chatBody`.
     const requestSource =
       ctx.apiMode && ctx.apiMode !== 'chat_completions' ? (chatBody ?? body) : body;
 
@@ -571,9 +576,8 @@ export class ProviderClient {
       // (`POST /v1/messages`) and the resolved upstream is also Anthropic,
       // skip the OpenAI translation round-trip and apply only the additive
       // mutations cache_control + subscription identity + max_tokens
-      // default + thinking-block replay. `chatBody` is still used for the
-      // routing/scoring layer earlier in the pipeline; only the wire body
-      // bypasses translation. This closes the lossy-roundtrip class of
+      // default + thinking-block replay. The wire body bypasses translation.
+      // This closes the lossy-roundtrip class of
       // bugs that previously dropped Anthropic-native fields (server tool
       // `type` tags, cache_control placement, etc.) — see #1886.
       const requestBody =

@@ -498,7 +498,10 @@ describe('ProviderClient', () => {
           reasoning: { effort: 'low' },
           stream: false,
         },
-        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        resolveChatBody: async () => ({
+          messages: [{ role: 'user', content: 'Hello' }],
+          stream: false,
+        }),
         stream: false,
         apiMode: 'responses',
       });
@@ -599,13 +602,16 @@ describe('ProviderClient', () => {
 
     it('routes public Responses API requests for OpenAI to /v1/responses', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const resolveChatBody = jest
+        .fn()
+        .mockResolvedValue({ messages: [{ role: 'user', content: 'Hello' }], stream: false });
 
       const result = await client.forward({
         provider: 'openai',
         apiKey: 'sk-test',
         model: 'gpt-4o',
         body: { input: 'Hello', stream: false },
-        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        resolveChatBody,
         stream: false,
         apiMode: 'responses',
       });
@@ -625,6 +631,28 @@ describe('ProviderClient', () => {
       expect(sentBody.instructions).toBeUndefined();
       expect(result.isResponses).toBe(true);
       expect(result.isChatGpt).toBe(false);
+      expect(resolveChatBody).not.toHaveBeenCalled();
+    });
+
+    it('resolves a Responses conversion once for a Chat Completions endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const resolveChatBody = jest
+        .fn()
+        .mockResolvedValue({ messages: [{ role: 'user', content: 'Hello' }], stream: false });
+
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or-test',
+        model: 'openai/gpt-4o',
+        body: { input: 'Hello', stream: false },
+        resolveChatBody,
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toEqual([{ role: 'user', content: 'Hello' }]);
+      expect(resolveChatBody).toHaveBeenCalledTimes(1);
     });
 
     it('adds default instructions for subscription Responses requests', async () => {
@@ -635,7 +663,10 @@ describe('ProviderClient', () => {
         apiKey: 'oauth-token',
         model: 'gpt-5.4',
         body: { input: 'Hello', stream: false },
-        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        resolveChatBody: async () => ({
+          messages: [{ role: 'user', content: 'Hello' }],
+          stream: false,
+        }),
         stream: false,
         authType: 'subscription',
         apiMode: 'responses',
@@ -651,12 +682,19 @@ describe('ProviderClient', () => {
       expect(sentBody.stream).toBe(true);
     });
 
-    it('uses translated chatBody, not the raw Anthropic Messages body, when forwarding /v1/messages to a chatgpt-format endpoint', async () => {
+    it('resolves Anthropic Messages conversion for a Responses endpoint', async () => {
       // Regression: previously the chatgpt branch passed `body` directly into
       // toResponsesRequest, so a /v1/messages request hitting an
       // openai-responses endpoint would forward Anthropic-shaped tools and
       // drop the top-level system prompt.
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const resolveChatBody = jest.fn().mockResolvedValue({
+        messages: [
+          { role: 'system', content: 'be brief' },
+          { role: 'user', content: 'hi' },
+        ],
+        model: 'o1-pro',
+      });
 
       await client.forward({
         provider: 'openai',
@@ -669,22 +707,17 @@ describe('ProviderClient', () => {
           system: 'be brief',
           messages: [{ role: 'user', content: 'hi' }],
         },
-        chatBody: {
-          messages: [
-            { role: 'system', content: 'be brief' },
-            { role: 'user', content: 'hi' },
-          ],
-          model: 'o1-pro',
-        },
+        resolveChatBody,
         stream: false,
         apiMode: 'messages',
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       // toResponsesRequest pulls instructions out of chat-completions system
-      // messages — proves we forwarded chatBody, not the raw Anthropic body.
+      // messages, proving the lazy conversion, not the raw Anthropic body, was forwarded.
       expect(sentBody.instructions).toBe('be brief');
       expect(sentBody.system).toBeUndefined();
+      expect(resolveChatBody).toHaveBeenCalledTimes(1);
     });
 
     it('forwards Anthropic-Messages inbound to an Anthropic upstream without OpenAI translation (issue #1886)', async () => {
@@ -701,8 +734,8 @@ describe('ProviderClient', () => {
         ],
         top_k: 40,
       };
-      // chatBody is what the routing layer would have produced — we pass it
-      // in to prove the wire path ignores it and reads the raw body instead.
+      // This is what the routing layer would derive. Pass it as a resolver to
+      // prove the native wire path never asks for it.
       const lossyChatBody = {
         messages: [
           { role: 'system', content: 'Be concise.' },
@@ -714,13 +747,14 @@ describe('ProviderClient', () => {
         ],
         max_tokens: 1024,
       };
+      const resolveChatBody = jest.fn().mockResolvedValue(lossyChatBody);
 
       const result = await client.forward({
         provider: 'anthropic',
         apiKey: 'sk-ant-test',
         model: 'claude-sonnet-4-5-20250929',
         body: anthropicBody,
-        chatBody: lossyChatBody,
+        resolveChatBody,
         stream: false,
         apiMode: 'messages',
       });
@@ -746,6 +780,7 @@ describe('ProviderClient', () => {
       expect((anthropicBody.tools[1] as Record<string, unknown>).cache_control).toBeUndefined();
       expect(result.wireApiMode).toBe('messages');
       expect(result.wireRequestBody).toEqual(sent);
+      expect(resolveChatBody).not.toHaveBeenCalled();
     });
 
     it('still uses toAnthropicRequest for chat_completions inbound forwarded to an Anthropic upstream', async () => {
@@ -800,7 +835,7 @@ describe('ProviderClient', () => {
             },
           },
         },
-        chatBody: {
+        resolveChatBody: async () => ({
           messages: [{ role: 'user', content: 'Return JSON.' }],
           response_format: {
             type: 'json_schema',
@@ -811,7 +846,7 @@ describe('ProviderClient', () => {
               strict: true,
             },
           },
-        },
+        }),
         stream: false,
         apiMode: 'responses',
       });
@@ -842,10 +877,10 @@ describe('ProviderClient', () => {
           input: 'Return JSON.',
           text: { format: { type: 'json_object' } },
         },
-        chatBody: {
+        resolveChatBody: async () => ({
           messages: [{ role: 'user', content: 'Return JSON.' }],
           response_format: { type: 'json_object' },
-        },
+        }),
         stream: false,
         apiMode: 'responses',
       });
@@ -873,10 +908,10 @@ describe('ProviderClient', () => {
           input: 'Return text.',
           text: { format: { type: 'text' } },
         },
-        chatBody: {
+        resolveChatBody: async () => ({
           messages: [{ role: 'user', content: 'Return text.' }],
           response_format: { type: 'text' },
-        },
+        }),
         stream: false,
         apiMode: 'responses',
       });
@@ -906,7 +941,7 @@ describe('ProviderClient', () => {
           ],
           stream: false,
         },
-        chatBody: {
+        resolveChatBody: async () => ({
           messages: [
             {
               role: 'user',
@@ -917,7 +952,7 @@ describe('ProviderClient', () => {
             },
           ],
           stream: false,
-        },
+        }),
         stream: false,
         apiMode: 'responses',
       });
@@ -993,7 +1028,10 @@ describe('ProviderClient', () => {
         apiKey: 'sk-test',
         model: 'deepseek-chat',
         body: { input: 'Hello', stream: false },
-        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        resolveChatBody: async () => ({
+          messages: [{ role: 'user', content: 'Hello' }],
+          stream: false,
+        }),
         stream: false,
         apiMode: 'responses',
       });
@@ -1812,7 +1850,10 @@ describe('ProviderClient', () => {
         apiKey: 'tid=abc',
         model: 'gpt-5.4',
         body: { input: 'Hello', stream: false },
-        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        resolveChatBody: async () => ({
+          messages: [{ role: 'user', content: 'Hello' }],
+          stream: false,
+        }),
         stream: false,
         apiMode: 'responses',
       });
@@ -1833,7 +1874,10 @@ describe('ProviderClient', () => {
         apiKey: 'tid=abc',
         model: 'claude-sonnet-4.6',
         body: { input: 'Hello', stream: false },
-        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        resolveChatBody: async () => ({
+          messages: [{ role: 'user', content: 'Hello' }],
+          stream: false,
+        }),
         stream: false,
         apiMode: 'responses',
       });
@@ -2116,7 +2160,10 @@ describe('ProviderClient', () => {
           input: [{ role: 'user', content: 'Hello' }],
           stream: false,
         },
-        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        resolveChatBody: async () => ({
+          messages: [{ role: 'user', content: 'Hello' }],
+          stream: false,
+        }),
         stream: false,
         authType: 'subscription',
         apiMode: 'responses',
