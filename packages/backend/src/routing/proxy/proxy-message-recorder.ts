@@ -27,7 +27,11 @@ import { CustomProviderService } from '../custom-provider/custom-provider.servic
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 import { extractManifestErrorCode, type ManifestErrorCode } from '../../common/errors/error-codes';
-import type { ManifestBlockedRequestReason } from '../../common/errors/manifest-error';
+import {
+  MANIFEST_CODE_TO_REASON,
+  isRecordableManifestCode,
+  type ManifestBlockedRequestReason,
+} from '../../common/errors/manifest-error';
 import {
   getAutofixRetry,
   type AutofixChainEntry,
@@ -372,10 +376,20 @@ function classifyRow(row: Partial<AgentMessage>): {
   if (normalizeStatus(row.status) === PENDING_STATUS) {
     return { error_origin: null, error_class: null, superseded: false };
   }
+  // A stamped Manifest error_code is the authoritative origin signal. A
+  // credential-hop failure (M100/M102) carries a synthetic 401 and rides the
+  // fallback recorder, whose routing_reason is the *tier* reason ('scored',
+  // 'default', …) — classifying off that alone would bucket a Manifest config
+  // error as a provider 401 and inflate provider_error_rate / billing. Derive
+  // the reason from the code so it classifies as config even though
+  // routing_reason keeps the tier reason for display.
+  const code = row.error_code as ManifestErrorCode | null | undefined;
+  const codeReason =
+    code && isRecordableManifestCode(code) ? MANIFEST_CODE_TO_REASON[code] : undefined;
   return classifyMessageError({
     status: row.status ?? 'ok',
     errorHttpStatus: row.error_http_status,
-    routingReason: row.routing_reason,
+    routingReason: codeReason ?? row.routing_reason,
   });
 }
 

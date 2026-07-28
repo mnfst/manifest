@@ -979,6 +979,39 @@ describe('ProxyMessageRecorder', () => {
       );
     });
 
+    it('classifies a mid-chain credential failure as config origin despite a tier routing_reason', async () => {
+      // The row carries a synthetic 401 and the tier reason ('scored'), but the
+      // stamped M102 must win classification — otherwise a Manifest config error
+      // is bucketed as a provider 401 and inflates provider_error_rate/billing.
+      const failures = [
+        {
+          model: 'claude-sonnet-4',
+          provider: 'anthropic',
+          status: 401,
+          errorBody: JSON.stringify({
+            error: {
+              message:
+                '[🦚 Manifest M102] anthropic subscription credentials could not be refreshed. Reconnect OAuth here: https://x/routing See https://manifest.build/docs/errors/M102',
+            },
+          }),
+          fallbackIndex: 0,
+          authType: 'subscription' as const,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
+        reason: 'scored',
+      });
+      const rows = insertMock.mock.calls[0][0] as Array<Record<string, unknown>>;
+      expect(rows[0]).toEqual(
+        expect.objectContaining({
+          error_code: 'M102',
+          routing_reason: 'scored', // display keeps the tier reason
+          error_origin: 'config', // …but it classifies as Manifest config, not a provider 401
+          error_class: 'subscription_credentials_unusable',
+        }),
+      );
+    });
+
     it('records all failures and emits SSE event once', async () => {
       const failures = [
         { model: 'gpt-4o', provider: 'openai', status: 500, errorBody: 'fail-1', fallbackIndex: 0 },

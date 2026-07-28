@@ -85,8 +85,11 @@ export const MANIFEST_ERRORS = {
 
 export type ManifestErrorCode = keyof typeof MANIFEST_ERRORS;
 
-/** Matches the peacock prefix written by formatManifestError, e.g. `[🦚 Manifest M102]`. */
-const MANIFEST_ERROR_CODE_RE = /\[\s*(?:🦚\s*)?Manifest\s+(M\d{3})\s*\]/;
+// Matches the peacock prefix written by formatManifestError, e.g. `[🦚 Manifest M102]`.
+// The 🦚 is REQUIRED: only Manifest emits it, so a provider error body that merely
+// echoes the text "Manifest M100" can never be mis-extracted into a Manifest code
+// (which would then misclassify a provider round-trip as a Manifest config error).
+const MANIFEST_ERROR_CODE_RE = /\[\s*🦚\s*Manifest\s+(M\d{3})\s*\]/;
 
 export function formatManifestError(
   code: ManifestErrorCode,

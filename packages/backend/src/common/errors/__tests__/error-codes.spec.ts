@@ -82,6 +82,10 @@ describe('extractManifestErrorCode', () => {
     expect(extractManifestErrorCode('')).toBeNull();
     expect(extractManifestErrorCode('upstream 500')).toBeNull();
     expect(extractManifestErrorCode('[Manifest M999] unknown')).toBeNull();
+    // A provider body that echoes the code text without the peacock must NOT
+    // be mistaken for a Manifest error (guards against provider-error mislabeling).
+    expect(extractManifestErrorCode('[Manifest M100] echoed by an upstream')).toBeNull();
+    expect(extractManifestErrorCode('provider said: Manifest M102 somewhere')).toBeNull();
   });
 
   it('extracts the code from a formatted peacock message', () => {
