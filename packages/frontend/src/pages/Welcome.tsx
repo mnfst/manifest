@@ -61,7 +61,13 @@ import { customProviderColor } from '../services/formatters.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { useRightSidebar } from '../services/right-sidebar.jsx';
 import { hasOnboardingBeenDone, markOnboardingDone } from '../services/onboarding.js';
-import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'manifest-shared';
+import {
+  type AgentCategory,
+  type AgentPlatform,
+  PLATFORM_ICONS,
+  PLATFORM_LABELS,
+  PLATFORMS_BY_CATEGORY,
+} from 'manifest-shared';
 import '../styles/routing.css';
 import '../styles/routing-providers.css';
 import '../styles/routing-modal.css';
@@ -919,7 +925,30 @@ const Welcome: Component = () => {
                 </p>
               </div>
 
-              <Show when={!harnessCreated()}>
+              <Show
+                when={!harnessCreated()}
+                fallback={
+                  <div
+                    class="panel welcome__form-panel welcome__harness-summary"
+                    style="padding: 20px; margin-bottom: 0;"
+                  >
+                    <Show when={platform() && PLATFORM_ICONS[platform()!]}>
+                      <img
+                        src={PLATFORM_ICONS[platform()!]}
+                        alt=""
+                        class="welcome__harness-summary-icon"
+                        aria-hidden="true"
+                      />
+                    </Show>
+                    <div>
+                      <p class="welcome__harness-summary-name">{harnessName()}</p>
+                      <Show when={platform()}>
+                        <p class="welcome__harness-summary-type">{PLATFORM_LABELS[platform()!]}</p>
+                      </Show>
+                    </div>
+                  </div>
+                }
+              >
                 <form
                   class="panel welcome__form-panel"
                   style="padding: 20px; margin-bottom: 0;"
@@ -1240,7 +1269,11 @@ const Welcome: Component = () => {
                 successful request automatically.
               </p>
 
-              <section class="welcome__agent-wait" aria-live="polite">
+              <section
+                class="welcome__agent-wait"
+                classList={{ 'welcome__agent-wait--success': agentRequestSeen() }}
+                aria-live="polite"
+              >
                 <Show
                   when={agentRequestSeen()}
                   fallback={
@@ -1303,13 +1336,13 @@ const Welcome: Component = () => {
                     </>
                   }
                 >
-                  <div class="welcome__first-request-success" role="status">
+                  <div class="welcome__agent-wait-heading" role="status">
                     <span class="welcome__success-icon" aria-hidden="true">
                       ✓
                     </span>
                     <div>
                       <strong>Your harness is live.</strong>
-                      <p>
+                      <p class="welcome__section-desc">
                         Manifest successfully routed the first real request
                         <Show when={latestAgentRequest()?.model}>
                           {' '}

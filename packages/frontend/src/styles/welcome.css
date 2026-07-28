@@ -690,6 +690,34 @@
   color: hsl(var(--foreground));
 }
 
+/* ── Harness created summary ───────────────────── */
+
+.welcome__harness-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.welcome__harness-summary-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.welcome__harness-summary-name {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.welcome__harness-summary-type {
+  margin: 2px 0 0;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+}
+
 /* ── Providers step ─────────────────────────────── */
 
 .welcome__textarea:focus-visible,
@@ -975,26 +1003,12 @@
   margin-top: 2px;
 }
 
-.welcome__first-request-success {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid hsl(var(--success) / 0.35);
-  border-radius: var(--radius);
-  background: hsl(var(--success) / 0.08);
-  animation: welcome-success-arrival 0.55s 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+.welcome__agent-wait--success {
+  color: hsl(var(--success));
 }
 
-@keyframes welcome-success-arrival {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+.welcome__agent-wait--success .welcome__section-desc {
+  color: hsl(var(--success) / 0.8);
 }
 
 .welcome__request-failure {
@@ -1017,44 +1031,32 @@
   overflow-wrap: anywhere;
 }
 
-.welcome__first-request-success strong {
+.welcome__agent-wait--success strong {
   display: block;
-  color: hsl(var(--foreground));
   font-size: var(--font-size-sm);
-}
-
-.welcome__first-request-success p {
-  margin: 3px 0 0;
-  color: hsl(var(--muted-foreground));
-  font-size: var(--font-size-xs);
-  line-height: 1.45;
 }
 
 .welcome__success-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: hsl(var(--success));
-  color: hsl(var(--success-foreground));
-  font-size: 13px;
-  font-weight: 800;
-  animation: welcome-success-icon 0.65s 1.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  font-size: 16px;
+  font-weight: 700;
+  color: hsl(var(--success));
+  animation: welcome-success-icon 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes welcome-success-icon {
-  0% {
+  from {
     opacity: 0;
-    transform: scale(0.45) rotate(-18deg);
+    transform: scale(0.5);
   }
-  70% {
-    transform: scale(1.18) rotate(3deg);
-  }
-  100% {
+  to {
     opacity: 1;
-    transform: scale(1) rotate(0deg);
+    transform: scale(1);
   }
 }
 
@@ -1676,7 +1678,6 @@
   .welcome__launch-rocket--complete::after,
   .welcome__nav-mobile-rocket--complete,
   .welcome__rocket-flame,
-  .welcome__first-request-success,
   .welcome__success-icon {
     animation: none;
   }
