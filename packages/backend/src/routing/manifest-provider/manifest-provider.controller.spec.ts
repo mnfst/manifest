@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { ManifestProviderController } from './manifest-provider.controller';
 
 describe('ManifestProviderController', () => {
@@ -8,10 +9,17 @@ describe('ManifestProviderController', () => {
     ensureForUser: jest.fn(),
   };
   let controller: ManifestProviderController;
+  const originalMode = process.env['MANIFEST_MODE'];
 
   beforeEach(() => {
     jest.resetAllMocks();
+    process.env['MANIFEST_MODE'] = 'cloud';
     controller = new ManifestProviderController(manifestProvider as never, tenantCache as never);
+  });
+
+  afterAll(() => {
+    if (originalMode === undefined) delete process.env['MANIFEST_MODE'];
+    else process.env['MANIFEST_MODE'] = originalMode;
   });
 
   it('uses the authenticated tenant context', async () => {
@@ -67,6 +75,19 @@ describe('ManifestProviderController', () => {
       source: 'none',
       auto_available: false,
     });
+    expect(manifestProvider.ensureConnection).not.toHaveBeenCalled();
+  });
+
+  it('is unavailable on self-hosted installations', async () => {
+    process.env['MANIFEST_MODE'] = 'selfhosted';
+
+    await expect(
+      controller.ensure(
+        { tenantId: 'tenant-1', userId: 'user-1' },
+        { id: 'user-1', email: 'user@example.com' },
+        {},
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException);
     expect(manifestProvider.ensureConnection).not.toHaveBeenCalled();
   });
 });

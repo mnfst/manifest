@@ -42,7 +42,7 @@ import {
 } from '../subscription-region';
 import { filterProvidersForDeployment } from '../../common/utils/provider-availability';
 
-/** Managed LiteLLM gateway: one connection per tenant. */
+/** Managed credits gateway: one connection per tenant. */
 const MAX_KEYS_MANIFEST_PROVIDER = 1;
 const MAX_LABEL_LENGTH = 50;
 const DEFAULT_LABEL = 'Default';

@@ -25,6 +25,8 @@ export interface SharedProviderEntry {
   requiresApiKey: boolean;
   /** Whether this provider is local-only (e.g. Ollama). */
   localOnly: boolean;
+  /** Whether this provider is available only on Manifest Cloud. */
+  cloudOnly?: boolean;
   /** Brand color used in the UI. */
   color: string;
   /** Expected API-key prefix (used for validation / placeholder). */
@@ -258,14 +260,15 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
   {
     id: 'manifest',
     displayName: 'Manifest',
-    aliases: ['manifest-gateway', 'manifest gateway', 'litellm'],
+    aliases: ['manifest-gateway', 'manifest gateway'],
     openRouterPrefixes: [],
     requiresApiKey: true,
     localOnly: false,
+    cloudOnly: true,
     color: '#7C3AED',
     keyPrefix: 'sk-',
     minKeyLength: 10,
-    keyPlaceholder: 'sk-... (LiteLLM virtual key)',
+    keyPlaceholder: 'sk-... (Manifest Credits key)',
   },
   {
     id: 'mistral',

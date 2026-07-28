@@ -2,12 +2,12 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
-  getLitellmKeyGenerateUrl,
-  getLitellmMasterKey,
-  getLitellmMaxBudgetUsd,
-  isLitellmAutoEligible,
+  getManifestCreditsKeyGenerateUrl,
+  getManifestCreditsMasterKey,
+  getManifestCreditsMaxBudgetUsd,
+  isManifestCreditsAutoEligible,
   MANIFEST_PROVIDER_ID,
-} from '../../common/constants/litellm';
+} from '../../common/constants/manifest-credits';
 import { TenantProvider } from '../../entities/tenant-provider.entity';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { ProviderService } from '../routing-core/provider.service';
@@ -19,7 +19,7 @@ export interface ManifestEnsureResult {
   auto_available: boolean;
 }
 
-const LITELLM_KEY_GENERATE_TIMEOUT_MS = 5_000;
+const MANIFEST_CREDITS_KEY_GENERATE_TIMEOUT_MS = 5_000;
 
 @Injectable()
 export class ManifestProviderService {
@@ -44,10 +44,10 @@ export class ManifestProviderService {
   }
 
   /**
-   * Ensure the tenant has at most one Manifest (LiteLLM) connection.
+   * Ensure the tenant has at most one Manifest Credits connection.
    * - If already connected: return existing.
    * - If `apiKey` provided: store that virtual key (manual / self-host path).
-   * - Else if auto-eligible: mint a LiteLLM virtual key with max budget.
+   * - Else if auto-eligible: mint a credit key with the configured budget.
    * - Else: no-op (connected: false).
    */
   async ensureConnection(opts: {
@@ -57,7 +57,7 @@ export class ManifestProviderService {
     apiKey?: string;
   }): Promise<ManifestEnsureResult> {
     const { tenantId, userId, userEmail, apiKey } = opts;
-    const autoAvailable = isLitellmAutoEligible(userEmail);
+    const autoAvailable = isManifestCreditsAutoEligible(userEmail);
 
     const existing = await this.findConnection(tenantId);
     if (existing?.is_active) {
@@ -147,13 +147,13 @@ export class ManifestProviderService {
     tenantId: string,
     userEmail: string | null | undefined,
   ): Promise<string> {
-    const masterKey = getLitellmMasterKey();
+    const masterKey = getManifestCreditsMasterKey();
     if (!masterKey) {
-      throw new BadRequestException('LiteLLM master key is not configured');
+      throw new BadRequestException('Manifest Credits master key is not configured');
     }
 
-    const maxBudget = getLitellmMaxBudgetUsd();
-    // No model allowlist: catalog is whatever LiteLLM exposes for this key.
+    const maxBudget = getManifestCreditsMaxBudgetUsd();
+    // No model allowlist: the key inherits the gateway's available catalog.
     const body = {
       max_budget: maxBudget,
       key_alias: `manifest:${tenantId}`,
@@ -166,32 +166,34 @@ export class ManifestProviderService {
 
     let res: Response;
     try {
-      res = await fetch(getLitellmKeyGenerateUrl(), {
+      res = await fetch(getManifestCreditsKeyGenerateUrl(), {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${masterKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(LITELLM_KEY_GENERATE_TIMEOUT_MS),
+        signal: AbortSignal.timeout(MANIFEST_CREDITS_KEY_GENERATE_TIMEOUT_MS),
       });
     } catch (err) {
       this.logger.error(
-        `LiteLLM /key/generate request failed: ${err instanceof Error ? err.message : String(err)}`,
+        `Manifest Credits /key/generate request failed: ${err instanceof Error ? err.message : String(err)}`,
       );
-      throw new BadRequestException('Failed to create LiteLLM virtual key');
+      throw new BadRequestException('Failed to create Manifest Credits key');
     }
 
     if (!res.ok) {
       const text = await res.text().catch(() => '');
-      this.logger.error(`LiteLLM /key/generate failed (${res.status}): ${text.slice(0, 300)}`);
-      throw new BadRequestException('Failed to create LiteLLM virtual key');
+      this.logger.error(
+        `Manifest Credits /key/generate failed (${res.status}): ${text.slice(0, 300)}`,
+      );
+      throw new BadRequestException('Failed to create Manifest Credits key');
     }
 
     const json = (await res.json()) as { key?: string; token?: string };
     const key = json.key ?? json.token;
     if (!key || typeof key !== 'string') {
-      throw new BadRequestException('LiteLLM did not return a virtual key');
+      throw new BadRequestException('Manifest Credits did not return a key');
     }
     return key;
   }

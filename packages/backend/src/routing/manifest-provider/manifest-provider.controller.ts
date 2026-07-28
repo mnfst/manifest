@@ -1,12 +1,17 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, NotFoundException, Post } from '@nestjs/common';
 import { IsOptional, IsString, MaxLength } from 'class-validator';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { MANIFEST_PROVIDER_ID } from '../../common/constants/manifest-credits';
+import {
+  isProviderAvailableForDeployment,
+  MANIFEST_CLOUD_ONLY_MESSAGE,
+} from '../../common/utils/provider-availability';
 import { ManifestProviderService } from './manifest-provider.service';
 
 class EnsureManifestBody {
-  /** Optional LiteLLM virtual key for self-host / gifted-key path. */
+  /** Optional gifted Manifest Credits key. */
   @IsOptional()
   @IsString()
   @MaxLength(500)
@@ -30,6 +35,10 @@ export class ManifestProviderController {
     @CurrentUser() user: { id?: string; email?: string },
     @Body() body: EnsureManifestBody,
   ) {
+    if (!isProviderAvailableForDeployment(MANIFEST_PROVIDER_ID)) {
+      throw new NotFoundException(MANIFEST_CLOUD_ONLY_MESSAGE);
+    }
+
     const tenantId =
       ctx.tenantId ?? (user.id ? await this.tenantCache.ensureForUser(user.id) : null);
     if (!tenantId) {

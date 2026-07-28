@@ -28,6 +28,7 @@ describe('providers API client', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
@@ -88,6 +89,17 @@ describe('providers API client', () => {
       }),
     });
     await ensureManifestProvider();
+  });
+
+  it('does not provision Manifest Credits in a self-hosted build', async () => {
+    vi.stubEnv('VITE_MANIFEST_SELFHOSTED', 'true');
+    const response = { providers: [], model_counts: {} };
+    const fetchMock = setupFetch(response);
+
+    await expect(getProviders()).resolves.toEqual(response);
+    expect(
+      fetchMock.mock.calls.some(([, init]) => (init as RequestInit | undefined)?.method === 'POST'),
+    ).toBe(false);
   });
 
   it('stores a manually gifted Manifest key through the direct path', async () => {

@@ -34,7 +34,9 @@ import { getSubscriptionEndpointRegionConfig } from './subscription-region';
 import { isBedrockProvider, isBedrockRegion } from './bedrock-region';
 import {
   CLOUD_LOCAL_PROVIDER_MESSAGE,
+  isCloudOnlyProvider,
   isProviderAvailableForDeployment,
+  MANIFEST_CLOUD_ONLY_MESSAGE,
 } from '../common/utils/provider-availability';
 
 @Controller('api/v1/routing')
@@ -112,10 +114,14 @@ export class ProviderController {
       allowPlayground: true,
     });
     const lowerProvider = body.provider.toLowerCase();
-    if (
-      !isProviderAvailableForDeployment(lowerProvider) ||
-      (body.authType === 'local' && !isProviderAvailableForDeployment('ollama'))
-    ) {
+    if (!isProviderAvailableForDeployment(lowerProvider)) {
+      throw new BadRequestException(
+        isCloudOnlyProvider(lowerProvider)
+          ? MANIFEST_CLOUD_ONLY_MESSAGE
+          : CLOUD_LOCAL_PROVIDER_MESSAGE,
+      );
+    }
+    if (body.authType === 'local' && !isProviderAvailableForDeployment('ollama')) {
       throw new BadRequestException(CLOUD_LOCAL_PROVIDER_MESSAGE);
     }
     const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';

@@ -213,7 +213,7 @@ describe('filterNonChatModels', () => {
     });
   });
 
-  describe('Manifest (LiteLLM) gateway patterns', () => {
+  describe('Manifest Credits gateway patterns', () => {
     it('filters wildcards, media-only, and non-chat Gemini catalog noise', () => {
       const models = [
         makeModel('gemini/*'),
@@ -230,7 +230,7 @@ describe('filterNonChatModels', () => {
       expect(result.map((m) => m.id)).toEqual(['gemini/gemini-2.5-flash']);
     });
 
-    it('keeps LiteLLM-prefixed chat models', () => {
+    it('keeps provider-prefixed chat models', () => {
       const models = [
         makeModel('gemini/gemini-2.5-flash'),
         makeModel('gemini/gemini-2.5-pro'),

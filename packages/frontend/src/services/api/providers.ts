@@ -76,9 +76,9 @@ export interface ManifestEnsureResponse {
 let manifestEnsureInflight: Promise<ManifestEnsureResponse> | null = null;
 
 /**
- * Ensure a Manifest (LiteLLM) connection exists. Auto-mints a virtual key when
+ * Ensure a Manifest Credits connection exists. Auto-mints a credit key when
  * the backend has a master key and the user is eligible; otherwise pass `apiKey`
- * for the self-host / gifted virtual-key path. Dedupes concurrent calls.
+ * for the gifted-key path. Dedupes concurrent calls.
  */
 export async function ensureManifestProvider(apiKey?: string): Promise<ManifestEnsureResponse> {
   if (!apiKey && manifestEnsureInflight) return manifestEnsureInflight;
@@ -117,9 +117,11 @@ export async function ensureManifestProvider(apiKey?: string): Promise<ManifestE
  */
 export function getProviders() {
   const providers = fetchJson<ProvidersResponse>('/providers');
-  // Provision in the background so a slow or unavailable LiteLLM gateway never
-  // blocks provider configuration, routing screens, or agent creation.
-  void ensureManifestProvider().catch(() => undefined);
+  if (import.meta.env.VITE_MANIFEST_SELFHOSTED !== 'true') {
+    // Provision in the background so a slow or unavailable credits gateway never
+    // blocks provider configuration, routing screens, or agent creation.
+    void ensureManifestProvider().catch(() => undefined);
+  }
   return providers;
 }
 

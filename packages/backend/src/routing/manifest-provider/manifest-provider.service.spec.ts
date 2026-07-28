@@ -19,9 +19,9 @@ describe('ManifestProviderService', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     process.env = { ...env };
-    process.env['LITELLM_MASTER_KEY'] = 'sk-master';
-    process.env['LITELLM_BASE_URL'] = 'https://litellm.test';
-    delete process.env['LITELLM_AUTO_PROVISION_ALLOWLIST'];
+    process.env['MANIFEST_CREDITS_MASTER_KEY'] = 'sk-master';
+    process.env['MANIFEST_CREDITS_BASE_URL'] = 'https://credits.test';
+    delete process.env['MANIFEST_CREDITS_AUTO_PROVISION_ALLOWLIST'];
     service = new ManifestProviderService(
       providerRepo as never,
       providerService as never,
@@ -159,7 +159,7 @@ describe('ManifestProviderService', () => {
       auto_available: true,
     });
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://litellm.test/key/generate',
+      'https://credits.test/key/generate',
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({ Authorization: 'Bearer sk-master' }),
@@ -172,7 +172,7 @@ describe('ManifestProviderService', () => {
   });
 
   it('returns none when not eligible and no key pasted', async () => {
-    delete process.env['LITELLM_MASTER_KEY'];
+    delete process.env['MANIFEST_CREDITS_MASTER_KEY'];
     providerRepo.find.mockResolvedValue([]);
     const result = await service.ensureConnection({
       tenantId: 't1',
@@ -187,7 +187,7 @@ describe('ManifestProviderService', () => {
     });
   });
 
-  it('throws when LiteLLM generate fails', async () => {
+  it('throws when credit-key generation fails', async () => {
     providerRepo.find.mockResolvedValue([]);
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
@@ -203,7 +203,7 @@ describe('ManifestProviderService', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('throws when the LiteLLM key request rejects or times out', async () => {
+  it('throws when the credit-key request rejects or times out', async () => {
     providerRepo.find.mockResolvedValue([]);
     (global.fetch as jest.Mock).mockRejectedValue(new Error('request timed out'));
 
@@ -216,7 +216,7 @@ describe('ManifestProviderService', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('throws when LiteLLM omits the virtual key', async () => {
+  it('throws when the credits service omits the key', async () => {
     providerRepo.find.mockResolvedValue([]);
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
@@ -233,7 +233,7 @@ describe('ManifestProviderService', () => {
   });
 
   it('rejects direct key minting when the master key is unavailable', async () => {
-    delete process.env['LITELLM_MASTER_KEY'];
+    delete process.env['MANIFEST_CREDITS_MASTER_KEY'];
 
     await expect(
       (

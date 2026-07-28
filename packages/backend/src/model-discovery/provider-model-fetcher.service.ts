@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { DiscoveredModel, FetcherConfig, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
-import { getLitellmModelsUrl } from '../common/constants/litellm';
+import { getManifestCreditsModelsUrl } from '../common/constants/manifest-credits';
 import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../common/constants/ollama';
 import {
   CODEX_CLI_ORIGINATOR,
@@ -163,11 +163,11 @@ const parseOpenAI = createModelParser<OpenAIModelEntry>({
 });
 
 /**
- * LiteLLM model catalogs often list both `gemini-2.5-flash` and
+ * Manifest Credits catalogs can list both `gemini-2.5-flash` and
  * `gemini/gemini-2.5-flash`, plus wildcard group ids. Prefer the
- * provider-prefixed form LiteLLM expects on the wire.
+ * provider-prefixed form expected on the wire.
  */
-function parseManifestLiteLlm(body: unknown, provider: string): DiscoveredModel[] {
+function parseManifestCredits(body: unknown, provider: string): DiscoveredModel[] {
   const models = parseOpenAI(body, provider).filter((m) => !m.id.includes('*'));
   const byId = new Map<string, DiscoveredModel>();
   for (const model of models) {
@@ -391,7 +391,7 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   // must NOT be filtered.
   gemini:
     /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview-\d{2}-\d{4}$|robotics)/i,
-  // LiteLLM (Manifest gateway) surfaces the full Gemini catalog including
+  // Manifest Credits surfaces the full Gemini catalog including
   // wildcards, media-only models, bare duplicates, retired snapshots, and
   // experimental SKUs that 404 or aren't chat-completions eligible.
   manifest:
@@ -890,10 +890,10 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     parse: parseOpenRouter,
   },
   manifest: {
-    // Lazy so LITELLM_BASE_URL can be set after module load (tests, boot order).
-    endpoint: (_key: string) => getLitellmModelsUrl(),
+    // Lazy so MANIFEST_CREDITS_BASE_URL can be set after module load.
+    endpoint: (_key: string) => getManifestCreditsModelsUrl(),
     buildHeaders: bearerHeaders,
-    parse: parseManifestLiteLlm,
+    parse: parseManifestCredits,
   },
   ollama: {
     endpoint: `${OLLAMA_HOST}/api/tags`,

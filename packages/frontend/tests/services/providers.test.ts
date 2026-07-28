@@ -469,6 +469,13 @@ describe('PROVIDERS', () => {
     expect(ollama.minKeyLength).toBe(0);
   });
 
+  it('Manifest is marked cloud-only', () => {
+    const manifest = PROVIDERS.find((p) => p.id === 'manifest')!;
+    expect(manifest).toBeDefined();
+    expect(manifest.cloudOnly).toBe(true);
+    expect(manifest.keyPlaceholder).toBe('sk-... (Manifest Credits key)');
+  });
+
   it('each provider has required fields', () => {
     for (const p of PROVIDERS) {
       expect(p.id).toBeTruthy();

@@ -195,7 +195,7 @@ function openRouterCacheMode(model: string): 'anthropic' | 'message' | null {
  * Models synced from OpenRouter use vendor prefixes, but native APIs expect bare names.
  */
 function stripModelPrefix(model: string, endpointKey: string): string {
-  // OpenRouter / LiteLLM (manifest) accept and expect vendor prefixes
+  // OpenRouter and Manifest Credits accept and expect vendor prefixes.
   if (endpointKey === 'openrouter' || endpointKey === 'manifest') return model;
   if (endpointKey === 'commandcode' || endpointKey === 'commandcode-anthropic') {
     return model.startsWith('commandcode/') ? model.slice('commandcode/'.length) : model;

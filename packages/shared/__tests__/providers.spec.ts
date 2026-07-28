@@ -155,6 +155,13 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(groq!.openRouterPrefixes).toEqual([]);
   });
 
+  it('marks Manifest as cloud-only', () => {
+    const manifest = SHARED_PROVIDER_BY_ID.get('manifest');
+    expect(manifest).toBeDefined();
+    expect(manifest!.cloudOnly).toBe(true);
+    expect(manifest!.keyPlaceholder).toBe('sk-... (Manifest Credits key)');
+  });
+
   it('nvidia has no openRouter prefixes (native NIM /models is authoritative)', () => {
     const nvidia = SHARED_PROVIDER_BY_ID.get('nvidia');
     expect(nvidia).toBeDefined();

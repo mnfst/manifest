@@ -21,7 +21,8 @@ vi.mock('../../src/services/toast-store.js', () => ({
 }));
 
 vi.mock('../../src/components/ProviderIcon.js', () => ({
-  providerIcon: () => null, customProviderLogo: () => null,
+  providerIcon: () => null,
+  customProviderLogo: () => null,
 }));
 
 vi.mock('../../src/services/oauth-popup.js', () => ({
@@ -142,6 +143,22 @@ describe('ProviderSelectContent — providerDeepLink', () => {
       />
     ));
     expect(screen.getByText('Google')).toBeDefined();
+  });
+
+  it('rejects a Manifest deep link on self-hosted installations', async () => {
+    const onClose = vi.fn();
+    const { container } = render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        providerDeepLink={{ providerId: 'manifest' }}
+        onUpdate={onUpdate}
+        onClose={onClose}
+      />
+    ));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(container.querySelector('.provider-modal__view--from-right')).toBeNull();
   });
 
   it('opens the custom-provider editor for a custom: deep link', async () => {

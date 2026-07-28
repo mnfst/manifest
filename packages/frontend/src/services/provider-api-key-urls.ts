@@ -10,8 +10,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   groq: 'https://console.groq.com/keys',
   huggingface: 'https://huggingface.co/settings/tokens',
   kilo: 'https://app.kilo.ai',
-  // LiteLLM virtual keys power the managed Manifest gateway (auto-mint or paste).
-  manifest: 'https://docs.litellm.ai/docs/proxy/virtual_keys',
+  manifest: 'https://credits.manifest.build',
   minimax: 'https://platform.minimax.io/user-center/basic-information/interface-key',
   mistral: 'https://console.mistral.ai/api-keys/',
   moonshot: 'https://platform.moonshot.ai/',
