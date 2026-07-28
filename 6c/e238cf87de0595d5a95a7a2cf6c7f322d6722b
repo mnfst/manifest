@@ -1,0 +1,141 @@
+packages/backend/test/request-recordings.e2e-spec.ts
+  s_8b2a2ccaff9d01::t_15e284287fc8f8 334-336,344,347-359,373,377,394-398
+  s_8b2a2ccaff9d01::t_0bc200be165c87 16-17,19,41,43-44,80-81,95,97-101,107,110,114-121,125-126,133-137,139,141-142,236-237,259-262,269,271-274,287-288,290-291
+  s_8b2a2ccaff9d01::t_8cfbc58009d775 145,155,157-159,168-172,189,266
+  s_8b2a2ccaff9d01::t_e83319a674073e 362-370
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_8b2a2ccaff9d01::t_0d6c0c56a16105 52,508,703
+  s_8b2a2ccaff9d01::t_8cfbc58009d775 674,715,743
+  s_8b2a2ccaff9d01::t_b892a61341840e 515-517,530,706,783-800
+packages/backend/src/common/services/request-recording-storage.service.ts
+  s_8b2a2ccaff9d01::t_5452e2d29a762e 236-241
+  s_8b2a2ccaff9d01::t_10235e93f4d414 13-14,16,232,248-249,252-253,256
+packages/backend/src/routing/proxy/proxy.module.ts
+  s_8b2a2ccaff9d01::t_8cfbc58009d775 35
+  s_8b2a2ccaff9d01::t_f2e77062f87cce 31,63
+packages/backend/src/database/request-recording-retention.service.spec.ts
+  s_8b2a2ccaff9d01::t_3a1cf4a42b7bfc 32-33,53-55,63,70,72,91-92,104,119,133-135
+  s_8b2a2ccaff9d01::t_6a19893ab8da70 48-49,122-123
+packages/backend/src/routing/proxy/attempt-recording.service.spec.ts
+  s_8b2a2ccaff9d01::t_5656270ba8b68d 75-77,86-88
+  s_8b2a2ccaff9d01::t_feb96ac1d8bbb3 48-50,52
+  s_8b2a2ccaff9d01::t_27d82ed0fd8f46 2-3,5-7,9,11-12,14-15,17-18,20,28-30,33-36,39-40,42-43,45,47,53,55-56,59-60,65,72,79-80,83-84,90-92
+packages/backend/src/database/migrations/1801400000000-MoveRecordingsToProviderAttempts.ts
+  s_8b2a2ccaff9d01::t_2a95ef45dad1c9 7-9,17
+  s_8b2a2ccaff9d01::t_5656270ba8b68d 22
+  s_8b2a2ccaff9d01::t_800245b80e7c7b 1-6,10-16,18-21,23-49
+packages/backend/src/common/utils/request-recording-codec.spec.ts
+  s_8b2a2ccaff9d01::t_31688d7c2a0404 7,18-51,61-66
+  s_8b2a2ccaff9d01::t_181c091a0554ca 59-60,67-69
+  s_8b2a2ccaff9d01::t_5e9a5eeb21f74f 70-71
+packages/backend/src/routing/proxy/attempt-recording-capture.ts
+  s_8b2a2ccaff9d01::t_5db1f5b80ad0e5 20-21,48
+  s_8b2a2ccaff9d01::t_715d8dc0697c3f 3,6,8,19,22,40-43,45-47,49-51
+  s_8b2a2ccaff9d01::t_5656270ba8b68d 1
+  s_8b2a2ccaff9d01::t_ae37e0ca42915a 11-18
+packages/backend/src/routing/proxy/attempt-recording.service.ts
+  s_8b2a2ccaff9d01::t_715d8dc0697c3f 10,22-24
+  s_8b2a2ccaff9d01::t_feb96ac1d8bbb3 34
+  s_8b2a2ccaff9d01::t_10235e93f4d414 4-5,12-13,17-18,21,25-28,31-33,35-39,41
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_8b2a2ccaff9d01::t_bfc57c041bb808 18,334
+packages/backend/src/database/migrations/1801400000000-MoveRecordingsToProviderAttempts.spec.ts
+  s_8b2a2ccaff9d01::t_800245b80e7c7b 1-9,11-15,17,19-26,28-30
+  s_8b2a2ccaff9d01::t_5656270ba8b68d 27
+  s_8b2a2ccaff9d01::t_b946c3b4876318 10,16,18
+packages/backend/src/analytics/services/message-details.service.ts
+  s_8b2a2ccaff9d01::t_6927a2d220f8d5 9,283,286-288,290,293,300-301,306
+  s_8b2a2ccaff9d01::t_6b3ee15ddddf66 90,95-100,159,270,279-282,284-285,289,291-292,294-297
+  s_8b2a2ccaff9d01::t_8cfbc58009d775 303
+  s_8b2a2ccaff9d01::t_7089f214f326e6 298-299
+packages/frontend/src/components/RequestDrawer.tsx
+  s_8b2a2ccaff9d01::t_4798e7143ed307 245
+  s_8b2a2ccaff9d01::t_0bdbb72d0a0069 12-15,35,69,169,211
+  s_8b2a2ccaff9d01::t_38291d588e7f2a 740-742
+  s_8b2a2ccaff9d01::t_9088b31929d134 11
+  s_8b2a2ccaff9d01::t_389f5ed4554783 743-744
+packages/frontend/tests/components/RequestMessages.test.tsx
+  s_8b2a2ccaff9d01::t_e5853a9ce6a6b1 23
+packages/backend/src/routing/proxy/attempt-recording-capture.spec.ts
+  s_8b2a2ccaff9d01::t_ae37e0ca42915a 1-4,7-17
+  s_8b2a2ccaff9d01::t_0cdbf67a97a761 6,18,49,51-53,55-57
+  s_8b2a2ccaff9d01::t_31688d7c2a0404 20,30,40,50,54
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_8b2a2ccaff9d01::t_e3b1b227e38acc 338,358,426-433
+  s_8b2a2ccaff9d01::t_8cfbc58009d775 394
+  s_8b2a2ccaff9d01::t_181c091a0554ca 199,202-203
+  s_8b2a2ccaff9d01::t_9eff7e9c37fd86 395,398,448
+packages/backend/src/entities/agent-message.entity.ts
+  s_8b2a2ccaff9d01::t_5db1f5b80ad0e5 41-44
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_8b2a2ccaff9d01::t_1cc7087fffc3c8 152,194-196,233,581,586-621,623,626,629,632-641,721-722,729,732,734-767,772-774
+  s_8b2a2ccaff9d01::t_8cfbc58009d775 697-700
+  s_8b2a2ccaff9d01::t_807f76960e4724 645-692,694-696,701-717
+  s_8b2a2ccaff9d01::t_e6901404507c6a 643-644
+packages/backend/src/database/request-recording-retention.service.ts
+  s_8b2a2ccaff9d01::t_c146acf584be87 30,69,110,151,158
+  s_8b2a2ccaff9d01::t_cd5d84b5c6d955 20-24,28-29,31-32,34,46,58,62-65,149,153
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_8b2a2ccaff9d01::t_867696e4bc8ee8 536-537
+  s_8b2a2ccaff9d01::t_179a14a242e2ff 530-535,538-553
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_8b2a2ccaff9d01::t_e5853a9ce6a6b1 219,222,224-251,254-256,263-267
+docker/DOCKER_README.md
+  s_8b2a2ccaff9d01::t_a426a6ebc7f5ca 353-356
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_8b2a2ccaff9d01::t_be49484f87c2c2 2054,2057,2071
+packages/backend/src/routing/proxy/attempt-recording.types.ts
+  s_8b2a2ccaff9d01::t_5db1f5b80ad0e5 7,9,11
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_8b2a2ccaff9d01::t_7e7544dbadf641 269-271,293,298,305,307
+  s_8b2a2ccaff9d01::t_8cfbc58009d775 290,308
+  s_8b2a2ccaff9d01::t_bfc57c041bb808 70-72,400
+  s_8b2a2ccaff9d01::t_5df2232eb10f68 396,488,502,506,558,618
+  s_8b2a2ccaff9d01::t_46692991842658 68,143,245,267,273-274,288-289,291-292,294-297,299-304,306,309
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_8b2a2ccaff9d01::t_b892a61341840e 64-65,290,307,410,415-417
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_8b2a2ccaff9d01::t_ca79cb731cb250 4,40-46,68-71,117-118
+  s_8b2a2ccaff9d01::t_5db1f5b80ad0e5 2
+packages/backend/src/common/utils/request-recording-codec.ts
+  s_8b2a2ccaff9d01::t_715d8dc0697c3f 8,12-13
+  s_8b2a2ccaff9d01::t_5452e2d29a762e 20
+  s_8b2a2ccaff9d01::t_5db1f5b80ad0e5 3,16-17
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_8b2a2ccaff9d01::t_d6ddc5ba33ae69 509
+  s_8b2a2ccaff9d01::t_bfc57c041bb808 67,979
+packages/backend/src/common/services/request-recording-storage.service.spec.ts
+  s_8b2a2ccaff9d01::t_6a19893ab8da70 225,228-230,246-247,249
+  s_8b2a2ccaff9d01::t_171a5d00b9adbf 232-234,267,284
+packages/backend/src/routing/proxy/provider-client.ts
+  s_8b2a2ccaff9d01::t_ca79cb731cb250 53-56,279-282,297-299,336,338-343
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_8b2a2ccaff9d01::t_ca79cb731cb250 450,762
+  s_8b2a2ccaff9d01::t_bfc57c041bb808 89,375,608
+packages/frontend/src/components/RequestMessages.tsx
+  s_8b2a2ccaff9d01::t_0bdbb72d0a0069 11,13,356
+  s_8b2a2ccaff9d01::t_e5853a9ce6a6b1 317
+.changeset/record-request-payloads.md
+  s_8b2a2ccaff9d01::t_8cfbc58009d775 2
+  s_8b2a2ccaff9d01::t_f7ee6ca382fcd1 5
+packages/backend/src/database/data-source-definitions.ts
+  s_8b2a2ccaff9d01::t_f2e77062f87cce 35,306
+packages/frontend/src/services/api/messages.ts
+  s_8b2a2ccaff9d01::t_0bdbb72d0a0069 24-29,31-34,124-125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "6ce238cf87de0595d5a95a7a2cf6c7f322d6722b",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
