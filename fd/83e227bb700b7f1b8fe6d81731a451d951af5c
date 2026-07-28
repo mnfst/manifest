@@ -2,6 +2,7 @@ packages/backend/src/routing/autofix/__tests__/autofix.module.spec.ts
   s_da4a6957073020::t_662ef9892164d3 6,24-34,39-51,83-100,103
   s_da4a6957073020::t_21ed4c60ef1aa5 101-102
   s_da4a6957073020::t_0653edfaf2beb3 104
+  s_da4a6957073020::t_7cc38800d887ee 35-38
 packages/backend/src/routing/autofix/healing-client.ts
   s_da4a6957073020::t_96e51b7f40b0df 2-7,17,24-28,35
 packages/backend/src/routing/autofix/autofix-health-probe.ts
@@ -25,6 +26,7 @@ packages/backend/src/routing/autofix/autofix.service.ts
   s_da4a6957073020::t_8f9b58b0449c81 16-21,53,137,159-160,188-190,250-257,259,261,359,381,400-404,407-408,410,426-428,524-527,529-531,552,558,570
   s_da4a6957073020::t_a601b035231dab 258
   s_da4a6957073020::t_fab1839b5f3891 499,569
+  s_da4a6957073020::t_7cc38800d887ee 6-10,405-406,409,411-422,424-425,528
 packages/backend/src/routing/autofix/instance-credential.service.spec.ts
   s_da4a6957073020::t_2db457d7d5ff8a 2
   s_da4a6957073020::t_2b90db04b1d136 27-31,148,154-169
@@ -41,6 +43,7 @@ packages/backend/src/routing/autofix/autofix.module.ts
   s_da4a6957073020::t_c6bf2e8f64d627 27-31
   s_da4a6957073020::t_fab1839b5f3891 81
   s_da4a6957073020::t_8f9b58b0449c81 6,9-10,14,17,49,52-59,66-69,73-79,83
+  s_da4a6957073020::t_7cc38800d887ee 34-42
 packages/backend/src/entities/instance-credential.entity.ts
   s_da4a6957073020::t_d237bc767f9e71 1-24
 packages/backend/src/routing/autofix/instance-credential.service.ts
@@ -50,6 +53,7 @@ docker/DOCKER_README.md
   s_da4a6957073020::t_d07a63ceb37049 450-456
   s_da4a6957073020::t_2aa737f2827307 434-449,457-465
   s_da4a6957073020::t_c351c04ac16452 466
+  s_da4a6957073020::t_7cc38800d887ee 410-411
 packages/backend/test/helpers.ts
   s_da4a6957073020::t_084b1bf055978d 35,79
 packages/backend/src/routing/autofix/__tests__/http-healing-client.spec.ts
@@ -65,6 +69,7 @@ packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
   s_da4a6957073020::t_7b67d4e69d474d 28
   s_da4a6957073020::t_d25f6a7f776d62 536,662-666,937-944,1152-1156
   s_da4a6957073020::t_c2bb9d37e09e2a 297-311,609-636
+  s_da4a6957073020::t_7cc38800d887ee 562,595
 packages/backend/src/routing/autofix/__tests__/autofix-health-probe.spec.ts
   s_da4a6957073020::t_448dafb40d9d94 19,22-23,28-29,43-61,63
   s_da4a6957073020::t_2a4439b6716269 62
