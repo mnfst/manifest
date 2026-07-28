@@ -1,0 +1,17 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "22a02d4ddb2c47a2dd16f69143d24dfa8e22f57e",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
