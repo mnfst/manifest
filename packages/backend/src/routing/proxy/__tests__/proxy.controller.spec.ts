@@ -2628,7 +2628,7 @@ describe('ProxyController', () => {
       expect(written.some((w) => w.includes('delta'))).toBe(true);
     });
 
-    it('should transform ChatGPT streaming through convertChatGptStreamChunk', async () => {
+    it('should transform ChatGPT streaming through the per-stream transformer', async () => {
       const mockProviderResp = createMockStreamResponse([
         'event: response.output_text.delta\ndata: {"delta":"hi"}\n\n',
       ]);
@@ -2649,9 +2649,12 @@ describe('ProxyController', () => {
         },
       });
 
-      (providerClient as Record<string, jest.Mock>).convertChatGptStreamChunk = jest
+      const transformer = jest
         .fn()
         .mockReturnValue('data: {"choices":[{"delta":{"content":"hi"}}]}\n\n');
+      (providerClient as Record<string, jest.Mock>).createChatGptStreamTransformer = jest
+        .fn()
+        .mockReturnValue(transformer);
 
       const req = mockRequest({
         messages: [{ role: 'user', content: 'test' }],
@@ -2661,9 +2664,7 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      expect(
-        (providerClient as Record<string, jest.Mock>).convertChatGptStreamChunk,
-      ).toHaveBeenCalled();
+      expect(transformer).toHaveBeenCalled();
       expect(written.some((w) => w.includes('delta'))).toBe(true);
     });
 

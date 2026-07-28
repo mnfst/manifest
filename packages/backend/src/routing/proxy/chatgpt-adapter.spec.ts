@@ -1,5 +1,6 @@
 import {
   collectChatGptSseResponse,
+  createChatGptStreamTransformer,
   fromResponsesResponse,
   ResponsesSseError,
   toResponsesRequest,
@@ -385,10 +386,30 @@ describe('chatgpt-adapter', () => {
       expect(empty.choices[0].delta).toEqual({ reasoning_content: '' });
     });
 
+    it('streams reasoning summary delta events with names it has never seen', () => {
+      // New model generations rename summary delta events; anything shaped
+      // `response.reasoning_summary*.delta` must keep streaming (issue #2531).
+      const chunk = 'event: response.reasoning_summary_part.delta\ndata: {"delta":"New shape."}';
+      const parsed = parseFrame(transformResponsesStreamChunk(chunk, 'gpt-5.6-sol'));
+
+      expect(parsed.choices[0].delta).toEqual({ reasoning_content: 'New shape.' });
+    });
+
+    it('extracts reasoning text from object-shaped deltas', () => {
+      const chunk =
+        'event: response.reasoning_summary_text.delta\ndata: {"delta":{"text":"Nested."}}';
+      const parsed = parseFrame(transformResponsesStreamChunk(chunk, 'gpt-5.6-sol'));
+
+      expect(parsed.choices[0].delta).toEqual({ reasoning_content: 'Nested.' });
+    });
+
     it('does not expose raw reasoning text deltas as summaries', () => {
       const chunk = 'event: response.reasoning_text.delta\ndata: {"delta":"Private chain."}';
 
       expect(transformResponsesStreamChunk(chunk, 'gpt-5.5')).toBeNull();
+
+      const renamed = 'event: response.reasoning_text_part.delta\ndata: {"delta":"Private."}';
+      expect(transformResponsesStreamChunk(renamed, 'gpt-5.6-sol')).toBeNull();
     });
 
     it('returns null for malformed reasoning delta payloads', () => {
@@ -450,6 +471,76 @@ describe('chatgpt-adapter', () => {
     });
   });
 
+  describe('createChatGptStreamTransformer', () => {
+    const completedWithReasoning =
+      'event: response.completed\ndata: {"response":{"output":[{"type":"reasoning","summary":[{"type":"summary_text","text":"Checked the constraints."}]},{"type":"message"}]}}';
+
+    function frames(raw: string | null): Array<Record<string, unknown>> {
+      return (raw ?? '')
+        .split('\n\n')
+        .filter((f) => f.startsWith('data: ') && !f.includes('[DONE]'))
+        .map((f) => JSON.parse(f.replace(/^data: /, '')) as Record<string, unknown>);
+    }
+
+    function delta(frame: Record<string, unknown>): Record<string, unknown> {
+      const choices = frame.choices as Array<Record<string, unknown>>;
+      return choices[0].delta as Record<string, unknown>;
+    }
+
+    it('backfills reasoning_content from the completed output when no summary deltas streamed', () => {
+      // The terminal event always carries the full reasoning output, whatever
+      // the upstream named its delta events — so an unrecognized delta shape
+      // degrades to a single terminal reasoning frame instead of losing the
+      // summary entirely (issue #2531).
+      const transform = createChatGptStreamTransformer('gpt-5.6-sol');
+      const out = frames(transform(completedWithReasoning));
+
+      expect(out).toHaveLength(2);
+      expect(delta(out[0])).toEqual({ reasoning_content: 'Checked the constraints.' });
+      expect((out[1].choices as Array<Record<string, unknown>>)[0].finish_reason).toBe('stop');
+    });
+
+    it('does not backfill when summary deltas already streamed', () => {
+      const transform = createChatGptStreamTransformer('gpt-5.6-sol');
+      transform('event: response.reasoning_summary_text.delta\ndata: {"delta":"Checked "}');
+      const out = frames(transform(completedWithReasoning));
+
+      expect(out).toHaveLength(1);
+      expect(delta(out[0])).toEqual({});
+    });
+
+    it('backfills reasoning_content on response.incomplete', () => {
+      const transform = createChatGptStreamTransformer('gpt-5.6-sol');
+      const out = frames(
+        transform(
+          'event: response.incomplete\ndata: {"response":{"incomplete_details":{"reason":"max_output_tokens"},"output":[{"type":"reasoning","summary":[{"type":"summary_text","text":"Partial reasoning."}]}]}}',
+        ),
+      );
+
+      expect(out).toHaveLength(2);
+      expect(delta(out[0])).toEqual({ reasoning_content: 'Partial reasoning.' });
+      expect((out[1].choices as Array<Record<string, unknown>>)[0].finish_reason).toBe('length');
+    });
+
+    it('emits only the finish frame when the completed output has no reasoning', () => {
+      const transform = createChatGptStreamTransformer('gpt-5.6-sol');
+      const out = frames(
+        transform('event: response.completed\ndata: {"response":{"output":[{"type":"message"}]}}'),
+      );
+
+      expect(out).toHaveLength(1);
+    });
+
+    it('keeps reasoning state per transformer instance', () => {
+      const streamed = createChatGptStreamTransformer('gpt-5.6-sol');
+      streamed('event: response.reasoning_summary_text.delta\ndata: {"delta":"Checked "}');
+      const fresh = createChatGptStreamTransformer('gpt-5.6-sol');
+
+      expect(frames(streamed(completedWithReasoning))).toHaveLength(1);
+      expect(frames(fresh(completedWithReasoning))).toHaveLength(2);
+    });
+  });
+
   describe('collectChatGptSseResponse', () => {
     it('collects text deltas and completed usage into a non-streaming envelope', () => {
       const sse = [
@@ -462,6 +553,17 @@ describe('chatgpt-adapter', () => {
       expect((choices[0].message as Record<string, unknown>).content).toBe('Hello world');
       expect(choices[0].finish_reason).toBe('stop');
       expect(out.usage).toMatchObject({ prompt_tokens: 1, completion_tokens: 2 });
+    });
+
+    it('collects renamed and object-shaped reasoning summary deltas', () => {
+      const sse = [
+        'event: response.reasoning_summary_part.delta\ndata: {"delta":{"text":"Renamed."}}',
+        'event: response.completed\ndata: {"response":{}}',
+      ].join('\n\n');
+      const out = collectChatGptSseResponse(sse, 'gpt-5.6-sol');
+      const choices = out.choices as Array<Record<string, unknown>>;
+      const message = choices[0].message as Record<string, unknown>;
+      expect(message.reasoning_content).toBe('Renamed.');
     });
 
     it('collects reasoning summary deltas into non-streaming reasoning_content', () => {

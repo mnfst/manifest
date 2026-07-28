@@ -683,7 +683,7 @@ describe('proxy-response-handler', () => {
         convertGoogleStreamChunk: jest.fn(),
         createAnthropicStreamTransformer: jest.fn().mockReturnValue(jest.fn()),
         createReasoningContentStreamTransformer: jest.fn().mockReturnValue(jest.fn()),
-        convertChatGptStreamChunk: jest.fn(),
+        createChatGptStreamTransformer: jest.fn().mockReturnValue(jest.fn()),
       };
     }
 
@@ -860,11 +860,12 @@ describe('proxy-response-handler', () => {
       );
     });
 
-    it('ChatGPT stream transformer delegates each chunk to convertChatGptStreamChunk', async () => {
+    it('ChatGPT stream transformer delegates each chunk to a per-stream transformer', async () => {
       const { res } = mockResponse();
       const forward = mockForward({ isChatGpt: true });
       const client = mockProviderClient();
-      client.convertChatGptStreamChunk.mockReturnValue('data: out\n\n');
+      const transformer = jest.fn().mockReturnValue('data: out\n\n');
+      client.createChatGptStreamTransformer.mockReturnValue(transformer);
       const meta = makeMeta();
 
       let captured: ((chunk: string) => string | null) | undefined;
@@ -880,7 +881,8 @@ describe('proxy-response-handler', () => {
       expect(captured).toBeDefined();
       const out = captured!('data: in\n\n');
       expect(out).toBe('data: out\n\n');
-      expect(client.convertChatGptStreamChunk).toHaveBeenCalledWith('data: in\n\n', 'gpt-4o');
+      expect(client.createChatGptStreamTransformer).toHaveBeenCalledWith('gpt-4o');
+      expect(transformer).toHaveBeenCalledWith('data: in\n\n');
     });
 
     it('should pipe without transformer for standard OpenAI responses', async () => {
@@ -954,8 +956,8 @@ describe('proxy-response-handler', () => {
       const { res } = mockResponse();
       const forward = mockForward({ isChatGpt: true });
       const client = mockProviderClient();
-      client.convertChatGptStreamChunk.mockReturnValue(
-        'data: {"choices":[{"delta":{"content":"x"}}]}\n\n',
+      client.createChatGptStreamTransformer.mockReturnValue(
+        jest.fn().mockReturnValue('data: {"choices":[{"delta":{"content":"x"}}]}\n\n'),
       );
       const meta = makeMeta();
 
@@ -989,7 +991,7 @@ describe('proxy-response-handler', () => {
       const { res } = mockResponse();
       const forward = mockForward({ isChatGpt: true });
       const client = mockProviderClient();
-      client.convertChatGptStreamChunk.mockReturnValue(null);
+      client.createChatGptStreamTransformer.mockReturnValue(jest.fn().mockReturnValue(null));
       const meta = makeMeta();
 
       let captured: ((chunk: string) => string | null) | undefined;
@@ -2509,7 +2511,7 @@ describe('proxy-response-handler', () => {
           .fn()
           .mockReturnValue({ chunk: 'data: out\n\n', signatures: [] }),
         createAnthropicStreamTransformer: jest.fn().mockReturnValue(jest.fn()),
-        convertChatGptStreamChunk: jest.fn(),
+        createChatGptStreamTransformer: jest.fn().mockReturnValue(jest.fn()),
       };
     }
 

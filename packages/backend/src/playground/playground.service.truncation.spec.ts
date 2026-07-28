@@ -96,7 +96,7 @@ interface Mocks {
     forward: jest.Mock;
     convertGoogleStreamChunk: jest.Mock;
     createAnthropicStreamTransformer: jest.Mock;
-    convertChatGptStreamChunk: jest.Mock;
+    createChatGptStreamTransformer: jest.Mock;
   };
   openaiOauth: { unwrapToken: jest.Mock };
   minimaxOauth: { unwrapToken: jest.Mock };
@@ -126,7 +126,7 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
       forward: jest.fn(),
       convertGoogleStreamChunk: jest.fn(),
       createAnthropicStreamTransformer: jest.fn(),
-      convertChatGptStreamChunk: jest.fn(),
+      createChatGptStreamTransformer: jest.fn(),
     },
     openaiOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
     minimaxOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },

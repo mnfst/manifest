@@ -16,7 +16,7 @@ import {
   sanitizeOpenAiBody,
   collectChatGptSseResponse as chatGptSseCollector,
   convertChatGptResponse as chatGptResponseConverter,
-  convertChatGptStreamChunk as chatGptStreamChunkConverter,
+  createChatGptStreamTransformer as chatGptStreamTransformerFactory,
   convertGoogleResponse as googleResponseConverter,
   convertGoogleStreamChunk as googleStreamChunkConverter,
   convertAnthropicResponse as anthropicResponseConverter,
@@ -683,7 +683,7 @@ export class ProviderClient {
    * wrapper frame, while remaining mockable via DI in tests.
    */
   readonly convertChatGptResponse = chatGptResponseConverter;
-  readonly convertChatGptStreamChunk = chatGptStreamChunkConverter;
+  readonly createChatGptStreamTransformer = chatGptStreamTransformerFactory;
   readonly convertGoogleResponse = googleResponseConverter;
   readonly convertGoogleStreamChunk = googleStreamChunkConverter;
   readonly convertAnthropicResponse = anthropicResponseConverter;
