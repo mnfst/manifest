@@ -50,16 +50,20 @@ vi.mock('../../src/services/formatters.js', async (importOriginal) => ({
   customProviderColor: () => '#000',
 }));
 
-const { mockRefreshProviderModels, mockToastSuccess, mockToastError } = vi.hoisted(() => ({
-  mockRefreshProviderModels: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
-}));
+const { mockRefreshModels, mockRefreshProviderModels, mockToastSuccess, mockToastError } = vi.hoisted(
+  () => ({
+    mockRefreshModels: vi.fn(),
+    mockRefreshProviderModels: vi.fn(),
+    mockToastSuccess: vi.fn(),
+    mockToastError: vi.fn(),
+  }),
+);
 
 vi.mock('../../src/services/api.js', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
+    refreshModels: (...args: unknown[]) => mockRefreshModels(...args),
     refreshProviderModels: (...args: unknown[]) => mockRefreshProviderModels(...args),
   };
 });
@@ -123,6 +127,7 @@ const apiKeyOnly: RoutingProvider[] = [
     is_active: true,
     has_api_key: true,
     connected_at: '2025-01-01',
+    models_fetched_at: new Date().toISOString(),
   },
 ];
 
@@ -137,6 +142,7 @@ const subAndApi: RoutingProvider[] = [
     // Subscriptions carry no API key, so a usable one is proven by cached models.
     cached_model_count: 3,
     connected_at: '2025-01-01',
+    models_fetched_at: new Date().toISOString(),
   },
 ];
 
@@ -155,11 +161,90 @@ const tiers: TierAssignment[] = [
 describe('ModelPickerModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockRefreshModels.mockResolvedValue({ ok: true });
     mockRefreshProviderModels.mockResolvedValue({
       ok: true,
       model_count: 4,
       last_fetched_at: '2026-04-12T10:00:00Z',
       error: null,
+    });
+  });
+
+  describe('automatic daily refresh', () => {
+    it('refreshes all provider models when the popup first opens with stale models', async () => {
+      const onProviderRefreshed = vi.fn();
+      const staleProviders = apiKeyOnly.map((provider) => ({
+        ...provider,
+        models_fetched_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+      }));
+
+      render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={staleProviders}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+          onProviderRefreshed={onProviderRefreshed}
+        />
+      ));
+
+      await waitFor(() => {
+        expect(mockRefreshModels).toHaveBeenCalledOnce();
+        expect(mockRefreshModels).toHaveBeenCalledWith('demo-agent');
+        expect(onProviderRefreshed).toHaveBeenCalledOnce();
+      });
+    });
+
+    it('does not refresh again when provider models were already fetched today', async () => {
+      const currentProviders = apiKeyOnly.map((provider) => ({
+        ...provider,
+        models_fetched_at: new Date().toISOString(),
+      }));
+
+      render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={currentProviders}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+
+      await Promise.resolve();
+      expect(mockRefreshModels).not.toHaveBeenCalled();
+    });
+
+    it('ignores stale inactive and custom providers', async () => {
+      const providers: RoutingProvider[] = [
+        { ...apiKeyOnly[0]!, is_active: false, models_fetched_at: null },
+        {
+          ...apiKeyOnly[0]!,
+          id: 'custom-1',
+          provider: 'custom:provider-id',
+          models_fetched_at: null,
+        },
+      ];
+
+      render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={providers}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+
+      await Promise.resolve();
+      expect(mockRefreshModels).not.toHaveBeenCalled();
     });
   });
 
