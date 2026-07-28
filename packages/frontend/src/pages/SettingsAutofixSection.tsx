@@ -112,7 +112,7 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
               aria-modal="true"
               aria-labelledby="autofix-consent-title"
               aria-describedby="autofix-consent-description"
-              style="max-width: 440px;"
+              style="max-width: 500px;"
             >
               <h2 class="modal-card__title" id="autofix-consent-title">
                 Enable hosted Auto-fix?
