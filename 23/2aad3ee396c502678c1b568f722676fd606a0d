@@ -1,0 +1,43 @@
+packages/backend/src/routing/oauth/core/index.ts
+  s_da4a6957073020::t_af9233af5e45a3 24-27
+packages/backend/src/routing/oauth/core/oauth-refresh-errors.spec.ts
+  s_da4a6957073020::t_e99e036f33111f 1-37
+packages/backend/src/routing/oauth/core/oauth-refresh-errors.ts
+  s_19dafa76275683::t_dbc019bfd12db7 1-39
+packages/backend/src/routing/oauth/core/redirect-pkce-oauth.base.ts
+  s_da4a6957073020::t_28e3976c68a7f6 24,250-253,316-340
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_da4a6957073020::t_826dee3b39d215 1026-1068
+.changeset/oauth-mark-dead-credential.md
+  s_da4a6957073020::t_6c3ab440267563 1-5
+packages/backend/src/routing/oauth/openai/openai-oauth.service.coverage.spec.ts
+  s_da4a6957073020::t_a57d4bb6b12eac 34,42,49,298-326
+packages/backend/src/routing/oauth/openai/openai-oauth.service.spec.ts
+  s_da4a6957073020::t_ae0d6738143eff 39
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_da4a6957073020::t_b2ad31960b364e 674-712
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "232aad3ee396c502678c1b568f722676fd606a0d",
+  "prompts": {},
+  "sessions": {
+    "s_19dafa76275683": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "12dc76df-6d38-443d-bc08-d6b93f82aaa9",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_da4a6957073020": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa761-5399-7d52-933d-f6a4b3c7d74a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
