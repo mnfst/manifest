@@ -115,13 +115,12 @@ export async function ensureManifestProvider(apiKey?: string): Promise<ManifestE
  * Best-effort auto-provision of the managed Manifest gateway connection so
  * eligible users see it in routing without visiting the BYOK page first.
  */
-export async function getProviders() {
-  try {
-    await ensureManifestProvider();
-  } catch {
-    // Non-fatal when auto is unavailable or LiteLLM is down.
-  }
-  return fetchJson<ProvidersResponse>('/providers');
+export function getProviders() {
+  const providers = fetchJson<ProvidersResponse>('/providers');
+  // Provision in the background so a slow or unavailable LiteLLM gateway never
+  // blocks provider configuration, routing screens, or agent creation.
+  void ensureManifestProvider().catch(() => undefined);
+  return providers;
 }
 
 /** Fetch provider USAGE stats (the expensive 30d aggregation). */

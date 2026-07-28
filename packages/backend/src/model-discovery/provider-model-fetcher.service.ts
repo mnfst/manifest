@@ -144,21 +144,18 @@ const parseOpenAI = createModelParser<OpenAIModelEntry>({
  */
 function parseManifestLiteLlm(body: unknown, provider: string): DiscoveredModel[] {
   const models = parseOpenAI(body, provider).filter((m) => !m.id.includes('*'));
-  const byBare = new Map<string, DiscoveredModel>();
+  const byId = new Map<string, DiscoveredModel>();
   for (const model of models) {
-    const slash = model.id.lastIndexOf('/');
-    const bare = slash >= 0 ? model.id.slice(slash + 1) : model.id;
-    const existing = byBare.get(bare);
-    if (!existing) {
-      byBare.set(bare, model);
-      continue;
-    }
-    // Prefer `vendor/model` over bare model id.
-    if (slash >= 0 && !existing.id.includes('/')) {
-      byBare.set(bare, model);
-    }
+    if (!byId.has(model.id)) byId.set(model.id, model);
   }
-  return Array.from(byBare.values());
+
+  const unique = Array.from(byId.values());
+  const prefixedBareIds = new Set(
+    unique
+      .filter((model) => model.id.includes('/'))
+      .map((model) => model.id.slice(model.id.lastIndexOf('/') + 1)),
+  );
+  return unique.filter((model) => model.id.includes('/') || !prefixedBareIds.has(model.id));
 }
 
 const parsePioneer = createModelParser<PioneerModelEntry>({

@@ -34,6 +34,15 @@ describe('litellm config', () => {
     expect(getLitellmMaxBudgetUsd()).toBe(10);
   });
 
+  it('accepts a non-negative max budget and rejects invalid values', () => {
+    process.env['LITELLM_MANIFEST_MAX_BUDGET'] = '12.5';
+    expect(getLitellmMaxBudgetUsd()).toBe(12.5);
+    process.env['LITELLM_MANIFEST_MAX_BUDGET'] = '-1';
+    expect(getLitellmMaxBudgetUsd()).toBe(10);
+    process.env['LITELLM_MANIFEST_MAX_BUDGET'] = 'invalid';
+    expect(getLitellmMaxBudgetUsd()).toBe(10);
+  });
+
   it('parses allowlist emails', () => {
     process.env['LITELLM_AUTO_PROVISION_ALLOWLIST'] = 'A@x.com, b@y.com ';
     expect(getLitellmAutoAllowlist()).toEqual(['a@x.com', 'b@y.com']);

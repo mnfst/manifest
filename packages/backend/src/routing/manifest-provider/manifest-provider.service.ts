@@ -19,6 +19,8 @@ export interface ManifestEnsureResult {
   auto_available: boolean;
 }
 
+const LITELLM_KEY_GENERATE_TIMEOUT_MS = 5_000;
+
 @Injectable()
 export class ManifestProviderService {
   private readonly logger = new Logger(ManifestProviderService.name);
@@ -30,16 +32,15 @@ export class ManifestProviderService {
     private readonly discoveryService: ModelDiscoveryService,
   ) {}
 
-  async findActiveConnection(tenantId: string): Promise<TenantProvider | null> {
+  async findConnection(tenantId: string): Promise<TenantProvider | null> {
     const rows = await this.providerRepo.find({
       where: {
         tenant_id: tenantId,
         provider: MANIFEST_PROVIDER_ID,
         auth_type: 'api_key',
-        is_active: true,
       },
     });
-    return rows[0] ?? null;
+    return rows.find((row) => row.is_active) ?? rows[0] ?? null;
   }
 
   /**
@@ -58,8 +59,8 @@ export class ManifestProviderService {
     const { tenantId, userId, userEmail, apiKey } = opts;
     const autoAvailable = isLitellmAutoEligible(userEmail);
 
-    const existing = await this.findActiveConnection(tenantId);
-    if (existing) {
+    const existing = await this.findConnection(tenantId);
+    if (existing?.is_active) {
       return {
         connected: true,
         connection_id: existing.id,
@@ -75,6 +76,17 @@ export class ManifestProviderService {
         connected: true,
         connection_id: row.id,
         source: 'manual',
+        auto_available: autoAvailable,
+      };
+    }
+
+    // An inactive row records an explicit disconnect. Do not silently
+    // reactivate it or mint a replacement budgeted key on a later config read.
+    if (existing) {
+      return {
+        connected: false,
+        connection_id: null,
+        source: 'none',
         auto_available: autoAvailable,
       };
     }
@@ -104,8 +116,8 @@ export class ManifestProviderService {
     apiKey: string,
   ): Promise<TenantProvider> {
     // Second check under write path — reject multi-connection for this provider.
-    const existing = await this.findActiveConnection(tenantId);
-    if (existing) {
+    const existing = await this.findConnection(tenantId);
+    if (existing?.is_active) {
       throw new BadRequestException('Manifest already has a connection for this workspace');
     }
 
@@ -152,14 +164,23 @@ export class ManifestProviderService {
       },
     };
 
-    const res = await fetch(getLitellmKeyGenerateUrl(), {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${masterKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
+    let res: Response;
+    try {
+      res = await fetch(getLitellmKeyGenerateUrl(), {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${masterKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(LITELLM_KEY_GENERATE_TIMEOUT_MS),
+      });
+    } catch (err) {
+      this.logger.error(
+        `LiteLLM /key/generate request failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      throw new BadRequestException('Failed to create LiteLLM virtual key');
+    }
 
     if (!res.ok) {
       const text = await res.text().catch(() => '');

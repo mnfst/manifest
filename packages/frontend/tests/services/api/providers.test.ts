@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as api from '../../../src/services/api';
 import {
   connectionUsage,
+  ensureManifestProvider,
   getProviders,
   getProviderUsage,
   mergeUsage,
@@ -50,6 +51,43 @@ describe('providers API client', () => {
     expect(url).toContain('/api/v1/providers');
     expect(url).not.toContain('/api/v1/providers/usage');
     expect((init as RequestInit).credentials).toBe('include');
+  });
+
+  it('does not wait for background Manifest provisioning before returning config', async () => {
+    const response = { providers: [], model_counts: {} };
+    let resolveEnsure!: (response: unknown) => void;
+    const fetchMock = vi.fn().mockImplementation((_url: string, init?: RequestInit) => {
+      if (init?.method === 'POST') {
+        return new Promise((resolve) => {
+          resolveEnsure = resolve;
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => response,
+        text: async () => JSON.stringify(response),
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(getProviders()).resolves.toEqual(response);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/providers/manifest/ensure'),
+      expect.objectContaining({ method: 'POST' }),
+    );
+
+    resolveEnsure({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        connected: false,
+        connection_id: null,
+        source: 'none',
+        auto_available: false,
+      }),
+    });
+    await ensureManifestProvider();
   });
 
   it('GETs provider USAGE from the dedicated endpoint', async () => {

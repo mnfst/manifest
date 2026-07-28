@@ -51,10 +51,29 @@ describe('ManifestProviderService', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
+  it('preserves an explicit disconnect without minting a replacement key', async () => {
+    providerRepo.find.mockResolvedValue([{ id: 'conn-1', is_active: false }]);
+
+    const result = await service.ensureConnection({
+      tenantId: 't1',
+      userId: 'u1',
+      userEmail: 'a@x.com',
+    });
+
+    expect(result).toEqual({
+      connected: false,
+      connection_id: null,
+      source: 'none',
+      auto_available: true,
+    });
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(providerService.upsertProvider).not.toHaveBeenCalled();
+  });
+
   it('stores a pasted virtual key (manual path)', async () => {
     providerRepo.find
-      .mockResolvedValueOnce([]) // findActive first
-      .mockResolvedValueOnce([]); // findActive inside persistKey
+      .mockResolvedValueOnce([]) // findConnection first
+      .mockResolvedValueOnce([]); // findConnection inside persistKey
     providerService.upsertProvider.mockResolvedValue({
       provider: { id: 'conn-2' },
       isNew: true,
@@ -80,6 +99,40 @@ describe('ManifestProviderService', () => {
       'u1',
     );
     expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects a concurrent second connection before persisting', async () => {
+    providerRepo.find
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: 'conn-existing', is_active: true }]);
+
+    await expect(
+      service.ensureConnection({
+        tenantId: 't1',
+        userId: 'u1',
+        userEmail: 'a@x.com',
+        apiKey: 'sk-virtual',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(providerService.upsertProvider).not.toHaveBeenCalled();
+  });
+
+  it('keeps a connection when model discovery fails', async () => {
+    providerRepo.find.mockResolvedValue([]);
+    providerService.upsertProvider.mockResolvedValue({
+      provider: { id: 'conn-2' },
+      isNew: true,
+    });
+    discoveryService.discoverModels.mockRejectedValueOnce(new Error('discovery unavailable'));
+
+    await expect(
+      service.ensureConnection({
+        tenantId: 't1',
+        userId: 'u1',
+        userEmail: 'a@x.com',
+        apiKey: 'sk-virtual',
+      }),
+    ).resolves.toMatchObject({ connected: true, connection_id: 'conn-2', source: 'manual' });
   });
 
   it('auto-mints a virtual key when eligible', async () => {
@@ -110,6 +163,7 @@ describe('ManifestProviderService', () => {
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({ Authorization: 'Bearer sk-master' }),
+        signal: expect.any(AbortSignal),
       }),
     );
     const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body as string);
@@ -147,5 +201,47 @@ describe('ManifestProviderService', () => {
         userEmail: 'a@x.com',
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('throws when the LiteLLM key request rejects or times out', async () => {
+    providerRepo.find.mockResolvedValue([]);
+    (global.fetch as jest.Mock).mockRejectedValue(new Error('request timed out'));
+
+    await expect(
+      service.ensureConnection({
+        tenantId: 't1',
+        userId: 'u1',
+        userEmail: 'a@x.com',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('throws when LiteLLM omits the virtual key', async () => {
+    providerRepo.find.mockResolvedValue([]);
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
+    });
+
+    await expect(
+      service.ensureConnection({
+        tenantId: 't1',
+        userId: 'u1',
+        userEmail: 'a@x.com',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects direct key minting when the master key is unavailable', async () => {
+    delete process.env['LITELLM_MASTER_KEY'];
+
+    await expect(
+      (
+        service as unknown as {
+          mintVirtualKey: (tenantId: string, email: string) => Promise<string>;
+        }
+      ).mintVirtualKey('t1', 'a@x.com'),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });

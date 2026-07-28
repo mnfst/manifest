@@ -929,6 +929,16 @@ describe('ProviderKeyForm', () => {
       expect(queryByText('+ Add another key')).toBeNull();
     });
 
+    it('does not show "+ Add another key" for the single-key Manifest provider', () => {
+      const def = makeProviderDef({ id: 'manifest', name: 'Manifest' });
+      const { queryByText } = mount({
+        provDef: def,
+        connected: true,
+        providers: [makeProvider({ provider: 'manifest' })],
+      });
+      expect(queryByText('+ Add another key')).toBeNull();
+    });
+
     it('switches to list mode (header "API Keys", <ul role="list">) when 2+ keys exist', () => {
       const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
       const { container } = mount({
