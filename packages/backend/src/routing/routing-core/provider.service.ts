@@ -1023,6 +1023,49 @@ export class ProviderService {
     return { notifications: [] };
   }
 
+  /**
+   * Soft-deactivate a subscription credential whose OAuth refresh token is
+   * permanently dead (invalid_refresh_token / refresh_token_reused / …).
+   *
+   * Unlike removeProvider / deactivateAllProviders this does NOT require routes
+   * to be cleared first — the credential can no longer authenticate, so leaving
+   * it active only causes the resolver to keep electing a dead primary. Cache
+   * is invalidated so the next resolve/proxy path stops selecting the row.
+   * Returns the number of rows flipped to inactive (0 when already gone).
+   */
+  async markSubscriptionCredentialDead(
+    tenantId: string,
+    provider: string,
+    label?: string,
+  ): Promise<number> {
+    const resolvedLabel = label ?? 'Default';
+    const activeRows = await this.providerRepo.find({
+      where: {
+        tenant_id: tenantId,
+        provider,
+        auth_type: 'subscription',
+        is_active: true,
+      },
+    });
+    const targets = activeRows.filter(
+      (row) => row.label.toLowerCase() === resolvedLabel.toLowerCase(),
+    );
+    if (targets.length === 0) return 0;
+
+    const now = new Date().toISOString();
+    for (const row of targets) {
+      row.is_active = false;
+      row.updated_at = now;
+    }
+    await this.providerRepo.save(targets);
+
+    for (const ownedAgentId of await this.listOwnedAgentIds(tenantId)) {
+      this.routingCache.invalidateAgent(ownedAgentId);
+    }
+    this.routingCache.invalidateTenant(tenantId);
+    return targets.length;
+  }
+
   async deactivateAllProviders(agentId: string, tenantId: string): Promise<void> {
     const activeProviders = await this.providerRepo.find({
       where: { tenant_id: tenantId, is_active: true },

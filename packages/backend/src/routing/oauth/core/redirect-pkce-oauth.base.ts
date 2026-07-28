@@ -21,6 +21,7 @@ import { oauthDoneHtml } from './callback-page';
 import { PendingStore } from './pending-store';
 import { parseOAuthTokenBlob, serializeOAuthTokenBlob, type OAuthTokenBlob } from './oauth-blob';
 import { coordinateOAuthRefresh, oauthRefreshKey } from './oauth-refresh-coordinator';
+import { isPermanentOAuthRefreshFailure, OAuthRefreshError } from './oauth-refresh-errors';
 
 export interface RedirectPkceOauthConfig {
   /** Provider id stored on `tenant_providers.provider_id`. */
@@ -246,7 +247,10 @@ export abstract class RedirectPkceOauthBaseService {
       this.logger.error(
         `${this.oauthConfig.providerId} token refresh failed: ${scrubSecrets(text)}`,
       );
-      throw new Error('Token refresh failed');
+      // Keep the body on the error so the caller can tell permanent grant
+      // failures (invalid/reused refresh token) from transient 5xx / rate
+      // limits — only the permanent class should deactivate the stored row.
+      throw new OAuthRefreshError('Token refresh failed', text, response.status);
     }
     const data = (await response.json()) as OAuthTokenResponse;
     return {
@@ -309,6 +313,31 @@ export abstract class RedirectPkceOauthBaseService {
       return resolved.t;
     } catch (err) {
       this.logger.error(`Failed to refresh ${providerId} token for agent=${agentId}: ${err}`);
+      if (isPermanentOAuthRefreshFailure(err)) {
+        // The stored refresh token can never mint a new access token. Flip the
+        // row inactive so resolve/proxy stop electing this dead primary (and
+        // so the dashboard shows the connection as disconnected). Persist
+        // failures after a successful rotate intentionally do NOT take this
+        // path — those throw a plain Error from the coordinator.
+        try {
+          const deactivated = await this.providerService.markSubscriptionCredentialDead(
+            tenantId,
+            providerId,
+            keyLabel,
+          );
+          if (deactivated > 0) {
+            this.logger.warn(
+              `Deactivated ${deactivated} dead ${providerId} subscription ` +
+                `credential(s) for tenant=${tenantId} label=${keyLabel ?? 'Default'} ` +
+                `after permanent refresh failure`,
+            );
+          }
+        } catch (markErr) {
+          this.logger.error(
+            `Failed to deactivate dead ${providerId} credential for tenant=${tenantId}: ${markErr}`,
+          );
+        }
+      }
       return null;
     }
   }

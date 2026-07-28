@@ -22,6 +22,10 @@ export {
   type CoordinatedRefreshParams,
 } from './oauth-refresh-coordinator';
 export {
+  OAuthRefreshError,
+  isPermanentOAuthRefreshFailure,
+} from './oauth-refresh-errors';
+export {
   ABSOLUTE_TIME_THRESHOLD_MS,
   toAbsoluteExpiryTimestamp,
   toPollIntervalMs,

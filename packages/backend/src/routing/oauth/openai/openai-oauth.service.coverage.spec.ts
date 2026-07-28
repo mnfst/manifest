@@ -31,6 +31,7 @@ function createProviderService() {
   const recalculateTiersForUser = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue(undefined);
   const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
+  const markSubscriptionCredentialDead = jest.fn().mockResolvedValue(0);
   return {
     svc: {
       upsertProvider,
@@ -38,12 +39,14 @@ function createProviderService() {
       recalculateTiersForUser,
       nextOAuthLabel,
       getFreshSubscriptionCredential,
+      markSubscriptionCredentialDead,
     } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
     recalculateTiersForUser,
     nextOAuthLabel,
     getFreshSubscriptionCredential,
+    markSubscriptionCredentialDead,
   };
 }
 
@@ -292,6 +295,35 @@ describe('OpenaiOauthService', () => {
       const blob = { t: 'old', r: 'rf', e: Date.now() + 1000 };
       fetchMock.mockRejectedValue(new Error('network'));
       expect(await svc.unwrapToken(JSON.stringify(blob), 'a', 'u')).toBeNull();
+      expect(providerService.markSubscriptionCredentialDead).not.toHaveBeenCalled();
+    });
+
+    it('deactivates the credential on permanent refresh-token failures', async () => {
+      const blob = { t: 'old', r: 'rf', e: Date.now() + 1000 };
+      fetchMock.mockResolvedValue(
+        mockResponse(400, {
+          error: 'invalid_refresh_token',
+          error_description: 'Could not validate your refresh token',
+        }),
+      );
+      providerService.getFreshSubscriptionCredential.mockResolvedValue(JSON.stringify(blob));
+      providerService.markSubscriptionCredentialDead.mockResolvedValue(1);
+
+      expect(await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'tenant-1', 'Work')).toBeNull();
+      expect(providerService.markSubscriptionCredentialDead).toHaveBeenCalledWith(
+        'tenant-1',
+        'openai',
+        'Work',
+      );
+    });
+
+    it('does not deactivate on transient provider refresh failures', async () => {
+      const blob = { t: 'old', r: 'rf', e: Date.now() + 1000 };
+      fetchMock.mockResolvedValue(mockResponse(503, { error: 'temporarily_unavailable' }));
+      providerService.getFreshSubscriptionCredential.mockResolvedValue(JSON.stringify(blob));
+
+      expect(await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'tenant-1')).toBeNull();
+      expect(providerService.markSubscriptionCredentialDead).not.toHaveBeenCalled();
     });
 
     // Regression: a still-valid access token must be returned even when the

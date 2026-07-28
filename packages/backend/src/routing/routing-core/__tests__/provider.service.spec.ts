@@ -671,6 +671,45 @@ describe('ProviderService — route-only cleanup paths', () => {
     });
   });
 
+  describe('markSubscriptionCredentialDead', () => {
+    it('deactivates the matching active subscription row and invalidates caches', async () => {
+      const row = {
+        id: 'sub-1',
+        provider: 'openai',
+        auth_type: 'subscription',
+        label: 'Work',
+        priority: 0,
+        is_active: true,
+      } as unknown as TenantProvider;
+      const sibling = {
+        id: 'sub-2',
+        provider: 'openai',
+        auth_type: 'subscription',
+        label: 'Default',
+        priority: 1,
+        is_active: true,
+      } as unknown as TenantProvider;
+      providerRepo.find.mockResolvedValueOnce([row, sibling]);
+
+      const count = await svc.markSubscriptionCredentialDead('tenant-1', 'openai', 'Work');
+
+      expect(count).toBe(1);
+      expect(row.is_active).toBe(false);
+      expect(sibling.is_active).toBe(true);
+      expect(providerRepo.save).toHaveBeenCalledWith([row]);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
+    });
+
+    it('returns 0 when no active matching subscription exists', async () => {
+      providerRepo.find.mockResolvedValueOnce([]);
+      await expect(svc.markSubscriptionCredentialDead('tenant-1', 'openai', 'Work')).resolves.toBe(
+        0,
+      );
+      expect(providerRepo.save).not.toHaveBeenCalled();
+    });
+  });
+
   describe('deactivateAllProviders', () => {
     it('updates providers and invalidates cache when no routes reference them', async () => {
       providerRepo.find.mockResolvedValueOnce([
