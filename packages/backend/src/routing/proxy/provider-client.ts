@@ -92,11 +92,11 @@ function wireFormat(endpoint: ProviderEndpoint): ProviderWireFormat | undefined 
   return undefined;
 }
 
-function inputWireFormat(apiMode: ProxyApiMode): ProviderWireFormat {
-  if (apiMode === 'responses') return 'openai_responses';
-  if (apiMode === 'messages') return 'anthropic_messages';
-  return 'openai_chat_completions';
-}
+const INPUT_WIRE_FORMATS: Record<ProxyApiMode, ProviderWireFormat> = {
+  chat_completions: 'openai_chat_completions',
+  messages: 'anthropic_messages',
+  responses: 'openai_responses',
+};
 
 interface BuiltProviderRequest {
   url: string;
@@ -278,7 +278,7 @@ export class ProviderClient {
     const needsChatBody =
       opts.apiMode !== undefined &&
       opts.apiMode !== 'chat_completions' &&
-      inputWireFormat(opts.apiMode) !== resolvedWireFormat;
+      INPUT_WIRE_FORMATS[opts.apiMode] !== resolvedWireFormat;
     const chatBody = needsChatBody ? await opts.resolveChatBody?.() : undefined;
 
     const bareModel = stripModelPrefix(model, endpointKey);
@@ -540,8 +540,7 @@ export class ProviderClient {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // Native matching targets read `body` directly. Cross-protocol targets
     // receive the lazily resolved Chat Completions view as `chatBody`.
-    const requestSource =
-      ctx.apiMode && ctx.apiMode !== 'chat_completions' ? (chatBody ?? body) : body;
+    const requestSource = chatBody ?? body;
 
     if (endpoint.format === 'google') {
       // Google accepts the API key via header (set by buildHeaders below) so

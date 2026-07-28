@@ -259,6 +259,12 @@ describe('ProxyService — orchestration', () => {
       await expect(
         svc.proxyRequest(baseOpts({ apiMode: 'responses', body: {} } as never)),
       ).rejects.toMatchObject({ code: 'M300', status: 400 });
+
+      await expect(
+        svc.proxyRequest(
+          baseOpts({ apiMode: 'responses', body: { instructions: '   ' } } as never),
+        ),
+      ).rejects.toMatchObject({ code: 'M300', status: 400 });
     });
 
     it('accepts string and object items in Responses input arrays', () => {
