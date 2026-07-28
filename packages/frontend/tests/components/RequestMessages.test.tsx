@@ -29,9 +29,9 @@ describe('RequestMessages', () => {
   afterEach(cleanup);
 
   it('renders the recorded conversation and response', () => {
-    const { getByText } = render(() => <RequestMessages recording={recording} />);
-    expect(getByText('What is the weather?')).toBeTruthy();
-    expect(getByText('Sunny.')).toBeTruthy();
+    const { getAllByText } = render(() => <RequestMessages recording={recording} />);
+    expect(getAllByText('What is the weather?')).toHaveLength(2);
+    expect(getAllByText('Sunny.')).toHaveLength(2);
   });
 
   it('shows tool definitions and raw payloads', () => {
@@ -66,17 +66,20 @@ describe('RequestMessages', () => {
       response_body: null,
     };
 
-    const { getByText, getAllByText } = render(() => (
+    const { container, getByText, getAllByText } = render(() => (
       <RequestMessages recording={detailedRecording} />
     ));
 
     expect(getByText('developer')).toBeTruthy();
-    expect(getByText('unknown')).toBeTruthy();
+    expect(getAllByText('unknown')).toHaveLength(2);
     expect(getByText('planner')).toBeTruthy();
+
+    const turns = container.querySelectorAll('.request-message__header');
+    fireEvent.click(turns[2]!);
     expect(getByText('Unknown tool')).toBeTruthy();
     expect(getAllByText('call-1')).toHaveLength(2);
     expect(getByText('[object Object]')).toBeTruthy();
-    expect(getByText('Tool complete')).toBeTruthy();
+    expect(getAllByText('Tool complete')).toHaveLength(2);
 
     fireEvent.click(getByText('Tools'));
     expect(getAllByText('custom')).toHaveLength(2);

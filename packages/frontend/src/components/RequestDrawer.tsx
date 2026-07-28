@@ -353,16 +353,14 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                 >
                   Attempts
                 </button>
-                <Show when={data()?.recording}>
-                  <button
-                    class="panel__tab"
-                    classList={{ 'panel__tab--active': drawerTab() === 'messages' }}
-                    role="tab"
-                    onClick={() => setDrawerTab('messages')}
-                  >
-                    Messages
-                  </button>
-                </Show>
+                <button
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': drawerTab() === 'messages' }}
+                  role="tab"
+                  onClick={() => setDrawerTab('messages')}
+                >
+                  Messages
+                </button>
               </div>
 
               {/* ── Messages view ── */}
@@ -472,11 +470,6 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                         </div>
 
                         <div class="drawer__body">
-                          {/* Request-level recorded conversation */}
-                          <Show when={tab() === 'messages'}>
-                            <RequestMessages recording={data()?.recording ?? null} />
-                          </Show>
-
                           {/* Details tab */}
                           <Show when={tab() === 'details'}>
                             <div class="drawer-metadata">

@@ -17,7 +17,7 @@ const CAP_CHARS = 2000;
 const SIDEBAR_DEFAULT = 220;
 const SIDEBAR_MIN = 150;
 const SIDEBAR_MAX = 480;
-const ALL_ROLES: Role[] = ['system', 'user', 'assistant', 'tool'];
+const ALL_ROLES: Role[] = ['system', 'user', 'assistant', 'tool', 'unknown'];
 
 interface OutlineRow {
   index: number;

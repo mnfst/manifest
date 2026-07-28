@@ -430,6 +430,7 @@
 .dark .conv-rail__role-pill--assistant { color: #6e7aff; }
 .conv-rail__role-pill--system    { color: hsl(var(--foreground)); }
 .conv-rail__role-pill--tool      { color: #ff006e; }
+.conv-rail__role-pill--unknown   { color: hsl(var(--muted-foreground)); }
 .conv-rail__list {
   flex: 1;
   overflow-y: auto;
@@ -479,6 +480,7 @@
 .dark .conv-outline-row__badge--assistant { background: hsl(231 72% 60% / 0.15); color: #6e7aff; }
 .conv-outline-row__badge--system    { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 .conv-outline-row__badge--tool      { background: hsl(330 100% 50% / 0.12); color: #ff006e; }
+.conv-outline-row__badge--unknown   { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
 .conv-outline-row__num {
   font-family: var(--font-mono);
   font-size: 10px;
