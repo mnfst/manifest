@@ -2,4 +2,4 @@
 'manifest': patch
 ---
 
-Replace monthly request COUNT scans with an exact tenant usage counter.
+Replace repeated monthly request COUNT scans with an exact counter and lazy deployment-safe baseline.

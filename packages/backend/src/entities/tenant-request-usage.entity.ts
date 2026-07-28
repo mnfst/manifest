@@ -12,4 +12,8 @@ export class TenantRequestUsage {
   /** PostgreSQL bigint values are returned as strings by the pg driver. */
   @Column('bigint', { default: 0 })
   request_count!: string;
+
+  /** True after pre-cutover usage has been added once for this tenant/window. */
+  @Column('boolean', { default: false })
+  baseline_counted!: boolean;
 }

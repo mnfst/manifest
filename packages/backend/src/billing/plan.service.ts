@@ -1,7 +1,7 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
+import { MANIFEST_ERROR_ORIGINS, PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
 import type {
   BillingEmailPreferences,
   BillingPrice,
@@ -12,13 +12,13 @@ import type {
 import type Stripe from 'stripe';
 import { Tenant } from '../entities/tenant.entity';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
-import { toSqlTimestamp } from '../common/utils/postgres-sql';
+import { toLocalSqlTimestamp, toSqlTimestamp } from '../common/utils/postgres-sql';
 import { getStripeClient, isBillingEnabled } from './billing.config';
 import {
   DEFAULT_BILLING_EMAIL_PREFERENCES,
   normalizeBillingEmailPreferences,
 } from './billing-email-preferences';
-import { requestQuotaWindowStartMs } from './request-quota-window';
+import { REQUEST_USAGE_CUTOVER_STATE, requestQuotaWindowStartMs } from './request-quota-window';
 
 const PRICE_CACHE_TTL_MS = 60 * 60 * 1000;
 const BILLING_PRICE_UNAVAILABLE: BillingPrice = Object.freeze({
@@ -32,6 +32,9 @@ const BILLING_PRICE_UNAVAILABLE: BillingPrice = Object.freeze({
 // the true rate stays visible.
 const COUNT_FAILURE_WARN_WINDOW_MS = 60 * 1000;
 const LIMIT_FAILURE_WARN_WINDOW_MS = 60 * 1000;
+const MANIFEST_ERROR_ORIGIN_SQL_LIST = MANIFEST_ERROR_ORIGINS.map((origin) => `'${origin}'`).join(
+  ', ',
+);
 
 function envLimit(name: string): number | undefined {
   const raw = process.env[name];
@@ -68,6 +71,7 @@ export class PlanService {
   private suppressedCountFailureWarns = 0;
   private lastLimitFailureWarnAtMs = 0;
   private suppressedLimitFailureWarns = 0;
+  private readonly requestUsageInitializations = new Map<string, Promise<number>>();
 
   constructor(
     @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
@@ -165,21 +169,137 @@ export class PlanService {
 
   /**
    * Routed requests recorded for the tenant in the effective monthly quota
-   * window. The database increments this counter atomically when the first real
-   * Provider Attempt is written, so this admission-path lookup is one PK read.
-   * Playground and zero-attempt Manifest rejections never increment it.
+   * window. The steady-state admission path is one PK read. The first request
+   * for a tenant/window lazily adds its pre-cutover baseline exactly once; the
+   * trigger can keep adding live requests while that initialization runs.
    */
   async countRequestsSince(tenantId: string | null, monthStartMs: number): Promise<number> {
     if (!tenantId) return 0;
     const windowStartMs = requestQuotaWindowStartMs(monthStartMs);
-    const rows: Array<{ n: number | string }> = await this.dataSource.query(
-      `SELECT "request_count" AS n
+    const windowStart = toSqlTimestamp(new Date(windowStartMs));
+    const rows: Array<{ n: number | string; baseline_counted: boolean }> =
+      await this.dataSource.query(
+        `SELECT "request_count" AS n, "baseline_counted"
          FROM "tenant_request_usage"
         WHERE "tenant_id" = $1
           AND "window_start" = $2`,
-      [tenantId, toSqlTimestamp(new Date(windowStartMs))],
+        [tenantId, windowStart],
+      );
+    if (rows[0]?.baseline_counted) return Number(rows[0].n);
+
+    const initializationKey = `${tenantId}:${windowStart}`;
+    const existing = this.requestUsageInitializations.get(initializationKey);
+    if (existing) return existing;
+
+    const pending = this.initializeRequestUsage(tenantId, windowStartMs, windowStart).finally(
+      () => {
+        if (this.requestUsageInitializations.get(initializationKey) === pending) {
+          this.requestUsageInitializations.delete(initializationKey);
+        }
+      },
     );
-    return Number(rows[0]?.n ?? 0);
+    this.requestUsageInitializations.set(initializationKey, pending);
+    return pending;
+  }
+
+  private async initializeRequestUsage(
+    tenantId: string,
+    windowStartMs: number,
+    windowStart: string,
+  ): Promise<number> {
+    const cutoverRows: Array<{ cutover_ms: number | string }> = await this.dataSource.query(
+      `SELECT EXTRACT(EPOCH FROM ("completed_at" AT TIME ZONE 'UTC')) * 1000 AS cutover_ms
+         FROM "backfill_state"
+        WHERE "name" = $1`,
+      [REQUEST_USAGE_CUTOVER_STATE],
+    );
+    const cutoverMs = Number(cutoverRows[0]?.cutover_ms);
+    if (!Number.isFinite(cutoverMs)) {
+      throw new Error(`Missing request usage cutover state: ${REQUEST_USAGE_CUTOVER_STATE}`);
+    }
+
+    let baseline = 0;
+    if (windowStartMs < cutoverMs) {
+      const storageTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+      const baselineRows: Array<{ n: number | string }> = await this.dataSource.query(
+        `WITH cutover AS (
+           SELECT ("completed_at" AT TIME ZONE 'UTC') AT TIME ZONE $3::text AS local_timestamp
+             FROM "backfill_state"
+            WHERE "name" = $4
+         )
+         SELECT COUNT(*)::bigint AS n
+           FROM (
+             SELECT r."id"
+               FROM "requests" r
+              CROSS JOIN cutover c
+              WHERE r."tenant_id" = $1
+                AND r."timestamp" >= $2
+                AND EXISTS (
+                  SELECT 1
+                    FROM "agent_messages" pa
+                   WHERE pa."request_id" = r."id"
+                     AND pa."timestamp" < c.local_timestamp
+                     AND (
+                       pa."error_origin" IS NULL
+                       OR pa."error_origin" NOT IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST})
+                     )
+                )
+                AND NOT EXISTS (
+                  SELECT 1
+                    FROM "agents" a
+                   WHERE a."id" = r."agent_id"
+                     AND a."is_playground" = true
+                )
+             UNION ALL
+             SELECT m."id"
+               FROM "agent_messages" m
+              CROSS JOIN cutover c
+              WHERE m."tenant_id" = $1
+                AND m."request_id" IS NULL
+                AND m."timestamp" >= $2
+                AND m."timestamp" < c.local_timestamp
+                AND COALESCE(m."superseded", false) = false
+                AND (
+                  m."error_origin" IS NULL
+                  OR m."error_origin" NOT IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST})
+                )
+                AND NOT EXISTS (
+                  SELECT 1
+                    FROM "agents" a
+                   WHERE a."id" = m."agent_id"
+                     AND a."is_playground" = true
+                )
+           ) historical`,
+        [
+          tenantId,
+          toLocalSqlTimestamp(new Date(windowStartMs)),
+          storageTimeZone,
+          REQUEST_USAGE_CUTOVER_STATE,
+        ],
+      );
+      baseline = Number(baselineRows[0]?.n ?? 0);
+    }
+
+    const initializedRows: Array<{ n: number | string }> = await this.dataSource.query(
+      `INSERT INTO "tenant_request_usage" (
+         "tenant_id",
+         "window_start",
+         "request_count",
+         "baseline_counted"
+       )
+       VALUES ($1, $2, $3, true)
+       ON CONFLICT ("tenant_id", "window_start")
+       DO UPDATE SET
+         "request_count" = "tenant_request_usage"."request_count" +
+           CASE
+             WHEN "tenant_request_usage"."baseline_counted" THEN 0
+             ELSE EXCLUDED."request_count"
+           END,
+         "baseline_counted" = true
+       RETURNING "request_count" AS n`,
+      [tenantId, windowStart, baseline],
+    );
+    return Number(initializedRows[0]?.n ?? baseline);
   }
 
   /** Routed requests for the tenant so far this calendar month (UTC). */

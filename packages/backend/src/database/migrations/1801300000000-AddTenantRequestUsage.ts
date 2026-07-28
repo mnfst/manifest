@@ -1,5 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
-import { requestQuotaResetAtMs } from '../../billing/request-quota-window';
+import {
+  REQUEST_USAGE_CUTOVER_STATE,
+  requestQuotaResetAtMs,
+} from '../../billing/request-quota-window';
 import { toLocalSqlTimestamp, toSqlTimestamp } from '../../common/utils/postgres-sql';
 
 // Keep the migration self-contained: these are the request-level origins at
@@ -12,10 +15,10 @@ const MANIFEST_ERROR_ORIGIN_SQL_LIST = MANIFEST_ERROR_ORIGINS.map((origin) => `'
 /**
  * Replaces admission-path COUNT scans with one exact monthly counter lookup.
  *
- * The trigger increments in the same transaction that inserts the first real
- * Provider Attempt. Request.quota_counted makes retries and fallback attempts
- * idempotent. The temporary agent_messages marker keeps the initial legacy
- * seed exact if the online request backfill links a row concurrently.
+ * The deploy migration never scans historical telemetry. It atomically records
+ * a cutover while installing the trigger, then active tenants initialize their
+ * pre-cutover baseline once through PlanService. Post-cutover attempts update
+ * the counter transactionally and merge safely with that lazy baseline.
  */
 export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
   name = 'AddTenantRequestUsage1801300000000';
@@ -35,18 +38,19 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
           "tenant_id" varchar NOT NULL,
           "window_start" timestamp NOT NULL,
           "request_count" bigint NOT NULL DEFAULT 0,
+          "baseline_counted" boolean NOT NULL DEFAULT false,
           CONSTRAINT "PK_tenant_request_usage" PRIMARY KEY ("tenant_id", "window_start"),
           CONSTRAINT "CHK_tenant_request_usage_non_negative" CHECK ("request_count" >= 0)
         )
       `);
       await queryRunner.query(
+        `ALTER TABLE "tenant_request_usage" ADD COLUMN IF NOT EXISTS "baseline_counted" boolean NOT NULL DEFAULT false`,
+      );
+      await queryRunner.query(
         `ALTER TABLE "requests" ADD COLUMN IF NOT EXISTS "quota_counted" boolean NOT NULL DEFAULT false`,
       );
       await queryRunner.query(
         `ALTER TABLE "requests" ADD COLUMN IF NOT EXISTS "quota_window_start" timestamp`,
-      );
-      await queryRunner.query(
-        `ALTER TABLE "agent_messages" ADD COLUMN IF NOT EXISTS "legacy_quota_counted" boolean NOT NULL DEFAULT false`,
       );
 
       await queryRunner.query(`
@@ -55,10 +59,20 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
         LANGUAGE plpgsql
         AS $$
         DECLARE
+          counter_cutover_at timestamp;
           counted_tenant_id varchar;
           counted_window_start timestamp;
         BEGIN
           IF NEW.request_id IS NULL THEN
+            RETURN NEW;
+          END IF;
+
+          SELECT "completed_at"
+            INTO counter_cutover_at
+            FROM "backfill_state"
+           WHERE "name" = '${REQUEST_USAGE_CUTOVER_STATE}';
+
+          IF counter_cutover_at IS NULL THEN
             RETURN NEW;
           END IF;
 
@@ -67,29 +81,43 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
               RETURN NEW;
             END IF;
 
-            IF OLD.legacy_quota_counted THEN
-              UPDATE "requests" r
-                 SET "quota_counted" = true,
-                     "quota_window_start" = COALESCE(
-                       r."quota_window_start",
-                       GREATEST(
-                         date_trunc(
-                           'month',
-                           (r."timestamp" AT TIME ZONE '${storageTimeZoneSql}') AT TIME ZONE 'UTC'
-                         ),
-                         '${resetWindow}'::timestamp
-                       )
-                     )
-               WHERE "id" = NEW.request_id
-                 AND "quota_counted" = false;
-              RETURN NEW;
-            END IF;
-
-            IF OLD.timestamp < '${resetCutoff}'::timestamp
+            IF (OLD."timestamp" AT TIME ZONE '${storageTimeZoneSql}') AT TIME ZONE 'UTC'
+                 < counter_cutover_at
                OR COALESCE(OLD.superseded, false)
                OR OLD.error_origin IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST}) THEN
               RETURN NEW;
             END IF;
+          ELSIF COALESCE(NEW.superseded, false)
+             OR NEW.error_origin IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST}) THEN
+            RETURN NEW;
+          END IF;
+
+          IF (NEW."timestamp" AT TIME ZONE '${storageTimeZoneSql}') AT TIME ZONE 'UTC'
+               < counter_cutover_at THEN
+            RETURN NEW;
+          END IF;
+
+          -- A Request with any pre-cutover attempt belongs entirely to the lazy
+          -- historical baseline. Mark it handled so a later fallback cannot
+          -- also increment the live counter.
+          IF EXISTS (
+            SELECT 1
+              FROM "agent_messages" prior
+             WHERE prior."request_id" = NEW.request_id
+               AND prior."id" <> NEW.id
+               AND (
+                 (prior."timestamp" AT TIME ZONE '${storageTimeZoneSql}') AT TIME ZONE 'UTC'
+               ) < counter_cutover_at
+               AND (
+                 prior."error_origin" IS NULL
+                 OR prior."error_origin" NOT IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST})
+               )
+          ) THEN
+            UPDATE "requests"
+               SET "quota_counted" = true
+             WHERE "id" = NEW.request_id
+               AND "quota_counted" = false;
+            RETURN NEW;
           END IF;
 
           UPDATE "requests" r
@@ -121,8 +149,18 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
             RETURN NEW;
           END IF;
 
-          INSERT INTO "tenant_request_usage" ("tenant_id", "window_start", "request_count")
-          VALUES (counted_tenant_id, counted_window_start, 1)
+          INSERT INTO "tenant_request_usage" (
+            "tenant_id",
+            "window_start",
+            "request_count",
+            "baseline_counted"
+          )
+          VALUES (
+            counted_tenant_id,
+            counted_window_start,
+            1,
+            counted_window_start >= counter_cutover_at
+          )
           ON CONFLICT ("tenant_id", "window_start")
           DO UPDATE SET "request_count" = "tenant_request_usage"."request_count" + 1;
 
@@ -130,111 +168,43 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
         END;
         $$
       `);
-      await queryRunner.query(`
-        DO $$
-        BEGIN
-          IF NOT EXISTS (
-            SELECT 1
-              FROM pg_trigger
-             WHERE tgname = 'TRG_agent_messages_count_tenant_request_usage'
-               AND tgrelid = 'agent_messages'::regclass
-          ) THEN
-            CREATE TRIGGER "TRG_agent_messages_count_tenant_request_usage"
-            AFTER INSERT OR UPDATE OF "request_id" ON "agent_messages"
-            FOR EACH ROW EXECUTE FUNCTION "count_tenant_request_usage"();
-          END IF;
-        END
-        $$
-      `);
 
-      await queryRunner.query(
-        `
-          WITH counted AS (
-            UPDATE "requests" r
-               SET "quota_counted" = true,
-                   "quota_window_start" = COALESCE(
-                     r."quota_window_start",
-                     GREATEST(
-                       date_trunc(
-                         'month',
-                         (r."timestamp" AT TIME ZONE $3::text) AT TIME ZONE 'UTC'
-                       ),
-                       $2::timestamp
-                     )
-                   )
-             WHERE r."quota_counted" = false
-               AND r."tenant_id" IS NOT NULL
-               AND r."timestamp" >= $1
-               AND EXISTS (
-                 SELECT 1 FROM "agent_messages" pa WHERE pa."request_id" = r."id"
-               )
-               AND NOT EXISTS (
-                 SELECT 1
-                   FROM "agents" a
-                  WHERE a."id" = r."agent_id"
-                    AND a."is_playground" = true
-               )
-            RETURNING r."tenant_id", r."quota_window_start"
-          ), totals AS (
-            SELECT "tenant_id",
-                   "quota_window_start" AS "window_start",
-                   COUNT(*)::bigint AS "request_count"
-              FROM counted
-          GROUP BY "tenant_id", "window_start"
+      // The lock makes cutover publication and trigger installation atomic:
+      // rows committed before the lock are historical; rows after commit see
+      // the trigger. Five-second lock_timeout makes a busy deploy retry instead
+      // of pausing writes indefinitely.
+      await queryRunner.startTransaction();
+      try {
+        await queryRunner.query(`LOCK TABLE "agent_messages" IN SHARE ROW EXCLUSIVE MODE`);
+        await queryRunner.query(`
+          INSERT INTO "backfill_state" ("name", "completed_at")
+          VALUES (
+            '${REQUEST_USAGE_CUTOVER_STATE}',
+            clock_timestamp() AT TIME ZONE 'UTC'
           )
-          INSERT INTO "tenant_request_usage" ("tenant_id", "window_start", "request_count")
-          SELECT "tenant_id", "window_start", "request_count"
-            FROM totals
-          ON CONFLICT ("tenant_id", "window_start")
-          DO UPDATE SET "request_count" =
-            "tenant_request_usage"."request_count" + EXCLUDED."request_count"
-        `,
-        [resetCutoff, resetWindow, storageTimeZone],
-      );
-
-      await queryRunner.query(
-        `
-          WITH counted AS (
-            UPDATE "agent_messages" m
-               SET "legacy_quota_counted" = true
-             WHERE m."legacy_quota_counted" = false
-               AND m."request_id" IS NULL
-               AND m."tenant_id" IS NOT NULL
-               AND m."timestamp" >= $1
-               AND COALESCE(m."superseded", false) = false
-               AND (
-                 m."error_origin" IS NULL
-                 OR m."error_origin" NOT IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST})
-               )
-               AND NOT EXISTS (
-                 SELECT 1
-                   FROM "agents" a
-                  WHERE a."id" = m."agent_id"
-                    AND a."is_playground" = true
-               )
-            RETURNING m."tenant_id", m."timestamp"
-          ), totals AS (
-            SELECT "tenant_id",
-                   GREATEST(
-                     date_trunc(
-                       'month',
-                       ("timestamp" AT TIME ZONE $3::text) AT TIME ZONE 'UTC'
-                     ),
-                     $2::timestamp
-                   ) AS "window_start",
-                   COUNT(*)::bigint AS "request_count"
-              FROM counted
-          GROUP BY "tenant_id", "window_start"
-          )
-          INSERT INTO "tenant_request_usage" ("tenant_id", "window_start", "request_count")
-          SELECT "tenant_id", "window_start", "request_count"
-            FROM totals
-          ON CONFLICT ("tenant_id", "window_start")
-          DO UPDATE SET "request_count" =
-            "tenant_request_usage"."request_count" + EXCLUDED."request_count"
-        `,
-        [resetCutoff, resetWindow, storageTimeZone],
-      );
+          ON CONFLICT ("name") DO NOTHING
+        `);
+        await queryRunner.query(`
+          DO $$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1
+                FROM pg_trigger
+               WHERE tgname = 'TRG_agent_messages_count_tenant_request_usage'
+                 AND tgrelid = 'agent_messages'::regclass
+            ) THEN
+              CREATE TRIGGER "TRG_agent_messages_count_tenant_request_usage"
+              AFTER INSERT OR UPDATE OF "request_id" ON "agent_messages"
+              FOR EACH ROW EXECUTE FUNCTION "count_tenant_request_usage"();
+            END IF;
+          END
+          $$
+        `);
+        await queryRunner.commitTransaction();
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        throw error;
+      }
     } finally {
       await queryRunner.query(`RESET lock_timeout`);
     }
@@ -248,7 +218,7 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
       );
       await queryRunner.query(`DROP FUNCTION IF EXISTS "count_tenant_request_usage"()`);
       await queryRunner.query(
-        `ALTER TABLE "agent_messages" DROP COLUMN IF EXISTS "legacy_quota_counted"`,
+        `DELETE FROM "backfill_state" WHERE "name" = '${REQUEST_USAGE_CUTOVER_STATE}'`,
       );
       await queryRunner.query(`ALTER TABLE "requests" DROP COLUMN IF EXISTS "quota_window_start"`);
       await queryRunner.query(`ALTER TABLE "requests" DROP COLUMN IF EXISTS "quota_counted"`);

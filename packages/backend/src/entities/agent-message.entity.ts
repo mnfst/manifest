@@ -32,10 +32,6 @@ export class AgentMessage {
   @Column('varchar', { nullable: true })
   request_id!: string | null;
 
-  /** Migration marker for an unlinked legacy row already seeded into request usage. */
-  @Column('boolean', { default: false })
-  legacy_quota_counted!: boolean;
-
   /**
    * Positive provider-call start order within the parent Request. NULL only for
    * legacy rows that have not been assigned an unambiguous order.

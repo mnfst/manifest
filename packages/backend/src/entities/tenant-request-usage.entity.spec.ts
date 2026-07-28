@@ -12,4 +12,13 @@ describe('TenantRequestUsage', () => {
 
     expect(primaryColumns).toEqual(['tenant_id', 'window_start']);
   });
+
+  it('tracks whether the historical baseline was initialized', () => {
+    const baselineColumn = getMetadataArgsStorage().columns.find(
+      (column) =>
+        column.target === TenantRequestUsage && column.propertyName === 'baseline_counted',
+    );
+
+    expect(baselineColumn?.options).toMatchObject({ default: false });
+  });
 });

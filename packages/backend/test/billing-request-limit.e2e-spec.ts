@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import request from 'supertest';
 import { createTestApp, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
 import { PlanService } from '../src/billing/plan.service';
+import { REQUEST_USAGE_CUTOVER_STATE } from '../src/billing/request-quota-window';
 
 // Enforces the monthly routed-request cap on the /v1/* proxy. Billing env must
 // be set BEFORE the app is created so isBillingEnabled() resolves true. We drive
@@ -66,6 +67,12 @@ beforeAll(async () => {
     "periodEnd" timestamptz,
     "cancelAtPeriodEnd" boolean DEFAULT false
   )`);
+  await ds.query(
+    `INSERT INTO "backfill_state" ("name", "completed_at")
+     VALUES ($1, clock_timestamp() AT TIME ZONE 'UTC')
+     ON CONFLICT ("name") DO NOTHING`,
+    [REQUEST_USAGE_CUTOVER_STATE],
+  );
 });
 
 afterAll(async () => {

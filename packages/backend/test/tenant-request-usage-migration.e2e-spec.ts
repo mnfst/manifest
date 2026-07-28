@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { AddTenantRequestUsage1801300000000 } from '../src/database/migrations/1801300000000-AddTenantRequestUsage';
+import { PlanService } from '../src/billing/plan.service';
 import { toSqlTimestamp } from '../src/common/utils/postgres-sql';
 
 const TENANT = 'usage-tenant';
@@ -7,6 +8,9 @@ const AGENT = 'usage-agent';
 const PLAYGROUND = 'usage-playground';
 const WINDOW_START = toSqlTimestamp(new Date('2026-07-09T09:06:52Z'));
 const REQUEST_TIMESTAMP = '2026-07-20 12:00:00';
+let afterCutoverTimestamp: string;
+let futureTimestamp: string;
+let futureWindow: string;
 
 async function runMigration(
   ds: DataSource,
@@ -64,15 +68,22 @@ async function insertAttempt(
   );
 }
 
-async function usageCount(ds: DataSource, windowStart = WINDOW_START): Promise<number> {
-  const rows: Array<{ request_count: string }> = await ds.query(
-    `SELECT "request_count"
+async function usageRow(
+  ds: DataSource,
+  windowStart = WINDOW_START,
+): Promise<{ count: number; initialized: boolean } | null> {
+  const rows: Array<{ request_count: string; baseline_counted: boolean }> = await ds.query(
+    `SELECT "request_count", "baseline_counted"
        FROM "tenant_request_usage"
       WHERE "tenant_id" = $1
         AND "window_start" = $2`,
     [TENANT, windowStart],
   );
-  return Number(rows[0]?.request_count ?? 0);
+  if (!rows[0]) return null;
+  return {
+    count: Number(rows[0].request_count),
+    initialized: rows[0].baseline_counted,
+  };
 }
 
 describe('AddTenantRequestUsage migration (e2e)', () => {
@@ -117,14 +128,41 @@ describe('AddTenantRequestUsage migration (e2e)', () => {
     await insertAttempt(ds, 'seed-manifest-rejection', { errorOrigin: 'policy' });
 
     await runMigration(ds, 'up');
+    const cutoverTimes = await ds.query(
+      `SELECT
+         to_char(
+           (
+             ("completed_at" + interval '1 minute') AT TIME ZONE 'UTC'
+           ) AT TIME ZONE $1::text,
+           'YYYY-MM-DD HH24:MI:SS'
+         ) AS "afterCutover",
+         to_char(
+           (
+             (
+               date_trunc('month', "completed_at") + interval '1 month 12 hours'
+             ) AT TIME ZONE 'UTC'
+           ) AT TIME ZONE $1::text,
+           'YYYY-MM-DD HH24:MI:SS'
+         ) AS "futureTimestamp",
+         to_char(
+           date_trunc('month', "completed_at") + interval '1 month',
+           'YYYY-MM-DD HH24:MI:SS'
+         ) AS "futureWindow"
+       FROM "backfill_state"
+      WHERE "name" = 'tenant_request_usage_cutover_v1'`,
+      [Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'],
+    );
+    afterCutoverTimestamp = cutoverTimes[0].afterCutover;
+    futureTimestamp = cutoverTimes[0].futureTimestamp;
+    futureWindow = cutoverTimes[0].futureWindow;
   }, 60_000);
 
   afterAll(async () => {
     if (ds?.isInitialized) await ds.destroy();
   });
 
-  it('seeds linked and eligible unlinked Requests without counting exclusions', async () => {
-    expect(await usageCount(ds)).toBe(2);
+  it('publishes only schema and cutover metadata during migration', async () => {
+    expect(await usageRow(ds)).toBeNull();
 
     const requests = await ds.query(
       `SELECT "id", "quota_counted"
@@ -133,37 +171,58 @@ describe('AddTenantRequestUsage migration (e2e)', () => {
      ORDER BY "id"`,
     );
     expect(requests).toEqual([
-      { id: 'seed-linked', quota_counted: true },
+      { id: 'seed-linked', quota_counted: false },
       { id: 'seed-playground', quota_counted: false },
       { id: 'seed-zero-attempt', quota_counted: false },
     ]);
 
-    const attempts = await ds.query(
-      `SELECT "id", "legacy_quota_counted"
-         FROM "agent_messages"
-        WHERE "id" IN ('seed-legacy', 'seed-legacy-superseded', 'seed-manifest-rejection')
-     ORDER BY "id"`,
+    const legacyColumn = await ds.query(
+      `SELECT 1
+         FROM information_schema.columns
+        WHERE table_name = 'agent_messages'
+          AND column_name = 'legacy_quota_counted'`,
     );
-    expect(attempts).toEqual([
-      { id: 'seed-legacy', legacy_quota_counted: true },
-      { id: 'seed-legacy-superseded', legacy_quota_counted: false },
-      { id: 'seed-manifest-rejection', legacy_quota_counted: false },
-    ]);
+    expect(legacyColumn).toEqual([]);
   });
 
-  it('keeps one exact count through live attempts and legacy linking', async () => {
-    await insertRequest(ds, 'live-request');
-    await insertAttempt(ds, 'live-attempt-1', { requestId: 'live-request' });
-    await insertAttempt(ds, 'live-attempt-2', { requestId: 'live-request' });
+  it('lazily initializes the exact historical baseline once', async () => {
+    const planService = new PlanService({} as never, ds);
 
-    expect(await usageCount(ds)).toBe(3);
-    await insertRequest(ds, 'live-playground', PLAYGROUND);
+    expect(await planService.countRequestsSince(TENANT, Date.UTC(2026, 6, 1))).toBe(2);
+    expect(await usageRow(ds)).toEqual({ count: 2, initialized: true });
+    expect(await planService.countRequestsSince(TENANT, Date.UTC(2026, 6, 1))).toBe(2);
+    expect(await usageRow(ds)).toEqual({ count: 2, initialized: true });
+  });
+
+  it('counts each live Request once and keeps exclusions out', async () => {
+    await insertRequest(ds, 'live-request', AGENT, afterCutoverTimestamp);
+    await insertAttempt(ds, 'live-attempt-1', {
+      requestId: 'live-request',
+      timestamp: afterCutoverTimestamp,
+    });
+    await insertAttempt(ds, 'live-attempt-2', {
+      requestId: 'live-request',
+      timestamp: afterCutoverTimestamp,
+    });
+    expect(await usageRow(ds)).toEqual({ count: 3, initialized: true });
+
+    await insertRequest(ds, 'live-playground', PLAYGROUND, afterCutoverTimestamp);
     await insertAttempt(ds, 'live-playground-attempt', {
       requestId: 'live-playground',
       agentId: PLAYGROUND,
+      timestamp: afterCutoverTimestamp,
+    });
+    await insertRequest(ds, 'live-manifest-rejection', AGENT, afterCutoverTimestamp);
+    await insertAttempt(ds, 'live-manifest-rejection-attempt', {
+      requestId: 'live-manifest-rejection',
+      timestamp: afterCutoverTimestamp,
+      errorOrigin: 'policy',
     });
 
-    expect(await usageCount(ds)).toBe(3);
+    expect(await usageRow(ds)).toEqual({ count: 3, initialized: true });
+  });
+
+  it('does not double-count historical attempts that are linked or retried after cutover', async () => {
     await insertRequest(ds, 'legacy-parent');
     await ds.query(
       `UPDATE "agent_messages"
@@ -172,37 +231,44 @@ describe('AddTenantRequestUsage migration (e2e)', () => {
       ['legacy-parent'],
     );
 
-    expect(await usageCount(ds)).toBe(3);
-    await insertRequest(ds, 'legacy-race-parent');
-    await insertAttempt(ds, 'legacy-race-attempt');
+    await insertAttempt(ds, 'seed-linked-post-cutover-fallback', {
+      requestId: 'seed-linked',
+      timestamp: afterCutoverTimestamp,
+    });
+    expect(await usageRow(ds)).toEqual({ count: 3, initialized: true });
+
+    const historicalRequests = await ds.query(
+      `SELECT "id", "quota_counted"
+         FROM "requests"
+        WHERE "id" IN ('legacy-parent', 'seed-linked')
+     ORDER BY "id"`,
+    );
+    expect(historicalRequests).toEqual([
+      { id: 'legacy-parent', quota_counted: false },
+      { id: 'seed-linked', quota_counted: true },
+    ]);
+  });
+
+  it('counts a post-cutover unlinked attempt when the request backfill links it', async () => {
+    await insertRequest(ds, 'live-link-parent', AGENT, afterCutoverTimestamp);
+    await insertAttempt(ds, 'live-link-attempt', { timestamp: afterCutoverTimestamp });
     await ds.query(
       `UPDATE "agent_messages"
           SET "request_id" = $1, "attempt_number" = 1
-        WHERE "id" = 'legacy-race-attempt'`,
-      ['legacy-race-parent'],
+        WHERE "id" = 'live-link-attempt'`,
+      ['live-link-parent'],
     );
 
-    expect(await usageCount(ds)).toBe(4);
-    const rows = await ds.query(
-      `SELECT "id", "quota_counted"
-         FROM "requests"
-        WHERE "id" IN ('live-request', 'live-playground', 'legacy-parent', 'legacy-race-parent')
-     ORDER BY "id"`,
-    );
-    expect(rows).toEqual([
-      { id: 'legacy-parent', quota_counted: true },
-      { id: 'legacy-race-parent', quota_counted: true },
-      { id: 'live-playground', quota_counted: false },
-      { id: 'live-request', quota_counted: true },
-    ]);
+    expect(await usageRow(ds)).toEqual({ count: 4, initialized: true });
+  });
 
-    const augustWindow = toSqlTimestamp(new Date(Date.UTC(2026, 7, 1)));
-    await insertRequest(ds, 'august-request', AGENT, '2026-08-15 12:00:00');
-    await insertAttempt(ds, 'august-attempt', {
-      requestId: 'august-request',
-      timestamp: '2026-08-15 12:00:00',
+  it('creates future quota windows fully initialized without a historical scan', async () => {
+    await insertRequest(ds, 'future-request', AGENT, futureTimestamp);
+    await insertAttempt(ds, 'future-attempt', {
+      requestId: 'future-request',
+      timestamp: futureTimestamp,
     });
 
-    expect(await usageCount(ds, augustWindow)).toBe(1);
+    expect(await usageRow(ds, futureWindow)).toEqual({ count: 1, initialized: true });
   });
 });
