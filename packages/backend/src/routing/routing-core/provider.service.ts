@@ -45,6 +45,12 @@ import { filterProvidersForDeployment } from '../../common/utils/provider-availa
 const MAX_KEYS_PER_PROVIDER = 5;
 const MAX_LABEL_LENGTH = 50;
 const DEFAULT_LABEL = 'Default';
+// Bounds for withSubscriptionCredentialLock's critical section (the provider
+// OAuth refresh HTTP call runs inside it). lock_timeout caps a second replica's
+// wait for the row lock; idle_in_transaction caps how long a hung refresh pins
+// the pooled connection.
+const SUBSCRIPTION_LOCK_TIMEOUT = '5s';
+const SUBSCRIPTION_REFRESH_IDLE_TIMEOUT = '20s';
 
 interface ProviderRouteReference {
   agentId: string;
@@ -253,7 +259,14 @@ export class ProviderService {
    * this lock so two instances cannot rotate the same refresh token.
    *
    * Keep the critical section short: re-read → maybe refresh → write. The
-   * provider HTTP call runs while the lock is held (simple and correct).
+   * provider refresh HTTP call runs while the lock is held (needed so two
+   * replicas cannot both rotate), so the section is BOUNDED: `lock_timeout`
+   * caps how long a second replica waits for the lock, and
+   * `idle_in_transaction_session_timeout` caps how long a hung refresh can pin
+   * this pooled connection — without them a stuck provider could hold a
+   * connection indefinitely and starve the pool. `SET LOCAL` scopes both to
+   * this transaction (the sanctioned pattern under PgBouncer, which strips the
+   * server defaults).
    */
   async withSubscriptionCredentialLock<T>(
     tenantId: string,
@@ -264,9 +277,18 @@ export class ProviderService {
       writeRaw: (raw: string) => Promise<void>;
     }) => Promise<T>,
   ): Promise<T> {
-    const wantedLabel = (label ?? DEFAULT_LABEL).toLowerCase();
-    return this.providerRepo.manager.transaction(async (manager) => {
+    // Trim before lowercasing to match normalizeLabel (which trims at store
+    // time) — a label carrying stray whitespace must still find its stored row,
+    // otherwise the lock misses an existing credential and a rotated token is
+    // discarded (bricking it).
+    const wantedLabel = (label ?? DEFAULT_LABEL).trim().toLowerCase();
+    let didWrite = false;
+    const result = await this.providerRepo.manager.transaction(async (manager) => {
       const repo = manager.getRepository(TenantProvider);
+      await manager.query(`SET LOCAL lock_timeout = '${SUBSCRIPTION_LOCK_TIMEOUT}'`);
+      await manager.query(
+        `SET LOCAL idle_in_transaction_session_timeout = '${SUBSCRIPTION_REFRESH_IDLE_TIMEOUT}'`,
+      );
       // Lock the matching subscription row for this tenant/provider/label.
       // LOWER(label) matches the unique index and pinned-route casing quirks.
       const row =
@@ -294,16 +316,40 @@ export class ProviderService {
               `No subscription credential row to persist for ${provider}/${wantedLabel}`,
             );
           }
-          row.api_key_encrypted = encrypt(raw, getEncryptionSecret());
-          row.key_prefix = raw.substring(0, 8);
-          row.updated_at = new Date().toISOString();
-          await repo.save(row);
-          // Bust key/provider caches so the next hop doesn't refresh from
-          // a pre-rotation blob.
-          this.routingCache.invalidateTenant(tenantId);
+          const encrypted = encrypt(raw, getEncryptionSecret());
+          const keyPrefix = raw.substring(0, 8);
+          const updatedAt = new Date().toISOString();
+          // Write inside a SAVEPOINT (nested transaction) so a transient save
+          // failure rolls back only this statement, not the whole locked
+          // transaction. A bare save on the outer tx would abort it, and the
+          // coordinator's persist retry — running on the same held lock — would
+          // then fail every attempt with "current transaction is aborted",
+          // silently discarding the already-rotated token (a brick).
+          await manager.transaction(async (sub) => {
+            await sub
+              .getRepository(TenantProvider)
+              .update(
+                { id: row.id },
+                { api_key_encrypted: encrypted, key_prefix: keyPrefix, updated_at: updatedAt },
+              );
+          });
+          // Keep the in-memory row consistent for any subsequent readFreshRaw.
+          row.api_key_encrypted = encrypted;
+          row.key_prefix = keyPrefix;
+          row.updated_at = updatedAt;
+          didWrite = true;
+          // Cache invalidation is deferred until AFTER commit (below).
+          // Invalidating here — before COMMIT — opens a window where a
+          // concurrent read re-caches the still-committed pre-rotation blob,
+          // which would then be refreshed again on the next hop.
         },
       });
     });
+    // Post-commit: the rotated blob is durable, so busting the cache now
+    // guarantees the next hop reads the new value and no reader can re-cache the
+    // old one.
+    if (didWrite) this.routingCache.invalidateTenant(tenantId);
+    return result;
   }
 
   async upsertProvider(
