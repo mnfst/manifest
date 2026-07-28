@@ -2,10 +2,7 @@ import { Injectable, Logger, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ResolveService } from '../resolve/resolve.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
-import {
-  ProviderKeyService,
-  SYNTHETIC_OLLAMA_PROVIDER_ID,
-} from '../routing-core/provider-key.service';
+import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { OpenaiOauthService } from '../oauth/openai/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
@@ -39,7 +36,6 @@ import {
   FailedFallback,
   normalizeProviderModel,
 } from './proxy-fallback.service';
-import { isRefreshableOAuthCredential, resolveApiKey } from './oauth-credentials';
 import {
   ProxyApiMode,
   ProxyRequestOptions,
@@ -57,6 +53,13 @@ import { ProviderParamSpecService } from '../routing-core/provider-param-spec.se
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
 import { formatManifestError, type ManifestErrorCode } from '../../common/errors/error-codes';
 import { ManifestError } from '../../common/errors/manifest-error';
+import {
+  buildCredentialFailureForward,
+  presentCredentialFailure,
+  resolveRouteCredentials,
+  type ResolvedRouteCredentials,
+  type RouteCredentialDeps,
+} from './route-credentials';
 import { peekStream, STREAM_WARMUP_MS } from './stream-warmup';
 import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
@@ -314,45 +317,12 @@ export class ProxyService {
       return this.buildNoProviderResult(stream, agentName);
     }
 
-    let route = resolved.route;
-    let credentials = await this.resolveCredentials(agentId, tenantId, {
+    const route = resolved.route;
+    const credentials = await this.resolveCredentials(agentId, tenantId, {
       provider: route.provider,
       auth_type: route.authType,
       provider_key_label: route.keyLabel ?? undefined,
     });
-    if (credentials === null) {
-      // The resolver elected this primary off the provider-key cache (a row
-      // exists and holds a key), but the stored credential didn't resolve —
-      // typically an OAuth subscription whose refresh token is dead. The
-      // fallback service already skips credential-less routes mid-chain, so
-      // give the configured fallbacks the same chance here instead of failing
-      // the request: promote the first one whose credentials resolve and keep
-      // the remainder as its fallback chain. M100 is reserved for a chain
-      // with no usable credentials anywhere.
-      const fallbacks = resolved.fallback_routes ?? [];
-      for (let i = 0; i < fallbacks.length && credentials === null; i++) {
-        const candidate = fallbacks[i];
-        const candidateCredentials = await this.resolveCredentials(agentId, tenantId, {
-          provider: candidate.provider,
-          auth_type: candidate.authType,
-          provider_key_label: candidate.keyLabel ?? undefined,
-        });
-        if (candidateCredentials === null) continue;
-        this.logger.warn(
-          `Primary ${route.provider}/${route.model} has no usable credentials for ` +
-            `agent=${agentId} — promoting fallback ${candidate.provider}/${candidate.model}`,
-        );
-        route = candidate;
-        credentials = candidateCredentials;
-        resolved.route = candidate;
-        resolved.fallback_routes = fallbacks.slice(i + 1);
-      }
-    }
-    if (credentials === null) {
-      const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
-      const content = formatManifestError('M100', { provider: route.provider, dashboardUrl });
-      return buildFriendlyResponse(content, stream, 'no_provider_key', 'M100');
-    }
 
     const primaryModel = normalizeProviderModel(route.provider, route.model);
     this.logger.log(
@@ -406,6 +376,64 @@ export class ProxyService {
           specs: primarySpecs,
         });
 
+    const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
+
+    // Credential resolution can fail before any provider HTTP call (missing
+    // key, or a subscription OAuth blob whose refresh token is dead). Treat
+    // that as a failed primary attempt with a real error body, then enter the
+    // same fallback chain as HTTP failures — do not silently promote a
+    // fallback to primary.
+    if (!credentials.ok) {
+      const credentialFailure = presentCredentialFailure(
+        credentials.reason,
+        route.provider,
+        dashboardUrl,
+      );
+      this.logger.warn(
+        `Primary ${route.provider}/${primaryModel} credentials unusable for ` +
+          `agent=${agentId} reason=${credentials.reason}`,
+      );
+      const forward = buildCredentialFailureForward({
+        provider: route.provider,
+        model: primaryModel,
+        authType: route.authType,
+        tenantProviderId: credentials.tenantProviderId,
+        presentation: credentialFailure,
+        startProviderAttempt,
+      });
+
+      if (!explicitModelOverride && paramMergeContext) {
+        const fallbackResult = await this.tryFallbackChain({
+          agentId,
+          tenantId,
+          resolved,
+          primaryModel,
+          forward,
+          body,
+          chatBody,
+          stream,
+          sessionKey,
+          signal,
+          signatureLookup,
+          thinkingLookup,
+          reasoningContentLookup,
+          apiMode,
+          paramMergeContext,
+          primaryTenantProviderId: credentials.tenantProviderId,
+          startProviderAttempt,
+          credentialDashboardUrl: dashboardUrl,
+        });
+        if (fallbackResult) return fallbackResult;
+      }
+
+      return buildFriendlyResponse(
+        credentialFailure.message,
+        stream,
+        credentialFailure.reason,
+        credentialFailure.code,
+      );
+    }
+
     let forward = await this.fallbackService.tryForwardToProvider({
       provider: route.provider,
       apiKey: credentials.apiKey,
@@ -418,7 +446,7 @@ export class ProxyService {
       agentId,
       tenantId,
       rawApiKey: credentials.rawApiKey,
-      providerKeyLabel: route.keyLabel ?? undefined,
+      providerKeyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
       authType: route.authType,
       apiMode,
       resourceUrl: credentials.resourceUrl,
@@ -507,6 +535,7 @@ export class ProxyService {
         paramMergeContext,
         primaryTenantProviderId: credentials.tenantProviderId,
         startProviderAttempt,
+        credentialDashboardUrl: dashboardUrl,
       });
       if (fallbackResult) {
         return {
@@ -606,6 +635,7 @@ export class ProxyService {
           paramMergeContext,
           primaryTenantProviderId: credentials.tenantProviderId,
           startProviderAttempt,
+          credentialDashboardUrl: dashboardUrl,
         });
         if (fallbackResult) {
           return {
@@ -720,7 +750,7 @@ export class ProxyService {
       auth_type: route.authType,
       provider_key_label: route.keyLabel ?? undefined,
     });
-    if (!credentials) return this.autofixReforwardError('no provider key for the healed model');
+    if (!credentials.ok) return this.autofixReforwardError('no provider key for the healed model');
     const model = normalizeProviderModel(route.provider, route.model);
     ctx.onRouteResolved?.({ resolved, model, tenantProviderId: credentials.tenantProviderId });
     const explicitModelOverride = resolved.explicit_model_override === true;
@@ -881,70 +911,32 @@ export class ProxyService {
     };
   }
 
-  private async resolveCredentials(
+  private routeCredentialDeps(): RouteCredentialDeps {
+    return {
+      providerKeyService: this.providerKeyService,
+      oauth: {
+        openaiOauth: this.openaiOauth,
+        minimaxOauth: this.minimaxOauth,
+        anthropicOauth: this.anthropicOauth,
+        geminiOauth: this.geminiOauth,
+        kiroOauth: this.kiroOauth,
+        xaiOauth: this.xaiOauth,
+      },
+    };
+  }
+
+  private resolveCredentials(
     agentId: string,
     tenantId: string,
     resolved: { provider: string; auth_type?: AuthType; provider_key_label?: string },
-  ): Promise<{
-    apiKey: string;
-    rawApiKey: string;
-    resourceUrl?: string;
-    providerRegion?: string | null;
-    tenantProviderId: string | null;
-  } | null> {
-    // Single key selection per request: apiKey, the stamped tenant_provider_id,
-    // and the region are all projected from this one row, so the forwarded
-    // key and the recorded connection can never come from different rows.
-    const key = await this.providerKeyService.selectProviderKey(
-      tenantId,
-      resolved.provider,
-      resolved.auth_type,
-      resolved.provider_key_label,
-      agentId,
-    );
-    if (!key || key.apiKey === null) return null;
-    const apiKey = key.apiKey;
-    // NULL for the synthetic Ollama tile — it has no persisted row, so
-    // stamping its id would violate the agent_messages FK.
-    const tenantProviderId = key.id === SYNTHETIC_OLLAMA_PROVIDER_ID ? null : key.id;
-
-    const unwrapped = await resolveApiKey(
-      resolved.provider,
-      apiKey,
-      resolved.auth_type,
+  ): Promise<ResolvedRouteCredentials> {
+    return resolveRouteCredentials(this.routeCredentialDeps(), {
       agentId,
       tenantId,
-      this.openaiOauth,
-      this.minimaxOauth,
-      this.anthropicOauth,
-      this.geminiOauth,
-      this.kiroOauth,
-      this.xaiOauth,
-      resolved.provider_key_label,
-    );
-    const unwrappedApiKey = unwrapped.apiKey;
-    if (unwrappedApiKey === null) return null;
-    let rawApiKey = apiKey;
-    if (resolved.auth_type === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
-      // Deliberate re-read: resolveApiKey may have refreshed + persisted a
-      // rotated OAuth blob (which also invalidates the key cache), so the
-      // freshest stored value is fetched for the 401-retry path.
-      rawApiKey =
-        (await this.providerKeyService.getProviderApiKey(
-          tenantId,
-          resolved.provider,
-          resolved.auth_type,
-          resolved.provider_key_label,
-          agentId,
-        )) ?? apiKey;
-    }
-    return {
-      apiKey: unwrappedApiKey,
-      rawApiKey,
-      resourceUrl: unwrapped.resourceUrl,
-      providerRegion: key.region,
-      tenantProviderId,
-    };
+      provider: resolved.provider,
+      authType: resolved.auth_type,
+      providerKeyLabel: resolved.provider_key_label,
+    });
   }
 
   private async tryFallbackChain(args: {
@@ -967,6 +959,8 @@ export class ProxyService {
      * its recorded primary-failure row to the connection that actually failed. */
     primaryTenantProviderId: string | null;
     startProviderAttempt?: StartProviderAttempt;
+    /** Dashboard URL embedded in mid-chain M100/M102 credential failure bodies. */
+    credentialDashboardUrl?: string;
   }): Promise<ProxyResult | null> {
     const {
       agentId,
@@ -1023,6 +1017,7 @@ export class ProxyService {
       args.paramMergeContext,
       args.reasoningContentLookup,
       args.startProviderAttempt,
+      args.credentialDashboardUrl,
     );
 
     this.recordTierIfScoring(sessionKey, resolved.tier);

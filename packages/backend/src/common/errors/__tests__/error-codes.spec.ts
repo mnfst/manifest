@@ -49,6 +49,16 @@ describe('formatManifestError', () => {
     expect(out).toContain('{dashboardUrl}');
   });
 
+  it('renders M102 for unusable subscription credentials', () => {
+    const out = formatManifestError('M102', {
+      provider: 'openai',
+      dashboardUrl: 'https://dash.example/routing',
+    });
+    expect(out).toContain('[🦚 Manifest M102]');
+    expect(out).toContain('openai subscription credentials could not be refreshed');
+    expect(out).toContain('https://dash.example/routing');
+  });
+
   it('appends the docs URL exactly once', () => {
     const out = formatManifestError('M500');
     const matches = out.match(/https:\/\/manifest\.build\/docs\/errors\/M500/g) ?? [];

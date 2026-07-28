@@ -731,7 +731,7 @@ describe('ProxyService — orchestration', () => {
   });
 
   describe('no credentials', () => {
-    it('returns the M100 friendly response', async () => {
+    it('returns the M100 friendly response when no key exists', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('openai', 'api_key', 'gpt-4o'),
@@ -744,9 +744,39 @@ describe('ProxyService — orchestration', () => {
       const result = await svc.proxyRequest(baseOpts());
       const body = await result.forward.response.text();
       expect(body).toContain('M100');
+      expect(body).toContain('No openai API key yet');
     });
 
-    it('promotes the first fallback with usable credentials instead of failing', async () => {
+    it('returns M102 when a subscription OAuth blob cannot be refreshed', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.5'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      // Valid compact OAuth blob shape — unwrapToken fails (dead refresh).
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: JSON.stringify({ t: 'access', r: 'refresh', e: 0 }),
+        id: 'up-oai',
+        region: null,
+        label: 'Default',
+        priority: 0,
+      });
+      openaiOauth.unwrapToken.mockResolvedValue(null);
+
+      const result = await svc.proxyRequest(baseOpts());
+      const body = await result.forward.response.text();
+
+      expect(body).toContain('M102');
+      expect(body).toContain('subscription credentials could not be refreshed');
+      expect(body).toContain('openai');
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+    });
+
+    it('enters the normal fallback chain when primary credentials fail', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('openai', 'subscription', 'gpt-5.5'),
@@ -758,62 +788,48 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      providerKeyService.selectProviderKey.mockImplementation((_tenant, provider) =>
-        Promise.resolve(
-          provider === 'minimax'
-            ? { apiKey: 'mk-key', id: 'up-mm', region: null, label: 'Default', priority: 0 }
-            : null,
-        ),
-      );
-      fallbackService.tryForwardToProvider.mockResolvedValue({
-        response: okResponse(200),
-        isGoogle: false,
-        isAnthropic: false,
-        isChatGpt: false,
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: JSON.stringify({ t: 'access', r: 'refresh', e: 0 }),
+        id: 'up-oai',
+        region: null,
+        label: 'Default',
+        priority: 0,
+      });
+      openaiOauth.unwrapToken.mockResolvedValue(null);
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: {
+            response: okResponse(200),
+            isGoogle: false,
+            isAnthropic: false,
+            isChatGpt: false,
+          },
+          model: 'MiniMax-M3',
+          provider: 'minimax',
+          fallbackIndex: 0,
+          authType: 'api_key',
+          tenantProviderId: 'up-mm',
+        },
+        failures: [],
       });
 
       const result = await svc.proxyRequest(baseOpts());
 
-      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
-        expect.objectContaining({ provider: 'minimax', model: 'MiniMax-M3', apiKey: 'mk-key' }),
-      );
+      // Primary is not rewritten to minimax — fallback chain is used instead.
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(fallbackService.tryFallbacks).toHaveBeenCalled();
+      const call = fallbackService.tryFallbacks.mock.calls[0];
+      expect(call[2]).toEqual(['MiniMax-M3', 'glm-5']); // fallback models
+      expect(call[6]).toBe('gpt-5.5'); // primary model
+      expect(call[8]).toBe('openai'); // primary provider
+      expect(call[9]).toBe('subscription');
+      expect(result.meta.fallbackFromModel).toBe('gpt-5.5');
+      expect(result.meta.provider).toBe('minimax');
+      expect(result.meta.primaryErrorBody).toContain('M102');
       expect(result.forward.response.status).toBe(200);
     });
 
-    it('skips credential-less fallbacks and promotes the first usable one', async () => {
-      resolveService.resolve.mockResolvedValue({
-        tier: 'standard',
-        route: route('openai', 'subscription', 'gpt-5.5'),
-        fallback_routes: [
-          route('minimax', 'api_key', 'MiniMax-M3'),
-          route('zai', 'api_key', 'glm-5'),
-        ],
-        confidence: 0.9,
-        score: 5,
-        reason: 'scored',
-      });
-      providerKeyService.selectProviderKey.mockImplementation((_tenant, provider) =>
-        Promise.resolve(
-          provider === 'zai'
-            ? { apiKey: 'zai-key', id: 'up-zai', region: null, label: 'Default', priority: 0 }
-            : null,
-        ),
-      );
-      fallbackService.tryForwardToProvider.mockResolvedValue({
-        response: okResponse(200),
-        isGoogle: false,
-        isAnthropic: false,
-        isChatGpt: false,
-      });
-
-      await svc.proxyRequest(baseOpts());
-
-      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
-        expect.objectContaining({ provider: 'zai', model: 'glm-5', apiKey: 'zai-key' }),
-      );
-    });
-
-    it('returns M100 for the primary provider when the whole chain is dry', async () => {
+    it('returns the primary M102 body when the fallback chain is exhausted', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('openai', 'subscription', 'gpt-5.5'),
@@ -822,13 +838,47 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      providerKeyService.selectProviderKey.mockResolvedValue(null);
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: JSON.stringify({ t: 'access', r: 'refresh', e: 0 }),
+        id: 'up-oai',
+        region: null,
+        label: 'Default',
+        priority: 0,
+      });
+      openaiOauth.unwrapToken.mockResolvedValue(null);
+      fallbackService.tryFallbacks.mockResolvedValue({ success: null, failures: [] });
 
       const result = await svc.proxyRequest(baseOpts());
       const body = await result.forward.response.text();
 
+      // Exhausted chain keeps the primary synthetic 401 (same as HTTP fallback
+      // exhaustion) — the M102 message is on the body for attempt recording.
+      expect(result.forward.response.status).toBe(401);
+      expect(body).toContain('M102');
+      expect(body).toContain('openai');
+      expect(fallbackService.tryFallbacks).toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+    });
+
+    it('returns the primary M100 body when the whole chain is dry (no keys)', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-5.5'),
+        fallback_routes: [route('minimax', 'api_key', 'MiniMax-M3')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      providerKeyService.selectProviderKey.mockResolvedValue(null);
+      fallbackService.tryFallbacks.mockResolvedValue({ success: null, failures: [] });
+
+      const result = await svc.proxyRequest(baseOpts());
+      const body = await result.forward.response.text();
+
+      expect(result.forward.response.status).toBe(401);
       expect(body).toContain('M100');
       expect(body).toContain('openai');
+      expect(fallbackService.tryFallbacks).toHaveBeenCalled();
       expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
     });
   });

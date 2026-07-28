@@ -35,6 +35,11 @@ export const MANIFEST_ERRORS = {
     title: 'No providers configured',
     template: "You're connected, but no providers are set up yet. Add one here: {dashboardUrl}",
   },
+  M102: {
+    title: 'Provider subscription credentials unusable',
+    template:
+      '{provider} subscription credentials could not be refreshed. Reconnect OAuth here: {dashboardUrl}',
+  },
   M200: {
     title: 'Usage limit exceeded',
     template:
