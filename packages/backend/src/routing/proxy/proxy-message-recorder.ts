@@ -340,6 +340,7 @@ function buildRequestRow(
         ? attempt.error_message
         : FAILED_WITHOUT_MESSAGE
       : null;
+  const timestamp = attempt.timestamp ?? new Date().toISOString();
   return {
     id: requestId,
     tenant_id: ctx.tenantId,
@@ -349,7 +350,7 @@ function buildRequestRow(
     trace_id: attempt.trace_id ?? null,
     session_key: attempt.session_key ?? null,
     session_id: attempt.session_id ?? null,
-    timestamp: attempt.timestamp ?? new Date().toISOString(),
+    timestamp,
     duration_ms: attempt.duration_ms ?? null,
     status,
     autofix_status: deriveAutofixStatus(autofix),

@@ -153,6 +153,13 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    // A newer quota-counter migration attaches a trigger to request_id. In a
+    // full-schema test or manual out-of-order rollback, remove it before the
+    // column so this historical down migration remains usable.
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS "TRG_agent_messages_count_tenant_request_usage" ON "agent_messages"`,
+    );
+    await queryRunner.query(`DROP FUNCTION IF EXISTS "count_tenant_request_usage"()`);
     await queryRunner.query(
       `DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_unlinked_fallback"`,
     );
